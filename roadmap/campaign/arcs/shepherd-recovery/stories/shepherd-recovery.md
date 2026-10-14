@@ -4,7 +4,7 @@ Status: IN PROGRESS — all three contracts and fleet handover implemented; live
 
 Written: 2026-10-12
 
-Updated: 2026-10-13 — Castle bargains for Vale's tender after the direct freight sequence; live campaign and audio-mix acceptance remain.
+Updated: 2026-10-13 — ownership negotiation follows completed Cold Start at the first Working Passage briefing; live acceptance remains.
 
 ## Placement and employer
 
@@ -63,26 +63,23 @@ cutting stations, parked collection vehicles and removed components rather than
 another generic military base. They are opportunists exploiting the gap, not
 another secret arm of Sable Wake. There is no capital-ship rescue waiting offscreen.
 
-The cooperative already holds the hull's recovery claim. Vale does not open by
-offering Morrow as a prize. Castle proposes the damaged tender in place of a third
-cash fee. Vale objects that she still owns the ship and its repair cost is unknown;
-Castle cites the company's experience getting Second Wind flying. Continued
-security for Vale's fitters and haul road earns the concession, not a claim that
-Castle already knows the wreck's hidden worth. The cooperative
-supplies engineers and replacement machinery, gets its corridor reopened and
-retains the fixed installations; the company keeps the repaired Shepherd and its
-drone workshop. The agreement is explicit before the first drop. Securing the
-wreck alone grants a protected claim, not a functioning ship in the fleet.
-The cash terms are 18,000 credits for the accepted inspection and 22,000 for the
-completed repair. Morrow is the final payment in kind after physical departure;
-there is no additional departure fee. Castle negotiates for company income and
-a potentially useful asset, not a charitable salvage expedition. Vale commits her
-own people, tools and holders to regain access to the shipment and get it moving.
-Morrow's eventual utility as the company's mobile construction workshop emerges
-through inspection and a working gun in Cold Start. Vale understands her ordinary
-yard equipment; she need not foresee its value to this company's tactics. Concern
-for casualties remains personal and practical, with no new
-casualty bonus or penalty.
+Basin owns Morrow throughout inspection and repair. The original contract pays
+18,000 credits to secure its yard and protect the inspection, then 22,000 credits
+to protect Basin's repair crew. Basin supplies parts, engineers and equipment to
+repair its own tender; its militia originally cover the outer road. Neither job
+creates a player claim on the hull.
+
+Completed Cold Start demonstrates the repaired drone bay's usefulness to the
+company. Its debrief establishes that repairs are finished but additional combat
+and construction are needed to reopen the haul road for Vale's waiting shipment.
+At the first Working Passage briefing, Vale offers payment after shipment dispatch
+or a loan. Castle asks for Morrow as the fee for this new work, having seen what
+her bay can do. Basin keeps
+the Colossus and its contents, yard, built defenses and road secured by its militia.
+The agreement covers construction, repairs and defensive positions without
+promising a fixed number of guns. Morrow and her consenting working crew transfer
+only after actual physical departure; there is no departure cash fee. Casualties
+remain personal and practical concerns, with no new bonus or penalty.
 
 A much larger broken **Colossus** rests against the northern rear canyon wall.
 The cooperative found a shipment in its sealed hold before the evacuation. Vale
@@ -165,15 +162,15 @@ remote and piloted travel. Repair completion does not shrink her to overhead sca
 
 ## 1 — Salvage Rights
 
-**Promise:** take a useful wreck, not a pile of loot. Teach clearing the ground
-around an asset and handing a secured position to allied holders.
+**Promise:** regain Basin's working yard and protect its inspection. Teach clearing
+ground around an employer asset and handing a secured position to allied holders.
 
 Vale begins with the shipment and the crew now occupying her yard. Castle notices
 the missing manifest; Vale leaves the cargo to her own handlers and limits the
-company's role to security. Castle then introduces Morrow into the terms. Vale
-requires security through the road clearance and physical departure. The offer's
-readout states the two cash fees and conditional handover. Immediate instructions
-remain receiving store, workshop, then a protected hull inspection.
+company's role to security. Morrow remains Basin's tender. The offer readout
+states 18,000 credits for the yard inspection and 22,000 for protecting Basin's
+repair crew. Immediate instructions remain receiving store, workshop, then a
+protected hull inspection. No ownership negotiation precedes these jobs.
 
 Beat order:
 
@@ -187,26 +184,22 @@ Beat order:
    does not finish it.
 4. Engineers confirm that the drone bay is recoverable. Company can withdraw;
    Vale's people hold the secured yard between missions. Persistence records the
-   recovery claim, not a free fleet member.
+   Basin yard claim and inspection milestone, not a player hull claim.
 
-**Castle, hull secured:** “The fitters think they can save her workshop. Are we
-still agreed?”
+**Castle, hull secured:** “The fitters think they can save her workshop. What do
+they need?”
 
-**Vale:** “Yes. I've got people waiting to move that shipment. I'd rather you kept
-yours here than went looking for another contract.”
+**Vale:** “Shore power, and room to work. I've put the parts aside.”
 
-**Castle:** “Then keep the fitters on her. I'd like to know what we've put our name to.”
-
-**Vale:** “They'll need shore power before they can tell you much more. I've put
-the parts aside.”
+**Castle:** “Then we'll keep the yard clear while they get a look.”
 
 **Vale, first sight of the hull:** “Her crew put her down there with half the
 controls dead. Some of them are on the repair team. They know what can be saved.”
 
 **Castle:** “Then we keep the cutters away from her until they get a look.”
 
-These are text-only story hooks and a written Castle/Vale recovery agreement.
-No new recordings are included. The paid claim closes this chapter; failed attempts
+These are text-only story hooks; ownership terms belong to Working Passage.
+No new recordings are included. The paid inspection closes this chapter; failed attempts
 retain confirmed inspection casualties and send a replacement party on a new attempt.
 
 ## 2 — Cold Start
@@ -244,23 +237,30 @@ Beat order:
    task. Field-completed milestones persist on a retry; unfinished work remains.
    A stopped task resumes only while its living crew and location are safe.
 
-**Castle, first gun debrief:** “I was hoping for another workshop. Now I'm
-thinking about all the places we've had to hold with a handful of rifles.”
+**Castle, repair debrief:** “That bay could keep a position working with a
+handful of rifles. Is she ready to leave?”
 
-**Vale:** “They've been keeping this yard together for years. Just don't take her
-anywhere yet. I've got haulers waiting for that road.”
+**Vale:** “The repairs are done. The road isn't. I've got haulers waiting for it,
+and my militia can't open it on their own.”
 
-The settlement readout accounts for payment and remaining work. Castle asks
-whether the ship can leave; Vale explains how to bring her out and why she needs
-holders left on that road. After company or technician losses, Castle instead
-asks for time before the next commitment. Retained delivery and power milestones
-are respected by returning briefings, including withholding an obsolete recorded
-delivery instruction. Existing recordings remain separate from these written exchanges.
+The settlement readout pays the agreed 22,000 credits and identifies road reopening
+as additional work to discuss next. Ownership negotiation waits for the first
+Working Passage briefing. After company or technician losses, Castle asks for time
+before the next commitment. Returning briefings respect retained delivery and power
+milestones, including withholding obsolete recorded delivery instructions. Existing
+recordings remain separate from these written exchanges.
 
 ## 3 — Working Passage
 
 **Promise:** carry your own means of holding ground. The payoff is a coordinated
 advance by infantry, militia and workshop ship, not a capital gun run.
+
+The first briefing negotiates additional combat and construction to reopen the
+road. Vale offers payment after shipment dispatch or a loan; Castle asks for Morrow
+as the new fee after seeing her bay work. Basin retains the Colossus and contents,
+yard, built defenses and militia-secured road. Morrow and willing crew transfer only
+after physical departure. The agreement promises construction, repair and defensive
+positions, without a fixed gun count. Returning briefings respect these terms.
 
 **Briefing — Vale:** “Morrow can hover, but I will not trust the repaired drives
 to a climb inside this basin. Walk her out past the pumps and through the narrows.
@@ -375,10 +375,13 @@ the duration targets remain tuning goals until measured playback and live review
   Its detached expected company has 24 service-grade pulse rifles with starting
   Ward armor and no Hound or officer bonuses; it does not change new-company issue.
   Cold Start pays 22,000 credits only on an accepted repair victory.
-- The first twelve recorded Castle/Vale beats cover Cold Start's ground opening,
-  power, completed gun and repair, plus Working Passage's briefing, underway report,
-  build instructions, confirmed militia holds, departure and transfer. Vale's chosen
-  voice is retained for later scripts; remaining beats stay text-only. Check names,
+- Retained Castle/Vale recordings cover the unchanged Salvage Rights opening and
+  instructions, Cold Start's ground opening, power, completed gun and repair, and
+  Working Passage's underway report, build instructions, confirmed militia holds,
+  departure and transfer. The new inspection scope and post-repair negotiation are
+  text-only; obsolete early-bargain and passage-introduction takes remain in the
+  source archive but are not registered for playback. Existing character voices
+  are retained for the revised script. Check names,
   delivery and intelligibility against the live mix before release. The construction
   drones have finite positional machinery cues; live swarm and accelerated-time
   listening remain acceptance work.

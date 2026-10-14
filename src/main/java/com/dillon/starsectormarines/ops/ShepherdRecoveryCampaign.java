@@ -21,20 +21,35 @@ public final class ShepherdRecoveryCampaign {
     public static final List<MissionDialogue.Turn> BRIEF_TURNS = List.of(
             new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageBriefTurn1", "basin_salvage_briefing_01"),
             new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdSalvageBriefTurn2", "basin_salvage_briefing_02"),
-            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageBriefTurn3", "basin_salvage_briefing_03"),
-            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdSalvageBriefTurn4", "basin_salvage_briefing_04"),
-            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageBriefTurn5", "basin_salvage_briefing_05"),
-            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdSalvageBriefTurn6", "basin_salvage_briefing_06"),
-            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageBriefTurn7", "basin_salvage_briefing_07"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageScope", "basin_salvage_scope_01"),
             new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageBriefTurn8", "basin_salvage_briefing_08"));
     public static String brief() { return MissionDialogue.transcript(BRIEF_TURNS); }
-    public static final String COLD_BRIEF="Tamsin Vale: I've got the distribution rig waiting at the apron. Get it to the workshop, then clear the pump station for our technicians. Once they've connected shore power, we'll see what Morrow's builders can still do. The yard lights should come back with them. "
-            +"There's ground outside her east bay for a road gun. Select Build Vulcan Turret and choose a clear spot the builders can reach. Keep them covered while they work; we'll need that gun while the fitters finish inside. "
-            +"I've only a few people on the south haul and quarry roads. Don't leave them out there alone if the scrappers push through. Help them back to the inner line. "
-            +"If we have to stop, we won't have to redo a finished delivery or power connection. I'd rather send for another repair party than lose this one trying to hurry.";
-    public static final String PASSAGE_BRIEF="Tamsin Vale: She's holding a hover. That's as far as I'm willing to trust her in the cradle. Bring her out along the road; there's room to test the drives in the eastern yard. "
-            +"Clear the pump bend and give her builders a place to put a gun. Select Build Vulcan Turret on clear ground within reach of the ship. Then do the same at the narrows. I'll send holders in behind you; I need those turns clear for our haulers. Keep the company with her until the drive test is finished and she's away. "
-            +"Once she's clear, Castle can finish the transfer. We'll make up her crew from the hands who want to stay with her. If the drives give out, break off. We'll bring her back and put her right before you try again.";
+    public static final String COLD_BRIEF = "@shepherdColdBrief";
+    public static final List<MissionDialogue.Turn> PASSAGE_TURNS = List.of(
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdPassageNegotiation1", "basin_passage_negotiation_01"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdPassageNegotiation2", "basin_passage_negotiation_02"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdPassageNegotiation3", "basin_passage_negotiation_03"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdPassageNegotiation4", "basin_passage_negotiation_04"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdPassageNegotiation5", "basin_passage_negotiation_05"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdPassageNegotiation6", "basin_passage_negotiation_06"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdPassageNegotiation7", "basin_passage_negotiation_07"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdPassageNegotiation8", "basin_passage_negotiation_08"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdPassageNegotiation9", "basin_passage_negotiation_09"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdPassageNegotiation10", "basin_passage_negotiation_10"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdPassageNegotiation11", "basin_passage_negotiation_11"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdPassageNegotiation12", "basin_passage_negotiation_12"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdPassageNegotiation13", "basin_passage_negotiation_13"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdPassageNegotiation14", "basin_passage_negotiation_14"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdPassageNegotiation15", "basin_passage_negotiation_15"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdPassageNegotiation16", "basin_passage_negotiation_16"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdPassageNegotiation17", "basin_passage_negotiation_17"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdPassageNegotiation18", "basin_passage_negotiation_18"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdPassageNegotiation19", "basin_passage_negotiation_19"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdPassageNegotiation20", "basin_passage_negotiation_20"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdPassageNegotiation21", "basin_passage_negotiation_21"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdPassageNegotiation22", "basin_passage_negotiation_22"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdPassageNegotiation23", "basin_passage_negotiation_23"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdPassageInstructions", "basin_passage_instructions_01"));
     private ShepherdRecoveryCampaign(){}
     public static ShepherdRecoveryProgress current(){
         var script=Global.getSector()==null?null:CampaignStateScript.getInstance();
@@ -60,27 +75,36 @@ public final class ShepherdRecoveryCampaign {
     }
     public static Mission offer(ShepherdRecoveryProgress p,String planet){
         if(p==null||p.departed())throw new IllegalArgumentException("No open recovery claim");
-        return Mission.builder().id(p.missionId()).name(p.repaired()?"Working Passage":p.claimSecured()?"Cold Start":"Salvage Rights").source(MissionSource.STORY)
+        return Mission.builder().id(p.missionId()).name(p.repaired()?Strings.get("shepherdMissionPassage"):p.claimSecured()?Strings.get("shepherdMissionCold"):Strings.get("shepherdMissionSalvage")).source(MissionSource.STORY)
                 .type(MissionType.ASSAULT).tier(OperationTier.ESTABLISHED).risk(RiskLevel.MEDIUM)
                 .payout(p.payment()).targetPlanetName(planet).defenderFactionOverride("pirates")
                 .dialogue(briefingTurns(p))
-                .requirements((p.repaired()?"Repaired hull ready for departure. Confirmed previous militia losses: "+p.departureLosses()+". Vale supplies new cooperative holders. ":p.claimSecured()?(p.cargoDelivered()?"Distribution rig delivered. ":"Distribution rig awaiting escort. ")+(p.shorePower()?"Yard lights and shore power online. ":"Shore power disconnected. ")+(p.repairLosses()>0?"Confirmed repair crew losses: "+p.repairLosses()+". A replacement party is assigned. ":""):"")+"Two squads recommended; two with at least four ready marines each required. "+(p.claimSecured()&&!p.repaired()?"Your selected squads begin on the secured receiving apron; company boats stay in reserve. ":"Company boats carry your selected squads. ")+"An owned mech is optional. "+(p.claimSecured()&&!p.repaired()?"Fourteen cooperative militia support the operation: eight inner holders and two three-person outer pickets. ":"Eight cooperative militia support the operation. ")+"Inspection and repair chapters also include two technicians.")
+                .requirements(requirements(p))
                 .requiredDrops(4).employerShuttles(0).marineArrivalPolicy(p.claimSecured()&&!p.repaired()?MarineArrivalPolicy.SECURED_GROUND:MarineArrivalPolicy.PAIRED_HALF_SQUAD)
                 .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED).battleSeed(14101L).build();
     }
+    private static String requirements(ShepherdRecoveryProgress progress) {
+        if (progress.repaired()) return Strings.format("shepherdPassageStatus", progress.departureLosses())
+                + Strings.get("shepherdPassageTerms") + Strings.get("shepherdForceRequirement")
+                + Strings.get("shepherdPassageDeployment");
+        if (!progress.claimSecured()) return Strings.get("shepherdSalvageTerms")
+                + Strings.get("shepherdForceRequirement") + Strings.get("shepherdInspectionDeployment");
+        return Strings.get(progress.cargoDelivered() ? "shepherdColdStatusDelivered" : "shepherdColdStatusUndelivered")
+                + Strings.get(progress.shorePower() ? "shepherdColdStatusPowered" : "shepherdColdStatusUnpowered")
+                + (progress.repairLosses() > 0 ? Strings.format("shepherdColdReplacementParty", progress.repairLosses()) : "")
+                + Strings.get("shepherdColdTerms") + Strings.get("shepherdForceRequirement")
+                + Strings.get("shepherdColdDeployment");
+    }
     private static List<MissionDialogue.Turn> briefingTurns(ShepherdRecoveryProgress progress) {
-        var turns = new ArrayList<>(progress.repaired() ? MissionDialogue.legacyTurns(PASSAGE_BRIEF)
-                : progress.claimSecured() ? MissionDialogue.legacyTurns(repairBrief(progress)) : BRIEF_TURNS);
+        var turns = new ArrayList<>(progress.repaired() ? (progress.departureFailures() > 0 ? List.of(new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdPassageRetry")) : PASSAGE_TURNS)
+                : progress.claimSecured() ? List.of(new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", repairBrief(progress))) : BRIEF_TURNS);
         if (progress.inspectionLosses() > 0) turns.add(MissionDialogue.prose(
                 Strings.format("shepherdInspectionLosses", progress.inspectionLosses())));
         return List.copyOf(turns);
     }
     private static String repairBrief(ShepherdRecoveryProgress progress) {
         if (!progress.cargoDelivered()) return COLD_BRIEF;
-        return "Tamsin Vale: The distribution rig is still at the workshop. "
-                + (progress.shorePower()?"Shore power is holding and Morrow's builders are ready. ":"Cover the pump crew while they restore shore power. ")
-                + "I've put another party together. Same terms, Castle; you haven't lost your claim on her. Bring the company back when you've had time to replace what you need. "
-                + "We'll need a new road gun. Select Build Vulcan Turret and choose clear ground outside Morrow's east bay, then keep the fitters covered while they finish the workshop. Watch our pickets on both haul roads. If they have to come in, help them back to the inner line.";
+        return progress.shorePower() ? "@shepherdColdRetryPowered" : "@shepherdColdRetryUnpowered";
     }
     static ShepherdRecoveryProgress requireCurrent(Mission m){
         var p=current();var d=destination();

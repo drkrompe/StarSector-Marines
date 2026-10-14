@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.UiElement;
@@ -269,6 +270,12 @@ final class BriefingViewModel {
     }
 
     static void putReward(Map<String, Object> props, Mission mission) {
+        if (ShepherdRecoveryCampaign.isBattle(mission) && ShepherdRecoveryProgress.workingPassage(mission.id)) {
+            props.put("rewardHeader", Strings.get("shepherdRewardHeader"));
+            props.put("rewardValue", Strings.get("shepherdRewardShip"));
+            props.put("rewardTerms", Strings.get("shepherdRewardHandover"));
+            return;
+        }
         int multiplier = mission.cashMultiplier & 0xff;
         if (multiplier == 0) multiplier = 100;
         long payment = (long) mission.payout * multiplier / 100;
