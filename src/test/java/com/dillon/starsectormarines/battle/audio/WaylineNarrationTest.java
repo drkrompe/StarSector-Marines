@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.audio;
 
 import com.dillon.starsectormarines.ops.DebugMissionCatalog;
+import com.dillon.starsectormarines.ops.ShepherdRecoveryCampaign;
+import com.dillon.starsectormarines.ops.MissionDialogue;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import com.dillon.starsectormarines.ops.Mission;
@@ -26,28 +28,60 @@ import java.util.HexFormat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class WaylineNarrationTest {
-    @Test void salvageScopeRetainsMatchingAudioAndResolvesTranslationsAtPresentation() throws Exception {
+    @Test void recoveryBriefingsShareOrderedLocalizedTurnsAndOnlyMatchingAudio() throws Exception {
         var catalog = catalog();
-        var turns = catalog.briefing("story_shepherd_salvage");
-        assertEquals(List.of("basin_salvage_briefing_01", "basin_salvage_briefing_02",
-                "basin_salvage_scope_01", "basin_salvage_briefing_08"),
-                turns.stream().map(WaylineNarration.Line::id).toList());
+        var chapters = List.of("story_shepherd_salvage", "story_shepherd_cold_start", "story_shepherd_working_passage");
+        var scripts = List.of(ShepherdRecoveryCampaign.BRIEF_TURNS, ShepherdRecoveryCampaign.COLD_TURNS,
+                ShepherdRecoveryCampaign.PASSAGE_TURNS);
         try (var translation = new HeadlessStrings(Path.of("mod"), value -> "Translated " + value)) {
-            for (int index = 0; index < turns.size(); index++) {
-                var turn = turns.get(index);
-                assertEquals(List.of("briefing.01", "briefing.02", "briefing.03", "briefing.08").get(index), turn.event());
-                assertEquals(Strings.get(List.of("shepherdSalvageBriefTurn1", "shepherdSalvageBriefTurn2",
-                        "shepherdSalvageScope", "shepherdSalvageBriefTurn8").get(index)), turn.text());
-                assertTrue(turn.text().startsWith("Translated "));
-                assertEquals(index != 2, turn.voiced());
-                assertEquals(index == 1
-                        ? "graphics/portraits/castle.png" : "graphics/portraits/tamsin-vale.png", turn.portrait());
+            for (int chapter = 0; chapter < chapters.size(); chapter++) {
+                var turns = catalog.briefing(chapters.get(chapter));
+                var script = scripts.get(chapter);
+                assertEquals(script.stream().map(MissionDialogue.Turn::narrationId).toList(),
+                        turns.stream().map(WaylineNarration.Line::id).toList());
+                assertTrue(script.stream().anyMatch(turn -> turn.speakerKey().equals("castle")));
+                assertTrue(script.stream().anyMatch(turn -> turn.speakerKey().equals("vale")));
+                for (int index = 0; index < turns.size(); index++) {
+                    var turn = turns.get(index);
+                    assertEquals("briefing.%02d".formatted(index + 1), turn.event());
+                    assertEquals(Strings.resolve(script.get(index).text()), turn.text());
+                    assertTrue(turn.text().startsWith("Translated "));
+                    assertEquals(turn.id().equals("basin_salvage_briefing_08"), turn.voiced());
+                    assertEquals(MissionDialogue.speakerPortrait(script.get(index).speakerKey()), turn.portrait());
+                }
             }
-            assertEquals("Literal survives", new WaylineNarration.Line("literal", "chapter", "briefing",
-                    "Literal survives", 2, 1, 10, List.of()).text());
         }
         try (var original = new HeadlessStrings(Path.of("mod"))) {
-            assertFalse(turns.get(0).text().startsWith("Translated "), "Catalog must not freeze translation");
+            assertFalse(catalog.briefing(chapters.get(0)).get(0).text().startsWith("Translated "),
+                    "Catalog must not freeze translation");
+        }
+    }
+
+    @Test void localizedRecoverySourcesAndRecordingReviewCatalogsStayInSync() throws Exception {
+        JSONObject root = new JSONObject(Files.readString(Path.of("mod", WaylineNarration.PATH)));
+        var entries = root.getJSONArray("lines");
+        try (var original = new HeadlessStrings(Path.of("mod"))) {
+            for (int i = 0; i < entries.length(); i++) {
+                var entry = entries.getJSONObject(i);
+                if (!entry.getString("missionId").startsWith("story_shepherd_")) continue;
+                if (!entry.optString("textKey").isBlank())
+                    assertEquals(Strings.get(entry.getString("textKey")), entry.getString("text"), entry.getString("id"));
+                assertTrue(entry.getString("synthesisText").contains(entry.getString("text")));
+            }
+        }
+        for (String name : List.of("salvage-briefing", "cold-start-briefing", "working-passage")) {
+            var review = new JSONObject(Files.readString(Path.of("art-source/audio/shepherd/" + name + "-recording-catalog.json")))
+                    .getJSONArray("lines");
+            for (int i = 0; i < review.length(); i++) {
+                var reviewed = review.getJSONObject(i);
+                JSONObject runtime = null;
+                for (int j = 0; j < entries.length(); j++)
+                    if (entries.getJSONObject(j).getString("id").equals(reviewed.getString("id"))) runtime = entries.getJSONObject(j);
+                assertNotNull(runtime);
+                for (String key : List.of("textKey", "text", "synthesisText", "speaker", "voiceId", "event"))
+                    assertEquals(runtime.getString(key), reviewed.getString(key), reviewed.getString("id") + " / " + key);
+                assertEquals(runtime.getBoolean("voiced"), reviewed.getBoolean("voiced"));
+            }
         }
     }
 
@@ -67,7 +101,8 @@ class WaylineNarrationTest {
                         ? "graphics/portraits/castle.png" : "graphics/portraits/tamsin-vale.png", turn.portrait());
             }
         }
-        Set<String> retired = Set.of("basin_salvage_briefing_03", "basin_salvage_briefing_04",
+        Set<String> retired = Set.of("basin_salvage_briefing_01", "basin_salvage_briefing_02",
+                "basin_salvage_scope_01", "basin_salvage_briefing_03", "basin_salvage_briefing_04",
                 "basin_salvage_briefing_05", "basin_salvage_briefing_06",
                 "basin_salvage_briefing_07", "basin_passage_briefing");
         assertFalse(catalog.lines().stream().anyMatch(line -> retired.contains(line.id())));
@@ -82,7 +117,8 @@ class WaylineNarrationTest {
         var tactical = new WaylineNarration.Line("battle", "chapter", "contact", "Battle", 2, 1, 10, List.of());
         var other = new WaylineNarration.Line("other", "other", "briefing", "Other", 2, 1, 10, List.of());
         var catalog = new WaylineNarration(List.of(first, tactical, other, second));
-        assertEquals(List.of(first, second), catalog.briefing("chapter"));
+        assertEquals(List.of(second), catalog.briefing("chapter"));
+        assertSame(first, catalog.find("chapter", "briefing"), "Legacy opening remains dispatchable in battle");
         assertEquals(List.of(other), catalog.briefing("other"));
         assertTrue(catalog.briefing(null).isEmpty());
         assertEquals(first, catalog.find("chapter", "briefing"));
@@ -93,8 +129,8 @@ class WaylineNarrationTest {
         for (int i = 0; i < entries.length(); i++) {
             var entry = entries.getJSONObject(i);
             if (!entry.getString("missionId").startsWith("story_shepherd_")) continue;
-            boolean recorded = entry.getString("id").startsWith("basin_salvage_briefing_") || List.of("basin_briefing", "basin_cold_start_turret_ready", "basin_passage_underway",
-                    "basin_cold_start_power_restored", "basin_cold_start_complete",
+            boolean recorded = entry.getString("id").equals("basin_salvage_briefing_08") || List.of("basin_briefing", "basin_cold_start_turret_ready", "basin_passage_underway",
+                    "basin_cold_start_power_restored",
                     "basin_passage_bend_build", "basin_passage_militia_hold_0", "basin_passage_narrows_build",
                     "basin_passage_militia_hold_1", "basin_passage_departure", "basin_passage_complete")
                     .contains(entry.getString("id"));
@@ -151,11 +187,18 @@ class WaylineNarrationTest {
                 DebugMissionCatalog.Scenario.COLD_START.mission()));
         var catalog = catalog();
         assertTrue(catalog.find(chapter, "briefing").voiced());
+        assertFalse(catalog.briefing(chapter).stream().anyMatch(line -> line.id().equals("basin_briefing")),
+                "The legacy battle opening is not a turn in the authored briefing");
+        var openingLog = new StoryBeatLog();
+        openingLog.emitOnce(1, "briefing", StoryBeatLog.Audience.PLAYER);
+        var openingQueue = new StoryNarrationQueue(catalog, chapter);
+        openingQueue.advance(0, openingLog.events(), false);
+        assertEquals("basin_briefing", openingQueue.poll().id());
         for (String event : List.of("convoy_arrived", "workshop", "pump_started", "power_restored",
                 "turret_ready", "complete", "crew_lost", "carrier_lost", "approach")) {
             var line = catalog.find(chapter, "cold_start." + event);
             assertNotNull(line);
-            assertEquals(List.of("power_restored", "turret_ready", "complete").contains(event), line.voiced());
+            assertEquals(List.of("power_restored", "turret_ready").contains(event), line.voiced());
         }
         assertTrue(catalog.find(chapter, "cold_start.power_restored").text().contains("Build Vulcan Turret"));
     }
@@ -205,7 +248,7 @@ class WaylineNarrationTest {
             assertEquals(1, matching);
             for (String prior : line.supersedes()) assertNotNull(catalog.find(line.missionId(), prior), line.id() + " supersedes " + prior);
         }
-        assertEquals(134, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
+        assertEquals(131, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
         assertEquals(catalog.lines().size(), ids.size());
     }
 

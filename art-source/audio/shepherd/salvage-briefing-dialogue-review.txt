@@ -1,36 +1,47 @@
-SALVAGE BRIEFING / SCRIPT REVIEW
-Opening paid inspection; retained takes 01, 02 and 08; new scope line unrecorded
-Salvage Rights is paid recovery and inspection. Cold Start pays repair cover.
-Ship terms are negotiated only after Cold Start, in Working Passage. No fixed gun count is promised.
-Vale retains the Colossus, its shipment and the built defenses. Morrow transfers after handover and physical departure, with willing crew.
-CASTING: Vale candidate 3 / cZH6erlGkOyAQheipyno; Castle / cuwCdnt9CKAB9XrTA1j0.
-Model: eleven_v4. Existing voice settings retained. New turns are text-only; durations are reading estimates.
-No new recordings generated. Superseded source takes and receipts are preserved, with playback registrations removed.
-Unchanged opening recordings 01, 02, 08 remain. New scope and negotiation lines require recording before voiced=true.
-Dry run: python art-source/audio/shepherd/record-salvage-briefing.py --chapter salvage
-Paid generation is a separate authoring action: --generate. --line selects a specific line; no replacement flag.
-Voice guidance: https://elevenlabs.io/docs/overview/capabilities/text-to-speech/best-practices
+basin_salvage_wreckfall_01 / TAMSIN VALE / BASIN RECLAMATION
+Mara said you'd seen the survey. That Colossus against the north wall came down three cycles ago, after a fight in low orbit. Her escorts are scattered across Asharu.
 
-basin_salvage_briefing_01 [RETAINED / TAKE 1]
-Speaker: TAMSIN VALE / BASIN RECLAMATION
-Subtitle key: shepherdSalvageBriefTurn1
-Text: We found a shipment in the Colossus. The hold was still sealed. Then the shooting started, and I had to get my people out. There's another crew in there now. They say we abandoned it.
-Voice: cZH6erlGkOyAQheipyno
+basin_salvage_first_claim_01 / CASTLE / COMPANY COMMAND
+And your people got to this one first?
 
-basin_salvage_briefing_02 [RETAINED / TAKE 1]
-Speaker: CASTLE / COMPANY COMMAND
-Subtitle key: shepherdSalvageBriefTurn2
-Text: There's no manifest in the file.
-Voice: cuwCdnt9CKAB9XrTA1j0
+basin_salvage_camp_01 / TAMSIN VALE / BASIN RECLAMATION
+First into the basin. We built the camp, cut a road in, spent a season just finding ways through her. The other outfits had their own wrecks to pick over. Then word got out about ours.
 
-basin_salvage_scope_01 [UNRECORDED]
-Speaker: TAMSIN VALE / BASIN RECLAMATION
-Subtitle key: shepherdSalvageScope
-Text: Our handlers have it. Eighteen thousand to get them back into the yard and cover the inspection. If Morrow can be repaired, another twenty-two to bring the parts in and cover my fitters. The militia have the road beyond the yard. That stays their job.
-Voice: cZH6erlGkOyAQheipyno
+basin_salvage_opened_hold_01 / CASTLE / COMPANY COMMAND
+You opened something worth talking about.
 
-basin_salvage_briefing_08 [RETAINED / TAKE 1]
-Speaker: TAMSIN VALE / BASIN RECLAMATION
-Subtitle key: shepherdSalvageBriefTurn8
-Text: Receiving store first, then the workshop. My militia will follow you in. Cover our two technicians at Morrow's southern service access while they inspect her. Watch the south haul road; that's how the other crew has been getting in.
-Voice: cZH6erlGkOyAQheipyno
+basin_salvage_occupation_01 / TAMSIN VALE / BASIN RECLAMATION
+Someone certainly thought so. They came in shooting while most of us were on shift. We pulled out who we could. Now they're stripping our yard and calling it an abandoned claim.
+
+basin_salvage_survivors_01 / CASTLE / COMPANY COMMAND
+Anyone still inside?
+
+basin_salvage_cousin_01 / TAMSIN VALE / BASIN RECLAMATION
+My cousin's crew, tucked away in the Colossus. They've kept a quiet channel open. The new owners are still picking through the stores. Haven't found all our ways in yet.
+
+basin_salvage_manifest_01 / CASTLE / COMPANY COMMAND
+What was in the hold, Vale? I'd like to know what brought this down on you.
+
+basin_salvage_privacy_01 / TAMSIN VALE / BASIN RECLAMATION
+I told one person too many already. You're being paid to get us back to work. There's enough in that contract to leave the contents of my hold out of the conversation.
+
+basin_salvage_permit_question_01 / CASTLE / COMPANY COMMAND
+Your claim's on file with the local office?
+
+basin_salvage_permit_01 / TAMSIN VALE / BASIN RECLAMATION
+Permit and survey. You're welcome to those. I'd prefer to have the yard working before a Hegemony patrol takes an interest in the rest.
+
+basin_salvage_scope_question_01 / CASTLE / COMPANY COMMAND
+Then let's be clear about the work. We're taking back the yard. Where do we stop?
+
+basin_salvage_inspection_01 / TAMSIN VALE / BASIN RECLAMATION
+At Morrow's cradle. She's our tender; her crew put her down when the attack hit. Get our technicians in to inspect her. If they can mend her, there's a separate fee for bringing up the repair rig and covering the work.
+
+basin_salvage_limits_01 / CASTLE / COMPANY COMMAND
+Your parts and fitters. Our people keep them alive. We're not signing on to chase every scavenger on Asharu.
+
+basin_salvage_handlers_01 / TAMSIN VALE / BASIN RECLAMATION
+Agreed. My militia have the road beyond the yard. The Colossus is for our handlers, and my cousin's crew will stay out of your way. Nobody's asking your marines to go digging through her.
+
+basin_salvage_briefing_08 / TAMSIN VALE / BASIN RECLAMATION
+Receiving store first, then the workshop. My militia will follow you in. Cover our two technicians at Morrow's southern service access while they inspect her. Watch the south haul road; that's how the other crew has been getting in.

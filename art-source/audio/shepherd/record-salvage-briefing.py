@@ -2,7 +2,7 @@
 
 After explicit recording authorization:
   python art-source/audio/shepherd/record-salvage-briefing.py --generate
-Use --chapter passage for the post-Cold Start negotiation.
+Use --chapter cold for Cold Start or --chapter passage for the road negotiation.
 One request per pending turn, no automatic retry. Existing approved takes are kept.
 The isolated catalog records measured durations; promotion into runtime is separate.
 """
@@ -14,7 +14,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[3]
 CATALOG = Path(__file__).with_name("salvage-briefing-recording-catalog.json")
-CATALOGS = {"salvage": CATALOG, "passage": Path(__file__).with_name("working-passage-recording-catalog.json")}
+CATALOGS = {"salvage": CATALOG, "cold": Path(__file__).with_name("cold-start-briefing-recording-catalog.json"), "passage": Path(__file__).with_name("working-passage-recording-catalog.json")}
 
 
 def main():

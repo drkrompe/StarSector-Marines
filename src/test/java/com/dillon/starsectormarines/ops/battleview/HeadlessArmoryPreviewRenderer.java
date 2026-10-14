@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef.HandsetLayer;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.marine.SquadLoadoutPresentationRegistry;
 import org.json.JSONObject;
@@ -228,6 +229,11 @@ public final class HeadlessArmoryPreviewRenderer {
                 EquipmentLayerDef carrier = def.presentation().carrierLayer();
                 if (carrier != null) {
                     loaded.registerSpecialEquipment(def.id(), sprite(carrier.spritePath()));
+                }
+                HandsetLayer handset = def.presentation().handsetLayer();
+                if (handset != null) {
+                    loaded.registerHandset(def.id(), sprite(handset.spritePath()),
+                            sprite(handset.cordSpritePath()));
                 }
             }
             MarineArmorCatalogRegistry armorRegistry = MarineArmorCatalogRegistry.installed();

@@ -84,7 +84,7 @@ class BriefingCommsTest {
     @Test void missingAudioHandleUsesReadableFallbackAndFinishesAutomatically() {
         var comms = new BriefingComms(new NarrationPlayer(line -> null));
         var line = new WaylineNarration.Line("missing", "mission", "briefing", "Report.", 1, 1, 10, List.of());
-        comms.enter(conversation(), List.of(line));
+        comms.enter(Mission.builder().id("legacy-mission").build(), List.of(line));
         comms.advance(0, false);
         comms.advance(1, false);
         assertTrue(comms.visible());
@@ -106,6 +106,21 @@ class BriefingCommsTest {
         assertTrue(comms.visible());
         assertEquals("castle", comms.current().key());
     }
+    @Test void authoredSpeakersRemainAuthoritativeOverWholeBriefingRecording() {
+        var legacy = new WaylineNarration.Line("old", "mission", "briefing", "Old work.", 1, 1, 10, List.of());
+        var turns = BriefingComms.conversation(conversation(), List.of(legacy));
+        assertEquals(List.of("castle", "vale"), turns.stream().map(BriefingComms.Turn::key).toList());
+        assertEquals(List.of("First.", "Second."), turns.stream().map(BriefingComms.Turn::text).toList());
+        assertTrue(turns.stream().allMatch(turn -> turn.recording() == null));
+        var fallback = BriefingComms.conversation(Mission.builder().id("legacy").build(), List.of(legacy));
+        assertEquals(1, fallback.size());
+        assertSame(legacy, fallback.get(0).recording());
+        var olderFlavor = Mission.builder().id("older-save").flavor("Castle: Older written briefing.").build();
+        var olderTurns = BriefingComms.conversation(olderFlavor, List.of(legacy));
+        assertEquals(1, olderTurns.size());
+        assertSame(legacy, olderTurns.get(0).recording(), "Parsed legacy flavor must not displace a whole recording");
+    }
+
     @Test void refreshedSameMissionKeepsDismissalButDropsStaleRecording() {
         var comms = new BriefingComms(new NarrationPlayer(line -> completedSound()));
         Mission mission = conversation();
@@ -202,7 +217,7 @@ class BriefingCommsTest {
         var heard = new ArrayList<String>();
         var comms = new BriefingComms(new NarrationPlayer(line -> { heard.add(line.id()); return completedSound(); }));
         var line = new WaylineNarration.Line("legacy", "mission", "briefing", "Report.", 1, 1, 10, List.of());
-        comms.enter(conversation(), List.of(line));
+        comms.enter(Mission.builder().id("legacy-mission").build(), List.of(line));
         comms.advance(50, true);
         assertFalse(comms.visible()); assertTrue(heard.isEmpty());
         comms.advance(0, false);

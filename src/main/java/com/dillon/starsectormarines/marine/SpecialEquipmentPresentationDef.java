@@ -16,7 +16,41 @@ public record SpecialEquipmentPresentationDef(
         Field field,
         Deployed deployed,
         LayerClips layerClips,
-        Preview preview) implements Serializable {
+        Preview preview,
+        HandsetLayer handsetLayer) implements Serializable {
+
+    /** Presentation without a hand-held layer, as every item but a radio authors it. */
+    public SpecialEquipmentPresentationDef(String armoryIconPath, String aimSpritePath,
+                                           SpecialUsePose usePose, EquipmentLayerDef carrierLayer,
+                                           Thrown thrown, Field field, Deployed deployed,
+                                           LayerClips layerClips, Preview preview) {
+        this(armoryIconPath, aimSpritePath, usePose, carrierLayer, thrown, field,
+                deployed, layerClips, preview, null);
+    }
+
+    /**
+     * A hand-held part drawn only while the item is in use, joined to the carried
+     * layer by a cord. Its placement per frame is the clip's {@code handset} layer;
+     * this record owns the art, its true size in shoulder widths, and the two cord
+     * ports in normalized sprite coordinates (origin top-left): where the cord leaves
+     * the handset and where it enters the carried layer.
+     */
+    public record HandsetLayer(String spritePath, String cordSpritePath,
+                               float widthShoulders, float heightShoulders,
+                               float cordWidthShoulders,
+                               float portX, float portY,
+                               float packPortX, float packPortY) implements Serializable {
+
+        /** Key under which the handset art is registered beside the carried layer. */
+        public static String assetKey(String equipmentId) {
+            return equipmentId + "#handset";
+        }
+
+        /** Key under which the cord art is registered beside the carried layer. */
+        public static String cordAssetKey(String equipmentId) {
+            return equipmentId + "#cord";
+        }
+    }
 
     public record Deployed(String spritePath, float visualCells) implements Serializable {
     }
@@ -98,9 +132,34 @@ public record SpecialEquipmentPresentationDef(
                         requireText(layerClipsJson, "using", equipmentId),
                         optionalText(layerClipsJson, "firing"))
                 : null;
+        JSONObject handsetJson = json.optJSONObject("handsetLayer");
+        HandsetLayer handset = handsetJson != null ? parseHandset(handsetJson, equipmentId) : null;
+        if (handset != null && carrier == null) {
+            throw new JSONException("Special equipment '" + equipmentId
+                    + "' authors a handset layer without the carrier layer its cord joins");
+        }
         return new SpecialEquipmentPresentationDef(
                 armoryIcon, aimSprite, usePose, carrier, thrown, field,
-                deployed, layerClips, preview);
+                deployed, layerClips, preview, handset);
+    }
+
+    private static HandsetLayer parseHandset(JSONObject json, String equipmentId)
+            throws JSONException {
+        JSONArray port = json.getJSONArray("port");
+        JSONArray packPort = json.getJSONArray("packPort");
+        if (port.length() != 2 || packPort.length() != 2) {
+            throw new JSONException("Special equipment '" + equipmentId
+                    + "' handset ports must each be [x, y]");
+        }
+        return new HandsetLayer(requireText(json, "sprite", equipmentId),
+                requireText(json, "cordSprite", equipmentId),
+                positive(json, "widthShoulders", equipmentId),
+                positive(json, "heightShoulders", equipmentId),
+                positive(json, "cordWidthShoulders", equipmentId),
+                unit((float) port.getDouble(0), equipmentId),
+                unit((float) port.getDouble(1), equipmentId),
+                unit((float) packPort.getDouble(0), equipmentId),
+                unit((float) packPort.getDouble(1), equipmentId));
     }
 
     private static Field parseField(JSONObject json, String equipmentId)
