@@ -42,6 +42,11 @@ Castle, Nessa and the founding field commander's canon. **PUBLIC**, **HIDDEN** a
    board's licence. Licensed companies will not work for what Wayline can pay;
    unlicensed ones are what independents can afford. This is authored backstory,
    not a game mechanic or prerequisite.
+5. **Sabine cannot be killed.** She carries too much of the long story and the
+   company's radio voice to be a replaceable officer. The one loss path today, a
+   wiped-out defeat that kills her squad's officer six times in ten, wounds her
+   instead (out of action for 45 days, the existing wipe injury). No other
+   officer gains this protection.
 
 ## What was wrong
 
@@ -458,9 +463,8 @@ who kept the roster.
 > orders and a counted muster, and she does the counting herself. Her specialty,
 > promotions and service record grow through your decisions.
 
-The induction lines name the officer by `{0}`: a surviving officer can carry the
-lesson if Sabine is gone, so her history lives in the dossier, the prologue and
-her own lines, not in these.
+Sabine always survives to finish her own induction, so these lines can speak
+about her directly.
 
 `openingOfficerInductionGuideFirstCommanderChooseAShipWithQuarters`
 > First, Commander, a ship with quarters and a boat bay. I've counted the stores
@@ -473,9 +477,10 @@ her own lines, not in these.
 > together. Keep the squad's stores aside for the next step.
 
 `openingOfficerInductionGuideCommanderWillLeadOurFirstFormationYou`
-> {0} will lead our first formation, Commander. You set the course; she brings our
-> people through it and home again. Open her portrait on the left. Let's give her
-> a proper start.
+> Sabine leads our first formation, Commander. She's been bringing those twelve
+> home since the ore runs; now she does it for us. You set the course, she brings
+> our people through it. Open her portrait on the left. Let's give her a proper
+> start.
 
 `openingOfficerInductionGuideSheHasOneTrainingPointCoverProtects`
 > She has one training point. Cover keeps her troops alive under fire; Recovery
@@ -599,6 +604,10 @@ Command still speaks for every other squad. It is not part of the text rewrite.
 - Renaming Mira to Sabine changes the officer's minted name, portrait file and
   string keys outright. The game has not launched, so no save carries the old
   name and nothing needs to keep accepting it.
+- Sabine's protection changes the standing model in the same commit as the code:
+  `personnel-nouns.md` ("grants no immunity from loss") and `company-view-nouns.md`
+  ("a surviving officer can carry the unfinished lesson") are rewritten, and the
+  induction's fallback to another officer is removed.
 - Prologue and lesson lines are text with Castle's portrait; none is recorded
   today. The Relief briefing is recorded in Mara's voice and needs a new take if
   its words change.
