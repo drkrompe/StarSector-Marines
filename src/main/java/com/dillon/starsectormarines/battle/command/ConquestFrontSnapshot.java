@@ -151,6 +151,11 @@ public record ConquestFrontSnapshot(
         DEFENDER_GARRISONABLE_STAND,
         /** A garrison whose ground was breached or which fell below useful strength, withdrawn to its fort's works. */
         DEFENDER_GARRISONABLE_FALL_BACK,
+        /**
+         * A garrison whose own stretch is quiet while its alarmed fort is being lost elsewhere, sent to the doorstep of
+         * the work under attack.
+         */
+        DEFENDER_GARRISONABLE_STAND_TO,
         /** A mobile-pool patrol waiting at a held fort's works so the nearest free squad is near its belt. */
         DEFENDER_GARRISONABLE_STAGE,
         DEFENDER_EXTERNAL_ASSIGNMENT_PRESERVED,

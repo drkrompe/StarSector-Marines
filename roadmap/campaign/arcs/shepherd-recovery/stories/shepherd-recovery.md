@@ -285,7 +285,7 @@ or loss. Campaign support still requires a currently owned eligible source.
 Cold Start is a **6–8 minute target**, subject to playback. Start with the earlier
 workshop held and the receiving store clear. The repair carrier waits at the apron
 until the company advances; it stops before hostile contact rather than charging
-through it. Two three-person cooperative pickets hold the south haul and quarry
+through it. Two three-person pickets of hired day hands hold the south haul and quarry
 approaches outside the repair line; eight separate militia holders defend the
 inner positions. Cold Start therefore fields fourteen cooperative militia and
 two technicians. The other chapters retain their eight militia. Escort progress

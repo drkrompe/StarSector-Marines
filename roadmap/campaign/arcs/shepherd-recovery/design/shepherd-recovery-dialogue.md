@@ -4,7 +4,7 @@ Status: ACTIVE — authored script and character reference.
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — move the hold question out of the Salvage Rights briefing and onto the drop.
+Updated: 2026-10-14 — Wayline is undercutting its rivals to win Asharu back; Vale buys from it because it is cheapest.
 
 ## How to read this script
 
@@ -87,8 +87,9 @@ the hold, her money or her people make her short.
   are the best scrap in the yard outside the Colossus, and Vale had a buyer
   interested in the bay before the attack.
 - **PUBLIC, first meeting:** Basin buys its supplies, fuel and heavy machinery
-  through Wayline, as most crews on Asharu without their own lift do. Mara is her
-  supplier, not her friend.
+  through Wayline because Wayline is the cheapest hauler working Asharu. Mara is
+  her supplier, not her friend. Buying cheap is a habit with Vale, and the day
+  hands later in the arc are the same habit costing her more.
 - **TO BE REVEALED, first meeting:** where the rumour may have come from. When the
   hold was opened, Vale put in a Wayline fuel order big enough to lift something
   heavy off-world, which a salvage camp never needs. Weeks later the rivals came.
@@ -104,8 +105,13 @@ the hold, her money or her people make her short.
   the Wayline account for supplies and fuel is behind, and the sale of Morrow's bay
   was meant to carry the camp through this season. Her offer to pay after the shipment moves is
   real, not a dodge.
-- **TO BE REVEALED, Cold Start:** the pickets are too thin to hold the yard after
-  the company leaves. She knows it and admits it only when pressed.
+- **TO BE REVEALED, after Salvage Rights:** she means to stop paying the company.
+  Day hands from the camps down the valley cost a third as much, and with the yard
+  back and checkpoints on the roads she believes that is enough. Cold Start is
+  meant to be the company's last job.
+- **TO BE REVEALED, Cold Start field:** it was not enough. When Harlan's second
+  assault comes, the checkpoints break, and Vale spends the drone bay she was
+  saving for a buyer to hold her yard. She never quite says Castle was right.
 - **TO BE REVEALED, Working Passage negotiation:** she cannot sell a flying Shepherd
   without a Hegemony port registering it, and a registry asking where a recovered
   warship hull came from is a registry asking what else came down in this valley.
@@ -149,9 +155,10 @@ captain, who decides whether to deploy.
   who sold Wayline's schedules, so Castle cannot wave away Vale's suspicion of
   Wayline and does not try. She separates the company from its former employer
   instead: they took Wayline's contract; now they are taking Vale's.
-- **TO BE REVEALED, Cold Start:** it is Castle who connects the rivals' cables in
-  Morrow's bay to the problem of holding the yard after the company leaves. The
-  idea is a defensive answer to a defensive problem.
+- **TO BE REVEALED, Cold Start briefing:** she doubts the day hands and asks what
+  Harlan's crew wanted with Morrow's bay. She makes the argument once, loses it, and
+  accepts being sent home. The company is still on contract until it lifts, and
+  when the assault comes she stays without being asked twice.
 - **TO BE REVEALED, Working Passage negotiation:** she asks for Morrow, refuses to
   be paid in a share of cargo she cannot see, and gives Vale the Hegemony reason
   as a reason, not a threat. Her leverage is the new work and Vale's blocked road.
@@ -194,19 +201,42 @@ company crews Morrow out of its own fleet, thinning Second Wind's watch to do it
 and hires to fill both ships afterwards like any other captain would. The hull
 agreement transfers a ship, never people.
 
-Inspection technicians, fitters and militia are different people with different
-jobs. Losing a post does not mean everyone there died.
+### The day hands
+
+Hired guards from the camps down the valley: people who work other crews' wrecks
+for a daily wage and will carry a rifle for a better one. They are not Basin and
+not soldiers. Vale hires them after Salvage Rights to man checkpoints on the south
+haul and quarry roads so she can stop paying the company. They are Cold Start's
+outer pickets; Basin's own militia hold the inner line.
+
+They are not cowards and the script never calls them that. They are underpaid
+for what comes down those roads, and they know it. Vale treats them as her hire
+— she asks the company to cover them and is sorry when they fall — but not as her
+people, and nobody phones a family over them in her hearing. After Cold Start
+most of them take their pay and go home. Working Passage's road holders are
+Basin's own militia.
+
+Inspection technicians, fitters, day hands and militia are different people with
+different jobs. Losing a post does not mean everyone there died.
 
 ### Mara Venn — Wayline broker, Basin's supplier
 
-Mara brokers for the Wayline freight cooperative out of Jangala. Basin is one of
-Wayline's accounts: supplies, fuel and heavy machinery delivered into the valley,
-the ordinary consumables every outfit has to source locally. Vale and Mara are
-supplier and customer, and neither would call the other a friend.
+Mara brokers for the Wayline freight cooperative out of Jangala. Wayline came
+close to bankruptcy on Jangala during last year's raids and is recovering, but it is
+one logistics outfit among several in Corvus and has lost ground it needs back.
+To win it, Wayline hauls supplies, fuel and heavy machinery a little under its
+rivals' rates, and that is how it has picked up contracts with the salvage crews
+that move from wreck to wreck across Asharu. Basin is one of those accounts:
+the ordinary consumables every outfit has to source locally, delivered into the
+valley. Vale and Mara are supplier and customer, and neither would call the
+other a friend.
 
 - **PUBLIC, referral:** Basin's yard is occupied, its account has gone quiet, and
   heavy machinery Vale has already paid for is sitting in Wayline's shed with
   nowhere to go. Mara wants a paying customer back, and says so plainly.
+- **PUBLIC, referral:** Wayline is running on thin margins to rebuild, so one
+  Asharu account going quiet matters to it more than Mara lets on. She does not
+  plead; she mentions the margins once and moves on.
 - **HIDDEN:** Mara knows Vale's large fuel order crossed Wayline's dispatch board
   while Sable Wake was buying its schedules. She does not know that is how the
   rumour spread, and she does not raise it. Sending a company she trusts is good
@@ -256,9 +286,10 @@ trying to wake Morrow's drone bay.
 | Salvage Rights briefing | The wreckfall, Basin's claim, the fuel order and Vale's suspicion of Wayline, Jory's crew, occupied yard, Morrow as scrap | Hold contents, buyer, Basin's finances, how the rumour really spread |
 | Salvage Rights drop | Vale will not discuss the hold, and why | Hold contents, permanently |
 | Successful inspection | The rivals were trying to power Morrow's bay, not strip it | Why, or whether it could work |
-| Cold Start briefing | The pickets cannot hold the yard alone; Morrow's bay might help | Whether any builders will answer |
-| Cold Start field | Her builders work; a wreck put up a road gun | Any entitlement to the hull |
-| Cold Start debrief | Morrow is worth more to Vale now; the outer road is still shut | What Vale can pay for more |
+| Salvage Rights debrief | Vale has hired cheaper guards; the next job is the company's last | Whether they will hold |
+| Cold Start briefing | Day hands on checkpoints; Teo thinks Morrow's bay could build guns; Vale won't spend it | Whether any builders will answer |
+| Cold Start field | Harlan's second assault breaks the checkpoints; Vale spends the bay; a wreck puts up a road gun | Any entitlement to the hull |
+| Cold Start debrief | The day hands have gone home; Morrow is worth more to Vale now; the outer road is shut again | What Vale can pay for more |
 | Working Passage briefing | Vale cannot pay until the shipment moves; refusal, loan, terms; the company must crew her itself | The manifest, permanently |
 | Climb-out and settlement | Morrow joins the fleet on a skeleton crew drawn from Second Wind; upkeep and hiring are the company's | No later cargo reveal is promised |
 
@@ -274,17 +305,21 @@ it does not start a clock: Mara says outright that the work waits for the compan
 
 **Mara:** Castle. Something for when the company's ready, and not before. One of our accounts on Asharu has a problem.
 
-**Castle:** What kind of account?
+**Castle:** Wayline has accounts on Asharu now?
 
-**Mara:** Basin Reclamation. A salvage crew working a wreck field in the northern canyons. They buy their supplies, fuel and heavy machinery off us, same as half the crews on Asharu. Tamsin Vale runs it.
+**Mara:** A few. We haul supplies, fuel and heavy machinery out to the salvage crews there, a little under what the other outfits on Jangala charge. It's how you win customers back after a year like ours.
 
-**Castle:** And the problem?
+**Castle:** And this one?
+
+**Mara:** Basin Reclamation. A salvage crew working a wreck field in the northern canyons. Tamsin Vale runs it. She came to us because we were cheapest, and she counts every credit like it's her last.
+
+**Castle:** What's gone wrong?
 
 **Mara:** Another salvage crew walked in with guns and took her yard. Her account's gone quiet, and there's a load of heavy machinery she's already paid for sitting in our shed with nowhere to deliver it.
 
 **Castle:** So this is Wayline's problem as much as hers.
 
-**Mara:** I'd like a paying customer back. She'd like her yard back. You'd like to be paid. I don't see anyone losing.
+**Mara:** At our rates, I can't afford to lose a paying customer. She'd like her yard back. You'd like to be paid. I don't see anyone losing.
 
 **Castle:** Is she a friend of yours?
 
@@ -433,7 +468,11 @@ still owns. The next job is power, not the ship.
 
 **Castle:** They won't have gone far.
 
-**Vale:** They haven't. Jory's counting them on the outer roads. I've got my yard back and no power to work it. The heavy machinery to fix that is still in Wayline's shed, and they stripped the pump station. Mara can deliver now there's a yard to deliver to. I'll send another contract: cover my fitters while we get the lights on.
+**Vale:** Past the quarry, Jory says, and still going. I've got my yard back and no power to work it. The heavy machinery to fix that is still in Wayline's shed, and they stripped the pump station. Mara can deliver now there's a yard to deliver to. One more contract: cover my fitters while we get the lights on.
+
+**Castle:** One more?
+
+**Vale:** After that I've got guards coming for the roads. Nothing personal, Castle. You're good, and you're not cheap.
 
 **If no inspection technicians were lost:**
 
@@ -454,38 +493,35 @@ its recorded technician-loss readout. Jory's crew is not part of that count.
 
 ## 2. Cold Start
 
-### Before — the repair contract
+### Before — the last job
 
-The company is ashore in a retaken, dark yard. Vale's plan is to get the yard
-working. Castle's question is how it stays held after the company leaves. Morrow's
-bay comes up as a possible answer to that question, and Vale treats spending her
-best scrap on her own defense as a cost, not a gift.
+The company is ashore in a retaken, dark yard, on what Vale means to be its last
+contract. She has hired day hands for checkpoints on the outer roads and expects
+to send the company home once the lights are on. Castle doubts the guards and says
+so once. Morrow's bay comes up as Teo's idea, and Vale declines to spend her best
+scrap on guns she doesn't think she needs. Nobody plans to build anything.
 
-**Vale:** Wayline's finally dropped the distribution rig on the receiving apron. My fitters take it to the workshop, then bring the pump station back and put shore power into the yard. You keep them breathing while they do it.
+**Vale:** Wayline's finally dropped the distribution rig on the receiving apron. My fitters take it to the workshop, bring the pump station back and put shore power into the yard. You keep them breathing while they do it. Then you're done.
 
-**Castle:** And Jory's crew?
+**Castle:** And the roads?
 
-**Vale:** Still on the channel. Still in the Colossus. They won't come out while Harlan's people are on the roads, and I'm not sending anyone across open ground to fetch them.
+**Vale:** Checkpoints on the south haul and the quarry road, manned by day hands from the camps down the valley. My own militia hold the inner line.
 
-**Castle:** About those roads. We can get your power back. We can't stay. How does the yard hold once we've gone?
+**Castle:** Day hands.
 
-**Vale:** Pickets on the south haul and the quarry road. Militia on the inner line.
+**Vale:** Armed, paid, and a third of what you cost.
 
-**Castle:** How many on each picket?
+**Castle:** Harlan's crew took this yard off your own people. They'll know what a checkpoint is worth.
 
-**Vale:** Not enough. You know it's not enough.
+**Vale:** Harlan's past the quarry. Jory's watched for three days and they haven't come near.
 
-**Castle:** Your techs said Harlan's crew were trying to wake Morrow's bay. If they thought her builders could hold this yard, so do I.
+**Castle:** Your techs said Harlan's crew were trying to wake Morrow's bay. Did anyone ask why?
 
-**Vale:** That bay's the most saleable thing I own outside the Colossus. Every hour those drones work is wear on it.
+**Vale:** Teo thinks her builders could put guns up round the yard. Maybe they could. That bay's the most saleable thing I own outside the Colossus, and every hour those drones work is wear on it. I'm not burning it on guns I don't need.
 
-**Castle:** And no buyer can collect it while someone else holds your road.
+**Castle:** Your yard. Captain, we cover the rig and the pump, and when the lights come on we lift.
 
-**Vale:** There's a road-gun kit in the stores, and nobody to fit it in a hurry. Fine. Once the yard has power we'll feed some to Morrow and see if any builders answer. If they don't, you're holding with rifles.
-
-**Castle:** Then we'll find out. Captain, we cover the rig and the pump. If her bay comes up, we put that gun where it does the most good.
-
-**Vale:** If they answer, select Build Vulcan Turret and put it on clear ground within reach of her east bay. Keep fire off the drones; they're workshop tools, not armor. And if my pickets have to come in, cover them back to the inner line. I'd rather lose ground out there than the people holding it.
+**Vale:** Keep fire off my fitters. And if those checkpoints call for help, they're on my payroll. Cover them back to the inner line.
 
 ### During — delivery, power and construction
 
@@ -496,7 +532,7 @@ not replace the briefing conversation.
 
 Cue: `briefing`.
 
-**Castle:** Captain, the company's ashore in the secured yard. Get the rig to the workshop, then cover Vale's fitters at the pump. Power first. Then we see whether that Shepherd has anything left in her.
+**Castle:** Captain, last job on Asharu. Get the rig to the workshop, then cover Vale's fitters at the pump. When the lights come on, we lift.
 
 #### Repair rig waiting on the receiving apron
 
@@ -520,13 +556,13 @@ Cue: `cold_start.pump_started`.
 
 Cue: `cold_start.power_restored`.
 
-**Vale:** Shore power's on. And Morrow's bay is answering. Some of it, anyway. Select Build Vulcan Turret and put a road gun on clear ground within reach of her bay.
+**Vale:** Shore power's on, and Teo says Morrow's bay is answering. Damn the buyer. Select Build Vulcan Turret and put a road gun on clear ground within reach of her bay.
 
 #### First actual road gun completed
 
 Cue: `cold_start.turret_ready`.
 
-**Castle:** Captain, that's a road gun up, built by a wreck on a cradle. Keep the approaches clear while Vale's fitters finish in the workshop.
+**Castle:** Captain, that's a road gun up, built by a wreck on a cradle. It'll hold longer than a checkpoint. Keep the approaches clear while Vale's fitters finish.
 
 #### Road gun established at the inner line
 
@@ -536,63 +572,65 @@ Cue: `cold_start.inner_line_fortified`.
 
 ### During — pressure on the outer line
 
-These calls may interleave with delivery and construction. Each road has its
-own physical picket. Contact, withdrawal, loss of a post and survivors reaching
+This is the turn of the mission: Harlan's second assault, coming down roads Vale
+had handed to day hands. The company has not lifted yet, and stays. These calls
+may interleave with delivery and construction, so none of them may assume power is
+on or a gun exists. Each road has its own physical picket. Contact, withdrawal, loss of a post and survivors reaching
 an inner hold are separate facts. A well-supported picket need not be overrun.
 
 #### South haul: contact — conditional
 
 Cue: `cold_start.south_haul_contact`.
 
-**Vale:** Contact at the south haul picket. There aren't many of ours out there, Captain. Give them a hand if you can.
+**Vale:** South haul checkpoint's taking fire. They're day hands, Captain, but they're my hire. Give them a hand if you can.
 
 #### South haul: picket withdrawing — conditional
 
 Cue: `cold_start.south_haul_withdrawing`.
 
-**Vale:** South haul picket's coming in. Cover them back to the inner line.
+**Vale:** South haul checkpoint's running. Can't say I blame them, for what I'm paying. Cover them back to the inner line.
 
 #### South haul: outer post no longer holding — conditional
 
 Cue: `cold_start.south_haul_overrun`.
 
-**Vale:** We've lost the south haul post. Watch for anyone coming back, and keep that approach covered.
+**Vale:** South haul checkpoint's gone. So much for proper guards. Watch for anyone coming back, and keep that approach covered.
 
 #### South haul: survivors physically reach the inner hold — conditional
 
 Cue: `cold_start.south_haul_inner_hold`.
 
-**Vale:** The south haul lot have made the inner line. Help them hold it while the fitters work.
+**Vale:** The south haul hands have made the inner line. They're staying put, at least. Help them hold it.
 
 #### Quarry road: contact — conditional
 
 Cue: `cold_start.quarry_contact`.
 
-**Vale:** Quarry road picket has contact. It's a small crew, Captain. Support them if you can.
+**Vale:** Quarry checkpoint has contact. There's only three of them out there, Captain. Support them if you can.
 
 #### Quarry road: picket withdrawing — conditional
 
 Cue: `cold_start.quarry_withdrawing`.
 
-**Vale:** Quarry picket's falling back. Keep the crossing covered for them.
+**Vale:** Quarry checkpoint's falling back. Keep the crossing covered for them.
 
 #### Quarry road: outer post no longer holding — conditional
 
 Cue: `cold_start.quarry_overrun`.
 
-**Vale:** The quarry post's gone. Keep the inner line covered. There may still be people coming in.
+**Vale:** The quarry checkpoint's gone. Keep the inner line covered. There may still be people coming in.
 
 #### Quarry road: survivors physically reach the inner hold — conditional
 
 Cue: `cold_start.quarry_inner_hold`.
 
-**Vale:** The quarry lot are in. They're on the inner line now; keep that ground covered.
+**Vale:** The quarry hands are in, on the inner line with my militia. Keep that ground covered.
 
 #### Public approach warning
 
 Cue: `cold_start.approach`.
 
-**Vale:** They're coming for the yard. Keep them off the fitters, Captain, and watch the builders. Those drones won't stand up to gunfire.
+**Vale:** That's not a probe. Harlan's coming for the yard. Castle, I know you were about to lift. Stay. Keep them off my fitters, and watch any drones that are out. They won't stand up to gunfire.
 
 #### South road party breaks off at the company screen — conditional
 
@@ -640,9 +678,10 @@ Cue: `cold_start.builders_lost`.
 
 ### After — repair paid; another problem emerges
 
-Both sides have now seen what Morrow can do, and both reprice her. Castle sees a
-capability; Vale sees a better sale. The outer road is still shut. There is still
-no offer and no promise of the ship.
+The cheap plan has failed in front of everyone, and Vale paid for it twice: the
+day hands' wages and the company's fee. Both sides have now seen what Morrow can
+do, and both reprice her. Castle sees a capability; Vale sees a better sale. The
+outer road is shut again. There is still no offer and no promise of the ship.
 
 **Castle:** Captain, did you see how fast those builders put that gun up? Off a wreck we found in pieces.
 
@@ -650,9 +689,9 @@ no offer and no promise of the ship.
 
 **If there were no company or repair-technician losses:**
 
-**Castle:** Then why don't you look happier?
+**Castle:** And your checkpoints?
 
-**Vale:** Because my haulers still can't get out. Harlan's pulled back to the outer road, and Jory says he's had company since. Finish up with your people, then come and see me. I need more than we agreed.
+**Vale:** Paid off. Most of them have gone home, and I can't say I blame them. Harlan's back on the outer road, and Jory says he's had company since. Finish up with your people, then come and see me. Seems I'm not done with you after all.
 
 **If company personnel or repair technicians were lost, replace those last two turns:**
 
@@ -669,11 +708,11 @@ the previous attempt never happened.
 
 **Cargo delivered; shore power unfinished — replacement briefing:**
 
-**Vale:** The rig's still at the workshop, but the pump connection isn't finished. I've found another repair party. Cover them while they get shore power in, then we try Morrow's bay for that road gun. Same contract. And watch my pickets; help them back to the inner line if they have to come in.
+**Vale:** The rig's still at the workshop, but the pump connection isn't finished. I've found another repair party. Cover them while they get shore power in, then we try Morrow's bay for that road gun. Same contract. I've found more day hands for the checkpoints, for whatever that's worth; help them back to the inner line if they have to come in.
 
 **Cargo delivered and shore power restored — replacement briefing:**
 
-**Vale:** The rig's at the workshop and shore power's holding, so we pick up from there. Another repair party's ready. Get that road gun out of Morrow's bay and keep the fitters covered. Same contract. And watch my pickets; help them back to the inner line if they have to come in.
+**Vale:** The rig's at the workshop and shore power's holding, so we pick up from there. Another repair party's ready. Get that road gun out of Morrow's bay and keep the fitters covered. Same contract. I've found more day hands for the checkpoints, for whatever that's worth; help them back to the inner line if they have to come in.
 
 ## 3. Working Passage
 
