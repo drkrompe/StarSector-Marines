@@ -170,9 +170,9 @@ public final class FighterCoverScene implements BehaviorScene {
         AirPoolDeclaration declaration = declare(loop);
         sim.setAirPool(new AirPoolService(declaration));
         Trace trace = new Trace(world, loop, guns);
-        int ticks = TICKS;
+        int ticks = nest ? 1500 : loop.equals("strafe-open") ? 1500 : ground ? 1800 : TICKS;
         SceneRun.of(world).observe(trace)
-                .frames(frames, loop, 45, tick -> trace.caption(loop, tick))
+                .frames(frames, loop, Math.max(30, ticks / 24), tick -> trace.caption(loop, tick))
                 .run(ticks);
         return new Result(report(loop, trace, sim, control, ticks), trace);
     }
