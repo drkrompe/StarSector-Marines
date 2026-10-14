@@ -22,7 +22,7 @@ import java.util.List;
  * @param entryY    as {@code entryX}
  * @param covering  indices into {@link FortPlan#nests()} of the nests that have the mouth within their reach
  * @param lane      the approach lane in front of the way in, from the mouth outward to the footprint's edge: the cells
- *                  the belt and wire are left open across
+ *                  the belt and fence are left open across
  */
 public record AssaultApproach(Variant variant, int gateIndex, int mouthX, int mouthY, int outX, int outY,
                               int entryX, int entryY, List<Integer> covering, List<int[]> lane) {

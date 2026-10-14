@@ -207,11 +207,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/company/ship-transfer.mlx");
-    private static final List<String> OVERVIEW_COMPONENTS = List.of(
-            "data/ui/components/company/company-resource-stock.mlx",
-            "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
-            "data/ui/components/armory/fleet-armory-overview.mlx",
-            "data/ui/components/armory/armory-company-list.mlx");
     private static final List<String> WORKSPACE_COMPONENTS = List.of(
             "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
@@ -327,9 +322,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderShipTransfer(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1, null,
                                 DISPLACED, BROKE)),
-                new SnapshotArtifact("fleet-armory-overview-wide.png",
-                        renderFleetArmoryOverview(
-                                context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
                 new SnapshotArtifact("fleet-armory-workspace-wide.png",
                         renderFleetArmoryWorkspace(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
@@ -1780,6 +1772,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     }
 
     static List<SnapshotArtifact> renderBarracksCommand(SnapshotContext context) throws Exception {
+        return renderBarracksCommand(context, List.of("dossier", "dossier-trained", "command", "profiles",
+                "empty", "large", "transfers", "guide", "guide-transfer", "guide-replenish",
+                "guide-equipment"), true);
+    }
+
+    /** The command board in {@code states}; {@code full} adds results, induction and the click-through flow. */
+    static List<SnapshotArtifact> renderBarracksCommand(SnapshotContext context, List<String> states,
+                                                        boolean full) throws Exception {
         DiskRegistries.installMapGeneration(context.modRoot().getParent());
         CompanyManagementGuide.install(new JSONObject(Files.readString(context.modRoot().resolve(CompanyManagementGuide.PATH))));
         HeadlessSvgAssets.install(context.modRoot());
@@ -1787,10 +1787,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         HeadlessUiRenderer renderer = new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(context.modRoot()),
                 context.modRoot(), context.starsectorCore());
         List<SnapshotArtifact> images = new ArrayList<>();
-        images.add(new SnapshotArtifact("results-prepare-company.png",
-                renderMissionFlow(context, renderer, MISSION_RESULTS_COMPONENTS,
-                        ResultsScreen.ROOT_COMPONENT, ResultsScreen.previewProps(true, true))));
-        for (String state : List.of("dossier", "dossier-trained", "command", "profiles", "empty", "large", "transfers", "guide", "guide-transfer", "guide-replenish", "guide-equipment")) {
+        if (full) {
+            images.add(new SnapshotArtifact("results-prepare-company.png",
+                    renderMissionFlow(context, renderer, MISSION_RESULTS_COMPONENTS,
+                            ResultsScreen.ROOT_COMPONENT, ResultsScreen.previewProps(true, true))));
+        }
+        for (String state : states) {
             Reactor reactor = new Reactor();
             MarineRoster roster = new MarineRoster();
             int count = state.equals("empty") ? 0 : state.equals("large") ? 120 : 12;
@@ -1815,6 +1817,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             BarracksViewModel viewModel = new BarracksViewModel(reactor, roster, () -> 100d,
                     snapshotEquipmentResources(), snapshotSquadFoundingResources(), () -> 0,
                     id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0));
+            if (state.equals("medic")) {
+                // Field Medicine marks each of the officer's squads' medic billet.
+                captain.train(OfficerSpecialty.FIELD_MEDICINE);
+                viewModel.command().selectCommand(captain.id());
+                ((Runnable) viewModel.command().props().get("closeDossier")).run();
+            }
             if (state.equals("command") || state.equals("profiles")) {
                 viewModel.command().selectCommand(captain.id());
                 ((Runnable) viewModel.command().props().get("closeDossier")).run();
@@ -1892,8 +1900,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 hints.clear();
             }
         }
-        images.addAll(renderOfficerInduction(context, renderer, 1f, 1.5f));
-        images.addAll(renderBarracksFlow(context, renderer));
+        if (full) {
+            images.addAll(renderOfficerInduction(context, renderer, 1f, 1.5f));
+            images.addAll(renderBarracksFlow(context, renderer));
+        }
         return images;
     }
 
@@ -1904,9 +1914,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         for (float scale : scales) {
             Reactor reactor = new Reactor();
             MarineRoster roster = new MarineRoster();
-            MarineCaptain mira = new MarineCaptain("Mira Hale", "graphics/portraits/mira-hale.png", Rank.LIEUTENANT, 0f);
-            roster.add(mira);
-            roster.beginCompanyPreparation(mira);
+            MarineCaptain sabine = new MarineCaptain("Sabine Hale", "graphics/portraits/sabine-hale.png", Rank.LIEUTENANT, 0f);
+            roster.add(sabine);
+            roster.beginCompanyPreparation(sabine);
             frames.addAll(renderPreparationRooms(context, renderer, roster, scale));
             BarracksViewModel model = new BarracksViewModel(reactor, roster, () -> 1d, snapshotEquipmentResources(),
                     snapshotSquadFoundingResources(), () -> 12,
@@ -1933,21 +1943,21 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     guide.update();
                 };
                 capture.accept("01-introduction");
-                click.accept("command:" + mira.id());
+                click.accept("command:" + sabine.id());
                 capture.accept("02-specialties");
                 Rect first = instance.requireElement("officer-specialty-TACTICAL_COVER-train").box().borderBox();
                 document.pointerScrolled(first.x() + 12, first.y() + 12, 420);
                 guide.update();
                 capture.accept("03-scroll-choice");
                 click.accept("officer-specialty-SALVAGE_STEWARDSHIP-train");
-                if (mira.career().level(OfficerSpecialty.SALVAGE_STEWARDSHIP) != 1) {
-                    throw new IllegalStateException("Click-through specialty choice did not train Mira at scale " + scale);
+                if (sabine.career().level(OfficerSpecialty.SALVAGE_STEWARDSHIP) != 1) {
+                    throw new IllegalStateException("Click-through specialty choice did not train Sabine at scale " + scale);
                 }
                 capture.accept("04-formation");
                 click.accept("officer-formations");
                 capture.accept("05-raise-squad");
                 click.accept("barracks-raise-squad");
-                if (roster.squads().stream().noneMatch(s -> !s.reserve() && mira.id().equals(s.homeCaptainId())))
+                if (roster.squads().stream().noneMatch(s -> !s.reserve() && sabine.id().equals(s.homeCaptainId())))
                     throw new IllegalStateException("Raise Squad did not muster a squad under the selected officer");
                 model.refresh(); instance.flush(); document.advance(0f); guide.update();
                 int clicks = 0;
@@ -2350,32 +2360,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
     }
 
-    private static BufferedImage renderFleetArmoryOverview(
-            SnapshotContext context, HeadlessUiRenderer renderer,
-            int width, int height) throws Exception {
-        Reactor reactor = new Reactor();
-        MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(MarineSquad.CAPACITY * 2);
-        Map<String, MarineSoldierStatus> postBattle = new LinkedHashMap<>();
-        postBattle.put(roster.soldiers().get(0).id(), MarineSoldierStatus.WIA);
-        roster.applySoldierOutcome(postBattle, 100f, 1.25f);
-        FleetArmoryOverviewViewModel viewModel = new FleetArmoryOverviewViewModel(
-                reactor, roster, () -> { }, () -> 100d);
-        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
-                context.modRoot().resolve(path)), OVERVIEW_COMPONENTS);
-        loader.reload();
-
-        try (MarkupInstance instance = loader.build(
-                reactor, "fleet-armory-overview", props(viewModel))) {
-            instance.requireElement("company-overview-summary")
-                    .align(UiAlign.STRETCH, UiAlign.CENTER);
-            UiDocument document = new UiDocument(instance.root());
-            for (var style : instance.styles()) document.addStyleSheet(style);
-            document.theme(MarineOpsThemes.standard());
-            return renderRelative(renderer, document, width, height, 1f);
-        }
-    }
-
     private static BufferedImage renderEquipmentDesigner(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height) throws Exception {
@@ -2512,8 +2496,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     static List<SnapshotArtifact> renderPreparationResourceBills(SnapshotContext context) throws Exception {
         var renderer = new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(context.modRoot()), context.modRoot(), context.starsectorCore());
         var roster = new MarineRoster();
-        var mira = new MarineCaptain("Mira Hale", "graphics/portraits/mira-hale.png", Rank.LIEUTENANT, 0f);
-        roster.add(mira); roster.beginCompanyPreparation(mira);
+        var sabine = new MarineCaptain("Sabine Hale", "graphics/portraits/sabine-hale.png", Rank.LIEUTENANT, 0f);
+        roster.add(sabine); roster.beginCompanyPreparation(sabine);
         return renderPreparationRooms(context, renderer, roster, 1f);
     }
 
@@ -3062,17 +3046,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         return renderer.renderRelative(document, width, height, uiScale,
                 MarineOpsUiViewport.REFERENCE_WIDTH,
                 MarineOpsUiViewport.REFERENCE_HEIGHT);
-    }
-
-    private static Map<String, Object> props(FleetArmoryOverviewViewModel viewModel) {
-        Map<String, Object> props = new LinkedHashMap<>();
-        props.put("fleetSummary", viewModel.fleetSummary());
-        props.put("templateCollectionSummary", viewModel.templateCollectionSummary());
-        props.put("accessStatusSummary", viewModel.accessStatusSummary());
-        props.put("accessNextSummary", viewModel.accessNextSummary());
-        props.put("companyCards", viewModel.companyCards());
-        putArmoryPageNavigation(props);
-        return props;
     }
 
     private static Map<String, Object> props(BarracksViewModel viewModel,

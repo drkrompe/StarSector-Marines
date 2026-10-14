@@ -39,7 +39,7 @@ public interface FortPlan {
 
     FortKind kind();
 
-    /** Local width and height of the footprint, belt and wire included. */
+    /** Local width and height of the footprint, belt and fence included. */
     int width();
 
     int height();
@@ -78,6 +78,14 @@ public interface FortPlan {
 
     /** The outer belt's cells in drawing order. */
     List<FortBelt.Cell> belt();
+
+    /**
+     * Where this kind stands its optional anti-air yard, or {@code null} for a kind that has none. Present in the plan
+     * whether or not a given fort asks for it: whether to stamp it is the declaration's, not the plan's.
+     */
+    default AirDefenceYard airDefence() {
+        return null;
+    }
 
     /** The aspects housed in buildings, in the order their cores are stamped. */
     List<FortAspect> aspects();

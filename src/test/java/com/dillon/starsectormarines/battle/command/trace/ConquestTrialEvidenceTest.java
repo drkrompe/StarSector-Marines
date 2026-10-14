@@ -62,7 +62,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * a JSON array of objects; every field but {@code id} is optional: {@code seed}, {@code placement}
  * ({@code ON_PATH}/{@code OFFSET}), {@code offset}, {@code shuttleType}, {@code shuttles}, {@code seats},
  * {@code cycles}, {@code elites}, {@code militia}, {@code patrolSize}, {@code objectiveGarrison}, {@code keepGarrison}
- * and {@code risk}. {@code -PsnapshotEveryTicks=N} renders review frames and a {@code visuals/<fixture>/review.gif}.
+ * {@code risk}, and {@code airDefence} (true stamps the fort's optional anti-air yard; absent none).
+ * {@code -PsnapshotEveryTicks=N} renders review frames and a {@code visuals/<fixture>/review.gif}.
  *
  * <p>The phased-assault fields are additive and, when omitted, leave production defaults alone: {@code muster} (false declares the
  * mission's {@code AssaultStyle.TRICKLE}; {@code musterPlans:false} is rejected, since plans are part of the muster),
@@ -213,7 +214,7 @@ class ConquestTrialEvidenceTest {
         Placement placement = Placement.valueOf(f.optString("placement", Placement.ON_PATH.name()));
         ConquestTrialGround.Ground ground = ConquestTrialGround.generate(seed, placement,
                 f.optInt("offset", ConquestTrialGround.DEFAULT_OFFSET),
-                f.optInt("objectiveGarrison", 8), f.optInt("keepGarrison", 12));
+                f.optInt("objectiveGarrison", 8), f.optInt("keepGarrison", 12), f.optBoolean("airDefence", false));
         List<ShuttleAssignment> manifest = new ArrayList<>();
         ShuttleType type = ShuttleType.valueOf(f.optString("shuttleType", ShuttleType.VALKYRIE.name()));
         for (int s = 0; s < f.optInt("shuttles", 4); s++) {
@@ -284,6 +285,8 @@ class ConquestTrialEvidenceTest {
             String detail = "- fort centre (" + fortCentre[0] + "," + fortCentre[1] + "), lane x=" + ConquestTrialGround.LANE_X
                     + "; objective " + ground.objective().kind + " at (" + ground.objective().anchorX + ","
                     + ground.objective().anchorY + "), keep at (" + ground.keep().anchorX + "," + ground.keep().anchorY + ")\n"
+                    + "- fort anti-air aspect: " + f.optBoolean("airDefence", false) + "; strikes refused as too defended: "
+                    + (sim.airPool() == null ? 0 : sim.airPool().director(Faction.MARINE).refusals()) + "\n"
                     + "- mission assault style: " + profileOf(f).declaredAssault() + "; "
                     + "declared kit/mechs/air: "
                     + f.optString("supportKit", "-") + " / " + f.optInt("mechDrops", 0) + " / "

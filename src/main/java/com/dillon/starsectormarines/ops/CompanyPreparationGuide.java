@@ -81,7 +81,7 @@ final class CompanyPreparationGuide {
         Step step = roster.officerInduction().step(roster);
         if (step == Step.SHIP && CerberusCompanyStart.pendingDesignation()) return foundingLesson(context, null);
         if (step == Step.SHIP) return new PreparationGuide.Lesson(0, Strings.get("openingCompanyPreparationGuideAHomeForTheCompany"),
-                OfficerInductionGuide.line(Step.SHIP, "Mira Hale").text(),
+                OfficerInductionGuide.line(Step.SHIP, "Sabine Hale").text(),
                 List.of("company-hq-ship"), Strings.get("openingCompanyPreparationGuideChooseShip"), () -> context.goTo(ScreenId.SHIP_TRANSFER));
         boolean waiting = context.shipGettingReady();
         return new PreparationGuide.Lesson(step == Step.LIFT ? 1 : 2, waiting ? Strings.get("openingCompanyPreparationGuidePreparingOurShip") : Strings.get("openingCompanyPreparationGuideLetSGetTheCompanyReady"),
@@ -89,7 +89,7 @@ final class CompanyPreparationGuide {
                         : step == Step.LIFT ? Strings.get("openingCompanyPreparationGuideOurHomeIsReadyComeDownTo")
                         : Strings.get("openingCompanyPreparationGuideOurLiftIsAboardComeToBarracks"),
                 List.of(step == Step.LIFT ? "page-nav-boats" : "page-nav-barracks"),
-                step == Step.LIFT ? Strings.get("openingCompanyPreparationGuideBoatDeck") : Strings.get("openingCompanyPreparationGuideMeetMira"), waiting ? null : context::openOfficerInduction);
+                step == Step.LIFT ? Strings.get("openingCompanyPreparationGuideBoatDeck") : Strings.get("openingCompanyPreparationGuideMeetSabine"), waiting ? null : context::openOfficerInduction);
     }
 
     static PreparationGuide.Lesson boats(MarineRoster roster, BoatDeckViewModel model, MarineOpsContext context) {
@@ -102,7 +102,7 @@ final class CompanyPreparationGuide {
         if (roster.officerInduction().step(roster) == Step.LIFT) {
             boolean building = model.fabricationFocused();
             return new PreparationGuide.Lesson(1, roster.boatDeck().wreckInBerth(0) ? Strings.get("openingCompanyPreparationGuideRepairOurFirstHermes") : Strings.get("openingCompanyPreparationGuideCommissionOurFirstShuttle"),
-                    (roster.boatDeck().wreckInBerth(0) ? Strings.get("openingCompanyPreparationGuideSecondWindCameWithTwoWreckedHermes") : OfficerInductionGuide.line(Step.LIFT, "Mira Hale").text())
+                    (roster.boatDeck().wreckInBerth(0) ? Strings.get("openingCompanyPreparationGuideSecondWindCameWithTwoWreckedHermes") : OfficerInductionGuide.line(Step.LIFT, "Sabine Hale").text())
                             + (building ? Strings.get("openingCompanyPreparationGuideCheckTheMaterialBillThenConfirmThe") : Strings.get("openingCompanyPreparationGuideSelectTheFirstBerthOnTheRight"))
                             + (CerberusCompanyStart.depot() != null ? Strings.get("openingCompanyPreparationGuideOurPrepaidStoresAreAvailableWhileDocked") : ""),
                     building ? List.of("boat-fabrication-materials", "boat-fabricate", "boat-fabrication-back")
@@ -110,7 +110,7 @@ final class CompanyPreparationGuide {
         }
         return new PreparationGuide.Lesson(1, Strings.get("openingCompanyPreparationGuideLiftReady"),
                 Strings.get("openingCompanyPreparationGuideGoodThatBoatIsOursWithA"),
-                List.of("page-nav-barracks"), Strings.get("openingCompanyPreparationGuideMeetMira"), next);
+                List.of("page-nav-barracks"), Strings.get("openingCompanyPreparationGuideMeetSabine"), next);
     }
 
     static PreparationGuide.Lesson armory(MarineRoster roster, MarineOpsContext context) {

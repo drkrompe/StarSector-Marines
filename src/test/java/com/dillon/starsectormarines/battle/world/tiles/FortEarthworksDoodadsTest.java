@@ -7,6 +7,7 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /** The fort earthworks sheet is registered: the stage draws trench by mask and sandbag by facing, so every id must exist. */
 class FortEarthworksDoodadsTest {
@@ -19,12 +20,12 @@ class FortEarthworksDoodadsTest {
         for (String name : new String[]{"n", "e", "s", "w", "corner-ne", "corner-se", "corner-sw", "corner-nw"}) {
             assertNotNull(registry.doodad("doodad.fort-sandbag-" + name), name);
         }
-        for (String id : new String[]{"doodad.fort-wire-h", "doodad.fort-wire-v", "doodad.fort-hedgehog"}) {
+        for (String id : new String[]{"doodad.fort-hedgehog"}) {
             assertNotNull(registry.doodad(id), id);
         }
     }
 
-    /** Prepared ground is declared in the data: the trench and every sandbag piece say so, wire and the destroyed stubs do not. */
+    /** Prepared ground is declared in the data: the trench and every sandbag piece say so, the destroyed stubs do not. */
     @Test
     void preparedGroundDeclaresItsFightingPositionRole() throws Exception {
         TileRegistryTestInstaller.install(Path.of("").toAbsolutePath());
@@ -41,7 +42,7 @@ class FortEarthworksDoodadsTest {
             assertEquals(FightingPositionRole.PARAPET, registry.doodad("doodad.sandbag-damaged-" + shape).fightingPosition, shape);
             assertEquals(FightingPositionRole.NONE, registry.doodad("doodad.sandbag-destroyed-" + shape).fightingPosition, shape);
         }
-        assertEquals(FightingPositionRole.NONE, registry.doodad("doodad.fort-wire-h").fightingPosition);
+        assertNull(registry.doodad("doodad.fort-wire-h"), "the belt is fenced, not wired");
         assertEquals(FightingPositionRole.NONE, registry.doodad("doodad.fort-hedgehog").fightingPosition);
     }
 }
