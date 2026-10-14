@@ -1,156 +1,71 @@
-WORKING PASSAGE / SCRIPT REVIEW
-Post-Cold Start negotiation; unrecorded; source durations are reading estimates
-Salvage Rights is paid recovery and inspection. Cold Start pays repair cover.
-Ship terms are negotiated only after Cold Start, in Working Passage. No fixed gun count is promised.
-Vale retains the Colossus, its shipment and the built defenses. Morrow transfers after handover and physical departure, with willing crew.
-CASTING: Vale candidate 3 / cZH6erlGkOyAQheipyno; Castle / cuwCdnt9CKAB9XrTA1j0.
-Model: eleven_v4. Existing voice settings retained. New turns are text-only; durations are reading estimates.
-No new recordings generated. Superseded source takes and receipts are preserved, with playback registrations removed.
-Unchanged opening recordings 01, 02, 08 remain. New scope and negotiation lines require recording before voiced=true.
-Dry run: python art-source/audio/shepherd/record-salvage-briefing.py --chapter passage
-Paid generation is a separate authoring action: --generate. --line selects a specific line; no replacement flag.
-Voice guidance: https://elevenlabs.io/docs/overview/capabilities/text-to-speech/best-practices
+basin_passage_negotiation_01 / TAMSIN VALE / BASIN RECLAMATION
+The haulers are still waiting. Our people can't keep the outer road clear long enough to get them through.
 
-basin_passage_negotiation_01 [UNRECORDED]
-Speaker: TAMSIN VALE / BASIN RECLAMATION
-Subtitle key: shepherdPassageNegotiation1
-Text: I've just had word from the outer road. They couldn't hold it. My haulers aren't getting through.
-Voice: cZH6erlGkOyAQheipyno
+basin_passage_negotiation_02 / CASTLE / COMPANY COMMAND
+That's beyond the yard. You said your militia had it.
 
-basin_passage_negotiation_02 [UNRECORDED]
-Speaker: CASTLE / COMPANY COMMAND
-Subtitle key: shepherdPassageNegotiation2
-Text: Your militia were holding that road.
-Voice: cuwCdnt9CKAB9XrTA1j0
+basin_passage_negotiation_03 / TAMSIN VALE / BASIN RECLAMATION
+I thought they could manage. I need your company to open it, with Morrow building positions they can hold after you leave.
 
-basin_passage_negotiation_03 [UNRECORDED]
-Speaker: TAMSIN VALE / BASIN RECLAMATION
-Subtitle key: shepherdPassageNegotiation3
-Text: They were. Now I need your company to clear it and leave positions they can hold.
-Voice: cZH6erlGkOyAQheipyno
+basin_passage_negotiation_04 / CASTLE / COMPANY COMMAND
+We took the yard and covered your fitters. Both jobs are finished.
 
-basin_passage_negotiation_04 [UNRECORDED]
-Speaker: CASTLE / COMPANY COMMAND
-Subtitle key: shepherdPassageNegotiation4
-Text: We priced a yard inspection and cover for your repairs.
-Voice: cuwCdnt9CKAB9XrTA1j0
+basin_passage_negotiation_05 / TAMSIN VALE / BASIN RECLAMATION
+I know. Send me a price for the road.
 
-basin_passage_negotiation_05 [UNRECORDED]
-Speaker: TAMSIN VALE / BASIN RECLAMATION
-Subtitle key: shepherdPassageNegotiation5
-Text: Then price the road.
-Voice: cZH6erlGkOyAQheipyno
+basin_passage_negotiation_06 / CASTLE / COMPANY COMMAND
+A new contract, paid on handover. Construction and repair cover included. Anything you want moved out of the Colossus stays with your handlers.
 
-basin_passage_negotiation_06 [UNRECORDED]
-Speaker: CASTLE / COMPANY COMMAND
-Subtitle key: shepherdPassageNegotiation6
-Text: Another fee. We're opening that road and leaving your people something they can hold.
-Voice: cuwCdnt9CKAB9XrTA1j0
+basin_passage_negotiation_07 / TAMSIN VALE / BASIN RECLAMATION
+I can settle it when the shipment goes. I've paid you, bought parts, kept this camp fed. The next money comes from getting those haulers out.
 
-basin_passage_negotiation_07 [UNRECORDED]
-Speaker: TAMSIN VALE / BASIN RECLAMATION
-Subtitle key: shepherdPassageNegotiation7
-Text: Payable after dispatch. The shipment is where the money is.
-Voice: cZH6erlGkOyAQheipyno
+basin_passage_negotiation_08 / CASTLE / COMPANY COMMAND
+So our pay waits on your buyer. We don't even know what you're selling.
 
-basin_passage_negotiation_08 [UNRECORDED]
-Speaker: CASTLE / COMPANY COMMAND
-Subtitle key: shepherdPassageNegotiation8
-Text: Against a shipment we aren't allowed to inspect?
-Voice: cuwCdnt9CKAB9XrTA1j0
+basin_passage_negotiation_09 / TAMSIN VALE / BASIN RECLAMATION
+You don't need to. I've paid everything I owe you.
 
-basin_passage_negotiation_09 [UNRECORDED]
-Speaker: TAMSIN VALE / BASIN RECLAMATION
-Subtitle key: shepherdPassageNegotiation9
-Text: Leave the hold out of it.
-Voice: cZH6erlGkOyAQheipyno
+basin_passage_negotiation_10 / CASTLE / COMPANY COMMAND
+You have. And I'd rather keep it that way. Pay us with Morrow.
 
-basin_passage_negotiation_10 [UNRECORDED]
-Speaker: CASTLE / COMPANY COMMAND
-Subtitle key: shepherdPassageNegotiation10
-Text: Gladly. Morrow.
-Voice: cuwCdnt9CKAB9XrTA1j0
+basin_passage_negotiation_11 / TAMSIN VALE / BASIN RECLAMATION
+No. We've just put her back together. Who do you think keeps the machinery working here?
 
-basin_passage_negotiation_11 [UNRECORDED]
-Speaker: TAMSIN VALE / BASIN RECLAMATION
-Subtitle key: shepherdPassageNegotiation11
-Text: No. Her drone bay keeps this yard running.
-Voice: cZH6erlGkOyAQheipyno
+basin_passage_negotiation_12 / CASTLE / COMPANY COMMAND
+Her builders could leave you a defended road. We clear the positions, cover the construction and stay until your militia take over.
 
-basin_passage_negotiation_12 [UNRECORDED]
-Speaker: CASTLE / COMPANY COMMAND
-Subtitle key: shepherdPassageNegotiation12
-Text: It could keep your road open. We clear it, build fortified positions and hand them to your militia.
-Voice: cuwCdnt9CKAB9XrTA1j0
+basin_passage_negotiation_13 / TAMSIN VALE / BASIN RECLAMATION
+And I lose the tender I've spent all this getting back. Those repairs were my parts, Castle. My fitters.
 
-basin_passage_negotiation_13 [UNRECORDED]
-Speaker: TAMSIN VALE / BASIN RECLAMATION
-Subtitle key: shepherdPassageNegotiation13
-Text: I've already paid for the parts and fitters, and both your cash fees.
-Voice: cZH6erlGkOyAQheipyno
+basin_passage_negotiation_14 / CASTLE / COMPANY COMMAND
+I'm not claiming we repaired her. I'm offering you another job for her. You've seen what our company can do.
 
-basin_passage_negotiation_14 [UNRECORDED]
-Speaker: CASTLE / COMPANY COMMAND
-Subtitle key: shepherdPassageNegotiation14
-Text: And we did the work. This is another job.
-Voice: cuwCdnt9CKAB9XrTA1j0
+basin_passage_negotiation_15 / TAMSIN VALE / BASIN RECLAMATION
+Use her for this. I'll let you keep her until the shipment clears, then pay you out.
 
-basin_passage_negotiation_15 [UNRECORDED]
-Speaker: TAMSIN VALE / BASIN RECLAMATION
-Subtitle key: shepherdPassageNegotiation15
-Text: I'll loan you Morrow for one contract.
-Voice: cZH6erlGkOyAQheipyno
+basin_passage_negotiation_16 / CASTLE / COMPANY COMMAND
+That still leaves us waiting on it. We need something we can put to work, Vale. You've got a yard full of salvage. We've got a payroll.
 
-basin_passage_negotiation_16 [UNRECORDED]
-Speaker: CASTLE / COMPANY COMMAND
-Subtitle key: shepherdPassageNegotiation16
-Text: And you'd have us wait for your shipment before we pay our people. We need a working ship, not another account to chase.
-Voice: cuwCdnt9CKAB9XrTA1j0
+basin_passage_negotiation_17 / TAMSIN VALE / BASIN RECLAMATION
+The defenses stay here. You don't lift off while my militia are still trying to get into position.
 
-basin_passage_negotiation_17 [UNRECORDED]
-Speaker: TAMSIN VALE / BASIN RECLAMATION
-Subtitle key: shepherdPassageNegotiation17
-Text: The defenses stay. You hold until my militia are dug in.
-Voice: cZH6erlGkOyAQheipyno
+basin_passage_negotiation_18 / CASTLE / COMPANY COMMAND
+They'll have cover while they move up. We hand the positions over before we leave.
 
-basin_passage_negotiation_18 [UNRECORDED]
-Speaker: CASTLE / COMPANY COMMAND
-Subtitle key: shepherdPassageNegotiation18
-Text: Agreed. We'll leave them a road they can hold.
-Voice: cuwCdnt9CKAB9XrTA1j0
+basin_passage_negotiation_19 / TAMSIN VALE / BASIN RECLAMATION
+And this buys you no part of the Colossus. Nothing in her, nothing that comes out of her.
 
-basin_passage_negotiation_19 [UNRECORDED]
-Speaker: TAMSIN VALE / BASIN RECLAMATION
-Subtitle key: shepherdPassageNegotiation19
-Text: The Colossus and everything in it are ours.
-Voice: cZH6erlGkOyAQheipyno
+basin_passage_negotiation_20 / CASTLE / COMPANY COMMAND
+Morrow, with title. That's the whole offer.
 
-basin_passage_negotiation_20 [UNRECORDED]
-Speaker: CASTLE / COMPANY COMMAND
-Subtitle key: shepherdPassageNegotiation20
-Text: And title to Morrow?
-Voice: cuwCdnt9CKAB9XrTA1j0
+basin_passage_negotiation_21 / TAMSIN VALE / BASIN RECLAMATION
+When the road is handed over and she's clear of the basin. Her crew aren't part of a sale. I'll ask who wants to go; you find berths for anyone who does.
 
-basin_passage_negotiation_21 [UNRECORDED]
-Speaker: TAMSIN VALE / BASIN RECLAMATION
-Subtitle key: shepherdPassageNegotiation21
-Text: When the road is handed over and her hull is clear of the basin. Her crew choose for themselves. Only willing hands go with her.
-Voice: cZH6erlGkOyAQheipyno
+basin_passage_negotiation_22 / CASTLE / COMPANY COMMAND
+Their choice, our payroll. Send the terms over for the Captain.
 
-basin_passage_negotiation_22 [UNRECORDED]
-Speaker: CASTLE / COMPANY COMMAND
-Subtitle key: shepherdPassageNegotiation22
-Text: Put it in the agreement.
-Voice: cuwCdnt9CKAB9XrTA1j0
+basin_passage_negotiation_23 / TAMSIN VALE / BASIN RECLAMATION
+All right. I'll send them. And Castle? Get her out in one piece. I've had enough of watching ships come down here.
 
-basin_passage_negotiation_23 [UNRECORDED]
-Speaker: TAMSIN VALE / BASIN RECLAMATION
-Subtitle key: shepherdPassageNegotiation23
-Text: I'll have it sent over.
-Voice: cZH6erlGkOyAQheipyno
-
-basin_passage_instructions_01 [UNRECORDED]
-Speaker: TAMSIN VALE / BASIN RECLAMATION
-Subtitle key: shepherdPassageInstructions
-Text: She's holding a hover. Bring her along the road to the eastern yard. Clear the pump bend and select Build Vulcan Turret on clear ground within reach of Morrow; then prepare the narrows. Cover her builders and wait for my holders to take over. If the drives give out, break off. We'll recover and refit the same hull before another attempt; our agreement stands.
-Voice: cZH6erlGkOyAQheipyno
+basin_passage_instructions_01 / TAMSIN VALE / BASIN RECLAMATION
+She's holding a hover. Bring her along the road to the eastern yard. Clear the pump bend and use Build Vulcan Turret on ground her builders can reach, then prepare the narrows. Cover the work and wait for my militia to take over. Keep the company with her for the drive test. If the drives give out, break off; we'll recover her. The agreement stands.
