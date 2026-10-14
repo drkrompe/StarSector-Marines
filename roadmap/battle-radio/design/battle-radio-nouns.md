@@ -4,7 +4,7 @@ Status: ACTIVE — one presentation-only cue policy spans both battle hosts; mix
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — Talon Two flight portrait and cockpit radio treatment distinguish the aviation speaker from infantry.
+Updated: 2026-10-14 — field command: the founding officer relays company-wide orders when she leads the deployment.
 
 Read `stories.md` for the open-work board.
 
@@ -28,6 +28,9 @@ gameplay state nor serves as a continuous voice track.
 - **Company command** is the off-field company officer, distinct from squad
   speakers and employer mission contacts. In Marine Operations she occasionally
   addresses sampled assignment exchanges over a non-positional comms channel.
+- **Field command** is the company's own officer on the ground, Sabine Hale.
+  She sits between company command and the squad callsigns: she speaks for the
+  landing as a whole, never for one squad's situation, and never for the ship.
 - The **voice budget** is the single global throttle for every squad cue. It keeps
   the radio subordinate to combat sound and music.
 - A **host** is a presentation environment: the standalone battle screen or
@@ -186,7 +189,8 @@ increasing the voice budget or inventing tactical facts. A one-line pool remains
 valid and necessarily repeats.
 
 Command subtitles identify CASTLE / COMPANY COMMAND and use her original
-painted portrait; infantry subtitles identify the current exchange's callsign
+painted portrait; field command identifies SABINE HALE / FIELD COMMAND with
+hers; infantry subtitles identify the current exchange's callsign
 and show that radio actor's helmet-interior portrait. The same face follows the
 actor through acknowledgements, readbacks and combat reports. These are radio
 cast identities, not portraits assigned to individual roster marines or squads.
@@ -210,6 +214,25 @@ with a shared target and peak ceiling; source takes remain untouched.
 Runtime playback needs no provider account,
 API access or DSP dependency. Transmit clicks or interference, if introduced,
 are separate channel effects rather than instructions in synthesis text.
+
+## Field command
+
+Field command is an alternative voicing of a company-level assignment exchange,
+never a replacement for Castle's direct traffic. When one observation retasks
+more than one squad, the sampled exchange is company-level; if the deployment's
+leading officer is the company's founding officer, the rotation may give it to
+her. Castle then calls Sabine, she acknowledges, Castle reads the same
+instruction a squad would hear, Sabine hands it to the exchange's callsign, and
+that callsign reads back. A withdrawal uses her last-out handoff. A single
+squad's new task always stays between Castle and that squad, and when she is
+not leading the deployment (wounded, aboard, or another officer selected) the
+net is exactly the callsign net. She has no combat-report pool: single-squad
+contact stays with the callsigns. She shares the exchange cooldown, voice budget
+and cancellation rules, and her callsign handoff is still exchange-local casting.
+
+Further ground-commander reports (company landed and counted, compound taken,
+company too thin to push, squads back together) are direction. Each needs its
+own confirmed fact before it can be a turn.
 
 ## Operational exchanges
 

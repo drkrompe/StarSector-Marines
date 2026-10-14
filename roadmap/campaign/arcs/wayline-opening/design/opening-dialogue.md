@@ -1,10 +1,10 @@
 # Second Wind to Wayline: opening dialogue
 
-Status: DRAFT — proposed rewrite of the campaign-start and first-contract dialogue, for review before it replaces strings.
+Status: SHIPPED — the campaign-start and first-contract dialogue register, and the schedule hints through Dust Ledger; applied to the game. Sabine relays company-wide orders on the net; her other ground reports wait on battle evidence.
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — owner calls applied: Venn sisters, the licence the company cannot afford, the founding field commander and her twelve come off the Claim (renamed Sabine Hale), "Commander" throughout.
+Updated: 2026-10-14 — applied; Sabine Hale renamed, protected from death, voiced, and relaying company-wide orders on the net.
 
 ## How to read this script
 
@@ -19,8 +19,7 @@ Each line names the string key (or the code that builds it) that it would replac
 Mechanics stated in a line are unchanged: costs, stores, berths, rewards and button
 names are the ones the game uses today. Lines that format a value keep their
 `{0}` placeholders; strings passed through `Strings.format` double their
-apostrophes when implemented. Keys still carry the old name `Mira`; renaming keys
-is implementation, not script.
+apostrophes.
 
 `cerberus-company-start.md` and `first-mission-preparation.md` own the flow these
 lines sit in; `wayline-opening-arc.md` owns the arc; `company-view-nouns.md` owns
@@ -34,7 +33,7 @@ Castle, Nessa and the founding field commander's canon. **PUBLIC**, **HIDDEN** a
    so every line that depends on the relationship is Jangala-only.
 2. **The founding field commander came off the Claim, and so did her squad.** She
    commanded the mine's escort section; twelve of them stayed with her. She is
-   renamed **Sabine Hale** (proposed) so she cannot be confused with Mara in
+   renamed **Sabine Hale** so she cannot be confused with Mara in
    passing, and she speaks at story beats instead of being a portrait.
 3. **The player is "Commander"** in every rewritten or new line, Castle's and
    Mara's alike. Yard staff already say Commander.
@@ -94,8 +93,7 @@ with words. Her yard runs on parts that come up the Wayline road. Mara's older
 sister.
 
 **Mara Venn** — PUBLIC: Wayline's broker, and since the spring its acting head;
-Nessa's younger sister. When the cooperative's director, Teodor Prell (proposed
-name), left for a post off-world, nobody senior was left who wanted the job, so
+Nessa's younger sister. When the cooperative's director, Teodor Prell, left for a post off-world, nobody senior was left who wanted the job, so
 the youngest person in the office who could read the books got it. She still
 does the brokering because nobody else can. That is the overwork. HIDDEN: Relief's fee is most of what is left in the
 cooperative's security fund; if the checkpoint falls, Wayline sells out to a
@@ -111,7 +109,7 @@ watch is paid from the same collection as the company's fee. Later arcs, where
 Wayline hauls to Asharu again, are Wayline flying again: the recovery the
 company buys it.
 
-### Why Wayline (proposal)
+### Why Wayline
 
 The opening needs a reason the raiders are on Wayline's road rather than someone
 else's, and Corvus Account already supplies the deep one: Sable Wake is buying
@@ -137,15 +135,18 @@ opening shows, and lets the player feel it long before anyone names it.
   old paperwork. Nobody suspects him, which is what makes the reveal land. He
   never appears in person in this arc.
 
-Seeds between Relief and Dust Ledger, one line each, none of them explained:
+Hints between Relief and Dust Ledger, one line each, none of them explained.
+After Relief they sit in Mara's written victory message, the one place every
+chapter has; she relays what Castle and Sabine saw rather than borrowing their
+voices:
 
-| Chapter | Seed |
-|---|---|
-| Relief | Mara: the depot raiders "knew which night the gate crew was short." |
-| Counterattack | Castle, on the depot's recovered office: their dispatch board was the one thing the raiders bothered to take. |
-| Open the Junction | Sabine: they were waiting at the junction before our boats were down. Somebody told them we were coming. |
-| Thunder Run | Castle, debrief: every ambush on the corridor sat on the loads that were worth something, and skipped the rest. |
-| Dust Ledger | Mara reads Wayline's own schedules out of a pirate archive, under Prell's authority. |
+| Chapter | Where | Hint |
+|---|---|---|
+| Relief | Radio, during the trips | "They knew which night the depot's gate crew was short. I still don't know how." |
+| Counterattack | Victory message | They left the strongroom alone and took the dispatch board, every route and every schedule on it. |
+| Open the Junction | Victory message | Sabine says they were dug in before your boats were down. Somebody told them we were coming. |
+| Thunder Run | Victory message | Castle's report says every ambush sat on the loads worth something and let the rest go by. |
+| Dust Ledger | Victory message | The archive holds Wayline's own schedules, released under Teodor Prell's dispatch authority, the last batch dated the week he left. |
 
 ## 0 — New game
 
@@ -544,8 +545,8 @@ about her directly.
 > mission. Every officer who goes earns their own service record. Bring them home
 > and we'll build on what they learn.
 
-**New — Sabine, on assignment** (shown with the assignment step's completion,
-founding officer only)
+**New — Sabine, on assignment** (Castle relays it in the lesson's final step,
+since the lesson panel speaks only with Castle's portrait)
 > Twelve present, Commander. Counted. First time anyone's paid them to stand
 > watch since the Claim. Give me somewhere to take them.
 
@@ -558,7 +559,7 @@ founding officer only)
 > Mara's directions from HQ. Take Sabine's squad. Let's give Mara a reason to call
 > again.
 
-### Briefing and landing (proposal: the introduction becomes the briefing)
+### Briefing and landing: the introduction is the briefing
 
 Relief splits Mara's words by where the player is. Before launch she is a
 stranger asking for help, so the briefing is her introduction: who she is, what
@@ -591,6 +592,14 @@ player has met Nessa.
    > you than nothing, and I expect you'd rather us than nothing too. One job at a
    > time, Commander.
 
+**Briefing, Sabine** (recorded in her voice, after Mara's four turns)
+> One boat, so we go down in trips. First team takes the apron and holds it until
+> the rest are on the ground. Nobody walks to that gate alone.
+
+This was first written into the mission radio, but a recorded line takes over
+from a text-only one at once, so a text line in the middle of Mara's exchange
+would have flashed and vanished. In the briefing, turns play one after another.
+
 **Briefing screen, unvoiced** — the tactical summary
 > Land on the rear unloading apron and reinforce the checkpoint gate. Raiders will
 > come up the freight and warehouse service roads. Wayline supplies its militia
@@ -598,20 +607,18 @@ player has met Nessa.
 
 **In mission, while the boat shuttles** — one ordered exchange that starts at
 launch and plays straight through, a line at a time, while the Hermes goes back
-and forth. It is not keyed to individual landings, so it needs no new mission
-events and cannot fall out of order. Mara unless marked.
+and forth. It is not keyed to individual landings, so it cannot fall out of
+order. All Mara.
 
 1. > Mara here. Your first boat's headed for the rear unloading apron. Our watch is
    > holding the gate, but not for long on their own.
-2. > Sabine: First team goes down and holds the apron. The rest follow as the boat
-   > turns round. Nobody walks to that gate alone.
-3. > The raiders are coming up the freight and warehouse service roads. That's
+2. > The raiders are coming up the freight and warehouse service roads. That's
    > where the gate gets hit.
-4. > Our militia are coming in on the only shuttle we've got. Keep them with your
+3. > Our militia are coming in on the only shuttle we've got. Keep them with your
    > people. They're drivers defending their road.
-5. > They knew which night the depot's gate crew was short. I still don't know
+4. > They knew which night the depot's gate crew was short. I still don't know
    > how. This is where we stop them taking the road as well.
-6. > Break the assault and bring as many of our people home as you can, Commander.
+5. > Break the assault and bring as many of our people home as you can, Commander.
 
 The beats tied to what actually happens keep firing on their own events, after or
 between these turns:
@@ -625,8 +632,7 @@ between these turns:
 The old `player_landed` and `employer_landed` lines are folded into the exchange
 and retired. An urgent event line (the militia breaking) interrupts the
 exchange, and the exchange resumes after it rather than being lost. The depot
-seed moves out of the introduction into turn 5, where it has room to sit. Every
-Mara turn needs a recording; Sabine's is text until she has a voice.
+hint moves out of the introduction into turn 4, where it has room to sit.
 
 ## 6 — First payment
 
@@ -658,7 +664,7 @@ Mara — next
 > Get your people in order. When you're ready, come back and we'll talk about the
 > depot. I'd like this to be the start of something. Wayline needs it to be.
 
-## Proposal — Sabine on the company net
+## Sabine on the company net
 
 Sabine joins the existing net as one more voice in its rotation, not as a
 parallel system. What sets her apart is her authority, not her mechanics. The
@@ -694,37 +700,26 @@ today. Examples:
 | Company thinning | **Sabine:** Castle, we're thin down here. I can hold. I can't push. |
 | Squads rejoined | **Castle:** Sabine, how's the line? **Sabine:** Back together. Ready when you are. |
 
-This needs its own story under the battle-radio model: a fixed ground-commander
-actor in the radio catalog, the rule for which exchanges she takes, recordings in
-a chosen voice, and a check that the net is unchanged when she is not deployed.
-It is not part of the text rewrite. Until then her story lines stay text with her
-portrait.
+The first row is in the game, as the battle-radio model's field-command relay
+(`battle-radio-nouns.md`): when several squads are retasked together and she
+leads the deployment, Castle may call her instead of a callsign, read the same
+order, and hear her hand it to one callsign, who answers. Withdrawals use the
+last-out handoff from the fourth row. The other rows each need a confirmed
+battle fact the net does not observe yet (company landed, compound captured,
+company strength, squads reassembled).
 
-## Implementation notes
+Owner call 6 reaches past the opening. Counterattack, Open the Junction and
+Thunder Run no longer name their fees in Mara's voice. Thunder Run's per-carrier
+schedule is a term the player needs, so it follows her briefing as a plain
+**Terms:** line rather than as something she says.
 
-- Structural additions: two new prologue pages (eight in all, which changes the
-  page count, the page arrays and the `company-prologue` snapshot frames), the
-  Jangala-only Wayline paragraph in Nessa's yard visit, Sabine's assignment line,
-  her Relief briefing line and her two debrief muster lines. Every other line
-  replaces existing text in place.
-- Renaming Mira to Sabine changes the officer's minted name, portrait file and
-  string keys outright. The game has not launched, so no save carries the old
-  name and nothing needs to keep accepting it.
-- Mara as Wayline's acting head changes canon that calls her an independent
-  broker (`wayline-opening-arc.md`, `early-operation-nouns.md`, and Vale's view of
-  her in `shepherd-recovery-dialogue.md`). Prell and the Dust Ledger reveal
-  belong in `wayline-corvus-arc.md` and its chapter dialogue.
-- Relief's briefing becomes Mara's introduction as ordered `briefing.*` turns,
-  and the tactical lines move into the mission as one ordered radio exchange
-  started at launch; no new mission events are needed. The briefing screen keeps
-  an unvoiced tactical summary.
-  Every changed Mara line needs a new recording.
-- Sabine's protection changes the standing model in the same commit as the code:
-  `personnel-nouns.md` ("grants no immunity from loss") and `company-view-nouns.md`
-  ("a surviving officer can carry the unfinished lesson") are rewritten, and the
-  induction's fallback to another officer is removed.
-- Prologue and lesson lines are text with Castle's portrait; none is recorded
-  today. The Relief briefing is recorded in Mara's voice and needs a new take if
-  its words change.
-- Fallback ports never see Nessa, Corvus copy or the yard's Wayline paragraph, as
-  `cerberus-company-start.md` requires.
+## Still open
+
+- Sabine's landing, capture, strength and regroup reports, each once the net
+  can observe its fact.
+
+Sabine has a voice (`art-source/audio/sabine/README.md`): calm and low, without
+the Eastern European accent the brief asked for, which the recording model does
+not keep. Her Relief briefing turn is recorded. Her muster lines and the
+assignment line stay written, because the exchanges they sit in are written
+correspondence with no recordings for anyone.

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.start.CompanyPrologue;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
@@ -12,24 +13,24 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class CompanyPrologueScreenTest {
     @Test void fallbackAndMissingPortNeverGiveTheJangalaContactOrADisabledExit() {
-        var fallback = CompanyPrologueScreen.model(3, "Independent Port", false, 17, 500, 5000, () -> {}, () -> {}, () -> {});
+        var fallback = CompanyPrologueScreen.model(5, "Independent Port", false, 17, 500, 5000, () -> {}, () -> {}, () -> {});
         assertFalse(fallback.get("narrative").toString().contains("Corvus"));
         assertFalse(fallback.get("dialogue").toString().contains("Jangala"));
         assertFalse(fallback.get("dialogue").toString().contains("Nessa"));
         assertEquals("Reach Independent Port", fallback.get("destination"));
         assertTrue(fallback.get("manifest").toString().contains("17 crew"));
-        var absent = CompanyPrologueScreen.model(5, null, false, 17, 500, 5000, () -> {}, () -> {}, () -> {});
+        var absent = CompanyPrologueScreen.model(7, null, false, 17, 500, 5000, () -> {}, () -> {}, () -> {});
         assertEquals("Take command", absent.get("nextLabel"));
         assertFalse(absent.get("dialogue").toString().contains("null"));
         assertFalse(absent.get("dialogue").toString().contains("Nessa"));
-        var fallbackHandoff = CompanyPrologueScreen.model(5, "Independent Port", false, 17, 500, 5000, () -> {}, () -> {}, () -> {});
+        var fallbackHandoff = CompanyPrologueScreen.model(7, "Independent Port", false, 17, 500, 5000, () -> {}, () -> {}, () -> {});
         assertFalse(fallbackHandoff.get("dialogue").toString().contains("Nessa"));
     }
 
     @Test void allPagesKeepNavigationClickableAt1920x1080And100Percent() throws Exception {
         var loader = new MarkupLoader(path -> Files.readString(Path.of("mod").resolve(path)), CompanyPrologueScreen.COMPONENTS);
         loader.reload();
-        for (int page = 0; page < 6; page++) {
+        for (int page = 0; page < CompanyPrologue.PAGE_COUNT; page++) {
             var next = new AtomicInteger(); var back = new AtomicInteger(); var skip = new AtomicInteger();
             var props = CompanyPrologueScreen.model(page, "Jangala", true, 20, 500, 5000,
                     next::incrementAndGet, back::incrementAndGet, skip::incrementAndGet);

@@ -10,6 +10,7 @@ public final class OpeningOperationStoryHooks {
                         boolean firstPlaceReached, boolean yardReached, boolean warehouseReached,
                         int initialMilitia, int survivingMilitia, int roadArrivals,
                         boolean reserveCommitted, boolean defendersFallingBack, Result result) {}
+    private static final String[] RELIEF_EXCHANGE = {"roads", "militia_inbound", "depot", "orders"};
     private final OpeningOperationKind kind;
     private final StoryBeatLog log;
     private final String prefix;
@@ -25,11 +26,16 @@ public final class OpeningOperationStoryHooks {
     public void observe(Facts f) {
         if (finished) return;
         emit(f.tick, "started", Audience.PLAYER);
+        boolean relief = kind == OpeningOperationKind.RELIEF;
+        // Relief's radio is one ordered exchange from launch, played while the boat shuttles;
+        // its landings stay facts rather than cues, so the exchange cannot fall out of order.
+        if (relief) for (String turn : RELIEF_EXCHANGE) emit(f.tick, turn, Audience.PLAYER);
         // Retreat can happen before the first simulation tick. Do not fabricate landings.
         if (f.result == Result.RETREAT) { finish(f.tick, f.result); return; }
-        if (f.playerLanded) emit(f.tick, "player_landed", Audience.PLAYER);
-        if (f.employerLanded) emit(f.tick, "employer_landed", Audience.PLAYER);
-        if (kind == OpeningOperationKind.RELIEF) {
+        Audience landing = relief ? Audience.OBSERVER_ONLY : Audience.PLAYER;
+        if (f.playerLanded) emit(f.tick, "player_landed", landing);
+        if (f.employerLanded) emit(f.tick, "employer_landed", landing);
+        if (relief) {
             if (f.playerLanded && f.firstPlaceReached) emit(f.tick, "checkpoint_reached", Audience.PLAYER);
             if (f.initialMilitia > 0) {
                 if (f.survivingMilitia == 0) emit(f.tick, "militia_line_lost", Audience.PLAYER);

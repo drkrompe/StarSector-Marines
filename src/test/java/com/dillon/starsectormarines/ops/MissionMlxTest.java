@@ -110,7 +110,7 @@ class MissionMlxTest {
     void briefingSpeakerIsTheRecordedContactAndSurvivesPlaybackStateChanges() throws Exception {
         WaylineNarration catalog = WaylineNarration.parse(new JSONObject(Files.readString(
                 Path.of("mod", WaylineNarration.PATH))));
-        var line = catalog.find("story_opening_relief", "briefing");
+        var line = catalog.briefing("story_opening_relief").get(0);
         NarrationPlayer player = new NarrationPlayer(ignored -> null);
         Map<String, Object> props = BriefingViewModel.campaignPreviewProps(false);
         BriefingViewModel.putNarration(props, line, false);

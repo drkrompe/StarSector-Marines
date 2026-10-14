@@ -7,8 +7,10 @@ Written: 2026-10-13
 ## Premise, place and cast
 
 The company earns its first commercial relationship by protecting the Wayline
-freight cooperative's drivers and reopening their depot. Independent broker
-Mara Venn represents the cooperative; Castle speaks for the company and its
+freight cooperative's drivers and reopening their depot. Mara Venn, Wayline's
+broker and its acting head since its director left, represents the cooperative;
+Nessa Venn, her older sister, runs the Jangala yard that converts Second Wind.
+Castle speaks for the company and its
 actual personnel. Mara's affiliation does not describe Jangala's government.
 
 Her canonical office is Jangala in Corvus. The shared accessible-office policy
