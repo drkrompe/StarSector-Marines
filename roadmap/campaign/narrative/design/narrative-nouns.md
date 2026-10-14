@@ -66,7 +66,9 @@ the contact portrait and identity with each speaker. Skipping or replaying a con
 it never accepts a contract, spends resources or launches the mission.
 Localized subtitles and stable recording IDs belong to the authored turn, so
 translation and catalog ordering cannot silently select a different recording.
-Prepared but unrecorded turns remain readable and advance at the player's pace.
+Conversations advance automatically after each recording. Prepared but unrecorded
+turns use a reading interval sized to their localized subtitles; Skip and Replay
+remain available for the whole conversation.
 
 `contracts-nouns.md` owns commercial terms and terminal outcomes;
 `living-world-nouns.md` owns political and Chronicle truth; `themes.md` owns
