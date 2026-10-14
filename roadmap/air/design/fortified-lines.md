@@ -4,7 +4,7 @@ Status: DRAFT
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — owner: a line replaces the city where it runs; 1918-in-space feel; proposed answers for depth, fallback, sharing and performance.
+Updated: 2026-10-14 — second round of proposals: belt width in weapon reach, ruined/cleared/intact city, no-man's-land terrain, counterattack-then-withdraw, line artillery.
 
 Read `forts.md` first: what a fort is, its aspects, defence in depth and siting. This doc is
 about what happens when there are many of them.
@@ -110,16 +110,69 @@ costs are line-of-sight across long open belts and the number of nests and wire 
 evidence ground (in the style of the trial ground) measures tick cost alongside outcomes
 before any campaign map carries one, and the cleared belt is expected to offset some of it.
 
+## Proposed answers, second round (owner open to suggestions, not yet decided)
+
+**The belt is measured in weapon reach, not cells.** No-man's-land is about as deep as a field
+mortar's band, so an attacker's mortars cannot reach the main line from the city edge: they
+have to be carried forward into the outpost zone first, which is exactly the foothold the
+phased assault already starts with. The main line's own depth is a rifle's reach front to back,
+so a fire step in the support trench can still shoot into a lost stretch of the main line.
+The figures follow the weapons as they are tuned, rather than being fixed here.
+
+**Three kinds of ground across the map.** In front of the line the city is **ruined, not
+deleted**: roofless shells, rubble and broken streets, which is the attacker's approach and
+the place a foothold and a muster happen. The belt itself is **cleared** as the previous
+round says. Behind the line the city is **intact**: the rear, where the reserve waits and
+the protected objective stands. A player reads the front at a glance from that gradient.
+
+**No-man's-land is terrain with its own rules.**
+
+- **Craters** are walkable heavy cover and fighting positions, so an attack can go to ground
+  in them. Craters made during the battle (mortar, bomb, ship fire) join them, so the ground
+  gets more broken the longer it is fought over.
+- **Wire** is laid in belts angled to funnel an attacker into the lanes the nests cover, the
+  way 1918 wire was. Gaps in it are deliberate; cutting it is a job (breaching charges,
+  cutters, shelling).
+- **Dead ground**: low ground out of the line's sight, the attacker's way to close without
+  being seen. Siting should leave some on purpose, so a weak point exists to be found.
+- **Wrecks**: crashed boats, knocked-out mechs and vehicles from earlier fighting. Hard cover
+  and landmarks; the science-fiction answer to the 1918 tank hulk.
+- **Flooded holes and mud** slow movement without blocking it.
+
+**The defender counterattacks first and withdraws when it can no longer win the sector.**
+
+- **Counterattack** when a stretch is broken into and the reserve can reach it before the
+  attacker has consolidated: soon, with the local reserve, while the attacker is still
+  disorganised in the captured trench. That window is the defender's best chance.
+- **Withdraw** the sector when the reserve is spent, when the strongpoint that covered the
+  stretch has fallen (so the gap is no longer covered), or when the neighbouring sectors are
+  outflanked. The neighbours bend back to face the gap rather than holding a line that is now
+  behind them, and the sector falls back to the support line in order.
+- An attacker that follows a withdrawal up quickly may catch the support line before it is
+  manned; one that pauses to consolidate meets it ready. That is a real choice for the
+  attacker and needs no special rule.
+
+**Yes: a line has its own guns, and they are why air matters over a line.** Field guns and
+mortar pits stand behind the main line, separate from the fort batteries, which fire at ships.
+
+- They fire on **no-man's-land and the outpost zone**, on what the line's observers see (fair
+  knowledge), from ground they have registered on beforehand.
+- When an outpost signals an assault forming, they drop a **barrage curtain** across
+  no-man's-land in front of it: the 1918 SOS barrage, and the reason an attack wants to cross
+  quickly or under cover.
+- They are the natural target of the attacker's **air strikes, strafes and counter-battery
+  fire**, and the forts' anti-air is what protects them. That ties ground, air and forts into
+  one fight: take the strongpoint's AA, then the air can find the guns.
+- They use the same fire-mission machinery as the attacker's mortars, so the two sides are
+  symmetric.
+
 ## Open questions (for when this becomes stories)
 
-- How wide the cleared belt is, and whether the city in front of the line (the attacker's
-  approach) is cleared too or left as cover for the approach.
-- What no-man's-land is made of beyond craters and wire: dead ground, flooded shell holes,
-  wrecks.
-- When a defender withdraws a sector rather than counterattacking, and whether a withdrawal
-  can be followed up before the support line is manned.
-- Whether a line has its own artillery behind it (field guns, mortar pits) separate from the
-  fort batteries, which fire at ships.
+- Whether a line's guns are a new emplacement kind or crewed field mortars and guns from the
+  existing equipment, dug into pits.
+- How an assault crosses wire: dedicated cutters, breaching charges, shelling it, or mechs
+  walking through it.
+- Whether no-man's-land carries mines.
 
 ## Prerequisites
 
