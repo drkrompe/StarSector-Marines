@@ -941,7 +941,7 @@
     "openingLoadoutFireRating": "FIRE {0}%",
     "openingLoadoutGuardRating": "GUARD {0}%",
     "loadoutIssueAction": "Issue",
-    "loadoutIssueReady": "Ready to issue to {0}",
+    "loadoutIssuedState": "Issued",
     "openingLoadoutReadyToFitAllBillets": "Ready to fit · All 12 billets",
     "openingLoadoutSelectALineSquad": "Select a line squad.",
     "openingLoadoutTheSquadChangedReviewItsCurrentRoll": "The squad changed. Review its current roll.",

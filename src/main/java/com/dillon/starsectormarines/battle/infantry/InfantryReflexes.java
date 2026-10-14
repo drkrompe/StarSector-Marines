@@ -115,6 +115,25 @@ public final class InfantryReflexes {
     };
 
     /**
+     * A squad working a mortar tube: its crew halts and sets the tube down and the rest of the squad stays leashed to it,
+     * for the section's window.
+     *
+     * <p><b>Ranked here</b> for the reason {@link #REJOIN} is: below the hazards already in the air and the marine still
+     * closing on the squad, and above everything that would start something or walk him somewhere else, because a leash
+     * that a shot of opportunity or the step could walk a marine out of is not one. A broken fire team is let go by the
+     * reflex itself, so the morale law still comes first.
+     *
+     * @see MortarTactics#serveSection for what the section asks of each marine
+     */
+    public static final Reflex MORTAR_SECTION = new Reflex() {
+        @Override public String name() { return "MORTAR_SECTION"; }
+        @Override public boolean interrupt(long unit, Squad squad,
+                                           ReflexContext context, BattleControl sim) {
+            return MortarTactics.serveSection(unit, squad, sim);
+        }
+    };
+
+    /**
      * The general special-equipment shot of opportunity — satchel, frag,
      * deployable, close contact — available only while the assigned step
      * tolerates it. Each of these spends a squad resource or freezes the carrier
@@ -224,6 +243,7 @@ public final class InfantryReflexes {
             FRIENDLY_CHARGE,
             KNOWN_GRENADE,
             REJOIN,
+            MORTAR_SECTION,
             OPPORTUNITY_SPECIAL,
             HARDENED_OPPORTUNITY,
             ONSET_SCREEN,

@@ -832,7 +832,8 @@ public final class FleetArmoryViewModel {
             tiles.add(weaponTile(id, doctrine, doctrine.id().equals(selected),
                     () -> selectWeaponDoctrine(doctrine.id()))
                     .withIssue(() -> issueWeaponDoctrine(doctrine.id()),
-                            !candidate.canApply(), issueReason(candidate)));
+                            !candidate.canApply(), issueReason(candidate),
+                            doctrine.id().equals(currentSquadWeaponDoctrine())));
         }
         return rankedByRating(tiles);
     }
@@ -885,7 +886,7 @@ public final class FleetArmoryViewModel {
                     armorCapabilities(capabilities), capabilities,
                     () -> selectArmorDoctrine(plan.id()))
                     .withIssue(() -> issueArmorDoctrine(plan.id()), !candidate.canApply(),
-                            issueReason(candidate)));
+                            issueReason(candidate), plan.id().equals(currentSquadArmorDoctrine())));
         }
         return rankedByRating(tiles);
     }
@@ -921,7 +922,7 @@ public final class FleetArmoryViewModel {
                 name, presentation.rarity().displayName(), rating,
                 Strings.format(presentation.kind() == SquadLoadoutPresentationDef.Kind.WEAPON ? "openingLoadoutFireRating" : "openingLoadoutGuardRating", rating), presentation.factionLogo(), metadata,
                 presentation.lore(), composition, distribution, distributionSpans,
-                carries, carriesSpans, select, null, true, "");
+                carries, carriesSpans, select, null, true, "", false);
     }
 
     private static String factionLogoClasses(String factionLogo) {
@@ -1219,12 +1220,19 @@ public final class FleetArmoryViewModel {
         return Strings.format("openingFleetArmoryProposed", (weapons != null ? weapons.displayName() : Strings.get("openingFleetArmoryChooseWeapons")), ArmorPlanPresentation.label(roster.armory(), selectedArmorDoctrineId.get()));
     }
 
-    /** Why a card's Issue is refused, or what pressing it will do. */
+    /** Why a card's Issue is refused; empty when it can be pressed. */
     private String issueReason(SquadEquipmentPreview candidate) {
-        if (!candidate.canApply()) return squadEquipmentMessage(candidate);
+        return candidate.canApply() ? "" : squadEquipmentMessage(candidate);
+    }
+
+    private String currentSquadWeaponDoctrine() {
         MarineSquad squad = roster.squadById(selectedSquadId.get());
-        return Strings.format("loadoutIssueReady",
-                squad != null ? squad.name() : Strings.get("openingFleetArmorySelectedSquad"));
+        return squad == null ? null : squad.weaponDoctrineId();
+    }
+
+    private String currentSquadArmorDoctrine() {
+        MarineSquad squad = roster.squadById(selectedSquadId.get());
+        return squad == null ? null : squad.armorDoctrineId();
     }
 
     private void issueWeaponDoctrine(String doctrineId) {
@@ -1261,12 +1269,13 @@ public final class FleetArmoryViewModel {
     }
 
     private String buildViewerStatus() {
-        return squadEquipmentMessage(squadEquipmentPreview.get());
+        SquadEquipmentPreview preview = squadEquipmentPreview.get();
+        return preview.canApply() ? "" : squadEquipmentMessage(preview);
     }
 
     private String buildViewerStatusClasses() {
         return squadEquipmentPreview.get().canApply()
-                ? "transaction-result good-surface tone-good"
+                ? "transaction-result-empty"
                 : "transaction-result danger-surface tone-danger";
     }
 
@@ -1923,35 +1932,33 @@ public final class FleetArmoryViewModel {
             List<DoctrineSpan> distributionSpans, String carries,
             List<DoctrineSpan> carriesSpans,
             Runnable select, Runnable issue, boolean issueDisabled,
-            String issueReason) implements MarkupPropertySource {
+            String issueReason, boolean issued) implements MarkupPropertySource {
         /** The same card carrying its own Issue action and the reason it may be refused. */
-        DoctrineTile withIssue(Runnable action, boolean disabled, String reason) {
+        DoctrineTile withIssue(Runnable action, boolean disabled, String reason, boolean alreadyIssued) {
             return new DoctrineTile(id, headerId, nameId, rarityId, ratingId, metadataRowId,
                     factionLogoId, metadataId, descriptionId, compositionId, distributionId,
                     carriesId, classes, rarityClasses, ratingClasses, factionLogoClasses, name,
                     rarity, rating, ratingLabel, factionLogo, metadata, description, composition,
                     distribution, distributionSpans, carries, carriesSpans, select, action,
-                    disabled, reason);
+                    disabled, reason, alreadyIssued);
         }
 
         @Override
         public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> id;
-                case "wrapId" -> id + ":wrap";
-                case "wrapStyle" -> "height: " + (188 + 48 * ((distributionSpans.size() + 1) / 2)
-                        + (issue != null ? 34 : 0)) + "px;";
                 case "issueId" -> id + ":issue";
-                case "issueRowId" -> id + ":issue-row";
                 case "issueReasonId" -> id + ":issue-reason";
                 case "issue" -> issue;
-                case "issueDisabled" -> issueDisabled;
+                case "issueDisabled" -> issueDisabled || issued;
+                case "issueLabel" -> Strings.get(issued ? "loadoutIssuedState" : "loadoutIssueAction");
+                case "issueButtonClasses" -> issue == null ? "doctrine-issue-button-hidden"
+                        : issued ? "doctrine-issue-button issued console-action"
+                        : "doctrine-issue-button console-action";
                 case "issueReason" -> issueReason;
-                case "issueRowClasses" -> issue != null
-                        ? "doctrine-issue-row" : "doctrine-issue-row-hidden";
-                case "issueReasonClasses" -> issueDisabled
-                        ? "doctrine-issue-reason label danger-surface tone-danger"
-                        : "doctrine-issue-reason label good-surface tone-good";
+                case "issueReasonClasses" -> issueReason.isEmpty() || issue == null
+                        ? "doctrine-issue-reason-empty"
+                        : "doctrine-issue-reason label danger-surface tone-danger";
                 case "headerId" -> headerId;
                 case "nameId" -> nameId;
                 case "rarityId" -> rarityId;
@@ -1971,7 +1978,8 @@ public final class FleetArmoryViewModel {
                 case "carriesTagId" -> carriesId + "-tag";
                 case "classes" -> classes;
                 case "weaponClasses" -> "weapon-tech-card " + classes;
-                case "cardStyle" -> "height: " + (174 + 48 * ((distributionSpans.size() + 1) / 2)) + "px;";
+                case "cardStyle" -> "height: " + (174 + 48 * ((distributionSpans.size() + 1) / 2)
+                        + (issue != null && !issueReason.isEmpty() ? 22 : 0)) + "px;";
                 case "distributionStyle" -> "height: " + (48 * ((distributionSpans.size() + 1) / 2)) + "px;";
                 case "rarityClasses" -> rarityClasses;
                 case "ratingClasses" -> ratingClasses;
