@@ -37,7 +37,7 @@ import java.util.Set;
  * search. With {@link DigInSystem#isEnabled()} off, or no positions on the map, no claims
  * exist and {@link DefendArea} behaves exactly as it did.
  *
- * <p>See {@code fighting-positions.md}.
+ * <p>See the fighting-positions section of {@code ai-nouns.md}.
  */
 public final class FightingPositionClaims {
 

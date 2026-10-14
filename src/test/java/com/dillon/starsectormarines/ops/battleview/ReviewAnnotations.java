@@ -86,6 +86,12 @@ public final class ReviewAnnotations implements Iterable<ReviewAnnotation> {
             return add(new ReviewAnnotation.Box(left, bottom, right, top, text, style));
         }
 
+        /** Whole cells washed and outlined; an empty list is dropped rather than refused. */
+        public Builder cells(List<ReviewAnnotation.Cell> cells, String text, ReviewStyle style) {
+            if (cells == null || cells.isEmpty()) return this;
+            return add(new ReviewAnnotation.Cells(cells, text, style));
+        }
+
         public ReviewAnnotations build() {
             return marks.isEmpty() ? NONE : new ReviewAnnotations(marks);
         }

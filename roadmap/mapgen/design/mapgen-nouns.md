@@ -4,7 +4,9 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — Relief rear working courts preserve the expanded landing and assembly apron.
+Updated: 2026-10-13 — prepared ground: trench and parapet props declare a fighting-position role, and fighting positions are derived from the props standing.
+
+Earlier 2026-10-13 — Relief rear working courts preserve the expanded landing and assembly apron.
 
 Earlier 2026-08-31 — an airbase lot publishes its own `AIRBASE` node alongside
 its berths, so being a working field is one decision rather than two that can
@@ -163,6 +165,22 @@ generation stages must not overwrite their enclosing authored footprint.
 Because an anchor carries identity rather than standability, a consumer that
 needs somewhere to stand — or a room to resolve — derives that cell from the
 place's footprint instead of reading it off the anchor.
+
+**Prepared ground** is the other way a place offers somewhere to stand, and it
+is declared by the art rather than by a stamper. A trench or sandbag prop states
+its `fightingPosition` role (trench or parapet) in its tileset entry, and the
+battle derives **fighting positions** from the props actually standing: trench
+cells, parapet cells, and the walkable ground on either side of a parapet,
+grouped into connected runs, keeping only runs long enough for a full squad.
+Nothing about a position is authored separately, so every stamper that lays
+earthworks — fort belts, sandbag aprons, gun bays — produces positions without
+knowing they exist, and destroying a parapet shrinks or dissolves its run
+through the ordinary prop-damage path. A position has no stored front: trench
+cover is isotropic and a parapet already covers both of its sides, so which side
+to man is a question for the occupant. A classification read off a prop's id
+instead of its declared role would be a secret convention; the role travels
+with the art through authoring and export. `ai-nouns.md` owns what occupying one
+means.
 
 A late stamper that overwrites earlier structure can strand walkable ground
 behind it. Such an **orphaned pocket** is normally filled in solid, because a

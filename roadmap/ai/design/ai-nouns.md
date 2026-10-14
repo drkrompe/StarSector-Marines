@@ -4,7 +4,9 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
+Updated: 2026-10-13 — added fighting positions: a marine settled on prepared ground digs in for a per-marine composure benefit, defend-area squads claim exclusive position cells, and a claimed marine fights from the cell.
+
+Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -2051,6 +2053,49 @@ believed threat bearing moves, the squad rotates a spaced firing line and
 claims directional cover facing that report; direct targets are engaged from
 bounded cover without losing moving fire. Broken fire teams still peel under
 cohesion law, and a new player order or hard withdrawal supersedes the defense.
+
+### Fighting positions
+
+A **fighting position** is a run of prepared ground — trench, sandbag parapet,
+and the ground either side of a parapet — that `mapgen-nouns.md` derives from
+the props standing on the map. A marine who settles onto one of its cells and
+stays there for a short delay is **dug in**; moving, leaving the cell, or the
+cell ceasing to be prepared ground ends it on that tick.
+
+**The benefit belongs to the marine, not the squad.** Each marine is dug in or
+not on their own cell and their own clock, so an understrength squad, a squad
+too large for the run, and two squads sharing one long trench need no special
+case: whoever has a cell has the benefit and whoever does not has ordinary
+cover. The full-squad length is the rule for what counts as a position at all,
+never a condition on occupying one. Positions are neutral ground, held by either
+side and by any infantry, never by mechs, vehicles or drones.
+
+**What it pays is composure, never protection.** Cover already reduces damage
+and stops rounds, and the cells of a position already carry it; a dug-in damage
+bonus would count the same ground twice. A hit or near-miss on a dug-in marine
+drains their fire team's morale at a reduced rate. Death drain and recovery are
+unchanged. `battle.infantry.fightingPositions` turns the whole feature off for a
+control run.
+
+**Cells are claimed by marines, not positions by squads.** Under a player
+defend-area order, each infantry squad's members are given exclusive position
+cells inside the circle, decided once per tick in the serial phase before units
+act. A marine keeps the cell they hold while it stays prepared ground, inside
+the circle, and covered toward the squad's believed threat; new claims grow as
+one contiguous block covered toward that threat, so fire teams stay together.
+Members left without a cell fall through to the ordinary prepared-position
+search and may not settle on a cell another marine holds. A squad with no
+believed threat packs into the position rather than spreading across the circle.
+
+**A marine with a position fights from it.** A claimed marine walks to the cell
+and stays: they fire when they have a shot and otherwise wait, rather than
+walking out to hunt a better firing cell and forfeiting the dig-in. The claims
+move them when the believed threat turns the position's cover away. Reflexes
+whose purpose is finding cover — repositioning for a better angle, the last
+stand's cover search, the engagement-discipline hold — leave a dug-in marine
+where they are, because the position is the cover. Grenade escape, step-asides
+out of a squadmate's lane, retreats and a broken fire team peeling away under
+cohesion law still apply.
 
 ## Mission, space, and feature boundaries
 

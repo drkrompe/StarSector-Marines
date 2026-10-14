@@ -31,7 +31,7 @@ import java.util.Arrays;
  *
  * <p>Run ids are dense ({@code 0..runCount()-1}) and numbered in row-major order of each
  * run's first cell, so the same props always yield the same ids. See
- * {@code fighting-positions.md}.
+ * the prepared-ground section of {@code mapgen-nouns.md}.
  */
 public final class FightingPositionIndex {
 

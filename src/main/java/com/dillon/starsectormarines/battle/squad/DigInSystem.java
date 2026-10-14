@@ -24,7 +24,7 @@ import java.util.function.Supplier;
  * and {@code FireStance} are untouched. Runs once per sim tick, ahead of {@link SquadMoraleSystem}
  * whose drains read the result.
  *
- * <p>See {@code fighting-positions.md}.
+ * <p>See the fighting-positions section of {@code ai-nouns.md}.
  */
 public final class DigInSystem {
 
