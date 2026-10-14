@@ -40,7 +40,7 @@ class WaylineNarrationTest {
                 assertEquals("briefing.0" + (index + 1), turn.event());
                 assertEquals(Strings.get("shepherdSalvageBriefTurn" + (index + 1)), turn.text());
                 assertTrue(turn.text().startsWith("Translated "));
-                assertFalse(turn.voiced());
+                assertTrue(turn.voiced());
                 assertEquals(index == 1 || index == 3 || index == 5
                         ? "graphics/portraits/castle.png" : "graphics/portraits/tamsin-vale.png", turn.portrait());
             }
@@ -70,7 +70,7 @@ class WaylineNarrationTest {
         for (int i = 0; i < entries.length(); i++) {
             var entry = entries.getJSONObject(i);
             if (!entry.getString("missionId").startsWith("story_shepherd_")) continue;
-            boolean recorded = List.of("basin_briefing", "basin_cold_start_turret_ready", "basin_passage_underway",
+            boolean recorded = entry.getString("id").startsWith("basin_salvage_briefing_") || List.of("basin_briefing", "basin_cold_start_turret_ready", "basin_passage_underway",
                     "basin_cold_start_power_restored", "basin_cold_start_complete", "basin_passage_briefing",
                     "basin_passage_bend_build", "basin_passage_militia_hold_0", "basin_passage_narrows_build",
                     "basin_passage_militia_hold_1", "basin_passage_departure", "basin_passage_complete")
@@ -182,7 +182,7 @@ class WaylineNarrationTest {
             assertEquals(1, matching);
             for (String prior : line.supersedes()) assertNotNull(catalog.find(line.missionId(), prior));
         }
-        assertEquals(132, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
+        assertEquals(140, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
         assertEquals(catalog.lines().size(), ids.size());
     }
 
