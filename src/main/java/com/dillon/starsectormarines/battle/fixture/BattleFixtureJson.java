@@ -24,6 +24,10 @@ import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolAllowance;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolDeclaration;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
+import com.dillon.starsectormarines.battle.airsupport.AirPoolStock;
 import com.dillon.starsectormarines.battle.mech.MechDropAllowance;
 import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
 import com.dillon.starsectormarines.battle.mech.MechRole;
@@ -925,7 +929,12 @@ public final class BattleFixtureJson {
         if (profile.declaredDefences().siting() != FortSitingPolicy.LEFTOVER_GROUND) {
             encoded.put("declaredFortSiting", profile.declaredDefences().siting().name());
         }
-if (!profile.declaredMechDrops().isNone()) {            encoded.put("declaredMechDrops", mechDropsToJson(profile.declaredMechDrops()));        }
+        if (!profile.declaredMechDrops().isNone()) {
+            encoded.put("declaredMechDrops", mechDropsToJson(profile.declaredMechDrops()));
+        }
+        if (!profile.declaredAirPool().isNone()) {
+            encoded.put("declaredAirPool", airPoolToJson(profile.declaredAirPool()));
+        }
         return encoded;
     }
 
@@ -972,7 +981,7 @@ if (!profile.declaredMechDrops().isNone()) {            encoded.put("declaredMec
                         encoded.has("declaredShieldGenerator") && encoded.getBoolean("declaredShieldGenerator"),
                         encoded.has("declaredNests") ? encoded.getInt("declaredNests") : 0,
                         declaredForts(encoded)).withSiting(declaredSiting(encoded)),
-                declaredMechDrops(encoded));
+                declaredMechDrops(encoded), declaredAirPool(encoded));
     }
 
     /** The mech-lance allowances a mission declared, by side name; written only when there is one. */
@@ -1011,6 +1020,53 @@ if (!profile.declaredMechDrops().isNone()) {            encoded.put("declaredMec
                                     ? allowance.getInt("debugCallTick") : MechDropAllowance.NO_DEBUG_CALL));
         }
         return declaration;
+    }
+
+    /** The air pools a mission declared, by side name; written only when there is one. */
+    private static JSONObject airPoolToJson(AirPoolDeclaration declaration) throws Exception {
+        JSONObject sides = new JSONObject();
+        for (Map.Entry<Faction, AirPoolAllowance> side : declaration.allowances().entrySet()) {
+            JSONObject allowance = new JSONObject();
+            allowance.put("aiDirected", side.getValue().aiDirected());
+            if (side.getValue().debugStrikeTick() >= 0) {
+                allowance.put("debugStrikeTick", side.getValue().debugStrikeTick());
+            }
+            JSONObject stocks = new JSONObject();
+            for (Map.Entry<AirPoolKind, AirPoolStock> stock : side.getValue().stocks().entrySet()) {
+                JSONObject one = new JSONObject();
+                one.put("initial", stock.getValue().initial());
+                one.put("cap", stock.getValue().cap());
+                one.put("regenSeconds", (double) stock.getValue().regenSeconds());
+                stocks.put(stock.getKey().name(), one);
+            }
+            allowance.put("stocks", stocks);
+            sides.put(side.getKey().name(), allowance);
+        }
+        return sides;
+    }
+
+    /** The air pools a fixture declares; a fixture that predates pools, or names none, declares none. */
+    private static AirPoolDeclaration declaredAirPool(JSONObject encoded) throws Exception {
+        JSONObject sides = encoded.optJSONObject("declaredAirPool");
+        if (sides == null) return AirPoolDeclaration.NONE;
+        AirPoolDeclaration declaration = AirPoolDeclaration.NONE;
+        for (Iterator<?> names = sides.keys(); names.hasNext();) {
+            String name = (String) names.next();
+            JSONObject allowance = sides.getJSONObject(name);
+            JSONObject stocks = allowance.getJSONObject("stocks");
+            AirPoolStock bombers = airStock(stocks, AirPoolKind.BOMBER);
+            AirPoolStock fighters = airStock(stocks, AirPoolKind.FIGHTER);
+            AirPoolAllowance declared = AirPoolAllowance.of(bombers, fighters, allowance.optBoolean("aiDirected", false));
+            if (allowance.has("debugStrikeTick")) declared = declared.strikeAtTick(allowance.getInt("debugStrikeTick"));
+            declaration = declaration.with(enumValue(Faction.class, name, "faction"), declared);
+        }
+        return declaration;
+    }
+
+    private static AirPoolStock airStock(JSONObject stocks, AirPoolKind kind) throws Exception {
+        JSONObject one = stocks.optJSONObject(kind.name());
+        if (one == null) return null;
+        return new AirPoolStock(one.getInt("initial"), one.getInt("cap"), (float) one.getDouble("regenSeconds"));
     }
 
     /** How a fixture sites its forts; a fixture that predates siting, or states none, leaves them on leftover ground. */

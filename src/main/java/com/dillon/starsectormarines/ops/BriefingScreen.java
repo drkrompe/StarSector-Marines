@@ -704,6 +704,10 @@ public class BriefingScreen implements Screen {
                     mission.mechDrop != null ? mission.mechDrop.name() : "mission default",
                     false, false,
                     () -> cycleDebugMechDrop(-1), () -> cycleDebugMechDrop(1)));
+            controls.add(conquestControl("debug-map-air-pool", "Air pool (comms radio)",
+                    mission.airPool != null ? mission.airPool.name() : "mission default",
+                    false, false,
+                    () -> cycleDebugAirPool(-1), () -> cycleDebugAirPool(1)));
             controls.add(conquestControl("debug-map-landing", "Landing place",
                     mission.landing != null ? mission.landing.name() : "derived",
                     false, false,
@@ -863,6 +867,19 @@ public class BriefingScreen implements Screen {
         int next = Math.floorMod(current + step, values.length + 1);
         Mission adjusted = DebugMissionDifficulty.atDefences(mission,
                 next == 0 ? null : values[next - 1]);
+        if (adjusted == null) return;
+        ctx.setSelectedMission(adjusted);
+        rebuild();
+    }
+
+    /** Steps the DEBUG briefing through the mission's own air-pool answer and the stated pools. */
+    private void cycleDebugAirPool(int step) {
+        Mission mission = ctx.getSelectedMission();
+        if (mission == null) return;
+        DebugAirPool[] values = DebugAirPool.values();
+        int current = mission.airPool != null ? mission.airPool.ordinal() + 1 : 0;
+        int next = Math.floorMod(current + step, values.length + 1);
+        Mission adjusted = DebugMissionDifficulty.atAirPool(mission, next == 0 ? null : values[next - 1]);
         if (adjusted == null) return;
         ctx.setSelectedMission(adjusted);
         rebuild();

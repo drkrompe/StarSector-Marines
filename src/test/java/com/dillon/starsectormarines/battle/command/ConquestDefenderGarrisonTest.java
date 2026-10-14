@@ -90,6 +90,29 @@ class ConquestDefenderGarrisonTest {
         assertTrue(reserve >= GarrisonDirector.RESERVE_FLOOR, "a free patrol is left in reserve");
     }
 
+    @Test
+    void aPatrolTheResponseJustRalliedMansAPressedTrenchWhenOnlyTheReserveFloorIsFree() {
+        Assumptions.assumeTrue(!"false".equals(System.getProperty("battle.garrison.fromRally")),
+                "run without -Dbattle.garrison.fromRally=false");
+        BattleSimulation sim = openSimWithTrench();
+        // Four patrols: the response takes three and the reserve is the one the floor protects.
+        List<Squad> patrols = patrols(sim, 4);
+        addDefender(sim, "reporter", 15, 33, UnitRole.PATROL);
+        for (int i = 0; i < 4; i++) {
+            sim.spawn(new EntitySpec("marine" + i, Faction.MARINE, UnitType.MARINE,
+                    13 + i, 26).moveSpeed(0f).health(10_000f));
+        }
+        sim.advance(BattleSimulation.TICK_DT);
+
+        ConquestDefenderCommand command = command(sim);
+        tick(command, sim);
+
+        long manning = patrols.stream().filter(p -> p.assignedObjective != null && p.assignedObjective.isGarrison()).count();
+        assertEquals(1, manning, "a rallied patrol is redirected to the pressed trench rather than left on the track point");
+        long reserve = patrols.stream().filter(p -> p.assignedObjective == null).count();
+        assertTrue(reserve >= GarrisonDirector.RESERVE_FLOOR, "the floor still stands");
+    }
+
     private static List<Squad> patrols(BattleSimulation sim, int count) {
         List<Squad> patrols = new ArrayList<>();
         for (int i = 0; i < count; i++) {

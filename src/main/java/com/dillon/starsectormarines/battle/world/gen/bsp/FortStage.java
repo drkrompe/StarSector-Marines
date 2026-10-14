@@ -102,7 +102,13 @@ public final class FortStage implements GenStage {
     /** UNTUNED: how much a shield fort values covering the keep against a supply compound. */
     private static final int KEEP_WEIGHT = 6;
     private static final int SUPPLY_WEIGHT = 2;
-    private static final String[] NEST_STRUCTURES = {"structure.turret-heavy-mg", "structure.turret-dual-flak"};
+    /**
+     * The guns a fort's nests carry in turn: anti-infantry, the flak emplacement (which reaches aircraft by the area
+     * model), anti-infantry again, and a dedicated anti-air position that fires real rounds at aircraft. A strong defence
+     * is likely to have anti-air even when it is not the capital's: a strike over a fort meets it. UNTUNED mix.
+     */
+    private static final String[] NEST_STRUCTURES = {"structure.turret-heavy-mg", "structure.turret-dual-flak",
+            "structure.turret-heavy-mg", TurretCatalogRegistry.ANTI_AIR_STRUCTURE_ID};
 
     /** Whether belt nests seat a born garrison: only the {@code static} control mode; the default mans belts reactively. */
     private static volatile boolean beltGarrison = BeltGarrisonMode.current().bornGarrison();
