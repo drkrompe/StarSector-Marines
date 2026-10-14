@@ -59,6 +59,7 @@
         { "templateId": "equipment-template:armor.redoubt", "sources": {"patron": 3, "recovery": 3} },
         { "templateId": "equipment-template:armor.outrider", "sources": {"patron": 2, "recovery": 2} },
         { "templateId": "equipment-template:armor.arbalest", "sources": {"patron": 3, "recovery": 2} },
+        { "templateId": "equipment-template:armor.arbalest-recovered", "sources": {"license": 5, "recovery": 5} },
         { "templateId": "equipment-template:armor.vigil", "sources": {"license": 5, "recovery": 4} },
         { "templateId": "equipment-template:armor.orderly", "sources": {"market": 9, "recovery": 4} },
         { "templateId": "equipment-template:armor.corpsman", "sources": {"patron": 2, "recovery": 2} }
@@ -99,6 +100,7 @@
         { "templateId": "equipment-template:armor.combat", "sources": { "license": 9 } },
         { "templateId": "equipment-template:armor.aegis-composite", "sources": { "license": 12 } },
         { "templateId": "equipment-template:armor.specter-heavy", "sources": { "patron": 9, "recovery": 3 } },
+        { "templateId": "equipment-template:armor.specter-recovered", "sources": { "license": 8, "recovery": 6 } },
         { "templateId": "equipment-template:special.smoke-grenade", "sources": { "market": 8 } },
         { "templateId": "equipment-template:special.anti-materiel-rifle", "sources": { "license": 8, "patron": 6 } },
         { "templateId": "equipment-template:special.point-defence-emplacement", "sources": { "license": 6, "patron": 4 } },

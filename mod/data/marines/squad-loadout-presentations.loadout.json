@@ -199,6 +199,15 @@
       "lore": "@gearCatalogArmorHegemonyShockLore"
     },
     {
+      "id": "armor:corporate-specter-section",
+      "kind": "ARMOR",
+      "tier": 3,
+      "rarity": "UNCOMMON",
+      "provenance": "@gearCatalogCorporateSpecterSectionProvenance",
+      "factionLogo": "graphics/factions/tritachyon.png",
+      "lore": "@gearCatalogCorporateSpecterSectionLore"
+    },
+    {
       "id": "armor:corporate-heavy",
       "kind": "ARMOR",
       "tier": 4,
