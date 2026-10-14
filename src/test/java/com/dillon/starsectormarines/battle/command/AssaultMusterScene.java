@@ -290,9 +290,9 @@ public final class AssaultMusterScene implements BehaviorScene {
             }
             case "combined-arms" -> {
                 switch (i % 4) {
-                    case 0 -> spec.special(CHARGE_KIT, 4);
+                    case 0 -> spec.special(RADIO_KIT, 1);
                     case 1 -> spec.special(SpecialEquipmentRegistry.FIELD_MORTAR_ID, 2);
-                    case 2 -> spec.special(RADIO_KIT, 1);
+                    case 2 -> spec.special(CHARGE_KIT, 4);
                     default -> spec.special(CHARGE_KIT, 4);
                 }
             }
