@@ -53,11 +53,14 @@ public final class CompanyPrologueScreen extends MissionFlowMlxScreen {
     public static Map<String, Object> model(int page, String destination, boolean jangala,
                                             int crew, int credits, int reserve, Runnable next, Runnable back, Runnable skip) {
         String port = destination == null ? Strings.get("openingCompanyPrologueAWorkingPlanetarySpaceport") : destination;
-        String[] titles = {Strings.get("openingCompanyPrologueSecondWind"), Strings.get("openingCompanyPrologueWhatWeLeftBehind"), Strings.get("openingCompanyPrologueTheDepartureRoster"),
+        String[] titles = {Strings.get("openingCompanyPrologueSecondWind"), Strings.get("openingCompanyPrologueTheWritingOnTheWall"),
+                Strings.get("openingCompanyPrologueWhatWeLeftBehind"), Strings.get("openingCompanyPrologueRaisingHer"), Strings.get("openingCompanyPrologueTheDepartureRoster"),
                 Strings.get("openingCompanyPrologueSomewhereToDock"), Strings.get("openingCompanyPrologueAWayToEarn"), Strings.get("openingCompanyPrologueTheFirstStep")};
         String[] narrative = {
                 Strings.get("openingCompanyPrologueTheAlarmAboveTheHatchHasFinally"),
+                Strings.get("openingCompanyPrologueHarkerSClaimWasThreeWeeksHaul"),
                 Strings.get("openingCompanyPrologueTheLastOreCarrierTookTheMine"),
+                Strings.get("openingCompanyPrologueTheCerberusByTheLoadingLocksHad"),
                 Strings.get("openingCompanyPrologueTheDepartureRosterIsInYourHandwriting"),
                 jangala ? Strings.get("openingCompanyPrologueCorvusHasWorkingYardsAndRegularTraffic")
                         : Strings.get("openingCompanyPrologueCastleSearchesThePortListingsForSomewhere"),
@@ -66,8 +69,10 @@ public final class CompanyPrologueScreen extends MissionFlowMlxScreen {
         };
         String[] dialogue = {
                 Strings.get("openingCompanyPrologueYouCanLetGoOfTheChair"),
+                Strings.get("openingCompanyPrologueIRanTheClaimSManifestsForNine"),
                 Strings.format("openingCompanyPrologueStillHadAMonthSPayOn", (reserve > 0 ? Strings.get("openingCompanyPrologueTheRealMoneySMostlySpokenFor")
                         : Strings.get("openingCompanyPrologueIVePaidForShuttlePartsAnd"))),
+                Strings.get("openingCompanyPrologueFourDaysLeftOnTheChalkWhen"),
                 Strings.get("openingCompanyPrologueYouRememberTheNightTheyShutOff"),
                 destination == null ? Strings.get("openingCompanyPrologueNoAnswerFromAYardWeCan")
                         : jangala ? Strings.get("openingCompanyPrologueNessaVennWeRanOreTogetherBefore")

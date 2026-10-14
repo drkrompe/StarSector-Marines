@@ -1,0 +1,13 @@
+{
+  "endpoint": "https://api.elevenlabs.io/v1/text-to-voice/design?output_format=mp3_44100_128",
+  "payload": {
+    "voice_description": "A distinctly female voice belonging to a woman in her early thirties, a native Eastern European speaker of English with a light, clear Polish accent. Excellent studio recording quality. Low, steady lower-middle register with a slightly husky, dry texture. A former convoy escort commander now leading marines on the ground: calm, measured and exact. She never raises her voice; urgency shows in shorter, clipped sentences and firm consonants rather than volume. Even, deliberate pacing, about 150 words per minute, with brief pauses between counted facts. Quiet warmth for her own people, beneath a reserved, unhurried manner. Everyday spoken radio dialogue, not narration or performance.",
+    "text": "Twelve present, Commander. Counted. First time anyone's paid them to stand watch since the Claim. Castle, Sabine. Everyone's down and counted. Moving off the pad. Compound's ours. Kestrel, sit on it. Everyone else, on me. Castle, we're thin down here. I can hold. I can't push.",
+    "model_id": "eleven_ttv_v3",
+    "auto_generate_text": false,
+    "stream_previews": false,
+    "should_enhance": false
+  },
+  "startedAt": "2026-10-14T23:14:44.664479+00:00",
+  "inputSha256": "8d9162c92c46ed0566ed15603f3b96fa4ea8df3578eeec446be355f053ca4a6b"
+}
