@@ -199,7 +199,7 @@ class ConquestDefenderGarrisonTest {
         Squad squad = sim.getSquad(squadId);
         squad.leaderId = member;
         // A patrol is a garrison only at useful strength: the director never sends a weaker one.
-        for (int i = 1; i < GarrisonDirector.MIN_USEFUL_MEMBERS; i++) {
+        for (int i = 1; i < GarrisonDirector.MIN_GARRISON_MEMBERS; i++) {
             sim.spawn(new EntitySpec(name + "-" + i, Faction.DEFENDER, UnitType.MILITIA, x, y)
                     .role(role).squad(squadId).moveSpeed(0f));
         }
