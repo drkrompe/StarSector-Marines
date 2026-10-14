@@ -194,7 +194,12 @@ class BarracksCommandModelTest {
                 assertEquals(roster.armory().squadProfiles().get(0).id(), squad.squadProfileId());
                 click(document, instance, "command:independent:assign");
                 assertNull(squad.homeCaptainId());
-                click(document, instance, "formation:" + squad.id() + ":inspect");
+                String[] loadout = {null};
+                model.navigation(id -> loadout[0] = id, () -> { }, false);
+                click(document, instance, "formation:" + squad.id() + ":loadout");
+                assertEquals(squad.id(), loadout[0], "Loadout opens that squad's equipment workspace");
+                assertFalse(model.inspecting());
+                model.inspect(squad.id()); instance.flush(); document.advance(0f);
                 assertTrue(model.inspecting());
                 click(document, instance, "barracks-back-command");
                 assertFalse(model.inspecting());
