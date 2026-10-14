@@ -50,7 +50,11 @@ layer is what a squad falls back to when the one in front of it is lost.
 - **Reactive manning.** A garrisonable is manned in proportion to believed
   pressure on it, read from the side's own faction influence, never from hostile
   truth. A quiet garrisonable is empty and its would-be garrison stays in the
-  mobile pool. This generalises what standing to already does for a held
+  mobile pool, except for a token picket where a place must be watched to be
+  defended at all: pressure is belief, and an empty place nobody can see raises
+  none. A fort keeps a small picket at its main gate, and its guns report what
+  they engage, so even an unmanned fort raises the alarm that brings its
+  garrison. This generalises what standing to already does for a held
   building's apertures, from "which windows" to "which places".
 - **Hysteresis.** Manning starts above one pressure level and ends below a lower
   one, after a dwell, so a squad is not marched in and out of a trench on every
@@ -126,7 +130,8 @@ reserved squads first, then the roving pool above its reserve floor. Areas with
 nothing to man are not staged for. `battle.garrison.unifiedRally=false`
 restores separate rally and flow.
 
-A squad below useful strength is never sent to man a place: sending one only
+A squad below useful strength (half its starting strength, and never fewer
+than two) is never sent to man a place, and one that falls below it falls back: sending one only
 for it to be released the next pulse was the main source of churn. A breach
 that makes a garrison fall back is a believed enemy inside the place near the
 squad, so one at the far end of a long run, or merely beside it, is not.

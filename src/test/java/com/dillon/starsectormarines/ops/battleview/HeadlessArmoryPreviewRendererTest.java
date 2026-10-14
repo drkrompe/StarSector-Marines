@@ -35,6 +35,6 @@ class HeadlessArmoryPreviewRendererTest {
             caseHashes.add(Arrays.hashCode(firstPixels));
         }
 
-        assertEquals(4, caseHashes.size(), "each controlled loadout should render distinctly");
+        assertEquals(HeadlessArmoryPreviewRenderer.previewCases().size(), caseHashes.size(), "each controlled loadout should render distinctly");
     }
 }

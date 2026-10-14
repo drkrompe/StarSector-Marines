@@ -4,27 +4,34 @@ Status: ACTIVE — earned working-tender direction; all chapters retain live acc
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — ownership negotiation follows completed Cold Start at the Working Passage briefing.
+Updated: 2026-10-14 — Morrow is a wreck from the same fall, not Basin's tender.
 
 ## Premise, place and cast
 
 On Asharu, the Basin Reclamation Cooperative pays the company to reopen its
-shipbreaking yard after armed scrappers occupy it. Yardmaster Tamsin Vale
-supplies technicians, equipment and holders. Her priority is a shipment found in
-the Colossus, whose manifest she keeps with her own handlers. Basin owns Morrow
-during inspection and repairs, while its militia cover the outer
-road. After Cold Start demonstrates the repaired bay's usefulness, Vale asks for
-additional combat and construction to reopen that road. At the first Working
-Passage briefing she offers payment after shipment dispatch or a loan; Castle
-asks for Morrow as the new fee. Basin keeps the built defenses and militia-secured
-road; title passes only after physical departure, with crew consent. Mara introduces
-them. The shipment's contents and legality remain open;
-no new cargo reward or investigation objective follows from her reticence.
+shipbreaking yard after armed rival scavengers occupy it. Basin first worked the
+Colossus and accompanying wrecks after unnamed low-orbit fighting brought them
+down three cycles ago, and built its camp around the claim over time. Recently
+opening a sealed hold attracted rumors and rivals. Yardmaster Tamsin Vale wants
+access to that shipment; its contents, buyer, legality and value remain undecided.
+Her cousin's crew remained hidden inside the Colossus and supplies an offscreen
+report for the first briefing. This adds correspondence, not a rescue mission,
+live intelligence actor or cargo reward.
 
-Vale's cooperative operates commercially in Hegemony-dominated Corvus. Its
-recovery permit is local, and the armed occupiers are a particular salvage outfit.
-The cooperative keeps its yard, installations and the broken Colossus depot.
-Morrow's surviving hands return to repair their own grounded tender.
+Morrow is a Shepherd from the same wreckfall, hauled onto the yard's service
+cradle to be broken for parts; the occupiers had begun trying to wake her drone
+bay. Basin owns her as salvage through inspection and repair, and her worth to
+Vale rises as her usefulness is discovered. Her eventual crew are Basin hands who
+worked her back into a ship and choose to follow her. The company earns the original cash fees for those jobs;
+only the new road-work agreement at Working Passage provides conditional title,
+completed by actual physical departure and willing crew consent. Basin retains the
+Colossus, shipment, yard, built defenses and militia-secured road.
+
+`shepherd-recovery-dialogue.md` is the chronological dialogue and character
+register: identities, public and private interests, reveal order, and conditional
+correspondence. It owns the authored exchanges without replacing the economic or
+physical chapter rules in `early-operation-nouns.md`. Vale's recovery permit is
+local; she does not speak for Asharu's government or the Independent faction.
 
 All three visits share one authored basin. Salvage Rights and Cold Start take
 place at night; Working Passage departs by day. Geography and completed repair

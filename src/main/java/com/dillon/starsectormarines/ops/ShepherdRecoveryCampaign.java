@@ -19,12 +19,32 @@ import java.util.Set;
 public final class ShepherdRecoveryCampaign {
     public static final String NAME="Tamsin Vale", TITLE="A WORKING SHIP / BASIN RECLAMATION";
     public static final List<MissionDialogue.Turn> BRIEF_TURNS = List.of(
-            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageBriefTurn1", "basin_salvage_briefing_01"),
-            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdSalvageBriefTurn2", "basin_salvage_briefing_02"),
-            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageScope", "basin_salvage_scope_01"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageWreckfall", "basin_salvage_wreckfall_01"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdSalvageFirstClaim", "basin_salvage_first_claim_01"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageCamp", "basin_salvage_camp_01"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdSalvageOpenedHold", "basin_salvage_opened_hold_01"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageOccupation", "basin_salvage_occupation_01"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdSalvageSurvivors", "basin_salvage_survivors_01"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageCousin", "basin_salvage_cousin_01"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdSalvageManifest", "basin_salvage_manifest_01"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvagePrivacy", "basin_salvage_privacy_01"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdSalvagePermitQuestion", "basin_salvage_permit_question_01"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvagePermit", "basin_salvage_permit_01"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdSalvageScopeQuestion", "basin_salvage_scope_question_01"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageInspection", "basin_salvage_inspection_01"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdSalvageLimits", "basin_salvage_limits_01"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageHandlers", "basin_salvage_handlers_01"),
             new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdSalvageBriefTurn8", "basin_salvage_briefing_08"));
     public static String brief() { return MissionDialogue.transcript(BRIEF_TURNS); }
-    public static final String COLD_BRIEF = "@shepherdColdBrief";
+    public static final List<MissionDialogue.Turn> COLD_TURNS = List.of(
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdColdRepairTerms", "basin_cold_repair_terms_01"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdColdCousinQuestion", "basin_cold_cousin_question_01"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdColdCousinSafe", "basin_cold_cousin_safe_01"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdColdBuildersQuestion", "basin_cold_builders_question_01"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdColdBuilders", "basin_cold_builders_01"),
+            new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdColdCompanyCover", "basin_cold_company_cover_01"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdColdBuildInstruction", "basin_cold_build_instruction_01"),
+            new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdColdPickets", "basin_cold_pickets_01"));
     public static final List<MissionDialogue.Turn> PASSAGE_TURNS = List.of(
             new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdPassageNegotiation1", "basin_passage_negotiation_01"),
             new MissionDialogue.Turn("castle", "@dialogueSpeakerCastle", "@shepherdPassageNegotiation2", "basin_passage_negotiation_02"),
@@ -97,13 +117,14 @@ public final class ShepherdRecoveryCampaign {
     }
     private static List<MissionDialogue.Turn> briefingTurns(ShepherdRecoveryProgress progress) {
         var turns = new ArrayList<>(progress.repaired() ? (progress.departureFailures() > 0 ? List.of(new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", "@shepherdPassageRetry")) : PASSAGE_TURNS)
-                : progress.claimSecured() ? List.of(new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", repairBrief(progress))) : BRIEF_TURNS);
+                : progress.claimSecured() ? (progress.cargoDelivered()
+                        ? List.of(new MissionDialogue.Turn("vale", "@dialogueSpeakerVale", repairBrief(progress)))
+                        : COLD_TURNS) : BRIEF_TURNS);
         if (progress.inspectionLosses() > 0) turns.add(MissionDialogue.prose(
                 Strings.format("shepherdInspectionLosses", progress.inspectionLosses())));
         return List.copyOf(turns);
     }
     private static String repairBrief(ShepherdRecoveryProgress progress) {
-        if (!progress.cargoDelivered()) return COLD_BRIEF;
         return progress.shorePower() ? "@shepherdColdRetryPowered" : "@shepherdColdRetryUnpowered";
     }
     static ShepherdRecoveryProgress requireCurrent(Mission m){

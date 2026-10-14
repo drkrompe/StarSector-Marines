@@ -128,7 +128,7 @@ Do not run builds or leave generated task files there.
   mission's documented construction-fixture matrix in a forced-serial,
   zero-input simulation and writes canonical traces plus `summary.json` /
   `summary.md` under `build/reports/commander/<mission>/`. Supported mission
-  arguments are currently `conquest`, `sabotage`, `assault`, `raid`, `extraction`, `relief`, `counterattack`, `junction`, `last-lift`, `relay-nine`, `thunder-run`, `supply-route`, and `corvus`; later mission harnesses
+  arguments are currently `conquest`, `conquest-trial`, `sabotage`, `assault`, `raid`, `extraction`, `relief`, `counterattack`, `junction`, `last-lift`, `relay-nine`, `thunder-run`, `supply-route`, and `corvus`; later mission harnesses
   extend that argument instead of creating another Gradle task. The run is
   opt-in and excluded from ordinary `test` / `build`.
   **Each fixture is replayed once.** It used to be replayed twice, with the two
@@ -250,6 +250,14 @@ Do not run builds or leave generated task files there.
   trace under `build/reports/commander/.conquest-staging-*/traces/` — its
   `compound-state` events say whether the battle is moving — or ask the cheap
   question first: `-PmaxTicks=3000` plays both fixtures in about 100s.
+  `-Pmission=conquest-trial` plays the same Conquest mission layer and both
+  commanders on a synthetic 240x300 trial ground (`ConquestTrialGround`): one
+  landing, one battery fort pinned on the lane or offset east of it, one
+  objective compound and the keep. The default matrix is both placements at
+  three seeds (seconds, not minutes); `-Pfixture` takes a JSON array setting
+  `seed`, `placement`, `offset`, `shuttleType`, `shuttles`, `seats`, `cycles`,
+  `elites`, `militia`, `patrolSize`, `objectiveGarrison`, `keepGarrison` and
+  `risk`. Use it for a commander question; the city map is unfinished.
   Each fixture row reports fighting-position runs and cells at start and end.
   The canonical fixtures declare no forts and so have none; the fort-bearing
   control is `-Pfixture=src/test/resources/battle-fixtures/conquest-forts-reinforced-south-v1.json`
@@ -258,7 +266,10 @@ Do not run builds or leave generated task files there.
   `-Dbattle.garrison.flow=false` stops pressure-driven staging and
   `-Dbattle.garrison.fromRally=false` stops manning from taking just-rallied
   patrols (both are needed for the pre-flow behaviour).
-  `-Dbattle.garrison.unifiedRally=false` restores separate rally and flow. The fort report carries a
+  `-Dbattle.garrison.unifiedRally=false` restores separate rally and flow.
+  `-Dbattle.fort.picketSize=0` seats no picket at a fort's main gate (default 4)
+  and `-Dbattle.command.fortReports=false` stops fort guns reporting their
+  targets to their commander; both are the blind-fort controls. The fort report carries a
   `pressure flow:` line and a fighting-position use block per faction. Use
   `-PmaxTicks=9000` or
   `-Pfixture=C:\path\to\fixture.json` for explicitly ad-hoc evidence. Add

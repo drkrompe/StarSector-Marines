@@ -49,7 +49,7 @@ public final class ArmorySnapshotSuite implements SnapshotSuite {
         int previewWidth = ArmoryLoadoutPreviewComposer.SURFACE_WIDTH;
         int previewHeight = ArmoryLoadoutPreviewComposer.SURFACE_HEIGHT;
         BufferedImage contact = new BufferedImage(
-                previewWidth * 2, (previewHeight + 34) * 2,
+                1920, 1080,
                 BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = contact.createGraphics();
         configure(graphics);
@@ -57,8 +57,8 @@ public final class ArmorySnapshotSuite implements SnapshotSuite {
         graphics.fillRect(0, 0, contact.getWidth(), contact.getHeight());
         graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 15));
         for (int index = 0; index < cases.size(); index++) {
-            int x = index % 2 * previewWidth;
-            int y = index / 2 * (previewHeight + 34);
+            int x = index % 3 * previewWidth;
+            int y = index / 3 * (previewHeight + 34);
             graphics.setColor(new Color(0xD9, 0xE8, 0xF1));
             graphics.drawString(cases.get(index).label(), x + 12, y + 22);
             graphics.drawImage(rendered.get(index), x, y + 34, null);

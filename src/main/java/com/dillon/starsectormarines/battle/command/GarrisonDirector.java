@@ -44,10 +44,10 @@ import java.util.Set;
  *
  * <p><b>Fall back.</b> A squad on its place when an enemy is believed inside the run within
  * {@link #BREACH_RANGE_CELLS} of it (a report at the far end of a long run is somebody else's stretch, and a cell
- * beside the run is not inside it), or that has fallen below {@link #MIN_USEFUL_MEMBERS}, is reported by
+ * beside the run is not inside it), or that is no longer at {@link #usefulFloor useful strength}, is reported by
  * {@link #fallingBack} for the caller to withdraw to the works (or, with none standing, to release). A squad that has
  * not arrived at a breached place is simply given back. A breached place is not manned again for
- * {@link #BREACH_LOCKOUT_PULSES} pulses. A patrol already below {@link #MIN_USEFUL_MEMBERS} is never sent: it would be
+ * {@link #BREACH_LOCKOUT_PULSES} pulses. A patrol already below useful strength is never sent: it would be
  * given back the next pulse and sent again, one man and release per pulse for no garrison.
  *
  * <p>State is per commander (so per simulation) and exists only for places already manned or ordered:
@@ -84,8 +84,8 @@ final class GarrisonDirector {
     static final int EN_ROUTE_DWELL_PULSES = 16;
     /** Pulses a squad may spend closing on its place before it is treated as stuck and given back. UNTUNED. */
     static final int MAX_EN_ROUTE_PULSES = 40;
-    /** A manning squad with fewer living members than this is no longer a garrison. UNTUNED. */
-    static final int MIN_USEFUL_MEMBERS = 3;
+    /** Fewest living members that are ever a garrison, however small the squad started: one marine is a lookout. */
+    static final int MIN_GARRISON_MEMBERS = 2;
     /** Pulses a breached place is left unmanned. UNTUNED. */
     static final int BREACH_LOCKOUT_PULSES = 16;
     /**
@@ -98,6 +98,16 @@ final class GarrisonDirector {
     static final int NO_POSITION = Integer.MIN_VALUE;
     /** A believed contact lighter than this (confidence times strength) wakes nothing: a works crew, a fading report. */
     static final float MIN_CONTACT_WEIGHT = 0.5f;
+
+    /**
+     * Fewest living members at which a squad raised at {@code originalMembers} is still a garrison: half its starting
+     * strength, rounded up, and never fewer than {@link #MIN_GARRISON_MEMBERS}. A four-man section holds on with two, a
+     * twelve-man squad with six. An unknown start ({@code 0}) reads as its present strength. UNTUNED.
+     */
+    static int usefulFloor(int originalMembers, int aliveMembers) {
+        int established = Math.max(originalMembers, aliveMembers);
+        return Math.max(MIN_GARRISON_MEMBERS, established - established / 2);
+    }
 
     /** Believed hostile pressure at an influence block. */
     @FunctionalInterface
@@ -116,8 +126,17 @@ final class GarrisonDirector {
      * {@code arrived} is whether it stands on its place yet; {@code aliveMembers} is its living strength.
      */
     record Garrison(int squadId, int garrisonable, boolean releasable, boolean arrived, int aliveMembers,
-                    int cellX, int cellY) {
+                    int cellX, int cellY, int originalMembers) {
+        /** Whether it is still strong enough to be a garrison. */
+        boolean useful() { return aliveMembers >= usefulFloor(originalMembers, aliveMembers); }
+
+
         /** A squad of unknown position. */
+        /** A squad whose starting strength is not known. */
+        Garrison(int squadId, int garrisonable, boolean releasable, boolean arrived, int aliveMembers, int cellX, int cellY) {
+            this(squadId, garrisonable, releasable, arrived, aliveMembers, cellX, cellY, 0);
+        }
+
         Garrison(int squadId, int garrisonable, boolean releasable, boolean arrived, int aliveMembers) {
             this(squadId, garrisonable, releasable, arrived, aliveMembers, NO_POSITION, NO_POSITION);
         }
@@ -132,7 +151,16 @@ final class GarrisonDirector {
      * A free patrol and where it stands. A {@code staged} one waits at a fort's works for exactly this call: it is sent
      * without regard to the reserve floor, which protects the roving pool.
      */
-    record Free(int squadId, int x, int y, boolean staged, int aliveMembers) {
+    record Free(int squadId, int x, int y, boolean staged, int aliveMembers, int originalMembers) {
+        /** A patrol whose starting strength is not known. */
+        Free(int squadId, int x, int y, boolean staged, int aliveMembers) {
+            this(squadId, x, y, staged, aliveMembers, 0);
+        }
+
+        /** Whether it is strong enough to be sent as a garrison. */
+        boolean useful() { return aliveMembers >= usefulFloor(originalMembers, aliveMembers); }
+
+
         /** A patrol of full strength. */
         Free(int squadId, int x, int y, boolean staged) {
             this(squadId, x, y, staged, Integer.MAX_VALUE);
@@ -330,7 +358,7 @@ final class GarrisonDirector {
                 present.add(squad.squadId());
                 boolean overrun = inside != null && overrunBy(squad, inside, contactXY);
                 if (overrun) lockPlace = true;
-                boolean lost = overrun || squad.aliveMembers() < MIN_USEFUL_MEMBERS;
+                boolean lost = overrun || !squad.useful();
                 if (squad.arrived()) {
                     closing.remove(squad.squadId());
                     if (lost) {
@@ -497,7 +525,7 @@ final class GarrisonDirector {
         boolean ownOutOfReach = false;
         for (int i : candidates) {
             Free squad = free.get(i);
-            if (squad.aliveMembers() < MIN_USEFUL_MEMBERS) continue;
+            if (!squad.useful()) continue;
             boolean isOwn = own != null && own[i];
             if (isOwn && ownOutOfReach) continue;
             if (!squad.staged() && !mayTakeRoving) {

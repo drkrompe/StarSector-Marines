@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef.HandsetLayer;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -94,6 +95,24 @@ public final class LayeredUnitAssets {
 
     public LayeredSpriteCache specialEquipment(String equipmentId) {
         return specialEquipment.get(equipmentId);
+    }
+
+    /**
+     * Registers an item's hand-held part and its cord beside its carried layer, so the
+     * atlas inventory ({@link #layers()}) sees them with every other equipment sprite.
+     */
+    public void registerHandset(String equipmentId, LayeredSpriteCache handset,
+                                LayeredSpriteCache cord) {
+        registerSpecialEquipment(HandsetLayer.assetKey(equipmentId), handset);
+        registerSpecialEquipment(HandsetLayer.cordAssetKey(equipmentId), cord);
+    }
+
+    public LayeredSpriteCache handset(String equipmentId) {
+        return specialEquipment.get(HandsetLayer.assetKey(equipmentId));
+    }
+
+    public LayeredSpriteCache handsetCord(String equipmentId) {
+        return specialEquipment.get(HandsetLayer.cordAssetKey(equipmentId));
     }
 
     public void registerIntegralSystem(String systemId, LayeredSpriteCache sprite) {

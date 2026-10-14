@@ -426,11 +426,33 @@ class GarrisonDirectorTest {
     @Test
     void aGarrisonBelowUsefulStrengthFallsBackWithoutALockout() {
         pressure(1, 9f);
-        List<Garrison> held = List.of(new Garrison(7, 1, true, true, GarrisonDirector.MIN_USEFUL_MEMBERS - 1));
+        // Five left of twelve is under half.
+        List<Garrison> held = List.of(new Garrison(7, 1, true, true, 5,
+                GarrisonDirector.NO_POSITION, GarrisonDirector.NO_POSITION, 12));
         evaluate(held);
 
         assertEquals(List.of(7), director.fallingBack());
         assertTrue(!director.lockedOut(registry.centreX(1), registry.centreY(1)));
+    }
+
+    @Test
+    void anUnderstrengthSectionHoldsOnAtHalfItsStartingStrength() {
+        pressure(1, 9f);
+        List<Garrison> held = List.of(new Garrison(7, 1, true, true, 2,
+                GarrisonDirector.NO_POSITION, GarrisonDirector.NO_POSITION, 4));
+        evaluate(held);
+
+        assertEquals(List.of(), director.fallingBack(), "two of a four-man section is still a garrison");
+    }
+
+    @Test
+    void theUsefulFloorIsHalfTheStartingStrengthAndNeverBelowTwo() {
+        assertEquals(6, GarrisonDirector.usefulFloor(12, 12));
+        assertEquals(2, GarrisonDirector.usefulFloor(4, 3));
+        assertEquals(2, GarrisonDirector.usefulFloor(3, 3));
+        assertEquals(2, GarrisonDirector.usefulFloor(1, 1), "one marine is never a garrison");
+        assertEquals(4, GarrisonDirector.usefulFloor(0, 8), "an unknown start reads as present strength");
+        assertEquals(6, GarrisonDirector.usefulFloor(4, 12), "a squad grown past its start is judged by its size");
     }
 
     @Test
@@ -503,10 +525,10 @@ class GarrisonDirectorTest {
     void aPatrolBelowUsefulStrengthIsNeverSent() {
         pressure(1, 5f);
         evaluate(List.of(), 1);
-        int weak = GarrisonDirector.MIN_USEFUL_MEMBERS - 1;
-        List<Free> pool = List.of(new Free(100, registry.centreX(1) - 5, 12, false, weak),
-                new Free(101, registry.centreX(1) - 6, 12, true, weak),
-                new Free(102, registry.centreX(1) - 8, 12, true, GarrisonDirector.MIN_USEFUL_MEMBERS));
+        // A lone survivor, and five of twelve, are too weak; two of a four-man section are not.
+        List<Free> pool = List.of(new Free(100, registry.centreX(1) - 5, 12, false, 1, 4),
+                new Free(101, registry.centreX(1) - 6, 12, true, 5, 12),
+                new Free(102, registry.centreX(1) - 8, 12, true, 2, 4));
 
         assertEquals(List.of(new Man(102, 1)), director.assign(pool, always()),
                 "the nearer squads are too weak to be a garrison, so the one that is strong enough goes");

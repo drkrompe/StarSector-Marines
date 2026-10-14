@@ -117,6 +117,19 @@ public final class FortStage implements GenStage {
     static void setBornBeltGarrisonForEvidence(boolean born) {
         beltGarrison = born;
     }
+    /** Whether each fort seats a token picket at its main gate: reactive manning's eyes. Restore in a {@code finally}. */
+    private static volatile boolean picket = BeltGarrisonMode.current().picket();
+    /**
+     * Members in a fort's picket, from {@code battle.fort.picketSize}; {@code 0} seats none, the control for a reactive
+     * belt with no eyes on it. UNTUNED.
+     */
+    static final int PICKET_SIZE = Math.max(0, Integer.getInteger("battle.fort.picketSize", 4));
+
+    /** Evidence and test seam: seats (or stops seating) fort pickets for the rest of this JVM. Restore in a {@code finally}. */
+    static void setPicketForEvidence(boolean seated) {
+        picket = seated;
+    }
+
     /** Trench and sandbag cells offered to one belt garrison as stand positions. */
     private static final int BELT_STAND_CELLS = 8;
     /** A belt run shorter than this is not worth a garrison. */
@@ -141,9 +154,30 @@ public final class FortStage implements GenStage {
     public record Placed(CompoundLayout.Placement placement, int fortId, FortPlan plan, FortSiting.Point target,
                          float domeRadius) {}
 
-    private final List<Placed> placed = new ArrayList<>();
+    /**
+     * A fort stood at a stated centre rather than sited: an authored map (a trial ground) says where its fort is and
+     * which way the main gate faces ({@code facingX/Y}, a point the gate turns toward). The ground there must be open.
+     */
+    public record Pin(FortKind kind, int centreX, int centreY, int facingX, int facingY) {}
 
-    public FortStage() {}
+    private final List<Placed> placed = new ArrayList<>();
+    private final List<Pin> pins;
+
+    public FortStage() {
+        this.pins = null;
+    }
+
+    private FortStage(List<Pin> pins) {
+        this.pins = List.copyOf(pins);
+    }
+
+    /**
+     * A stage that stands exactly these forts where they are pinned, ignoring any declaration in the market profile,
+     * and fails when one cannot stand. Must run after the tactical regions are built, like the sited stage.
+     */
+    public static FortStage pinned(List<Pin> pins) {
+        return new FortStage(pins);
+    }
 
     /** The forts this stage stood on its last run, in the order they were placed. */
     public List<Placed> placed() {
@@ -153,6 +187,10 @@ public final class FortStage implements GenStage {
     @Override
     public void run(GenContext ctx) {
         placed.clear();
+        if (pins != null) {
+            runPinned(ctx);
+            return;
+        }
         TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
         if (profile == null) return;
         boolean any = false;
@@ -198,6 +236,31 @@ public final class FortStage implements GenStage {
             }
         }
         if (placed.isEmpty()) return;
+        finish(ctx);
+        ctx.put(BspKeys.TACTICAL_REGIONS, TacticalRegionMap.build(ctx.grid, ctx.topology, ctx.get(BspKeys.AXIS)));
+    }
+
+    private void runPinned(GenContext ctx) {
+        if (ctx.get(BspKeys.TACTICAL_REGIONS) == null) {
+            throw new IllegalStateException("FortStage requires TACTICAL_REGIONS - must run after TacticalRegionStage");
+        }
+        Ground ground = new Ground(ctx);
+        for (Pin pin : pins) {
+            FortPlan plan = PLANS.stream().filter(p -> p.kind() == pin.kind()).findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("no fort plan for " + pin.kind()));
+            Site site = new Site(pin.centreX(), pin.centreY(), 0, 0L);
+            CompoundLayout.Placement at = fit(plan, plan.layout(), ground, site, ctx,
+                    new FortSiting.Point(pin.facingX(), pin.facingY()));
+            if (at == null) {
+                throw new IllegalStateException("pinned " + pin.kind() + " cannot stand at " + pin.centreX() + ","
+                        + pin.centreY() + ": the ground there is not open");
+            }
+            int fortId = placed.size();
+            float dome = domeRadius(plan, at, null);
+            stamp(ctx, plan, at, fortId, ground, dome);
+            ground.exclude(plan, at);
+            placed.add(new Placed(at, fortId, plan, null, dome));
+        }
         finish(ctx);
         ctx.put(BspKeys.TACTICAL_REGIONS, TacticalRegionMap.build(ctx.grid, ctx.topology, ctx.get(BspKeys.AXIS)));
     }
@@ -741,12 +804,14 @@ public final class FortStage implements GenStage {
      * seats a squad in the belt and the squad holds those cells as it holds any garrison's. The node is anchored on
      * its first stand cell, not on the nest: a node on the nest's own cell would be paired with that nest's
      * {@link DefensePost} and put its squad on a patrol that wanders the box round it. Two nests never share a cell.
-     * Seated only under {@code battle.fort.beltGarrison=static}, the same-build control; by default the belt is empty
-     * and the defender commander mans it in answer to pressure ({@link BeltGarrisonMode}).
+     * Every nest is seated only under {@code battle.fort.beltGarrison=static}, the same-build control. By default one
+     * token picket of {@link #PICKET_SIZE} holds the nest nearest the main gate, and the defender commander mans the rest
+     * in answer to the pressure the picket reports ({@link BeltGarrisonMode}).
      */
     private static void garrisonBelt(GenContext ctx, FortPlan plan, CompoundLayout.Placement at, Set<Long> taken,
                                      List<int[]> beltNests) {
-        if (!beltGarrison || beltNests.isEmpty()) return;
+        boolean seatPicket = !beltGarrison && picket && PICKET_SIZE > 0;
+        if ((!beltGarrison && !seatPicket) || beltNests.isEmpty()) return;
         // The tactical map was built and linked before this stage ran, so a node reaches the battle only by being added to it.
         TacticalMap finished = ctx.get(BspKeys.TACTICAL_MAP);
         Set<Long> ground = new HashSet<>();
@@ -757,7 +822,25 @@ public final class FortStage implements GenStage {
                 ground.add(BeltStandCells.key(cell[0], cell[1]));
             }
         }
-        for (int[] nest : beltNests) {
+        List<int[]> seated = beltNests;
+        if (seatPicket) {
+            // A reactive belt keeps one token picket: at the nest nearest the main gate, which faces the landing.
+            FortPlan.Gate gate = plan.gates().get(0);
+            int[] mouth = at.cell(gate.mouthX(), gate.mouthY());
+            int[] nearest = null;
+            long best = Long.MAX_VALUE;
+            for (int[] nest : beltNests) {
+                long dx = nest[0] - mouth[0], dy = nest[1] - mouth[1];
+                long d = dx * dx + dy * dy;
+                if (d < best) {
+                    best = d;
+                    nearest = nest;
+                }
+            }
+            seated = List.of(nearest);
+        }
+        int size = seatPicket ? PICKET_SIZE : BELT_GARRISON_SIZE;
+        for (int[] nest : seated) {
             List<int[]> cells = BeltStandCells.near(ground, nest[0], nest[1], BELT_STAND_CELLS, BELT_REACH);
             if (cells.size() < BELT_MIN_STAND_CELLS) continue;
             List<TacticalNode.StandPosition> stands = new ArrayList<>(cells.size());
@@ -771,7 +854,7 @@ public final class FortStage implements GenStage {
                 bottom = Math.max(bottom, cell[1]);
             }
             TacticalNode node = new TacticalNode(TacticalNode.Kind.GUARDPOST, cells.get(0)[0], cells.get(0)[1],
-                    left, top, right, bottom, Faction.DEFENDER, BELT_PRIORITY, Math.min(BELT_GARRISON_SIZE, cells.size()),
+                    left, top, right, bottom, Faction.DEFENDER, BELT_PRIORITY, Math.min(size, cells.size()),
                     stands);
             if (finished != null) finished.add(node);
             else ctx.tactical.add(node);
