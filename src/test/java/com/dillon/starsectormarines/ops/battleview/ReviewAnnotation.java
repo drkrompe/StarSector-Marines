@@ -96,6 +96,25 @@ public sealed interface ReviewAnnotation {
         }
     }
 
+    /**
+     * A set of whole cells washed with the style's colour and outlined cell by cell, for a mark that is a region
+     * of the ground rather than a place: the prepared cells of a fighting position, the ones a marine holds.
+     * Empty is refused, as for the other shapes.
+     */
+    record Cells(List<Cell> cells, String text, ReviewStyle style) implements ReviewAnnotation {
+        public Cells {
+            if (cells == null || cells.isEmpty()) {
+                throw new IllegalArgumentException("a cell set with no cells is not a mark");
+            }
+            cells = List.copyOf(cells);
+            text = text == null ? "" : text.trim();
+            style = requireStyle(style);
+        }
+    }
+
+    /** One whole cell of a {@link Cells} mark. */
+    record Cell(int x, int y) { }
+
     /** One cell on a {@link Polyline}. */
     record Point(float cellX, float cellY) { }
 

@@ -8,7 +8,7 @@ import java.util.Locale;
  *
  * <p>Classification is by this declared property alone, never by id prefix: a
  * new sheet of earthworks joins the fighting-position model by saying so in its
- * own data. See {@code fighting-positions.md}.
+ * own data. See the prepared-ground section of {@code mapgen-nouns.md}.
  */
 public enum FightingPositionRole {
     /** Not prepared ground. */

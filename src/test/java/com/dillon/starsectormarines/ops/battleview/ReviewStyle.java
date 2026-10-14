@@ -49,6 +49,15 @@ public enum ReviewStyle {
      * Heavy, because it is one label per lane among a dozen.
      */
     FRONT(new Color(226, 240, 255), 2.4f),
+    /**
+     * Prepared ground a squad can dig into: the cells of a fighting position. Drawn per cell and light, since a
+     * trench is a long thin thing and a heavy colour would hide the earthwork it is marking.
+     */
+    POSITION(new Color(120, 230, 120), 1.0f),
+    /** Position cells a marine currently holds a claim on. */
+    CLAIMED(new Color(255, 255, 255), 1.4f),
+    /** The cell of a marine who is dug in. */
+    DUG_IN(new Color(255, 92, 236), 2.0f),
     /** Anything else worth writing on the map. */
     NOTE(new Color(205, 205, 215), 1.4f);
 
