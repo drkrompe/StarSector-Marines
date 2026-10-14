@@ -122,7 +122,7 @@
               </div>
               <div id="{squad.founderDestinationId}" class="label muted wrap raise-squad-copy">{squad.founderDestination}</div>
               <div id="{squad.founderCostsId}" class="raise-squad-costs">
-                <company-resource-cost each="cost in squad.founderCosts" key="{cost.id}" row="{cost}" />
+                <div each="cost in squad.founderCosts" key="{cost.id}" id="{cost.id}" class="{cost.classes}">{cost.label}</div>
               </div>
             </button>
           </div>
@@ -308,7 +308,9 @@
   .raise-squad-plus { width: 22px; height: 22px; text-align: center; }
   .raise-squad-title { width: 0px; flex-grow: 1; height: 22px; }
   .raise-squad-copy { width: 100%; height: 36px; }
-  .raise-squad-costs { flex-direction: column; width: 100%; height: 0px; flex-grow: 1; gap: 2px; overflow: hidden; }
+  .raise-squad-costs { flex-direction: row; align-items: center; width: 100%; height: 26px; padding: 2px 4px; gap: 6px; border-width: 1px; border-color: #46554b; background-color: #121719; overflow: hidden; }
+  .raise-cost { width: 0px; flex-grow: 1; height: 18px; text-align: center; color: #dfc588; }
+  .raise-cost.short { color: #eea296; }
   .card-footer { flex-direction: row; align-items: center; height: 28px; gap: 6px; }
   .card-kit { width: 0px; flex-grow: 1; height: 18px; font-family: body; }
   .loadout-button { width: 80px; height: 28px; padding: 0px 4px; text-align: center; font-family: heading; }

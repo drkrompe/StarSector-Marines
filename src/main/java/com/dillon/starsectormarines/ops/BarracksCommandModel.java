@@ -393,7 +393,6 @@ public final class BarracksCommandModel {
             var squads = lineSquads().stream().filter(s -> captain.id().equals(group(s))).toList();
             rows.add(commandRow(captain.id(), captain, squads));
         }
-        rows.add(commandRow("independent", null, lineSquads().stream().filter(s -> group(s).equals("independent")).toList()));
         return rows;
     }
     private Map<String, Object> commandRow(String id, MarineCaptain captain, List<MarineSquad> squads) {
@@ -406,7 +405,7 @@ public final class BarracksCommandModel {
                 "cardStyle", "height: " + (id.equals("all") ? 126 : selected.isEmpty() ? 158 : 200) + "px;",
                 "cardId", "command:" + id + ":card", "assignId", "command:" + id + ":assign",
                 "assignClasses", id.equals("all") ? "hidden" : "command-assign console-action" + (assignment.valid() ? " command-assign-ready" : ""),
-                "assignLabel", selected.isEmpty() ? Strings.get("openingBarracksCommandSelectSquadsFirst") : id.equals("independent") ? Strings.format("openingBarracksCommandMakeIndependent", selected.size()) : Strings.format("openingBarracksCommandAssignSelected", selected.size()),
+                "assignLabel", selected.isEmpty() ? Strings.get("openingBarracksCommandSelectSquadsFirst") : Strings.format("openingBarracksCommandAssignSelected", selected.size()),
                 "assignDisabled", id.equals("all") || !assignment.valid(),
                 "assign", (Runnable) () -> assignCommand(captain == null ? null : captain.id()),
                 "reasonId", "command:" + id + ":reason",
@@ -415,7 +414,7 @@ public final class BarracksCommandModel {
                 "name", id.equals("all") ? Strings.get("openingBarracksCommandAllFormations") : captainName(captain),
                 "portrait", captain != null && captain.portraitSprite() != null ? captain.portraitSprite() : "graphics/ui/console/service-plate.svg",
                 "summary", Strings.format("openingBarracksCommandReadyAssigned", ready, squads.size()),
-                "capacity", captain == null ? id.equals("all") ? Strings.get("openingBarracksCommandCompanyRoll") : Strings.get("openingBarracksCommandIndependentMissionExecution")
+                "capacity", captain == null ? Strings.get("openingBarracksCommandCompanyRoll")
                         : Strings.format("openingBarracksCommandOfCommandSlots", captain.status(), squads.size(), captain.rank().squadCommandCap()),
                 "classes", command.equals(id) ? "command-card selected" : "command-card",
                 "select", (Runnable) () -> selectCommand(id));
@@ -492,11 +491,13 @@ public final class BarracksCommandModel {
         row.put("founderDestination", shown ? raiseDestination() : "");
         row.put("founderCosts", shown ? foundingCostRows() : List.of());
     }
-    private List<CompanyResources.Row> foundingCostRows() {
-        return SquadFoundingCost.STANDARD.lines().stream().map(line -> CompanyResources.cost(
-                "barracks-raise-cost:" + line.commodityId(), foundingResources.commodityName(line.commodityId()),
-                foundingResources.commodityIcon(line.commodityId()), foundingResources.available(line.commodityId()),
-                line.quantity())).toList();
+    /** The whole founding bill as one line of items; an item the stores cannot cover is marked short. */
+    private List<Map<String, Object>> foundingCostRows() {
+        return SquadFoundingCost.STANDARD.lines().stream().map(line -> row(
+                "id", "barracks-raise-cost:" + line.commodityId(),
+                "label", CompanyResources.number(line.quantity()) + " " + foundingResources.commodityName(line.commodityId()),
+                "classes", foundingResources.available(line.commodityId()) < line.quantity()
+                        ? "label raise-cost short" : "label raise-cost")).toList();
     }
     /** The officer a raised squad would join, or null for an independent squad. */
     private MarineCaptain raiseCommander() {

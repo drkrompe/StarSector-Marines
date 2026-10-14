@@ -27,6 +27,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 
 /** Actual assignment controls and preparation overlay at 1920x1080 / 100% only. */
 public final class SecondSquadSnapshotSuite implements SnapshotSuite {
@@ -117,10 +118,7 @@ public final class SecondSquadSnapshotSuite implements SnapshotSuite {
             if (!mira.id().equals(second.homeCaptainId()) || model.selected().size() != 1) throw new AssertionError("Direct assignment lost selection or failed");
             bindings.update(doc, markup, vm, hints);
             frames.add(frame(renderer, doc, "04-assigned-portraits.png"));
-            click(doc, markup, "command:independent:assign");
-            if (second.homeCaptainId() != null) throw new AssertionError("Independent action failed");
-            bindings.update(doc, markup, vm, hints);
-            frames.add(frame(renderer, doc, "05-independent.png"));
+            roster.assignCaptainToSquads(null, Set.of(second.id()));
             for (int i = 0; i < 2; i++) { var s = roster.createSquad(); roster.recruitToSquad(s.id(), 12); }
             model.refresh(); markup.flush(); doc.advance(0f);
             click(doc, markup, "barracks-select-all");
