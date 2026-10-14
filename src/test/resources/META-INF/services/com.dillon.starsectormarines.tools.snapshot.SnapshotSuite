@@ -152,3 +152,4 @@ com.dillon.starsectormarines.battle.command.AssaultMusterSceneSnapshotSuite
 com.dillon.starsectormarines.battle.squad.FightingPositionSceneSnapshotSuite
 com.dillon.starsectormarines.battle.airsupport.AirStrikeSceneSnapshotSuite
 com.dillon.starsectormarines.battle.deployable.FieldMortarSceneSnapshotSuite
+com.dillon.starsectormarines.battle.infantry.SquadMedicSceneSnapshotSuite
