@@ -199,14 +199,21 @@ legibility.
 
 Officers have a separate XP/rank ladder and permanent specialty training.
 Appointment grants one choice; each higher rank grants another. Each specialty
-has two ranks, so five lifetime points cannot master all three paths. Existing
+has two ranks, so five lifetime points cannot master all four paths. Existing
 saves receive rank-equivalent choice budgets without retroactive mission claims.
 The dossier shows exact effects, next ranks and affected home squads; deployed
 scope follows frozen command assignment, including borrowed squads.
 
 Tactical Cover improves incoming-accuracy protection by 5/10%; Recovery Planning
 shortens WIA time by 15/30%; Salvage Stewardship adds 10/20 recovery percentage
-points using the strongest participating officer only. These are independent
+points using the strongest participating officer only. Field Medicine gives
+each of the officer's squads one designated medic, without spending anybody's
+loadout: the first middle-team marine other than the leader, in seat order,
+replaced when they fall. The medic walks to the worst-hurt squadmate within
+the cohesion leash, holds fire while treating, and restores health and armor
+over a short channel from a few supplies that recover slowly; never their own
+patient. Whether medic and patient stand still for it is a balance-pass switch
+(`squad-medic.md`). These are independent
 of legacy recruitment traits and the one-shot moral outlook. Every officer
 who actually leads engaged marines receives their own mission XP and service
 entry; operation command is also credited. Per-attempt receipts prevent repeat

@@ -20,7 +20,8 @@ import com.dillon.starsectormarines.marine.OfficerCommandProfile;
  *
  * <p>The medic holds fire while treating. Whether the two marines stand still
  * for it is the open balance question, so both are built: planted holds both
- * in place, keep-moving lets the patient carry on and the medic follow.
+ * in place from the moment the patient is chosen, keep-moving lets the patient
+ * carry on and the medic follow.
  */
 public final class SquadMedicSystem {
 
@@ -246,7 +247,8 @@ public final class SquadMedicSystem {
      *       already in range; it starts nothing.</li>
      *   <li>The medic treating holds fire. Planted, they stand; keeping moving,
      *       they stay at the patient's side.</li>
-     *   <li>A planted patient stands still for it and may still shoot.</li>
+     *   <li>A planted patient waits for the medic and stands still for the
+     *       treatment, and may still shoot.</li>
      * </ul>
      *
      * A marine whose fire team has broken is never held: the morale law comes
@@ -278,7 +280,9 @@ public final class SquadMedicSystem {
             }
             return true;
         }
-        if (medic.phase != SquadMedic.Phase.TREATING || medic.keepMoving) return false;
+        // Planted holds both: the patient waits for the medic to arrive, then for
+        // the treatment. A patient walking on at the medic's own pace is never caught.
+        if (medic.keepMoving) return false;
         if (!sim.movement().settled(unit)) sim.clearPath(unit);
         InfantryUnitPrep.tryOpportunityPrimary(unit, sim);
         return true;

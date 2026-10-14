@@ -1,10 +1,11 @@
 # Squad medic — an officer specialty that designates one medic per squad
 
-Status: PLANNED — design agreed in outline; numbers are starting points for
-measurement, not settled balance.
+Status: IN PROGRESS — the specialty, treatment, AI, both movement modes and the
+`squad-medic` scene are in; presentation, the balance pass and the billet
+choice remain. Numbers are starting points, not settled balance.
 
 Written: 2026-10-14
-Updated: 2026-10-14 — medic holds fire while treating; planted vs keep-moving left to the balance pass.
+Updated: 2026-10-14 — simulation and evidence landed; remaining scope narrowed to presentation and balance.
 
 Read `progression-nouns.md` (officer career, legibility law),
 `combat-durability-nouns.md` (armor break, the no-regeneration rule this story
@@ -37,19 +38,19 @@ It costs a specialty point. Five lifetime points still cannot master all
 the specialties, and now there are four of them, so taking Field Medicine is a
 real trade against cover, recovery or salvage.
 
-**Which marine is the medic** is decided by billet, not by quality. The medic
-is a fixed non-leader billet. Seniority picks among equal-rank candidates, which
-is the one decision `progression-nouns.md` lets the career record make. If the
-medic dies, the next marine in billet order takes the role on the next replan, so
-the squad does not lose medicine to a single casualty. Whether the player can
-choose the billet is an open question (below).
+**Which marine is the medic** is decided by billet, not by quality: the first
+marine in the middle fire team other than the leader, in seat order (which is
+NCO first, then roster order), or the first non-leader when the squad has no
+middle team. The middle team is preferred so the medic stands near everybody.
+If the medic dies, the next marine by the same rule takes the role on the next
+tick, so the squad does not lose medicine to a single casualty. Whether the
+player can choose the billet is an open question (below).
 
 **Naming.** The captain recruitment trait `Trait.FIELD_MEDIC` already exists. It
 is a post-mission casualty reduction in `MissionResolver` and has no in-battle
-effect. The specialty must not reuse that name in code or copy, or the dossier
-will show two "field medics" that do different things. Working enum name:
-`OfficerSpecialty.COMBAT_MEDICINE`, displayed as "Field Medicine". Settle the
-copy against the trait's display string before shipping.
+effect. The specialty is `OfficerSpecialty.FIELD_MEDICINE`, shown as "Field
+Medicine" under training, while the trait appears under Background. The two
+names sit close in the dossier; settle the copy before release (open question).
 
 ## The treatment
 
@@ -99,7 +100,8 @@ the price of the treatment.
 **Whether treatment stops movement is left to the balance pass**, so both modes
 are built and selectable:
 
-- **Planted.** Medic and patient both hold position for the channel. This is the
+- **Planted.** The patient holds from the moment they are chosen, so the medic
+  can reach them, and both hold for the channel. This is the
   cheaper and more vulnerable treatment: two marines stationary for five
   seconds. A squad advancing under orders leaves them behind for that time and
   the cohesion pull brings them back afterwards.
@@ -121,10 +123,12 @@ stays an armor break".
   still no passive regeneration and no self-repair, and the "League modularity is
   not self-repair" rule in the slate holds. A mitigation still never restores a
   capacity.
-- Re-plating from zero emits an **armor restored** fact. It is the counterpart
-  of armor break and is consumed the same way: morale, AI and presentation read
-  the fact, never infer it from capacity. The HP-threshold morale proxy that
-  `combat-durability-nouns.md` tolerates must not be extended to infer this.
+- Re-plating from zero is counted on the squad's medic (`armorReplated`). The
+  armor-break result the durability model computes has no consumer yet, so
+  there is nothing downstream to un-react; when morale, AI or presentation start
+  reading the break, they must read re-plating the same way rather than infer
+  either from capacity. The HP-threshold morale proxy must not be extended to
+  infer it.
 - Armor break stays a one-time *transition*, not a one-time *life event*. A
   re-plated marine whose armor is shot away again emits a second break. Every
   break consumer must be checked for a "has broken once" assumption.
@@ -167,33 +171,43 @@ This must stay inside the yield and goal rules the scenes have already enforced:
 
 ## Open questions
 
-1. **Player-chosen medic billet.** A fixed billet is simplest and legible. A
-   per-squad choice in the company view is more flexible but is new UI.
-2. **Planted or keep moving.** Both are built behind a switch. The balance pass
+1. **Player-chosen medic billet.** The fixed billet is legible. A per-squad
+   choice in the company view is more flexible but is new UI.
+2. **Planted or keep moving.** Both are built behind
+   `battle.infantry.medicKeepMoving` (per simulation via
+   `SquadMedicSystem.setKeepMoving`; planted by default). The balance pass
    decides the default, and whether "keep moving" becomes a player-facing option
    (squad stance or per-order choice) rather than only a tuning control.
-3. **Presentation.** A use pose and treatment FX for the medic, a mark on the
-   patient, and the designated medic legible on the field and on the squad card
-   (`company-view-nouns.md` already uses an amber medical mark for *wounded*;
-   the medic needs a distinct mark).
+3. **Presentation.** Not started: a use pose and treatment FX for the medic, a
+   mark on the patient, and the designated medic legible on the field and on
+   the squad card (`company-view-nouns.md` already uses an amber medical mark for
+   *wounded*; the medic needs a distinct mark). The review frames label medic
+   and patient as diagnostics only.
+4. **Specialty copy** against the `FIELD_MEDIC` trait, above.
 
-## Acceptance
+## Evidence so far
 
-- Unit tests on the treatment itself: per-tick restoration, clamping, supply
-  spent at start, recovery to cap, cooldown, the never-self rule, patient
-  selection order, and armor-restored emitted exactly once per zero-to-positive
-  transition.
-- A `BehaviorScene` (`squad-medic`) with verdicts under `sceneEvidence` and
-  frames under `createSnapshots` at 1920x1080 / 100%: a wounded squad with a
-  designated medic against an identical squad with the specialty off, the same
-  medic squad advancing under an order in planted and in keep-moving mode, and a
-  loop where the patient walks out of reach mid-channel. Readings: health and
-  armor restored, treatments started/completed/interrupted, rounds the medic
-  fired while channelling (must be zero), plan-less ticks, medic distance from
-  squad centroid, and time for the squad to reach its order in each mode.
-- The armor-restored fact is consumed by every current armor-break consumer, or
-  each one is shown to be correct without it.
-- Dossier shows the specialty's exact effects per rank; the squad card shows
-  which marine is the medic.
-- `combat-durability-nouns.md` and `progression-nouns.md` updated in the shipping
-  commit.
+`gradlew.bat sceneEvidence -Pscene=squad-medic` and
+`createSnapshots -Psnapshot=squad-medic` (1920x1080). Eight armored marines
+march 50 cells under an attack move with four of them hurt, then shoot at a
+tough target past the objective, which fires back. One seed, so read it as a
+first look rather than balance:
+
+| loop | reached order (tick) | treatments | restored | deaths | medic rounds while treating |
+| --- | --- | --- | --- | --- | --- |
+| control | 959 | — | — | 2 | — |
+| planted | 977 | 2 of 2 | 23.6 health, 5 armor, 1 re-plated | 3 | 0 |
+| keep-moving | 947 | 2 of 3 (1 interrupted) | 25.2 health, 10 armor, 2 re-plated | 2 | 0 |
+
+Planted costs the march about 0.6 s here; keep-moving costs nothing. In both
+medic loops the medic was killed once by the target and replaced. A patient
+walking out of reach mid-treatment is covered by `SquadMedicSystemTest`, since
+nothing in the shipped game slows one marine against another to stage it.
+
+## Remaining acceptance
+
+- Presentation (open question 3), with frames at 1920x1080 / 100%.
+- A balance pass across seeds and against real opposition, settling the
+  movement default and the per-rank numbers.
+- Live play: train the specialty on an officer, deploy their squad, and see a
+  treatment in the real game.
