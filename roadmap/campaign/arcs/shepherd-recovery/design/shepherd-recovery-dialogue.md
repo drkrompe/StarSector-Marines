@@ -4,7 +4,7 @@ Status: ACTIVE — authored script and character reference.
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — Basin is a Wayline account; Mara's referral is a supplier's, and the leak may have run through Wayline.
+Updated: 2026-10-14 — name the rival crew and ration Vale's insult for them.
 
 ## How to read this script
 
@@ -116,8 +116,11 @@ the hold, her money or her people make her short.
   to support all of them.
 
 **Voice:** short, practical, territorial, tired. Salvage talk: hulls, cuts,
-pickings, the yard, the haul road. She calls the rival outfit *the roaches* — a
-working insult, not a speech. She counts in people and money, and she will not
+pickings, the yard, the haul road. She names the rival crew by its boss, Harlan,
+calls it *the squatters* when the abandonment claim is on her mind, and saves
+*roaches* for when she is angry — a couple of times in the whole arc, so it still
+stings. Most of the time it is just *they*. Castle never borrows Vale's insults;
+she says Harlan's crew or the other crew. She counts in people and money, and she will not
 pretend those two never pull against each other. No lectures about scavenger
 society, no announced motives, no threats in every reply. Warmth shows in what
 she notices and who she asks after, never in instant friendship with the company.
@@ -219,8 +222,10 @@ in this valley looked worth its effort, and Vale would rather it never does. The
 script establishes no confiscation law, imminent patrol, political alliance or
 hidden deadline — only Vale's well-founded preference for being ignored.
 
-The opposition is one armed rival salvage outfit — Vale's roaches. Its claim of
-abandonment is reported by Vale. Its people are opportunists after a rich site who
+The opposition is one armed rival salvage outfit, **Dace Harlan's crew** — another
+family outfit from elsewhere on Asharu, much like Basin. Harlan never appears or
+speaks; the name gives Vale and Castle something to call them besides an insult.
+Its claim of abandonment is reported by Vale. Its people are opportunists after a rich site who
 also saw what a working drone tender could do for whoever holds the yard. They
 need not know the manifest any better than Castle does.
 
@@ -308,7 +313,7 @@ needs it to fight, and stops there. Nobody has mentioned a ship.
 
 **Castle:** Got round how?
 
-**Vale:** When we opened the hold, I put in a fuel order with Wayline. Enough to lift something heavy off-world, and a camp like ours never needs that much. A few weeks later the roaches came in shooting at shift change.
+**Vale:** When we opened the hold, I put in a fuel order with Wayline. Enough to lift something heavy off-world, and a camp like ours never needs that much. A few weeks later Dace Harlan's crew came in shooting at shift change.
 
 **Castle:** That's about when Wayline's schedules were being sold.
 
@@ -316,7 +321,7 @@ needs it to fight, and stops there. Nobody has mentioned a ship.
 
 **Castle:** Most of your people.
 
-**Vale:** My cousin Jory's crew is still inside the Colossus, sealed in where the roaches haven't found a way through. They've kept a quiet channel open. That's how I know the yard's held, and roughly by how many.
+**Vale:** My cousin Jory's crew is still inside the Colossus, sealed in where the squatters haven't found a way through. They've kept a quiet channel open. That's how I know the yard's held, and roughly by how many.
 
 **Castle:** Then I'll ask the obvious question. What did you find?
 
@@ -336,11 +341,11 @@ needs it to fight, and stops there. Nobody has mentioned a ship.
 
 **Castle:** What's on the cradle?
 
-**Vale:** A Shepherd. Another hull off that fight. Broke her back coming down; we hauled her in to cut up. Her reactor and drone bay are the best scrap in this yard outside the Colossus, and I had a buyer asking after that bay before any of this. Jory says the roaches have had her panels off for a week.
+**Vale:** A Shepherd. Another hull off that fight. Broke her back coming down; we hauled her in to cut up. Her reactor and drone bay are the best scrap in this yard outside the Colossus, and I had a buyer asking after that bay before any of this. Jory says they've had her panels off for a week.
 
 **Castle:** And you want to know what they've taken.
 
-**Vale:** I want two of my techs on her, with your rifles round them, long enough to find out. Cover them from her south side. The roaches come and go along the south haul road. That's where they'll come back.
+**Vale:** I want two of my techs on her, with your rifles round them, long enough to find out. Cover them from her south side. Harlan's lot come and go along the south haul road. That's where they'll come back.
 
 ### During — yard entry and protected inspection
 
@@ -357,7 +362,7 @@ Cue: `shepherd.salvage.arrival`.
 
 Cue: `shepherd.salvage.morrow_sighted`.
 
-**Vale:** There's the Shepherd. Morrow, by her hull plate. Panels open all down her flank; the roaches have been busy. Let's see what's left in her.
+**Vale:** There's the Shepherd. Morrow, by her hull plate. Panels open all down her flank; somebody's been busy. Let's see what's left in her.
 
 #### Receiving store secured
 
@@ -393,7 +398,7 @@ Cue: `shepherd.salvage.road_warning`.
 
 Cue: `shepherd.salvage.secured`.
 
-**Vale:** They're done. Her bay's still in her, and the roaches had cable run into it. They weren't cutting her up, Captain. They were trying to wake her. Your fee's released.
+**Vale:** They're done. Her bay's still in her, and the squatters had cable run into it. They weren't cutting her up, Captain. They were trying to wake her. Your fee's released.
 
 #### Inspection party lost — failure branch
 
@@ -445,7 +450,7 @@ best scrap on her own defense as a cost, not a gift.
 
 **Castle:** And Jory's crew?
 
-**Vale:** Still on the channel. Still in the Colossus. They won't come out while the roaches are on the roads, and I'm not sending anyone across open ground to fetch them.
+**Vale:** Still on the channel. Still in the Colossus. They won't come out while Harlan's people are on the roads, and I'm not sending anyone across open ground to fetch them.
 
 **Castle:** About those roads. We can get your power back. We can't stay. How does the yard hold once we've gone?
 
@@ -455,11 +460,11 @@ best scrap on her own defense as a cost, not a gift.
 
 **Vale:** Not enough. You know it's not enough.
 
-**Castle:** Your techs said the roaches were trying to wake Morrow's bay. If they thought her builders could hold this yard, so do I.
+**Castle:** Your techs said Harlan's crew were trying to wake Morrow's bay. If they thought her builders could hold this yard, so do I.
 
 **Vale:** That bay's the most saleable thing I own outside the Colossus. Every hour those drones work is wear on it.
 
-**Castle:** And no buyer can collect it while the roaches hold your road.
+**Castle:** And no buyer can collect it while someone else holds your road.
 
 **Vale:** There's a road-gun kit in the stores, and nobody to fit it in a hurry. Fine. Once the yard has power we'll feed some to Morrow and see if any builders answer. If they don't, you're holding with rifles.
 
@@ -632,7 +637,7 @@ no offer and no promise of the ship.
 
 **Castle:** Then why don't you look happier?
 
-**Vale:** Because my haulers still can't get out. The roaches have pulled back to the outer road, and Jory says they've had company since. Finish up with your people, then come and see me. I need more than we agreed.
+**Vale:** Because my haulers still can't get out. Harlan's pulled back to the outer road, and Jory says he's had company since. Finish up with your people, then come and see me. I need more than we agreed.
 
 **If company personnel or repair technicians were lost, replace those last two turns:**
 
