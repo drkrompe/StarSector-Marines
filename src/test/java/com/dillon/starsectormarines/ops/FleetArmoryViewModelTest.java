@@ -269,6 +269,17 @@ class FleetArmoryViewModelTest {
     }
 
     @Test
+    void weaponCardIssueSelectsAndAppliesThatLoadout() {
+        MarineRoster roster = fullSquad();
+        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(new Reactor(), roster);
+        var card = viewModel.weaponDoctrineTiles().get().get(1);
+        assertFalse(card.issueDisabled());
+        card.issue().run();
+        assertEquals(card.id(), "weapon-doctrine:" + roster.squads().get(0).weaponDoctrineId());
+        assertEquals(card.id(), "weapon-doctrine:" + viewModel.selectedWeaponDoctrineId());
+    }
+
+    @Test
     void shippedComponentsKeepKeyedIdentityAcrossBilletInspection() throws Exception {
         MarineRoster roster = fullSquad();
         Reactor reactor = new Reactor();
@@ -299,8 +310,10 @@ class FleetArmoryViewModelTest {
             assertSame(comparison, instance.requireElement("loadout-item:0"));
             assertEquals(weapon, model.selectedWeaponDoctrineId());
             assertTrue(next.hasClass("selected"));
+            var chosen = model.weaponDoctrineTiles().get().stream()
+                    .filter(tile -> tile.id().endsWith(weapon)).findFirst().orElseThrow();
             assertEquals(model.currentSquadEquipmentPreview().canApply(),
-                    !instance.requireElement("apply-squad-equipment").disabled());
+                    !instance.requireElement(chosen.id() + ":issue").disabled());
             model.showArmorPickerAction().run(); instance.flush();
             assertTrue(instance.requireElement("show-armor-picker").hasClass("selected"));
             assertTrue(instance.requireElement("weapon-doctrine-slot").hasClass("picker-hidden"));
@@ -834,9 +847,6 @@ class FleetArmoryViewModelTest {
         props.put("transactionClasses", viewModel.transactionClasses());
         props.put("issueCargoRows", viewModel.issueCargoRows());
         props.put("issueCargoClasses", viewModel.issueCargoClasses());
-        props.put("applyDisabled", viewModel.applyDisabled());
-        props.put("applyLabel", viewModel.applyLabel());
-        props.put("apply", viewModel.applyAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         props.put("back", (Runnable) () -> { });

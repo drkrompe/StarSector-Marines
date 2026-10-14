@@ -1,4 +1,4 @@
-<template props="weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,weaponPickerTabClasses,armorPickerTabClasses,weaponPickerPanelClasses,armorPickerPanelClasses,showWeaponPicker,showArmorPicker,loadoutFilters,loadoutBrowserSummary,showArmorComparison,transactionSummary,transactionClasses,issueCargoRows,issueCargoClasses,applyDisabled,applyLabel,apply">
+<template props="weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,weaponPickerTabClasses,armorPickerTabClasses,weaponPickerPanelClasses,armorPickerPanelClasses,showWeaponPicker,showArmorPicker,loadoutFilters,loadoutBrowserSummary,showArmorComparison,transactionSummary,transactionClasses,issueCargoRows,issueCargoClasses">
   <div id="squad-doctrine-strip" class="panel squad-doctrine-strip">
     <div id="equipment-picker-tabs">
       <div id="equipment-picker-heading" class="label heading tone-edge">{i18n.openingUiArmorySquadDoctrineLoadouts}</div>
@@ -28,7 +28,8 @@
         <button id="compare-armor-patterns" onclick="{showArmorComparison}">{i18n.openingUiArmorySquadDoctrineComparePatterns}</button>
       </div>
       <div id="armor-doctrine-list" class="doctrine-list">
-        <button each="tile in armorDoctrineTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" onclick="{tile.select}" style="{tile.cardStyle}">
+        <div each="tile in armorDoctrineTiles" key="{tile.id}" id="{tile.wrapId}" class="doctrine-card-wrap" style="{tile.wrapStyle}">
+        <button id="{tile.id}" class="{tile.classes}" onclick="{tile.select}" style="{tile.cardStyle}">
           <div id="{tile.headerId}" class="doctrine-header">
             <div id="{tile.nameId}" class="doctrine-name label tone-edge">{tile.name}</div>
             <div id="{tile.ratingId}" class="{tile.ratingClasses}">{tile.ratingLabel}</div>
@@ -55,6 +56,11 @@
             </div>
           </div>
         </button>
+        <div id="{tile.issueRowId}" class="{tile.issueRowClasses}">
+          <div id="{tile.issueReasonId}" class="{tile.issueReasonClasses}">{tile.issueReason}</div>
+          <button id="{tile.issueId}" class="doctrine-issue-button console-action" disabled="{tile.issueDisabled}" onclick="{tile.issue}">{i18n.loadoutIssueAction}</button>
+        </div>
+        </div>
       </div>
     </div>
 
@@ -64,12 +70,16 @@
 
     <div id="squad-equip-row">
       <div id="transaction-result" class="{transactionClasses}">{transactionSummary}</div>
-      <button id="apply-squad-equipment" class="apply-button console-action" disabled="{applyDisabled}" onclick="{apply}">{applyLabel}</button>
     </div>
   </div>
 </template>
 
 <style>
+  .doctrine-card-wrap { flex-direction: column; width: 530px; gap: 2px; }
+  .doctrine-issue-row { flex-direction: row; height: 32px; gap: 7px; }
+  .doctrine-issue-row-hidden { width: 0px; height: 0px; opacity: 0; overflow: hidden; }
+  .doctrine-issue-reason { width: 0px; flex-grow: 1; height: 32px; padding: 6px 7px; border-width: 1px; overflow: hidden; }
+  .doctrine-issue-button { width: 96px; height: 32px; padding: 4px 9px; border-width: 1px; font-family: body; text-align: center; }
   .squad-doctrine-strip { flex-direction: column; width: 566px; height: 100%; padding: 7px; gap: 5px; overflow: hidden; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }
@@ -144,5 +154,4 @@
   .cargo-cost.short .cargo-cost-label { color: #f09a9a; }
   #squad-equip-row { flex-direction: row; height: 30px; gap: 7px; }
   .transaction-result { width: 0px; flex-grow: 1; padding: 4px 7px; border-width: 1px; overflow: hidden; }
-  .apply-button { padding: 4px 9px; border-width: 1px; font-family: body; text-align: center; }
 </style>
