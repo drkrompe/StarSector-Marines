@@ -1,0 +1,224 @@
+{
+  "sheet": "graphics/doodads/fort-sandbag-damage.png",
+  "cellPx": 128,
+  "doodads": [
+    {
+      "id": "doodad.fort-sandbag-damaged-n",
+      "col": 0,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.4,
+      "fightingPosition": "parapet"
+    },
+    {
+      "id": "doodad.fort-sandbag-damaged-e",
+      "col": 1,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.4,
+      "fightingPosition": "parapet"
+    },
+    {
+      "id": "doodad.fort-sandbag-damaged-s",
+      "col": 2,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.4,
+      "fightingPosition": "parapet"
+    },
+    {
+      "id": "doodad.fort-sandbag-damaged-w",
+      "col": 3,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.4,
+      "fightingPosition": "parapet"
+    },
+    {
+      "id": "doodad.fort-sandbag-damaged-corner-ne",
+      "col": 4,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.4,
+      "fightingPosition": "parapet"
+    },
+    {
+      "id": "doodad.fort-sandbag-damaged-corner-se",
+      "col": 5,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.4,
+      "fightingPosition": "parapet"
+    },
+    {
+      "id": "doodad.fort-sandbag-damaged-corner-sw",
+      "col": 6,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.4,
+      "fightingPosition": "parapet"
+    },
+    {
+      "id": "doodad.fort-sandbag-damaged-corner-nw",
+      "col": 7,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.4,
+      "fightingPosition": "parapet"
+    },
+    {
+      "id": "doodad.fort-sandbag-destroyed-n",
+      "col": 0,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0
+    },
+    {
+      "id": "doodad.fort-sandbag-destroyed-e",
+      "col": 1,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0
+    },
+    {
+      "id": "doodad.fort-sandbag-destroyed-s",
+      "col": 2,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0
+    },
+    {
+      "id": "doodad.fort-sandbag-destroyed-w",
+      "col": 3,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0
+    },
+    {
+      "id": "doodad.fort-sandbag-destroyed-corner-ne",
+      "col": 4,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0
+    },
+    {
+      "id": "doodad.fort-sandbag-destroyed-corner-se",
+      "col": 5,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0
+    },
+    {
+      "id": "doodad.fort-sandbag-destroyed-corner-sw",
+      "col": 6,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0
+    },
+    {
+      "id": "doodad.fort-sandbag-destroyed-corner-nw",
+      "col": 7,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0
+    }
+  ],
+  "cells": [
+    {
+      "col": 0,
+      "row": 0,
+      "name": "doodad.fort-sandbag-damaged-n",
+      "description": "PLACEHOLDER procedural art awaiting geometry-first ImageGen. Bitten, scorched fort sandbag parapet, facing n. Heavy cover and a parapet fighting position remain."
+    },
+    {
+      "col": 1,
+      "row": 0,
+      "name": "doodad.fort-sandbag-damaged-e",
+      "description": "PLACEHOLDER procedural art awaiting geometry-first ImageGen. Bitten, scorched fort sandbag parapet, facing e. Heavy cover and a parapet fighting position remain."
+    },
+    {
+      "col": 2,
+      "row": 0,
+      "name": "doodad.fort-sandbag-damaged-s",
+      "description": "PLACEHOLDER procedural art awaiting geometry-first ImageGen. Bitten, scorched fort sandbag parapet, facing s. Heavy cover and a parapet fighting position remain."
+    },
+    {
+      "col": 3,
+      "row": 0,
+      "name": "doodad.fort-sandbag-damaged-w",
+      "description": "PLACEHOLDER procedural art awaiting geometry-first ImageGen. Bitten, scorched fort sandbag parapet, facing w. Heavy cover and a parapet fighting position remain."
+    },
+    {
+      "col": 4,
+      "row": 0,
+      "name": "doodad.fort-sandbag-damaged-corner-ne",
+      "description": "PLACEHOLDER procedural art awaiting geometry-first ImageGen. Bitten, scorched fort sandbag parapet, facing corner-ne. Heavy cover and a parapet fighting position remain."
+    },
+    {
+      "col": 5,
+      "row": 0,
+      "name": "doodad.fort-sandbag-damaged-corner-se",
+      "description": "PLACEHOLDER procedural art awaiting geometry-first ImageGen. Bitten, scorched fort sandbag parapet, facing corner-se. Heavy cover and a parapet fighting position remain."
+    },
+    {
+      "col": 6,
+      "row": 0,
+      "name": "doodad.fort-sandbag-damaged-corner-sw",
+      "description": "PLACEHOLDER procedural art awaiting geometry-first ImageGen. Bitten, scorched fort sandbag parapet, facing corner-sw. Heavy cover and a parapet fighting position remain."
+    },
+    {
+      "col": 7,
+      "row": 0,
+      "name": "doodad.fort-sandbag-damaged-corner-nw",
+      "description": "PLACEHOLDER procedural art awaiting geometry-first ImageGen. Bitten, scorched fort sandbag parapet, facing corner-nw. Heavy cover and a parapet fighting position remain."
+    },
+    {
+      "col": 0,
+      "row": 1,
+      "name": "doodad.fort-sandbag-destroyed-n",
+      "description": "PLACEHOLDER procedural art awaiting geometry-first ImageGen. Flattened spill of fort sandbag, facing n. No cover and no fighting-position role."
+    },
+    {
+      "col": 1,
+      "row": 1,
+      "name": "doodad.fort-sandbag-destroyed-e",
+      "description": "PLACEHOLDER procedural art awaiting geometry-first ImageGen. Flattened spill of fort sandbag, facing e. No cover and no fighting-position role."
+    },
+    {
+      "col": 2,
+      "row": 1,
+      "name": "doodad.fort-sandbag-destroyed-s",
+      "description": "PLACEHOLDER procedural art awaiting geometry-first ImageGen. Flattened spill of fort sandbag, facing s. No cover and no fighting-position role."
+    },
+    {
+      "col": 3,
+      "row": 1,
+      "name": "doodad.fort-sandbag-destroyed-w",
+      "description": "PLACEHOLDER procedural art awaiting geometry-first ImageGen. Flattened spill of fort sandbag, facing w. No cover and no fighting-position role."
+    },
+    {
+      "col": 4,
+      "row": 1,
+      "name": "doodad.fort-sandbag-destroyed-corner-ne",
+      "description": "PLACEHOLDER procedural art awaiting geometry-first ImageGen. Flattened spill of fort sandbag, facing corner-ne. No cover and no fighting-position role."
+    },
+    {
+      "col": 5,
+      "row": 1,
+      "name": "doodad.fort-sandbag-destroyed-corner-se",
+      "description": "PLACEHOLDER procedural art awaiting geometry-first ImageGen. Flattened spill of fort sandbag, facing corner-se. No cover and no fighting-position role."
+    },
+    {
+      "col": 6,
+      "row": 1,
+      "name": "doodad.fort-sandbag-destroyed-corner-sw",
+      "description": "PLACEHOLDER procedural art awaiting geometry-first ImageGen. Flattened spill of fort sandbag, facing corner-sw. No cover and no fighting-position role."
+    },
+    {
+      "col": 7,
+      "row": 1,
+      "name": "doodad.fort-sandbag-destroyed-corner-nw",
+      "description": "PLACEHOLDER procedural art awaiting geometry-first ImageGen. Flattened spill of fort sandbag, facing corner-nw. No cover and no fighting-position role."
+    }
+  ]
+}
