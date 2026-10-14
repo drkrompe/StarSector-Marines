@@ -17,6 +17,9 @@ import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
 import com.dillon.starsectormarines.marine.SquadProfile;
 import com.dillon.starsectormarines.marine.SquadConsolidation;
+import com.dillon.starsectormarines.marine.SquadFoundingCost;
+import com.dillon.starsectormarines.marine.SquadFoundingResources;
+import com.dillon.starsectormarines.marine.SquadFoundingWorkshop;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
@@ -45,12 +48,15 @@ public final class BarracksCommandModel {
     private final MarineRoster roster;
     private final BarracksEquipmentIssue equipment;
     private final EquipmentIssueResources resources;
+    private final SquadFoundingResources foundingResources;
+    private final SquadFoundingWorkshop founding;
     private final IntSupplier cargoMarines;
     private final Function<String, PersonnelDrawResult> reinforce;
     private final Consumer<String> inspect;
     private final Runnable changed;
     private final MutableSignal<Integer> revision;
     private final ComputedSignal<List<Map<String, Object>>> cards;
+    private final ComputedSignal<List<Map<String, Object>>> tiles;
     private final DoubleSupplier currentDay;
     private final Map<String, Object> props = new LinkedHashMap<>();
     private final Set<String> selected = new LinkedHashSet<>();
@@ -71,7 +77,6 @@ public final class BarracksCommandModel {
     private int guideStep;
     private String inspectedId;
     private Runnable equipmentWorkspace = () -> { };
-    private Runnable raiseSquad = () -> { };
     private Runnable missions = () -> { };
     private Consumer<String> editEquipment = id -> { };
     private boolean localMissions;
@@ -84,11 +89,14 @@ public final class BarracksCommandModel {
     private String feedback = Strings.get("openingBarracksCommandSelectSquadsThenAssignSelectedOnA");
 
     public BarracksCommandModel(Reactor reactor, MarineRoster roster, EquipmentIssueResources resources,
+                                SquadFoundingResources foundingResources,
                                 IntSupplier cargoMarines, Function<String, PersonnelDrawResult> reinforce,
                                 Consumer<String> inspect, Runnable changed, DoubleSupplier currentDay) {
         this.roster = roster;
         guideOpen = inductionRequired() || !roster.managementGuideDismissed();
         this.resources = resources;
+        this.foundingResources = foundingResources;
+        this.founding = new SquadFoundingWorkshop(roster, foundingResources);
         this.equipment = new BarracksEquipmentIssue(roster, resources);
         this.cargoMarines = cargoMarines;
         this.reinforce = reinforce;
@@ -100,7 +108,6 @@ public final class BarracksCommandModel {
         bind(reactor, "equipmentLabel", () -> equipmentUnread() ? Strings.get("openingBarracksCommandEquipmentNew") : Strings.get("openingBarracksCommandEquipment"));
         bind(reactor, "equipmentClasses", () -> equipmentUnread()
                 ? "flow-button console-action equipment-new" : "flow-button console-action");
-        props.put("raiseSquad", (Runnable) () -> raiseSquad.run());
         props.put("missions", (Runnable) () -> missions.run());
         props.put("editEquipment", (Runnable) () -> { if (inspectedId != null) editEquipment.accept(inspectedId); });
         bind(reactor, "missionLabel", () -> returnToBriefing ? Strings.get("openingBarracksCommandBriefing") : Strings.get("openingBarracksCommandMissions"));
@@ -128,7 +135,14 @@ public final class BarracksCommandModel {
         bind(reactor, "officerHistory", this::officerHistory);
         bind(reactor, "officerHistoryStyle", () -> "height: " + (officerHistory().size() * 52) + "px;");
         cards = reactor.computed(() -> { revision.get(); return squads(); });
-        props.put("squads", cards);
+        // The raise tile rides at the end of the last page: a markup loop owns all of
+        // its parent's children, so the tile is a row rather than a sibling.
+        tiles = reactor.computed(() -> {
+            List<Map<String, Object>> rows = new ArrayList<>(cards.get());
+            if (pageNumber() + 1 == pages()) rows.add(raiseTile());
+            return rows;
+        });
+        props.put("squads", tiles);
         bind(reactor, "profiles", this::profiles);
         bind(reactor, "recruitIcon", () -> resources.commodityIcon(Commodities.MARINES));
         bind(reactor, "recruitStock", () -> Integer.toString(cargoMarines.getAsInt()));
@@ -453,10 +467,82 @@ public final class BarracksCommandModel {
                     "commanderImage", home == null || home.portraitSprite() == null ? "graphics/ui/console/service-plate.svg" : home.portraitSprite(),
                     "classes", "formation" + (selected.contains(squad.id()) ? " selected" : donors.contains(squad.id()) ? " donor" : "") + (squad.stationed() ? " stationed" : ""),
                     "mark", selected.contains(squad.id()) ? "+" : donors.contains(squad.id()) ? "D" : "", "disabled", squad.stationed(),
-                    "toggle", (Runnable) () -> toggle(squad.id()), "inspect", (Runnable) () -> inspect(squad.id())));
+                    "toggle", (Runnable) () -> toggle(squad.id()), "inspect", (Runnable) () -> inspect(squad.id()),
+                    "selectClasses", "formation-select", "footerClasses", "card-footer"));
+            founderFields(rows.get(rows.size() - 1), "formation:" + squad.id(), false);
         }
         return rows;
     }
+    /** The formation board's own founding control: the new squad joins whichever command is open. */
+    private Map<String, Object> raiseTile() {
+        String id = "barracks-raise-squad";
+        Map<String, Object> tile = new LinkedHashMap<>(row("id", id + ":tile", "markId", id + ":select",
+                "squadId", "", "musterId", id + ":muster", "headerId", id + ":header", "checkId", id + ":check",
+                "strengthId", id + ":strength", "profileRowId", id + ":profile-row", "armorIconId", id + ":armor-icon",
+                "footerId", id + ":footer", "kitId", id + ":kit", "armorIcon", "", "strength", "", "personnel", "",
+                "kit", "", "personnelClasses", "hidden", "kitClasses", "hidden",
+                "formationidentityId", id + ":identity", "formationnameId", id + ":name",
+                "formationstatusId", id + ":status", "formationprofileId", id + ":profile",
+                "inspectId", id + ":inspect", "name", "", "profile", "",
+                "commanderId", id + ":commander", "commanderImageId", id + ":commander-image",
+                "commanderNameId", id + ":commander-name", "commanderName", "", "commanderImage", "",
+                "classes", "formation raise-tile", "mark", "", "disabled", true,
+                "toggle", (Runnable) () -> { }, "inspect", (Runnable) () -> { },
+                "selectClasses", "hidden", "footerClasses", "hidden"));
+        founderFields(tile, id, true);
+        return tile;
+    }
+    private void founderFields(Map<String, Object> row, String prefix, boolean shown) {
+        String id = shown ? prefix : prefix + ":raise";
+        row.put("founderId", id);
+        for (String part : List.of("Plus", "Heading", "Title", "Destination", "Costs"))
+            row.put("founder" + part + "Id", id + ":" + part.toLowerCase(Locale.ROOT));
+        boolean affordable = shown && foundingResources.canAfford(SquadFoundingCost.STANDARD);
+        row.put("founderClasses", shown ? "raise-squad console-action" : "hidden");
+        row.put("founderDisabled", !affordable);
+        row.put("raise", shown ? (Runnable) this::raiseSquad : (Runnable) () -> { });
+        row.put("founderDestination", shown ? raiseDestination() : "");
+        row.put("founderCosts", shown ? foundingCostRows() : List.of());
+    }
+    private List<CompanyResources.Row> foundingCostRows() {
+        return SquadFoundingCost.STANDARD.lines().stream().map(line -> CompanyResources.cost(
+                "barracks-raise-cost:" + line.commodityId(), foundingResources.commodityName(line.commodityId()),
+                foundingResources.commodityIcon(line.commodityId()), foundingResources.available(line.commodityId()),
+                line.quantity())).toList();
+    }
+    /** The officer a raised squad would join, or null for an independent squad. */
+    private MarineCaptain raiseCommander() {
+        MarineCaptain officer = selectedOfficer();
+        if (officer == null) return null;
+        long held = lineSquads().stream().filter(s -> officer.id().equals(s.homeCaptainId())).count();
+        return held < officer.rank().squadCommandCap() ? officer : null;
+    }
+    private String raiseDestination() {
+        MarineCaptain officer = raiseCommander();
+        if (officer != null) return Strings.format("openingBarracksCommandRaiseSquadJoins", captainName(officer));
+        return selectedOfficer() != null
+                ? Strings.format("openingBarracksCommandRaiseSquadCommandFull", captainName(selectedOfficer()))
+                : Strings.get("openingBarracksCommandRaiseSquadIndependent");
+    }
+    /** Founds a full line squad from stores and files it under the open command when it has a slot. */
+    public void raiseSquad() {
+        MarineCaptain officer = raiseCommander();
+        SquadFoundingWorkshop.Result result = founding.foundSquad();
+        if (!result.succeeded()) {
+            feedback = Strings.get("openingFleetArmoryInsufficientCargoTheCompleteFoundingBillMust");
+            refresh();
+            return;
+        }
+        MarineSquad squad = result.squad();
+        if (officer != null) roster.assignCaptainToSquads(officer.id(), Set.of(squad.id()));
+        feedback = officer != null
+                ? Strings.format("openingBarracksCommandRaisedSquadUnder", squad.name(), MarineSquad.CAPACITY, captainName(officer))
+                : Strings.format("openingBarracksCommandRaisedSquadIndependent", squad.name(), MarineSquad.CAPACITY);
+        page = pages() - 1;
+        changed.run();
+        refresh();
+    }
+
     /** Representative current issue, never an invented class or the profile's future equipment. */
     private MarineArmorCatalogDef representativeArmor(MarineSquad squad) {
         Map<String, Integer> counts = new LinkedHashMap<>();
@@ -741,8 +827,8 @@ public final class BarracksCommandModel {
                 && !roster.hasReviewedCompanyNotice(CompanyNotices.Notice.FIRST_REFIT.id);
     }
     public void equipmentWorkspace(Runnable action) { equipmentWorkspace = action; }
-    public void navigation(Runnable raiseSquad, Consumer<String> editEquipment, Runnable missions, boolean localMissions) {
-        this.raiseSquad = raiseSquad; this.editEquipment = editEquipment; this.missions = missions;
+    public void navigation(Consumer<String> editEquipment, Runnable missions, boolean localMissions) {
+        this.editEquipment = editEquipment; this.missions = missions;
         this.localMissions = localMissions; refresh();
     }
     public Set<String> donors() { return Set.copyOf(donors); }

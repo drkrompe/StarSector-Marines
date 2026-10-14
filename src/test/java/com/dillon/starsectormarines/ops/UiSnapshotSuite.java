@@ -1652,8 +1652,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             @Override public void goTo(ScreenId screen) { routes.add(screen); }
         };
         model.command().equipmentWorkspace(() -> navigation.openFleetArmoryWorkspaceFrom(ScreenId.BARRACKS));
-        model.command().navigation(() -> navigation.openSquadFoundingFrom(ScreenId.BARRACKS),
-                navigation::openSquadEquipmentFromBarracks, () -> {}, true);
+        model.command().navigation(navigation::openSquadEquipmentFromBarracks, () -> {}, true);
         var properties = props(model, ship);
         properties.put("contextLabel", "BARRACKS / COMPANY PREPARATION");
         var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), BARRACKS_COMPONENTS);
@@ -1778,7 +1777,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 roster.bindStationing(1001L, second.id(), List.of(squads.get(10).id()));
             }
             BarracksViewModel viewModel = new BarracksViewModel(reactor, roster, () -> 100d,
-                    snapshotEquipmentResources(), () -> 0, id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0));
+                    snapshotEquipmentResources(), snapshotSquadFoundingResources(), () -> 0,
+                    id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0));
             if (state.equals("command") || state.equals("profiles")) {
                 viewModel.command().selectCommand(captain.id());
                 ((Runnable) viewModel.command().props().get("closeDossier")).run();
@@ -1884,10 +1884,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             roster.beginCompanyPreparation(mira);
             frames.addAll(renderPreparationRooms(context, renderer, roster, scale));
             BarracksViewModel model = new BarracksViewModel(reactor, roster, () -> 1d, snapshotEquipmentResources(),
-                    () -> 12, id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0));
+                    snapshotSquadFoundingResources(), () -> 12,
+                    id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0));
             var command = model.command();
-            boolean[] armoryRequested = {false};
-            command.navigation(() -> armoryRequested[0] = true, id -> { }, () -> { }, true);
+            command.navigation(id -> { }, () -> { }, true);
             command.returnToBriefing(true);
             Map<String, Object> properties = new LinkedHashMap<>();
             properties.put("command", command.props());
@@ -1926,9 +1926,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 }
                 capture.accept("04-formation");
                 click.accept("officer-formations");
+                capture.accept("05-raise-squad");
                 click.accept("barracks-raise-squad");
-                if (!armoryRequested[0]) throw new IllegalStateException("Raise Squad did not route to Armory");
-                frames.addAll(renderPreparationArmory(context, renderer, roster, scale));
+                if (roster.squads().stream().noneMatch(s -> !s.reserve() && mira.id().equals(s.homeCaptainId())))
+                    throw new IllegalStateException("Raise Squad did not muster a squad under the selected officer");
                 model.refresh(); instance.flush(); document.advance(0f); guide.update();
                 int clicks = 0;
                 while (roster.officerInduction().step(roster) != Step.READY && clicks < 10) {
@@ -2012,28 +2013,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     () -> commissionedBay, boats::selectedBerthIndex, () -> 0, berth -> deck.boats().get(berth) != null));
             frames.add(preparationFrame("04-lift-ready", renderer, document, guide, scale));
             commissioned.dismiss();
-        }
-        return frames;
-    }
-
-    private static List<SnapshotArtifact> renderPreparationArmory(SnapshotContext context,
-            HeadlessUiRenderer renderer, MarineRoster roster, float scale) throws Exception {
-        Reactor reactor = new Reactor();
-        var model = new FleetArmoryViewModel(reactor, roster, () -> { }, () -> 1d,
-                snapshotEquipmentResources(), snapshotSquadFoundingResources());
-        MarkupLoader loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), WORKSPACE_COMPONENTS);
-        loader.reload();
-        List<SnapshotArtifact> frames = new ArrayList<>();
-        try (MarkupInstance instance = loader.build(reactor, "fleet-armory", props(model))) {
-            UiDocument document = PreparationGuide.document(instance.root());
-            instance.styles().forEach(document::addStyleSheet); document.theme(MarineOpsThemes.standard());
-            FleetArmoryScreen.bindGalleryCanvases(document, instance, model);
-            var guide = preparationGuide(context, document, () -> CompanyPreparationGuide.armory(roster, () -> { }));
-            frames.add(preparationFrame("05-found-squad", renderer, document, guide, scale));
-            clickBarracksFlow(document, instance, "found-squad"); guide.update();
-            if (roster.officerInduction().step(roster) != Step.ASSIGNMENT)
-                throw new IllegalStateException("Click-through squad founding failed");
-            frames.add(preparationFrame("06-return-to-mira", renderer, document, guide, scale));
         }
         return frames;
     }
@@ -2213,7 +2192,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         Map<String, MarineSoldierStatus> postBattle = new LinkedHashMap<>();
         postBattle.put(squad.memberIds().get(3), MarineSoldierStatus.WIA);
         roster.applySoldierOutcome(postBattle, 100f, 1.25f);
-        BarracksViewModel viewModel = new BarracksViewModel(reactor, roster, () -> 100d);
+        BarracksViewModel viewModel = new BarracksViewModel(reactor, roster, () -> 100d, EquipmentIssueResources.UNLIMITED,
+                snapshotSquadFoundingResources(), () -> 0, id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0));
         CompanyDeck ship = companyShip(List::of,
                 () -> MarineOpsContext.companyMarines(roster));
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
