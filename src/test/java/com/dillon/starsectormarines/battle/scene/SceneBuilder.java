@@ -271,6 +271,7 @@ public final class SceneBuilder {
         private String primaryWeaponId;
         private String specialEquipmentId;
         private int specialSeats;
+        private int specialAmmo;
         private boolean stationary;
         private float health = -1f;
         private IntFunction<ObjectiveAssignment> assignment;
@@ -362,8 +363,14 @@ public final class SceneBuilder {
          * read from exactly this kit.
          */
         public SquadSpec special(String specialId, int seats) {
+            return special(specialId, seats, 0);
+        }
+
+        /** As {@link #special(String, int)}, with the rounds an ammunition-limited item starts with. */
+        public SquadSpec special(String specialId, int seats, int ammo) {
             this.specialEquipmentId = Objects.requireNonNull(specialId, "specialId");
             this.specialSeats = seats;
+            this.specialAmmo = ammo;
             return this;
         }
 
@@ -424,7 +431,7 @@ public final class SceneBuilder {
             MarineLoadout[] kit = new MarineLoadout[size];
             for (int i = 0; i < size; i++) {
                 kit[i] = new MarineLoadout(UnitRole.COMBATANT, null, primaryWeaponId,
-                        i < specialSeats ? specialEquipmentId : null, 0);
+                        i < specialSeats ? specialEquipmentId : null, i < specialSeats ? specialAmmo : 0);
             }
             return kit;
         }

@@ -267,7 +267,8 @@ public record SpecialEquipmentDef(
                 positive(resource, "cooldownSeconds", id),
                 positive(activation, "blastRadius", id),
                 positive(activation, "damage", id),
-                positive(activation, "penetration", id));
+                positive(activation, "penetration", id),
+                Math.max(0, activation.optInt("wallBreachDamage", 0)));
     }
 
     private static DeployableEmplacementSpec parseDeployable(JSONObject activation, String id)

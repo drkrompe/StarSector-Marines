@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.command;
 import com.dillon.starsectormarines.battle.command.AssaultMuster.Body;
 import com.dillon.starsectormarines.battle.command.AssaultMuster.Objective;
 import com.dillon.starsectormarines.battle.command.AssaultMuster.Order;
+import com.dillon.starsectormarines.battle.command.AssaultRoles.Need;
+import com.dillon.starsectormarines.battle.command.AssaultRoles.Staffing;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.AssignmentReason;
 import com.dillon.starsectormarines.battle.fort.FortFrame;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -11,6 +13,7 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.AssaultApproach.Va
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -72,6 +75,8 @@ final class FortAssault {
      */
     static final int FIRE_STANDOFF_MACHINE = 28;
     static final int FIRE_BAND_MACHINE = 3;
+    /** Nearest a fire element is put to a nest, whatever its weapons' reach: inside this it is in the nest's face. */
+    static final int MIN_FIRE_STANDOFF = 12;
     /** The assault element gathers at least this far from every nest believed live. UNTUNED. */
     static final int ASSEMBLY_STANDOFF = 30;
     /** A firing position keeps this far from the approach lane, so the fire element is not in the way in. */
@@ -81,6 +86,31 @@ final class FortAssault {
     /** The share of the infantry that becomes the fire element, when there are at least {@link #MIN_INFANTRY_FOR_FIRE}. */
     static final float FIRE_SHARE = 0.34f;
     static final int MIN_INFANTRY_FOR_FIRE = 3;
+
+    /**
+     * Anti-structure damage per second the base of fire needs for each nest believed live that covers the way in: a nest
+     * has about 80 structure behind 60 to 140 armour, and the catalog's shells, rockets and missile racks do tens of damage
+     * a second each. UNTUNED.
+     */
+    static final float STRUCTURE_FIRE_PER_NEST = 20f;
+    /** Wall damage per second a distance breach asks for: slow enough to be a siege, fast enough to be a plan. UNTUNED. */
+    static final float BREACH_RATE = 20f;
+    /**
+     * Wall damage a breach must be able to deliver in all. A fort wall section is believed to be about two layers of a few
+     * hundred hit points each, and shells miss; the figure is that estimate with a margin, not a read of the wall. UNTUNED.
+     */
+    static final float BREACH_RESERVE = 1200f;
+    /** Wall damage per second a close breach (cutters, charges) asks for: one charge's worth. UNTUNED. */
+    static final float CLOSE_BREACH_RATE = 10f;
+    /** Bodies able to enter a building the way in must have to be taken. UNTUNED. */
+    static final float ENTRY_BODIES = 4f;
+    /** A distance breacher stands this far inside its weapon's reach from the wall, in a band this deep. */
+    static final int BREACH_STANDOFF_MARGIN = 2;
+    static final int BREACH_BAND = 3;
+    /** Cells from a live nest that a distance breacher prefers to keep to: the nests' reach. */
+    static final int NEST_REACH_CELLS = 24;
+    /** Ticks the plan waits for a wall to come down before the assault goes in regardless. UNTUNED. */
+    static final int BREACH_TIMEOUT_TICKS = 2400;
 
     /** Ticks POSITION waits for the fire element before suppression begins regardless. UNTUNED. */
     static final int POSITION_TIMEOUT_TICKS = 1500;
@@ -98,7 +128,10 @@ final class FortAssault {
 
     enum Step { POSITION, SUPPRESS, ENTRY, OBJECTIVE, HOLD }
 
-    enum Role { FIRE, ASSAULT }
+    enum Role { FIRE, BREACH, ASSAULT }
+
+    /** How a breach is cut: from range with shells and rockets, or at the foot of the wall with charges and cutters. */
+    enum BreachMeans { DISTANCE, CLOSE }
 
     /** A way in, on the map. */
     record Way(Variant variant, int gateIndex, int mouthX, int mouthY, int outX, int outY, int entryX, int entryY,
@@ -191,8 +224,98 @@ final class FortAssault {
         }
     }
 
-    /** The believed defence in front of a company, and the way in it would take. */
-    record Defence(Way way, int liveCovering, int liveOther, float strength) { }
+    /**
+     * The believed defence in front of a company, and the way in it would take.
+     *
+     * @param means    how a breach would be cut, or null for a gate
+     * @param staffing what the company's capabilities make of the plan's needs, or null when they were not judged
+     */
+    record Defence(Way way, int liveCovering, int liveOther, float strength, BreachMeans means, Staffing staffing) {
+        Defence(Way way, int liveCovering, int liveOther, float strength) {
+            this(way, liveCovering, liveOther, strength, null, null);
+        }
+
+        /** Whether the company can staff the plan, or true when that was not judged. */
+        boolean staffed() {
+            return staffing == null || staffing.staffed();
+        }
+
+        /** The way in, as a short phrase. */
+        String variant() {
+            return way.variant().name().toLowerCase(Locale.ROOT)
+                    + (means == null ? "" : " (" + means.name().toLowerCase(Locale.ROOT) + ")");
+        }
+    }
+
+    /**
+     * What a plan asks of the company that takes this way in: a base of fire when nests cover it, a breach when it is a
+     * cut wall, and bodies to go in.
+     */
+    static List<Need> needs(Way way, BreachMeans means, int liveCovering) {
+        List<Need> needs = new ArrayList<>();
+        if (liveCovering > 0) {
+            needs.add(new Need(AssaultRoles.Role.BASE_OF_FIRE,
+                    EnumSet.of(AssaultCapability.DIRECT_STRUCTURE_FIRE, AssaultCapability.STANDOFF_STRUCTURE_FIRE),
+                    STRUCTURE_FIRE_PER_NEST * liveCovering, 0f));
+        }
+        if (way.variant() == Variant.BREACH) {
+            if (means == BreachMeans.CLOSE) {
+                needs.add(new Need(AssaultRoles.Role.BREACH, EnumSet.of(AssaultCapability.CLOSE_BREACH),
+                        CLOSE_BREACH_RATE, 0f));
+            } else {
+                needs.add(new Need(AssaultRoles.Role.BREACH, EnumSet.of(AssaultCapability.DISTANCE_BREACH),
+                        BREACH_RATE, BREACH_RESERVE));
+            }
+        }
+        needs.add(new Need(AssaultRoles.Role.ENTRY, EnumSet.of(AssaultCapability.ASSAULT), ENTRY_BODIES, 0f));
+        return needs;
+    }
+
+    /**
+     * The way in a company would take given what its squads can <em>do</em>: the least covered gate, nearest the company
+     * on a tie, unless a breach is less covered than every gate and the company can staff it (from range first, then at
+     * the foot of the wall). The answer says whether the company can staff the way it chose and, when it cannot, what is
+     * missing. Null when the plan offers no way.
+     */
+    static Defence assess(Works works, NestBelief belief, int fromX, int fromY, Map<Integer, CapabilityProfile> squads) {
+        Way gate = null;
+        int gateCover = Integer.MAX_VALUE;
+        double gateGap = Double.MAX_VALUE;
+        Way breach = null;
+        for (Way way : works.ways) {
+            if (way.variant() == Variant.BREACH) {
+                breach = way;
+                continue;
+            }
+            int cover = belief.liveCovering(way);
+            double gap = Math.hypot(way.mouthX() - fromX, way.mouthY() - fromY);
+            if (cover < gateCover || (cover == gateCover && gap < gateGap)) {
+                gate = way;
+                gateCover = cover;
+                gateGap = gap;
+            }
+        }
+        Defence gateDefence = gate == null ? null : defenceOf(belief, gate, null, squads);
+        if (breach != null && (gate == null || belief.liveCovering(breach) <= gateCover)) {
+            // As covered as the best gate, the breach is still the way a company that brought kit for a wall takes: it
+            // chooses where the assault comes in, instead of walking into the gatehouse the nests are laid on. A
+            // company with nothing to open a wall cannot staff it and takes the gate.
+            for (BreachMeans means : BreachMeans.values()) {
+                Defence defence = defenceOf(belief, breach, means, squads);
+                if (defence.staffed()) return defence;
+            }
+        }
+        if (gateDefence != null) return gateDefence;
+        return breach == null ? null : defenceOf(belief, breach, BreachMeans.DISTANCE, squads);
+    }
+
+    private static Defence defenceOf(NestBelief belief, Way way, BreachMeans means, Map<Integer, CapabilityProfile> squads) {
+        int covering = belief.liveCovering(way);
+        int other = Math.max(0, belief.liveCount() - covering);
+        float strength = NEST_COVERING_STRENGTH * covering + NEST_OTHER_STRENGTH * other
+                + (way.variant() == Variant.BREACH ? BREACH_STRENGTH : GATE_STRENGTH);
+        return new Defence(way, covering, other, strength, means, AssaultRoles.assign(needs(way, means, covering), squads));
+    }
 
     /**
      * The way in a company with this make-up would take, and what the nests believed live add to the strength it needs.
@@ -238,15 +361,25 @@ final class FortAssault {
         private final int commitTick;
         private final Map<Integer, Role> roles = new TreeMap<>();
         private final Map<Integer, int[]> firePositions = new TreeMap<>();
+        private final Map<Integer, int[]> breachPositions = new TreeMap<>();
+        private final BreachMeans means;
+        private Staffing staffing;
         private int[] assembly;
         private int[] heldAspect;
         private int[] fallen;
         private int liveCovering;
 
         Execution(Works works, NestBelief belief, Way way, int tick) {
+            this(works, belief, new Defence(way, 0, 0, 0f, way.variant() == Variant.BREACH ? BreachMeans.DISTANCE : null, null), tick);
+        }
+
+        /** The run of a company that has judged its way in: the roles it was staffed with are the ones it takes. */
+        Execution(Works works, NestBelief belief, Defence defence, int tick) {
             this.works = works;
             this.belief = belief;
-            this.way = way;
+            this.way = defence.way();
+            this.means = defence.means();
+            this.staffing = defence.staffing();
             this.stepTick = tick;
             this.commitTick = tick;
         }
@@ -264,15 +397,34 @@ final class FortAssault {
         }
 
         int fireSquads() {
+            return count(Role.FIRE);
+        }
+
+        int breachSquads() {
+            return count(Role.BREACH);
+        }
+
+        private int count(Role role) {
             int n = 0;
-            for (Role r : roles.values()) if (r == Role.FIRE) n++;
+            for (Role r : roles.values()) if (r == role) n++;
             return n;
         }
 
+        /** The way in being taken, as a short phrase. */
+        String variant() {
+            return way.variant().name().toLowerCase(Locale.ROOT)
+                    + (way.variant() == Variant.BREACH && means != null ? " (" + means.name().toLowerCase(Locale.ROOT) + ")" : "");
+        }
+
+        /** What the plan lacked of the company it was staffed with, as short sentences; empty when it was staffed. */
+        List<String> shortfall() {
+            return staffing == null ? List.of() : staffing.describeGaps();
+        }
+
         String describe() {
-            return step.name() + " via " + way.variant().name().toLowerCase(Locale.ROOT) + ", "
+            return step.name() + " via " + variant() + ", "
                     + liveCovering + " covering nests believed live, " + fireSquads() + " fire / "
-                    + (roles.size() - fireSquads()) + " assault squads";
+                    + breachSquads() + " breach / " + (roles.size() - fireSquads() - breachSquads()) + " assault squads";
         }
 
         /**
@@ -284,10 +436,9 @@ final class FortAssault {
             assignRoles(members, byId);
             liveCovering = belief.liveCovering(way);
             List<Integer> fire = new ArrayList<>();
+            List<Integer> breach = new ArrayList<>();
             List<Integer> assault = new ArrayList<>();
-            for (Map.Entry<Integer, Role> e : roles.entrySet()) {
-                (e.getValue() == Role.FIRE ? fire : assault).add(e.getKey());
-            }
+            sortRoles(fire, breach, assault);
             if (assembly == null) assembly = assemblyCell(byId, members, topology);
             for (int id : fire) {
                 if (!firePositions.containsKey(id)) {
@@ -300,16 +451,28 @@ final class FortAssault {
                     }
                 }
             }
-            fire.removeIf(id -> roles.get(id) != Role.FIRE);
-            assault.clear();
-            for (Map.Entry<Integer, Role> e : roles.entrySet()) if (e.getValue() == Role.ASSAULT) assault.add(e.getKey());
+            for (int id : breach) {
+                if (!breachPositions.containsKey(id)) {
+                    int[] cell = breachPosition(byId.get(id), topology);
+                    if (cell == null) {
+                        roles.put(id, Role.ASSAULT);
+                        notes.add("squad " + id + " has no position to open the wall from; it goes in with the assault");
+                    } else {
+                        breachPositions.put(id, cell);
+                    }
+                }
+            }
+            sortRoles(fire, breach, assault);
 
-            advance(tick, fire, assault, byId, notes);
+            advance(tick, fire, breach, assault, byId, topology, notes);
+            sortRoles(fire, breach, assault);
 
             Map<Integer, Order> orders = new TreeMap<>();
             switch (step) {
                 case POSITION, SUPPRESS -> {
                     for (int id : fire) orders.put(id, fireOrder(id));
+                    int[] wall = breachCell(topology);
+                    for (int id : breach) orders.put(id, breachOrder(id, wall));
                     for (int id : assault) {
                         orders.put(id, new Order(ObjectiveAssignment.advanceTrack(id, assembly[0], assembly[1]),
                                 AssignmentReason.ASSAULT_STAGE));
@@ -363,6 +526,111 @@ final class FortAssault {
             return new Order(ObjectiveAssignment.attackMove(id, cell[0], cell[1]), AssignmentReason.ASSAULT_BASE_OF_FIRE);
         }
 
+        /**
+         * A breacher's order: to its place, carrying the wall cell to open. With the wall already open (or no wall to
+         * open) it is only its place.
+         */
+        private Order breachOrder(int id, int[] wall) {
+            int[] cell = breachPositions.get(id);
+            ObjectiveAssignment order = ObjectiveAssignment.attackMove(id, cell[0], cell[1]);
+            if (wall != null) order = order.withBreach(wall[0], wall[1]);
+            return new Order(order, AssignmentReason.ASSAULT_BREACH);
+        }
+
+        private void sortRoles(List<Integer> fire, List<Integer> breach, List<Integer> assault) {
+            fire.clear();
+            breach.clear();
+            assault.clear();
+            for (Map.Entry<Integer, Role> e : roles.entrySet()) {
+                switch (e.getValue()) {
+                    case FIRE -> fire.add(e.getKey());
+                    case BREACH -> breach.add(e.getKey());
+                    case ASSAULT -> assault.add(e.getKey());
+                }
+            }
+        }
+
+        /**
+         * The wall cell the breach is to open now: the outermost cell of the cut, from the mouth inward, that is still a
+         * wall. Null when the way in is not a breach, or when the cut is through. Read off the topology the commander
+         * has, so a wall that falls is seen to fall.
+         */
+        int[] breachCell(CommandTopology topology) {
+            if (way.variant() != Variant.BREACH) return null;
+            for (int k = 1; k <= 8; k++) {
+                int x = way.mouthX() - way.outX() * k;
+                int y = way.mouthY() - way.outY() * k;
+                if (!topology.inBounds(x, y)) return null;
+                if (x == way.entryX() && y == way.entryY()) return null;
+                if (!topology.isWalkable(x, y)) return new int[] {x, y};
+            }
+            return null;
+        }
+
+        /**
+         * Once the way is made, a breacher who can enter a building goes in with the assault, and one who cannot (a machine)
+         * keeps its place as a base of fire, following in only once no covering nest is left, as the fire element does.
+         */
+        private void convertBreachers(List<Integer> breach, Map<Integer, Body> byId) {
+            for (int id : breach) {
+                Body body = byId.get(id);
+                if (body != null && body.capabilities().canAssault()) {
+                    roles.put(id, Role.ASSAULT);
+                } else {
+                    roles.put(id, Role.FIRE);
+                    int[] place = breachPositions.get(id);
+                    if (place != null) firePositions.put(id, place);
+                }
+            }
+        }
+
+        /**
+         * Where a breacher stands to open the wall. A distance breacher stands inside its weapon's reach from the cut,
+         * outside the way in's face and in sight of it, and (where it can) out of the live nests' reach; a close breacher
+         * stands at the mouth, against the wall. The one nearest the squad.
+         */
+        private int[] breachPosition(Body body, CommandTopology topology) {
+            int[] wall = breachCell(topology);
+            if (wall == null) return null;
+            if (means == BreachMeans.CLOSE) {
+                return walkableNear(way.mouthX(), way.mouthY(), body, topology);
+            }
+            float reach = body.capabilities().distanceBreachRange();
+            int standoff = Math.max(6, Math.round(reach) - BREACH_STANDOFF_MARGIN);
+            for (boolean clearOfNests : new boolean[] {true, false}) {
+                for (boolean needSight : new boolean[] {true, false}) {
+                    int[] best = null;
+                    double bestGap = Double.MAX_VALUE;
+                    for (int dy = -standoff; dy <= standoff; dy++) {
+                        for (int dx = -standoff; dx <= standoff; dx++) {
+                            double d = Math.hypot(dx, dy);
+                            if (d < standoff - BREACH_BAND || d > standoff || dx * way.outX() + dy * way.outY() <= 0) continue;
+                            int x = wall[0] + dx;
+                            int y = wall[1] + dy;
+                            if (!topology.inBounds(x, y) || !topology.isWalkable(x, y)
+                                    || !topology.reachable(body.anchorX(), body.anchorY(), x, y)
+                                    || (needSight && !sight(topology, x, y, wall[0], wall[1]))
+                                    || (clearOfNests && inNestReach(x, y))) continue;
+                            double gap = Math.hypot(x - body.anchorX(), y - body.anchorY());
+                            if (gap < bestGap) {
+                                bestGap = gap;
+                                best = new int[] {x, y};
+                            }
+                        }
+                    }
+                    if (best != null) return best;
+                }
+            }
+            return null;
+        }
+
+        private boolean inNestReach(int x, int y) {
+            for (int i = 0; i < works.nests.size(); i++) {
+                if (belief.live(i) && Math.hypot(works.nests.get(i)[0] - x, works.nests.get(i)[1] - y) <= NEST_REACH_CELLS) return true;
+            }
+            return false;
+        }
+
         /** The fire element once the way is made: it holds its place while a covering nest lives, else follows in. */
         private void followOrFire(List<Integer> fire, Map<Integer, Order> orders) {
             for (int id : fire) {
@@ -386,7 +654,8 @@ final class FortAssault {
             stepTick = tick;
         }
 
-        private void advance(int tick, List<Integer> fire, List<Integer> assault, Map<Integer, Body> byId, List<String> notes) {
+        private void advance(int tick, List<Integer> fire, List<Integer> breach, List<Integer> assault,
+                             Map<Integer, Body> byId, CommandTopology topology, List<String> notes) {
             int elapsed = tick - stepTick;
             switch (step) {
                 case POSITION -> {
@@ -403,8 +672,13 @@ final class FortAssault {
                             || arrivedShare(assault, id -> assembly, byId) >= 0.5f
                             || tick - commitTick >= ASSEMBLY_TIMEOUT_TICKS;
                     boolean suppressed = liveCovering == 0 || fire.isEmpty() || elapsed >= SUPPRESS_MAX_TICKS;
-                    if (assembled && suppressed) {
-                        go(Step.ENTRY, tick, notes, liveCovering == 0 ? "the covering nests are believed dead"
+                    boolean walled = way.variant() == Variant.BREACH && !breach.isEmpty() && breachCell(topology) != null
+                            && elapsed < BREACH_TIMEOUT_TICKS;
+                    if (assembled && suppressed && !walled) {
+                        convertBreachers(breach, byId);
+                        go(Step.ENTRY, tick, notes, way.variant() == Variant.BREACH && !breach.isEmpty() && breachCell(topology) == null
+                                ? "the wall is open"
+                                : liveCovering == 0 ? "the covering nests are believed dead"
                                 : fire.isEmpty() ? "no fire element left"
                                 : "suppression ran its " + SUPPRESS_MAX_TICKS + " ticks with " + liveCovering + " nests believed live");
                     }
@@ -440,13 +714,27 @@ final class FortAssault {
         }
 
         /**
-         * Sticky roles. Machine squads are the fire element; of the infantry, when there are enough, a third without
-         * demolition (the assault keeps the satchels). A squad that joins later goes with the assault.
+         * Sticky roles. The squads whose kit answers what the plan needs (anti-structure fire for the nests covering the
+         * way in, a breach for a cut wall) take those roles first, by what they carry ({@link AssaultRoles#assign}); the
+         * remaining machine squads are the fire element too; of the remaining infantry, when there are enough, a third
+         * without demolition is a base of fire as well (the assault keeps the satchels). A squad that joins later goes with
+         * the assault.
          */
         private void assignRoles(Set<Integer> members, Map<Integer, Body> byId) {
             roles.keySet().retainAll(members);
             firePositions.keySet().retainAll(members);
+            breachPositions.keySet().retainAll(members);
             boolean first = roles.isEmpty();
+            if (first) {
+                Map<Integer, CapabilityProfile> profiles = new TreeMap<>();
+                for (int id : members) if (byId.containsKey(id)) profiles.put(id, byId.get(id).capabilities());
+                staffing = AssaultRoles.assign(needs(way, means, belief.liveCovering(way)), profiles);
+                for (Map.Entry<Integer, AssaultRoles.Role> e : staffing.roles().entrySet()) {
+                    // The entry need is judged for staffing only: whoever is not given another role goes in.
+                    if (e.getValue() == AssaultRoles.Role.BASE_OF_FIRE) roles.put(e.getKey(), Role.FIRE);
+                    else if (e.getValue() == AssaultRoles.Role.BREACH) roles.put(e.getKey(), Role.BREACH);
+                }
+            }
             List<Integer> infantry = new ArrayList<>();
             for (int id : members) {
                 if (roles.containsKey(id) || !byId.containsKey(id)) continue;
@@ -520,6 +808,9 @@ final class FortAssault {
             if (targets.isEmpty()) return null;
             int[] nest = works.nests.get(targets.get(turn % targets.size()));
             int standoff = body.machine() ? FIRE_STANDOFF_MACHINE : FIRE_STANDOFF_INFANTRY;
+            // Stand inside the reach of what the squad carries: a gun that cannot reach the nest from its place is no base of fire.
+            float reach = body.capabilities().structureFireRange();
+            if (reach > 0f) standoff = Math.max(MIN_FIRE_STANDOFF, Math.min(standoff, Math.round(reach) - 2));
             int band = body.machine() ? FIRE_BAND_MACHINE : FIRE_BAND_INFANTRY;
             for (boolean needSight : new boolean[] {true, false}) {
                 int[] best = null;
