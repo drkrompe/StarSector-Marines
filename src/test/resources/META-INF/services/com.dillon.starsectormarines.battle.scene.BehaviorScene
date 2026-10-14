@@ -59,3 +59,4 @@ com.dillon.starsectormarines.battle.squad.FightingPositionScene
 com.dillon.starsectormarines.battle.airsupport.AirStrikeScene
 com.dillon.starsectormarines.battle.deployable.FieldMortarScene
 com.dillon.starsectormarines.battle.fort.FortAirDefenceScene
+com.dillon.starsectormarines.battle.fort.ShipVsFortScene
