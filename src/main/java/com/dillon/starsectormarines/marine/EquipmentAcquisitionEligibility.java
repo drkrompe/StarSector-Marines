@@ -24,6 +24,17 @@ public final class EquipmentAcquisitionEligibility {
         return card.accessTier().ordinal() <= available.ordinal();
     }
 
+    public static boolean allows(EquipmentAccessTier tier, FactionEquipmentSource source,
+                                 Progress progress) {
+        if (tier == null || source == null || progress == null) return false;
+        EquipmentAccessTier available = switch (source) {
+            case MARKET -> EquipmentAccessTier.COMMON;
+            case LICENSE, PATRON -> licensedTier(progress);
+            case RECOVERY -> recoveryTier(progress);
+        };
+        return tier.ordinal() <= available.ordinal();
+    }
+
     public static EquipmentAccessTier licensedTier(Progress progress) {
         return reputationTier(progress != null ? progress.mrbRep() : 0);
     }
