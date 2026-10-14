@@ -6,7 +6,7 @@ until the evidence below beats the trickle. Slices are on the mission-command bo
 
 Written: 2026-10-13
 
-Updated: 2026-10-14 — empty-rally defect fixed (no company around nobody, stalled recruits released, foothold only while a company exists); slice 3 built (per-stamp assault plans, `FortApproaches` / `FortAssault`), readiness counts the defence, lanes keep a share, a muster stands down rather than commit a sliver; `battle.command.muster` defaults off.
+Updated: 2026-10-14 — empty-rally defect fixed (no company around nobody, stalled recruits released, foothold only while a company exists); air strike is a capability a plan may use (see Air strike as a capability); the field mortar is a standoff anti-structure and suppression capability source (`special.field-mortar`); slice 3 built (per-stamp assault plans, `FortApproaches` / `FortAssault`), muster off by default; capability profiles and role assignment are built (plans choose their way in by what the company can staff, breaches are fired at a wall on purpose, see Capabilities and roles).
 
 Read `conquest-command.md`, `forts.md` and `ai-nouns.md` first.
 
@@ -73,6 +73,73 @@ A plan is an ordered set of steps over roles, read from the stamp:
 
 Several plans per stamp are allowed (main gate, postern, breach), chosen by what
 the company has (demolition, mechs) and what is believed about the defence.
+
+## Capabilities and roles
+
+**A company is judged by what it can do, not by what its squads are called.**
+Every squad has a *capability profile*, a pure function of the equipment its
+living members carry and the data that equipment is defined by (a weapon's range,
+penetration and wall damage; a special's delivery and uses; a mech mount's rack
+and what is left in it). Nothing in the derivation names a unit or an item, so a
+new weapon is classified by what its data says it does to a wall or a nest.
+The capabilities:
+
+| Capability | Meaning |
+|---|---|
+| Suppression | fire that keeps heads down from reach |
+| Direct anti-structure | flat fire that hurts an armoured nest, from outside its own reach |
+| Standoff anti-structure | arcing fire that hurts a nest from well outside the nests' reach |
+| Distance breacher | a weapon that opens a wall section from range over a number of rounds |
+| Close breacher | a charge or cutter that opens a wall at its foot |
+| Assault | bodies that can enter a building |
+| Hold | bodies to stay and keep what is taken |
+
+A squad rates on several at once. The rocket rack that is anti-structure fire is
+also a distance breacher; a cannon mech is a breacher and a base of fire; a
+satchel section is a close breacher and, with rifles, still an assault. Each
+rating has a rate (how fast) and a reserve (how much before it is spent): a
+cooldown tool or an unlimited magazine has an infinite reserve, a rack counts the
+rounds it still holds, and an empty one rates as nothing. Fair knowledge: a side
+knows its own kit and reads nothing of a hostile's.
+
+**The plan declares what it needs; the executor matches.** Each role of a plan
+(`BASE_OF_FIRE`, `BREACH`, `ENTRY`) asks for a rate and a reserve of the
+capabilities it can use. Squads are assigned best-fit and scarcity-aware: the
+need the company can least afford to fail picks first, and within a need the
+squads that could fill the fewest other needs go first, so a squad that is the
+only answer to one role is not spent on a role anyone could fill. A squad holds
+one role at a time, with one exception: wall-breaking and being the base of fire
+are done in turn by the same gun, breach first. The plan also picks its
+*variant* by what the company can staff: the least-covered way in, preferring a
+breach (from range if the company can, at the foot of the wall if not) over a
+gate when the breach is no more covered and the company brought what it takes,
+and a gate when it did not. Readiness is "can staff the chosen plan" as well as
+mass: a company whose mass is there but whose plan has a gap waits for the squad
+that fills it, for as long as one is coming, and goes in as it is after that.
+
+**A shortfall is published.** A company states the plan variant it would take and
+the needs it cannot meet (for example "base of fire needs direct structure fire:
+40 of 40 short"). The commander's lance call reads it: a company whose plan lacks
+a base of fire or a breach asks for machines whether or not it is short of mass.
+
+**A breach is a real act.** An order may carry a wall cell. A squad ordered at a
+wall spends its own kit on that cell and on nothing else: a mech mount that does
+wall damage turns its torso onto the cell and fires when the cell is in reach and
+in line; a carried launcher fires a round; a marine with a satchel sets it on the
+cell; a cutter cuts it. Every gate the weapon has elsewhere still applies. The
+support mech's cannon carries the wall damage that makes it a reliable distance
+breacher over a number of shells (see `mechs-nouns.md`).
+
+### Mortar teams as a capability source
+
+A nest outranges a rifle squad, so the base of fire needs something that kills nests from beyond their reach.
+The **field mortar** (`special.field-mortar`; see "Crew-served fire support" in `ai-nouns.md`) is that capability
+in infantry form: catalog data gives its deployed weapon a reach beyond a nest's, a minimum range, splash and
+structure/wall damage, so the capability profile reads it as **standoff, indirect anti-structure with
+suppression** from data alone, with no plan-side special case. Today the tube fires on its section's own belief,
+so a spotter inside sight of the nests is part of the plan's base of fire; there is no way yet to *assign* a fire
+mission to a tube (open on `stories.md`). Evidence: scene `field-mortar` (a section with a tube against a fort's
+wall nests, a rifle-squad control at the same distance, and a loop where the deployed team is rushed).
 
 ## Mech lances arrive without the player
 
@@ -288,13 +355,60 @@ everywhere, so it stays off.
 What is open, in the order it matters: the lane share was a measured change and not a tuned number; a fort
 with live nests is, for infantry alone, a position no plan takes, so the plan's
 value depends on machines the fort fixtures only see when they declare an allowance; a company that commits on its
-third timeout can still send a sliver; breach is exported, chosen and ordered but nothing in the game shoots at a wall
-on purpose, so a company sent to a breach reaches the wall and is no better off than at a gate.
+third timeout can still send a sliver. Breach is now fired at on purpose (see "Capability roles: as built"); whether a
+breach beats a gate on Conquest is unmeasured.
 
 Not built here: recruiting whole named-officer groups into a company, a company's
 reaction to being counter-attacked at its rally, a defender-side use of the same
 machinery (nothing in it is attacker-only), retreat of a company that is failing
 but not yet broken, plans for any stamp but the two forts.
+
+## Capability roles: as built
+
+**Profiles.** `CapabilityProfile.of` sums `Armament`s (a primary weapon, a mech
+mount with the rounds in its rack, a special with its remaining uses) into a
+`Rating(rate, reserve)` per `AssaultCapability`. `CommandFrame.freeze` builds one
+per squad from the living members and the frozen row carries it
+(`CommandSquadState.capabilities`); fixtures that do not itemise kit get
+`CapabilityProfile.assumed`, so earlier tests and scenes keep their meaning.
+Every threshold (minimum structure range, penetration, wall damage, standoff and
+breach reach) is untuned and chosen to separate the catalog's current classes.
+
+**Roles.** `AssaultRoles.assign` matches a plan's `Need`s to profiles as above and
+returns the roles with any `Gap`s. `FortAssault.assess` evaluates the ways in with
+it: the least-covered gate, or a breach (distance first, then close) when it is no
+more covered and staffable, falling back to the gate and then to whichever way the
+company comes closest to staffing, with its gaps. The `Execution` runs the staffed
+roles; a breacher with no walking body becomes the base of fire once the wall is
+down, and the others go in with the assault. `AssaultMuster` recruits squads that
+fill a gap first, reports `variant` and `shortfall` on `CompanyState`, and holds
+READY back from a company whose plan is unstaffed while a filler is coming.
+
+**Wall fire.** `WallBreachSystem` carries out an order's `breachCell` for each
+squad: mech mounts through `HeavyWeapons.fireMountAtPoint`, a launcher through
+`InfantryWeapons.fireSecondaryAtPoint`, a satchel through
+`SatchelChargeService.plantAtCell`, a cutter through the ordinary breach damage. A
+carrier works from the squad's arrival footprint rather than on his own path
+(untuned simplification), and no aim or channel animation plays for these shots.
+
+**Evidence.** The `assault-muster` scene's `breach-cannon` loop (one cannon mech
+and rifle squads) takes a distance breach: the mech opens the wall section in a
+handful of shells while the nests that cover the breach are still up, then is the
+base of fire. Its `breach-charges` loop (rocket squads for the nests, charge squads
+for the wall) takes a close breach and cuts the wall with one charge. Both report
+the wall cells, the tick the first opened and the cut went through, the rounds
+spent, nests killed, entry tick and marines lost. Neither is a claim that a
+breach beats the gate; the muster stays off.
+
+What is open: the standoff-demolition variant (arcing fire and a charge laid from
+range) is not built; the satchel carrier can be caught by his own blast if the
+sapper does not clear it (the friendly-hazard avoidance is relied on, not
+measured); a mech's standoff position can land inside a nest's reach; all
+figures above are first passes.
+
+## Air strike as a capability
+
+A company that brings comms operators and a side with a declared air pool carries an **air strike** capability, read from `AirStrikeCapability` (pool stock plus living operators) rather than from hand-listed assets. A fort plan may spend it on a single nest or a gun it has sighted ahead of the assault; `AirStrikeDirector.strike` applies the same risk ceiling the AI uses, so a heavily defended fort is not softened from the air and the plan falls back to its ground steps. Role matching stays with the capability profile.
 
 ## Slices
 

@@ -84,7 +84,8 @@ class MechVariantTest {
         assertEquals(26f, heavyCannon.range, 0.001f);
         assertTrue(heavyCannon.fx.hasHeavyImpact());
         assertEquals(1f, heavyCannon.aoeRadius, 0.001f);
-        assertEquals(18, heavyCannon.wallDamage);
+        assertEquals(140, heavyCannon.wallDamage, "a number of shells opens a wall section: the support cannon is the distance breacher");
+        assertEquals(1.1f, heavyCannon.wallDamageRadius, 0.001f);
         assertEquals("graphics/missiles/shell_hellbore.png",
                 heavyCannon.projectileSpritePath);
 

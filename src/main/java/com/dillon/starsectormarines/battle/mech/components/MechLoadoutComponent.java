@@ -64,6 +64,20 @@ public final class MechLoadoutComponent {
     /** True only when the upper torso is physically aligned enough to fire at {@link #torsoAimTargetId}. */
     public boolean torsoOnTarget;
 
+    /**
+     * A world point the chassis has been told to bring down (a wall section a company is breaching), or null. The torso
+     * turns onto it when the chassis has no target of its own, and the breach pass fires the mounts that can reach it.
+     */
+    private PointFireAim breachAim;
+
+    public PointFireAim breachAim() {
+        return breachAim;
+    }
+
+    public void setBreachAim(PointFireAim aim) {
+        this.breachAim = aim;
+    }
+
     /** Seconds without meaningful progress toward the current path destination. */
     public float collisionStallSeconds;
     /** Best remaining straight-line distance reached for the current path destination. */

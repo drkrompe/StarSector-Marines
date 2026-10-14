@@ -43,12 +43,24 @@ public record ConquestFrontSnapshot(
      * @param ticksInStage ticks since the stage began
      * @param timeoutTick  the tick the muster commits regardless, or {@code -1}
      * @param step         the step of the stamp's assault plan being executed (POSITION, SUPPRESS, ENTRY, OBJECTIVE, HOLD), or empty
+     * @param variant      the way in the company would take or is taking (main gate, postern, or breach, with how a breach is cut), or empty
+     * @param shortfall    what the company lacks to staff that way in, as short sentences (a capability and how much is missing);
+     *                     empty when the plan is staffed. A commander may call a lance or wait for a matching squad on this
      */
     public record CompanyState(int objectiveId, String stage, List<Integer> squadIds, int arrivedSquads,
                                int strength, int required, int rallyCellX, int rallyCellY,
                                int objectiveCellX, int objectiveCellY, int ticksInStage, int timeoutTick,
-                               String reason, String step) {
-        public CompanyState { squadIds = List.copyOf(squadIds); }
+                               String reason, String step, String variant, List<String> shortfall) {
+        public CompanyState { squadIds = List.copyOf(squadIds); shortfall = List.copyOf(shortfall); }
+
+        /** A company whose way in and staffing are not yet judged. */
+        public CompanyState(int objectiveId, String stage, List<Integer> squadIds, int arrivedSquads,
+                            int strength, int required, int rallyCellX, int rallyCellY,
+                            int objectiveCellX, int objectiveCellY, int ticksInStage, int timeoutTick,
+                            String reason, String step) {
+            this(objectiveId, stage, squadIds, arrivedSquads, strength, required, rallyCellX, rallyCellY,
+                    objectiveCellX, objectiveCellY, ticksInStage, timeoutTick, reason, step, "", List.of());
+        }
     }
 
     public ConquestFrontSnapshot(int tick, int influenceTick, Faction perspective,
@@ -133,6 +145,14 @@ public record ConquestFrontSnapshot(
         DEFENDER_ADJACENT_TRACK_RESPONSE,
         DEFENDER_RELIEF_OBJECTIVE,
         DEFENDER_RESERVE_HOLD,
+        /** A reserve patrol sent to man a garrisonable (a fort belt run) that believed pressure has reached. */
+        DEFENDER_GARRISONABLE_MAN,
+        /** A squad continuing to man a garrisonable while its pressure stays above the release level, or until the dwell ends. */
+        DEFENDER_GARRISONABLE_STAND,
+        /** A garrison whose ground was breached or which fell below useful strength, withdrawn to its fort's works. */
+        DEFENDER_GARRISONABLE_FALL_BACK,
+        /** A mobile-pool patrol waiting at a held fort's works so the nearest free squad is near its belt. */
+        DEFENDER_GARRISONABLE_STAGE,
         DEFENDER_EXTERNAL_ASSIGNMENT_PRESERVED,
         /** A squad detached to take or wreck a known enemy-held ground-defence structure (fire control, shield generator). */
         DEFENCE_STRUCTURE_TAKE,
@@ -155,7 +175,9 @@ public record ConquestFrontSnapshot(
         /** A squad of an assault plan taking the way in (the gate, or the breach). */
         ASSAULT_ENTRY,
         /** An assault-element squad holding the aspect it has taken until the next pick. */
-        ASSAULT_HOLD
+        ASSAULT_HOLD,
+        /** A squad of an assault plan in position to open the wall section of a breach, at range or at its foot. */
+        ASSAULT_BREACH
     }
 
     public record TrackState(

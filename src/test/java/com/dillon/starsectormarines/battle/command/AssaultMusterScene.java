@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.command;
 import com.dillon.starsectormarines.battle.fort.Fort;
 import com.dillon.starsectormarines.battle.mech.MechDropAllowance;
 import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
+import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.fort.FortAspect;
@@ -85,7 +86,10 @@ public final class AssaultMusterScene implements BehaviorScene {
     /** The marines carry the field rifle (22 cells): the smg (14) cannot reach a nest (24), and the nests are what a base of fire is for. */
     private static final String MARINE_RIFLE = "weapon.field-rifle";
 
-    private static final List<String> ALL_LOOPS = List.of("control-trickle", "muster-slice1", "plan", "plan-with-lance");
+    private static final List<String> ALL_LOOPS = List.of("control-trickle", "muster-slice1", "plan", "plan-with-lance",
+            "breach-cannon", "breach-charges");
+    private static final String CHARGE_KIT = "special.satchel-charge";
+    private static final String ROCKET_KIT = "special.rocket-launcher";
 
     private final List<String> loops;
     private final int frameFrom;
@@ -120,7 +124,7 @@ public final class AssaultMusterScene implements BehaviorScene {
         for (String loop : loops) {
             boolean restore = ConquestCommand.musterEnabled();
             boolean restorePlans = ConquestCommand.musterPlansEnabled();
-            ConquestCommand.setMusterPlansEnabled(loop.startsWith("plan"));
+            ConquestCommand.setMusterPlansEnabled(loop.startsWith("plan") || loop.startsWith("breach"));
             ConquestCommand.setMusterEnabled(!loop.equals("control-trickle"));
             try {
                 reports.add(report(loop, playOne(loop, window(frames))));
@@ -191,7 +195,19 @@ public final class AssaultMusterScene implements BehaviorScene {
             int[] at = clamp(terrain.cell(gate.mouthX() + gate.outX() * standoff, gate.mouthY() + gate.outY() * standoff));
             String key = "marines-" + i;
             keys.add(key);
-            builder.squad(key).faction(Faction.MARINE).size(squadSize).at(at[0], at[1]).primary(MARINE_RIFLE).done();
+            var spec = builder.squad(key).faction(Faction.MARINE).size(squadSize).at(at[0], at[1]).primary(MARINE_RIFLE);
+            // The capability loops differ only in the kit the same company carries.
+            // Rockets answer the nests; the charges are carried by other squads, so a close breach is the plan the company can staff.
+            if (loop.equals("breach-charges") && i % 3 == 1) spec.special(CHARGE_KIT, 4);
+            if (loop.equals("breach-charges") && i % 3 == 2) spec.special(ROCKET_KIT, 4, 3);
+            spec.done();
+        }
+        if (loop.equals("breach-cannon")) {
+            int[] at = clamp(terrain.cell(gate.mouthX() + gate.outX() * (FIRST_STANDOFF + 20),
+                    gate.mouthY() + gate.outY() * (FIRST_STANDOFF + 20)));
+            builder.squad("cannon-mech").faction(Faction.MARINE).size(1).at(at[0], at[1])
+                    .mech(MechVariant.SIROCCO, MechRole.LR_SUPPORT).done();
+            keys.add("cannon-mech");
         }
         int[] core = BatteryFort.coreCentre(FortAspect.FIRE_CONTROL);
         int[] garrisonAt = terrain.cell(core[0], core[1] + 2);
@@ -246,6 +262,15 @@ public final class AssaultMusterScene implements BehaviorScene {
                     !t.stepTicks.containsKey("ENTRY") || t.stepTicks.get("ENTRY") > t.stepTicks.get("SUPPRESS"),
                     "SUPPRESS at " + t.stepTicks.get("SUPPRESS") + ", ENTRY at " + t.stepTicks.get("ENTRY")));
         }
+        if (loop.startsWith("breach")) {
+            verdicts.add(Verdict.of("the-company-took-the-breach-it-could-staff",
+                    t.planVariant.startsWith("breach"), "plan variant " + t.planVariant + ", shortfall: " + t.planShortfall));
+            verdicts.add(Verdict.of("the-breachers-fired-at-the-wall", t.roundsAtWalls > 0,
+                    t.roundsAtWalls + " rounds, charges and cuts spent on the ordered wall"));
+            verdicts.add(Verdict.of("the-wall-came-down", t.wallFirstOpenTick >= 0,
+                    "wall cells " + t.wallStart + " at start, " + t.wallStanding + " standing at end; first opened at tick "
+                            + t.wallFirstOpenTick + ", cut through at " + t.wallCutTick));
+        }
         if (loop.equals("plan-with-lance")) {
             verdicts.add(Verdict.of("a-short-company-calls-a-lance", run.sim().mechDrops().drops().size() == 1
                     && run.sim().mechDrops().drops().get(0).issuer().equals("conquest-attacker"),
@@ -284,6 +309,22 @@ public final class AssaultMusterScene implements BehaviorScene {
         metrics.put("firstNestKilledTick", t.firstNestKilledTick);
         metrics.put("gateReachedTick", t.gateReachedTick);
         for (Map.Entry<String, Integer> step : t.stepTicks.entrySet()) metrics.put("step" + step.getKey() + "Tick", step.getValue());
+        if (run.fort().frame() != null) {
+            int index = 0;
+            for (FortAssault.Way way : FortAssault.Works.of(run.fort().frame()).ways) {
+                metrics.put("way" + index++ + "_" + way.variant().name().toLowerCase(Locale.ROOT) + "_nestsCovering",
+                        way.covering().size());
+                if (way.variant() == Variant.BREACH) {
+                    metrics.put("breachMouthX", way.mouthX());
+                    metrics.put("breachMouthY", way.mouthY());
+                }
+            }
+        }
+        metrics.put("wallCellsAtStart", t.wallStart);
+        metrics.put("wallCellsStandingAtEnd", t.wallStanding);
+        metrics.put("wallFirstOpenedTick", t.wallFirstOpenTick);
+        metrics.put("wallCutThroughTick", t.wallCutTick);
+        metrics.put("shellsAndChargesAtWalls", t.roundsAtWalls);
         metrics.put("lanceInCompanyTick", t.lanceInCompanyTick);
         metrics.put("lanceCalls", run.sim().mechDrops().drops().size());
         metrics.put("fortX", (int) run.fort().battery().x());
@@ -320,6 +361,15 @@ public final class AssaultMusterScene implements BehaviorScene {
         int gateReachedTick = -1;
         final Map<String, Integer> stepTicks = new LinkedHashMap<>();
         private String caption = "";
+        /** Wall cells of the breach way (mouth inward) that stood at the start, and how many still do. */
+        int wallStart = -1;
+        int wallStanding = -1;
+        int wallFirstOpenTick = -1;
+        int wallCutTick = -1;
+        int roundsAtWalls;
+        String planVariant = "";
+        String planShortfall = "";
+        String breachSquadKit = "";
 
         Trace(Fort fort, List<String> keys, SceneWorld world) {
             this.fort = fort;
@@ -400,6 +450,23 @@ public final class AssaultMusterScene implements BehaviorScene {
                     }
                 }
             }
+            if (fort.frame() != null) {
+                for (FortAssault.Way way : FortAssault.Works.of(fort.frame()).ways) {
+                    if (way.variant() != Variant.BREACH) continue;
+                    int standing = 0;
+                    for (int k = 1; k <= 8; k++) {
+                        int x = way.mouthX() - way.outX() * k;
+                        int y = way.mouthY() - way.outY() * k;
+                        if (x == way.entryX() && y == way.entryY()) break;
+                        if (sim.getGrid().inBounds(x, y) && !sim.getGrid().isWalkable(x, y)) standing++;
+                    }
+                    if (wallStart < 0) wallStart = standing;
+                    wallStanding = standing;
+                    if (wallFirstOpenTick < 0 && standing < wallStart) wallFirstOpenTick = tick;
+                    if (wallCutTick < 0 && standing == 0) wallCutTick = tick;
+                }
+            }
+            roundsAtWalls = sim.wallBreach().roundsAtWalls();
             var snapshot = sim.getCommanderSnapshot(Faction.MARINE);
             if (snapshot != null && snapshot.detail() instanceof ConquestFrontSnapshot front) {
                 boolean foothold = false;
@@ -412,6 +479,7 @@ public final class AssaultMusterScene implements BehaviorScene {
                         }
                     }
                     if (company.objectiveId() >= 0 && !company.step().isEmpty()) stepTicks.putIfAbsent(company.step(), tick);
+                    if (company.step().equals("SUPPRESS") && planVariant.isEmpty()) { planVariant = company.variant(); planShortfall = String.join("; ", company.shortfall()); }
                     if (company.stage().equals("MUSTER") && firstMusterTick < 0) firstMusterTick = tick;
                     if (company.stage().equals("ASSAULT")) {
                         if (firstAssaultTick < 0) firstAssaultTick = tick;

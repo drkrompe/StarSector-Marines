@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
 import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.deployable.DeployedCoverService;
+import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
 import com.dillon.starsectormarines.battle.deployable.PointDefenseService;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
@@ -18,6 +20,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.decision.goap.action.FightingPositionClaims;
 import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
+import com.dillon.starsectormarines.battle.world.model.GarrisonableRegistry;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
@@ -278,6 +281,9 @@ public interface BattleView {
     /** Live point-defence emplacements placed out of the carried special slot, and their remaining bounds. */
     PointDefenseService pointDefense();
 
+    /** Crew-served tubes (the field mortar) that carriers have set down or are setting down, and their gunners. */
+    FieldMortarService fieldMortars();
+
     /** Live cover screens placed out of the carried special slot, and their remaining lifetime. */
     DeployedCoverService deployedCover();
 
@@ -366,6 +372,14 @@ public interface BattleView {
     /** The battle's fighting positions (prepared-ground runs), rebuilt when a trench or sandbag prop is destroyed; ask again each time rather than caching the result. */
     FightingPositionIndex fightingPositions();
 
+    /**
+     * The places a squad can be sent to man, derived from {@link #fightingPositions()} and rebuilt only when that index
+     * instance changes. Ask each time rather than caching the result. A view with no prepared ground answers an empty registry.
+     */
+    default GarrisonableRegistry garrisonables() {
+        return GarrisonableRegistry.empty(null, 8);
+    }
+
     /** Who holds which fighting-position cell under a defend-area order; decided in the serial phase, read-only during unit dispatch. */
     FightingPositionClaims fightingPositionClaims();
 
@@ -403,6 +417,15 @@ public interface BattleView {
      * {@link MechDropService#NONE} on a battle whose mission declared none.
      */
     default MechDropService mechDrops() { return MechDropService.NONE; }
+
+    /**
+     * Each side's pool of airframes and the ledger that tasks them through comms operators.
+     * {@link AirPoolService#NONE} on a battle whose mission declared none.
+     */
+    default AirPoolService airPool() { return AirPoolService.NONE; }
+
+    /** Whether a comms operator of {@code side} could direct an airframe in stock onto the point right now. */
+    default boolean canDirectAirStrike(Faction side, float x, float y, boolean believes) { return false; }
 
     /** The live air-entity ids (shuttles, and planned fighters) — walk these and read each craft's state by id via {@link #world()}. */
     long[] getAirEntityIds();

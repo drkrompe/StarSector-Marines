@@ -4,7 +4,7 @@ Status: SHIPPED — weapon identity, behavior, and presentation are data-owned
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — carrier-owned mount art permits an explicit effects-only catalog preview.
+Updated: 2026-10-14 — a deployable special may be crew-served: a gunner sets down a tube and packs it up (`special.field-mortar`).
 
 ## Purpose
 

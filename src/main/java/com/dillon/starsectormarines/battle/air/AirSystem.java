@@ -871,6 +871,7 @@ public class AirSystem {
             boatDamage.observe(frame, world.hp(id));
             AirHandling flight = frame.flight();
             ShuttleType carrier = ShuttleType.fromAirframe(frame);
+            if (mission.poolSortie && !mission.aborted) driveOffIfBadlyHit(id, mission, body, frame);
             switch (mission.state) {
                 case CRASHING: {
                     float before = mission.crashSeconds;
@@ -1241,6 +1242,14 @@ public class AirSystem {
                         break;
                     }
                     AirSteeringSystem.steer(body, mission.lzX, mission.lzY, SteeringMode.BRAKE_TO_STATION, flight, dt);
+                    if (mission.poolSortie && rollsInFromTheApproach(id, mission, body)) {
+                        // A called strike does not overfly its target to find the run-in: it commits to the line it
+                        // is already flying, so its exposure to anything round the target is the pass and not two.
+                        world.setAltitudeT(id, 1f);
+                        if (mission.passesLeft <= 0) mission.passesLeft = STRIKE_PASSES;
+                        beginAttackRun(id, mission, body);
+                        break;
+                    }
                     if (mission.strikeSortie) {
                         // A strike is not descending to anything. The approach
                         // ramp exists for a transport losing height onto its LZ;
@@ -1601,6 +1610,22 @@ public class AirSystem {
         if (lengthSq < 1e-6f) return true;
         float travelled = ((body.x - fromX) * axisX + (body.y - fromY) * axisY) / lengthSq;
         return travelled >= 1f;
+    }
+
+    /**
+     * A pool sortie that has taken too much on the way in breaks off: it drops what it carries unreleased and turns for
+     * home, so the pool gets the airframe back rather than losing it, and the target is not bombed. Only while it is
+     * still working toward its objective; a craft already leaving has nothing to abort.
+     */
+    private void driveOffIfBadlyHit(long id, ShuttleMission mission, AirBody body, Airframe frame) {
+        ShuttleState state = mission.state;
+        if (state != ShuttleState.INCOMING && state != ShuttleState.ATTACK_RUN
+                && state != ShuttleState.REPOSITION) return;
+        if (mission.destroyed || world.hp(id) > frame.maxHp() * ShuttleMission.ABORT_HP_SHARE) return;
+        mission.aborted = true;
+        mission.roundsLeftThisPass = 0;
+        mission.passesLeft = 0;
+        beginEgress(mission, body);
     }
 
     /**
@@ -2004,6 +2029,19 @@ public class AirSystem {
     private static final float RUN_IN_MARGIN_CELLS = 2f;
 
     /**
+     * Whether a called strike on its approach has closed to its run-in standoff and can commit to the line it is
+     * already flying, rather than carrying on over the target to come round again.
+     *
+     * <p>Slack of a few cells above the standoff, so the first tick inside it is always still outside the standoff
+     * proper and {@link #linedUpToRunIn} accepts the line.
+     */
+    private boolean rollsInFromTheApproach(long id, ShuttleMission mission, AirBody body) {
+        AirOrdnance load = ordnanceOf(id, mission);
+        if (load == null) return false;
+        return body.distanceTo(mission.lzX, mission.lzY) <= load.firingRangeCells + RUN_IN_MARGIN_CELLS + 3f;
+    }
+
+    /**
      * Whether a repositioning craft is out far enough and pointed close enough
      * at its objective to roll in on it.
      *
@@ -2174,6 +2212,21 @@ public class AirSystem {
     }
 
     /**
+     * How much a hit aircraft's aim is spoiled, as a multiple of its load's scatter: one at full hull, rising to
+     * {@link #SPOILED_AIM_SCATTER} as the hull is shot away. A bomber flying through flak does not put its stick where
+     * an undamaged one would, which is how anti-air makes a strike miss as well as die. UNTUNED.
+     */
+    private float aimSpoil(long id) {
+        Airframe frame = world.airframe(id);
+        if (frame == null || frame.maxHp() <= 0f) return 1f;
+        float intact = Math.max(0f, Math.min(1f, world.hp(id) / frame.maxHp()));
+        return 1f + (SPOILED_AIM_SCATTER - 1f) * (1f - intact);
+    }
+
+    /** Scatter multiple of a called strike whose hull is nearly gone. UNTUNED. */
+    private static final float SPOILED_AIM_SCATTER = 3f;
+
+    /**
      * Puts rounds on the ground ahead of the nose while the target is in the
      * window.
      *
@@ -2199,6 +2252,7 @@ public class AirSystem {
     private void releaseOrdnance(long id, ShuttleMission mission, AirBody body, float dt) {
         AirOrdnance load = ordnanceOf(id, mission);
         if (load == null || detonations == null) return;
+        if (mission.aborted) return;
         if (!load.firesContinuously() && mission.roundsLeftThisPass <= 0) return;
         if (body.distanceTo(mission.lzX, mission.lzY) > load.firingRangeCells) return;
         if (!pointedAt(body, mission.lzX, mission.lzY)) return;
@@ -2209,8 +2263,9 @@ public class AirSystem {
 
         OrdnanceFlight.Impact arrival = load.flight.deliver(
                 body.x, body.y, body.facingDegrees, body.vx, body.vy);
-        float impactX = arrival.x() + (float) rng.nextGaussian() * load.scatterCells;
-        float impactY = arrival.y() + (float) rng.nextGaussian() * load.scatterCells;
+        float scatter = load.scatterCells * (mission.poolSortie ? aimSpoil(id) : 1f);
+        float impactX = arrival.x() + (float) rng.nextGaussian() * scatter;
+        float impactY = arrival.y() + (float) rng.nextGaussian() * scatter;
 
         effects.spawnOrdnanceRelease(AirOrdnanceDelivery.release(
                 id, load, body, Math.toRadians(body.facingDegrees + 90f),

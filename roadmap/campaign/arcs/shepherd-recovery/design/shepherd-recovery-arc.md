@@ -4,18 +4,21 @@ Status: ACTIVE — earned working-tender direction; all chapters retain live acc
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — Castle's contingent salvage bargain follows the direct Thunder Run freight sequence.
+Updated: 2026-10-13 — ownership negotiation follows completed Cold Start at the Working Passage briefing.
 
 ## Premise, place and cast
 
 On Asharu, the Basin Reclamation Cooperative pays the company to reopen its
 shipbreaking yard after armed scrappers occupy it. Yardmaster Tamsin Vale
 supplies technicians, equipment and holders. Her priority is a shipment found in
-the Colossus, whose manifest she keeps with her own handlers. Castle negotiates
-the damaged Shepherd Morrow in place of a third cash fee, drawing on the company's
-experience rebuilding Second Wind before knowing how useful the repaired tender
-will be. Vale requires the company to finish opening the haul road before taking
-the ship. Mara introduces them. The shipment's contents and legality remain open;
+the Colossus, whose manifest she keeps with her own handlers. Basin owns Morrow
+during inspection and repairs, while its militia cover the outer
+road. After Cold Start demonstrates the repaired bay's usefulness, Vale asks for
+additional combat and construction to reopen that road. At the first Working
+Passage briefing she offers payment after shipment dispatch or a loan; Castle
+asks for Morrow as the new fee. Basin keeps the built defenses and militia-secured
+road; title passes only after physical departure, with crew consent. Mara introduces
+them. The shipment's contents and legality remain open;
 no new cargo reward or investigation objective follows from her reticence.
 
 Vale's cooperative operates commercially in Hegemony-dominated Corvus. Its
@@ -40,7 +43,7 @@ The company can replenish before accepting; the opportunity has no hidden expiry
 
 | Chapter | Tactical objective | Accepted victory reward | Delivery state |
 |---|---|---|---|
-| Salvage Rights | Secure store, workshop and cradle; protect the physical inspection party | 18,000 credits and protected recovery claim | Implemented; live acceptance remains |
+| Salvage Rights | Secure store, workshop and cradle; protect the physical inspection party | 18,000 credits; Basin's yard claim and protected inspection | Implemented; live acceptance remains |
 | Cold Start | Escort repair cargo, restore shore power and cover grounded drone construction and repairs | 22,000 credits; completed repairs | Implemented; live acceptance remains |
 | Working Passage | Advance full-size hovering Morrow through constructed holds, protect drive work and complete physical departure | Actual named Shepherd Morrow and willing crew for her minimum complement; no departure cash fee | Implemented; live handover and later support acceptance remain |
 
@@ -52,8 +55,9 @@ holds. A completed timer alone cannot transfer the ship.
 
 ## Resolution and next lead
 
-Only accepted physical departure awards the actual fleet member once. The claim,
-grounded construction and completed repairs confer no substitute fleet ownership.
+Only accepted physical departure awards the actual fleet member once, with crew
+consent. Basin retains the Colossus and its contents, yard and built defenses.
+The yard claim, grounded construction and completed repairs confer no substitute fleet ownership.
 The permanent award receipt survives sale or loss; later support requires a
 currently owned eligible working hull and ordinary mission permission.
 

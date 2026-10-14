@@ -26,7 +26,10 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Callable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -755,8 +758,81 @@ class ConquestCommandBalanceTest {
                               FightingPositionCount positions) { }
 
     /** How many structure orders each commander gave, by role, counted in the published trace. */
+    /**
+     * The defender's pressure-flow line per command pulse, as the commander published it: how many areas it saw, how
+     * many patrols it kept staged, and per area what it wanted and had local. Read from the trace only.
+     */
+    private static String flowEvidence(String trace) {
+        Pattern area = Pattern.compile("\\[(\\d+),(\\d+) w(\\d+) d(\\d+) l(\\d+)");
+        int pulses = 0;
+        int flowPulses = 0;
+        long areaSum = 0;
+        int areaPeak = 0;
+        long stagedSum = 0;
+        int stagedPeak = 0;
+        int sent = 0;
+        int released = 0;
+        long areaSamples = 0;
+        long localSum = 0;
+        int localPeak = 0;
+        long demandSum = 0;
+        long unmetSamples = 0;
+        long stageDirectives = 0;
+        long defenderDirectives = 0;
+        for (String line : trace.split("\n")) {
+            if (!line.contains("\"perspective\":\"DEFENDER\"") || !line.contains("\"directives\"")) continue;
+            pulses++;
+            int from = 0;
+            while ((from = line.indexOf("DEFENDER_GARRISONABLE_STAGE", from)) >= 0) {
+                stageDirectives++;
+                from += 10;
+            }
+            from = 0;
+            while ((from = line.indexOf("\"issuer\":", from)) >= 0) {
+                defenderDirectives++;
+                from += 9;
+            }
+            int at = line.indexOf("flow areas=");
+            if (at < 0) continue;
+            flowPulses++;
+            String note = line.substring(at, line.indexOf('"', at));
+            Matcher m = Pattern.compile("flow areas=(\\d+) staged=(\\d+) new=(\\d+) released=(\\d+)").matcher(note);
+            if (!m.find()) continue;
+            int areas = Integer.parseInt(m.group(1));
+            int staged = Integer.parseInt(m.group(2));
+            areaSum += areas;
+            areaPeak = Math.max(areaPeak, areas);
+            stagedSum += staged;
+            stagedPeak = Math.max(stagedPeak, staged);
+            sent += Integer.parseInt(m.group(3));
+            released += Integer.parseInt(m.group(4));
+            Matcher a = area.matcher(note);
+            while (a.find()) {
+                int demand = Integer.parseInt(a.group(4));
+                int local = Integer.parseInt(a.group(5));
+                if (demand <= 0) continue;
+                areaSamples++;
+                demandSum += demand;
+                localSum += local;
+                localPeak = Math.max(localPeak, local);
+                if (local < demand) unmetSamples++;
+            }
+        }
+        if (flowPulses == 0) return "- defender pressure flow: no flow line in the trace (flow off or never pressed)\n";
+        return String.format(Locale.ROOT,
+                "- defender pressure flow: %d of %d pulses with a flow line; areas mean %.2f peak %d; staged patrols mean %.2f peak %d;"
+                        + " staging orders %d, staged patrols given back %d; per demanding area (%d samples): demand mean %.2f,"
+                        + " local mean %.2f peak %d, below demand in %d (%.0f%%); DEFENDER_GARRISONABLE_STAGE directives %d of %d (%.1f%%)%n",
+                flowPulses, pulses, areaSum / (double) flowPulses, areaPeak, stagedSum / (double) flowPulses, stagedPeak,
+                sent, released, areaSamples, areaSamples == 0 ? 0.0 : demandSum / (double) areaSamples,
+                areaSamples == 0 ? 0.0 : localSum / (double) areaSamples, localPeak, unmetSamples,
+                areaSamples == 0 ? 0.0 : 100.0 * unmetSamples / areaSamples,
+                stageDirectives, defenderDirectives, 100.0 * stageDirectives / Math.max(1, defenderDirectives));
+    }
+
     private static String fortOrders(String trace) {
-        StringBuilder out = new StringBuilder("- structure orders in the command trace:");
+        StringBuilder out = new StringBuilder(flowEvidence(trace));
+        out.append("- structure orders in the command trace:");
         for (String perspective : List.of("MARINE", "DEFENDER")) {
             for (String role : List.of("TAKE", "RETAKE", "DEFEND")) {
                 int count = 0;
@@ -773,7 +849,7 @@ class ConquestCommandBalanceTest {
         // A company's orders are structure work too: the foothold, the gather, the commit and the plan's four steps.
         out.append("- company orders in the command trace (MARINE):");
         for (String reason : List.of("MUSTER_FOOTHOLD", "MUSTER_GATHER", "ASSAULT_COMMIT", "ASSAULT_COMPANY_RALLY",
-                "ASSAULT_BASE_OF_FIRE", "ASSAULT_STAGE", "ASSAULT_ENTRY", "ASSAULT_HOLD")) {
+                "ASSAULT_BASE_OF_FIRE", "ASSAULT_STAGE", "ASSAULT_ENTRY", "ASSAULT_HOLD", "ASSAULT_BREACH")) {
             int count = 0;
             for (String line : trace.split("\n")) {
                 if (line.contains("\"perspective\":\"MARINE\"") && line.contains("\"" + reason + "\"")) count++;

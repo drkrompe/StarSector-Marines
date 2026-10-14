@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
 import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortBelt;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
+import com.dillon.starsectormarines.battle.world.model.BeltGarrisonMode;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
@@ -75,7 +76,32 @@ class FortStageTest {
     }
 
     @Test
+    void aReactiveBeltPublishesNoBornGarrison() {
+        FortStage.setBornBeltGarrisonForEvidence(false);
+        try {
+            for (int turn = 0; turn < 4; turn++) {
+                GenContext ctx = field(declared(1));
+                FortStage.stamp(ctx, BatteryFort.PLAN, BatteryFort.layout().at(60, 40, turn), 0);
+
+                assertTrue(ctx.tactical.isEmpty(), "the belt is empty until the defender commander mans it, turn " + turn);
+                assertFalse(ctx.doodads.isEmpty(), "the trenches and sandbags themselves still stand");
+            }
+        } finally {
+            FortStage.setBornBeltGarrisonForEvidence(BeltGarrisonMode.current().bornGarrison());
+        }
+    }
+
+    @Test
     void everyBeltNestIsGarrisonedFromGroundYouCanStandIn() {
+        FortStage.setBornBeltGarrisonForEvidence(true);
+        try {
+            everyBeltNestIsGarrisonedFromGroundYouCanStandInBody();
+        } finally {
+            FortStage.setBornBeltGarrisonForEvidence(BeltGarrisonMode.current().bornGarrison());
+        }
+    }
+
+    private void everyBeltNestIsGarrisonedFromGroundYouCanStandInBody() {
         for (int turn = 0; turn < 4; turn++) {
             GenContext ctx = field(declared(1));
             FortStage.stamp(ctx, BatteryFort.PLAN, BatteryFort.layout().at(60, 40, turn), 0);
@@ -104,13 +130,18 @@ class FortStageTest {
 
     @Test
     void aLinkedTacticalMapReceivesTheBeltGarrisonsDirectly() {
-        GenContext ctx = field(declared(1));
-        TacticalMap linked = new TacticalMap(ctx.tactical);
-        ctx.put(BspKeys.TACTICAL_MAP, linked);
-        FortStage.stamp(ctx, BatteryFort.PLAN, BatteryFort.layout().at(60, 40, 0), 0);
+        FortStage.setBornBeltGarrisonForEvidence(true);
+        try {
+            GenContext ctx = field(declared(1));
+            TacticalMap linked = new TacticalMap(ctx.tactical);
+            ctx.put(BspKeys.TACTICAL_MAP, linked);
+            FortStage.stamp(ctx, BatteryFort.PLAN, BatteryFort.layout().at(60, 40, 0), 0);
 
-        assertEquals(FortBelt.nests().size(), linked.forFaction(Faction.DEFENDER).size(), "the map built before this stage ran gets the nodes");
-        assertTrue(ctx.tactical.isEmpty(), "the stale list is not the delivery path once a map exists");
+            assertEquals(FortBelt.nests().size(), linked.forFaction(Faction.DEFENDER).size(), "the map built before this stage ran gets the nodes");
+            assertTrue(ctx.tactical.isEmpty(), "the stale list is not the delivery path once a map exists");
+        } finally {
+            FortStage.setBornBeltGarrisonForEvidence(BeltGarrisonMode.current().bornGarrison());
+        }
     }
 
     @Test

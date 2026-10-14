@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -271,6 +272,7 @@ public final class SceneBuilder {
         private String primaryWeaponId;
         private String specialEquipmentId;
         private int specialSeats;
+        private int specialAmmo;
         private boolean stationary;
         private float health = -1f;
         private IntFunction<ObjectiveAssignment> assignment;
@@ -362,8 +364,14 @@ public final class SceneBuilder {
          * read from exactly this kit.
          */
         public SquadSpec special(String specialId, int seats) {
+            return special(specialId, seats, 0);
+        }
+
+        /** As {@link #special(String, int)}, with the rounds an ammunition-limited item starts with. */
+        public SquadSpec special(String specialId, int seats, int ammo) {
             this.specialEquipmentId = Objects.requireNonNull(specialId, "specialId");
             this.specialSeats = seats;
+            this.specialAmmo = ammo;
             return this;
         }
 
@@ -423,8 +431,11 @@ public final class SceneBuilder {
         private MarineLoadout[] uniformKit() {
             MarineLoadout[] kit = new MarineLoadout[size];
             for (int i = 0; i < size; i++) {
+                boolean carries = i < specialSeats;
                 kit[i] = new MarineLoadout(UnitRole.COMBATANT, null, primaryWeaponId,
-                        i < specialSeats ? specialEquipmentId : null, 0);
+                        carries ? specialEquipmentId : null,
+                        carries ? (specialAmmo > 0 ? specialAmmo
+                                : SpecialEquipmentRegistry.require(specialEquipmentId).startingAmmo()) : 0);
             }
             return kit;
         }

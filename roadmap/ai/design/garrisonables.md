@@ -1,8 +1,10 @@
 # Garrisonables
 
-Status: DRAFT — direction for reactively manned places; fighting positions are the first kind built.
+Status: ACTIVE — reactive manning is built for fort-belt fighting positions; other kinds remain direction.
 
 Written: 2026-10-13
+
+Updated: 2026-10-13 — general pressure-driven flow (areas, demand, staging cells) and the order local assignment draws forces in.
 
 ## Why this exists
 
@@ -74,6 +76,52 @@ layer is what a squad falls back to when the one in front of it is lost.
   a garrisonable by hand. Whether a player's idle squads may opt into reactive
   manning is a later question, not a default.
 
+## Measuring cheaply
+
+Pressure is the side's own hostile influence, already maintained in 8-cell
+blocks and published as a snapshot; nothing new is computed per cell. Each
+garrisonable records the few blocks it covers, and a block-to-garrisonables
+lookup is derived beside it, rebuilt only when the prepared ground changes and
+never per tick. On each command pulse the commander walks only the blocks its
+believed contacts stand in, prices the garrisonables those blocks can press,
+and re-prices only the ones already manned. The work grows with the size of the
+fight, not with the number of garrisonables, and hysteresis state exists only
+for manned places. Measured on the fort control it is a few hundredths of a
+millisecond per pulse once warm.
+
+## Flow, then local assignment
+
+Manning answers pressure only if a squad can reach the place while the pressure
+lasts, and a patrol sent from across the map usually cannot. So the commander
+works in two tiers.
+
+- **Flow** moves forces toward pressure before they are needed. Believed
+  pressure and fighting in an area pull free squads from the mobile pool to a
+  staging point on their own side of it, still in the pool and still free to
+  be sent elsewhere; a quiet area gives them back after a long dwell. Flow is
+  the anticipation tier and the only one that crosses the map.
+- **Local assignment** mans garrisonables and does other local work only from
+  squads that can arrive in time, estimated cheaply from distance and speed.
+  With nobody local it sends nobody rather than a doomed march, and a squad
+  already closing is not recalled by a lull.
+
+Flow is what makes local assignment work: it changes who is local. Both run on
+the command cadence from the same pressured-block walk.
+
+Pressured blocks cluster into **areas**, each with a believed hostile weight.
+An area asks for squads in proportion to that weight and to its pressed
+garrisonables nobody holds, less the squads already local to it. Its staging
+cell sits a standoff behind the area along the side's own rear, or at a held
+fort's works when the area presses that fort's belt. Every area with nobody
+local gets one squad before any gets a second, starting and keeping a post have
+different thresholds, and an area that stays quiet returns its squads.
+
+Local assignment draws staged squads first, then squads the track rally has just
+sent, then the roving pool above its reserve floor. The rally and flow are
+therefore both ways forces become local; the rally currently spends most of the
+pool before flow sees it, and the two are meant to become one per-area
+reservation rather than competitors.
+
 ## How it fits what exists
 
 The defender commander already raises a threatened track and forward band from
@@ -90,8 +138,6 @@ dissolves an envelope — that must survive the move intact.
 
 ## Open questions
 
-- The pressure measure: track band pressure, influence sampled at the place, or
-  both.
 - How a garrisonable is valued against an objective: a trench in front of the
   keep is worth more than one at the map edge under the same pressure.
 - Whether attackers use the same assignment for captured ground (holding a taken
