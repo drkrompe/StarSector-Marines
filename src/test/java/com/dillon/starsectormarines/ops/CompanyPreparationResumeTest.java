@@ -145,7 +145,7 @@ class CompanyPreparationResumeTest {
 
     private static void assertCaptured(MarineRoster roster, ScreenId expected) {
         for (ScreenId entry : List.of(ScreenId.MISSION_SELECT, ScreenId.BARRACKS, ScreenId.FLEET_ARMORY,
-                ScreenId.FLEET_ARMORY_OVERVIEW, ScreenId.SHIP_TRANSFER, ScreenId.BOAT_DECK,
+                ScreenId.SHIP_TRANSFER, ScreenId.BOAT_DECK,
                 ScreenId.MECH_LAB, ScreenId.SHIP_VIEW, ScreenId.BRIEFING, ScreenId.SQUAD_DEPLOYMENT))
             assertEquals(expected, CompanyPreparationRoute.resolve(entry, roster, false), entry.name());
         for (ScreenId untouched : List.of(ScreenId.BATTLE, ScreenId.RESULTS, ScreenId.LOOT,

@@ -221,9 +221,11 @@ replaced when they fall. That one billet rule is shared by the battle and the
 company squad card, so the marine marked on the card is the one who treats. The medic walks to the worst-hurt squadmate within
 the cohesion leash, holds fire while treating, and restores health and armor
 over a short channel from a few supplies that recover slowly; never their own
-patient. In battle the medic wears a small cross badge; a treatment shows as a
-link to the patient, a progress ring around them, and the medic kneeling over an
-open kit in place of whatever special they carry. Whether medic and patient
+patient. In battle the medic wears a small cross badge. A treatment is shown in
+the world, not as an overlay: the medic kneels over an open kit in place of
+whatever special they carry, and the patient gives off hands-on work rather than
+a glow -- pale dressing mist for health, grey-blue sealant flecks settling onto
+the suit for armor -- on the medic's side of the body. Whether medic and patient
 stand still for it is a balance-pass switch (`squad-medic.md`). These are independent
 of legacy recruitment traits and the one-shot moral outlook. Every officer
 who actually leads engaged marines receives their own mission XP and service
