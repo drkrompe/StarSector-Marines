@@ -30,7 +30,7 @@ final class MarineOpsThemes {
                     border-style: outset;
                     background-image: linear-gradient(to bottom, #ffffff0c 0%, #ffffff00 18%, #00000024 100%);
                 }
-                .workbench-root, .fleet-armory-root, .fleet-armory-overview-root, .company-hq-root,
+                .workbench-root, .fleet-armory-root, .company-hq-root,
                 .mission-select-root, .mission-briefing-root, .squad-deployment-root,
                 .stationing-root, .mission-results-root, .mission-loot-root,
                 .mech-lab-root, .boat-deck-root {
@@ -274,7 +274,7 @@ final class MarineOpsThemes {
                 .heading { font-family: heading; }
                 .title { font-family: title; }
                 .panel { background-color: #071019; border-color: #d2f3ff; }
-                .workbench-root, .fleet-armory-root, .fleet-armory-overview-root, .company-hq-root,
+                .workbench-root, .fleet-armory-root, .company-hq-root,
                 .mission-select-root, .mission-briefing-root, .squad-deployment-root,
                 .stationing-root, .mission-results-root, .mission-loot-root { border-color: #63e8ff; }
                 .surface-dark { background-color: #000000; }

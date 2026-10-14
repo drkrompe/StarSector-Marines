@@ -164,7 +164,8 @@ held place covers. Three things it shows shape the work ahead:
   have windows, but nothing names a place a garrison could hold, so neither the
   defender commander nor a player's occupy order can use them. Held places on
   those maps are the precondition for everything in this doc.
-- Fighting-position runs are almost absent outside forts.
+- Fighting-position runs are almost absent outside forts; Relief now digs one
+  behind its gate.
 
 A story map closes the second gap by publishing its buildings as **held
 places**: each building it already records becomes a held position on its own
