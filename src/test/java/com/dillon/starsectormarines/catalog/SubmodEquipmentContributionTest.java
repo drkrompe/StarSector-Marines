@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
+import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.marine.SquadEquipmentResult;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.ops.EquipmentDoctrineDesignerViewModel;
@@ -227,6 +228,7 @@ class SubmodEquipmentContributionTest {
         // Armour is issued by plan rather than authored a billet at a time,
         // so a contributed pattern proves itself by being reachable through a
         // sheet the company can field, not by appearing in a picker.
+        for (var plan : SquadEquipmentDoctrines.armorPlans()) roster.armory().acquireArmorPlan(plan.id());
         SquadArmorDoctrine armor = roster.armory().armorDoctrines().stream()
                 .filter(doctrine -> doctrine.issueIds().contains("example.armor-ceramic"))
                 .findFirst().orElseThrow();

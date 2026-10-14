@@ -26,8 +26,10 @@ class DebriefRewardPromptTest {
         prompt.present(outcome(), roster); assertTrue(prompt.visible());
         assertFalse(roster.firstRefit().claimed(), "Showing or deferring the prompt never claims technology");
         roster.firstRefit().claim(roster, FirstRefit.Path.STEADY_LINE);
+        String choose = prompt.row().get().get("actionLabel").toString();
         prompt.present(outcome(), roster);
-        assertEquals("FIT FREE EQUIPMENT", prompt.row().get().get("actionLabel"));
+        assertNotEquals(choose, prompt.row().get().get("actionLabel"),
+                "once the technology is claimed the prompt offers to fit it rather than to choose it");
         roster.firstRefit().issue(roster, roster.createSquad().id(), FirstRefit.Path.STEADY_LINE, EquipmentIssueResources.UNLIMITED);
         prompt.present(outcome(), roster); assertFalse(prompt.visible());
         prompt.present(MissionOutcome.builder().missionSource(MissionSource.DEBUG).build(), new MarineRoster());

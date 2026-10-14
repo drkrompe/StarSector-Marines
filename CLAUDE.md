@@ -259,7 +259,11 @@ Do not run builds or leave generated task files there.
   commanders on a synthetic 240x300 trial ground (`ConquestTrialGround`): one
   landing, one battery fort pinned on the lane or offset east of it, one
   objective compound and the keep. The default matrix is both placements at
-  three seeds (seconds, not minutes); `-Pfixture` takes a JSON array setting
+  three seeds with a combined-arms force (sixteen six-seat Aeroshuttles, the
+  Conquest squad kit, two lances, a small air pool; fort-on-lane runs to 18,000
+  ticks), plus a rifles-only control per placement (four twelve-seat Valkyries,
+  the old default), which shows freezes a bigger force hides. A fixture may set
+  `maxTicks`; `-PmaxTicks` overrides all. `-Pfixture` takes a JSON array setting
   `seed`, `placement`, `offset`, `shuttleType`, `shuttles`, `seats`, `cycles`,
   `elites`, `militia`, `patrolSize`, `objectiveGarrison`, `keepGarrison` and
   `risk`. Use it for a commander question; the city map is unfinished.
