@@ -1017,8 +1017,10 @@ lost direct contact only for a short reaction window rather than for the full
 belief lifetime.
 
 Each faction's commander has a separate **influence snapshot**. It aggregates
-only its own squads' beliefs and honest friendly combatant presence into
-topology-aware tactical fields. The snapshot itself is read-only. A consumer
+only its own squads' beliefs, what its own forts' guns are engaging, and honest
+friendly combatant presence into topology-aware tactical fields. A gun engaging
+a body knows where it is, so an unmanned or lightly held fort still reports
+the attack on it (`battle.command.fortReports=false` is the control). The snapshot itself is read-only. A consumer
 may act on it only when a mission-specific command contract authorizes that
 action; diagnostics and heatmaps do not acquire assignment authority merely by
 reading the field.
@@ -2095,7 +2097,11 @@ cover. The full-squad length is the rule for what counts as a position at all,
 never a condition on occupying one. Positions are neutral ground, held by either
 side and by any infantry, never by mechs, vehicles or drones.
 
-A fort belt is manned in answer to believed pressure, not from the first tick.
+A fort belt is manned in answer to believed pressure, not from the first tick,
+except for one token picket: a small garrison (`battle.fort.picketSize`, 4 by
+default, 0 for none) on the belt nest nearest the main gate. It is the fort's
+eyes and somebody in the works when it is rushed; an empty belt with the
+defenders held at the keep never saw an attack at all.
 The defender commander reads its own hostile influence at the blocks each
 fighting-position run covers, and when a run is pressed it sends a free patrol
 to hold it: an area defence whose claims stay on that run, so it is the same
@@ -2105,7 +2111,8 @@ number are sent per pulse. Manning starts above one pressure level and is
 released below a lower one after a dwell, never while the squad is in a fight;
 the released squad returns to the patrol pool. Belief only: the pressure is the
 defender's own picture. `battle.fort.beltGarrison` selects reactive (default),
-static (a born garrison on every belt nest, the control) or off.
+static (a born garrison on every belt nest, the control) or off; only reactive
+seats the picket.
 
 A belt squad is sent only if it can arrive in time, and one still closing is not
 recalled by a lull. Pressure also draws free patrols toward the pressed area,
