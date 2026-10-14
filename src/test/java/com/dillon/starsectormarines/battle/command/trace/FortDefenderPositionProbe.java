@@ -10,6 +10,9 @@ import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
 import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * Whether the side holding ground stands in its prepared positions: each sample counts, per faction,
@@ -38,6 +41,17 @@ final class FortDefenderPositionProbe {
         int peakPreparedGarrisonMembers;
         /** Marine-samples standing on a fighting-position cell, claimed or not. */
         long onPositionMarineSamples;
+        /** Squad-samples carrying a commander's run-scoped garrison order; distinct squads that ever did; peak at once. */
+        long reactiveSquadSamples;
+        int peakReactive;
+        final Set<Integer> reactiveSquadsEver = new TreeSet<>();
+        Set<Integer> reactiveNow = new TreeSet<>();
+        int manEvents;
+        int releaseEvents;
+        long reactiveDugInMarineSamples;
+        /** Per reactive squad: first ordered, first member on position, first member dug in, last sampled, samples, on-position member-samples, place. */
+        final Map<Integer, int[]> timeline = new TreeMap<>();
+        final Map<Integer, Map<String, Integer>> goals = new TreeMap<>();
     }
 
     private final Map<Faction, Tally> tallies = new EnumMap<>(Faction.class);
@@ -46,13 +60,35 @@ final class FortDefenderPositionProbe {
         if (sim.getSimTickIndex() % SAMPLE_TICKS != 0) return;
         FightingPositionIndex index = sim.fightingPositions();
         Map<Faction, int[]> now = new EnumMap<>(Faction.class);
+        Map<Faction, Set<Integer>> reactiveThisSample = new EnumMap<>(Faction.class);
         for (Squad squad : sim.getSquads()) {
             if (squad.isDroneSquad() || squad.isMechSquad() || squad.aliveMembers <= 0) continue;
             if (squad.faction != Faction.MARINE && squad.faction != Faction.DEFENDER && squad.faction != Faction.ALLY) continue;
             Tally tally = tallies.computeIfAbsent(squad.faction, f -> new Tally());
-            int[] peak = now.computeIfAbsent(squad.faction, f -> new int[6]);
+            int[] peak = now.computeIfAbsent(squad.faction, f -> new int[7]);
             peak[4] += squad.aliveMembers;
             ObjectiveAssignment assignment = squad.assignmentForExecution();
+            if (assignment != null && assignment.isGarrison()) {
+                tally.reactiveSquadSamples++;
+                peak[6]++;
+                reactiveThisSample.computeIfAbsent(squad.faction, f -> new TreeSet<>()).add(squad.id);
+                int[] line = tally.timeline.computeIfAbsent(squad.id, id -> new int[]{sim.getSimTickIndex(), -1, -1, 0, 0, 0, assignment.occupyRunId()});
+                line[3] = sim.getSimTickIndex();
+                tally.goals.computeIfAbsent(squad.id, id -> new TreeMap<>()).merge(
+                        (squad.currentGoal == null ? "none" : squad.currentGoal.name()) + (squad.hasDirectContactThisTick() ? "/contact" : ""), 1, Integer::sum);
+                line[4]++;
+                for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
+                    long member = sim.squadMemberAt(squad.id, i);
+                    if (index.isFightingPositionCell(sim.world().cellX(member), sim.world().cellY(member))) {
+                        line[5]++;
+                        if (line[1] < 0) line[1] = sim.getSimTickIndex();
+                    }
+                    if (sim.isDugIn(member)) {
+                        tally.reactiveDugInMarineSamples++;
+                        if (line[2] < 0) line[2] = sim.getSimTickIndex();
+                    }
+                }
+            }
             if (assignment == null) {
                 tally.unassigned++;
             } else {
@@ -96,6 +132,12 @@ final class FortDefenderPositionProbe {
             tally.peakPreparedGarrisons = Math.max(tally.peakPreparedGarrisons, entry.getValue()[3]);
             tally.peakInfantryMembers = Math.max(tally.peakInfantryMembers, entry.getValue()[4]);
             tally.peakPreparedGarrisonMembers = Math.max(tally.peakPreparedGarrisonMembers, entry.getValue()[5]);
+            tally.peakReactive = Math.max(tally.peakReactive, entry.getValue()[6]);
+            Set<Integer> reactive = reactiveThisSample.getOrDefault(entry.getKey(), Set.of());
+            for (int id : reactive) if (!tally.reactiveNow.contains(id)) tally.manEvents++;
+            for (int id : tally.reactiveNow) if (!reactive.contains(id)) tally.releaseEvents++;
+            tally.reactiveNow = new TreeSet<>(reactive);
+            tally.reactiveSquadsEver.addAll(reactive);
         }
     }
 
@@ -118,11 +160,19 @@ final class FortDefenderPositionProbe {
                     "  - %s: %d samples; DEFEND_AREA squad-samples %d (circle overlaps positions in %d);"
                             + " claimed marine-samples %d (peak %d), dug-in marine-samples %d (peak %d), peak overlapping squads %d;"
                             + " unassigned squad-samples %d; prepared-ground garrison squad-samples %d (peak %d squads, peak %d marines of %d infantry);"
-                            + " on-position marine-samples %d; kinds %s%n",
+                            + " on-position marine-samples %d; reactive-garrison squad-samples %d (peak %d, %d distinct squads, %d man events, %d release events, dug-in marine-samples %d); kinds %s%n",
                     entry.getKey(), t.samples, t.defendAreaSquads, t.overlappingSquads,
                     t.claimedMarineSamples, t.peakClaimed, t.dugInMarineSamples, t.peakDugIn, t.peakOverlapping,
                     t.unassigned, t.preparedGarrisonSquadSamples, t.peakPreparedGarrisons, t.peakPreparedGarrisonMembers, t.peakInfantryMembers, t.onPositionMarineSamples,
-                    t.kinds));
+                    t.reactiveSquadSamples, t.peakReactive, t.reactiveSquadsEver.size(), t.manEvents, t.releaseEvents,
+                    t.reactiveDugInMarineSamples, t.kinds));
+            for (Map.Entry<Integer, int[]> squadLine : t.timeline.entrySet()) {
+                int[] l = squadLine.getValue();
+                out.append(String.format(Locale.ROOT,
+                        "    - reactive squad %d: ordered tick %d, first on position %d, first dug in %d, last sampled %d, %d samples, %d on-position member-samples, run %d%n",
+                        squadLine.getKey(), l[0], l[1], l[2], l[3], l[4], l[5], l[6]));
+                out.append("      goals ").append(t.goals.get(squadLine.getKey())).append(System.lineSeparator());
+            }
         }
         return out.toString();
     }

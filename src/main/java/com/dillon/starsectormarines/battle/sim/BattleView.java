@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.decision.goap.action.FightingPositionClaims;
 import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
+import com.dillon.starsectormarines.battle.world.model.GarrisonableRegistry;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
@@ -365,6 +366,14 @@ public interface BattleView {
 
     /** The battle's fighting positions (prepared-ground runs), rebuilt when a trench or sandbag prop is destroyed; ask again each time rather than caching the result. */
     FightingPositionIndex fightingPositions();
+
+    /**
+     * The places a squad can be sent to man, derived from {@link #fightingPositions()} and rebuilt only when that index
+     * instance changes. Ask each time rather than caching the result. A view with no prepared ground answers an empty registry.
+     */
+    default GarrisonableRegistry garrisonables() {
+        return GarrisonableRegistry.empty(null, 8);
+    }
 
     /** Who holds which fighting-position cell under a defend-area order; decided in the serial phase, read-only during unit dispatch. */
     FightingPositionClaims fightingPositionClaims();

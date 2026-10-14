@@ -199,6 +199,20 @@ public final class TickInnerProfile {
         COMMANDER_FRAME_FACTS,
         /** Optional host CPU for the complete frame stage, not additive to its wall time. */
         COMMANDER_FRAME_CPU,
+        /** Reactive garrison evaluation inside the defender plan: wall time, one count per pulse. */
+        GARRISON_EVAL,
+        /** Count-only: distinct influence blocks holding a believed contact that were visited. */
+        GARRISON_CONTACT_BLOCK,
+        /** Count-only: garrisonables whose pressure was read (woken by a contact block, or already manned). */
+        GARRISON_CANDIDATE,
+        /** Count-only: influence-block pressure reads. */
+        GARRISON_BLOCK_READ,
+        /** Count-only decisions: garrisonables manned, releases, and garrisons lost with their ground. */
+        GARRISON_MAN,
+        GARRISON_RELEASE,
+        GARRISON_LOST,
+        /** Registry rebuilds (one per fighting-position index change): wall time and count. */
+        GARRISON_REGISTRY_BUILD,
         COMMANDER_PLAN,
         COMMANDER_COMMIT,
         INFLUENCE_TOPOLOGY_LOOKUP,

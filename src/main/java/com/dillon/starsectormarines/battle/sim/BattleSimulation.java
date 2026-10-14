@@ -78,6 +78,7 @@ import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.decision.goap.action.FightingPositionClaims;
 import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
+import com.dillon.starsectormarines.battle.world.model.GarrisonableRegistry;
 import com.dillon.starsectormarines.battle.world.model.FrontDepth;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
@@ -1577,6 +1578,39 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     @Override
     public FightingPositionIndex fightingPositions() {
         return doodadService.fightingPositions();
+    }
+
+    private GarrisonableRegistry garrisonableRegistry;
+
+    @Override
+    public GarrisonableRegistry garrisonables() {
+        FightingPositionIndex index = fightingPositions();
+        GarrisonableRegistry registry = garrisonableRegistry;
+        if (registry != null && registry.isBuiltFrom(index)) return registry;
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        long started = profile != null ? System.nanoTime() : 0L;
+        List<Fort> placed = forts.forts();
+        int[] centres = new int[placed.size() * 3];
+        int used = 0;
+        for (Fort fort : placed) {
+            int[] cells = fort.exteriorCells();
+            if (cells.length < 2) continue;
+            long sx = 0;
+            long sy = 0;
+            for (int i = 0; i + 1 < cells.length; i += 2) {
+                sx += cells[i];
+                sy += cells[i + 1];
+            }
+            int n = cells.length / 2;
+            centres[used++] = fort.id();
+            centres[used++] = (int) (sx / n);
+            centres[used++] = (int) (sy / n);
+        }
+        registry = GarrisonableRegistry.build(index, grid.getWidth(), grid.getHeight(),
+                CommanderInfluenceService.BLOCK_SIZE, Arrays.copyOf(centres, used));
+        if (profile != null) profile.record(TickInnerProfile.Bucket.GARRISON_REGISTRY_BUILD, System.nanoTime() - started);
+        garrisonableRegistry = registry;
+        return registry;
     }
     /** Parked vehicles that occupy multi-cell footprints. Cells were flagged non-walkable at setup time, so the sim doesn't need to consult this list for pathing/LOS — only the renderer does. */
     public List<ParkedAircraft> getParkedAircraft() { return parkedAircraft; }
