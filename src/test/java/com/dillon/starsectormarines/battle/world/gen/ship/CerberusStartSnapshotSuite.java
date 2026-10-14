@@ -308,9 +308,9 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
     /** The starting hull, empty and then with the same berth commissioned. */
     private List<SnapshotArtifact> commissionedHermes(SnapshotContext context, CompanyShip hull) throws Exception {
         MarineRoster roster = new MarineRoster();
-        MarineCaptain mira = new MarineCaptain("Mira Hale", null, Rank.LIEUTENANT, 0f);
-        roster.add(mira);
-        roster.beginCompanyPreparation(mira);
+        MarineCaptain sabine = new MarineCaptain("Sabine Hale", null, Rank.LIEUTENANT, 0f);
+        roster.add(sabine);
+        roster.beginCompanyPreparation(sabine);
         BoatDeck boats = roster.boatDeck();
         boats.reconcile("cerberus", ShuttleType.HERMES, 1);
         Map<String, Integer> stock = new HashMap<>(Map.of("metals", 60, "heavy_machinery", 16, "supplies", 40));

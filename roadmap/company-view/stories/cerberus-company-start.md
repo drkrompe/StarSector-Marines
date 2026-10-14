@@ -13,7 +13,7 @@ Castle directs the player to Jangala and Nessa Venn, an old freight colleague no
 working as a yard forewoman, or an accessible fallback port. There the
 player reviews and pays from Castle's protected reserve for a permanent Mercenary Company Conversion hullmod before
 the ship can be designated as the company command vessel. Designation resumes the
-existing paid-lift, Mira specialty, squad founding and assignment tutorial, ending
+existing paid-lift, Sabine specialty, squad founding and assignment tutorial, ending
 at the first Jangala contract.
 
 ## Scope and authority
@@ -54,7 +54,7 @@ cannot replenish it. Ordinary starts receive no depot.
 - Required conversion is named explicitly as Mercenary Company Conversion, a
   5,000-credit planetary yard order. Marine operations opens its review directly
   while docked before conversion; vanilla Refit is not the installation route.
-- Opening preparation and Mira induction have no Later or Escape dismissal.
+- Opening preparation and Sabine induction have no Later or Escape dismissal.
   Return to campaign remains available for travel or resupply, with the required
   lesson returning on re-entry. Company designation cannot bypass the conversion.
 - Leave before confirming Hermes repair, reopen through both the company shortcut

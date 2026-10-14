@@ -1922,9 +1922,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         for (float scale : scales) {
             Reactor reactor = new Reactor();
             MarineRoster roster = new MarineRoster();
-            MarineCaptain mira = new MarineCaptain("Mira Hale", "graphics/portraits/mira-hale.png", Rank.LIEUTENANT, 0f);
-            roster.add(mira);
-            roster.beginCompanyPreparation(mira);
+            MarineCaptain sabine = new MarineCaptain("Sabine Hale", "graphics/portraits/sabine-hale.png", Rank.LIEUTENANT, 0f);
+            roster.add(sabine);
+            roster.beginCompanyPreparation(sabine);
             frames.addAll(renderPreparationRooms(context, renderer, roster, scale));
             BarracksViewModel model = new BarracksViewModel(reactor, roster, () -> 1d, snapshotEquipmentResources(),
                     snapshotSquadFoundingResources(), () -> 12,
@@ -1951,21 +1951,21 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     guide.update();
                 };
                 capture.accept("01-introduction");
-                click.accept("command:" + mira.id());
+                click.accept("command:" + sabine.id());
                 capture.accept("02-specialties");
                 Rect first = instance.requireElement("officer-specialty-TACTICAL_COVER-train").box().borderBox();
                 document.pointerScrolled(first.x() + 12, first.y() + 12, 420);
                 guide.update();
                 capture.accept("03-scroll-choice");
                 click.accept("officer-specialty-SALVAGE_STEWARDSHIP-train");
-                if (mira.career().level(OfficerSpecialty.SALVAGE_STEWARDSHIP) != 1) {
-                    throw new IllegalStateException("Click-through specialty choice did not train Mira at scale " + scale);
+                if (sabine.career().level(OfficerSpecialty.SALVAGE_STEWARDSHIP) != 1) {
+                    throw new IllegalStateException("Click-through specialty choice did not train Sabine at scale " + scale);
                 }
                 capture.accept("04-formation");
                 click.accept("officer-formations");
                 capture.accept("05-raise-squad");
                 click.accept("barracks-raise-squad");
-                if (roster.squads().stream().noneMatch(s -> !s.reserve() && mira.id().equals(s.homeCaptainId())))
+                if (roster.squads().stream().noneMatch(s -> !s.reserve() && sabine.id().equals(s.homeCaptainId())))
                     throw new IllegalStateException("Raise Squad did not muster a squad under the selected officer");
                 model.refresh(); instance.flush(); document.advance(0f); guide.update();
                 int clicks = 0;
@@ -2530,8 +2530,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     static List<SnapshotArtifact> renderPreparationResourceBills(SnapshotContext context) throws Exception {
         var renderer = new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(context.modRoot()), context.modRoot(), context.starsectorCore());
         var roster = new MarineRoster();
-        var mira = new MarineCaptain("Mira Hale", "graphics/portraits/mira-hale.png", Rank.LIEUTENANT, 0f);
-        roster.add(mira); roster.beginCompanyPreparation(mira);
+        var sabine = new MarineCaptain("Sabine Hale", "graphics/portraits/sabine-hale.png", Rank.LIEUTENANT, 0f);
+        roster.add(sabine); roster.beginCompanyPreparation(sabine);
         return renderPreparationRooms(context, renderer, roster, 1f);
     }
 

@@ -88,18 +88,20 @@ public class MarineRoster implements Serializable {
     private OfficerInduction officerInduction;
 
     public OfficerInduction officerInduction() { return officerInduction; }
-    public void beginCompanyPreparation(MarineCaptain mira) {
+    public void beginCompanyPreparation(MarineCaptain sabine) {
         if (officerInduction != null) return;
-        beginOfficerInduction(mira);
+        beginOfficerInduction(sabine);
         if (officerInduction != null) {
             officerInduction.prepareCompany();
             boatDeck.requireCommissioning();
         }
     }
     public boolean officerInductionRequired() { return officerInduction != null && !officerInduction.complete(); }
-    public void beginOfficerInduction(MarineCaptain mira) {
-        if (officerInduction == null && mira != null && byId(mira.id()) == mira)
-            officerInduction = new OfficerInduction(mira.id());
+    public void beginOfficerInduction(MarineCaptain sabine) {
+        if (officerInduction == null && sabine != null && byId(sabine.id()) == sabine) {
+            officerInduction = new OfficerInduction(sabine.id());
+            sabine.markFounding();
+        }
     }
 
     public boolean managementGuideDismissed() { return managementGuideDismissed; }

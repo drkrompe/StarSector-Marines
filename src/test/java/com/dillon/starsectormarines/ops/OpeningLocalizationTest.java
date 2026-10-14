@@ -81,7 +81,7 @@ class OpeningLocalizationTest {
         assertEquals("0 boats aboard", Strings.format("openingBoatCount", 0));
         assertEquals("1 boat aboard", Strings.format("openingBoatCount", 1));
         assertEquals("2 boats aboard", Strings.format("openingBoatCount", 2));
-        String name = "Mira's {Second Wind}";
+        String name = "Sabine's {Second Wind}";
         try (var strings = new HeadlessStrings(Path.of("mod"), text -> switch (text) {
             case "Reach {0}" -> "{0} — Castle''s destination";
             case "in {0}d {1}h" -> "{1} hours / {0} days remaining";
