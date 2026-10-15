@@ -222,10 +222,10 @@ public final class DenseQuarterFiller implements CompoundFiller {
                                   boolean[][] concourseCells, boolean[][] roadReservation,
                                   NavigationGrid grid, List<Doodad> doodads, Random rng) {
         TileRegistry registry = TileRegistry.installed();
-        DoodadDef bench = registry.doodad("doodad.desk-dam");
+        DoodadDef bench = registry.doodad("mess-galley.stool");
         DoodadDef[] loading = {
-                registry.doodad("doodad.box"),
-                registry.doodad("doodad.crate")
+                registry.doodad("colony-furnishings.case"),
+                registry.doodad("colony-furnishings.case")
         };
         List<int[]> placed = new ArrayList<>();
         BlockLeaf anchor = largestMember(compound);

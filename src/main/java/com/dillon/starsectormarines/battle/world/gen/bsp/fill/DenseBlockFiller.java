@@ -235,7 +235,7 @@ public final class DenseBlockFiller implements BlockFiller {
                                      int left, int top, int right, int bottom,
                                      boolean vertical) {
         DoodadDef[] props = {
-                TileRegistry.installed().doodad("doodad.box"),
+                TileRegistry.installed().doodad("colony-furnishings.case"),
                 TileRegistry.installed().doodad("doodad.industrial-cable-reel")
         };
         int longMin = vertical ? top + 2 : left + 2;

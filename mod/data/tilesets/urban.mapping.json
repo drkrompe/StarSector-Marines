@@ -122,24 +122,19 @@
   },
   "doodadPools": {
     "MIXED": [
-      "doodad.box", "doodad.crate", "doodad.chest-1", "doodad.chest-2",
-      "doodad.desk-dam", "doodad.box-dam", "doodad.chair-s-yellow-dam",
-      "doodad.chair-s-green-dam", "doodad.door-closed"
+      "colony-furnishings.utility", "colony-furnishings.desk"
     ],
     "RESIDENTIAL": [
-      "doodad.chair-south-yellow", "doodad.chair-south-green",
-      "doodad.chest-1", "doodad.chest-2"
+      "colony-furnishings.locker", "colony-furnishings.galley"
     ],
     "WAREHOUSE": [
-      "doodad.box", "doodad.crate", "doodad.chest-1", "doodad.chest-2"
+      "colony-furnishings.case", "colony-furnishings.shelf"
     ],
     "SKY_PORT": [
-      "doodad.box", "doodad.crate", "doodad.box-dam", "doodad.door-closed"
+      "colony-furnishings.case", "colony-furnishings.utility"
     ],
     "COMMERCIAL": [
-      "doodad.shelf-empty", "doodad.shelf-1", "doodad.shelf-2", "doodad.shelf-3",
-      "doodad.desk-1", "doodad.desk-2", "doodad.chest-1", "doodad.chest-2",
-      "doodad.box", "doodad.crate"
+      "colony-furnishings.shelf", "colony-furnishings.desk"
     ],
     "PARKED_VEHICLES": [
       "doodad.parked-utility-truck", "doodad.parked-flatbed-truck",

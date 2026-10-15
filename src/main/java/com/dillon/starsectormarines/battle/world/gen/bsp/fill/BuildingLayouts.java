@@ -25,8 +25,8 @@ import java.util.Random;
  *
  * <ul>
  *   <li><b>TINY</b> (interior {@code <} {@link #TINY_INTERIOR_DIM} on either
- *       axis — i.e., a 5×5 or smaller building) — sparse scatter from the
- *       per-type pool, 0-1 props. Reads as a shed / utility shack.</li>
+ *       axis — i.e., a 5×5 or smaller building) — a fitted utility, kitchen, retail or storage nook
+ *       with working clearance.</li>
  *   <li><b>LARGE</b> (everything else) — composes layout primitives
  *       ({@link #wallLine}, {@link #counterAtDoorway}) into per-type recipes.
  *       Density scales with the building's interior size; the result reads
@@ -47,9 +47,6 @@ final class BuildingLayouts {
 
     /** Below this interior dimension (on either axis), apply the TINY/shed fallback regardless of recipe. */
     static final int TINY_INTERIOR_DIM = 4;
-
-    /** Chance a TINY building gets at least one prop placed. Reads as "occasionally lived-in shed." */
-    private static final float TINY_PROP_CHANCE = 0.6f;
 
     /** Cells of clearance maintained in front of each doorway. Props within this distance of a doorway are skipped so entering is never blocked visually. */
     private static final int DOORWAY_CLEARANCE = 1;
@@ -77,15 +74,15 @@ final class BuildingLayouts {
      * (shelves, desks).
      */
     enum LayoutRecipe {
-        /** TINY/fallback. Sparse scatter from the per-type pool. */
+        /** Compact utility or service room, themed by the building pool. */
         SHED,
-        /** Residential. Short bench wall-line on one long wall + a 2-prop cluster from the pool. */
+        /** Residential. Sleeping nook and kitchenette with working clearance. */
         HOME,
         /** Courtyard-facing apartment block with a lobby, common hall, living rooms, and bedrooms. */
         APARTMENT_BLOCK,
         /** Commercial shop. Shelves on both long walls + a counter-style desk just inside a doorway. */
         SHOP,
-        /** Industrial warehouse. Crates on both long walls + a desk at one doorway. Reads as cargo bay. */
+        /** Industrial warehouse. Stocked rack bays or compact case rows with a dispatch desk. */
         WAREHOUSE,
         /** Large factory with loading, production, control, parts, and service-spine zones. */
         INDUSTRIAL_FACILITY,
@@ -112,7 +109,7 @@ final class BuildingLayouts {
     // ---- Public API ----
 
     /**
-     * Top-level dispatcher. Routes TINY buildings to {@link #sparseScatter}
+     * Top-level dispatcher. Routes TINY buildings to compact themed groups
      * regardless of recipe, and LARGE buildings through the per-recipe path.
      * The leaf's perimeter walls have already been stamped; this only touches
      * walkable interior cells.
@@ -130,15 +127,15 @@ final class BuildingLayouts {
         boolean denseRowRecipe = recipe == LayoutRecipe.DENSE_TENEMENT
                 || recipe == LayoutRecipe.DENSE_MARKET;
         if (!denseRowRecipe && (interiorW < TINY_INTERIOR_DIM || interiorH < TINY_INTERIOR_DIM)) {
-            sparseScatter(grid, bl, bt, br, bb, doodadPoolId, doodads, rng, /*tiny*/ true);
+            CompactBuildingFurnishing.furnish(grid, topology, bl, bt, br, bb, doodadPoolId, recipe, doodads);
             return;
         }
         switch (recipe) {
-            case HOME:      applyHome(grid, bl, bt, br, bb, doodads, rng); break;
+            case HOME:      applyHome(grid, topology, bl, bt, br, bb, doodads, rng); break;
             case APARTMENT_BLOCK: applyApartmentBlock(
                     grid, topology, bl, bt, br, bb, doodads, rng); break;
             case SHOP:      applyShop(grid, topology, partition, bl, bt, br, bb, doodads, rng); break;
-            case WAREHOUSE: applyWarehouse(grid, bl, bt, br, bb, doodads, rng); break;
+            case WAREHOUSE: applyWarehouse(grid, topology, bl, bt, br, bb, doodads, rng); break;
             case INDUSTRIAL_FACILITY: applyIndustrialFacility(
                     grid, topology, partition, bl, bt, br, bb, doodads, rng); break;
             case COMMAND_CENTER: applyCommandCenter(grid, topology, bl, bt, br, bb, doodads, rng); break;
@@ -155,48 +152,17 @@ final class BuildingLayouts {
             case DENSE_MARKET: applyDenseMarket(
                     grid, topology, bl, bt, br, bb, doodads, rng); break;
             case SHED:
-            default:        sparseScatter(grid, bl, bt, br, bb, doodadPoolId, doodads, rng, /*tiny*/ false); break;
+            default:        CompactBuildingFurnishing.furnish(grid, topology, bl, bt, br, bb, doodadPoolId, recipe, doodads); break;
         }
     }
 
     // ---- Recipes ----
 
-    /**
-     * Residential. Picks one long wall and runs a chair wall-line along it
-     * (every other cell, alternating yellow/green for noise) so it reads
-     * as paired seating against the wall, then drops a 1-2 chest cluster
-     * free-placed elsewhere — chests give the "storage / dresser" half of
-     * a real room so it reads as seating + furniture, not waiting-room
-     * overflow.
-     */
-    private static void applyHome(NavigationGrid grid,
-                                  int bl, int bt, int br, int bb,
-                                  List<Doodad> doodads,
-                                  Random rng) {
-        DoodadDef[] chairs = {
-                TileRegistry.installed().doodad("doodad.chair-south-yellow"),
-                TileRegistry.installed().doodad("doodad.chair-south-green"),
-        };
-        DoodadDef[] chests = {
-                TileRegistry.installed().doodad("doodad.chest-1"),
-                TileRegistry.installed().doodad("doodad.chest-2"),
-        };
-        // Pick the longer pair of walls and run a chair line on one of them.
-        boolean wallsAreHorizontal = (br - bl) >= (bb - bt);
-        WallSide side = wallsAreHorizontal
-                ? (rng.nextBoolean() ? WallSide.N : WallSide.S)
-                : (rng.nextBoolean() ? WallSide.E : WallSide.W);
-        wallLineMix(grid, bl, bt, br, bb, side, chairs, /*spacing*/ 2, doodads, rng);
-
-        // Chest cluster — 1-2 free-placed, deliberately not chairs so the
-        // building has a non-seating prop type.
-        int clusterPicks = 1 + rng.nextInt(2);
-        for (int i = 0; i < clusterPicks; i++) {
-            int[] cell = pickFreeInteriorCell(
-                    grid, bl, bt, br, bb, chests[0], doodads, rng);
-            if (cell == null) break;
-            doodads.add(new Doodad(cell[0], cell[1], chests[rng.nextInt(chests.length)]));
-        }
+    /** Sleeping nook and kitchenette, each fitted with protected working space. */
+    private static void applyHome(NavigationGrid grid, CellTopology topology,
+                                  int bl, int bt, int br, int bb, List<Doodad> doodads, Random rng) {
+        CompactBuildingFurnishing.furnish(grid, topology, bl, bt, br, bb,
+                "RESIDENTIAL", LayoutRecipe.HOME, doodads);
     }
 
     /**
@@ -211,7 +177,7 @@ final class BuildingLayouts {
                                             Random rng) {
         if (purposeBounds(topology, bl, bt, br, bb,
                 RoomPurpose.RESIDENTIAL_HALL) == null) {
-            applyHome(grid, bl, bt, br, bb, doodads, rng);
+            applyHome(grid, topology, bl, bt, br, bb, doodads, rng);
             return;
         }
 
@@ -227,7 +193,7 @@ final class BuildingLayouts {
                 TileRegistry.installed().doodad("doodad.residential-sofa-back-e"),
                 TileRegistry.installed().doodad("doodad.residential-sofa-v"),
         };
-        DoodadDef lobbyDesk = TileRegistry.installed().doodad("doodad.desk-1");
+        DoodadDef lobbyDesk = TileRegistry.installed().doodad("colony-furnishings.desk");
 
         stampOneOrientedFixturePerPurposeRoom(grid, topology, bl, bt, br, bb,
                 RoomPurpose.BEDROOM, beds, doodads, rng, true);
@@ -249,10 +215,7 @@ final class BuildingLayouts {
                                   List<Doodad> doodads,
                                   Random rng) {
         DoodadDef[] shelves = {
-                TileRegistry.installed().doodad("doodad.shelf-empty"),
-                TileRegistry.installed().doodad("doodad.shelf-1"),
-                TileRegistry.installed().doodad("doodad.shelf-2"),
-                TileRegistry.installed().doodad("doodad.shelf-3"),
+                TileRegistry.installed().doodad("colony-furnishings.shelf"),
         };
         if (partition.tacticalCommercial) {
             applyTacticalShop(grid, topology, partition, bl, bt, br, bb,
@@ -269,7 +232,7 @@ final class BuildingLayouts {
             wallLineMix(grid, bl, bt, br, bb, WallSide.E, shelves, WALL_LINE_SPACING, doodads, rng);
         }
 
-        DoodadDef desk = TileRegistry.installed().doodad("doodad.desk-1");
+        DoodadDef desk = TileRegistry.installed().doodad("colony-furnishings.desk");
         counterAtDoorway(grid, bl, bt, br, bb, desk, doodads);
     }
 
@@ -318,20 +281,14 @@ final class BuildingLayouts {
             stampShelfIsland(grid, topology, partition, sales, shelves, doodads, rng);
         }
 
-        DoodadDef desk = TileRegistry.installed().doodad("doodad.desk-1");
+        DoodadDef desk = TileRegistry.installed().doodad("colony-furnishings.desk");
         counterAtShopEntrance(grid, topology, bl, bt, br, bb, desk, doodads);
 
-        DoodadDef[] crates = {
-                TileRegistry.installed().doodad("doodad.box"),
-                TileRegistry.installed().doodad("doodad.crate"),
-        };
-        int stockProps = 2 + rng.nextInt(3);
-        for (int i = 0; i < stockProps; i++) {
-            int[] cell = pickFreePurposeCell(grid, topology, bl, bt, br, bb,
-                    RoomPurpose.STOCKROOM, crates[0], doodads, rng);
-            if (cell == null) break;
-            doodads.add(new Doodad(cell[0], cell[1], crates[rng.nextInt(crates.length)]));
-        }
+        BuildingWorkGroups groups = new BuildingWorkGroups(grid, topology, doodads);
+        groups.reserveDoorSurrounds(bl, bt, br, bb);
+        if (groups.fit(bl, bt, br, bb, RoomPurpose.STOCKROOM,
+                CompactBuildingFurnishing.pair("case", "case"), 2) == 0)
+            groups.fit(bl, bt, br, bb, RoomPurpose.STOCKROOM, CompactBuildingFurnishing.single("case"), 1);
     }
 
     private static int[] purposeBounds(CellTopology topology,
@@ -449,26 +406,16 @@ final class BuildingLayouts {
         return free.isEmpty() ? null : free.get(rng.nextInt(free.size()));
     }
 
-    /** Industrial warehouse. Crates line both long walls (per-cell variant mix between the two crate frames for hand-stacked feel); a desk at one doorway reads as supervisor / parts counter. */
-    private static void applyWarehouse(NavigationGrid grid,
-                                       int bl, int bt, int br, int bb,
-                                       List<Doodad> doodads,
-                                       Random rng) {
-        DoodadDef[] crates = {
-                TileRegistry.installed().doodad("doodad.box"),
-                TileRegistry.installed().doodad("doodad.crate"),
-        };
-        boolean wallsAreHorizontal = (br - bl) >= (bb - bt);
-        if (wallsAreHorizontal) {
-            wallLineMix(grid, bl, bt, br, bb, WallSide.N, crates, WALL_LINE_SPACING, doodads, rng);
-            wallLineMix(grid, bl, bt, br, bb, WallSide.S, crates, WALL_LINE_SPACING, doodads, rng);
-        } else {
-            wallLineMix(grid, bl, bt, br, bb, WallSide.W, crates, WALL_LINE_SPACING, doodads, rng);
-            wallLineMix(grid, bl, bt, br, bb, WallSide.E, crates, WALL_LINE_SPACING, doodads, rng);
+    /** Rack bays and dispatch desk retain handling aisles. */
+    private static void applyWarehouse(NavigationGrid grid, CellTopology topology,
+                                       int bl, int bt, int br, int bb, List<Doodad> doodads, Random rng) {
+        BuildingWorkGroups groups = new BuildingWorkGroups(grid, topology, doodads);
+        groups.reserveCargoApproaches(bl, bt, br, bb);
+        for (RoomPurpose purpose : new RoomPurpose[]{null, RoomPurpose.GENERIC, RoomPurpose.STOCKROOM}) {
+            groups.fit(bl, bt, br, bb, purpose, CompactBuildingFurnishing.single("desk"), 1);
+            if (groups.fit(bl, bt, br, bb, purpose, BuildingWorkGroups.stockedRack("cases"), 2) == 0)
+                groups.fit(bl, bt, br, bb, purpose, CompactBuildingFurnishing.pair("case", "case"), 2);
         }
-
-        DoodadDef desk = TileRegistry.installed().doodad("doodad.desk-2");
-        counterAtDoorway(grid, bl, bt, br, bb, desk, doodads);
     }
 
     /**
@@ -483,7 +430,7 @@ final class BuildingLayouts {
                                                  int bl, int bt, int br, int bb,
                                                  List<Doodad> doodads, Random rng) {
         if (!partition.tacticalIndustrial) {
-            applyWarehouse(grid, bl, bt, br, bb, doodads, rng);
+            applyWarehouse(grid, topology, bl, bt, br, bb, doodads, rng);
             return;
         }
 
@@ -666,7 +613,7 @@ final class BuildingLayouts {
                                     int bl, int bt, int br, int bb,
                                     List<Doodad> doodads, Random rng) {
         DoodadDef[] stores = {
-                TileRegistry.installed().doodad("doodad.shelf-2"),
+                TileRegistry.installed().doodad("colony-furnishings.shelf"),
                 TileRegistry.installed().doodad("doodad.industrial-crate-stack"),
         };
         boolean horizontal = (br - bl) >= (bb - bt);
@@ -675,7 +622,7 @@ final class BuildingLayouts {
         fixtureWallLineMix(grid, topology, bl, bt, br, bb, first, stores, 2, doodads, rng);
         fixtureWallLineMix(grid, topology, bl, bt, br, bb, second, stores, 2, doodads, rng);
         counterAtDoorway(grid, bl, bt, br, bb,
-                TileRegistry.installed().doodad("doodad.desk-2"), doodads);
+                TileRegistry.installed().doodad("colony-furnishings.desk"), doodads);
     }
 
     /** Keeps the vehicle-bay center empty and pushes repair/service cover to the longer wall pair. */
@@ -813,13 +760,13 @@ final class BuildingLayouts {
         if (!purposeHasFixture(topology, bl, bt, br, bb, RoomPurpose.BEDROOM)) {
             stampPurposeFixture(grid, topology, bl, bt, br, bb,
                     RoomPurpose.BEDROOM,
-                    TileRegistry.installed().doodad("doodad.chest-1"),
+                    TileRegistry.installed().doodad("colony-furnishings.locker"),
                     doodads, rng, true);
         }
         if (!purposeHasFixture(topology, bl, bt, br, bb, RoomPurpose.APARTMENT_LIVING)) {
             stampPurposeFixture(grid, topology, bl, bt, br, bb,
                     RoomPurpose.APARTMENT_LIVING,
-                    TileRegistry.installed().doodad("doodad.chair-south-yellow"),
+                    TileRegistry.installed().doodad("mess-galley.stool"),
                     doodads, rng, true);
         }
     }
@@ -828,9 +775,9 @@ final class BuildingLayouts {
     private static void applyDenseMarket(NavigationGrid grid, CellTopology topology,
                                          int bl, int bt, int br, int bb,
                                          List<Doodad> doodads, Random rng) {
-        DoodadDef shelf = TileRegistry.installed().doodad("doodad.shelf-2");
-        DoodadDef crate = TileRegistry.installed().doodad("doodad.crate");
-        DoodadDef counter = TileRegistry.installed().doodad("doodad.desk-1");
+        DoodadDef shelf = TileRegistry.installed().doodad("colony-furnishings.shelf");
+        DoodadDef crate = TileRegistry.installed().doodad("colony-furnishings.case");
+        DoodadDef counter = TileRegistry.installed().doodad("colony-furnishings.desk");
         stampPurposeFixture(grid, topology, bl, bt, br, bb,
                 RoomPurpose.SHOP_FLOOR, shelf, doodads, rng, true);
         stampPurposeFixture(grid, topology, bl, bt, br, bb,
@@ -2044,37 +1991,4 @@ final class BuildingLayouts {
         return false;
     }
 
-    /** Returns a random walkable, non-doorway, non-occupied interior cell, or {@code null} if no candidate exists. */
-    private static int[] pickFreeInteriorCell(NavigationGrid grid,
-                                              int bl, int bt, int br, int bb,
-                                              DoodadDef prop,
-                                              List<Doodad> doodads, Random rng) {
-        List<int[]> free = new ArrayList<>();
-        for (int y = bt + 1; y <= bb - 1; y++) {
-            for (int x = bl + 1; x <= br - 1; x++) {
-                if (!canPlaceDoodad(grid, x, y, prop, doodads)) continue;
-                free.add(new int[]{x, y});
-            }
-        }
-        if (free.isEmpty()) return null;
-        return free.get(rng.nextInt(free.size()));
-    }
-
-    /** SHED / fallback scatter — picks 0-1 (TINY) or 1-2 (LARGE fallback) props from the per-theme pool at random interior cells. */
-    private static void sparseScatter(NavigationGrid grid,
-                                      int bl, int bt, int br, int bb,
-                                      String doodadPoolId,
-                                      List<Doodad> doodads, Random rng,
-                                      boolean tiny) {
-        List<DoodadDef> pool = GenMappingRegistry.installed().doodadPool(doodadPoolId);
-        if (pool.isEmpty()) return;
-        if (tiny && rng.nextFloat() >= TINY_PROP_CHANCE) return;
-        int picks = tiny ? 1 : (1 + rng.nextInt(2));
-        for (int i = 0; i < picks; i++) {
-            int[] cell = pickFreeInteriorCell(
-                    grid, bl, bt, br, bb, pool.get(0), doodads, rng);
-            if (cell == null) break;
-            doodads.add(new Doodad(cell[0], cell[1], pool.get(rng.nextInt(pool.size()))));
-        }
-    }
 }
