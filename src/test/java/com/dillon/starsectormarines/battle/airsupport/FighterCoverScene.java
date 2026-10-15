@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.battle.airsupport;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.air.AirIntercept;
 import com.dillon.starsectormarines.battle.air.AirLoss;
 import com.dillon.starsectormarines.battle.air.AirOrdnance;
+import com.dillon.starsectormarines.battle.air.AirToAirGun;
 import com.dillon.starsectormarines.battle.air.CoverDuty;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
@@ -22,6 +24,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.testsupport.InstalledHullEngines;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 import com.dillon.starsectormarines.testsupport.InstalledWeaponSlots;
@@ -33,6 +36,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 /**
@@ -70,6 +74,14 @@ public final class FighterCoverScene implements BehaviorScene {
     private static final int RAID_TICK = 600;
     private static final int RAID_GAP_TICKS = 450;
     private static final int COVER_TICK = 30;
+    /** The seed the recorded loops play; the seed loops play a spread of others. */
+    private static final long DEFAULT_SEED = 20261015L;
+    /** Seeds the sweep loops play. */
+    private static final int SWEEP_SEEDS = 12;
+    /** Ticks the raid's start may slip by seed, so the fighter meets it at different points of its ring. */
+    private static final int RAID_JITTER_TICKS = 240;
+    /** Cells the raiders' aim may slip across the company by seed. */
+    private static final float RAID_LATERAL_CELLS = 8f;
 
     @Override public String id() { return "fighter-cover"; }
 
@@ -86,6 +98,7 @@ public final class FighterCoverScene implements BehaviorScene {
     @Override
     public List<SceneReport> play(FrameSink frames) throws Exception {
         InstalledHullSpecs.install();
+        InstalledHullEngines.install();
         InstalledWeaponSlots.install();
         InstalledVanillaData.install();
         List<SceneReport> reports = new ArrayList<>();
@@ -104,10 +117,137 @@ public final class FighterCoverScene implements BehaviorScene {
             reports.add(ground.report);
             reports.add(playOne("cap-ground-close", frames, ground).report);
             reports.add(playOne("cap-vs-cap", frames, none).report);
+            reports.add(sweepIntercept(false));
+            reports.add(sweepIntercept(true));
+            reports.add(sweepVersus(false));
+            reports.add(sweepVersus(true));
         } finally {
             TurretSlotResolver.useHullSpecs(null);
+            InstalledHullEngines.uninstall();
         }
         return reports;
+    }
+
+    /**
+     * {@code cap-intercept} again across {@link #SWEEP_SEEDS} seeds, each paired with the same raid and nothing overhead.
+     * One reading of a chase is one geometry; this is the rate. The verdicts are the mechanics every seed must show; how
+     * often a raider goes down, and whether before it drops, are metrics, because they are findings and not promises.
+     */
+    private SceneReport sweepIntercept(boolean headOn) {
+        headOnControl = headOn;
+        int launched = 0;
+        int ledgerBreaks = 0;
+        int fired = 0;
+        int hit = 0;
+        int raiders = 0;
+        int down = 0;
+        int before = 0;
+        int during = 0;
+        int after = 0;
+        int drivenOff = 0;
+        int seedsFiring = 0;
+        int seedsDown = 0;
+        int seedsBeforeRelease = 0;
+        int dead = 0;
+        int deadControl = 0;
+        int coverLost = 0;
+        int ticks = 0;
+        for (int i = 0; i < SWEEP_SEEDS; i++) {
+            long seed = DEFAULT_SEED + 1 + i;
+            Result none = playOne("cap-none", FrameSink.NONE, null, seed);
+            Result run = playOne("cap-intercept", FrameSink.NONE, none, seed);
+            Map<String, Number> m = run.report.metrics();
+            Trace t = run.trace;
+            launched += m.get("coverLaunched").intValue();
+            coverLost += m.get("coverLost").intValue();
+            if (m.get("coverLaunched").intValue() != m.get("coverReturned").intValue() + m.get("coverLost").intValue() + m.get("coverStillOut").intValue()) ledgerBreaks++;
+            fired += m.get("airToAirRoundsFired").intValue();
+            hit += m.get("airToAirRoundsHit").intValue();
+            raiders += t.raiders;
+            down += t.raidersDown;
+            before += t.downBeforeRelease();
+            during += t.downInRelease();
+            after += t.downAfterRelease();
+            drivenOff += t.raidersDrivenOff;
+            if (m.get("airToAirRoundsFired").intValue() >= 10) seedsFiring++;
+            if (t.raidersDown >= 1) seedsDown++;
+            if (t.downBeforeRelease() >= 1) seedsBeforeRelease++;
+            dead += t.companyDead;
+            deadControl += none.trace.companyDead;
+            ticks = run.report.ticks();
+        }
+        List<Verdict> verdicts = new ArrayList<>();
+        verdicts.add(Verdict.of("every-seed-puts-a-fighter-up", launched >= SWEEP_SEEDS,
+                "cover fighters launched " + launched + " over " + SWEEP_SEEDS + " seeds"));
+        verdicts.add(Verdict.of("the-ledger-balances-in-every-seed", ledgerBreaks == 0,
+                "seeds whose cover ledger did not balance " + ledgerBreaks));
+        if (!headOn) verdicts.add(Verdict.of("the-fighter-fires-in-most-seeds", seedsFiring * 2 >= SWEEP_SEEDS,
+                "seeds in which the guns fired ten rounds or more " + seedsFiring + " of " + SWEEP_SEEDS
+                        + "; rounds " + fired + ", hit " + hit));
+        if (!headOn) verdicts.add(Verdict.of("a-raider-is-downed-in-some-seed", seedsDown >= 1,
+                "raiders down " + down + " of " + raiders + " (before dropping " + before + ", in the drop " + during
+                        + ", after " + after + "), driven off " + drivenOff));
+        Map<String, Number> metrics = new LinkedHashMap<>();
+        metrics.put("seeds", SWEEP_SEEDS);
+        metrics.put("raiders", raiders);
+        metrics.put("raidersDown", down);
+        metrics.put("downBeforeRelease", before);
+        metrics.put("downInRelease", during);
+        metrics.put("downAfterRelease", after);
+        metrics.put("raidersDrivenOff", drivenOff);
+        metrics.put("seedsWithADownedRaider", seedsDown);
+        metrics.put("seedsDownedBeforeRelease", seedsBeforeRelease);
+        metrics.put("airToAirRoundsFired", fired);
+        metrics.put("airToAirRoundsHit", hit);
+        metrics.put("coverLost", coverLost);
+        metrics.put("companyDeadWithCover", dead);
+        metrics.put("companyDeadWithoutCover", deadControl);
+        headOnControl = false;
+        return new SceneReport(id(), headOn ? "cap-intercept-seeds-head-on" : "cap-intercept-seeds", ticks, verdicts, metrics);
+    }
+
+    /** {@code cap-vs-cap} across the same seeds, the defender's call slipping so the two rings meet at different phases. */
+    private SceneReport sweepVersus(boolean headOn) {
+        headOnControl = headOn;
+        int bothUp = 0;
+        int fought = 0;
+        int fired = 0;
+        int hit = 0;
+        int marineKills = 0;
+        int defenderKills = 0;
+        int seedsWithAKill = 0;
+        int ticks = 0;
+        for (int i = 0; i < SWEEP_SEEDS; i++) {
+            long seed = DEFAULT_SEED + 1 + i;
+            Result run = playOne("cap-vs-cap", FrameSink.NONE, null, seed);
+            Map<String, Number> m = run.report.metrics();
+            Trace t = run.trace;
+            if (m.get("coverLaunched").intValue() >= 1 && m.get("defenderCoverLaunched").intValue() >= 1) bothUp++;
+            fired += m.get("airToAirRoundsFired").intValue();
+            hit += m.get("airToAirRoundsHit").intValue();
+            if (m.get("airToAirRoundsFired").intValue() >= 10) fought++;
+            marineKills += t.airToAirLossesMarine;
+            defenderKills += t.airToAirLosses;
+            if (t.airToAirLossesMarine + t.airToAirLosses > 0) seedsWithAKill++;
+            ticks = run.report.ticks();
+        }
+        List<Verdict> verdicts = new ArrayList<>();
+        verdicts.add(Verdict.of("both-sides-put-a-fighter-up-in-every-seed", bothUp == SWEEP_SEEDS,
+                "seeds in which both fighters launched " + bothUp + " of " + SWEEP_SEEDS));
+        if (!headOn) verdicts.add(Verdict.of("they-fight-in-most-seeds", fought * 2 >= SWEEP_SEEDS,
+                "seeds in which the guns fired ten rounds or more " + fought + "; rounds " + fired + ", hit " + hit));
+        if (!headOn) verdicts.add(Verdict.of("a-kill-is-made-in-some-seed", seedsWithAKill >= 1,
+                "shot down by a fighter: marine " + marineKills + ", defender " + defenderKills));
+        Map<String, Number> metrics = new LinkedHashMap<>();
+        metrics.put("seeds", SWEEP_SEEDS);
+        metrics.put("seedsWhereTheyFought", fought);
+        metrics.put("seedsWithAKill", seedsWithAKill);
+        metrics.put("airToAirRoundsFired", fired);
+        metrics.put("airToAirRoundsHit", hit);
+        metrics.put("marineFightersShotDown", marineKills);
+        metrics.put("defenderFightersShotDown", defenderKills);
+        headOnControl = false;
+        return new SceneReport(id(), headOn ? "cap-vs-cap-seeds-head-on" : "cap-vs-cap-seeds", ticks, verdicts, metrics);
     }
 
     private static boolean nestLoop(String loop) {
@@ -118,7 +258,14 @@ public final class FighterCoverScene implements BehaviorScene {
         return loop.startsWith("cap-");
     }
 
+    /** The control sweeps fly their cover fighters the old head-on pursuit; per-instance, set by the sweep that wants it. */
+    private boolean headOnControl;
+
     private Result playOne(String loop, FrameSink frames, Result control) {
+        return playOne(loop, frames, control, DEFAULT_SEED);
+    }
+
+    private Result playOne(String loop, FrameSink frames, Result control, long seed) {
         boolean nest = nestLoop(loop);
         boolean raid = loop.equals("cap-none") || loop.equals("cap-intercept") || loop.equals("cap-under-aa");
         boolean ground = loop.startsWith("cap-ground");
@@ -154,7 +301,7 @@ public final class FighterCoverScene implements BehaviorScene {
         }
         SceneWorld world = builder.build();
         BattleSimulation sim = world.sim();
-        sim.random().setSeed(20261015L);
+        sim.random().setSeed(seed);
 
         List<Long> guns = new ArrayList<>();
         if (nest) {
@@ -169,7 +316,8 @@ public final class FighterCoverScene implements BehaviorScene {
 
         AirPoolDeclaration declaration = declare(loop);
         sim.setAirPool(new AirPoolService(declaration));
-        Trace trace = new Trace(world, loop, guns);
+        sim.airPool().useHeadOnCoverPursuit(headOnControl);
+        Trace trace = new Trace(world, loop, guns, seed);
         int ticks = nest ? 1500 : loop.equals("strafe-open") ? 1500 : ground ? 1800 : TICKS;
         SceneRun.of(world).observe(trace)
                 .frames(frames, loop, Math.max(30, ticks / 24), tick -> trace.caption(loop, tick))
@@ -262,6 +410,11 @@ public final class FighterCoverScene implements BehaviorScene {
                         t.states.contains(ShuttleState.INTERCEPT) && sim.airToAir().roundsFired() >= 10,
                         "rounds fired " + sim.airToAir().roundsFired() + ", hit " + sim.airToAir().roundsHit()
                                 + ", chases " + t.chases));
+                verdicts.add(Verdict.of("the-guns-are-brought-to-bear-from-behind",
+                        t.windowTicks > 0 && t.rearWindowTicks * 2 >= t.windowTicks,
+                        "ticks a raider stood in the guns' window " + t.windowTicks + ", of them from its rear quarter "
+                                + t.rearWindowTicks + "; raiders down before dropping " + t.downBeforeRelease()
+                                + ", mid-drop " + t.downInRelease() + ", after " + t.downAfterRelease()));
                 verdicts.add(Verdict.of("a-raider-is-shot-down-or-driven-off",
                         t.raidersDown + t.raidersDrivenOff >= 1,
                         "raiders down " + t.raidersDown + ", driven off " + t.raidersDrivenOff + " of " + t.raiders
@@ -331,8 +484,10 @@ public final class FighterCoverScene implements BehaviorScene {
         metrics.put("coverLaunched", cover.launched());
         metrics.put("coverReturned", cover.returned());
         metrics.put("coverLost", cover.lost());
+        metrics.put("coverStillOut", pool.coversOut(Faction.MARINE));
         metrics.put("coverDrivenOff", cover.aborted());
         metrics.put("defenderCoverLost", pool.tally(Faction.DEFENDER, AirMission.COVER).lost());
+        metrics.put("defenderCoverLaunched", pool.tally(Faction.DEFENDER, AirMission.COVER).launched());
         metrics.put("airToAirRoundsFired", sim.airToAir().roundsFired());
         metrics.put("airToAirRoundsHit", sim.airToAir().roundsHit());
         metrics.put("airToAirKills", t.airToAirLosses);
@@ -341,6 +496,11 @@ public final class FighterCoverScene implements BehaviorScene {
         metrics.put("raiders", t.raiders);
         metrics.put("raidersDown", t.raidersDown);
         metrics.put("raidersDrivenOff", t.raidersDrivenOff);
+        metrics.put("raidersDownBeforeRelease", t.downBeforeRelease());
+        metrics.put("raidersDownInRelease", t.downInRelease());
+        metrics.put("raidersDownAfterRelease", t.downAfterRelease());
+        metrics.put("gunWindowTicks", t.windowTicks);
+        metrics.put("gunWindowTicksFromBehind", t.rearWindowTicks);
         metrics.put("companyDead", t.companyDead);
         metrics.put("garrisonDead", t.garrisonDead);
         metrics.put("nestHullPercent", Math.round(t.nestHullShare * 100f));
@@ -385,6 +545,7 @@ public final class FighterCoverScene implements BehaviorScene {
         int raidersDrivenOff;
         int raidersBombing;
         int airToAirLosses;
+        int airToAirLossesMarine;
         Outcome coverOutcome;
         private final List<Long> raiderIds = new ArrayList<>();
         private final Set<Long> drivenOff = new HashSet<>();
@@ -396,10 +557,81 @@ public final class FighterCoverScene implements BehaviorScene {
         private int companyAliveStart = -1;
         private final int[] ticks = new int[1];
 
-        private Trace(SceneWorld world, String loop, List<Long> guns) {
+        private Trace(SceneWorld world, String loop, List<Long> guns, long seed) {
             this.world = world;
             this.loop = loop;
             this.guns = guns;
+            // The recorded seed meets the raid on the schedule the loop was written with; every other seed slips it.
+            if (seed != DEFAULT_SEED) {
+                Random slip = new Random(seed * 31L + 7L);
+                raidJitter = slip.nextInt(RAID_JITTER_TICKS);
+                raidLateralA = (slip.nextFloat() * 2f - 1f) * RAID_LATERAL_CELLS;
+                raidLateralB = (slip.nextFloat() * 2f - 1f) * RAID_LATERAL_CELLS;
+            }
+        }
+
+        /** Ticks the cover fighter's guns had a raider inside their window, and how many of them it was in the raider's rear quarter. */
+        int windowTicks;
+        int rearWindowTicks;
+
+        private void trackWindow(BattleSimulation sim) {
+            long fighter = 0L;
+            for (long id : sim.getAirEntityIds()) {
+                ShuttleMission m = sim.world().mission(id);
+                if (m != null && m.cover != null && !m.destroyed && sim.world().airFaction(id) == Faction.MARINE) fighter = id;
+            }
+            if (fighter == 0L) return;
+            AirBody f = sim.world().kinematics(fighter);
+            for (long r : raiderIds) {
+                ShuttleMission rm = sim.world().mission(r);
+                AirBody b = sim.world().kinematics(r);
+                if (rm == null || b == null || rm.destroyed) continue;
+                float range = (float) Math.hypot(b.x - f.x, b.y - f.y);
+                if (!AirToAirGun.inWindow(range, AirToAirGun.offNoseDegrees(f, b.x, b.y))) continue;
+                windowTicks++;
+                if (AirIntercept.isRearQuarter(f.x, f.y, b.x, b.y, b.vx, b.vy)) rearWindowTicks++;
+            }
+        }
+
+        /** What became of one raider: whether the bomber had begun dropping when it went down. */
+        enum Fate { SURVIVED, DOWN_BEFORE_RELEASE, DOWN_IN_RELEASE, DOWN_AFTER_RELEASE }
+
+        private final Map<Long, Boolean> released = new LinkedHashMap<>();
+        private final Map<Long, Fate> fates = new LinkedHashMap<>();
+        private int raidJitter;
+        private float raidLateralA;
+        private float raidLateralB;
+
+        /** Raiders shot down (by anything) before they had dropped a bomb. */
+        int downBeforeRelease() { return count(Fate.DOWN_BEFORE_RELEASE); }
+
+        /** Raiders shot down with their stick partly dropped. */
+        int downInRelease() { return count(Fate.DOWN_IN_RELEASE); }
+
+        /** Raiders shot down after dropping the whole stick. */
+        int downAfterRelease() { return count(Fate.DOWN_AFTER_RELEASE); }
+
+        private int count(Fate fate) {
+            int n = 0;
+            for (Fate f : fates.values()) if (f == fate) n++;
+            return n;
+        }
+
+        private void classifyRaiders(BattleSimulation sim) {
+            for (long id : raiderIds) {
+                ShuttleMission m = sim.world().mission(id);
+                if (m == null || fates.containsKey(id)) continue;
+                boolean started = released.getOrDefault(id, false);
+                if (m.state == ShuttleState.ATTACK_RUN && m.ordnance != null && m.roundsLeftThisPass < m.ordnance.roundsPerPass
+                        && !m.aborted) {
+                    started = true;
+                    released.put(id, true);
+                }
+                if (!m.destroyed) continue;
+                Fate fate = !started ? Fate.DOWN_BEFORE_RELEASE
+                        : m.roundsLeftThisPass > 0 ? Fate.DOWN_IN_RELEASE : Fate.DOWN_AFTER_RELEASE;
+                fates.put(id, fate);
+            }
         }
 
         String caption(String loop, int tick) {
@@ -446,6 +678,8 @@ public final class FighterCoverScene implements BehaviorScene {
             }
 
             observeAircraft(sim, tick, pool);
+            classifyRaiders(sim);
+            trackWindow(sim);
             script(sim, tick, pool);
         }
 
@@ -500,6 +734,11 @@ public final class FighterCoverScene implements BehaviorScene {
                 if ("air-to-air".equals(loss.cause()) && loss.faction() == Faction.DEFENDER) kills++;
             }
             airToAirLosses = kills;
+            int marineKills = 0;
+            for (AirLoss loss : sim.getAirLosses()) {
+                if ("air-to-air".equals(loss.cause()) && loss.faction() == Faction.MARINE) marineKills++;
+            }
+            airToAirLossesMarine = marineKills;
         }
 
 
@@ -517,11 +756,11 @@ public final class FighterCoverScene implements BehaviorScene {
                         coverAsked = true;
                         coverOutcome = pool.director(Faction.MARINE).cover(sim, pool, OBSERVER_X - 4 + 0.5f, MID + 0.5f, u -> true);
                     }
-                    if (raiderIds.isEmpty() && tick >= RAID_TICK) {
-                        raiderIds.add(raider(sim, OBSERVER_X - 4f, MID - 4f));
+                    if (raiderIds.isEmpty() && tick >= RAID_TICK + raidJitter) {
+                        raiderIds.add(raider(sim, OBSERVER_X - 4f, MID - 4f + raidLateralA));
                         raiders++;
-                    } else if (raiderIds.size() == 1 && tick >= RAID_TICK + RAID_GAP_TICKS) {
-                        raiderIds.add(raider(sim, OBSERVER_X - 4f, MID + 4f));
+                    } else if (raiderIds.size() == 1 && tick >= RAID_TICK + raidJitter + RAID_GAP_TICKS) {
+                        raiderIds.add(raider(sim, OBSERVER_X - 4f, MID + 4f + raidLateralB));
                         raiders++;
                     }
                 }
@@ -536,7 +775,7 @@ public final class FighterCoverScene implements BehaviorScene {
                         coverAsked = true;
                         coverOutcome = pool.director(Faction.MARINE).cover(sim, pool, 46.5f, MID + 0.5f, u -> true);
                     }
-                    if (!defenderCoverAsked && tick >= COVER_TICK) {
+                    if (!defenderCoverAsked && tick >= COVER_TICK + raidJitter) {
                         defenderCoverAsked = true;
                         pool.director(Faction.DEFENDER).cover(sim, pool, 88.5f, MID + 0.5f, u -> true);
                     }
