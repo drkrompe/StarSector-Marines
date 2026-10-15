@@ -2,13 +2,21 @@ package com.dillon.starsectormarines.render2d;
 
 import com.fs.starfarer.api.input.InputEventAPI;
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 
 import java.util.List;
 import java.util.function.BiPredicate;
+import java.util.function.BooleanSupplier;
 
 /**
- * Flying a {@link BattleCamera} by hand: drag to pan, wheel to zoom, WASD to
- * walk the view.
+ * Flying a {@link BattleCamera} by hand: middle-drag to pan, wheel to zoom,
+ * WASD to walk the view.
+ *
+ * <p>The right button belongs to the screen when the screen wants it. A view
+ * that gives orders takes a right click as an order and a right drag as a
+ * drawn one (a line to hold), so panning lives on the middle button there. A
+ * view with nothing to order keeps right-drag panning as well, since a right
+ * button that does nothing is a worse answer than a second way to pan.
  *
  * <p>Extracted rather than written twice. Every screen that shows a world the
  * player looks around — a battle, a deck — wants the same gestures, and a second
@@ -29,8 +37,13 @@ public final class CameraControls {
     private static final float RIGHT_DRAG_THRESHOLD_PX = 4f;
 
     private final boolean shiftRightReserved;
+    private final BooleanSupplier middleHeld;
 
     private boolean panDragging;
+    private boolean orderDragging;
+    private boolean middlePanning;
+    private float middleLastX;
+    private float middleLastY;
     private boolean rightGestureActive;
     private float rightDownX;
     private float rightDownY;
@@ -51,7 +64,21 @@ public final class CameraControls {
      *     damage gesture; a view with nothing to click reserves nothing.
      */
     public CameraControls(boolean shiftRightReserved) {
+        this(shiftRightReserved, CameraControls::middleButtonDown);
+    }
+
+    /**
+     * @param middleHeld whether the middle button is down now. The game's input
+     *     events do not report the middle button, so it is read from the mouse
+     *     itself; tests supply their own.
+     */
+    public CameraControls(boolean shiftRightReserved, BooleanSupplier middleHeld) {
         this.shiftRightReserved = shiftRightReserved;
+        this.middleHeld = middleHeld;
+    }
+
+    private static boolean middleButtonDown() {
+        return Mouse.isCreated() && Mouse.isButtonDown(2);
     }
 
     /**
@@ -89,6 +116,15 @@ public final class CameraControls {
         void onRightClick(float pointerX, float pointerY);
     }
 
+    /**
+     * Optional owner of an RMB gesture that did cross it. Called with the press point and the
+     * pointer on every move, then once more on release; nothing pans while one is installed.
+     */
+    @FunctionalInterface
+    public interface RightDragHandler {
+        void onRightDrag(float startX, float startY, float pointerX, float pointerY, boolean released);
+    }
+
     /** Read the frame's input and move the camera with it. */
     public void process(List<InputEventAPI> events, BattleCamera camera) {
         process(events, camera, PointerSpace.SCREEN);
@@ -114,13 +150,27 @@ public final class CameraControls {
     public void process(List<InputEventAPI> events, BattleCamera camera,
                         PointerSpace space, RightClickHandler rightClickHandler,
                         BiPredicate<Float, Float> chrome) {
+        process(events, camera, space, rightClickHandler, null, chrome);
+    }
+
+    /** As above, with right drags handed to {@code rightDragHandler} instead of panning. */
+    public void process(List<InputEventAPI> events, BattleCamera camera,
+                        PointerSpace space, RightClickHandler rightClickHandler,
+                        RightDragHandler rightDragHandler,
+                        BiPredicate<Float, Float> chrome) {
         if (events == null || camera == null || space == null) return;
         for (InputEventAPI event : events) {
             if (event.isConsumed()) {
                 if (event.isRMBUpEvent()) {
                     rightGestureActive = false;
                     panDragging = false;
+                    orderDragging = false;
                 }
+                continue;
+            }
+
+            if (event.isMouseMoveEvent() && middleDrag(event, camera, space, chrome)) {
+                event.consume();
                 continue;
             }
 
@@ -149,7 +199,8 @@ public final class CameraControls {
                 rightGestureActive = true;
                 rightDownX = downX;
                 rightDownY = downY;
-                panDragging = rightClickHandler == null;
+                panDragging = rightClickHandler == null && rightDragHandler == null;
+                orderDragging = false;
                 lastDragX = downX;
                 lastDragY = downY;
                 event.consume();
@@ -159,7 +210,9 @@ public final class CameraControls {
                 if (rightGestureActive) {
                     float upX = space.x(event.getX());
                     float upY = space.y(event.getY());
-                    if (!panDragging && rightClickHandler != null
+                    if (orderDragging) {
+                        rightDragHandler.onRightDrag(rightDownX, rightDownY, upX, upY, true);
+                    } else if (!panDragging && rightClickHandler != null
                             && camera.containsScreen(upX, upY)) {
                         rightClickHandler.onRightClick(upX, upY);
                     }
@@ -167,19 +220,26 @@ public final class CameraControls {
                 }
                 rightGestureActive = false;
                 panDragging = false;
+                orderDragging = false;
                 continue;
             }
             if (rightGestureActive && event.isMouseMoveEvent()) {
                 float x = space.x(event.getX());
                 float y = space.y(event.getY());
-                if (!panDragging) {
+                if (!panDragging && !orderDragging) {
                     float dx = x - rightDownX;
                     float dy = y - rightDownY;
                     float thresholdSq = RIGHT_DRAG_THRESHOLD_PX
                             * RIGHT_DRAG_THRESHOLD_PX;
                     if (dx * dx + dy * dy >= thresholdSq) {
-                        panDragging = true;
+                        if (rightDragHandler != null) orderDragging = true;
+                        else panDragging = true;
                     }
+                }
+                if (orderDragging) {
+                    rightDragHandler.onRightDrag(rightDownX, rightDownY, x, y, false);
+                    event.consume();
+                    continue;
                 }
                 if (!panDragging) {
                     event.consume();
@@ -207,6 +267,30 @@ public final class CameraControls {
     }
 
     /**
+     * Pans while the middle button is held, from the point it was first seen down. Returns
+     * whether the move was the pan's. A pan begins only over the view and not over chrome; once
+     * begun it follows the pointer anywhere until the button comes up.
+     */
+    private boolean middleDrag(InputEventAPI event, BattleCamera camera, PointerSpace space,
+                               BiPredicate<Float, Float> chrome) {
+        float x = space.x(event.getX());
+        float y = space.y(event.getY());
+        if (!middleHeld.getAsBoolean()) {
+            middlePanning = false;
+            return false;
+        }
+        if (!middlePanning) {
+            if (!camera.containsScreen(x, y) || chrome.test(x, y)) return false;
+            middlePanning = true;
+        } else {
+            camera.panByPixels(x - middleLastX, y - middleLastY);
+        }
+        middleLastX = x;
+        middleLastY = y;
+        return true;
+    }
+
+    /**
      * Move the camera for however long a key has been held.
      *
      * @param dt real seconds, not simulation seconds — the view keeps moving at
@@ -231,6 +315,8 @@ public final class CameraControls {
     public void release() {
         rightGestureActive = false;
         panDragging = false;
+        orderDragging = false;
+        middlePanning = false;
         panKeyW = false;
         panKeyA = false;
         panKeyS = false;
@@ -239,6 +325,6 @@ public final class CameraControls {
 
     /** Whether the view is being dragged right now. */
     public boolean dragging() {
-        return panDragging;
+        return panDragging || middlePanning;
     }
 }

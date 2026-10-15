@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
+import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.fortress.CompoundLayout.Placement;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -145,20 +146,11 @@ final class FortDressing {
 
     /** A trench section at the world cell, joined to whichever world neighbours are also trench. */
     void trench(int worldX, int worldY, Set<Long> trenchCells) {
-        int mask = 0;
-        if (trenchCells.contains(key(worldX, worldY + 1))) mask |= 1;
-        if (trenchCells.contains(key(worldX + 1, worldY))) mask |= 2;
-        if (trenchCells.contains(key(worldX, worldY - 1))) mask |= 4;
-        if (trenchCells.contains(key(worldX - 1, worldY))) mask |= 8;
-        DoodadDef def = TileRegistry.installed().doodad("doodad.fort-trench-" + mask);
-        if (def == null || !ctx.grid.isWalkable(worldX, worldY)) return;
-        ctx.grid.setSeeThrough(worldX, worldY, true);
-        ctx.topology.setFixture(worldX, worldY, true);
-        ctx.doodads.add(new Doodad(worldX, worldY, def));
+        PreparedGround.trench(ctx, worldX, worldY, trenchCells);
     }
 
     static long key(int x, int y) {
-        return (long) x << 32 | (y & 0xffffffffL);
+        return PreparedGround.key(x, y);
     }
 
     /** Bare earth: the trench floor, the firing steps and the gun pit's floor. */

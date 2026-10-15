@@ -52,7 +52,9 @@ public record OfficerMissionResult(OfficerCommandProfile officer, Set<String> so
             if (!victory) {
                 boolean wipe = strength > 0 && casualties >= strength;
                 long seed = ((long) officer.id().hashCode() << 32) ^ missionId.hashCode();
-                status = wipe && new Random(seed).nextFloat() < 0.6f ? Status.KIA : Status.INJURED;
+                // The founding field commander carries the long story; a wipe wounds her instead.
+                status = wipe && !officer.founding() && new Random(seed).nextFloat() < 0.6f
+                        ? Status.KIA : Status.INJURED;
                 if (status == Status.INJURED) until = day + (wipe ? 45f : 7f);
             }
             results.add(new OfficerMissionResult(officer, ids, xp, status, until,

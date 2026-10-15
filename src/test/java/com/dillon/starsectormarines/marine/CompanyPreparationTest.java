@@ -18,9 +18,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class CompanyPreparationTest {
     @Test void theCompleteBillFundsTheRealBoatAndSquadOrdersExactly() throws Exception {
         MarineRoster roster = new MarineRoster();
-        MarineCaptain mira = new MarineCaptain("Mira Hale", null, Rank.LIEUTENANT, 0);
-        roster.add(mira);
-        roster.beginCompanyPreparation(mira);
+        MarineCaptain sabine = new MarineCaptain("Sabine Hale", null, Rank.LIEUTENANT, 0);
+        roster.add(sabine);
+        roster.beginCompanyPreparation(sabine);
         OfficerInduction induction = roster.officerInduction();
         assertEquals(Step.SHIP, induction.step(roster));
         Hold hold = new Hold();
@@ -40,9 +40,9 @@ class CompanyPreparationTest {
         assertFalse(induction.finish(roster));
         assertTrue(new BoatWorkshop(roster.boatDeck(), hold).fabricate(0).succeeded());
         assertEquals(Step.INTRODUCTION, induction.step(roster));
-        induction.introduce(mira);
+        induction.introduce(sabine);
         assertEquals(Step.SPECIALTY, induction.step(roster));
-        assertTrue(mira.train(OfficerSpecialty.TACTICAL_COVER));
+        assertTrue(sabine.train(OfficerSpecialty.TACTICAL_COVER));
         induction = roundTrip(induction);
         assertTrue(induction.companyPreparation());
         assertEquals(Step.FORMATION, induction.step(roster));
@@ -51,7 +51,7 @@ class CompanyPreparationTest {
         assertTrue(hold.stock.values().stream().allMatch(n -> n == 0));
         assertTrue(CompanyPreparation.remainingBill(roster, ShuttleType.AEROSHUTTLE).isEmpty());
         assertEquals(Step.ASSIGNMENT, induction.step(roster));
-        roster.assignCaptainToSquad(mira.id(), squad.id());
+        roster.assignCaptainToSquad(sabine.id(), squad.id());
         assertEquals(Step.READY, induction.step(roster));
         assertTrue(induction.finish(roster));
         assertTrue(roundTrip(induction).complete());
@@ -59,15 +59,15 @@ class CompanyPreparationTest {
 
     @Test void understrengthAssignedSquadCannotFinishAndTransferDoesNotMintBoats() {
         MarineRoster roster = new MarineRoster();
-        MarineCaptain mira = new MarineCaptain("Mira Hale", null, Rank.LIEUTENANT, 0);
-        roster.add(mira); roster.beginCompanyPreparation(mira);
+        MarineCaptain sabine = new MarineCaptain("Sabine Hale", null, Rank.LIEUTENANT, 0);
+        roster.add(sabine); roster.beginCompanyPreparation(sabine);
         roster.setCompanyShip("first", "First", 200);
         BoatDeck deck = roster.boatDeck();
         deck.reconcile("first", ShuttleType.HERMES, 2);
         CampaignBoat boat = deck.fabricate(0);
-        roster.officerInduction().introduce(mira); mira.train(OfficerSpecialty.RECOVERY_PLANNING);
+        roster.officerInduction().introduce(sabine); sabine.train(OfficerSpecialty.RECOVERY_PLANNING);
         MarineSquad squad = roster.createSquad(); roster.recruitToSquad(squad.id(), 11);
-        roster.assignCaptainToSquad(mira.id(), squad.id());
+        roster.assignCaptainToSquad(sabine.id(), squad.id());
         assertEquals(Step.FORMATION, roster.officerInduction().step(roster));
         deck.reconcile("second", ShuttleType.HERMES, 4);
         assertEquals(1, deck.airworthy().size());
@@ -79,10 +79,10 @@ class CompanyPreparationTest {
 
     @Test void legacyOfficerLessonsAreNotRestartedOrStrippedOfBoats() {
         MarineRoster roster = new MarineRoster();
-        MarineCaptain mira = new MarineCaptain("Mira Hale", null, Rank.LIEUTENANT, 0);
-        roster.add(mira); roster.beginOfficerInduction(mira);
+        MarineCaptain sabine = new MarineCaptain("Sabine Hale", null, Rank.LIEUTENANT, 0);
+        roster.add(sabine); roster.beginOfficerInduction(sabine);
         roster.boatDeck().reconcile("home", ShuttleType.HERMES, 2);
-        roster.beginCompanyPreparation(mira);
+        roster.beginCompanyPreparation(sabine);
         assertFalse(CompanyPreparation.required(roster));
         assertEquals(Step.INTRODUCTION, roster.officerInduction().step(roster));
         assertEquals(2, roster.boatDeck().airworthy().size());

@@ -30,7 +30,7 @@ final class MarineOpsThemes {
                     border-style: outset;
                     background-image: linear-gradient(to bottom, #ffffff0c 0%, #ffffff00 18%, #00000024 100%);
                 }
-                .workbench-root, .fleet-armory-root, .fleet-armory-overview-root, .company-hq-root,
+                .workbench-root, .fleet-armory-root, .company-hq-root,
                 .mission-select-root, .mission-briefing-root, .squad-deployment-root,
                 .stationing-root, .mission-results-root, .mission-loot-root,
                 .mech-lab-root, .boat-deck-root {
@@ -69,38 +69,9 @@ final class MarineOpsThemes {
                 .warning-surface { background-color: #332b1c; border-color: #ffd464; color: #ffd464; }
                 .danger-surface { background-color: #3d2a26; border-color: #e98b83; }
                 .edge-surface { background-color: #253b38; border-color: #a7ccc4; }
-                .company-card-ready { border-color: #78d494; }
-                .company-card-operational { border-color: #ffd464; }
-                .company-card-unready { border-color: #e98b83; }
-                /* Dossiers are steel enclosures around a dark readout, not giant keys. */
-                .squad-card, .organization-target, .company-card {
-                    background-color: #2e3736;
-                    border-style: outset;
-                    background-image: linear-gradient(to bottom, #ffffff12 0%, #ffffff00 12%, #00000026 100%);
-                }
-                .squad-card.organizing { border-color: #727b79; }
-                .organization-target:hover, .company-card:hover { background-color: #46524d; }
-                .organization-target.selected, .company-card.selected {
-                    background-color: #494431;
-                    border-style: inset;
-                }
-                .organization-target:active, .company-card:active {
-                    background-color: #222c2a;
-                    border-style: inset;
-                }
-                .squad-card.selected {
-                    background-color: #3d3b2e;
-                    border-color: #edc273;
-                    border-style: inset;
-                }
-                .squad-open, .formation-select { background-color: transparent; background-image: none; }
-                .squad-open:hover, .formation-select:hover { background-color: #ffffff08; }
+                .formation-select { background-color: transparent; background-image: none; }
+                .formation-select:hover { background-color: #ffffff08; }
                 .formation.stationed .formation-select:disabled { opacity: 0.72; }
-                .squad-command-block, .squad-card-status {
-                    background-color: #121e1c;
-                    border-color: #657771;
-                    border-style: inset;
-                }
                 #marine-ops-page-nav {
                     background-color: #343634;
                     border-color: #82857c;
@@ -208,9 +179,8 @@ final class MarineOpsThemes {
                 .mission-briefing-root .spec-sheet-subtitle, .mission-briefing-root .spec-sheet-stat-label { color: #a0ada8; }
 
                 /* Shared command keys and latching selectors; dimensions belong to each surface. */
-                .console-action, .organization-start, .organization-cancel,
-                .squad-reinforce, .slot-strip-action, .fabricate-action,
-                #compare-armor-patterns, #squad-breadcrumb button, #fireteam-breadcrumb button,
+                .console-action, .slot-strip-action, .fabricate-action,
+                #compare-armor-patterns, #fireteam-breadcrumb button,
                 #comparison-breadcrumb button, #designer-breadcrumb button, #marine-ops-page-routes button,
                 .console-toggle, .fire-team-tab, .equipment-picker-tab,
                 .loadout-filter, .supply-filter, .catalog-filter-pill,
@@ -219,23 +189,20 @@ final class MarineOpsThemes {
                     border-style: outset;
                     background-image: linear-gradient(to bottom, #ffffff15 0%, #ffffff00 12%, #00000000 80%, #00000044 82%, #00000044 100%);
                 }
-                .console-action:hover, .organization-start:hover, .organization-cancel:hover,
-                .squad-reinforce:hover, .slot-strip-action:hover, .fabricate-action:hover,
-                #compare-armor-patterns:hover, #squad-breadcrumb button:hover, #fireteam-breadcrumb button:hover,
+                .console-action:hover, .slot-strip-action:hover, .fabricate-action:hover,
+                #compare-armor-patterns:hover, #fireteam-breadcrumb button:hover,
                 #comparison-breadcrumb button:hover, #designer-breadcrumb button:hover, #marine-ops-page-routes button:hover,
                 .console-toggle:hover, .fire-team-tab:hover, .equipment-picker-tab:hover,
                 .loadout-filter:hover, .supply-filter:hover, .catalog-filter-pill:hover,
                 .team-tab:hover { background-color: #525d4e; }
-                .console-action:active, .organization-start:active, .organization-cancel:active,
-                .squad-reinforce:active, .slot-strip-action:active, .fabricate-action:active,
-                #compare-armor-patterns:active, #squad-breadcrumb button:active, #fireteam-breadcrumb button:active,
+                .console-action:active, .slot-strip-action:active, .fabricate-action:active,
+                #compare-armor-patterns:active, #fireteam-breadcrumb button:active,
                 #comparison-breadcrumb button:active, #designer-breadcrumb button:active, #marine-ops-page-routes button:active,
                 .console-toggle:active, .fire-team-tab:active, .equipment-picker-tab:active,
                 .loadout-filter:active, .supply-filter:active, .catalog-filter-pill:active,
                 .team-tab:active { background-color: #222b24; border-style: inset; }
-                .console-action:focus-visible, .organization-start:focus-visible, .organization-cancel:focus-visible,
-                .squad-reinforce:focus-visible, .slot-strip-action:focus-visible, .fabricate-action:focus-visible,
-                #compare-armor-patterns:focus-visible, #squad-breadcrumb button:focus-visible, #fireteam-breadcrumb button:focus-visible,
+                .console-action:focus-visible, .slot-strip-action:focus-visible, .fabricate-action:focus-visible,
+                #compare-armor-patterns:focus-visible, #fireteam-breadcrumb button:focus-visible,
                 #comparison-breadcrumb button:focus-visible, #designer-breadcrumb button:focus-visible, #marine-ops-page-routes button:focus-visible,
                 .console-toggle:focus-visible, .fire-team-tab:focus-visible, .equipment-picker-tab:focus-visible,
                 .loadout-filter:focus-visible, .supply-filter:focus-visible, .catalog-filter-pill:focus-visible,
@@ -274,7 +241,7 @@ final class MarineOpsThemes {
                 .heading { font-family: heading; }
                 .title { font-family: title; }
                 .panel { background-color: #071019; border-color: #d2f3ff; }
-                .workbench-root, .fleet-armory-root, .fleet-armory-overview-root, .company-hq-root,
+                .workbench-root, .fleet-armory-root, .company-hq-root,
                 .mission-select-root, .mission-briefing-root, .squad-deployment-root,
                 .stationing-root, .mission-results-root, .mission-loot-root { border-color: #63e8ff; }
                 .surface-dark { background-color: #000000; }
@@ -291,8 +258,6 @@ final class MarineOpsThemes {
                                 opacity 100ms linear;
                 }
                 button.selected { background-color: #225b75; border-color: #63e8ff; }
-                .squad-card.organizing { background-color: #071019; border-color: #d2f3ff; }
-                .squad-card.selected { background-color: #225b75; border-color: #ffe45c; }
                 button.power-armed { background-color: #3a3018; border-color: #ffe45c; color: #ffe45c; }
                 button:hover { background-color: #15577b; }
                 button:active { background-color: #2185b4; }
@@ -304,9 +269,6 @@ final class MarineOpsThemes {
                 .warning-surface { background-color: #3a3018; border-color: #ffe45c; color: #ffe45c; }
                 .danger-surface { background-color: #501c16; border-color: #ff9d91; }
                 .edge-surface { background-color: #06374b; border-color: #63e8ff; }
-                .company-card-ready { border-color: #78ff9d; }
-                .company-card-operational { border-color: #ffe45c; }
-                .company-card-unready { border-color: #ff9d91; }
                 .console-header, .console-section, .mission-briefing-root .section-heading-row {
                     background-color: #071019; border-color: #d2f3ff;
                 }
@@ -331,16 +293,14 @@ final class MarineOpsThemes {
                     background-color: #ffe45c; border-color: #ffe45c;
                 }
 
-                .console-action, .organization-start, .organization-cancel,
-                .squad-reinforce, .slot-strip-action, .fabricate-action,
-                #compare-armor-patterns, #squad-breadcrumb button, #fireteam-breadcrumb button,
+                .console-action, .slot-strip-action, .fabricate-action,
+                #compare-armor-patterns, #fireteam-breadcrumb button,
                 #comparison-breadcrumb button, #designer-breadcrumb button, #marine-ops-page-routes button,
                 .console-toggle, .fire-team-tab, .equipment-picker-tab,
                 .loadout-filter, .supply-filter, .catalog-filter-pill,
                 .team-tab { background-color: #102b42; border-color: #d2f3ff; color: #ffffff; }
-                .console-action:hover, .organization-start:hover, .organization-cancel:hover,
-                .squad-reinforce:hover, .slot-strip-action:hover, .fabricate-action:hover,
-                #compare-armor-patterns:hover, #squad-breadcrumb button:hover, #fireteam-breadcrumb button:hover,
+                .console-action:hover, .slot-strip-action:hover, .fabricate-action:hover,
+                #compare-armor-patterns:hover, #fireteam-breadcrumb button:hover,
                 #comparison-breadcrumb button:hover, #designer-breadcrumb button:hover, #marine-ops-page-routes button:hover,
                 .console-toggle:hover, .fire-team-tab:hover, .equipment-picker-tab:hover,
                 .loadout-filter:hover, .supply-filter:hover, .catalog-filter-pill:hover,

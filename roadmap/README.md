@@ -213,9 +213,9 @@ operations. The active Alpha pickup, `barracks-turnaround.md`, adds survivor
 consolidation and a guided preparation handoff. Shared stock displays and upgrade
 bills are defined in `company-view-nouns.md` (Company resource bills). `castle-officer-induction.md` adds
 Castle's portrait-led first specialty and squad assignment for founding commander
-Mira Hale, required before a new company deploys; live acceptance remains open.
+Sabine Hale, required before a new company deploys; live acceptance remains open.
 `first-mission-preparation.md` extends that lesson into one sequence from ship
-selection and the combined cargo preflight through commissioning lift, Mira's
+selection and the combined cargo preflight through commissioning lift, Sabine's
 specialty, squad founding and assignment, ending at the first Jangala story lead.
 `cerberus-company-start.md` adds the optional one-Cerberus start: fly to a planetary
 yard, install the permanent conversion and draw finite prepaid depot stores while

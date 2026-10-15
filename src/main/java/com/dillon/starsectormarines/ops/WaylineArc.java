@@ -27,9 +27,10 @@ public final class WaylineArc {
 
     public static String introduction(MarineRoster roster) {
         return switch (stage(roster)) {
-            case RELIEF -> "Mara Venn. Castle sent your particulars. I handle contracts for Wayline: drivers who pooled their money "
-                    + "to keep hauling without selling their trucks to someone bigger. The raiders took our depot. Now they're after the checkpoint. "
-                    + "I need a company willing to answer the call. You need someone willing to put a contract in front of you. Let's start there.";
+            case RELIEF -> "Mara Venn. Castle sent your particulars, and I've read them twice. I broker for Wayline, and since "
+                    + "the spring I run it, because our director took a post off-world and somebody had to. A year ago we ran freighters "
+                    + "between worlds. We lost three cargoes in a season and sold the hulls to cover them, so now we're drivers on one "
+                    + "planet's roads, pooling what's left so nobody has to sell their truck as well.";
             case DEPOT -> "The assault is broken. Recovered traffic logs put the raiders at our freight depot. "
                     + "You have bought us breathing room. Now clear the depot, so our drivers can go back to earning a living.";
             case COMPLETE -> "The depot is ours again. Dispatch can start moving freight. I've passed your name "
@@ -39,19 +40,18 @@ public final class WaylineArc {
 
     public static String briefing(OpeningOperationKind kind, String planet) {
         String location = planet != null ? " on " + planet : "";
-        return OpeningBroker.NAME + ": " + switch (kind) {
-            case RELIEF -> "For our first job together, I need you at the freight checkpoint" + location
-                    + ". The watch there is paid out of the same collection as your fee. I know some of them from the loading shifts. "
-                    + "The raiders already have our depot; this is where we stop them taking the road as well"
-                    + ". Land on the rear unloading apron and reinforce the gate. More raiders are approaching along the freight and warehouse service roads. Wayline provides militia and one shuttle. "
-                    + "Eliminate the bandit force to win. Bring as many people home as you can. "
-                    + "Cr. 6,000 on success, agreed in writing. Break the assault and I'll come to your company first about the depot. One job at a time, Captain.";
-            case COUNTERATTACK -> "Their assault is broken. Recovered traffic logs identify the occupied Wayline depot"
+        return switch (kind) {
+            // Relief's briefing is Mara's recorded introduction; this is the unvoiced summary beside it,
+            // and her tactical calls are radio traffic in the mission itself.
+            case RELIEF -> "Land on the rear unloading apron at the freight checkpoint" + location + " and reinforce the gate. "
+                    + "Raiders will come up the freight and warehouse service roads. Wayline supplies its militia and one shuttle. "
+                    + "Break the assault and bring as many people home as you can.";
+            case COUNTERATTACK -> OpeningBroker.NAME + ": Their assault is broken. Recovered traffic logs identify the occupied Wayline depot"
                     + location + ". Land at the western staging apron and advance with our militia through the freight gate, loading yard and dispatch warehouse. "
                     + "Our Hound, Wayward, is offline in the maintenance berth just beyond the gate. Secure the berth and keep a squad there while they bring its chaingun online. "
                     + "Use it for the push into dispatch and the defense that follows; direct control is optional. Win the depot and the walker is yours, including recovery and repair if it is knocked out. "
                     + "Clear the warehouse and hold company units inside for eight seconds. Then defend dispatch against two attacks entering along both service roads. Defeat the finite raider force and secure the warehouse to win. We provide one shuttle; "
-                    + "your company needs lift for two sorties. Cr. 9,000 on success, and I'll vouch for your company "
+                    + "your company needs lift for two sorties. You'll be paid on success, and I'll vouch for your company "
                     + "with Independent brokers. Let's give our drivers their road back.";
         };
     }
@@ -80,7 +80,7 @@ public final class WaylineArc {
                         + "Castle has our line-support and scout-screen specs; choose one transfer in Barracks Equipment, with free fitting in your Machine Shop. "
                         + "We can talk about the depot when you're ready. I'd rather keep working with the people who answered this call."
                     : "The depot is ours again. Dispatch can start moving freight. Your payment is cleared, "
-                        + "and Independent brokers now have your name. We have a place to load, keep records and organize work again. You gave Wayline an open road. Take time to put your own company in order; you have earned more than another emergency call.";
+                        + "and Independent brokers now have your name. We have a place to load, keep records and organize work again. One thing I can't account for: they left the strongroom alone and took the dispatch board, every route and every schedule on it. You gave Wayline an open road. Take time to put your own company in order; you have earned more than another emergency call.";
         }
         if (outcome.alliesEngaged > 0 && outcome.alliesLost >= outcome.alliesEngaged) {
             report += " None of our militia came home. We'll have to rebuild that watch.";

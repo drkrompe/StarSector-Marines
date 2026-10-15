@@ -246,7 +246,7 @@ class WaylineNarrationTest {
             assertEquals(1, matching);
             for (String prior : line.supersedes()) assertNotNull(catalog.find(line.missionId(), prior), line.id() + " supersedes " + prior);
         }
-        assertEquals(271, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
+        assertEquals(277, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
         assertEquals(catalog.lines().size(), ids.size());
     }
 
@@ -434,7 +434,7 @@ class WaylineNarrationTest {
     }
 
     private static void assertCoverage(WaylineNarration catalog, String chapter, StoryBeatLog log) {
-        assertNotNull(catalog.find(chapter, "briefing"));
+        assertFalse(catalog.briefing(chapter).isEmpty(), chapter + " has a briefing");
         for (var event : log.events()) {
             String suffix = event.id().substring(event.id().lastIndexOf('.') + 1);
             if (event.audience() == StoryBeatLog.Audience.OBSERVER_ONLY

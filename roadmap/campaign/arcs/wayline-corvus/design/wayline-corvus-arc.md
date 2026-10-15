@@ -8,8 +8,11 @@ Updated: 2026-10-13 — entry follows the closed Thunder Run freight account.
 
 ## Premise, place and cast
 
-Mara Venn follows the Sable Wake pirate crew's sale of Wayline sailing schedules
-across Corvus. Castle turns attributable records into company orders. Asharu,
+Mara Venn follows the Sable Wake pirate crew's purchase of Wayline sailing
+schedules across Corvus. The Dust Ledger archive names the seller: Wayline's former
+director, Teodor Prell, who left for a post off-world and handed Mara the
+cooperative. Why he did it, and who Sable Wake answers to, stays open for a later
+arc. Castle turns attributable records into company orders. Asharu,
 Warion and Garnir are fixed existing destinations; the isolated pirate facilities
 are authored local fiction, not the planets' governments or orbital assets.
 

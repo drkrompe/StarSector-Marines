@@ -5,35 +5,25 @@ import java.util.Arrays;
 
 /** New-company introduction. Null on a roster means a grandfathered company. */
 public final class OfficerInduction implements Serializable {
-    public static final String MIRA_PORTRAIT = "graphics/portraits/mira-hale.png";
-
-    /** Upgrade only the shipped starter likeness; preserve player-customized portraits. */
-    public static void migrateMiraPortrait(MarineRoster roster) {
-        for (MarineCaptain officer : roster.all()) {
-            if ("Mira Hale".equals(officer.name())
-                    && "graphics/portraits/portrait_mercenary01.png".equals(officer.portraitSprite()))
-                officer.setPortraitSprite(MIRA_PORTRAIT);
-        }
-    }
+    public static final String SABINE_PORTRAIT = "graphics/portraits/sabine-hale.png";
 
     public enum Step { INTRODUCTION, SPECIALTY, FORMATION, ASSIGNMENT, READY, COMPLETE, SHIP, LIFT }
 
-    private final String miraId;
+    private final String foundingOfficerId;
     private boolean introduced;
     private boolean complete;
     private boolean companyPreparation;
 
-    public OfficerInduction(String miraId) { this.miraId = miraId; }
-    public String miraId() { return miraId; }
+    public OfficerInduction(String foundingOfficerId) { this.foundingOfficerId = foundingOfficerId; }
+    public String foundingOfficerId() { return foundingOfficerId; }
     public boolean complete() { return complete; }
     public boolean companyPreparation() { return companyPreparation; }
     void prepareCompany() { companyPreparation = true; }
 
-    /** A lost/dismissed story officer is never resurrected to repair a tutorial. */
+    /** The lesson belongs to the founding field commander, who cannot be lost in battle. */
     public MarineCaptain officer(MarineRoster roster) {
-        MarineCaptain mira = roster.byId(miraId);
-        if (mira != null && mira.status() != Status.KIA) return mira;
-        return roster.all().stream().filter(c -> c.status() != Status.KIA).findFirst().orElse(null);
+        MarineCaptain founder = roster.byId(foundingOfficerId);
+        return founder != null && founder.status() != Status.KIA ? founder : null;
     }
 
     public void introduce(MarineCaptain officer) {

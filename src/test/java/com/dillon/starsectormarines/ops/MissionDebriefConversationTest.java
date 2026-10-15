@@ -16,10 +16,12 @@ class MissionDebriefConversationTest {
             var outcome = MissionOutcome.builder().missionId(OpeningOperationKind.RELIEF.missionId)
                     .missionSource(MissionSource.STORY).victory(true).marinesEngaged(12).marinesLost(lost).build();
             var lines = MissionDebriefConversation.lines(outcome, catalog);
-            assertEquals(4, lines.size());
+            assertEquals(5, lines.size());
             assertTrue(lines.get(0).speaker().startsWith("CASTLE"));
-            assertTrue(lines.get(1).speaker().startsWith("MARA"));
-            assertEquals(lost > 0, lines.get(2).text().contains("names to take off the roll"));
+            assertTrue(lines.get(1).speaker().startsWith("SABINE"));
+            assertEquals(lost > 0, lines.get(1).text().contains("roll's shorter"));
+            assertTrue(lines.get(2).speaker().startsWith("MARA"));
+            assertEquals(lost > 0, lines.get(3).text().contains("names to take off the roll"));
             assertTrue(MissionDebriefConversation.recordings(outcome, catalog).isEmpty());
             var props = ResultsScreen.previewProps(true, false);
             ResultsScreen.putStoryDebrief(props, outcome);

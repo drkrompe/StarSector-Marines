@@ -116,6 +116,22 @@ class OfficerCareerTest {
                 Set.of(), dead, false, 0, "boat-down", 20f, 1, 1));
     }
 
+    @Test void wipedFoundingOfficerIsWoundedNeverKilled() {
+        var roster = roster(); var lead = captain(roster, "Lead");
+        var squads = line(roster);
+        roster.assignCaptainToSquad(lead.id(), squads.get(0).id());
+        roster.beginOfficerInduction(lead);
+        var deployment = CampaignMarineDeployment.freezeSelection(roster, ids(roster), 24, lead);
+        var dead = Set.of(deployment.seat(0).campaignSoldierId);
+        // Every seed that would kill an ordinary officer must wound the founder for the wipe's 45 days.
+        for (int i = 0; i < 40; i++) {
+            var result = OfficerMissionResult.compute(deployment.commitments(), OfficerCommandProfile.capture(lead),
+                    Set.of(), dead, false, 0, "boat-down-" + i, 20f, 1, 1);
+            assertEquals(Status.INJURED, result.get(0).status());
+            assertEquals(65f, result.get(0).injuredUntilDay());
+        }
+    }
+
     @Test void recoveredWoundedKeepBilletsAndOtherOfficersDoNotReceiveTheBonus() {
         var roster = roster(); var lead = captain(roster, "Lead");
         lead.train(OfficerSpecialty.RECOVERY_PLANNING);

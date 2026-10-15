@@ -43,6 +43,10 @@ public final class ReliefCheckpoint {
     private static final Cell GATE = new Cell(83, 30);
     private static final Cell FORWARD_POST = new Cell(99, 30);
     private static final Cell OPENING = new Cell(122, 30);
+    /** The fallback trench: one column west of the gate, from the depot's yard to the relay's. */
+    private static final int FALLBACK_LINE_X = 74;
+    private static final int FALLBACK_LINE_TOP = 25;
+    private static final int FALLBACK_LINE_BOTTOM = 38;
     private ReliefCheckpoint() {}
 
     public static Layout generate(int width, int height, long seed, TargetProfile profile) {
@@ -54,7 +58,8 @@ public final class ReliefCheckpoint {
                 ReliefCheckpoint::grounds, ReliefCheckpoint::buildings,
                 ReliefCheckpoint::defences,
                 finished -> RoadRasterizer.clearReplacedSurfaces(finished.topology, finished.width, finished.height),
-                ReliefCheckpoint::yardSurfaces, ReliefCheckpoint::freight, ReliefCheckpoint::terrain,
+                ReliefCheckpoint::yardSurfaces, ReliefCheckpoint::freight, ReliefCheckpoint::fallbackLine,
+                ReliefCheckpoint::terrain,
                 new FinalizeStage(), new OutdoorLandscapeStage(21, 20, OPENING.x, OPENING.y))).run(ctx);
         PointOfInterest relay = ctx.pois.stream().filter(p -> p.kind == PointOfInterest.Kind.COMMS).findFirst().orElseThrow();
         List<Cell> main = List.of(new Cell(width - 2, 30), new Cell(114, 30), new Cell(91, 30));
@@ -155,6 +160,17 @@ public final class ReliefCheckpoint {
         // Open-backed exterior screen. The freight road remains fully traversable.
         for (int y : new int[]{27, 28, 32, 33})
             c.grid.placeEdgeBarrier(FORWARD_POST.x + 1, y, Direction.E, SharedEdgeBarrier.Kind.REVETMENT);
+    }
+
+    /**
+     * A trench across the road nine cells behind the gate's sandbags: somewhere for a company that has moved up
+     * to stand and cover the gate, and the line to fall back to if it is forced. Long enough to seat a squad, so
+     * a click on it is an occupy order.
+     */
+    private static void fallbackLine(GenContext c) {
+        List<int[]> line = new ArrayList<>();
+        for (int y = FALLBACK_LINE_TOP; y <= FALLBACK_LINE_BOTTOM; y++) line.add(new int[]{FALLBACK_LINE_X, y});
+        PreparedGround.trenchLine(c, line);
     }
 
     private static void wall(GenContext c, int x, int y) {

@@ -291,8 +291,20 @@ The opening arc is **Wayline: An Open Road**. **Mara Venn**, an Independent
 broker based canonically on **Jangala in Corvus**, represents the **Wayline
 freight cooperative**, an authored local commercial interest. Neither her
 affiliation nor its militia implies that Jangala's government is Independent.
-Wayline's drivers pooled money for local protection; raiders occupied their
-freight depot and now threaten its militia post. This is a local company story,
+Wayline used to run freighters between worlds. It lost cargoes to interception,
+sold its hulls to cover them, and is down to drivers hauling on one planet's
+roads, pooling what is left for local protection. Raiders occupied their freight
+depot and now threaten its militia post. Mara is Wayline's broker and, since its
+director left for a post off-world, its acting head; she still does the
+brokering because nobody else can.
+
+Wayline is a soft target, and that is the public answer to why the raiders are on
+its road: no licensed security, no ships left, a watch made of drivers. The
+deeper answer is that someone is selling Wayline's schedules. The interceptions
+that cost the hulls and the depot raid both followed them. The Corvus Account
+reveals the seller as the departed director, Teodor Prell; why he did it, and
+who Sable Wake answers to, stays open beyond Corvus. Until then the opening and
+supply-route chapters only hint at it, one unexplained line at a time. This is a local company story,
 not a simulated change to vanilla market ownership, trade, or faction relations.
 
 The opening introduction is a first commercial relationship. Castle puts the
@@ -348,14 +360,24 @@ advance directly to the depot; older Counterattack victories close the arc.
 No meeting flag, re-acceptance, or migration resets that history. The final
 victory is authoritative even for a legacy record missing its earlier fact.
 
+Relief's pre-mission briefing is Mara's recorded introduction: who she is, what
+Wayline lost and what she is asking for, followed by the founding field
+commander's word on landing in trips. The briefing screen carries an unvoiced
+tactical summary beside it, so nothing the player needs to choose squads and
+lift is said only once over the radio. The tactical detail is radio traffic in
+the mission: one ordered exchange begins at launch and plays through while the
+company's boat makes its trips. Landings in Relief are facts rather than cues, so
+the exchange cannot fall out of order; urgent militia losses interrupt it, and
+an interrupted instruction resumes only within its relevance window.
+
 Story results contain a message from Mara alongside normal settlement and
 personnel facts. Allied and company losses are acknowledged only from the frozen
 outcome. A total militia loss is never described as a line saved intact. Story
 text does not introduce a survival bonus or override battle victory.
-Relief victory also carries a short written Castle/Mara exchange: the first
-Wayline payment has arrived, the company has earned a name with the drivers,
-and Mara wants to work together again. Castle acknowledges company deaths when
-present; otherwise she turns to crew pay and supplies without promising that
+Relief victory also carries a short written Castle/Sabine/Mara exchange: the
+first Wayline payment has arrived, Sabine reports her muster, the company has
+earned a name with the drivers, and Mara wants to work together again. Sabine and
+Castle acknowledge company deaths when present; otherwise she turns to crew pay and supplies without promising that
 every survivor is uninjured. The exchange grants nothing and is absent on defeat
 and recurring work. Its unrecorded transcript offers no audio playback controls;
 the existing tactical radio recordings remain the operational briefing.
@@ -483,8 +505,11 @@ freight run whose finite ledger ended in failure. Mara's correspondence preserve
 actual deliveries and losses without inventing casualties. Existing recurring arrangements
 remain at their original site.
 
-The arc concerns **Sable Wake**, a mod-authored pirate crew selling Wayline's
-sailing schedules. It has three ordered, single-payment chapters:
+The arc concerns **Sable Wake**, a mod-authored pirate crew buying Wayline's
+sailing schedules. The Dust Ledger archive shows them released under the
+authority of Wayline's former director, the last batch dated the week he left;
+Mara learns her predecessor sold the cooperative he built and cannot work out
+why. It has three ordered, single-payment chapters:
 
 | Chapter | Destination | Objective | Recommended company | Award |
 |---|---|---|---|---|
@@ -1115,8 +1140,10 @@ A **story beat** is a confirmed event in one battle attempt, identified by a
 stable scenario key and simulation tick. It is a presentation hook, not a new
 objective, a wave-release rule, or a campaign completion flag. Opening scenarios
 publish the start, actual company/employer arrival, proximity to authored
-places, and terminal victory, defeat or retreat. Relief additionally reports
-the original militia line weakening or being lost and actual road arrivals;
+places, and terminal victory, defeat or retreat. In Relief the arrivals are
+observer-only and the start also publishes the ordered launch exchange. Relief
+additionally reports the original militia line weakening or being lost and
+actual road arrivals;
 Counterattack reports reserve commitment and defensive fallback. Its story
 warehouse defense also publishes actual capture, announced road attacks, the
 final warning, first hostile entry and secured completion. Those authored

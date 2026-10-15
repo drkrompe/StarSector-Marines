@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.marine.OfficerCommandProfile;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.SoundAPI;
 import org.json.JSONArray;
@@ -45,6 +46,7 @@ public final class OperationRadio {
     private SoundAPI sound;
     private float remaining, gap, cooldown, sequenceAge;
     private int lastActor = -1;
+    private boolean fieldCommanderDeployed;
     private final Map<Cue, List<Report>> remainingReports = new EnumMap<>(Cue.class);
     private final Map<Cue, String> lastReports = new EnumMap<>(Cue.class);
     private record Report(int actorIndex, String lineId) { }
@@ -72,11 +74,44 @@ public final class OperationRadio {
         }
     }
 
-    public record Catalog(List<Actor> actors, Map<AssignmentKind, String> instructions, Map<String, Line> lines) {
+    /**
+     * The company's own officer on the ground. Castle may hand a company-wide tasking to her, and she
+     * passes it to one callsign: an alternative voicing of the same exchange, never a replacement.
+     */
+    public record FieldCommand(String id, String label, String portrait, String call, String ack,
+                               Map<String, String> handoffs, Map<String, String> withdrawHandoffs) {
+        public FieldCommand {
+            portrait = portrait == null ? "" : portrait;
+            handoffs = Map.copyOf(handoffs);
+            withdrawHandoffs = Map.copyOf(withdrawHandoffs);
+        }
+
+        String handoff(String actor, AssignmentKind kind) {
+            String specific = kind == AssignmentKind.WITHDRAW ? withdrawHandoffs.get(actor) : null;
+            return specific != null ? specific : handoffs.get(actor);
+        }
+    }
+
+    public record Catalog(List<Actor> actors, Map<AssignmentKind, String> instructions, Map<String, Line> lines,
+                          FieldCommand fieldCommand) {
+        public Catalog(List<Actor> actors, Map<AssignmentKind, String> instructions, Map<String, Line> lines) {
+            this(actors, instructions, lines, null);
+        }
+
         public Catalog {
             actors = List.copyOf(actors);
             instructions = Map.copyOf(instructions);
             lines = Map.copyOf(lines);
+            if (fieldCommand != null) {
+                if (!speaks(lines, fieldCommand.call(), "command") || !speaks(lines, fieldCommand.ack(), fieldCommand.id()))
+                    throw new IllegalArgumentException("Invalid field-command handshake");
+                for (Actor actor : actors)
+                    if (!speaks(lines, fieldCommand.handoffs().get(actor.id()), fieldCommand.id()))
+                        throw new IllegalArgumentException("Missing field-command handoff " + actor.id());
+                for (String id : fieldCommand.withdrawHandoffs().values())
+                    if (!speaks(lines, id, fieldCommand.id()))
+                        throw new IllegalArgumentException("Invalid field-command handoff " + id);
+            }
             for (Actor actor : actors) {
                 for (String id : List.of(actor.call(), actor.ack(), actor.readback())) {
                     if (!lines.containsKey(id)) throw new IllegalArgumentException("Missing radio turn " + id);
@@ -96,6 +131,11 @@ public final class OperationRadio {
             }
             for (String id : instructions.values())
                 if (!lines.containsKey(id)) throw new IllegalArgumentException("Missing instruction " + id);
+        }
+
+        private static boolean speaks(Map<String, Line> lines, String id, String speaker) {
+            Line line = id == null ? null : lines.get(id);
+            return line != null && line.speaker().equals(speaker);
         }
     }
 
@@ -128,6 +168,8 @@ public final class OperationRadio {
     private static final class Pending {
         final int squadId;
         final AssignmentKey assignment;
+        /** Several squads were retasked together: a company-level fact the field commander may voice. */
+        boolean company;
         float age;
         Pending(int squadId, AssignmentKey assignment) {
             this.squadId = squadId;
@@ -190,11 +232,28 @@ public final class OperationRadio {
         JSONObject orders = root.getJSONObject("instructions");
         for (AssignmentKind kind : AssignmentKind.values())
             if (orders.has(kind.name())) instructions.put(kind, orders.getString(kind.name()));
-        return new Catalog(actors, instructions, lines);
+        FieldCommand field = null;
+        JSONObject ground = root.optJSONObject("fieldCommand");
+        if (ground != null) {
+            field = new FieldCommand(ground.getString("id"), ground.getString("label"),
+                    ground.optString("portrait", ""), ground.getString("call"), ground.getString("ack"),
+                    strings(ground.getJSONObject("handoffs")), strings(ground.optJSONObject("withdrawHandoffs")));
+        }
+        return new Catalog(actors, instructions, lines, field);
+    }
+
+    private static Map<String, String> strings(JSONObject object) throws JSONException {
+        Map<String, String> result = new HashMap<>();
+        String[] keys = object == null ? null : JSONObject.getNames(object);
+        if (keys == null) return result;
+        for (String key : keys) result.put(key, object.getString(key));
+        return result;
     }
 
     /** Reads only living own infantry and the arbiter's current accepted directive after simulation advance. */
     public void observe(BattleSimulation sim) {
+        OfficerCommandProfile officer = sim.operationOfficer();
+        fieldCommanderDeployed = officer != null && officer.founding();
         List<Observation> rows = new ArrayList<>();
         for (Squad squad : sim.getSquads()) {
             if (squad.faction != Faction.MARINE || squad.aliveMembers <= 0
@@ -222,11 +281,17 @@ public final class OperationRadio {
                     && !Objects.equals(observed.get(row.squadId()), key)
                     && random.nextInt(++changes) == 0) candidate = new Pending(row.squadId(), key);
         }
+        if (candidate != null) candidate.company = changes > 1;
         observed.clear();
         observed.putAll(latest);
         if (pending != null && !valid(pending)) pending = null;
         if (context != null && !valid(context)) discardUnspoken();
         if (pending == null && !busy() && cooldown <= 0) pending = candidate;
+    }
+
+    /** Whether the company's founding officer leads this deployment; she speaks only when she is down there. */
+    void fieldCommanderDeployed(boolean deployed) {
+        fieldCommanderDeployed = deployed;
     }
 
     private boolean valid(Pending item) {
@@ -261,13 +326,19 @@ public final class OperationRadio {
     public Transmission beginExchange() {
         if (!available() || busy() || gap > 0 || pending == null || cooldown > 0 || !valid(pending)) return null;
         Actor actor = actor();
-        String order = catalog.instructions().get(pending.assignment.kind());
+        AssignmentKind kind = pending.assignment.kind();
+        String order = catalog.instructions().get(kind);
+        FieldCommand field = catalog.fieldCommand();
+        // A company-wide retasking may go through the field commander or straight to the squad.
+        boolean relay = pending.company && fieldCommanderDeployed && field != null && random.nextBoolean();
         context = pending;
         pending = null;
         sequenceAge = 0;
         cooldown = 30;
-        for (String id : List.of(actor.call(), actor.ack(), order, actor.readback()))
-            sequence.addLast(transmission(id, actor));
+        List<String> turns = relay
+                ? List.of(field.call(), field.ack(), order, field.handoff(actor.id(), kind), actor.readback())
+                : List.of(actor.call(), actor.ack(), order, actor.readback());
+        for (String id : turns) sequence.addLast(transmission(id, actor));
         return start(sequence.removeFirst());
     }
 
@@ -306,9 +377,12 @@ public final class OperationRadio {
 
     private Transmission transmission(String id, Actor actor) {
         Line line = catalog.lines().get(id);
-        boolean command = line.speaker().equals("command");
-        return new Transmission(line, command ? "COMPANY COMMAND" : actor.label(),
-                command ? "graphics/portraits/castle.png" : actor.portrait());
+        if (line.speaker().equals("command"))
+            return new Transmission(line, "COMPANY COMMAND", "graphics/portraits/castle.png");
+        FieldCommand field = catalog.fieldCommand();
+        if (field != null && line.speaker().equals(field.id()))
+            return new Transmission(line, field.label(), field.portrait());
+        return new Transmission(line, actor.label(), actor.portrait());
     }
 
     private Transmission start(Transmission transmission) {
@@ -342,6 +416,7 @@ public final class OperationRadio {
         observed.clear();
         cooldown = 0;
         lastActor = -1;
+        fieldCommanderDeployed = false;
         remainingReports.clear();
         lastReports.clear();
     }

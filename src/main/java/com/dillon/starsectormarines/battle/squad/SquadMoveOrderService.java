@@ -15,18 +15,27 @@ public final class SquadMoveOrderService {
     public static final int DEFEND_AREA_RADIUS_CELLS = 20;
 
     static final class PendingOrder {
-        enum Kind { MOVE, DEFEND_AREA }
+        enum Kind { MOVE, DEFEND_AREA, LINE }
 
         final int squadId;
         final int cellX;
         final int cellY;
         final Kind kind;
+        /** For a {@link Kind#LINE}: where the drag ended; ({@link #cellX}, {@link #cellY}) is where it began. */
+        final int endX;
+        final int endY;
 
         PendingOrder(int squadId, int cellX, int cellY, Kind kind) {
+            this(squadId, cellX, cellY, kind, cellX, cellY);
+        }
+
+        PendingOrder(int squadId, int cellX, int cellY, Kind kind, int endX, int endY) {
             this.squadId = squadId;
             this.cellX = cellX;
             this.cellY = cellY;
             this.kind = kind;
+            this.endX = endX;
+            this.endY = endY;
         }
     }
 
@@ -81,10 +90,14 @@ public final class SquadMoveOrderService {
      * is an <b>occupy</b> order, or {@link OccupyPositionDecision#NONE} for an ordinary
      * defense area. Execution is identical; the run only narrows which position cells
      * the squad's marines are given.
+     *
+     * <p>{@code line} is the frontage the player drew when this is a <b>line</b> order, or
+     * null. The circle then encloses the line's band, and the squad spreads along the line
+     * rather than around the circle's centre.
      */
     public record ActiveDefendAreaOrder(int requestedX, int requestedY,
                                         int destinationX, int destinationY,
-                                        int radiusCells, int occupyRunId)
+                                        int radiusCells, int occupyRunId, FrontageLine line)
             implements ActiveOrder {
 
         public ActiveDefendAreaOrder(int requestedX, int requestedY,
@@ -92,6 +105,12 @@ public final class SquadMoveOrderService {
                                      int radiusCells) {
             this(requestedX, requestedY, destinationX, destinationY, radiusCells,
                     OccupyPositionDecision.NONE);
+        }
+
+        public ActiveDefendAreaOrder(int requestedX, int requestedY,
+                                     int destinationX, int destinationY,
+                                     int radiusCells, int occupyRunId) {
+            this(requestedX, requestedY, destinationX, destinationY, radiusCells, occupyRunId, null);
         }
 
         /** Whether this area was placed by clicking a fighting position. */
@@ -107,6 +126,11 @@ public final class SquadMoveOrderService {
     public void requestMove(int squadId, int cellX, int cellY) {
         pending.add(new PendingOrder(squadId, cellX, cellY,
                 PendingOrder.Kind.MOVE));
+    }
+
+    /** Queues a line for the squad to hold, drawn from ({@code x0},{@code y0}) to ({@code x1},{@code y1}). */
+    public void requestLine(int squadId, int x0, int y0, int x1, int y1) {
+        pending.add(new PendingOrder(squadId, x0, y0, PendingOrder.Kind.LINE, x1, y1));
     }
 
     /** Queues placement of a persistent 40-cell-diameter defense area. */

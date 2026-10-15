@@ -1,0 +1,13 @@
+{
+  "generated_voice_id": "HxukbcZk1kzjQXromIdh",
+  "media_type": "audio/mpeg",
+  "duration_secs": 20.9268125,
+  "language": "en",
+  "detected_labels": null,
+  "previews": null,
+  "file": "sabine-candidate-1.mp3",
+  "audioSha256": "065f37190d51735e4b5596bdd209dced47f463545851143e47402cf1a14fcfd8",
+  "audioBytes": 334829,
+  "auditionOnly": true,
+  "permanentVoiceCreated": false
+}

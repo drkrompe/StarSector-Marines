@@ -1,0 +1,63 @@
+{
+  "endpoint": "https://api.elevenlabs.io/v1/text-to-voice/design?output_format=mp3_44100_128",
+  "modelId": "eleven_ttv_v3",
+  "payload": {
+    "voice_description": "A distinctly female voice belonging to a woman in her early thirties, a native Eastern European speaker of English with a light, clear Polish accent. Excellent studio recording quality. Low, steady lower-middle register with a slightly husky, dry texture. A former convoy escort commander now leading marines on the ground: calm, measured and exact. She never raises her voice; urgency shows in shorter, clipped sentences and firm consonants rather than volume. Even, deliberate pacing, about 150 words per minute, with brief pauses between counted facts. Quiet warmth for her own people, beneath a reserved, unhurried manner. Everyday spoken radio dialogue, not narration or performance.",
+    "text": "Twelve present, Commander. Counted. First time anyone's paid them to stand watch since the Claim. Castle, Sabine. Everyone's down and counted. Moving off the pad. Compound's ours. Kestrel, sit on it. Everyone else, on me. Castle, we're thin down here. I can hold. I can't push.",
+    "model_id": "eleven_ttv_v3",
+    "auto_generate_text": false,
+    "stream_previews": false,
+    "should_enhance": false
+  },
+  "completedAt": "2026-10-14T23:14:53.359127+00:00",
+  "headers": {
+    "request-id": null,
+    "character-cost": null,
+    "history-item-id": null
+  },
+  "responseText": "Twelve present, Commander. Counted. First time anyone's paid them to stand watch since the Claim. Castle, Sabine. Everyone's down and counted. Moving off the pad. Compound's ours. Kestrel, sit on it. Everyone else, on me. Castle, we're thin down here. I can hold. I can't push.",
+  "candidates": [
+    {
+      "generated_voice_id": "HxukbcZk1kzjQXromIdh",
+      "media_type": "audio/mpeg",
+      "duration_secs": 20.9268125,
+      "language": "en",
+      "detected_labels": null,
+      "previews": null,
+      "file": "sabine-candidate-1.mp3",
+      "audioSha256": "065f37190d51735e4b5596bdd209dced47f463545851143e47402cf1a14fcfd8",
+      "audioBytes": 334829,
+      "auditionOnly": true,
+      "permanentVoiceCreated": false
+    },
+    {
+      "generated_voice_id": "BcBlwkodDomDA9s5XmDr",
+      "media_type": "audio/mpeg",
+      "duration_secs": 22.9905,
+      "language": "en",
+      "detected_labels": null,
+      "previews": null,
+      "file": "sabine-candidate-2.mp3",
+      "audioSha256": "df908b9f5a3d2720a8bab841c441f9fb663ac1662a3ce8cc5fb5c0c6dcb38963",
+      "audioBytes": 367848,
+      "auditionOnly": true,
+      "permanentVoiceCreated": false
+    },
+    {
+      "generated_voice_id": "m9sQnxh8W4TTCwD4Dk3A",
+      "media_type": "audio/mpeg",
+      "duration_secs": 23.878625,
+      "language": "en",
+      "detected_labels": null,
+      "previews": null,
+      "file": "sabine-candidate-3.mp3",
+      "audioSha256": "e269409e7368c494bc019fff4f2630dd93e696f0f42010ae529e12b30d9438c0",
+      "audioBytes": 382058,
+      "auditionOnly": true,
+      "permanentVoiceCreated": false
+    }
+  ],
+  "requestCount": 1,
+  "permanentVoiceCreated": false,
+  "listeningVerified": false
+}
