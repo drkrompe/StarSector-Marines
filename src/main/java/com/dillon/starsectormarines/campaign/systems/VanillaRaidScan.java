@@ -65,6 +65,9 @@ final class VanillaRaidScan {
                 : Global.getSector().getIntelManager().getIntel(RaidIntel.class)) {
             if (!(intel instanceof RaidIntel)) continue;
             if (intel instanceof HegemonyInspectionIntel) continue;
+            // Never armed against, so never ended: a won defence must not force-fail a
+            // Nexerelin invasion by the same faction on the same market.
+            if (VanillaRaidGarrisonSystem.isNexerelinOffensive(intel.getClass())) continue;
             RaidIntel raid = (RaidIntel) intel;
             boolean over = raid.isEnded() || raid.isEnding()
                     || raid.isFailed() || raid.isSucceeded();
