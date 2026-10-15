@@ -698,6 +698,14 @@ Do not run builds or leave generated task files there.
   determinism failure in the header. Any `-Dbattle.*` switch is forwarded, so a behaviour
   tweak shows as the rows that move between a run and its control run. Controlled
   construction with a detached kit, not a campaign roster, and not balance acceptance.
+  `-Pgifs=true` records each fight's first `-PgifSeeds=1` seeds as a 1920x1080 GIF under
+  `gifs/<scenario>/` (linked from the Replay column of `matchups.md` and `runs.csv`); it is on
+  by default for an explicit `-Pattacker`/`-Pdefender` matchup and off for the ladder, where it
+  would write a gigabyte. A recording only reads the sim: sparse frames until the first damage,
+  dense after it, shots and impacts drawn, a camera that follows the main body of the fight
+  (a routed straggler is left out of the framing), capped at 360 frames. A scenario's walls have
+  no art, so a scenario overrides `annotations()` to box what it built. Rendering takes turns
+  across the side-by-side fights and costs about 20-30s a recording.
   A new scenario implements `MatchupScenario` and joins `MatchupScenarios.all()`.
 - `gradlew.bat crewEvidence` → crews a transport and a capital from their own
   room programs, runs each for four minutes of ship's time, and reports what the

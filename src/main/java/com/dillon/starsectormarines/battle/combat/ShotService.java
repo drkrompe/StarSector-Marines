@@ -101,17 +101,34 @@ public final class ShotService {
         public final boolean friendly;
         /** Authoritative special-equipment source, when applicable. */
         public final SpecialEquipmentDef specialEquipmentDef;
+        /** Where on a person the round landed, or null when the victim has no parts or the payload is not a modeled round. */
+        public final BodyPart part;
 
         public PendingImpact(long victimId, long shooterId, float remainingTime,
                              float damage, float penetration, float moraleImpact,
                              boolean friendly) {
             this(victimId, shooterId, remainingTime, damage, penetration,
-                    moraleImpact, friendly, (SpecialEquipmentDef) null);
+                    moraleImpact, friendly, (SpecialEquipmentDef) null, null);
+        }
+
+        public PendingImpact(long victimId, long shooterId, float remainingTime,
+                             float damage, float penetration, float moraleImpact,
+                             boolean friendly, BodyPart part) {
+            this(victimId, shooterId, remainingTime, damage, penetration,
+                    moraleImpact, friendly, null, part);
         }
 
         public PendingImpact(long victimId, long shooterId, float remainingTime,
                              float damage, float penetration, float moraleImpact,
                              boolean friendly, SpecialEquipmentDef specialEquipmentDef) {
+            this(victimId, shooterId, remainingTime, damage, penetration,
+                    moraleImpact, friendly, specialEquipmentDef, null);
+        }
+
+        public PendingImpact(long victimId, long shooterId, float remainingTime,
+                             float damage, float penetration, float moraleImpact,
+                             boolean friendly, SpecialEquipmentDef specialEquipmentDef,
+                             BodyPart part) {
             this.victimId = victimId;
             this.shooterId = shooterId;
             this.remainingTime = remainingTime;
@@ -120,6 +137,7 @@ public final class ShotService {
             this.moraleImpact = moraleImpact;
             this.friendly = friendly;
             this.specialEquipmentDef = specialEquipmentDef;
+            this.part = part;
         }
     }
 

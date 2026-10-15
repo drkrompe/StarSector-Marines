@@ -125,6 +125,12 @@ public final class BattleReviewFrameRenderer {
         return this;
     }
 
+    /** Moves a close-view camera: for a recording that follows the fight rather than framing the whole map. */
+    public BattleReviewFrameRenderer refocus(float focusX, float focusY, float cellsAcross) {
+        this.focusX = focusX; this.focusY = focusY; this.focusWidth = cellsAcross;
+        return this;
+    }
+
     public int width() { return width; }
 
     public int height() { return height; }

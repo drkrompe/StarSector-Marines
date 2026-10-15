@@ -282,7 +282,7 @@ public class HeavyWeapons {
                         : contactDamage;
                 shots.queueImpact(new ShotService.PendingImpact(
                         bodyHit.victimId(), shooter, bodyHit.flightTime(), appliedDamage,
-                        contactPenetration, moraleImpact, bodyHit.friendly()));
+                        contactPenetration, moraleImpact, bodyHit.friendly(), bodyHit.part()));
             }
         }
 
