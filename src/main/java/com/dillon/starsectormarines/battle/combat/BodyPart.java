@@ -7,13 +7,18 @@ package com.dillon.starsectormarines.battle.combat;
  * meets the man, so a low round hits the legs. Only bodies whose type {@code hasBodyParts()} have
  * parts; a hull or a creature is one whole-body contact.
  *
+ * <p>A part also decides what the hit is worth: its {@link #damageMultiplier} scales a payload
+ * that landed on it, and a limb that takes structure is {@linkplain #wounds wounded}. The
+ * multipliers are set so their share-weighted mean is one: in the open a man takes the damage he
+ * always did on average, and only cover, which changes which parts are left to hit, shifts it.
+ *
  * <p>See {@code body-part-cover.md}.
  */
 public enum BodyPart {
-    HEAD(0.10f),
-    ARMS(0.20f),
-    TORSO(0.40f),
-    LEGS(0.30f);
+    HEAD(0.10f, 1.60f),
+    ARMS(0.20f, 0.75f),
+    TORSO(0.40f, 1.10f),
+    LEGS(0.30f, 0.85f);
 
     /** Bottom to top. */
     private static final BodyPart[] UP_THE_BODY = {LEGS, TORSO, ARMS, HEAD};
@@ -21,8 +26,23 @@ public enum BodyPart {
     /** Fraction of hits on an uncovered body that land on this part. The shares sum to one. */
     public final float share;
 
-    BodyPart(float share) {
+    /**
+     * What a payload that landed on this part is worth, as a multiple of its authored damage.
+     * Applied before mitigation and armour, which stay whole-body layers.
+     */
+    public final float damageMultiplier;
+
+    BodyPart(float share, float damageMultiplier) {
         this.share = share;
+        this.damageMultiplier = damageMultiplier;
+    }
+
+    /**
+     * Whether a hit here that takes structure leaves a wound: a leg slows the man, an arm costs
+     * him his aim. A head or torso hit is only damage.
+     */
+    public boolean wounds() {
+        return this == LEGS || this == ARMS;
     }
 
     /**

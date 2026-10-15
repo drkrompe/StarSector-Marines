@@ -4,7 +4,7 @@ Status: ACTIVE — armor-and-structure resolution is live; decision, evidence, a
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — explicit power-suit class separates carrier endurance from role and named personnel.
+Updated: 2026-10-15 — a payload's body part scales it before armour, and a limb hit that reaches structure wounds.
 
 ## Purpose
 
@@ -58,6 +58,15 @@ needing an arbitrary bonus against every unit classified as hardened.
 - **Mitigation facing** — the direction the screen points. It is simulation
   state maintained from the wearer's own movement and target, never read from a
   presentation facing.
+- **Body part** — where on a person a direct round landed (`ballistics-nouns.md`).
+  A payload may carry one; area, strafe and unattributed payloads, and every
+  hit on a hull or creature, carry none.
+- **Part multiplier** — what a payload that landed on a part is worth, as a
+  multiple of its authored damage: the head more, the limbs less. The
+  multipliers average to one over an uncovered silhouette.
+- **Wound** — what a legs or arms hit that removed structure leaves on the man
+  for the rest of the battle: a leg wound slows him, an arm wound costs him
+  accuracy. It is a condition read through a unit modifier, not a capacity.
 - **Resolved damage** — actual armor and structure removed, each clamped to
   the capacity that existed, plus the mitigated damage a screen absorbed. Requested
   damage and resisted energy are not credited as resolved damage; mitigated
@@ -85,7 +94,25 @@ structure. Structure reaching zero owns defeat and kill credit. Armor reaching
 zero does not kill an actor.
 
 Cover applies before armor so physical protection is neither bypassed nor
-double-counted. Wall durability remains a separate map-structure system with
+double-counted.
+
+**A body part scales the payload, not the armour.** A payload with a part is
+multiplied by that part's multiplier at the same seam where a partless payload
+takes its cover cut — before mitigation and armour — so penetration still meets
+the same plate at the same efficiency, and armour remains one whole-body layer.
+Per-part armour is a later question (`body-part-cover.md`). Shares and
+multipliers live together on the part and are read nowhere else.
+
+**A limb hit that reaches the man wounds him.** When a legs or arms payload
+removes structure from a man who survives it, he carries one more wound on that
+limb. A hit the plate absorbed whole never reached him and wounds nothing; a
+head or torso hit is only damage. Wounds stack per limb toward a floor, so a
+badly wounded man still walks and still shoots, and they last the battle unless
+a medic's completed treatment dresses them. Their effect is a pair of named
+unit modifiers (`ai-nouns.md`, Unit modifiers), so the slowed walk and the
+shaken aim are read through, seen by the player, and gone with nothing to
+restore when dressed. Hits by part and wounds inflicted are tallied per struck
+side as battle evidence. Wall durability remains a separate map-structure system with
 weapon-authored wall damage; wall damage is not renamed penetration.
 
 Authored shared-edge barriers belong to that same map-structure boundary, not
@@ -191,7 +218,8 @@ gameplay need that the armour-and-structure model cannot express.
 to a squadmate over a timed treatment, and may bring a broken plate back from
 zero. That is repair done to one marine by another, out of finite supplies — not
 regeneration, not self-repair, and never a mitigation. Rating is unchanged: a
-re-plated suit is the same suit with capacity back. Armor break remains a
+re-plated suit is the same suit with capacity back. A treatment that runs to
+completion also dresses the patient's limb wounds; one interrupted leaves them. Armor break remains a
 *transition* rather than a once-per-life event, so a re-plated marine whose
 armor is shot away again breaks a second time.
 
@@ -308,6 +336,10 @@ armor, structure, rating, and penetration presentation.
 - Resolved damage is clamped capacity loss; resisted or overkill damage is not
   credited output.
 - Cover resolves before armor; walls retain their separate durability model.
+- A body part scales its payload before mitigation and armor; it never changes
+  penetration or armor efficiency. A wound needs structure removed.
+- Wounds act only as unit modifiers and are written only on the serialized
+  damage path and the serial medic pass.
 - Mitigation resolves between them, and is reported as its own quantity. It is
   always finite (a pool that can be spent), never all-round (the arc stays below
   360 degrees), always expiring, never a capacity, and never restores one — armor

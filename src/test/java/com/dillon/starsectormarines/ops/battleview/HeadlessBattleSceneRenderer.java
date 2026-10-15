@@ -15,8 +15,10 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.marine.EquipmentLayerDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.DrawCommand;
 import com.dillon.starsectormarines.render2d.PolyMesh;
+import com.dillon.starsectormarines.render2d.RibbonBatch;
 import com.dillon.starsectormarines.ui.retained.CanvasBlend;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasHostPass;
@@ -35,6 +37,7 @@ import java.lang.ref.SoftReference;
 import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -135,7 +138,14 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
         return installed == null ? List.of(modRoot) : List.of(modRoot, installed);
     }
 
-    private static HeadlessBattleSprites sharedSprites(Path modRoot) throws Exception {
+    /** The shared sprite set for a mod root, with the catalogs it reads installed first, for a feed built before any frame renderer. */
+    static HeadlessBattleSprites spritesFor(Path modRoot) throws Exception {
+        HeadlessArmoryPreviewRenderer.installCatalogs(modRoot);
+        installTileCatalogs(modRoot);
+        return sharedSprites(modRoot);
+    }
+
+    static HeadlessBattleSprites sharedSprites(Path modRoot) throws Exception {
         Path normalized = modRoot.toAbsolutePath().normalize();
         synchronized (SHARED_SPRITES) {
             SoftReference<HeadlessBattleSprites> cached = SHARED_SPRITES.get(normalized);
@@ -176,14 +186,37 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
             diag.append(" | selected=").append(frame.layers());
             System.out.println(diag);
         }
+        // Presentation state the production screen feeds its services every tick (contrail samples, lingering beams,
+        // delivered rounds) is not in the simulation, so a review feed owns it and hands the collected commands in.
+        DrawList overlay = scenePass instanceof ReviewOverlayPass review ? review.overlay(frame.context().camera) : null;
+        camera = frame.context().camera;
         for (RenderLayer layer : RenderLayer.values()) {
             if (!frame.layers().contains(layer)) continue;
+            // Ahead of the layer's own commands: the production SHOTS order is contrails, delivered rounds and beams,
+            // and only then the bodies, so a missile is drawn over its own trail.
+            if (overlay != null) {
+                for (int index = 0; index < overlay.count(layer); index++) {
+                    drawCommand(context, viewport, overlay.buffer(layer)[index]);
+                }
+            }
             for (int index = 0; index < commands.count(layer); index++) {
                 drawCommand(context, viewport, commands.buffer(layer)[index]);
             }
         }
         return true;
     }
+
+    /**
+     * A review pass that brings commands of its own into the frame: the part of the production presentation that
+     * lives in services the screen ticks rather than in the simulation.
+     */
+    interface ReviewOverlayPass {
+        /** The commands to draw alongside the production collection, projected through {@code camera}. */
+        DrawList overlay(BattleCamera camera);
+    }
+
+    /** The camera of the frame being drained, which a ribbon needs to expand its samples into screen space. */
+    private BattleCamera camera;
 
     private void drawCommand(CanvasContext context, CanvasHostViewport viewport,
                              DrawCommand command) {
@@ -236,16 +269,77 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
                 if (command.customDraw() instanceof WorldLabel label) drawWorldLabel(context, surfaceHeight, label);
                 else if (command.customDraw() instanceof ShieldDomePass domes) drawDomes(context, viewport, domes);
                 else if (command.customDraw() instanceof NightLightingPass night) drawNightLighting(context, viewport, night);
+                else if (command.customDraw() instanceof EngineFxPass engine) drawEngineFx(context, viewport, engine);
                 else if (!skipUnsupportedCommands) throw new IllegalStateException("Unsupported custom draw");
             }
-            case RIBBON -> {
-                if (!skipUnsupportedCommands) {
-                    throw new IllegalStateException(
-                            "Embedded headless scene emitted unsupported command "
-                                    + command.kind());
-                }
-            }
+            case RIBBON -> drawRibbon(context, viewport.height(), command);
         }
+    }
+
+    /**
+     * A contrail through the production {@link RibbonBatch} geometry, drawn a segment at a time in the colour its
+     * corners average to. A segment is a few pixels long at any framing this review uses, so the flat fill costs
+     * the age gradient nothing a reader can see. Additive plumes are drawn as ordinary blends.
+     */
+    private void drawRibbon(CanvasContext context, float surfaceHeight, DrawCommand command) {
+        if (camera == null || command.trail() == null) return;
+        RibbonBatch batch = new RibbonBatch(Math.max(1, command.trail().size()));
+        batch.append(command.trail(), camera, command.alpha());
+        for (int quad = 0; quad < batch.quadCount(); quad++) {
+            float red = 0f, green = 0f, blue = 0f, alpha = 0f;
+            for (int vertex = 0; vertex < 4; vertex++) {
+                red += batch.vertexChannel(quad, vertex, 0) / 4f;
+                green += batch.vertexChannel(quad, vertex, 1) / 4f;
+                blue += batch.vertexChannel(quad, vertex, 2) / 4f;
+                alpha += batch.vertexChannel(quad, vertex, 3) / 4f;
+            }
+            if (alpha <= 0.004f) continue;
+            context.fillQuad(
+                    batch.vertexX(quad, 0), surfaceHeight - batch.vertexY(quad, 0),
+                    batch.vertexX(quad, 1), surfaceHeight - batch.vertexY(quad, 1),
+                    batch.vertexX(quad, 2), surfaceHeight - batch.vertexY(quad, 2),
+                    batch.vertexX(quad, 3), surfaceHeight - batch.vertexY(quad, 3),
+                    new Color(clamp(red), clamp(green), clamp(blue), clamp(alpha)));
+        }
+    }
+
+    /**
+     * Aircraft engine plumes: the production {@link EngineFxPass} run against sprites that remember each additive
+     * glow and flame it is asked to draw, replayed here through the canvas.
+     */
+    private void drawEngineFx(CanvasContext context, CanvasHostViewport viewport, EngineFxPass pass) {
+        if (pass.glowSprite() == null && pass.flameSprite() == null) return;
+        List<PlumeDraw> draws = new ArrayList<>();
+        pass.draw(recordingSprite(pass.glowSprite(), draws), recordingSprite(pass.flameSprite(), draws));
+        for (PlumeDraw draw : draws) {
+            context.sprite(draw.path(), null, draw.x(), viewport.height() - draw.y(), draw.width(), draw.height(),
+                    draw.angle(), draw.tint(), CanvasSpriteRegion.FULL, CanvasBlend.ADDITIVE);
+        }
+    }
+
+    private record PlumeDraw(String path, float x, float y, float width, float height, float angle, Color tint) { }
+
+    private SpriteAPI recordingSprite(SpriteAPI token, List<PlumeDraw> into) {
+        if (token == null) return null;
+        String path = sprites.asset(token).path();
+        float[] size = new float[2];
+        float[] angle = new float[1];
+        float[] alpha = {1f};
+        Color[] color = {Color.WHITE};
+        return (SpriteAPI) Proxy.newProxyInstance(SpriteAPI.class.getClassLoader(), new Class<?>[]{SpriteAPI.class},
+                (proxy, method, args) -> {
+                    switch (method.getName()) {
+                        case "setSize" -> { size[0] = (Float) args[0]; size[1] = (Float) args[1]; }
+                        case "setAngle" -> angle[0] = (Float) args[0];
+                        case "setAlphaMult" -> alpha[0] = (Float) args[0];
+                        case "setColor" -> color[0] = (Color) args[0];
+                        case "renderAtCenter" -> into.add(new PlumeDraw(path, (Float) args[0], (Float) args[1],
+                                size[0], size[1], angle[0], new Color(color[0].getRed() / 255f,
+                                color[0].getGreen() / 255f, color[0].getBlue() / 255f, clamp(alpha[0]))));
+                        default -> { }
+                    }
+                    return HeadlessBattleSprites.primitiveDefault(method.getReturnType());
+                });
     }
 
     /** Exact sprite-alpha coverage and premultiplied shade mixing, matching the night GPU pass. */

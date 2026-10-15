@@ -1,6 +1,11 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
+import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxRuntime;
+import com.dillon.starsectormarines.ops.BattleScreen;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.fs.starfarer.api.Global;
@@ -40,13 +45,21 @@ import java.util.Map;
  */
 public final class ReviewImpactFx {
 
-    private final ImpactFx fx = new ImpactFx();
+    /** Fixed, so the same battle drawn twice jitters its smoke and blasts the same way. */
+    private static final long REVIEW_SEED = 0x5EEDFACEL;
+    private final ImpactFx fx = new ImpactFx(REVIEW_SEED);
+    private final ContrailFxService contrails = new ContrailFxService();
+    private final BeamFxService beams = new BeamFxService();
+    private OrdnanceTraceFxService traces;
+    private final DrawList overlay = new DrawList();
+    private final Path modRoot;
     private final Map<String, BufferedImage> art = new HashMap<>();
     private final List<Draw> draws = new ArrayList<>();
     private final SettingsAPI settings;
     private final List<Path> roots;
 
     public ReviewImpactFx(Path modRoot) {
+        this.modRoot = modRoot.toAbsolutePath().normalize();
         this.roots = HeadlessBattleSceneRenderer.resourceRoots(modRoot.toAbsolutePath().normalize());
         this.settings = (SettingsAPI) Proxy.newProxyInstance(
                 SettingsAPI.class.getClassLoader(), new Class<?>[]{SettingsAPI.class},
@@ -64,9 +77,34 @@ public final class ReviewImpactFx {
         withSettings(fx::ensureSprites);
     }
 
-    /** Takes in the tick the simulation just played and advances the particles by it. */
+    /**
+     * Takes in the tick the simulation just played and advances the presentation by it, in the order
+     * {@code BattleScreen.advance} drains the same lists: weapon muzzle and impact compositions, lingering beams,
+     * wall dust, heavy blasts, ambient smoke and fire, delivered ordnance, projectile trails, then the clocks.
+     */
     public void feed(BattleSimulation sim) {
+        withSettings(() -> feedTick(sim));
+    }
+
+    private void feedTick(BattleSimulation sim) {
+        float dt = BattleSimulation.TICK_DT;
+        NavigationGrid grid = sim.getGrid();
         for (float[] dust : sim.getWallDustsThisFrame()) fx.spawnWallCollapse(dust[0], dust[1], dust.length > 2 ? dust[2] : 1f);
+        beams.advance(dt);
+        for (ShotEvent shot : sim.getShotsThisFrame()) {
+            beams.spawn(shot);
+            WeaponFxRuntime.spawnMuzzle(fx, shot);
+            // A line tracer lands its impact the instant it fires; a travelling body lands it when it expires.
+            if (ShotFx.of(shot).travels() || !shot.impacts()) continue;
+            WeaponFxRuntime.spawnImpactAndAftermath(fx, shot, isWallAt(grid, shot.toX, shot.toY));
+        }
+        for (ShotEvent shot : sim.getShotsExpiredThisFrame()) {
+            if (!ShotFx.of(shot).travels() || !shot.impacts()) continue;
+            WeaponFxRuntime.spawnImpactAndAftermath(fx, shot, isWallAt(grid, shot.toX, shot.toY));
+        }
+        for (float[] point : sim.getShots().getInterceptPointsThisFrame()) {
+            fx.spawnHeavyImpact(point[0], point[1], BattleScreen.INTERCEPT_BURST_CELLS);
+        }
         for (float[] impact : sim.getHeavyImpactsThisFrame()) {
             fx.spawnHeavyImpact(impact[0], impact[1], impact[2],
                     impact.length >= 6 ? new Color(impact[3], impact[4], impact[5]) : null);
@@ -74,7 +112,48 @@ public final class ReviewImpactFx {
         for (var blast : sim.getRollingBlastsThisFrame()) fx.spawnRollingBlast(blast);
         for (float[] puff : sim.getSmokePuffsThisFrame()) fx.spawnAmbientSmoke(puff[0], puff[1], puff[2]);
         for (float[] burst : sim.getFireBurstsThisFrame()) fx.spawnAmbientFire(burst[0], burst[1], burst[2]);
-        fx.advance(BattleSimulation.TICK_DT);
+        for (OrdnanceRelease release : sim.getOrdnanceReleasesThisFrame()) {
+            traces().spawn(release);
+            OrdnanceFxRuntime.spawnRelease(fx, null, release);
+        }
+        if (traces != null) {
+            traces.advance(dt);
+            for (OrdnanceRelease arrival : traces.arrivalsThisFrame()) OrdnanceFxRuntime.spawnArrival(fx, null, arrival);
+        }
+        // The screen sheds a trail sample once per rendered frame; a review samples every few ticks, so it is shed here.
+        for (ShotEvent shot : sim.getActiveShots()) ShotRenderService.spawnTrail(fx, shot);
+        fx.advance(dt);
+        contrails.tick(sim.getActiveShots(), dt);
+    }
+
+    private OrdnanceTraceFxService traces() {
+        if (traces == null) {
+            try {
+                traces = new OrdnanceTraceFxService(HeadlessBattleSceneRenderer.spritesFor(modRoot));
+            } catch (Exception failure) {
+                throw new IllegalStateException("Could not prepare headless sprites for ordnance traces", failure);
+            }
+        }
+        return traces;
+    }
+
+    /** A solid, non-walkable endpoint reads as a chip on material; open ground as a kick of dust. */
+    private static boolean isWallAt(NavigationGrid grid, float x, float y) {
+        int cx = (int) Math.floor(x);
+        int cy = (int) Math.floor(y);
+        return grid.inBounds(cx, cy) && !grid.isWalkable(cx, cy);
+    }
+
+    /**
+     * The contrails, lingering beams and falling rounds as production draw commands for the SHOTS layer, which the
+     * scene drain draws under the shot bodies — the order the screen collects them in.
+     */
+    DrawList overlay(BattleCamera camera) {
+        overlay.clear();
+        contrails.collect(overlay, 1f);
+        if (traces != null) traces.collect(camera, overlay, 1f);
+        beams.collect(camera, overlay, 1f);
+        return overlay;
     }
 
     /** Paints the live particles over {@code image}, which is as tall as the camera's screen is flipped against. */

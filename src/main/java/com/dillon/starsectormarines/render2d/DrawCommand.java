@@ -90,6 +90,8 @@ public final class DrawCommand {
     /** Whether this sprite adds light rather than compositing over what is beneath it. */
     public boolean additive() { return additive; }
     public PolyMesh polygon() { return poly; }
+    /** {@code RIBBON} only: the contrail sample history the drain expands. */
+    public ContrailTrail trail() { return trail; }
     public float red() { return r; }
     public float green() { return g; }
     public float blue() { return b; }

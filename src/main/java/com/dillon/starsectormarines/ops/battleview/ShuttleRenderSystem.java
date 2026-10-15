@@ -5,8 +5,6 @@ import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.Airframe;
-import com.dillon.starsectormarines.battle.air.engine.EngineFxRenderer;
-import com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullPivotResolver;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -82,17 +80,9 @@ public final class ShuttleRenderSystem implements RenderSystem {
             // Engine FX (own GL) under the hull. The per-slot demand (smoothed
             // each sim tick by AirSystem's ThrusterFxSystem) blooms the thrusters
             // actually pushing / turning the hull and ramps instead of snapping.
-            out.addCustom(RenderLayer.SHUTTLES, () -> EngineFxRenderer.draw(
-                    EngineSlotResolver.resolve(frame),
-                    body.x, body.y,
-                    body.facingDegrees,
-                    scaleMult,
-                    altOffset,
-                    engineFxIntensity,
-                    alphaMult,
-                    cam,
-                    sprites.engineGlowSprite(), sprites.engineFlameSprite(),
-                    thrusterGlow));
+            out.addCustom(RenderLayer.SHUTTLES, new EngineFxPass(frame, body.x, body.y,
+                    body.facingDegrees, scaleMult, altOffset, engineFxIntensity, alphaMult, cam,
+                    sprites.engineGlowSprite(), sprites.engineFlameSprite(), thrusterGlow));
 
             // Hull. Length is derived from the hull's sprite pixel extent via
             // the one global pixel-density factor (HullFootprintResolver), not a
