@@ -75,7 +75,7 @@ class OfficerInductionTest {
         assertEquals("command:" + sabine.id(), model.guideTargetId());
         model.selectCommand(sabine.id());
         assertTrue(model.guideVisible(), "Officer lesson remains visible in dossier");
-        assertEquals("officer-specialty-TACTICAL_COVER-train", model.guideTargetId());
+        assertEquals("officer-specialty-TACTICAL_COVER-rank-1", model.guideTargetId());
         assertEquals(Step.SPECIALTY, roster.officerInduction().step(roster));
     }
 
