@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops.detachment;
 
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
+import com.dillon.starsectormarines.battle.world.gen.MarketGarrison;
+import com.dillon.starsectormarines.battle.world.gen.MarketGarrisonEstimate;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -10,12 +12,19 @@ import com.dillon.starsectormarines.campaign.StationedStrength;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
+import com.fs.starfarer.api.campaign.econ.CommodityOnMarketAPI;
+import com.fs.starfarer.api.campaign.econ.Industry;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
+import com.fs.starfarer.api.campaign.rules.MemoryAPI;
+import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import com.fs.starfarer.api.impl.campaign.ids.Conditions;
 import com.fs.starfarer.api.impl.campaign.ids.Industries;
+import com.fs.starfarer.api.impl.campaign.ids.MemFlags;
 import com.fs.starfarer.api.impl.campaign.rulecmd.salvage.MarketCMD;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 
 /**
  * Extracts the {@link TargetProfile} for a battle from the vanilla economy — the
@@ -32,6 +41,13 @@ import java.util.EnumSet;
  * <p>See {@code campaign-battle-bridge-nouns.md}.
  */
 public final class TargetProfileResolver {
+
+    /**
+     * Nexerelin's record of recent ground-battle damage to a market's garrison, {@code 0..1}. Read as a plain memory
+     * key so the estimate needs no Nexerelin class; absent when Nexerelin is not installed or nobody has fought there.
+     * The mod never writes it. See {@code nexerelin-nouns.md}.
+     */
+    static final String NEX_GARRISON_DAMAGE_KEY = "$nex_garrisonDamage";
 
     private TargetProfileResolver() {}
 
@@ -60,6 +76,8 @@ public final class TargetProfileResolver {
      * {@link StationedStrength#totalAt} is what the company itself put into it.
      */
     public static TargetProfile fromMarket(MarketAPI market) {
+        float groundDefence = MarketCMD.getDefenderStr(market);
+        float stationed = StationedStrength.totalAt(market);
         return new TargetProfile(
                 market.getSize(),
                 Math.round(market.getStabilityValue()),
@@ -69,11 +87,45 @@ public final class TargetProfileResolver {
                 functions(market),
                 surface(market),
                 link(market),
-                MarketCMD.getDefenderStr(market),
-                StationedStrength.totalAt(market),
+                groundDefence,
+                stationed,
                 hasGroundDefences(market),
                 hasHeavyBatteries(market),
-                hasPlanetaryShield(market));
+                hasPlanetaryShield(market))
+                .withGarrison(garrison(market, groundDefence, stationed));
+    }
+
+    /**
+     * The market's garrison estimate: the facts {@link MarketGarrisonEstimate} reads, taken off the market here and
+     * nowhere else, against the structure table merged across every enabled mod.
+     */
+    private static MarketGarrison garrison(MarketAPI m, float groundDefence, float stationed) {
+        List<String> industryIds = new ArrayList<>();
+        for (Industry industry : m.getIndustries()) {
+            if (industry != null && industry.getId() != null) industryIds.add(industry.getId());
+        }
+        MemoryAPI memory = m.getMemoryWithoutUpdate();
+        MarketGarrisonEstimate.Inputs inputs = new MarketGarrisonEstimate.Inputs(
+                m.getSize(), groundDefence, stationed,
+                memory.getBoolean(MemFlags.MARKET_MILITARY), industryIds,
+                supply(m, Commodities.MARINES), supply(m, Commodities.HAND_WEAPONS), supply(m, Commodities.SUPPLIES),
+                readiness(memory));
+        return MarketGarrisonEstimate.estimate(inputs, GarrisonStructureCatalog.get());
+    }
+
+    /** Available against demand, {@code 0..1}; a market that does not demand the commodity is not short of it. */
+    private static float supply(MarketAPI m, String commodityId) {
+        CommodityOnMarketAPI data = m.getCommodityData(commodityId);
+        if (data == null) return 1f;
+        int demand = data.getMaxDemand();
+        if (demand <= 0) return 1f;
+        return Math.min(1f, data.getAvailable() / (float) demand);
+    }
+
+    /** One minus Nexerelin's recorded garrison damage, or full readiness when it has recorded none. */
+    static float readiness(MemoryAPI memory) {
+        if (memory == null || !memory.contains(NEX_GARRISON_DAMAGE_KEY)) return 1f;
+        return 1f - Math.max(0f, Math.min(1f, memory.getFloat(NEX_GARRISON_DAMAGE_KEY)));
     }
 
     /**

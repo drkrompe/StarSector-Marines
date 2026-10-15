@@ -1,0 +1,34 @@
+[
+  {
+    "name": "locust-mount",
+    "masterSize": 1254,
+    "layerSize": 512,
+    "pivot": [
+      256,
+      256
+    ],
+    "alphaBounds": [
+      75,
+      89,
+      438,
+      424
+    ],
+    "transparentPixels": 171713
+  },
+  {
+    "name": "ground-base",
+    "masterSize": 1254,
+    "layerSize": 512,
+    "pivot": [
+      256,
+      256
+    ],
+    "alphaBounds": [
+      44,
+      52,
+      469,
+      459
+    ],
+    "transparentPixels": 91363
+  }
+]

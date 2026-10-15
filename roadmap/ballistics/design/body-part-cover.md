@@ -1,6 +1,6 @@
 # Body-part cover
 
-Status: ACTIVE — exposure, lane props and part consequences shipped; area exposure, prop wear and per-part armour remain.
+Status: ACTIVE — exposure, lane props, part consequences and small-arms wear shipped; area exposure and per-part armour remain.
 
 Updated: 2026-10-15 — three slices shipped and folded; intent recorded that prepared positions are meant to be dangerous.
 
@@ -113,10 +113,13 @@ here.
   grenade landing in the trench reaches everything. That retires the last use of
   the flat damage reduction and makes a trench the right answer to shelling and
   the wrong answer to a grenade.
-- **Small arms wearing cover down.** A rifle round that stops in a crate does
-  not damage it; only blast weapons damage props today, through the map-damage
-  path at their detonation point. It needs a per-weapon amount and a write out
-  of a resolver that is read-only and parallel today.
+- **Small arms wearing cover down** (shipped, `small-arms-wear.md`). A round
+  that stops in a crate, a sandbag or a wall names that feature, and its
+  payload wears it on arrival through the map-structure channel, by its
+  penetration against the feature's material rating
+  (`combat-durability-nouns.md`). Rifles chew crates and fences, wear sandbags
+  slowly and leave masonry standing; anti-materiel rounds open walls. The
+  resolver stays read-only; the write is serial at arrival.
 - **Per-part armour.** Armour stays one layer over the whole body; the part
   multiplier acts on the payload before it. Per-part armour waits for armour
   patterns that want to say helmet versus plate.
