@@ -7,11 +7,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** The yard's authored geometry: a missile site whose launchers lead, with a walkway that runs the length of the yard. */
+/** The yard's authored geometry: the aspect's control point, with a walkway that runs the length of the yard. */
 class AirDefenceYardTest {
 
     private static final AirDefenceYard YARD = new AirDefenceYard(20, 20, 0, 1);
@@ -25,16 +24,9 @@ class AirDefenceYardTest {
     }
 
     @Test
-    void theYardLeadsWithTwoMissileBatteries() {
-        assertEquals(2, YARD.batteryCentres().size());
-        assertEquals(AirDefenceYard.batteryCount(), YARD.batteryCentres().size());
-    }
-
-    @Test
     void everythingStandsInsideTheYardAndNothingOverlaps() {
         int[] floor = YARD.floor();
         List<Set<Long>> bodies = new ArrayList<>();
-        for (int[] battery : YARD.batteryCentres()) bodies.add(footprint(battery, 1));
         bodies.add(footprint(YARD.consoleCentre(), 1));
         for (int[] flak : YARD.flakCells()) bodies.add(footprint(flak, 0));
         Set<Long> seen = new HashSet<>();
@@ -52,7 +44,6 @@ class AirDefenceYardTest {
     void aWalkwayRunsTheWholeLengthOfTheYardSoTheGateOpensOnFloor() {
         int[] floor = YARD.floor();
         Set<Long> occupied = new HashSet<>();
-        for (int[] battery : YARD.batteryCentres()) occupied.addAll(footprint(battery, 1));
         occupied.addAll(footprint(YARD.consoleCentre(), 1));
         for (int[] flak : YARD.flakCells()) occupied.addAll(footprint(flak, 0));
         for (int y = floor[1]; y < floor[1] + floor[3]; y++) {

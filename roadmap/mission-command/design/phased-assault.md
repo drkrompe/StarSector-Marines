@@ -6,7 +6,7 @@ Slices are on the mission-command board.
 
 Written: 2026-10-13
 
-Updated: 2026-10-14 — the fort's radar spots for the defenders' air and the sky is contested (lane fort: defender air 0.8 to 18 sorties a run, lane lost 6 of 6 with spotting on); contested sky on the trial ground measured (defender air pool, tail-chase cover): the sky is barely contested, no bomber is downed before release, the yard is a by-product rather than a target; standing fire missions and the mortar section are standing behaviour (switches gone; timings are constants, sections-off is a per-simulation scene control); the kit reaches ground-start companies.
+Updated: 2026-10-15 — a company that is flown at goes for the hostile bunker's radar at once (radar first: it skips the set-up steps, a muster being bombed commits at half strength, and a plan already on another aspect turns to the radar), which also fixed a company whose breachers were left unordered; the radar is still not taken (the bunker room is never held), see "Radar first"; earlier: the fort's radar spots for the defenders' air and the sky is contested (lane fort: defender air 0.8 to 18 sorties a run, lane lost 6 of 6 with spotting on); contested sky on the trial ground measured (defender air pool, tail-chase cover): the sky is barely contested, no bomber is downed before release, the yard is a by-product rather than a target; standing fire missions and the mortar section are standing behaviour (switches gone; timings are constants, sections-off is a per-simulation scene control); the kit reaches ground-start companies.
 
 Read `conquest-command.md`, `forts.md` and `ai-nouns.md` first.
 
@@ -489,6 +489,25 @@ Readings, not rates beyond six seeds a cell:
 - **The yard is the plan's cost, not its target.** With the yard the attacker lost more airframes on the lane (7.3 against 5.7) and the marine plan never went for it as a goal: the yard ended with all three mounts standing in some runs and wrecked in others, as a by-product of the push on the fort. Whether it is worth taking is unanswered by this evidence: a company that opens the sky first is still the open question.
 
 Not claimed: defender strikes on a landing zone or muster at scale (none were seen; the fixture field `defenderAirPool` and `ContestedAirProbe` are the instrument for it), and any balance conclusion; a stronger defender signal needs more radios surviving, which is a mission-design choice.
+
+## Radar first: measured
+
+The spotting result above had the company reach the bunker late. **Why it was late was the plan's step order, not the muster.** On the lane fort the company formed at tick 1,351 to 1,426 and committed at 1,726 to 2,101 in every run, then spent 4,000 ticks in position, suppress and entry before its objective step took aim at the bunker (tick 6,001 to 6,301, four runs of six; the other two never reached the step).
+
+What is built. A company that has been flown at (`SkyNeed.flownAt`, the side's own sight of hostile armed aircraft, sticky for the run) and has a hostile bunker disclosed (`FortTactics.hostileRadar`) skips the set-up steps and goes to its objective step, breachers going in with the assault (`FortAssault.Execution.radarFirst`). A muster that is flown at commits at `AssaultMuster.AIR_RAID_COMMIT_SHARE` (half) of what the objective is believed to take, without waiting for a filler or the timeout, and a stand-down does not outlast it. A plan already on another aspect turns to the bunker instead of holding the one it was on, while that one is still work.
+
+**It found a command defect on the way.** The first version jumped to the objective step and left the breach role unconverted; that step orders only assault and fire squads, so seven of the eight squads of a committed company got no order and fell back to their lane. Fixed in the same jump (`convertBreachers`), with a unit that fails without it.
+
+Same fixture as above (kit, two lances, attacker pool, defender pool through radios on every second infantry squad, fort anti-air yard, fort spotting on), seeds 41-46, base `6e83d8266`, one run each:
+
+| fort | | marine wins | mean marine losses | mean defender losses | nests killed (mean) | defender sorties (mean) | first aim at the radar | bunker taken / wrecked |
+|---|---|---|---|---|---|---|---|---|
+| lane | before | 0 of 6 | 95.5 | 15.3 | 3.7 | 16.2 | tick 6,001-6,301 in 4 runs | 0 / 0 |
+| lane | after | 0 of 6 | 94.8 | 40.3 | 5.5 | 11.5 | tick 1,801-2,101 in 6 runs | 0 / 0 |
+| offset | before | 5 of 6 | 22.5 | 40.2 | 2.2 | 2.8 | no company | 0 / 0 |
+| offset | after | 5 of 6 | 29.0 | 40.8 | 2.7 | 2.8 | tick 4,126 in 1 run | 0 / 0 |
+
+Read honestly: **the company now arrives and the fort's defence dies (defender losses 15 to 40, nests 3.7 to 5.5, whole courtyards cleared by tick 5,000), but no bunker is taken and no lane run is won.** Defender sorties fell from 16 to 11.5 a run but marine losses did not move. The offset fort is untouched except one seed where a company formed for the sky and lost 83 against 44. The blocker is now the take itself: the bunker room is 35 cells and no defender ever stood in it, yet at most one marine was ever inside at once and none at the end (`BunkerProbe` in the trial report, `bunker` block). The company walks the doorstep order, clears the fort and drifts out through the east gate without holding the room for the twelve seconds a take needs. That is the next thing to look at; it is not a muster or step-order question.
 
 ## Contested sky with the fort spotting: measured
 

@@ -210,7 +210,7 @@ public final class TurretFireSystem implements TurretFireSink {
                     : weapon.damage;
             shots.queueImpact(new ShotService.PendingImpact(
                     res.victimId(), shooterId, res.flightTime(), appliedDamage,
-                    weapon.penetration, /*moraleImpact*/ 1f, res.friendlyHit()));
+                    weapon.penetration, /*moraleImpact*/ 1f, res.friendlyHit(), res.victimPart()));
         }
 
         shots.postShot(new ShotEvent(fromX, fromY, 0f,
