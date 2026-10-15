@@ -1,0 +1,276 @@
+{
+  "generator": "built-in image_gen.imagegen",
+  "assets": [
+    {
+      "file": "assets/sky-realism-v1.png",
+      "prompt": "prompts/sky-realism-v1.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-1593e8b5-df4d-4e75-9778-59af22d17e99.png",
+      "inputs": [
+        {
+          "path": "../realism-lookdev/landscape-realism-v1.png",
+          "role": "daylight and style only",
+          "sha256": "c264cda903f255eabe8f1e3c12b5ad135fb4396a799d12c983a11bdd7279eadb"
+        }
+      ],
+      "sha256": "8db9cee5bbbdc90fdea7b37d297ea51f21695c95d6d4e9e61acbaf6e2f3a1bd5",
+      "bytes": 1890657,
+      "raw_source_byte_identical": true,
+      "prompt_sha256": "80932664459059ac00af3639178e398ed4ffbc21022abecb96456247a938eaf6",
+      "status": "Selected sky backing, including baked clouds.",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB"
+    },
+    {
+      "file": "assets/fields-realism-v1.png",
+      "prompt": "prompts/fields-realism-v1.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-59b17ef8-c777-4c30-b2dd-653844cd32b2.png",
+      "inputs": [
+        {
+          "path": "guides/shot03-fields-topdown-guide.png",
+          "role": "spatial layout/orthographic guide",
+          "sha256": "1c4531eb95cdda2a02a6b08255b39411cfa008e8fd56d0231e7d0470d371e1ff"
+        },
+        {
+          "path": "../realism-lookdev/landscape-realism-v1.png",
+          "role": "style and daylight only",
+          "sha256": "c264cda903f255eabe8f1e3c12b5ad135fb4396a799d12c983a11bdd7279eadb"
+        }
+      ],
+      "sha256": "730f76579849dba069f3dba5662576e05f531c7da62c6e03a7aa2181fc25aeb8",
+      "bytes": 3901638,
+      "raw_source_byte_identical": true,
+      "prompt_sha256": "9e445ddbbc547fec9e56a81ce62e5ef2c9c89d9f96e8855766bc6726afdcf918",
+      "status": "Selected orthographic surrounding-ground map and clean water-only UV patch for dedicated river material.",
+      "dimensions": [
+        1718,
+        915
+      ],
+      "mode": "RGB"
+    },
+    {
+      "file": "assets/environment-realism-v1.png",
+      "prompt": "prompts/environment-realism-v1.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-922e0e60-66df-435c-b0d9-a2de843ef069.png",
+      "inputs": [
+        {
+          "path": "guides/shot03-environment-wide-guide-v2.png",
+          "role": "layout/camera guide, 1.44 horizontal and 1.08 vertical overscan",
+          "sha256": "c5bf7f7b0c1c7027a09b16292e1fb21a791fbe3873297f3a69ec5e2d0110f71b"
+        },
+        {
+          "path": "../realism-lookdev/landscape-realism-v1.png",
+          "role": "style and daylight only",
+          "sha256": "c264cda903f255eabe8f1e3c12b5ad135fb4396a799d12c983a11bdd7279eadb"
+        }
+      ],
+      "sha256": "55bec623787e9bdbfffd789da23c050eb7cf32bdaca76515a61e37a56b5b876c",
+      "bytes": 3472092,
+      "raw_source_byte_identical": true,
+      "prompt_sha256": "565d4107d78ced8ba7876c3d584ab8cd696bb9136df6834e51c4fd950f1c9e04",
+      "status": "Selected composition/style master, hill-card RGB and woodland RGB above the original shoreline. Woodland blends to generated completion below. Never project canopy across coarse ground.",
+      "dimensions": [
+        1931,
+        814
+      ],
+      "mode": "RGB"
+    },
+    {
+      "file": "assets/hills-realism-v1.png",
+      "prompt": "prompts/hills-realism-v1.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-496f6fdc-a165-4353-ada1-ba968d1f08d6.png",
+      "inputs": [
+        {
+          "path": "assets/environment-realism-v1.png",
+          "role": "registered extraction source",
+          "sha256": "55bec623787e9bdbfffd789da23c050eb7cf32bdaca76515a61e37a56b5b876c"
+        }
+      ],
+      "sha256": "dfb521538bdea504f044f6ae58ecf7ac491564767a8086eaf3275fa285b17ca4",
+      "bytes": 2027943,
+      "raw_source_byte_identical": true,
+      "prompt_sha256": "47dc175d4110d71c6ebcff17722119b38568e0c8509305e874c9c4da68e566e4",
+      "status": "Rejected: requested opaque completion moved/enlarged skyline; retained unedited.",
+      "dimensions": [
+        1932,
+        814
+      ],
+      "mode": "RGBA",
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "fully_transparent_fraction": 0.316852213591344,
+        "fully_opaque_fraction": 9.728814076640164e-05
+      }
+    },
+    {
+      "file": "assets/woodland-realism-v1.png",
+      "prompt": "prompts/woodland-realism-v1.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-9c46cb44-5cbf-48f0-8ec1-60c6ccffae8e.png",
+      "inputs": [
+        {
+          "path": "assets/environment-realism-v1.png",
+          "role": "registered extraction source",
+          "sha256": "55bec623787e9bdbfffd789da23c050eb7cf32bdaca76515a61e37a56b5b876c"
+        }
+      ],
+      "sha256": "d22e65d28f749eae1cc40b3dab00286893e880e6765d616e1ae7ff052d0bf0a3",
+      "bytes": 3213463,
+      "raw_source_byte_identical": true,
+      "prompt_sha256": "41b3a739cfe91bdead39b6af8af2ce4d952199421cb6987cccac69e642fbac35",
+      "status": "Selected woodland alpha and opaque lower forest completion; master RGB replaces upper woodland color. Completion remains softer/brushier than target.",
+      "dimensions": [
+        1932,
+        814
+      ],
+      "mode": "RGBA",
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "fully_transparent_fraction": 0.24291068312807443,
+        "fully_opaque_fraction": 2.4798937842416105e-05
+      }
+    },
+    {
+      "file": "assets/cabin-realism-v1.png",
+      "prompt": "prompts/cabin-realism-v1.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-66d3531b-5155-488a-b245-2c2b09efae9a.png",
+      "inputs": [
+        {
+          "path": "guides/shot03-cabin-overscan-guide.png",
+          "role": "camera/geometry guide",
+          "sha256": "e7655dfeccfaa8f8ce3ebdb20cea1c248ddf3d0284377226d973c265c81c8705"
+        },
+        {
+          "path": "../realism-lookdev/window-realism-v1.png",
+          "role": "materials style only",
+          "sha256": "5d942024e314a490c4df82f332a67f7e4fb67d8a361b794b889399a471d96885"
+        }
+      ],
+      "sha256": "37c8d2639ffb5eef63de5889a0251f6250e50479343c63e54089faa583a3d010",
+      "bytes": 2674657,
+      "raw_source_byte_identical": true,
+      "prompt_sha256": "02a590876331abc42bda198a2c2ee5a44beb7667c256b9e5cc2c8cf7ae2e07d7",
+      "status": "Rejected: style input overrode guide window proportions; retained unedited.",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB"
+    },
+    {
+      "file": "assets/hills-realism-v2.png",
+      "prompt": "prompts/hills-realism-v2.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-98872851-3883-4cb3-875b-52f2736c577d.png",
+      "inputs": [
+        {
+          "path": "assets/environment-realism-v1.png",
+          "role": "precision shallow ridge extraction",
+          "sha256": "55bec623787e9bdbfffd789da23c050eb7cf32bdaca76515a61e37a56b5b876c"
+        }
+      ],
+      "sha256": "9a38f9dc97bd7617eb3bb8e71efb0d8888736f222741ecf5a498ed53601ac6a4",
+      "bytes": 280548,
+      "raw_source_byte_identical": true,
+      "prompt_sha256": "05be38c25fe499912d0c682021801eeb078f91ce81ce2aec2c3d68278f705189",
+      "status": "Selected registered hill silhouette alpha; color comes from environment master.",
+      "dimensions": [
+        1932,
+        814
+      ],
+      "mode": "RGBA",
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "fully_transparent_fraction": 0.9217549000157695,
+        "fully_opaque_fraction": 0.0006295114990767165
+      }
+    },
+    {
+      "file": "assets/cabin-realism-v2.png",
+      "prompt": "prompts/cabin-realism-v2.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-eb67960b-82df-46a9-b341-a9e26117cf4e.png",
+      "inputs": [
+        {
+          "path": "guides/shot03-cabin-only-guide.png",
+          "role": "geometry and original opening alpha",
+          "sha256": "9ac160b77611cae435dfaebc6016fc73610fdac8c333ad800a373481a9c04b05"
+        }
+      ],
+      "sha256": "1b77d6a83f5993ef11ecd163bb97df70dcdadc84f91d7996c554d35ae2f07989",
+      "bytes": 2139567,
+      "raw_source_byte_identical": true,
+      "prompt_sha256": "a9390dd9d0ceab3b63a31440808e9f5afa947e5d0be8cf4a9a8d9dbf6f3bd9b1",
+      "status": "Selected finish projected onto retained cabin geometry.",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGBA",
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "fully_transparent_fraction": 0.45797443928631354,
+        "fully_opaque_fraction": 0.00021355678830929124
+      }
+    },
+    {
+      "file": "assets/clouds-realism-v1.png",
+      "prompt": "prompts/clouds-realism-v1.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-eb8516f8-e3fc-4d92-b026-c2fc8f5f0df5.png",
+      "inputs": [
+        {
+          "path": "assets/sky-realism-v1.png",
+          "role": "daylight/material reference",
+          "sha256": "8db9cee5bbbdc90fdea7b37d297ea51f21695c95d6d4e9e61acbaf6e2f3a1bd5"
+        }
+      ],
+      "sha256": "e3f9c4cb4961f6454e94d3c3fdb674c7d43175d9f9bc4228f8ac9ce7189bd60a",
+      "bytes": 1062253,
+      "raw_source_byte_identical": true,
+      "prompt_sha256": "76c575c5b9ea489863f41808cb8695156991415e1f87290aa3ef9a24982684c9",
+      "status": "Not used: heavy cloud bank and colored edge residue; sky backing already includes clouds.",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGBA",
+      "alpha": {
+        "min": 0,
+        "max": 254,
+        "fully_transparent_fraction": 0.6613739328516441,
+        "fully_opaque_fraction": 0.0
+      }
+    },
+    {
+      "file": "assets/field-detail-realism-v1.png",
+      "prompt": "prompts/field-detail-realism-v1.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-8d57af1f-4edd-4722-acdb-9921c695a327.png",
+      "inputs": [
+        {
+          "path": "guides/shot03-single-field-topdown-guide.png",
+          "role": "orthographic central plot layout guide",
+          "sha256": "158e60f1daa3ca890566b1cc96417b62afea60b6bdee599683e3d4795970e5de"
+        },
+        {
+          "path": "../realism-lookdev/landscape-realism-v1.png",
+          "role": "style/daylight",
+          "sha256": "c264cda903f255eabe8f1e3c12b5ad135fb4396a799d12c983a11bdd7279eadb"
+        }
+      ],
+      "sha256": "652d3a229f84515a0ba1214da587db92176d53ef7155c167a20c9e7913508c8a",
+      "bytes": 4108038,
+      "raw_source_byte_identical": true,
+      "prompt_sha256": "9dce86b5d19ed193959549bb12f0cf7c0f36d56df78e269efa7eede13a7eae99",
+      "status": "Selected per-clearing orthographic detail; cropped central plot UV and small per-plot variation.",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB"
+    }
+  ],
+  "note": "Raw files and alpha retained unchanged; scene shaders own placement and technical compositing. Selection does not imply user approval of this new shot."
+}

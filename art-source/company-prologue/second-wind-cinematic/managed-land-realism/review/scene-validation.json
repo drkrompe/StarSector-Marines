@@ -1,0 +1,656 @@
+{
+  "passed": true,
+  "errors": [],
+  "warnings": [
+    "Atlas cutout was not intercepted by64px coverage grid; rendered traffic visibility is not established by this report"
+  ],
+  "source": "../layered-next-scenes/layered-next-scenes.blend",
+  "scene": "managed-land-realism.blend",
+  "source_file_sha256_before": {
+    "layered-next-scenes/layered-next-scenes.blend": "69484c50e12e2c9d39fd9b08e7050b48c678baed563d41a32a939dd147622ca1",
+    "animatic/jangala-blockout.blend": "c8cb5950c8409735353765a784bdcf7a52adaa4714c105923b6be89218f5b6b7"
+  },
+  "source_file_sha256_after": {
+    "layered-next-scenes/layered-next-scenes.blend": "69484c50e12e2c9d39fd9b08e7050b48c678baed563d41a32a939dd147622ca1",
+    "animatic/jangala-blockout.blend": "c8cb5950c8409735353765a784bdcf7a52adaa4714c105923b6be89218f5b6b7"
+  },
+  "scene_sha256_before": "dacf96981f01bbdecf52208529d660b7e445b9a2dedeb7518ad67ae598adfcd1",
+  "scene_sha256_after": "dacf96981f01bbdecf52208529d660b7e445b9a2dedeb7518ad67ae598adfcd1",
+  "ship_mesh_count": 171,
+  "changed_ship_meshes": [],
+  "time_mapping": {
+    "source_fps": 12,
+    "output_fps": 24,
+    "source_samples": 96,
+    "range": [
+      240,
+      287.5
+    ]
+  },
+  "max_transform_delta": 0.0,
+  "field_coordinates_attached_to_scenery": true,
+  "missing_images": [],
+  "packed_file_images": [],
+  "absolute_image_paths": [],
+  "selected_assets": [
+    "fields-realism-v1.png",
+    "hills-realism-v2.png",
+    "woodland-realism-v1.png",
+    "sky-realism-v1.png",
+    "cabin-realism-v2.png",
+    "environment-realism-v1.png",
+    "field-detail-realism-v1.png"
+  ],
+  "coverage_by_material": {
+    "REALISM | ship-local registered cabin": {
+      "hits": 18048,
+      "uv_min": [
+        0.06844941526651382,
+        0.07340973615646362
+      ],
+      "uv_max": [
+        0.9315495491027832,
+        0.9199740290641785
+      ],
+      "alpha_min": 0.9803922176361084,
+      "texture_images": [
+        "cabin-realism-v2.png"
+      ],
+      "coverage_alpha_image": "cabin-realism-v2.png"
+    },
+    "REALISM | sky": {
+      "hits": 6238,
+      "uv_min": [
+        0.22973591089248657,
+        0.7437364459037781
+      ],
+      "uv_max": [
+        0.7680764198303223,
+        0.827285885810852
+      ],
+      "alpha_min": 1,
+      "texture_images": [
+        "sky-realism-v1.png"
+      ],
+      "coverage_alpha_image": "sky-realism-v1.png"
+    },
+    "REALISM | distant hills": {
+      "hits": 2835,
+      "uv_min": [
+        0.22085285186767578,
+        0.7154779434204102
+      ],
+      "uv_max": [
+        0.7721735835075378,
+        0.880687415599823
+      ],
+      "alpha_min": 0.0,
+      "texture_images": [
+        "hills-realism-v2.png",
+        "environment-realism-v1.png"
+      ],
+      "coverage_alpha_image": "hills-realism-v2.png"
+    },
+    "REALISM | middle woodland": {
+      "hits": 5685,
+      "uv_min": [
+        0.18598702549934387,
+        0.6031566262245178
+      ],
+      "uv_max": [
+        0.7882541418075562,
+        0.7757298350334167
+      ],
+      "alpha_min": 0.5098039507865906,
+      "texture_images": [
+        "woodland-realism-v1.png",
+        "environment-realism-v1.png"
+      ],
+      "coverage_alpha_image": "woodland-realism-v1.png"
+    },
+    "REALISM | source-world river ripples without projected foliage": {
+      "hits": 1014,
+      "uv_min": [
+        0.23317494988441467,
+        0.8525030612945557
+      ],
+      "uv_max": [
+        0.378233402967453,
+        0.8830157518386841
+      ],
+      "alpha_min": 1,
+      "texture_images": [
+        "fields-realism-v1.png"
+      ],
+      "coverage_alpha_image": "fields-realism-v1.png"
+    },
+    "REALISM | field ground clipped at actual source river nearbank": {
+      "hits": 10855,
+      "uv_min": [
+        0.08300525695085526,
+        0.19179706275463104
+      ],
+      "uv_max": [
+        0.6662912964820862,
+        0.7741422653198242
+      ],
+      "alpha_min": 1,
+      "texture_images": [
+        "fields-realism-v1.png"
+      ],
+      "coverage_alpha_image": "fields-realism-v1.png"
+    },
+    "REALISM | local detail Plantation | clearing 3 1": {
+      "hits": 1577,
+      "uv_min": [
+        0.2343749701976776,
+        0.02083333395421505
+      ],
+      "uv_max": [
+        0.765496015548706,
+        0.9788533449172974
+      ],
+      "alpha_min": 1,
+      "texture_images": [
+        "field-detail-realism-v1.png"
+      ],
+      "coverage_alpha_image": "field-detail-realism-v1.png"
+    },
+    "REALISM | local detail Plantation | clearing 4 1": {
+      "hits": 740,
+      "uv_min": [
+        0.2354111671447754,
+        0.02083519846200943
+      ],
+      "uv_max": [
+        0.7654227018356323,
+        0.7436231374740601
+      ],
+      "alpha_min": 1,
+      "texture_images": [
+        "field-detail-realism-v1.png"
+      ],
+      "coverage_alpha_image": "field-detail-realism-v1.png"
+    },
+    "REALISM | local detail Plantation | clearing 2 1": {
+      "hits": 1229,
+      "uv_min": [
+        0.2344464659690857,
+        0.02083350345492363
+      ],
+      "uv_max": [
+        0.6974710822105408,
+        0.97728031873703
+      ],
+      "alpha_min": 1,
+      "texture_images": [
+        "field-detail-realism-v1.png"
+      ],
+      "coverage_alpha_image": "field-detail-realism-v1.png"
+    },
+    "REALISM | source-world orthographic fields": {
+      "hits": 451,
+      "uv_min": [
+        0.09721410274505615,
+        0.41789475083351135
+      ],
+      "uv_max": [
+        0.5315442681312561,
+        0.7700648903846741
+      ],
+      "alpha_min": 1,
+      "texture_images": [
+        "fields-realism-v1.png"
+      ],
+      "coverage_alpha_image": "fields-realism-v1.png"
+    },
+    "REALISM | local detail Plantation | clearing 3 0": {
+      "hits": 123,
+      "uv_min": [
+        0.23525123298168182,
+        0.9432502388954163
+      ],
+      "uv_max": [
+        0.7645660042762756,
+        0.9790757894515991
+      ],
+      "alpha_min": 1,
+      "texture_images": [
+        "field-detail-realism-v1.png"
+      ],
+      "coverage_alpha_image": "field-detail-realism-v1.png"
+    },
+    "REALISM | local detail Plantation | clearing 2 0": {
+      "hits": 130,
+      "uv_min": [
+        0.2627495527267456,
+        0.9430204629898071
+      ],
+      "uv_max": [
+        0.765483021736145,
+        0.9791667461395264
+      ],
+      "alpha_min": 1,
+      "texture_images": [
+        "field-detail-realism-v1.png"
+      ],
+      "coverage_alpha_image": "field-detail-realism-v1.png"
+    },
+    "REALISM | local detail Plantation | clearing 4 0": {
+      "hits": 35,
+      "uv_min": [
+        0.2713978886604309,
+        0.9429672956466675
+      ],
+      "uv_max": [
+        0.4193766415119171,
+        0.9790629148483276
+      ],
+      "alpha_min": 1,
+      "texture_images": [
+        "field-detail-realism-v1.png"
+      ],
+      "coverage_alpha_image": "field-detail-realism-v1.png"
+    }
+  },
+  "visible_outside_count": 0,
+  "visible_outside_samples": [],
+  "cabin_transparent_hit_count": 0,
+  "cabin_transparent_samples": [],
+  "uncovered_ray_count": 0,
+  "uncovered_samples": [],
+  "frame_samples": [
+    {
+      "frame": 240.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 240.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 241.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 241.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 242.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 242.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 243.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 243.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 244.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 244.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 245.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 245.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 246.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 246.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 247.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 247.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 248.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 248.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 249.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 249.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 250.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 250.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 251.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 251.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 252.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 252.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 253.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 253.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 254.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 254.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 255.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 255.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 256.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 256.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 257.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 257.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 258.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 258.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 259.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 259.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 260.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 260.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 261.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 261.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 262.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 262.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 263.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 263.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 264.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 264.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 265.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 265.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 266.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 266.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 267.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 267.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 268.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 268.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 269.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 269.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 270.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 270.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 271.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 271.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 272.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 272.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 273.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 273.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 274.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 274.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 275.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 275.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 276.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 276.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 277.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 277.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 278.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 278.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 279.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 279.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 280.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 280.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 281.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 281.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 282.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 282.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 283.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 283.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 284.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 284.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 285.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 285.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 286.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 286.5,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 287.0,
+      "textured_first_hits": 510
+    },
+    {
+      "frame": 287.5,
+      "textured_first_hits": 510
+    }
+  ],
+  "limits": [
+    "64px image grid at all96half-frame times; not exhaustive every-pixel proof.",
+    "Local generated-field UVs and crop mapping are evaluated from actual node graph; color/top-versus-side selection is not a visual material-quality check.",
+    "Shader opacity graph evaluated including alpha remaps, bank sine-curve and nested transparent mixes; traversal uses0.5opacity decision, not full soft-edge compositing.",
+    "Cabin alpha check cannot detect incorrect RGB aperture paint when its alpha is opaque; rendered aperture/trim registration still required.",
+    "Source hashes prove no source modification during this validation, not prior historical immutability.",
+    "No render, scene rebuild or blend save performed."
+  ]
+}

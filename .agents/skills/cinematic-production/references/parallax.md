@@ -53,6 +53,19 @@ across coarse terrain. Use a panorama/layer instead where geometric depth adds
 warping without useful motion. For moving objects, see
 [object-attached texture projection](dynamic-objects.md).
 
+For nearby ground, budget detail by its largest visible screen footprint. A single
+orthographic map spanning several kilometres may establish layout but leave
+nearby plots soft. Combine that broad map with denser registered surface textures
+where needed; check parcel repetition and ground contact in motion. Do not retain
+oversized blockout crop boxes as finished vegetation.
+
+An extracted layer may preserve its outline but change the source's surface style.
+Where registration and coverage permit, use the master image for RGB and the
+generated cutout for alpha. This cannot invent hidden surfaces: if the master
+contains a river or field where opaque woodland completion is needed, generate
+that missing content or change the layer plan. Judge the composite through the
+whole move rather than treating extraction as automatically faithful.
+
 ## Diagnose jitter before adding shake
 
 In the first cabin study, world X near −12,000 produced about 3 pixels of
@@ -85,6 +98,9 @@ Read the relevant implementation and manifest before adapting it:
   `verify_scene.py`, `validate_media.py`. Demonstrates full approach/contact
   blocking and coverage diagnostics; its color maps are antialiased review
   visualizations, not production binary extraction masks.
+- [Managed-land realism study](../../../../art-source/company-prologue/second-wind-cinematic/managed-land-realism/README.md): orthographic ground detail,
+  distant canopy layers, geometry-guided cabin materials and a four-second proof
+  using the next-scenes camera. Includes retained rejected extraction variants.
 
 Layer depths, cloud/traffic speeds, Atlas canvas width, overscan and haze in these
 studies are compositing choices, not canonical geography, hull dimensions or flight

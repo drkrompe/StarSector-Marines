@@ -1,0 +1,68 @@
+{
+  "source": "../layered-next-scenes/layered-next-scenes.blend",
+  "guide_manifest": "guide-manifest.json",
+  "source_frames": [
+    240,
+    287.5
+  ],
+  "source_fps": 12,
+  "output_frames": 96,
+  "output_fps": 24,
+  "camera": "03 LAND / side window",
+  "missing_assets": [],
+  "assets": [
+    "fields-realism-v1.png",
+    "hills-realism-v2.png",
+    "woodland-realism-v1.png",
+    "sky-realism-v1.png",
+    "cabin-realism-v2.png",
+    "environment-realism-v1.png",
+    "field-detail-realism-v1.png"
+  ],
+  "layers": [
+    {
+      "object": "REALISM | sky",
+      "asset": "sky-realism-v1.png",
+      "source_y_m": 35000,
+      "camera_depth_m": 43707.021717790376
+    },
+    {
+      "object": "REALISM | distant hills",
+      "asset": "hills-realism-v2.png",
+      "source_y_m": 11000,
+      "camera_depth_m": 13710.700810277918
+    },
+    {
+      "object": "REALISM | middle woodland",
+      "asset": "woodland-realism-v1.png",
+      "source_y_m": 3000,
+      "camera_depth_m": 3711.9271744404314
+    },
+    {
+      "object": "REALISM | distant Atlas card",
+      "asset": "../parallax-window/traffic/atlas-painted-v1.png",
+      "source_y_m": 8500,
+      "canvas_width_px_midpoint": 135,
+      "independent_source_x_speed_m_s": 19,
+      "haze_mix": 0.32,
+      "identity": "Fixed-aspect distant Atlas artwork; bow right/engines left",
+      "dimensions_are_compositing_choices": true
+    }
+  ],
+  "environment_relief": {
+    "crop_rows": "Hidden box proxies; crop detail supplied by orthographic surface",
+    "road_clearing_offset_m": 0.1,
+    "hidden_replaceable_proxy_ids": [
+      34
+    ],
+    "field_detail": "Per-clearing GeneratedXY maps to centralplotUV U.234375..765625,V.0208333..9791667; alternateXflip and gain.96..1.04",
+    "far_ground": "Per-pixel source-world analytic river nearbank mask hides all coarse ground beyond nearbank; no canopy projection onto coarse terrain",
+    "river": "Retained river geometry; clean water-only UV subregion of fields master tiled in source-worldXY, with12% low-contrast fine-ripple modulation. No projected tree RGB",
+    "woodland_rgb": "Originalmaster above conservative farshore UV boundary V=.60+.15U; smooth.03Vblend to generatedopaquecompletion below"
+  },
+  "independent_cloud_pass": {
+    "included": false,
+    "reason": "Supplied cloud-bank cutout is visually heavy and has colored edge residue; retained sky already includes natural clouds. Raw supplied cloud image preserved."
+  },
+  "scope": "Short textured motion study, no sound or game integration"
+}

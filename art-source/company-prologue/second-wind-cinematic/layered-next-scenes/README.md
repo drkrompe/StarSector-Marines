@@ -94,6 +94,10 @@ review visualizations. Export proper masks from the scene for production composi
 
 ## Painting handoff
 
+Shot 03 now has a separate [managed-land realism motion study](../managed-land-realism/README.md)
+using this camera and timing. It combines textured ground, layered distant canopy
+and a worn cabin finish; this directory remains the unchanged blocking reference.
+
 Use each shot's saved camera and geometry to produce its own composition guide.
 Use the [naturalistic look study](../realism-lookdev/README.md) and current campaign
 stills as the updated surface-style references, with bright daylight and physical
