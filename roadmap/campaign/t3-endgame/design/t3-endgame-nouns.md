@@ -40,7 +40,10 @@ its epilogue, not a second political simulation.
 
 1. Only the T3 endgame consumer may write campaign consequences into vanilla
    market ownership, entities, or faction diplomacy. Other campaign features
-   prepare and read claims only.
+   prepare and read claims only. The one exception is a Nexerelin invasion
+   that the player fights as a Marine Operations battle (`nexerelin-nouns.md`).
+   There, Nexerelin's own end-of-battle path makes the write, and the mod
+   writes nothing itself.
 2. A claim is source-unique and check-before-write. If the recorded external
    result is already true, local state is repaired without replaying the
    mutation. A transient external failure leaves the claim prepared; an invalid

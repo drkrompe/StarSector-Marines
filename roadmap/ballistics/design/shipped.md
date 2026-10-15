@@ -15,3 +15,6 @@ Written: 2026-08-23
 | `s4-direct-fire-unification.md` | 2026-08-19 | `b8c7e3e6` | `ballistics-nouns.md` |
 | `s4a-proximity-catch-ramp.md` | 2026-08-19 | `6ab24cbb` | `ballistics-nouns.md` |
 | `s4b-trigger-discipline.md` | 2026-08-22 | `8881ff41` | `ballistics-nouns.md` |
+| `body-part-exposure.md` | 2026-10-15 | `efc42e851` | `ballistics-nouns.md`, `body-part-cover.md` |
+| `crossed-cover-parts.md` | 2026-10-15 | `2c6a36a19` | `ballistics-nouns.md`, `body-part-cover.md` |
+| `body-part-consequences.md` | 2026-10-15 | `25958136c` | `ballistics-nouns.md`, `body-part-cover.md`, `combat-durability-nouns.md`, `ai-nouns.md` |

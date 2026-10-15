@@ -75,6 +75,7 @@ is explicit in `a-small-war.md` and `power-suit-field-acceptance.md`.
 | Personnel, recovery and investment | `personnel-nouns.md`, `loot-nouns.md`, `infrastructure-nouns.md` |
 | Truthful correspondence and tactical speech | `narrative-nouns.md`, `battle-radio-nouns.md` |
 | Exceptional late-game political escalation | `t3-endgame-nouns.md` |
+| Co-existence with Nexerelin and its ground battles | `nexerelin-nouns.md` |
 | Release gates and live acceptance | `v0.1-alpha.md` |
 
 The systemic late game, including civil-war chains and Last Testament, is not
