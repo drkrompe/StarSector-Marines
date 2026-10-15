@@ -1,0 +1,2439 @@
+{
+  "passed": true,
+  "errors": [],
+  "scene": "layered-next-scenes.blend",
+  "source": "../animatic/jangala-blockout.blend",
+  "output_samples": 576,
+  "source_times": [
+    240.0,
+    778.5
+  ],
+  "ship_mesh_count": 171,
+  "changed_ship_meshes": [],
+  "engine_objects": [
+    "Engine 1 aft-facing nozzle",
+    "Engine 1 body",
+    "Engine 1 dark throat",
+    "Engine 1 mouth rim",
+    "Engine 2 aft-facing nozzle",
+    "Engine 2 body",
+    "Engine 2 dark throat",
+    "Engine 2 mouth rim",
+    "Engine 3 aft-facing nozzle",
+    "Engine 3 body",
+    "Engine 3 dark throat",
+    "Engine 3 mouth rim",
+    "Engine 4 aft-facing nozzle",
+    "Engine 4 body",
+    "Engine 4 dark throat",
+    "Engine 4 mouth rim"
+  ],
+  "maxima": {
+    "root_location_m": 0.0,
+    "inverse_flight_error_m": 0.0,
+    "attitude_scale_delta": 0.0,
+    "world_relative_matrix_delta": 0.00023651123046875
+  },
+  "transform_sample_frames": [
+    240,
+    252.0,
+    264.0,
+    276.0,
+    400,
+    412.0,
+    424.0,
+    436.0,
+    565,
+    577.0,
+    589.0,
+    601.0,
+    613.0,
+    624,
+    647,
+    648,
+    649,
+    659.0,
+    671.0,
+    683.0,
+    695.0,
+    707.0,
+    719.0,
+    720,
+    731.0,
+    743.0,
+    744,
+    750,
+    751,
+    755.0,
+    767.0,
+    768,
+    774,
+    778.5
+  ],
+  "landing": [
+    {
+      "source_frame": 648,
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "pad": "YARD_contact_pad_0",
+          "gap_m": 11.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "pad": "YARD_contact_pad_1",
+          "gap_m": 11.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "pad": "YARD_contact_pad_2",
+          "gap_m": 11.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "pad": "YARD_contact_pad_3",
+          "gap_m": 11.0
+        }
+      ],
+      "clamps": [
+        {
+          "clamp": "YARD_retaining_wedge_0",
+          "shoe": "PROPOSAL keel shoe",
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "clamp": "YARD_retaining_wedge_1",
+          "shoe": "PROPOSAL keel shoe.001",
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "clamp": "YARD_retaining_wedge_2",
+          "shoe": "PROPOSAL keel shoe.002",
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "clamp": "YARD_retaining_wedge_3",
+          "shoe": "PROPOSAL keel shoe.003",
+          "lateral_clearance_m": 1.0
+        }
+      ]
+    },
+    {
+      "source_frame": 649,
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "pad": "YARD_contact_pad_0",
+          "gap_m": 10.996444702148438
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "pad": "YARD_contact_pad_1",
+          "gap_m": 10.996444702148438
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "pad": "YARD_contact_pad_2",
+          "gap_m": 10.996444702148438
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "pad": "YARD_contact_pad_3",
+          "gap_m": 10.996444702148438
+        }
+      ],
+      "clamps": [
+        {
+          "clamp": "YARD_retaining_wedge_0",
+          "shoe": "PROPOSAL keel shoe",
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "clamp": "YARD_retaining_wedge_1",
+          "shoe": "PROPOSAL keel shoe.001",
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "clamp": "YARD_retaining_wedge_2",
+          "shoe": "PROPOSAL keel shoe.002",
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "clamp": "YARD_retaining_wedge_3",
+          "shoe": "PROPOSAL keel shoe.003",
+          "lateral_clearance_m": 1.0
+        }
+      ]
+    },
+    {
+      "source_frame": 720,
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "pad": "YARD_contact_pad_0",
+          "gap_m": 1.71875
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "pad": "YARD_contact_pad_1",
+          "gap_m": 1.71875
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "pad": "YARD_contact_pad_2",
+          "gap_m": 1.71875
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "pad": "YARD_contact_pad_3",
+          "gap_m": 1.71875
+        }
+      ],
+      "clamps": [
+        {
+          "clamp": "YARD_retaining_wedge_0",
+          "shoe": "PROPOSAL keel shoe",
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "clamp": "YARD_retaining_wedge_1",
+          "shoe": "PROPOSAL keel shoe.001",
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "clamp": "YARD_retaining_wedge_2",
+          "shoe": "PROPOSAL keel shoe.002",
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "clamp": "YARD_retaining_wedge_3",
+          "shoe": "PROPOSAL keel shoe.003",
+          "lateral_clearance_m": 1.0
+        }
+      ]
+    },
+    {
+      "source_frame": 744,
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "pad": "YARD_contact_pad_0",
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "pad": "YARD_contact_pad_1",
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "pad": "YARD_contact_pad_2",
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "pad": "YARD_contact_pad_3",
+          "gap_m": 0.0
+        }
+      ],
+      "clamps": [
+        {
+          "clamp": "YARD_retaining_wedge_0",
+          "shoe": "PROPOSAL keel shoe",
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "clamp": "YARD_retaining_wedge_1",
+          "shoe": "PROPOSAL keel shoe.001",
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "clamp": "YARD_retaining_wedge_2",
+          "shoe": "PROPOSAL keel shoe.002",
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "clamp": "YARD_retaining_wedge_3",
+          "shoe": "PROPOSAL keel shoe.003",
+          "lateral_clearance_m": 1.0
+        }
+      ]
+    },
+    {
+      "source_frame": 750,
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "pad": "YARD_contact_pad_0",
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "pad": "YARD_contact_pad_1",
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "pad": "YARD_contact_pad_2",
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "pad": "YARD_contact_pad_3",
+          "gap_m": 0.0
+        }
+      ],
+      "clamps": [
+        {
+          "clamp": "YARD_retaining_wedge_0",
+          "shoe": "PROPOSAL keel shoe",
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "clamp": "YARD_retaining_wedge_1",
+          "shoe": "PROPOSAL keel shoe.001",
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "clamp": "YARD_retaining_wedge_2",
+          "shoe": "PROPOSAL keel shoe.002",
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "clamp": "YARD_retaining_wedge_3",
+          "shoe": "PROPOSAL keel shoe.003",
+          "lateral_clearance_m": 1.0
+        }
+      ]
+    },
+    {
+      "source_frame": 751,
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "pad": "YARD_contact_pad_0",
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "pad": "YARD_contact_pad_1",
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "pad": "YARD_contact_pad_2",
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "pad": "YARD_contact_pad_3",
+          "gap_m": 0.0
+        }
+      ],
+      "clamps": [
+        {
+          "clamp": "YARD_retaining_wedge_0",
+          "shoe": "PROPOSAL keel shoe",
+          "lateral_clearance_m": 0.9583339691162109
+        },
+        {
+          "clamp": "YARD_retaining_wedge_1",
+          "shoe": "PROPOSAL keel shoe.001",
+          "lateral_clearance_m": 0.9583339691162109
+        },
+        {
+          "clamp": "YARD_retaining_wedge_2",
+          "shoe": "PROPOSAL keel shoe.002",
+          "lateral_clearance_m": 0.9583339691162109
+        },
+        {
+          "clamp": "YARD_retaining_wedge_3",
+          "shoe": "PROPOSAL keel shoe.003",
+          "lateral_clearance_m": 0.9583339691162109
+        }
+      ]
+    },
+    {
+      "source_frame": 768,
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "pad": "YARD_contact_pad_0",
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "pad": "YARD_contact_pad_1",
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "pad": "YARD_contact_pad_2",
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "pad": "YARD_contact_pad_3",
+          "gap_m": 0.0
+        }
+      ],
+      "clamps": [
+        {
+          "clamp": "YARD_retaining_wedge_0",
+          "shoe": "PROPOSAL keel shoe",
+          "lateral_clearance_m": 0.25
+        },
+        {
+          "clamp": "YARD_retaining_wedge_1",
+          "shoe": "PROPOSAL keel shoe.001",
+          "lateral_clearance_m": 0.25
+        },
+        {
+          "clamp": "YARD_retaining_wedge_2",
+          "shoe": "PROPOSAL keel shoe.002",
+          "lateral_clearance_m": 0.25
+        },
+        {
+          "clamp": "YARD_retaining_wedge_3",
+          "shoe": "PROPOSAL keel shoe.003",
+          "lateral_clearance_m": 0.25
+        }
+      ]
+    },
+    {
+      "source_frame": 774,
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "pad": "YARD_contact_pad_0",
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "pad": "YARD_contact_pad_1",
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "pad": "YARD_contact_pad_2",
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "pad": "YARD_contact_pad_3",
+          "gap_m": 0.0
+        }
+      ],
+      "clamps": [
+        {
+          "clamp": "YARD_retaining_wedge_0",
+          "shoe": "PROPOSAL keel shoe",
+          "lateral_clearance_m": 0.0
+        },
+        {
+          "clamp": "YARD_retaining_wedge_1",
+          "shoe": "PROPOSAL keel shoe.001",
+          "lateral_clearance_m": 0.0
+        },
+        {
+          "clamp": "YARD_retaining_wedge_2",
+          "shoe": "PROPOSAL keel shoe.002",
+          "lateral_clearance_m": 0.0
+        },
+        {
+          "clamp": "YARD_retaining_wedge_3",
+          "shoe": "PROPOSAL keel shoe.003",
+          "lateral_clearance_m": 0.0
+        }
+      ]
+    },
+    {
+      "source_frame": 778.5,
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "pad": "YARD_contact_pad_0",
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "pad": "YARD_contact_pad_1",
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "pad": "YARD_contact_pad_2",
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "pad": "YARD_contact_pad_3",
+          "gap_m": 0.0
+        }
+      ],
+      "clamps": [
+        {
+          "clamp": "YARD_retaining_wedge_0",
+          "shoe": "PROPOSAL keel shoe",
+          "lateral_clearance_m": 0.0
+        },
+        {
+          "clamp": "YARD_retaining_wedge_1",
+          "shoe": "PROPOSAL keel shoe.001",
+          "lateral_clearance_m": 0.0
+        },
+        {
+          "clamp": "YARD_retaining_wedge_2",
+          "shoe": "PROPOSAL keel shoe.002",
+          "lateral_clearance_m": 0.0
+        },
+        {
+          "clamp": "YARD_retaining_wedge_3",
+          "shoe": "PROPOSAL keel shoe.003",
+          "lateral_clearance_m": 0.0
+        }
+      ]
+    }
+  ],
+  "new_geometry_lane_checks": [
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | far asymmetric hills",
+      "source_world_bounds": [
+        [
+          -23500.0,
+          13000.0
+        ],
+        [
+          9547.7177734375,
+          12454.591796875
+        ],
+        [
+          -80.0,
+          1397.4088134765625
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | far forest belt",
+      "source_world_bounds": [
+        [
+          -22000.0,
+          11000.0
+        ],
+        [
+          5745.4267578125,
+          7249.07861328125
+        ],
+        [
+          -80.0,
+          422.50958251953125
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | middle woodland continuous belt",
+      "source_world_bounds": [
+        [
+          -19000.0,
+          11000.0
+        ],
+        [
+          3779.93798828125,
+          4754.34912109375
+        ],
+        [
+          -80.0,
+          206.74002075195312
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | middle woodland outer shoulder",
+      "source_world_bounds": [
+        [
+          -17000.0,
+          12000.0
+        ],
+        [
+          4495.81396484375,
+          5298.984375
+        ],
+        [
+          -80.0,
+          185.2113494873047
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | managed land outer hedgerow",
+      "source_world_bounds": [
+        [
+          -7100.0,
+          -1400.0
+        ],
+        [
+          1859.9903564453125,
+          2334.701416015625
+        ],
+        [
+          -38.73486328125,
+          37.62945556640625
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | managed land near broken verge",
+      "source_world_bounds": [
+        [
+          -7600.0,
+          -1800.0
+        ],
+        [
+          248.6827850341797,
+          580.7017822265625
+        ],
+        [
+          -26.56005859375,
+          22.55650520324707
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | port district backdrop trees",
+      "source_world_bounds": [
+        [
+          -3600.0,
+          2400.0
+        ],
+        [
+          486.0648193359375,
+          1007.8103637695312
+        ],
+        [
+          -23.2890625,
+          91.31483459472656
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | exterior asymmetric far hills",
+      "source_world_bounds": [
+        [
+          -17000.0,
+          13000.0
+        ],
+        [
+          -6553.74853515625,
+          -4453.888671875
+        ],
+        [
+          -80.0,
+          493.041015625
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | exterior continuous woodland",
+      "source_world_bounds": [
+        [
+          -12500.0,
+          11000.0
+        ],
+        [
+          -3150.62158203125,
+          -1847.6973876953125
+        ],
+        [
+          -80.0,
+          232.32066345214844
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | district shed 00",
+      "source_world_bounds": [
+        [
+          -615.0,
+          -505.0
+        ],
+        [
+          -426.0,
+          -354.0
+        ],
+        [
+          -0.00048828125,
+          22.99951171875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | district shed roof 00",
+      "source_world_bounds": [
+        [
+          -619.4000244140625,
+          -500.6000061035156
+        ],
+        [
+          -429.6000061035156,
+          -350.3999938964844
+        ],
+        [
+          22.99951171875,
+          27.99951171875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | district shed 01",
+      "source_world_bounds": [
+        [
+          -420.0,
+          -290.0
+        ],
+        [
+          -615.0,
+          -525.0
+        ],
+        [
+          10.203125,
+          40.203125
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | district shed roof 01",
+      "source_world_bounds": [
+        [
+          -425.20001220703125,
+          -284.79998779296875
+        ],
+        [
+          -619.5,
+          -520.5
+        ],
+        [
+          40.203125,
+          45.203125
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | district shed 02",
+      "source_world_bounds": [
+        [
+          -157.5,
+          -62.5
+        ],
+        [
+          -502.5,
+          -437.5
+        ],
+        [
+          4.201171875,
+          23.201171875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | district shed roof 02",
+      "source_world_bounds": [
+        [
+          -161.3000030517578,
+          -58.70000076293945
+        ],
+        [
+          -505.75,
+          -434.25
+        ],
+        [
+          23.201171875,
+          28.201171875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | district shed 03",
+      "source_world_bounds": [
+        [
+          122.5,
+          247.5
+        ],
+        [
+          -629.0,
+          -551.0
+        ],
+        [
+          15.482421875,
+          42.482421875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | district shed roof 03",
+      "source_world_bounds": [
+        [
+          117.5,
+          252.5
+        ],
+        [
+          -632.9000244140625,
+          -547.0999755859375
+        ],
+        [
+          42.482421875,
+          47.482421875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | district shed 04",
+      "source_world_bounds": [
+        [
+          395.0,
+          515.0
+        ],
+        [
+          -455.0,
+          -375.0
+        ],
+        [
+          1.45947265625,
+          26.45947265625
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | district shed roof 04",
+      "source_world_bounds": [
+        [
+          390.20001220703125,
+          519.7999877929688
+        ],
+        [
+          -459.0,
+          -371.0
+        ],
+        [
+          26.45947265625,
+          31.45947265625
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | district shed 05",
+      "source_world_bounds": [
+        [
+          607.5,
+          692.5
+        ],
+        [
+          -642.5,
+          -577.5
+        ],
+        [
+          22.0693359375,
+          42.0693359375
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | district shed roof 05",
+      "source_world_bounds": [
+        [
+          604.0999755859375,
+          695.9000244140625
+        ],
+        [
+          -645.75,
+          -574.25
+        ],
+        [
+          42.0693359375,
+          47.0693359375
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | district tank 00",
+      "source_world_bounds": [
+        [
+          -664.0,
+          -616.0
+        ],
+        [
+          -624.0,
+          -576.0
+        ],
+        [
+          8.98828125,
+          40.98828125
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | district tank 01",
+      "source_world_bounds": [
+        [
+          -604.0,
+          -556.0
+        ],
+        [
+          -634.0,
+          -586.0
+        ],
+        [
+          10.34228515625,
+          42.34228515625
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | district tank 02",
+      "source_world_bounds": [
+        [
+          271.0,
+          329.0
+        ],
+        [
+          -459.0,
+          -401.0
+        ],
+        [
+          2.35986328125,
+          38.35986328125
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | district gantry 0 upright -42",
+      "source_world_bounds": [
+        [
+          -464.5,
+          -459.5
+        ],
+        [
+          -353.5,
+          -346.5
+        ],
+        [
+          -0.00048828125,
+          53.99951171875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | district gantry 0 upright 42",
+      "source_world_bounds": [
+        [
+          -380.5,
+          -375.5
+        ],
+        [
+          -353.5,
+          -346.5
+        ],
+        [
+          -0.00048828125,
+          53.99951171875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | district gantry 0 open crossbeam",
+      "source_world_bounds": [
+        [
+          -467.0,
+          -373.0
+        ],
+        [
+          -354.5,
+          -345.5
+        ],
+        [
+          50.99951171875,
+          56.99951171875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | district gantry 0 trolley",
+      "source_world_bounds": [
+        [
+          -438.0,
+          -426.0
+        ],
+        [
+          -356.0,
+          -344.0
+        ],
+        [
+          43.49951171875,
+          50.49951171875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | district gantry 1 upright -42",
+      "source_world_bounds": [
+        [
+          520.5,
+          525.5
+        ],
+        [
+          -523.5,
+          -516.5
+        ],
+        [
+          11.677734375,
+          65.677734375
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | district gantry 1 upright 42",
+      "source_world_bounds": [
+        [
+          604.5,
+          609.5
+        ],
+        [
+          -523.5,
+          -516.5
+        ],
+        [
+          11.677734375,
+          65.677734375
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | district gantry 1 open crossbeam",
+      "source_world_bounds": [
+        [
+          518.0,
+          612.0
+        ],
+        [
+          -524.5,
+          -515.5
+        ],
+        [
+          62.677734375,
+          68.677734375
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | district gantry 1 trolley",
+      "source_world_bounds": [
+        [
+          547.0,
+          559.0
+        ],
+        [
+          -526.0,
+          -514.0
+        ],
+        [
+          55.177734375,
+          62.177734375
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | drifting cloud bank",
+      "source_world_bounds": [
+        [
+          -13399.1552734375,
+          3367.9775390625
+        ],
+        [
+          12273.666015625,
+          13789.455078125
+        ],
+        [
+          1433.3154296875,
+          2641.316650390625
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 624,
+      "object": "LAYER BLOCK | distant freight transit proxy",
+      "source_world_bounds": [
+        [
+          3190.0,
+          3440.0
+        ],
+        [
+          8468.0,
+          8532.0
+        ],
+        [
+          780.0,
+          820.0
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | far asymmetric hills",
+      "source_world_bounds": [
+        [
+          -23500.0,
+          13000.0
+        ],
+        [
+          9547.7177734375,
+          12454.591796875
+        ],
+        [
+          -80.0,
+          1397.4088134765625
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | far forest belt",
+      "source_world_bounds": [
+        [
+          -22000.0,
+          11000.0
+        ],
+        [
+          5745.4267578125,
+          7249.07861328125
+        ],
+        [
+          -80.0,
+          422.50958251953125
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | middle woodland continuous belt",
+      "source_world_bounds": [
+        [
+          -19000.0,
+          11000.0
+        ],
+        [
+          3779.93798828125,
+          4754.34912109375
+        ],
+        [
+          -80.0,
+          206.74002075195312
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | middle woodland outer shoulder",
+      "source_world_bounds": [
+        [
+          -17000.0,
+          12000.0
+        ],
+        [
+          4495.81396484375,
+          5298.984375
+        ],
+        [
+          -80.0,
+          185.2113494873047
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | managed land outer hedgerow",
+      "source_world_bounds": [
+        [
+          -7100.0,
+          -1400.0
+        ],
+        [
+          1859.9903564453125,
+          2334.701416015625
+        ],
+        [
+          -38.73486328125,
+          37.62945556640625
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | managed land near broken verge",
+      "source_world_bounds": [
+        [
+          -7600.0,
+          -1800.0
+        ],
+        [
+          248.6827850341797,
+          580.7017822265625
+        ],
+        [
+          -26.56005859375,
+          22.55650520324707
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | port district backdrop trees",
+      "source_world_bounds": [
+        [
+          -3600.0,
+          2400.0
+        ],
+        [
+          486.0648193359375,
+          1007.8103637695312
+        ],
+        [
+          -23.2890625,
+          91.31483459472656
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | exterior asymmetric far hills",
+      "source_world_bounds": [
+        [
+          -17000.0,
+          13000.0
+        ],
+        [
+          -6553.74853515625,
+          -4453.888671875
+        ],
+        [
+          -80.0,
+          493.041015625
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | exterior continuous woodland",
+      "source_world_bounds": [
+        [
+          -12500.0,
+          11000.0
+        ],
+        [
+          -3150.62158203125,
+          -1847.6973876953125
+        ],
+        [
+          -80.0,
+          232.32066345214844
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | district shed 00",
+      "source_world_bounds": [
+        [
+          -615.0,
+          -505.0
+        ],
+        [
+          -426.0,
+          -354.0
+        ],
+        [
+          -0.00048828125,
+          22.99951171875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | district shed roof 00",
+      "source_world_bounds": [
+        [
+          -619.4000244140625,
+          -500.6000061035156
+        ],
+        [
+          -429.6000061035156,
+          -350.3999938964844
+        ],
+        [
+          22.99951171875,
+          27.99951171875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | district shed 01",
+      "source_world_bounds": [
+        [
+          -420.0,
+          -290.0
+        ],
+        [
+          -615.0,
+          -525.0
+        ],
+        [
+          10.203125,
+          40.203125
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | district shed roof 01",
+      "source_world_bounds": [
+        [
+          -425.20001220703125,
+          -284.79998779296875
+        ],
+        [
+          -619.5,
+          -520.5
+        ],
+        [
+          40.203125,
+          45.203125
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | district shed 02",
+      "source_world_bounds": [
+        [
+          -157.5,
+          -62.5
+        ],
+        [
+          -502.5,
+          -437.5
+        ],
+        [
+          4.201171875,
+          23.201171875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | district shed roof 02",
+      "source_world_bounds": [
+        [
+          -161.3000030517578,
+          -58.70000076293945
+        ],
+        [
+          -505.75,
+          -434.25
+        ],
+        [
+          23.201171875,
+          28.201171875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | district shed 03",
+      "source_world_bounds": [
+        [
+          122.5,
+          247.5
+        ],
+        [
+          -629.0,
+          -551.0
+        ],
+        [
+          15.482421875,
+          42.482421875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | district shed roof 03",
+      "source_world_bounds": [
+        [
+          117.5,
+          252.5
+        ],
+        [
+          -632.9000244140625,
+          -547.0999755859375
+        ],
+        [
+          42.482421875,
+          47.482421875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | district shed 04",
+      "source_world_bounds": [
+        [
+          395.0,
+          515.0
+        ],
+        [
+          -455.0,
+          -375.0
+        ],
+        [
+          1.45947265625,
+          26.45947265625
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | district shed roof 04",
+      "source_world_bounds": [
+        [
+          390.20001220703125,
+          519.7999877929688
+        ],
+        [
+          -459.0,
+          -371.0
+        ],
+        [
+          26.45947265625,
+          31.45947265625
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | district shed 05",
+      "source_world_bounds": [
+        [
+          607.5,
+          692.5
+        ],
+        [
+          -642.5,
+          -577.5
+        ],
+        [
+          22.0693359375,
+          42.0693359375
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | district shed roof 05",
+      "source_world_bounds": [
+        [
+          604.0999755859375,
+          695.9000244140625
+        ],
+        [
+          -645.75,
+          -574.25
+        ],
+        [
+          42.0693359375,
+          47.0693359375
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | district tank 00",
+      "source_world_bounds": [
+        [
+          -664.0,
+          -616.0
+        ],
+        [
+          -624.0,
+          -576.0
+        ],
+        [
+          8.98828125,
+          40.98828125
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | district tank 01",
+      "source_world_bounds": [
+        [
+          -604.0,
+          -556.0
+        ],
+        [
+          -634.0,
+          -586.0
+        ],
+        [
+          10.34228515625,
+          42.34228515625
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | district tank 02",
+      "source_world_bounds": [
+        [
+          271.0,
+          329.0
+        ],
+        [
+          -459.0,
+          -401.0
+        ],
+        [
+          2.35986328125,
+          38.35986328125
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | district gantry 0 upright -42",
+      "source_world_bounds": [
+        [
+          -464.5,
+          -459.5
+        ],
+        [
+          -353.5,
+          -346.5
+        ],
+        [
+          -0.00048828125,
+          53.99951171875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | district gantry 0 upright 42",
+      "source_world_bounds": [
+        [
+          -380.5,
+          -375.5
+        ],
+        [
+          -353.5,
+          -346.5
+        ],
+        [
+          -0.00048828125,
+          53.99951171875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | district gantry 0 open crossbeam",
+      "source_world_bounds": [
+        [
+          -467.0,
+          -373.0
+        ],
+        [
+          -354.5,
+          -345.5
+        ],
+        [
+          50.99951171875,
+          56.99951171875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | district gantry 0 trolley",
+      "source_world_bounds": [
+        [
+          -438.0,
+          -426.0
+        ],
+        [
+          -356.0,
+          -344.0
+        ],
+        [
+          43.49951171875,
+          50.49951171875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | district gantry 1 upright -42",
+      "source_world_bounds": [
+        [
+          520.5,
+          525.5
+        ],
+        [
+          -523.5,
+          -516.5
+        ],
+        [
+          11.677734375,
+          65.677734375
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | district gantry 1 upright 42",
+      "source_world_bounds": [
+        [
+          604.5,
+          609.5
+        ],
+        [
+          -523.5,
+          -516.5
+        ],
+        [
+          11.677734375,
+          65.677734375
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | district gantry 1 open crossbeam",
+      "source_world_bounds": [
+        [
+          518.0,
+          612.0
+        ],
+        [
+          -524.5,
+          -515.5
+        ],
+        [
+          62.677734375,
+          68.677734375
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | district gantry 1 trolley",
+      "source_world_bounds": [
+        [
+          547.0,
+          559.0
+        ],
+        [
+          -526.0,
+          -514.0
+        ],
+        [
+          55.177734375,
+          62.177734375
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | drifting cloud bank",
+      "source_world_bounds": [
+        [
+          -13399.1552734375,
+          3367.9775390625
+        ],
+        [
+          12273.666015625,
+          13789.455078125
+        ],
+        [
+          1433.3154296875,
+          2641.316650390625
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 744,
+      "object": "LAYER BLOCK | distant freight transit proxy",
+      "source_world_bounds": [
+        [
+          3190.0,
+          3440.0
+        ],
+        [
+          8468.0,
+          8532.0
+        ],
+        [
+          780.0,
+          820.0
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | far asymmetric hills",
+      "source_world_bounds": [
+        [
+          -23500.0,
+          13000.0
+        ],
+        [
+          9547.7177734375,
+          12454.591796875
+        ],
+        [
+          -80.0,
+          1397.4088134765625
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | far forest belt",
+      "source_world_bounds": [
+        [
+          -22000.0,
+          11000.0
+        ],
+        [
+          5745.4267578125,
+          7249.07861328125
+        ],
+        [
+          -80.0,
+          422.50958251953125
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | middle woodland continuous belt",
+      "source_world_bounds": [
+        [
+          -19000.0,
+          11000.0
+        ],
+        [
+          3779.93798828125,
+          4754.34912109375
+        ],
+        [
+          -80.0,
+          206.74002075195312
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | middle woodland outer shoulder",
+      "source_world_bounds": [
+        [
+          -17000.0,
+          12000.0
+        ],
+        [
+          4495.81396484375,
+          5298.984375
+        ],
+        [
+          -80.0,
+          185.2113494873047
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | managed land outer hedgerow",
+      "source_world_bounds": [
+        [
+          -7100.0,
+          -1400.0
+        ],
+        [
+          1859.9903564453125,
+          2334.701416015625
+        ],
+        [
+          -38.73486328125,
+          37.62945556640625
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | managed land near broken verge",
+      "source_world_bounds": [
+        [
+          -7600.0,
+          -1800.0
+        ],
+        [
+          248.6827850341797,
+          580.7017822265625
+        ],
+        [
+          -26.56005859375,
+          22.55650520324707
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | port district backdrop trees",
+      "source_world_bounds": [
+        [
+          -3600.0,
+          2400.0
+        ],
+        [
+          486.0648193359375,
+          1007.8103637695312
+        ],
+        [
+          -23.2890625,
+          91.31483459472656
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | exterior asymmetric far hills",
+      "source_world_bounds": [
+        [
+          -17000.0,
+          13000.0
+        ],
+        [
+          -6553.74853515625,
+          -4453.888671875
+        ],
+        [
+          -80.0,
+          493.041015625
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | exterior continuous woodland",
+      "source_world_bounds": [
+        [
+          -12500.0,
+          11000.0
+        ],
+        [
+          -3150.62158203125,
+          -1847.6973876953125
+        ],
+        [
+          -80.0,
+          232.32066345214844
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | district shed 00",
+      "source_world_bounds": [
+        [
+          -615.0,
+          -505.0
+        ],
+        [
+          -426.0,
+          -354.0
+        ],
+        [
+          -0.00048828125,
+          22.99951171875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | district shed roof 00",
+      "source_world_bounds": [
+        [
+          -619.4000244140625,
+          -500.6000061035156
+        ],
+        [
+          -429.6000061035156,
+          -350.3999938964844
+        ],
+        [
+          22.99951171875,
+          27.99951171875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | district shed 01",
+      "source_world_bounds": [
+        [
+          -420.0,
+          -290.0
+        ],
+        [
+          -615.0,
+          -525.0
+        ],
+        [
+          10.203125,
+          40.203125
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | district shed roof 01",
+      "source_world_bounds": [
+        [
+          -425.20001220703125,
+          -284.79998779296875
+        ],
+        [
+          -619.5,
+          -520.5
+        ],
+        [
+          40.203125,
+          45.203125
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | district shed 02",
+      "source_world_bounds": [
+        [
+          -157.5,
+          -62.5
+        ],
+        [
+          -502.5,
+          -437.5
+        ],
+        [
+          4.201171875,
+          23.201171875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | district shed roof 02",
+      "source_world_bounds": [
+        [
+          -161.3000030517578,
+          -58.70000076293945
+        ],
+        [
+          -505.75,
+          -434.25
+        ],
+        [
+          23.201171875,
+          28.201171875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | district shed 03",
+      "source_world_bounds": [
+        [
+          122.5,
+          247.5
+        ],
+        [
+          -629.0,
+          -551.0
+        ],
+        [
+          15.482421875,
+          42.482421875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | district shed roof 03",
+      "source_world_bounds": [
+        [
+          117.5,
+          252.5
+        ],
+        [
+          -632.9000244140625,
+          -547.0999755859375
+        ],
+        [
+          42.482421875,
+          47.482421875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | district shed 04",
+      "source_world_bounds": [
+        [
+          395.0,
+          515.0
+        ],
+        [
+          -455.0,
+          -375.0
+        ],
+        [
+          1.45947265625,
+          26.45947265625
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | district shed roof 04",
+      "source_world_bounds": [
+        [
+          390.20001220703125,
+          519.7999877929688
+        ],
+        [
+          -459.0,
+          -371.0
+        ],
+        [
+          26.45947265625,
+          31.45947265625
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | district shed 05",
+      "source_world_bounds": [
+        [
+          607.5,
+          692.5
+        ],
+        [
+          -642.5,
+          -577.5
+        ],
+        [
+          22.0693359375,
+          42.0693359375
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | district shed roof 05",
+      "source_world_bounds": [
+        [
+          604.0999755859375,
+          695.9000244140625
+        ],
+        [
+          -645.75,
+          -574.25
+        ],
+        [
+          42.0693359375,
+          47.0693359375
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | district tank 00",
+      "source_world_bounds": [
+        [
+          -664.0,
+          -616.0
+        ],
+        [
+          -624.0,
+          -576.0
+        ],
+        [
+          8.98828125,
+          40.98828125
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | district tank 01",
+      "source_world_bounds": [
+        [
+          -604.0,
+          -556.0
+        ],
+        [
+          -634.0,
+          -586.0
+        ],
+        [
+          10.34228515625,
+          42.34228515625
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | district tank 02",
+      "source_world_bounds": [
+        [
+          271.0,
+          329.0
+        ],
+        [
+          -459.0,
+          -401.0
+        ],
+        [
+          2.35986328125,
+          38.35986328125
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | district gantry 0 upright -42",
+      "source_world_bounds": [
+        [
+          -464.5,
+          -459.5
+        ],
+        [
+          -353.5,
+          -346.5
+        ],
+        [
+          -0.00048828125,
+          53.99951171875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | district gantry 0 upright 42",
+      "source_world_bounds": [
+        [
+          -380.5,
+          -375.5
+        ],
+        [
+          -353.5,
+          -346.5
+        ],
+        [
+          -0.00048828125,
+          53.99951171875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | district gantry 0 open crossbeam",
+      "source_world_bounds": [
+        [
+          -467.0,
+          -373.0
+        ],
+        [
+          -354.5,
+          -345.5
+        ],
+        [
+          50.99951171875,
+          56.99951171875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | district gantry 0 trolley",
+      "source_world_bounds": [
+        [
+          -438.0,
+          -426.0
+        ],
+        [
+          -356.0,
+          -344.0
+        ],
+        [
+          43.49951171875,
+          50.49951171875
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | district gantry 1 upright -42",
+      "source_world_bounds": [
+        [
+          520.5,
+          525.5
+        ],
+        [
+          -523.5,
+          -516.5
+        ],
+        [
+          11.677734375,
+          65.677734375
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | district gantry 1 upright 42",
+      "source_world_bounds": [
+        [
+          604.5,
+          609.5
+        ],
+        [
+          -523.5,
+          -516.5
+        ],
+        [
+          11.677734375,
+          65.677734375
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | district gantry 1 open crossbeam",
+      "source_world_bounds": [
+        [
+          518.0,
+          612.0
+        ],
+        [
+          -524.5,
+          -515.5
+        ],
+        [
+          62.677734375,
+          68.677734375
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | district gantry 1 trolley",
+      "source_world_bounds": [
+        [
+          547.0,
+          559.0
+        ],
+        [
+          -526.0,
+          -514.0
+        ],
+        [
+          55.177734375,
+          62.177734375
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | drifting cloud bank",
+      "source_world_bounds": [
+        [
+          -13399.1552734375,
+          3367.9775390625
+        ],
+        [
+          12273.666015625,
+          13789.455078125
+        ],
+        [
+          1433.3154296875,
+          2641.316650390625
+        ]
+      ],
+      "lane_overlap": false
+    },
+    {
+      "source_frame": 778.5,
+      "object": "LAYER BLOCK | distant freight transit proxy",
+      "source_world_bounds": [
+        [
+          3190.0,
+          3440.0
+        ],
+        [
+          8468.0,
+          8532.0
+        ],
+        [
+          780.0,
+          820.0
+        ]
+      ],
+      "lane_overlap": false
+    }
+  ],
+  "limits": "Mesh hashes and sampled transforms/bounds establish retained blocking geometry only. New-geometry AABB lane checks are conservative, not triangle collision or exhaust dynamics. No rendering, visual acceptance, damage skin or final-art acceptance is implied."
+}

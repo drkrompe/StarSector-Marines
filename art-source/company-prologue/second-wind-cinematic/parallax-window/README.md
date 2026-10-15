@@ -5,6 +5,9 @@ adding independent painted depth layers, moving cloud and Atlas industrial traff
 The output is 1920×1080, 24 fps and silent, approximately 1.40 MB. Scene and media
 validation passed. This remains a single-shot authoring study for visual review.
 
+The [next-scenes blockout](../layered-next-scenes/README.md) extends the layering
+plan through managed land, the working port, exterior approach and cradle contact.
+
 ## Motion and rendering method
 
 [diagnose_motion.py](diagnose_motion.py) traces the earlier cabin jitter to
