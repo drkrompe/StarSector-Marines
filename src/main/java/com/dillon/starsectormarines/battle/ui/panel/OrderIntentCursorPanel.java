@@ -71,8 +71,10 @@ public final class OrderIntentCursorPanel implements HudPanel {
         if (camera == null) return;
         int cellX = (int) Math.floor(camera.screenToCellX(mouseX));
         int cellY = (int) Math.floor(camera.screenToCellY(mouseY));
-        var marker = BattlefieldMarkerPresentation.target(
-                intent.label(), intent.actionable(), 0f);
+        var marker = intent.assault()
+                ? BattlefieldMarkerPresentation.assault(intent.label(),
+                        intent == TacticalOrderIntent.CLEAR ? "ENEMY INSIDE" : "ASSAULT")
+                : BattlefieldMarkerPresentation.target(intent.label(), intent.actionable(), 0f);
         CommandPowerTargetingPanel.paintTargetingMarker(
                 camera, marker, cellX, cellY, alphaMult);
     }

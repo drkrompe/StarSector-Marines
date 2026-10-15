@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.picking;
 
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.squad.HoldPlaceDecision;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.DigInSystem;
@@ -37,7 +38,11 @@ public enum TacticalOrderIntent {
     /** A transport that cannot take this squad — full, or somebody else's. */
     MOUNT_BLOCKED("NO ROOM", false),
     /** Infantry over a fighting position or a held building: man it, rather than walk to it. */
-    OCCUPY("battleOrderOccupyPosition", true, true);
+    OCCUPY("battleOrderOccupyPosition", true, true),
+    /** A held building the squad believes holds an enemy: the same hold, which clears it first. */
+    CLEAR("battleOrderClearPlace", true, true),
+    /** An uncaptured compound: the click secures it, taking the room by force. */
+    SECURE("battleOrderSecureCompound", true, true);
 
     private final String label;
     private final boolean actionable;
@@ -59,6 +64,9 @@ public enum TacticalOrderIntent {
 
     /** Whether the click would be carried out, as opposed to refused. */
     public boolean actionable() { return actionable; }
+
+    /** Whether the click sends the squad into ground the enemy holds, which the cursor says in red. */
+    public boolean assault() { return this == CLEAR || this == SECURE; }
 
     /**
      * Resolves what a right-click at ({@code cellX}, {@code cellY}) would mean
@@ -97,13 +105,14 @@ public enum TacticalOrderIntent {
         if (sim.transport().mountableVehicleFor(cellX, cellY, squad.faction, 0) != 0L) {
             return MOUNT_BLOCKED;
         }
-        if (!squad.isMechSquad()
-                && (OccupyPositionDecision.runUnderClick(sim.fightingPositions(),
-                        DigInSystem.isEnabled(), cellX, cellY) >= 0
-                    || HoldPlaceDecision.placeUnderClick(sim.getTacticalMap(), cellX, cellY) != null)
-                && !SquadMoveOrderSystem.insideUncapturedCompound(cellX, cellY, sim)) {
+        if (SquadMoveOrderSystem.insideUncapturedCompound(cellX, cellY, sim)) return SECURE;
+        if (squad.isMechSquad()) return MOVE;
+        if (OccupyPositionDecision.runUnderClick(sim.fightingPositions(),
+                DigInSystem.isEnabled(), cellX, cellY) >= 0) {
             return OCCUPY;
         }
-        return MOVE;
+        TacticalNode place = HoldPlaceDecision.placeUnderClick(sim.getTacticalMap(), cellX, cellY);
+        if (place == null) return MOVE;
+        return HoldPlaceDecision.believedOccupied(squad, place) ? CLEAR : OCCUPY;
     }
 }

@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — right-drag draws a line order; middle-drag pans the battle camera.
+Updated: 2026-10-14 — right-drag draws a line order; middle-drag and the window edge pan the battle camera.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -602,8 +602,11 @@ right-click on world ground requests a one-shot tactical move; the simulation's
 resolved reachable destination remains simulation-owned without a persistent
 destination-cell overlay. Crossing the pointer threshold instead draws a line order for the selection
 (see `ai-nouns.md`, occupy), previewed with its front while the button is held;
-the camera pans by middle-drag and the keyboard, and HUD chrome blocks the world
-request behind it. A selected friendly infantry squad
+the camera pans by middle-drag, the keyboard, and resting the pointer on the
+window edge, and HUD chrome blocks the world
+request behind it. The verb under the pointer is drawn as a target marker; an
+order that sends the squad into enemy-held ground (clearing a building it
+believes occupied, securing a compound) is drawn in the hostile colour. A selected friendly infantry squad
 uses the same gesture at squad scope, whether selection came from one
 world member or the squad roster; the surface supplies only the requested cell
 and does not mutate mission authority or combat state. When that cell lies
