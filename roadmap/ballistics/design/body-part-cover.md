@@ -1,6 +1,8 @@
 # Body-part cover
 
-Status: DRAFT — direction agreed in conversation; first slice is `body-part-exposure.md`.
+Status: ACTIVE — exposure shipped; part consequences, area exposure and per-part armour remain.
+
+Updated: 2026-10-15 — first slice shipped; parts are read from where the round meets the body.
 
 Written: 2026-10-15
 
@@ -34,15 +36,24 @@ A direct round against a body resolves progressively:
 
 1. **Did it hit?** The existing target-plane aim, unchanged. Accuracy,
    training, smoke, spread and incoming-accuracy modifiers all act here.
-2. **Which part?** A roll weighted by part share. The head is already a small
-   target before cover enters into it.
+2. **Which part?** The part at the height the round meets him. Parts are
+   stacked up the body in bands as tall as their shares, and the committed aim
+   lands uniformly up the silhouette, so the head is already a small target
+   before cover enters into it. No extra roll is spent: the aim already
+   decided where the round lands.
 3. **Was that part hidden?** A roll against the profile's coverage of that part,
    scaled by distance. A hidden part means the round stopped in the cover.
 
 So a man in a trench is hard to kill because a shooter can only reach his head
-and shoulders, not because of a hidden percentage. The round's height follows
-the part — a leg shot flies low and a head shot high — so a low crate in the lane
-catches leg shots and not head shots, and the impact is drawn where the part is.
+and shoulders, not because of a hidden percentage. An incidental victim — a man
+a stray round crosses — is struck on whatever part is at the round's height
+there.
+
+The part is read from the round's height relative to the aim pattern, which is
+tight around the point of aim. Making the drawn impact and a crossed prop's
+catch band follow the part as well — a crate in the lane catching leg shots and
+passing head shots — needs the aim pattern to span the whole silhouette, and is
+left to the profiles-from-geometry step below.
 
 **Cover is counted once.** A round that reaches an exposed part has beaten the
 cover; it does not also have its damage cut. The flat damage reduction remains
@@ -54,9 +65,11 @@ ramp: a shooter right behind cover is not caught by it. A trench keeps its
 shooter-distance ramp: a shooter standing over the lip sees the whole man. Both
 ramps scale the profile's coverage, so close in, every part is exposed.
 
-**Hulls have no parts.** Mechs, vehicles, emplacements and aircraft remain one
-whole-body contact that takes no terrain cover, as they do today. A mech
-hit-location model is a separate question and is not assumed here.
+**Only people have parts.** Mechs, vehicles, emplacements, aircraft and
+creatures remain one whole-body contact and keep the flat model: vehicles and
+aircraft take no terrain cover, and the rest keep the flat catch and damage cut
+by level. A mech hit-location model is a separate question and is not assumed
+here.
 
 ## Where this goes after the first slice
 
