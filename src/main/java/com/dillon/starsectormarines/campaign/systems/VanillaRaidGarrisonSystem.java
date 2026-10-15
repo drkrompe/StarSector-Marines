@@ -30,6 +30,9 @@ import java.util.List;
  * the player's own colonies, and the older
  * {@link com.fs.starfarer.api.impl.campaign.intel.raid.RaidIntel} — pirate-base raids and
  * punitive expeditions — which is the shape that reaches a patron's market.
+ *
+ * <p>Nexerelin's offensives subclass {@code RaidIntel} too and are deliberately skipped;
+ * see {@link #isNexerelinOffensive}.
  */
 public final class VanillaRaidGarrisonSystem implements CampaignSystem {
 
@@ -172,6 +175,7 @@ public final class VanillaRaidGarrisonSystem implements CampaignSystem {
             // confiscation already reads the ground-defence stat; fighting a resisted
             // inspection is a separate mechanism and out of scope here.
             if (intel instanceof HegemonyInspectionIntel) continue;
+            if (isNexerelinOffensive(intel.getClass())) continue;
             RaidIntel raid = (RaidIntel) intel;
             if (raid.isEnded() || raid.isEnding() || raid.isFailed() || raid.isSucceeded()) {
                 continue;
@@ -190,6 +194,28 @@ public final class VanillaRaidGarrisonSystem implements CampaignSystem {
                 out.add(new RaidThreat(key, marketSlot, factionSlot, strength));
             }
         }
+    }
+
+    /** Nexerelin's base class for every offensive it runs over the vanilla raid machinery. */
+    static final String NEXERELIN_OFFENSIVE_FLEET_INTEL =
+            "exerelin.campaign.intel.fleets.OffensiveFleetIntel";
+
+    /**
+     * Whether {@code intelClass} is one of Nexerelin's offensives rather than a vanilla raid.
+     *
+     * <p>Nexerelin's {@code OffensiveFleetIntel} extends {@link RaidIntel}, and so do its
+     * invasions, raids, saturation bombardments, colony expeditions and even its defence
+     * fleets. Read as raid intels they would arm Garrison defences, and a won defence would
+     * then force-fail a Nex invasion — possibly while Nex's own ground battle is already
+     * running on that market. Nex resolves its own offensives, so this seam leaves them
+     * alone. The match is by class name up the superclass chain so Nexerelin stays an
+     * optional mod with no compile-time reference.
+     */
+    static boolean isNexerelinOffensive(Class<?> intelClass) {
+        for (Class<?> c = intelClass; c != null; c = c.getSuperclass()) {
+            if (NEXERELIN_OFFENSIVE_FLEET_INTEL.equals(c.getName())) return true;
+        }
+        return false;
     }
 
     /**
