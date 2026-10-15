@@ -128,9 +128,11 @@ public final class CloseAirSupportScene implements BehaviorScene {
                     String.format(Locale.ROOT, "first seen at tick %d at (%.1f, %.1f), map %dx%d",
                             t.firstSeenTick, t.entryX, t.entryY, WIDTH, HEIGHT)));
             verdicts.add(Verdict.of("circles-the-ground-it-was-sent-to",
-                    t.orbitTicks >= 25 * tps && t.worstRingError <= 3f && t.laps >= 1.25f && t.laps <= 2f,
-                    String.format(Locale.ROOT, "%.1f s on the ring, %.1f laps, never more than %.2f cells off a radius of %.0f",
-                            t.orbitTicks / tps, t.laps, t.worstRingError, GunshipOrbit.RADIUS_CELLS)));
+                    t.orbitTicks >= 25 * tps && t.worstRingError <= GunshipOrbit.SWING_FRACTION * GunshipOrbit.RADIUS_CELLS + 3f
+                            && t.laps >= 1.25f && t.laps <= 2f,
+                    String.format(Locale.ROOT, "%.1f s on the ring, %.1f laps, never more than %.2f cells off a radius of %.0f (worked swing %.1f)",
+                            t.orbitTicks / tps, t.laps, t.worstRingError, GunshipOrbit.RADIUS_CELLS,
+                            GunshipOrbit.SWING_FRACTION * GunshipOrbit.RADIUS_CELLS)));
             verdicts.add(Verdict.of("one-turret-on-the-hulls-own-mount",
                     t.mounts == 1 && t.mountAtHullSlot,
                     t.mounts + " turret(s); at the hull's published weapon slot " + t.mountAtHullSlot));

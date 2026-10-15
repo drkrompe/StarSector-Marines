@@ -102,8 +102,8 @@ class CloseAirSupportTest {
 
         assertEquals(ShuttleState.GONE, mission.state, "the visit ends and the craft leaves");
         assertTrue(orbitTicks > 20 * 30, "it spends the better part of its visit on the ring: " + orbitTicks);
-        assertTrue(worstRingError < 3.5f,
-                "once settled it stays on the ring it was given, off by at most " + worstRingError);
+        assertTrue(worstRingError < GunshipOrbit.SWING_FRACTION * GunshipOrbit.RADIUS_CELLS + 3.5f,
+                "once settled it stays within the worked ring's swing, off by at most " + worstRingError);
         assertTrue(sim.world().hp(hostile) < startHp, "the turret puts rounds on the ground it circles");
         assertTrue(seconds < 60f, "and the whole visit is bounded: " + seconds);
     }
