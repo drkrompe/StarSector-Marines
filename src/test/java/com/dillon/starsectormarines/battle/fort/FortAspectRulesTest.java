@@ -147,6 +147,33 @@ class FortAspectRulesTest {
     }
 
     @Test
+    void aFortsBunkerOutlivesItsGunsUntilItIsWreckedButABareBatterysControlDiesWithThem() {
+        Fort fort = fort(Faction.DEFENDER, true, true);
+        FortressBattery battery = fort.battery();
+        battery.markDestroyed();
+        assertFalse(battery.operational(), "the guns are gone");
+        assertTrue(battery.fireControlStands(), "the bunker is a building of its own, still to be taken");
+        fort.place(FortAspect.FIRE_CONTROL).markWrecked();
+        assertFalse(battery.fireControlStands(), "a wrecked bunker is held by nobody");
+
+        FortressBatteryService batteries = new FortressBatteryService();
+        FortressBattery bare = batteries.register(9L,
+                TurretCatalogRegistry.requireStructure(TurretCatalogRegistry.FORTRESS_BATTERY_STRUCTURE_ID),
+                10f, 10f, Faction.DEFENDER);
+        assertTrue(bare.fireControlStands());
+        bare.markDestroyed();
+        assertFalse(bare.fireControlStands(), "a bare battery is held in a ring round its guns, gone with them");
+
+        FortService service = new FortService();
+        FortressBattery noBunker = new FortressBatteryService().register(BATTERY,
+                TurretCatalogRegistry.requireStructure(TurretCatalogRegistry.FORTRESS_BATTERY_STRUCTURE_ID),
+                40f, 40f, Faction.DEFENDER);
+        service.tagPlatform(0, noBunker);
+        noBunker.markDestroyed();
+        assertFalse(noBunker.fireControlStands(), "a fort with no bunker has nothing left to take");
+    }
+
+    @Test
     void aBatteryWithNoRoundsIsNotOperationalSoItsEnvelopeIsWithdrawn() {
         Fort fort = fort(Faction.DEFENDER, true, true);
         FortressBattery battery = fort.battery();

@@ -1,16 +1,17 @@
 # Campaign → Battle Bridge — Open Stories
 
-Status: ACTIVE — 3 open stories
+Status: ACTIVE — 4 open stories
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — selected the planetary-shield relay as the first hard-installation vertical.
+Updated: 2026-10-15 — added the market garrison model.
 
 Read `campaign-battle-bridge-nouns.md` before changing a bridge story.
 
 | Story | Status | Dependencies / freshness |
 | --- | --- | --- |
 | `defense-intensity-feel-pass.md` | Ready | The shipped overwatch scaling has headless wiring coverage but still needs representative in-game tuning acceptance; manual acceptance only. |
+| `market-garrison-model.md` | Planned | One garrison estimate per market (headcount, militia/regular/heavy mix, readiness) of our own, identical with or without Nexerelin. Needed by `nex-invasion-conquest.md` slice 2. |
 | `target-profile-defense-authority-cleanup.md` | Proposed | `MissionLaunch` currently resolves both `TargetProfile` and the separate `DetachmentResolver.planetHasHeavyArmaments` market scan. Consolidate one market read without silently changing the mech predicate. |
 
 Economic district content is not bridge backlog: its shared substrate and

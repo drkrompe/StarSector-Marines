@@ -4,7 +4,7 @@ Status: PLANNED — slice 0 (spike) is next.
 
 Written: 2026-10-15
 
-Updated: 2026-10-15 — Preference storage (per save) and map scale (independent of market size; size is a population dial) decided.
+Updated: 2026-10-15 — Per-save preference and fixed map scale decided; defenders come from `market-garrison-model.md`.
 
 Read `nexerelin-nouns.md` in full first. Also read `meta-progression.md` (the
 company and the polity), `architecture.md` (external-state boundary),
@@ -118,16 +118,18 @@ proceed with a named workaround; or redesign settlement.
   size is a population dial and is purely environmental. It reaches the
   battle through the target profile's settlement scale (how built-up the
   ground is and how many people live on it), as it does for every other
-  operation. It never sets the map's dimensions, the tier or the garrison.
-- The opposition and operation tier come from the market's ground strength
-  (law 7). Conquest's tier floor governs which generated offers are valid. A
-  player invasion is not an offer, so a weak garrison is not refused; it is
-  simply a light defence on the full map, whatever the population. If testing shows that a weak
+  operation. It never sets the map's dimensions.
+- The defenders are the market garrison estimate (`market-garrison-model.md`,
+  law 7): headcount and mix from size, stability, structures and supply, with
+  Nexerelin's recent-damage memory read when it is present. That story is a
+  dependency of this slice. A player invasion faces the whole estimate, not a
+  tier-capped share. Conquest's tier floor governs which generated offers are
+  valid; a player invasion is not an offer, so a weak garrison is not refused.
+  It is simply a light defence on the full map. If testing shows that a weak
   garrison on the full map needs special handling, raise it with the user
   rather than switching profile.
-- Law 7: the demand reads the same ground strength Nexerelin would field,
-  including its garrison size multiplier. A test compares the two strengths on
-  a fixture market.
+- Calibration against Nexerelin's own estimate is part of
+  `market-garrison-model.md` slice 3, run with Nexerelin installed.
 - Backing out of the briefing returns to the market's defences with nothing
   committed.
 

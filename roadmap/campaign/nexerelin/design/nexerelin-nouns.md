@@ -92,10 +92,13 @@ seam), `architecture.md` (the external-state boundary) and
    campaign consequences inside the mod are the battle's own personnel, boat
    and loot facts, settled by their ordinary authorities. Who gains the market
    is Nexerelin's decision (the player faction or the commissioning faction).
-7. **The resolver must not change how hard a market is.** The operation's
-   demand comes from the target market's ground strength, the same strength
-   Nexerelin would field against an invasion. Choosing Marine Operations must
-   not be a way around a hard garrison or into an easy one.
+7. **The resolver must not change how hard a market is.** The defenders come
+   from the mod's own market garrison estimate (`market-garrison-model.md`).
+   That is the same estimate every market-backed operation uses, computed the
+   same way with or without Nexerelin, and it follows the same inputs
+   Nexerelin's garrison does: size, stability, structures, supply and recent
+   damage. Choosing Marine Operations must not be a way around a hard garrison
+   or into an easy one.
 8. **Unsupported entry points are left alone.** The mod never alters a joined
    battle, a colony invasion or an AI war, and never reads Nex ground battles
    as its own threats. Supporting another entry point is a new story that
@@ -141,9 +144,10 @@ seam), `architecture.md` (the external-state boundary) and
   invasion is fought on Conquest's authored map. Market size is a population
   dial: it reaches the battle only as environment, through the target
   profile's settlement scale (how built-up the ground is and how many people
-  live on it). It never sets the map's dimensions or the garrison. The
-  garrison follows ground strength (law 7). Conquest's tier floor governs
-  generated offers, not a player invasion.
+  live on it). It never sets the map's dimensions. Size does reach the
+  garrison, but only through the garrison estimate (law 7), as it does in
+  vanilla and Nexerelin. Conquest's tier floor governs generated offers, not a
+  player invasion.
 
 ## Boundaries
 
