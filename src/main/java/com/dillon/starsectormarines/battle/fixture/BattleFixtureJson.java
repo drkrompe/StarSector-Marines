@@ -967,6 +967,7 @@ public final class BattleFixtureJson {
             garrison.put("quality", profile.garrison().quality());
             garrison.put("heavy", profile.garrison().heavy());
             garrison.put("readiness", profile.garrison().readiness());
+            if (profile.garrison().whole()) garrison.put("whole", true);
             encoded.put("garrison", garrison);
         }
         return encoded;
@@ -980,7 +981,8 @@ public final class BattleFixtureJson {
                 (float) garrison.getDouble("strength"),
                 (float) garrison.getDouble("quality"),
                 (float) garrison.getDouble("heavy"),
-                (float) garrison.optDouble("readiness", 1d));
+                (float) garrison.optDouble("readiness", 1d),
+                garrison.optBoolean("whole", false));
     }
 
     private static TargetProfile targetProfileFromJson(

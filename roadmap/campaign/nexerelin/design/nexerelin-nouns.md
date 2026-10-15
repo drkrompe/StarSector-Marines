@@ -1,9 +1,12 @@
 # Nexerelin compatibility nouns
 
-Status: DRAFT — co-existence laws are the direction; the first supported entry
-point is planned in `nex-invasion-conquest.md`.
+Status: ACTIVE — co-existence laws are the direction; the first supported entry
+point, the player invasion, is built in `nex-invasion-conquest.md` and awaits
+its live pass.
 
 Written: 2026-10-15
+
+Updated: 2026-10-15 — Handoff build order, the mirrored commitment and the reset option recorded.
 
 ## Purpose
 
@@ -51,10 +54,17 @@ seam), `architecture.md` (the external-state boundary) and
 - The **ground combat preference** is the player's standing choice for
   supported entry points: Nexerelin, Marine Operations, or ask each time. It
   belongs to the save, and a new save starts at Ask. It is never consulted for
-  an unsupported entry point.
+  an unsupported entry point. Choosing an "always" answer at the fork sets it;
+  the market menu offers a way back to Ask whenever it is set.
 - A **handoff battle** is the Nex ground battle record created for a
   Marine-resolved invasion. It exists only so that Nexerelin's own
-  end-of-battle path can apply the outcome. It never runs a turn.
+  end-of-battle path can apply the outcome. It never runs a turn, and it is
+  started without taking the fleet's cargo marines into Nexerelin units.
+- The **commitment** is what Nexerelin's Invade applies when the player
+  confirms an invasion: a reputation hit with the owner, the market's hostile
+  timeout, Nexerelin's recently-invaded flag and vanilla's raid cooldown. A
+  Marine-resolved invasion never reaches that confirm step, so settlement
+  mirrors the commitment once, just before it ends the handoff battle.
 - **Nex offensives** are Nexerelin's offensive fleet events: invasions, Nex
   raids, saturation bombardments, colony expeditions and defence fleets. They
   all subclass vanilla's `RaidIntel` through `OffensiveFleetIntel`. They are
@@ -67,6 +77,9 @@ seam), `architecture.md` (the external-state boundary) and
    compatibility package, reached only behind that check. A linkage failure
    against an unexpected Nexerelin version must disable our choice and leave
    Nexerelin's own behaviour in place. It must never break the Invade option.
+   A linkage failure at settlement leaves the market unchanged and tells the
+   player. The invasion is still marked settled, and the company's own losses
+   are still written back, because they happened.
 2. **Nexerelin decides whether; we decide only how.** Nexerelin's own
    conditions for invading a market stay authoritative: a defending fleet or
    station still to beat, an uninvadable market, too few marines, a cooldown.
@@ -82,7 +95,10 @@ seam), `architecture.md` (the external-state boundary) and
    changes reputation, or sets Nexerelin memory flags directly. This is the
    second sanctioned external writer beside the T3 endgame, and it follows the
    same rule as the vanilla raid seam: the mod chooses the outcome, and the
-   owning system writes it.
+   owning system writes it. The one exception is the commitment, which
+   mirrors exactly what Nexerelin's own confirm step writes, including its
+   recently-invaded flag. Without it Nexerelin would let the player invade the
+   same market again at once.
 5. **The outcome is binary in the alpha.** A won Conquest is attacker victory.
    Anything else, including a confirmed Retreat, is defender victory. There is
    no partial capture, per-industry occupation or loot from a Marine-resolved
@@ -122,12 +138,16 @@ seam), `architecture.md` (the external-state boundary) and
    - Ask: shows both choices, each leading to one of the paths above.
 3. The briefing is an ordinary operation against the target market: target
    profile, operation tier, Conquest map, company squads and committed lift.
-   Backing out returns to the market's defences dialog with nothing
-   committed.
+   Its defenders are the whole garrison estimate (law 7), not a tier's share.
+   Unlike a contract Conquest it may launch understrength, because it is the
+   player's own decision with whatever the company has. Backing out returns
+   to the market menu with nothing committed.
 4. The battle plays and settles through the ordinary Results path.
-5. Settlement creates the handoff battle with the player as the initiating
-   attacker and ends it with the mapped outcome. Nexerelin applies everything
-   that follows, and the dialog returns to the market's refreshed options.
+5. Settlement happens once, keyed by the invasion's own serial. It mirrors
+   the commitment, then creates the handoff battle with the player as the
+   initiating attacker and ends it with the mapped outcome. Nexerelin applies
+   everything that follows, and the dialog returns to the market's refreshed
+   options.
 
 ## Mismatches the design accepts
 

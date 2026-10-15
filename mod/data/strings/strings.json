@@ -2896,6 +2896,18 @@
 		"equipmentTemplateAccessAdvanced": "Advanced",
 		"equipmentTemplateAccessPrestige": "Prestige",
 		"equipmentTemplateAccessCommonRoute": "Common templates may circulate through unrestricted faction markets.",
-		"equipmentTemplateAccessGatedRouteFmt": "Licensed and patron access requires MRB +{0}; high-risk recovery requires {1} company victories. Licensed stock also requires Favorable standing with the selling faction."
+		"equipmentTemplateAccessGatedRouteFmt": "Licensed and patron access requires MRB +{0}; high-risk recovery requires {1} company victories. Licensed stock also requires Favorable standing with the selling faction.",
+		"nexInvadeForkText": "How will this invasion be fought? Marine Operations lands the company and fights it out now, on the ground, and the result stands when the battle ends: no time for fleets to intervene. Nexerelin fights its own ground battle over several days.",
+		"nexInvadeForkMarine": "Fight it with Marine Operations",
+		"nexInvadeForkNexerelin": "Leave it to Nexerelin's ground battle",
+		"nexInvadeForkMarineAlways": "Always fight invasions with Marine Operations",
+		"nexInvadeForkNexerelinAlways": "Always leave invasions to Nexerelin",
+		"nexInvadeForkBack": "Go back",
+		"nexInvadeResetOption": "Ask again how invasions are fought",
+		"nexInvadeResetDone": "Invasions will ask again whether to fight with Marine Operations or Nexerelin.",
+		"nexInvasionMissionName": "Invasion — {0}",
+		"nexInvasionRequirements": "Company detachment and lift",
+		"nexInvasionFlavor": "The company lands to take {0} from its garrison. The whole garrison stands against you: win the ground and the world changes hands. Retreat or lose and it stays with its owner.",
+		"nexInvasionNotApplied": "The invasion's result could not be handed to Nexerelin. The market is unchanged; the company's losses stand."
 	}
 }

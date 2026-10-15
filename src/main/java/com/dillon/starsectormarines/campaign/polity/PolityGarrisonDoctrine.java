@@ -31,6 +31,7 @@ public final class PolityGarrisonDoctrine {
         return new MarketGarrison(garrison.strength(),
                 garrison.quality() + QUALITY_STEP * doctrine.quality(),
                 garrison.heavy() + HEAVY_STEP * doctrine.heavySupport(),
-                garrison.readiness());
+                garrison.readiness(),
+                garrison.whole());
     }
 }
