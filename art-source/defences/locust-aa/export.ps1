@@ -34,7 +34,9 @@ foreach ($name in @('locust-mount', 'ground-base')) {
             }
             if ($maxX -lt 0 -or $transparent -eq 0) { throw "$name is empty or lacks transparent space" }
             $target.Save((Join-Path $layers "$name.png"), [System.Drawing.Imaging.ImageFormat]::Png)
-            $pivot = @(256,256)
+            # The painted tower bearing is centered near (627,593) in its
+            # 1254-square master. Register its crown, not the lower foot's bounds.
+            $pivot = @(256,242)
             if ($name -eq 'locust-mount') {
                 # The round floor contains the whole mount silhouette. Its bounds
                 # locate the painted yaw center despite ImageGen's framing drift.
