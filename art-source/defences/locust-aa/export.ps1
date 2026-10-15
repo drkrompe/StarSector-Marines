@@ -8,7 +8,7 @@ foreach ($name in @('locust-mount', 'ground-base')) {
     $source = [System.Drawing.Bitmap]::FromFile((Join-Path $PSScriptRoot "$name.master.png"))
     try {
         if ($source.Width -ne $source.Height) { throw "$name must have a square canvas" }
-        if ($source.GetPixel(0, 0).A -ne 0) { throw "$name must have genuine transparency" }
+        if ($source.GetPixel(0, 0).A -ge 8) { throw "$name must have a transparent corner" }
         $target = [System.Drawing.Bitmap]::new(512, 512, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
         $g = [System.Drawing.Graphics]::FromImage($target)
         try {
@@ -50,8 +50,9 @@ $white = [System.Drawing.SolidBrush]::new([System.Drawing.Color]::FromArgb(232,2
 $muted = [System.Drawing.SolidBrush]::new([System.Drawing.Color]::FromArgb(166,181,178))
 $panel = [System.Drawing.SolidBrush]::new([System.Drawing.Color]::FromArgb(39,48,49))
 $original = [System.Drawing.Bitmap]::FromFile((Join-Path $PSScriptRoot 'sources/locust_turret.png'))
+$guide = [System.Drawing.Bitmap]::FromFile((Join-Path $PSScriptRoot 'locust-reskin-guide.png'))
+$master = [System.Drawing.Bitmap]::FromFile((Join-Path $PSScriptRoot 'locust-mount.master.png'))
 $mount = [System.Drawing.Bitmap]::FromFile((Join-Path $layers 'locust-mount.png'))
-$base = [System.Drawing.Bitmap]::FromFile((Join-Path $layers 'ground-base.png'))
 function Draw-Sprite($sprite, [int]$x, [int]$y, [int]$size, [bool]$nearest = $false) {
     $g.InterpolationMode = if ($nearest) { [System.Drawing.Drawing2D.InterpolationMode]::NearestNeighbor } else { [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic }
     $g.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::Half
@@ -60,34 +61,30 @@ function Draw-Sprite($sprite, [int]$x, [int]$y, [int]$size, [bool]$nearest = $fa
 try {
     $g.Clear([System.Drawing.Color]::FromArgb(23,30,32))
     $g.DrawString('LOCUST / GROUND AA', $titleFont, $white, 60, 35)
-    $g.DrawString('Art pass 01  |  Separate stationary base and rotating mount  |  Upward-facing orthographic sprites', $smallFont, $muted, 62, 95)
-    $labels = @('VANILLA SOURCE', 'UP-RES MOUNT', 'GROUND FOUNDATION', 'ASSEMBLED')
-    for ($i = 0; $i -lt 4; $i++) {
-        $x = 40 + 470*$i
-        $g.FillRectangle($panel, $x, 170, 430, 490)
-        $g.DrawString($labels[$i], $labelFont, $white, $x+15, 185)
+    $g.DrawString('Approved elongated head  |  Parallel forward tubes  |  Side trunnions over the gimbal floor', $smallFont, $muted, 62, 95)
+    $labels = @('APPROVED BLENDER GUIDE', 'IMAGEGEN RESKIN')
+    for ($i = 0; $i -lt 2; $i++) {
+        $x = 40 + 780*$i
+        $g.FillRectangle($panel, $x, 160, 760, 800)
+        $g.DrawString($labels[$i], $labelFont, $white, $x+20, 180)
     }
-    Draw-Sprite $original 45 225 420 $true
-    Draw-Sprite $mount 515 225 420
-    Draw-Sprite $base 985 225 420
-    Draw-Sprite $base 1455 225 420
-    Draw-Sprite $mount 1455 225 420
-    $g.DrawString('64 x 64 source, nearest-neighbor enlargement', $smallFont, $muted, 55, 680)
-    $g.DrawString('512 x 512 transparent layers; full master frames retained', $smallFont, $muted, 530, 680)
-    $g.DrawString('SIZE STUDY / ASSEMBLED', $labelFont, $white, 60, 755)
-    Draw-Sprite $base 60 810 64; Draw-Sprite $mount 60 810 64
-    Draw-Sprite $base 200 795 96; Draw-Sprite $mount 200 795 96
-    Draw-Sprite $base 370 780 128; Draw-Sprite $mount 370 780 128
-    $g.DrawString('64 px', $smallFont, $muted, 60, 920)
-    $g.DrawString('96 px', $smallFont, $muted, 215, 920)
-    $g.DrawString('128 px', $smallFont, $muted, 390, 920)
-    $g.DrawString('NEXT IN THE FAMILY', $labelFont, $white, 670, 770)
-    $g.DrawString('Swarmer SRM Launcher  /  Proximity Charge Launcher', $smallFont, $muted, 670, 820)
-    $g.DrawString('Art review only. World footprint, muzzle placement and gameplay are not yet authored.', $smallFont, $muted, 670, 870)
-    $g.DrawString('Vanilla Locust art: Fractal Softworks. Up-res interpretation: built-in ImageGen. Ground base derived from project Ridgewatch art.', $smallFont, $muted, 60, 1000)
+    Draw-Sprite $guide 50 210 740
+    Draw-Sprite $master 830 210 740
+    $g.FillRectangle($panel, 1600, 160, 280, 800)
+    $g.DrawString('VANILLA PALETTE', $smallFont, $white, 1620, 185)
+    Draw-Sprite $original 1660 220 160 $true
+    $g.DrawString('SIZE STUDIES', $smallFont, $white, 1620, 410)
+    Draw-Sprite $mount 1644 445 192
+    $g.DrawString('192 px canvas', $smallFont, $muted, 1660, 632)
+    Draw-Sprite $mount 1676 675 128
+    $g.DrawString('128 px canvas', $smallFont, $muted, 1660, 802)
+    Draw-Sprite $mount 1708 850 64
+    $g.DrawString('64 px canvas', $smallFont, $muted, 1665, 922)
+    $g.DrawString('Transparent 512 x 512 export. Full frames retained. Forward is up; head elevation is 20 degrees.', $smallFont, $muted, 60, 980)
+    $g.DrawString('Art review only; world scale and firing origins remain to be authored. Vanilla palette reference: Fractal Softworks.', $smallFont, $muted, 60, 1017)
     $sheet.Save((Join-Path $PSScriptRoot 'review.png'), [System.Drawing.Imaging.ImageFormat]::Png)
 } finally {
-    $g.Dispose(); $sheet.Dispose(); $original.Dispose(); $mount.Dispose(); $base.Dispose()
+    $g.Dispose(); $sheet.Dispose(); $original.Dispose(); $guide.Dispose(); $master.Dispose(); $mount.Dispose()
     $titleFont.Dispose(); $labelFont.Dispose(); $smallFont.Dispose(); $white.Dispose(); $muted.Dispose(); $panel.Dispose()
 }
 $measurements | ConvertTo-Json -Depth 5
