@@ -1,8 +1,10 @@
 # Crossed cover by part
 
-Status: IN PROGRESS — story written; implementation next.
+Status: IN REVIEW — implemented on its session branch; awaiting owner review of the Conquest trial shift.
 
 Written: 2026-10-15
+
+Updated: 2026-10-15 — implemented; evidence recorded below.
 
 Read `ballistics-nouns.md` and `body-part-cover.md` first. Follows
 `body-part-exposure.md`, which made cover at the body hide parts but left a
@@ -45,16 +47,32 @@ height follow the part, prop damage from caught rounds, part consequences
 
 ## Acceptance
 
-- [ ] `CoverProfile` unit test: crossed rows monotone in level and ordered
-  legs ≥ torso ≥ arms ≥ head; expected interception within 0.03 of the flat
-  chance; head zero at levels 1–2.
-- [ ] Resolver unit tests: a level-2 crate between shooter and target catches
-  a leg-bound round at the crossed rate and a head-bound round at zero; an
-  authored miss and a partless target keep the flat chance.
-- [ ] Full `:test` green.
-- [ ] Scenes (`fighting-position`, `power-suit`, `late-arrival`,
-  `assault-muster`, `squad-medic`), Conquest trial and Relief before/after.
-- [ ] `ballistics-nouns.md` cover section and `body-part-cover.md` updated.
+Crossed rows chosen (head, arms, torso, legs): level 1 `0, 0, .04, .45`
+(expected .151), level 2 `0, .05, .20, .70` (.300), level 3
+`.05, .20, .40, .85` (.460).
+
+- [x] `BodyPartCoverTest`: crossed rows monotone in level and ordered legs ≥
+  torso ≥ arms ≥ head; expected interception within 0.03 of the flat chance;
+  head zero at levels 1–2.
+- [x] `BallisticResolverTest`: a level-2 crate eight cells out catches a
+  leg-bound round at 70% and a head-bound round at zero without spending a
+  roll; a mech target and an authored miss keep the flat 30%. Existing
+  torso-bound crossing tests now pin the crossed torso anchor (20%).
+- [x] Full `:test` green.
+- [x] Scenes (`fighting-position`, `power-suit`, `late-arrival`,
+  `assault-muster`, `squad-medic`): every verdict passes, and every metric is
+  identical to the baseline — none of them puts a walkable prop in a lane a
+  part-bound round crosses. Relief: all nine fixtures identical.
+- [x] Conquest trial: every fixture still won by the marines; two of eight
+  identical. Marine losses 210 against 176 across the eight, defenders
+  remaining 127 against 115 (on-path-42 7170 ticks against 7620, on-path-43
+  70 alive at the end against 82). One replay each, so this is a direction to
+  review rather than a measured effect. A plausible mechanism: a crossed prop
+  and the cover at the body now both favour low parts, so a man behind a lane
+  prop *and* edge cover or a trench is more exposed than the two flat rolls
+  made him (level-2 prop plus level-2 edge: 43% of part-bound rounds reach him,
+  against 36%).
+- [x] `ballistics-nouns.md` cover section and `body-part-cover.md` updated.
 
 ## Plan
 
