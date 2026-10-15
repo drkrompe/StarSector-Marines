@@ -72,7 +72,7 @@ public final class ContrailStyle {
      * tapering as it ages.
      */
     public static final ContrailStyle INTERCEPTOR_WISP = new ContrailStyle(
-            /*duration*/ 0.20f,
+            /*duration*/ 0.09f,
             /*startW*/ 0.035f, /*endW*/ 0.015f,
             /*start*/ 0.80f, 0.96f, 1.00f, 0.75f,
             /*end*/   0.45f, 0.80f, 1.00f, 0.00f,
