@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.fort;
 import com.dillon.starsectormarines.battle.scene.BehaviorSceneSnapshotSuite;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.world.gen.fortress.AirDefenceYard;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
 import com.dillon.starsectormarines.ops.battleview.ReviewStyle;
 
@@ -18,6 +17,8 @@ public final class FortAirDefenceSceneSnapshotSuite extends BehaviorSceneSnapsho
 
     private static final int WIDTH = 1920;
     private static final int HEIGHT = 1080;
+    /** Which of the fort's Ridgewatch batteries (bastions) the aa-forced close view is centred on. */
+    private static final int SAM_CLOSE_VIEW = 0;
 
     public FortAirDefenceSceneSnapshotSuite() {
         super(new FortAirDefenceScene(), WIDTH, HEIGHT);
@@ -35,9 +36,9 @@ public final class FortAirDefenceSceneSnapshotSuite extends BehaviorSceneSnapsho
         return switch (loopId) {
             case "aa-forced" -> {
                 FortAirDefenceScene.Stamped stamped = FortAirDefenceScene.stamp(FortKind.BATTERY_FORT, true);
-                AirDefenceYard yard = stamped.placed().plan().airDefence();
-                int[] centre = stamped.placed().placement().cell(yard.centreX(), yard.centreY());
-                yield new float[]{centre[0] + 0.5f, centre[1] + 0.5f, 56f};
+                int[] battery = stamped.placed().plan().airBatteries().get(SAM_CLOSE_VIEW);
+                int[] centre = stamped.placed().placement().cell(battery[0], battery[1]);
+                yield new float[]{centre[0] + 0.5f, centre[1] + 0.5f, 30f};
             }
             case "fort-spots", "spots-taken" -> new float[]{FortAirDefenceScene.CX - 16f, FortAirDefenceScene.CY, 110f};
             default -> null;
@@ -47,7 +48,8 @@ public final class FortAirDefenceSceneSnapshotSuite extends BehaviorSceneSnapsho
     @Override
     protected int[] stillFrames(String loopId) {
         return switch (loopId) {
-            case "aa-forced-close" -> new int[]{14, 18, 22, 26};
+            case "aa-forced-close" -> new int[]{24, 26, 27, 28, 30};
+            case "aa-forced", "shield-fort" -> new int[]{26};
             case "fort-spots-close" -> new int[]{5, 8, 11};
             case "spots-taken-close" -> new int[]{5, 8, 11};
             default -> new int[0];

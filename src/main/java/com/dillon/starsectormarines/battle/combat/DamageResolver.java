@@ -43,9 +43,9 @@ import java.util.function.LongConsumer;
  * (serial path) or out of the flush drain (parallel-dispatch path). Same
  * applier method ref both ways — semantics are identical across paths.
  *
- * <p>Method ref shape: {@link DamageService.DamageApplier} — five positional
- * args (target, attacker, damage, penetration, moraleImpact). No event
- * class; the SoA queue stores those five values in parallel arrays. The
+ * <p>Method ref shape: {@link DamageService.DamageApplier} — six positional
+ * args (target, attacker, damage, penetration, moraleImpact, part). No event
+ * class; the SoA queue stores those six values in parallel arrays. The
  * attacker id is carried for telemetry attribution only and never changes
  * what the hit does.
  *
@@ -154,7 +154,8 @@ public final class DamageResolver {
      * inside this method, so {@code !wasAlive} means the target is already dead
      * — and the damage is moot anyway.
      */
-    public void resolve(long targetId, long attackerId, float damage, float penetration, float moraleImpact) {
+    public void resolve(long targetId, long attackerId, float damage, float penetration, float moraleImpact,
+                        BodyPart part) {
         World world = roster.world();
         boolean wasAlive = roster.isAliveById(targetId);
         if (!wasAlive) return;
@@ -162,10 +163,16 @@ public final class DamageResolver {
         int tcy = world.cellY(targetId);
         float tx = world.x(targetId);
         float ty = world.y(targetId);
-        int targetCover = coverAgainst(world, targetId, attackerId, tcx, tcy);
-        float dr = Math.max(
-                COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)],
-                occupantCoverAgainst(world, targetId, attackerId, tcx, tcy));
+        // A round that landed on a body part has already beaten the cover: the cover had its
+        // say when it decided which parts it hid. Only a payload with no part — an area burst,
+        // a strafe, a hull — still has its damage cut by the cover it hit.
+        float dr = 0f;
+        if (part == null) {
+            int targetCover = coverAgainst(world, targetId, attackerId, tcx, tcy);
+            dr = Math.max(
+                    COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)],
+                    occupantCoverAgainst(world, targetId, attackerId, tcx, tcy));
+        }
         float hpBefore = world.hp(targetId);
         boolean hasArmor = world.hasArmor(targetId);
         float armorBefore = hasArmor ? world.armor(targetId) : 0f;

@@ -1106,14 +1106,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.bodyDamageResolver = new BodyDamageResolver(rosterService);
         this.engagement = new EngagementService(rosterService);
         this.damageService = new DamageService(
-                (target, attacker, damage, penetration, moraleImpact) -> {
+                (target, attacker, damage, penetration, moraleImpact, part) -> {
                     BodyCarrier carrier = rosterService.bodies().carrierOf(target);
                     if (carrier != null) {
                         bodyDamageResolver.resolve(carrier, target, attacker,
                                 damage, penetration);
                     } else {
                         damageResolver.resolve(target, attacker, damage,
-                                penetration, moraleImpact);
+                                penetration, moraleImpact, part);
                     }
                 },
                 this::writeReprioInline,
@@ -3202,7 +3202,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         }
         rosterService.telemetry().recordRoundHit(impact.shooterId);
         damageService.applyDamage(impact.victimId, impact.shooterId, impact.damage,
-                impact.penetration, impact.moraleImpact);
+                impact.penetration, impact.moraleImpact, impact.part);
         if (friendlyFireSquad != Squad.NO_SQUAD && impact.damage > 0f) {
             friendlyFireSquadsThisFrame.add(friendlyFireSquad);
         }
@@ -3563,7 +3563,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      */
     public void applyExternalDamage(long target, float damage, float penetration) {
         if (target == 0L || !world.isAlive(target) || damage <= 0f) return;
-        damageResolver.resolve(target, CombatTelemetryService.NO_ATTACKER, damage, penetration, 0f);
+        damageResolver.resolve(target, CombatTelemetryService.NO_ATTACKER, damage, penetration, 0f, null);
     }
 
 
