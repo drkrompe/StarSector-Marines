@@ -253,7 +253,7 @@ public final class BattleComponents {
     public static final int MOVEMENT_PATH = 1;
     /** {@link #MOVEMENT} field 2: index of the next un-crossed path waypoint — the carrot picker's resume cursor (INT); {@code >= cellCount(path)} = path exhausted = not moving. */
     public static final int MOVEMENT_PATH_IDX = 2;
-    /** {@link #MOVEMENT} field 3: per-unit movement speed in cells/sec — the mover stat {@code advanceAlongPath} steps by (FLOAT). Seed-only like the COMBAT stats. */
+    /** {@link #MOVEMENT} field 3: per-unit base movement speed in cells/sec (FLOAT). Seed-only like the COMBAT stats; read through {@code MovementService.moveSpeed}, which applies the unit's modifiers. */
     public static final int MOVEMENT_MOVE_SPEED = 3;
     /** {@link #MOVEMENT} field 4: sim-clock stamp of the last {@code NavigationService.setPath} assignment (FLOAT) — drives {@code MovementService.mayRepath}'s mid-motion throttle. */
     public static final int MOVEMENT_LAST_REPATH_TIME = 4;
@@ -263,26 +263,14 @@ public final class BattleComponents {
     public static final int MOVEMENT_VEL_Y = 6;
     /** {@link #MOVEMENT} field 7: brief sim-seconds of formation-heading memory after actual translation, used only to preserve shared-destination infantry footprints after arrival (FLOAT). */
     public static final int MOVEMENT_FORMATION_MEMORY_TIMER = 7;
-    /**
-     * {@link #MOVEMENT} field 8: the unit's unmodified movement speed in
-     * cells/sec (FLOAT), seeded at spawn from the same {@code EntitySpec.moveSpeed}
-     * as {@link #MOVEMENT_MOVE_SPEED} and never written again.
-     *
-     * <p>Exists so a temporary speed effect has something to return to.
-     * {@link #MOVEMENT_MOVE_SPEED} is the live value the mover steps by; an
-     * effect recomputes it as {@code base * multiplier} rather than scaling the
-     * live value in place, because repeated scale-and-restore drifts and a
-     * second overlapping effect would compound the first one's leftovers.
-     */
-    public static final int MOVEMENT_BASE_MOVE_SPEED = 8;
     /** Proven continuous Mech waypoints, or its completed arrival witness (OBJECT, nullable). */
-    public static final int MOVEMENT_CONTINUOUS_ROUTE = 9;
+    public static final int MOVEMENT_CONTINUOUS_ROUTE = 8;
     /** Former traffic displacement still requires terrain-checked cell-path return (INT, 0/1). */
-    public static final int MOVEMENT_TRAFFIC_RETURN_GUARD = 10;
+    public static final int MOVEMENT_TRAFFIC_RETURN_GUARD = 9;
     /** Paused objective travel must install a fresh route before resuming (INT, 0/1). */
-    public static final int MOVEMENT_OBJECTIVE_ROUTE_REFRESH = 11;
+    public static final int MOVEMENT_OBJECTIVE_ROUTE_REFRESH = 10;
     /** Member-owned known-grenade escape witness; path replacement revokes it (OBJECT, nullable). */
-    public static final int MOVEMENT_GRENADE_ESCAPE = 12;
+    public static final int MOVEMENT_GRENADE_ESCAPE = 11;
 
     /** {@link #AI_STATE} field 0: sim-seconds until the unit may next micro-reposition between shots (FLOAT). */
     public static final int AI_STATE_REPOSITION_COOLDOWN = 0;
@@ -1197,7 +1185,7 @@ public final class BattleComponents {
         MOVEMENT        = world.register(8, "Movement",
                 FieldKind.FLOAT, FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT,
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT,
-                FieldKind.FLOAT, FieldKind.OBJECT, FieldKind.INT, FieldKind.INT, FieldKind.OBJECT);
+                FieldKind.OBJECT, FieldKind.INT, FieldKind.INT, FieldKind.OBJECT);
         AI_STATE        = world.register(9, "AiState",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.FLOAT,
                 FieldKind.OBJECT, FieldKind.FLOAT);

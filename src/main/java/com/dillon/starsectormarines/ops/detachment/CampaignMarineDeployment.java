@@ -97,9 +97,9 @@ public final class CampaignMarineDeployment {
                     seat.equipmentGrade, seat.soldierProfile, seat.specialEquipmentId,
                     seat.secondaryAmmo, seat.campaignSoldierId, seat.armorFamily,
                     seat.armorCapacity, seat.armorRating, seat.armorMoveSpeedMult,
-                    seat.armorIncomingAccuracyMult * (tag != null && tag.commandGroupIdentity != null
-                            && tag.commandGroupIdentity.profile() != null
-                            ? tag.commandGroupIdentity.profile().incomingAccuracyMultiplier() : 1f), tag, seat.integralSystem, seat.armorClass));
+                    // The armour's own figure only: Tactical Cover reaches the battle through the
+                    // squad's officer profile, as TacticalCoverModifier.
+                    seat.armorIncomingAccuracyMult, tag, seat.integralSystem, seat.armorClass));
         }
         return new CampaignMarineDeployment(seats);
     }

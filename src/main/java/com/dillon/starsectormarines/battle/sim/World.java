@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.engine.ThrusterFx;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.infantry.SmokeThrowCommit;
+import com.dillon.starsectormarines.battle.modifier.UnitStat;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
@@ -81,7 +82,11 @@ public final class World {
     public float maxHp(long id) { return entityWorld.getFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP); }
     public void setMaxHp(long id, float v) { entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP, v); }
     public float damageTakenMult(long id) { return entityWorld.getFloat(id, components.HEALTH, BattleComponents.HEALTH_DAMAGE_TAKEN_MULT); }
-    public float incomingAccuracyMult(long id) { return entityWorld.getFloat(id, components.HEALTH, BattleComponents.HEALTH_INCOMING_ACCURACY_MULT); }
+    /** Multiplier on the chance of a round aimed at {@code id} to hit, as modified right now ({@link UnitStat#INCOMING_ACCURACY}). */
+    public float incomingAccuracyMult(long id) {
+        return combat.modifiers().resolve(id, UnitStat.INCOMING_ACCURACY,
+                entityWorld.getFloat(id, components.HEALTH, BattleComponents.HEALTH_INCOMING_ACCURACY_MULT));
+    }
 
     // Armor is an OPTIONAL, live-only capability. Presence means the actor was
     // authored with armor even when the current capacity has reached zero; armorless

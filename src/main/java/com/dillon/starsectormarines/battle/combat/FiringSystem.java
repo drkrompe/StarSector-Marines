@@ -199,7 +199,8 @@ public final class FiringSystem {
                     lastFireGate[r] = FireGate.COOLDOWN.ordinal();
                     continue;
                 }
-                if (TacticalScoring.cellDistance(w.x(shooterId), w.y(shooterId), w.x(ft), w.y(ft)) > attackRange[r]) {
+                if (TacticalScoring.cellDistance(w.x(shooterId), w.y(shooterId), w.x(ft), w.y(ft))
+                        > combat.attackRange(shooterId)) {
                     lastFireGate[r] = FireGate.OUT_OF_RANGE.ordinal();
                     continue;
                 }
