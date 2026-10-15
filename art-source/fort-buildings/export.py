@@ -17,7 +17,11 @@ OUT = ROOT / 'mod/graphics/fort'
 PX = 64  # runtime pixels per cell
 QW, QH = 768, 512
 
-BUILDINGS = {'bunker': (7, 5, 92), 'magazine': (8, 6, 77), 'power': (11, 5, 65)}
+# name -> (cells wide, cells high, guide px per cell); the ante-room sheets (opshall, bay, ctrlhall) and the anti-air control
+# room (aircontrol) are drawn over one room's floor in the footprint frame, like the main buildings.
+BUILDINGS = {'bunker': (7, 5, 92), 'magazine': (8, 6, 77), 'power': (11, 5, 65), 'opshall': (5, 5, 100),
+             'bay': (8, 3, 90), 'ctrlhall': (3, 5, 100), 'aircontrol': (7, 5, 92)}
+DOOR_PX = 200  # blastdoor guide px per cell (a 3 x 1 piece, intact then damaged)
 SLOTS = ['roof', 'damaged', 'wreck', 'lights']
 
 
@@ -59,6 +63,12 @@ def parts():
         crop(im, (cx - 200, cy - 200, cx + 200, cy + 200), (3 * PX, 3 * PX)).save(OUT / f'{name}.png')
 
 
+def blastdoor():
+    im = load('blastdoor')
+    for q, name in ((0, 'blast-door'), (1, 'blast-door-damaged')):
+        crop(im, panel_box(q, 3, 1, DOOR_PX), (3 * PX, PX)).save(OUT / f'{name}.png')
+
+
 def gatehouse():
     im = load('gatehouse')
     for q, name in ((0, 'gate-tower'), (1, 'gate-leaves'), (2, 'gate-tower-damaged')):
@@ -67,7 +77,7 @@ def gatehouse():
 
 if __name__ == '__main__':
     OUT.mkdir(parents=True, exist_ok=True)
-    wanted = sys.argv[1:] or ['bunker', 'magazine', 'power', 'parts', 'gatehouse']
+    wanted = sys.argv[1:] or [*BUILDINGS, 'parts', 'gatehouse', 'blastdoor']
     for w in wanted:
         if not (HERE / 'raw' / f'{w}.raw.png').exists():
             print('skip (no raw):', w)
@@ -77,3 +87,5 @@ if __name__ == '__main__':
             parts()
         elif w == 'gatehouse':
             gatehouse()
+        elif w == 'blastdoor':
+            blastdoor()

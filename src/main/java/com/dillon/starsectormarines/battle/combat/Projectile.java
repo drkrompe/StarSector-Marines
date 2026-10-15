@@ -177,6 +177,26 @@ public final class Projectile {
         return y;
     }
 
+    /** Where {@link #currentX} will read {@code dt} seconds from now, on the round's own authored flight. */
+    public float xAfter(float dt) {
+        float p = progressAfter(dt);
+        return fromX + (toX - fromX) * p;
+    }
+
+    /** Where {@link #currentY} will read {@code dt} seconds from now, arc included. */
+    public float yAfter(float dt) {
+        float p = progressAfter(dt);
+        float y = fromY + (toY - fromY) * p;
+        if (arcHeight > 0f) y += arcHeight * 4f * p * (1f - p);
+        return y;
+    }
+
+    private float progressAfter(float dt) {
+        if (totalFlightTime <= 0.0001f) return 1f;
+        float raw = Math.max(0f, Math.min(1f, 1f - (remainingTime - dt) / totalFlightTime));
+        return hasBoostRamp ? applyBoostCurve(raw) : raw;
+    }
+
     public boolean isExpired() {
         return remainingTime <= 0f;
     }

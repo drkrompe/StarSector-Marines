@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortRoom;
 import com.dillon.starsectormarines.battle.world.model.Building;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -123,6 +124,8 @@ public final class FortBuildingRenderSystem implements RenderSystem {
                 put(out, RenderLayer.DOODADS, cam, frame, floor, wreck, floor[2], floor[3], floor[2] * 0.5f,
                         floor[3] * 0.5f, angle, 1f, 1f, 1f, alpha, false, flipped);
             }
+            drawAnnexes(ctx, out, view, frame, place, art, state, activity, taken, holder);
+            drawBlastDoor(ctx, out, frame, place, art, state, flipped);
             return;
         }
 
@@ -146,6 +149,9 @@ public final class FortBuildingRenderSystem implements RenderSystem {
                         floor[3] * 0.5f, angle, level, level, level, roofAlpha * alpha, true, flipped);
             }
         }
+
+        drawAnnexes(ctx, out, view, frame, place, art, state, activity, taken, holder);
+        drawBlastDoor(ctx, out, frame, place, art, state, flipped);
 
         float standing = Math.max(roofAlpha, STANDING_PART_FLOOR) * alpha;
         long key = (long) fort.id() * 64L + place.aspect().ordinal() * 8L;
@@ -175,6 +181,80 @@ public final class FortBuildingRenderSystem implements RenderSystem {
                     h * flag.aspect, h, 0f, tint[0], tint[1], tint[2], standing);
         }
     }
+
+    /**
+     * The ante-rooms of the building's suite that its art draws: each over its own floor, authored in the fort's local
+     * frame (so never half-turned), in the building's state, under the same reveal as its own roof and the same allegiance
+     * wash. A wrecked suite shows each room's wreck low over the floor. The rooms carry no machinery, so only the lights
+     * run.
+     */
+    private void drawAnnexes(RenderContext ctx, DrawList out, ViewCull view, FortFrame frame, Fort.Place place,
+                             FortBuildingArt art, FortBuildingArt.State state, float activity, boolean taken,
+                             Faction holder) {
+        BattleCamera cam = ctx.camera;
+        float alpha = ctx.alphaMult;
+        float angle = frameAngle(frame);
+        for (FortRoom room : art.annexRooms(frame.plan(), place.aspect())) {
+            FortBuildingArt.Annex annex = art.annex(room.art());
+            int[] local = room.floor();
+            int[] bounds = frame.bounds(local[0], local[1], local[2], local[3]);
+            if (!view.visible((bounds[0] + bounds[2] + 1) * 0.5f, (bounds[1] + bounds[3] + 1) * 0.5f,
+                    Math.max(local[2], local[3]))) {
+                continue;
+            }
+            if (state == FortBuildingArt.State.WRECKED) {
+                ShuttleSpriteCache wreck = sprites.spriteByPath(annex.wreck());
+                if (wreck != null) {
+                    put(out, RenderLayer.DOODADS, cam, frame, local, wreck, local[2], local[3], local[2] * 0.5f,
+                            local[3] * 0.5f, angle, 1f, 1f, 1f, alpha, false, false);
+                }
+                continue;
+            }
+            float roofAlpha = roofAlpha(ctx, bounds);
+            ShuttleSpriteCache roof = sprites.spriteByPath(annex.roofFor(state));
+            if (roof == null || roofAlpha <= 0.01f) continue;
+            float r = 1f, g = 1f, b = 1f;
+            if (taken) {
+                float[] tint = ShieldDomeRenderSystem.tintFor(holder);
+                r = 1f + (tint[0] - 1f) * TAKEN_WASH;
+                g = 1f + (tint[1] - 1f) * TAKEN_WASH;
+                b = 1f + (tint[2] - 1f) * TAKEN_WASH;
+            }
+            put(out, RenderLayer.ROOFS, cam, frame, local, roof, local[2], local[3], local[2] * 0.5f, local[3] * 0.5f,
+                    angle, r, g, b, roofAlpha * alpha, false, false);
+            FortBuildingArt.Lights lights = annex.lights();
+            ShuttleSpriteCache glow = lights == null ? null : sprites.spriteByPath(lights.spritePath());
+            if (glow != null && activity > 0f) {
+                double wave = 0.5 + 0.5 * Math.sin(2.0 * Math.PI * lights.pulseHz() * clock);
+                float level = activity * (1f - lights.pulseDepth() * (float) wave);
+                put(out, RenderLayer.ROOFS, cam, frame, local, glow, local[2], local[3], local[2] * 0.5f,
+                        local[3] * 0.5f, angle, level, level, level, roofAlpha * alpha, true, false);
+            }
+        }
+    }
+
+    /**
+     * The heavy door over the building's main door, if its art has one: three cells along the wall, centred on the door
+     * cell, low over the floor so units pass under it. A building that is hurt or wrecked shows the damaged picture.
+     */
+    private void drawBlastDoor(RenderContext ctx, DrawList out, FortFrame frame, Fort.Place place,
+                               FortBuildingArt art, FortBuildingArt.State state, boolean flipped) {
+        FortBuildingArt.BlastDoor door = art.blastDoor();
+        if (door == null) return;
+        ShuttleSpriteCache sprite = sprites.spriteByPath(
+                state == FortBuildingArt.State.INTACT ? door.sprite() : door.damaged());
+        if (sprite == null) return;
+        int[] at = frame.plan().door(place.aspect());
+        int[] cell = frame.cell(at[0], at[1]);
+        BattleCamera cam = ctx.camera;
+        float cellPx = cam.cellPxSize();
+        out.addSprite(RenderLayer.DOODADS, sprite.sprite, cam.cellToScreenX(cell[0] + 0.5f),
+                cam.cellToScreenY(cell[1] + 0.5f), BLAST_DOOR_CELLS * cellPx, cellPx,
+                frameAngle(frame) + (flipped ? 180f : 0f), 1f, 1f, 1f, ctx.alphaMult);
+    }
+
+    /** How many cells of wall a blast door piece spans. */
+    private static final float BLAST_DOOR_CELLS = 3f;
 
     /** The banner is one shared neutral sprite for every fort building, tinted by whoever holds it. */
     static final String BANNER_PATH = "graphics/fort/fort-banner.png";

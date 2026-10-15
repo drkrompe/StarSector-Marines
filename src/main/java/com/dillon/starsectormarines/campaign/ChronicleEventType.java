@@ -9,7 +9,11 @@ public enum ChronicleEventType {
     KINGMAKER_TESTAMENT,
     SILENT_COLONY,
     /** A Garrison defence settled without the player; see {@code stranded-detachment-recovery.md}. */
-    GARRISON_DEFENCE;
+    GARRISON_DEFENCE,
+    /** A stranded detachment was collected by the company. */
+    DETACHMENT_RECOVERED,
+    /** A stranded detachment's recovery ran out before anyone came. */
+    DETACHMENT_LOST;
 
     private static final ChronicleEventType[] VALUES = values();
 

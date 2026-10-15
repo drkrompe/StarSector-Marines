@@ -44,3 +44,7 @@ smNexInvadeResetOption,PopulateOptions,"$hasMarket
 $menuState == main
 MarineInvasionCMD resetAvailable",MarineInvasionCMD addReset,,,Offers a way back to asking once a ground combat preference is remembered
 smNexInvadeResetSel,DialogOptionSelected,$option == smInvadeReset,MarineInvasionCMD reset,,,Returns the save's ground combat preference to Ask
+smStrandedPickupOption,PopulateOptions,"$hasMarket
+$menuState == main
+StrandedDetachmentCMD available",StrandedDetachmentCMD addOption,,,Offers to collect survivors of an overrun garrison waiting on this market
+smStrandedPickupSel,DialogOptionSelected,$option == smStrandedPickup,StrandedDetachmentCMD pickup,,,Collects the stranded detachment without a battle and rebuilds the market menu
