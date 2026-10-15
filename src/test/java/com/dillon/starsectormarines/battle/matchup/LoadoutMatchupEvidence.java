@@ -28,7 +28,9 @@ import java.util.concurrent.Future;
  *
  * <p>System properties (all optional): {@code loadoutMatchup.dir}, {@code .scenarios} (comma list of ids),
  * {@code .seeds} (count, default 3), {@code .parallelism} (default half the processors; 1 is the serial control),
- * {@code .attacker} / {@code .defender} ({@code weapons:x+armor:y}).
+ * {@code .attacker} / {@code .defender} ({@code weapons:x+armor:y}, either half also as a {@code kit:} or
+ * {@code mix:} experiment — see {@code LoadoutCardIssue}; several sides separated by {@code ;} fight each other's
+ * every pairing).
  */
 @Tag("loadout-matchup")
 class LoadoutMatchupEvidence {
@@ -48,7 +50,7 @@ class LoadoutMatchupEvidence {
         List<MatchupScenario> scenarios = scenarios();
         List<Pairing> pairings = pairings();
         String gifSetting = System.getProperty("loadoutMatchup.gifs", "auto");
-        boolean explicit = pairings.size() == 1 && pairings.get(0).role.equals("explicit");
+        boolean explicit = pairings.size() <= 4 && pairings.get(0).role.equals("explicit");
         boolean gifs = gifSetting.equals("true") || gifSetting.equals("auto") && explicit;
         gifDir = gifs ? out.resolve("gifs") : null;
         gifSeeds = Integer.getInteger("loadoutMatchup.gifSeeds", 1);
@@ -107,9 +109,14 @@ class LoadoutMatchupEvidence {
         String defender = System.getProperty("loadoutMatchup.defender");
         List<Pairing> pairings = new ArrayList<>();
         if (attacker != null || defender != null) {
-            MatchupSide a = attacker == null ? MatchupSide.STARTER : MatchupSide.parse(attacker);
-            MatchupSide d = defender == null ? MatchupSide.STARTER : MatchupSide.parse(defender);
-            pairings.add(new Pairing(a.label() + " vs " + d.label(), "explicit", a, d));
+            // Either side may list several kits separated by ';': every attacker fights every defender.
+            for (String at : (attacker == null ? "" : attacker).split(";")) {
+                for (String de : (defender == null ? "" : defender).split(";")) {
+                    MatchupSide a = at.isBlank() ? MatchupSide.STARTER : MatchupSide.parse(at);
+                    MatchupSide d = de.isBlank() ? MatchupSide.STARTER : MatchupSide.parse(de);
+                    pairings.add(new Pairing(a.label() + " vs " + d.label(), "explicit", a, d));
+                }
+            }
             return pairings;
         }
         MatchupSide starter = MatchupSide.STARTER;

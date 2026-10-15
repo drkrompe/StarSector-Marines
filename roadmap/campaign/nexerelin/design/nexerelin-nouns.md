@@ -49,8 +49,9 @@ seam), `architecture.md` (the external-state boundary) and
   mission family that can stand in for the Nex battle. In the alpha, only the
   player invasion is supported, and it maps to Conquest.
 - The **ground combat preference** is the player's standing choice for
-  supported entry points: Nexerelin, Marine Operations, or ask each time. Ask
-  is the default. It is never consulted for an unsupported entry point.
+  supported entry points: Nexerelin, Marine Operations, or ask each time. It
+  belongs to the save, and a new save starts at Ask. It is never consulted for
+  an unsupported entry point.
 - A **handoff battle** is the Nex ground battle record created for a
   Marine-resolved invasion. It exists only so that Nexerelin's own
   end-of-battle path can apply the outcome. It never runs a turn.
@@ -91,10 +92,13 @@ seam), `architecture.md` (the external-state boundary) and
    campaign consequences inside the mod are the battle's own personnel, boat
    and loot facts, settled by their ordinary authorities. Who gains the market
    is Nexerelin's decision (the player faction or the commissioning faction).
-7. **The resolver must not change how hard a market is.** The operation's
-   demand comes from the target market's ground strength, the same strength
-   Nexerelin would field against an invasion. Choosing Marine Operations must
-   not be a way around a hard garrison or into an easy one.
+7. **The resolver must not change how hard a market is.** The defenders come
+   from the mod's own market garrison estimate (`market-garrison-model.md`).
+   That is the same estimate every market-backed operation uses, computed the
+   same way with or without Nexerelin, and it follows the same inputs
+   Nexerelin's garrison does: size, stability, structures, supply and recent
+   damage. Choosing Marine Operations must not be a way around a hard garrison
+   or into an easy one.
 8. **Unsupported entry points are left alone.** The mod never alters a joined
    battle, a colony invasion or an AI war, and never reads Nex ground battles
    as its own threats. Supporting another entry point is a new story that
@@ -136,9 +140,14 @@ seam), `architecture.md` (the external-state boundary) and
   marines. A player who builds a company and then chooses Nexerelin invades
   with whatever cargo is left. The company's squads are invisible to Nexerelin
   until a later story decides whether to report them.
-- **Map scale.** Generic Conquest is authored at 560x336 and has tier floors,
-  while Nexerelin lets the player invade markets of every size. The invasion
-  story owns how market size maps to a Conquest profile.
+- **Map scale.** Market size never chooses the map. Every Marine-resolved
+  invasion is fought on Conquest's authored map. Market size is a population
+  dial: it reaches the battle only as environment, through the target
+  profile's settlement scale (how built-up the ground is and how many people
+  live on it). It never sets the map's dimensions. Size does reach the
+  garrison, but only through the garrison estimate (law 7), as it does in
+  vanilla and Nexerelin. Conquest's tier floor governs generated offers, not a
+  player invasion.
 
 ## Boundaries
 
