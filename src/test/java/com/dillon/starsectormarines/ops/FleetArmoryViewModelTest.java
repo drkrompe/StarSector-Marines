@@ -118,6 +118,17 @@ class FleetArmoryViewModelTest {
     }
 
     @Test
+    void aCardShownWithoutAnIssueActionStillHasAClickHandler() {
+        // The First Refit screen shows the same weapon card with nothing to issue; a null handler
+        // made the markup loader throw when it built that screen.
+        SquadWeaponDoctrine doctrine = SquadEquipmentDoctrines.weaponDoctrines().get(0);
+        FleetArmoryViewModel.DoctrineTile tile = FleetArmoryViewModel.weaponTile(
+                "refit-path:test", doctrine, false, () -> { });
+        assertTrue(tile.markupProperty("issue") instanceof Runnable);
+        assertEquals("doctrine-issue-button-hidden", tile.markupProperty("issueButtonClasses"));
+    }
+
+    @Test
     void scoutAcquisitionCannotPopulateTheBrowserWithUnlearnedFactionSheets() {
         MarineRoster roster = new MarineRoster();
         roster.bootstrapInitialComplement(12);

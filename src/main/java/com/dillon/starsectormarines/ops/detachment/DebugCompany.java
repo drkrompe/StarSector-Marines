@@ -175,12 +175,22 @@ public final class DebugCompany {
      */
     private static List<SquadArmorPlan> randomizedArmorPlans(
             int count, Random rng, MarineArmory armory) {
-        List<SquadArmorPlan> plans = SquadEquipmentDoctrines.armorPlans().stream()
+        List<SquadArmorPlan> issuable = SquadEquipmentDoctrines.armorPlans().stream()
                 .filter(armory::canIssue).toList();
-        if (plans.isEmpty()) {
+        if (issuable.isEmpty()) {
             throw new IllegalStateException("No authored armour plans");
         }
+        // A sheet is a fixed squad, so the stage's quality is which sheets it may draw from:
+        // those carrying the best armour the stage has collected, not the baseline kit it also holds.
+        int best = issuable.stream().mapToInt(plan -> bestTier(armory, plan)).max().orElse(1);
+        List<SquadArmorPlan> plans = issuable.stream()
+                .filter(plan -> bestTier(armory, plan) == best).toList();
         return shuffledBatches(plans, count, rng);
+    }
+
+    private static int bestTier(MarineArmory armory, SquadArmorPlan plan) {
+        return armory.issue(plan).issueIds().stream()
+                .mapToInt(id -> MarineArmorCatalogRegistry.require(id).tier()).max().orElse(1);
     }
 
     /**
