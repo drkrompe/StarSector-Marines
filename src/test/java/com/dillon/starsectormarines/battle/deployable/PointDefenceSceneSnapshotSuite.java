@@ -110,6 +110,14 @@ public final class PointDefenceSceneSnapshotSuite implements SnapshotSuite {
     private static final int PACK_CARRIER_Y = LANE_CELL_Y + 2;
     /** Close enough that the pack on the carrier's back is drawn at a size its livery can be judged at. */
     private static final float CLOSE_UP_CELLS_ACROSS = 6f;
+    /**
+     * The first launch played tick by tick from just ahead of the carrier: the coast out of the tube,
+     * the motor lighting, and the start of the run. Wide enough to keep the missile in frame until
+     * it is well under way.
+     */
+    private static final float LAUNCH_VIEW_CELLS_ACROSS = 16f;
+    private static final int LAUNCH_VIEW_TICKS = 16;
+    private static final int LAUNCH_VIEW_FRAME_DELAY_MILLIS = 100;
 
     @Override public String id() { return "point-defence"; }
 
@@ -128,7 +136,10 @@ public final class PointDefenceSceneSnapshotSuite implements SnapshotSuite {
                 CLOSE_UP_CELLS_ACROSS).withImpactEffects();
         List<SnapshotArtifact> artifacts = new ArrayList<>();
         artifacts.add(record(renderer));
-        artifacts.addAll(recordPack(review, closeUp, new ReviewImpactFx(context.modRoot())));
+        BattleReviewFrameRenderer launchView = new BattleReviewFrameRenderer(context.modRoot(),
+                REVIEW_WIDTH, REVIEW_HEIGHT, PACK_CARRIER_X - 5f, PACK_CARRIER_Y + 2.5f,
+                LAUNCH_VIEW_CELLS_ACROSS).withImpactEffects();
+        artifacts.addAll(recordPack(review, closeUp, launchView, new ReviewImpactFx(context.modRoot())));
         return artifacts;
     }
 
@@ -196,6 +207,7 @@ public final class PointDefenceSceneSnapshotSuite implements SnapshotSuite {
      */
     private List<SnapshotArtifact> recordPack(BattleReviewFrameRenderer renderer,
                                               BattleReviewFrameRenderer closeUp,
+                                              BattleReviewFrameRenderer launchView,
                                               ReviewImpactFx impacts) throws Exception {
         BattleSimulation sim = openArena();
         WeaponDef lrm = WeaponRegistry.require("weapon.mech-lrm-artillery");
@@ -222,6 +234,8 @@ public final class PointDefenceSceneSnapshotSuite implements SnapshotSuite {
         List<BufferedImage> frames = new ArrayList<>(PACK_TICKS / PACK_FRAME_EVERY_TICKS + 1);
         List<SnapshotArtifact> stills = new ArrayList<>();
         int launchedBefore = 0;
+        int firstLaunchTick = -1;
+        List<BufferedImage> launchFrames = new ArrayList<>(LAUNCH_VIEW_TICKS);
         for (int tick = 0; tick <= PACK_TICKS; tick++) {
             fireScheduledSalvoRound(sim, tick, mech, section, lrm);
             if (tick == 1) {
@@ -229,6 +243,12 @@ public final class PointDefenceSceneSnapshotSuite implements SnapshotSuite {
                         closeUp.render(sim, "Interceptor pack on its carrier", ReviewAnnotations.NONE, impacts)));
             }
             int launched = sim.telemetry().ordnanceEngaged(carrier);
+            if (launchedBefore == 0 && launched > 0) firstLaunchTick = tick;
+            if (firstLaunchTick >= 0 && tick - firstLaunchTick < LAUNCH_VIEW_TICKS) {
+                launchFrames.add(launchView.render(sim, String.format(Locale.ROOT,
+                        "First interceptor, tick by tick  •  %.2fs after launch",
+                        (tick - firstLaunchTick) * BattleSimulation.TICK_DT), ReviewAnnotations.NONE, impacts));
+            }
             if (launchedBefore == 0 && launched > 0) {
                 stills.add(new SnapshotArtifact("interceptor-pack-launch.png",
                         closeUp.render(sim, "First interceptor leaving the pack  •  t" + tick,
@@ -242,6 +262,8 @@ public final class PointDefenceSceneSnapshotSuite implements SnapshotSuite {
             sim.advance(BattleSimulation.TICK_DT);
             impacts.feed(sim);
         }
+        stills.add(SnapshotArtifact.animation("interceptor-pack-launch.gif",
+                launchFrames, LAUNCH_VIEW_FRAME_DELAY_MILLIS));
         stills.add(SnapshotArtifact.animation("salvo-under-interceptor-pack.gif",
                 frames, PACK_FRAME_DELAY_MILLIS));
         return stills;
