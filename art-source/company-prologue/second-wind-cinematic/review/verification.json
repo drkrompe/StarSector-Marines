@@ -155,5 +155,6 @@
     }
   },
   "movie_sha256": "19e916a00544d7e15a4b70d397d80df95d2fdbdc226a86125bbd75bc489794de",
-  "visual_review": "Full-resolution middle still and five-frame progression inspected; graded hull remains suspended clear of the berth floor; macrogeometry and damage stay fixed."
+  "visual_review": "Full-resolution middle still and five-frame progression inspected; graded hull remains suspended clear of the berth floor; macrogeometry and damage stay fixed.",
+  "user_review": "Physical staging rejected: hangar layout and ship approach angle are incoherent. Retained as a compositing technique prototype. Storyboard and shared Blender scene blockout must precede replacement detailed scenes."
 }
