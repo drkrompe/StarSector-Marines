@@ -51,6 +51,33 @@ class SnapshotRunnerTest {
                 () -> new SnapshotArtifact("../escape.png", image));
     }
 
+    @Test
+    void writesEachSuiteBeforeRenderingTheNextAndAttemptsAllOfThem(@TempDir Path temporary) throws Exception {
+        Path output = temporary.resolve("snapshots");
+        SnapshotSuite first = suite("first", List.of(new SnapshotArtifact("a.png", image(Color.RED))));
+        SnapshotSuite second = new SnapshotSuite() {
+            @Override public String id() { return "second"; }
+            @Override public String label() { return "second"; }
+            @Override public List<SnapshotArtifact> render(SnapshotContext context) {
+                // Memory stays bounded by one suite only if the previous one is already on disk.
+                assertTrue(Files.isRegularFile(output.resolve("first/a.png")));
+                return List.of(new SnapshotArtifact("b.png", image(Color.BLUE)));
+            }
+        };
+        SnapshotSuite failing = new SnapshotSuite() {
+            @Override public String id() { return "failing"; }
+            @Override public String label() { return "failing"; }
+            @Override public List<SnapshotArtifact> render(SnapshotContext context) {
+                throw new IllegalStateException("boom");
+            }
+        };
+
+        assertThrows(IllegalStateException.class, () -> new SnapshotRunner().create(
+                new SnapshotContext(temporary, temporary), List.of(first, failing, second), output, true));
+        assertTrue(Files.isRegularFile(output.resolve("first/a.png")));
+        assertTrue(Files.isRegularFile(output.resolve("second/b.png")));
+    }
+
     private static SnapshotSuite suite(String id, List<SnapshotArtifact> artifacts) {
         return new SnapshotSuite() {
             @Override public String id() { return id; }

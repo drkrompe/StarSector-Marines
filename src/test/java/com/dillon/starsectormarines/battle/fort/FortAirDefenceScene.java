@@ -37,6 +37,7 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
@@ -157,7 +158,7 @@ public final class FortAirDefenceScene implements BehaviorScene {
 
     // ------------------------------------------------------------------------------------------------ world
 
-    record Stamped(NavigationGrid grid, CellTopology topology, List<DefensePost> posts, FortStage.Placed placed) {}
+    record Stamped(NavigationGrid grid, CellTopology topology, List<DefensePost> posts, List<Doodad> doodads, FortStage.Placed placed) {}
 
     static Stamped stamp(FortKind kind, boolean air) {
         NavigationGrid grid = new NavigationGrid(WIDTH, HEIGHT);
@@ -175,7 +176,7 @@ public final class FortAirDefenceScene implements BehaviorScene {
                 new GroundDefences(0, false).withForts(kind, 1)));
         FortStage stage = FortStage.pinned(List.of(new FortStage.Pin(kind, CX, CY, 0, CY, air)));
         stage.run(ctx);
-        return new Stamped(grid, topology, List.copyOf(ctx.defensePosts), stage.placed().get(0));
+        return new Stamped(grid, topology, List.copyOf(ctx.defensePosts), List.copyOf(ctx.doodads), stage.placed().get(0));
     }
 
     private record Run(Trace trace, BattleSimulation sim, Fort fort) {}
@@ -196,7 +197,7 @@ public final class FortAirDefenceScene implements BehaviorScene {
         int[] yardCell = stamped.placed().placement().cell(yard.centreX(), yard.centreY());
         int[] garrisonCell = openNear(stamped.grid(), stamped.placed().placement().cell(yard.centreX() + 5, yard.centreY() + 6));
 
-        SceneBuilder builder = SceneBuilder.over(stamped.grid(), stamped.topology()).posts(stamped.posts())
+        SceneBuilder builder = SceneBuilder.over(stamped.grid(), stamped.topology()).posts(stamped.posts()).doodads(stamped.doodads())
                 .missionCompletion(false);
         builder.squad("scouts").faction(Faction.MARINE).size(2).at(SPOTTER_X, CY).primary("weapon.smg")
                 .health(100_000f).stationary()
@@ -292,7 +293,7 @@ public final class FortAirDefenceScene implements BehaviorScene {
         int[] garrisonCell = openNear(stamped.grid(), placed.placement().cell(
                 bunkerFloor[0] + 3, bunkerFloor[1] + 12));
 
-        SceneBuilder builder = SceneBuilder.over(stamped.grid(), stamped.topology()).posts(stamped.posts())
+        SceneBuilder builder = SceneBuilder.over(stamped.grid(), stamped.topology()).posts(stamped.posts()).doodads(stamped.doodads())
                 .missionCompletion(false);
         builder.squad("massed").faction(massSide).size(MASS_SIZE).at(mass[0], mass[1]).primary("weapon.smg")
                 .health(100_000f).stationary()
