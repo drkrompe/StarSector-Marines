@@ -337,6 +337,7 @@ public final class AirPoolService {
         ledger.reserved++;
         pending.add(new PendingCall(side, kind, job, operator.unit(), x, y, ready));
         if (operator.atFort()) {
+            fortCalls.merge(side, 1, Integer::sum);
             operator.fort().holdSensorNetUntil(sim.getSimTickIndex() + Math.round(operator.spec().cooldownSeconds() / BattleSimulation.TICK_DT));
         } else {
             sim.world().setSecondaryCooldownTimer(operator.unit(), operator.spec().cooldownSeconds());
@@ -344,6 +345,13 @@ public final class AirPoolService {
         events.add(new Event(sim.getSimTickIndex(), side, kind, EventType.CALLED, x, y));
         tallyOf(side, job).called++;
         return Outcome.CALLING;
+    }
+
+    private final Map<Faction, Integer> fortCalls = new EnumMap<>(Faction.class);
+
+    /** Calls {@code side} has placed through a fort's radar rather than a marine's radio, for evidence. */
+    public int callsFromForts(Faction side) {
+        return fortCalls.getOrDefault(side, 0);
     }
 
     private boolean busy(long operator) {

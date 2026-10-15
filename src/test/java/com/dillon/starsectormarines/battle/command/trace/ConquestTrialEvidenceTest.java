@@ -33,6 +33,7 @@ import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -42,6 +43,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.Locale;
 import java.util.Random;
 
@@ -233,6 +236,30 @@ class ConquestTrialEvidenceTest {
         return counts;
     }
 
+    /**
+     * How often, and from when, the marine commander's plan went after a fort for the sky: its notes name the sensors ("blind their air")
+     * or the anti-air yard ("open the sky") as the reason, and its company is formed for an off-lane fort because of one.
+     */
+    private static JSONObject skyNotes(String trace) throws JSONException {
+        int blind = 0, open = 0, firstBlind = -1, firstOpen = -1;
+        Pattern tickOf = Pattern.compile("\"tick\":(\\d+)");
+        for (String line : trace.split("\n")) {
+            if (!line.contains("\"perspective\":\"MARINE\"")) continue;
+            Matcher m = tickOf.matcher(line);
+            int tick = m.find() ? Integer.parseInt(m.group(1)) : -1;
+            if (line.contains("blind their air")) {
+                blind++;
+                if (firstBlind < 0) firstBlind = tick;
+            }
+            if (line.contains("open the sky")) {
+                open++;
+                if (firstOpen < 0) firstOpen = tick;
+            }
+        }
+        return new JSONObject().put("blindTheirAirPulses", blind).put("firstBlindTick", firstBlind)
+                .put("openTheSkyPulses", open).put("firstOpenTick", firstOpen);
+    }
+
     private static Outcome playFixture(JSONObject f, int maxTicks, Path visualRoot) throws Exception {
         String id = f.getString("id");
         long seed = f.optLong("seed", 41L);
@@ -258,6 +285,8 @@ class ConquestTrialEvidenceTest {
                 GroundRosterRegistry.resolve(""), roster);
         try (BattleSimulation sim = build.sim();
              CommanderEvidenceCapture capture = CommanderEvidenceCapture.open(visualRoot, id, sim)) {
+            // The comparison control: with false the forts keep their radar but call nothing in, for this battle only.
+            sim.forts().setSpotting(f.optBoolean("fortSpotting", true));
             FortOutcomes forts = new FortOutcomes();
             FortDefenderPositionProbe positionUse = new FortDefenderPositionProbe();
             FireSupportProbe fireSupport = new FireSupportProbe();
@@ -339,6 +368,11 @@ class ConquestTrialEvidenceTest {
                     .put("nestsKilledByAir", fireSupport.nestKills()[2])
                     .put("airPoolByMission", FireSupportProbe.poolJson(sim))
                     .put("contestedAir", contested.json(sim))
+                    .put("fortSpotting", f.optBoolean("fortSpotting", true))
+                    .put("fortHolderChanges", new JSONArray(forts.holderChanges()))
+                    .put("callsFromForts", new JSONObject().put("defender", sim.airPool().callsFromForts(Faction.DEFENDER))
+                            .put("marine", sim.airPool().callsFromForts(Faction.MARINE)))
+                    .put("skyNotes", skyNotes(trace))
                     .put("sectionsOpened", sim.fieldMortars().sections().opened())
                     .put("sectionsExpired", sim.fieldMortars().sections().expired())
                     .put("sectionsAbandoned", sim.fieldMortars().sections().abandoned())

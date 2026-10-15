@@ -74,6 +74,11 @@ final class FortOutcomes {
         }
     }
 
+    /** Every change of who holds an aspect, as sampled (a wreck reads as a change to nobody). */
+    List<String> holderChanges() {
+        return List.copyOf(holderChanges);
+    }
+
     /** Records each change of who holds an aspect, with the tick it was first seen. */
     private void noteHolders(Fort fort, int tick) {
         for (Fort.Place place : fort.places()) {
