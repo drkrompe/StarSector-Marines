@@ -437,6 +437,8 @@ public final class FightingPositionClaims {
      * only when the first is full, and then only onto a run that reaches its own stretch: a team
      * that fills a small building does not take the next team's. Fire teams fight as teams, so
      * splitting one across two trenches to stand a cell nearer its stretch is the wrong trade.
+     * Within its runs a team spreads over its stretch: each man takes the free cell nearest an
+     * even share of it, so how far apart they stand follows how long the line was drawn.
      * Members left without a cell stay -1 and hold the line on ordinary ground.
      *
      * @param teams      each member's fire-team index, parallel to {@code cells}
@@ -517,16 +519,52 @@ public final class FightingPositionClaims {
                 }
             }
             if (home < 0) continue;
+            // The home run alone while it has room for the whole team. A team it cannot hold takes
+            // all of it and reaches onto runs that touch its stretch, in the order sorted above.
+            final int homeRun = home;
+            List<int[]> pool = new ArrayList<>();
+            for (int[] c : free) if (c[2] == homeRun) pool.add(c);
+            if (pool.stream().anyMatch(c -> c[1] > 0)) pool.removeIf(c -> c[1] <= 0);
             List<int[]> chosen = new ArrayList<>();
-            for (int[] c : free) {
-                if (chosen.size() >= slots.size()) break;
-                if (c[2] == home || nearStretchGap(bestOfRun.get(c[2]), line, width, from, to) == 0f) chosen.add(c);
+            int n = slots.size();
+            if (pool.size() <= n) {
+                chosen.addAll(pool);
+                pool.clear();
+                for (int[] c : free) {
+                    if (chosen.size() >= n) break;
+                    if (c[2] != homeRun && nearStretchGap(bestOfRun.get(c[2]), line, width, from, to) == 0f) {
+                        chosen.add(c);
+                    }
+                }
+            }
+            // The men spread over their stretch as far as the drawn line asks: each takes the free
+            // cell nearest an even share of it, so a long drag across a trench opens the team out
+            // along it and a short one keeps them shoulder to shoulder.
+            for (int j = 0; j < n && !pool.isEmpty(); j++) {
+                float[] target = line.pointAt(from + (j + 0.5f) / n * (to - from), 0f);
+                int pick = 0;
+                float best = Float.MAX_VALUE;
+                for (int i = 0; i < pool.size(); i++) {
+                    int cell = pool.get(i)[0];
+                    float dx = cell % width - target[0];
+                    float dy = cell / width - target[1];
+                    float d = dx * dx + dy * dy;
+                    if (d < best || (d == best && cell < pool.get(pick)[0])) {
+                        pick = i;
+                        best = d;
+                    }
+                }
+                chosen.add(pool.remove(pick));
             }
             // Hand the cells out in the order the men stand along the line, so the leftmost takes
             // the leftmost cell: shorter walks, and nobody crosses a squadmate's path to his post.
+            chosen.sort(Comparator.<int[]>comparingDouble(c -> line.along(c[0] % width, c[0] / width))
+                    .thenComparingInt(c -> c[0]));
             if (along != null) slots.sort(Comparator.comparingDouble(i -> along[i]));
-            float[] start = line.pointAt(from, 0f);
-            handOut(chosen, cells, slots, claimed, width, Math.round(start[0]), Math.round(start[1]));
+            for (int j = 0; j < chosen.size(); j++) {
+                cells[slots.get(j)] = chosen.get(j)[0];
+                claimed.add(chosen.get(j)[0]);
+            }
         }
     }
 
@@ -536,34 +574,6 @@ public final class FightingPositionClaims {
         return Math.max(0f, Math.max(from - t, t - to));
     }
 
-    /**
-     * Gives {@code chosen} cells to the members at {@code slots}, in slot order, along a
-     * nearest-neighbour chain from the chosen cell nearest ({@code startX}, {@code startY}), so
-     * consecutive members stand beside each other.
-     */
-    private static void handOut(List<int[]> chosen, int[] cells, List<Integer> slots,
-                                Set<Integer> claimed, int width, int startX, int startY) {
-        int curX = startX;
-        int curY = startY;
-        int slot = 0;
-        while (!chosen.isEmpty() && slot < slots.size()) {
-            int pick = 0;
-            int pickDistance = Integer.MAX_VALUE;
-            for (int i = 0; i < chosen.size(); i++) {
-                int cell = chosen.get(i)[0];
-                int d = distanceSq(cell % width, cell / width, curX, curY);
-                if (d < pickDistance || (d == pickDistance && cell < chosen.get(pick)[0])) {
-                    pick = i;
-                    pickDistance = d;
-                }
-            }
-            int cell = chosen.remove(pick)[0];
-            curX = cell % width;
-            curY = cell / width;
-            cells[slots.get(slot++)] = cell;
-            claimed.add(cell);
-        }
-    }
 
     /**
      * Gives every member whose {@code cells} entry is -1 a free position cell, if there are
