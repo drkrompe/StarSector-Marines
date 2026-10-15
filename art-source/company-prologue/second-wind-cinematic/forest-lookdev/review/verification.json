@@ -1,0 +1,116 @@
+{
+  "base_scene": "../animatic/jangala-blockout.blend",
+  "lookdev_scene": "jangala-forest-lookdev.blend",
+  "camera_comparison": [
+    {
+      "name": "01 ENTRY / crew window",
+      "changed_fields": []
+    },
+    {
+      "name": "02 REVEAL / near glass",
+      "changed_fields": []
+    },
+    {
+      "name": "03 LAND / side window",
+      "changed_fields": []
+    },
+    {
+      "name": "04 PORT / side window",
+      "changed_fields": []
+    },
+    {
+      "name": "05 EXTERIOR / approach",
+      "changed_fields": []
+    },
+    {
+      "name": "06 LANDING / support review",
+      "changed_fields": []
+    }
+  ],
+  "sample_frames": [
+    1,
+    120,
+    144,
+    168,
+    192,
+    396,
+    420,
+    444,
+    468,
+    624,
+    648,
+    720,
+    744,
+    751,
+    768,
+    774,
+    780
+  ],
+  "maximum_camera_root_matrix_delta": 0.0,
+  "ship_descendant_mesh_count": 175,
+  "ship_mesh_changes": [],
+  "authorized_atmosphere_animation_exceptions": [
+    "Cloud breakup proxy",
+    "Cloud breakup proxy.001",
+    "Cloud breakup proxy.002",
+    "Cloud breakup proxy.003",
+    "Cloud breakup proxy.004"
+  ],
+  "file_textures": [
+    {
+      "image": "foliage-atlas.png",
+      "stored_path": "//assets\\foliage-atlas.png",
+      "exists": true,
+      "packed": false
+    },
+    {
+      "image": "plant-0-side.png",
+      "stored_path": "//assets\\plant-0-side.png",
+      "exists": true,
+      "packed": false
+    },
+    {
+      "image": "plant-0-top.png",
+      "stored_path": "//assets\\plant-0-top.png",
+      "exists": true,
+      "packed": false
+    },
+    {
+      "image": "plant-1-side.png",
+      "stored_path": "//assets\\plant-1-side.png",
+      "exists": true,
+      "packed": false
+    },
+    {
+      "image": "plant-1-top.png",
+      "stored_path": "//assets\\plant-1-top.png",
+      "exists": true,
+      "packed": false
+    },
+    {
+      "image": "plant-2-side.png",
+      "stored_path": "//assets\\plant-2-side.png",
+      "exists": true,
+      "packed": false
+    },
+    {
+      "image": "plant-2-top.png",
+      "stored_path": "//assets\\plant-2-top.png",
+      "exists": true,
+      "packed": false
+    }
+  ],
+  "near_forest": {
+    "count": 6840,
+    "minimum_root_y": 472.3656921386719,
+    "maximum_ground_error_m": 0.00244140625,
+    "failures": []
+  },
+  "scope_limits": [
+    "Far forest is a batched mesh; individual far roots are not independently verified.",
+    "Y>=470 verifies near root exclusion, not foliage crown clearance.",
+    "Mesh comparison excludes materials, which intentionally change in lookdev."
+  ],
+  "passed": true,
+  "errors": []
+}

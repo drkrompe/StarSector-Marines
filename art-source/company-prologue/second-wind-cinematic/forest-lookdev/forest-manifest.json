@@ -1,0 +1,47 @@
+{
+  "base_scene": "../animatic/jangala-blockout.blend",
+  "source_camera_keys_changed": false,
+  "near_instances": 2466,
+  "understory_instances": 4374,
+  "far_impostors": 111738,
+  "atlas_pixels": [
+    1254,
+    1254
+  ],
+  "species": [
+    {
+      "name": "Jangala broadcrown",
+      "height": 27.999999999999996,
+      "crown_radius": 12.0,
+      "bake_span": 31.36
+    },
+    {
+      "name": "Jangala ribfan emergent",
+      "height": 38.0,
+      "crown_radius": 9.999999999999998,
+      "bake_span": 42.56
+    },
+    {
+      "name": "Jangala arching frondtree",
+      "height": 13.999999999999998,
+      "crown_radius": 8.000000000000002,
+      "bake_span": 17.920000000000005
+    }
+  ],
+  "review_ranges": [
+    [
+      120,
+      191
+    ],
+    [
+      396,
+      467
+    ],
+    [
+      801,
+      848
+    ]
+  ],
+  "source_fps": 12,
+  "notes": "Texture and foliage depth study. Final cabin, city, weather and hull skins remain greybox. No camera-facing billboards."
+}
