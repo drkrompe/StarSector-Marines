@@ -169,12 +169,12 @@ public final class AirbaseLot {
     public enum Facing {
         /** Approach from low y; the strip lies along the lot's south edge. */
         SOUTH(true, 1, LandingPad.Approach.SOUTH, 0, false),
-        /** Approach from high y — the half turn, taken as a mirror. */
-        NORTH(true, -1, LandingPad.Approach.NORTH, 0, true),
+        /** Approach from high y. */
+        NORTH(true, -1, LandingPad.Approach.NORTH, 2, false),
         /** Approach from low x. */
         WEST(false, 1, LandingPad.Approach.WEST, 1, false),
         /** Approach from high x. */
-        EAST(false, -1, LandingPad.Approach.EAST, 1, true);
+        EAST(false, -1, LandingPad.Approach.EAST, 3, false);
 
         /** Whether the lot's depth runs along the map's y axis. */
         final boolean alongY;
@@ -189,11 +189,9 @@ public final class AirbaseLot {
          * pointing the same way on a lot that has been turned is the one thing
          * that gives a rotation away.
          *
-         * <p><b>A quarter turn is a rotation; a half turn must be a mirror.</b>
-         * The art is drawn lit from one direction, so turning a vehicle through
-         * a hundred and eighty degrees lights it from underneath and it reads as
-         * upside down. The two facings opposite the baselines therefore keep
-         * their neighbour's rotation and mirror it instead.
+         * <p>The parked fleet is authored directly overhead, so opposite
+         * facings use a real half turn. Mirroring would swap the crane,
+         * access steps and other asymmetric fittings onto the wrong side.
          */
         final int quarterTurns;
         final boolean mirrored;

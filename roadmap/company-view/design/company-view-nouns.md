@@ -1204,6 +1204,9 @@ The retained bridge dashboard has four concerns:
   categories over known information, not invented agencies or simulated new
   messages. Company operation reports belong to their own stream; political
   reports belong to the sector stream even when they concern the company.
+  A Garrison defence settled in the player's absence is a company report: its
+  after-action account states only frozen settlement facts, with authored
+  colour that names nobody and claims no consequence.
   The newest bulletin opens the archive; recent validated Chronicle facts remain
   newest-first. Counts describe the bounded report window. It reads only learned Chronicle rows,
   preserves rumor versus confirmed confidence, and cannot expose undiscovered world

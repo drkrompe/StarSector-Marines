@@ -4,11 +4,9 @@ import com.dillon.starsectormarines.battle.fort.FortAspect;
 import com.dillon.starsectormarines.battle.fort.FortKind;
 import com.dillon.starsectormarines.battle.shield.ShieldGenerator;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
-import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.gen.fortress.CompoundLayout.Building;
 import com.dillon.starsectormarines.battle.world.gen.fortress.CompoundLayout.Cluster;
-import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -100,8 +98,11 @@ public final class ShieldFort {
     /** The optional anti-air yard: open ground south-east of the keep, between the east and south gates' lanes. */
     public static final AirDefenceYard AIR_DEFENCE = new AirDefenceYard(OX + 36, OY + 33, 0, -1);
 
-    private static final int[] POWER_FLOOR = {OX + 13, OY + 4, 11, 5};
-    private static final int[] CONTROL_FLOOR = {OX + 28, OY + 7, 7, 5};
+    /**
+     * The rooms: the generator hall (its plant around the reactor) and the control room's suite, an operations hall of
+     * stations beside the plotting vault. The first room of each aspect is its main room.
+     */
+    private static final List<FortRoom> ROOMS = FortRooms.shield(OX, OY);
 
     /** Paved vehicle lanes (x, y, width, height): from the main gate round the baffle and up to the power plant. */
     public static final int[][] LANES = {
@@ -251,38 +252,35 @@ public final class ShieldFort {
         return x >= 0 && y >= 0 && x < WIDTH && y < HEIGHT && WALL[x][y];
     }
 
-    /** The layout: two buildings. Walls, belt, lanes and dressing are the host's to stamp from this frame. */
+    /** The layout: every room of every aspect's suite. Walls, belt, lanes and dressing are the host's to stamp from this frame. */
     public static CompoundLayout layout() {
         List<Building> core = new ArrayList<>();
-        core.add(new Building(RoomPurpose.ENGINE_ROOM, RoomShape.rectangle(POWER_FLOOR[2], POWER_FLOOR[3]),
-                POWER_FLOOR[0], POWER_FLOOR[1], List.of(new Doorway(5, 5))));
-        core.add(new Building(RoomPurpose.CONTROL_ROOM, RoomShape.rectangle(CONTROL_FLOOR[2], CONTROL_FLOOR[3]),
-                CONTROL_FLOOR[0], CONTROL_FLOOR[1], List.of(new Doorway(3, 5))));
+        for (FortRoom room : ROOMS) core.add(room.building());
         return new CompoundLayout(RoomShape.rectangle(WIDTH, HEIGHT), List.of(
                 new Cluster("Shield fort buildings", core)), List.of(), List.of());
     }
 
-    /** The floor of the building housing {@code aspect}: x, y, width, height in the footprint frame. */
+    /** The floor of the main room housing {@code aspect}, the one its roof art is registered to: x, y, width, height in the footprint frame. */
     public static int[] floor(FortAspect aspect) {
-        return switch (aspect) {
-            case POWER -> POWER_FLOOR.clone();
-            case CONTROL_ROOM -> CONTROL_FLOOR.clone();
-            case AIR_DEFENCE -> AIR_DEFENCE.floor();
-            default -> throw new IllegalArgumentException("a shield fort has no building for " + aspect);
-        };
+        if (aspect == FortAspect.AIR_DEFENCE) return AIR_DEFENCE.floor();
+        return main(aspect).floor();
     }
 
-    /** The door of the building housing {@code aspect}, as the footprint cell of its wall ring. */
+    /** The primary door of the main room housing {@code aspect}, as the footprint cell of its wall ring. */
     public static int[] door(FortAspect aspect) {
-        int[] f = floor(aspect);
-        return new int[]{f[0] + (aspect == FortAspect.POWER ? 5 : 3), f[1] + f[3]};
+        if (aspect == FortAspect.AIR_DEFENCE) return AIR_DEFENCE.gapCell();
+        return main(aspect).doorCells().get(0);
     }
 
     /** The middle of the three-by-three core of {@code aspect}, in the local frame. */
     public static int[] coreCentre(FortAspect aspect) {
         if (aspect == FortAspect.AIR_DEFENCE) return AIR_DEFENCE.consoleCentre();
-        int[] floor = floor(aspect);
-        return new int[]{floor[0] + floor[2] / 2, floor[1] + floor[3] / 2};
+        return main(aspect).coreCentre();
+    }
+
+    private static FortRoom main(FortAspect aspect) {
+        for (FortRoom room : ROOMS) if (room.main() && room.aspect() == aspect) return room;
+        throw new IllegalArgumentException("a shield fort has no building for " + aspect);
     }
 
     /** The shield fort as a {@link FortPlan}, for the stage that places every kind. */
@@ -303,6 +301,7 @@ public final class ShieldFort {
         @Override public int[][] lanes() { return LANES; }
         @Override public List<FortBelt.Cell> belt() { return BELT; }
         @Override public List<FortAspect> aspects() { return aspects; }
+        @Override public List<FortRoom> rooms() { return ROOMS; }
         @Override public int[] floor(FortAspect aspect) { return ShieldFort.floor(aspect); }
         @Override public int[] door(FortAspect aspect) { return ShieldFort.door(aspect); }
         @Override public int[] coreCentre(FortAspect aspect) { return ShieldFort.coreCentre(aspect); }

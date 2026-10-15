@@ -12,7 +12,6 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -126,18 +125,18 @@ public final class FortSystem {
         for (long mount : fort.airMountIds()) sim.followStructureHolder(mount, holder);
     }
 
-    /** The yard's ground is a plain rectangle of the fort's frame, not a room recovered from the map. */
-    private static void resolveYard(BattleSimulation sim, Fort fort, Fort.Place place) {
+    /**
+     * The place of an aspect with a frame is the union of its suite's floors, read from the authored plan: holding the
+     * aspect means holding every room of it, and a hostile body in any of them contests it. The floors are rectangles of
+     * the fort's frame, not rooms recovered from the map, so what is held is exactly what was authored.
+     */
+    private static void resolveSuite(BattleSimulation sim, Fort fort, Fort.Place place) {
         FortFrame frame = fort.frame();
         if (frame == null) {
             place.resolve(new boolean[0], 0, 0, -1, -1, sim.world().x(place.coreId()), sim.world().y(place.coreId()));
             return;
         }
-        int[] f = frame.plan().floor(FortAspect.AIR_DEFENCE);
-        int[] b = frame.bounds(f[0], f[1], f[2], f[3]);
-        boolean[] mask = new boolean[(b[2] - b[0] + 1) * (b[3] - b[1] + 1)];
-        Arrays.fill(mask, true);
-        place.resolve(mask, b[0], b[1], b[2], b[3], sim.world().x(place.coreId()), sim.world().y(place.coreId()));
+        place.resolveSuite(frame, sim.world().x(place.coreId()), sim.world().y(place.coreId()));
     }
 
     private static Faction currentHolder(BattleSimulation sim, long generator) {
@@ -173,13 +172,14 @@ public final class FortSystem {
     }
 
     /**
-     * Finds the building interior a core stands in: the connected cells of the room the core's anchor lies on. The
-     * map stamped the room's purpose on every floor cell, so the room is recovered from the map itself rather than
-     * carried beside it. A core on no room leaves an empty place, which nobody can hold.
+     * Finds the place an aspect is held in: the union of its suite's authored floors when the fort has a frame, else
+     * (a fort assembled without a placement) the connected cells of the room the core's anchor lies on, recovered from the
+     * purpose the map stamped on every floor cell. A core on no room leaves an empty place, which nobody can hold.
      */
     private static void resolve(BattleSimulation sim, Fort fort, Fort.Place place) {
-        if (place.aspect() == FortAspect.AIR_DEFENCE) {
-            resolveYard(sim, fort, place);
+        FortFrame frame = fort.frame();
+        if (place.aspect() == FortAspect.AIR_DEFENCE || (frame != null && !frame.plan().suite(place.aspect()).isEmpty())) {
+            resolveSuite(sim, fort, place);
             return;
         }
         CellTopology topology = sim.getTopology();

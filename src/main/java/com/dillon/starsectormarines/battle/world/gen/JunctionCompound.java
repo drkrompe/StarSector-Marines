@@ -138,7 +138,8 @@ public final class JunctionCompound {
         yard.fence(62, 69, 88, 87);
         for (int x : new int[]{65, 73, 81}) {
             yard.bay(x, 72, x + 5, 78);
-            yard.prop(x + 1, 75, x == 73 ? "parked-flatbed-truck" : "parked-cargo-truck", 1);
+            // Container doors face the stacks; the flatbed loads from the side.
+            yard.prop(x + 1, 75, x == 73 ? "parked-flatbed-truck" : "parked-cargo-truck", x == 73 ? 0 : 3);
             yard.cargo(x, 82);
         }
         // The weigh-house's inspection lay-by faces the loading street, not the main road.
@@ -160,6 +161,7 @@ public final class JunctionCompound {
         yard.prop(46, 87, "industrial-turbine-set", 0);
         yard.prop(52, 87, "industrial-cable-reel", 0);
         yard.prop(46, 85, "industrial-drum-cluster", 0);
+        yard.prop(48, 84, "parked-tanker-truck", 2);
     }
     private static void shell(GenContext c, int l, int t, int r, int b, Frontage facing) {
         OpeningOperationFacilityFiller.fill(PointOfInterest.Kind.DEPOT,
