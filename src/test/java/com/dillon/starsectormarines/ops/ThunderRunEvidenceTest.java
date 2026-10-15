@@ -27,6 +27,7 @@ import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.ThunderRunCompound;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService.CompoundState;
+import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -51,6 +52,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.stream.Collectors;
+import com.dillon.starsectormarines.tools.snapshot.AnimatedGifWriter;
 import static org.junit.jupiter.api.Assertions.*;
 
 /** Production campaign construction and named loadouts, with explicit diagnostic controls. */
@@ -136,6 +138,15 @@ class ThunderRunEvidenceTest {
                 Map<Long, Float> finalDamage = new LinkedHashMap<>();
                 Map<Long, Integer> finalRounds = new LinkedHashMap<>();
                 var impacts = new ReviewImpactFx(Path.of("mod"));
+                // Opt-in recordings: -PsnapshotEveryTicks=N gives a whole-map review every N ticks
+                // and a close camera following the column through the final run.
+                int gifEvery = Integer.getInteger("commander.evidence.snapshot.everyTicks", 0);
+                int gifDelay = Integer.getInteger("commander.evidence.snapshot.frameDelayMillis", 100);
+                AnimatedGifWriter reviewGif = gifEvery > 0 ? new AnimatedGifWriter(dir.resolve("review.gif"), gifDelay * 3, AnimatedGifWriter.Palette.ADAPTIVE) : null;
+                AnimatedGifWriter convoyGif = gifEvery > 0 ? new AnimatedGifWriter(dir.resolve("convoy-run.gif"), gifDelay, AnimatedGifWriter.Palette.ADAPTIVE) : null;
+                var follow = new BattleReviewFrameRenderer(Path.of("mod"), 1920, 1080, 60, 75, 96);
+                int convoyFrames = 0;
+                float followX = 60f;
                 int firstFinalShot = -1;
                 int[] rearContactTicks = new int[2];
                 Map<Long, Integer> rearGunRounds = new LinkedHashMap<>();
@@ -320,9 +331,41 @@ class ThunderRunEvidenceTest {
                         }
                         ImageIO.write(renderer.render(sim,"THUNDER RUN / "+(tick/30)+"s / "+column.status(),marks.build()),"png",dir.resolve(String.format("frame-%05d.png",tick)).toFile());
                     }
+                    if (reviewGif != null && (tick % gifEvery == 0 || sim.isComplete())) {
+                        var marks=ReviewAnnotations.builder();
+                        for(int si=0;si<sites.size();si++) {
+                            var r=sites.get(si);
+                            marks.label(r.node.anchorX,r.node.anchorY,ThunderRunCompound.SITE_NAMES.get(si).toUpperCase()+" / "+r.state,
+                                    r.state==CompoundState.MARINE_HELD?ReviewStyle.LANDING:ReviewStyle.OBJECTIVE);
+                        }
+                        for(var entry:column.cargo().entrySet()) if(sim.convoy().isVehicle(entry.getValue())) {
+                            var body=sim.convoy().body(entry.getValue());
+                            marks.label(body.x,body.y-4,"CARGO "+(entry.getKey()+1),ReviewStyle.NOTE);
+                        }
+                        reviewGif.append(renderer.render(sim,"THUNDER RUN / "+(tick/30)+"s / "+column.status(),marks.build()));
+                    }
+                    if (convoyGif != null && column.phase() == 3 && tick % 10 == 0 && convoyFrames < 360) {
+                        // Frame the moving column: the mean of the allied hulls still on the map.
+                        float sum = 0f; int n = 0;
+                        for (long vehicle : sim.getConvoyVehicleIds()) {
+                            var m = sim.convoy().mission(vehicle);
+                            var body = sim.convoy().body(vehicle);
+                            if (sim.convoy().faction(vehicle) != Faction.ALLY || m.state == VehicleState.WRECKED
+                                    || Math.abs(body.speed) < .2f || body.x > ThunderRunCompound.WIDTH) continue;
+                            sum += body.x; n++;
+                        }
+                        // The camera moves in steps, so the ground holds still between them and the recording stays small.
+                        if (n > 0) {
+                            float wanted = Math.max(48f, Math.min(ThunderRunCompound.WIDTH - 48f, sum / n));
+                            if (convoyFrames == 0 || Math.abs(wanted - followX) > 30f) follow.refocus(followX = wanted, 75, 96);
+                        }
+                        convoyGif.append(follow.render(sim,"THUNDER RUN / FINAL RUN / "+(tick/30)+"s / "+column.status(), ReviewAnnotations.NONE, impacts));
+                        convoyFrames++;
+                    }
                     previousPhase=column.phase();
                     if(fixture.optBoolean("absent") && tick>=9000) break;
                 }
+                if (reviewGif != null) { reviewGif.close(); convoyGif.close(); }
                 if(fixture.optBoolean("absent")) { assertEquals(0,column.phase()); assertEquals(0,column.deliveredCount()); }
                 if(fixture.optBoolean("destroyCargo")) { assertTrue(sim.isComplete()); assertNotEquals(Faction.MARINE,sim.getWinner()); assertEquals(3,column.lostCount()); }
                 if (!fixture.optBoolean("absent") && !fixture.optBoolean("unarmedFinal") && !fixture.optBoolean("silentTankFinal") && maxTicks >= 18000) {

@@ -235,7 +235,10 @@ Do not run builds or leave generated task files there.
   loses its cannon ammunition). Reports include exit-gun destruction ticks and actual escort shots, damage, kills
   and remaining durability, vehicle repulsion pushes, and the column driver's
   reroutes, wreck/parked-hull swerves, station waits and hauler sprints.
-  `companySize` selects named personnel (default 24).
+  `companySize` selects named personnel (default 24). `-PsnapshotEveryTicks=N`
+  records `review.gif` (whole map every N ticks) and `convoy-run.gif` (a stepped
+  follow camera on the column through the final run) per fixture; both are
+  full-frame GIFs and large.
   Reports separate living militia from their assembled field guns. Default
   observation is 27000 ticks.
   Replays run **side by side by default**, on half the machine's processors —
