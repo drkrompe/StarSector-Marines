@@ -168,3 +168,4 @@ com.dillon.starsectormarines.tools.roomauthoring.ConsoleBankEditorSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.ComposableDamageSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.ParkedVehiclesSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.bsp.fill.ServiceYardSnapshotSuite
+com.dillon.starsectormarines.battle.setup.WholeCompoundSnapshotSuite

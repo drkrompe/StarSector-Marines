@@ -885,7 +885,15 @@ A Cold Account uses this family, with records in the accessible
 dispatch office rather than whichever facility happens to be nearest. Its
 vehicle gates and bay approach preserve three-cell clearance after furnishing
 and defenses; field berths and infantry approaches remain connected. This is
-an authored mission consumer, not a replacement for every procedural garrison.
+an authored mission consumer. The same whole layout is available to remote
+Assault missions when their tier supplies enough ground for the site and a
+separate arrival area. Standard and extra-magazine variants rotate as complete
+assemblies; the host connects the main gate to its approach and supplies clear
+landing berths. Mission tier, risk and target rating still choose fortification.
+Small maps, single-gate citadels and missions declaring additional defensive
+installations retain their ordinary generator. A remote template reserves its
+site before any fill; inserting it among city neighbors still requires the prior
+claim in `cross-leaf-footprint-planning.md`.
 Its wider battlefield places the outpost in a mountain basin with an open eastern
 approach. Its mountains continue beyond the western, northern and southern
 map boundaries; overlapping masses, projecting spurs and open gullies vary
