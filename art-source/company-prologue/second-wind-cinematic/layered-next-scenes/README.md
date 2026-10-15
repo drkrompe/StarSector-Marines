@@ -95,7 +95,9 @@ review visualizations. Export proper masks from the scene for production composi
 ## Painting handoff
 
 Use each shot's saved camera and geometry to produce its own composition guide.
-Keep the existing painted window study as the style reference. Generate a master
+Use the [naturalistic look study](../realism-lookdev/README.md) and current campaign
+stills as the updated surface-style references, with bright daylight and physical
+material detail. The earlier painted window study remains the motion reference. Generate a master
 painted composition, then request registered sky, hills, woodland and cloud layers
 with the guide and color groups. Keep their unedited masters and exact prompts.
 Near buildings, field rows and all ship/landing surfaces receive materials or
