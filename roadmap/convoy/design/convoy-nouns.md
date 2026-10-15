@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — employer tank hardware and conservative rolling-turn handling.
+Updated: 2026-10-15 — hulls repel infantry; story columns may drive reactively.
 
 ## Purpose and boundary
 
@@ -144,7 +144,22 @@ not a thing to take cover from.
 What a chassis deliberately does **not** carry is `POSITION`. That is what keeps
 the occupancy map and the separation pass off it: those queries are keyed on
 that component, so a moving hull still neither claims infantry cells nor takes
-part in unit-unit collision. Everything else the ECS skips by
+part in unit-unit collision.
+
+Instead, a hull **repels** bodies (`VehicleRepulsionSystem`). Every visible,
+unwrecked hull is an oriented rectangle with two fields. Contact pushes an
+overlapping body out along the shallower axis; in front of a moving hull it is
+always out to the side, carried forward with the bow while it goes, so a truck
+bulldozes a man aside rather than passing over him. A bow wave ahead of a moving
+hull pushes bodies off its centerline before contact, harder the faster the hull
+is going and the nearer they are. It is physical and faction-blind, deals no
+damage, and runs after separation so a shove apart cannot put anybody back under
+a hull. Mechs accept a reduced share; emplacements, aircraft, drones and other
+hulls do not take part. Every displacement passes the same topology guard as
+separation, so a body pinned against a wall stays where it is and the hull
+passes. The push is applied to positions, not plans: infantry still path as if
+hulls were absent, and a body walking into a parked hull is pushed out again
+each tick. `-Dbattle.vehicle.repulsion=false` is the control. Everything else the ECS skips by
 membership-narrowing — no `COMBAT`, no `MOVEMENT`, no `ROLE`, no `AI_STATE`,
 so the fire system, the mover, separation and the planner never see it.
 
@@ -345,8 +360,9 @@ suspension discard queued rounds and targets without resetting ammunition or
 cooldown. The actual posed hardpoint supplies the ground ballistic source, and
 the structural body-to-barrel check prevents launching beyond a wall.
 
-Vehicle-versus-infantry occupancy remains the shared unresolved interaction
-contract in `truck-infantry-interaction.md`. Direct control grants no special
+A directly controlled hull repels bodies exactly as an autonomous one does.
+Navigation occupancy, crushing and predictive avoidance remain the open parts
+of `truck-infantry-interaction.md`. Direct control grants no special
 collision immunity, crushing rule, or infantry separation policy. The vehicle
 retains the same existing cross-domain behavior as an autonomous hull.
 
@@ -555,6 +571,11 @@ public scenario conditions. It uses ordinary movement legs, footprint checks,
 steering and weapons; it does not obtain player order authority or become a
 second reinforcement provider. Delivery of identified freight is confirmed by
 physical exit, while destruction retains the ordinary wreck and damage rules.
+A story column may drive reactively through a mission driver that authors its
+lane polylines and lowers the mission's speed cap (Thunder Run's column driver,
+`early-operation-nouns.md`). The driver chooses routes and pace only; chassis
+steering, footprint sweep and recovery remain the vehicle's own, and a route
+rebuilt mid-leg is an ordinary new corridor.
 A **heavy lead** is a story-support tank with finite armor, structure and a
 paired cannon magazine. Its independently traversing turret uses normal
 ballistic contact and blast payloads, so it can breach a gun line while lighter

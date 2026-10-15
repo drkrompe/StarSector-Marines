@@ -41,6 +41,12 @@ public final class VehicleMission {
     /** Escort driver holds the existing route while braking through ordinary chassis physics. */
     public boolean authoredRoutePaused;
     public VehicleLeg authoredLeg = VehicleLeg.MOVE_ORDER;
+    /**
+     * Upper bound on forward tracking speed, cells per second, that a mission
+     * driver may lower to keep station or ease past people; the chassis still
+     * accelerates and brakes through its own limits. Unbounded by default.
+     */
+    public float speedCap = Float.POSITIVE_INFINITY;
 
 
     public VehicleState state = VehicleState.PENDING;
