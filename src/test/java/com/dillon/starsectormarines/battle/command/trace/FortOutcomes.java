@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.command.trace;
 
 import com.dillon.starsectormarines.battle.battery.FortressBattery;
 import com.dillon.starsectormarines.battle.fort.Fort;
+import com.dillon.starsectormarines.battle.fort.FortAspect;
 import com.dillon.starsectormarines.battle.fort.FortKind;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -83,7 +84,7 @@ final class FortOutcomes {
     private void noteHolders(Fort fort, int tick) {
         for (Fort.Place place : fort.places()) {
             String key = fort.id() + ":" + place.aspect();
-            Faction holder = place.wrecked() ? null : place.control().holder();
+            Faction holder = place.wrecked() ? null : holderOf(fort, place);
             if (!lastHolder.containsKey(key)) {
                 lastHolder.put(key, holder);
                 continue;
@@ -95,6 +96,16 @@ final class FortOutcomes {
                 lastHolder.put(key, holder);
             }
         }
+    }
+
+    /**
+     * Who holds an aspect now. A battery fort's fire control is held by the battery's own {@code FireControl}, the
+     * authority the bunker's capture ticks; the place's own control is not kept for it, and read as the holder it said
+     * the bunker was never taken while the guns had changed sides.
+     */
+    private static Faction holderOf(Fort fort, Fort.Place place) {
+        if (place.aspect() == FortAspect.FIRE_CONTROL && fort.battery() != null) return fort.battery().owner();
+        return place.control().holder();
     }
 
     /** The cell whose being seen discloses the fort: the platform or the generator. */
@@ -140,7 +151,7 @@ final class FortOutcomes {
                     at(firstSeen, fort.id()), at(firstWorksSeen, fort.id()), at(firstDisclosed, fort.id())));
             out.append('\n');
             for (Fort.Place place : fort.places()) {
-                out.append("  - ").append(place.aspect()).append(": holder ").append(place.control().holder())
+                out.append("  - ").append(place.aspect()).append(": holder ").append(holderOf(fort, place))
                         .append(" (built for ").append(place.originalHolder()).append(")")
                         .append(place.wrecked() ? ", WRECKED" : "")
                         .append('\n');
