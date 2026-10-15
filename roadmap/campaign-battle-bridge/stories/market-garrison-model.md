@@ -1,8 +1,10 @@
 # Market garrison model
 
-Status: PLANNED
+Status: IN PROGRESS — slice 1 and mixed squads implemented; headcount, heavy lean and allied consumers next.
 
 Written: 2026-10-15
+
+Updated: 2026-10-15 — The mix is now quality and heavy lean blended into every squad, not militia/regular/heavy tiers.
 
 Read `campaign-battle-bridge-nouns.md`, `polity-ground-doctrine.md`,
 `mission-tier-nouns.md` and `nexerelin-nouns.md` first.
@@ -51,7 +53,7 @@ only toughness. Both mods it sits beside already say so:
 
 The **market garrison** is a plain value in the target profile, resolved on
 the host thread by `TargetProfileResolver` with the rest of the market read.
-It has three outputs:
+It has four outputs: strength, quality, heavy lean and readiness.
 
 1. **Headcount.** Read from vanilla's ground-defence value, as
    `AlliedGarrisonSize` already does, minus the company's own stationed
@@ -59,17 +61,28 @@ It has three outputs:
    including those from other mods. Market size enters through vanilla's base
    value. Whether the curve also needs Nexerelin's steeper growth by size is a
    calibration question for slice 3, not a reason to bypass the stat.
-2. **Mix.** Shares of three tiers:
-   - **Militia:** local defenders on Surplus-grade common kit.
-   - **Regulars:** the faction's own marines, on its normal roster and grade.
-   - **Heavy:** mechs, vehicles and gun positions.
+2. **Quality and heavy lean, not tiers of squad.** The game already models
+   defenders through the faction's ground roster: a bulk issue and an elite
+   issue, each billet rolling its own weapon, armour and grade, plus mechs and
+   defence installations. So the estimate does not sort the garrison into
+   militia squads and regular squads. It produces two dials:
+   - **Quality:** the share of infantry drawn from the elite issue. The rest
+     come from the bulk issue.
+   - **Heavy lean:** how far the force leans toward mechs, vehicles and
+     emplacements.
 
-   Size sets the base split: all militia on small worlds, regulars appearing
-   at size 5. Structures shift the split, using one table of our own, keyed
-   by vanilla industry id: Ground Defenses and Heavy Batteries add regulars
-   and heavy units; Patrol HQ, Military Base and High Command add regulars and
-   some heavy units. Shortages of marines, hand weapons and supplies shrink
-   the regular and heavy shares.
+   They come from three weights: bulk, elite and heavy. Every garrison has
+   some elites, so a small colony is a thinly stiffened garrison rather than a
+   squad of militia: about one in five below size 5, one in three from size 5.
+   A military market moves a quarter of the bulk weight to elite. Structures
+   add weight through one table of our own, keyed by industry id
+   (`data/world/garrison/garrison_structures.json`, merged across mods so
+   another mod can add its own industries): Ground Defenses and Heavy
+   Batteries add bulk, elite and heavy weight; Patrol HQ, Military Base, High
+   Command and Lion's Guard add elite and some heavy weight; Heavy Industry and
+   Orbital Works add a little heavy weight. Shortages of marines thin the elite
+   weight, and shortages of marines, hand weapons or supplies thin the heavy
+   weight, each down to half.
 3. **Readiness.** A multiplier below one after a recent battle at the market.
    With Nexerelin installed, it reads the market memory key
    `$nex_garrisonDamage`. That is a plain memory read, so it needs no
@@ -81,17 +94,22 @@ It has three outputs:
 - **Hostile garrisons in market-backed operations.** The model says what is
   on the ground, and the tier's demand caps what this operation may be asked
   to face (precinct law: the world's rating says what is there; the demand
-  says what the operation faces). Headcount becomes squads, and the mix
-  becomes their grade and the heavy force. The tier keeps its ceiling, so a
+  says what the operation faces). Strength becomes headcount, quality sets
+  the elite share, and heavy lean weighs mechs and installations. **Squads
+  are mixed.** Today `BattleSetup.allocateDefenders` queues every elite before
+  every bulk soldier, so the top-priority posts get all-elite squads and
+  everything else gets all-bulk squads. Slice 2 spreads elites evenly across
+  squads, so each squad mixes veterans and bulk troops in proportion to
+  quality, each rolling their own kit. The tier keeps its ceiling, so a
   generated First Contract offer never fields a size-8 capital's full
   garrison. A player invasion is not an offer, so it faces the whole
   estimate (`nexerelin-nouns.md`).
 - **Allied garrisons.** `AlliedGarrisonSize` reads headcount from the same
-  model instead of dividing the raw stat itself, and allied militia stop
-  being regulars.
+  model instead of dividing the raw stat itself, and its quality mixes the
+  allied squads the same way.
 - **The polity.** `polity-ground-doctrine.md` "Numbers" already names this
   headcount. Its doctrine choices (quality, numbers, heavy support) move the
-  model's mix and count rather than a separate formula.
+  model's dials rather than a separate formula.
 
 Neutral stays neutral: no market means no garrison estimate. Story and
 fixture operations that state their own forces ignore the estimate.
@@ -113,13 +131,18 @@ fixture operations that state their own forces ignore the estimate.
 
 ## Slices
 
-1. **Estimate and table.** The garrison value in `TargetProfile`, the
-   resolver read, the structure and shortage table, and the readiness read.
-   Unit tests on the pure estimate cover size steps, each structure, the size
-   5 regular threshold, shortages, readiness, stationed subtraction and
-   Neutral. Fixture JSON round-trips the new value.
-2. **Consumers.** Hostile garrison headcount and mix under the tier ceiling,
-   and allied garrison headcount and militia grade. Existing evidence
+1. **Estimate and table** (implemented). `MarketGarrison` on
+   `TargetProfile`, `MarketGarrisonEstimate`, `GarrisonStructureCatalog` and
+   its data file, and the resolver read, including Nexerelin's readiness key.
+   Unit tests cover size, military shift, structures, unknown industries,
+   shortages, readiness and stationed subtraction. Fixture JSON round-trips
+   the value.
+2. **Mixed squads and consumers.** Done: elites spread evenly through
+   defender squads (`DefenderRoster.infantryOrder`), and a market's quality
+   sets the hostile elite share in place of the risk curve. Remaining:
+   headcount from strength under the tier ceiling, heavy lean on mech and
+   installation candidates, and allied headcount and mix. Existing
+   evidence
    (`commanderEvidence`, `garrisonEvidence`) shows the change on fixtures; the
    canonical Conquest fixtures with no market stay unchanged.
 3. **Calibration.** With Nexerelin installed, compare our estimate against
