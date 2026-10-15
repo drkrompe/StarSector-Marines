@@ -53,13 +53,14 @@ not own the political simulation, battle presentation, cargo, or narrator.
   a row whose employer is nobody; `meta-progression.md` owns why the polity
   is never a client.
 - **Recovery** is the system-generated follow-on to a stationing assignment
-  whose people cannot simply come home: an employer breach, or a garrison
-  overrun in the player's absence. It is not a sixth patron-offered work type
-  and pays nothing. A breach recovery is a fought extraction; an overrun
-  recovery is a **pickup**, collected through the planet interaction with no
-  battle.
-- A **stranded detachment** is the surviving squads and bound captain of an
-  overrun garrison. They are not a new roster: the failed assignment holds
+  whose people cannot simply come home: an employer breach, a garrison
+  overrun in the player's absence, or a garrisoned market that changed hands.
+  It is not a sixth patron-offered work type and pays nothing. A breach
+  recovery is a fought extraction; the others are a **pickup**, collected
+  through the planet interaction with no battle.
+- A **stranded detachment** is the surviving squads and bound captain of a
+  garrison that was overrun in the player's absence, or whose market changed
+  hands (by any means, Nexerelin invasions included). They are not a new roster: the failed assignment holds
   them past its settlement, with a recovery deadline, until the company
   collects them or the deadline lists them missing. Waiting costs people:
   survivors go missing at intervals, the same ones on every replay.
@@ -149,8 +150,9 @@ second roster.
 7. Employer breach/default is distinct from player abandonment and battle
    failure. It leads to recovery of stranded stationing personnel rather than
    silently returning them or treating the breach as player fault. An overrun
-   in the player's absence strands its survivors the same way; they return
-   only through the recovery's own pickup or expiry, never by walking home.
+   in the player's absence, or the loss of the garrisoned market, strands its
+   survivors the same way; they return only through the recovery's own pickup
+   or expiry, never by walking home. Losing the market costs no reputation.
 8. Offer generation establishes target fit before weighting flavor. The
    employer/target relationship and the target's actual assets decide which
    work is admissible; faction identity may weight and describe that eligible

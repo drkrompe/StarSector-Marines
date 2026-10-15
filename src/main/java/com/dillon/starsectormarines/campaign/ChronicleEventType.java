@@ -13,7 +13,9 @@ public enum ChronicleEventType {
     /** A stranded detachment was collected by the company. */
     DETACHMENT_RECOVERED,
     /** A stranded detachment's recovery ran out before anyone came. */
-    DETACHMENT_LOST;
+    DETACHMENT_LOST,
+    /** A Garrison's market changed hands and its detachment went to ground. */
+    GARRISON_MARKET_LOST;
 
     private static final ChronicleEventType[] VALUES = values();
 
