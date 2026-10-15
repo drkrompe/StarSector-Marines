@@ -75,7 +75,8 @@ class IndustrialFacilityFloorPlanTest {
                 for (int x = leaf.left + 1; x < leaf.right; x++) {
                     if (!topology.isFixture(x, y)) continue;
                     assertFalse(grid.isWalkable(x, y), "fixture blocks movement");
-                    boolean opaque = topology.getRoomPurpose(x, y) == RoomPurpose.PRODUCTION_FLOOR;
+                    final int cellX = x, cellY = y;
+                    boolean opaque = doodads.stream().anyMatch(d -> isMachine(d) && d.occupiesCell(cellX, cellY));
                     assertEquals(!opaque, grid.isSeeThrough(x, y),
                             "only production machinery blocks line of sight");
                 }
@@ -202,7 +203,7 @@ class IndustrialFacilityFloorPlanTest {
         List<Doodad> machines = new ArrayList<>();
         for (Doodad doodad : doodads) {
             if (topology.getRoomPurpose(doodad.cellX, doodad.cellY)
-                    == RoomPurpose.PRODUCTION_FLOOR) machines.add(doodad);
+                    == RoomPurpose.PRODUCTION_FLOOR && isMachine(doodad)) machines.add(doodad);
         }
         machines.sort(Comparator.comparingInt(d -> vertical ? d.cellY : d.cellX));
         for (int i = 1; i < machines.size(); i++) {
@@ -219,6 +220,11 @@ class IndustrialFacilityFloorPlanTest {
                 assertTrue(grid.isWalkable(x, y), "clear production lane beside machinery");
             }
         }
+    }
+
+    private static boolean isMachine(Doodad doodad) {
+        return "doodad.industrial-machine-tool".equals(doodad.definitionId())
+                || "doodad.industrial-fluid-tank".equals(doodad.definitionId());
     }
 
     private static int purposeComponents(CellTopology topology, BlockLeaf leaf,

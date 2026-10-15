@@ -501,6 +501,11 @@ final class BuildingLayouts {
                 RoomPurpose.PARTS_CAGE, parts, doodads, rng, true);
         stampPurposeFixture(grid, topology, bl, bt, br, bb,
                 RoomPurpose.LOADING_BAY, pallet, doodads, rng, true);
+        BuildingWorkGroups storage = new BuildingWorkGroups(grid, topology, doodads);
+        storage.fit(bl, bt, br, bb, RoomPurpose.PRODUCTION_FLOOR, BuildingWorkGroups.palletIsland(List.of(
+                        new ConsoleBankLayout.Cell(0, 0), new ConsoleBankLayout.Cell(1, 0),
+                        new ConsoleBankLayout.Cell(0, 1)), "cases"),
+                purposeFixtureBudget(topology, bl, bt, br, bb, RoomPurpose.PRODUCTION_FLOOR, 0, 3, 90));
     }
 
     private static void stampIndustrialProductionLine(NavigationGrid grid,
@@ -590,6 +595,9 @@ final class BuildingLayouts {
                 RoomPurpose.KEEP_ENTRY, workstation, doodads,
                 purposeFixtureBudget(topology, bl, bt, br, bb,
                         RoomPurpose.KEEP_ENTRY, 2, 4, 5), 2, true, false);
+        BuildingWorkGroups storage = new BuildingWorkGroups(grid, topology, doodads);
+        storage.fit(bl, bt, br, bb, RoomPurpose.KEEP_INNER, BuildingWorkGroups.stockedRack("cases"), 2);
+        storage.fit(bl, bt, br, bb, RoomPurpose.KEEP_ENTRY, BuildingWorkGroups.pallets(1, "cartons"), 2);
     }
 
     /** Two vertical bunk rows leave at least a two-cell central lane for 0.3-cell-radius marines. */
@@ -673,9 +681,9 @@ final class BuildingLayouts {
     }
 
     /**
-     * Furnishes the room plan as a clinic while keeping the two-cell medical
-     * corridor empty. The ward reuses the cardinal two-cell bed variants so
-     * each bed sits against a supporting wall and faces into its room.
+     * Fits complete examination and monitored ward bays, reception/waiting and
+     * pharmacy storage. Working aprons stay free; ward ranks scale to the room
+     * and narrow accommodation retains the compact bed fallback.
      */
     private static void applyMedicalClinic(NavigationGrid grid, CellTopology topology,
                                            int bl, int bt, int br, int bb,
@@ -683,10 +691,26 @@ final class BuildingLayouts {
         if (purposeBounds(topology, bl, bt, br, bb,
                 RoomPurpose.MEDICAL_CORRIDOR) == null) return;
 
-        DoodadDef receptionDesk = TileRegistry.installed().doodad("doodad.desk-1");
-        DoodadDef triageStation = TileRegistry.installed().doodad("doodad.office-workstation-bank");
-        DoodadDef treatmentConsole = TileRegistry.installed().doodad("doodad.military-command-console");
-        DoodadDef pharmacyShelf = TileRegistry.installed().doodad("doodad.shelf-2");
+        // Charting belongs to triage; treatment and recovery are fitted around patients.
+        stampPurposeConsoleBanks(grid, topology, bl, bt, br, bb, RoomPurpose.TRIAGE, doodads);
+        BuildingWorkGroups groups = new BuildingWorkGroups(grid, topology, doodads);
+        groups.fit(bl, bt, br, bb, RoomPurpose.MEDICAL_RECEPTION, BuildingWorkGroups.nurseStation(), 1);
+        groups.fit(bl, bt, br, bb, RoomPurpose.MEDICAL_RECEPTION, BuildingWorkGroups.waitingSeats(), 2);
+        int exams = groups.fit(bl, bt, br, bb, RoomPurpose.TREATMENT_ROOM, BuildingWorkGroups.examBay(),
+                purposeFixtureBudget(topology, bl, bt, br, bb, RoomPurpose.TREATMENT_ROOM, 1, 3, 28));
+        if (exams == 0) groups.fit(bl, bt, br, bb, RoomPurpose.TREATMENT_ROOM, BuildingWorkGroups.compactExam(), 1);
+        groups.fit(bl, bt, br, bb, RoomPurpose.TREATMENT_ROOM, BuildingWorkGroups.sink(), 1);
+        groups.fit(bl, bt, br, bb, RoomPurpose.TRIAGE, BuildingWorkGroups.compactExam(), 1);
+        int[] ward = purposeBounds(topology, bl, bt, br, bb, RoomPurpose.PATIENT_WARD);
+        int[] ranks = ward != null && ward[2] - ward[0] < ward[3] - ward[1] ? new int[]{1, 3} : new int[]{0, 2};
+        int wardBeds = groups.fit(bl, bt, br, bb, RoomPurpose.PATIENT_WARD, BuildingWorkGroups.bedBay(),
+                purposeFixtureBudget(topology, bl, bt, br, bb, RoomPurpose.PATIENT_WARD, 1, 8, 12), ranks);
+        groups.fit(bl, bt, br, bb, RoomPurpose.PATIENT_WARD, BuildingWorkGroups.nurseStation(), 1);
+        groups.fit(bl, bt, br, bb, RoomPurpose.PHARMACY, BuildingWorkGroups.nurseStation(), 1);
+        int cabinets = groups.fit(bl, bt, br, bb, RoomPurpose.PHARMACY, BuildingWorkGroups.cabinets(2), 3);
+        if (cabinets == 0) groups.fit(bl, bt, br, bb, RoomPurpose.PHARMACY, BuildingWorkGroups.cabinets(1), 2);
+
+        // Preserve the narrow clinic's one-bed accommodation when a complete ward bay cannot fit.
         DoodadDef[] beds = {
                 TileRegistry.installed().doodad("doodad.residential-bed-head-n"),
                 TileRegistry.installed().doodad("doodad.residential-bed-v"),
@@ -694,22 +718,12 @@ final class BuildingLayouts {
                 TileRegistry.installed().doodad("doodad.residential-bed-h"),
         };
 
-        stampPurposeFixture(grid, topology, bl, bt, br, bb,
-                RoomPurpose.MEDICAL_RECEPTION, receptionDesk, doodads, rng, true);
-        if (stampPurposeConsoleBanks(grid, topology, bl, bt, br, bb, RoomPurpose.TRIAGE, doodads) == 0)
-            stampPurposeFixture(grid, topology, bl, bt, br, bb,
-                    RoomPurpose.TRIAGE, triageStation, doodads, rng, true);
-        else preservePlacementDraw(topology, bl, bt, br, bb, RoomPurpose.TRIAGE, rng);
-        if (stampPurposeConsoleBanks(grid, topology, bl, bt, br, bb, RoomPurpose.TREATMENT_ROOM, doodads) == 0)
-            stampPurposeFixture(grid, topology, bl, bt, br, bb,
-                    RoomPurpose.TREATMENT_ROOM, treatmentConsole, doodads, rng, false);
-        else preservePlacementDraw(topology, bl, bt, br, bb, RoomPurpose.TREATMENT_ROOM, rng);
-        stampOneOrientedFixturePerPurposeRoom(grid, topology, bl, bt, br, bb,
-                RoomPurpose.PATIENT_WARD, beds, doodads, rng, true);
-        stampPurposeFixture(grid, topology, bl, bt, br, bb,
-                RoomPurpose.PHARMACY, pharmacyShelf, doodads, rng, true);
-        stampPurposeFixture(grid, topology, bl, bt, br, bb,
-                RoomPurpose.PHARMACY, pharmacyShelf, doodads, rng, true);
+        if (wardBeds == 0) stampOneOrientedFixturePerPurposeRoom(grid, topology, bl, bt, br, bb,
+                    RoomPurpose.PATIENT_WARD, beds, doodads, rng, true);
+        else preservePlacementDrawsForPurposeRooms(grid, topology, bl, bt, br, bb, RoomPurpose.PATIENT_WARD, rng);
+        for (RoomPurpose purpose : new RoomPurpose[]{RoomPurpose.MEDICAL_RECEPTION, RoomPurpose.TRIAGE,
+                RoomPurpose.TREATMENT_ROOM, RoomPurpose.PHARMACY, RoomPurpose.PHARMACY})
+            preservePlacementDraw(topology, bl, bt, br, bb, purpose, rng);
     }
 
     /** Furnishes both rooms of a narrow tenement without obstructing the shared alley doors. */

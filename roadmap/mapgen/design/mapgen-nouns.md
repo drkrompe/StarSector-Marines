@@ -309,6 +309,25 @@ carry L-shaped operations desks whose modules and stools rotate with the plan.
 Their outside cuts, window recesses and interior anchors remain usable.
 This treatment follows room purpose and available working space rather than
 turning residential or shop footprints into control rooms.
+
+Complete **work groups** compose existing fixtures, their contained stock or
+linen layers, and protected access in one local frame. Stocked shelf banks use
+three stock slots and one retaining frame; joined pallet slots form rows or
+L-shaped islands with a handling apron, and cabinet modules form continuous
+wall runs. The group places whole or not at all, rotates together, and refuses
+later furniture on its access cells. Stock and linen add no duplicate blocking
+or cover. Industrial floors use pallet staging islands, command annexes use
+stocked shelving, and the authored L freight depot carries a stocked rack.
+
+A clinic's equipment follows care: reception has charting and waiting seats;
+triage pairs readouts with assessment; treatment owns examination couches,
+monitors, trolleys and washing; the ward has aligned monitored beds with side
+access and a two-cell stretcher approach; pharmacy has cabinet banks and a
+dispensing station. Bed and examination capacity grows with usable room space.
+Small wards may retain one bed when a complete larger bay cannot fit. The
+medical corridor, doors and firing recesses stay usable. These furnishings do
+not create patients, simulated medical work or campaign supplies.
+
 Civic headquarters follow the same authored-program rule as ship mech labs:
 their two-cell spine, opposing entrances, room depths, and fixture groups are
 designed as one floor-plan family rather than discovered by random door and

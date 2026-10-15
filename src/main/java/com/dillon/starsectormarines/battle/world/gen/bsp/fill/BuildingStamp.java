@@ -300,6 +300,12 @@ public enum BuildingStamp {
             }
         }
         placeConsoleBank(ctx, left, bottom, turns);
+        if (this == FREIGHT_L) {
+            var rack = BuildingWorkGroups.stockedRack("cartons");
+            int[] a = posed(3, 6, turns), b = posed(2 + rack.width(), 5 + rack.height(), turns);
+            new BuildingWorkGroups(ctx.grid, ctx.topology, ctx.doodads).place(rack,
+                    left + Math.min(a[0], b[0]), bottom + Math.min(a[1], b[1]), turns, null);
+        }
         if (interior == null || entrance == null) throw new IllegalStateException("stamp has no entrance");
         // Furnishing may occupy the first authored floor cell; retain a real interior anchor.
         if (!ctx.grid.isWalkable(interior[0], interior[1])) {

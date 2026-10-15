@@ -40,6 +40,14 @@ TREAT, STOW and WASH work; decorative supplies do not assert campaign stock.
 Authored layouts remain authoritative, and generic ground-side sickbays keep their
 existing fitting. No patients or patient behavior are added by this art pass.
 
+Ground medical-campus buildings reuse this art in complete work groups:
+monitored ward beds, examination bays, charting stations, sinks and pharmacy
+cabinet runs. Their fitter reserves bedside and working access, scales bed
+capacity to the ward, and keeps a compact single-bed fallback for small rooms.
+These building furnishings publish no ship crew jobs or patient simulation.
+The `console-rooms` snapshot suite retains large and compact clinic views in
+`art-source/console-bank/review/clinic-workgroups.png`.
+
 With JAVA_HOME set as documented in CLAUDE.md:
 
 ```powershell

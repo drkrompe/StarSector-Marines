@@ -96,9 +96,11 @@ class BuildingStampTest {
                 }
                 for (Doodad d : original.doodads) {
                     int[] p = stamp.posed(d.cellX - 2, d.cellY - 2, turn);
+                    int[] far = stamp.posed(d.cellX - 2 + d.footprintCellsX - 1,
+                            d.cellY - 2 + d.footprintCellsY - 1, turn);
                     final int facing = turn;
-                    assertTrue(rotated.doodads.stream().anyMatch(r -> r.cellX == p[0] + 2
-                            && r.cellY == p[1] + 2 && r.definitionId().equals(d.definitionId())
+                    assertTrue(rotated.doodads.stream().anyMatch(r -> r.cellX == Math.min(p[0], far[0]) + 2
+                            && r.cellY == Math.min(p[1], far[1]) + 2 && r.definitionId().equals(d.definitionId())
                             && (d.definitionId().equals("mess-galley.stool")
                             || r.quarterTurns == Math.floorMod(d.quarterTurns + facing, 4))));
                 }
@@ -118,6 +120,10 @@ class BuildingStampTest {
                 GenContext ctx = open(stamp.width(turn) + 4, stamp.height(turn) + 4);
                 stamp.place(ctx, 2, 2, turn);
                 assertEquals(1, ctx.doodads.stream().filter(d -> d.definitionId().endsWith("inside-corner")).count(), stamp.name());
+                if (stamp == BuildingStamp.FREIGHT_L) {
+                    assertEquals(1, ctx.doodads.stream().filter(d -> d.definitionId().equals("main-stores.rack")).count());
+                    assertEquals(3, ctx.doodads.stream().filter(d -> d.definitionId().equals("main-stores.cartons")).count());
+                }
                 var seats = ctx.doodads.stream().filter(d -> d.definitionId().equals("mess-galley.stool")).toList();
                 assertFalse(seats.isEmpty(), stamp.name());
                 for (Doodad seat : seats) {

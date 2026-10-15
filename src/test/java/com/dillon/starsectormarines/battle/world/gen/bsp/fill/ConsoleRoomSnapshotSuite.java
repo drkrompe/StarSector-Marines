@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
+import com.dillon.starsectormarines.battle.world.gen.fit.ConsoleBankLayout.Cell;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFittings;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayout;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayoutSeed;
@@ -71,6 +72,8 @@ public final class ConsoleRoomSnapshotSuite implements SnapshotSuite {
         artifacts.add(new SnapshotArtifact("command-building-shapes.png", buildings(renderer)));
         artifacts.add(new SnapshotArtifact("building-readouts.png", readouts(renderer)));
         artifacts.add(new SnapshotArtifact("building-console-templates.png", consoleTemplates(renderer)));
+        artifacts.add(new SnapshotArtifact("clinic-workgroups.png", clinic(renderer)));
+        artifacts.add(new SnapshotArtifact("storage-workgroups.png", storage(renderer)));
         RoomLayout seed = RoomLayoutSeed.from(RoomFittings.forShipRoom(RoomPurpose.BRIDGE,
                 RoomRecipe.COMMAND.shape(), RoomFit.STANDARD), RoomPurpose.BRIDGE,
                 RoomRecipe.COMMAND.shape(), RoomFit.STANDARD);
@@ -155,6 +158,63 @@ public final class ConsoleRoomSnapshotSuite implements SnapshotSuite {
             text(g, "connected floor preserved", x + 500, y + 132, 17);
         }
         text(g, "Production shell + COMMAND_CENTER fitting / 1920 x 1080", 44, 1044, 16);
+        g.dispose(); return image;
+    }
+
+    private static BufferedImage clinic(HeadlessBattleMapRenderer renderer) {
+        BufferedImage image = board(); Graphics2D g = image.createGraphics();
+        text(g, "CLINIC / ROOMS WITH A WORKING PURPOSE", 40, 56, 28);
+        MapResult large = building(26, 21, 42, BuildingPlacement.Side.BOTTOM, MedicalCampusFiller.CLINIC_CONFIG);
+        g.drawImage(renderer.render(large, 42, 30), 30, 135, null);
+        text(g, "26 x 21 clinic", 40, 110, 21);
+        long beds = large.doodads.stream().filter(d -> d.definitionId().equals("sickbay-clinic.bed")).count();
+        long exams = large.doodads.stream().filter(d -> d.definitionId().equals("sickbay-clinic.exam")).count();
+        if (beds < 3 || exams < 2) throw new IllegalStateException("Large clinic lost its ward / examination bays");
+        text(g, "RECEPTION", 1020, 165, 20);
+        text(g, "Charting desk + grouped waiting seats", 1020, 200, 19);
+        text(g, "TRIAGE + TREATMENT", 1020, 270, 20);
+        text(g, exams + " examination couches, monitors, trolleys and scrub sink", 1020, 305, 18);
+        text(g, "WARD", 1020, 375, 20);
+        text(g, beds + " monitored beds in aligned ranks + nursing station", 1020, 410, 19);
+        text(g, "PHARMACY", 1020, 480, 20);
+        text(g, "Connected cabinet banks + dispensing / charting desk", 1020, 515, 18);
+        text(g, "Compact clinic keeps its smaller accommodation", 1020, 600, 20);
+        MapResult small = building(15, 12, 42, BuildingPlacement.Side.BOTTOM, MedicalCampusFiller.CLINIC_CONFIG);
+        g.drawImage(renderer.render(small, 42, 22), 1020, 625, null);
+        for (int[] size : new int[][]{{15,12},{21,26},{30,24}})
+            for (BuildingPlacement.Side side : BuildingPlacement.Side.values())
+                building(size[0], size[1], 42, side, MedicalCampusFiller.CLINIC_CONFIG);
+        text(g, "Complete bays / protected bedside access / two-cell circulation / production renderer", 40, 1045, 17);
+        g.dispose(); return image;
+    }
+
+    private static BufferedImage storage(HeadlessBattleMapRenderer renderer) {
+        BufferedImage image = board(); Graphics2D g = image.createGraphics();
+        text(g, "COMPOSABLE STORAGE / STOCK + STRUCTURE + ACCESS", 40, 58, 28);
+        BuildingWorkGroups.Group[] groups = {BuildingWorkGroups.stockedRack("cartons"),
+                BuildingWorkGroups.palletIsland(List.of(new Cell(0,0), new Cell(1,0), new Cell(0,1)), "cases"),
+                BuildingWorkGroups.cabinets(3)};
+        String[] labels = {"Stocked shelf bank", "L-shaped pallet island", "Connected cabinet run"};
+        for (int i = 0; i < groups.length; i++) {
+            NavigationGrid grid = new NavigationGrid(14,14); CellTopology topology = new CellTopology(14,14);
+            for (int y = 0; y < 14; y++) for (int x = 0; x < 14; x++) {
+                grid.setWalkableFloor(x,y); topology.setGroundKind(x,y,GroundKind.INDOOR);
+                topology.setRoomPurpose(x,y,RoomPurpose.STOCKROOM);
+                topology.setSurface(x,y,topology.surfaceIndex("ship-floor-trim.passage"));
+            }
+            GenContext ctx = new GenContext(grid,topology,new Random(42),14,14,42);
+            int x = (14 - groups[i].width()) / 2, y = (14 - groups[i].height()) / 2;
+            if (!new BuildingWorkGroups(grid,topology,ctx.doodads).place(groups[i],x,y,0,RoomPurpose.STOCKROOM))
+                throw new IllegalStateException("Storage prototype failed: " + labels[i]);
+            MapResult map = new MapResult(grid,topology,0,0,0,0,ctx.pois,ctx.doodads);
+            int panel = 28 + i * 630;
+            text(g, labels[i], panel, 145, 23);
+            g.drawImage(renderer.render(map,42,42),panel,190,null);
+            text(g, i == 0 ? "Three independently filled stock slots" : i == 1 ? "Joined 2 x 2 stock slots" : "Repeated 2 x 1 cabinet modules", panel, 845, 20);
+            text(g, i == 0 ? "Rack base + stock + retaining frame" : i == 1 ? "Two-cell handling apron on every side" : "Two-cell working aisle", panel, 885, 18);
+            text(g, "Whole-group placement and rotation", panel, 930, 18);
+        }
+        text(g, "Existing production assets composed by the building fitter / 1920 x 1080",40,1045,17);
         g.dispose(); return image;
     }
 
