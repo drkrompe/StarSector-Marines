@@ -47,6 +47,20 @@ class MatchupSideTest {
     }
 
     @Test
+    void anExperimentKitAndMixIssueExactlyWhatTheyList() {
+        MarineLoadout[] seats = MatchupSide.parse(
+                "kit:field-rifle@surplus,rocket-launcher*2,frag-grenade*3+mix:cordon-shell*10,packframe*2").seats();
+        assertEquals(12, seats.length);
+        assertEquals("special.rocket-launcher", seats[1].specialEquipmentId);
+        assertEquals("special.frag-grenade", seats[4].specialEquipmentId);
+        assertEquals(null, seats[5].specialEquipmentId);
+        assertEquals("weapon.field-rifle", seats[11].primaryWeaponId);
+        assertEquals(2, Arrays.stream(seats).filter(seat -> seat.integralSystem != null).count());
+        assertThrows(IllegalArgumentException.class,
+                () -> MatchupSide.parse("weapons:field-security+mix:cordon-shell*11").seats());
+    }
+
+    @Test
     void parsesAndRejects() {
         MatchupSide side = MatchupSide.parse("weapons:assault+armor:recon");
         assertEquals("weapons:assault", side.weaponsId());
