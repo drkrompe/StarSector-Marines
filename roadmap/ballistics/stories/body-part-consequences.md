@@ -1,8 +1,10 @@
 # Body-part consequences
 
-Status: IN PROGRESS — implementation under way.
+Status: IN REVIEW — implemented with before/after evidence; awaiting owner review of the Conquest-trial rifles control and the Relief swings.
 
 Written: 2026-10-15
+
+Updated: 2026-10-15 — implemented; evidence recorded in Acceptance.
 
 Read `ballistics-nouns.md`, `body-part-cover.md` ("Part consequences"),
 `combat-durability-nouns.md` and the Unit modifiers section of `ai-nouns.md`
@@ -49,17 +51,43 @@ locations.
 
 ## Acceptance
 
-- [ ] Unit tests: calibration (Σ share × multiplier = 1.00 ± 0.02); head vs
-  legs damage for the same payload; a legs hit that gets through slows the unit
-  through `UnitModifiers.resolve(MOVE_SPEED)` and `explain()` names the wound;
-  arms → accuracy; the floor holds; partless payloads unchanged; a hit absorbed
-  wholly by armour leaves no wound; a completed treatment dresses wounds.
-- [ ] Full `:test` green.
-- [ ] Scenes before and after (`fighting-position`, `power-suit`,
-  `late-arrival`, `assault-muster`, `squad-medic`).
-- [ ] Commander evidence before and after: `conquest-trial`, `relief`.
-- [ ] Docs: `ballistics-nouns.md`, `combat-durability-nouns.md`,
+Chosen values: head ×1.6, torso ×1.1, legs ×0.85, arms ×0.75 (share-weighted
+mean 1.005). Each leg wound ×0.85 move speed, each arm wound ×0.85 accuracy,
+stacking to a floor of ×0.6.
+
+- [x] Unit tests (`BodyPartConsequencesTest`, `SquadMedicSystemTest`):
+  calibration; head vs legs for one payload; a legs hit slows through
+  `UnitModifiers.resolve(MOVE_SPEED)` and `explain()` names "Leg wound"; arms →
+  accuracy only; stacking to the floor; head/torso leave no wound; a hit the
+  plate absorbs whole leaves none; partless payloads unchanged; dressing ends
+  the wound; telemetry tallies; a completed treatment dresses and an
+  interrupted one does not.
+- [x] Full `:test` green (8944 tests).
+- [x] Scenes before and after (`fighting-position`, `power-suit`,
+  `late-arrival`, `assault-muster`, `squad-medic`): every verdict passes on
+  both (25/25 loops). Open-ground fights are no longer byte-identical, since
+  damage now varies by part. Fighting-position marine-side hit shares (new
+  readings) — subject: head 15%, arms 22%, torso 33%, legs 31% of 458; control:
+  head 17%, arms 21%, torso 34%, legs 30% of 463. These are battle-wide for the
+  side, not only marines in the trench. Under-fire-free: 5 of 12 alive at the
+  end against 8. Squad-medic planted: no deaths against 3. Power-suit one-xiv:
+  the XIV fell at tick 1496 where before it survived with 7.5 armour.
+  Assault-muster plan-with-lance reached the gate 642 ticks later.
+- [x] Conquest trial before and after: 7 of 8 won against 8 of 8. The
+  rifles-only on-path control (`on-path-41-rifles`), which won at tick 8910 of
+  9000 before, now times out with the objective taken and the keep not taken.
+  Marine losses 213 against 176 across the eight; defender losses 368 against
+  365.
+- [x] Relief before and after: outcomes swing both ways. 8101-late went from a
+  win to a defeat; 8101-relief from a timeout to a win; 8103-late from a defeat
+  to a win; 8103-relief from a defeat to a timeout. The other five are
+  unchanged (timeouts). Wins 2 against 1, defeats 1 against 2.
+- [x] Docs: `ballistics-nouns.md`, `combat-durability-nouns.md`,
   `ai-nouns.md` Unit modifiers, `body-part-cover.md` Part consequences.
+- [ ] Owner review; then fold and ledger.
+
+Not done here: the medic does not choose a patient for his wounds alone, since
+wounds need structure lost and the wounded are already the hurt.
 
 ## Plan
 
