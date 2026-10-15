@@ -308,4 +308,48 @@ class FortTacticsTest {
         List<Pick> retake = FortTactics.choose(D, List.of(yard(M, D)), List.of(squad(1, 10, 40)), false);
         assertEquals(Role.RETAKE, retake.get(0).role());
     }
+
+    // ------------------------------------------------------------------------------------------ the fort's radar spots for its side
+
+    @Test
+    void beingFlownAtMakesTheHostileBunkerTheFirstWorkEvenAheadOfAYardThatShutsTheSky() {
+        List<DefenceStructureFact> fort = List.of(bunker(D, D, false), magazine(D, D), yard(D, D));
+        List<Pick> picks = FortTactics.choose(M, fort, List.of(sapper(1, 10, 40)), new SkyNeed(true, true));
+        Pick bunker = picks.stream().filter(p -> p.structure().kind() == Kind.FIRE_CONTROL).findFirst().orElseThrow();
+        Pick yard = picks.stream().filter(p -> p.structure().kind() == Kind.FORT_AIR_DEFENCE).findFirst().orElseThrow();
+        assertEquals(FortTactics.SENSORS_RANK, bunker.rank());
+        assertTrue(bunker.rank() < yard.rank(), "their radar before our shut sky");
+        assertEquals(Role.TAKE, bunker.role());
+        assertTrue(bunker.reason().contains("radar"), bunker.reason());
+    }
+
+    @Test
+    void aSapperDoesNotWreckTheMagazineInsteadWhileTheBunkersRadarIsSpottingForTheirAir() {
+        // The magazine is on the sapper's doorstep and the bunker is far past it: ordinarily it wrecks the magazine.
+        DefenceStructureFact deep = aspect(Kind.FIRE_CONTROL, Family.BATTERY_FORT, 100, 40, D, D, false);
+        DefenceStructureFact near = aspect(Kind.FORT_MAGAZINE, Family.BATTERY_FORT, 20, 40, D, D, false);
+        List<DefenceStructureFact> fort = List.of(deep, near);
+        Candidate sapper = sapper(1, 10, 40);
+        assertTrue(FortTactics.choose(M, fort, List.of(sapper), SkyNeed.NONE).get(0).wreck(), "the control: magazine wrecked");
+        Pick pick = FortTactics.choose(M, fort, List.of(sapper), new SkyNeed(false, true)).get(0);
+        assertEquals(Kind.FIRE_CONTROL, pick.structure().kind(), "wrecking the magazine blinds nobody");
+        assertFalse(pick.wreck());
+    }
+
+    @Test
+    void aBunkerWeHoldIsNotSensorsWorkWhateverIsFlyingAtUs() {
+        List<DefenceStructureFact> fort = List.of(bunker(M, M, false), magazine(D, D), batteryPlant(D, D, false));
+        List<Pick> picks = FortTactics.choose(M, fort, List.of(squad(1, 10, 40)), new SkyNeed(false, true));
+        assertTrue(picks.stream().noneMatch(p -> p.structure().kind() == Kind.FIRE_CONTROL));
+    }
+
+    @Test
+    void aFortOffTheLineOfMarchIsStillACompanysFortWhenItsRadarOrItsYardIsWhatKeepsTheSkyClosed() {
+        List<DefenceStructureFact> fort = List.of(bunker(D, D, false), yard(D, D));
+        assertFalse(ConquestCommand.opensTheSky(M, fort, SkyNeed.NONE));
+        assertTrue(ConquestCommand.opensTheSky(M, fort, new SkyNeed(false, true)), "flown at: the bunker's radar");
+        assertTrue(ConquestCommand.opensTheSky(M, fort, SkyNeed.SHUT), "shut out: the yard");
+        assertFalse(ConquestCommand.opensTheSky(M, List.of(bunker(M, D, false), yard(M, D)), new SkyNeed(true, true)),
+                "a fort that is already ours opens nothing");
+    }
 }

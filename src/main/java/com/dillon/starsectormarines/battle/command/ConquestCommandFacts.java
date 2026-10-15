@@ -137,7 +137,8 @@ public final class ConquestCommandFacts {
      * nest is believed to cost. {@link AirSupportFacts#NONE} for a side with no pool, or a view that is not a live battle.
      */
     private static AirSupportFacts airOver(BattleView sim, Faction perspective, List<DefenceStructureFact> known) {
-        if (!(sim instanceof BattleSimulation live) || !live.airPool().hasPool(perspective)) return AirSupportFacts.NONE;
+        if (!(sim instanceof BattleSimulation live)) return AirSupportFacts.NONE;
+        if (!live.airPool().hasPool(perspective)) return AirSupportFacts.NONE.withFlownAt(AirSupportFacts.flownAt(live, perspective));
         List<int[]> cells = new ArrayList<>();
         for (DefenceStructureFact structure : known) {
             if (structure.works() != null && perspective.hostileTo(structure.holder())) {

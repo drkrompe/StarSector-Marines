@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.airsupport;
 
+import com.dillon.starsectormarines.battle.fort.Fort;
+import com.dillon.starsectormarines.battle.fort.FortSensors;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -24,8 +26,21 @@ public final class CommsOperators {
 
     private CommsOperators() {}
 
-    /** One operator and its radio. */
-    public record Operator(long unit, CommsKitSpec spec) {}
+    /**
+     * One operator and its radio: a marine carrying a comms kit, or a fort whose radar is watching for the side (then
+     * {@code unit} is the bunker's core, {@code spec} describes what the fort can see and say right now, and {@code fort}
+     * is the fort).
+     */
+    public record Operator(long unit, CommsKitSpec spec, Fort fort) {
+        public Operator(long unit, CommsKitSpec spec) {
+            this(unit, spec, null);
+        }
+
+        /** Whether this operator is a fort's radar rather than a marine with a radio. */
+        public boolean atFort() {
+            return fort != null;
+        }
+    }
 
     /** How a point is known to an operator. */
     public enum Knowledge {
@@ -53,7 +68,41 @@ public final class CommsOperators {
             if (suppressed(sim, u, spec)) continue;
             out.add(new Operator(u, spec));
         }
+        addForts(sim, side, out);
         return out;
+    }
+
+    /**
+     * The forts whose radar is watching for {@code side} and whose net is free: each is an operator at its bunker, able to
+     * direct a strike onto ground the fort has in sight and onto nothing else.
+     */
+    private static void addForts(BattleSimulation sim, Faction side, List<Operator> out) {
+        if (sim.forts().isEmpty() || !sim.forts().spotting()) return;
+        for (Fort fort : sim.forts().forts()) {
+            if (!FortSensors.observesFor(fort, side) || sim.getSimTickIndex() < fort.sensorReadyTick()) continue;
+            long core = FortSensors.bunker(fort).coreId();
+            if (!sim.world().isAlive(core)) continue;
+            out.add(new Operator(core, fortSpec(fort), fort));
+        }
+    }
+
+    /** What a fort's net can do now: it designates only what it sees, at the radar's present reach, and it is never suppressed. */
+    static CommsKitSpec fortSpec(Fort fort) {
+        return new CommsKitSpec(FortSensors.range(fort), FortSensors.RADIO_RANGE_CELLS, FortSensors.CALL_SECONDS,
+                FortSensors.COOLDOWN_SECONDS, Float.MAX_VALUE);
+    }
+
+    /**
+     * Whether the operator that placed a call can still see it through: a marine alive and not suppressed, or a fort whose
+     * radar is still watching for the side.
+     */
+    public static boolean stillAble(BattleSimulation sim, Faction side, long operator) {
+        World world = sim.world();
+        if (!world.isAlive(operator)) return false;
+        CommsKitSpec spec = CommsKit.specOf(world, operator);
+        if (spec != null) return !suppressed(sim, operator, spec);
+        Fort fort = sim.forts().sensorFort(operator);
+        return fort != null && FortSensors.observesFor(fort, side);
     }
 
     /** Whether the fire on {@code unit} is heavy enough that it cannot work the radio. */
@@ -64,6 +113,11 @@ public final class CommsOperators {
     /** What {@code operator} knows of {@code (targetX, targetY)} given whether the caller {@code believes} it. */
     public static Knowledge knowledge(BattleSimulation sim, Operator operator, float targetX, float targetY,
                                       boolean believes) {
+        if (operator.atFort()) {
+            // A fort designates what its radar has in sight; it vouches for nothing it cannot see.
+            return FortSensors.sees(sim, operator.fort(), (int) Math.floor(targetX), (int) Math.floor(targetY))
+                    ? Knowledge.SIGHT : Knowledge.NONE;
+        }
         World world = sim.world();
         float dx = targetX - world.x(operator.unit());
         float dy = targetY - world.y(operator.unit());

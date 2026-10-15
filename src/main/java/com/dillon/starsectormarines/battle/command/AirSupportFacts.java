@@ -19,11 +19,20 @@ import java.util.Map;
  * @param riskByCell   the believed airframe share a pass over a works cell would cost, keyed by {@link #key}; absent when
  *                     the cell was not assessed
  * @param riskCeiling  the share above which the director declines a strike
+ * @param flownAt      whether a unit of the side has lately had a hostile armed aircraft in view
  */
-public record AirSupportFacts(int calls, Map<Long, Float> riskByCell, float riskCeiling) {
+public record AirSupportFacts(int calls, Map<Long, Float> riskByCell, float riskCeiling, boolean flownAt) {
+
+    /** Ticks a sighting of hostile armed aircraft keeps the side wanting the sky. UNTUNED. */
+    public static final int FLOWN_AT_WINDOW_TICKS = 1800;
+
+    /** A picture with no one flying at the side. */
+    public AirSupportFacts(int calls, Map<Long, Float> riskByCell, float riskCeiling) {
+        this(calls, riskByCell, riskCeiling, false);
+    }
 
     /** No pool, no operators, nothing to count. */
-    public static final AirSupportFacts NONE = new AirSupportFacts(0, Map.of(), AirStrikeDirector.RISK_CEILING);
+    public static final AirSupportFacts NONE = new AirSupportFacts(0, Map.of(), AirStrikeDirector.RISK_CEILING, false);
 
     public AirSupportFacts {
         riskByCell = Map.copyOf(riskByCell);
@@ -50,6 +59,26 @@ public record AirSupportFacts(int calls, Map<Long, Float> riskByCell, float risk
         return true;
     }
 
+    /** Why this side wants the sky opened: shut out of it, flown at, or both. */
+    public SkyNeed skyNeed() {
+        return new SkyNeed(blocked(), flownAt);
+    }
+
+    /** The same picture, knowing the side is (or is not) being flown at. */
+    public AirSupportFacts withFlownAt(boolean flownAt) {
+        return new AirSupportFacts(calls, riskByCell, riskCeiling, flownAt);
+    }
+
+    /**
+     * Whether a unit of {@code side} has had a hostile armed aircraft in view within {@link #FLOWN_AT_WINDOW_TICKS}: the
+     * side's own eyes, read for any side whether or not it has a pool of its own.
+     */
+    public static boolean flownAt(BattleSimulation sim, Faction side) {
+        AirStrikeDirector director = sim.airPool().director(side);
+        director.noteHostileAir(sim);
+        return director.ticksSinceHostileAir(sim.getSimTickIndex()) <= FLOWN_AT_WINDOW_TICKS;
+    }
+
     /** Whether a strike is on offer at all. */
     public boolean any() {
         return calls > 0;
@@ -60,7 +89,8 @@ public record AirSupportFacts(int calls, Map<Long, Float> riskByCell, float risk
      * looks at the field, so the risk is built from what the side has sighted by now and not from the last time it was asked.
      */
     public static AirSupportFacts of(BattleSimulation sim, Faction side, List<int[]> cells) {
-        if (!sim.airPool().hasPool(side)) return NONE;
+        boolean flownAt = flownAt(sim, side);
+        if (!sim.airPool().hasPool(side)) return NONE.withFlownAt(flownAt);
         sim.airPool().director(side).look(sim);
         AirStrikeCapability capability = AirStrikeCapability.of(sim, side);
         Map<Long, Float> risk = new HashMap<>();
@@ -69,6 +99,6 @@ public record AirSupportFacts(int calls, Map<Long, Float> riskByCell, float risk
                 risk.put(key(cell[0], cell[1]), AirStrikeCapability.aaRisk(sim, side, cell[0] + 0.5f, cell[1] + 0.5f));
             }
         }
-        return new AirSupportFacts(capability.calls(), risk, AirStrikeDirector.RISK_CEILING);
+        return new AirSupportFacts(capability.calls(), risk, AirStrikeDirector.RISK_CEILING, flownAt);
     }
 }

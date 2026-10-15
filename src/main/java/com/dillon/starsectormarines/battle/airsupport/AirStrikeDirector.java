@@ -110,6 +110,7 @@ public final class AirStrikeDirector {
         int tick = sim.getSimTickIndex();
         if (tick % PERIOD_TICKS != side.ordinal() % PERIOD_TICKS) return;
         updateSightings(sim);
+        noteHostileAir(sim);
         coverIfThreatened(sim, service, tick);
         if (service.defaultKind(side) == null) return;
         if (CommsOperators.available(sim, side).isEmpty()) return;
@@ -178,19 +179,24 @@ public final class AirStrikeDirector {
         return service.requestCover(sim, side, x, y, operators);
     }
 
+    private int hostileAirSeenTick = Integer.MIN_VALUE / 2;
+
     /**
-     * The side's own reason to put up cover: a hostile armed aircraft that one of its units can see, over ground it is
-     * standing on. The patrol goes over the densest group of the side's combatants near that aircraft. A side with no
-     * hostile air in view asks for nothing here; a commander's cover over a muster point is {@link #cover}.
+     * Ticks since a unit of this side last had a hostile armed aircraft in view, or a very large number when none has. The
+     * side knows when it is being flown at; a plan that reads it is reading its own units' eyes, never the enemy's pool.
      */
-    private void coverIfThreatened(BattleSimulation sim, AirPoolService service, int tick) {
-        if (tick < nextCoverTick || service.available(side, AirPoolKind.FIGHTER) <= COVER_RESERVE) return;
+    public int ticksSinceHostileAir(int tick) {
+        return tick - hostileAirSeenTick;
+    }
+
+    /** The nearest hostile armed airborne craft within {@link #AIR_SIGHT_CELLS} of a sampled unit of the side, as {x, y}; null when none. */
+    private float[] hostileAirInSight(BattleSimulation sim) {
         World world = sim.world();
         AirTargetService air = sim.getRoster().airTargets();
         UnitRosterService roster = sim.getRoster();
         long[] ours = roster.factionDenseArray(side);
         int count = roster.factionLiveCount(side);
-        if (count <= 0) return;
+        if (count <= 0) return null;
         int stride = Math.max(1, count / SIGHT_SAMPLE);
         float bestGap = Float.MAX_VALUE;
         float threatX = 0f;
@@ -211,7 +217,26 @@ public final class AirStrikeDirector {
                 }
             }
         }
-        if (bestGap == Float.MAX_VALUE) return;
+        return bestGap == Float.MAX_VALUE ? null : new float[]{threatX, threatY};
+    }
+
+    /**
+     * The side's own reason to put up cover: a hostile armed aircraft that one of its units can see, over ground it is
+     * standing on. The patrol goes over the densest group of the side's combatants near that aircraft. A side with no
+     * hostile air in view asks for nothing here; a commander's cover over a muster point is {@link #cover}.
+     */
+    private void coverIfThreatened(BattleSimulation sim, AirPoolService service, int tick) {
+        if (tick < nextCoverTick || service.available(side, AirPoolKind.FIGHTER) <= COVER_RESERVE) return;
+        World world = sim.world();
+        UnitRosterService roster = sim.getRoster();
+        long[] ours = roster.factionDenseArray(side);
+        int count = roster.factionLiveCount(side);
+        if (count <= 0) return;
+        int stride = Math.max(1, count / SIGHT_SAMPLE);
+        float[] threat = hostileAirInSight(sim);
+        if (threat == null) return;
+        float threatX = threat[0];
+        float threatY = threat[1];
         long densest = 0L;
         int bestFriends = COVER_MIN_FRIENDS - 1;
         for (int j = 0; j < count; j += stride) {
@@ -237,6 +262,12 @@ public final class AirStrikeDirector {
     /** One look at the field without placing a strike: brings the side's sightings, and so its anti-air estimate, up to date. */
     public void look(BattleSimulation sim) {
         updateSightings(sim);
+        noteHostileAir(sim);
+    }
+
+    /** Notes that a hostile armed aircraft is in view of the side this tick, if one is. */
+    public void noteHostileAir(BattleSimulation sim) {
+        if (hostileAirInSight(sim) != null) hostileAirSeenTick = sim.getSimTickIndex();
     }
 
     /** The share of an airframe a pass over the point is believed to cost, from the guns this side has sighted. */
@@ -270,7 +301,11 @@ public final class AirStrikeDirector {
             int near = sim.getUnitIndex().countHostileCombatants(x, y, 5f, side, 0L);
             out.add(new Candidate(x, y, true, 3f + 0.5f * near - 2f * risk, gunKind, gun));
         }
-        long densest = EnemyConcentration.densest(sim, side);
+        // Only a concentration some operator has in sight is a candidate: the densest group anywhere on the map is a
+        // thing no radio and no fort has seen.
+        List<Operator> eyes = CommsOperators.available(sim, side);
+        long densest = EnemyConcentration.densest(sim, side,
+                unit -> sighted(sim, eyes, world.x(unit), world.y(unit)));
         if (densest != 0L) {
             float x = world.x(densest);
             float y = world.y(densest);
@@ -289,6 +324,14 @@ public final class AirStrikeDirector {
             }
         }
         return out;
+    }
+
+    /** Whether any of the operators has an unobstructed line to the point, inside its own sight. */
+    private static boolean sighted(BattleSimulation sim, List<Operator> eyes, float x, float y) {
+        for (Operator eye : eyes) {
+            if (CommsOperators.knowledge(sim, eye, x, y, false) == CommsOperators.Knowledge.SIGHT) return true;
+        }
+        return false;
     }
 
     /** Whether a live combatant of this side stands within {@link #DANGER_CLOSE_CELLS} of the point. */
