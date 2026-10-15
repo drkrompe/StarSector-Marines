@@ -4,7 +4,7 @@ Status: ACTIVE — modeled ground direct fire is shipped; one manual feel pass r
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — trenches cover their occupant from every bearing, scaled by shooter distance.
+Updated: 2026-10-15 — cover hides body parts; a hit that lands on an exposed part takes no cover cut.
 
 Ballistics makes a direct shot a committed physical event instead of an
 accuracy result applied at the muzzle. It owns contact along the predicted
@@ -26,6 +26,12 @@ projectile.
 - **Body penetration** is an authored count of accepted body contacts a direct
   resolved round may pass through. It never permits a round through structural
   walls, doodad blocks, or caught cover.
+- A **body part** is where on a person a round lands: legs, torso, arms or
+  head, stacked up the body in bands as tall as each part's share of the
+  silhouette. Machines, structures and creatures have none; they are one
+  whole-body contact.
+- A **cover profile** is what a cover feature hides of a person, per body
+  part, from a shooter at full distance.
 - **Obscuration** is matter on the path that degrades the sight picture
   without being a contact. Smoke is the only obscurant today. It is measured
   as a depth in cells and never appears among contacts.
@@ -172,21 +178,36 @@ feature and round. Both probabilistic cover forms respect their authored
 catch-height; structural walls remain full-height regardless of a round's
 visible elevation.
 
-Probabilistic cover catches and friendly incidental contacts are zero within
-two cells of the muzzle, then use a smoothstep ramp to full strength at eight
-cells. Authored cover levels catch at 15%, 30%, or 45% once fully downrange.
-This does not weaken walls, hostile incidental contacts, or the intended
-target.
+**Cover hides parts of a person.** A round that reaches a person lands on the
+body part at the height it meets him: for the intended target, where the
+committed aim fell on his silhouette, which lands on each part in proportion
+to its share; for anyone else, wherever the round is crossing. Cover at that
+body then has one chance to stop it, equal to the profile's coverage of that
+part. A man in a trench at range is therefore hard to kill because only his
+head and shoulders show, and a low wall stops leg shots while leaving the head
+as exposed as it was. A round that reaches an exposed part has beaten the
+cover and lands with no further damage cut for it: cover is counted once.
+Profiles are set so each level stops about what the older flat model's block
+chance and damage cut took off together; the difference is which parts are
+left to hit. Bodies without parts keep that flat model — a 15%, 30% or 45%
+catch by level, then the same cut on what lands — and a payload with no part,
+such as an area burst, a strafe or unattributed damage, still has its damage
+cut by the cover where it lands.
 
-A trench is the exception to both shapes: it is a hole, not an obstacle. It
-never catches a round crossing it and lends nothing to the cells beside it;
-it covers only the man standing in it, and from every bearing alike, since a
-dug channel has no front. Its protection is the shooter's distance from him:
-none at three cells or closer, where a shooter fires down into it, rising by
-smoothstep to its full authored level at fifteen. That one figure serves both
-the interception roll at the occupant and the damage cut on a hit that lands,
-taking the better of it and any edge cover there. A hit with no attacker,
-such as a detonation, meets the full cut.
+Edge cover catches and friendly incidental contacts are zero within two cells
+of the muzzle, then use a smoothstep ramp to full strength at eight cells.
+Walkable features crossed in the lane catch at 15%, 30% or 45% by level once
+fully downrange, whatever part the round was flying toward. This does not
+weaken walls, hostile incidental contacts, or the intended target.
+
+A trench is a hole, not an obstacle. It never catches a round crossing it and
+lends nothing to the cells beside it; it covers only the man standing in it,
+and from every bearing alike, since a dug channel has no front. Its profile
+hides the legs and torso and little of the head, scaled by the shooter's
+distance from him: none at three cells or closer, where a shooter fires down
+into it, rising by smoothstep to the full profile at fifteen. Where a trench
+and edge cover both reach a part, the better of the two applies. A partless
+payload with no attacker, such as a detonation, meets the trench's full cut.
 
 A physically crossed hostile can receive a missed round. Friendly incidental
 contacts use a 35% full-distance catch chance and apply half direct damage.
@@ -240,7 +261,7 @@ owns frame collection and paint order; it presents committed shots without
 becoming their simulation authority. `air-nouns.md` owns airborne behavior and
 the decision to extend this ground model into the air domain.
 
-Body-part cover (`body-part-cover.md`) is the agreed direction for replacing
-the flat cover chance. Cover erosion, lead error, point-defense generalization, and modeled aerial
+Part consequences, area exposure and per-part armour are the open half of
+`body-part-cover.md`. Cover erosion, lead error, point-defense generalization, and modeled aerial
 fire are extension paths, not contracted Ballistics work. Current acceptance
 is indexed in `stories.md`; completed historical slices are in `shipped.md`.
