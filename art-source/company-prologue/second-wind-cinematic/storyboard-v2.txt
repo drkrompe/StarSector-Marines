@@ -1,75 +1,222 @@
-SECOND WIND ARRIVAL - STORYBOARD V2
-Status: DRAFT for discussion; surface-yard setting selected by the user.
+SECOND WIND - JANGALA SURFACE ARRIVAL STORYBOARD
+Status: DRAFT for discussion. Surface yard and crew-window approach requested by
+the user. Expanded from the short landing study; no new scenes or audio produced.
+Updated: 2026-10-15
 
-Story
-After nearly a decade of asteroid impacts and a desperate recovery, Second Wind
-reaches Jangala. The yard can take her weight; the damage is still far beyond the
-crew's means. The arrival ends before the berthing conversion begins.
+Purpose
+Bring the people from Harker's Claim back to a populated world. Begin with the
+experience of a tired civilian aboard the ship, let Jangala become a place beyond
+the campaign's planet portrait, then step outside to show what carried them here.
+Relief comes from reaching people who can help. The ship is still badly damaged.
+The arrival ends before Nessa's inspection and the paid berthing conversion.
 
-Setting
-A surface industrial spaceport: open landing apron, fitted support cradle,
-perimeter service gantries and a sheltered operations booth. The sky, distant
-port activity and ground contact establish the location. Leave the approach and
-descent volume clear. No enclosing hangar doorway is required for this beat.
-The ship retains accepted V3 component placement and the heavy-arrival skin.
+Campaign continuity
+Read against opening-dialogue.md in the Wayline opening design folder,
+wayline-opening-arc.md, cerberus-company-start.md and first-mission-preparation.md.
+The production CompanyPrologueScreen and active strings resolve exact sequence
+and current text. The eight-page intro begins on the bridge, recalls the Claim's
+decline, abandonment and salvage, then returns to the crew, Nessa and a yard plan.
+This cinematic continues that journey; it does not retell all eight pages.
 
-Twelve-second edit: three selected moments of a longer landing procedure
+The crew includes miners, cargo hands and families. Sabine and her twelve are
+already aboard but are a distinct escort section. Do not turn every passenger
+into a uniformed marine, give the camera a new named protagonist, or identify the
+viewpoint with the Commander. Castle speaks to the Commander elsewhere aboard;
+an overheard conversation need not address the person beside the window.
 
-0-4 seconds - REACHING THE YARD
-Wide view from the ship's port quarter, low enough for the yard structures to
-give scale. The vessel is already lined up with the cradle's long axis and
-moves slowly along a straight approach. Show the destination in the same frame.
-Keep the ship level; no bank, yaw or lateral slide into a narrow doorway.
+Nessa must be selected as the destination and her estimate received before entry.
+Her relationship with Castle is established; Mara, Wayline's later briefing,
+company formation and usable shuttles are not outcomes of landing.
+Arrival buys a chance at repairs, not a restored ship or a ready mercenary company.
 
-4-8 seconds - WHAT IT TOOK TO GET HERE
-Closer port-side view at hull height. Track the same direction of travel across
-the cratered forward shoulder, welded backing plates and makeshift repairs.
-Yard structures passing behind the hull demonstrate slow relative motion.
-The ship decelerates. Keep the ship's guns, side pod and thrusters consistent.
-This view should make the patches look load-bearing and desperate, without fire
-or an open pressure breach. No need for a new mechanical failure or sparks.
+Lore grounding
+Jangala is a Hegemony world in Corvus with a dense native biosphere, seas and
+severe weather. Large agricultural clearings and organized industry sit beside
+dangerous native growth. Surface exposure calls for biofilters and decontamination.
+These facts support a beautiful exterior seen from a closed, worn cabin, followed
+by managed port infrastructure and controlled disembarkation.
+The named Jangala Station is orbital. Our destination is an authored surface yard
+on the same world, not a relocation of that station or a newly named canonical city.
 
-8-12 seconds - THE YARD TAKES THE WEIGHT
-Cut to a steady side-wide view on the same side of the approach axis. Fore-aft
-motion has stopped. The final short vertical descent brings the hull onto a
-fitted cradle. Supports meet established structural hardpoints under the hull,
-clear of damaged plating, the side pod, shuttle opening and engine bells.
-Only once supported do retaining arms secure it. End on a quiet, stable berth
-with the old damage plainly visible. Arrival is not a repair/restoration receipt.
+Sources:
+- https://starsector.wiki.gg/wiki/Jangala
+- https://starsector.wiki.gg/wiki/Corvus_Star_System
+- Installed vanilla starsector-core/data/strings/descriptions.csv:
+  planet_jangala; station_jangala; shrine_jangala.
+- Installed vanilla starsector-core/data/campaign/econ/corvus.json:
+  Jangala's Hegemony market, spaceport and environmental conditions.
+Online indexed descriptions were cross-checked against the installed game.
+The particular coastline, river, port, approach route and weather break are visual
+authorship. Do not present a chosen city plan as recovered canon.
 
-Continuity rules
-- The edit contains time ellipses: the whole approach and landing is not forced
-  to occur in twelve seconds of physical time.
-- Choose one screen direction in blockout and preserve it through the cuts.
-- Keep all cameras on the port side of the approach axis; no unexplained reversal.
-- Derive berth dimensions from the accepted ship model and Hermes scale. Do not
-  invent an absolute ship length from this concept sheet.
-- The cradle stays level and the hull's longitudinal axis matches it.
-- Show a credible load path and actual clearance around every support/gantry.
-- Occupied walkways remain outside the landing/exhaust safety volume. People
-  loading aboard belong in the later sheltered dock sequence.
+Viewpoint and geography
+A sealed, pressure-safe crew passage or improvised passenger space has one modest
+reinforced side viewport. Its actual location must be reconciled with the accepted
+V3 hull and damaged compartment plan in blockout. No panoramic glass bridge.
+Start close to a seated or braced passenger: a work sleeve, harness or hand and
+a worn window seal are enough. Keep the person off-screen or partly framed.
+The viewport opens a wide field as the camera settles near the glass. A separate
+wide landscape cut may follow, but do not float the camera through a solid hull.
 
-Unresolved before scene animation
-Ground touchdown is now the selected staging, but the accepted hull reference
-does not establish a landing-lift system. Blockout must resolve whether the
-final descent uses established ventral lift/control hardware or explicit yard
-assistance. Rear-facing engine bells alone cannot explain a controlled vertical
-lowering. Do not quietly add a new thruster layout or hide this with dust.
-If a credible descent cannot preserve the ship design, revise the board to a
-ground transport cradle carrying the already-landed hull into its service berth.
+Use one shared terrain plan: cloud break -> broad forest/river catchment ->
+managed land and freight routes -> industrial port -> Nessa's yard apron.
+Choose a single approach heading, port-side window and consistent sun/storm
+orientation. Later exterior cameras remain on that side of the flight path.
+The world moves aft outside the window; do not reverse that flow between interior
+cuts. The exterior view looks back toward the hull from outside: track the same
+world heading, rather than blindly matching the ship's motion to scenery motion.
+Altitude changes take time. Cloud transitions and editorial ellipses bridge the
+long descent; the whole voyage is not performed physically inside one minute.
 
-Production sequence after storyboard agreement
-1. Reuse the accepted V3 hull and create one shared Blender scene for the apron,
-   cradle, gantries and cameras. Grey geometry, no detailed texture generation.
-2. Animate the complete maneuver and cut a greybox animatic. Review support,
-   clearance, scale, screen direction, pace and touchdown before surface work.
-3. Keep real scene geometry for perspective, parallax, occlusion and shadows.
-   Apply generated material/texture work to the actual meshes or controlled
-   camera projections. Independently painted cutouts are limited to distant
-   backdrop elements, not the ship/cradle interaction.
-4. Render beauty, shadow, depth and object masks from the same cameras. Composite
-   restrained lighting/atmosphere effects and later sound on those stable passes.
+Proposed cut: about 65 seconds, flexible until voice takes are measured
 
-The existing orbital movie is retained only as a compositing technique study;
-its hangar and approach were rejected. No V2 Blender scene or new painted scene
-has been produced yet.
+01 / 0-6 seconds / ENTRY GLOW
+Inside the worn cabin at the end of atmospheric deceleration. Orange light beyond
+the glass dims, vibration eases, and the dark window begins to show cloud.
+Keep the cabin contained and functional; patches and rattles suggest strain
+without inventing a fresh failure. Do not begin with a triumphant exterior flyby.
+Sound: low structural rumble and cabin ventilation, with a possible tail of the
+preceding Castle line only when the edit is continuous. No loud new exposition.
+
+02 / 6-18 seconds / FIRST OPEN SKY
+Remain beside the window as cloud thins. Give the landscape a broad, held reveal:
+canopy extending to distant water and a storm bank far off the approach corridor.
+The warm entry glow gives way to green-blue daylight on the cabin and sleeve.
+Hold several seconds without speech. Let the passenger and audience simply look.
+The framing should reveal distance and weather, not resemble a low forest tunnel.
+
+03 / 18-30 seconds / A WORLD PEOPLE LIVE ON
+An explicit time cut from shot 02 keeps the window as a familiar frame but lowers
+the viewpoint into the approach. Continue looking sideways. Foreground cloud wisps and nearer terrain pass faster
+than distant hills. Managed clearings, field divisions and freight corridors
+gradually establish human scale. The same river or ridge carries through the cut.
+Allow a restrained passenger reaction: a hand loosens on the frame, or a quiet
+shift toward the glass. No assigned player face or compulsory spoken reaction.
+Optional voice: begin Castle's existing Nessa memory, if moved here from the
+voiced prologue rather than played twice.
+
+04 / 30-42 seconds / THE PORT COMES INTO VIEW
+Stay inside. Roads lead into cargo districts, processing sheds and a working
+spaceport. Yard cranes, queues and controlled approaches make civilization
+visible. Retain vegetation and weather at the city's edges.
+The port district passes abeam while the landing berth remains farther ahead.
+Do not put a forward destination into a purely lateral window. This view can
+show perimeter booths and sheltered transfer routes; the exterior shot establishes
+the actual apron, approach centerline and cradle together.
+Optional voice: finish the Nessa memory. Her remark about opinions on this ship
+sets up the exterior cut. Keep the first surface reveal free of this dialogue.
+
+05 / 42-52 seconds / WHAT BROUGHT THEM HERE
+Use a second explicit time cut to the final aligned approach. First clear exterior
+view, on the same side of the approach axis, showing the ship and its destination.
+Second Wind's
+cratered bow, emergency backing, welded seams and heavy industrial volumes now
+read against the scale of the yard. Show it level and aligned with the cradle,
+slowing along an unobstructed approach. The passenger's window location must
+agree with the prior interior view.
+Use the accepted V3 component placement and heavy-arrival skin. Do not relocate
+the pod, turrets or engines between cameras. No new damage blooms during flight.
+Sound: perspective changes from cabin vibration to exterior machinery and air.
+This cut is the reveal of the ship's condition, not another entry burn.
+
+06 / 52-65 seconds / SOMETHING ELSE TAKES THE WEIGHT
+A steady side-wide view first establishes a hold above the cradle with fore-aft
+drift arrested, then the final short descent and load transfer.
+Supports meet suitable frame points, leaving the side pod, boat opening and
+engine bells clear. Retaining arms secure the hull only after support.
+Let the flight noise subside. A brief return to the window may show the passenger's
+hand relax; the ship has stopped shaking, and ordinary yard activity continues.
+The same viewport still faces the apron: check its real seated view after landing,
+including any cradle/building occlusion, instead of reusing the airborne vista.
+End with the ship still visibly scarred. Keep its hatch sealed until the yard's
+environmental and arrival clearance. Cut into Nessa's inspection/yard review.
+
+Audio edit: two compatible treatments
+A. Intro voiced before arrival:
+   Keep the page order and narrator/Castle separation. The landing sequence has
+   room for environment and silence. A continuous presentation may carry the
+   tail of the final Castle line across the cabin cut; a separate arrival trigger
+   should use a clean audio opening, not replay a line already heard.
+B. Intro partly intercut with arrival:
+   Reserve Castle's Nessa memory for shots 03-04. Destination selection and the
+   estimate are already established before entry; this memory does not choose
+   the port in mid-descent. Move this performance instead of duplicating it.
+   The final delivery can cross into shot 05 if its measured length needs room.
+   The cargo-hand/bunks paragraph can accompany an earlier cabin insert in the
+   larger intro edit; it is not a new speech by Castle or the window passenger.
+
+Exact source cues (candidates for editorial placement, not synthesis inputs)
+- Destination is chosen:
+  openingCompanyPrologueCorvusHasWorkingYardsAndRegularTraffic
+  Narrator; play before entry. It establishes Castle selecting and contacting Nessa.
+- Existing Nessa memory:
+  openingCompanyPrologueNessaVennWeRanOreTogetherBefore
+  Castle; about 50 words. Candidate over shots 03-04, with an exterior-cut setup.
+- Crowded, pressure-safe accommodation:
+  openingCompanyPrologueACargoHandSleepsBesideTheBridge
+  Narrator; informs the cabin and passenger casting even when left unvoiced here.
+- Final plan:
+  openingCompanyPrologueCastlePutsTheYardEstimateBesideThe
+  Narrator, then openingCompanyPrologueThenWeGetABoatFlyingAnd (Castle), composed
+  with openingCompanyPrologueNessaSentAnEstimateCalledTheJob and the current
+  payment fragment. Preserve the resolved string and actual payment branch.
+- After arrival:
+  openingCompanyYardCMDNessaVennMetUsAtTheBerth
+  Castle's report of a meeting that has already happened. Use after the landing
+  and inspection transition; do not make Nessa speak Castle's report over radio.
+  Prefer the active retained yard review text if that is the actual UI handoff.
+
+Voice planning boundaries
+There are no approved prologue takes or measured intro durations in the current
+narration manifest. Castle has an established company-officer voice; preserve it.
+A narrator voice remains a separate casting choice. The unnamed passenger needs
+no voice. No new line or paid generation is required to review this storyboard.
+The eight-page script cannot be squeezed into this 65-second arrival segment.
+Final timings follow selected performances, pauses and intelligible environmental
+mixing. Keep subtitle/readable-text coverage in any eventual integration.
+
+Use current strings for wording. The older opening-dialogue register and new-game
+selection copy still contain eleven-year wording; the accepted damage history and
+current prologue/survey strings say nearly a decade (the user's eight-to-ten-year
+direction). Resolve that remaining copy drift before recording the whole opening.
+The unrelated eleven-day evacuation deadline stays eleven days.
+
+Physical decisions to resolve in the next blockout
+- The user has selected atmospheric entry and a surface landing for this story.
+  Vanilla Cerberus text does not establish its entry protection, window layout
+  or landing system. Design these explicitly as mod visuals; do not claim them
+  as documented factory fittings.
+- Entry protection and pressure integrity must plausibly support the already
+  patched ship. An orange window glow cannot hide an unsealed cabin or explain
+  an exposed pressure hole surviving entry.
+- Establish the actual mechanism for low-altitude flight and final vertical
+  descent, including support/exhaust clearances. Rear-facing bells alone do not
+  explain a vertical lowering. Preserve the accepted main thruster arrangement.
+- Keep landing approach, ship attitude, centerline and cradle in one coordinate
+  system. Scale the environment from the hull and Hermes references, then verify
+  against occupied walkways and cargo vehicles. No guessed miniature ship.
+- Interior/window framing and exterior damage use the same hull. Do not put the
+  camera inside a sealed wrecked room or show a window through a structural beam.
+- Outside personnel use appropriate environmental protection. Loading/disembarkation
+  follows a sheltered, filtered/decontamination route rather than an open gangway
+  full of unprotected people.
+
+Presentation placement (future integration, not implemented)
+The current prologue completion plots a course and returns to the campaign; it
+does not perform arrival. The least disruptive trigger is the first actual
+Jangala yard arrival before its inspection. A seamless combined intro film would
+need an explicit travel/time transition and agreed campaign handoff.
+Keep Jangala-specific surface footage out of fallback-port introductions. Respect
+once-only progress, skip and save/load when playback is eventually implemented.
+This storyboard changes no travel, dialogue playback, yard payment or repair state.
+
+Production sequence
+First agree on the shot order, viewpoint, geography and cue placement. Then reuse
+the accepted ship in a shared Blender greybox: cabin/window, terrain landmarks,
+approach corridor, port, cradle and cameras. Review a simple animatic for scale,
+motion, clearance and timing before producing detailed scene art.
+Retain mesh geometry for the ship, window, terrain and all near port structures.
+Apply generated materials or controlled projected textures to it; distant scenery
+may use layered plates. Render depth, masks and shadows from those same cameras.
+Compose entry glow, clouds, lighting and sound onto the stable shot passes.
+The existing orbital movie remains a rejected physical-staging prototype.
