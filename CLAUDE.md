@@ -684,8 +684,12 @@ Do not run builds or leave generated task files there.
   Twelve regular marines a side, kit exactly as the cards issue it (`LoadoutCardIssue.seats`:
   the weapon card's billet plus the sheet's pattern for that billet), in three starter
   scenarios on one skeleton (attackers attack-move in from the west, defenders hold the east):
-  `open-field`, `trench` (twelve-cell fighting-position trench) and `building` (walled, one
-  doorway, attackers ordered to clear it). The default ladder fights every weapon card (on
+  `open-field`, `trench` (a twelve-cell trench square across the approach, manned with the
+  commander's `defendRun` order so claims stay on the run), `trench-vulcans` (the same line with a
+  Vulcan emplacement past each end; the defenders' side is not beaten until its turrets are
+  destroyed too, and `runs.csv` reports turrets left and turret rounds) and `building` (the production
+  `MARKET_HALL` stamp with its windows, internal walls and furniture, held by a garrison set up as a
+  generated one is, attackers given `secureCompound`). The default ladder fights every weapon card (on
   starter armor) and every sheet (with starter weapons) against the starter issue, once
   attacking and once defending, at `-Pseeds=3` seeds; starter-vs-starter is the control row
   every other row is read against, because the ground favours one side. `-Pattacker=` /
