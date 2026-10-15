@@ -332,16 +332,11 @@ class LoadoutCardSheetEvidence {
     }
 
     private static List<SquadWeaponIssue> issues(LoadoutCard card) {
-        SquadWeaponDoctrine builtIn = SquadEquipmentDoctrines.weaponById(card.definitionId());
-        if (builtIn != null) return builtIn.issues();
-        for (FirstRefit.Path path : FirstRefit.Path.values()) {
-            if (path.weapons.equals(card.definitionId())) return FirstRefit.weapons(path);
-        }
-        throw new IllegalStateException("No weapon definition for " + card.id());
+        return LoadoutCardIssue.weapons(card.definitionId());
     }
 
     private static SquadArmorPlan plan(LoadoutCard card) {
-        return SquadEquipmentDoctrines.armorPlanById(card.definitionId());
+        return LoadoutCardIssue.plan(card.definitionId());
     }
 
     private static String pct(float a, float b) {
