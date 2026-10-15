@@ -97,6 +97,8 @@ public final class FortAirDefenceScene implements BehaviorScene {
     /** The tick the aspect is wrecked or unpowered, and the tick a strike is forced after it. */
     private static final int EVENT_TICK = 150;
     private static final int FORCE_TICK = 900;
+    /** The window of the forced strike that the yard's loop records densely, and the cadence it records at. */
+    static final int SALVO_FROM = 1120, SALVO_TO = 1220, SALVO_EVERY = 4;
     private static final int SPOTTER_X = 74;
     /** The radio squad stands well back, out of the fort's reach, so it is never suppressed; the scouts ahead sight the works. */
     private static final int OBSERVER_X = 24;
@@ -230,9 +232,18 @@ public final class FortAirDefenceScene implements BehaviorScene {
             if (loop.equals("wrecked")) s.applyDamage(fort.place(FortAspect.AIR_DEFENCE).coreId(), 1_000_000f, 3.5f, 0f);
             if (loop.equals("unpowered")) s.applyDamage(fort.place(FortAspect.POWER).coreId(), 1_000_000f, 3.5f, 0f);
         };
-        SceneRun.of(world).observe(script, trace)
-                .frames(frames, loop, 110, tick -> trace.caption(loop, tick))
-                .run(TICKS);
+        SceneRun run = SceneRun.of(world).observe(script, trace)
+                .frames(frames, loop, 110, tick -> trace.caption(loop, tick));
+        if (loop.equals("aa-forced")) {
+            // The salvo is the evidence of a missile site, and it is over in a few seconds: sample it densely.
+            run.run(SALVO_FROM);
+            run.frames(frames, loop, SALVO_EVERY, tick -> trace.caption(loop, tick));
+            run.run(SALVO_TO - SALVO_FROM);
+            run.frames(frames, loop, 110, tick -> trace.caption(loop, tick));
+            run.run(TICKS - SALVO_TO);
+        } else {
+            run.run(TICKS);
+        }
         return new Run(trace, sim, fort);
     }
 
