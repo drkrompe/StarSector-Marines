@@ -77,14 +77,19 @@ isolated standable floor. The kit itself creates no crew duties.
 image turns are converted to normalized placement turns, including mirrored
 rooms. The ship CIC uses two L banks and two U banks around the square tactical
 plot, with a reserved two-cell inner aisle. It keeps all nine existing watch
-positions and its hatch sentry. Ground command
-rooms use short wall-backed runs with two clear operator rows and real gaps at
-openings. Large command chambers use the shared tactical plot. Small civilian
-stamps and generic narrow bridges keep their existing fittings.
+positions and its hatch sentry. Ground command, industrial control, clinic
+monitoring and civic server rooms use short wall-backed runs with two walkable
+operator rows and real gaps at openings. Mess-galley stools sit at spaced
+stations without blocking movement or adding cover. Large command chambers use
+the shared tactical plot. T workshops and L/T freight templates carry seated
+L banks; compact rooms that cannot fit a bank keep their single station.
+Residential and retail stamps retain their own furniture.
 
 The `console-rooms` suite checks and renders a generated ship and four command
 building footprints/frontages. Its `ship-cic.png` pairs a detailed ship-room
 render with the real editor's work-position and circulation overlay.
+`building-readouts.png` and `building-console-templates.png` show the seated
+ground-building consumers; the suite checks all four shell frontages.
 `console-editor` drives the actual fixture
 controls and grid events. Retained review images are under
 `../console-bank/review/`. These are production Java2D renderer and Swing
