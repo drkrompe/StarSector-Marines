@@ -1124,10 +1124,17 @@ and the latest twenty commendations. VIEW FORMATIONS returns to that command's
 filtered squad list. One permanent training choice is available on appointment
 and one per promotion, including cadre-earned promotions. Existing officers
 receive their current rank's equivalent budget without invented service history.
-Specialty cards pair an SVG emblem and two explicit earned/unearned rank markers
-with a compact Train action and adjacent point cost. Castle's officer-only induction shows five SVG milestones; full preparation
+Specialties are **one vertical tree**. Its root is the officer's training budget;
+a trunk drops to a single crossbar, and each specialty is a branch hanging from
+that bar, so a new specialty is a new neighbouring branch rather than a longer
+page or a separate tree. A branch is its SVG emblem and title over its ranks,
+stacked top to bottom; every rank is an SVG node that reads locked, ready to
+train or trained.
+The page carries no effect copy: hovering a rank opens its sheet with what it
+does, whether it can be trained and what it costs, and clicking a rank that is
+ready trains it. Only the next rank of a path, with a point to spend, is ready. Castle's officer-only induction shows five SVG milestones; full preparation
 shows its four company milestones; neither progression display uses a stretched add button.
-Each of three specialties has two ranks:
+Each of four specialties has two ranks:
 
 - Tactical Cover: incoming accuracy multiplied by 0.95/0.90 for marines in this
   officer's actual deployed command. This composes with issued armor; it does
@@ -1137,6 +1144,9 @@ Each of three specialties has two ranks:
 - Salvage Stewardship: +10/+20 recovery percentage points on victory. Salvage
   is one company pool, so only the strongest participating specialist applies;
   it adds to existing salvage-expert/fleet-hardware modifiers.
+- Field Medicine: one designated medic in each of this officer's squads, who
+  treats squadmates in battle from a few slowly recovering supplies
+  (`progression-nouns.md` owns the treatment).
 
 Unavailable officers and independent NCO groups provide no new field specialty
 effects. Moral outlook and recruitment traits remain separate. The dossier

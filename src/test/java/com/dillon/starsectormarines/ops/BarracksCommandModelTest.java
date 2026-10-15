@@ -208,13 +208,13 @@ class BarracksCommandModelTest {
                 assertTrue(instance.requireElement("officer-traits").box().borderBox().y()
                         >= instance.requireElement("officer-specialty-SALVAGE_STEWARDSHIP").box().borderBox().bottom(),
                         "Service record must follow all specialty cards without overlapping");
-                var trainingBox = instance.requireElement("officer-specialty-TACTICAL_COVER-train").box().borderBox();
-                assertEquals("officer-specialty-TACTICAL_COVER-train", document.elementAt(trainingBox.x() + trainingBox.width() / 2f,
+                var trainingBox = instance.requireElement("officer-specialty-TACTICAL_COVER-rank-1").box().borderBox();
+                assertEquals("officer-specialty-TACTICAL_COVER-rank-1", document.elementAt(trainingBox.x() + trainingBox.width() / 2f,
                         trainingBox.y() + trainingBox.height() / 2f).id());
-                click(document, instance, "officer-specialty-TACTICAL_COVER-train");
+                click(document, instance, "officer-specialty-TACTICAL_COVER-rank-1");
                 assertEquals(1, officer.career().level(OfficerSpecialty.TACTICAL_COVER));
                 assertEquals(0, officer.career().availablePoints(officer.rank()));
-                click(document, instance, "officer-specialty-TACTICAL_COVER-train");
+                click(document, instance, "officer-specialty-TACTICAL_COVER-rank-1");
                 assertEquals(1, officer.career().level(OfficerSpecialty.TACTICAL_COVER), "Disabled training cannot spend twice");
                 click(document, instance, "officer-formations");
                 assertEquals("hidden", value(model, "dossierClasses"));

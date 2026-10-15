@@ -294,7 +294,6 @@ public class BattleRenderer {
                         highlightRenderer.collect(ctx.highlights, ctx.camera, out, ctx.alphaMult)),
                 new SelectionRingRenderSystem(),
                 new OrderLineRenderSystem(),
-                new DugInMarkerRenderSystem(),
                 RenderSystem.of(RenderLayer.FOG, (ctx, out) -> collectFogOverlay(ctx, out)),
                 RenderSystem.of(RenderLayer.FOG, doodads::collectVisibleSurfaces),
                 // The unit atlas is built inside the layer it serves, the way

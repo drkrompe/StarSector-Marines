@@ -20,8 +20,9 @@ import java.util.function.Supplier;
  * <p>Only infantry of non-mech squads qualify: a marine needs a squad and fire team, a combat
  * body and a mover. Mechs, vehicles, drones, aircraft and non-soldiers are never dug in.
  *
- * <p>The benefit is morale only (see {@link #DUG_IN_MORALE_DRAIN_MULT}); damage, cover, accuracy
- * and {@code FireStance} are untouched. Runs once per sim tick, ahead of {@link SquadMoraleSystem}
+ * <p>The benefits are composure ({@link #DUG_IN_MORALE_DRAIN_MULT}) and reach
+ * ({@link #DUG_IN_RANGE_BONUS}), applied by {@link DugInModifier}; damage, cover and
+ * {@code FireStance} are untouched. Runs once per sim tick, ahead of {@link SquadMoraleSystem}
  * whose drains read the result.
  *
  * <p>See the fighting-positions section of {@code ai-nouns.md}.
@@ -44,6 +45,15 @@ public final class DigInSystem {
      * not scaled.
      */
     public static final float DUG_IN_MORALE_DRAIN_MULT = 0.5f;
+
+    /**
+     * Cells added to a dug-in marine's weapon reach: a braced position. Without it an attacker
+     * with the same rifle can step in to fire and back out of reach between the defender's shots,
+     * and the defender, who will not leave his position to follow, never answers. Applied by
+     * {@link DugInModifier} wherever range is read, so targeting, the firing gate and accuracy
+     * falloff agree.
+     */
+    public static final float DUG_IN_RANGE_BONUS = 0.5f;
 
     /**
      * Read once at class load and settable for evidence. Volatile because a scene's control loop
@@ -87,11 +97,6 @@ public final class DigInSystem {
     public static float advance(float seconds, boolean eligible, float dt) {
         if (!eligible) return 0f;
         return Math.min(DIG_IN_SECONDS, seconds + dt);
-    }
-
-    /** Factor applied to a hit or near-miss morale drain on a marine. */
-    public static float moraleDrainScale(boolean dugIn) {
-        return dugIn ? DUG_IN_MORALE_DRAIN_MULT : 1f;
     }
 
     public void tick(float dt) {

@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — a line order's fire teams hold only runs near their own stretch, take cells in standing order, and are previewed as rings.
+Updated: 2026-10-14 — unit modifiers: named conditions read through at every stat read; dug-in rifles reach half a cell further.
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -2161,11 +2161,15 @@ a breached run is not re-manned for a while. A squad is sent to man a run only a
 useful strength (half the strength it started with, never fewer than two), and a breach is a believed enemy on the run itself near the
 squad, not one beside the run or at its far end.
 
-**What it pays is composure, never protection.** Cover already reduces damage
-and stops rounds, and the cells of a position already carry it; a dug-in damage
-bonus would count the same ground twice. A hit or near-miss on a dug-in marine
-drains their fire team's morale at a reduced rate. Death drain and recovery are
-unchanged. `battle.infantry.fightingPositions` turns the whole feature off for a
+**What it pays is composure and reach, never protection.** Cover already
+reduces damage and stops rounds, and the cells of a position already carry it;
+a dug-in damage bonus would count the same ground twice. A hit or near-miss on a
+dug-in marine drains their fire team's morale at a reduced rate; death drain and
+recovery are unchanged. A dug-in rifle is braced and reaches half a cell
+further. Without that, an attacker carrying the same rifle could step in to fire
+and back out of range between the defender's shots, and the defender, who will
+not leave his position to follow, never answered. Both are a unit modifier (see
+below). `battle.infantry.fightingPositions` turns the whole feature off for a
 control run.
 
 **Cells are claimed by marines, not positions by squads.** Under a player
@@ -2243,6 +2247,35 @@ stand's cover search, the engagement-discipline hold — leave a dug-in marine
 where they are, because the position is the cover. Grenade escape, step-asides
 out of a squadmate's lane, retreats and a broken fire team peeling away under
 cohesion law still apply.
+
+### Unit modifiers
+
+A **unit modifier** is a named condition that changes a unit's stats while it
+holds: being dug in, a running suit system's stance, an officer's Tactical
+Cover. It is distinct from **issue**, the base stats a unit was given by its
+weapon, grade, armour or chassis. Issue is stored on the unit; a modifier never
+is.
+
+- **Read through, never written.** Every read of a modified stat (attack range,
+  own accuracy, move speed, incoming accuracy, morale drain) resolves issue
+  through the modifiers that apply right now: base plus their flat amounts, times
+  their multipliers. When a condition ends there is nothing to restore, and two
+  overlapping modifiers cannot compound each other's leftovers. A modifier that
+  scales a stored value on activation and unscales it on expiry is the defect
+  this rule exists to prevent.
+- **One reading for everyone.** Targeting, the firing gate, range falloff and an
+  enemy's estimate of a unit's threat all read the same resolved stat, so a
+  braced rifle's extra reach is the reach it fires at and the reach the
+  attacker respects.
+- **Named, so it is seen.** Every modifier has a name the player reads, and a
+  unit's modifiers can be listed with what each contributes. A squad's quality
+  is determined by what the player can see (`progression-nouns.md`); a
+  modifier folded silently into another stat breaks that. Tactical Cover was
+  once multiplied into each marine's armour figure at deployment, and is now its
+  own modifier for this reason.
+- **A unit's condition, not a shot's geometry.** Smoke between a shooter and a
+  target depends on the line between them, not on either unit, and stays part
+  of resolving the shot.
 
 ## Mission, space, and feature boundaries
 
