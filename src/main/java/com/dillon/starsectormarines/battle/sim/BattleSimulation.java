@@ -674,7 +674,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     @Override public List<DefenceStructureFact> defenceStructures() {
         List<DefenceStructureFact> out = new ArrayList<>();
         for (FortressBattery battery : fortressBatteries.batteries()) {
-            if (battery.destroyed()) continue;
+            // A fort whose guns are gone is still work while its bunker stands: the radar on it spots for its holder.
+            if (!battery.fireControlStands()) continue;
             Fort.Place bunker = battery.fort() == null ? null : battery.fort().place(FortAspect.FIRE_CONTROL);
             if (bunker != null) {
                 // A fort's fire control is its bunker, not the ground round the guns: that is where a commander
@@ -689,8 +690,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                         FORT_BUNKER_REACH_CELLS, seenX, seenY,
                         battery.fort().id(), DefenceStructureFact.Family.BATTERY_FORT,
                         battery.fort().exteriorCells(), fortBeltCells(seenX, seenY), battery.fort().frame()));
-                // The other two aspects only matter while the guns can still be commanded: a wrecked bunker ends them.
-                addBatteryFortAspect(out, battery, FortAspect.MAGAZINE, DefenceStructureFact.Kind.FORT_MAGAZINE, seenX, seenY);
+                // The other aspects only matter while the bunker can still command something: a wrecked bunker ends
+                // them. The magazine feeds only the guns; the plant also turns the radar, so it outlives them.
+                if (!battery.destroyed()) {
+                    addBatteryFortAspect(out, battery, FortAspect.MAGAZINE, DefenceStructureFact.Kind.FORT_MAGAZINE, seenX, seenY);
+                }
                 addBatteryFortAspect(out, battery, FortAspect.POWER, DefenceStructureFact.Kind.FORT_POWER, seenX, seenY);
                 addBatteryFortAspect(out, battery, FortAspect.AIR_DEFENCE, DefenceStructureFact.Kind.FORT_AIR_DEFENCE, seenX, seenY);
                 continue;

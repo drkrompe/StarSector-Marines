@@ -36,11 +36,15 @@ public final class FortressBatterySystem {
         if (service.isEmpty()) return;
         WarshipSystem warships = sim.warships();
         for (FortressBattery battery : service.batteries()) {
-            if (battery.destroyed()) continue;
-            if (!sim.world().isAlive(battery.structureId())) {
+            if (!battery.destroyed() && !sim.world().isAlive(battery.structureId())) {
                 battery.markDestroyed();
                 warships.clearBatteryHazard(battery);
                 for (FortressBattery.Gun gun : battery.guns()) silence(gun);
+            }
+            if (battery.destroyed()) {
+                // The guns are gone for good; a fort's bunker is a place of its own and still changes hands, because its
+                // radar spots for whoever holds it. There is no structure left to change sides with it.
+                if (battery.fireControlStands()) tickBunker(dt, sim, battery);
                 continue;
             }
             tickFireControl(dt, sim, battery);
@@ -76,14 +80,7 @@ public final class FortressBatterySystem {
     }
 
     private static void tickFireControl(float dt, BattleSimulation sim, FortressBattery battery) {
-        Fort.Place bunker = battery.fort() == null ? null : battery.fort().place(FortAspect.FIRE_CONTROL);
-        if (bunker != null) {
-            // In a fort fire control is held where it is housed: inside the bunker, not in a ring round the guns.
-            // A wrecked bunker is held by nobody, and the guns have nothing to obey.
-            if (!bunker.wrecked()) {
-                FortSystem.Presence there = FortSystem.scan(sim, battery.owner(), bunker);
-                battery.fireControl().tick(dt, there.holderPresent(), there.hostile());
-            }
+        if (tickBunker(dt, sim, battery)) {
             followHolder(sim, battery);
             return;
         }
@@ -104,6 +101,21 @@ public final class FortressBatterySystem {
         }
         battery.fireControl().tick(dt, holderPresent, hostile);
         followHolder(sim, battery);
+    }
+
+    /**
+     * Ticks a fort's fire control where it is housed: inside the bunker, not in a ring round the guns. A wrecked bunker is
+     * held by nobody, and the guns have nothing to obey. Returns whether the battery has a bunker at all; a bare battery
+     * is held in its ring instead.
+     */
+    private static boolean tickBunker(float dt, BattleSimulation sim, FortressBattery battery) {
+        Fort.Place bunker = battery.fort() == null ? null : battery.fort().place(FortAspect.FIRE_CONTROL);
+        if (bunker == null) return false;
+        if (!bunker.wrecked()) {
+            FortSystem.Presence there = FortSystem.scan(sim, battery.owner(), bunker);
+            battery.fireControl().tick(dt, there.holderPresent(), there.hostile());
+        }
+        return true;
     }
 
     /** The structure changes sides with its fire control, so its old side's enemies stop shooting it. */
