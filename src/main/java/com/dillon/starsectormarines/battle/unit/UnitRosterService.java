@@ -13,6 +13,8 @@ import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.appearance.SystemFxService;
 import com.dillon.starsectormarines.battle.combat.MitigationService;
+import com.dillon.starsectormarines.battle.combat.WoundModifier;
+import com.dillon.starsectormarines.battle.combat.WoundService;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -200,6 +202,8 @@ public final class UnitRosterService {
     private final RoleService roleService = new RoleService(entityWorld, components);
     private final MitigationService mitigationService =
             new MitigationService(entityWorld, components);
+    /** Limb wounds carried this battle; read through {@link WoundModifier}. */
+    private final WoundService woundService = new WoundService();
     private final IntegralSystemService integralSystemService =
             new IntegralSystemService(entityWorld, components, mitigationService);
     private final SystemFxService systemFxService = new SystemFxService(entityWorld, components);
@@ -269,6 +273,8 @@ public final class UnitRosterService {
         unitModifiers.register(new DugInModifier(combatService));
         unitModifiers.register(new IntegralSystemModifier(integralSystemService));
         unitModifiers.register(new TacticalCoverModifier(this));
+        unitModifiers.register(WoundModifier.legs(woundService));
+        unitModifiers.register(WoundModifier.arms(woundService));
     }
 
     /** Bind the damage service after construction — used by the sim ctor to break
@@ -394,6 +400,9 @@ public final class UnitRosterService {
 
     /** Data owner for the MITIGATION component — the live screen an actor can hold up. */
     public MitigationService mitigations() { return mitigationService; }
+
+    /** Limb wounds carried this battle. */
+    public WoundService wounds() { return woundService; }
 
     /**
      * Data owner for the SYSTEM_FX component — what a running integral system

@@ -75,6 +75,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.combat.fx.Decal;
+import com.dillon.starsectormarines.battle.combat.WoundService;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
@@ -1815,6 +1816,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * so the end-of-battle gather reads it long after the dead were released.
      */
     public CombatTelemetryService telemetry() { return rosterService.telemetry(); }
+
+    /** Limb wounds carried this battle ({@code body-part-cover.md}, Part consequences). */
+    public WoundService wounds() { return rosterService.wounds(); }
     /**
      * Returns the entity id {@code u} is currently targeting, or {@code 0L} when
      * none is set <em>or the target is no longer live</em>. The lazy-validity

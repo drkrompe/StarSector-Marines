@@ -680,21 +680,92 @@ class BallisticResolverTest {
         long target = spawn(sim, Faction.DEFENDER, 14);
         BallisticResolver resolver = new BallisticResolver(sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
 
-        // On-target commit + centered axes, single crossing roll pinned just below
-        // the level-2 tuning anchor (0.30) so it blocks. Only 3 values are
-        // queued — a second crossing roll (the old neighbor-bleed
-        // double-count) would exhaust the queue.
-        QueueRandom blockRng = new QueueRandom(0f, 0.5f, 0.5f, 0.2999f);
+        // On-target commit + centered axes (a torso-bound round), single crossing
+        // roll pinned just below the level-2 crossed torso anchor (0.20) so it
+        // blocks. Only 4 values are queued — a second crossing roll (the old
+        // neighbor-bleed double-count) would exhaust the queue.
+        assertEquals(0.20f, CoverProfile.crossed(2, BodyPart.TORSO), EPS);
+        QueueRandom blockRng = new QueueRandom(0f, 0.5f, 0.5f, 0.1999f);
         BallisticResolver.Resolution blocked = resolver.resolve(shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE, blockRng);
         assertEquals(BallisticResolver.StopKind.DOODAD_BLOCK, blocked.kind());
         assertEquals(cellCenter(10), blocked.endX(), EPS);
 
-        // A roll landing exactly at the anchor must NOT block — pins 0.30 as
+        // A roll landing exactly at the anchor must NOT block — pins 0.20 as
         // the exact boundary. Round then reaches the target normally.
-        QueueRandom missRng = new QueueRandom(0f, 0.5f, 0.5f, 0.30f, 0.99f);
+        QueueRandom missRng = new QueueRandom(0f, 0.5f, 0.5f, 0.20f, 0.99f);
         BallisticResolver.Resolution missed = resolver.resolve(shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE, missRng);
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, missed.kind());
         assertEquals(target, missed.victimId());
+    }
+
+    // ---- a prop crossed in the lane catches by the part the round is headed for ----
+
+    /** Shooter at 2, a level-2 crate at 10 (eight cells out: full catch), target at 14. */
+    private static BallisticResolver.Resolution throughLaneCrate(UnitType targetType,
+                                                                 float accuracy, QueueRandom rng) {
+        BattleSimulation sim = openArena();
+        DoodadService doodads = new DoodadService(sim.getGrid());
+        doodads.addDoodad(new Doodad(10, ROW, new TileManifest.TileFrame(0, 0), false, Doodad.COVER_MED));
+        long shooter = spawn(sim, Faction.MARINE, 2);
+        long target = sim.spawn(new EntitySpec("target", Faction.DEFENDER, targetType, 14, ROW));
+        BallisticResolver resolver = new BallisticResolver(
+                sim.getGrid(), doodads, sim.getUnitIndex(), sim.getRoster());
+        return resolver.resolve(shooter, target, accuracy, 0f, VEL, MAX_TARGETING_RANGE, rng);
+    }
+
+    @Test
+    void laneCrateCatchesALegBoundRoundAtTheCrossedLegRate() {
+        float legs = CoverProfile.crossed(2, BodyPart.LEGS);
+        assertTrue(legs > BallisticResolver.BLOCK_CHANCE_BY_LEVEL[2],
+                "a low crate catches more leg shots than the flat chance it replaces");
+        // Hit, centered lateral, height 0.1 up the man: his legs.
+        BallisticResolver.Resolution caught = throughLaneCrate(UnitType.MARINE, 1f,
+                new QueueRandom(0f, 0.5f, 0.1f, legs - 0.001f));
+        assertEquals(BallisticResolver.StopKind.DOODAD_BLOCK, caught.kind());
+        assertEquals(cellCenter(10), caught.endX(), EPS);
+
+        BallisticResolver.Resolution through = throughLaneCrate(UnitType.MARINE, 1f,
+                new QueueRandom(0f, 0.5f, 0.1f, legs));
+        assertEquals(BallisticResolver.StopKind.UNIT_HIT, through.kind());
+        assertEquals(BodyPart.LEGS, through.victimPart());
+    }
+
+    @Test
+    void laneCrateLetsAHeadBoundRoundPassWithoutARoll() {
+        assertEquals(0f, CoverProfile.crossed(2, BodyPart.HEAD));
+        // Hit, centered lateral, height 0.95: his head. Only three values are queued, so a
+        // crossing roll would exhaust the queue — a zero chance spends none.
+        BallisticResolver.Resolution res = throughLaneCrate(UnitType.MARINE, 1f,
+                new QueueRandom(0f, 0.5f, 0.95f));
+        assertEquals(BallisticResolver.StopKind.UNIT_HIT, res.kind());
+        assertEquals(BodyPart.HEAD, res.victimPart());
+    }
+
+    @Test
+    void laneCrateKeepsTheFlatChanceForATargetWithoutParts() {
+        float flat = BallisticResolver.BLOCK_CHANCE_BY_LEVEL[2];
+        // The same head-height aim against a mech: no part, so the flat level-2 chance.
+        BallisticResolver.Resolution caught = throughLaneCrate(UnitType.HEAVY_MECH, 1f,
+                new QueueRandom(0f, 0.5f, 0.95f, flat - 0.001f));
+        assertEquals(BallisticResolver.StopKind.DOODAD_BLOCK, caught.kind());
+
+        BallisticResolver.Resolution through = throughLaneCrate(UnitType.HEAVY_MECH, 1f,
+                new QueueRandom(0f, 0.5f, 0.95f, flat));
+        assertEquals(BallisticResolver.StopKind.UNIT_HIT, through.kind());
+    }
+
+    @Test
+    void laneCrateKeepsTheFlatChanceForAnAuthoredMiss() {
+        float flat = BallisticResolver.BLOCK_CHANCE_BY_LEVEL[2];
+        // A miss straight sideways (angle 0.5 turn, minimum clearance): the deviated ray still
+        // crosses the crate's cell, and a miss is headed for no part.
+        BallisticResolver.Resolution caught = throughLaneCrate(UnitType.MARINE, 0f,
+                new QueueRandom(0.5f, 0.5f, 0f, flat - 0.001f));
+        assertEquals(BallisticResolver.StopKind.DOODAD_BLOCK, caught.kind());
+
+        BallisticResolver.Resolution through = throughLaneCrate(UnitType.MARINE, 0f,
+                new QueueRandom(0.5f, 0.5f, 0f, flat));
+        assertTrue(through.kind() != BallisticResolver.StopKind.DOODAD_BLOCK);
     }
 
     // ---- overshoot endpoint when everything misses ----
@@ -803,10 +874,10 @@ class BallisticResolverTest {
 
         BallisticResolver.Resolution farResult = farResolver.resolve(
                 farShooter, farTarget, 1f, 0f, VEL, MAX_TARGETING_RANGE,
-                new QueueRandom(0f, 0.5f, 0.5f, 0.29f));
+                new QueueRandom(0f, 0.5f, 0.5f, 0.19f));
 
         assertEquals(BallisticResolver.StopKind.DOODAD_BLOCK, farResult.kind(),
-                "at eight cells the medium doodad retains its full 30% chance");
+                "at eight cells the medium doodad retains its full 20% chance against a torso-bound round");
     }
 
     @Test
@@ -822,14 +893,14 @@ class BallisticResolverTest {
 
         BallisticResolver.Resolution blocked = resolver.resolve(
                 shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE,
-                new QueueRandom(0f, 0.5f, 0.5f, 0.02f));
+                new QueueRandom(0f, 0.5f, 0.5f, 0.014f));
         BallisticResolver.Resolution cleared = resolver.resolve(
                 shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE,
-                new QueueRandom(0f, 0.5f, 0.5f, 0.03f));
+                new QueueRandom(0f, 0.5f, 0.5f, 0.015f));
 
         assertEquals(BallisticResolver.StopKind.DOODAD_BLOCK, blocked.kind());
         assertEquals(target, cleared.victimId(),
-                "at three cells medium cover scales from 30% to about 2.22%");
+                "at three cells medium cover scales a torso-bound round's 20% to about 1.48%");
     }
 
     @Test

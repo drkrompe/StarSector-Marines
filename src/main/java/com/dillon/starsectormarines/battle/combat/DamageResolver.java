@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.DeathDispatcher;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -24,9 +25,11 @@ import java.util.function.LongConsumer;
  * {@link #resolve} — runs the whole post-impact sequence:
  *
  * <ol>
- *   <li>Cover lookup + cover-reduction curve</li>
+ *   <li>Body-part damage multiplier, or for a partless payload the cover lookup +
+ *       cover-reduction curve</li>
  *   <li>Mitigation arc resolution against the incoming bearing</li>
  *   <li>Armor/structure write + death detection</li>
+ *   <li>Part tally, and a limb wound when a legs or arms hit took structure</li>
  *   <li>Telemetry attribution — applied damage to attacker and target,
  *       plus a kill credit when the hit was fatal</li>
  *   <li>Death cascade — death-pose roll, death-sink emit ({@code deathsThisFrame}),
@@ -177,7 +180,10 @@ public final class DamageResolver {
         boolean hasArmor = world.hasArmor(targetId);
         float armorBefore = hasArmor ? world.armor(targetId) : 0f;
         float armorRating = hasArmor ? world.armorRating(targetId) : 0f;
-        float postCoverDamage = damage * (1f - dr) * world.damageTakenMult(targetId);
+        // What the part is worth: a head hit more, a limb less. Before mitigation and armour,
+        // which stay whole-body layers, so penetration still meets the same plate.
+        float partMultiplier = part != null ? part.damageMultiplier : 1f;
+        float postCoverDamage = damage * partMultiplier * (1f - dr) * world.damageTakenMult(targetId);
         // Stamped before mitigation and armour have their say: "a hit landed on
         // me" is true whatever eventually absorbed it, and a screen that ate the
         // whole round is still evidence somebody is shooting.
@@ -217,6 +223,7 @@ public final class DamageResolver {
         float applied = durability.armorDamage() + (hpBefore - Math.max(0f, newHp));
         CombatTelemetryService telemetry = roster.telemetry();
         telemetry.recordDamageTaken(targetId, applied);
+        if (part != null) recordPartConsequence(targetId, part, died, telemetry);
         // Its own quantity, never folded into armor: a screen that showed up as
         // smaller resolved damage would be a statistical rumour rather than a
         // capability the player can read. What the pool absorbed is attributable
@@ -297,6 +304,21 @@ public final class DamageResolver {
                 applyFireTeamMoraleDrain(targetId, moraleImpact, died);
             }
         }
+    }
+
+    /**
+     * Tallies the part a payload landed on and, for a limb hit that took structure from a man who
+     * lived through it, leaves the wound ({@code body-part-cover.md}, Part consequences). A hit
+     * the armour absorbed whole never reached the man, so it wounds nothing.
+     */
+    private void recordPartConsequence(long targetId, BodyPart part, boolean died,
+                                       CombatTelemetryService telemetry) {
+        boolean known = roster.identity().has(targetId);
+        Faction struck = known ? roster.identity().faction(targetId) : null;
+        if (struck != null) telemetry.recordPartHit(struck, part);
+        if (died || !part.wounds() || durability.structureDamage() <= 0f) return;
+        roster.wounds().wound(targetId, part);
+        if (struck != null) telemetry.recordWound(struck, part);
     }
 
     /**
