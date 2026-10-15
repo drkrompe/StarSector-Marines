@@ -34,10 +34,12 @@ final class CoverTasking {
 
     /** Ticks between looks, per fighter (staggered by the craft's id). */
     static final int PERIOD_TICKS = 10;
-    /** Hostile aircraft this close to the covered ground are the patrol's business, in cells. UNTUNED. */
-    static final float ENGAGE_CELLS = 60f;
+    /** Hostile aircraft this close to the covered ground are the patrol's business, in cells: far enough that a fast interceptor meets an inbound bomber well short of the ground, since a chase that begins at the bomb line ends after the bombs. UNTUNED. */
+    static final float ENGAGE_CELLS = 110f;
     /** An aircraft whose aim point is this close to the covered ground is attacking it, and comes first, in cells. UNTUNED. */
     static final float PROTECT_CELLS = 30f;
+    /** The share of an airframe a chase may be expected to cost in known anti-air before the patrol breaks it off. UNTUNED. */
+    static final float CHASE_RISK_CEILING = 0.5f;
     /** Most fighters that chase one aircraft at once. */
     static final int MAX_HUNTERS = 2;
     /** Ground this far from the covered point is the patrol's business, in cells. UNTUNED. */
@@ -56,14 +58,19 @@ final class CoverTasking {
 
     private CoverTasking() {}
 
-    /** Gives one cover fighter work if it is on its ring, rested, and there is some. */
+    /** Gives one cover fighter work if it is on its ring, rested, and there is some; calls off a chase that has gone under known anti-air. */
     static void task(BattleSimulation sim, AirPoolService pool, long craft, ShuttleMission mission, Faction side) {
         CoverDuty duty = mission.cover;
-        if (duty == null || mission.state != ShuttleState.ORBIT || mission.aborted || mission.destroyed) return;
-        if (!duty.readyForWork()) return;
+        if (duty == null || mission.aborted || mission.destroyed) return;
         if (Math.floorMod(sim.getSimTickIndex() + craft, PERIOD_TICKS) != 0) return;
+        if (mission.state == ShuttleState.INTERCEPT) {
+            if (duty.preyId != 0L && underKnownAntiAir(sim, pool, side, duty.preyId)) duty.preyId = 0L;
+            return;
+        }
+        if (mission.state != ShuttleState.ORBIT) return;
+        if (!duty.readyForWork()) return;
         if (duty.preyId == 0L && duty.hasAirRounds()) {
-            long prey = pickPrey(sim, craft, side, duty);
+            long prey = pickPrey(sim, pool, craft, side, duty);
             if (prey != 0L) {
                 duty.preyId = prey;
                 return;
@@ -84,7 +91,7 @@ final class CoverTasking {
      * covered ground before the rest, then the nearest to it; never one that {@link #MAX_HUNTERS} are already on.
      * {@code 0} when there is none.
      */
-    static long pickPrey(BattleSimulation sim, long craft, Faction side, CoverDuty duty) {
+    static long pickPrey(BattleSimulation sim, AirPoolService pool, long craft, Faction side, CoverDuty duty) {
         World world = sim.world();
         AirTargetService air = sim.getRoster().airTargets();
         long best = 0L;
@@ -98,7 +105,7 @@ final class CoverTasking {
             if (!air.isPresent(id) || !air.isAirborne(id) || !armed(m)) continue;
             double gap = Math.hypot(body.x - duty.coverX, body.y - duty.coverY);
             if (gap > ENGAGE_CELLS) continue;
-            if (hunters(sim, id) >= MAX_HUNTERS) continue;
+            if (hunters(sim, id) >= MAX_HUNTERS || underKnownAntiAir(sim, pool, side, id)) continue;
             boolean attacking = Math.hypot(m.aimX() - duty.coverX, m.aimY() - duty.coverY) <= PROTECT_CELLS;
             double score = (attacking ? 0 : 1000) + gap;
             if (score < bestScore) {
@@ -107,6 +114,19 @@ final class CoverTasking {
             }
         }
         return best;
+    }
+
+    /**
+     * Whether the aircraft is over ground the side knows to be defended well enough that chasing it there costs a cover
+     * fighter more than {@link #CHASE_RISK_CEILING} of an airframe. Only the guns the side has sighted count
+     * ({@link AaRisk}); a gun nobody has seen is one the chase is surprised by. Strike sorties accept a ceiling of a whole
+     * airframe because the target is worth it; a patrol that follows an enemy into a fort's reach for a bomber it could
+     * have met on its own side of the wire is not.
+     */
+    static boolean underKnownAntiAir(BattleSimulation sim, AirPoolService pool, Faction side, long aircraft) {
+        AirBody body = sim.world().kinematics(aircraft);
+        if (body == null) return false;
+        return pool.director(side).risk(sim, body.x, body.y, AirPoolKind.FIGHTER) > CHASE_RISK_CEILING;
     }
 
     /** Whether an aircraft carries something that can hurt the covered ground: a strike, a gunship, another fighter on patrol. */
