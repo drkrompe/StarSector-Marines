@@ -55,7 +55,7 @@ public final class ParkFiller implements BlockFiller {
         List<Doodad> doodads = ctx.doodads;
         Random rng = ctx.rng;
 
-        DoodadDef bench = TileRegistry.installed().doodad("doodad.desk-dam");
+        DoodadDef bench = TileRegistry.installed().doodad("mess-galley.stool");
 
         // Carve the leaf as walkable grass.
         for (int y = leaf.top; y <= leaf.bottom; y++) {

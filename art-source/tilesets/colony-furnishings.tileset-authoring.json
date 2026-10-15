@@ -1,0 +1,301 @@
+{
+  "sheetName": "colony-furnishings",
+  "sheet": "art-source/tilesets/colony-furnishings.raw.png",
+  "cellPx": 128,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "colony-furnishings",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/colony-furnishings.png",
+  "note": "Built-in ImageGen geometry reskin. Full square placement frames; consistent registration across intact/damaged/destroyed. Native alpha retained. See art-source/colony-furnishings.",
+  "entries": [
+    {
+      "rect": [
+        20,
+        48,
+        288,
+        288
+      ],
+      "id": "colony-furnishings.case",
+      "cover": "med",
+      "ballisticHalfHeight": 0.38,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        20,
+        311,
+        288,
+        288
+      ],
+      "id": "colony-furnishings.case-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.38,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        20,
+        584,
+        288,
+        288
+      ],
+      "id": "colony-furnishings.case-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        312,
+        48,
+        288,
+        288
+      ],
+      "id": "colony-furnishings.locker",
+      "cover": "med",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        312,
+        311,
+        288,
+        288
+      ],
+      "id": "colony-furnishings.locker-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        312,
+        584,
+        288,
+        288
+      ],
+      "id": "colony-furnishings.locker-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        606,
+        48,
+        288,
+        288
+      ],
+      "id": "colony-furnishings.desk",
+      "cover": "med",
+      "ballisticHalfHeight": 0.38,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        606,
+        311,
+        288,
+        288
+      ],
+      "id": "colony-furnishings.desk-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.38,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        606,
+        584,
+        288,
+        288
+      ],
+      "id": "colony-furnishings.desk-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        893,
+        48,
+        288,
+        288
+      ],
+      "id": "colony-furnishings.utility",
+      "cover": "med",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        893,
+        311,
+        288,
+        288
+      ],
+      "id": "colony-furnishings.utility-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        893,
+        584,
+        288,
+        288
+      ],
+      "id": "colony-furnishings.utility-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        1182,
+        48,
+        288,
+        288
+      ],
+      "id": "colony-furnishings.galley",
+      "cover": "med",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        1182,
+        311,
+        288,
+        288
+      ],
+      "id": "colony-furnishings.galley-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        1182,
+        584,
+        288,
+        288
+      ],
+      "id": "colony-furnishings.galley-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        1469,
+        48,
+        288,
+        288
+      ],
+      "id": "colony-furnishings.shelf",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.75,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        1469,
+        311,
+        288,
+        288
+      ],
+      "id": "colony-furnishings.shelf-damaged",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.75,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        1469,
+        584,
+        288,
+        288
+      ],
+      "id": "colony-furnishings.shelf-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    }
+  ]
+}

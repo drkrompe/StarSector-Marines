@@ -345,6 +345,23 @@ Their outside cuts, window recesses and interior anchors remain usable.
 This treatment follows room purpose and available working space rather than
 turning residential or shop footprints into control rooms.
 
+Small ordinary buildings use compact work groups instead of random pool scatter:
+homes fit a sleeping nook and kitchenette, shops display stock beside a counter,
+storage buildings fit aligned case bays or full stocked racks, and utility huts
+fit service cabinets. Groups reserve their working side and refuse doorway or
+window approaches and placements that strand floor. A one-cell module is the
+fallback when its paired group cannot fit; empty circulation is preferable to
+blocking an entrance. The shell refreshes its interior anchor after furnishing.
+
+The `colony-furnishings` family supplies compact metal cases, personal lockers,
+desks, utility cabinets, kitchenette worktops and retail shelving. Normal pools
+contain intact furniture only: loose closed doors and damaged household props
+are not furnishings. Authored building stamps use the same replacements, while
+courtyards and public spaces use the existing mess seating. Deliberate wasteland
+ruins retain their rubble vocabulary. Actual door openings continue to use the
+wall-matched colony opening art. All six new furniture modules have registered
+damaged and destroyed states; wreckage releases physical cover and obstruction.
+
 Complete **work groups** compose existing fixtures, their contained stock or
 linen layers, and protected access in one local frame. Stocked shelf banks use
 three stock slots and one retaining frame; joined pallet slots form rows or
