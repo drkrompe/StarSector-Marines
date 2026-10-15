@@ -33,9 +33,20 @@ import java.util.Random;
 public final class ThunderRunCompound {
     public static final int WIDTH = 320, HEIGHT = 144;
     public record Cell(int x, int y) {}
-    public static final List<Cell> SUPPORT_POSTS = List.of(new Cell(121, 64), new Cell(173, 87));
+    /**
+     * Militia gun bays at the first crossroads, where the road raiders arrive. Dispatch's
+     * looks east from the verge into the crossroad mouth; Crossing's stands inside the north
+     * arm, looking west across it, so raiders coming down that arm meet it first.
+     */
+    public static final List<Cell> SUPPORT_POSTS = List.of(new Cell(146, 64), new Cell(171, 57));
     /** Crew stands behind each gun, away from the company's roadside screens. */
-    public static final List<Cell> MILITIA_POSTS = List.of(new Cell(119, 64), new Cell(175, 87));
+    public static final List<Cell> MILITIA_POSTS = List.of(new Cell(144, 64), new Cell(173, 57));
+    /**
+     * Where the militia technical parks after each defensive window: the south verge short of
+     * the crossroad, then nosed into the crossroad's south arm once the Crossing is held, a
+     * roadblock that soaks fire and shoves raiders back.
+     */
+    public static final List<Cell> TECHNICAL_STOPS = List.of(new Cell(150, 84), new Cell(161, 87));
     public static final List<List<Cell>> COMPANY_POSTS = List.of(
             List.of(new Cell(33, 64), new Cell(33, 86), new Cell(38, 64), new Cell(38, 86)),
             List.of(new Cell(133, 65), new Cell(122, 85), new Cell(145, 65), new Cell(114, 85)),
@@ -284,7 +295,7 @@ public final class ThunderRunCompound {
     }
     /** Prepared positions use the same real cover and transparent fixtures as ordinary defense posts. */
     private static void fortifications(GenContext c) {
-        // Dispatch looks east along the verge; Crossing covers its western side road.
+        // Dispatch looks east into the crossroad; Crossing looks west across its north arm.
         supportEmplacement(c, SUPPORT_POSTS.get(0), true);
         supportEmplacement(c, SUPPORT_POSTS.get(1), false);
         // Firing aprons face the road, with a wide opening aligned to each actual doorway.

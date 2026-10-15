@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — Thunder Run retimed toward the final run; reactive column driving.
+Updated: 2026-10-15 — militia guns and technical moved to the first crossroads; rocket teams contest them.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -1012,9 +1012,13 @@ replacing that persistent order to resume the advance. The HUD names the post
 and remaining dispatch time. The tutorial never locks the player into a hold.
 
 Two employer militia sections anchor the first and second secured road posts.
-Their gun bays sit off the carriageway, inside open-backed sandbag emplacements
-with protected crew approaches. Dispatch's gun faces east along the verge;
-Crossing's gun covers its western intersection approach. Stable company sections
+Their gun bays sit off the carriageway at the first crossroads, where the road
+raiders arrive, inside open-backed sandbag emplacements with protected crew
+approaches. Dispatch's gun stands on the verge short of the crossroad and looks
+into its mouth; Crossing's gun stands inside one side arm of the crossroad and
+looks across it, so raiders coming down that arm meet it first. A crew has to
+walk up from staging, so Dispatch's gun is usually ready late in its window:
+it earns its place during the Crossing assault and the rear attacks. Stable company sections
 cover separate roadside sectors on both sides of the road, rather than sharing
 the militia's gun coordinates. The militia share the first gain from distinct
 positions until their second post is secured. After the last capture the company
@@ -1055,12 +1059,18 @@ it never moves a hull directly, and delivery is still only a physical exit. Phys
 and wrecks remain authoritative. A hull must leave the map through the freight exit to
 count as delivered; capture, release, apparent proximity and a missing sprite
 cannot grant delivery. Each active carrier must be accounted for before victory.
-One light militia technical follows the staged advance and stays behind at
-East Crossing. Its pickup chassis and independently traversing machine gun use
+One light militia technical follows the staged advance. After the Dispatch
+window it parks on the verge short of the crossroad; after the Crossing window
+it noses into the crossroad's other side arm beside the Crossing compound, a
+roadblock that soaks fire and physically shoves raiders back, covering the arm
+the Crossing gun cannot see. Its pickup chassis and independently traversing machine gun use
 ordinary vehicle movement, finite ammunition and shared damage. It is employer
 support, not a campaign vehicle grant. Two of the opening four raiders carry
-two crude unguided rockets each. Poor accuracy, slow aiming and low penetration
-let them threaten freight without granting an effective military anti-armor kit.
+two crude unguided rockets each, as do two raiders in one Dispatch wave and one
+Crossing wave, and one raider in each of the first two rear attacks on the gun
+bays. Poor accuracy, slow aiming and low penetration let them threaten freight,
+the lightly armored technical and the gun bays without granting an effective
+military anti-armor kit: the escorts and heavy lead shrug them off.
 The advance load's fate still comes from combat rather than a scripted kill.
 Fourteen low-tech raiders guard the roadside buildings. Six more already man
 two rifle bays at the exit checkpoint. A finite seventy-two-person pressure pool

@@ -236,9 +236,10 @@ Do not run builds or leave generated task files there.
   and remaining durability, vehicle repulsion pushes, and the column driver's
   reroutes, wreck/parked-hull swerves, station waits and hauler sprints.
   `companySize` selects named personnel (default 24). `-PsnapshotEveryTicks=N`
-  records `review.gif` (whole map every N ticks) and `convoy-run.gif` (a stepped
-  follow camera on the column through the final run) per fixture; both are
-  full-frame GIFs and large.
+  records `review.gif` (whole map every N ticks), `crossroads.gif` (a fixed
+  camera on the first crossroads through both holds, with the militia guns and
+  technical labelled) and `convoy-run.gif` (a stepped follow camera on the column
+  through the final run) per fixture.
   Reports separate living militia from their assembled field guns. Default
   observation is 27000 ticks.
   Replays run **side by side by default**, on half the machine's processors —
