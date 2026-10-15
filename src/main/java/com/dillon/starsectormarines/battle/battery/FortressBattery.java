@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.battery;
 
 import com.dillon.starsectormarines.battle.fort.Fort;
+import com.dillon.starsectormarines.battle.fort.FortAspect;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.warship.VanillaWeapon;
@@ -118,6 +119,17 @@ public final class FortressBattery {
     /** Whether the structure has been destroyed; a battery never comes back. */
     public boolean destroyed() {
         return destroyed;
+    }
+
+    /**
+     * Whether the battery's fire control is still a place that can change hands. While the guns stand, yes. Once they
+     * are destroyed, a bare battery's control is gone with them, but a fort's is held in its bunker, a building of its
+     * own whose radar spots for whoever holds it ({@code FortSensors}): it stays takeable until the bunker is wrecked.
+     */
+    public boolean fireControlStands() {
+        if (!destroyed) return true;
+        Fort.Place bunker = fort == null ? null : fort.place(FortAspect.FIRE_CONTROL);
+        return bunker != null && !bunker.wrecked();
     }
 
     /** Records that the structure is gone; the battery never comes back. */

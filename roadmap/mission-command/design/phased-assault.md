@@ -6,7 +6,7 @@ Slices are on the mission-command board.
 
 Written: 2026-10-13
 
-Updated: 2026-10-15 — the bunker is now taken (6 of 6 lane runs, ticks 3,060-3,900; lane wins 1 of 6 to 5 of 6): a company squad near the building an aspect is held in is told to occupy its floor rather than attack-move past it, see "Taking the room: measured"; earlier: radar first (a company that is flown at goes for the hostile bunker at once).
+Updated: 2026-10-15 — a fort bunker whose gun platform is destroyed can still be taken and stays a command fact; earlier: the bunker is now taken (6 of 6 lane runs, ticks 3,060-3,900; lane wins 1 of 6 to 5 of 6): a company squad near the building an aspect is held in is told to occupy its floor rather than attack-move past it, see "Taking the room: measured"; earlier: radar first (a company that is flown at goes for the hostile bunker at once).
 
 Read `conquest-command.md`, `forts.md` and `ai-nouns.md` first.
 
@@ -524,9 +524,9 @@ Same fixture as "Radar first" (seed 41-46, lane fort, 18,000 ticks), base `15b0a
 
 After the bunker the company works down the fort in every run (anti-air yard 4,020-4,860, plant 5,040-5,910, magazine 6,450-7,230) and the keep falls at 8,850-11,010 in the five wins; seed 42 times out with the fort taken and the keep standing. One defender-loss figure in the before row is negative (seed 42, reinforcements outnumber losses); the mean includes it. Not a balance conclusion: one run a seed, and the fort is unchanged.
 
-**Two things found on the way, neither fixed here (both outside command):**
+**Two things found on the way, both outside command:**
 
-- **A dead gun platform freezes the bunker.** `FortressBatterySystem` skips a destroyed battery before its fire-control tick, so once the platform dies the bunker's capture never advances again, while `FortSensors.observer` still has the radar spotting for the side that held it. `BattleSimulation.defenceStructures` drops every aspect of that fort from the command's facts at the same moment, so the company's orders lapse with no trace note. Before this change that was how four of six lane runs ended their assault; with it the bunker is taken before the platform dies and none did.
+- **A dead gun platform froze the bunker (fixed).** `FortressBatterySystem` skipped a destroyed battery before its fire-control tick, so once the platform died the bunker's capture never advanced again, while `FortSensors.observer` still had the radar spotting for the side that held it, and `BattleSimulation.defenceStructures` dropped every aspect of that fort from the command's facts, so the company's orders lapsed with no trace note. That was how four of six lane runs ended their assault before the occupy order. Now a fort's bunker stays a place while it stands (`FortressBattery.fireControlStands`): its capture still ticks, and the command is still told of it and of the plant that turns its radar, not of the magazine, which fed only the guns (see `forts.md`, "the fort spots for its side's air"). The lane matrix cannot reach this path any more (twelve seeds, 41-52: the bunker falls at 3,000-3,900 in every run and the platform never dies first; seeds 41-46 replay unchanged), so it is pinned by the `battery-fort` scene loop `guns-destroyed-bunker-taken`: on the old code the bunker never changes hands, the radar keeps spotting for the defenders and the command is told of nothing; with the fix all four verdicts pass.
 - **The trial report read the wrong holder.** For fire control the authority is the battery's `FireControl`, not the place's own control, and the report's aspect lines and holder-change list read the latter, so a taken bunker read DEFENDER. `FortOutcomes` now reads the battery; `BunkerProbe` adds the take tick, the platform's death and a timeline of marines on the floor and near it with the capture state.
 
 ## Contested sky with the fort spotting: measured
