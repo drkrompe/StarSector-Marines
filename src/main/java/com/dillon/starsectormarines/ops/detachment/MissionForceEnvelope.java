@@ -35,14 +35,17 @@ public final class MissionForceEnvelope {
      *
      * <p>A polity defence joins the ordinary generated work here: it is one-shot,
      * unrepeatable work on the company's own colony, and a raid already on the ground
-     * will not wait for a full task force ({@code mission-tier-nouns.md}).
+     * will not wait for a full task force ({@code mission-tier-nouns.md}). A Nexerelin
+     * invasion is the one Conquest that may: it is the player's own decision with
+     * whatever the company has, not an authored set piece a patron sized.
      */
     public static boolean allowsUnderstrength(Mission mission) {
         return mission != null
                 && (mission.source == MissionSource.GENERATED
                         || mission.source == MissionSource.POLITY_DEFENCE
                         || SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission))
-                && mission.type != MissionType.CONQUEST;
+                && mission.type != MissionType.CONQUEST
+                || mission != null && mission.source == MissionSource.NEX_INVASION;
     }
 
     public static int minimumPersonnel(Mission mission, int authoredSeats) {

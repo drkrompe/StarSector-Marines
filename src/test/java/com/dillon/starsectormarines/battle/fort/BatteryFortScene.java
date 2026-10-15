@@ -61,6 +61,10 @@ import java.util.Random;
  *   <li>{@code bunker-taken}: marines stand inside the fire-control bunker. The guns fall silent while it is
  *       contested, the battery changes hands, and it fires on nothing of theirs.</li>
  *   <li>{@code bunker-wrecked}: the bunker's console is destroyed. The guns have nothing to obey, for good.</li>
+ *   <li>{@code guns-destroyed-bunker-taken}: the platform is destroyed, then marines stand inside the bunker. The guns
+ *       are gone for good, but the bunker is a building of its own: it still changes hands, its radar then watches for
+ *       the marines, and the commanders are still told of it (and of the plant that turns the radar, not of the
+ *       magazine, which fed only the guns).</li>
  *   <li>{@code magazine-wrecked}: the magazine is destroyed. It goes up, the guns fire out their ready rounds and
  *       then stop.</li>
  *   <li>{@code power-cut}: the power plant is destroyed. The guns still fire, at a fraction of the rate.</li>
@@ -83,6 +87,8 @@ public final class BatteryFortScene implements BehaviorScene {
     private static final int TICKS = 3600;
     private static final int EVENT_TICK = 300;
     private static final int LATE_SHIP_TICK = 2400;
+    /** Ticks after the platform falls before holders stand in the bunker, so the battery is already marked destroyed. */
+    private static final int GUNS_GONE_TICKS = 60;
     private static final int SECONDS_TICKS = 30;
     /** How far out from the main gate the commander's company starts, along the way in. */
     private static final int COMMANDER_STANDOFF = 16;
@@ -102,7 +108,8 @@ public final class BatteryFortScene implements BehaviorScene {
         InstalledVanillaData.install();
         // These loops test the aspect choice by a lone detachment (their commanders choose the trickle); the phased assault is the assault-muster scene.
         List<SceneReport> reports = new ArrayList<>();
-        for (String loop : List.of("guns-fire", "gun-side-hold", "bunker-taken", "bunker-wrecked", "magazine-wrecked",
+        for (String loop : List.of("guns-fire", "gun-side-hold", "bunker-taken", "bunker-wrecked",
+                "guns-destroyed-bunker-taken", "magazine-wrecked",
                 "power-cut", "fort-taken-turns", "squad-takes-bunker", "commander-takes-bunker", "commander-skips-crew")) {
             reports.add(report(loop, playOne(loop, frames)));
         }
@@ -293,6 +300,25 @@ public final class BatteryFortScene implements BehaviorScene {
                 verdicts.add(Verdict.of("nothing-left-to-take", run.sim().defenceStructures().isEmpty(),
                         run.sim().defenceStructures().size() + " structure fact(s) after the console fell"));
             }
+            case "guns-destroyed-bunker-taken" -> {
+                verdicts.add(Verdict.of("the-guns-are-gone", battery.destroyed() && !battery.operational()
+                                && t.shotsAfterEvent <= 3,
+                        "destroyed " + battery.destroyed() + ", " + t.shotsAfterEvent + " rounds after the platform fell"));
+                verdicts.add(Verdict.of("the-bunker-still-changes-hands",
+                        t.flipTick > EVENT_TICK + GUNS_GONE_TICKS && battery.owner() == Faction.MARINE,
+                        "holder at the end " + battery.owner() + ", flipped at tick " + t.flipTick + ", holders placed at "
+                                + (EVENT_TICK + GUNS_GONE_TICKS)));
+                verdicts.add(Verdict.of("its-radar-watches-for-the-takers", FortSensors.observesFor(fort, Faction.MARINE)
+                                && !FortSensors.observesFor(fort, Faction.DEFENDER),
+                        "observer " + FortSensors.observer(fort)));
+                var facts = run.sim().defenceStructures();
+                verdicts.add(Verdict.of("commanders-are-still-told-of-the-bunker-and-plant",
+                        facts.stream().anyMatch(f -> f.kind() == DefenceStructureFact.Kind.FIRE_CONTROL
+                                && f.holder() == Faction.MARINE)
+                                && facts.stream().anyMatch(f -> f.kind() == DefenceStructureFact.Kind.FORT_POWER)
+                                && facts.stream().noneMatch(f -> f.kind() == DefenceStructureFact.Kind.FORT_MAGAZINE),
+                        facts.size() + " fact(s): " + facts.stream().map(f -> f.kind() + " " + f.holder()).toList()));
+            }
             case "magazine-wrecked" -> {
                 verdicts.add(Verdict.of("it-goes-up", fort.magazineBlown() && t.blastTick >= EVENT_TICK && t.blastTick <= EVENT_TICK + 2,
                         "blast at tick " + t.blastTick + ", magazine building wall hp " + t.magazineWallHpAfter
@@ -462,6 +488,7 @@ public final class BatteryFortScene implements BehaviorScene {
                     case "gun-side-hold" -> holders(sim, "holder-", new int[][]{{OX + 33, OY + 27}, {OX + 33, OY + 28}, {OX + 33, OY + 29}});
                     case "bunker-taken" -> holders(sim, "holder-", new int[][]{{OX + 10, OY + 11}, {OX + 11, OY + 11}, {OX + 14, OY + 11}});
                     case "bunker-wrecked" -> sim.applyDamage(fort.place(FortAspect.FIRE_CONTROL).coreId(), 1e7f, 100f);
+                    case "guns-destroyed-bunker-taken" -> sim.applyDamage(fort.battery().structureId(), 1e7f, 100f);
                     case "magazine-wrecked" -> {
                         int[] ring = terrain.cell(OX + 35, OY + 8);
                         magazineWallHpBefore = sim.getGrid().getWallHp(ring[0], ring[1]);
@@ -475,6 +502,9 @@ public final class BatteryFortScene implements BehaviorScene {
                     }
                     default -> { }
                 }
+            }
+            if (loop.equals("guns-destroyed-bunker-taken") && tick == EVENT_TICK + GUNS_GONE_TICKS) {
+                holders(sim, "holder-", new int[][]{{OX + 10, OY + 11}, {OX + 11, OY + 11}, {OX + 14, OY + 11}});
             }
             if (lateShip != null && tick == LATE_SHIP_TICK) {
                 FortressBattery b = fort.battery();

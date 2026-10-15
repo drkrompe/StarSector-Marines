@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.FortSitingPolicy;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
+import com.dillon.starsectormarines.battle.world.gen.MarketGarrison;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import org.junit.jupiter.api.Test;
 
@@ -48,6 +49,30 @@ class MissionDefencePolicyTest {
         GroundDefences nestsOnly = MissionDefencePolicy.declare(of(MissionType.CONQUEST),
                 TargetProfile.NEUTRAL.withDefences(true, false, false));
         assertEquals(new GroundDefences(0, false, MissionDefencePolicy.CONQUEST_NESTS_WHEN_MARKET_HAS_THEM), nestsOnly);
+    }
+
+    @Test
+    void theGarrisonsHeavyLeanMansBetweenHalfAndAllOfTheWorks() {
+        TargetProfile starved = FORTRESS_MARKET.withGarrison(new MarketGarrison(400f, 0.3f, 0f, 1f));
+        GroundDefences light = MissionDefencePolicy.declare(of(MissionType.CONQUEST), starved);
+        assertEquals(MissionDefencePolicy.CONQUEST_NESTS_WHEN_MARKET_HAS_THEM / 2, light.nests());
+        assertEquals(MissionDefencePolicy.CONQUEST_BATTERIES_WHEN_MARKET_HAS_THEM / 2,
+                light.fortCount(FortKind.BATTERY_FORT));
+
+        TargetProfile armoured = FORTRESS_MARKET.withGarrison(new MarketGarrison(400f, 0.3f, 0.3f, 1f));
+        GroundDefences full = MissionDefencePolicy.declare(of(MissionType.CONQUEST), armoured);
+        assertEquals(MissionDefencePolicy.CONQUEST_NESTS_WHEN_MARKET_HAS_THEM, full.nests());
+        assertEquals(MissionDefencePolicy.CONQUEST_BATTERIES_WHEN_MARKET_HAS_THEM,
+                full.fortCount(FortKind.BATTERY_FORT));
+    }
+
+    @Test
+    void onlyANexerelinInvasionMeetsTheWholeGarrison() {
+        TargetProfile market = FORTRESS_MARKET.withGarrison(new MarketGarrison(400f, 0.3f, 0.1f, 1f));
+        Mission invasion = Mission.builder().type(MissionType.CONQUEST).source(MissionSource.NEX_INVASION).build();
+        assertTrue(MissionDefencePolicy.garrisonFaced(invasion, market).garrison().whole());
+        assertEquals(market, MissionDefencePolicy.garrisonFaced(of(MissionType.CONQUEST), market),
+                "a contract Conquest meets its tier's share");
     }
 
     @Test

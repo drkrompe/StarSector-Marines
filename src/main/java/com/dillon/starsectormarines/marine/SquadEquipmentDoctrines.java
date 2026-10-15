@@ -15,6 +15,7 @@ public final class SquadEquipmentDoctrines {
     public static final String LINE_INFANTRY_WEAPONS = "weapons:line-infantry";
     public static final String ASSAULT_WEAPONS = "weapons:assault";
     public static final String FIRE_SUPPORT_WEAPONS = "weapons:fire-support";
+    public static final String TRENCH_CLEARING_WEAPONS = "weapons:trench-clearing";
 
     public static final String FIELD_FATIGUES_ARMOR = "armor:field-fatigues";
     public static final String SINDRIAN_SECURITY_ARMOR = "armor:sindrian-security";
@@ -29,6 +30,7 @@ public final class SquadEquipmentDoctrines {
     public static final String CHURCH_LINE_ARMOR = "armor:church-line";
     public static final String SINDRIAN_LINE_ARMOR = "armor:sindrian-line";
     public static final String OUTLAW_LINE_ARMOR = "armor:outlaw-line";
+    public static final String FREEPORT_ASSAULT_ARMOR = "armor:freeport-assault";
     public static final String SALVAGE_ASSISTED_ARMOR = "armor:salvage-assisted";
     public static final String CORPORATE_SPECTER_SECTION_ARMOR = "armor:corporate-specter-section";
     public static final String HEGEMONY_ARBALEST_SECTION_ARMOR = "armor:hegemony-arbalest-section";
@@ -145,7 +147,38 @@ public final class SquadEquipmentDoctrines {
                             weapon("Automatic Rifleman", WeaponRegistry.SQUAD_AUTOMATIC_ID),
                             weapon("Marksman", WeaponRegistry.DMR_ID),
                             weapon("Anti-Armor", WeaponRegistry.STARTER_PRIMARY_ID,
-                                    SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID))));
+                                    SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID))),
+            // The bottom rung of the assault ladder: no new rifles, just something to break an
+            // emplacement with and enough grenades to finish the trench behind it.
+            weaponDoctrine(TRENCH_CLEARING_WEAPONS, "Trench-Clearing Issue",
+                    "Service rifles, four rocket tubes for the guns and grenades for the trench behind them.",
+                    team(
+                            weapon("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.FRAG_GRENADE_ID),
+                            weapon("Anti-Armor", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
+                            weapon("Grenadier", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.FRAG_GRENADE_ID),
+                            weapon("Grenadier", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.FRAG_GRENADE_ID)),
+                    team(
+                            weapon("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.FRAG_GRENADE_ID),
+                            weapon("Anti-Armor", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
+                            weapon("Grenadier", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.FRAG_GRENADE_ID),
+                            weapon("Grenadier", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.FRAG_GRENADE_ID)),
+                    team(
+                            weapon("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.FRAG_GRENADE_ID),
+                            weapon("Anti-Armor", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
+                            weapon("Anti-Armor", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
+                            weapon("Grenadier", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.FRAG_GRENADE_ID))));
 
     /**
      * The authored armour intent, one entry per named section. Each says what
@@ -199,6 +232,9 @@ public final class SquadEquipmentDoctrines {
             plan(OUTLAW_LINE_ARMOR, "Outlaw Veteran Protection",
                     "Veterans of a trade that rewards volume and speed over anything else.",
                     ArmorTradition.PIRATES, SquadRoleMix.BALANCED),
+            plan(FREEPORT_ASSAULT_ARMOR, "Freeport Assault Section",
+                    "Militia plate and two rail packs: a dugout gets a slug through it before anybody walks up.",
+                    ArmorTradition.INDEPENDENT, SquadRoleMix.BALANCED),
             new SquadArmorPlan(SALVAGE_ASSISTED_ARMOR, "@loadoutSalvageAssistedName",
                     "@loadoutSalvageAssistedDescription",
                     ArmorTradition.INDEPENDENT, SquadRoleMix.BALANCED, ArmorClass.STANDARD,

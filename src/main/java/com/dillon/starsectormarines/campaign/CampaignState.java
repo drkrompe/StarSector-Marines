@@ -472,6 +472,23 @@ public final class CampaignState implements Serializable {
     public int polityDoctrineNumbers = 0;
     public int polityDoctrineHeavySupport = 0;
 
+    // ---------- Nexerelin compatibility (see nexerelin-nouns.md) ----------
+
+    /*
+     * Which ground combat resolves a supported Nexerelin action in this save, as a
+     * GroundCombatPreference ordinal: 0 is Ask, which a save written before the column
+     * existed loads as. GroundCombatPreferenceLedger is the one reader and writer.
+     *
+     * The two invasion serials make a Marine Operations invasion settle exactly once:
+     * every briefing opened draws the next serial into its mission key, and a result
+     * settles only when its serial is newer than the last one settled. NexInvasionLedger
+     * owns both.
+     */
+
+    public int groundCombatPreference = 0;
+    public int nexInvasionIssued = 0;
+    public int nexInvasionSettled = 0;
+
     // ---------- id → row-index maps (average O(1); see campaign architecture) ----------
 
     public final LongIntMap houseIndexById     = new LongIntMap();

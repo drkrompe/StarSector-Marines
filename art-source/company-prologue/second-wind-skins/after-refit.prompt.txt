@@ -1,0 +1,21 @@
+Built-in image_gen edit of arrival.reference.png.
+Campaign condition: immediately after the limited Jangala berthing conversion.
+Arrival damage history is the continuity source, not a new pristine repaint.
+
+Use case: precise-object-edit.
+Create the immediate POST-JANGALA BERTHING REFIT material state by editing this ARRIVAL AT JANGALA reference sheet. This is the SAME battered ship a short time later after a LIMITED paid conversion. Keep nearly all existing wear, scars and field repairs. Change skin details only, not geometry. The reference's ship silhouettes, camera positions, thickness modulation, four turret locations, one horizontal port pod, four engine locations/nozzle size relationships, bay positions and four-panel layout are LOCKED.
+
+CAMPAIGN TRUTH: the yard order installs proper usable quarters and a permanent company command fit, trading cargo space for bunks. It is NOT a full hull restoration. The second boat bay, main machine shop, mess, spare bunkrooms and Mech Lab remain damaged/sealed; both original Hermes still need separate work. No rebuilt engine, new armor shell, new gun, new room/window, or repaired boat is granted. Exterior must remain strikingly battered and patched. Much of the work is internal, so the before/after exterior difference must be LOCAL and MODEST, not a transformation into a clean ship.
+
+ONLY THESE VISIBLE CHANGES:
+- Around the existing forward PORT collar/pressure-patch area above and behind the low side pod, dress a few crude field welds and add two or three modest, neatly fitted dull gray replacement/reinforcement plates on EXISTING armor panel footprints. Show narrow freshly ground weld edges, dark sealant seams, short temporary yard inspection chalk ticks. Keep the surrounding old impact cluster and scorch stain visible, so the old wound and newer repair can be read together. No giant new plate, no changed collar or appendage.
+- A narrow band of local cleaning and fresh seam work on the existing forward port-side panels hints at pressure-tested quarters. Do not label an exact exterior panel as a specific interior room; do not show bunks through an open hull.
+- Preserve the old hand-painted SECOND WIND name over the erased registry; keep its understated rough character.
+- The skin palette remains faded rust-orange, dirty cream, dark gray bare steel and grime. Pod stays the SAME worn dirty cream with oxide-orange patch and gunmetal round hatch. Absolutely no blue/teal/turquoise.
+- Keep the existing port bay open, empty and worn. Its small local work light may be steady and modest, but do not brighten or refurbish the whole bay. All of the aft shoulder's old gouge, scorched waist machinery, missing outer covers and mismatched plates stay. Do not clean the stern.
+
+Across all four projections, repeat the same limited forward repair area on the SAME hull-local side. From the stern it is mostly hidden; do not invent matching fresh aft patches to make the change visible. Leave established damage landmarks in place. Preserve the original paint pattern; do not repaint whole panels cream just to brighten the image.
+
+LOCKS: exactly FOUR raised turrets, no fifth turret, no gun pits. Exactly FOUR aft nozzles in TWO side-by-side lateral pairs, all same vertical height, outer larger and slightly farther aft; in the true side elevation only one outer engine profile is visible. Keep the horizontal forward-port side pod unchanged in shape and pose. Preserve the layered industrial structure, flat/chamfered primary casing forms and level deck datum, no organic inflated hull.
+
+Keep identical neutral studio background, lighting and four view captions. Change title to "SECOND WIND / AFTER BERTHING REFIT"; subtitle "ROOM TO LIVE / RESTORATION INCOMPLETE"; footer "NEW QUARTERS, OLD SCARS - THE REST MUST WAIT". No other captions, no extra inset, no scenic setting, no crew, no flames or smoke. Preserve original resolution and composition.

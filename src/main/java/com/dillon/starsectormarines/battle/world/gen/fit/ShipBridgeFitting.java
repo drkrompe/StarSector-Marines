@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.fit;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import java.util.ArrayList;
 import java.util.List;
 
 /** Enclosed CIC: tactical island, four watch banks, equipment pockets and a hatch sentry. */
@@ -24,22 +25,28 @@ public final class ShipBridgeFitting implements RoomFitting {
         // The quieter command island reads separately from the circulation deck.
         if (cic) {
             surface(floor, 0, 0, w, h, "ship-floor-trim.passage");
-            surface(floor, cx - 4, cy - 4, 9, 9, "ship-floor-trim.lounge-inset");
+            surface(floor, cx - 3, cy - 3, 7, 7, "ship-floor-trim.lounge-inset");
         }
         for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) {
             if (floor.contains(x, y) && (!floor.contains(x - 1, y) || !floor.contains(x + 1, y)
                     || !floor.contains(x, y - 1) || !floor.contains(x, y + 1))) reserve(floor, x, y);
         }
-        for (int y = cy - 2; y <= cy + 2; y++) for (int x = cx - 2; x <= cx + 2; x++)
-            if (x == cx - 2 || x == cx + 2 || y == cy - 2 || y == cy + 2) reserve(floor, x, y);
+        int aisle = cic ? 3 : 2;
+        for (int y = cy - aisle; y <= cy + aisle; y++) for (int x = cx - aisle; x <= cx + aisle; x++)
+            if (Math.abs(x - cx) >= 2 || Math.abs(y - cy) >= 2) reserve(floor, x, y);
         for (Doorway door : floor.localDoors()) floor.reserveLane(door.x() - 1, door.y() - 1, 3, 3);
         guard(floor);
 
         if (put(floor, cx - 1, cy - 1, "plot")) task(floor, cx, cy - 2, cx, cy - 1);
-        boolean helm = put(floor, cx - 1, cy + bankY, "helm");
-        boolean systems = put(floor, cx - 1, cy - bankY, "systems");
-        boolean west = put(floor, cx - bankX, cy - 1, "console-west");
-        boolean east = put(floor, cx + bankX, cy - 1, "console-east");
+        // Returns wrap the existing standing cells; the square central aisle stays two cells wide.
+        boolean helm = cic ? shapedBank(floor, cx, cy, -2, 5, -2, 4, 2, 4)
+                : bank(floor, cx - 1, cy + bankY, 1, 0, false);
+        boolean systems = cic ? shapedBank(floor, cx, cy, 2, -5, 2, -4, -2, -4)
+                : bank(floor, cx - 1, cy - bankY, 1, 0, true);
+        boolean west = cic ? shapedBank(floor, cx, cy, -5, -2, -4, -2, -4, 2, -5, 2)
+                : bank(floor, cx - bankX, cy - 1, 0, 1, false);
+        boolean east = cic ? shapedBank(floor, cx, cy, 5, 2, 4, 2, 4, -2, 5, -2)
+                : bank(floor, cx + bankX, cy - 1, 0, 1, true);
         // A short watch covers plot, navigation and systems before doubling a bank.
         if (helm) task(floor, cx - 1, cy + bankY + 1, cx - 1, cy + bankY);
         if (systems) task(floor, cx + 1, cy - bankY - 1, cx + 1, cy - bankY);
@@ -70,6 +77,27 @@ public final class ShipBridgeFitting implements RoomFitting {
                 if (floor.fixtureTask(x, y, Affordance.GUARD, door.x(), door.y())) return;
             }
         }
+    }
+
+    /** Expand cardinal bend points into the same cell path the room editor authors. Operators sit left. */
+    private boolean shapedBank(RoomFloor floor, int cx, int cy, int... bends) {
+        List<ConsoleBankLayout.Cell> cells = new ArrayList<>();
+        int x = bends[0], y = bends[1];
+        cells.add(new ConsoleBankLayout.Cell(cx + x, cy + y));
+        for (int i = 2; i < bends.length; i += 2) {
+            int dx = Integer.signum(bends[i] - x), dy = Integer.signum(bends[i + 1] - y);
+            while (x != bends[i] || y != bends[i + 1]) {
+                x += dx; y += dy;
+                cells.add(new ConsoleBankLayout.Cell(cx + x, cy + y));
+            }
+        }
+        return floor.placeConsoleBank(cells, false, false);
+    }
+
+    private boolean bank(RoomFloor floor, int x, int y, int dx, int dy, boolean right) {
+        return floor.placeConsoleBank(List.of(new ConsoleBankLayout.Cell(x, y),
+                new ConsoleBankLayout.Cell(x + dx, y + dy),
+                new ConsoleBankLayout.Cell(x + 2 * dx, y + 2 * dy)), false, right);
     }
 
     private boolean put(RoomFloor floor, int x, int y, String id) {

@@ -1,0 +1,9 @@
+{
+  "coordinateCanvasSize": 512,
+  "notes": "Pivots use full-frame 512-canvas pixels, independent of master dimensions. New mount centers are provisional art-preview registration, not authored mechanical yaw axes or runtime firing origins. Review pivots and traverse clearance during integration; never derive arbitrary head pivots from alpha bounds. Scale 1 preserves natural full-canvas scale. Registration changes drawing only, never source/export pixels.",
+  "groundBase": { "pivot": [256, 242] },
+  "mounts": {
+    "swarmer": { "pivot": [256, 256], "scale": 1 },
+    "proximity": { "pivot": [256, 256], "scale": 1 }
+  }
+}

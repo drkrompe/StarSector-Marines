@@ -90,7 +90,11 @@ The derived roster has four inputs and one output.
 4. **Doctrine.** Zero-sum choices, few enough to be a decision: quality moves
    the elite share and tightens the grade table; numbers raises headcount;
    heavy support admits a mech lance at markets with the industry to fabricate
-   one. These live somewhere diegetic on the colony, not on a slider screen,
+   one. Quality and heavy support also move the polity market's own garrison
+   estimate (`market-garrison-model.md`): each quality point raises its elite
+   share and each heavy-support point its heavy lean, so the polity keeps more
+   of the mechs and emplacements an operation offers. Numbers is not applied
+   there, because it already multiplies the allied headcount. These live somewhere diegetic on the colony, not on a slider screen,
    and there is no fourth axis until a consumer needs one.
 
 The output is one `GroundRosterProfile` for the player faction id, resolved

@@ -258,11 +258,11 @@ public final class MissionLaunch {
         // (the debug board's faction-comparison group). This is the one place
         // that override is applied: it rewrites the profile's faction id and
         // nothing else, so only roster selection sees it and generation cannot.
-        TargetProfile marketProfile = (detachedDebugWorld ? TargetProfile.NEUTRAL : AgreusArcCampaign.isBattle(m) ? AgreusArcCampaign.profile(m) : ShepherdRecoveryCampaign.isBattle(m) ? ShepherdRecoveryCampaign.profile(m) : CorvusWaylineCampaign.isBattle(m) ? CorvusWaylineCampaign.profile(m)
+        TargetProfile marketProfile = MissionDefencePolicy.garrisonFaced(m, (detachedDebugWorld ? TargetProfile.NEUTRAL : AgreusArcCampaign.isBattle(m) ? AgreusArcCampaign.profile(m) : ShepherdRecoveryCampaign.isBattle(m) ? ShepherdRecoveryCampaign.profile(m) : CorvusWaylineCampaign.isBattle(m) ? CorvusWaylineCampaign.profile(m)
                 : SupplyRouteCampaign.isBattle(m)
                 ? TargetProfileResolver.fromMarket(SupplyRouteCampaign.destination().planet().getMarket())
                 : TargetProfileResolver.resolve(m.targetPlanetName))
-                .withFactionId(m.defenderFactionOverride);
+                .withFactionId(m.defenderFactionOverride));
         // The mission, not the market and not the map, decides which ground defences
         // the battle carries; the market's signals stay on the profile as inputs.
         final TargetProfile profile = marketProfile.withDeclaredDefences(

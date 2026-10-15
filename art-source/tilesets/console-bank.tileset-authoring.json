@@ -1,0 +1,109 @@
+{
+  "sheetName": "console-bank",
+  "sheet": "art-source/tilesets/console-bank.raw.png",
+  "cellPx": 128,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "console-bank",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/console-bank.png",
+  "note": "Prototype: six one-cell modules cut from connected ImageGen neighborhoods, full 128px frames retained. Ends remain in their source poses; assembly code rotates placements. No map generator uses these yet.",
+  "entries": [
+    {
+      "id": "console-bank.straight",
+      "rect": [
+        352,
+        96,
+        128,
+        128
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    },
+    {
+      "id": "console-bank.straight-alt",
+      "rect": [
+        224,
+        96,
+        128,
+        128
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    },
+    {
+      "id": "console-bank.inside-corner",
+      "rect": [
+        96,
+        96,
+        128,
+        128
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    },
+    {
+      "id": "console-bank.outside-corner",
+      "rect": [
+        896,
+        96,
+        128,
+        128
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    },
+    {
+      "id": "console-bank.end-left",
+      "rect": [
+        96,
+        480,
+        128,
+        128
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    },
+    {
+      "id": "console-bank.end-right",
+      "rect": [
+        608,
+        480,
+        128,
+        128
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    }
+  ]
+}

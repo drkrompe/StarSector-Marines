@@ -34,6 +34,7 @@ public final class ThunderRunSequence {
     private int phase;
     private boolean freightReleased, escortExitOrdered;
     private final ThunderRunPacing pacing = new ThunderRunPacing();
+    private final ThunderRunColumnDriver driver = new ThunderRunColumnDriver();
     private final List<Integer> releasedCargo = new ArrayList<>();
     private final int[] gunWork = new int[2];
     private final boolean[] gunsBuilt = new boolean[2];
@@ -62,6 +63,11 @@ public final class ThunderRunSequence {
         // Its actual fate is witnessed, never scripted or charged to the player's freight award.
         advanceHauler = attempt.ordinal() == 1 ? spawn(sim, VehicleType.CARGO_CARRIER, 117, 75) : 0L;
         for (int i : attempt.cargo()) cargo.put(i, spawn(sim, VehicleType.CARGO_CARRIER, 21 - i * 8, 75));
+        for (long id : escorts) driver.register(id, ThunderRunColumnDriver.Role.ESCORT, sim.convoy().body(id).y);
+        driver.register(heavyLead, ThunderRunColumnDriver.Role.HEAVY, 75);
+        driver.register(technical, ThunderRunColumnDriver.Role.TECHNICAL, 83);
+        driver.register(advanceHauler, ThunderRunColumnDriver.Role.CARGO, 75);
+        for (long id : cargo.values()) driver.register(id, ThunderRunColumnDriver.Role.CARGO, 75);
     }
     private long spawn(BattleSimulation sim, VehicleType type, float x, float y) {
         long id = sim.convoy().spawn(type, Faction.ALLY, VehicleMission.deployed(x, y));
@@ -87,6 +93,8 @@ public final class ThunderRunSequence {
     public boolean resolved() { return delivered.size() + lost.size() == cargo.size(); }
     public boolean successful() { return resolved() && previouslyDelivered + delivered.size() > 0; }
     public int pendingMembers() { return pacing.pendingMembers(); }
+    /** Column driving evidence: reactive reroutes, wreck swerves, station-keeping waits, hauler sprints. */
+    public int[] drivingCounters() { return new int[]{driver.reroutes(), driver.swerves(), driver.waits(), driver.punches()}; }
     public FreightRunProgress.Outcome outcome() { return outcome; }
     public String status() {
         String beat = switch (phase) {
@@ -117,6 +125,7 @@ public final class ThunderRunSequence {
             }
         }
         releaseBatches(sim);
+        driver.tick(sim);
         prepareSupportGuns(sim);
         observeDefendOrder(sim);
         if (sim.convoy().isVehicle(advanceHauler)) {
@@ -204,18 +213,15 @@ public final class ThunderRunSequence {
     }
     private void order(BattleSimulation sim, long id) {
         if (!sim.convoy().isVehicle(id) || sim.convoy().mission(id).state == VehicleState.WRECKED) return;
-        var body = sim.convoy().body(id); var mission = sim.convoy().mission(id);
-        // Parallel wide road lanes preserve initial spacing, with the armed escorts screening both flanks.
+        // Staggered goals preserve the column's spacing; the driver owns lanes, weave and reactions.
         float offset = id == advanceHauler ? 16 : id == heavyLead ? 20 : escorts.contains(id) ? 8
                 : -8 * new ArrayList<>(cargo.values()).indexOf(id);
         float goal = phase == 1 ? 117 + offset : phase == 2 ? 214 + offset : ThunderRunCompound.WIDTH + 40 + offset;
         if (id == technical) goal = phase == 1 ? 135 : 193;
         if (phase == 3 && escorts.contains(id) && !escortExitOrdered) goal = 273;
         if (phase == 3 && id == heavyLead && !heavyExitOrdered) goal = 294;
-        mission.authoredRouteX = new float[]{body.x, goal};
-        mission.authoredRouteY = new float[]{body.y, body.y};
         boolean departing = id == heavyLead ? heavyExitOrdered : !escorts.contains(id) || escortExitOrdered;
-        mission.authoredLeg = phase == 3 && departing ? VehicleLeg.DEPARTURE_RUN : VehicleLeg.MOVE_ORDER;
+        driver.order(sim, id, goal, phase == 3 && departing ? VehicleLeg.DEPARTURE_RUN : VehicleLeg.MOVE_ORDER);
     }
     private void releaseBatches(BattleSimulation sim) {
         for (int batch = 0; batch < ThunderRunPacing.BATCHES; batch++) {

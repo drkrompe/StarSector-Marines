@@ -28,12 +28,17 @@ import java.util.concurrent.Future;
  *
  * <p>System properties (all optional): {@code loadoutMatchup.dir}, {@code .scenarios} (comma list of ids),
  * {@code .seeds} (count, default 3), {@code .parallelism} (default half the processors; 1 is the serial control),
- * {@code .attacker} / {@code .defender} ({@code weapons:x+armor:y}).
+ * {@code .attacker} / {@code .defender} ({@code weapons:x+armor:y}, either half also as a {@code kit:} or
+ * {@code mix:} experiment — see {@code LoadoutCardIssue}; several sides separated by {@code ;} fight each other's
+ * every pairing), {@code .fireMission} (the attackers' order carries a fire mission on the defenders' ground).
  */
 @Tag("loadout-matchup")
 class LoadoutMatchupEvidence {
 
     private static final long SEED_BASE = 20261001L;
+
+    /** Whether the attackers' order names the defenders' ground as a fire mission ({@code -PfireMission=true}). */
+    private static final boolean FIRE_MISSION = Boolean.getBoolean("loadoutMatchup.fireMission");
 
     /** Where this run writes GIFs, or null for none; set once per run before any fight starts. */
     private static Path gifDir;
@@ -48,7 +53,7 @@ class LoadoutMatchupEvidence {
         List<MatchupScenario> scenarios = scenarios();
         List<Pairing> pairings = pairings();
         String gifSetting = System.getProperty("loadoutMatchup.gifs", "auto");
-        boolean explicit = pairings.size() == 1 && pairings.get(0).role.equals("explicit");
+        boolean explicit = pairings.size() <= 4 && pairings.get(0).role.equals("explicit");
         boolean gifs = gifSetting.equals("true") || gifSetting.equals("auto") && explicit;
         gifDir = gifs ? out.resolve("gifs") : null;
         gifSeeds = Integer.getInteger("loadoutMatchup.gifSeeds", 1);
@@ -107,9 +112,14 @@ class LoadoutMatchupEvidence {
         String defender = System.getProperty("loadoutMatchup.defender");
         List<Pairing> pairings = new ArrayList<>();
         if (attacker != null || defender != null) {
-            MatchupSide a = attacker == null ? MatchupSide.STARTER : MatchupSide.parse(attacker);
-            MatchupSide d = defender == null ? MatchupSide.STARTER : MatchupSide.parse(defender);
-            pairings.add(new Pairing(a.label() + " vs " + d.label(), "explicit", a, d));
+            // Either side may list several kits separated by ';': every attacker fights every defender.
+            for (String at : (attacker == null ? "" : attacker).split(";")) {
+                for (String de : (defender == null ? "" : defender).split(";")) {
+                    MatchupSide a = at.isBlank() ? MatchupSide.STARTER : MatchupSide.parse(at);
+                    MatchupSide d = de.isBlank() ? MatchupSide.STARTER : MatchupSide.parse(de);
+                    pairings.add(new Pairing(a.label() + " vs " + d.label(), "explicit", a, d));
+                }
+            }
             return pairings;
         }
         MatchupSide starter = MatchupSide.STARTER;
@@ -145,14 +155,15 @@ class LoadoutMatchupEvidence {
 
     private static MatchupPlay.Result run(Job job) throws Exception {
         if (gifDir == null || job.seedIndex < 0 || job.seedIndex >= gifSeeds) {
-            return MatchupPlay.play(job.scenario, job.pairing.attacker, job.pairing.defender, job.seed);
+            return MatchupPlay.play(job.scenario, job.pairing.attacker, job.pairing.defender, job.seed, FIRE_MISSION,
+                    null);
         }
         String name = slug(job.pairing.name) + "-seed" + job.seed + ".gif";
         Path file = gifDir.resolve(job.scenario.id()).resolve(name);
         MatchupRecording recording = new MatchupRecording(Path.of("mod"), file,
                 job.scenario.id() + "   " + shortName(job.pairing), job.scenario.annotations());
         MatchupPlay.Result result = MatchupPlay.play(job.scenario, job.pairing.attacker, job.pairing.defender,
-                job.seed, recording);
+                job.seed, FIRE_MISSION, recording);
         recording.write();
         GIFS.put(key(result), "gifs/" + job.scenario.id() + "/" + name);
         return result;
@@ -285,7 +296,10 @@ class LoadoutMatchupEvidence {
     private static String runs(List<MatchupPlay.Result> results) {
         StringBuilder csv = new StringBuilder("scenario,attacker,defender,seed,winner,ticks,attacker_survivors,"
                 + "defender_survivors,attacker_damage_taken,defender_damage_taken,attacker_damage_mitigated,"
-                + "defender_damage_mitigated,attacker_rounds,defender_rounds,turrets,turrets_left,turret_rounds,gif\n");
+                + "defender_damage_mitigated,attacker_rounds,defender_rounds,turrets,turrets_left,turret_rounds,"
+                + "attacker_specials_used,defender_specials_used,attacker_mortar_setups,attacker_mortar_rounds,"
+                + "attacker_mortar_damage,attacker_mortar_kills,defender_mortar_setups,defender_mortar_rounds,"
+                + "defender_mortar_damage,defender_mortar_kills,gif\n");
         for (MatchupPlay.Result r : results) {
             csv.append(r.scenario()).append(',').append(q(r.attacker())).append(',').append(q(r.defender()))
                     .append(',').append(r.seed()).append(',').append(r.winner()).append(',').append(r.ticks())
@@ -295,9 +309,15 @@ class LoadoutMatchupEvidence {
                     .append(f1(r.defenderDamageMitigated())).append(',').append(r.attackerRounds())
                     .append(',').append(r.defenderRounds()).append(',').append(r.turretStart())
                     .append(',').append(r.turretsLeft()).append(',').append(r.turretRounds()).append(',')
+                    .append(r.attackerSpecialsUsed()).append(',').append(r.defenderSpecialsUsed()).append(',')
+                    .append(mortars(r.attackerMortars())).append(',').append(mortars(r.defenderMortars())).append(',')
                     .append(GIFS.getOrDefault(key(r), "")).append('\n');
         }
         return csv.toString();
+    }
+
+    private static String mortars(MatchupPlay.Mortars m) {
+        return m.setUps() + "," + m.rounds() + "," + f1(m.damage()) + "," + m.kills();
     }
 
     private static String q(String s) { return '"' + s.replace("\"", "\"\"") + '"'; }
