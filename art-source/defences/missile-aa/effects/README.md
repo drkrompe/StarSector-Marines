@@ -120,6 +120,18 @@ below uses them together; campaign unlocks are unchanged.
 [Ten-second range excerpt with reference sound](../fighter-range/review.mp4) ·
 [Overview still](../fighter-range/review.png) · [Paired metrics](../fighter-range/metrics.json)
 
+[Common-scale aircraft and turret reference](../fighter-range/scale-reference.png)
+places the existing four fighter types and three batteries on a marked apron.
+Every object uses 60 pixels per cell, with the aircraft at their normal cruise
+appearance. It is a staged size comparison, not a combat frame. Reproduce it
+with `./gradlew.bat createSnapshots -Psnapshot=missile-aa-scale`.
+
+The range excerpt above mixes two camera scales: its upper approach views use
+5 pixels per cell, while the lower mount details use 60 pixels per cell. The
+mount insets are magnified twelve times relative to the fighters above them;
+they must not be read as a same-scale comparison. Aircraft dimensions are the
+existing hull-derived dimensions, unchanged by this missile pass.
+
 Open **Company HQ → DEBUG → STORY + REPEATABLE**, choose the **Missile range**
 location, then **Missile AA / Fighter Range** and deploy from its briefing.
 This is the ordinary detached debug-company launch: twelve named marines arrive

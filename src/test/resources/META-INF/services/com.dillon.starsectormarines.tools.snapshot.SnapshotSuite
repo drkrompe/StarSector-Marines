@@ -168,3 +168,4 @@ com.dillon.starsectormarines.tools.roomauthoring.ConsoleBankEditorSnapshotSuite
 com.dillon.starsectormarines.battle.air.MissileAaEffectsSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.ParkedVehiclesSnapshotSuite
 com.dillon.starsectormarines.battle.air.MissileAaFightersSnapshotSuite
+com.dillon.starsectormarines.battle.air.MissileAaScaleSnapshotSuite
