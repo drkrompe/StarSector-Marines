@@ -15,7 +15,8 @@ import java.util.Map;
 public final class CompanyPrologueScreen extends MissionFlowMlxScreen {
     public static final String ROOT = "company-prologue";
     public static final List<String> COMPONENTS = List.of("data/ui/components/company/company-prologue.mlx");
-    public static final String IMAGE = "graphics/illustrations/company/second-wind.jpg";
+    private static final List<String> SCENES = List.of("second-wind", "claim", "last-carrier",
+            "raising-her", "departure-roster", "somewhere-to-dock", "cargo-billets", "yard-estimate");
 
     public CompanyPrologueScreen() { super(ROOT, COMPONENTS); }
     @Override protected List<String> requiredElementIds() {
@@ -88,7 +89,13 @@ public final class CompanyPrologueScreen extends MissionFlowMlxScreen {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("title", titles[index]); props.put("narrative", narrative[index]);
         props.put("dialogue", dialogue[index]); props.put("portrait", CompanyManagementGuide.portrait());
-        props.put("image", IMAGE); props.put("page", (index + 1) + " / " + CompanyPrologue.PAGE_COUNT);
+        props.put("image", image(SCENES.get(index)));
+        props.put("caption", titles[index]);
+        props.put("heading", Strings.get("openingUiCompanyPrologueSecondWindPrologue"));
+        props.put("note", Strings.get("openingUiCompanyPrologueAtPortMarineOperationsMercenaryCompanyConversion"));
+        props.put("skipLabel", Strings.get("openingUiCompanyPrologueSkipIntroduction"));
+        props.put("nextDisabled", false);
+        props.put("page", (index + 1) + " / " + CompanyPrologue.PAGE_COUNT);
         props.put("manifest", Strings.format("openingCompanyPrologueCrewAboardSpendableCredits", crew, String.format(Locale.ROOT, "%,d", credits)));
         props.put("reserve", reserve > 0 ? Strings.format("openingCompanyPrologueCreditsHeldForTheConversionFirstBoat", String.format(Locale.ROOT, "%,d", reserve))
                 : Strings.get("openingCompanyPrologueConversionPaymentDueFromFleetFundsPreparation"));
@@ -99,4 +106,6 @@ public final class CompanyPrologueScreen extends MissionFlowMlxScreen {
         props.put("next", next); props.put("back", back); props.put("skip", skip);
         return props;
     }
+
+    static String image(String scene) { return "graphics/illustrations/company/" + scene + ".jpg"; }
 }

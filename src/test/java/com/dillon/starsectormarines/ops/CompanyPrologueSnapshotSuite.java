@@ -12,6 +12,8 @@ import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import com.dillon.starsectormarines.ops.CompanyYardReview.Stage;
 
 /** Production opening at 1920x1080, 100% scale; no campaign or graphics context. */
 public final class CompanyPrologueSnapshotSuite implements SnapshotSuite {
@@ -32,16 +34,30 @@ public final class CompanyPrologueSnapshotSuite implements SnapshotSuite {
         }
         frames.add(frame(loader, renderer, 5, "Independent Port"));
         frames.add(frame(loader, renderer, 7, null));
+        for (Stage stage : Stage.values()) {
+            frames.add(yardFrame(loader, renderer, stage, true, 5000, null));
+            frames.add(yardFrame(loader, renderer, stage, false, 0, null));
+        }
+        frames.add(yardFrame(loader, renderer, Stage.ORDER, false, 0, "The conversion requires 5,000 credits."));
         return frames;
+    }
+    private SnapshotArtifact yardFrame(MarkupLoader loader, HeadlessUiRenderer renderer, Stage stage,
+                                       boolean jangala, int reserve, String refusal) {
+        var props = CompanyYardScreen.model(stage, jangala, "Second Wind", reserve > 0 ? 500 : 2500,
+                reserve, refusal, null, true, () -> {}, () -> {}, () -> {});
+        return renderFrame(loader, renderer, props, "yard-" + stage.name().toLowerCase()
+                + (jangala ? "-jangala" : "-fallback") + (refusal == null ? "" : "-refused") + "-100.png");
     }
     private SnapshotArtifact frame(MarkupLoader loader, HeadlessUiRenderer renderer, int page, String port) {
         var props = CompanyPrologueScreen.model(page, port, "Jangala".equals(port), 20, 500, 5000, () -> {}, () -> {}, () -> {});
+        return renderFrame(loader, renderer, props, "page-" + (page + 1) + "-" + (port == null ? "unavailable" : port.replace(' ', '-')) + "-100.png");
+    }
+    private SnapshotArtifact renderFrame(MarkupLoader loader, HeadlessUiRenderer renderer, Map<String, Object> props, String name) {
         try (var instance = loader.build(new Reactor(), CompanyPrologueScreen.ROOT, props)) {
             var document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            return new SnapshotArtifact("page-" + (page + 1) + "-" + (port == null ? "unavailable" : port.replace(' ', '-'))
-                    + "-100.png", renderer.renderRelative(document, 1920, 1080, 1f,
+            return new SnapshotArtifact(name, renderer.renderRelative(document, 1920, 1080, 1f,
                     MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT));
         }
     }

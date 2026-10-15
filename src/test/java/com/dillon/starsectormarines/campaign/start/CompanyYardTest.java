@@ -20,6 +20,7 @@ import com.fs.starfarer.api.campaign.rules.MemoryAPI;
 import com.fs.starfarer.api.campaign.rules.MemKeys;
 import com.fs.starfarer.api.impl.campaign.rulecmd.CompanyYardCMD;
 import com.dillon.starsectormarines.ops.CompanyMeans;
+import com.dillon.starsectormarines.ops.CompanyStoryDialogDelegate;
 import com.dillon.starsectormarines.ops.CompanyShipDesignation;
 import com.dillon.starsectormarines.ops.ShipTransferViewModel;
 import com.dillon.starsectormarines.battle.world.gen.ship.TestHulls;
@@ -167,21 +168,24 @@ class CompanyYardTest {
             }));
             var lines = new ArrayList<String>();
             var options = new ArrayList<String>();
+            var visuals = new ArrayList<Object>();
             var dialog = stub(InteractionDialogAPI.class, Map.of("getInteractionTarget", planet,
+                    "showCustomVisualDialog", (Function<Object[], Object>) a -> { visuals.add(a[2]); return null; },
                     "getTextPanel", stub(TextPanelAPI.class, Map.of("addPara", (Function<Object[], Object>) a -> { lines.add((String) a[0]); return null; })),
                     "getOptionPanel", stub(OptionPanelAPI.class, Map.of("addOption", (Function<Object[], Object>) a -> { options.add((String) a[0]); return null; }))));
             assertFalse(CompanyYardCMD.openRequired(dialog, Map.of(MemKeys.LOCAL, memory)), "No yard review away from port");
             uiMethods.put("getCurrentInteractionDialog", dialog);
             assertTrue(CompanyYardCMD.openRequired(dialog, Map.of(MemKeys.LOCAL, memory)));
-            assertTrue(lines.stream().anyMatch(line -> line.contains("Mercenary Company Conversion")));
-            assertTrue(lines.stream().anyMatch(line -> line.contains("Nessa met us")));
-            assertTrue(lines.stream().anyMatch(line -> line.contains("Wayline road")), "Jangala meets Mara through her sister");
+            assertEquals(1, visuals.size());
+            assertInstanceOf(CompanyStoryDialogDelegate.class, visuals.get(0));
+            assertTrue(lines.isEmpty(), "Founding yard story uses the retained screen, not native text");
             lines.clear();
             planetMethods.put("getId", "other");
             assertTrue(CompanyYardCMD.openRequired(dialog, Map.of(MemKeys.LOCAL, memory)));
             assertFalse(lines.stream().anyMatch(line -> line.contains("Nessa")), "The personal yard contact belongs to Jangala");
             planetMethods.put("getId", "jangala");
-            assertTrue(options.contains(protectedStart ? "Install conversion - use reserved payment" : "Install conversion - 5,000 credits"));
+            assertEquals(2, visuals.size(), "Fallback ports use the same retained host");
+            assertTrue(options.contains("Return to port"));
             assertEquals("starter", localData.get("$smYardSelectedShip"));
             assertEquals(startingCash, credits.get(), "Opening the required review spends nothing");
             assertFalse(installed[0]);

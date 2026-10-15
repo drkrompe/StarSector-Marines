@@ -9,9 +9,40 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.HashSet;
+import javax.imageio.ImageIO;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CompanyPrologueScreenTest {
+    @Test void eachBeatHasDistinctBoundedShippedArtwork() throws Exception {
+        var images = new HashSet<String>();
+        long bytes = 0;
+        for (int page = 0; page < CompanyPrologue.PAGE_COUNT; page++) {
+            var props = CompanyPrologueScreen.model(page, "Jangala", true, 20, 500, 5000, () -> {}, () -> {}, () -> {});
+            String path = (String) props.get("image");
+            assertTrue(images.add(path), "Each story beat needs its own illustration");
+            var file = Path.of("mod", path);
+            var image = ImageIO.read(file.toFile());
+            assertEquals(1200, image.getWidth());
+            assertEquals(800, image.getHeight());
+            assertTrue(Files.size(file) <= 400 * 1024);
+            bytes += Files.size(file);
+            assertFalse(props.get("caption").toString().isBlank());
+        }
+        for (var stage : CompanyYardReview.Stage.values()) {
+            var props = CompanyYardScreen.model(stage, true, "Second Wind", 500, 5000, null, null, true,
+                    () -> {}, () -> {}, () -> {});
+            String path = (String) props.get("image");
+            if (!images.add(path)) continue;
+            var file = Path.of("mod", path);
+            var image = ImageIO.read(file.toFile());
+            assertEquals(1200, image.getWidth());
+            assertEquals(800, image.getHeight());
+            assertTrue(Files.size(file) <= 400 * 1024);
+            bytes += Files.size(file);
+        }
+        assertTrue(bytes <= 3 * 1024 * 1024, "The opening and yard art have a bounded distribution cost");
+    }
     @Test void fallbackAndMissingPortNeverGiveTheJangalaContactOrADisabledExit() {
         var fallback = CompanyPrologueScreen.model(5, "Independent Port", false, 17, 500, 5000, () -> {}, () -> {}, () -> {});
         assertFalse(fallback.get("narrative").toString().contains("Corvus"));
@@ -48,6 +79,35 @@ class CompanyPrologueScreenTest {
                 var controls = instance.requireElement("prologue-controls").box().borderBox();
                 assertTrue(reading.height() > 200);
                 assertTrue(reading.bottom() <= controls.y());
+            }
+        }
+    }
+    @Test void yardControlsRemainReachableAndRefusedOrderCannotBeClicked() throws Exception {
+        var loader = new MarkupLoader(path -> Files.readString(Path.of("mod").resolve(path)), CompanyPrologueScreen.COMPONENTS);
+        loader.reload();
+        for (var stage : CompanyYardReview.Stage.values()) {
+            for (boolean refused : new boolean[]{false, true}) {
+                var next = new AtomicInteger(); var back = new AtomicInteger(); var leave = new AtomicInteger();
+                var props = CompanyYardScreen.model(stage, true, "Second Wind", 500, 5000,
+                        refused ? "The yard is unavailable." : null, null, true,
+                        next::incrementAndGet, back::incrementAndGet, leave::incrementAndGet);
+                try (var instance = loader.build(new Reactor(), CompanyPrologueScreen.ROOT, props)) {
+                    var document = new UiDocument(instance.root());
+                    instance.styles().forEach(document::addStyleSheet);
+                    document.theme(MarineOpsThemes.standard());
+                    document.layout(1920, 1080);
+                    var box = instance.requireElement("prologue-next").box().borderBox();
+                    assertTrue(box.y() >= 0 && box.bottom() <= 1080);
+                    float x = box.x() + box.width() / 2, y = box.y() + box.height() / 2;
+                    document.pointerDown(x, y); document.pointerUp(x, y);
+                    assertEquals(refused && stage == CompanyYardReview.Stage.ORDER ? 0 : 1, next.get());
+                    click(document, instance, "prologue-skip", 1080);
+                    assertEquals(1, leave.get());
+                    if (stage == CompanyYardReview.Stage.ORDER) {
+                        click(document, instance, "prologue-back", 1080);
+                        assertEquals(1, back.get());
+                    }
+                }
             }
         }
     }

@@ -2,7 +2,7 @@
 
 Status: IMPLEMENTED; live acceptance open
 Written: 2026-10-12
-Updated: 2026-10-12 — Second Wind reserves four mech berths within its existing hull; Hound recovery restores the first and separate paid repairs restore the remaining three. Live acceptance remains.
+Updated: 2026-10-15 — Eight distinct story illustrations and a shared retained founding-yard review, with Cerberus-referenced exterior art and a limited conversion receipt. Live acceptance remains.
 
 ## Outcome
 
@@ -76,8 +76,10 @@ cannot replenish it. Ordinary starts receive no depot.
 - Castle's memories and the crew's belongings suggest their history; navigation
   instructions stay in the UI and Intel. Nessa's personal yard dialogue belongs
   only to the original Second Wind conversion on Jangala.
-- Review all six production pages at 1920x1080 and 100% scale through the
-  `company-prologue` snapshot suite. Live host dismissal and save/load remain open.
+- Review all eight production pages and the founding-yard inspection, order and
+  completion at 1920x1080 and 100% scale through the `company-prologue` snapshot
+  suite. Show the battered hull and usable bunks without implying all rooms have
+  been restored. Live host dismissal and save/load remain open.
 - Refuse installation in space, on stations, at inaccessible or nonworking ports,
   on incompatible/mothballed/unowned hulls, after installation, and without funds.
 - Failed orders change neither credits nor variant. Successful work persists and
@@ -95,8 +97,10 @@ cannot replenish it. Ordinary starts receive no depot.
 
 The additive new-game option offers Normal/Easy and keeps vanilla's skip-tutorial
 initialization before applying this start. Castle's Intel marker and plotted course
-point to Jangala (or an accessible planetary fallback). The native planet menu owns
-the reviewed permanent yard order. Castle's existing portrait popover and interactive
+point to Jangala (or an accessible planetary fallback). The native planet menu opens
+the founding yard's retained story review, sharing the prologue renderer while the
+planet remains the docking authority. Generic later conversions retain their ordinary
+yard menu. Castle's existing portrait popover and interactive
 highlights resume the company-room sequence after designation.
 
 The conversion is saved on the actual variant and included in deck cache identity.

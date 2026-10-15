@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.campaign.start.CompanyYard;
 import com.dillon.starsectormarines.campaign.start.MercenaryCompanyConversion;
 import com.dillon.starsectormarines.ops.CompanyManagementGuide;
+import com.dillon.starsectormarines.ops.CompanyStoryDialogDelegate;
+import com.dillon.starsectormarines.ops.CompanyYardScreen;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
 import com.fs.starfarer.api.campaign.rules.MemKeys;
@@ -60,7 +62,17 @@ public final class CompanyYardCMD extends BaseCommandPlugin {
         FleetMemberAPI ship = CerberusCompanyStart.startingShip();
         if (ship == null) return false;
         memoryMap.get(MemKeys.LOCAL).set(SELECTED, ship.getId());
-        review(dialog, ship);
+        // Keep the planet interaction alive: it is the yard/depot's docking authority.
+        dialog.getOptionPanel().clearOptions();
+        dialog.getOptionPanel().addOption(Strings.get("openingCompanyYardCMDReturnToPort"), "smYardReturn");
+        dialog.hideTextPanel();
+        dialog.hideVisualPanel();
+        dialog.showCustomVisualDialog(Global.getSettings().getScreenWidth(), Global.getSettings().getScreenHeight(),
+                new CompanyStoryDialogDelegate(new CompanyYardScreen(ship, personalYard(ship)), () -> {
+                    dialog.showTextPanel();
+                    dialog.showVisualPanel();
+                    FireBest.fire(null, dialog, memoryMap, "OpenInteractionDialog");
+                }));
         return true;
     }
     private static List<FleetMemberAPI> candidates() {
