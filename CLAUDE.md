@@ -1358,6 +1358,24 @@ calls it itself so a scratch harness gets it too. Anything that *measures*
 aircraft size should assert `HullFootprintResolver.isMeasured` rather than
 trust the number, because the fallback is silent by design.
 
+**A scene's verdicts assert mechanics; outcomes are readings.** Features are
+still landing, and every one of them moves who wins a fight: a verdict such as
+"the wall came down", "the company took the bunker", "a raider was shot down" or
+"at least N defenders died" goes red on an unrelated merge, or on a seed change,
+without anything it was written to protect having broken. Assert what the
+machinery does — the plan gave the breach to squads that carry the kit, a
+breacher with the wall in reach and kit ready spent it within a few seconds, a
+planted charge damaged the wall it was set on, the holder follows the flip,
+nothing is fired at your own side — and where the mechanic needs a precondition
+the fight may not supply (a breacher alive at the wall), make the verdict
+conditional on it and say so in the detail rather than demanding the precondition.
+Wall-down ticks, rounds, kills, losses and who held what at the end go in the
+report's metrics, where a person reads them. A scripted, deterministic effect
+(a placed barrage on a fixed target, a bomb on a nest) may still be asserted
+as a mechanic; an unscripted fight may not. `assault-muster` takes
+`-Dbattle.scene.assaultMuster.seed=<long>` so a verdict's seed-stability can be
+shown rather than assumed.
+
 Prefer a scene over a mission harness whenever the question is about one
 behavior rather than about a whole battle's balance, and add another scene
 rather than widening this one past what its name claims.

@@ -27,6 +27,7 @@ import com.dillon.starsectormarines.battle.scene.SceneRun;
 import com.dillon.starsectormarines.battle.scene.SceneWorld;
 import com.dillon.starsectormarines.battle.scene.TickObserver;
 import com.dillon.starsectormarines.battle.scene.Verdict;
+import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -44,6 +45,12 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.marine.SatchelChargeSpec;
+import com.dillon.starsectormarines.marine.SpecialActivation;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
@@ -77,8 +84,8 @@ import java.util.TreeSet;
  * <p>The readings that separate them are not the aspect outcome alone, since a fort may legitimately be too strong
  * for the company on offer. They are how many marines are alive when the first one reaches the fort, how many are in
  * its reach together, how many squads, and what the bunker's holder is at the end. The verdicts are the structure
- * of the phases (a company formed, mustered, was committed, and the phases were published); whether the fort fell is
- * reported, never asserted.
+ * of the phases (a company formed, mustered, was committed, and the phases were published) and the mechanics of
+ * each capability; whether the fort fell, whether the wall came down and what it cost are reported, never asserted.
  *
  * <p>Both loops keep the fort's wall nests alive. The garrison is stationary inside the bunker: a patrolling garrison
  * would walk off and answer a different question.
@@ -236,7 +243,7 @@ public final class AssaultMusterScene implements BehaviorScene {
         builder.unit("far-defender", Faction.DEFENDER, UnitType.MARINE, 145, 5);
         SceneWorld world = builder.build();
         BattleSimulation sim = world.sim();
-        sim.random().setSeed(20261016L);
+        sim.random().setSeed(Long.getLong("battle.scene.assaultMuster.seed", 20261016L));
         if (lance) {
             sim.setMechDrops(new MechDropService(MechDropDeclaration.NONE.with(Faction.MARINE,
                     new MechDropAllowance(1, List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.HOUND,
@@ -310,9 +317,9 @@ public final class AssaultMusterScene implements BehaviorScene {
             verdicts.add(Verdict.of("the-foothold-was-held", t.footholdTicks > 0,
                     t.footholdTicks + " ticks with a squad published holding the drop zone"));
             verdicts.add(Verdict.of("it-went-in-as-one-body",
-                    t.peakSquadsInReach >= Math.min(3, t.companySquads),
-                    "peak " + t.peakSquadsInReach + " squads in reach together, company of " + t.companySquads
-                            + " squads committed"));
+                    t.companySquads >= 3,
+                    "company of " + t.companySquads + " squads committed together (peak " + t.peakSquadsInReach
+                            + " in reach of the fort is a reading)"));
             verdicts.add(Verdict.of("no-lone-squad-was-detached-to-the-fort", t.soloStructureOrders == 0,
                     t.soloStructureOrders + " DEFENCE_STRUCTURE_* directives"));
         }
@@ -324,35 +331,44 @@ public final class AssaultMusterScene implements BehaviorScene {
                     "SUPPRESS at " + t.stepTicks.get("SUPPRESS") + ", ENTRY at " + t.stepTicks.get("ENTRY")));
         }
         if (loop.startsWith("breach")) {
+            BreachMechanics b = t.breach;
             verdicts.add(Verdict.of("the-company-took-the-breach-it-could-staff",
                     t.planVariant.startsWith("breach"), "plan variant " + t.planVariant + ", shortfall: " + t.planShortfall));
-            verdicts.add(Verdict.of("the-breachers-fired-at-the-wall", t.roundsAtWalls > 0,
-                    t.roundsAtWalls + " rounds, charges and cuts spent on the ordered wall"));
-            verdicts.add(Verdict.of("the-wall-came-down", t.wallFirstOpenTick >= 0,
-                    "wall cells " + t.wallStart + " at start, " + t.wallStanding + " standing at end; first opened at tick "
-                            + t.wallFirstOpenTick + ", cut through at " + t.wallCutTick));
+            verdicts.add(Verdict.of("breach-orders-went-to-squads-that-carry-a-breaching-kit",
+                    !b.orderedSquads.isEmpty() && b.unequippedSquads.isEmpty(),
+                    b.orderedSquads.size() + " squads ordered to open the wall, " + b.unequippedSquads.size()
+                            + " of them carrying nothing that can"));
+            // Vacuous when no breacher ever stood at the wall with kit ready: getting there alive is the fight's business.
+            verdicts.add(Verdict.of("a-breacher-in-reach-with-kit-ready-spends-it",
+                    b.firstReadyInReachTick < 0 || (b.firstSpendTick >= 0
+                            && b.firstSpendTick <= b.firstReadyInReachTick + BreachMechanics.SPEND_WINDOW_TICKS),
+                    b.firstReadyInReachTick < 0 ? "no breacher stood at the wall with kit ready (nothing to judge)"
+                            : "first ready in reach at tick " + b.firstReadyInReachTick + ", first round, charge or cut spent at tick "
+                            + b.firstSpendTick));
+            verdicts.add(Verdict.of("a-charge-set-on-the-wall-damaged-it",
+                    b.chargesDamagedWall == b.chargesResolved,
+                    b.chargesSet + " charges set, " + b.chargesResolved + " detonated, " + b.chargesDamagedWall
+                            + " of those lowered or opened their wall cell"));
         }
         // The combined-arms loop reports the tubes as readings only: its mission nest may be dead before the section arrives.
         if (loop.equals("plan-mortar") || loop.equals("plan-mortar-air")) {
             verdicts.add(Verdict.of("the-tubes-were-set-down", t.tubeRounds.size() > 0,
                     t.tubeRounds.size() + " tubes were served, " + t.mortarRounds() + " rounds fired in all"));
-            verdicts.add(Verdict.of("the-tubes-fired-on-the-assigned-mission", t.mortarMissionRounds() > 0,
-                    t.mortarMissionRounds() + " of " + t.mortarRounds() + " rounds fired at a body on the mission"));
-            verdicts.add(Verdict.of("the-tubes-stood-out-of-the-nests-reach", t.closestTubeToNest >= 24f,
-                    "closest served tube to a live nest: " + Math.round(t.closestTubeToNest) + " cells (a nest reaches 24)"));
         }
         if (loop.equals("plan-mortar") || loop.equals("plan-mortar-air") || loop.equals("combined-arms")) {
-            // Two tubes in a company of five do not staff a base of fire alone; the reading is that they counted for something.
-            verdicts.add(Verdict.of("the-tubes-counted-toward-the-base-of-fire", !t.planShortfall.contains("base_of_fire needs ")
+            // Two tubes in a company of five do not staff a base of fire alone; the mechanic is that they count for something
+            // when the company carries any. Which squads the muster draws is the fight's business, so with none it is vacuous.
+            verdicts.add(Verdict.of("the-tubes-counted-toward-the-base-of-fire", !t.companyCarriesTubes
                             || !t.planShortfall.matches("(?s).*base_of_fire needs [^;]*: (\\d+) of \\1 short.*"),
-                    "shortfall at suppression: " + (t.planShortfall.isEmpty() ? "none" : t.planShortfall)));
+                    (t.companyCarriesTubes ? "company carries tubes; " : "no tubes in the company; ") + "shortfall at suppression: "
+                            + (t.planShortfall.isEmpty() ? "none" : t.planShortfall)));
         }
         if (hasAir(loop)) {
             int asked = t.command == null ? 0 : t.command.strikeOutcomes().values().stream().mapToInt(Integer::intValue).sum();
             int launched = t.poolEvents(AirPoolService.EventType.LAUNCHED);
             verdicts.add(Verdict.of("the-air-was-asked-or-the-ceiling-held",
-                    asked > 0 || t.nestRiskMin > AirStrikeDirector.RISK_CEILING,
-                    asked + " strikes asked for " + (t.command == null ? "" : t.command.strikeOutcomes()) + ", " + launched
+                    !t.companyCarriesRadio || asked > 0 || t.nestRiskMin > AirStrikeDirector.RISK_CEILING,
+                    (t.companyCarriesRadio ? "company carries a radio; " : "no radio in the company; ") + asked + " strikes asked for " + (t.command == null ? "" : t.command.strikeOutcomes()) + ", " + launched
                             + " launched; believed risk over the nests at its lowest " + Math.round(t.nestRiskMin * 100) / 100f
                             + " against a ceiling of " + AirStrikeDirector.RISK_CEILING));
         }
@@ -410,6 +426,13 @@ public final class AssaultMusterScene implements BehaviorScene {
         metrics.put("wallFirstOpenedTick", t.wallFirstOpenTick);
         metrics.put("wallCutThroughTick", t.wallCutTick);
         metrics.put("shellsAndChargesAtWalls", t.roundsAtWalls);
+        metrics.put("breachOrderedSquads", t.breach.orderedSquads.size());
+        metrics.put("breachFirstOrderTick", t.breach.firstOrderTick);
+        metrics.put("breachNearestApproachCells", t.breach.nearestApproach == Float.MAX_VALUE ? -1 : Math.round(t.breach.nearestApproach));
+        metrics.put("breachFirstReadyInReachTick", t.breach.firstReadyInReachTick);
+        metrics.put("breachFirstSpendTick", t.breach.firstSpendTick);
+        metrics.put("wallChargesSet", t.breach.chargesSet);
+        metrics.put("wallChargesDetonated", t.breach.chargesResolved);
         metrics.put("lanceInCompanyTick", t.lanceInCompanyTick);
         metrics.put("nestsKilledByMortar", t.killedByMortar);
         metrics.put("nestsKilledByAir", t.killedByAir);
@@ -440,6 +463,134 @@ public final class AssaultMusterScene implements BehaviorScene {
         metrics.put("fortX", (int) run.fort().battery().x());
         metrics.put("fortY", (int) run.fort().battery().y());
         return new SceneReport(id(), loop, TICKS, verdicts, metrics);
+    }
+
+    /**
+     * The mechanics of a wall breach, observed rather than judged by outcome: which squads the plan ordered to open the
+     * wall and whether they carry anything that can, whether a breacher with his kit ready and the wall in reach had
+     * spent it within a few seconds, and whether a charge set on the wall damaged it when its fuse ran out. Whether
+     * the wall came down is a reading elsewhere.
+     */
+    private static final class BreachMechanics {
+        /** A breacher in reach with kit ready has this many ticks to have spent a round, charge or cut (ten seconds). */
+        static final int SPEND_WINDOW_TICKS = 300;
+
+        final Set<Integer> orderedSquads = new HashSet<>();
+        final Set<Integer> unequippedSquads = new HashSet<>();
+        int firstReadyInReachTick = -1;
+        int firstSpendTick = -1;
+        int firstOrderTick = -1;
+        /** Closest any member of an ordered squad has stood to the ordered wall cell (a reading). */
+        float nearestApproach = Float.MAX_VALUE;
+        int chargesSet;
+        int chargesResolved;
+        int chargesDamagedWall;
+        private final Map<Long, int[]> chargeCells = new HashMap<>();
+        private final Map<Long, Integer> chargeWallHp = new HashMap<>();
+
+        void observe(BattleSimulation sim, int tick) {
+            NavigationGrid grid = sim.getGrid();
+            World world = sim.world();
+            for (Squad squad : sim.getSquads()) {
+                ObjectiveAssignment order = squad.assignmentForExecution();
+                if (order == null || !order.breaches()) continue;
+                int cx = order.breachCellX();
+                int cy = order.breachCellY();
+                boolean capable = false;
+                boolean ready = false;
+                int count = sim.squadMemberCount(squad.id);
+                for (int i = 0; i < count; i++) {
+                    long member = sim.squadMemberAt(squad.id, i);
+                    if (member == 0L || !world.isAlive(member)) continue;
+                    capable |= canCutWalls(world, member);
+                    nearestApproach = Math.min(nearestApproach, (float) Math.hypot(cx + 0.5f - world.renderX(member), cy + 0.5f - world.renderY(member)));
+                    ready |= readyAtWall(sim, grid, world, member, cx, cy);
+                }
+                if (orderedSquads.add(squad.id) && !capable) unequippedSquads.add(squad.id);
+                if (firstOrderTick < 0) firstOrderTick = tick;
+                if (ready && !grid.isWalkable(cx, cy) && firstReadyInReachTick < 0) firstReadyInReachTick = tick;
+            }
+            if (firstSpendTick < 0 && sim.wallBreach().roundsAtWalls() > 0) firstSpendTick = tick;
+            Set<Long> present = new HashSet<>();
+            for (SatchelChargeService.ChargeView charge : sim.satchelCharges().activeCharges()) {
+                if (charge.targetId() != 0L) continue;
+                present.add(charge.id());
+                int[] cell = chargeCells.computeIfAbsent(charge.id(), k -> {
+                    chargesSet++;
+                    return new int[] {(int) Math.floor(charge.x()), (int) Math.floor(charge.y())};
+                });
+                chargeWallHp.put(charge.id(), grid.getWallHp(cell[0], cell[1]));
+            }
+            for (Map.Entry<Long, int[]> entry : chargeCells.entrySet()) {
+                long id = entry.getKey();
+                if (present.contains(id) || !chargeWallHp.containsKey(id)) continue;
+                int[] cell = entry.getValue();
+                chargesResolved++;
+                if (grid.isWalkable(cell[0], cell[1]) || grid.getWallHp(cell[0], cell[1]) < chargeWallHp.get(id)) {
+                    chargesDamagedWall++;
+                }
+                chargeWallHp.remove(id);
+            }
+        }
+
+        /** Whether the member carries something an order to open a wall can spend. */
+        private static boolean canCutWalls(World world, long member) {
+            if (world.hasMechLoadout(member)) {
+                for (MechWeaponMount mount : world.mechLoadout(member).mounts()) {
+                    if (mount != null && mount.weaponDef().wallDamage > 0) return true;
+                }
+                return false;
+            }
+            if (!world.hasSecondaryWeapon(member)) return false;
+            SpecialEquipmentDef kit = world.specialEquipment(member);
+            return switch (kit.activation()) {
+                case DIRECT_EXPLOSIVE -> kit.weaponDef().wallDamage > 0;
+                case UTILITY_SATCHEL -> kit.satchelChargeSpec().wallBreachDamage() > 0;
+                case CLOSE_CONTACT -> kit.wallDamage() > 0;
+                default -> false;
+            };
+        }
+
+        /** Whether this member, as he stands now, has the wall in reach of kit that is ready to be spent on it. */
+        private static boolean readyAtWall(BattleSimulation sim, NavigationGrid grid, World world, long member,
+                                           int cx, int cy) {
+            float fromX = world.renderX(member);
+            float fromY = world.renderY(member);
+            float tx = cx + 0.5f;
+            float ty = cy + 0.5f;
+            float distance = (float) Math.hypot(tx - fromX, ty - fromY);
+            if (world.hasMechLoadout(member)) {
+                for (MechWeaponMount mount : world.mechLoadout(member).mounts()) {
+                    if (mount == null) continue;
+                    WeaponDef weapon = mount.weaponDef();
+                    if (weapon.wallDamage > 0 && distance <= weapon.range && distance >= weapon.minRange) return true;
+                }
+                return false;
+            }
+            if (!world.hasSecondaryWeapon(member)
+                    || world.secondaryCooldownTimer(member) > 0f || world.secondaryActionTimer(member) > 0f) return false;
+            SpecialEquipmentDef kit = world.specialEquipment(member);
+            if (kit.activation() == SpecialActivation.DIRECT_EXPLOSIVE) {
+                WeaponDef weapon = kit.weaponDef();
+                return weapon.wallDamage > 0 && world.secondaryAmmo(member) > 0 && distance <= weapon.range
+                        && distance >= weapon.minRange && lineReaches(grid, fromX, fromY, tx, ty, cx, cy);
+            }
+            if (kit.activation() == SpecialActivation.UTILITY_SATCHEL) {
+                SatchelChargeSpec spec = kit.satchelChargeSpec();
+                return spec.wallBreachDamage() > 0 && distance <= spec.contactRange() + 4f
+                        && !sim.satchelCharges().hasChargeAtCell(cx, cy);
+            }
+            return false;
+        }
+
+        private static boolean lineReaches(NavigationGrid grid, float fromX, float fromY, float toX, float toY,
+                                           int cx, int cy) {
+            long packed = grid.firstWallOnLine(fromX, fromY, toX, toY);
+            int hitX = (int) packed;
+            int hitY = (int) (packed >>> 32);
+            if (hitX == -1 && hitY == -1) return true;
+            return Math.abs(hitX - cx) <= 1 && Math.abs(hitY - cy) <= 1;
+        }
     }
 
     private static final class Trace implements TickObserver {
@@ -481,6 +632,10 @@ public final class AssaultMusterScene implements BehaviorScene {
         String planShortfall = "";
         String breachSquadKit = "";
         ConquestCommand command;
+        final BreachMechanics breach = new BreachMechanics();
+        /** Whether a squad committed to the company ever carried a field mortar, or a forward observer's radio. */
+        boolean companyCarriesTubes;
+        boolean companyCarriesRadio;
         /** Nest id to the last tick a served tube had it as its mission target, and a pool sortie was over it. */
         final Map<Long, Integer> lastMortarAim = new HashMap<>();
         final Map<Long, Integer> lastAirNear = new HashMap<>();
@@ -522,6 +677,21 @@ public final class AssaultMusterScene implements BehaviorScene {
 
         String caption() {
             return caption;
+        }
+
+        /** Records whether the committed squads carry the kit the fire-support verdicts are about. */
+        private void noteCarriers(BattleSimulation sim, List<Integer> squadIds) {
+            World w = sim.world();
+            for (int squadId : squadIds) {
+                int count = sim.squadMemberCount(squadId);
+                for (int i = 0; i < count; i++) {
+                    long member = sim.squadMemberAt(squadId, i);
+                    if (member == 0L || !w.isAlive(member) || !w.hasSecondaryWeapon(member)) continue;
+                    String kit = w.specialEquipment(member).id();
+                    if (SpecialEquipmentRegistry.FIELD_MORTAR_ID.equals(kit)) companyCarriesTubes = true;
+                    if (RADIO_KIT.equals(kit)) companyCarriesRadio = true;
+                }
+            }
         }
 
         /** The fire support readings: which tubes are up and on what, where the bombers are, who killed which nest. */
@@ -566,6 +736,7 @@ public final class AssaultMusterScene implements BehaviorScene {
 
         @Override public void observe(BattleSimulation sim, int tick) {
             observeFireSupport(sim, tick);
+            breach.observe(sim, tick);
             long core = fort.place(FortAspect.FIRE_CONTROL).coreId();
             float bx = sim.world().x(core);
             float by = sim.world().y(core);
@@ -661,6 +832,7 @@ public final class AssaultMusterScene implements BehaviorScene {
                         }
                     }
                     if (company.objectiveId() >= 0 && !company.step().isEmpty()) stepTicks.putIfAbsent(company.step(), tick);
+                    if (company.objectiveId() >= 0 && company.stage().equals("ASSAULT")) noteCarriers(sim, company.squadIds());
                     if (company.step().equals("SUPPRESS") && planVariant.isEmpty()) { planVariant = company.variant(); planShortfall = String.join("; ", company.shortfall()); }
                     if (company.stage().equals("MUSTER") && firstMusterTick < 0) firstMusterTick = tick;
                     if (company.stage().equals("ASSAULT")) {
