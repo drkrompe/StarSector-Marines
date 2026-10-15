@@ -1,0 +1,12 @@
+{
+	"structures":{
+		"grounddefenses":{"bulk":0.25, "elite":0.25, "heavy":0.5},
+		"heavybatteries":{"bulk":0.5, "elite":0.5, "heavy":1.0},
+		"patrolhq":{"elite":0.1},
+		"militarybase":{"elite":0.2, "heavy":0.2},
+		"highcommand":{"elite":0.3, "heavy":0.3},
+		"lionsguard":{"elite":0.5, "heavy":0.3},
+		"heavyindustry":{"heavy":0.1},
+		"orbitalworks":{"heavy":0.2}
+	}
+}
