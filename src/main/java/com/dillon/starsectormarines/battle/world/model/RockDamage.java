@@ -17,16 +17,30 @@ public final class RockDamage {
             "nature.rock-large-2", "nature.rock-large-3");
     private static final class Entry {
         final int index;
+        final String id;
         final DoodadDef damaged, destroyed;
         int hp;
-        Entry(int index, DoodadDef damaged, DoodadDef destroyed, int hp) {
-            this.index = index; this.damaged = damaged; this.destroyed = destroyed; this.hp = hp;
+        Entry(int index, String id, DoodadDef damaged, DoodadDef destroyed, int hp) {
+            this.index = index; this.id = id; this.damaged = damaged; this.destroyed = destroyed; this.hp = hp;
         }
     }
     private final NavigationGrid grid;
     private final List<Doodad> props;
     private final Map<Integer, Entry> entries = new HashMap<>();
     public RockDamage(NavigationGrid grid, List<Doodad> props) { this.grid = grid; this.props = props; }
+
+    /** The id of a standing rock on this cell, or null: what a round that stopped here would wear. */
+    public String standingIdAt(int x, int y, CellTopology topology, TileRegistry registry) {
+        if (!grid.inBounds(x, y)) return null;
+        Entry entry = entries.get(grid.index(x, y));
+        if (entry != null) return entry.hp > 0 ? entry.id : null;
+        int overlay = topology.getNatureOverlayIndex(x, y);
+        if (registry == null || overlay < 0) return null;
+        TileDef original = registry.byIndex(overlay);
+        if (!IDS.contains(original.id) || topology.isWall(x, y)
+                || grid.hasTag(x, y, NavigationGrid.CellTag.NATURAL_SOLID)) return null;
+        return original.id;
+    }
 
     public Result damage(int x, int y, int amount, CellTopology topology, TileRegistry registry) {
         if (!grid.inBounds(x, y)) return Result.NOT_ROCK;
@@ -45,7 +59,7 @@ public final class RockDamage {
                 throw new IllegalStateException("Missing rock damage pair for " + original.id);
             int hp = original.id.contains("-large-") ? 200 : original.id.contains("-medium-") ? 100 : 50;
             if (!grid.isWalkable(x, y) && grid.getWallHp(x, y) > 0) hp = grid.getWallHp(x, y);
-            entry = new Entry(props.size(), damaged, destroyed, hp);
+            entry = new Entry(props.size(), original.id, damaged, destroyed, hp);
             entries.put(key, entry);
             // Cover stays in the nature channel; do not publish a second crossing profile.
             props.add(new Doodad(x, y, damaged));
