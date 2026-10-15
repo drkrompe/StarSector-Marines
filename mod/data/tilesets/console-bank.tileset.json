@@ -1,0 +1,80 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "name": "console-bank.straight",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "name": "console-bank.straight-alt",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "name": "console-bank.inside-corner",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "name": "console-bank.outside-corner",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "name": "console-bank.end-left",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "name": "console-bank.end-right",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 0,
+      "cover": "med",
+      "id": "console-bank.straight",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 1,
+      "cover": "med",
+      "id": "console-bank.straight-alt",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 2,
+      "cover": "med",
+      "id": "console-bank.inside-corner",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 3,
+      "cover": "med",
+      "id": "console-bank.outside-corner",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 4,
+      "cover": "med",
+      "id": "console-bank.end-left",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 5,
+      "cover": "med",
+      "id": "console-bank.end-right",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/tilesets/console-bank.png"
+}
