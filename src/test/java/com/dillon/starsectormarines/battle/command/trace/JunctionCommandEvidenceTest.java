@@ -83,6 +83,14 @@ class JunctionCommandEvidenceTest {
         Files.writeString(output.resolve("summary.json"), summaries.toString(2));
         System.out.println("[junction-evidence] " + output.resolve("summary.json"));
     }
+    /** Whole map, or a close view when {@code -PsnapshotFocus=x,y,cellsAcross} asks for one. */
+    private static BattleReviewFrameRenderer frames() {
+        String focus = System.getProperty(CommanderEvidenceCapture.FOCUS_PROPERTY, "").trim();
+        if (focus.isBlank()) return new BattleReviewFrameRenderer(Path.of("mod"), 1920, 1080);
+        String[] parts = focus.split(",");
+        return new BattleReviewFrameRenderer(Path.of("mod"), 1920, 1080, Float.parseFloat(parts[0].trim()),
+                Float.parseFloat(parts[1].trim()), Float.parseFloat(parts[2].trim()));
+    }
     /** Two-squad (or understrength) company aboard {@code boats} standard Hermes making {@code cycles} trips each. */
     private static JSONObject hermes(String id, int seed, int boats, int cycles) throws JSONException {
         return new JSONObject().put("id", id).put("seed", seed).put("playerType", "HERMES")
@@ -125,7 +133,7 @@ class JunctionCommandEvidenceTest {
             Set<Long> landed = new HashSet<>();
             int firstLanding = -1, reserveTick = -1, holdArrivalTick = -1, holdOccupancyTicks = 0;
             int peakPlayerSquads = 0;
-            BattleReviewFrameRenderer renderer = capture ? new BattleReviewFrameRenderer(Path.of("mod"), 1920, 1080) : null;
+            BattleReviewFrameRenderer renderer = capture ? frames() : null;
             sim.setCommandTraceEnabled(true, "JUNCTION");
             try (CommanderEvidenceCapture visuals = CommanderEvidenceCapture.open(capture ? output : null, "junction", sim,
                     (battle, caption, marks) -> {

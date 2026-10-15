@@ -1089,15 +1089,23 @@ public class AirSystem {
                         tickStation(id, mission, body, flight, dt);
                         break;
                     }
-                    // Round the ring at the ring's pace. The clock runs only here, so the visit
-                    // is the time the guns actually had the ground and not the glide in.
-                    float[] ahead = GunshipOrbit.carrot(body.x, body.y, mission.orbitCentreX, mission.orbitCentreY,
-                            mission.orbitRadius, mission.orbitClockwise);
+                    // Round the worked ring: tighter, slower and lower where it works the ground,
+                    // wider, quicker and higher on the open leg. The clock runs only here, so the
+                    // visit is the time the guns actually had the ground and not the glide in.
+                    mission.orbitLoiterPhase = GunshipOrbit.advanceLoiter(mission.orbitLoiterPhase, dt);
+                    float local = GunshipOrbit.workedRadiusAt(body.x, body.y, mission.orbitCentreX, mission.orbitCentreY,
+                            mission.orbitRadius, mission.orbitLoiterPhase);
+                    float[] ahead = GunshipOrbit.workedCarrot(body.x, body.y, mission.orbitCentreX, mission.orbitCentreY,
+                            mission.orbitRadius, mission.orbitClockwise, mission.orbitLoiterPhase);
+                    float pace = GunshipOrbit.workedPace(local, mission.orbitRadius, mission.orbitLoiterPhase);
                     AirSteeringSystem.steer(body, ahead[0], ahead[1], SteeringMode.CRUISE,
-                            GunshipOrbit.paced(flight, body.speed(), dt), dt);
-                    world.setAltitudeT(id, 1f);
-                    world.setFlightPhase(id, world.flightPhase(id)
-                            + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
+                            GunshipOrbit.paced(flight, body.speed(), dt, pace), dt);
+                    float altitude = world.altitudeT(id);
+                    float wantAltitude = GunshipOrbit.workedAltitude(local, mission.orbitRadius);
+                    world.setAltitudeT(id, altitude + (wantAltitude - altitude) * Math.min(1f, dt * 0.8f));
+                    // The hover bob quickens as the craft slows to hang over the ground and settles as it picks up pace.
+                    float bobHz = AirAppearance.WOBBLE_HZ * (1.5f - 0.6f * Math.min(1.5f, body.speed() / GunshipOrbit.ORBIT_SPEED));
+                    world.setFlightPhase(id, world.flightPhase(id) + dt * 2f * (float) Math.PI * bobHz);
                     mission.orbitSecondsLeft -= dt;
                     if (mission.orbitSecondsLeft <= 0f) beginEgress(mission, body);
                     break;
