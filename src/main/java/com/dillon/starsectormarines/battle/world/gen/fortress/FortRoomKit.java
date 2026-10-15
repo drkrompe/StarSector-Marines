@@ -18,7 +18,8 @@ final class FortRoomKit {
     static final String PALLETS = "doodad.industrial-pallet-stack";
     static final String GENERATOR = "doodad.industrial-generator";
     static final String TANK = "doodad.industrial-fluid-tank";
-    static final String STOOL = "mess-galley.stool";
+    /** The operator seat at a console station: round, so no pose of it reads wrong whichever side the bank's operator is on. */
+    static final String STOOL = "fort-fittings.seat";
 
     private final int height;
     private final boolean mirrored;

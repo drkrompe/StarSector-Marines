@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-10-15
 
-Updated: 2026-10-15 — slice 1 (defence report) shipped; slices 2–7 remain.
+Updated: 2026-10-15 — slices 1–5 shipped; breach pickup and the live pass remain.
 
 Read `contracts-nouns.md` (stationing, response, recovery, settlement, laws 4–7
 and 11), `meta-progression.md` ("Defending the polity: the vanilla seam"),
@@ -145,8 +145,10 @@ Instead:
 2. The contract settles failed as today, with the same employer consequence.
 3. The surviving squads and the bound captain **stay reserved** by the parent
    assignment. The captain stays `GARRISONED`; no "recalled" note is written.
-4. A recovery row is created with the parent as its source, marked for
-   resolution by pickup, with a **recovery deadline** on the campaign clock.
+4. The parent row is marked stranded with a **recovery deadline** on the
+   campaign clock (`contractStrandedUntilTick`). There is no separate recovery
+   row: the failed assignment itself is the thing owed, which keeps a pickup
+   out of every offer board and mission list that reads recovery rows.
 
 If every stationed marine fell, nothing is stranded and no recovery is
 created: the assignment releases as today and the captain's fate follows the
@@ -164,7 +166,7 @@ offers to collect the detachment. Choosing it:
 - releases the parent assignment through the existing `releaseStationing`
   path, so the squads and captain return through the one ownership boundary
   that already exists;
-- settles the recovery completed;
+- clears the stranded mark;
 - writes a short company report ("detachment recovered from X") and a line on
   the captain's record.
 
@@ -188,8 +190,10 @@ becomes routine there, and routine recovery should not demand a fight.
 A pickup recovery is not free to postpone. On each fixed interval after the
 overrun, a seeded share of the stranded survivors is lost: chosen from the
 parent's event key and the interval index, so a replayed day strikes the same
-people, and moved to MIA (never KIA: nobody saw them die). The captain is
-struck last.
+people, and moved to MIA (never KIA: nobody saw them die). Attrition never
+takes the captain; the pickup or the deadline settles the captain's fate.
+When the last marine is gone the recovery ends at once rather than at the
+deadline.
 
 When the deadline passes, the recovery settles failed through the existing
 `failStationingExtraction` path: every remaining survivor goes MIA, the
@@ -221,14 +225,15 @@ one loss per stranded squad every 10 days.
    HQ terminal formatting. Unit tests: one report per event key under
    replay, fields match the settlement, the same seed composes the same
    account, and no colour line names a marine.
-2. **Gone to ground.** Overrun keeps the assignment reserved and creates the
+2. **Gone to ground.** *Shipped.* Overrun keeps the assignment reserved and creates the
    pickup recovery with its deadline; all-dead overrun still releases. Tests
    on the resolution with a fake roster.
-3. **Pickup.** Planet-interaction option, release, settlement and report.
+3. **Pickup.** *Shipped.* Planet-interaction option, release, settlement and report.
    Situation-board obligation row.
-4. **Attrition and expiry.** Seeded interval losses and the deadline failure.
+4. **Attrition and expiry.** *Shipped.* Expiry landed with slice 2 so an
+   overrun never strands people forever; seeded interval losses followed.
    Tests pin same-people-on-replay and the captain-last order.
-5. **Captured market.** A Garrison whose market changes owner (vanilla
+5. **Captured market.** *Shipped.* A Garrison whose market changes owner (vanilla
    transfer, decivilisation, or a Nexerelin invasion the raid seam ignores)
    strands its detachment through the same recovery and pickup, with a
    defence report whose spine says the market fell rather than that a raid
@@ -246,6 +251,35 @@ one loss per stranded squad every 10 days.
    with Nexerelin installed, one Garrison market invaded.
 
 ## Decided while shipping
+
+- **Slices 2 and 3 shipped together, with the deadline expiry.** Stranding
+  without a pickup or an end would have left overrun survivors unreachable,
+  which is worse than today's walk home.
+- **The recovery is a mark on the failed parent row**, not a new contract or
+  a recovery row. Every consumer that already ignores failed rows keeps doing
+  so; only the named-personnel repair learns that a stranded row may keep its
+  people.
+- **Only named assignments strand.** A count-only legacy row has no people to
+  hide, and keeps today's overrun path.
+- **Attrition never strikes the captain**, rather than striking them last. A
+  captain listed missing is a second, larger mechanic (officer MIA and its
+  roster consequences) that this story does not need.
+- **A captured market is a failed assignment with no reputation change.** The
+  player did nothing wrong and the employer did not breach; the market simply
+  fell. The capture report is its own company report ("Garrison at X cut
+  off") rather than a defence report, because no defence was fought.
+- **The owner is recorded on first sight of a running assignment**, not at
+  acceptance, so saves that already hold a Garrison pick it up on load. A
+  market that cannot be read changes nothing; a market that vanishes or is
+  decivilised counts as fallen.
+- **A capture voids any pending defence on that market.** If a raid overran
+  the garrison the same day, the absent settlement runs first and the
+  overrun owns the stranding.
+- **The interval that lands on the deadline belongs to the expiry**, so the
+  last day does not first take one more marine and then list the rest
+  missing anyway. With the 30/10 proposal that is two losses per squad.
+- **The overrun report ends on the deadline**: "The survivors have gone to
+  ground. They can hold out for N days."
 
 - **The raid's shape is not in the report yet.** The pending defence payload
   carries the attacker faction but not whether the raid was a pirate-base

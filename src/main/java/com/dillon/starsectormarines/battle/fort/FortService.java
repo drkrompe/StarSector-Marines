@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.battery.FortressBattery;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortRoom;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -112,6 +113,11 @@ public final class FortService {
                 if (def == null || def.buildingArt == null) continue;
                 int[] b = place.floorBounds(frame);
                 if (x >= b[0] && x <= b[2] && y >= b[1] && y <= b[3]) return true;
+                for (FortRoom room : def.buildingArt.annexRooms(frame.plan(), place.aspect())) {
+                    int[] f = room.floor();
+                    int[] a = frame.bounds(f[0], f[1], f[2], f[3]);
+                    if (x >= a[0] && x <= a[2] && y >= a[1] && y <= a[3]) return true;
+                }
             }
         }
         return false;

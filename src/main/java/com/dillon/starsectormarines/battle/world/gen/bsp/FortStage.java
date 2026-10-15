@@ -960,12 +960,12 @@ public final class FortStage implements GenStage {
         d.ring(px - 1, py - 1, 3, 3, 3, -1, 0, py, 3);
         d.line(px - 6, py - 2, px - 6, py + 2, -1, 0);
 
-        // The magazine suite (store and loading bay) stands apart from the guns inside one berm, two courses thick, open
-        // on the bay's road side: the only building that takes the heavier work, because it is the one that must not take
+        // The magazine suite (store and loading bay) stands apart from the guns inside one berm, a single course, open
+        // on the bay's road side: the only building given a berm of its own, because it is the one that must not take
         // a shell's blast. The other rooms are their own hardening and carry only the bag screen at their doors.
         int[] mag = BatteryFort.floor(FortAspect.MAGAZINE);
         int[] bay = BatteryFort.PLAN.suiteBounds(FortAspect.MAGAZINE);
-        d.thickRing(bay[0] - 1, bay[1] - 1, bay[2] + 2, bay[3] + 2, 1, 0, 1, mag[0] + mag[2] / 2, 7);
+        d.ring(bay[0] - 1, bay[1] - 1, bay[2] + 2, bay[3] + 2, 1, 0, 1, mag[0] + mag[2] / 2, 7);
 
         // Firing lines inside each gate cover the baffle, so a breach still has to cross open ground.
         d.line(ox + 9, oy + 15, ox + 9, oy + 19, -1, 0);

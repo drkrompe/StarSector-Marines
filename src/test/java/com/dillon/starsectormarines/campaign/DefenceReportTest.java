@@ -52,7 +52,7 @@ class DefenceReportTest {
     void aRaidThatTurnedBackReportsNoLosses() throws Exception {
         try (HeadlessStrings ignored = new HeadlessStrings(Path.of("mod"))) {
             Facts facts = new Facts(7L, 30, PLACE, false, Outcome.HELD, null,
-                    List.of("Second Section"), List.of(), List.of(), 0, 0, 12, 12, 18f, 0f);
+                    List.of("Second Section"), List.of(), List.of(), 0, 0, 12, 12, 18f, 0f, 0);
 
             String account = DefenceReport.compose(facts, Strings::get);
 
@@ -96,6 +96,6 @@ class DefenceReportTest {
     private static Facts landed(long eventKey) {
         return new Facts(eventKey, 214, PLACE, true, Outcome.HELD_WITH_LOSSES, "Captain Vey",
                 List.of("Second Section"), List.of("Hale"), List.of("Orsk"), 2, 0, 12, 10,
-                18f, 40f);
+                18f, 40f, 0);
     }
 }

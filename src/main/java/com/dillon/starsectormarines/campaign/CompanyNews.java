@@ -69,7 +69,10 @@ public final class CompanyNews {
         String actor = houseName(state, state.chronicleActorHouseId[row]);
         String target = houseName(state, state.chronicleTargetHouseId[row]);
         boolean companyReport = type == ChronicleEventType.SILENT_COLONY
-                || type == ChronicleEventType.GARRISON_DEFENCE;
+                || type == ChronicleEventType.GARRISON_DEFENCE
+                || type == ChronicleEventType.DETACHMENT_RECOVERED
+                || type == ChronicleEventType.DETACHMENT_LOST
+                || type == ChronicleEventType.GARRISON_MARKET_LOST;
         if (!companyReport && actor == null && target == null) {
             return null;
         }
@@ -80,6 +83,9 @@ public final class CompanyNews {
             if (defence == null) return null;
             int attacker = state.chronicleSourceFactionId[row];
             factionId = attacker >= 0 ? state.factionRegistry.get(attacker) : null;
+        } else if (type == ChronicleEventType.GARRISON_MARKET_LOST) {
+            int owner = state.chronicleSourceFactionId[row];
+            factionId = owner >= 0 ? state.factionRegistry.get(owner) : null;
         }
         return new Entry(id, type, confidence, band, actor, target,
                 marketName.apply(state.chronicleMarketId[row]), outcome, archive,

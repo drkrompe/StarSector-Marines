@@ -48,6 +48,10 @@ BUILDINGS = {
     'bunker': (7, 5, 92),
     'magazine': (8, 6, 77),
     'power': (11, 5, 65),
+    'opshall': (5, 5, 100),
+    'bay': (8, 3, 90),
+    'ctrlhall': (3, 5, 100),
+    'aircontrol': (7, 5, 92),
 }
 
 
@@ -212,62 +216,348 @@ def magazine(image):
 
 
 # ------------------------------------------------------------------------------------------------ power (11 x 5)
+# The generator hall as `FortRooms.powerHall` furnishes it. Art door on the TOP edge: the two rows nearest the door are
+# the walkway lane, the three rows beyond it hold, left to right, a column of fuel-tank hatches, a generator set
+# (a 2x2 block, x 1-3), the 3x3 reactor core (x 4-7), a second generator set (x 8-10 less the switchgear column) and a
+# column of switchgear. The sheet is x-symmetric about x=5.5 so a half turn (the shield fort's south door) still lands
+# every feature on its machine.
+
+WELLS = ((2.0, 4.0), (8.0, 4.0))
+
 
 def power(image):
     cw, ch, s = BUILDINGS['power']
-    # 0 intact: turbine wells either side of a ringed reactor housing, conduits, a door canopy on the top edge
+    # 0 intact: walkway roof with two conduit trunks, tank hatches either side, turbine wells over the generator sets,
+    #   a ringed reactor housing between them
     p = Panel(image, 0, cw, ch, s)
     p.chamfer(0.05, 0.05, 10.95, 4.95, 0.3, SLAB, EDGE)
-    for cx in (2.2, 8.8):
-        p.circle(cx, 2.6, 1.4, SLAB_HI, EDGE)
-        p.circle(cx, 2.6, 1.15, RECESS, EDGE)
-    p.rrect(4.0, 0.6, 7.0, 4.4, 0.4, SLAB_HI, EDGE)
-    p.circle(5.5, 2.5, 1.05, RECESS, EDGE)
-    p.circle(5.5, 2.5, 0.65, STEEL)
-    for x in (4.25, 4.55, 6.45, 6.75):
-        p.line([(x, 0.9), (x, 4.1)], SLAB, 3)
-    p.rect(3.6, 2.25, 4.0, 2.85, STEEL, EDGE)
-    p.rect(7.0, 2.25, 7.4, 2.85, STEEL, EDGE)
-    p.rect(0.5, 4.35, 10.5, 4.75, STEEL, EDGE)
-    p.rect(2.9, 0.05, 4.1, 0.45, STEEL, EDGE)
-    for x in (3.1, 3.5, 3.9):
-        p.rect(x - 0.05, 0.1, x + 0.05, 0.4, HAZARD)
-    # 1 damaged: split housing, one well uncovered and scorched, a ruptured conduit
+    p.rect(0.4, 0.45, 10.6, 0.8, STEEL, EDGE)
+    p.rect(0.4, 1.2, 10.6, 1.55, STEEL, EDGE)
+    for x in (1.5, 3.0, 4.5, 6.0, 7.5, 9.0):
+        p.rect(x, 0.4, x + 0.14, 0.85, SLAB_HI)
+        p.rect(x, 1.15, x + 0.14, 1.6, SLAB_HI)
+    for cx in (0.5, 10.5):
+        for cy in (2.5, 3.5, 4.5):
+            p.circle(cx, cy, 0.36, SLAB_HI, EDGE)
+            p.circle(cx, cy, 0.16, RECESS)
+    for cx, cy in WELLS:
+        p.circle(cx, cy, 0.98, SLAB_HI, EDGE)
+        p.circle(cx, cy, 0.78, RECESS, EDGE)
+    p.rrect(4.0, 2.0, 7.0, 4.95, 0.35, SLAB_HI, EDGE)
+    p.circle(5.5, 3.5, 1.05, RECESS, EDGE)
+    p.circle(5.5, 3.5, 0.62, STEEL)
+    for x in (4.2, 4.5, 6.5, 6.8):
+        p.line([(x, 2.2), (x, 4.8)], SLAB, 3)
+    for y in (3.55, 3.9):
+        p.rect(3.0, y, 4.0, y + 0.2, STEEL, EDGE)
+    for x in (0.35, 10.65):
+        p.circle(x, 0.28, 0.12, EDGE)
+        p.circle(x, 1.72, 0.12, EDGE)
+    # 1 damaged: split housing, one well scorched and uncovered, a ruptured conduit trunk
     p = Panel(image, 1, cw, ch, s)
     p.chamfer(0.05, 0.05, 10.95, 4.95, 0.3, SLAB, EDGE)
-    for cx in (2.2, 8.8):
-        p.circle(cx, 2.6, 1.4, SLAB_HI, EDGE)
-        p.circle(cx, 2.6, 1.15, RECESS, EDGE)
-    p.circle(8.8, 2.6, 1.3, SCORCH)
-    p.poly([(4.0, 0.6), (5.4, 0.6), (5.2, 2.4), (5.6, 4.4), (4.0, 4.4)], SLAB_HI, EDGE)
-    p.poly([(5.7, 0.7), (7.0, 0.6), (7.0, 4.4), (5.8, 4.3), (5.9, 2.4)], SLAB_HI, EDGE)
-    p.circle(5.5, 2.5, 0.6, SCORCH)
-    p.rect(0.5, 4.35, 4.6, 4.75, STEEL, EDGE)
-    p.poly([(6.2, 4.35), (10.5, 4.35), (10.5, 4.75), (6.6, 4.75)], STEEL, EDGE)
-    p.line([(4.6, 4.5), (5.3, 3.9), (5.9, 4.6), (6.4, 4.2)], SCORCH, 5)
-    p.rect(2.9, 0.05, 4.1, 0.45, STEEL, EDGE)
-    p.line([(8.0, 0.8), (8.6, 1.5), (8.3, 2.3)], SCORCH, 4)
-    # 2 destroyed: open well pits, a slumped housing, snapped conduits, broad scorch
+    p.rect(0.4, 0.45, 4.6, 0.8, STEEL, EDGE)
+    p.poly([(5.4, 0.45), (10.6, 0.45), (10.6, 0.8), (5.9, 0.8)], STEEL, EDGE)
+    p.rect(0.4, 1.2, 10.6, 1.55, STEEL, EDGE)
+    for cx in (0.5, 10.5):
+        for cy in (2.5, 3.5, 4.5):
+            p.circle(cx, cy, 0.36, SLAB_HI, EDGE)
+            p.circle(cx, cy, 0.16, RECESS)
+    p.circle(2.0, 4.0, 0.98, SLAB_HI, EDGE)
+    p.circle(2.0, 4.0, 0.78, RECESS, EDGE)
+    p.circle(8.0, 4.0, 1.1, SCORCH)
+    p.circle(8.0, 4.0, 0.78, RECESS, EDGE)
+    p.poly([(4.0, 2.0), (5.4, 2.0), (5.2, 3.5), (5.6, 4.95), (4.0, 4.95)], SLAB_HI, EDGE)
+    p.poly([(5.7, 2.0), (7.0, 2.0), (7.0, 4.95), (5.8, 4.9), (5.9, 3.5)], SLAB_HI, EDGE)
+    p.circle(5.5, 3.5, 0.55, SCORCH)
+    p.line([(4.6, 1.4), (5.2, 0.9), (5.8, 1.5), (6.4, 1.1)], SCORCH, 5)
+    p.line([(8.4, 2.9), (8.9, 3.4), (8.5, 3.9)], SCORCH, 4)
+    p.line([(1.0, 1.7), (1.6, 2.4), (1.3, 3.0)], SCORCH, 4)
+    # 2 destroyed: both wells open pits, the housing slumped, snapped trunks, broad scorch
     p = Panel(image, 2, cw, ch, s)
-    for cx in (2.2, 8.8):
-        p.circle(cx, 2.6, 1.3, SCORCH)
-        p.circle(cx, 2.6, 0.7, '#14120f')
-        p.line([(cx - 1.2, 2.2), (cx - 0.3, 2.8)], STEEL, 4)
-        p.line([(cx + 0.2, 3.4), (cx + 1.1, 2.9)], STEEL, 4)
-    p.poly([(4.2, 1.0), (5.4, 0.8), (6.8, 1.4), (6.9, 3.5), (5.6, 4.2), (4.3, 3.6)], SCORCH)
-    shards(p, [(4.2, 1.0, 5.6, 2.4), (5.2, 2.4, 6.8, 3.9), (0.4, 0.3, 1.5, 1.1), (9.3, 3.8, 10.6, 4.8)], SLAB)
-    for pts in (((0.5, 4.6), (2.4, 4.3)), ((3.0, 4.4), (3.9, 3.6)), ((7.2, 4.5), (9.0, 4.6)), ((9.4, 1.2), (10.6, 0.5))):
+    for cx, cy in WELLS:
+        p.circle(cx, cy, 0.95, SCORCH)
+        p.circle(cx, cy, 0.55, '#14120f')
+        p.line([(cx - 0.9, cy - 0.3), (cx - 0.2, cy + 0.3)], STEEL, 4)
+        p.line([(cx + 0.2, cy + 0.6), (cx + 0.9, cy + 0.1)], STEEL, 4)
+    p.poly([(4.2, 2.4), (5.4, 2.2), (6.8, 2.8), (6.9, 4.4), (5.6, 4.9), (4.3, 4.3)], SCORCH)
+    shards(p, [(4.2, 2.4, 5.6, 3.6), (5.2, 3.5, 6.8, 4.8), (0.4, 0.3, 1.7, 1.1), (9.3, 0.3, 10.6, 1.2)], SLAB)
+    for pts in (((0.5, 0.6), (2.6, 0.9)), ((3.4, 1.4), (4.6, 1.0)), ((6.6, 0.7), (9.0, 1.4)), ((9.3, 2.0), (10.6, 1.5))):
         p.line(list(pts), STEEL, 6)
-    # 3 lights: cyan glow along the conduits, the reactor lens and the well rims
+    # 3 lights: cyan glow on the well rims, the reactor lens and the conduits
     p = Panel(image, 3, cw, ch, s)
-    for cx in (2.2, 8.8):
-        p.d.ellipse((*p.p(cx - 1.15, 2.6 - 1.15), *p.p(cx + 1.15, 2.6 + 1.15)), outline=CYAN, width=5)
-    p.circle(5.5, 2.5, 0.65, CYAN)
-    p.rect(3.6, 2.4, 4.0, 2.7, CYAN)
-    p.rect(7.0, 2.4, 7.4, 2.7, CYAN)
-    p.rect(0.6, 4.5, 10.4, 4.6, CYAN)
-    for x in (4.4, 6.6):
-        p.line([(x, 1.0), (x, 4.0)], CYAN, 3)
+    for cx, cy in WELLS:
+        p.d.ellipse((*p.p(cx - 0.78, cy - 0.78), *p.p(cx + 0.78, cy + 0.78)), outline=CYAN, width=5)
+    p.circle(5.5, 3.5, 0.62, CYAN)
+    p.rect(3.0, 3.6, 4.0, 3.7, CYAN)
+    p.rect(0.6, 0.58, 10.4, 0.66, CYAN)
+    p.rect(0.6, 1.33, 10.4, 1.41, CYAN)
+    for x in (4.35, 6.65):
+        p.line([(x, 2.3), (x, 4.7)], CYAN, 3)
+
+
+# ------------------------------------------------------------------------------------- operations hall (5 x 5)
+# `FortRooms.operationsHall`, in the footprint frame (no half turn). Consoles along the north wall and the west wall,
+# aisles down x=2 and along y=3, a doorway south (x 2.5) and east (y 3.5, into the plotting vault).
+
+def opshall(image):
+    cw, ch, s = BUILDINGS['opshall']
+    # 0 intact: hardened slab with a framed skylight over the stations, vent boxes, a mast footing, the cable trunk east
+    p = Panel(image, 0, cw, ch, s)
+    p.chamfer(0.06, 0.06, 4.94, 4.94, 0.3, SLAB, EDGE)
+    p.rect(0.4, 0.4, 4.6, 4.6, SLAB_HI, EDGE)
+    p.rect(1.2, 0.8, 3.8, 2.7, RECESS, EDGE)
+    for x in (1.85, 2.5, 3.15):
+        p.line([(x, 0.9), (x, 2.6)], SLAB, 3)
+    p.line([(1.3, 1.75), (3.7, 1.75)], SLAB, 3)
+    for vx, vy in ((0.55, 0.55), (4.2, 0.55)):
+        p.rect(vx, vy, vx + 0.45, vy + 0.45, RECESS, EDGE)
+        p.line([(vx + 0.1, vy + 0.1), (vx + 0.35, vy + 0.1)], STEEL, 2)
+        p.line([(vx + 0.1, vy + 0.22), (vx + 0.35, vy + 0.22)], STEEL, 2)
+        p.line([(vx + 0.1, vy + 0.34), (vx + 0.35, vy + 0.34)], STEEL, 2)
+    p.circle(0.85, 4.0, 0.42, STEEL, EDGE)
+    p.circle(0.85, 4.0, 0.16, RECESS)
+    p.rect(3.0, 3.35, 4.94, 3.65, STEEL, EDGE)
+    p.rect(3.3, 3.8, 4.2, 4.4, RECESS, EDGE)
+    for bx, by in ((0.25, 0.25), (4.75, 0.25), (0.25, 4.75), (4.75, 4.75)):
+        p.circle(bx, by, 0.1, EDGE)
+    # 1 damaged: skylight smashed, cable trunk severed, scorch and a bitten corner
+    p = Panel(image, 1, cw, ch, s)
+    p.poly([(1.2, 0.06), (4.64, 0.06), (4.94, 0.36), (4.94, 4.64), (4.64, 4.94), (0.36, 4.94), (0.06, 4.64),
+            (0.06, 1.3), (0.8, 1.3), (1.2, 0.8)], SLAB, EDGE)
+    p.poly([(1.4, 0.8), (4.6, 0.4), (4.6, 4.6), (0.4, 4.6), (0.4, 1.6), (1.2, 1.6)], SLAB_HI, EDGE)
+    p.poly([(1.2, 1.0), (2.4, 0.8), (3.8, 1.2), (3.6, 2.7), (1.4, 2.6)], RECESS, EDGE)
+    p.circle(2.5, 1.8, 0.8, SCORCH)
+    p.line([(1.4, 2.6), (2.2, 1.6), (2.0, 0.9)], STEEL, 3)
+    p.line([(3.8, 1.2), (3.0, 2.0), (3.6, 2.7)], STEEL, 3)
+    p.rect(3.0, 3.35, 3.9, 3.65, STEEL, EDGE)
+    p.line([(3.9, 3.5), (4.3, 3.3), (4.5, 3.7)], SCORCH, 4)
+    p.circle(0.85, 4.0, 0.42, STEEL, EDGE)
+    p.rect(3.3, 3.8, 4.2, 4.4, RECESS, EDGE)
+    p.line([(0.5, 2.8), (1.4, 3.4), (1.2, 4.3)], SCORCH, 4)
+    # 2 destroyed: open-top wreck: collapsed slab, shards, a bent mast, scorch
+    p = Panel(image, 2, cw, ch, s)
+    p.poly([(0.4, 0.6), (2.6, 0.3), (3.6, 1.2), (3.2, 2.6), (1.2, 2.8), (0.3, 1.8)], SCORCH)
+    p.poly([(2.8, 2.9), (4.6, 2.4), (4.8, 4.0), (3.4, 4.7), (2.4, 4.0)], SCORCH)
+    shards(p, [(0.5, 0.5, 1.9, 1.6), (2.7, 0.5, 4.3, 1.8), (1.0, 2.9, 2.5, 4.3), (3.3, 3.3, 4.7, 4.6)], SLAB)
+    for pts in (((0.6, 4.4), (2.0, 3.2)), ((3.4, 2.2), (4.6, 1.2)), ((1.8, 1.4), (3.0, 2.4))):
+        p.line(list(pts), STEEL, 3)
+    p.line([(0.7, 3.8), (1.9, 4.5)], EDGE, 6)
+    # 3 lights: the skylight glow and the mast lamp
+    p = Panel(image, 3, cw, ch, s)
+    p.rect(1.2, 0.8, 3.8, 2.7, '#40342a')
+    for x in (1.85, 2.5, 3.15):
+        p.line([(x, 0.9), (x, 2.6)], AMBER, 3)
+    p.line([(1.3, 1.75), (3.7, 1.75)], AMBER, 3)
+    p.circle(0.85, 4.0, 0.12, RED)
+    p.rect(3.0, 3.47, 4.9, 3.53, CYAN)
+
+
+# ---------------------------------------------------------------------------------------- loading bay (8 x 3)
+# `FortRooms.loadingBay`, in the footprint frame. Pallets stand along both end walls; doors north (x 3.5, into the
+# store) and south (x 2.5, 3.5, 4.5). Long axis is local x.
+
+def bay(image):
+    cw, ch, s = BUILDINGS['bay']
+    # 0 intact: ribbed light-steel roof, two skylight strips, a hoist rail down the middle with its trolley
+    p = Panel(image, 0, cw, ch, s)
+    p.chamfer(0.05, 0.05, 7.95, 2.95, 0.25, SLAB, EDGE)
+    for i in range(1, 32):
+        x = i * 0.25
+        p.line([(x, 0.2), (x, 2.8)], SLAB_HI, 2)
+    for x0, x1 in ((0.7, 3.0), (5.0, 7.3)):
+        p.rect(x0, 0.35, x1, 0.8, RECESS, EDGE)
+        p.rect(x0, 2.2, x1, 2.65, RECESS, EDGE)
+    p.rect(0.2, 1.3, 7.8, 1.7, STEEL, EDGE)
+    for x in range(1, 16):
+        p.rect(x * 0.5 - 0.04, 1.3, x * 0.5 + 0.04, 1.7, HAZARD)
+    p.rect(4.4, 1.05, 5.4, 1.95, SLAB_HI, EDGE)
+    p.circle(4.9, 1.5, 0.22, RECESS)
+    for vx in (0.45, 7.55):
+        p.circle(vx, 1.5, 0.3, RECESS, EDGE)
+        p.circle(vx, 1.5, 0.12, STEEL)
+    # 1 damaged: ribs peeled back, a skylight smashed, scorch, the rail bent
+    p = Panel(image, 1, cw, ch, s)
+    p.poly([(0.3, 0.05), (7.7, 0.05), (7.95, 0.3), (7.95, 1.7), (6.8, 2.1), (7.95, 2.7), (7.7, 2.95), (0.3, 2.95),
+            (0.05, 2.7), (0.05, 0.3)], SLAB, EDGE)
+    for i in range(1, 32):
+        x = i * 0.25
+        if 2.6 < x < 4.2:
+            continue
+        p.line([(x, 0.2), (x, 2.8)], SLAB_HI, 2)
+    p.poly([(2.5, 0.2), (4.3, 0.2), (4.0, 1.4), (4.4, 2.8), (2.7, 2.8)], RECESS, EDGE)
+    p.circle(3.4, 1.5, 0.8, SCORCH)
+    p.rect(5.0, 0.35, 7.3, 0.8, RECESS, EDGE)
+    p.poly([(0.2, 1.3), (4.6, 1.3), (4.9, 1.7), (0.2, 1.7)], STEEL, EDGE)
+    p.poly([(5.3, 1.45), (7.8, 1.2), (7.8, 1.6), (5.4, 1.85)], STEEL, EDGE)
+    p.line([(6.0, 2.2), (6.7, 2.0), (6.4, 2.6)], SCORCH, 4)
+    p.line([(0.6, 0.6), (1.3, 1.2), (0.9, 2.0)], SCORCH, 4)
+    # 2 destroyed: caved roof sheets over a scorched floor, a bent rail, open space
+    p = Panel(image, 2, cw, ch, s)
+    p.poly([(0.3, 0.5), (3.0, 0.3), (3.4, 1.4), (2.6, 2.6), (0.4, 2.5)], SCORCH)
+    p.poly([(4.2, 0.4), (7.6, 0.6), (7.7, 2.4), (5.2, 2.7), (4.4, 1.6)], SCORCH)
+    shards(p, [(0.5, 0.4, 2.2, 1.6), (2.9, 1.5, 4.7, 2.7), (4.8, 0.3, 6.6, 1.4), (6.2, 1.7, 7.6, 2.8)], SLAB)
+    for pts in (((0.7, 2.4), (2.4, 1.3)), ((3.3, 0.6), (5.2, 1.4)), ((5.8, 2.5), (7.5, 1.7))):
+        p.line(list(pts), STEEL, 5)
+    # 3 lights: amber hazard lamps at the ends and glow in the skylight strips
+    p = Panel(image, 3, cw, ch, s)
+    for lx, ly in ((0.25, 0.25), (7.75, 0.25), (0.25, 2.75), (7.75, 2.75)):
+        p.circle(lx, ly, 0.14, AMBER)
+    for x0, x1 in ((0.7, 3.0), (5.0, 7.3)):
+        p.rect(x0 + 0.1, 0.45, x1 - 0.1, 0.7, '#40342a')
+        p.rect(x0 + 0.1, 2.3, x1 - 0.1, 2.55, '#40342a')
+    p.circle(4.9, 1.5, 0.1, RED)
+
+
+# ---------------------------------------------------------------------------- shield control hall (3 x 5)
+# `FortRooms.smallHall`: a bank of consoles against the north wall; doors west (y 3.5) and south (x 1.5).
+
+def ctrlhall(image):
+    cw, ch, s = BUILDINGS['ctrlhall']
+    # 0 intact: hardened slab, a ringed field-relay on a pedestal over the console bank, a hatch, a vent, conduit south
+    p = Panel(image, 0, cw, ch, s)
+    p.chamfer(0.06, 0.06, 2.94, 4.94, 0.25, SLAB, EDGE)
+    p.rect(0.3, 0.3, 2.7, 4.7, SLAB_HI, EDGE)
+    p.circle(1.5, 1.4, 1.0, SLAB, EDGE)
+    p.circle(1.5, 1.4, 0.72, RECESS, EDGE)
+    p.circle(1.5, 1.4, 0.38, STEEL, EDGE)
+    for a in range(0, 360, 45):
+        x = 1.5 + math.cos(math.radians(a)) * 0.86
+        y = 1.4 + math.sin(math.radians(a)) * 0.86
+        p.circle(x, y, 0.07, EDGE)
+    p.rect(0.5, 2.9, 1.5, 3.7, RECESS, EDGE)
+    p.line([(0.7, 3.0), (0.7, 3.6)], SLAB, 3)
+    p.line([(1.0, 3.0), (1.0, 3.6)], SLAB, 3)
+    p.line([(1.3, 3.0), (1.3, 3.6)], SLAB, 3)
+    p.circle(2.2, 3.3, 0.3, RECESS, EDGE)
+    p.rect(1.3, 4.0, 1.7, 4.94, STEEL, EDGE)
+    p.rect(0.06, 3.2, 0.3, 3.8, STEEL, EDGE)
+    # 1 damaged: the relay ring cracked and scorched, the hatch torn open
+    p = Panel(image, 1, cw, ch, s)
+    p.poly([(0.3, 0.06), (2.7, 0.06), (2.94, 0.3), (2.94, 4.7), (2.7, 4.94), (0.3, 4.94), (0.06, 4.7),
+            (0.06, 2.0), (0.6, 2.0), (0.9, 0.9)], SLAB, EDGE)
+    p.poly([(1.0, 0.4), (2.7, 0.4), (2.7, 4.7), (0.4, 4.7), (0.4, 2.2), (0.8, 2.2)], SLAB_HI, EDGE)
+    p.circle(1.6, 1.4, 1.0, SLAB, EDGE)
+    p.circle(1.6, 1.4, 0.72, SCORCH)
+    p.circle(1.6, 1.4, 0.38, STEEL, EDGE)
+    p.line([(0.7, 0.8), (1.4, 1.5), (1.1, 2.3)], SCORCH, 4)
+    p.poly([(0.5, 2.9), (1.5, 3.0), (1.3, 3.7), (0.6, 3.6)], RECESS, EDGE)
+    p.rect(1.3, 4.0, 1.7, 4.94, STEEL, EDGE)
+    # 2 destroyed: ring shattered into the pedestal pit, slab fragments
+    p = Panel(image, 2, cw, ch, s)
+    p.circle(1.5, 1.4, 0.9, SCORCH)
+    p.circle(1.5, 1.4, 0.45, '#14120f')
+    p.poly([(0.3, 2.7), (1.6, 2.5), (2.6, 3.0), (2.4, 4.4), (1.0, 4.6), (0.3, 3.8)], SCORCH)
+    shards(p, [(0.3, 0.3, 1.2, 1.1), (1.9, 0.5, 2.7, 1.5), (0.4, 3.0, 1.5, 4.2), (1.7, 3.3, 2.6, 4.6)], SLAB)
+    p.line([(0.6, 1.4), (1.2, 1.9)], STEEL, 4)
+    p.line([(1.8, 1.0), (2.4, 0.5)], STEEL, 4)
+    p.line([(1.0, 4.3), (2.2, 3.4)], STEEL, 4)
+    # 3 lights: cyan relay ring and a status slot
+    p = Panel(image, 3, cw, ch, s)
+    p.d.ellipse((*p.p(1.5 - 0.72, 1.4 - 0.72), *p.p(1.5 + 0.72, 1.4 + 0.72)), outline=CYAN, width=5)
+    p.circle(1.5, 1.4, 0.2, CYAN)
+    for x in (0.7, 1.0, 1.3):
+        p.line([(x, 3.0), (x, 3.6)], CYAN, 3)
+
+
+# ------------------------------------------------------------------------------------ anti-air control (7 x 5)
+# `FortRooms.commandRoom` as the anti-air yard stands it. Art door on the BOTTOM edge; a half turn serves the other.
+
+def aircontrol(image):
+    cw, ch, s = BUILDINGS['aircontrol']
+    # 0 intact: hardened slab, three flat phased-array faces across the back, a hatch, vents, beacons, a door awning
+    p = Panel(image, 0, cw, ch, s)
+    p.chamfer(0.08, 0.08, 6.92, 4.92, 0.4, SLAB, EDGE)
+    p.chamfer(0.5, 0.5, 6.5, 4.1, 0.25, SLAB_HI, EDGE)
+    for x0, x1 in ((0.8, 2.3), (2.75, 4.25), (4.7, 6.2)):
+        p.rect(x0, 0.7, x1, 1.55, RECESS, EDGE)
+        for i in range(1, 6):
+            p.line([(x0 + (x1 - x0) * i / 6, 0.78), (x0 + (x1 - x0) * i / 6, 1.47)], SLAB, 2)
+        for j in (1.0, 1.27):
+            p.line([(x0 + 0.06, j), (x1 - 0.06, j)], SLAB, 2)
+    p.rect(2.7, 2.1, 4.3, 3.4, RECESS, EDGE)
+    p.circle(3.5, 2.75, 0.4, STEEL, EDGE)
+    for vx in (1.0, 6.0):
+        p.circle(vx, 2.7, 0.42, RECESS, EDGE)
+        p.circle(vx, 2.7, 0.17, STEEL)
+    p.rect(2.85, 4.5, 4.15, 4.92, STEEL, EDGE)
+    for x in (3.1, 3.5, 3.9):
+        p.rect(x, 4.57, x + 0.1, 4.87, HAZARD)
+    p.circle(0.4, 4.5, 0.14, EDGE)
+    p.circle(6.6, 4.5, 0.14, EDGE)
+    p.circle(0.4, 0.4, 0.14, RED, EDGE)
+    p.circle(6.6, 0.4, 0.14, RED, EDGE)
+    # 1 damaged: one array face blown off its mount, scorch, a bitten corner
+    p = Panel(image, 1, cw, ch, s)
+    p.poly([(1.5, 0.08), (6.52, 0.08), (6.92, 0.48), (6.92, 4.52), (6.52, 4.92), (0.48, 4.92), (0.08, 4.52),
+            (0.08, 1.3), (0.9, 1.3), (1.5, 0.7)], SLAB, EDGE)
+    p.poly([(1.6, 0.9), (6.45, 0.9), (6.45, 4.1), (0.55, 4.1), (0.55, 1.8), (1.2, 1.8)], SLAB_HI, EDGE)
+    p.rect(2.75, 0.7, 4.25, 1.55, RECESS, EDGE)
+    p.poly([(4.7, 0.7), (6.2, 0.8), (6.0, 1.55), (4.8, 1.5)], RECESS, EDGE)
+    p.circle(5.4, 1.1, 0.7, SCORCH)
+    p.rect(2.7, 2.1, 4.3, 3.4, RECESS, EDGE)
+    p.circle(3.5, 2.75, 0.4, STEEL, EDGE)
+    p.rect(2.85, 4.5, 4.15, 4.92, STEEL, EDGE)
+    p.line([(1.0, 3.2), (1.9, 2.5), (2.4, 3.0)], SCORCH, 4)
+    p.line([(5.2, 4.0), (5.8, 3.2), (6.4, 3.6)], SCORCH, 4)
+    # 2 destroyed: collapsed slab, shards, a fallen array face
+    p = Panel(image, 2, cw, ch, s)
+    p.poly([(0.3, 0.6), (2.6, 0.3), (3.4, 1.2), (3.0, 2.4), (1.2, 2.6), (0.2, 1.7)], SCORCH)
+    p.poly([(3.6, 2.4), (6.4, 2.0), (6.8, 3.5), (5.2, 4.6), (3.5, 4.2)], SCORCH)
+    shards(p, [(0.4, 0.5, 1.9, 1.7), (2.5, 2.7, 4.0, 3.9), (4.3, 2.3, 6.0, 3.7), (0.7, 3.2, 2.1, 4.5),
+               (4.9, 0.4, 6.2, 1.4)], SLAB)
+    p.poly([(2.2, 1.2), (3.6, 1.0), (3.8, 1.5), (2.4, 1.8)], STEEL, EDGE)
+    for pts in (((0.8, 4.4), (2.5, 3.2)), ((4.2, 1.0), (5.0, 2.8)), ((3.3, 4.6), (4.9, 4.2))):
+        p.line(list(pts), STEEL, 3)
+    # 3 lights: amber array-face glow, red beacons
+    p = Panel(image, 3, cw, ch, s)
+    for x0, x1 in ((0.8, 2.3), (2.75, 4.25), (4.7, 6.2)):
+        p.rect(x0 + 0.1, 0.8, x1 - 0.1, 1.45, '#40342a')
+    p.circle(3.5, 2.75, 0.14, AMBER)
+    p.circle(0.4, 0.4, 0.14, RED)
+    p.circle(6.6, 0.4, 0.14, RED)
+
+
+# ---------------------------------------------------------------------------------------------- blast doors
+# The magazine store's door, as a 3 x 1 piece laid over the wall run: the door cell between two housings the heavy
+# leaves have drawn back into. Authored with the wall running along local x and the door facing the bottom edge (the
+# outside of the store); the passage cell stays open so nothing here blocks sight or movement.
+
+DOOR_PX = 200
+
+
+def blastdoor(image):
+    # 0 intact
+    p = Panel(image, 0, 3, 1, DOOR_PX)
+    for x0, x1 in ((0.04, 0.96), (2.04, 2.96)):
+        p.rrect(x0, 0.05, x1, 0.95, 0.08, STEEL, EDGE)
+        p.rect(x0 + 0.08, 0.15, x1 - 0.08, 0.85, SLAB_HI, EDGE)
+    for x in (0.2, 0.4, 0.6):
+        p.rect(x + 0.0, 0.18, x + 0.08, 0.82, HAZARD)
+    for x in (2.2, 2.4, 2.6):
+        p.rect(x + 0.0, 0.18, x + 0.08, 0.82, HAZARD)
+    p.rect(0.96, 0.0, 2.04, 0.14, STEEL, EDGE)
+    p.rect(0.96, 0.86, 2.04, 1.0, STEEL, EDGE)
+    for x in (1.1, 1.3, 1.5, 1.7, 1.9):
+        p.rect(x - 0.04, 0.02, x + 0.04, 0.12, HAZARD)
+        p.rect(x - 0.04, 0.88, x + 0.04, 0.98, HAZARD)
+    p.rect(0.9, 0.2, 1.0, 0.8, RECESS)
+    p.rect(2.0, 0.2, 2.1, 0.8, RECESS)
+    for bx, by in ((0.14, 0.14), (0.86, 0.14), (0.14, 0.86), (0.86, 0.86), (2.14, 0.14), (2.86, 0.14), (2.14, 0.86), (2.86, 0.86)):
+        p.circle(bx, by, 0.05, EDGE)
+    # 1 damaged: the far housing buckled, its leaf half out of the track, scorch
+    p = Panel(image, 1, 3, 1, DOOR_PX)
+    p.rrect(0.04, 0.05, 0.96, 0.95, 0.08, STEEL, EDGE)
+    p.rect(0.12, 0.15, 0.88, 0.85, SLAB_HI, EDGE)
+    for x in (0.2, 0.4, 0.6):
+        p.rect(x, 0.18, x + 0.08, 0.82, HAZARD)
+    p.poly([(2.04, 0.05), (2.96, 0.12), (2.88, 0.6), (2.96, 0.95), (2.04, 0.9)], STEEL, EDGE)
+    p.poly([(2.12, 0.18), (2.8, 0.2), (2.7, 0.8), (2.14, 0.78)], SLAB_HI, EDGE)
+    p.poly([(2.04, 0.2), (1.78, 0.28), (1.72, 0.62), (2.04, 0.72)], STEEL, EDGE)
+    p.rect(0.96, 0.0, 2.04, 0.14, STEEL, EDGE)
+    p.rect(0.96, 0.86, 1.7, 1.0, STEEL, EDGE)
+    p.circle(2.5, 0.5, 0.35, SCORCH)
+    p.line([(0.3, 0.2), (0.6, 0.5), (0.45, 0.8)], SCORCH, 4)
 
 
 # ------------------------------------------------------------------------------------------------------- parts
@@ -397,6 +687,11 @@ if __name__ == '__main__':
         save('bunker', bunker)
         save('magazine', magazine)
         save('power', power)
+        save('opshall', opshall)
+        save('bay', bay)
+        save('ctrlhall', ctrlhall)
+        save('aircontrol', aircontrol)
+        save('blastdoor', blastdoor)
         save('parts', parts)
         save('gatehouse', gatehouse)
     elif mode == 'banner':

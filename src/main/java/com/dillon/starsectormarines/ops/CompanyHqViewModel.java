@@ -470,6 +470,8 @@ final class CompanyHqViewModel {
                 : days <= SOON_DAYS ? "post-card warning-surface" : "post-card";
         String headline = entry.kind == CompanyClocks.Kind.TERM_ENDING
                 ? Strings.get("companyHqClockTerm")
+                : entry.kind == CompanyClocks.Kind.RECOVERY
+                ? Strings.get("companyHqClockRecovery")
                 : entry.notice != null
                     && entry.notice.kind == PlayerEventNotice.Kind.CADRE_INCIDENT
                         ? Strings.get("companyHqClockCadre")
@@ -524,6 +526,16 @@ final class CompanyHqViewModel {
                         "companyHqNewsGarrisonDefence" + entry.defenceOutcome().name()), market);
                 detail = entry.account() != null ? entry.account() : "";
             }
+            case DETACHMENT_RECOVERED, DETACHMENT_LOST, GARRISON_MARKET_LOST -> {
+                String market = entry.marketName() != null ? entry.marketName()
+                        : Strings.get("defenceReportUnknownPlace");
+                headline = MessageFormat.format(Strings.get(switch (entry.type()) {
+                    case DETACHMENT_RECOVERED -> "companyHqNewsDetachmentRecovered";
+                    case DETACHMENT_LOST -> "companyHqNewsDetachmentLost";
+                    default -> "companyHqNewsGarrisonCutOff";
+                }), market);
+                detail = entry.account() != null ? entry.account() : "";
+            }
             default -> throw new IllegalStateException("Unhandled Chronicle event " + entry.type());
         }
         return new NewsPost("hq-news-" + entry.id(),
@@ -532,7 +544,10 @@ final class CompanyHqViewModel {
                 kicker, headline, Strings.format("openingCompanyHqReceived", detail, ageText(Math.max(0, day - entry.learnedDay()))),
                 entry.confidence() == ChronicleConfidence.RUMOR,
                 entry.type() == ChronicleEventType.SILENT_COLONY
-                        || entry.type() == ChronicleEventType.GARRISON_DEFENCE,
+                        || entry.type() == ChronicleEventType.GARRISON_DEFENCE
+                        || entry.type() == ChronicleEventType.DETACHMENT_RECOVERED
+                        || entry.type() == ChronicleEventType.DETACHMENT_LOST
+                        || entry.type() == ChronicleEventType.GARRISON_MARKET_LOST,
                 entry.actorFactionId() == null ? "" : factionCrest(entry.actorFactionId()),
                 entry.actorName() == null ? "" : entry.actorName());
     }

@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.CampaignTable;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractType;
+import com.dillon.starsectormarines.campaign.StrandedDetachment;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -55,7 +56,7 @@ public final class NamedStationingRepairSystem implements CampaignSystem {
             ContractState contractState = ContractState.fromByte(state.contractState[row]);
             String captainId = state.captainRegistry.get(state.contractCaptainId[row]);
             MarineCaptain captain = roster.byId(captainId);
-            if (!mayOwnNamedPersonnel(contractState) || captain == null
+            if (!mayOwnNamedPersonnel(state, row, contractState) || captain == null
                     || captain.status() == Status.INJURED || captain.status() == Status.KIA) {
                 repairs += settleInvalidBinding(state, row, contractId, roster, captain);
                 continue;
@@ -74,9 +75,15 @@ public final class NamedStationingRepairSystem implements CampaignSystem {
         return repairs;
     }
 
-    private static boolean mayOwnNamedPersonnel(ContractState state) {
+    /**
+     * A failed row may still own its survivors while they wait to be collected
+     * ({@link StrandedDetachment}); releasing them here would bring them home for free.
+     */
+    private static boolean mayOwnNamedPersonnel(CampaignState campaign, int row,
+                                                ContractState state) {
         return state == ContractState.ACTIVE || state == ContractState.IN_PROGRESS
-                || state == ContractState.DEFAULTED || state == ContractState.COMPLETED;
+                || state == ContractState.DEFAULTED || state == ContractState.COMPLETED
+                || StrandedDetachment.isStranded(campaign, row);
     }
 
     private static int settleInvalidBinding(CampaignState state, int row, long contractId,

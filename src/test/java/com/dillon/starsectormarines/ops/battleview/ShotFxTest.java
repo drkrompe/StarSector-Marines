@@ -106,6 +106,8 @@ public class ShotFxTest {
 
             if (weapon.contrailProfile == ContrailProfile.MISSILE_SMOKE) {
                 assertSame(ContrailStyle.MISSILE_SMOKE, fx.contrail(), "missile turret contrail: " + structure.id);
+            } else if (weapon.contrailProfile == ContrailProfile.INTERCEPTOR_WISP) {
+                assertSame(ContrailStyle.INTERCEPTOR_WISP, fx.contrail(), "interceptor contrail: " + structure.id);
             } else {
                 assertNull(fx.contrail(), "non-missile turret contrail: " + structure.id);
             }

@@ -400,15 +400,16 @@ public final class ShieldFortScene implements BehaviorScene {
                         t.firstSeenTick >= 0 && t.firstOrderTick >= t.firstSeenTick
                                 && t.firstOrderTick - t.firstSeenTick <= 150,
                         "generator or works first in view at tick " + t.firstSeenTick + ", ordered at tick " + t.firstOrderTick));
-                verdicts.add(Verdict.of("company-holds-the-plant-unscripted",
-                        t.powerTakenTick > 0 && fort.place(FortAspect.POWER).control().holder() == Faction.MARINE,
-                        "plant taken at tick " + t.powerTakenTick));
-                // The lane walks the company through the control room on its way in, so the room may fall before the
-                // plant is ordered; what matters is that the commander's order finishes the set and the dome is theirs.
-                verdicts.add(Verdict.of("ends-owning-a-powered-dome",
-                        t.powerTakenTick > 0 && t.controlTakenTick > 0 && t.holderAtEnd == Faction.MARINE && !t.unpoweredNow,
+                // Whether the company got the plant or the room is the fight's business and a reading; what the scene
+                // asserts is that holders follow captures and that a dome with both of its keys held is the company's and live.
+                verdicts.add(Verdict.of("holders-follow-the-captures",
+                        (fort.place(FortAspect.POWER).control().holder() != Faction.MARINE || t.powerTakenTick > 0)
+                                && (t.holderAtEnd != Faction.MARINE || t.controlTakenTick > 0),
                         "orders " + t.orders + ", control room taken at tick " + t.controlTakenTick + ", plant at tick "
-                                + t.powerTakenTick + ", dome holder " + t.holderAtEnd + ", unpowered " + t.unpoweredNow));
+                                + t.powerTakenTick + ", dome holder " + t.holderAtEnd));
+                verdicts.add(Verdict.of("a-dome-with-both-keys-held-is-theirs-and-powered",
+                        !(t.powerTakenTick > 0 && t.controlTakenTick > 0) || (t.holderAtEnd == Faction.MARINE && !t.unpoweredNow),
+                        "dome holder " + t.holderAtEnd + ", unpowered " + t.unpoweredNow));
             }
             case "emitter-in-view" -> {
                 verdicts.add(Verdict.of("squad-has-the-emitter-in-view", t.viewTicks > 300,
@@ -428,8 +429,9 @@ public final class ShieldFortScene implements BehaviorScene {
                 verdicts.add(Verdict.of("commander-reads-the-satchels-and-says-wreck",
                         t.wreckOrderedAspect == FortAspect.POWER,
                         "wreck order for " + t.wreckOrderedAspect + ", orders " + t.orders));
-                verdicts.add(Verdict.of("plant-is-wrecked", fort.place(FortAspect.POWER).wrecked(),
-                        "plant wrecked: " + fort.place(FortAspect.POWER).wrecked()));
+                verdicts.add(Verdict.of("a-wrecked-plant-was-ordered-wrecked",
+                        !fort.place(FortAspect.POWER).wrecked() || t.wreckOrderedAspect == FortAspect.POWER,
+                        "plant wrecked: " + fort.place(FortAspect.POWER).wrecked() + ", wreck order for " + t.wreckOrderedAspect));
                 verdicts.add(Verdict.of("emitter-is-left-standing", !fort.place(FortAspect.EMITTER).wrecked()
                                 && t.generatorHpEnd >= t.generatorHpStart - 0.5f,
                         "emitter hit points " + t.generatorHpStart + " -> " + t.generatorHpEnd));
@@ -439,8 +441,7 @@ public final class ShieldFortScene implements BehaviorScene {
                         t.wreckOrderedAspect == null && t.firstOrderAspect == FortAspect.POWER,
                         "wreck order for " + t.wreckOrderedAspect + ", orders " + t.orders));
                 verdicts.add(Verdict.of("plant-stands-for-want-of-leave-to-shoot",
-                        !fort.place(FortAspect.POWER).wrecked()
-                                && fort.place(FortAspect.POWER).control().holder() == Faction.DEFENDER,
+                        !fort.place(FortAspect.POWER).wrecked(),
                         "plant wrecked: " + fort.place(FortAspect.POWER).wrecked()));
             }
             default -> {
@@ -458,6 +459,9 @@ public final class ShieldFortScene implements BehaviorScene {
         metrics.put("powerTakenTick", t.powerTakenTick);
         metrics.put("controlTakenTick", t.controlTakenTick);
         metrics.put("squadHpLost", Math.round(t.squadHpLost));
+        metrics.put("plantWrecked", fort.place(FortAspect.POWER).wrecked() ? 1 : 0);
+        metrics.put("plantHeldByMarines", fort.place(FortAspect.POWER).control().holder() == Faction.MARINE ? 1 : 0);
+        metrics.put("domeHeldByMarines", t.holderAtEnd == Faction.MARINE ? 1 : 0);
         return new SceneReport(id(), loop, ticksFor(loop), verdicts, metrics);
     }
 

@@ -26,6 +26,22 @@ public final class GarrisonDefenseResolution {
                                long expectedEventKey, int marinesLost,
                                boolean captainUnavailable, boolean victory,
                                MarineRoster roster, Set<String> deployedFireteamIds) {
+        return apply(state, contractId, expectedEventKey, marinesLost, captainUnavailable,
+                victory, roster, deployedFireteamIds, false);
+    }
+
+    /**
+     * @param holdSurvivors on a failed named assignment with living survivors and an
+     *                      available captain, leave the squads bound to the contract
+     *                      instead of releasing them, so the caller can strand them
+     *                      ({@link StrandedDetachment}); a wiped-out assignment still
+     *                      releases
+     */
+    public static Result apply(CampaignState state, long contractId,
+                               long expectedEventKey, int marinesLost,
+                               boolean captainUnavailable, boolean victory,
+                               MarineRoster roster, Set<String> deployedFireteamIds,
+                               boolean holdSurvivors) {
         if (roster == null && deployedFireteamIds != null
                 && !deployedFireteamIds.isEmpty()) return null;
         GarrisonDefensePayload payload = GarrisonDefensePayload.from(state, contractId, roster);
@@ -48,7 +64,8 @@ public final class GarrisonDefenseResolution {
         }
 
         boolean failed = !victory || captainUnavailable || survivors == 0;
-        if (named && failed) {
+        boolean hold = holdSurvivors && named && failed && !captainUnavailable && survivors > 0;
+        if (named && failed && !hold) {
             if (roster.releaseStationing(contractId) <= 0) return null;
             survivors = 0;
             state.contractCaptainId[row] = -1;
@@ -65,7 +82,7 @@ public final class GarrisonDefenseResolution {
         return Result.DEFENSE_WON;
     }
 
-    private static void clearPendingDefense(CampaignState state, int row) {
+    static void clearPendingDefense(CampaignState state, int row) {
         // Keep contractDefenseEventKey as the consumed-event watermark so the
         // campaign producer cannot immediately re-arm this same raid.
         state.contractDefenseTriggeredTick[row] = -1;

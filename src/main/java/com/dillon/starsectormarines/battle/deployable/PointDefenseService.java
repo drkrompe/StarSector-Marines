@@ -4,8 +4,10 @@ import com.dillon.starsectormarines.battle.combat.Interceptable;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.DeployableEmplacementSpec;
 
 import java.util.ArrayList;
@@ -65,11 +67,18 @@ public final class PointDefenseService {
      * missed, rather than a projectile that silently ceased to exist.
      */
     private static final float ENGAGEMENT_MARK_SECONDS = 0.9f;
+    /** Slack an interceptor needs over its own flight before the round would land. */
+    private static final float LAUNCH_MARGIN_SECONDS = 0.05f;
+    /** How far past the ground it covers a launcher reaches out to meet a round, as a multiple of its radius. */
+    private static final float LAUNCH_REACH_MULT = 2f;
 
     private final Random rng;
     private final ArrayList<PendingPlacement> pending = new ArrayList<>();
     private final ArrayList<LiveEmplacement> active = new ArrayList<>();
     private final ArrayList<EngagementMark> marks = new ArrayList<>();
+    /** Interceptor missiles in the air, each flying to where its round will be. */
+    private final ArrayList<Interceptor> interceptors = new ArrayList<>();
+    private final ArrayList<Projectile> launches = new ArrayList<>();
     private volatile List<EmplacementView> snapshot = List.of();
     private volatile List<EngagementView> markSnapshot = List.of();
     private long nextId = 1L;
@@ -100,6 +109,7 @@ public final class PointDefenseService {
      */
     public synchronized void tick(float dt, BattleControl sim) {
         mintPending(sim);
+        arriveInterceptors(dt, sim);
         List<Projectile> inFlight = sim.getActiveProjectiles();
         for (Iterator<LiveEmplacement> it = active.iterator(); it.hasNext(); ) {
             LiveEmplacement pod = it.next();
@@ -118,6 +128,10 @@ public final class PointDefenseService {
             Projectile engaged = pickEngageable(pod, inFlight, sim);
             Interceptable body = pickBody(pod, sim, engaged);
             if (engaged == null && body == null) continue;
+            if (body == null && pod.launchSpeed > 0f) {
+                launch(pod, engaged, sim);
+                continue;
+            }
             // An engagement is a burst fired at a moving warhead, not a
             // guaranteed deletion. It costs a round from the magazine and puts
             // the mount on its interval whether or not it connects, so "it
@@ -136,6 +150,9 @@ public final class PointDefenseService {
             if (body != null) postEngagement(pod, body.x(), body.y(), stopped, sim);
             else postEngagement(pod, engaged.currentX(), engaged.currentY(), stopped, sim);
         }
+        // Queued after the walk: the list being walked is the one they join.
+        for (Projectile missile : launches) sim.queueProjectile(missile);
+        launches.clear();
         ageMarks(dt);
         publishSnapshot(sim);
     }
@@ -263,11 +280,77 @@ public final class PointDefenseService {
             float dx = p.currentX() - podX;
             float dy = p.currentY() - podY;
             float distanceSq = dx * dx + dy * dy;
-            if (distanceSq > reachSq || distanceSq >= bestDistanceSq) continue;
+            if (distanceSq >= bestDistanceSq) continue;
+            if (pod.launchSpeed > 0f) {
+                // A launcher covers ground, not airspace: it takes a round coming down within its radius
+                // and goes out to meet it, as far as LAUNCH_REACH_MULT times that radius, because a round
+                // that close to its own landing is already past catching.
+                float ldx = p.toX - podX;
+                float ldy = p.toY - podY;
+                if (ldx * ldx + ldy * ldy > reachSq) continue;
+                if (distanceSq > reachSq * LAUNCH_REACH_MULT * LAUNCH_REACH_MULT) continue;
+                // Only at a round it can reach before the round lands, and one interceptor per round.
+                float reach = (float) Math.sqrt(distanceSq) / pod.launchSpeed;
+                if (p.remainingTime <= reach + LAUNCH_MARGIN_SECONDS) continue;
+                if (isChased(p)) continue;
+            } else if (distanceSq > reachSq) {
+                continue;
+            }
             best = p;
             bestDistanceSq = distanceSq;
         }
         return best;
+    }
+
+    /**
+     * Fires an interceptor missile at where {@code round} will be when the missile gets there,
+     * one step like a led gun: the time to the round now, then the round's own flight extrapolated
+     * that far. Whether it connects is rolled now, so the battle replays identically, and applied
+     * when it arrives; the magazine and the interval are spent at launch, as a burst's are.
+     */
+    private void launch(LiveEmplacement pod, Projectile round, BattleControl sim) {
+        WeaponDef weapon = pod.structure.mount.weapon;
+        float fromX = sim.world().x(pod.entityId);
+        float fromY = sim.world().y(pod.entityId);
+        float reach = (float) Math.hypot(round.currentX() - fromX, round.currentY() - fromY) / pod.launchSpeed;
+        float aimX = round.xAfter(reach);
+        float aimY = round.yAfter(reach);
+        float flight = Math.max(BattleSimulation.TICK_DT,
+                (float) Math.hypot(aimX - fromX, aimY - fromY) / pod.launchSpeed);
+        boolean stopped = rng.nextFloat() < pod.hitChance;
+        pod.engagementsRemaining--;
+        pod.engagementTimer = pod.engagementInterval;
+        sim.telemetry().recordOrdnanceEngaged(pod.carrierId);
+        launches.add(new Projectile(fromX, fromY, aimX, aimY, weapon.boostRamp, weapon.arcHeight,
+                pod.faction, /*aerialDelivery*/ false, flight, /*onArrival*/ null, weapon.id,
+                /*pointDefenseTarget*/ false));
+        sim.postShot(new ShotEvent(pod.entityId, fromX, fromY, aimX, aimY, stopped, pod.faction,
+                flight, pod.structure));
+        interceptors.add(new Interceptor(pod.carrierId, pod.faction, round, stopped, flight, aimX, aimY));
+    }
+
+    /** Lands interceptors whose flight is over: a hit takes the round out of the air there, a miss lets it fly on. */
+    private void arriveInterceptors(float dt, BattleControl sim) {
+        for (int i = interceptors.size() - 1; i >= 0; i--) {
+            Interceptor missile = interceptors.get(i);
+            missile.remaining -= dt;
+            if (missile.remaining > 0f) continue;
+            interceptors.remove(i);
+            if (missile.round.intercepted || missile.round.isExpired()) continue;
+            if (missile.stopped) {
+                missile.round.intercepted = true;
+                sim.telemetry().recordOrdnanceIntercepted(missile.carrierId);
+            }
+            marks.add(new EngagementMark(missile.faction, missile.x, missile.y, missile.stopped,
+                    ENGAGEMENT_MARK_SECONDS));
+        }
+    }
+
+    private boolean isChased(Projectile round) {
+        for (Interceptor missile : interceptors) {
+            if (missile.round == round) return true;
+        }
+        return false;
     }
 
     /**
@@ -358,6 +441,27 @@ public final class PointDefenseService {
                                     DeployableEmplacementSpec spec) {
     }
 
+    private static final class Interceptor {
+        final long carrierId;
+        final Faction faction;
+        final Projectile round;
+        final boolean stopped;
+        final float x;
+        final float y;
+        float remaining;
+
+        Interceptor(long carrierId, Faction faction, Projectile round, boolean stopped,
+                    float flight, float x, float y) {
+            this.carrierId = carrierId;
+            this.faction = faction;
+            this.round = round;
+            this.stopped = stopped;
+            this.remaining = flight;
+            this.x = x;
+            this.y = y;
+        }
+    }
+
     private static final class LiveEmplacement {
         final long id;
         final long entityId;
@@ -371,6 +475,11 @@ public final class PointDefenseService {
         final float engagementInterval;
         /** The mount weapon's authored accuracy against a moving warhead. */
         final float hitChance;
+        /**
+         * Speed of the interceptor missile it launches, cells/sec; zero for a gun whose burst
+         * resolves on the spot. Read from the mount weapon's authored round velocity.
+         */
+        final float launchSpeed;
         final float totalLifetime;
         final float spawnX;
         final float spawnY;
@@ -392,6 +501,7 @@ public final class PointDefenseService {
             this.interceptRadius = structure.mount.weapon.range;
             this.engagementInterval = structure.mount.weapon.cooldown;
             this.hitChance = structure.mount.weapon.accuracy;
+            this.launchSpeed = structure.mount.weapon.roundVelocity;
             this.totalLifetime = spec.lifetimeSeconds();
             this.remainingLifetime = spec.lifetimeSeconds();
             this.engagementsRemaining = structure.mount.ammoCapacity;
