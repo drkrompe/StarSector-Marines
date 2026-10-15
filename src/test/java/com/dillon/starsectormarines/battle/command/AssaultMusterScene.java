@@ -65,6 +65,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 /**
@@ -335,8 +336,8 @@ public final class AssaultMusterScene implements BehaviorScene {
             verdicts.add(Verdict.of("the-company-took-the-breach-it-could-staff",
                     t.planVariant.startsWith("breach"), "plan variant " + t.planVariant + ", shortfall: " + t.planShortfall));
             verdicts.add(Verdict.of("breach-orders-went-to-squads-that-carry-a-breaching-kit",
-                    !b.orderedSquads.isEmpty() && b.unequippedSquads.isEmpty(),
-                    b.orderedSquads.size() + " squads ordered to open the wall, " + b.unequippedSquads.size()
+                    b.unequippedSquads.isEmpty(),
+                    b.orderedSquads.size() + " squads ordered to open the wall (none is vacuous: the sappers can be held back and lost), " + b.unequippedSquads.size()
                             + " of them carrying nothing that can"));
             // Vacuous when no breacher ever stood at the wall with kit ready: getting there alive is the fight's business.
             verdicts.add(Verdict.of("a-breacher-in-reach-with-kit-ready-spends-it",
@@ -345,6 +346,19 @@ public final class AssaultMusterScene implements BehaviorScene {
                     b.firstReadyInReachTick < 0 ? "no breacher stood at the wall with kit ready (nothing to judge)"
                             : "first ready in reach at tick " + b.firstReadyInReachTick + ", first round, charge or cut spent at tick "
                             + b.firstSpendTick));
+            // The base of fire answers the nests that cover the wall before the sappers walk up to it. A distance breacher whose
+            // place lies outside every nest's reach has nothing to wait for, so this is asked of the close breach only.
+            boolean closeBreach = t.planVariant.startsWith("breach (close)");
+            Integer suppressTick = t.stepTicks.get("SUPPRESS");
+            verdicts.add(Verdict.of("a-close-breach-waits-for-the-base-of-fire",
+                    !closeBreach || b.firstOrderTick < 0 || (suppressTick != null && b.firstOrderTick >= suppressTick),
+                    closeBreach ? "first order to open the wall at tick " + b.firstOrderTick + ", suppression began at tick " + suppressTick
+                            : "not a close breach (nothing to judge)"));
+            // A breacher is not left standing: one that is ordered, alive and in no contact keeps closing on the wall. Whether it
+            // gets there alive is the fight's business and is reported below as a reading.
+            verdicts.add(Verdict.of("no-breacher-stood-idle-short-of-the-wall-in-no-contact",
+                    b.maxIdleTicks() <= BreachMechanics.IDLE_LIMIT_TICKS,
+                    "longest idle spell " + b.maxIdleTicks() + " ticks; " + (b.tracks.isEmpty() ? "no breacher was ordered" : b.describeTracks())));
             verdicts.add(Verdict.of("a-charge-set-on-the-wall-damaged-it",
                     b.chargesDamagedWall == b.chargesResolved,
                     b.chargesSet + " charges set, " + b.chargesResolved + " detonated, " + b.chargesDamagedWall
@@ -431,6 +445,9 @@ public final class AssaultMusterScene implements BehaviorScene {
         metrics.put("breachNearestApproachCells", t.breach.nearestApproach == Float.MAX_VALUE ? -1 : Math.round(t.breach.nearestApproach));
         metrics.put("breachFirstReadyInReachTick", t.breach.firstReadyInReachTick);
         metrics.put("breachFirstSpendTick", t.breach.firstSpendTick);
+        metrics.put("breachSquadsReached", t.breach.tracks.values().stream().filter(BreachMechanics.SquadTrack::reached).count());
+        metrics.put("breachIdleTicksMax", t.breach.maxIdleTicks());
+        metrics.put("breachSquadsDied", t.breach.tracks.values().stream().filter(s -> s.diedTick >= 0).count());
         metrics.put("wallChargesSet", t.breach.chargesSet);
         metrics.put("wallChargesDetonated", t.breach.chargesResolved);
         metrics.put("lanceInCompanyTick", t.lanceInCompanyTick);
@@ -488,7 +505,139 @@ public final class AssaultMusterScene implements BehaviorScene {
         private final Map<Long, int[]> chargeCells = new HashMap<>();
         private final Map<Long, Integer> chargeWallHp = new HashMap<>();
 
+        /** A squad this close to the wall cell (cells) has reached it, in the sense of a breacher standing at the work. */
+        static final float REACHED_CELLS = 10f;
+        /** A squad that has made less than this much ground (cells) over a sampling window, in no contact, is standing idle. */
+        static final float IDLE_MOVE_CELLS = 1f;
+        static final int SAMPLE_TICKS = 120;
+        /** An ordered breacher in no contact may stand still this long (a replan, a regroup) before it is a stall. */
+        static final int IDLE_LIMIT_TICKS = 600;
+
+        /** Every squad that was ever ordered to open the wall, followed to the end of the battle. */
+        final Map<Integer, SquadTrack> tracks = new TreeMap<>();
+
+        /** One breacher squad's course: when it was ordered, how close it came, whether it stood idle, how it ended. */
+        static final class SquadTrack {
+            final int orderedTick;
+            final float wallX;
+            final float wallY;
+            int startAlive;
+            int alive;
+            float best = Float.MAX_VALUE;
+            int bestTick = -1;
+            int diedTick = -1;
+            int releasedTick = -1;
+            boolean ordered = true;
+            int idleTicks;
+            private float sampleX = Float.NaN;
+            private float sampleY;
+
+            SquadTrack(int orderedTick, int cx, int cy) {
+                this.orderedTick = orderedTick;
+                this.wallX = cx + 0.5f;
+                this.wallY = cy + 0.5f;
+            }
+
+            void observe(BattleSimulation sim, Squad squad, boolean orderedNow, int tick) {
+                World world = sim.world();
+                int count = sim.squadMemberCount(squad.id);
+                double sx = 0;
+                double sy = 0;
+                int living = 0;
+                for (int i = 0; i < count; i++) {
+                    long member = sim.squadMemberAt(squad.id, i);
+                    if (member == 0L || !world.isAlive(member)) continue;
+                    living++;
+                    sx += world.renderX(member);
+                    sy += world.renderY(member);
+                    float d = (float) Math.hypot(wallX - world.renderX(member), wallY - world.renderY(member));
+                    if (d < best) {
+                        best = d;
+                        bestTick = tick;
+                    }
+                }
+                if (startAlive == 0) startAlive = living;
+                if (alive > 0 && living == 0 && diedTick < 0) diedTick = tick;
+                alive = living;
+                if (ordered && !orderedNow) releasedTick = tick;
+                ordered = orderedNow;
+                if (living > 0 && tick % SAMPLE_TICKS == 0) {
+                    float cx = (float) (sx / living);
+                    float cy = (float) (sy / living);
+                    float toWall = (float) Math.hypot(wallX - cx, wallY - cy);
+                    if (!Float.isNaN(sampleX) && ordered && toWall > REACHED_CELLS && squad.timeSinceContact > 5f
+                            && Math.hypot(cx - sampleX, cy - sampleY) < IDLE_MOVE_CELLS) {
+                        idleTicks += SAMPLE_TICKS;
+                    }
+                    sampleX = cx;
+                    sampleY = cy;
+                }
+            }
+
+            void vanished(int tick) {
+                if (alive > 0 && diedTick < 0) diedTick = tick;
+                alive = 0;
+            }
+
+            boolean reached() {
+                return best <= REACHED_CELLS;
+            }
+
+            /** How it ended: at the wall, dead short of it, handed back to the assault, or still walking. */
+            String end() {
+                if (reached()) return "REACHED";
+                if (alive == 0) return "DIED";
+                return ordered ? "STILL_ORDERED" : "HANDED_BACK";
+            }
+
+            String describe(int id) {
+                return "sq" + id + " ordered@" + orderedTick + " " + startAlive + "->" + alive + " closest=" + Math.round(best)
+                        + "@" + bestTick + (diedTick >= 0 ? " died@" + diedTick : "") + (releasedTick >= 0 ? " released@" + releasedTick : "")
+                        + " idle=" + idleTicks + " " + end();
+            }
+        }
+
+        private void track(BattleSimulation sim, int tick) {
+            Set<Integer> seen = new HashSet<>();
+            for (Squad squad : sim.getSquads()) {
+                ObjectiveAssignment order = squad.assignmentForExecution();
+                boolean orderedNow = order != null && order.breaches();
+                SquadTrack track = tracks.get(squad.id);
+                if (track == null) {
+                    if (!orderedNow) continue;
+                    track = new SquadTrack(tick, order.breachCellX(), order.breachCellY());
+                    tracks.put(squad.id, track);
+                }
+                seen.add(squad.id);
+                track.observe(sim, squad, orderedNow, tick);
+            }
+            for (Map.Entry<Integer, SquadTrack> e : tracks.entrySet()) {
+                if (!seen.contains(e.getKey())) e.getValue().vanished(tick);
+            }
+        }
+
+        int maxIdleTicks() {
+            int max = 0;
+            for (SquadTrack track : tracks.values()) max = Math.max(max, track.idleTicks);
+            return max;
+        }
+
+        boolean anyReached() {
+            for (SquadTrack track : tracks.values()) if (track.reached()) return true;
+            return false;
+        }
+
+        String describeTracks() {
+            StringBuilder out = new StringBuilder();
+            for (Map.Entry<Integer, SquadTrack> e : tracks.entrySet()) {
+                if (out.length() > 0) out.append("; ");
+                out.append(e.getValue().describe(e.getKey()));
+            }
+            return out.toString();
+        }
+
         void observe(BattleSimulation sim, int tick) {
+            track(sim, tick);
             NavigationGrid grid = sim.getGrid();
             World world = sim.world();
             for (Squad squad : sim.getSquads()) {
