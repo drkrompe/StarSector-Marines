@@ -1007,6 +1007,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final TaskPointService taskPoints;
     /** Post-movement ground-unit separation and terrain-aware squad-formation relaxation. See {@link SeparationSystem} class doc; ticked right after the occupancy-delta drain, before the spawn flush. */
     private final SeparationSystem separation;
+    /** Moving and parked ground hulls push infantry out of their footprint and bow wave. See {@link VehicleRepulsionSystem}. */
+    private final VehicleRepulsionSystem vehicleRepulsion;
     /** Off-by-default, bounded quiet-infantry spreading/yielding experiment. */
     private final SquadTrafficSystem squadTraffic;
     /** Short-range allied-infantry steer away from hostile alien bodies. */
@@ -1201,6 +1203,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.swarmAvoidance = new SwarmAvoidanceSystem(
                 rosterService, unitIndex, grid);
         this.separation = new SeparationSystem(rosterService, unitIndex, grid);
+        this.vehicleRepulsion = new VehicleRepulsionSystem(rosterService, unitIndex, grid);
         this.squadTraffic = Boolean.getBoolean(SquadTrafficSystem.PROPERTY)
                 ? new SquadTrafficSystem(grid, rosterService) : null;
         this.mechCollisionEscape = new com.dillon.starsectormarines.battle.mech.MechCollisionEscapeSystem(
@@ -1455,6 +1458,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public ConvoyService convoy() { return rosterService.convoy(); }
     /** Who is riding in what — the data owner for {@code RIDING}, and the gate a pass consults to skip a passenger. */
     public VehicleTransportService transport() { return transport; }
+    public VehicleRepulsionSystem vehicleRepulsion() { return vehicleRepulsion; }
 
     @Override
     public boolean isRiding(long id) { return rosterService.isRiding(id); }
@@ -2880,6 +2884,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // read final POSITION). See SeparationSystem class doc.
         swarmAvoidance.tick(TICK_DT, directControl.activeUnitId());
         separation.tick(TICK_DT, directControl.activeUnitId());
+        // Hulls win against bodies: after relaxation so a shove apart cannot
+        // put somebody back under a truck.
+        vehicleRepulsion.tick(TICK_DT);
         mechCollisionEscape.tick(TICK_DT);
         if (directControl.unitActive()) {
             MitigationSystem.faceManual(directControl.activeUnitId(), rosterService.mitigations(),

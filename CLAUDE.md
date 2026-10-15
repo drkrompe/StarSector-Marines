@@ -233,7 +233,9 @@ Do not run builds or leave generated task files there.
   both dispatch windows and replaces it with a move afterward), or `unarmedFinal` (diagnostic empty escort
   magazines on the final leg), or `silentTankFinal` (only the heavy lead
   loses its cannon ammunition). Reports include exit-gun destruction ticks and actual escort shots, damage, kills
-  and remaining durability. `companySize` selects named personnel (default 24).
+  and remaining durability, vehicle repulsion pushes, and the column driver's
+  reroutes, wreck/parked-hull swerves, station waits and hauler sprints.
+  `companySize` selects named personnel (default 24).
   Reports separate living militia from their assembled field guns. Default
   observation is 27000 ticks.
   Replays run **side by side by default**, on half the machine's processors —
