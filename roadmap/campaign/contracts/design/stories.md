@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — shipped geographically sparse persisted contract supply.
+Updated: 2026-10-15 — drafted stranded-detachment recovery and the absent-defence report.
 
 | Status | Story |
 | --- | --- |
@@ -14,6 +14,7 @@ Updated: 2026-09-01 — shipped geographically sparse persisted contract supply.
 | DRAFT — outcome-policy repair | `cadre-incident-failure-reputation.md` |
 | DRAFT — cohesion cleanup | `stationing-event-label-policy.md` |
 | PLANNED — content and policy vertical | `faction-ground-contract-policy.md` |
+| DRAFT — absent-defence report and pickup | `stranded-detachment-recovery.md` |
 
 The retainer-economy concern remains future balance direction, not contracted
 implementation work. Shipped G1–G32 slices are listed in `shipped.md`.

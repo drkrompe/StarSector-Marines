@@ -37,6 +37,7 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.ShieldFort;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
@@ -122,7 +123,8 @@ public final class ShieldFortScene implements BehaviorScene {
     }
 
     private record Terrain(NavigationGrid grid, CellTopology topology, List<DefensePost> posts,
-                           CompoundLayout.Placement at) {
+                           List<Doodad> doodads,
+                  CompoundLayout.Placement at) {
         int[] cell(int lx, int ly) {
             return at.cell(lx, ly);
         }
@@ -144,7 +146,7 @@ public final class ShieldFortScene implements BehaviorScene {
                 new GroundDefences(0, false).withForts(FortKind.SHIELD_FORT, 1)));
         FortStage stage = new FortStage();
         stage.run(ctx);
-        return new Terrain(grid, topology, List.copyOf(ctx.defensePosts), stage.placed().get(0).placement());
+        return new Terrain(grid, topology, List.copyOf(ctx.defensePosts), List.copyOf(ctx.doodads), stage.placed().get(0).placement());
     }
 
     private record Run(Trace trace, BattleSimulation sim, Fort fort) {}
@@ -157,7 +159,7 @@ public final class ShieldFortScene implements BehaviorScene {
         boolean viewLoop = loop.startsWith("emitter-in-view");
         boolean marineShip = loop.equals("intact") || loop.equals("power-cut") || loop.equals("no-emitter");
         boolean squadLoop = !loop.equals("intact") && !loop.equals("no-emitter");
-        SceneBuilder builder = SceneBuilder.over(terrain.grid(), terrain.topology()).posts(terrain.posts())
+        SceneBuilder builder = SceneBuilder.over(terrain.grid(), terrain.topology()).posts(terrain.posts()).doodads(terrain.doodads())
                 .missionCompletion(false);
         FortPlan.Gate main = plan.gates().get(0);
         int standoff = commander ? COMMANDER_STANDOFF : 8;

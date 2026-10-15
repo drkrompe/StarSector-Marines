@@ -1,8 +1,8 @@
 # Locust ground AA art
 
 Geometry-guided art for a ground emplacement inspired by the vanilla Locust
-SRM Launcher. The intended family also includes the Swarmer SRM Launcher and
-Proximity Charge Launcher; those two art passes are still pending.
+SRM Launcher. The Swarmer SRM Launcher and Proximity Charge Launcher now have
+first direct up-res passes; see the [family comparison](../missile-aa/README.md).
 
 ## Deliverables
 
@@ -106,8 +106,8 @@ the project's existing foundation used as the second edit target.
 | Planned ground weapon | Vanilla weapon id | Turret sprite under `graphics/weapons/` | Art state |
 | --- | --- | --- | --- |
 | Locust SRM Launcher | `locust` | `locust_turret.png` | Approved elongated geometry reskinned; art review |
-| Swarmer SRM Launcher | `swarmer` | `swarmer_srm_launcher_turret_base.png` | Pending |
-| Proximity Charge Launcher | `phasecl` | `phase_charge_launcher_turret_base.png` | Pending |
+| Swarmer SRM Launcher | `swarmer` | `swarmer_srm_launcher_turret_base.png` | First direct up-res available; art review |
+| Proximity Charge Launcher | `phasecl` | `phase_charge_launcher_turret_base.png` | First direct up-res available; art review |
 
 All three installed `.wpn` definitions specify one turret sprite and an
 alternative hardpoint sprite. Hardpoint and turret images are alternative
