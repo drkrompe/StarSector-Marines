@@ -17,9 +17,8 @@ import java.util.List;
  *
  * <p>While a friendly infantry squad is selected (which includes aiming a defend-area order,
  * since aiming needs a selection) two sources are published: every position cell as a faint
- * ground wash, and the cells the selected squads' marines currently hold claims on. Dug-in marines
- * are marked on the marine itself by {@code DugInMarkerRenderSystem}, not by a cell outline here.
- * With nothing selected, no infantry squad selected, or {@link DigInSystem#isEnabled()} off, the
+ * ground wash, and the cells the selected squads' marines currently hold claims on. Being dug in
+ * is left implied by a marine standing on his position; nothing marks it. With nothing selected, no infantry squad selected, or {@link DigInSystem#isEnabled()} off, the
  * sources are cleared.
  *
  * <p>Observation only: everything is read from the position index, the claim registry and the
