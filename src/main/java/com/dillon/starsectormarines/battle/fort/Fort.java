@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
@@ -131,6 +132,31 @@ public final class Fort {
             this.centreX = centreX;
             this.centreY = centreY;
             this.resolved = true;
+        }
+
+        /**
+         * Resolves this place as the union of the floors of its aspect's suite, read from the fort's authored plan and
+         * turned with its placement: holding the aspect means holding every room of it. The floors are rectangles of the
+         * fort's frame, not rooms recovered from the map, so what is held is exactly what was authored.
+         */
+        void resolveSuite(FortFrame frame, float centreX, float centreY) {
+            List<int[]> rects = new ArrayList<>();
+            for (int[] f : frame.plan().suite(aspect)) rects.add(frame.bounds(f[0], f[1], f[2], f[3]));
+            int lowX = Integer.MAX_VALUE, lowY = Integer.MAX_VALUE, highX = Integer.MIN_VALUE, highY = Integer.MIN_VALUE;
+            for (int[] b : rects) {
+                lowX = Math.min(lowX, b[0]);
+                lowY = Math.min(lowY, b[1]);
+                highX = Math.max(highX, b[2]);
+                highY = Math.max(highY, b[3]);
+            }
+            int width = highX - lowX + 1;
+            boolean[] floors = new boolean[width * (highY - lowY + 1)];
+            for (int[] b : rects) {
+                for (int y = b[1]; y <= b[3]; y++) {
+                    Arrays.fill(floors, (y - lowY) * width + (b[0] - lowX), (y - lowY) * width + (b[2] - lowX) + 1, true);
+                }
+            }
+            resolve(floors, lowX, lowY, highX, highY, centreX, centreY);
         }
 
         /** Whether the cell is part of the building interior where this aspect is held. */

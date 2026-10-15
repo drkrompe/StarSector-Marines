@@ -142,6 +142,17 @@ public final class FortressInterior {
      * the host and must stand on floor no fitting has already taken.
      */
     public static Result author(GenContext ctx, List<RoomPacker.Placed> rooms, List<RoomPacker.Placed> bare) {
+        return author(ctx, rooms, bare, () -> { });
+    }
+
+    /**
+     * As {@link #author(GenContext, List, List)}, with {@code hostFill} run once the floors, walls and fittings stand and
+     * before the windows are cut. The host furnishes its bare rooms there (a fort stands each room's core and fits its
+     * authored layout), because a window is cut only through a wall whose inward cell is still standable: a fill that came
+     * after the windows would put a console bank behind one, an opening onto nothing.
+     */
+    public static Result author(GenContext ctx, List<RoomPacker.Placed> rooms, List<RoomPacker.Placed> bare,
+                                Runnable hostFill) {
         for (var room : rooms) {
             for (int[] cell : room.shape().wall()) {
                 int x = room.originX() + cell[0], y = room.originY() + cell[1];
@@ -164,6 +175,7 @@ public final class FortressInterior {
         }
         stampWalls(ctx, rooms);
         furnish(ctx, rooms.stream().filter(room -> !bare.contains(room)).toList(), true);
+        hostFill.run();
         stampWindows(ctx, rooms);
         InstallationFloors.dress(ctx, rooms);
         InstallationWalls.dress(ctx, rooms);

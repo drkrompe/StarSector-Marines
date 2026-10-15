@@ -75,6 +75,12 @@ public final class ShieldFortScene implements BehaviorScene {
     private static final int WIDTH = 150;
     private static final int HEIGHT = 100;
     private static final int TICKS = 4800;
+    /** The wreck loops run longer: the plant stands in its hall at the back of the works, a long walk from the gate. */
+    private static final int WRECK_TICKS = 9000;
+
+    private static int ticksFor(String loop) {
+        return loop.equals("commander-wrecks-the-plant") ? WRECK_TICKS : TICKS;
+    }
     /** When the capital's guns open, in every loop. */
     static final int SHIP_TICK = 3300;
     private static final float SHIP_STANDOFF = 48f;
@@ -170,7 +176,9 @@ public final class ShieldFortScene implements BehaviorScene {
             // One defender nobody can kill stands in the plant: while a hostile stands in the building it cannot be taken,
             // so the only thing a squad can still do to the plant is wreck it, and the loop is not a race between the two.
             int[] plantCore = ShieldFort.coreCentre(FortAspect.POWER);
-            int[] keeper = terrain.cell(plantCore[0] + 3, plantCore[1]);
+            // The hall's generators stand either side of the reactor; the keeper takes the far corner of the walkway,
+            // clear of the door, so the squad can still reach the reactor to wreck it.
+            int[] keeper = terrain.cell(plantCore[0] - 3, plantCore[1] + 2);
             builder.unit("plant-keeper", Faction.DEFENDER, UnitType.MARINE, keeper[0], keeper[1],
                     spec -> spec.health(1_000_000f).moveSpeed(0f));
         }
@@ -261,7 +269,7 @@ public final class ShieldFortScene implements BehaviorScene {
         SceneRun.of(world).player(player).observe(script, trace)
                 .frames(frames, loop, 90, tick -> String.format(Locale.ROOT, "%s / tick %d / %s", loop, tick,
                         trace.caption(sim)))
-                .run(TICKS);
+                .run(ticksFor(loop));
         return new Run(trace, sim, fort);
     }
 
@@ -448,7 +456,7 @@ public final class ShieldFortScene implements BehaviorScene {
         metrics.put("powerTakenTick", t.powerTakenTick);
         metrics.put("controlTakenTick", t.controlTakenTick);
         metrics.put("squadHpLost", Math.round(t.squadHpLost));
-        return new SceneReport(id(), loop, TICKS, verdicts, metrics);
+        return new SceneReport(id(), loop, ticksFor(loop), verdicts, metrics);
     }
 
     private static final class Trace implements TickObserver {
