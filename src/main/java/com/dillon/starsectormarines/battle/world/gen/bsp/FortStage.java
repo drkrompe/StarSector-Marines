@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FortReservations;
 import com.dillon.starsectormarines.battle.world.gen.fortress.AirDefenceYard;
 import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
@@ -32,6 +33,8 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.ShieldFort;
 import com.dillon.starsectormarines.battle.world.gen.fortress.CompoundLayout;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortBelt;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortRoom;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortRoomFurnisher;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressInterior;
 import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationGround;
 import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationWalls;
@@ -44,6 +47,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RockDamage;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import org.apache.log4j.Logger;
 
@@ -121,6 +125,8 @@ public final class FortStage implements GenStage {
     private static final int BELT_REACH = 14;
     /** Below a compound perimeter post (50), so a belt takes only the defenders the places that matter more leave over. */
     private static final int BELT_PRIORITY = 45;
+    /** Priority of a fort room's crew: below the belt's picket, which is what answers the first contact. UNTUNED. */
+    private static final int ROOM_PRIORITY = 40;
 
     /** A candidate centre with the order it is taken in. */
     private record Site(int x, int y, int band, long centreDistSq) {}
@@ -661,26 +667,21 @@ public final class FortStage implements GenStage {
             }
         }
 
-        // The buildings: shelled, windowed and doored by the compound machinery, left bare for their cores.
-        List<RoomPacker.Placed> rooms = at.buildings();
-        FortressInterior.author(ctx, rooms, rooms);
-        for (RoomPacker.Placed room : rooms) {
-            for (int[] cell : room.shape().wall()) {
-                int x = room.originX() + cell[0];
-                int y = room.originY() + cell[1];
-                if (grid.isWalkable(x, y)) continue;
-                // Finalize tags walls from what is not walkable, and it has run; here that would also tag the
-                // structures, so the building rings are tagged by hand.
-                grid.setWallHp(x, y, BUILDING_WALL_HP);
-                topology.setWall(x, y, true);
+        // The rooms: shelled, windowed and doored by the compound machinery, left bare until their cores stand.
+        List<RoomPacker.Placed> rooms = new ArrayList<>(at.buildings());
+        List<FortRoom> specs = new ArrayList<>(plan.rooms());
+        // The cores stand and each room is fitted from its authored layout before the windows are cut, so no fixture
+        // lands on a core's ground and no window opens behind a console bank.
+        shell(ctx, rooms, () -> {
+            for (FortAspect aspect : plan.aspects()) {
+                int[] centre = plan.coreCentre(aspect);
+                emitStructure(ctx, plan.coreStructureId(aspect), at.cell(centre[0], centre[1]),
+                        new FortTag(fortId, aspect, at.x(), at.y(), at.pose().quarterTurns()));
             }
-        }
+            for (int i = 0; i < specs.size(); i++) FortRoomFurnisher.furnish(ctx, rooms.get(i), specs.get(i));
+        });
 
-        // The structures: one core in each aspect building, the fort's centrepiece, and a nest in each bastion.
-        for (FortAspect aspect : plan.aspects()) {
-            int[] centre = plan.coreCentre(aspect);
-            emitStructure(ctx, plan.coreStructureId(aspect), at.cell(centre[0], centre[1]), new FortTag(fortId, aspect, at.x(), at.y(), at.pose().quarterTurns()));
-        }
+        // The structures: the fort's centrepiece and a nest in each bastion (the cores stand with their rooms above).
         int[] centrepiece = plan.centrepiece();
         emitStructure(ctx, plan.centrepieceStructureId(), at.cell(centrepiece[0], centrepiece[1]),
                 new FortTag(fortId, plan.centrepieceAspect(), at.x(), at.y(), at.pose().quarterTurns(), domeRadius));
@@ -688,7 +689,10 @@ public final class FortStage implements GenStage {
         for (int[] local : plan.nests()) {
             emitNest(ctx, at.cell(local[0], local[1]), fortId, at, nestNumber++);
         }
-        if (air) stampAirDefence(ctx, plan, at, fortId);
+        if (air) {
+            rooms.addAll(stampAirDefence(ctx, plan, at, fortId));
+            specs.add(plan.airDefence().room());
+        }
 
         stampWall(ctx, plan, at);
 
@@ -725,9 +729,55 @@ public final class FortStage implements GenStage {
             }
         }
         paveGates(ctx, plan, at);
-        dressInterior(ctx, plan, at, lane);
-        if (air) dressAirDefence(ctx, plan, at);
+        dressInterior(ctx, plan, at, lane, air);
+        garrisonRooms(ctx, specs, at);
         stampBelt(ctx, plan, at, fortId, ground);
+    }
+
+    /**
+     * Shells a set of rooms: floors, walls, windows and doors by the compound machinery, and every ring cell the machinery
+     * left standing made a breachable wall. Finalize tags walls from what is not walkable and it has already run, so the
+     * rings are tagged by hand (it would also tag the structures).
+     */
+    private static void shell(GenContext ctx, List<RoomPacker.Placed> rooms, Runnable fill) {
+        FortressInterior.author(ctx, rooms, rooms, fill);
+        for (RoomPacker.Placed room : rooms) {
+            for (int[] cell : room.shape().wall()) {
+                int x = room.originX() + cell[0];
+                int y = room.originY() + cell[1];
+                if (ctx.grid.isWalkable(x, y)) continue;
+                ctx.grid.setWallHp(x, y, BUILDING_WALL_HP);
+                ctx.topology.setWall(x, y, true);
+            }
+        }
+    }
+
+    /**
+     * Seats each room's crew by the ordinary place model: a defender-held {@link TacticalNode.Kind#INNER_POSITION}
+     * (a garrison position inside a compound, with no capture marker of its own) whose authored stands are the room's
+     * seats, so the garrison stands at its consoles and benches rather than outside the building. A room with no crew
+     * seats none.
+     */
+    private static void garrisonRooms(GenContext ctx, List<FortRoom> rooms, CompoundLayout.Placement at) {
+        TacticalMap finished = ctx.get(BspKeys.TACTICAL_MAP);
+        for (FortRoom room : rooms) {
+            List<TacticalNode.StandPosition> stands = new ArrayList<>();
+            int left = Integer.MAX_VALUE, top = Integer.MAX_VALUE, right = Integer.MIN_VALUE, bottom = Integer.MIN_VALUE;
+            for (int[] local : room.standCells()) {
+                int[] cell = at.cell(local[0], local[1]);
+                if (!ctx.grid.inBounds(cell[0], cell[1]) || !ctx.grid.isWalkable(cell[0], cell[1])) continue;
+                stands.add(new TacticalNode.StandPosition(cell[0], cell[1]));
+                left = Math.min(left, cell[0]);
+                top = Math.min(top, cell[1]);
+                right = Math.max(right, cell[0]);
+                bottom = Math.max(bottom, cell[1]);
+            }
+            if (stands.isEmpty()) continue;
+            TacticalNode node = new TacticalNode(TacticalNode.Kind.INNER_POSITION, stands.get(0).x(), stands.get(0).y(),
+                    left, top, right, bottom, Faction.DEFENDER, ROOM_PRIORITY, stands.size(), stands);
+            if (finished != null) finished.add(node);
+            else ctx.tactical.add(node);
+        }
     }
 
     private static void emitNest(GenContext ctx, int[] cell, int fortId, CompoundLayout.Placement at, int number) {
@@ -854,12 +904,50 @@ public final class FortStage implements GenStage {
     }
 
     /** The interior: gun pit, berms and yard furniture, kept off the paved lanes. */
-    private static void dressInterior(GenContext ctx, FortPlan plan, CompoundLayout.Placement at, boolean[][] lane) {
+    private static void dressInterior(GenContext ctx, FortPlan plan, CompoundLayout.Placement at, boolean[][] lane,
+                                      boolean air) {
         FortDressing d = new FortDressing(ctx, at);
         switch (plan.kind()) {
             case BATTERY_FORT -> dressBatteryInterior(d, lane);
             case SHIELD_FORT -> dressShieldInterior(d, lane);
         }
+        List<FortRoom> specs = new ArrayList<>(plan.rooms());
+        if (air) specs.add(plan.airDefence().room());
+        traverseDoors(d, specs);
+    }
+
+    /**
+     * One short offset bag screen in front of every door that opens on the works: two short runs of bags two cells out
+     * either side of the door, so the way in turns once and a squad at the door is covered from both sides. It is the one
+     * protective element a room's door carries (the rooms are the hardening; no ring of bags stands round them). A door
+     * between two rooms of a suite, and the loading bay's wide door onto the road, carry none.
+     */
+    private static void traverseDoors(FortDressing d, List<FortRoom> rooms) {
+        for (FortRoom room : rooms) {
+            if (room.purpose() == RoomPurpose.LOADING_BAY || room.aspect() == FortAspect.AIR_DEFENCE) continue;
+            for (int[] door : room.doorCells()) {
+                int outX = door[0] < room.x() ? -1 : door[0] >= room.x() + room.width() ? 1 : 0;
+                int outY = door[1] < room.y() ? -1 : door[1] >= room.y() + room.height() ? 1 : 0;
+                if (outX == 0 && outY == 0) continue;
+                if (opensOnARoom(rooms, room, door[0] + outX, door[1] + outY)) continue;
+                int px = outY != 0 ? 1 : 0, py = outX != 0 ? 1 : 0;
+                for (int k : new int[]{-2, -1, 1, 2}) {
+                    d.sandbag(door[0] + outX * 2 + px * k, door[1] + outY * 2 + py * k, outX, outY);
+                }
+            }
+        }
+    }
+
+    /**
+     * Whether the cell just outside a door is another room's floor or wall ring, so the door is between two rooms of one
+     * suite and opens on no yard.
+     */
+    private static boolean opensOnARoom(List<FortRoom> rooms, FortRoom from, int x, int y) {
+        for (FortRoom room : rooms) {
+            if (room == from) continue;
+            if (x >= room.x() - 1 && x <= room.x() + room.width() && y >= room.y() - 1 && y <= room.y() + room.height()) return true;
+        }
+        return false;
     }
 
     private static void dressBatteryInterior(FortDressing d, boolean[][] lane) {
@@ -872,15 +960,12 @@ public final class FortStage implements GenStage {
         d.ring(px - 1, py - 1, 3, 3, 3, -1, 0, py, 3);
         d.line(px - 6, py - 2, px - 6, py + 2, -1, 0);
 
-        // The fire-control bunker is low and hardened: one course of bags a step off its walls, open at its door.
-        int[] bunker = BatteryFort.floor(FortAspect.FIRE_CONTROL);
-        int[] bunkerDoor = BatteryFort.door(FortAspect.FIRE_CONTROL);
-        d.ring(bunker[0] - 1, bunker[1] - 1, bunker[2] + 2, bunker[3] + 2, 2, 0, 1, bunkerDoor[0], 3);
-        // The magazine stands apart from the guns inside one berm, two courses thick: the only building that takes the
-        // heavier work, because it is the one that must not take a shell's blast.
+        // The magazine suite (store and loading bay) stands apart from the guns inside one berm, two courses thick, open
+        // on the bay's road side: the only building that takes the heavier work, because it is the one that must not take
+        // a shell's blast. The other rooms are their own hardening and carry only the bag screen at their doors.
         int[] mag = BatteryFort.floor(FortAspect.MAGAZINE);
-        int[] magDoor = BatteryFort.door(FortAspect.MAGAZINE);
-        d.thickRing(mag[0] - 1, mag[1] - 1, mag[2] + 2, mag[3] + 2, 2, 0, 1, magDoor[0], 3);
+        int[] bay = BatteryFort.PLAN.suiteBounds(FortAspect.MAGAZINE);
+        d.thickRing(bay[0] - 1, bay[1] - 1, bay[2] + 2, bay[3] + 2, 1, 0, 1, mag[0] + mag[2] / 2, 7);
 
         // Firing lines inside each gate cover the baffle, so a breach still has to cross open ground.
         d.line(ox + 9, oy + 15, ox + 9, oy + 19, -1, 0);
@@ -895,12 +980,8 @@ public final class FortStage implements GenStage {
             if (y < oy + 27 || y > oy + 29) d.fence(ox + 28, y, false);
         }
         d.prop(ox + 22, oy + 26, "industrial-turbine-set", lane);
-        d.prop(ox + 22, oy + 29, "industrial-reactor-housing", lane);
-        d.prop(ox + 25, oy + 29, "industrial-generator", lane);
-        d.prop(ox + 26, oy + 29, "industrial-generator", lane);
         d.prop(ox + 27, oy + 26, "industrial-fluid-tank", lane);
         d.prop(ox + 27, oy + 27, "industrial-fluid-tank", lane);
-        d.prop(ox + 22, oy + 31, "industrial-switchboard", lane);
 
         // Yard clutter that is cover as well: stores by the magazine, a parked carrier, spools and drums.
         d.prop(ox + 29, oy + 12, "industrial-crate-stack", lane);
@@ -911,8 +992,6 @@ public final class FortStage implements GenStage {
         d.prop(ox + 16, oy + 17, "industrial-cable-reel", lane);
         d.prop(ox + 17, oy + 17, "industrial-drum-cluster", lane);
         d.prop(ox + 32, oy + 16, "industrial-scrap-pile", lane);
-        d.prop(ox + 42, oy + 16, "industrial-crate-stack", lane);
-        d.prop(ox + 43, oy + 16, "industrial-crate-stack", lane);
         d.prop(ox + 18, oy + 12, "military-radar-dish", lane);
     }
 
@@ -931,60 +1010,53 @@ public final class FortStage implements GenStage {
         d.line(ox + 10, oy + 19, ox + 10, oy + 27, -1, 0);
         d.line(ox + 35, oy + 19, ox + 35, oy + 27, 1, 0);
 
-        // The control room is low and hardened: one course of bags a step off its walls, open at its door.
-        int[] room = ShieldFort.floor(FortAspect.CONTROL_ROOM);
-        int[] roomDoor = ShieldFort.door(FortAspect.CONTROL_ROOM);
-        d.ring(room[0] - 1, room[1] - 1, room[2] + 2, room[3] + 2, 2, 0, 1, roomDoor[0], 3);
-
         // The power plant's fenced yard, with its plant standing in it.
         int[] plant = ShieldFort.floor(FortAspect.POWER);
         for (int x = plant[0] - 2; x <= plant[0] + plant[2] + 1; x++) {
             if (x < plant[0] + 4 || x > plant[0] + 6) d.fence(x, oy + 15, true);
         }
         d.prop(ox + 20, oy + 10, "industrial-turbine-set", lane);
-        d.prop(ox + 23, oy + 11, "industrial-reactor-housing", lane);
-        d.prop(ox + 20, oy + 13, "industrial-generator", lane);
-        d.prop(ox + 21, oy + 13, "industrial-generator", lane);
         d.prop(ox + 14, oy + 12, "industrial-fluid-tank", lane);
         d.prop(ox + 14, oy + 13, "industrial-fluid-tank", lane);
-        d.prop(ox + 24, oy + 13, "industrial-switchboard", lane);
 
         // Inside the keep and about the yard: the field projector's own clutter, which is cover as well.
         d.prop(gx + 4, gy - 4, "military-radar-dish", lane);
         d.prop(gx - 5, gy + 2, "industrial-switchboard", lane);
-        d.prop(ox + 38, oy + 10, "industrial-crate-stack", lane);
-        d.prop(ox + 39, oy + 10, "industrial-crate-stack", lane);
-        d.prop(ox + 38, oy + 12, "industrial-pallet-stack", lane);
+        d.prop(ox + 38, oy + 14, "industrial-crate-stack", lane);
+        d.prop(ox + 39, oy + 14, "industrial-crate-stack", lane);
+        d.prop(ox + 38, oy + 16, "industrial-pallet-stack", lane);
         d.prop(ox + 14, oy + 33, "parked-armored-apc", lane);
         d.prop(ox + 30, oy + 33, "industrial-drum-cluster", lane);
         d.prop(ox + 31, oy + 35, "industrial-cable-reel", lane);
     }
 
     /**
-     * The optional anti-air yard: the plotting console, the guided battery and the flak positions, every one tagged to
-     * the fort's {@link FortAspect#AIR_DEFENCE} so the simulation assembles the aspect from what was stamped.
+     * The optional anti-air aspect: its small hardened control room (shelled like every fort room), the plotting console
+     * against the room's back wall, the guided batteries on the bastions and the close-in flak either side of the door,
+     * every one tagged to the fort's {@link FortAspect#AIR_DEFENCE} so the simulation assembles the aspect from what was
+     * stamped.
+     *
+     * @return the control room as placed, for fitting and dressing with the fort's other rooms
      */
-    private static void stampAirDefence(GenContext ctx, FortPlan plan, CompoundLayout.Placement at, int fortId) {
+    private static List<RoomPacker.Placed> stampAirDefence(GenContext ctx, FortPlan plan, CompoundLayout.Placement at,
+                                                           int fortId) {
         AirDefenceYard yard = plan.airDefence();
         if (yard == null) throw new IllegalStateException("a " + plan.kind() + " has no anti-air yard");
+        CompoundLayout layout = new CompoundLayout(RoomShape.rectangle(plan.width(), plan.height()),
+                List.of(new CompoundLayout.Cluster("Anti-air control room", List.of(yard.room().building()))), List.of(), List.of());
+        List<RoomPacker.Placed> placed = new ArrayList<>(layout.at(at.x(), at.y(), at.pose().quarterTurns()).buildings());
         FortTag tag = new FortTag(fortId, FortAspect.AIR_DEFENCE, at.x(), at.y(), at.pose().quarterTurns());
-        emitStructure(ctx, plan.coreStructureId(FortAspect.AIR_DEFENCE), at.cell(yard.consoleCentre()[0], yard.consoleCentre()[1]), tag);
+        shell(ctx, placed, () -> {
+            emitStructure(ctx, plan.coreStructureId(FortAspect.AIR_DEFENCE), at.cell(yard.consoleCentre()[0], yard.consoleCentre()[1]), tag);
+            FortRoomFurnisher.furnish(ctx, placed.get(0), yard.room());
+        });
         for (int[] battery : plan.airBatteries()) {
             emitStructure(ctx, TurretCatalogRegistry.RIDGE_AA_STRUCTURE_ID, at.cell(battery[0], battery[1]), tag);
         }
         for (int[] flak : yard.flakCells()) {
             emitStructure(ctx, TurretCatalogRegistry.ANTI_AIR_STRUCTURE_ID, at.cell(flak[0], flak[1]), tag);
         }
-    }
-
-    /** The yard's gravel floor and its ring of sandbags, broken at one gate. */
-    private static void dressAirDefence(GenContext ctx, FortPlan plan, CompoundLayout.Placement at) {
-        AirDefenceYard yard = plan.airDefence();
-        FortDressing d = new FortDressing(ctx, at);
-        int[] floor = yard.floor();
-        for (int x = floor[0]; x < floor[0] + floor[2]; x++) for (int y = floor[1]; y < floor[1] + floor[3]; y++) d.gravel(x, y);
-        int gapAt = yard.gapDy() != 0 ? yard.centreX() : yard.centreY();
-        d.ring(floor[0], floor[1], floor[2], floor[3], 1, yard.gapDx(), yard.gapDy(), gapAt, 3);
+        return placed;
     }
 
     private static void emitStructure(GenContext ctx, String structureId, int[] centre, FortTag tag) {

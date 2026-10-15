@@ -574,6 +574,61 @@
       }
     },
     {
+      "id": "special.point-defence-pack",
+      "catalog": {
+        "displayName": "@gearCatalogSpecialPointDefencePackDisplayName",
+        "subtitle": "@gearCatalogSpecialPointDefencePackSubtitle",
+        "factionLogo": "graphics/factions/luddic_church.png",
+        "description": "@gearCatalogSpecialPointDefencePackDescription"
+      },
+      "activation": {
+        "type": "utility-deployable",
+        "structureId": "structure.carried-point-defence",
+        "deployDuration": 0.2,
+        "lifetimeSeconds": 600.0,
+        "carried": true
+      },
+      "resource": {
+        "mode": "ammunition",
+        "startingAmmo": 1
+      },
+      "ai": {
+        "policy": "area-denial-emplacement"
+      },
+      "presentation": {
+        "armoryIcon": "graphics/ui/armory/special-point-defence-pack.png",
+        "aimSprite": null,
+        "usePose": "plant",
+        "carrierLayer": {
+          "sprite": "graphics/battle/fx/pd-pack.png",
+          "attachment": "body",
+          "widthShoulders": 0.54,
+          "heightShoulders": 0.59,
+          "pivot": [0.5, 0.5],
+          "carried": {
+            "offsetShoulders": [0.0, -0.26],
+            "angleDegrees": 180.0,
+            "occlusion": "over-body"
+          },
+          "using": {
+            "offsetShoulders": [0.0, -0.26],
+            "angleDegrees": 180.0,
+            "occlusion": "over-body"
+          },
+          "visibleWhileCarried": true,
+          "replacePrimaryWhileUsing": false
+        },
+        "layerClips": {
+          "variant": "satchel",
+          "using": "planting"
+        },
+        "preview": {
+          "state": "carried",
+          "phase": 1.0
+        }
+      }
+    },
+    {
       "id": "special.field-mortar",
       "catalog": {
         "displayName": "@gearCatalogSpecialFieldMortarDisplayName",

@@ -237,6 +237,13 @@ public final class CampaignState implements Serializable {
     public int[] chronicleSurvivorsRescued = filledInts(INITIAL_CAPACITY, -1);
     /** Explicit archive result for Silent Colony dispatches. */
     public byte[] chronicleColonyArchiveOutcome = new byte[INITIAL_CAPACITY];
+    /**
+     * {@link AbsentDefenceGrade.Outcome} ordinal for Garrison defence reports; -1
+     * otherwise.
+     */
+    public byte[] chronicleDefenceOutcome = filledBytes(INITIAL_CAPACITY, (byte) -1);
+    /** Frozen after-action account for Garrison defence reports; null otherwise. */
+    public String[] chronicleAccount = new String[INITIAL_CAPACITY];
     public int[] chronicleHappenedTick = filledInts(INITIAL_CAPACITY, -1);
     public int[] chronicleLearnedTick = filledInts(INITIAL_CAPACITY, -1);
     public int chronicleCount = 0;
@@ -384,6 +391,14 @@ public final class CampaignState implements Serializable {
      * deadline layer first sees it.
      */
     public int[]   contractResponseDeadlineTick = filledInts(INITIAL_CAPACITY, -1);
+    /**
+     * Day a stranded detachment's recovery runs out, or -1 when nothing is stranded.
+     * Set on a stationing row whose garrison was overrun with survivors; while set, the
+     * row keeps its personnel reserved past its settlement. See {@link StrandedDetachment}.
+     */
+    public int[]   contractStrandedUntilTick = filledInts(INITIAL_CAPACITY, -1);
+    /** Attrition intervals already applied to a stranded detachment; 0 otherwise. */
+    public int[]   contractStrandedIntervals = new int[INITIAL_CAPACITY];
     /**
      * Identity of the pending response most recently pushed at the player as an event
      * popup — the Garrison defense event key, or the Cadre incident's due day widened
@@ -855,12 +870,99 @@ public final class CampaignState implements Serializable {
         return id;
     }
 
+    /**
+     * Appends the company's own report of a Garrison defence that settled without the
+     * player. Idempotent per defence event key: a replayed settlement returns the row
+     * it already wrote rather than appending a second account.
+     *
+     * <p>{@code chronicleSourceEventId} holds the defence event key,
+     * {@code chronicleSourceFactionId} the attacker, {@code chronicleSurvivorsAtRisk} the
+     * seats that stood the raid and {@code chronicleSurvivorsRescued} those still living.
+     *
+     * @return the Chronicle event id, or -1 when the facts are malformed
+     */
+    public long addChronicleGarrisonDefence(long eventKey, int marketId,
+                                            int attackerFactionId,
+                                            AbsentDefenceGrade.Outcome outcome,
+                                            int seatsStood, int seatsLiving,
+                                            String account, int happenedTick,
+                                            int learnedTick) {
+        if (outcome == null) return -1L;
+        return addCompanyReport(ChronicleEventType.GARRISON_DEFENCE, eventKey, marketId,
+                attackerFactionId, (byte) outcome.ordinal(), seatsStood, seatsLiving,
+                account, happenedTick, learnedTick);
+    }
+
+    /**
+     * Appends the company's report that a stranded detachment was recovered or lost.
+     * Idempotent per type and stationing contract: {@code chronicleSourceEventId} holds
+     * the contract id, {@code chronicleSurvivorsAtRisk} the people stranded and
+     * {@code chronicleSurvivorsRescued} those who came home.
+     *
+     * @return the Chronicle event id, or -1 when the facts are malformed
+     */
+    public long addChronicleDetachmentOutcome(ChronicleEventType type, long contractId,
+                                              int marketId, int stranded, int recovered,
+                                              String account, int happenedTick,
+                                              int learnedTick) {
+        if (type != ChronicleEventType.DETACHMENT_RECOVERED
+                && type != ChronicleEventType.DETACHMENT_LOST) {
+            return -1L;
+        }
+        return addCompanyReport(type, contractId, marketId, -1, (byte) -1, stranded,
+                recovered, account, happenedTick, learnedTick);
+    }
+
+    private long addCompanyReport(ChronicleEventType type, long sourceKey, int marketId,
+                                  int factionId, byte defenceOutcome, int seatsAtRisk,
+                                  int seatsLiving, String account, int happenedTick,
+                                  int learnedTick) {
+        if (sourceKey == 0L || seatsAtRisk < 0 || seatsLiving < 0
+                || seatsLiving > seatsAtRisk || happenedTick < 0
+                || learnedTick < happenedTick) {
+            return -1L;
+        }
+        for (int row = 0; row < chronicleCount; row++) {
+            if (chronicleSourceEventId[row] == sourceKey
+                    && chronicleEventType[row] == type.toByte()) {
+                return chronicleId[row];
+            }
+        }
+        ensureChronicleCapacity(chronicleCount + 1);
+        int i = chronicleCount++;
+        long id = nextChronicleId++;
+        chronicleId[i] = id;
+        chronicleEventType[i] = type.toByte();
+        chronicleSourceChainId[i] = -1L;
+        chronicleChainOutcome[i] = ChainState.RESOLVED.toByte();
+        chronicleBand[i] = ChronicleBand.INTIMATE.toByte();
+        chronicleConfidence[i] = ChronicleConfidence.CONFIRMED.toByte();
+        chronicleActorHouseId[i] = -1L;
+        chronicleTargetHouseId[i] = -1L;
+        chronicleMarketId[i] = marketId;
+        chronicleIndustryId[i] = -1;
+        chronicleSourceFactionId[i] = factionId;
+        chronicleResultFactionId[i] = -1;
+        chronicleTestamentId[i] = -1L;
+        initializeChronicleEventSnapshot(i);
+        chronicleSourceEventId[i] = sourceKey;
+        chronicleSurvivorsAtRisk[i] = seatsAtRisk;
+        chronicleSurvivorsRescued[i] = seatsLiving;
+        chronicleDefenceOutcome[i] = defenceOutcome;
+        chronicleAccount[i] = account;
+        chronicleHappenedTick[i] = happenedTick;
+        chronicleLearnedTick[i] = learnedTick;
+        return id;
+    }
+
     private void initializeChronicleEventSnapshot(int row) {
         chronicleSourceEventId[row] = -1L;
         chronicleSurvivorsAtRisk[row] = -1;
         chronicleSurvivorsRescued[row] = -1;
         chronicleColonyArchiveOutcome[row] =
                 AbandonedColonyArchiveOutcome.NONE.toByte();
+        chronicleDefenceOutcome[row] = -1;
+        chronicleAccount[row] = null;
     }
 
     /** Prepares one idempotent Tier-3 handoff row per source chain. */
@@ -1124,6 +1226,8 @@ public final class CampaignState implements Serializable {
         contractDefenseAttackerFactionId[i] = -1;
         contractDefenseAttackerStrength[i] = 0f;
         contractResponseDeadlineTick[i] = -1;
+        contractStrandedUntilTick[i] = -1;
+        contractStrandedIntervals[i] = 0;
         contractNoticeAckKey[i]     = 0L;
         contractNoticeAckStage[i]   = 0;
         contractSalvageBaseline[i]  = salvageBaseline;
@@ -1277,6 +1381,9 @@ public final class CampaignState implements Serializable {
         Arrays.fill(chronicleSurvivorsRescued, oldLength, n, -1);
         chronicleColonyArchiveOutcome = Arrays.copyOf(
                 chronicleColonyArchiveOutcome, n);
+        chronicleDefenceOutcome = Arrays.copyOf(chronicleDefenceOutcome, n);
+        Arrays.fill(chronicleDefenceOutcome, oldLength, n, (byte) -1);
+        chronicleAccount = Arrays.copyOf(chronicleAccount, n);
         chronicleHappenedTick = Arrays.copyOf(chronicleHappenedTick, n);
         Arrays.fill(chronicleHappenedTick, oldLength, n, -1);
         chronicleLearnedTick = Arrays.copyOf(chronicleLearnedTick, n);
@@ -1583,6 +1690,10 @@ public final class CampaignState implements Serializable {
         if (chronicleColonyArchiveOutcome == null) {
             chronicleColonyArchiveOutcome = new byte[chronicleCapacity];
         }
+        if (chronicleDefenceOutcome == null) {
+            chronicleDefenceOutcome = filledBytes(chronicleCapacity, (byte) -1);
+        }
+        if (chronicleAccount == null) chronicleAccount = new String[chronicleCapacity];
         if (chronicleHappenedTick == null) {
             chronicleHappenedTick = filledInts(chronicleCapacity, -1);
         }
@@ -1940,6 +2051,14 @@ public final class CampaignState implements Serializable {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractResponseDeadlineTick = filledInts(n, -1);
         }
+        if (contractStrandedUntilTick == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractStrandedUntilTick = filledInts(n, -1);
+        }
+        if (contractStrandedIntervals == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractStrandedIntervals = new int[n];
+        }
         if (contractOperationTier == null) {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractOperationTier = new byte[n];
@@ -2096,6 +2215,9 @@ public final class CampaignState implements Serializable {
         contractDefenseAttackerStrength = Arrays.copyOf(contractDefenseAttackerStrength, n);
         contractResponseDeadlineTick = Arrays.copyOf(contractResponseDeadlineTick, n);
         Arrays.fill(contractResponseDeadlineTick, oldLength, n, -1);
+        contractStrandedUntilTick = Arrays.copyOf(contractStrandedUntilTick, n);
+        Arrays.fill(contractStrandedUntilTick, oldLength, n, -1);
+        contractStrandedIntervals = Arrays.copyOf(contractStrandedIntervals, n);
         contractNoticeAckKey = Arrays.copyOf(contractNoticeAckKey, n);
         contractNoticeAckStage = Arrays.copyOf(contractNoticeAckStage, n);
         contractSalvageBaseline   = Arrays.copyOf(contractSalvageBaseline, n);
@@ -2217,6 +2339,12 @@ public final class CampaignState implements Serializable {
 
     private static int[] filledInts(int length, int value) {
         int[] out = new int[length];
+        Arrays.fill(out, value);
+        return out;
+    }
+
+    private static byte[] filledBytes(int length, byte value) {
+        byte[] out = new byte[length];
         Arrays.fill(out, value);
         return out;
     }

@@ -132,7 +132,7 @@ public final class RelayNineCompound {
         yard.fence(70, 78, 99, 98);
         for (int x : new int[]{73, 82, 91}) {
             yard.bay(x, 81, x + 5, 88);
-            yard.prop(x + 1, 84, x == 82 ? "parked-flatbed-truck" : "parked-cargo-truck", 1);
+            yard.prop(x + 1, 84, x == 82 ? "parked-flatbed-truck" : "parked-cargo-truck", x == 82 ? 0 : 3);
             yard.cargo(x, 93);
         }
         // Freight Gate's recessed loading court and its east-side dispatch bays.
@@ -148,9 +148,11 @@ public final class RelayNineCompound {
         yard.gravel(165, 80, 183, 99);
         yard.fence(165, 80, 183, 99);
         yard.bay(168, 82, 173, 90);
-        yard.prop(169, 86, "parked-utility-truck", 1);
+        yard.prop(169, 86, "parked-utility-truck", 3);
         yard.bay(176, 82, 181, 90);
-        yard.prop(177, 86, "parked-flatbed-truck", 1);
+        yard.prop(177, 86, "parked-flatbed-truck", 0);
+        // Fluid delivery stands across the back of the service bays, below the turbine aisle.
+        yard.prop(170, 91, "parked-tanker-truck", 2);
         yard.prop(168, 95, "industrial-turbine-set", 0);
         yard.prop(176, 95, "industrial-machine-tool", 0);
         yard.prop(179, 95, "industrial-pipe-bundle", 0);

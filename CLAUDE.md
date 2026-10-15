@@ -235,6 +235,10 @@ Do not run builds or leave generated task files there.
   loses its cannon ammunition). Reports include exit-gun destruction ticks and actual escort shots, damage, kills
   and remaining durability, vehicle repulsion pushes, and the column driver's
   reroutes, wreck/parked-hull swerves, station waits and hauler sprints.
+  `holdDamageTaken` says who absorbed the raiders' fire in phases 1-2 (marines,
+  militia infantry, militia guns, each hull by structure+armor lost), split by
+  phase and hold/push; `holdDamageDealtByRaiders` splits the shooting into
+  garrison, waves and emplacements.
   `companySize` selects named personnel (default 24). `-PsnapshotEveryTicks=N`
   records `review.gif` (whole map every N ticks), `crossroads.gif` (a fixed
   camera on the first crossroads through both holds, with the militia guns and
@@ -709,7 +713,8 @@ Do not run builds or leave generated task files there.
   carrying crew-served tubes; without one a marching squad never halts to set a field mortar
   down, so a tube on the attack is idle against a trench or building. `runs.csv` reports each
   side's specials used and its mortars' set-ups, rounds, damage and kills (a tube is its own
-  entity, so its fire is not in the squad's figures). `-Pscenarios=open-field,trench` selects ground, `-Pparallelism=N` sets fights run side by
+  entity, so its fire is not in the squad's figures) and the hostile rounds its point defence engaged
+  and stopped. `-Pscenarios=open-field,trench` selects ground, `-Pparallelism=N` sets fights run side by
   side (default half the processors; 1 is the serial control). The sim seed changes every hit
   and morale roll and nothing else. A fight ends when a side is wiped out, when both stand
   with no damage for 1,200 ticks (`STALEMATE`) or at the tick limit; neither is a draw, so

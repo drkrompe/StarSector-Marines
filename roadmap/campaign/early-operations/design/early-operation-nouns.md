@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — militia guns and technical moved to the first crossroads; rocket teams contest them.
+Updated: 2026-10-15 — arm waves break the militia blocks first; employer picket holds the north bay from the start.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -1011,20 +1011,23 @@ text-only guidance teaches selecting a squad, placing **DEFEND AREA**, and
 replacing that persistent order to resume the advance. The HUD names the post
 and remaining dispatch time. The tutorial never locks the player into a hold.
 
-Two employer militia sections anchor the first and second secured road posts.
-Their gun bays sit off the carriageway at the first crossroads, where the road
-raiders arrive, inside open-backed sandbag emplacements with protected crew
-approaches. Dispatch's gun stands on the verge short of the crossroad and looks
-into its mouth; Crossing's gun stands inside one side arm of the crossroad and
-looks across it, so raiders coming down that arm meet it first. A crew has to
-walk up from staging, so Dispatch's gun is usually ready late in its window:
-it earns its place during the Crossing assault and the rear attacks. Stable company sections
-cover separate roadside sectors on both sides of the road, rather than sharing
-the militia's gun coordinates. The militia share the first gain from distinct
-positions until their second post is secured. After the last capture the company
+Two employer militia sections anchor the first and second secured road posts,
+and an employer picket already holds the first crossroad when the company lands.
+The militia exist to stand between the raiders and the company: a raider wave
+walking down a side arm is ordered at that arm's militia block (the north gun
+bay and its picket, or the technical on the south side) and only goes on toward
+the road once nobody is left holding it. Without that, waves cut across open
+ground straight at the company's hold posts and the marines took the fire the
+militia were placed to draw. The gun bays sit on the mouths of the crossroad's
+two side arms, inside open-backed sandbag emplacements with protected crew
+approaches. The north bay's crew is the picket, so its gun is up while the
+company still fights for Dispatch; the Crossing bay waits on the Crossing, and
+its crew walks up once that falls. Stable company sections cover separate
+roadside sectors behind those blocks rather than in front of them, and never
+share the militia's gun coordinates. After the last capture the company
 screens the final crossing instead of packing into the captured building.
-A living militia member spending eight continuous seconds at a secured prepared
-mount assembles its one ordinary machine gun, with a finite belt. Interrupted
+A living militia member spending eight continuous seconds at a prepared mount
+(the Crossing's only once that site is secured) assembles its one ordinary machine gun, with a finite belt. Interrupted
 work restarts; a destroyed gun is not rebuilt. These are employer field supplies,
 not player inventory grants or missile-defense pods converted into anti-infantry
 weapons. Both mounts must have walkable connected approach cells.
@@ -1059,11 +1062,12 @@ it never moves a hull directly, and delivery is still only a physical exit. Phys
 and wrecks remain authoritative. A hull must leave the map through the freight exit to
 count as delivered; capture, release, apparent proximity and a missing sprite
 cannot grant delivery. Each active carrier must be accounted for before victory.
-One light militia technical follows the staged advance. After the Dispatch
-window it parks on the verge short of the crossroad; after the Crossing window
-it noses into the crossroad's other side arm beside the Crossing compound, a
-roadblock that soaks fire and physically shoves raiders back, covering the arm
-the Crossing gun cannot see. Its pickup chassis and independently traversing machine gun use
+One light militia technical follows the staged advance. As soon as Dispatch
+falls it drives up to the road's south shoulder just west of the first
+crossroad, across the line raiders take off the south arm toward Dispatch, and
+holds there as that arm's block through both windows. Welded plate turns rifle
+fire, so it absorbs what would otherwise land on the company; crude rockets are
+what wear it down. Its pickup chassis and independently traversing machine gun use
 ordinary vehicle movement, finite ammunition and shared damage. It is employer
 support, not a campaign vehicle grant. Two of the opening four raiders carry
 two crude unguided rockets each, as do two raiders in one Dispatch wave and one

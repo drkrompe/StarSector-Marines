@@ -3,11 +3,9 @@ package com.dillon.starsectormarines.battle.world.gen.fortress;
 import com.dillon.starsectormarines.battle.fort.FortAspect;
 import com.dillon.starsectormarines.battle.fort.FortKind;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
-import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.gen.fortress.CompoundLayout.Building;
 import com.dillon.starsectormarines.battle.world.gen.fortress.CompoundLayout.Cluster;
-import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -94,10 +92,12 @@ public final class BatteryFort {
     /** The optional anti-air yard: the open ground between the platform's pit and the bunker, off every lane. */
     public static final AirDefenceYard AIR_DEFENCE = new AirDefenceYard(OX + 23, OY + 13, 0, 1);
 
-    /** Floors (x, y, width, height) of the three buildings, in the footprint frame. */
-    private static final int[] BUNKER_FLOOR = {OX + 9, OY + 7, 7, 5};
-    private static final int[] MAGAZINE_FLOOR = {OX + 36, OY + 5, 8, 6};
-    private static final int[] POWER_FLOOR = {OX + 8, OY + 27, 11, 5};
+    /**
+     * The aspects' rooms in the footprint frame: the fire-control suite (an operations hall in front of the plotting
+     * vault), the ammunition store behind its loading bay, and the generator hall. The first room of each aspect is its
+     * main room, whose floor the roof art is registered to and which holds the core.
+     */
+    private static final List<FortRoom> ROOMS = FortRooms.battery(OX, OY);
 
     /** Paved vehicle lanes (x, y, width, height) in the footprint frame: concrete only where wheels need it. */
     public static final int[][] LANES = {
@@ -179,6 +179,7 @@ public final class BatteryFort {
         @Override public int[][] lanes() { return LANES; }
         @Override public List<FortBelt.Cell> belt() { return FortBelt.cells(); }
         @Override public List<FortAspect> aspects() { return ASPECTS; }
+        @Override public List<FortRoom> rooms() { return ROOMS; }
         @Override public int[] floor(FortAspect aspect) { return BatteryFort.floor(aspect); }
         @Override public int[] door(FortAspect aspect) { return BatteryFort.door(aspect); }
         @Override public int[] coreCentre(FortAspect aspect) { return BatteryFort.coreCentre(aspect); }
@@ -261,42 +262,34 @@ public final class BatteryFort {
         return x >= 0 && y >= 0 && x < WIDTH && y < HEIGHT && WALL[x][y];
     }
 
-    /** The layout: three buildings. Walls, belt, lanes and dressing are the host's to stamp from this frame. */
+    /** The layout: every room of every aspect's suite. Walls, belt, lanes and dressing are the host's to stamp from this frame. */
     public static CompoundLayout layout() {
         List<Building> core = new ArrayList<>();
-        core.add(building(RoomPurpose.CONTROL_ROOM, BUNKER_FLOOR, new Doorway(3, 5)));
-        core.add(building(RoomPurpose.ARMORY, MAGAZINE_FLOOR, new Doorway(3, 6)));
-        core.add(building(RoomPurpose.ENGINE_ROOM, POWER_FLOOR, new Doorway(3, -1)));
+        for (FortRoom room : ROOMS) core.add(room.building());
         return new CompoundLayout(RoomShape.rectangle(WIDTH, HEIGHT), List.of(
                 new Cluster("Fort buildings", core)), List.of(), List.of());
     }
 
-    /** The floor of the building housing {@code aspect}: x, y, width, height in the footprint frame. */
+    /** The floor of the main room housing {@code aspect}, the one its roof art is registered to: x, y, width, height in the footprint frame. */
     public static int[] floor(FortAspect aspect) {
-        return switch (aspect) {
-            case FIRE_CONTROL -> BUNKER_FLOOR.clone();
-            case MAGAZINE -> MAGAZINE_FLOOR.clone();
-            case POWER -> POWER_FLOOR.clone();
-            case AIR_DEFENCE -> AIR_DEFENCE.floor();
-            default -> throw new IllegalArgumentException("a battery fort has no " + aspect);
-        };
+        if (aspect == FortAspect.AIR_DEFENCE) return AIR_DEFENCE.floor();
+        return main(aspect).floor();
     }
 
-    /** The door of the building housing {@code aspect}, as the footprint cell of its wall ring. */
+    /** The primary door of the main room housing {@code aspect}, as the footprint cell of its wall ring. */
     public static int[] door(FortAspect aspect) {
-        int[] f = floor(aspect);
-        return aspect == FortAspect.POWER ? new int[]{f[0] + 3, f[1] - 1}
-                : new int[]{f[0] + 3, f[1] + f[3]};
+        if (aspect == FortAspect.AIR_DEFENCE) return AIR_DEFENCE.gapCell();
+        return main(aspect).doorCells().get(0);
     }
 
     /** The middle of the three-by-three core of {@code aspect}, in the local frame. */
     public static int[] coreCentre(FortAspect aspect) {
         if (aspect == FortAspect.AIR_DEFENCE) return AIR_DEFENCE.consoleCentre();
-        int[] floor = floor(aspect);
-        return new int[]{floor[0] + floor[2] / 2, floor[1] + floor[3] / 2};
+        return main(aspect).coreCentre();
     }
 
-    private static Building building(RoomPurpose purpose, int[] floor, Doorway door) {
-        return new Building(purpose, RoomShape.rectangle(floor[2], floor[3]), floor[0], floor[1], List.of(door));
+    private static FortRoom main(FortAspect aspect) {
+        for (FortRoom room : ROOMS) if (room.main() && room.aspect() == aspect) return room;
+        throw new IllegalArgumentException("a battery fort has no " + aspect);
     }
 }

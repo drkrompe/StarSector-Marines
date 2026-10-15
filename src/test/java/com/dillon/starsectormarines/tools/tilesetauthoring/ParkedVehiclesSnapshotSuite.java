@@ -2,6 +2,12 @@ package com.dillon.starsectormarines.tools.tilesetauthoring;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.CounterattackDepot;
+import com.dillon.starsectormarines.battle.world.gen.ReliefCheckpoint;
+import com.dillon.starsectormarines.battle.world.gen.JunctionCompound;
+import com.dillon.starsectormarines.battle.world.gen.RelayNineCompound;
+import com.dillon.starsectormarines.battle.world.gen.ThunderRunCompound;
+import com.dillon.starsectormarines.battle.world.gen.ShepherdBasin;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -20,6 +26,7 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /** Parked scenery through production collectors, with all four placement turns. */
 public final class ParkedVehiclesSnapshotSuite implements SnapshotSuite {
@@ -31,16 +38,74 @@ public final class ParkedVehiclesSnapshotSuite implements SnapshotSuite {
 
     @Override public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         DiskRegistries.installMapGeneration(context.projectRoot());
+        checkCampaignPlacements();
         HeadlessBattleMapRenderer renderer = new HeadlessBattleMapRenderer(context.modRoot());
         MapResult depot = CounterattackDepot.generate(42, TargetProfile.NEUTRAL).map();
-        return List.of(
+        List<SnapshotArtifact> frames = new ArrayList<>(List.of(
                 new SnapshotArtifact("rotations-game-scale.png", caption(renderer.render(gallery(false), 42, 32),
                         "PARKED VEHICLES / six types, four rotations / 32 px per cell / 100% UI")),
                 new SnapshotArtifact("vehicles-detail.png", caption(renderer.render(gallery(true), 42, 128),
                         "INDUSTRIAL + COLONIAL / service, flatbed, tanker, rover, freight, transport / closer camera / 100% UI")),
                 new SnapshotArtifact("counterattack-yard.png", caption(renderer.renderView(depot, 42,
                         125, 25, 60, 32, 32),
-                        "COUNTERATTACK / production freight yard / 32 px per cell / 100% UI / pre-combat map evidence")));
+                        "COUNTERATTACK / production freight yard / 32 px per cell / 100% UI / pre-combat map evidence"))));
+        yardFrame(frames, renderer, "relief", ReliefCheckpoint.generate(144, 64, 42, TargetProfile.NEUTRAL).map(), 54, 20);
+        yardFrame(frames, renderer, "counterattack-dispatch", depot, 51, 15);
+        yardFrame(frames, renderer, "junction", JunctionCompound.generate(42, TargetProfile.NEUTRAL).map(), 76, 79);
+        yardFrame(frames, renderer, "relay-nine", RelayNineCompound.generate(42, TargetProfile.NEUTRAL).map(), 166, 88);
+        yardFrame(frames, renderer, "relay-nine-freight", RelayNineCompound.generate(42, TargetProfile.NEUTRAL).map(), 86, 86);
+        yardFrame(frames, renderer, "thunder-run", ThunderRunCompound.generate(42, TargetProfile.NEUTRAL).map(), 210, 56);
+        for (ShepherdBasin.Visit visit : ShepherdBasin.Visit.values()) {
+            MapResult basin = ShepherdBasin.generate(42, TargetProfile.NEUTRAL, visit);
+            yardFrame(frames, renderer, "basin-" + visit.name().toLowerCase(Locale.ROOT), basin, 111, 117);
+            if (visit == ShepherdBasin.Visit.COLD_START)
+                yardFrame(frames, renderer, "basin-crew-parking", basin, 105, 96);
+        }
+        return frames;
+    }
+
+    /** Bounded production-generation evidence; each generator also checks its mission routes. */
+    private static void checkCampaignPlacements() {
+        for (SurfacePalette surface : SurfacePalette.values()) for (long seed : new long[]{7, 42, 14110}) {
+            TargetProfile neutral = TargetProfile.NEUTRAL;
+            TargetProfile profile = new TargetProfile(neutral.marketSize(), neutral.stability(),
+                    neutral.defenseLevel(), neutral.spaceportTier(), neutral.factionId(),
+                    neutral.functions(), surface, neutral.link());
+            try {
+                checkVehicles(ReliefCheckpoint.generate(144, 64, seed, profile).map());
+                checkVehicles(CounterattackDepot.generate(seed, profile).map());
+                checkVehicles(JunctionCompound.generate(seed, profile).map());
+                checkVehicles(RelayNineCompound.generate(seed, profile).map());
+                checkVehicles(ThunderRunCompound.generate(seed, profile).map());
+                for (ShepherdBasin.Visit visit : ShepherdBasin.Visit.values())
+                    checkVehicles(ShepherdBasin.generate(seed, profile, visit));
+            } catch (RuntimeException e) {
+                throw new IllegalStateException("Campaign vehicle evidence: " + surface + " seed=" + seed, e);
+            }
+        }
+        System.out.println("Campaign vehicle placement evidence: 96 maps across 3 seeds and 4 surface palettes passed");
+    }
+
+    private static void checkVehicles(MapResult map) {
+        int found = 0;
+        for (Doodad vehicle : map.doodads) {
+            if (!vehicle.sheetPath.endsWith("/parked-vehicles.png")) continue;
+            found++;
+            if (vehicle.mirrored || vehicle.cover != Doodad.COVER_HEAVY)
+                throw new IllegalStateException("Parked fleet must retain handedness and heavy cover");
+            for (int y = vehicle.cellY; y < vehicle.cellY + vehicle.footprintCellsY; y++)
+                for (int x = vehicle.cellX; x < vehicle.cellX + vehicle.footprintCellsX; x++) {
+                    if (map.grid.isWalkable(x, y) || map.topology.getGroundKind(x, y) == GroundKind.STREET)
+                        throw new IllegalStateException("Vehicle footprint must block yard ground at " + x + "," + y);
+                }
+        }
+        if (found == 0) throw new IllegalStateException("Campaign yard has no parked fleet to review");
+    }
+
+    private static void yardFrame(List<SnapshotArtifact> frames, HeadlessBattleMapRenderer renderer,
+                                  String name, MapResult map, int x, int y) throws Exception {
+        frames.add(new SnapshotArtifact(name + "-yard.png", caption(renderer.renderView(map, 42, x, y, 60, 32, 32),
+                name.toUpperCase(Locale.ROOT) + " / production vehicle staging / 32 px per cell / 100% UI / pre-combat evidence")));
     }
 
     private static MapResult gallery(boolean close) {

@@ -52,8 +52,17 @@ not own the political simulation, battle presentation, cargo, or narrator.
   commercial consequence. It shares the response and settlement machinery as
   a row whose employer is nobody; `meta-progression.md` owns why the polity
   is never a client.
-- **Recovery** is the system-generated follow-on to an employer-breached
-  stationing contract. It is not a sixth patron-offered work type.
+- **Recovery** is the system-generated follow-on to a stationing assignment
+  whose people cannot simply come home: an employer breach, or a garrison
+  overrun in the player's absence. It is not a sixth patron-offered work type
+  and pays nothing. A breach recovery is a fought extraction; an overrun
+  recovery is a **pickup**, collected through the planet interaction with no
+  battle.
+- A **stranded detachment** is the surviving squads and bound captain of an
+  overrun garrison. They are not a new roster: the failed assignment holds
+  them past its settlement, with a recovery deadline, until the company
+  collects them or the deadline lists them missing. Waiting costs people:
+  survivors go missing at intervals, the same ones on every replay.
 - A **settlement** is the one terminal contract outcome: completed, failed,
   employer-breached/defaulted, abandoned, or expired before acceptance.
 
@@ -124,7 +133,9 @@ second roster.
    detachment fought that raid through vanilla's own strength ratio whether or
    not the player came, so an unanswered vanilla-triggered defence settles
    from vanilla's result — held, held with losses, or overrun — graded on the
-   raid effectiveness computed with the detachment counted.
+   raid effectiveness computed with the detachment counted. That settlement
+   is reported to the company once, as a confirmed Chronicle defence report
+   whose account is frozen when it is written.
 11. A stationed detachment's strength reaches vanilla through one attributable,
     replay-safe modifier on the protected market's ground defences, applied
     for the term and removed with it. A won vanilla-triggered defence ends the
@@ -137,7 +148,9 @@ second roster.
    the notice everywhere.
 7. Employer breach/default is distinct from player abandonment and battle
    failure. It leads to recovery of stranded stationing personnel rather than
-   silently returning them or treating the breach as player fault.
+   silently returning them or treating the breach as player fault. An overrun
+   in the player's absence strands its survivors the same way; they return
+   only through the recovery's own pickup or expiry, never by walking home.
 8. Offer generation establishes target fit before weighting flavor. The
    employer/target relationship and the target's actual assets decide which
    work is admissible; faction identity may weight and describe that eligible

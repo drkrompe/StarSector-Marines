@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.campaign;
 
 import com.dillon.starsectormarines.campaign.AbsentDefenceGrade.Outcome;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.CasualtyFate;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -27,6 +28,9 @@ import java.util.Random;
  * <p>Exactly-once by construction: every path settles through
  * {@link GarrisonDefenseResolution#apply}, which consumes the pending payload and
  * refuses a second call with the same event key.
+ *
+ * <p>Every settlement also writes the company's {@link DefenceReport} into the Chronicle,
+ * so the player learns what their detachment did while they were elsewhere.
  */
 public final class AbsentDefenceResolution {
 
@@ -39,8 +43,10 @@ public final class AbsentDefenceResolution {
     /** Reputation the employer takes off for a garrison that fought the raid and lost. */
     private static final int OVERRUN_HOUSE_DELTA = -1;
 
+    /** For an overrun that left nobody to strand: wiped out, or a count-only legacy row. */
     private static final String OVERRUN_NOTE =
             "Recalled after the stationed garrison was overrun in their absence.";
+
 
     /**
      * Raid effectiveness credited to a raid whose ground strength was never estimated.
@@ -63,6 +69,17 @@ public final class AbsentDefenceResolution {
     public static Outcome applyLanded(CampaignState state, GarrisonDefensePayload payload,
                                       MarineRoster roster, int day,
                                       float defenderStrength) {
+        return applyLanded(state, payload, roster, day, defenderStrength,
+                DefenceReport.Place.UNKNOWN);
+    }
+
+    /**
+     * {@link #applyLanded(CampaignState, GarrisonDefensePayload, MarineRoster, int, float)}
+     * with the place the defence report names.
+     */
+    public static Outcome applyLanded(CampaignState state, GarrisonDefensePayload payload,
+                                      MarineRoster roster, int day,
+                                      float defenderStrength, DefenceReport.Place place) {
         if (state == null || payload == null) return null;
         boolean unestimated = payload.attackerStrength <= 0f;
         float effectiveness = unestimated
@@ -73,7 +90,7 @@ public final class AbsentDefenceResolution {
                 : AbsentDefenceGrade.grade(effectiveness);
         int casualties = AbsentDefenceGrade.casualties(
                 payload.activeSeats, outcome, effectiveness);
-        return settle(state, payload, roster, day, outcome, casualties)
+        return settle(state, payload, roster, day, outcome, casualties, true, place)
                 ? outcome : null;
     }
 
@@ -85,13 +102,23 @@ public final class AbsentDefenceResolution {
      */
     public static Outcome applyHeld(CampaignState state, GarrisonDefensePayload payload,
                                     MarineRoster roster, int day) {
+        return applyHeld(state, payload, roster, day, DefenceReport.Place.UNKNOWN);
+    }
+
+    /**
+     * {@link #applyHeld(CampaignState, GarrisonDefensePayload, MarineRoster, int)} with
+     * the place the defence report names.
+     */
+    public static Outcome applyHeld(CampaignState state, GarrisonDefensePayload payload,
+                                    MarineRoster roster, int day, DefenceReport.Place place) {
         if (state == null || payload == null) return null;
-        return settle(state, payload, roster, day, Outcome.HELD, 0) ? Outcome.HELD : null;
+        return settle(state, payload, roster, day, Outcome.HELD, 0, false, place)
+                ? Outcome.HELD : null;
     }
 
     private static boolean settle(CampaignState state, GarrisonDefensePayload payload,
                                   MarineRoster roster, int day, Outcome outcome,
-                                  int casualties) {
+                                  int casualties, boolean landed, DefenceReport.Place place) {
         // Casualties are written before the settlement, so the settlement's own
         // exactly-once guard is too late to protect them: a replayed payload would strike
         // a second set of marines and then be refused. Ask first.
@@ -101,22 +128,83 @@ public final class AbsentDefenceResolution {
         boolean victory = outcome != Outcome.OVERRUN;
         MarineCaptain captain = StationingLapseResolution.assignedCaptain(
                 state, payload.contractId, roster);
+        // Read before anything moves: an overrun releases the assignment, and the report
+        // names the detachment that stood, not the one left afterwards.
+        int contractRow = state.contractIndex(payload.contractId);
+        float stationed = contractRow >= 0
+                ? StationedStrength.valueFor(state, contractRow, roster) : 0f;
+        List<String> squadNames = stationedSquadNames(roster, payload.contractId);
+        int seatsStood = roster != null && !payload.fireteamIds.isEmpty()
+                ? deployableMarines(roster, payload.contractId).size() : payload.activeSeats;
         // Written before the settlement so the named path recomputes survivors off a
         // roster that already carries the losses.
-        applyCasualties(payload, roster, casualties, day, victory);
+        Map<MarineSoldier, MarineSoldierStatus> struck =
+                applyCasualties(payload, roster, casualties, day, victory);
         GarrisonDefenseResolution.Result result = GarrisonDefenseResolution.apply(
                 state, payload.contractId, payload.eventKey, casualties, false, victory,
-                roster, StationingLapseResolution.deployed(payload.fireteamIds, roster));
+                roster, StationingLapseResolution.deployed(payload.fireteamIds, roster), true);
         if (result == null) return false;
         if (result == GarrisonDefenseResolution.Result.ASSIGNMENT_FAILED) {
-            StationingLapseResolution.restoreStrandedCaptain(captain, day, OVERRUN_NOTE);
+            int row = state.contractIndex(payload.contractId);
+            if (roster != null && !roster.squadsStationedOn(payload.contractId).isEmpty()) {
+                // The survivors went to ground on a planet the employer no longer holds.
+                // They stay bound to the assignment, captain included, until the company
+                // collects them or the recovery runs out.
+                StrandedDetachment.strand(state, row, day);
+            } else {
+                StationingLapseResolution.restoreStrandedCaptain(captain, day, OVERRUN_NOTE);
+            }
             // Not lapsedForContract: the garrison stood and was beaten. Writing off a
             // fought defence as a walked-away contract would cost the employer standing
             // the player never actually spent.
             ContractReputation.failedForContract(
                     state, payload.contractId, OVERRUN_HOUSE_DELTA, day);
         }
+        report(state, payload, day, place, landed, outcome, captain, squadNames, struck,
+                casualties, seatsStood, stationed);
         return true;
+    }
+
+    /** Appends the company's account of this settlement; idempotent per event key. */
+    private static void report(CampaignState state, GarrisonDefensePayload payload, int day,
+                               DefenceReport.Place place, boolean landed, Outcome outcome,
+                               MarineCaptain captain, List<String> squadNames,
+                               Map<MarineSoldier, MarineSoldierStatus> struck,
+                               int casualties, int seatsStood, float stationed) {
+        List<String> killed = new ArrayList<>();
+        List<String> missing = new ArrayList<>();
+        int wounded = 0;
+        for (Map.Entry<MarineSoldier, MarineSoldierStatus> entry : struck.entrySet()) {
+            switch (entry.getValue()) {
+                case KIA -> killed.add(entry.getKey().name());
+                case MIA -> missing.add(entry.getKey().name());
+                case WIA -> wounded++;
+                default -> { }
+            }
+        }
+        int unnamedLost = struck.isEmpty() ? casualties : 0;
+        int seatsLiving = Math.max(0,
+                seatsStood - killed.size() - missing.size() - unnamedLost);
+        int happened = Math.max(0, Math.min(payload.triggeredDay, day));
+        int row = state.contractIndex(payload.contractId);
+        int goneToGround = StrandedDetachment.isStranded(state, row)
+                ? Math.max(0, state.contractStrandedUntilTick[row] - day) : 0;
+        DefenceReport.Facts facts = new DefenceReport.Facts(payload.eventKey, happened,
+                place, landed, outcome, captain != null ? captain.name() : null,
+                squadNames, killed, missing, wounded, unnamedLost, seatsStood, seatsLiving,
+                stationed, payload.attackerStrength, goneToGround);
+        state.addChronicleGarrisonDefence(payload.eventKey, payload.marketId,
+                payload.attackerFactionId, outcome, seatsStood, seatsLiving,
+                DefenceReport.compose(facts, Strings::get), happened, Math.max(happened, day));
+    }
+
+    private static List<String> stationedSquadNames(MarineRoster roster, long contractId) {
+        List<String> names = new ArrayList<>();
+        if (roster == null) return names;
+        for (MarineSquad squad : roster.squadsStationedOn(contractId)) {
+            if (squad.name() != null && !squad.name().isBlank()) names.add(squad.name());
+        }
+        return names;
     }
 
     /**
@@ -127,12 +215,16 @@ public final class AbsentDefenceResolution {
      *
      * <p>A count-only legacy assignment has no marines to name; its losses are the
      * {@code marinesLost} the settlement subtracts from the committed count instead.
+     *
+     * @return each struck marine and the fate rolled for them, for the defence report
      */
-    private static void applyCasualties(GarrisonDefensePayload payload, MarineRoster roster,
-                                        int casualties, int day, boolean victory) {
-        if (roster == null || payload.fireteamIds.isEmpty()) return;
+    private static Map<MarineSoldier, MarineSoldierStatus> applyCasualties(
+            GarrisonDefensePayload payload, MarineRoster roster, int casualties, int day,
+            boolean victory) {
+        Map<MarineSoldier, MarineSoldierStatus> fates = new LinkedHashMap<>();
+        if (roster == null || payload.fireteamIds.isEmpty()) return fates;
         List<MarineSoldier> deployable = deployableMarines(roster, payload.contractId);
-        if (deployable.isEmpty()) return;
+        if (deployable.isEmpty()) return fates;
         List<MarineSoldier> struck = new ArrayList<>(deployable);
         Collections.shuffle(struck, new Random(payload.eventKey));
         struck = struck.subList(0, Math.min(casualties, struck.size()));
@@ -142,12 +234,15 @@ public final class AbsentDefenceResolution {
             manifest.put(soldier.id(), MarineSoldierStatus.ACTIVE);
         }
         for (MarineSoldier soldier : struck) {
-            manifest.put(soldier.id(), CasualtyFate.roll(
-                    CasualtyFate.seed(payload.eventKey, soldier.id()), victory));
+            MarineSoldierStatus fate = CasualtyFate.roll(
+                    CasualtyFate.seed(payload.eventKey, soldier.id()), victory);
+            manifest.put(soldier.id(), fate);
+            fates.put(soldier, fate);
         }
         // No battle ran, so there is no telemetry to fold into a career record; the
         // deployment itself is all this defence honestly knows about each marine.
         roster.applySoldierOutcome(manifest, day, WIA_DAYS, Collections.emptyMap(), victory);
+        return fates;
     }
 
     /**

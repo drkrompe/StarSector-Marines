@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.marine.DeployableEmplacementSpec;
 import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.marine.SpecialAiPolicy;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
@@ -239,7 +240,11 @@ public final class InfantryUnitPrep {
         if (sec.aiPolicy() == SpecialAiPolicy.FORWARD_OBSERVER) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.CONTACT_DEMOLITION) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.SOFT_CLUSTER_INDIRECT) return false;
-        if (sec.aiPolicy() == SpecialAiPolicy.AREA_DENIAL_EMPLACEMENT) return false;
+        if (sec.aiPolicy() == SpecialAiPolicy.AREA_DENIAL_EMPLACEMENT) {
+            // A carried pack diverts nobody, so it may switch on mid-bound; a pod to be set down may not.
+            DeployableEmplacementSpec spec = sec.deployableEmplacementSpec();
+            return spec != null && spec.carried() && DeployableTactics.tryCommitPlacement(unit, sec, sim);
+        }
         // The one deployable a halted section may begin even when the step withholds opportunity fire:
         // it commits only when every member nearby has already stopped, so it diverts no bound.
         if (sec.aiPolicy() == SpecialAiPolicy.CREW_SERVED_FIRE_SUPPORT) {

@@ -40,6 +40,9 @@ public final class ThunderRunSequence {
     private final boolean[] gunsBuilt = new boolean[2];
     private final boolean[] armorStaged = new boolean[3];
     private final List<Long> supportGuns = new ArrayList<>();
+    /** Raider squads sent at an arm's militia block: squad to {arm, road objective x}. */
+    private final Map<Integer, int[]> screened = new LinkedHashMap<>();
+    private static final float BLOCK_RADIUS = 12f;
     private int phaseTick, currentTick;
     private final long advanceHauler;
     private int finalRunTick;
@@ -121,10 +124,10 @@ public final class ThunderRunSequence {
                 armorStaged[phase] = true;
                 for (long id : escorts) order(sim, id);
                 order(sim, heavyLead);
-                order(sim, technical);
             }
         }
         releaseBatches(sim);
+        releaseBrokenBlocks(sim);
         driver.tick(sim);
         prepareSupportGuns(sim);
         observeDefendOrder(sim);
@@ -191,6 +194,8 @@ public final class ThunderRunSequence {
                     if (ordinal++ == 0 || phase == 2) order(sim, id);
                 }
                 order(sim, advanceHauler);
+                // The technical goes forward with the first release, to block its arm for both holds.
+                if (phase == 1) order(sim, technical);
                 beat(sim, phase == 1 ? "defend_dispatch" : "defend_crossing");
             } else {
                 finalRunTick = currentTick;
@@ -218,7 +223,7 @@ public final class ThunderRunSequence {
                 : -8 * new ArrayList<>(cargo.values()).indexOf(id);
         float goal = phase == 1 ? 117 + offset : phase == 2 ? 214 + offset : ThunderRunCompound.WIDTH + 40 + offset;
         if (id == technical) {
-            var stop = ThunderRunCompound.TECHNICAL_STOPS.get(phase == 1 ? 0 : 1);
+            var stop = ThunderRunCompound.TECHNICAL_STOP;
             driver.order(sim, id, stop.x(), stop.y(), VehicleLeg.MOVE_ORDER);
             return;
         }
@@ -239,13 +244,64 @@ public final class ThunderRunSequence {
             int targetX = attackPhase == 0 ? 117 : attackPhase == 1 ? 133
                     : attackPhase == 2 ? (ThunderRunPacing.usesOutboundRoad(batch) ? 245 : 172) : 275;
             var post = rearPost >= 0 ? ThunderRunCompound.SUPPORT_POSTS.get(rearPost) : null;
-            sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad,
-                            post != null ? post.x() : targetX, post != null ? post.y() : 75, post != null ? 6 : 18),
-                    CommandAuthority.SCRIPTED, "thunder-run-road-raiders",
-                    post != null ? "attack the militia rear post" : "interdict the authored freight crossing");
+            // A wave walking down a side arm during a hold meets that arm's militia block first and
+            // fights it out before it reaches the road; the block is what soaks the wave.
+            int arm = batch == 0 ? -1 : batch % 2 == 0 ? 1 : 0;
+            if (post == null && arm >= 0 && attackPhase <= 2 && !ThunderRunPacing.usesOutboundRoad(batch)
+                    && blockHolds(sim, arm)) {
+                var block = blockAt(sim, arm);
+                sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad, block.x(), block.y(), 8),
+                        CommandAuthority.SCRIPTED, "thunder-run-road-raiders", "break the militia block on the arm");
+                screened.put(squad, new int[] {arm, targetX});
+            } else {
+                sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad,
+                                post != null ? post.x() : targetX, post != null ? post.y() : 75, post != null ? 6 : 18),
+                        CommandAuthority.SCRIPTED, "thunder-run-road-raiders",
+                        post != null ? "attack the militia rear post" : "interdict the authored freight crossing");
+            }
             log.emitOnce(currentTick, "supply_route.thunder_run.road_batch_" + batch,
                     StoryBeatLog.Audience.OBSERVER_ONLY);
         }
+    }
+
+    /** Waves held on an arm's militia block go on to the road once nobody is left holding it. */
+    private void releaseBrokenBlocks(BattleSimulation sim) {
+        for (var it = screened.entrySet().iterator(); it.hasNext(); ) {
+            var entry = it.next();
+            if (blockHolds(sim, entry.getValue()[0])) continue;
+            it.remove();
+            sim.assignSquadCommand(ObjectiveAssignment.defendArea(entry.getKey(), entry.getValue()[1], 75, 18),
+                    CommandAuthority.SCRIPTED, "thunder-run-road-raiders", "interdict the authored freight crossing");
+        }
+    }
+
+    /** True while militia or a militia gun still stands at {@code arm}'s mouth, or the technical at its stop on the south arm. */
+    private boolean blockHolds(BattleSimulation sim, int arm) {
+        return technicalBlocks(sim, arm) || alliesNear(sim, ThunderRunCompound.SUPPORT_POSTS.get(arm));
+    }
+
+    /** Where {@code arm}'s block stands: the technical while it holds the south arm, otherwise the bay. */
+    private ThunderRunCompound.Cell blockAt(BattleSimulation sim, int arm) {
+        return technicalBlocks(sim, arm) ? ThunderRunCompound.TECHNICAL_STOP : ThunderRunCompound.SUPPORT_POSTS.get(arm);
+    }
+
+    private boolean technicalBlocks(BattleSimulation sim, int arm) {
+        if (arm != 1 || !sim.convoy().isVehicle(technical)
+                || sim.convoy().mission(technical).state == VehicleState.WRECKED) return false;
+        var body = sim.convoy().body(technical);
+        var stop = ThunderRunCompound.TECHNICAL_STOP;
+        float dx = body.x - stop.x(), dy = body.y - stop.y();
+        return dx * dx + dy * dy <= BLOCK_RADIUS * BLOCK_RADIUS;
+    }
+
+    private static boolean alliesNear(BattleSimulation sim, ThunderRunCompound.Cell block) {
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            long unit = sim.liveUnitAt(i);
+            if (sim.identity().faction(unit) != Faction.ALLY) continue;
+            float dx = sim.world().x(unit) - block.x(), dy = sim.world().y(unit) - block.y();
+            if (dx * dx + dy * dy <= BLOCK_RADIUS * BLOCK_RADIUS) return true;
+        }
+        return false;
     }
 
     private void prepareSupportGuns(BattleSimulation sim) {
@@ -261,7 +317,8 @@ public final class ThunderRunSequence {
                 float dx = sim.world().x(unit) - cell.x(), dy = sim.world().y(unit) - cell.y();
                 if (dx * dx + dy * dy <= 16) { crewPresent = true; break; }
             }
-            gunWork[post] = crewPresent && sites.get(post + 1).state == CompoundState.MARINE_HELD
+            // The north bay's crew is the picket already holding it; the Crossing bay waits on the Crossing.
+            gunWork[post] = crewPresent && (post == 0 || sites.get(post + 1).state == CompoundState.MARINE_HELD)
                     ? gunWork[post] + 1 : 0;
             if (gunWork[post] < 8 * 30) continue;
             gunsBuilt[post] = true;

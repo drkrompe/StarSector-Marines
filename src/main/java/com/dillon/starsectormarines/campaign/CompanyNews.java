@@ -22,7 +22,9 @@ public final class CompanyNews {
             int survivorsAtRisk,
             int survivorsRescued,
             int happenedDay,
-            int learnedDay, String actorFactionId) {
+            int learnedDay, String actorFactionId,
+            AbsentDefenceGrade.Outcome defenceOutcome,
+            String account) {
     }
 
     private CompanyNews() {
@@ -66,15 +68,31 @@ public final class CompanyNews {
 
         String actor = houseName(state, state.chronicleActorHouseId[row]);
         String target = houseName(state, state.chronicleTargetHouseId[row]);
-        if (type != ChronicleEventType.SILENT_COLONY
-                && actor == null && target == null) {
+        boolean companyReport = type == ChronicleEventType.SILENT_COLONY
+                || type == ChronicleEventType.GARRISON_DEFENCE
+                || type == ChronicleEventType.DETACHMENT_RECOVERED
+                || type == ChronicleEventType.DETACHMENT_LOST;
+        if (!companyReport && actor == null && target == null) {
             return null;
+        }
+        AbsentDefenceGrade.Outcome defence = null;
+        String factionId = houseFaction(state, state.chronicleActorHouseId[row]);
+        if (type == ChronicleEventType.GARRISON_DEFENCE) {
+            defence = safeDefenceOutcome(state.chronicleDefenceOutcome[row]);
+            if (defence == null) return null;
+            int attacker = state.chronicleSourceFactionId[row];
+            factionId = attacker >= 0 ? state.factionRegistry.get(attacker) : null;
         }
         return new Entry(id, type, confidence, band, actor, target,
                 marketName.apply(state.chronicleMarketId[row]), outcome, archive,
                 state.chronicleSurvivorsAtRisk[row],
                 state.chronicleSurvivorsRescued[row], happened, learned,
-                houseFaction(state, state.chronicleActorHouseId[row]));
+                factionId, defence, state.chronicleAccount[row]);
+    }
+
+    private static AbsentDefenceGrade.Outcome safeDefenceOutcome(byte value) {
+        AbsentDefenceGrade.Outcome[] values = AbsentDefenceGrade.Outcome.values();
+        return value >= 0 && value < values.length ? values[value] : null;
     }
 
     private static String houseFaction(CampaignState state, long houseId) {
