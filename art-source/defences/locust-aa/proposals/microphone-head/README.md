@@ -1,14 +1,15 @@
-# Proposed Locust microphone-shaped launcher
+# Approved Locust microphone-shaped launcher
 
-Geometry proposal awaiting the user's shape review. Do not use ImageGen on this
-proposal until that review: the user explicitly requested seeing the shape first.
+The user approved this elongated geometry for ImageGen reskinning. The resulting
+overhead guide and painted mount live two directories above, with the exact
+reskin prompt. This retained scene remains the geometry source of truth.
 
 The elongated head is a cylindrical rocket magazine with a convex rounded cap,
 like a microphone head. Eighteen small launch bores run parallel along one
 forward axis, shown elevated 20 degrees. Their openings follow the cap; they
-do not radiate from a sphere. The head is 1.70 model units long and 1.24 wide,
-70% longer than the previous seated proposal. Extra length is split fore and
-aft of the side axle (local Y -0.78 to +0.92) rather than shifting the whole
+do not radiate from a sphere. The head is 1.70 model units long and 1.24 wide.
+Extra length is split fore and aft of the side axle (local Y -0.78 to +0.92)
+rather than shifting the whole
 head forward. The bores extend into the longer magazine to one rear plane.
 
 The floor and both cheek supports form one yaw assembly over a circular
@@ -22,14 +23,14 @@ cover's height at each whole degree in this range. The cover check uses its
 height as an infinite plane, conservative relative to its actual footprint.
 These are sampled shape checks, not a full mechanical collision certification.
 
-Port count, elevation and proportions are proposal choices, not gameplay data.
+Port count, elevation and proportions are art choices, not gameplay data.
 Views show the overhead footprint, an angled assembly and the side axle.
 
 `build.py` runs in an isolated background Blender process with factory startup.
 It writes `proposal.blend` and the transparent 1920x1080 `shape-views.png` at
 100% render scale. `review.ps1` adds labels at the same resolution without
-resizing. No ImageGen call is part of this proposal's workflow. The existing
-finished Locust mount and ground base have not been replaced.
+resizing. No ImageGen call is part of this geometry script. The separate reskin
+workflow replaces the earlier mount art while retaining the ground foundation.
 
 ```powershell
 & 'C:/Program Files/Blender Foundation/Blender 5.2/blender.exe' --background --factory-startup --python art-source/defences/locust-aa/proposals/microphone-head/build.py

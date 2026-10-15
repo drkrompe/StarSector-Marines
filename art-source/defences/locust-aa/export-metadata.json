@@ -8,12 +8,12 @@
       256
     ],
     "alphaBounds": [
-      75,
-      89,
-      438,
-      424
+      84,
+      101,
+      428,
+      419
     ],
-    "transparentPixels": 171713
+    "transparentPixels": 161018
   },
   {
     "name": "ground-base",

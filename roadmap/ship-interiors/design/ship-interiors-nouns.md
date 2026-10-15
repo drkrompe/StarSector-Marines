@@ -605,7 +605,10 @@ the old scattered packing, loose gear and alternating grating in these rooms.
 The displayed circuits do not assert a new power or coolant simulation.
 
 The ship bridge groups navigation, systems and paired side watch stations
-around one central tactical plot. Its banks compose one-cell straights, corners
+around one central tactical plot. The broad ship CIC uses two L-shaped navigation
+and systems banks and two U-shaped side stations: returns wrap the operators
+without moving their nine standing cells or changing the compartment mask.
+Its banks compose one-cell straights, corners
 and handed end caps with an explicit operator side. The room editor records a
 connected path as one fixture group, selects the joins, and accepts or refuses
 the complete bank. Open paths end in caps; a closed island also claims its
@@ -615,8 +618,9 @@ ship room in the editor uses its ship fitting or matching authored layout.
 Operators stand outboard of their consoles
 and face inward; the command position faces the plot's control edge. An inner
 walkway and open perimeter join the groups across an enclosed, broad operations
-floor with small corner chamfers. A muted central floor inset distinguishes the
-command island from circulation behind the operators. The nine exclusive WATCH
+floor with small corner chamfers. The square central floor inset contains the
+plot and its reserved two-cell circulation band. It distinguishes the command
+area from the banks and circulation behind the operators. The nine exclusive WATCH
 places belong to reachable standing cells beside physical fixtures; a short
 watch spreads across plot, navigation, systems and both side banks before
 doubling a bank.
