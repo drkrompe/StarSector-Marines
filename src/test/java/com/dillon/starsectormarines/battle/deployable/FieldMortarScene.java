@@ -31,6 +31,7 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.CompoundLayout;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
@@ -145,7 +146,8 @@ public final class FieldMortarScene implements BehaviorScene {
     }
 
     private record FortGround(NavigationGrid grid, CellTopology topology, List<DefensePost> posts,
-                              CompoundLayout.Placement at) {
+                              List<Doodad> doodads,
+                  CompoundLayout.Placement at) {
         int[] cell(int lx, int ly) {
             return at.cell(lx, ly);
         }
@@ -167,7 +169,7 @@ public final class FieldMortarScene implements BehaviorScene {
                 new GroundDefences(0, false).withForts(FortKind.BATTERY_FORT, 1)));
         FortStage stage = new FortStage();
         stage.run(ctx);
-        return new FortGround(grid, topology, List.copyOf(ctx.defensePosts), stage.placed().get(0).placement());
+        return new FortGround(grid, topology, List.copyOf(ctx.defensePosts), List.copyOf(ctx.doodads), stage.placed().get(0).placement());
     }
 
     private SceneReport playOne(String loop, FrameSink frames) {
@@ -181,7 +183,7 @@ public final class FieldMortarScene implements BehaviorScene {
         int outY = outStep[1] - mouth[1];
         int[] team = clamp(mouth[0] + outX * STANDOFF, mouth[1] + outY * STANDOFF);
         lastSection = new int[] {team[0], team[1], mouth[0], mouth[1]};
-        SceneBuilder builder = SceneBuilder.over(terrain.grid(), terrain.topology()).posts(terrain.posts())
+        SceneBuilder builder = SceneBuilder.over(terrain.grid(), terrain.topology()).posts(terrain.posts()).doodads(terrain.doodads())
                 .missionCompletion(false);
         SceneBuilder.SquadSpec section = builder.squad("section").faction(Faction.MARINE).size(4)
                 .at(team[0], team[1]).primary(RIFLE).stationary()
@@ -242,7 +244,7 @@ public final class FieldMortarScene implements BehaviorScene {
         int outY = outStep[1] - mouth[1];
         int[] start = clamp(mouth[0] + outX * (STANDOFF + MARCH_LEAD), mouth[1] + outY * (STANDOFF + MARCH_LEAD));
         lastSection = new int[] {start[0], start[1], mouth[0], mouth[1]};
-        SceneBuilder builder = SceneBuilder.over(terrain.grid(), terrain.topology()).posts(terrain.posts())
+        SceneBuilder builder = SceneBuilder.over(terrain.grid(), terrain.topology()).posts(terrain.posts()).doodads(terrain.doodads())
                 .missionCompletion(false);
         // Every loop carries the fire mission a commander would give it: the fort's works.
         int[] core = BatteryFort.coreCentre(FortAspect.FIRE_CONTROL);

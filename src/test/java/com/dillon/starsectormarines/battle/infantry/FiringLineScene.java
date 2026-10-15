@@ -145,6 +145,13 @@ public final class FiringLineScene implements BehaviorScene {
     private static final String DEFENDERS = "defenders";
     private static final String FAR = "far";
 
+    /**
+     * Sim seeds each loop is played at, pooled into one reading. A masked shot only catches the friend in
+     * front of it by chance, so one seed can come out clean for the control as easily as for the subject;
+     * the fault is a rate and is measured as one. The same seeds are played with the reflex on and off.
+     */
+    private static final long[] SEEDS = {1, 2, 3, 4, 5, 6, 7, 8};
+
     /** The sidestep loop must cut friendly fire to at most this share of the control's. */
     private static final float FRIENDLY_FIRE_BAR = 0.5f;
 
@@ -155,9 +162,11 @@ public final class FiringLineScene implements BehaviorScene {
      * The most of one tick's travel a mid-sidestep marine may cover. A single
      * mover cannot exceed one, and the slack is for the last step of a path,
      * which is clamped to the destination rather than to the speed. Two movers
-     * would read about two.
+     * would read about two. Marines in a column also lean on each other: ones
+     * not stepping at all cover up to 1.2 of a tick's travel while they settle,
+     * so the bar sits between one mover and two rather than just above one.
      */
-    private static final float DOUBLE_ADVANCE_BAR = 1.25f;
+    private static final float DOUBLE_ADVANCE_BAR = 1.75f;
 
     @Override public String id() { return "firing-line"; }
 
@@ -171,12 +180,20 @@ public final class FiringLineScene implements BehaviorScene {
     public List<SceneReport> play(FrameSink frames) {
         boolean previous = LaneSidestep.isEnabled();
         try {
-            LaneSidestep.setEnabledForEvidence(true);
-            LaneTrace sidestep = playOne(frames, "sidestep");
-            LaneSidestep.setEnabledForEvidence(false);
-            LaneTrace control = playOne(frames, "control");
-            return List.of(report("sidestep", sidestep, control),
-                    report("control", control, null));
+            List<LaneTrace> sidestep = new ArrayList<>();
+            List<LaneTrace> control = new ArrayList<>();
+            for (int i = 0; i < SEEDS.length; i++) {
+                // Only the first seed is recorded; the rest are readings.
+                FrameSink sink = i == 0 ? frames : FrameSink.NONE;
+                LaneSidestep.setEnabledForEvidence(true);
+                sidestep.add(playOne(sink, "sidestep", SEEDS[i]));
+                LaneSidestep.setEnabledForEvidence(false);
+                control.add(playOne(sink, "control", SEEDS[i]));
+            }
+            LaneTally sidestepTally = new LaneTally(sidestep);
+            LaneTally controlTally = new LaneTally(control);
+            return List.of(report("sidestep", sidestepTally, controlTally),
+                    report("control", controlTally, null));
         } finally {
             LaneSidestep.setEnabledForEvidence(previous);
         }
@@ -191,8 +208,9 @@ public final class FiringLineScene implements BehaviorScene {
      * immediately once a side is gone and a scene that ends on tick one records
      * nothing — and sealed so it is never a reason for anybody to go anywhere.
      */
-    private static SceneWorld build() {
+    private static SceneWorld build(long seed) {
         SceneBuilder builder = SceneBuilder.openGround(WIDTH, HEIGHT)
+                .seed(seed)
                 .missionCompletion(false)
                 // North of the corridor, leaving the pocket open.
                 .wall(0, 0, POCKET_X - 2, CORRIDOR_TOP - 1)
@@ -228,8 +246,8 @@ public final class FiringLineScene implements BehaviorScene {
         return builder.build();
     }
 
-    private LaneTrace playOne(FrameSink frames, String loopId) {
-        SceneWorld world = build();
+    private LaneTrace playOne(FrameSink frames, String loopId, long seed) {
+        SceneWorld world = build(seed);
         LaneTrace trace = new LaneTrace(world.members(MARINES), world.members(DEFENDERS));
         SceneRun.of(world)
                 .observe(trace)
@@ -245,7 +263,7 @@ public final class FiringLineScene implements BehaviorScene {
      * produced the fault at all — because every other question here is a
      * comparison and a comparison needs the other loop.
      */
-    private SceneReport report(String loopId, LaneTrace loop, LaneTrace control) {
+    private SceneReport report(String loopId, LaneTally loop, LaneTally control) {
         List<Verdict> verdicts = new ArrayList<>();
         if (control == null) {
             verdicts.add(Verdict.of("control-has-friendly-fire", loop.friendlyFire() > 0f,
@@ -333,6 +351,7 @@ public final class FiringLineScene implements BehaviorScene {
         private final int[] stepStartY;
         private final float[] lastX;
         private final float[] lastY;
+        private final float[] lastSpeed;
         private int sidesteps;
         private int sidestepsCompleted;
         private int sidestepsThatMoved;
@@ -354,6 +373,7 @@ public final class FiringLineScene implements BehaviorScene {
             this.stepStartY = new int[marines.length];
             this.lastX = new float[marines.length];
             this.lastY = new float[marines.length];
+            this.lastSpeed = new float[marines.length];
             this.marinesAlive = marines.length;
             this.defendersAlive = defenders.length;
             Arrays.fill(firstFireX, Integer.MIN_VALUE);
@@ -438,6 +458,7 @@ public final class FiringLineScene implements BehaviorScene {
             steppingLastTick[i] = stepping;
             lastX[i] = world.x(marine);
             lastY[i] = world.y(marine);
+            lastSpeed[i] = sim.movement().moveSpeed(marine);
         }
 
         /**
@@ -454,7 +475,9 @@ public final class FiringLineScene implements BehaviorScene {
          * right.
          */
         private void measureLastTickStep(BattleSimulation sim, long marine, int i) {
-            float allowed = sim.movement().moveSpeed(marine) * BattleSimulation.TICK_DT;
+            // The tick ran at the speed the marine had when it began: a leg wound landed during it slows him
+            // only from the next one, so the allowance is the faster of the two readings.
+            float allowed = Math.max(sim.movement().moveSpeed(marine), lastSpeed[i]) * BattleSimulation.TICK_DT;
             if (!(allowed > 0f)) return;
             float dx = sim.world().x(marine) - lastX[i];
             float dy = sim.world().y(marine) - lastY[i];
@@ -485,6 +508,75 @@ public final class FiringLineScene implements BehaviorScene {
         private static float sum(float[] values) {
             float total = 0f;
             for (float value : values) total += value;
+            return total;
+        }
+    }
+
+    /** Every seed of one loop, pooled: sums where the readings add, the worst case where they do not. */
+    private static final class LaneTally {
+        private final List<LaneTrace> traces;
+
+        private LaneTally(List<LaneTrace> traces) {
+            this.traces = traces;
+        }
+
+        float friendlyFire() {
+            float total = 0f;
+            for (LaneTrace t : traces) total += t.friendlyFire();
+            return total;
+        }
+
+        float hostileDamage() {
+            float total = 0f;
+            for (LaneTrace t : traces) total += t.hostileDamage();
+            return total;
+        }
+
+        int sidesteps() {
+            int total = 0;
+            for (LaneTrace t : traces) total += t.sidesteps();
+            return total;
+        }
+
+        int sidestepsCompleted() {
+            int total = 0;
+            for (LaneTrace t : traces) total += t.sidestepsCompleted();
+            return total;
+        }
+
+        int sidestepsThatMoved() {
+            int total = 0;
+            for (LaneTrace t : traces) total += t.sidestepsThatMoved();
+            return total;
+        }
+
+        int maxSidestepMove() {
+            int worst = 0;
+            for (LaneTrace t : traces) worst = Math.max(worst, t.maxSidestepMove());
+            return worst;
+        }
+
+        float worstStepRatio() {
+            float worst = 0f;
+            for (LaneTrace t : traces) worst = Math.max(worst, t.worstStepRatio());
+            return worst;
+        }
+
+        int maxDisplacement() {
+            int worst = 0;
+            for (LaneTrace t : traces) worst = Math.max(worst, t.maxDisplacement());
+            return worst;
+        }
+
+        int marinesAlive() {
+            int total = 0;
+            for (LaneTrace t : traces) total += t.marinesAlive();
+            return total;
+        }
+
+        int defendersKilled() {
+            int total = 0;
+            for (LaneTrace t : traces) total += t.defendersKilled();
             return total;
         }
     }
