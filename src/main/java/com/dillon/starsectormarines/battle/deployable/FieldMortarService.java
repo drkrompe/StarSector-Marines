@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.deployable;
 
+import com.dillon.starsectormarines.battle.combat.TargetMotion;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment.FireMission;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
@@ -535,9 +536,15 @@ public final class FieldMortarService {
      */
     public boolean friendlyUnderRound(Tube tube, long target, BattleView sim) {
         WeaponDef weapon = tube.structure.mount.weapon;
-        float x = sim.world().x(target);
-        float y = sim.world().y(target);
-        float range = (float) Math.hypot(x - (tube.cellX + 0.5f), y - (tube.cellY + 0.5f));
+        float targetX = sim.world().x(target);
+        float targetY = sim.world().y(target);
+        float range = (float) Math.hypot(targetX - (tube.cellX + 0.5f), targetY - (tube.cellY + 0.5f));
+        // The round is led, so the ground to keep clear is where the target
+        // will be when it lands, not where it stands now.
+        float speed = weapon.projectileCellsPerSec();
+        float leadTime = speed > 0f ? range / speed : weapon.flightSec;
+        float x = targetX + TargetMotion.velocityX(sim.bodies(), sim.movement(), target) * leadTime;
+        float y = targetY + TargetMotion.velocityY(sim.bodies(), sim.movement(), target) * leadTime;
         float scatter = weapon.hitSpread * Math.min(1f, range / Math.max(0.0001f, weapon.range));
         float radius = weapon.aoeRadius + scatter + FRIENDLY_MARGIN_CELLS;
         LongBucket bucket = scratch.get();

@@ -104,7 +104,7 @@ public final class TurretFireSystem implements TurretFireSink {
         }
 
         if (weapon.projectileCellsPerSec() > 0f) {
-            spawnProjectile(shooterId, fromX, fromY, shooterFaction, structure, tcx, tcy, aerialShooter,
+            spawnProjectile(shooterId, fromX, fromY, shooterFaction, structure, target, aerialShooter,
                     distToTarget, effectiveAccuracy);
             return;
         }
@@ -113,11 +113,17 @@ public final class TurretFireSystem implements TurretFireSink {
         boolean isAoe = weapon.aoeRadius > 0f;
         boolean aerialDelivery = aerialShooter || weapon.arcHeight > 0f;
         float effectiveSpread = weapon.hitSpread * Math.min(1f, distToTarget / weapon.range);
+        float flight = weapon.flightSec > 0f ? weapon.flightSec : SHOT_LIFETIME;
+        // A burst lands where the target will be when it arrives; a contact
+        // hit is applied now, so its tracer ends on the target itself.
+        float leadTime = isAoe ? flight : 0f;
+        float aimX = world.x(target) + resolver.targetVelocityX(target) * leadTime;
+        float aimY = world.y(target) + resolver.targetVelocityY(target) * leadTime;
 
         float toX, toY;
         if (hit) {
-            toX = tcx + 0.5f;
-            toY = tcy + 0.5f;
+            toX = aimX;
+            toY = aimY;
             if (effectiveSpread > 0f) {
                 float angle = rng.nextFloat() * (float) (Math.PI * 2);
                 float r = rng.nextFloat() * effectiveSpread;
@@ -128,8 +134,8 @@ public final class TurretFireSystem implements TurretFireSink {
             float angle = rng.nextFloat() * (float) (Math.PI * 2);
             float spread = MISS_OFFSET_MIN + rng.nextFloat() * (MISS_OFFSET_MAX - MISS_OFFSET_MIN);
             spread += effectiveSpread;
-            toX = tcx + 0.5f + (float) Math.cos(angle) * spread;
-            toY = tcy + 0.5f + (float) Math.sin(angle) * spread;
+            toX = aimX + (float) Math.cos(angle) * spread;
+            toY = aimY + (float) Math.sin(angle) * spread;
         }
 
         if (!isAoe && hit) {
@@ -141,7 +147,6 @@ public final class TurretFireSystem implements TurretFireSink {
         }
 
         if (isAoe) {
-            float flight = weapon.flightSec > 0f ? weapon.flightSec : SHOT_LIFETIME;
             detonationSink.queue(new PendingDetonation(
                     shooterId,
                     toX, toY, flight,
@@ -242,10 +247,22 @@ public final class TurretFireSystem implements TurretFireSink {
     }
 
     private void spawnProjectile(long shooterId, float fromX, float fromY, Faction shooterFaction,
-                                 StructureDef structure, int tcx, int tcy, boolean aerialShooter,
+                                 StructureDef structure, long target, boolean aerialShooter,
                                  float distToTarget, float effectiveAccuracy) {
         WeaponDef weapon = structure.mount.weapon;
         boolean aerialDelivery = aerialShooter || weapon.arcHeight > 0f;
+        float speed = weapon.projectileCellsPerSec();
+
+        // Lead: aim where the target will be after the flight to where it is
+        // now, one step like the direct resolver's. The scatter below is drawn
+        // around that point, so the round is no more accurate for leading —
+        // it only stops aiming behind a man who is walking. A target that
+        // turns or stops during the flight is the error the lead cannot see.
+        float targetX = world.x(target);
+        float targetY = world.y(target);
+        float leadTime = (float) Math.hypot(targetX - fromX, targetY - fromY) / speed;
+        float aimX = targetX + resolver.targetVelocityX(target) * leadTime;
+        float aimY = targetY + resolver.targetVelocityY(target) * leadTime;
 
         float distScale = Math.min(1f, distToTarget / Math.max(0.0001f, weapon.range));
         boolean hit = rng.nextFloat() < effectiveAccuracy;
@@ -260,10 +277,10 @@ public final class TurretFireSystem implements TurretFireSink {
         }
         float angle = rng.nextFloat() * (float) (Math.PI * 2);
         float r = rng.nextFloat() * scatterRadius;
-        float toX = tcx + 0.5f + (float) Math.cos(angle) * r;
-        float toY = tcy + 0.5f + (float) Math.sin(angle) * r;
+        float toX = aimX + (float) Math.cos(angle) * r;
+        float toY = aimY + (float) Math.sin(angle) * r;
 
-        float flightTime = distToTarget / weapon.projectileCellsPerSec();
+        float flightTime = (float) Math.hypot(aimX - fromX, aimY - fromY) / speed;
 
         PendingDetonation onArrival = new PendingDetonation(
                 shooterId,
