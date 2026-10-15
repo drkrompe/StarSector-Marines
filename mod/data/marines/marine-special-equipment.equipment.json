@@ -578,7 +578,7 @@
       "catalog": {
         "displayName": "@gearCatalogSpecialPointDefencePackDisplayName",
         "subtitle": "@gearCatalogSpecialPointDefencePackSubtitle",
-        "factionLogo": "graphics/factions/luddic_church.png",
+        "factionLogo": "graphics/factions/hegemony.png",
         "description": "@gearCatalogSpecialPointDefencePackDescription"
       },
       "activation": {

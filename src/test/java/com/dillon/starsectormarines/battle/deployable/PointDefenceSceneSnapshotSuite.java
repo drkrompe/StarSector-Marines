@@ -106,6 +106,10 @@ public final class PointDefenceSceneSnapshotSuite implements SnapshotSuite {
      */
     private static final float PACK_FOCUS_X = SECTION_CELL_X - 7f;
     private static final float PACK_FOCUS_CELLS_ACROSS = 26f;
+    private static final int PACK_CARRIER_X = SECTION_CELL_X + 1;
+    private static final int PACK_CARRIER_Y = LANE_CELL_Y + 2;
+    /** Close enough that the pack on the carrier's back is drawn at a size its livery can be judged at. */
+    private static final float CLOSE_UP_CELLS_ACROSS = 6f;
 
     @Override public String id() { return "point-defence"; }
 
@@ -119,7 +123,13 @@ public final class PointDefenceSceneSnapshotSuite implements SnapshotSuite {
         BattleReviewFrameRenderer review = new BattleReviewFrameRenderer(context.modRoot(),
                 REVIEW_WIDTH, REVIEW_HEIGHT, PACK_FOCUS_X, LANE_CELL_Y + 0.5f, PACK_FOCUS_CELLS_ACROSS)
                 .withImpactEffects();
-        return List.of(record(renderer), recordPack(review, new ReviewImpactFx(context.modRoot())));
+        BattleReviewFrameRenderer closeUp = new BattleReviewFrameRenderer(context.modRoot(),
+                REVIEW_WIDTH, REVIEW_HEIGHT, PACK_CARRIER_X + 0.5f, PACK_CARRIER_Y + 0.5f,
+                CLOSE_UP_CELLS_ACROSS).withImpactEffects();
+        List<SnapshotArtifact> artifacts = new ArrayList<>();
+        artifacts.add(record(renderer));
+        artifacts.addAll(recordPack(review, closeUp, new ReviewImpactFx(context.modRoot())));
+        return artifacts;
     }
 
     /**
@@ -184,8 +194,9 @@ public final class PointDefenceSceneSnapshotSuite implements SnapshotSuite {
      * meets it; the magazine of six runs dry partway through, which is part of
      * what the loop shows.
      */
-    private SnapshotArtifact recordPack(BattleReviewFrameRenderer renderer,
-                                        ReviewImpactFx impacts) throws Exception {
+    private List<SnapshotArtifact> recordPack(BattleReviewFrameRenderer renderer,
+                                              BattleReviewFrameRenderer closeUp,
+                                              ReviewImpactFx impacts) throws Exception {
         BattleSimulation sim = openArena();
         WeaponDef lrm = WeaponRegistry.require("weapon.mech-lrm-artillery");
         SpecialEquipmentDef pack = SpecialEquipmentRegistry.require(
@@ -201,16 +212,29 @@ public final class PointDefenceSceneSnapshotSuite implements SnapshotSuite {
                     .health(SECTION_STAND_IN_HP)));
         }
         long carrier = sim.spawn(new EntitySpec("pd-carrier", Faction.MARINE,
-                UnitType.MARINE, SECTION_CELL_X + 1, LANE_CELL_Y + 2)
+                UnitType.MARINE, PACK_CARRIER_X, PACK_CARRIER_Y)
                 .role(UnitRole.STRUCTURE)
                 .health(SECTION_STAND_IN_HP)
                 .specialEquipment(pack, pack.startingAmmo()));
         sim.pointDefense().queuePlacement(carrier, Faction.MARINE,
-                SECTION_CELL_X + 1, LANE_CELL_Y + 2, pack.deployableEmplacementSpec());
+                PACK_CARRIER_X, PACK_CARRIER_Y, pack.deployableEmplacementSpec());
 
         List<BufferedImage> frames = new ArrayList<>(PACK_TICKS / PACK_FRAME_EVERY_TICKS + 1);
+        List<SnapshotArtifact> stills = new ArrayList<>();
+        int launchedBefore = 0;
         for (int tick = 0; tick <= PACK_TICKS; tick++) {
             fireScheduledSalvoRound(sim, tick, mech, section, lrm);
+            if (tick == 1) {
+                stills.add(new SnapshotArtifact("interceptor-pack-worn.png",
+                        closeUp.render(sim, "Interceptor pack on its carrier", ReviewAnnotations.NONE, impacts)));
+            }
+            int launched = sim.telemetry().ordnanceEngaged(carrier);
+            if (launchedBefore == 0 && launched > 0) {
+                stills.add(new SnapshotArtifact("interceptor-pack-launch.png",
+                        closeUp.render(sim, "First interceptor leaving the pack  •  t" + tick,
+                                ReviewAnnotations.NONE, impacts)));
+            }
+            launchedBefore = launched;
             if (tick % PACK_FRAME_EVERY_TICKS == 0) {
                 frames.add(renderer.render(sim, packCaption(sim, carrier, tick),
                         ReviewAnnotations.NONE, impacts));
@@ -218,8 +242,9 @@ public final class PointDefenceSceneSnapshotSuite implements SnapshotSuite {
             sim.advance(BattleSimulation.TICK_DT);
             impacts.feed(sim);
         }
-        return SnapshotArtifact.animation("salvo-under-interceptor-pack.gif",
-                frames, PACK_FRAME_DELAY_MILLIS);
+        stills.add(SnapshotArtifact.animation("salvo-under-interceptor-pack.gif",
+                frames, PACK_FRAME_DELAY_MILLIS));
+        return stills;
     }
 
     private static String packCaption(BattleSimulation sim, long carrier, int tick) {
