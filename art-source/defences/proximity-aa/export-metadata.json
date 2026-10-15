@@ -1,0 +1,22 @@
+{
+  "name": "proximity",
+  "masterWidth": 1254,
+  "masterHeight": 1254,
+  "nativeWidth": 40,
+  "nativeHeight": 40,
+  "layerSize": 512,
+  "pivot": [
+    256,
+    256
+  ],
+  "compositeScale": 1,
+  "alphaBounds": [
+    72,
+    76,
+    439,
+    438
+  ],
+  "transparentPixels": 172497,
+  "registrationSource": "../missile-aa/registration.json",
+  "fullFramePreserved": true
+}
