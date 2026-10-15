@@ -181,7 +181,10 @@ costs stability and, for some expeditions, disrupts an industry.
   and still live: pirate-base raids pick a nearby system and weight its
   markets by size, and punitive expeditions target one colony industry.
   **This is the shape that actually reaches patron markets.** It goes home
-  through `RaidIntel.forceFail`.
+  through `RaidIntel.forceFail`. Nexerelin's offensives (invasions, raids,
+  sat-bombardments, expeditions, defence fleets) subclass `RaidIntel` but are
+  out of scope for this seam: Nex resolves them itself, so they are matched by
+  class name and skipped rather than armed against or ended.
 
 If the player is out of spawn range either shape autoresolves on the same
 ratio. Two things make the seam honest rather than a hack:
