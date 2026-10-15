@@ -100,18 +100,12 @@ public final class MarineArmory implements Serializable {
     /** Every equipment acquisition channel teaches the same associated tactic sheets. */
     void repairArmorPlanKnowledge() {
         acquireArmorPlan(SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
-        String[][] grants = ArmorSheetBundles.GRANTS;
-        for (String[] grant : grants) {
+        for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
+            List<String> patterns = ArmorSheetBundles.patternsFor(plan.id());
+            if (patterns.isEmpty()) continue;
             boolean known = true;
-            for (int i = 1; i < grant.length; i++) known &= ownsArmorTemplate(grant[i]);
-            if (known) acquireArmorPlan(grant[0]);
-        }
-        if (ownsArmorTemplate("armor.specter-recovered") || ownsArmorTemplate("armor.specter-heavy")) {
-            acquireArmorPlan(SquadEquipmentDoctrines.CORPORATE_SPECTER_SECTION_ARMOR);
-        }
-        if ((ownsArmorTemplate("armor.specter-recovered") || ownsArmorTemplate("armor.specter-heavy"))
-                && (ownsArmorTemplate("armor.arbalest-recovered") || ownsArmorTemplate("armor.arbalest"))) {
-            acquireArmorPlan(SquadEquipmentDoctrines.SALVAGE_ASSISTED_ARMOR);
+            for (String pattern : patterns) known &= ownsArmorTemplate(pattern);
+            if (known) acquireArmorPlan(plan.id());
         }
         for (FirstRefit.Path path : FirstRefit.Path.values()) {
             if (weaponDoctrineById(path.weapons) != null && FirstRefit.technologyKnown(this, path)) {
@@ -202,9 +196,9 @@ public final class MarineArmory implements Serializable {
         }
     }
 
-    /** Resolves physical issue from owned stock; previews may resolve an unlearned sheet. */
+    /** Resolves the sheet's own twelve; the squad fitting checks the company owns every pattern. */
     public SquadArmorDoctrine issue(SquadArmorPlan plan) {
-        return ArmorIssueResolver.resolve(plan, pattern -> ownsArmorTemplate(pattern.id()));
+        return ArmorIssueResolver.issueSheet(plan);
     }
     public SquadWeaponDoctrine weaponDoctrineById(String id) {
         SquadWeaponDoctrine builtIn = SquadEquipmentDoctrines.weaponById(id);

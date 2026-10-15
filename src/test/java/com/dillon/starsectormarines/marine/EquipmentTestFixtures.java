@@ -24,5 +24,14 @@ public final class EquipmentTestFixtures {
         for (String id : List.of("armor.cordon-shell", "armor.lashplate-harness",
                 MarineArmorPattern.CHARCOAL.id, MarineArmorPattern.ARMY_GREEN.id,
                 "armor.riot-shell", "armor.packframe")) armory.unlockArmor(id);
+        // An established company has bought the ordinary regular-infantry sheets, whole.
+        for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
+            if (plan.armorClass() == ArmorClass.STANDARD && !plan.isMixedClass()) learnSheet(armory, plan.id());
+        }
+    }
+
+    /** Learns a tactic sheet the way the game does: by holding its card. */
+    public static void learnSheet(MarineArmory armory, String sheetId) {
+        LoadoutCardLearning.learn(armory, new LoadoutCard(LoadoutCard.Kind.SHEET, sheetId).id());
     }
 }

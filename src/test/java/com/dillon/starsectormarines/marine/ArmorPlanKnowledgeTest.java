@@ -20,6 +20,9 @@ class ArmorPlanKnowledgeTest {
         assertEquals(List.of(SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR),
                 armory.armorDoctrines().stream().map(SquadArmorDoctrine::id).toList());
         armory.unlockArmor(MarineArmorPattern.BLUE_SCOUT);
+        assertFalse(armory.knowsArmorPlan(SquadEquipmentDoctrines.RECON_ARMOR),
+                "one suit of a sheet bundle is not the sheet");
+        EquipmentTestFixtures.learnSheet(armory, SquadEquipmentDoctrines.RECON_ARMOR);
         assertTrue(armory.knowsArmorPlan(SquadEquipmentDoctrines.RECON_ARMOR));
         for (String foreign : List.of(SquadEquipmentDoctrines.LEAGUE_MOBILE_ARMOR,
                 SquadEquipmentDoctrines.SINDRIAN_SECURITY_ARMOR, SquadEquipmentDoctrines.FLEET_COMBAT_ARMOR)) {
@@ -52,19 +55,18 @@ class ArmorPlanKnowledgeTest {
         assertEquals(3, loaded.armory().ownedEquipmentTemplateIds().size());
     }
 
-    @Test void signatureAcquisitionIsOrderIndependentAndDoesNotTeachAdjacentFactions() {
-        for (List<String> order : List.of(List.of("armor.line", "armor.combat"),
-                List.of("armor.combat", "armor.line"))) {
+    @Test void acquisitionIsOrderIndependentAndOnlyAWholeBundleTeachesItsSheet() {
+        List<String> bundle = List.of("armor.militia", "armor.orderly");
+        for (List<String> order : List.of(bundle, List.of(bundle.get(1), bundle.get(0)))) {
             MarineArmory armory = new MarineArmory();
             armory.unlockArmor(order.get(0));
-            assertFalse(armory.knowsArmorPlan(SquadEquipmentDoctrines.FLEET_COMBAT_ARMOR));
+            assertFalse(armory.knowsArmorPlan(SquadEquipmentDoctrines.HEGEMONY_AUXILIARY_ARMOR));
             armory.unlockArmor(order.get(1));
             assertEquals(Set.of(SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR,
-                    SquadEquipmentDoctrines.HEGEMONY_AUXILIARY_ARMOR, SquadEquipmentDoctrines.FLEET_COMBAT_ARMOR,
-                    SquadEquipmentDoctrines.LEAGUE_LINE_ARMOR), Set.copyOf(knownSheets(armory)));
+                    SquadEquipmentDoctrines.HEGEMONY_AUXILIARY_ARMOR), Set.copyOf(knownSheets(armory)));
         }
         MarineArmory heavy = new MarineArmory();
-        heavy.unlockArmor(MarineArmorPattern.RED_ELITE);
+        EquipmentTestFixtures.learnSheet(heavy, SquadEquipmentDoctrines.HEGEMONY_SHOCK_ARMOR);
         assertTrue(heavy.canIssue(SquadEquipmentDoctrines.armorPlanById(SquadEquipmentDoctrines.HEGEMONY_SHOCK_ARMOR)));
         assertEquals(Set.of(SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR,
                 SquadEquipmentDoctrines.HEGEMONY_SHOCK_ARMOR), Set.copyOf(knownSheets(heavy)));
@@ -106,7 +108,7 @@ class ArmorPlanKnowledgeTest {
         assertFalse(roster.armory().knowsArmorPlan(FirstRefit.Path.FORWARD_SCREEN.armor));
         roster.armory().unlockArmor(MarineArmorPattern.BLUE_SCOUT);
         assertFalse(roster.armory().knowsArmorPlan(FirstRefit.Path.FORWARD_SCREEN.armor));
-        roster.armory().unlockPrimary(WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.MILSPEC);
+        EquipmentTestFixtures.learnSheet(roster.armory(), FirstRefit.Path.FORWARD_SCREEN.armor);
         assertTrue(roundTrip(roster).armory().knowsArmorPlan(FirstRefit.Path.FORWARD_SCREEN.armor));
     }
 
@@ -114,7 +116,7 @@ class ArmorPlanKnowledgeTest {
         MarineRoster roster = new MarineRoster();
         MarineSquad squad = roster.createSquad();
         roster.recruitToSquad(squad.id(), 12);
-        roster.armory().acquireArmorPlan(SquadEquipmentDoctrines.LEAGUE_MOBILE_ARMOR);
+        EquipmentTestFixtures.learnSheet(roster.armory(), SquadEquipmentDoctrines.LEAGUE_MOBILE_ARMOR);
         assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(squad.id(),
                 SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS, SquadEquipmentDoctrines.LEAGUE_MOBILE_ARMOR));
         roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);

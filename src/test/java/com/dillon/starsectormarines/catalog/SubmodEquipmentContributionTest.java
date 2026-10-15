@@ -19,6 +19,8 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
 import com.dillon.starsectormarines.marine.FactionEquipmentCatalog;
 import com.dillon.starsectormarines.marine.FactionEquipmentSource;
+import com.dillon.starsectormarines.marine.LoadoutCard;
+import com.dillon.starsectormarines.marine.LoadoutCardLearning;
 import com.dillon.starsectormarines.marine.MarineArmory;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
@@ -228,7 +230,8 @@ class SubmodEquipmentContributionTest {
         // Armour is issued by plan rather than authored a billet at a time,
         // so a contributed pattern proves itself by being reachable through a
         // sheet the company can field, not by appearing in a picker.
-        for (var plan : SquadEquipmentDoctrines.armorPlans()) roster.armory().acquireArmorPlan(plan.id());
+        assertEquals(LoadoutCardLearning.Result.LEARNED, LoadoutCardLearning.learn(roster.armory(),
+                new LoadoutCard(LoadoutCard.Kind.SHEET, SquadEquipmentDoctrines.HEGEMONY_ARBALEST_SECTION_ARMOR).id()));
         SquadArmorDoctrine armor = roster.armory().armorDoctrines().stream()
                 .filter(doctrine -> doctrine.issueIds().contains("example.armor-ceramic"))
                 .findFirst().orElseThrow();
@@ -327,6 +330,9 @@ class SubmodEquipmentContributionTest {
         if (armor == null) throw new IllegalStateException("Missing core armor.line fixture");
         armor.put("id", "example.armor-ceramic");
         armor.getJSONObject("catalog").put("displayName", "Example ceramic armor");
+        // A sheet issues only what its card carries, so a contributed suit has to name the
+        // sheet it joins. This one joins a section whose line seats are the same tier.
+        armor.getJSONObject("catalog").put("sheets", new JSONArray().put("armor:hegemony-arbalest-section"));
         // Deliberately left in the cell it was cloned from: same role, same
         // tradition, same tier as the core pattern it copies. That is the case
         // a submod author actually writes and the one that used to be

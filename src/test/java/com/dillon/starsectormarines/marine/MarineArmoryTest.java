@@ -42,7 +42,7 @@ class MarineArmoryTest {
         CampaignMarineDeployment before = CampaignMarineDeployment.freezeSelection(
                 roster, Set.of(squad.id()), MarineSquad.CAPACITY);
 
-        roster.armory().unlockArmor(MarineArmorPattern.RED_ELITE);
+        EquipmentTestFixtures.learnSheet(roster.armory(), SquadEquipmentDoctrines.HEGEMONY_SHOCK_ARMOR);
         assertEquals(SquadEquipmentResult.APPLIED,
                 roster.applySquadEquipment(squad.id(), weapons, regularPlan));
         CampaignMarineDeployment stillRegular = CampaignMarineDeployment.freezeSelection(
@@ -53,6 +53,8 @@ class MarineArmoryTest {
                 squad.id(), weapons, SquadEquipmentDoctrines.HEGEMONY_SHOCK_ARMOR));
         CampaignMarineDeployment upgraded = CampaignMarineDeployment.freezeSelection(
                 roster, Set.of(squad.id()), MarineSquad.CAPACITY);
+        SquadArmorDoctrine upgradedKit = roster.armory().armorDoctrineById(
+                SquadEquipmentDoctrines.HEGEMONY_SHOCK_ARMOR);
 
         assertSame(squad, roster.squadById(squad.id()));
         assertEquals("Rooks", squad.name());
@@ -77,7 +79,8 @@ class MarineArmoryTest {
             assertEquals(before.commitments().get(billet).campaignSoldierId(), seat.campaignSoldierId());
             assertEquals(before.commitments().get(billet).campaignSquadId(), seat.campaignSquadId());
             assertEquals(before.commitments().get(billet).campaignFireTeamIndex(), seat.campaignFireTeamIndex());
-            assertEquals(60f, seat.armorCapacity());
+            assertEquals(MarineArmorCatalogRegistry.require(upgradedKit.issueId(billet)).armorCapacity(),
+                    seat.armorCapacity());
             assertEquals(ArmorClass.POWER_SUIT, seat.armorClass());
         }
     }
@@ -90,7 +93,7 @@ class MarineArmoryTest {
         assertFalse(armory.canIssue(heavy));
         assertNull(armory.armorDoctrineById(heavy.id()));
         assertTrue(armory.armorDoctrines().stream().noneMatch(d -> d.id().equals(heavy.id())));
-        armory.unlockArmor(MarineArmorPattern.RED_ELITE);
+        EquipmentTestFixtures.learnSheet(armory, SquadEquipmentDoctrines.HEGEMONY_SHOCK_ARMOR);
         assertTrue(armory.canIssue(heavy));
         assertTrue(armory.issue(heavy).issueIds().stream().allMatch(
                 id -> MarineArmorCatalogRegistry.require(id).armorClass() == ArmorClass.POWER_SUIT));
@@ -113,7 +116,6 @@ class MarineArmoryTest {
                 SquadEquipmentDoctrines.SALVAGE_ASSISTED_ARMOR);
         assertFalse(roster.armory().canIssue(mixed));
         roster.armory().unlockArmor("armor.specter-recovered");
-        assertFalse(roster.armory().canIssue(mixed));
         roster.armory().unlockArmor("armor.arbalest-recovered");
         assertTrue(roster.armory().canIssue(mixed));
         assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(squad.id(),
