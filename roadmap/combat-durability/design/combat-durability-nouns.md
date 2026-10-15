@@ -4,7 +4,7 @@ Status: ACTIVE — armor-and-structure resolution is live; decision, evidence, a
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — a payload's body part scales it before armour, and a limb hit that reaches structure wounds.
+Updated: 2026-10-15 — direct rounds wear the environment they stop in, by penetration against a material rating.
 
 ## Purpose
 
@@ -67,6 +67,17 @@ needing an arbitrary bonus against every unit classified as hardened.
 - **Wound** — what a legs or arms hit that removed structure leaves on the man
   for the rest of the battle: a leg wound slows him, an arm wound costs him
   accuracy. It is a condition read through a unit modifier, not a capacity.
+- **Material** — what a damageable piece of the environment is made of, as far
+  as a round is concerned: wood, wire, drums, sandbags, machinery, timber, stone
+  or masonry. One table keys every destructible prop family, shared-edge
+  barrier kind and structural wall to one (`EnvironmentMaterial`).
+- **Material rating** — a material's resistance to a round's penetration, read
+  on the same scale as an armor rating. It is not a structure pool: how much a
+  feature can take stays authored with the feature.
+- **Material efficiency** — the share of a direct round's payload damage that
+  wears a material: none while penetration is under half the rating, rising
+  linearly to full at the rating. It reads the armor law's ratio and ceiling
+  but not its chip floor.
 - **Resolved damage** — actual armor and structure removed, each clamped to
   the capacity that existed, plus the mitigated damage a screen absorbed. Requested
   damage and resisted energy are not credited as resolved damage; mitigated
@@ -114,6 +125,25 @@ shaken aim are read through, seen by the player, and gone with nothing to
 restore when dressed. Hits by part and wounds inflicted are tallied per struck
 side as battle evidence. Wall durability remains a separate map-structure system with
 weapon-authored wall damage; wall damage is not renamed penetration.
+
+**A direct round wears what it stops in.** A round whose payload arrives
+directly — small arms, a precision special, a direct mount without an area
+payload — spends its payload damage on the environment feature Ballistics says
+stopped it, scaled by its material efficiency, through the same map-structure
+channel the blasts below use: the same pools, the same damaged and destroyed
+states, the same cover and navigation release. A round that arrives as a
+detonation does its structural damage through that detonation's authored wall
+damage instead, so nothing is counted twice. Ground a man stands in (a trench)
+is never worn, and a feature no material is listed for is not worn by rounds.
+
+Materials take no chip floor. Armor's floor exists so every weapon can
+eventually strip a combatant's plate; given to masonry, it would let a rifle
+squad cut through a building in seconds. So a rating says which rounds can bite
+at all: wood and wire fall to anything, sandbags wear slowly under field rifles
+and not at all under pulse fire, machinery, timber and stone only from the DMR
+up, and masonry only to anti-materiel rounds and heavier. Ratings are set
+against the catalog's penetration rather than per weapon, so a new weapon
+finds its place in the table by its penetration alone.
 
 Authored shared-edge barriers belong to that same map-structure boundary, not
 to actor armor or structure. Their profile owns a small independent structure
@@ -336,6 +366,10 @@ armor, structure, rating, and penetration presentation.
 - Resolved damage is clamped capacity loss; resisted or overkill damage is not
   credited output.
 - Cover resolves before armor; walls retain their separate durability model.
+- Rounds wear the environment by one law — penetration against a material
+  rating — and only through the map-structure channel. No weapon class is
+  named in that law; a rifle leaves a wall standing because its penetration is
+  too low for masonry.
 - A body part scales its payload before mitigation and armor; it never changes
   penetration or armor efficiency. A wound needs structure removed.
 - Wounds act only as unit modifiers and are written only on the serialized

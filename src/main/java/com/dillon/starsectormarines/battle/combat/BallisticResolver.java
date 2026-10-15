@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.combat;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.sim.MovementService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.smoke.SmokeObscuration;
@@ -134,12 +136,25 @@ public final class BallisticResolver {
     public record BodyHit(long victimId, float x, float y, float z, float flightTime,
                           boolean intended, boolean friendly, BodyPart part) { }
 
+    /**
+     * {@code struck} names the piece of the environment the round stopped in, or is null: a body hit,
+     * an overshoot, a catch by the ground a man stands in (a trench), or edge cover lent by the map's
+     * boundary. It is recorded here and worn only at arrival ({@link EnvironmentWear}); the resolver
+     * never writes the world.
+     */
     public record Resolution(float endX, float endY, float endZ, float flightTime,
                               long victimId, boolean hitIntended,
                               boolean friendlyHit, StopKind kind,
-                              List<BodyHit> bodyHits) {
+                              List<BodyHit> bodyHits, StruckFeature struck) {
         public Resolution {
             bodyHits = List.copyOf(bodyHits);
+        }
+
+        public Resolution(float endX, float endY, float endZ, float flightTime,
+                          long victimId, boolean hitIntended,
+                          boolean friendlyHit, StopKind kind,
+                          List<BodyHit> bodyHits) {
+            this(endX, endY, endZ, flightTime, victimId, hitIntended, friendlyHit, kind, bodyHits, null);
         }
         /** True when the round reached a physical contact rather than leaving the modeled segment. */
         public boolean impacts() {
@@ -624,7 +639,8 @@ public final class BallisticResolver {
                         * proximityScale;
                 if (blockChance > 0f && rng.nextFloat() < blockChance) {
                     return new Resolution(e.x, e.y, e.z, e.t, 0L,
-                            anyIntended(bodyHits), false, StopKind.DOODAD_BLOCK, bodyHits);
+                            anyIntended(bodyHits), false, StopKind.DOODAD_BLOCK, bodyHits,
+                            StruckFeature.cell((int) Math.floor(e.x), (int) Math.floor(e.y)));
                 }
                 continue; // fly on
             }
@@ -647,7 +663,8 @@ public final class BallisticResolver {
                     : doodads.occupantCoverAt(e.victimCellX, e.victimCellY, e.z);
             float occupantScale = occupantLevel > 0 ? occupantCoverScale(e.t * roundVelocity) : 0f;
             BodyPart part = null;
-            float coverBlockChance;
+            float edgeBlockChance;
+            float occupantBlockChance;
             if (!e.hull && roster.identity().type(victim).hasBodyParts()) {
                 // A person: the round lands on the part at the height it meets him, and cover
                 // hides parts. One roll against the better of the two covers for that part. The
@@ -656,19 +673,26 @@ public final class BallisticResolver {
                 part = BodyPart.atHeight(victim == target && onTarget
                         ? targetHeightFraction
                         : heightFraction(e.z, roster.hitHalfHeight(victim)));
-                coverBlockChance = Math.max(
-                        CoverProfile.edge(coverLevel, part) * proximityScale,
-                        CoverProfile.occupant(occupantLevel, part) * occupantScale);
+                edgeBlockChance = CoverProfile.edge(coverLevel, part) * proximityScale;
+                occupantBlockChance = CoverProfile.occupant(occupantLevel, part) * occupantScale;
             } else {
-                coverBlockChance = Math.max(
-                        BLOCK_CHANCE_BY_LEVEL[Math.min(coverLevel, BLOCK_CHANCE_BY_LEVEL.length - 1)]
-                                * proximityScale,
-                        BLOCK_CHANCE_BY_LEVEL[Math.min(occupantLevel, BLOCK_CHANCE_BY_LEVEL.length - 1)]
-                                * occupantScale);
+                edgeBlockChance = BLOCK_CHANCE_BY_LEVEL[Math.min(coverLevel, BLOCK_CHANCE_BY_LEVEL.length - 1)]
+                        * proximityScale;
+                occupantBlockChance = BLOCK_CHANCE_BY_LEVEL[Math.min(occupantLevel, BLOCK_CHANCE_BY_LEVEL.length - 1)]
+                        * occupantScale;
             }
-            if (coverBlockChance > 0f && rng.nextFloat() < coverBlockChance) {
-                return new Resolution(e.x, e.y, e.z, e.t, 0L,
-                        anyIntended(bodyHits), false, StopKind.COVER_CLIP, bodyHits);
+            float coverBlockChance = Math.max(edgeBlockChance, occupantBlockChance);
+            if (coverBlockChance > 0f) {
+                float roll = rng.nextFloat();
+                if (roll < coverBlockChance) {
+                    // The one catch roll also says which cover caught it: a roll the edge would have
+                    // stopped is the edge's; the remainder is the ground he stands in, which wears nothing.
+                    StruckFeature struck = roll < edgeBlockChance
+                            ? edgeCoverFeature(e.victimCellX, e.victimCellY, fromDx, fromDy)
+                            : null;
+                    return new Resolution(e.x, e.y, e.z, e.t, 0L,
+                            anyIntended(bodyHits), false, StopKind.COVER_CLIP, bodyHits, struck);
+                }
             }
 
             boolean isLockedTarget = victim == target;
@@ -696,7 +720,27 @@ public final class BallisticResolver {
 
         StopKind finalKind = wallFound ? StopKind.WALL : StopKind.OVERSHOOT;
         return new Resolution(rayEndX, rayEndY, fromZ + zSlope * rayLen, rayLen / roundVelocity,
-                0L, anyIntended(bodyHits), false, finalKind, bodyHits);
+                0L, anyIntended(bodyHits), false, finalKind, bodyHits,
+                wallFound ? StruckFeature.cell(wallCellX, wallCellY) : null);
+    }
+
+    /**
+     * The feature lending a body on ({@code x}, {@code y}) its edge cover against a shooter in the
+     * direction ({@code fromDx}, {@code fromDy}): the shared-edge feature on that side when it is what
+     * supplies the level, otherwise the blocking neighbour cell on that side. Null where the cover is
+     * the map's own boundary.
+     */
+    private StruckFeature edgeCoverFeature(int x, int y, int fromDx, int fromDy) {
+        int facing = NavigationGrid.facingFor(fromDx, fromDy);
+        Direction side = NavigationGrid.directionForFacing(facing);
+        int cellLevel = grid.getCellCoverAtFacing(x, y, facing);
+        SharedEdgeBarrier barrier = grid.inBounds(x, y) ? grid.getEdgeBarrier(x, y, side) : null;
+        if (barrier != null && barrier.kind().coverLevel() > cellLevel) {
+            return StruckFeature.edge(x, y, side);
+        }
+        int nx = x + side.dx;
+        int ny = y + side.dy;
+        return grid.inBounds(nx, ny) ? StruckFeature.cell(nx, ny) : null;
     }
 
     private static boolean anyIntended(List<BodyHit> hits) {
