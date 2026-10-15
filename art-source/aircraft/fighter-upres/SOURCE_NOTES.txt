@@ -40,3 +40,6 @@ installation. review.png is the resulting 1920x1080 comparison.
 runtime-review.png is the production renderer's common-scale six-aircraft and
 three-turret lineup at 60 px/cell, from createSnapshots -Psnapshot=missile-aa-scale.
 It uses the compact shipped textures, native hull geometry and engine slots.
+
+parked-review.png is the same production lineup at normal ground appearance,
+from parked-reference.png in that suite; the grounded engines emit no plume.
