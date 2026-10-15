@@ -59,6 +59,29 @@ class CarriedPointDefenceTest {
     }
 
     @Test
+    void anInterceptorIsAMissileInFlightAndDecidesTheRoundOnlyWhenItArrives() {
+        BattleSimulation sim = openArena(40, 20);
+        long carrier = carrier(sim, 10, 10);
+        sim.pointDefense().queuePlacement(carrier, Faction.MARINE, 10, 10, pack().deployableEmplacementSpec());
+        sim.advance(BattleSimulation.TICK_DT);
+        Projectile round = queueWarhead(sim, 19f, 10.5f, 10.5f, 10.5f, 2.0f);
+
+        sim.advance(BattleSimulation.TICK_DT);
+        assertEquals(1, sim.telemetry().ordnanceEngaged(carrier), "the pack launches at the round");
+        assertTrue(!round.intercepted, "launching decides nothing yet");
+        Projectile missile = sim.getActiveProjectiles().stream()
+                .filter(p -> p != round).findFirst().orElseThrow();
+        assertEquals(TurretCatalogRegistry.requireStructure(pack().deployableEmplacementSpec().structureId())
+                .mount.weapon.id, missile.sourceWeaponId);
+        assertTrue(!missile.pointDefenseTarget, "an interceptor is not itself something to shoot down");
+
+        float flight = missile.totalFlightTime;
+        for (int t = 0; t < Math.round(flight / BattleSimulation.TICK_DT) + 2; t++) sim.advance(BattleSimulation.TICK_DT);
+        assertEquals(sim.telemetry().ordnanceIntercepted(carrier) == 1, round.intercepted,
+                "on arrival the roll made at launch is applied to the round");
+    }
+
+    @Test
     void anEmptyPackRetiresAndLeavesItsCarrierStanding() {
         BattleSimulation sim = openArena(40, 20);
         long carrier = carrier(sim, 10, 10);
@@ -101,12 +124,14 @@ class CarriedPointDefenceTest {
     }
 
     /** A hostile round whose payload cannot hurt anyone: what is measured here is the mount, not the blast. */
-    private static void queueWarhead(BattleSimulation sim, float fromX, float fromY,
-                                     float toX, float toY, float flightTime) {
+    private static Projectile queueWarhead(BattleSimulation sim, float fromX, float fromY,
+                                           float toX, float toY, float flightTime) {
         WeaponDef weapon = WeaponRegistry.require(ORDNANCE_WEAPON_ID);
         PendingDetonation payload = new PendingDetonation(0L, toX, toY, flightTime,
                 0f, 0f, 0f, 0, Faction.DEFENDER, /*aerialDelivery*/ false);
-        sim.queueProjectile(new Projectile(fromX, fromY, toX, toY, weapon.boostRamp, 0f, Faction.DEFENDER,
-                false, flightTime, payload, weapon.id, weapon.pointDefenseTarget));
+        Projectile round = new Projectile(fromX, fromY, toX, toY, weapon.boostRamp, 0f, Faction.DEFENDER,
+                false, flightTime, payload, weapon.id, weapon.pointDefenseTarget);
+        sim.queueProjectile(round);
+        return round;
     }
 }

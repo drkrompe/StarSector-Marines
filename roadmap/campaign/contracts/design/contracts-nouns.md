@@ -61,7 +61,8 @@ not own the political simulation, battle presentation, cargo, or narrator.
 - A **stranded detachment** is the surviving squads and bound captain of an
   overrun garrison. They are not a new roster: the failed assignment holds
   them past its settlement, with a recovery deadline, until the company
-  collects them or the deadline lists them missing.
+  collects them or the deadline lists them missing. Waiting costs people:
+  survivors go missing at intervals, the same ones on every replay.
 - A **settlement** is the one terminal contract outcome: completed, failed,
   employer-breached/defaulted, abandoned, or expired before acceptance.
 

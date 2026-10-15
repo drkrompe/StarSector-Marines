@@ -32,9 +32,11 @@ import java.util.List;
  * @param ops     the authored furnishing, in the room's own frame (origin at the floor's top-left)
  * @param stands  floor cells, relative to the floor origin, where the room's garrison stands
  * @param core    for a main room, the middle of the three-by-three core structure relative to the floor origin
+ * @param art     for an ante-room, the key of the roof art its aspect's building art names for it, or null for a room
+ *                drawn the ordinary way (a main room is drawn by its aspect's own roof art)
  */
 public record FortRoom(FortAspect aspect, boolean main, RoomPurpose purpose, int x, int y, int width, int height,
-                       List<Doorway> doors, List<LayoutOp> ops, List<int[]> stands, int[] core) {
+                       List<Doorway> doors, List<LayoutOp> ops, List<int[]> stands, int[] core, String art) {
 
     public FortRoom {
         doors = List.copyOf(doors);

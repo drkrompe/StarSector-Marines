@@ -14,8 +14,9 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * Ends the recovery of a stranded detachment nobody came for. Collection itself happens
- * through the planet interaction; this system only lets the clock run out.
+ * Runs the clock on a stranded detachment nobody has come for: the daily attrition while
+ * it waits, and the end of the recovery at its deadline or once nobody is left to collect.
+ * Collection itself happens through the planet interaction.
  */
 public final class StrandedDetachmentSystem implements CampaignSystem {
 
@@ -51,14 +52,15 @@ public final class StrandedDetachmentSystem implements CampaignSystem {
     public void tick(CampaignState state, int day) {
         MarineRoster roster = null;
         for (int row = 0; row < state.contractCount; row++) {
-            if (!StrandedDetachment.isStranded(state, row)
-                    || day < state.contractStrandedUntilTick[row]) {
-                continue;
-            }
+            if (!StrandedDetachment.isStranded(state, row)) continue;
             if (roster == null) roster = rosterSource.get();
             if (roster == null) return;
-            StrandedDetachment.expire(state, row, roster, day,
-                    marketName.apply(state.marketRegistry.get(state.contractMarketId[row])));
+            StrandedDetachment.attrition(state, row, roster, day);
+            boolean nobodyLeft = roster.stationedLivingCount(state.contractId[row]) == 0;
+            if (nobodyLeft || day >= state.contractStrandedUntilTick[row]) {
+                StrandedDetachment.expire(state, row, roster, day, marketName.apply(
+                        state.marketRegistry.get(state.contractMarketId[row])));
+            }
         }
     }
 

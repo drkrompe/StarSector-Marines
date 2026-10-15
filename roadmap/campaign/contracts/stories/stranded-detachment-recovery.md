@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-10-15
 
-Updated: 2026-10-15 — slices 1–3 shipped with the deadline expiry; attrition and slices 5–7 remain.
+Updated: 2026-10-15 — slices 1–4 shipped; captured markets, breach pickup and the live pass remain.
 
 Read `contracts-nouns.md` (stationing, response, recovery, settlement, laws 4–7
 and 11), `meta-progression.md` ("Defending the polity: the vanilla seam"),
@@ -190,8 +190,10 @@ becomes routine there, and routine recovery should not demand a fight.
 A pickup recovery is not free to postpone. On each fixed interval after the
 overrun, a seeded share of the stranded survivors is lost: chosen from the
 parent's event key and the interval index, so a replayed day strikes the same
-people, and moved to MIA (never KIA: nobody saw them die). The captain is
-struck last.
+people, and moved to MIA (never KIA: nobody saw them die). Attrition never
+takes the captain; the pickup or the deadline settles the captain's fate.
+When the last marine is gone the recovery ends at once rather than at the
+deadline.
 
 When the deadline passes, the recovery settles failed through the existing
 `failStationingExtraction` path: every remaining survivor goes MIA, the
@@ -228,8 +230,8 @@ one loss per stranded squad every 10 days.
    on the resolution with a fake roster.
 3. **Pickup.** *Shipped.* Planet-interaction option, release, settlement and report.
    Situation-board obligation row.
-4. **Attrition and expiry.** *Expiry shipped with slice 2*, so an overrun
-   never strands people forever; seeded interval losses remain.
+4. **Attrition and expiry.** *Shipped.* Expiry landed with slice 2 so an
+   overrun never strands people forever; seeded interval losses followed.
    Tests pin same-people-on-replay and the captain-last order.
 5. **Captured market.** A Garrison whose market changes owner (vanilla
    transfer, decivilisation, or a Nexerelin invasion the raid seam ignores)
@@ -259,6 +261,12 @@ one loss per stranded squad every 10 days.
   people.
 - **Only named assignments strand.** A count-only legacy row has no people to
   hide, and keeps today's overrun path.
+- **Attrition never strikes the captain**, rather than striking them last. A
+  captain listed missing is a second, larger mechanic (officer MIA and its
+  roster consequences) that this story does not need.
+- **The interval that lands on the deadline belongs to the expiry**, so the
+  last day does not first take one more marine and then list the rest
+  missing anyway. With the 30/10 proposal that is two losses per squad.
 - **The overrun report ends on the deadline**: "The survivors have gone to
   ground. They can hold out for N days."
 

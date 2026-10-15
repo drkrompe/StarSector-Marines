@@ -69,6 +69,47 @@ class StrandedDetachmentTest {
                 ChronicleEventType.fromByte(fixture.state.chronicleEventType[1]));
     }
 
+    @Test
+    void waitingCostsOneMarinePerSquadEachInterval() {
+        AbsentDefenceResolutionTest.Fixture fixture = overrun();
+        int living = fixture.roster.stationedLivingCount(fixture.contractId);
+
+        assertTrue(StrandedDetachment.attrition(fixture.state, 0, fixture.roster,
+                DAY + StrandedDetachment.ATTRITION_INTERVAL_DAYS - 1).isEmpty());
+        List<String> lost = StrandedDetachment.attrition(fixture.state, 0, fixture.roster,
+                DAY + StrandedDetachment.ATTRITION_INTERVAL_DAYS);
+
+        assertEquals(1, lost.size());
+        assertEquals(living - 1, fixture.roster.stationedLivingCount(fixture.contractId));
+        assertEquals(living - 1, fixture.state.contractMarinesCommitted[0]);
+        // The interval is spent: asking again the same day strikes nobody else.
+        assertTrue(StrandedDetachment.attrition(fixture.state, 0, fixture.roster,
+                DAY + StrandedDetachment.ATTRITION_INTERVAL_DAYS).isEmpty());
+        assertEquals(Status.GARRISONED, fixture.captain.status());
+    }
+
+    @Test
+    void theSameWaitStrikesTheSamePeople() {
+        AbsentDefenceResolutionTest.Fixture first = overrun();
+        AbsentDefenceResolutionTest.Fixture second = overrun();
+        int day = DAY + StrandedDetachment.ATTRITION_INTERVAL_DAYS;
+
+        assertEquals(StrandedDetachment.attrition(first.state, 0, first.roster, day),
+                StrandedDetachment.attrition(second.state, 0, second.roster, day));
+    }
+
+    /** The interval landing on the deadline belongs to the expiry, not to attrition. */
+    @Test
+    void attritionStopsShortOfTheDeadline() {
+        AbsentDefenceResolutionTest.Fixture fixture = overrun();
+
+        StrandedDetachment.attrition(fixture.state, 0, fixture.roster,
+                DAY + StrandedDetachment.RECOVERY_DAYS + 50);
+
+        assertEquals(StrandedDetachment.RECOVERY_DAYS / StrandedDetachment.ATTRITION_INTERVAL_DAYS - 1,
+                fixture.state.contractStrandedIntervals[0]);
+    }
+
     /** The repair pass must not mistake a failed row's held survivors for a stale binding. */
     @Test
     void repairLeavesAStrandedDetachmentBound() {

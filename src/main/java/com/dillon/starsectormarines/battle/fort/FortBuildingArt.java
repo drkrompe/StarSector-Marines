@@ -1,12 +1,16 @@
 package com.dillon.starsectormarines.battle.fort;
 
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortRoom;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * How one kind of fort building is drawn, by function and by state: the roof art over the building's interior floor,
@@ -38,6 +42,29 @@ public final class FortBuildingArt {
     /** A glow laid over the roof that pulses, and is dark while the building is not running. */
     public record Lights(String spritePath, float pulseHz, float pulseDepth) { }
 
+    /**
+     * Roof art for one ante-room of the aspect's suite, named by the room's own art key ({@link FortRoom#art}). It is
+     * drawn over that room's floor in the fort's local frame, in the same state as the building and with the same
+     * registration across states, but carries no machinery of its own.
+     */
+    public record Annex(String room, String roof, String damaged, String wreck, Lights lights) {
+        /** The roof sprite of a standing room, or null when it is wrecked. */
+        public String roofFor(State state) {
+            return switch (state) {
+                case INTACT -> roof;
+                case DAMAGED -> damaged;
+                case WRECKED -> null;
+            };
+        }
+    }
+
+    /**
+     * A heavy door laid over the wall run at the aspect's main door: a piece three cells wide and one deep, authored
+     * with the wall along local x and the door facing the bottom edge, whose passage stays open. A hurt or wrecked
+     * building draws the damaged picture.
+     */
+    public record BlastDoor(String sprite, String damaged) { }
+
     /** Where the holder's banner stands and how big it is, in cells. */
     public record Banner(float x, float y, float cells) { }
 
@@ -50,12 +77,17 @@ public final class FortBuildingArt {
     private final Lights lights;
     private final List<Rotor> rotors;
     private final Banner banner;
+    private final Map<String, Annex> annexes;
+    private final BlastDoor blastDoor;
     private final float damagedBelow;
     private final boolean doorOnTop;
 
     private FortBuildingArt(String roof, String damaged, String wreck, Lights lights, List<Rotor> rotors,
-                            Banner banner, float damagedBelow, boolean doorOnTop) {
+                            Banner banner, Map<String, Annex> annexes, BlastDoor blastDoor, float damagedBelow,
+                            boolean doorOnTop) {
         this.doorOnTop = doorOnTop;
+        this.annexes = Collections.unmodifiableMap(annexes);
+        this.blastDoor = blastDoor;
         this.roof = roof;
         this.damaged = damaged;
         this.wreck = wreck;
@@ -69,13 +101,7 @@ public final class FortBuildingArt {
         String roof = require(structureId, json, "roof");
         String damaged = require(structureId, json, "damaged");
         String wreck = require(structureId, json, "wreck");
-        Lights lights = null;
-        JSONObject lightsJson = json.optJSONObject("lights");
-        if (lightsJson != null) {
-            lights = new Lights(require(structureId, lightsJson, "sprite"),
-                    finite(structureId, "lights pulseHz", lightsJson.optDouble("pulseHz", 0.5), 0f, 20f),
-                    finite(structureId, "lights pulseDepth", lightsJson.optDouble("pulseDepth", 0.3), 0f, 1f));
-        }
+        Lights lights = parseLights(structureId, json);
         List<Rotor> rotors = new ArrayList<>();
         JSONArray array = json.optJSONArray("rotors");
         for (int i = 0; array != null && i < array.length(); i++) {
@@ -96,13 +122,38 @@ public final class FortBuildingArt {
             banner = new Banner(finite(structureId, "banner x", bannerJson.getDouble("x"), -64f, 64f),
                     finite(structureId, "banner y", bannerJson.getDouble("y"), -64f, 64f), cells);
         }
+        Map<String, Annex> annexes = new LinkedHashMap<>();
+        JSONArray annexArray = json.optJSONArray("annexes");
+        for (int i = 0; annexArray != null && i < annexArray.length(); i++) {
+            JSONObject a = annexArray.getJSONObject(i);
+            String room = require(structureId, a, "room");
+            Annex annex = new Annex(room, require(structureId, a, "roof"), require(structureId, a, "damaged"),
+                    require(structureId, a, "wreck"), parseLights(structureId, a));
+            if (annexes.put(room, annex) != null) {
+                throw new JSONException("Structure '" + structureId + "' building art names annex '" + room + "' twice");
+            }
+        }
+        BlastDoor blastDoor = null;
+        JSONObject doorJson = json.optJSONObject("blastDoor");
+        if (doorJson != null) {
+            blastDoor = new BlastDoor(require(structureId, doorJson, "sprite"), require(structureId, doorJson, "damaged"));
+        }
         float below = finite(structureId, "damagedBelow",
                 json.optDouble("damagedBelow", DEFAULT_DAMAGED_BELOW), 0f, 1f);
         String door = json.optString("door", "bottom").trim();
         if (!door.equals("top") && !door.equals("bottom")) {
             throw new JSONException("Structure '" + structureId + "' building art door must be 'top' or 'bottom'");
         }
-        return new FortBuildingArt(roof, damaged, wreck, lights, rotors, banner, below, door.equals("top"));
+        return new FortBuildingArt(roof, damaged, wreck, lights, rotors, banner, annexes, blastDoor, below,
+                door.equals("top"));
+    }
+
+    private static Lights parseLights(String structureId, JSONObject json) throws JSONException {
+        JSONObject lightsJson = json.optJSONObject("lights");
+        if (lightsJson == null) return null;
+        return new Lights(require(structureId, lightsJson, "sprite"),
+                finite(structureId, "lights pulseHz", lightsJson.optDouble("pulseHz", 0.5), 0f, 20f),
+                finite(structureId, "lights pulseDepth", lightsJson.optDouble("pulseDepth", 0.3), 0f, 1f));
     }
 
     private static String require(String structureId, JSONObject json, String key) throws JSONException {
@@ -192,6 +243,30 @@ public final class FortBuildingArt {
         return doorOnTop != planDoorOnTop;
     }
 
+    /** The roof art of the ante-room whose art key is {@code room}, or null when this building names none. */
+    public Annex annex(String room) {
+        return room == null ? null : annexes.get(room);
+    }
+
+    /** The heavy door laid over the main door, or null for a building without one. */
+    public BlastDoor blastDoor() {
+        return blastDoor;
+    }
+
+    /**
+     * The rooms of {@code aspect}'s suite this art draws as ante-rooms, in the plan's own order: every non-main room
+     * whose art key this building names. Only these are covered by roof art, so a suite's other rooms keep the ordinary
+     * roof.
+     */
+    public List<FortRoom> annexRooms(FortPlan plan, FortAspect aspect) {
+        List<FortRoom> rooms = new ArrayList<>();
+        if (annexes.isEmpty()) return rooms;
+        for (FortRoom room : plan.rooms()) {
+            if (room.aspect() == aspect && !room.main() && annexes.containsKey(room.art())) rooms.add(room);
+        }
+        return rooms;
+    }
+
     public float damagedBelow() {
         return damagedBelow;
     }
@@ -201,6 +276,11 @@ public final class FortBuildingArt {
         List<String> paths = new ArrayList<>(List.of(roof, damaged, wreck));
         if (lights != null) paths.add(lights.spritePath());
         for (Rotor rotor : rotors) paths.add(rotor.spritePath());
+        for (Annex annex : annexes.values()) {
+            paths.addAll(List.of(annex.roof(), annex.damaged(), annex.wreck()));
+            if (annex.lights() != null) paths.add(annex.lights().spritePath());
+        }
+        if (blastDoor != null) paths.addAll(List.of(blastDoor.sprite(), blastDoor.damaged()));
         return paths;
     }
 }
