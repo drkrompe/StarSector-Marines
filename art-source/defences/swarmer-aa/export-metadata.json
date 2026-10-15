@@ -1,0 +1,22 @@
+{
+  "name": "swarmer",
+  "masterWidth": 1254,
+  "masterHeight": 1254,
+  "nativeWidth": 24,
+  "nativeHeight": 24,
+  "layerSize": 512,
+  "pivot": [
+    256,
+    256
+  ],
+  "compositeScale": 1,
+  "alphaBounds": [
+    87,
+    80,
+    426,
+    415
+  ],
+  "transparentPixels": 170961,
+  "registrationSource": "../missile-aa/registration.json",
+  "fullFramePreserved": true
+}
