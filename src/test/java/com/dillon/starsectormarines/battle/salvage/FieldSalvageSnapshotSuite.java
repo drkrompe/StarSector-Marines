@@ -48,7 +48,7 @@ public final class FieldSalvageSnapshotSuite implements SnapshotSuite {
                     spawn(sim, Faction.MARINE, find.cellX + 2, find.cellY);
                     advance(sim, 15);
                     require(find.discovered(), "Inner-yard find uses ordinary player observation");
-                    var yardView = new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 34, 33, 80);
+                    var yardView = new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, yardCentreX(sim), 33, 80);
                     frames.add(new SnapshotArtifact("08-relief-inner-yard.png", yardView.render(sim,
                             "HOLD UNTIL RELIEVED / METALS FIND INSIDE THE DEFENDED CHECKPOINT", ReviewAnnotations.NONE)));
                     var detailView = new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080,
@@ -120,11 +120,19 @@ public final class FieldSalvageSnapshotSuite implements SnapshotSuite {
     private static SalvageCache requireInnerYardFind(BattleSimulation sim) {
         var find = sim.fieldSalvage().caches().stream().filter(c -> c.resource == SalvageResource.METALS)
                 .findFirst().orElseThrow();
-        require(find.cellX >= 36 && find.cellX <= 50 && find.cellY >= 35 && find.cellY <= 38,
-                "Relief metals remain inside the authored inner yard");
+        // The authored site moves with Relief's map; the find must sit inside whatever box BattleSetup authored.
+        var site = sim.fieldSalvageSites().get(0);
+        require(find.cellX >= site.left() && find.cellX <= site.right()
+                        && find.cellY >= site.bottom() && find.cellY <= site.top(),
+                "Relief metals remain inside the authored inner yard: found at " + find.cellX + "," + find.cellY
+                        + "; site " + site);
         require(sim.getMarineLandingPads().stream().anyMatch(p -> sim.getGrid().arePathConnected(
                 p.centerX, p.centerY, find.cellX, find.cellY, false)), "Inner-yard find is reachable from company landing");
         return find;
+    }
+    private static int yardCentreX(BattleSimulation sim) {
+        var site = sim.fieldSalvageSites().get(0);
+        return (site.left() + site.right()) / 2;
     }
     private static long spawn(BattleSimulation sim, Faction side, int x, int y) {
         return sim.spawn(new EntitySpec("salvage-scene-" + side,side,UnitType.MARINE,x,y).role(UnitRole.STRUCTURE));

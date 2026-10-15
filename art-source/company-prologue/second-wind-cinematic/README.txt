@@ -5,8 +5,10 @@ The hangar opening, ship attitude and approach path do not form a coherent
 docking maneuver. Retain this export as motion/lighting evidence only. Plan the
 storyboard, then resolve ship/berth clearance, cameras and travel in a shared
 Blender blockout before producing the next detailed scene layers.
-storyboard-v2.txt records the proposed replacement in the user's selected surface
-industrial yard. It is a discussion draft, not an approved scene or new render.
+storyboard-v2.txt records the expanded surface-arrival proposal: a crew-window
+entry/cloud reveal, landscape-to-port approach and exterior landing. The roughly
+65-second timing and existing intro voice cues remain a discussion draft. Lore
+sources, campaign sequence and unresolved physical details are recorded there.
 
 A 12-second, silent, fixed-angle 2.5D compositing study. The damaged Second Wind
 coasts toward an industrial berth above Jangala. This is an arrival establishing

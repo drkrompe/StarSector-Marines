@@ -274,7 +274,14 @@ special weapons, ground mech direct weapons, and ground direct turret bursts.
 Their intended targets may be either ordinary combatants or targetable convoy
 vehicles; the committed payload then enters the shared durability authority.
 Arc, indirect, and other projectile procedures retain their own trajectory and
-arrival contracts. Aerial fire is not implicitly ground direct fire; modeled
+arrival contracts, but they lead the same way: a round that flies to a point
+(a mortar bomb, an artillery shell, a turret rocket) is laid where its target
+will be after the flight, extrapolating the same body velocity the direct
+resolver reads (`TargetMotion`), and its scatter is drawn around that led
+point. Leading moves where the pattern is centred, never how wide it is; a
+target that turns or stops during the flight is the error the lead cannot see.
+A crew's check-fire keeps the led point, not the target's standing ground,
+clear of its own side. Aerial fire is not implicitly ground direct fire; modeled
 fighter shots require an Air-owned airborne source, target, roof, and wall
 policy before adoption. Dedicated ground AA guidance uses the separate
 Air-owned live-target flight and contact contract; it does not silently adopt

@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
 import com.dillon.starsectormarines.ops.battleview.ReviewImpactFx;
+import com.dillon.starsectormarines.tools.snapshot.CompressedFrameList;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
@@ -101,10 +102,8 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
     }
 
     /**
-     * The frame without its alpha channel. A suite holds every frame of every
-     * loop until the runner encodes them, and a scene of a few hundred frames at
-     * this size is gigabytes; the review frame is opaque, so a quarter of that is
-     * free.
+     * The frame without its alpha channel (the review frame is opaque). The suite then
+     * keeps it deflated in a {@link CompressedFrameList} until the runner encodes it.
      */
     private static BufferedImage compact(BufferedImage frame) {
         BufferedImage opaque = new BufferedImage(frame.getWidth(), frame.getHeight(),
@@ -132,7 +131,7 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
             public void frame(String loopId, BattleSimulation sim, int tick, String caption) {
                 try {
                     ReviewImpactFx fx = impacts ? fxFor(loopId) : null;
-                    byLoop.computeIfAbsent(loopId, id -> new ArrayList<>())
+                    byLoop.computeIfAbsent(loopId, id -> new CompressedFrameList())
                             .add(compact(renderer.render(sim, caption, annotations(sim), fx)));
                     BattleReviewFrameRenderer closeRenderer = closeRenderers.computeIfAbsent(loopId, id -> {
                         float[] close = closeView(id);
@@ -143,7 +142,7 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
                         return shadows ? closer.withUnitShadows() : closer;
                     });
                     if (closeRenderer != null) {
-                        byLoop.computeIfAbsent(loopId + "-close", id -> new ArrayList<>())
+                        byLoop.computeIfAbsent(loopId + "-close", id -> new CompressedFrameList())
                                 .add(compact(closeRenderer.render(sim, caption, annotations(sim), fx)));
                     }
                 } catch (IOException failure) {
