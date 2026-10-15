@@ -1,0 +1,75 @@
+SECOND WIND ARRIVAL - STORYBOARD V2
+Status: DRAFT for discussion; surface-yard setting selected by the user.
+
+Story
+After nearly a decade of asteroid impacts and a desperate recovery, Second Wind
+reaches Jangala. The yard can take her weight; the damage is still far beyond the
+crew's means. The arrival ends before the berthing conversion begins.
+
+Setting
+A surface industrial spaceport: open landing apron, fitted support cradle,
+perimeter service gantries and a sheltered operations booth. The sky, distant
+port activity and ground contact establish the location. Leave the approach and
+descent volume clear. No enclosing hangar doorway is required for this beat.
+The ship retains accepted V3 component placement and the heavy-arrival skin.
+
+Twelve-second edit: three selected moments of a longer landing procedure
+
+0-4 seconds - REACHING THE YARD
+Wide view from the ship's port quarter, low enough for the yard structures to
+give scale. The vessel is already lined up with the cradle's long axis and
+moves slowly along a straight approach. Show the destination in the same frame.
+Keep the ship level; no bank, yaw or lateral slide into a narrow doorway.
+
+4-8 seconds - WHAT IT TOOK TO GET HERE
+Closer port-side view at hull height. Track the same direction of travel across
+the cratered forward shoulder, welded backing plates and makeshift repairs.
+Yard structures passing behind the hull demonstrate slow relative motion.
+The ship decelerates. Keep the ship's guns, side pod and thrusters consistent.
+This view should make the patches look load-bearing and desperate, without fire
+or an open pressure breach. No need for a new mechanical failure or sparks.
+
+8-12 seconds - THE YARD TAKES THE WEIGHT
+Cut to a steady side-wide view on the same side of the approach axis. Fore-aft
+motion has stopped. The final short vertical descent brings the hull onto a
+fitted cradle. Supports meet established structural hardpoints under the hull,
+clear of damaged plating, the side pod, shuttle opening and engine bells.
+Only once supported do retaining arms secure it. End on a quiet, stable berth
+with the old damage plainly visible. Arrival is not a repair/restoration receipt.
+
+Continuity rules
+- The edit contains time ellipses: the whole approach and landing is not forced
+  to occur in twelve seconds of physical time.
+- Choose one screen direction in blockout and preserve it through the cuts.
+- Keep all cameras on the port side of the approach axis; no unexplained reversal.
+- Derive berth dimensions from the accepted ship model and Hermes scale. Do not
+  invent an absolute ship length from this concept sheet.
+- The cradle stays level and the hull's longitudinal axis matches it.
+- Show a credible load path and actual clearance around every support/gantry.
+- Occupied walkways remain outside the landing/exhaust safety volume. People
+  loading aboard belong in the later sheltered dock sequence.
+
+Unresolved before scene animation
+Ground touchdown is now the selected staging, but the accepted hull reference
+does not establish a landing-lift system. Blockout must resolve whether the
+final descent uses established ventral lift/control hardware or explicit yard
+assistance. Rear-facing engine bells alone cannot explain a controlled vertical
+lowering. Do not quietly add a new thruster layout or hide this with dust.
+If a credible descent cannot preserve the ship design, revise the board to a
+ground transport cradle carrying the already-landed hull into its service berth.
+
+Production sequence after storyboard agreement
+1. Reuse the accepted V3 hull and create one shared Blender scene for the apron,
+   cradle, gantries and cameras. Grey geometry, no detailed texture generation.
+2. Animate the complete maneuver and cut a greybox animatic. Review support,
+   clearance, scale, screen direction, pace and touchdown before surface work.
+3. Keep real scene geometry for perspective, parallax, occlusion and shadows.
+   Apply generated material/texture work to the actual meshes or controlled
+   camera projections. Independently painted cutouts are limited to distant
+   backdrop elements, not the ship/cradle interaction.
+4. Render beauty, shadow, depth and object masks from the same cameras. Composite
+   restrained lighting/atmosphere effects and later sound on those stable passes.
+
+The existing orbital movie is retained only as a compositing technique study;
+its hangar and approach were rejected. No V2 Blender scene or new painted scene
+has been produced yet.
