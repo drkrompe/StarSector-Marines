@@ -143,6 +143,36 @@ class CameraControlsTest {
         assertEquals(47.5f, camera.panCellX(), 0.001f, "released, the pointer moves without the view");
     }
 
+    @Test
+    void aPointerRestingOnTheWindowEdgeScrollsAndTheMiddleDoesNot() {
+        BattleCamera camera = camera();
+        CameraControls controls = new CameraControls(true, () -> false);
+        controls.edgeScroll(0f, 0f, 200f, 200f);
+
+        controls.process(List.of(event(Kind.MOVE, 100, 100)), camera);
+        controls.advance(1f, camera);
+        assertEquals(50f, camera.panCellX(), 0.001f);
+        assertEquals(50f, camera.panCellY(), 0.001f);
+
+        controls.process(List.of(event(Kind.MOVE, 199, 2)), camera);
+        controls.advance(0.5f, camera);
+        assertEquals(59f, camera.panCellX(), 0.001f);
+        assertEquals(41f, camera.panCellY(), 0.001f);
+
+        controls.release();
+        controls.advance(0.5f, camera);
+        assertEquals(59f, camera.panCellX(), 0.001f);
+    }
+
+    @Test
+    void edgeScrollIsOffUntilAScreenAsksForIt() {
+        BattleCamera camera = camera();
+        CameraControls controls = new CameraControls(true, () -> false);
+        controls.process(List.of(event(Kind.MOVE, 199, 100)), camera);
+        controls.advance(1f, camera);
+        assertEquals(50f, camera.panCellX(), 0.001f);
+    }
+
     private static BattleCamera camera() {
         BattleCamera camera = new BattleCamera(100, 100);
         camera.setViewport(0f, 0f, 200f, 200f, 4f);

@@ -18,6 +18,10 @@ import java.util.function.BooleanSupplier;
  * view with nothing to order keeps right-drag panning as well, since a right
  * button that does nothing is a worse answer than a second way to pan.
  *
+ * <p>A screen may also turn on <b>edge scrolling</b>: resting the pointer against the edge of
+ * the window walks the view that way, as an RTS does. It is a screen's choice, since only a
+ * view the player commands from wants the edges of the window to mean anything.
+ *
  * <p>Extracted rather than written twice. Every screen that shows a world the
  * player looks around — a battle, a deck — wants the same gestures, and a second
  * copy of them is how two views of the same game end up disagreeing about which
@@ -35,6 +39,8 @@ public final class CameraControls {
     private static final float KEY_PAN_CELLS_PER_SEC = 18f;
     /** Pointer travel required before a battle RMB gesture becomes a pan. */
     private static final float RIGHT_DRAG_THRESHOLD_PX = 4f;
+    /** How close to the window's edge, in pixels, the pointer must rest to scroll the view. */
+    static final float EDGE_SCROLL_PX = 6f;
 
     private final boolean shiftRightReserved;
     private final BooleanSupplier middleHeld;
@@ -53,6 +59,14 @@ public final class CameraControls {
     private boolean panKeyA;
     private boolean panKeyS;
     private boolean panKeyD;
+    private boolean edgeScroll;
+    private float edgeX;
+    private float edgeY;
+    private float edgeW;
+    private float edgeH;
+    private boolean pointerSeen;
+    private float pointerX;
+    private float pointerY;
 
     public CameraControls() {
         this(false);
@@ -75,6 +89,19 @@ public final class CameraControls {
     public CameraControls(boolean shiftRightReserved, BooleanSupplier middleHeld) {
         this.shiftRightReserved = shiftRightReserved;
         this.middleHeld = middleHeld;
+    }
+
+    /**
+     * Turns edge scrolling on against the given window rectangle, in the game's pointer
+     * coordinates, or off when {@code w} or {@code h} is not positive. Called whenever the
+     * screen's own rectangle is laid out.
+     */
+    public void edgeScroll(float x, float y, float w, float h) {
+        edgeScroll = w > 0f && h > 0f;
+        edgeX = x;
+        edgeY = y;
+        edgeW = w;
+        edgeH = h;
     }
 
     private static boolean middleButtonDown() {
@@ -160,6 +187,12 @@ public final class CameraControls {
                         BiPredicate<Float, Float> chrome) {
         if (events == null || camera == null || space == null) return;
         for (InputEventAPI event : events) {
+            if (event.isMouseMoveEvent()) {
+                // Recorded whoever owns the move: an edge is an edge over chrome too.
+                pointerSeen = true;
+                pointerX = event.getX();
+                pointerY = event.getY();
+            }
             if (event.isConsumed()) {
                 if (event.isRMBUpEvent()) {
                     rightGestureActive = false;
@@ -300,11 +333,30 @@ public final class CameraControls {
         if (camera == null || dt <= 0f) return;
         float dx = (panKeyD ? 1f : 0f) - (panKeyA ? 1f : 0f);
         float dy = (panKeyW ? 1f : 0f) - (panKeyS ? 1f : 0f);
+        if (edgeScroll && pointerSeen && !middlePanning && pointerInWindow()) {
+            // An axis the keys already drive is left to them, so a key and an edge together are
+            // one speed rather than two.
+            if (dx == 0f) dx = edgeDirection(pointerX, edgeX, edgeW);
+            if (dy == 0f) dy = edgeDirection(pointerY, edgeY, edgeH);
+        }
         if (dx == 0f && dy == 0f) return;
         // Deliberately not normalised: diagonal is faster, which is what a
         // top-down map is expected to feel like.
         camera.panByCells(dx * KEY_PAN_CELLS_PER_SEC * dt,
                 dy * KEY_PAN_CELLS_PER_SEC * dt);
+    }
+
+    /** A windowed game whose pointer has left the window is not resting on its edge. */
+    private static boolean pointerInWindow() {
+        return !Mouse.isCreated() || Mouse.isInsideWindow();
+    }
+
+    /** -1 against the low edge, +1 against the high one, else 0. A pointer outside is neither. */
+    private static float edgeDirection(float p, float lo, float extent) {
+        if (p < lo || p > lo + extent) return 0f;
+        if (p <= lo + EDGE_SCROLL_PX) return -1f;
+        if (p >= lo + extent - EDGE_SCROLL_PX) return 1f;
+        return 0f;
     }
 
     /**
@@ -321,6 +373,8 @@ public final class CameraControls {
         panKeyA = false;
         panKeyS = false;
         panKeyD = false;
+        // A pointer last seen at an edge before the screen lost input must not keep scrolling.
+        pointerSeen = false;
     }
 
     /** Whether the view is being dragged right now. */
