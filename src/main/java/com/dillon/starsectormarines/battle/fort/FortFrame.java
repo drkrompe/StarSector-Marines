@@ -49,6 +49,20 @@ public final class FortFrame {
     }
 
     /**
+     * The world point, in cells, of a point given in cells from the local frame's top-left edge ({@code 0, 0} is the
+     * corner of local cell {@code 0, 0}, {@code 1, 0} the corner of {@code 1, 0}), so a point on the corner shared by
+     * four cells lands on the corner shared by their world cells.
+     */
+    public float[] point(float localX, float localY) {
+        int[] a = cell(0, 0);
+        int[] ex = across();
+        int[] ey = downward();
+        float u = localX - 0.5f;
+        float v = localY - 0.5f;
+        return new float[]{a[0] + 0.5f + ex[0] * u + ey[0] * v, a[1] + 0.5f + ex[1] * u + ey[1] * v};
+    }
+
+    /**
      * The world cells covered by the local rectangle ({@code x}, {@code y}, {@code w}, {@code h}), as the inclusive
      * bounds {@code {minX, minY, maxX, maxY}}. A cardinal turn keeps a rectangle a rectangle.
      */

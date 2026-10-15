@@ -105,11 +105,15 @@ final class FortRooms {
     }
 
     /**
-     * The eleven-by-five generator hall. The plan is written for a south door, with the reactor against the north wall
-     * between fuel tanks and generator sets on the west and a generator set and a switchgear bank on the east.
+     * The eleven-by-five generator hall. Written for a south door, the reactor stands against the north wall between fuel
+     * tanks and generator sets on the west and a generator set and a switchgear bank on the east. The roof art is authored
+     * for the north-door plan (the written plan turned top to bottom), and a south-door building is that art turned half a
+     * revolution, so a south door gets the written plan turned side to side: the half turn of the north plan, so
+     * the hall lies under its art cell for cell. Left as written it would put each turbine well a cell off
+     * its generator set, the hall not being symmetric side to side.
      */
     static FortRoom powerHall(int x, int y, boolean doorSouth, List<Doorway> doors) {
-        FortRoomKit kit = new FortRoomKit(5, !doorSouth)
+        FortRoomKit kit = new FortRoomKit(11, 5, !doorSouth, doorSouth)
                 .lane(0, 3, 11, 2)
                 .run(0, 0, 0, 2, FortRoomKit.TANK)
                 .run(1, 0, 2, 0, FortRoomKit.GENERATOR)
