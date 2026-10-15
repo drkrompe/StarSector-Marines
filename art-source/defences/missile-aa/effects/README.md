@@ -117,6 +117,9 @@ below uses them together; campaign unlocks are unchanged.
 
 ## In-game fighter range
 
+[Ten-second range excerpt with reference sound](../fighter-range/review.mp4) ·
+[Overview still](../fighter-range/review.png) · [Paired metrics](../fighter-range/metrics.json)
+
 Open **Company HQ → DEBUG → STORY + REPEATABLE**, choose the **Missile range**
 location, then **Missile AA / Fighter Range** and deploy from its briefing.
 This is the ordinary detached debug-company launch: twelve named marines arrive
@@ -147,6 +150,7 @@ Run the paired production-factory evidence and its short visual excerpt with:
 ```powershell
 ./gradlew.bat sceneEvidence -Pscene=missile-aa-fighters --console=plain
 ./gradlew.bat createSnapshots -Psnapshot=missile-aa-fighters --console=plain
+./art-source/defences/missile-aa/effects/encode-review.ps1 -Scene missile-aa-fighters -OutputDir art-source/defences/missile-aa/fighter-range
 ```
 
 Reports install and verify the actual hull engine specifications, then compare

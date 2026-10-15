@@ -1,11 +1,16 @@
 param(
     [string]$Ffmpeg = 'ffmpeg',
-    [string]$StarsectorCore = 'C:/Program Files (x86)/Fractal Softworks/Starsector/starsector-core'
+    [string]$StarsectorCore = 'C:/Program Files (x86)/Fractal Softworks/Starsector/starsector-core',
+    [ValidateSet('missile-aa-effects', 'missile-aa-fighters')]
+    [string]$Scene = 'missile-aa-effects',
+    [string]$OutputDir = ''
 )
 $ErrorActionPreference = 'Stop'
 $repo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../../..'))
-$frames = Join-Path $repo 'build/snapshots/missile-aa-effects/frames/frame-%04d.png'
-$timelinePath = Join-Path $repo 'build/reports/scenes/missile-aa-effects/timeline.json'
+if (!$OutputDir) { $OutputDir = $PSScriptRoot }
+New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
+$frames = Join-Path $repo "build/snapshots/$Scene/frames/frame-%04d.png"
+$timelinePath = Join-Path $repo "build/reports/scenes/$Scene/timeline.json"
 $timeline = Get-Content -LiteralPath $timelinePath -Raw | ConvertFrom-Json
 $culture = [Globalization.CultureInfo]::InvariantCulture
 $clips = @(
@@ -49,11 +54,12 @@ for ($clipIndex=0; $clipIndex -lt $clips.Count; $clipIndex++) {
         # Reference mix: nominal source pitch, fixed attenuation, columns placed in stereo.
         # In-game positional attenuation and random pitch/clip variation remain host-owned.
         $gain = ($clips[$clipIndex].volume * 0.45).ToString($culture)
-        $pan = switch ($event.weapon) {
+        $column = if ($event.weapon) { $event.weapon } else { $event.lane }
+        $pan = switch ($column) {
             'locust' { 'stereo|c0=0.9*c0|c1=0.25*c0' }
             'swarmer' { 'stereo|c0=0.65*c0|c1=0.65*c0' }
             'proximity' { 'stereo|c0=0.25*c0|c1=0.9*c0' }
-            default { throw "Unknown preview column: $($event.weapon)" }
+            default { throw "Unknown preview column: $column" }
         }
         $out = "cue${clipIndex}_$i"
         $filters.Add("[clip${clipIndex}_$i]volume=$gain,pan=$pan,adelay=${delay}|${delay}[$out]")
@@ -61,13 +67,13 @@ for ($clipIndex=0; $clipIndex -lt $clips.Count; $clipIndex++) {
     }
 }
 $filters.Add("$($mixLabels -join '')amix=inputs=$($mixLabels.Count):normalize=0:dropout_transition=0,alimiter=limit=0.85:level=false:latency=true,apad,atrim=duration=$duration[audio]")
-$filterPath = Join-Path $repo 'build/snapshots/missile-aa-effects/audio-filter.txt'
+$filterPath = Join-Path $repo "build/snapshots/$Scene/audio-filter.txt"
 [IO.File]::WriteAllText($filterPath, ($filters -join ";`n"), [Text.UTF8Encoding]::new($false))
-$output = Join-Path $PSScriptRoot 'review.mp4'
+$output = Join-Path $OutputDir 'review.mp4'
 $ffArgs += @('-filter_complex_script',$filterPath,'-map','0:v','-map','[audio]','-t',$duration,
     '-c:v','libx264','-crf','18','-pix_fmt','yuv420p','-c:a','aac','-b:a','192k','-movflags','+faststart',$output)
 & $Ffmpeg @ffArgs
 if ($LASTEXITCODE -ne 0) { throw "ffmpeg failed: $LASTEXITCODE" }
-Copy-Item -LiteralPath $timelinePath -Destination (Join-Path $PSScriptRoot 'timeline.json')
-Copy-Item -LiteralPath (Join-Path $repo 'build/snapshots/missile-aa-effects/frames/frame-0024.png') -Destination (Join-Path $PSScriptRoot 'review.png')
+Copy-Item -LiteralPath $timelinePath -Destination (Join-Path $OutputDir 'timeline.json')
+Copy-Item -LiteralPath (Join-Path $repo "build/snapshots/$Scene/frames/frame-0024.png") -Destination (Join-Path $OutputDir 'review.png')
 Write-Output "Encoded $($events.Count) simulation cues into $output"
