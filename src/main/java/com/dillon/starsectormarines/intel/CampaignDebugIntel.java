@@ -400,6 +400,13 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
                     + " of " + s.chronicleSurvivorsAtRisk[row]
                     + " survivors — archive " + archive.name();
             location = market;
+        } else if (eventType == ChronicleEventType.GARRISON_DEFENCE) {
+            event = "GARRISON DEFENCE #" + s.chronicleDefenceOutcome[row] + " — "
+                    + s.chronicleSurvivorsRescued[row] + " of "
+                    + s.chronicleSurvivorsAtRisk[row] + " living — vs "
+                    + registryLabel(s.factionRegistry.get(s.chronicleSourceFactionId[row]),
+                            "faction", s.chronicleSourceFactionId[row]);
+            location = market;
         } else {
             event = outcome.name() + " — " + actor + " vs " + target;
             location = industry + " @ " + market;
