@@ -6,7 +6,7 @@ Slices are on the mission-command board.
 
 Written: 2026-10-13
 
-Updated: 2026-10-15 — a company that is flown at goes for the hostile bunker's radar at once (radar first: it skips the set-up steps, a muster being bombed commits at half strength, and a plan already on another aspect turns to the radar), which also fixed a company whose breachers were left unordered; the radar is still not taken (the bunker room is never held), see "Radar first"; earlier: the fort's radar spots for the defenders' air and the sky is contested (lane fort: defender air 0.8 to 18 sorties a run, lane lost 6 of 6 with spotting on); contested sky on the trial ground measured (defender air pool, tail-chase cover): the sky is barely contested, no bomber is downed before release, the yard is a by-product rather than a target; standing fire missions and the mortar section are standing behaviour (switches gone; timings are constants, sections-off is a per-simulation scene control); the kit reaches ground-start companies.
+Updated: 2026-10-15 — the bunker is now taken (6 of 6 lane runs, ticks 3,060-3,900; lane wins 1 of 6 to 5 of 6): a company squad near the building an aspect is held in is told to occupy its floor rather than attack-move past it, see "Taking the room: measured"; earlier: radar first (a company that is flown at goes for the hostile bunker at once).
 
 Read `conquest-command.md`, `forts.md` and `ai-nouns.md` first.
 
@@ -507,7 +507,27 @@ Same fixture as above (kit, two lances, attacker pool, defender pool through rad
 | offset | before | 5 of 6 | 22.5 | 40.2 | 2.2 | 2.8 | no company | 0 / 0 |
 | offset | after | 5 of 6 | 29.0 | 40.8 | 2.7 | 2.8 | tick 4,126 in 1 run | 0 / 0 |
 
-Read honestly: **the company now arrives and the fort's defence dies (defender losses 15 to 40, nests 3.7 to 5.5, whole courtyards cleared by tick 5,000), but no bunker is taken and no lane run is won.** Defender sorties fell from 16 to 11.5 a run but marine losses did not move. The offset fort is untouched except one seed where a company formed for the sky and lost 83 against 44. The blocker is now the take itself: the bunker room is 35 cells and no defender ever stood in it, yet at most one marine was ever inside at once and none at the end (`BunkerProbe` in the trial report, `bunker` block). The company walks the doorstep order, clears the fort and drifts out through the east gate without holding the room for the twelve seconds a take needs. That is the next thing to look at; it is not a muster or step-order question.
+Read honestly: **the company now arrives and the fort's defence dies (defender losses 15 to 40, nests 3.7 to 5.5, whole courtyards cleared by tick 5,000), but no bunker is taken and no lane run is won.** Defender sorties fell from 16 to 11.5 a run but marine losses did not move. The offset fort is untouched except one seed where a company formed for the sky and lost 83 against 44. The blocker is now the take itself: the bunker room is 35 cells and no defender ever stood in it, yet at most one marine was ever inside at once and none at the end (`BunkerProbe` in the trial report, `bunker` block). The company walks the doorstep order, clears the fort and drifts out through the east gate without holding the room for the twelve seconds a take needs. That is the next thing to look at; it is not a muster or step-order question. (Answered below in "Taking the room: measured".)
+
+## Taking the room: measured
+
+**Why nobody went in.** It was not the doorstep: the cell the company was sent to lay on the bunker's floor. It was the order. Every squad of the company carried an attack move to that cell, and squads under one attack move share their contact and divide it into a base of fire and a maneuver round it (`AssaultCoordinationSystem`). The contact they shared was the **gun platform**, twenty cells off the bunker, so for 1,200 ticks and more the company stood five to eight cells from the bunker's door fixing and flanking the guns, and nobody stepped onto the floor. In four of six runs the company eventually killed the platform first, and that ended the take outright (below).
+
+**What is built.** A company squad (infantry, not wrecking) within `DefenceStructureTactics.OCCUPY_REACH_CELLS` (12) of the building an aspect is held in is told to **occupy** it: an area defence of radius 2 on the building's deepest floor cell, which lies wholly on the floor, so its members walk in and fight from where the take is counted. It keeps the order while within a six-cell margin and is sent back by attack move beyond it. A squad further out keeps the attack move, now to that deep floor cell rather than the doorstep ring: an attack move is done within two cells of its cell as the crow flies, and a cell beside the wall is that close to the courtyard on its far side. The floor is read from the fort's disclosed works frame (`floorOf`), never from a sighting, and applies to every aspect held in a building (bunker, plant, magazine, control room), not to the open anti-air yard.
+
+Same fixture as "Radar first" (seed 41-46, lane fort, 18,000 ticks), base `15b0aa98e`, one run each, both columns with the corrected report (below):
+
+| | marine wins | mean marine losses (of ~105) | mean defender losses (of 65) | nests killed (mean) | defender sorties (mean) | bunker taken | first marine on the floor | platform destroyed while the bunker stood |
+|---|---|---|---|---|---|---|---|---|
+| before | 1 of 6 | 94.3 | 30.7 | 4.5 | 10.0 | 0 of 6 | 4,500 / 5,880 in 2 runs (peak 1 and 4 inside) | 4 of 6 |
+| after | 5 of 6 | 51.7 | 59.5 | 7.8 | 4.8 | 6 of 6, ticks 3,060-3,900 | 2,700-3,540 (peak 19-35 inside) | 0 of 6 |
+
+After the bunker the company works down the fort in every run (anti-air yard 4,020-4,860, plant 5,040-5,910, magazine 6,450-7,230) and the keep falls at 8,850-11,010 in the five wins; seed 42 times out with the fort taken and the keep standing. One defender-loss figure in the before row is negative (seed 42, reinforcements outnumber losses); the mean includes it. Not a balance conclusion: one run a seed, and the fort is unchanged.
+
+**Two things found on the way, neither fixed here (both outside command):**
+
+- **A dead gun platform freezes the bunker.** `FortressBatterySystem` skips a destroyed battery before its fire-control tick, so once the platform dies the bunker's capture never advances again, while `FortSensors.observer` still has the radar spotting for the side that held it. `BattleSimulation.defenceStructures` drops every aspect of that fort from the command's facts at the same moment, so the company's orders lapse with no trace note. Before this change that was how four of six lane runs ended their assault; with it the bunker is taken before the platform dies and none did.
+- **The trial report read the wrong holder.** For fire control the authority is the battery's `FireControl`, not the place's own control, and the report's aspect lines and holder-change list read the latter, so a taken bunker read DEFENDER. `FortOutcomes` now reads the battery; `BunkerProbe` adds the take tick, the platform's death and a timeline of marines on the floor and near it with the capture state.
 
 ## Contested sky with the fort spotting: measured
 
