@@ -495,13 +495,30 @@ final class BuildingLayouts {
             stampPurposeFixture(grid, topology, bl, bt, br, bb,
                     RoomPurpose.CONTROL_ROOM, console, doodads, rng, true);
         else preservePlacementDraw(topology, bl, bt, br, bb, RoomPurpose.CONTROL_ROOM, rng);
-        stampPurposeFixture(grid, topology, bl, bt, br, bb,
-                RoomPurpose.PARTS_CAGE, parts, doodads, rng, true);
-        stampPurposeFixture(grid, topology, bl, bt, br, bb,
-                RoomPurpose.PARTS_CAGE, parts, doodads, rng, true);
-        stampPurposeFixture(grid, topology, bl, bt, br, bb,
-                RoomPurpose.LOADING_BAY, pallet, doodads, rng, true);
         BuildingWorkGroups storage = new BuildingWorkGroups(grid, topology, doodads);
+        int racks = storage.fit(bl, bt, br, bb, RoomPurpose.PARTS_CAGE,
+                BuildingWorkGroups.stockedRack("cases"), 2);
+        if (racks > 0) {
+            storage.fit(bl, bt, br, bb, RoomPurpose.PARTS_CAGE, BuildingWorkGroups.cargoDesk(false), 1);
+            preservePlacementDraw(topology, bl, bt, br, bb, RoomPurpose.PARTS_CAGE, rng);
+            preservePlacementDraw(topology, bl, bt, br, bb, RoomPurpose.PARTS_CAGE, rng);
+        } else {
+            stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                    RoomPurpose.PARTS_CAGE, parts, doodads, rng, true);
+            stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                    RoomPurpose.PARTS_CAGE, parts, doodads, rng, true);
+        }
+        int benches = storage.fit(bl, bt, br, bb, RoomPurpose.LOADING_BAY,
+                BuildingWorkGroups.cargoDesk(true), 1);
+        if (benches > 0) {
+            storage.fit(bl, bt, br, bb, RoomPurpose.LOADING_BAY, BuildingWorkGroups.cargoDesk(false), 1);
+            int banks = storage.fit(bl, bt, br, bb, RoomPurpose.LOADING_BAY,
+                    BuildingWorkGroups.pallets(2, "cartons"), 2);
+            if (banks == 0) storage.fit(bl, bt, br, bb, RoomPurpose.LOADING_BAY,
+                    BuildingWorkGroups.pallets(1, "cartons"), 1);
+            preservePlacementDraw(topology, bl, bt, br, bb, RoomPurpose.LOADING_BAY, rng);
+        } else stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                RoomPurpose.LOADING_BAY, pallet, doodads, rng, true);
         storage.fit(bl, bt, br, bb, RoomPurpose.PRODUCTION_FLOOR, BuildingWorkGroups.palletIsland(List.of(
                         new ConsoleBankLayout.Cell(0, 0), new ConsoleBankLayout.Cell(1, 0),
                         new ConsoleBankLayout.Cell(0, 1)), "cases"),

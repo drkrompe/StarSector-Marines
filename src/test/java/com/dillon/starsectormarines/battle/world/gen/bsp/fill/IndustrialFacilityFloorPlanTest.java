@@ -68,7 +68,8 @@ class IndustrialFacilityFloorPlanTest {
             assertTrue(doodadsInPurpose(doodads, topology, RoomPurpose.CONTROL_ROOM) >= 1,
                     "control room needs a fitted bank or the compact fallback console");
             assertEquals(2, doodadsInPurpose(doodads, topology, RoomPurpose.PARTS_CAGE));
-            assertEquals(1, doodadsInPurpose(doodads, topology, RoomPurpose.LOADING_BAY));
+            assertTrue(doodadsInPurpose(doodads, topology, RoomPurpose.LOADING_BAY) >= 1,
+                    "receiving fits working furniture or the compact pallet fallback");
             assertMachineryLanes(grid, topology, doodads, frontage, loadingDoor);
 
             for (int y = leaf.top + 1; y < leaf.bottom; y++) {

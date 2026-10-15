@@ -318,6 +318,13 @@ wall runs. The group places whole or not at all, rotates together, and refuses
 later furniture on its access cells. Stock and linen add no duplicate blocking
 or cover. Industrial floors use pallet staging islands, command annexes use
 stocked shelving, and the authored L freight depot carries a stocked rack.
+Large factories allocate a deeper support wing and receiving zone before
+furnishing: parts cages hold stocked racks with picking access, while receiving
+pairs packing and seated tally desks with grouped carton pallets. Machinery
+and staging belong on the production floor. Compact lots keep the smaller
+support plan and use individual supply stacks where complete groups cannot
+fit. The two-cell service spine connects opposed entrances independently of
+these working areas; furnishing preserves it and the machine operators' aisles.
 
 A clinic's equipment follows care: reception has charting and waiting seats;
 triage pairs readouts with assessment; treatment owns examination couches,

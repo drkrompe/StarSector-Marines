@@ -66,6 +66,14 @@ final class BuildingWorkGroups {
                 new Part("mess-galley.stool", 2, 0, false)));
     }
 
+    /** Cargo desks keep a two-cell working apron; the tally stool is traversable. */
+    static Group cargoDesk(boolean packing) {
+        List<Part> parts = new ArrayList<>();
+        parts.add(new Part(packing ? "main-stores.packing" : "main-stores.tally", 0, 0, true));
+        if (!packing) parts.add(new Part("mess-galley.stool", 1, 1, false));
+        return new Group(3, 3, parts);
+    }
+
     /** Adjacent cabinet modules form a continuous wall bank with a two-cell working aisle. */
     static Group cabinets(int modules) {
         if (modules < 1) throw new IllegalArgumentException("A cabinet bank needs modules");

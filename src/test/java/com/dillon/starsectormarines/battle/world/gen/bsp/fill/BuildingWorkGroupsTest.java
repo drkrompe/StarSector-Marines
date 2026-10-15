@@ -60,4 +60,18 @@ class BuildingWorkGroupsTest {
         assertEquals(beds, doodads.stream().filter(d -> d.definitionId().equals("sickbay-clinic.bed")).count());
         assertTrue(doodads.stream().allMatch(d -> d.quarterTurns % 2 == 0));
     }
+
+    @Test void cargoDeskKeepsTheSeatedWorkRowAndServiceRowOpenAtEveryPose() {
+        for (int turn = 0; turn < 4; turn++) {
+            BuildingWorkGroupsTest fixture = new BuildingWorkGroupsTest();
+            assertTrue(fixture.groups.place(BuildingWorkGroups.cargoDesk(false), 3, 3, turn, RoomPurpose.PATIENT_WARD));
+            Doodad desk = fixture.doodads.get(0), stool = fixture.doodads.get(1);
+            assertEquals(0, stool.cover);
+            assertTrue(fixture.grid.isWalkable(stool.cellX, stool.cellY));
+            for (int y = 3; y < 6; y++) for (int x = 3; x < 6; x++)
+                assertEquals(!desk.occupiesCell(x,y), fixture.grid.isWalkable(x,y));
+            assertFalse(fixture.groups.place(BuildingWorkGroups.cargoDesk(true), 3, 3, (turn + 2) % 4, RoomPurpose.PATIENT_WARD),
+                    "an opposite bench cannot consume the tally desk's service row");
+        }
+    }
 }

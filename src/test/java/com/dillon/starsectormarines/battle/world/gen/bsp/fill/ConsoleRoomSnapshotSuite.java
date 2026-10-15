@@ -74,6 +74,7 @@ public final class ConsoleRoomSnapshotSuite implements SnapshotSuite {
         artifacts.add(new SnapshotArtifact("building-console-templates.png", consoleTemplates(renderer)));
         artifacts.add(new SnapshotArtifact("clinic-workgroups.png", clinic(renderer)));
         artifacts.add(new SnapshotArtifact("storage-workgroups.png", storage(renderer)));
+        artifacts.add(new SnapshotArtifact("factory-workgroups.png", factory(renderer)));
         RoomLayout seed = RoomLayoutSeed.from(RoomFittings.forShipRoom(RoomPurpose.BRIDGE,
                 RoomRecipe.COMMAND.shape(), RoomFit.STANDARD), RoomPurpose.BRIDGE,
                 RoomRecipe.COMMAND.shape(), RoomFit.STANDARD);
@@ -215,6 +216,38 @@ public final class ConsoleRoomSnapshotSuite implements SnapshotSuite {
             text(g, "Whole-group placement and rotation", panel, 930, 18);
         }
         text(g, "Existing production assets composed by the building fitter / 1920 x 1080",40,1045,17);
+        g.dispose(); return image;
+    }
+
+    private static BufferedImage factory(HeadlessBattleMapRenderer renderer) {
+        BufferedImage image = board(); Graphics2D g = image.createGraphics();
+        text(g, "FACTORY / RECEIVING, PARTS AND PRODUCTION", 40, 56, 28);
+        MapResult large = building(26, 21, 42, BuildingPlacement.Side.BOTTOM, BuildingIndustrialFiller.CONFIG);
+        g.drawImage(renderer.render(large, 42, 30), 30, 135, null);
+        text(g, "26 x 21 factory / complete working rooms", 40, 110, 21);
+        text(g, "RECEIVING", 1020, 165, 21);
+        text(g, "Packing bench, seated tally desk and carton pallets", 1020, 205, 19);
+        text(g, "PARTS CAGE", 1020, 280, 21);
+        text(g, "Stocked racks with protected picking aisles", 1020, 320, 19);
+        text(g, "PRODUCTION + CONTROL", 1020, 395, 21);
+        text(g, "Machine line, staging space and seated readouts", 1020, 435, 19);
+        text(g, "Compact sites keep their smaller support wing", 1020, 555, 20);
+        MapResult compact = building(17, 13, 42, BuildingPlacement.Side.BOTTOM, BuildingIndustrialFiller.CONFIG);
+        g.drawImage(renderer.render(compact, 42, 24), 1020, 590, null);
+        for (int[] size : new int[][]{{21,21},{26,21},{21,26},{30,24}})
+            for (BuildingPlacement.Side side : BuildingPlacement.Side.values())
+                for (long seed : new long[]{41,42}) {
+                    MapResult map = building(size[0], size[1], seed, side, BuildingIndustrialFiller.CONFIG);
+                    for (String id : new String[]{"main-stores.rack", "main-stores.packing", "main-stores.tally", "main-stores.pallet"})
+                        if (map.doodads.stream().noneMatch(d -> id.equals(d.definitionId())))
+                            throw new IllegalStateException("Factory " + size[0] + "x" + size[1] + " / " + side + " / " + seed + " missing " + id);
+                    for (int y = 0; y < map.grid.getHeight(); y++) for (int x = 0; x < map.grid.getWidth(); x++)
+                        if (map.topology.getRoomPurpose(x,y) == RoomPurpose.INDUSTRIAL_SPINE && !map.grid.isWalkable(x,y))
+                            throw new IllegalStateException("Factory service spine obstructed");
+                }
+        for (BuildingPlacement.Side side : BuildingPlacement.Side.values())
+            building(17, 13, 41, side, BuildingIndustrialFiller.CONFIG);
+        text(g, "Production Java2D renderer / clear service spine / all four frontages / existing damage states", 40, 1045, 17);
         g.dispose(); return image;
     }
 
