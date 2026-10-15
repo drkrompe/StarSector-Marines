@@ -31,6 +31,31 @@ public record MarketGarrison(float strength, float quality, float heavy, float r
         readiness = clamp(readiness, 0f, 1f);
     }
 
+    /**
+     * The least share of a mission's heavy candidates (mechs, emplacements) a garrison keeps: one with no heavy lean
+     * at all still keeps this much. UNTUNED: the mission's own count is the ceiling, so nothing grows, and the
+     * market's armour picks the place between.
+     */
+    public static final float HEAVY_BAND_FLOOR = 0.5f;
+
+    /**
+     * Heavy lean at which a garrison keeps every heavy candidate. UNTUNED: calibrated against Nexerelin's own garrison
+     * estimate, where a market with Ground Defenses carries about a fifth of its strength as heavy units and one with
+     * Heavy Batteries about a quarter; at this value both keep nearly all of theirs.
+     */
+    public static final float HEAVY_LEAN_FOR_FULL = 0.25f;
+
+    /**
+     * How many of a mission's {@code candidates} heavy pieces this garrison keeps: between {@link #HEAVY_BAND_FLOOR}
+     * of them and all, by heavy lean, and at least one when there were any. {@link #NONE} keeps them all.
+     */
+    public int keepHeavy(int candidates) {
+        if (candidates <= 0 || isNone()) return Math.max(0, candidates);
+        float fill = Math.min(1f, heavy / HEAVY_LEAN_FOR_FULL);
+        float share = HEAVY_BAND_FLOOR + (1f - HEAVY_BAND_FLOOR) * fill;
+        return Math.min(candidates, Math.max(1, (int) Math.ceil(candidates * share - 1e-4f)));
+    }
+
     /** Whether this is the absence of a garrison rather than a garrison. */
     public boolean isNone() {
         return strength <= 0f && quality <= 0f && heavy <= 0f;

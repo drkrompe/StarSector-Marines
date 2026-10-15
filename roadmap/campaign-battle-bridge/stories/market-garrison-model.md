@@ -1,10 +1,10 @@
 # Market garrison model
 
-Status: IN PROGRESS — slices 1 and 2 implemented; polity doctrine dials and slice 3 calibration remain.
+Status: IMPLEMENTED — all three slices done with untuned defaults; live play acceptance open.
 
 Written: 2026-10-15
 
-Updated: 2026-10-15 — The mix is now quality and heavy lean blended into every squad, not militia/regular/heavy tiers.
+Updated: 2026-10-15 — Calibrated headlessly against Nexerelin's formula; doctrine and emplacements wired.
 
 Read `campaign-battle-bridge-nouns.md`, `polity-ground-doctrine.md`,
 `mission-tier-nouns.md` and `nexerelin-nouns.md` first.
@@ -149,18 +149,39 @@ fixture operations that state their own forces ignore the estimate.
    places the headcount in the tier's band (`DefenderRoster.bandedTotal`), and
    its heavy lean keeps a share of the mech candidates
    (`DefenderRoster.bandedMechs`). `DefenderRoster.wholeGarrisonCount` sizes a
-   garrison faced whole, for player invasions. Remaining: the polity
-   doctrine's dials, and emplacements, which `MissionDefencePolicy` still
-   declares from structure flags. Existing
+   garrison faced whole, for player invasions. The polity doctrine moves its
+   own market's dials (`PolityGarrisonDoctrine`: +0.1 elite share per quality
+   point, +0.1 heavy lean per heavy-support point; numbers stays the allied
+   headcount multiplier so it is not counted twice). Conquest's batteries and
+   nests use the same half-to-all band as mechs (`MarketGarrison.keepHeavy`):
+   the structure still decides whether there are any, and the garrison's
+   heavy lean how many are manned. Existing
    evidence
    (`commanderEvidence`, `garrisonEvidence`) shows the change on fixtures; the
    canonical Conquest fixtures with no market stay unchanged.
-3. **Calibration.** With Nexerelin installed, compare our estimate against
-   `GBUtils.estimateDefenderCounts` on a spread of real markets (small
-   outposts, mid colonies, military worlds, capitals) and record the ratio.
-   Decide with the user whether the headcount curve needs steeper growth with
-   size than vanilla's stat gives. This is evidence, not a test: Nexerelin is
-   not on the test classpath.
+3. **Calibration** (done headlessly). A live install only helps once
+   someone plays, so both formulas were ported from source (vanilla 0.98a and
+   Nexerelin `9b0ddac`) and compared on sample markets at stability 6 and
+   hazard 125%, with no shortages:
+
+   | Market | Vanilla strength | Our whole count | Our elite share | Nex marine share by strength | Our heavy lean | Nex heavy share |
+   |---|---|---|---|---|---|---|
+   | Size 3 outpost | 44 | 11 | 0.20 | 0.00 | 0.00 | 0.00 |
+   | Size 3 + Ground Defenses | 88 | 22 | 0.29 | 0.25 | 0.22 | 0.19 |
+   | Size 5 colony | 175 | 44 | 0.33 | 0.25 | 0.00 | 0.00 |
+   | Size 5 + Ground Defenses | 350 | 88 | 0.38 | 0.37 | 0.20 | 0.19 |
+   | Size 6 + Heavy Batteries + Military Base | 945 | 236 | 0.54 | 0.50 | 0.31 | 0.24 |
+   | Size 8 + Heavy Batteries + High Command | 1706 | 427 | 0.55 | 0.50 | 0.32 | 0.25 |
+
+   Quality and heavy lean track Nexerelin closely. The outpost difference is
+   deliberate: every garrison here mixes in some elites. Headcount is the one
+   real divergence: Nexerelin doubles per size step, while vanilla's stat
+   grows about linearly above size 3. Vanilla's curve stays, because it is
+   what other mods modify and contract work is capped by tier anyway; only a
+   player invasion faces the whole count. Remaining calibration is a play
+   pass on the untuned constants (`DefenderRoster.BAND_FLOOR` and
+   `STRENGTH_PER_DEFENDER`, `MarketGarrison.HEAVY_BAND_FLOOR` and
+   `HEAVY_LEAN_FOR_FULL`, the structure table and the doctrine steps).
 
 ## Acceptance
 

@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.FortSitingPolicy;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
+import com.dillon.starsectormarines.battle.world.gen.MarketGarrison;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 
 import java.util.List;
@@ -146,16 +147,19 @@ public final class MissionDefencePolicy {
 
     /**
      * UNTUNED first-pass mission-design choice: a Conquest reads its market's Heavy Batteries, Planetary Shield and Ground Defenses
-     * signals and declares them (and its Ground Defenses as nests) at the fixed amounts above. Change here to make Conquest always, never or sometimes
-     * carry them.
+     * signals and declares them (and its Ground Defenses as nests). The amounts above are the ceiling; the market's
+     * garrison keeps between half and all of its batteries and nests by its heavy lean ({@link MarketGarrison#keepHeavy}),
+     * so a starved or diluted garrison mans fewer of the works it has. The structure still decides whether there are
+     * any. Change here to make Conquest always, never or sometimes carry them.
      */
     static GroundDefences conquest(TargetProfile market) {
-        int batteries = market.heavyBatteries() ? CONQUEST_BATTERIES_WHEN_MARKET_HAS_THEM : 0;
+        MarketGarrison garrison = market.garrison();
+        int batteries = market.heavyBatteries() ? garrison.keepHeavy(CONQUEST_BATTERIES_WHEN_MARKET_HAS_THEM) : 0;
         boolean shield = market.planetaryShield() && CONQUEST_SHIELD_WHEN_MARKET_HAS_ONE;
         GroundDefences declared = new GroundDefences(
                 CONQUEST_BATTERIES_AS_FORTS ? 0 : batteries,
                 shield && !CONQUEST_SHIELD_AS_FORT,
-                market.groundDefences() ? CONQUEST_NESTS_WHEN_MARKET_HAS_THEM : 0);
+                market.groundDefences() ? garrison.keepHeavy(CONQUEST_NESTS_WHEN_MARKET_HAS_THEM) : 0);
         if (CONQUEST_BATTERIES_AS_FORTS) declared = declared.withForts(FortKind.BATTERY_FORT, batteries);
         if (CONQUEST_SHIELD_AS_FORT && shield) declared = declared.withForts(FortKind.SHIELD_FORT, 1);
         if (CONQUEST_FORTS_COVER_THE_APPROACH && !declared.forts().isEmpty()) {

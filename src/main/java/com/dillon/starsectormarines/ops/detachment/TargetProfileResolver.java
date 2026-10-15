@@ -8,7 +8,11 @@ import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.SurfaceZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.campaign.CampaignState;
+import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.StationedStrength;
+import com.dillon.starsectormarines.campaign.polity.PolityDoctrineLedger;
+import com.dillon.starsectormarines.campaign.polity.PolityGarrisonDoctrine;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
@@ -110,7 +114,13 @@ public final class TargetProfileResolver {
                 memory.getBoolean(MemFlags.MARKET_MILITARY), industryIds,
                 supply(m, Commodities.MARINES), supply(m, Commodities.HAND_WEAPONS), supply(m, Commodities.SUPPLIES),
                 readiness(memory));
-        return MarketGarrisonEstimate.estimate(inputs, GarrisonStructureCatalog.get());
+        MarketGarrison garrison = MarketGarrisonEstimate.estimate(inputs, GarrisonStructureCatalog.get());
+        if (!m.isPlayerOwned()) return garrison;
+        // The polity's own market: its ground doctrine moves the same dials (polity-ground-doctrine.md).
+        CampaignStateScript script = CampaignStateScript.getInstance();
+        CampaignState state = script != null ? script.state() : null;
+        return state == null ? garrison
+                : PolityGarrisonDoctrine.apply(garrison, PolityDoctrineLedger.read(state));
     }
 
     /** Available against demand, {@code 0..1}; a market that does not demand the commodity is not short of it. */
