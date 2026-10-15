@@ -67,6 +67,35 @@
               -0.25,
               0.25
             ]
+          },
+          {
+            "kind": "smoke",
+            "count": 3,
+            "radius": [
+              0.3,
+              0.44
+            ],
+            "lifetime": [
+              1.2,
+              1.65
+            ],
+            "color": "B6B2A8",
+            "offsetForward": [
+              -2.1,
+              -1.98
+            ],
+            "offsetLateral": [
+              -0.1,
+              0.1
+            ],
+            "velocityForward": [
+              -1.6,
+              -0.9
+            ],
+            "velocityLateral": [
+              -0.4,
+              0.4
+            ]
           }
         ],
         "muzzle": [
@@ -220,6 +249,35 @@
             "velocityLateral": [
               -0.25,
               0.25
+            ]
+          },
+          {
+            "kind": "smoke",
+            "count": 3,
+            "radius": [
+              0.25,
+              0.38
+            ],
+            "lifetime": [
+              0.8,
+              1.1
+            ],
+            "color": "B6B2A8",
+            "offsetForward": [
+              -2.1,
+              -1.98
+            ],
+            "offsetLateral": [
+              -0.08,
+              0.08
+            ],
+            "velocityForward": [
+              -1.6,
+              -0.9
+            ],
+            "velocityLateral": [
+              -0.3,
+              0.3
             ]
           }
         ],
@@ -376,6 +434,35 @@
             "velocityLateral": [
               -0.22,
               0.22
+            ]
+          },
+          {
+            "kind": "smoke",
+            "count": 2,
+            "radius": [
+              0.25,
+              0.34
+            ],
+            "lifetime": [
+              0.6,
+              0.9
+            ],
+            "color": "AE82BE",
+            "offsetForward": [
+              -2.28,
+              -2.15
+            ],
+            "offsetLateral": [
+              -0.08,
+              0.08
+            ],
+            "velocityForward": [
+              -1.25,
+              -0.7
+            ],
+            "velocityLateral": [
+              -0.25,
+              0.25
             ]
           }
         ],

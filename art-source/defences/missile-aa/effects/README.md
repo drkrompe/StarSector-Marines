@@ -47,6 +47,15 @@ and a resolved or expired flight emits no more. Powered flames attach behind
 the body; unpowered charge glow attaches to its center. Textured smoke puffs
 expand and disperse behind the guided missiles.
 
+Each launch also vents smoke behind the turret head, separately from its front
+launch puff and the missile's moving exhaust. The rear origin follows the firing
+bearing and barrel lane, with an offset beyond the painted rear silhouette.
+Locust emits three rear puffs per release with 1.2-1.65-second lifetimes: its
+ten releases per second overlap into a sustained plume through the salvo, then
+clear during reload. Swarmer's shorter puffs form four distinct bursts, while
+Proximity has a modest purple-gray ejection puff. These are launch-event effects,
+so they do not continue emitting after firing ends or while the simulation pauses.
+
 ## Sound provenance
 
 Files below are read directly from the installed Starsector 0.98a-RC8 core,

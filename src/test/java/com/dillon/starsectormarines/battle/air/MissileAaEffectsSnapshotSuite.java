@@ -35,8 +35,8 @@ public final class MissileAaEffectsSnapshotSuite implements SnapshotSuite {
         MissileAaEffectsScene scene = new MissileAaEffectsScene();
         BattleReviewFrameRenderer renderer = new BattleReviewFrameRenderer(context.modRoot(), 600, 780,
                 42, 26, 40).withImpactEffects().withUnitShadows();
-        BattleReviewFrameRenderer mountDetail = new BattleReviewFrameRenderer(context.modRoot(), 600, 260,
-                40,25,10).withImpactEffects();
+        BattleReviewFrameRenderer mountDetail = new BattleReviewFrameRenderer(context.modRoot(), 600, 340,
+                40,24,12).withImpactEffects();
         Map<String, List<BufferedImage>> loops = new LinkedHashMap<>();
         Map<String, ReviewImpactFx> effects = new LinkedHashMap<>();
         List<SceneReport> reports = scene.play(new FrameSink() {
@@ -50,7 +50,7 @@ public final class MissileAaEffectsSnapshotSuite implements SnapshotSuite {
                     BufferedImage compact = new BufferedImage(600, 780, BufferedImage.TYPE_3BYTE_BGR);
                     Graphics2D g = compact.createGraphics();
                     g.drawImage(rendered, 0, 0, null);
-                    g.drawImage(mountDetail.render(sim,"Mount detail / same simulation",ReviewAnnotations.NONE,fx(loop)),0,520,null);
+                    g.drawImage(mountDetail.render(sim,"Mount and backblast / same simulation",ReviewAnnotations.NONE,fx(loop)),0,440,null);
                     g.dispose();
                     loops.computeIfAbsent(loop, ignored -> new ArrayList<>()).add(compact);
                 } catch (IOException failure) { throw new UncheckedIOException(failure); }
