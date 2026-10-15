@@ -159,3 +159,5 @@ com.dillon.starsectormarines.battle.fort.FortAirDefenceSceneSnapshotSuite
 com.dillon.starsectormarines.battle.fort.ShipVsFortSceneSnapshotSuite
 com.dillon.starsectormarines.battle.infantry.SquadMedicSceneSnapshotSuite
 com.dillon.starsectormarines.battle.fort.RenderParitySnapshotSuite
+com.dillon.starsectormarines.battle.fort.FortEarthworksSnapshotSuite
+com.dillon.starsectormarines.battle.combat.SmallArmsWearSceneSnapshotSuite

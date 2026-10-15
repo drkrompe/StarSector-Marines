@@ -80,6 +80,22 @@ public final class CoverPropDamage {
         return level;
     }
 
+    /**
+     * The definition id of a surviving destructible cover prop on this cell, or null: what a round that
+     * stopped here would wear. A spent prop names nothing.
+     */
+    public String standingIdAt(int x, int y) {
+        if (!grid.inBounds(x, y)) return null;
+        Entry entry = entries.get(grid.index(x, y));
+        if (entry == null) return null;
+        if (!entry.physical) {
+            return !grid.isWalkable(x, y) && grid.getWallHp(x, y) > 0 ? entry.original.definitionId() : null;
+        }
+        for (Entry current = entry; current != null; current = current.next)
+            if (current.hp > 0) return current.original.definitionId();
+        return null;
+    }
+
     private static String familyPrefix(String id) {
         if (id == null) return null;
         if (id.startsWith(FENCE_PREFIX) && FENCE_SHAPES.contains(id.substring(FENCE_PREFIX.length()))) return FENCE_PREFIX;
@@ -113,6 +129,10 @@ public final class CoverPropDamage {
 
     private void replace(Entry entry, boolean broken) {
         Doodad original = entry.original;
+        DoodadDef shown = broken ? entry.destroyed : entry.damaged;
+        // Sustained small-arms fire lands many hits on a prop that already shows its damage.
+        if (props.get(entry.index).definitionId() != null
+                && props.get(entry.index).definitionId().equals(shown.id)) return;
         props.set(entry.index, new Doodad(original.cellX, original.cellY, broken ? entry.destroyed : entry.damaged,
                 original.quarterTurns, original.mirrored));
     }
