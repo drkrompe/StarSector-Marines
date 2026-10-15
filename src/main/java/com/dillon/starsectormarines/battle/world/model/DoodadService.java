@@ -85,6 +85,10 @@ public final class DoodadService {
      */
     private float[] doodadHalfHeightByLevelOnCell;
 
+    /** Per-cell cover a trench gives the unit standing in it (level, and its catch half-height). Lazily allocated. */
+    private byte[] occupantCoverOnCell;
+    private float[] occupantHalfHeightOnCell;
+
     public DoodadService(NavigationGrid grid) {
         this.grid = grid;
         this.fightingPositions = FightingPositionIndex.empty(grid.getWidth(), grid.getHeight());
@@ -117,7 +121,11 @@ public final class DoodadService {
                 int cellX = d.cellX + dx;
                 int cellY = d.cellY + dy;
                 if (grid.isWalkable(cellX, cellY)) {
-                    if (!removableProp) addCoverCell(cellX, cellY, d.cover, d.ballisticHalfHeight);
+                    if (d.fightingPosition() == FightingPositionRole.TRENCH) {
+                        addOccupantCoverCell(cellX, cellY, d.cover, d.ballisticHalfHeight);
+                    } else if (!removableProp) {
+                        addCoverCell(cellX, cellY, d.cover, d.ballisticHalfHeight);
+                    }
                 } else {
                     addDirectionalEdgeCover(cellX, cellY,
                             d.cover, d.ballisticHalfHeight);
@@ -286,6 +294,42 @@ public final class DoodadService {
         int slot = idx * (NavigationGrid.MAX_COVER + 1) + cover;
         doodadHalfHeightByLevelOnCell[slot] = Math.max(
                 doodadHalfHeightByLevelOnCell[slot], ballisticHalfHeight);
+    }
+
+    /**
+     * A dug channel: it shelters whoever stands in it, from every direction, and nothing else. A
+     * round crossing a trench passes over it, so it records no crossing silhouette, and it lends
+     * no cover to the cells beside it, because a hole does not shelter the man next to it.
+     */
+    private void addOccupantCoverCell(int cellX, int cellY, int cover, float ballisticHalfHeight) {
+        if (!grid.inBounds(cellX, cellY)) return;
+        ensureCoverStorage();
+        if (occupantCoverOnCell == null) {
+            occupantCoverOnCell = new byte[grid.getWidth() * grid.getHeight()];
+            occupantHalfHeightOnCell = new float[grid.getWidth() * grid.getHeight()];
+        }
+        maxMergeDoodadFacing(cellX, cellY, NavigationGrid.FACING_N, cover);
+        maxMergeDoodadFacing(cellX, cellY, NavigationGrid.FACING_E, cover);
+        maxMergeDoodadFacing(cellX, cellY, NavigationGrid.FACING_S, cover);
+        maxMergeDoodadFacing(cellX, cellY, NavigationGrid.FACING_W, cover);
+        int idx = grid.index(cellX, cellY);
+        if (cover >= (occupantCoverOnCell[idx] & 0xFF)) {
+            occupantHalfHeightOnCell[idx] = cover > (occupantCoverOnCell[idx] & 0xFF)
+                    ? ballisticHalfHeight : Math.max(occupantHalfHeightOnCell[idx], ballisticHalfHeight);
+            occupantCoverOnCell[idx] = (byte) cover;
+        }
+    }
+
+    /**
+     * Cover a unit standing on (x, y) takes from the ground it stands in, against a round at
+     * height {@code roundZ}, from any direction: a trench's level, or zero. How much of it a
+     * particular shot meets depends on the shooter's distance ({@code BallisticResolver}).
+     */
+    public int occupantCoverAt(int x, int y, float roundZ) {
+        if (occupantCoverOnCell == null || !grid.inBounds(x, y)) return 0;
+        int idx = grid.index(x, y);
+        int level = occupantCoverOnCell[idx] & 0xFF;
+        return level > 0 && Math.abs(roundZ) <= occupantHalfHeightOnCell[idx] ? level : 0;
     }
 
     /** Writes {@code level} to a cell+facing slot if higher than the current value. Out-of-bounds calls are no-ops so callers don't need to bounds-check the four neighbor writes around an edge doodad. */

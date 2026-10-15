@@ -1098,7 +1098,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.equipmentDropSystem = new EquipmentDropSystem(rosterService, this::clearPath, equipmentDropService);
         this.mitigationSystem = new MitigationSystem(rosterService);
         this.damageResolver = new DamageResolver(
-                navigation, rosterService, equipmentDropService,
+                navigation, doodadService, rosterService, equipmentDropService,
                 // deathSink takes the dying id straight into the id-native
                 // deathsThisFrame list (read post-advance by the death-voice
                 // consumers via identity()/world() by-id — IDENTITY survives release).

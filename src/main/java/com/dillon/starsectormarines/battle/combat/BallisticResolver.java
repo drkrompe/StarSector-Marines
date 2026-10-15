@@ -59,6 +59,14 @@ public final class BallisticResolver {
     public static final float PROXIMITY_CATCH_ZERO_DISTANCE = 2.0f;
     /** Probabilistic cover and friendly contacts at or beyond this muzzle distance use their full authored chance. */
     public static final float PROXIMITY_CATCH_FULL_DISTANCE = 8.0f;
+    /**
+     * A shooter at or inside this distance from a man in a trench meets none of its cover: close
+     * enough to fire down into it. Trench cover is strongest against fire from a distance, and an
+     * attacker who closes has beaten the position.
+     */
+    public static final float OCCUPANT_COVER_ZERO_DISTANCE = 3.0f;
+    /** A shooter at or beyond this distance from a man in a trench meets its full cover. */
+    public static final float OCCUPANT_COVER_FULL_DISTANCE = 15.0f;
     /** Round speed (cells/sec) used when the firing weapon carries no velocity of its own. Declared here as the tuning surface; the per-shot velocity is resolved by the caller before calling {@link #resolve}. */
     public static final float DEFAULT_ROUND_VELOCITY = 60f;
     /** Block-roll chance by cover level, index = level (capped at 3 = {@link NavigationGrid#MAX_COVER}). Tuning-neutral anchor: today's 0.85/0.70/0.55 accuracy multipliers for levels 1/2/3. */
@@ -615,6 +623,15 @@ public final class BallisticResolver {
             float coverBlockChance = BLOCK_CHANCE_BY_LEVEL[
                     Math.min(coverLevel, BLOCK_CHANCE_BY_LEVEL.length - 1)]
                     * proximityScale;
+            // The ground the victim stands in (a trench) covers him from every direction,
+            // more the further off the shooter is. One roll: the better of the two covers.
+            int occupantLevel = e.hull ? 0
+                    : doodads.occupantCoverAt(e.victimCellX, e.victimCellY, e.z);
+            if (occupantLevel > 0) {
+                coverBlockChance = Math.max(coverBlockChance, BLOCK_CHANCE_BY_LEVEL[
+                        Math.min(occupantLevel, BLOCK_CHANCE_BY_LEVEL.length - 1)]
+                        * occupantCoverScale(e.t * roundVelocity));
+            }
             if (coverBlockChance > 0f && rng.nextFloat() < coverBlockChance) {
                 return new Resolution(e.x, e.y, e.z, e.t, 0L,
                         anyIntended(bodyHits), false, StopKind.COVER_CLIP, bodyHits);
@@ -715,6 +732,19 @@ public final class BallisticResolver {
         if (distanceFromMuzzle >= PROXIMITY_CATCH_FULL_DISTANCE) return 1f;
         float x = (distanceFromMuzzle - PROXIMITY_CATCH_ZERO_DISTANCE)
                 / (PROXIMITY_CATCH_FULL_DISTANCE - PROXIMITY_CATCH_ZERO_DISTANCE);
+        return x * x * (3f - 2f * x);
+    }
+
+    /**
+     * How much of a trench's cover a shooter {@code distance} cells from the man in it meets: none
+     * at {@link #OCCUPANT_COVER_ZERO_DISTANCE}, all of it at {@link #OCCUPANT_COVER_FULL_DISTANCE},
+     * smoothstepped between.
+     */
+    public static float occupantCoverScale(float distance) {
+        if (distance <= OCCUPANT_COVER_ZERO_DISTANCE) return 0f;
+        if (distance >= OCCUPANT_COVER_FULL_DISTANCE) return 1f;
+        float x = (distance - OCCUPANT_COVER_ZERO_DISTANCE)
+                / (OCCUPANT_COVER_FULL_DISTANCE - OCCUPANT_COVER_ZERO_DISTANCE);
         return x * x * (3f - 2f * x);
     }
 

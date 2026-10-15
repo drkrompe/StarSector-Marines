@@ -4,7 +4,7 @@ Status: ACTIVE — modeled ground direct fire is shipped; one manual feel pass r
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — integral shoulder pods commit rounds from their physical muzzle.
+Updated: 2026-10-15 — trenches cover their occupant from every bearing, scaled by shooter distance.
 
 Ballistics makes a direct shot a committed physical event instead of an
 accuracy result applied at the muzzle. It owns contact along the predicted
@@ -177,6 +177,16 @@ two cells of the muzzle, then use a smoothstep ramp to full strength at eight
 cells. Authored cover levels catch at 15%, 30%, or 45% once fully downrange.
 This does not weaken walls, hostile incidental contacts, or the intended
 target.
+
+A trench is the exception to both shapes: it is a hole, not an obstacle. It
+never catches a round crossing it and lends nothing to the cells beside it;
+it covers only the man standing in it, and from every bearing alike, since a
+dug channel has no front. Its protection is the shooter's distance from him:
+none at three cells or closer, where a shooter fires down into it, rising by
+smoothstep to its full authored level at fifteen. That one figure serves both
+the interception roll at the occupant and the damage cut on a hit that lands,
+taking the better of it and any edge cover there. A hit with no attacker,
+such as a detonation, meets the full cut.
 
 A physically crossed hostile can receive a missed round. Friendly incidental
 contacts use a 35% full-distance catch chance and apply half direct damage.
