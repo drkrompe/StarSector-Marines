@@ -171,7 +171,9 @@ Do not run builds or leave generated task files there.
   Junction's default matrix flies the lift a company has at that point in the
   campaign: three interiors with two Hermes making three four-seat trips (24),
   one Hermes making six, and one Hermes making three (12, understrength), plus
-  militia-held-at-landing and absent-player controls. `-PsnapshotEveryTicks=N`
+  militia-held-at-landing and absent-player controls.
+  `-Dbattle.junction.talonTwo=false` is the no-gunship control for the trenches.
+  `-PsnapshotEveryTicks=N`
   records a whole-map `review.gif`; add `-PsnapshotFocus=x,y,cellsAcross` for a
   close view instead (the Weigh Station is about `72,50`). `-Pmission=junction`
   replays the production finite territorial factory; it does not create a campaign

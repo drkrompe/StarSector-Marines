@@ -25,7 +25,7 @@ Run from a real campaign at 1920x1080 and 100% UI scale:
 - Launch Junction with actual issued gear and one or several fitted boats.
   Check named squads, acting NCOs, employer separation, boat and passenger losses.
   Verify the two-squad/four-ready-each minimum and larger companies.
-- Watch Talon Two cover the Junction advance and pause over settling militia;
+- Watch Talon Two open the Junction advance, then go ahead to the Dispatch trench;
   check the absence of a player gunship card or support cost. On Thunder Run,
   identify the returning callsign, visible flak and damage warning. Leave the
   guns alive for the crash; clear them early in another attempt for survival.
