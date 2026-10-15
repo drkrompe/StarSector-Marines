@@ -1247,7 +1247,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         for (Map.Entry<Integer, List<DefenceStructureFact>> entry : forts.entrySet()) {
             List<DefenceStructureFact> aspects = entry.getValue();
             if (aspects.stream().noneMatch(a -> frame.perspective().hostileTo(a.holder()))) continue;
-            if (!standsInTheWay(aspects)) continue;
+            if (!standsInTheWay(aspects) && !opensTheSky(frame.perspective(), aspects, frame.facts().airSupport().skyNeed())) continue;
             int cx = 0;
             int cy = 0;
             for (DefenceStructureFact aspect : aspects) {
@@ -1299,6 +1299,20 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     left, top, right, bottom)) return true;
         }
         return !anyWork;
+    }
+
+    /**
+     * Whether a fort off the line of march is still worth a company because of the sky: its bunker's radar spots for aircraft
+     * that are being flown at this side's units, or its anti-air yard shuts the sky to the strikes this side could place.
+     * Both are the side's own knowledge ({@link SkyNeed}) of aspects it has been disclosed.
+     */
+    static boolean opensTheSky(Faction side, List<DefenceStructureFact> aspects, SkyNeed need) {
+        for (DefenceStructureFact aspect : aspects) {
+            if (!side.hostileTo(aspect.holder())) continue;
+            if (need.flownAt() && aspect.kind() == DefenceStructureFact.Kind.FIRE_CONTROL) return true;
+            if (need.shut() && aspect.kind() == DefenceStructureFact.Kind.FORT_AIR_DEFENCE) return true;
+        }
+        return false;
     }
 
     /** Grows a {@code {left, right, top, bottom}} cell box to hold a cell. */
@@ -1425,7 +1439,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     squad.originalAssignment, squad.demolition));
         }
         for (DefenceStructureTactics.Task task : DefenceStructureTactics.plan(
-                frame.perspective(), structures, candidates, frame.topology(), frame.facts().airSupport().blocked())) {
+                frame.perspective(), structures, candidates, frame.topology(), frame.facts().airSupport().skyNeed())) {
             PlanningSquad squad = allSquads.get(task.squadId());
             squad.assignedObjective = task.assignment();
             int preferred = stripFor(squad);

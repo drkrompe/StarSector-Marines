@@ -62,7 +62,7 @@ class FortAirDefenceStageTest {
     }
 
     @Test
-    void theYardIsAConsoleABatteryAndTwoFlakPositionsAtEveryTurn() {
+    void theYardIsAConsoleTwoMissileBatteriesAndTwoFlakPositionsAtEveryTurn() {
         for (FortPlan plan : new FortPlan[]{BatteryFort.PLAN, ShieldFort.PLAN}) {
             for (int turn = 0; turn < 4; turn++) {
                 GenContext ctx = field();
@@ -82,7 +82,7 @@ class FortAirDefenceStageTest {
                 assertEquals(Set.of(TurretCatalogRegistry.FORT_AIR_CONTROL_STRUCTURE_ID,
                         TurretCatalogRegistry.RIDGE_AA_STRUCTURE_ID, TurretCatalogRegistry.ANTI_AIR_STRUCTURE_ID), structures);
                 assertEquals(2, flak);
-                assertEquals(4, yardPosts(ctx));
+                assertEquals(5, yardPosts(ctx), "console, two Ridgewatch batteries, two flak");
             }
         }
     }

@@ -14,7 +14,6 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
-import com.dillon.starsectormarines.marine.CommsKitSpec;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -337,7 +336,11 @@ public final class AirPoolService {
         ledger.available--;
         ledger.reserved++;
         pending.add(new PendingCall(side, kind, job, operator.unit(), x, y, ready));
-        sim.world().setSecondaryCooldownTimer(operator.unit(), operator.spec().cooldownSeconds());
+        if (operator.atFort()) {
+            operator.fort().holdSensorNetUntil(sim.getSimTickIndex() + Math.round(operator.spec().cooldownSeconds() / BattleSimulation.TICK_DT));
+        } else {
+            sim.world().setSecondaryCooldownTimer(operator.unit(), operator.spec().cooldownSeconds());
+        }
         events.add(new Event(sim.getSimTickIndex(), side, kind, EventType.CALLED, x, y));
         tallyOf(side, job).called++;
         return Outcome.CALLING;
@@ -392,8 +395,7 @@ public final class AirPoolService {
     private void completeCalls(BattleSimulation sim) {
         for (int i = pending.size() - 1; i >= 0; i--) {
             PendingCall call = pending.get(i);
-            CommsKitSpec spec = sim.world().isAlive(call.operator) ? CommsKit.specOf(sim.world(), call.operator) : null;
-            boolean dropped = spec == null || CommsOperators.suppressed(sim, call.operator, spec);
+            boolean dropped = !CommsOperators.stillAble(sim, call.side, call.operator);
             if (!dropped && sim.getSimTickIndex() < call.readyTick) continue;
             pending.remove(i);
             Ledger ledger = ledger(call.side, call.kind);

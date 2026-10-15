@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
+import java.util.function.LongPredicate;
+
 /**
  * The enemy unit with the most friends around it — what an aircraft is sent at.
  *
@@ -60,6 +62,15 @@ public final class EnemyConcentration {
     }
 
     /**
+     * As {@link #densest}, among the units {@code eligible} accepts: the concentration the caller can actually see. A side
+     * that sends an aircraft at ground only some observer has in sight must pick its target from what that observer
+     * sees, not from the densest group anywhere on the map, which no observer may know of.
+     */
+    public static long densest(BattleSimulation sim, Faction side, LongPredicate eligible) {
+        return densestAwayFrom(sim, side, null, 0, 0f, eligible);
+    }
+
+    /**
      * The densest live concentration of whatever {@code side} fights that is at
      * least {@code minSeparation} cells from every position in {@code avoidXy},
      * or {@code 0} when there is no such thing.
@@ -77,6 +88,12 @@ public final class EnemyConcentration {
     public static long densestAwayFrom(BattleSimulation sim, Faction side,
                                        float[] avoidXy, int avoidCount,
                                        float minSeparation) {
+        return densestAwayFrom(sim, side, avoidXy, avoidCount, minSeparation, unit -> true);
+    }
+
+    private static long densestAwayFrom(BattleSimulation sim, Faction side,
+                                        float[] avoidXy, int avoidCount,
+                                        float minSeparation, LongPredicate eligible) {
         UnitRosterService roster = sim.getRoster();
         World world = sim.world();
         long best = 0L;
@@ -93,7 +110,7 @@ public final class EnemyConcentration {
                 // concentration and worth one sortie.
                 int near = sim.getUnitIndex().countHostileCombatants(
                         world.x(u), world.y(u), CLUSTER_RADIUS, side, 0L);
-                if (near > bestCount) {
+                if (near > bestCount && eligible.test(u)) {
                     bestCount = near;
                     best = u;
                 }

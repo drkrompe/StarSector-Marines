@@ -501,10 +501,10 @@ final class FortAssault {
         private final Map<Integer, Integer> strikeFlight = new TreeMap<>();
         private final List<StrikeWish> wishes = new ArrayList<>();
         /** Whether the side is shut out of the sky by anti-air it knows; set by the muster each pulse. */
-        private boolean skyWanted;
+        private SkyNeed skyNeed = SkyNeed.NONE;
 
-        void skyWanted(boolean skyWanted) {
-            this.skyWanted = skyWanted;
+        void skyNeed(SkyNeed skyNeed) {
+            this.skyNeed = skyNeed;
         }
 
         Execution(Works works, NestBelief belief, Way way, int tick) {
@@ -688,7 +688,7 @@ final class FortAssault {
                     if (liveCovering == 0) for (int id : fire) candidates.add(candidate(byId.get(id)));
                     else for (int id : fire) orders.put(id, fireOrder(id));
                     List<DefenceStructureTactics.Task> tasks = DefenceStructureTactics.planMassed(
-                            perspective, objective.aspects(), candidates, topology, skyWanted);
+                            perspective, objective.aspects(), candidates, topology, skyNeed);
                     if (tasks.isEmpty()) return candidates.isEmpty() ? orders : null;
                     int[] aspect = {tasks.get(0).structure().cellX(), tasks.get(0).structure().cellY()};
                     if (heldAspect != null && (heldAspect[0] != aspect[0] || heldAspect[1] != aspect[1])) {

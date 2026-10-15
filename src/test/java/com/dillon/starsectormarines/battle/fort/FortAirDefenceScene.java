@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.battle.airsupport.AirPoolService.EventType;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolStock;
 import com.dillon.starsectormarines.battle.airsupport.AirStrikeCapability;
 import com.dillon.starsectormarines.battle.airsupport.AirStrikeDirector;
+import com.dillon.starsectormarines.battle.airsupport.CommsOperators;
+import com.dillon.starsectormarines.battle.airsupport.CommsOperators.Operator;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.scene.BehaviorScene;
@@ -31,6 +33,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BuildingFloodFill;
 import com.dillon.starsectormarines.battle.world.gen.bsp.FortStage;
 import com.dillon.starsectormarines.battle.world.gen.fortress.AirDefenceYard;
+import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -65,6 +68,20 @@ import java.util.Random;
  *   <li>{@code taken}: a squad of the company already stands in the yard and takes it. The mounts change sides with the
  *       yard and do not fire on the company's bomber.</li>
  *   <li>{@code shield-fort}: as {@code aa-forced}, over a shield fort, to show the aspect is not a battery fort's alone.</li>
+ * </ul>
+ *
+ * <p>Five more loops are about the fort as a <em>spotter</em> for its holder's air ({@link FortSensors}, the radar on the
+ * bunker roof), with no radio operator on the map at all. A squad of eight stands massed thirty-odd cells from the bunker, in the
+ * radar's reach and out of the eye's, and the side whose air is AI-directed has three bombers in stock:
+ * <ul>
+ *   <li>{@code spots-control}: the fort's spotting is switched off for this battle only. The fort still sees the mass; nothing
+ *       is called.</li>
+ *   <li>{@code fort-spots}: the defenders have a pool and no radio; the fort is their only operator, sees the mass over the real
+ *       ground and a defender bomber is called onto it.</li>
+ *   <li>{@code spots-wrecked}: the bunker is destroyed first. The fort sees nothing and calls nothing.</li>
+ *   <li>{@code spots-unpowered}: the plant is destroyed first. The dish stops and the fort has only its eye, which does not reach.</li>
+ *   <li>{@code spots-taken}: the marines (with the pool) take the bunker and the plant. The fort stops watching for the
+ *       garrison and spots for the marines, who call a strike on a defender mass the garrison's own fort used to cover.</li>
  * </ul>
  *
  * <p>Judged from mechanics (does the yard fire, stop, obey its holder, slow without power, and does the director read
@@ -110,6 +127,11 @@ public final class FortAirDefenceScene implements BehaviorScene {
             Run unpowered = playOne("unpowered", frames);
             Run taken = playOne("taken", frames);
             Run shield = playOne("shield-fort", frames);
+            Spot spotControl = playSpot("spots-control", frames);
+            Spot spots = playSpot("fort-spots", frames);
+            Spot spotWrecked = playSpot("spots-wrecked", frames);
+            Spot spotUnpowered = playSpot("spots-unpowered", frames);
+            Spot spotTaken = playSpot("spots-taken", frames);
             reports.add(report("control", control, control, null));
             reports.add(report("aa-forced", forced, control, null));
             reports.add(report("declined-control", declinedControl, control, null));
@@ -118,6 +140,11 @@ public final class FortAirDefenceScene implements BehaviorScene {
             reports.add(report("unpowered", unpowered, control, forced));
             reports.add(report("taken", taken, control, forced));
             reports.add(report("shield-fort", shield, control, forced));
+            reports.add(spotReport("spots-control", spotControl, spotControl));
+            reports.add(spotReport("fort-spots", spots, spotControl));
+            reports.add(spotReport("spots-wrecked", spotWrecked, spots));
+            reports.add(spotReport("spots-unpowered", spotUnpowered, spots));
+            reports.add(spotReport("spots-taken", spotTaken, spots));
         } finally {
             TurretSlotResolver.useHullSpecs(null);
         }
@@ -222,6 +249,213 @@ public final class FortAirDefenceScene implements BehaviorScene {
         return want;
     }
 
+    // ------------------------------------------------------------------------------------------------ the fort as a spotter
+
+    private static final int SPOT_TICKS = 2700;
+    /** Cells west of the bunker the massed squad stands: inside the radar's reach and outside the eye's. */
+    private static final int MASS_DISTANCE = 32;
+    private static final int MASS_SIZE = 8;
+    /** The tick the bunker or the plant is wrecked in the loops that do: before the first bomber is in stock. */
+    private static final int SPOT_EVENT_TICK = EVENT_TICK;
+    /** The tick the operators are counted: after the wreck, before the first airframe regenerates (10 s in). */
+    private static final int SPOT_OBSERVE_TICK = 290;
+
+    private record Spot(Fort fort, BattleSimulation sim, SpotTrace trace, int[] mass) {}
+
+    private Spot playSpot(String loop, FrameSink frames) {
+        // No anti-air yard: a yard the other side has sighted would refuse the strike for its own reason (see the loops above).
+        Stamped stamped = stamp(FortKind.BATTERY_FORT, false);
+        FortStage.Placed placed = stamped.placed();
+        int[] bunker = placed.placement().cell(BatteryFort.coreCentre(FortAspect.FIRE_CONTROL)[0],
+                BatteryFort.coreCentre(FortAspect.FIRE_CONTROL)[1]);
+        int[] mass = openNear(stamped.grid(), new int[]{bunker[0] - MASS_DISTANCE, bunker[1]});
+        boolean taken = loop.equals("spots-taken");
+        Faction massSide = taken ? Faction.DEFENDER : Faction.MARINE;
+        Faction poolSide = taken ? Faction.MARINE : Faction.DEFENDER;
+        int[] bunkerFloor = BatteryFort.floor(FortAspect.FIRE_CONTROL);
+        int[] plantFloor = BatteryFort.floor(FortAspect.POWER);
+        int[] bunkerCell = openNear(stamped.grid(), placed.placement().cell(bunkerFloor[0] + 1, bunkerFloor[1] + 1));
+        int[] plantCell = openNear(stamped.grid(), placed.placement().cell(plantFloor[0] + 1, plantFloor[1] + 1));
+        int[] garrisonCell = openNear(stamped.grid(), placed.placement().cell(
+                bunkerFloor[0] + 3, bunkerFloor[1] + 12));
+
+        SceneBuilder builder = SceneBuilder.over(stamped.grid(), stamped.topology()).posts(stamped.posts())
+                .missionCompletion(false);
+        builder.squad("massed").faction(massSide).size(MASS_SIZE).at(mass[0], mass[1]).primary("weapon.smg")
+                .health(100_000f).stationary()
+                .assigned(id -> ObjectiveAssignment.defendTrack(id, mass[0], mass[1])).done();
+        builder.squad("garrison").faction(Faction.DEFENDER).size(GARRISON).at(garrisonCell[0], garrisonCell[1])
+                .primary("weapon.smg").health(100_000f).stationary()
+                .assigned(id -> ObjectiveAssignment.defendTrack(id, garrisonCell[0], garrisonCell[1])).done();
+        if (taken) {
+            builder.squad("bunker-raiders").faction(Faction.MARINE).size(4).at(bunkerCell[0], bunkerCell[1]).primary("weapon.smg")
+                    .health(100_000f).stationary()
+                    .assigned(id -> ObjectiveAssignment.defendTrack(id, bunkerCell[0], bunkerCell[1])).done();
+            builder.squad("plant-raiders").faction(Faction.MARINE).size(4).at(plantCell[0], plantCell[1]).primary("weapon.smg")
+                    .health(100_000f).stationary()
+                    .assigned(id -> ObjectiveAssignment.defendTrack(id, plantCell[0], plantCell[1])).done();
+        }
+        SceneWorld world = builder.build();
+        BattleSimulation sim = world.sim();
+        sim.random().setSeed(20261017L);
+        Fort fort = sim.forts().forts().get(0);
+        if (loop.equals("spots-control")) sim.forts().setSpotting(false);
+        // The pool is the side's own AI director's: nobody asks for the strike here. Nobody carries a radio either.
+        AirPoolAllowance allowance = AirPoolAllowance.of(new AirPoolStock(0, 3, 10f), null, true);
+        sim.setAirPool(new AirPoolService(AirPoolDeclaration.NONE.with(poolSide, allowance)));
+
+        SpotTrace trace = new SpotTrace(fort, poolSide, mass, garrisonCell);
+        TickObserver script = (s, tick) -> {
+            if (tick != SPOT_EVENT_TICK) return;
+            if (loop.equals("spots-wrecked")) s.applyDamage(fort.place(FortAspect.FIRE_CONTROL).coreId(), 1_000_000f, 3.5f, 0f);
+            if (loop.equals("spots-unpowered")) s.applyDamage(fort.place(FortAspect.POWER).coreId(), 1_000_000f, 3.5f, 0f);
+        };
+        SceneRun.of(world).observe(script, trace)
+                .frames(frames, loop, 110, tick -> trace.caption(loop, tick))
+                .run(SPOT_TICKS);
+        return new Spot(fort, sim, trace, mass);
+    }
+
+    private static final class SpotTrace implements TickObserver {
+        private final Fort fort;
+        private final Faction poolSide;
+        private final int[] mass;
+        private final int[] garrison;
+        final List<Event> events = new ArrayList<>();
+        private int seenEvents;
+        int operatorsAtStart = -1;
+        int fortOperatorsAtStart = -1;
+        boolean seesMassAtStart;
+        boolean seesMassAtEnd;
+        float rangeAtEnd;
+        int flipTick = -1;
+        int firstCallTick = -1;
+        boolean fortObservesForOldHolderAtEnd = true;
+        boolean observesForMarinesAtEnd;
+
+        SpotTrace(Fort fort, Faction poolSide, int[] mass, int[] garrison) {
+            this.fort = fort;
+            this.poolSide = poolSide;
+            this.mass = mass;
+            this.garrison = garrison;
+        }
+
+        int count(EventType type) {
+            int n = 0;
+            for (Event e : events) if (e.type() == type && e.side() == poolSide) n++;
+            return n;
+        }
+
+        /** Calls placed on the massed squad: within a cluster radius of where it stands. */
+        int callsOnTheMass() {
+            return callsNear(mass);
+        }
+
+        /** Calls placed on the garrison inside the works, which the radar also has in sight. */
+        int callsOnTheGarrison() {
+            return callsNear(garrison);
+        }
+
+        private int callsNear(int[] cell) {
+            int n = 0;
+            for (Event e : events) {
+                if (e.type() == EventType.CALLED && e.side() == poolSide
+                        && Math.hypot(e.x() - (cell[0] + 0.5f), e.y() - (cell[1] + 0.5f)) <= 8f) n++;
+            }
+            return n;
+        }
+
+        String caption(String loop, int tick) {
+            Faction observer = FortSensors.observer(fort);
+            String radar = fort.place(FortAspect.FIRE_CONTROL).wrecked() ? "radar WRECKED"
+                    : observer == null ? "radar silent" : "radar for " + observer.name().toLowerCase(Locale.ROOT)
+                    + String.format(Locale.ROOT, " (%.0f cells)", FortSensors.range(fort));
+            return String.format(Locale.ROOT, "%s / tick %d / %s / calls %d / sorties %d", loop, tick, radar,
+                    count(EventType.CALLED), count(EventType.LAUNCHED));
+        }
+
+        @Override
+        public void observe(BattleSimulation sim, int tick) {
+            List<Event> all = sim.airPool().events();
+            while (seenEvents < all.size()) events.add(all.get(seenEvents++));
+            if (tick == SPOT_OBSERVE_TICK) {
+                List<Operator> ops = CommsOperators.available(sim, poolSide);
+                operatorsAtStart = ops.size();
+                int atFort = 0;
+                for (Operator op : ops) if (op.atFort()) atFort++;
+                fortOperatorsAtStart = atFort;
+                seesMassAtStart = FortSensors.sees(sim, fort, mass[0], mass[1]);
+            }
+            if (flipTick < 0 && fort.battery().owner() == Faction.MARINE) flipTick = tick;
+            if (firstCallTick < 0 && count(EventType.CALLED) > 0) firstCallTick = tick;
+            seesMassAtEnd = FortSensors.sees(sim, fort, mass[0], mass[1]);
+            rangeAtEnd = FortSensors.range(fort);
+            fortObservesForOldHolderAtEnd = FortSensors.observesFor(fort, Faction.DEFENDER);
+            observesForMarinesAtEnd = FortSensors.observesFor(fort, Faction.MARINE);
+        }
+    }
+
+    private SceneReport spotReport(String loop, Spot run, Spot reference) {
+        SpotTrace t = run.trace();
+        List<Verdict> verdicts = new ArrayList<>();
+        int calls = t.count(EventType.CALLED);
+        int launched = t.count(EventType.LAUNCHED);
+        switch (loop) {
+            case "spots-control" -> {
+                verdicts.add(Verdict.of("the-fort-still-sees-the-mass", t.seesMassAtStart,
+                        "the radar has the mass in sight: " + t.seesMassAtStart));
+                verdicts.add(Verdict.of("but-nothing-is-called", calls == 0 && launched == 0 && t.fortOperatorsAtStart == 0,
+                        "calls " + calls + ", sorties " + launched + ", fort operators " + t.fortOperatorsAtStart));
+            }
+            case "fort-spots" -> {
+                verdicts.add(Verdict.of("the-fort-is-the-only-operator", t.operatorsAtStart == 1 && t.fortOperatorsAtStart == 1,
+                        t.operatorsAtStart + " operators, " + t.fortOperatorsAtStart + " of them the fort"));
+                verdicts.add(Verdict.of("it-sees-the-mass-over-real-ground", t.seesMassAtStart,
+                        "the mass stands " + MASS_DISTANCE + " cells from the bunker, radar reach "
+                                + (int) FortSensors.RADAR_RANGE_CELLS));
+                verdicts.add(Verdict.of("a-strike-is-called-on-the-mass-and-flies", t.callsOnTheMass() >= 1 && launched >= 1,
+                        t.callsOnTheMass() + " calls on the mass, first at tick " + t.firstCallTick + ", " + launched + " sorties"));
+            }
+            case "spots-wrecked" -> {
+                verdicts.add(Verdict.of("the-bunker-is-wrecked", run.fort().place(FortAspect.FIRE_CONTROL).wrecked(), "wrecked"));
+                verdicts.add(Verdict.of("the-fort-sees-nothing", !t.seesMassAtEnd && t.rangeAtEnd == 0f,
+                        "sees the mass: " + t.seesMassAtEnd + ", range " + t.rangeAtEnd));
+                verdicts.add(Verdict.of("and-calls-nothing", calls == 0 && launched == 0,
+                        "calls " + calls + ", sorties " + launched + " (" + reference.trace().count(EventType.LAUNCHED)
+                                + " with the radar standing)"));
+            }
+            case "spots-unpowered" -> {
+                verdicts.add(Verdict.of("the-plant-is-gone", run.fort().place(FortAspect.POWER).wrecked(), "plant wrecked"));
+                verdicts.add(Verdict.of("the-dish-stops-and-the-fort-has-only-its-eye",
+                        t.rangeAtEnd == FortSensors.EYE_RANGE_CELLS && !t.seesMassAtEnd,
+                        "range " + t.rangeAtEnd + " cells, the mass is " + MASS_DISTANCE + " away"));
+                verdicts.add(Verdict.of("so-nothing-is-called", calls == 0 && launched == 0,
+                        "calls " + calls + ", sorties " + launched));
+            }
+            case "spots-taken" -> {
+                verdicts.add(Verdict.of("the-company-takes-the-bunker", t.flipTick > 0 && run.fort().battery().owner() == Faction.MARINE,
+                        "owner " + run.fort().battery().owner() + ", flipped at tick " + t.flipTick));
+                verdicts.add(Verdict.of("the-fort-no-longer-watches-for-the-garrison", !t.fortObservesForOldHolderAtEnd,
+                        "observes for the defenders at the end: " + t.fortObservesForOldHolderAtEnd));
+                verdicts.add(Verdict.of("it-spots-for-the-marines-only-after-the-flip",
+                        t.firstCallTick > t.flipTick && t.flipTick > 0 && calls >= 1 && t.observesForMarinesAtEnd,
+                        "first call at tick " + t.firstCallTick + ", flip at " + t.flipTick + ", " + calls + " calls: "
+                                + t.callsOnTheMass() + " on the defenders' mass, " + t.callsOnTheGarrison()
+                                + " on the garrison, the rest on ground the radar has in sight (the works' nests); the marines carry no radio"));
+            }
+            default -> throw new IllegalStateException(loop);
+        }
+        Map<String, Number> metrics = new LinkedHashMap<>();
+        metrics.put("calls", calls);
+        metrics.put("launched", launched);
+        metrics.put("returned", t.count(EventType.RETURNED));
+        metrics.put("lost", t.count(EventType.LOST));
+        metrics.put("firstCallTick", t.firstCallTick);
+        metrics.put("flipTick", t.flipTick);
+        metrics.put("radarRangeCells", Math.round(t.rangeAtEnd));
+        return new SceneReport(id(), loop, SPOT_TICKS, verdicts, metrics);
+    }
+
     // ------------------------------------------------------------------------------------------------ verdicts
 
     private SceneReport report(String loop, Run run, Run control, Run other) {
@@ -243,7 +477,7 @@ public final class FortAirDefenceScene implements BehaviorScene {
             }
             case "aa-forced" -> {
                 verdicts.add(Verdict.of("the-yard-is-assembled", fort.place(FortAspect.AIR_DEFENCE) != null
-                                && fort.airMountIds().size() == 3,
+                                && fort.airMountIds().size() == 4,
                         fort.airMountIds().size() + " mounts, console " + (fort.place(FortAspect.AIR_DEFENCE) != null)));
                 verdicts.add(Verdict.of("the-yard-fires-on-the-bomber", t.mountShots() > 0 && t.guidedShots() > 0,
                         t.mountShots() + " yard rounds, " + t.guidedShots() + " guided, first at tick " + t.firstMountShotTick));
@@ -311,7 +545,7 @@ public final class FortAirDefenceScene implements BehaviorScene {
             }
             case "shield-fort" -> {
                 verdicts.add(Verdict.of("a-shield-fort-carries-the-yard", fort.kind() == FortKind.SHIELD_FORT
-                                && fort.place(FortAspect.AIR_DEFENCE) != null && fort.airMountIds().size() == 3,
+                                && fort.place(FortAspect.AIR_DEFENCE) != null && fort.airMountIds().size() == 4,
                         fort.airMountIds().size() + " mounts in a " + fort.kind()));
                 verdicts.add(Verdict.of("and-it-fires", t.mountShots() > 0,
                         t.mountShots() + " yard rounds, hull low " + Math.round(t.minHullShare * 100f) + "%"));
