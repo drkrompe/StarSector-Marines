@@ -418,6 +418,16 @@ squad does not move into powered armor the moment the first suit is acquired. Ev
 sheet works the same way: the card carries every pattern its twelve billets wear and
 issues exactly those, whatever else the company owns.
 
+**Opening a defended position is a ladder, not a power-suit privilege.** A dug-in
+line with emplacements asks three jobs of an attacker: kill the guns from standoff,
+put a salvo into the trench, and finish it close. Each rung pairs cards that cover
+more of that. Trench-Clearing Issue (rocket tubes and grenades on service rifles)
+gives a company in its starter armor an even chance against defenders like itself.
+Adding the Freeport Assault Section's two rail packs makes that reliable. The
+Arbalest Section and the XIV Shock carry the same three jobs in heavier kit, and
+only the Shock, with real weapons, opens a line held by regulars. `loadoutMatchup`'s
+`trench-vulcans` scenario is the instrument that places a card on this ladder.
+
 **Knowing a tactic sheet is separate from being able to fill its billets.** A
 new company knows only Watchman's Kit. Learning a suit specification can teach
 its explicitly associated formations; it does not teach every faction sheet

@@ -2867,7 +2867,8 @@ public final class BattleSetup {
         int squads = AlliedGarrisonSize.squads(profile, alliedGarrisonStrengthMult);
         if (squads <= 0) return;
         AlliedGarrison.install(sim, map,
-                GroundRosterRegistry.resolve(alliedGarrisonFactionId), squads, risk,
+                GroundRosterRegistry.resolve(alliedGarrisonFactionId), squads,
+                garrisonOf(profile).quality(), risk,
                 new Random(seed ^ ALLIED_GARRISON_SEED_SALT));
     }
 

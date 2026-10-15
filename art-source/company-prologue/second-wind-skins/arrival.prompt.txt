@@ -1,0 +1,25 @@
+Built-in image_gen edit of ../second-wind-design-v3.reference.png.
+Campaign condition: escaped the Claim, before Jangala's limited conversion.
+
+Use case: precise-object-edit.
+Edit the attached accepted SECOND WIND REFERENCE V3 into a campaign CONDITION / MATERIAL VARIANT. This is SKINNING ONLY. Preserve the exact same four ship views, camera projections, silhouettes, hull thicknesses, armor volumes, layered machinery, bay apertures and framing, four turrets, horizontal port pod and four engine positions. Do not redesign or inflate the ship. V3 is our relatively clean/medium condition baseline; this variant is MUCH more battered and visibly field-repaired.
+
+STATE: ARRIVAL AT JANGALA, after the desperate escape from Harker's Claim, BEFORE the paid berthing conversion. This is a barely serviceable ship already patched enough to fly and hold occupied compartments at pressure. She spent ELEVEN YEARS tethered as a parts bin with shields off, taking small asteroid impacts. The crew restored essential systems with scavenged hauler parts and hab-door seals. There are still far more unreplaced parts than replaced ones. Point-defence mounts have ALREADY been brought aboard, so keep all FOUR installed turrets. No battle explosion, active fire, dead hulk, or shattered silhouette.
+
+MATERIAL STORY: Increase OLD localized damage and patch history substantially beyond V3. Broad areas of faded/eroded cream paint and dull burnt oxide-orange, dark exposed undercoat, clusters of small meteorite pits, several old sharp impact scars in outer plating, scorched paint around borrowed seals, scraped reinforcement bands, mismatched salvaged gray steel patch plates, rough weld seams and old fastening patterns. Use varied scale and direction, not a uniform noisy dirt filter. A few existing outer service-cover panels are visibly stripped or bent within their existing footprint; machinery and pressure patchwork remain intact behind them. Do not add vast missing hull chunks, exposed rooms or open pressure breaches. No rain streaks, moss, ocean rust, dangling giant cables, ongoing smoke, workers or dramatic lighting.
+
+CONTINUITY LANDMARKS, attached to hull-local surfaces and repeated consistently in the four projections:
+A. On the forward PORT shoulder ABOVE the low side pod: a recognizable cluster of old small impact pits and dark scoring, partly covered by an irregular salvaged steel patch with rough welds under the forward armor collar. Keep the pod's outline and collar attachment untouched.
+B. On the PORT aft engine-room shoulder/outboard plating: a larger old blackened gouge and stripped paint, bounded by existing armor seams, with an old mismatched cover bolted over part of it. Keep the engines and their housings intact.
+C. Around the recessed central service waist: grubby, scorched external covers and darkened exposed conduit joints. A short salvaged cargo-rail brace reinforces an existing bay-frame rib without moving or obstructing the opening.
+Preserve the recognizable cream/orange pattern beneath the wear. She should read as an urgently recovered working ship, not a uniformly black wreck.
+
+POD COLOR FIX: REMOVE ALL BLUE, TEAL AND TURQUOISE from the side pod in EVERY view. Its skin is worn dirty cream with an oxide-orange replacement plate and dark gunmetal hatch/latches, aged like the rest of the ship. The blue was only a previous geometry guide marker. Preserve its horizontal orientation, side-facing round hatch, exact location, dimensions, long axis and small silhouette. Do not add another pod.
+
+Small in-universe marking: paint "SECOND WIND" by hand over a faint sanded-out old registry on an existing forward port armor panel, above/behind the low pod without covering the impact cluster. This should be understated, imperfect crew-applied lettering, not a large fresh decal or a new logo.
+
+BAYS: port bay remains OPEN, empty maintenance cradle, dim amber local work lighting, worn threshold. The opposite second bay remains SEALED and damaged; no new opening, no repaired shuttle, no people, no new room added or cutaway. No external detail should claim a named interior compartment's exact position.
+
+LOCKED GEOMETRY: exactly four raised turrets, never a fifth; no new weapon or gun well. Exactly four nozzles at their existing fixed locations in two lateral pairs on one horizontal plane, larger outside/smaller inside; only the outer engine profile visible in the true side elevation. Preserve V3's projection and natural occlusion. No engine flames. Existing hull height modulation, broad forebody, recessed waist and substantial aft casings remain unchanged.
+
+Keep the sheet arrangement, background, lighting, all four view labels and margins identical. Change title to "SECOND WIND / ARRIVAL AT JANGALA", subtitle "FIELD PATCHED / RESTORATION OUTSTANDING", footer "ELEVEN YEARS AT THE CLAIM - MADE TO FLY WITH WHAT WAS LEFT". No extra inset, dimensions or explanatory lore paragraphs. Photographic industrial materials with the same neutral studio illumination. Keep full unclipped ships.
