@@ -78,7 +78,8 @@ layer is what a squad falls back to when the one in front of it is lost.
   Nothing scans every garrisonable every tick; candidate lookup is spatial.
 - **The player's version is manual.** The occupy order is the player assigning
   a garrisonable by hand, and a dragged line order assigns every fighting
-  position along a drawn frontage, one fire team per stretch. Whether a player's idle squads may opt into reactive
+  position along a drawn frontage, one fire team per stretch, counting the
+  forward-facing door and window posts of buildings the line crosses. Whether a player's idle squads may opt into reactive
   manning is a later question, not a default.
 
 ## Measuring cheaply

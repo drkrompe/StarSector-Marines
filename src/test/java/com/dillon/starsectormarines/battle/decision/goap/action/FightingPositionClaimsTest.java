@@ -23,8 +23,10 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.IntBinaryOperator;
 
@@ -166,6 +168,44 @@ class FightingPositionClaimsTest {
         FightingPositionClaims.fillLine(index, W, order, NO_COVER, cells, new int[6], new HashSet<>());
 
         for (int c : cells) assertEquals(-1, c, "overflow holds the line on ordinary ground");
+    }
+
+    @Test
+    void aLineAcrossABuildingSeatsAFireTeamAtItsPostsWithNoTrenchAtAll() {
+        FrontageLine line = FrontageLine.facing(4, 15, 35, 15, 20, 19, NO_THREAT, NO_THREAT);
+        // One building's four window posts on the line, and one more outside the band.
+        Map<Long, Integer> posts = new HashMap<>();
+        for (int x = 10; x <= 13; x++) posts.put(FightingPositionClaims.key(x, 14), 0);
+        posts.put(FightingPositionClaims.key(30, 25), 0);
+        Order order = new Order(20, 15, 20, NO_THREAT, NO_THREAT, -1, line, posts);
+        int[] cells = unassigned(8);
+        int[] teams = {0, 0, 0, 0, 1, 1, 1, 1};
+
+        FightingPositionClaims.fillLine(null, W, order, NO_COVER, cells, teams, new HashSet<>());
+
+        Set<Integer> seated = new HashSet<>();
+        for (int i = 0; i < 4; i++) seated.add(cells[i]);
+        assertEquals(Set.of(14 * W + 10, 14 * W + 11, 14 * W + 12, 14 * W + 13), seated,
+                "the first team stands at the building's posts on its stretch");
+        for (int i = 4; i < 8; i++) assertEquals(-1, cells[i], "nothing left for the second team: it holds the line");
+    }
+
+    @Test
+    void aTeamThatFillsItsBuildingDoesNotSpillIntoTheNextTeamsBuilding() {
+        FrontageLine line = FrontageLine.facing(4, 15, 36, 15, 20, 19, NO_THREAT, NO_THREAT);
+        Map<Long, Integer> posts = new HashMap<>();
+        for (int x = 9; x <= 11; x++) posts.put(FightingPositionClaims.key(x, 14), 0);   // team 0's stretch
+        for (int x = 27; x <= 28; x++) posts.put(FightingPositionClaims.key(x, 14), 1);  // team 1's stretch
+        Order order = new Order(20, 15, 20, NO_THREAT, NO_THREAT, -1, line, posts);
+        int[] cells = unassigned(6);
+        int[] teams = {0, 0, 0, 0, 1, 1};
+
+        FightingPositionClaims.fillLine(null, W, order, NO_COVER, cells, teams, new HashSet<>());
+
+        Set<Integer> first = new HashSet<>();
+        for (int i = 0; i < 4; i++) if (cells[i] >= 0) first.add(cells[i] % W);
+        assertEquals(Set.of(9, 10, 11), first, "team 0 fills its own building and its fourth man holds the line");
+        assertEquals(Set.of(27, 28), Set.of(cells[4] % W, cells[5] % W), "team 1 keeps both of its own posts");
     }
 
     @Test

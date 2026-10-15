@@ -126,6 +126,12 @@ public final class BarracksCommandModel {
         bind(reactor, "officerTraits", this::officerTraits);
         bind(reactor, "officerBiography", this::officerBiography);
         bind(reactor, "officerHistory", this::officerHistory);
+        // A card is 152px plus 10px padding each side and a 1px border; the list
+        // gaps them by 12px. Sized from the count so a new specialty is never clipped.
+        bind(reactor, "officerSpecialtyStyle", () -> {
+            int count = officerSpecialties().size();
+            return "height: " + Math.max(0, count * 174 + (count - 1) * 12) + "px;";
+        });
         bind(reactor, "officerHistoryStyle", () -> "height: " + (officerHistory().size() * 52) + "px;");
         cards = reactor.computed(() -> { revision.get(); return squads(); });
         // The raise tile rides at the end of the last page: a markup loop owns all of
