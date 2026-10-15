@@ -360,6 +360,15 @@ suspension discard queued rounds and targets without resetting ammunition or
 cooldown. The actual posed hardpoint supplies the ground ballistic source, and
 the structural body-to-barrel check prevents launching beyond a wall.
 
+The APC hull and twin roof MG are separate overhead silhouettes. The tapered
+nose and sloped glacis distinguish the front from the broad troop compartment
+and squared rear ramp, including when the gun faces elsewhere. The roof bearing
+is on the chassis centerline and the gun rotates about its own frame center;
+the retained source registration owns their measured placement. Heavy and
+escort APCs carry the same-sized MG even though their chassis sizes differ.
+The visible muzzles follow the shared heavy-MG ballistic hardpoints through
+independent hull and turret rotation (`art-source/vehicles/apc/`).
+
 A directly controlled hull repels bodies exactly as an autonomous one does.
 Navigation occupancy, crushing and predictive avoidance remain the open parts
 of `truck-infantry-interaction.md`. Direct control grants no special

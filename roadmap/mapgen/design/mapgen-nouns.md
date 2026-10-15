@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — campaign freight buildings and complete working yards share templates with ordinary industrial parcels and compounds.
+Updated: 2026-10-15 - shared working yards include medical receiving and transfer courts, with purpose-furnished supply annexes.
 
 Earlier 2026-10-13 — reversible authored damage layers give Relief a worn checkpoint without changing its landing contract; Relief rear working courts preserve the expanded landing and assembly apron.
 
@@ -269,6 +269,18 @@ grammar rather than shrinking vehicles or clipping a template. A template
 publishes scenery and topology only; objectives, ownership, force budgets and
 story beats remain the mission's decisions.
 
+A medical campus owns three complementary parcels: a purpose-partitioned clinic,
+a medical supply annex and an open service court. The annex handles clean stock,
+consumable storage and packing rather than repeating a generic warehouse. The
+court faces shared circulation, with receiving and patient transfer on opposite
+sides of a five-cell drive aisle, narrowing to three cells in compact courts. Patient transfer remains open; delivery vehicles
+and utility equipment occupy separate pockets. Concrete pedestrian margins and
+crossings connect the buildings without carpeting the whole yard in warning
+stripes. Equipment turns with its court and only appears where its full footprint
+fits. Small courts retain access before capacity. Shared roads, thresholds, berths
+and neighboring parcels keep their ownership; the court never creates a new
+capture objective or changes the clinic's mission role.
+
 Campaign-sized industrial templates need planned ground: ordinary BSP leaves
 stop at eighteen cells. Before compound claims and road-graph publication, a
 bounded industrial planning pass may join complete industrial parcels and their
@@ -332,6 +344,23 @@ carry L-shaped operations desks whose modules and stools rotate with the plan.
 Their outside cuts, window recesses and interior anchors remain usable.
 This treatment follows room purpose and available working space rather than
 turning residential or shop footprints into control rooms.
+
+Small ordinary buildings use compact work groups instead of random pool scatter:
+homes fit a sleeping nook and kitchenette, shops display stock beside a counter,
+storage buildings fit aligned case bays or full stocked racks, and utility huts
+fit service cabinets. Groups reserve their working side and refuse doorway or
+window approaches and placements that strand floor. A one-cell module is the
+fallback when its paired group cannot fit; empty circulation is preferable to
+blocking an entrance. The shell refreshes its interior anchor after furnishing.
+
+The `colony-furnishings` family supplies compact metal cases, personal lockers,
+desks, utility cabinets, kitchenette worktops and retail shelving. Normal pools
+contain intact furniture only: loose closed doors and damaged household props
+are not furnishings. Authored building stamps use the same replacements, while
+courtyards and public spaces use the existing mess seating. Deliberate wasteland
+ruins retain their rubble vocabulary. Actual door openings continue to use the
+wall-matched colony opening art. All six new furniture modules have registered
+damaged and destroyed states; wreckage releases physical cover and obstruction.
 
 Complete **work groups** compose existing fixtures, their contained stock or
 linen layers, and protected access in one local frame. Stocked shelf banks use

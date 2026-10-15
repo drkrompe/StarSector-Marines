@@ -304,8 +304,8 @@ public final class GatedHousingFiller implements CompoundFiller {
             placed.add(cell);
         }
 
-        DoodadDef bench = TileRegistry.installed().doodad("doodad.desk-dam");
-        if (bench == null) throw new IllegalStateException("Missing courtyard bench doodad.desk-dam");
+        DoodadDef bench = TileRegistry.installed().doodad("mess-galley.stool");
+        if (bench == null) throw new IllegalStateException("Missing courtyard bench mess-galley.stool");
         Collections.shuffle(candidates, rng);
         int benchTarget = Math.max(2, compound.members.size() - 1);
         int benches = 0;

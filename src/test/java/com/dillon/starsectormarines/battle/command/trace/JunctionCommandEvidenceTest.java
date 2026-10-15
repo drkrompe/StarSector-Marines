@@ -118,8 +118,9 @@ class JunctionCommandEvidenceTest {
                 sim.world().mission(air).pendingDelay += (float) fixture.optDouble("playerDelay", 0);
             }
             assertEquals(manifest.size(), playerIndex);
-            // Every mobile counterattack squad answers to Junction command; the site guards keep their posts.
-            for (var squad : sim.getSquads()) if (squad.faction == Faction.DEFENDER && squad.assignedNode == null)
+            // Every mobile counterattack squad answers to Junction command; the site and trench guards keep their posts.
+            for (var squad : sim.getSquads()) if (squad.faction == Faction.DEFENDER && squad.assignedNode == null
+                    && sim.getSquadCommandDirective(squad.id).authority() != CommandAuthority.GARRISON)
                 assertEquals(JunctionCommand.issuer(Faction.DEFENDER), sim.getSquadCommandDirective(squad.id).issuer());
             var sites = new ArrayList<>(sim.getCompoundService().getRecords());
             assertEquals(4, sites.size());

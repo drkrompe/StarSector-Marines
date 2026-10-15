@@ -492,8 +492,8 @@ public class BattleSprites {
     /**
      * Lazy-loads each {@link com.dillon.starsectormarines.battle.vehicle.VehicleType}'s
      * sheet via the shared {@link #loadUnitSheet} helper. Auto-slicing produces
-     * the per-frame bounds so {@code VehicleType.spriteFrame} can index into
-     * the sliced list. Failure on a single type leaves it absent from the cache;
+     * legacy per-frame bounds; registered types restore authored full slots so
+     * transparent margins cannot move their bearings. Failure on a single type leaves it absent from the cache;
      * the convoy render pass silently skips vehicles whose cache entry is null.
      */
     public void ensureConvoySprites() {
@@ -503,7 +503,8 @@ public class BattleSprites {
                 com.dillon.starsectormarines.battle.vehicle.VehicleType.values()) {
             UnitSpriteCache cache = loadUnitSheet(type.spritePath);
             if (cache != null) {
-                convoySprites.put(type, cache);
+                convoySprites.put(type, new UnitSpriteCache(cache.sheet,
+                        type.registeredSpriteFrames(cache.frames)));
             } else {
                 LOG.warn("convoy: failed to load sprite for " + type
                         + " (" + type.spritePath + ")");

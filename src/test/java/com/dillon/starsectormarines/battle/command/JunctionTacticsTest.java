@@ -16,11 +16,14 @@ class JunctionTacticsTest {
     @Test void firstGainRemainsTheHoldAndCounterattackTargetAfterReversal() {
         var policy = new JunctionTactics();
         policy.observe(List.of(MARINE_HELD, MARINE_HELD, DEFENDER_HELD, DEFENDER_HELD));
-        assertFalse(policy.reserveCommitted(), "the counterattacks wait for the company to move past its first gain");
+        assertFalse(policy.reserveCommitted(), "the reserve waits for the company to push on from its first gain");
+        policy.observe(List.of(MARINE_HELD, MARINE_HELD, CONTESTED, DEFENDER_HELD));
+        assertTrue(policy.reserveCommitted(), "a contested second site sends the reserve in");
+        assertFalse(policy.roadColumnCommitted(), "the Rill road column waits for the second gain itself");
         assertEquals(1, policy.militiaTarget());
         assertEquals(2, policy.assaultTarget(List.of(MARINE_HELD, MARINE_HELD, DEFENDER_HELD, DEFENDER_HELD)));
         policy.observe(List.of(MARINE_HELD, MARINE_HELD, MARINE_HELD, DEFENDER_HELD));
-        assertTrue(policy.reserveCommitted());
+        assertTrue(policy.roadColumnCommitted());
         assertEquals(2, policy.secondSecured());
         var reversal = List.of(MARINE_HELD, DEFENDER_HELD, MARINE_HELD, DEFENDER_HELD);
         policy.observe(reversal);

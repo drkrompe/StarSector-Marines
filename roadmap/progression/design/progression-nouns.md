@@ -979,9 +979,12 @@ ground around wherever they now stand, and goes with them when they fall.
 
 The pack is a miniature launcher rather than a gun, and **its engagement takes
 time**. The pod's burst is resolved where the round is; the pack's interceptor
-is a missile in flight, which climbs out of its tube, lights a second motor and
-runs onto where the round will be when it arrives, and only then does the
-round come apart or fly on. So a round that would land before an interceptor
+is a missile in flight, launched like a Javelin: a charge kicks it out of its
+tube, it climbs and coasts unlit for a moment, then its motor lights and it
+sprints onto where the round will be when it arrives, and only then does the
+round come apart or fly on. The coast is part of the flight, not decoration —
+the pack has to commit that much earlier — which is why its powered stage is
+fast. So a round that would land before an interceptor
 could reach it is not engaged at all, and a shell already over the section is
 past saving — the pack has to see rounds early, which is why it reaches further
 than its gun-armed cousin while being the lesser mount in every other way: a
