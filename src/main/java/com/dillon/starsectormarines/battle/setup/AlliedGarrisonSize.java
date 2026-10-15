@@ -91,7 +91,11 @@ public final class AlliedGarrisonSize {
      */
     public static int squads(TargetProfile profile, float strengthMultiplier) {
         if (profile == null || profile.marketSize() <= 0) return 0;
-        float net = Math.max(0f, profile.groundDefence() - profile.stationedStrength());
+        // The garrison estimate already carries the stationed subtraction and readiness; a profile built without one
+        // (fixtures, previews) still has the raw strengths.
+        float net = profile.garrison().isNone()
+                ? Math.max(0f, profile.groundDefence() - profile.stationedStrength())
+                : profile.garrison().strength();
         float mult = Float.isNaN(strengthMultiplier) || strengthMultiplier < 0f
                 ? 0f : strengthMultiplier;
         int squads = Math.round(net * mult / STRENGTH_PER_SQUAD);
