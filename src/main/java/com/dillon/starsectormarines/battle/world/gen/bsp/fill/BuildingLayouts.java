@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadDef.WallSide;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.gen.fit.ConsoleBankLayout;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 
 import java.util.ArrayDeque;
@@ -573,21 +574,15 @@ final class BuildingLayouts {
     private static void applyCommandCenter(NavigationGrid grid, CellTopology topology,
                                            int bl, int bt, int br, int bb,
                                            List<Doodad> doodads, Random rng) {
-        DoodadDef console = TileRegistry.installed().doodad("doodad.military-command-console");
-        DoodadDef table = TileRegistry.installed().doodad("doodad.military-tactical-table");
+        int[] chamber = purposeBounds(topology, bl, bt, br, bb, RoomPurpose.KEEP_THRONE);
+        boolean largePlot = chamber != null && chamber[2] - chamber[0] >= 6 && chamber[3] - chamber[1] >= 6;
+        DoodadDef table = TileRegistry.installed().doodad(largePlot ? "ship-bridge.plot" : "doodad.military-tactical-table");
         DoodadDef workstation = TileRegistry.installed().doodad("doodad.office-workstation-bank");
-
         stampPurposeCenterFixture(grid, topology, bl, bt, br, bb,
                 RoomPurpose.KEEP_THRONE, table, doodads, rng, true);
-        stampPurposeFixtureRows(grid, topology, bl, bt, br, bb,
-                RoomPurpose.KEEP_THRONE, console, doodads,
-                purposeFixtureBudget(topology, bl, bt, br, bb,
-                        RoomPurpose.KEEP_THRONE, 2, 4, 5), 2, true, false);
+        stampPurposeConsoleBanks(grid, topology, bl, bt, br, bb, RoomPurpose.KEEP_THRONE, doodads);
         preservePlacementDraw(topology, bl, bt, br, bb, RoomPurpose.KEEP_THRONE, rng);
-        stampPurposeFixtureRows(grid, topology, bl, bt, br, bb,
-                RoomPurpose.KEEP_INNER, console, doodads,
-                purposeFixtureBudget(topology, bl, bt, br, bb,
-                        RoomPurpose.KEEP_INNER, 2, 5, 4), 2, true, false);
+        stampPurposeConsoleBanks(grid, topology, bl, bt, br, bb, RoomPurpose.KEEP_INNER, doodads);
         preservePlacementDraw(topology, bl, bt, br, bb, RoomPurpose.KEEP_INNER, rng);
         stampPurposeFixtureRows(grid, topology, bl, bt, br, bb,
                 RoomPurpose.KEEP_ENTRY, workstation, doodads,
@@ -1323,6 +1318,64 @@ final class BuildingLayouts {
                 grid, topology, bl, bt, br, bb, purpose)) {
             rng.nextInt();
         }
+    }
+
+    /** Short complete banks use actual supporting walls, leaving two clear operator rows. */
+    private static void stampPurposeConsoleBanks(NavigationGrid grid, CellTopology topology,
+            int bl, int bt, int br, int bb, RoomPurpose purpose, List<Doodad> doodads) {
+        DoodadDef probe = TileRegistry.installed().doodad("console-bank.straight");
+        int[] bounds = purposeBounds(topology, bl, bt, br, bb, purpose);
+        if (probe == null || bounds == null) return;
+        int placed = 0;
+        List<ConsoleBankLayout.Cell> operatorCells = new ArrayList<>();
+        for (WallSide side : WallSide.values()) {
+            List<int[]> available = purposeWallRow(grid, topology, bounds, purpose, probe, doodads, side);
+            List<ConsoleBankLayout.Cell> run = new ArrayList<>();
+            int inwardX = side == WallSide.W ? 1 : side == WallSide.E ? -1 : 0;
+            int inwardY = side == WallSide.S ? 1 : side == WallSide.N ? -1 : 0;
+            for (int index = 0; index <= available.size(); index++) {
+                int[] cell = index < available.size() ? available.get(index) : null;
+                boolean clear = cell != null && !operatorCells.contains(new ConsoleBankLayout.Cell(cell[0], cell[1]));
+                if (clear) for (int depth = 1; depth <= 2; depth++) {
+                    int x = cell[0] + inwardX * depth, y = cell[1] + inwardY * depth;
+                    if (!grid.inBounds(x, y) || topology.getRoomPurpose(x, y) != purpose
+                            || !canPlaceDoodad(grid, x, y, probe, doodads)) clear = false;
+                }
+                boolean adjacent = run.isEmpty() || cell != null &&
+                        Math.abs(run.get(run.size() - 1).x() - cell[0])
+                        + Math.abs(run.get(run.size() - 1).y() - cell[1]) == 1;
+                if (!clear || !adjacent || run.size() == 5) {
+                    if (run.size() >= 3 && stampConsoleRun(grid, topology, run,
+                            side == WallSide.N || side == WallSide.W, doodads)) {
+                        for (ConsoleBankLayout.Cell occupied : run) for (int depth = 1; depth <= 2; depth++)
+                            operatorCells.add(new ConsoleBankLayout.Cell(occupied.x() + inwardX * depth,
+                                    occupied.y() + inwardY * depth));
+                        if (++placed == 2) return;
+                        clear = false; // Leave a gap between separately capped banks.
+                    }
+                    run.clear();
+                }
+                if (clear) run.add(new ConsoleBankLayout.Cell(cell[0], cell[1]));
+            }
+        }
+    }
+
+    private static boolean stampConsoleRun(NavigationGrid grid, CellTopology topology,
+            List<ConsoleBankLayout.Cell> cells, boolean operatorRight, List<Doodad> doodads) {
+        List<ConsoleBankLayout.Piece> pieces = ConsoleBankLayout.resolveWorld(cells, false, operatorRight);
+        for (ConsoleBankLayout.Piece piece : pieces)
+            if (TileRegistry.installed().doodad(piece.id()) == null) return false;
+        ConsoleBankLayout.Cell first = cells.get(0), last = cells.get(cells.size() - 1);
+        if (PlacementGuards.wouldStrandGround(grid, Math.min(first.x(), last.x()), Math.min(first.y(), last.y()),
+                Math.abs(last.x() - first.x()) + 1, Math.abs(last.y() - first.y()) + 1)) return false;
+        for (ConsoleBankLayout.Piece piece : pieces) {
+            int x = piece.cell().x(), y = piece.cell().y();
+            grid.setWalkable(x, y, false);
+            grid.setSeeThrough(x, y, true);
+            topology.setFixture(x, y, true);
+            doodads.add(new Doodad(x, y, TileRegistry.installed().doodad(piece.id()), -piece.clockwiseTurns()));
+        }
+        return true;
     }
 
     /**

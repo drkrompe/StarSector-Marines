@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.fit.layout;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFloor;
+import com.dillon.starsectormarines.battle.world.gen.fit.ConsoleBankLayout;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import java.util.List;
 
@@ -21,6 +22,17 @@ import java.util.List;
  * paving laid after a fixture is paving laid over it. Nothing re-sorts them.
  */
 public sealed interface LayoutOp {
+
+    /** One connected bank, accepted or refused whole; working positions are authored separately. */
+    record ConsoleBank(List<ConsoleBankLayout.Cell> cells, boolean closed, boolean operatorRight) implements LayoutOp {
+        public ConsoleBank {
+            cells = List.copyOf(cells);
+            ConsoleBankLayout.resolveWorld(cells, closed, operatorRight);
+        }
+        @Override public void apply(RoomFloor floor, Replay replay) {
+            floor.placeConsoleBank(cells, closed, operatorRight);
+        }
+    }
 
     /** A visual layer within a fixture, in the fixture's canonical frame. */
     record Layer(int x, int y, String doodadId) {}

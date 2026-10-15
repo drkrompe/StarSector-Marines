@@ -295,6 +295,13 @@ Purpose-built interiors express their function through grouped equipment rather
 than a single symbolic prop: command rooms organize console banks around a
 planning focus, server rooms organize repeated racks around a service aisle,
 and both retain doorway, firing-position, and room-connectivity obligations.
+Ground command chambers and their operations annexes use connected, capped
+console runs against real supporting walls. Each bank keeps two clear rows on
+its operator side, avoids firing recesses and doorway approaches, and is
+accepted whole only when the remaining floor stays connected. Large command
+chambers share the ship's tactical plot; smaller ones retain a compact table.
+This treatment follows room purpose and available working space rather than
+turning residential or shop footprints into control rooms.
 Civic headquarters follow the same authored-program rule as ship mech labs:
 their two-cell spine, opposing entrances, room depths, and fixture groups are
 designed as one floor-plan family rather than discovered by random door and

@@ -1,10 +1,10 @@
-package com.dillon.starsectormarines.tools.tilesetauthoring;
+package com.dillon.starsectormarines.battle.world.gen.fit;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-/** Prototype authoring resolver: an ordered cell stroke and its working side select the modules.
+/** Shared console-bank resolver: an ordered cell stroke and its working side select the modules.
  * Coordinates and turns are image-space (Y down, clockwise); placements convert at the renderer.
  */
 public final class ConsoleBankLayout {
@@ -44,6 +44,34 @@ public final class ConsoleBankLayout {
             result.add(new Piece(cell,"console-bank."+shape,Math.floorMod(turns,4)));
         }
         return List.copyOf(result);
+    }
+
+    /** Room/map coordinates are Y up; the art resolver works in image coordinates. */
+    public static List<Piece> resolveWorld(List<Cell> stroke, boolean closed, boolean operatorRight) {
+        return resolve(stroke.stream().map(c -> new Cell(c.x(), -c.y())).toList(), closed, operatorRight)
+                .stream().map(p -> new Piece(new Cell(p.cell().x(), -p.cell().y()), p.id(), p.clockwiseTurns())).toList();
+    }
+
+    /** A closed island owns its service core too, so generation cannot spawn on trapped floor. */
+    public static List<Cell> occupiedCells(List<Cell> path, boolean closed) {
+        if (!closed) return List.copyOf(path);
+        List<Cell> cells = new ArrayList<>(path);
+        int minX = path.stream().mapToInt(Cell::x).min().orElseThrow();
+        int maxX = path.stream().mapToInt(Cell::x).max().orElseThrow();
+        int minY = path.stream().mapToInt(Cell::y).min().orElseThrow();
+        int maxY = path.stream().mapToInt(Cell::y).max().orElseThrow();
+        HashSet<Cell> boundary = new HashSet<>(path);
+        for (int y = minY + 1; y < maxY; y++) for (int x = minX + 1; x < maxX; x++) {
+            Cell candidate = new Cell(x, y);
+            if (boundary.contains(candidate)) continue;
+            boolean inside = false;
+            for (int i = 0, j = path.size() - 1; i < path.size(); j = i++) {
+                Cell a = path.get(i), b = path.get(j);
+                if ((a.y() > y) != (b.y() > y) && x < a.x()) inside = !inside;
+            }
+            if (inside) cells.add(candidate);
+        }
+        return List.copyOf(cells);
     }
 
     private static int direction(Cell a, Cell b) {

@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.tools.roomauthoring;
 
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
+import com.dillon.starsectormarines.battle.world.gen.fit.ConsoleBankLayout.Cell;
+import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayoutJson;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.LayoutOp;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayout;
@@ -12,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -27,6 +30,44 @@ class RoomDraftTest {
     private static RoomDraft draft() {
         return new RoomDraft(new RoomLayout(RoomPurpose.STOCKROOM, RoomFit.STANDARD,
                 RoomShape.rectangle(6, 4), List.of(), List.of(), false));
+    }
+
+    @Test void connectedBanksRoundTripAndEraseFromAnyCell() throws Exception {
+        RoomDraft draft = new RoomDraft(new RoomLayout(RoomPurpose.BRIDGE, RoomFit.STANDARD,
+                RoomShape.rectangle(12, 10), List.of(), List.of(), false));
+        List<Cell> path = List.of(new Cell(3, 3), new Cell(4, 3), new Cell(5, 3), new Cell(5, 4));
+        draft.addConsoleBank(path, false, true);
+        RoomLayout saved = RoomLayoutJson.parse(RoomLayoutJson.write(draft.layout()));
+        assertEquals(draft.ops(), saved.ops());
+        assertEquals(8, saved.posesThatFit().size());
+        assertEquals(1, draft.at(5, 4).size());
+        assertTrue(draft.removeAt(5, 4));
+        assertEquals(0, draft.provides());
+    }
+
+    @Test void refusedBankLeavesTheDraftUntouched() {
+        RoomDraft draft = draft();
+        draft.reserveLane(2, 1, 1, 1);
+        List<LayoutOp> before = draft.ops();
+        assertThrows(IllegalArgumentException.class, () -> draft.addConsoleBank(
+                List.of(new Cell(1, 1), new Cell(2, 1), new Cell(3, 1)), false, true));
+        assertEquals(before, draft.ops());
+        assertThrows(IllegalArgumentException.class, () -> draft.addConsoleBank(
+                List.of(new Cell(0, 0), new Cell(2, 0)), false, true));
+        assertEquals(before, draft.ops());
+    }
+
+    @Test void shrinkingOrCuttingABankDropsTheWholeAssembly() {
+        RoomDraft draft = new RoomDraft(new RoomLayout(RoomPurpose.BRIDGE, RoomFit.STANDARD,
+                RoomShape.rectangle(12, 10), List.of(new LayoutOp.ConsoleBank(
+                        List.of(new Cell(3, 3), new Cell(4, 3), new Cell(5, 3)), false, true)), List.of(), false));
+        draft.toggleCell(4, 3);
+        assertEquals(0, draft.provides());
+        draft = new RoomDraft(new RoomLayout(RoomPurpose.BRIDGE, RoomFit.STANDARD,
+                RoomShape.rectangle(12, 10), List.of(new LayoutOp.ConsoleBank(
+                        List.of(new Cell(3, 3), new Cell(4, 3), new Cell(5, 3)), false, true)), List.of(), false));
+        draft.resize(5, 10);
+        assertEquals(0, draft.provides());
     }
 
     @Test
