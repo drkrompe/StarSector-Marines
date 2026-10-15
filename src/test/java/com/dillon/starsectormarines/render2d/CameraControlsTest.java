@@ -165,6 +165,20 @@ class CameraControlsTest {
     }
 
     @Test
+    void aMoveAnotherPanelConsumedIsNeverRead() {
+        BattleCamera camera = camera();
+        CameraControls controls = new CameraControls(true, () -> false);
+        controls.edgeScroll(0f, 0f, 200f, 200f);
+        InputEventAPI taken = event(Kind.MOVE, 199, 100);
+        taken.consume();
+
+        controls.process(List.of(taken), camera);
+        controls.advance(1f, camera);
+
+        assertEquals(50f, camera.panCellX(), 0.001f);
+    }
+
+    @Test
     void edgeScrollIsOffUntilAScreenAsksForIt() {
         BattleCamera camera = camera();
         CameraControls controls = new CameraControls(true, () -> false);
@@ -190,8 +204,9 @@ class CameraControlsTest {
                     case "isMouseMoveEvent" -> kind == Kind.MOVE;
                     case "isMouseScrollEvent" -> kind == Kind.SCROLL;
                     case "getEventValue" -> kind == Kind.SCROLL ? 120 : 0;
-                    case "getX" -> x;
-                    case "getY" -> y;
+                    // As the game does: reading a consumed event is an error, not a stale value.
+                    case "getX" -> readable(consumed, x);
+                    case "getY" -> readable(consumed, y);
                     case "isConsumed" -> consumed[0];
                     case "consume" -> {
                         consumed[0] = true;
@@ -200,6 +215,11 @@ class CameraControlsTest {
                     case "toString" -> kind.name();
                     default -> defaultValue(method.getReturnType());
                 });
+    }
+
+    private static int readable(boolean[] consumed, int value) {
+        if (consumed[0]) throw new RuntimeException("Attempt to access data of a consumed InputEvent");
+        return value;
     }
 
     private static Object defaultValue(Class<?> type) {

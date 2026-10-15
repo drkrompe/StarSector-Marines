@@ -187,8 +187,10 @@ public final class CameraControls {
                         BiPredicate<Float, Float> chrome) {
         if (events == null || camera == null || space == null) return;
         for (InputEventAPI event : events) {
-            if (event.isMouseMoveEvent()) {
-                // Recorded whoever owns the move: an edge is an edge over chrome too.
+            if (event.isMouseMoveEvent() && !event.isConsumed()) {
+                // Only an unconsumed event may be read: the game throws on the data of a consumed
+                // one. A move chrome swallowed leaves the last reading, which at the window's edge
+                // is the edge anyway.
                 pointerSeen = true;
                 pointerX = event.getX();
                 pointerY = event.getY();
