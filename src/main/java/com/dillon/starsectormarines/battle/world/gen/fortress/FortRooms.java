@@ -27,6 +27,10 @@ final class FortRooms {
 
     private FortRooms() {}
 
+    /** The roof-art keys of the ante-rooms, which an aspect's building art names to draw them. */
+    static final String OPERATIONS_HALL_ART = "operations-hall", CONTROL_HALL_ART = "control-hall",
+            LOADING_BAY_ART = "loading-bay";
+
     /** Width and height of the command vault and of the anti-air control room's floor. */
     static final int COMMAND_W = 7, COMMAND_H = 5;
 
@@ -55,7 +59,7 @@ final class FortRooms {
         int[] core = kit.cell(3, 1);
         return new FortRoom(aspect, main, RoomPurpose.CONTROL_ROOM, x, y, COMMAND_W, COMMAND_H, doors, kit.ops(),
                 stands.subList(0, Math.min(crew, stands.size())),
-                main ? core : null);
+                main ? core : null, null);
     }
 
     /** The five-by-five operations hall in front of a command vault: a bank of stations along the back and the west wall. */
@@ -66,7 +70,7 @@ final class FortRooms {
                 .bank(true, 0, 2, 0, 4)
                 .fixture(1, 1, FortRoomKit.STOOL).fixture(3, 1, FortRoomKit.STOOL).fixture(1, 2, FortRoomKit.STOOL);
         return new FortRoom(aspect, false, RoomPurpose.CONTROL_ROOM, x, y, 5, 5, doors, kit.ops(),
-                List.of(new int[]{1, 1}, new int[]{3, 1}, new int[]{1, 2}), null);
+                List.of(new int[]{1, 1}, new int[]{3, 1}, new int[]{1, 2}), null, OPERATIONS_HALL_ART);
     }
 
     /** A three-by-five operations hall: one bank of stations along its back wall, an aisle from each door. */
@@ -76,7 +80,7 @@ final class FortRooms {
                 .bank(true, 0, 0, 2, 0)
                 .fixture(0, 1, FortRoomKit.STOOL).fixture(2, 1, FortRoomKit.STOOL);
         return new FortRoom(aspect, false, RoomPurpose.CONTROL_ROOM, x, y, 3, 5, doors, kit.ops(),
-                List.of(new int[]{0, 1}, new int[]{2, 1}), null);
+                List.of(new int[]{0, 1}, new int[]{2, 1}), null, CONTROL_HALL_ART);
     }
 
     /** The eight-by-six ammunition store: racks down both side walls, the core against the back wall. */
@@ -86,7 +90,7 @@ final class FortRooms {
                 .run(0, 0, 0, 5, FortRoomKit.CRATES)
                 .run(7, 0, 7, 5, FortRoomKit.CRATES);
         return new FortRoom(FortAspect.MAGAZINE, true, RoomPurpose.ARMORY, x, y, 8, 6, doors, kit.ops(),
-                List.of(), new int[]{4, 1});
+                List.of(), new int[]{4, 1}, null);
     }
 
     /** The loading bay in front of the store: pallets along the walls, a wide door onto the road. */
@@ -97,7 +101,7 @@ final class FortRooms {
                 .run(7, 0, 7, 2, FortRoomKit.PALLETS)
                 .fixture(6, 2, FortRoomKit.PALLETS);
         return new FortRoom(FortAspect.MAGAZINE, false, RoomPurpose.LOADING_BAY, x, y, 8, 3, doors, kit.ops(),
-                List.of(), null);
+                List.of(), null, LOADING_BAY_ART);
     }
 
     /**
@@ -115,7 +119,7 @@ final class FortRooms {
                 .bank(false, 10, 0, 10, 2)
                 .fixture(9, 0, FortRoomKit.STOOL).fixture(9, 2, FortRoomKit.STOOL);
         return new FortRoom(FortAspect.POWER, true, RoomPurpose.ENGINE_ROOM, x, y, 11, 5, doors, kit.ops(),
-                List.of(kit.cell(9, 0), kit.cell(9, 2)), kit.cell(5, 1));
+                List.of(kit.cell(9, 0), kit.cell(9, 2)), kit.cell(5, 1), null);
     }
 
     /** The battery fort's rooms, in the footprint frame whose main works begin at (ox, oy). Main rooms lead each aspect. */
