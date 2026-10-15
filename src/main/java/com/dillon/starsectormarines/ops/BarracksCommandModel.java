@@ -791,7 +791,7 @@ public final class BarracksCommandModel {
         if (step == Step.INTRODUCTION) return inductionOfficerTarget();
         if (step == Step.SPECIALTY)
             return !dossier || selectedOfficer() != inductionOfficer() ? inductionOfficerTarget()
-                    : "officer-specialty-TACTICAL_COVER-rank-1";
+                    : "officer-specialty-list";
         if (step == Step.READY) return inductionOfficerTarget();
         if (dossier) return "officer-formations";
         if (step == Step.FORMATION) return "barracks-raise-squad";
@@ -820,7 +820,7 @@ public final class BarracksCommandModel {
             case "command:all" -> Strings.get("openingBarracksCommandChooseAllFormationsSoTheUnassignedSquad");
             case "barracks-select-all" -> Strings.get("openingBarracksCommandMarkTheSquadYouWantHerTo");
             case "barracks-command-list" -> Strings.get("openingBarracksCommandRecruitAnAvailableOfficerToContinue");
-            case "officer-specialty-TACTICAL_COVER-rank-1" -> Strings.get("openingBarracksCommandHoverToCompareSpecialties");
+            case "officer-specialty-list" -> Strings.get("openingBarracksCommandHoverToCompareSpecialties");
             default -> inductionTarget().endsWith(":assign") ? Strings.get("openingBarracksCommandClickAssignSelectedOnTheCommanderCard") : Strings.get("openingBarracksCommandOpenTheHighlightedOfficerPortrait");
         };
     }
