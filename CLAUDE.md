@@ -684,8 +684,10 @@ Do not run builds or leave generated task files there.
   Twelve regular marines a side, kit exactly as the cards issue it (`LoadoutCardIssue.seats`:
   the weapon card's billet plus the sheet's pattern for that billet), in three starter
   scenarios on one skeleton (attackers attack-move in from the west, defenders hold the east):
-  `open-field`, `trench` (twelve-cell fighting-position trench) and `building` (walled, one
-  doorway, attackers ordered to clear it). The default ladder fights every weapon card (on
+  `open-field`, `trench` (a twelve-cell trench square across the approach, manned with the
+  commander's `defendRun` order so claims stay on the run) and `building` (the production
+  `MARKET_HALL` stamp with its windows, internal walls and furniture, held by a garrison set up as a
+  generated one is, attackers given `secureCompound`). The default ladder fights every weapon card (on
   starter armor) and every sheet (with starter weapons) against the starter issue, once
   attacking and once defending, at `-Pseeds=3` seeds; starter-vs-starter is the control row
   every other row is read against, because the ground favours one side. `-Pattacker=` /
@@ -698,6 +700,14 @@ Do not run builds or leave generated task files there.
   determinism failure in the header. Any `-Dbattle.*` switch is forwarded, so a behaviour
   tweak shows as the rows that move between a run and its control run. Controlled
   construction with a detached kit, not a campaign roster, and not balance acceptance.
+  `-Pgifs=true` records each fight's first `-PgifSeeds=1` seeds as a 1920x1080 GIF under
+  `gifs/<scenario>/` (linked from the Replay column of `matchups.md` and `runs.csv`); it is on
+  by default for an explicit `-Pattacker`/`-Pdefender` matchup and off for the ladder, where it
+  would write a gigabyte. A recording only reads the sim: sparse frames until the first damage,
+  dense after it, shots and impacts drawn, a camera that follows the main body of the fight
+  (a routed straggler is left out of the framing), capped at 360 frames. A scenario's walls have
+  no art, so a scenario overrides `annotations()` to box what it built. Rendering takes turns
+  across the side-by-side fights and costs about 20-30s a recording.
   A new scenario implements `MatchupScenario` and joins `MatchupScenarios.all()`.
 - `gradlew.bat crewEvidence` → crews a transport and a capital from their own
   room programs, runs each for four minutes of ship's time, and reports what the

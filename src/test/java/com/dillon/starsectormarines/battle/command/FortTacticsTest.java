@@ -73,6 +73,14 @@ class FortTacticsTest {
         return picks.stream().map(p -> p.structure().kind()).toList();
     }
 
+    @Test
+    void aRadarIsHostileOnlyWhenItsBunkerIsDisclosedAndNotOurs() {
+        assertTrue(FortTactics.hostileRadar(M, List.of(bunker(D, D, false), magazine(D, D))));
+        assertFalse(FortTactics.hostileRadar(M, List.of(bunker(M, D, false))), "ours already");
+        assertFalse(FortTactics.hostileRadar(M, List.of(magazine(D, D))), "the bunker was never disclosed");
+        assertTrue(FortTactics.hostileRadar(D, List.of(bunker(M, D, false))), "symmetric: the defender's view of a held bunker");
+    }
+
     // ------------------------------------------------------------------------------------------ battery fort
 
     @Test
