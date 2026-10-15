@@ -6,6 +6,9 @@ import java.util.List;
 
 /** Save-owned choices and attempt receipts. Older officers start with an empty record. */
 public final class OfficerCareer implements Serializable {
+    /** Ranks a single specialty can be trained to. */
+    public static final int MAX_LEVEL = 2;
+
     private List<OfficerSpecialty> training = new ArrayList<>();
     private List<String> creditedAttempts = new ArrayList<>();
     private int victories;
@@ -16,7 +19,7 @@ public final class OfficerCareer implements Serializable {
     }
     public int availablePoints(Rank rank) { return Math.max(0, 1 + rank.ordinal() - training.size()); }
     public boolean train(OfficerSpecialty specialty, Rank rank) {
-        if (specialty == null || availablePoints(rank) == 0 || level(specialty) >= 2) return false;
+        if (specialty == null || availablePoints(rank) == 0 || level(specialty) >= MAX_LEVEL) return false;
         training.add(specialty);
         return true;
     }

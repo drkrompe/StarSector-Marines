@@ -16,7 +16,11 @@ import com.dillon.starsectormarines.battle.combat.MitigationService;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.infantry.IntegralSystemModifier;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
+import com.dillon.starsectormarines.battle.modifier.UnitModifiers;
+import com.dillon.starsectormarines.battle.squad.DugInModifier;
+import com.dillon.starsectormarines.battle.squad.TacticalCoverModifier;
 import com.dillon.starsectormarines.battle.sim.CombatService;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.sim.IdentityService;
@@ -182,8 +186,14 @@ public final class UnitRosterService {
     // Per-component data-owner Services (the World decomposition). World delegates
     // its COMBAT/MOVEMENT accessors to these; consumers inject them via combat()/movement().
     private final IdentityService identityService = new IdentityService(entityWorld, components);
-    private final CombatService combatService = new CombatService(entityWorld, components);
-    private final MovementService movementService = new MovementService(entityWorld, components);
+    /**
+     * The conditions that change a unit's stats while they hold. The services that own a stat
+     * resolve it through this on every read; the sources are registered in the constructor, once
+     * the services they read exist.
+     */
+    private final UnitModifiers unitModifiers = new UnitModifiers();
+    private final CombatService combatService = new CombatService(entityWorld, components, unitModifiers);
+    private final MovementService movementService = new MovementService(entityWorld, components, unitModifiers);
     private final VisionService visionService = new VisionService(entityWorld, components);
     private final SquadService squadService = new SquadService(
             entityWorld, components, this::onSquadAssignment);
@@ -256,6 +266,9 @@ public final class UnitRosterService {
         arrivalSquads.defaultReturnValue(Squad.NO_SQUAD);
         bodyService.register(convoyService);
         bodyService.register(airTargetService);
+        unitModifiers.register(new DugInModifier(combatService));
+        unitModifiers.register(new IntegralSystemModifier(integralSystemService));
+        unitModifiers.register(new TacticalCoverModifier(this));
     }
 
     /** Bind the damage service after construction — used by the sim ctor to break
@@ -369,6 +382,9 @@ public final class UnitRosterService {
 
     /** Data owner for the COMBAT component — inject into consumers that read/mutate combat state. */
     public CombatService combat() { return combatService; }
+
+    /** The conditions changing units' stats in this battle, and what each is doing to a unit. */
+    public UnitModifiers modifiers() { return unitModifiers; }
 
     /** Data owner for the MOVEMENT component — inject into consumers that read/mutate movement state. */
     public MovementService movement() { return movementService; }
@@ -856,10 +872,6 @@ public final class UnitRosterService {
             entityWorld.setInt(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_CELL_Y, -1);
             entityWorld.setObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH, GridPathfinder.EMPTY_PATH);
             entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_SPEED, spec.moveSpeed);
-            // The unmodified speed a temporary effect returns to. Written once,
-            // here, and never again — see MOVEMENT_BASE_MOVE_SPEED.
-            entityWorld.setFloat(id, components.MOVEMENT,
-                    BattleComponents.MOVEMENT_BASE_MOVE_SPEED, spec.moveSpeed);
         }
         indexById.put(id, liveCount);
         liveCount++;

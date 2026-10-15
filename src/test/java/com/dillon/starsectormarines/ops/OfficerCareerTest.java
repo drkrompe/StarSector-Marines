@@ -73,7 +73,11 @@ class OfficerCareerTest {
         lead.train(OfficerSpecialty.TACTICAL_COVER);
         var deployment = CampaignMarineDeployment.freezeSelection(roster, ids(roster), 24, lead);
         float baseline = CampaignMarineDeployment.freezeSelection(roster, ids(roster), 24).seat(0).armorIncomingAccuracyMult;
-        assertEquals(baseline * .95f, deployment.seat(0).armorIncomingAccuracyMult, .00001f);
+        // Tactical Cover rides with the squad's frozen officer profile and applies in battle as its
+        // own modifier; the armour's figure is left as issued.
+        assertEquals(baseline, deployment.seat(0).armorIncomingAccuracyMult, .00001f);
+        assertEquals(.95f, deployment.seat(0).campaignSquad.commandGroupIdentity.profile()
+                .incomingAccuracyMultiplier(), .00001f);
         assertEquals(CampaignMarineDeployment.freezeSelection(roster, ids(roster), 24).seat(12).armorIncomingAccuracyMult,
                 deployment.seat(12).armorIncomingAccuracyMult, .00001f);
         var frozenCommander = OfficerCommandProfile.capture(lead);

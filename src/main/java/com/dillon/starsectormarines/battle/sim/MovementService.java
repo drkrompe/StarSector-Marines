@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.infantry.LocalGrenadeEscape;
 import com.dillon.starsectormarines.battle.mech.MechLocomotion;
 import com.dillon.starsectormarines.battle.mech.ManualMechDrive;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import com.dillon.starsectormarines.battle.modifier.UnitModifiers;
+import com.dillon.starsectormarines.battle.modifier.UnitStat;
 import com.dillon.starsectormarines.battle.nav.ContinuousRoute;
 import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -69,9 +71,17 @@ public final class MovementService {
     /** Sim clock for the repath throttle — advanced once per tick by {@link #beginTick}. */
     private float now;
 
+    private final UnitModifiers modifiers;
+
+    /** With no modifiers in force: the issued speed reads as it is. */
     public MovementService(EntityWorld entityWorld, BattleComponents components) {
+        this(entityWorld, components, new UnitModifiers());
+    }
+
+    public MovementService(EntityWorld entityWorld, BattleComponents components, UnitModifiers modifiers) {
         this.entityWorld = entityWorld;
         this.components = components;
+        this.modifiers = modifiers;
         this.movers = entityWorld.query(new ComponentType[]{components.MOVEMENT}, null);
     }
 
@@ -182,8 +192,11 @@ public final class MovementService {
         entityWorld.setInt(id, components.MOVEMENT, BattleComponents.MOVEMENT_OBJECTIVE_ROUTE_REFRESH, 0);
     }
 
-    /** Per-unit movement speed in cells/sec (seed-only mover stat). Fail-loud on a non-mover; gate on {@link #has}. */
-    public float moveSpeed(long id) { return entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_SPEED); }
+    /** Movement speed in cells/sec as modified right now ({@link UnitStat#MOVE_SPEED}), before terrain. Fail-loud on a non-mover; gate on {@link #has}. */
+    public float moveSpeed(long id) {
+        return modifiers.resolve(id, UnitStat.MOVE_SPEED,
+                entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_SPEED));
+    }
 
     private float groundMoveSpeed(long id) {
         float x = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X);

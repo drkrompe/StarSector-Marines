@@ -253,12 +253,8 @@ public class InfantryWeapons {
                             roster.combat().soldierProfile(shooter)),
                     dist, maximumTargetingRange);
         }
-        accuracy *= stance.accuracyMult;
-        // A planted suit's whole contribution, read through at the moment the
-        // round leaves rather than written onto the shooter: nothing to restore
-        // when the stance expires, so it cannot leave a remainder behind
-        // ({@code integral-system-slate.md}). One for everybody else.
-        accuracy = Math.min(1f, accuracy * roster.integralSystems().accuracyMultiplier(shooter));
+        // A planted suit's steadier aim is already in world.accuracy, through its modifier.
+        accuracy = Math.min(1f, accuracy * stance.accuracyMult);
 
         StructureDef turretStructure = shooterType.isTurret()
                 ? roster.turretState().structure(shooter) : null;

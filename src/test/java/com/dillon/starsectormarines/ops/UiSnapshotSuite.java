@@ -1885,6 +1885,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                             renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1.5f)));
                 }
                 if (state.equals("dossier-trained")) {
+                    // A rank describes itself on hover; the tree carries no effect copy.
+                    openSpecSheet(document, hints, 1920, 1080, instance.requireElement("officer-specialty-TACTICAL_COVER-rank-2"));
+                    images.add(new SnapshotArtifact("barracks-dossier-rank-hint-1920x1080.png",
+                            renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
+                    document.deactivateInput();
+                    hints.update();
                     var pane = instance.requireElement("officer-dossier-scroll");
                     pane.scrollTop(pane.box().maxScrollTop());
                     document.advance(0f);
@@ -1946,16 +1952,15 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 capture.accept("01-introduction");
                 click.accept("command:" + sabine.id());
                 capture.accept("02-specialties");
-                Rect first = instance.requireElement("officer-specialty-TACTICAL_COVER-train").box().borderBox();
-                document.pointerScrolled(first.x() + 12, first.y() + 12, 4000);
+                // Bring the whole tree into the dossier pane, as a player scrolling to the choice would.
+                var pane = instance.requireElement("officer-dossier-scroll");
+                float treeTop = instance.requireElement("specialty-root").box().borderBox().y()
+                        - pane.box().borderBox().y() + pane.scrollTop();
+                pane.scrollTop(Math.min(pane.box().maxScrollTop(), treeTop));
+                document.advance(0f);
                 guide.update();
                 capture.accept("03-scroll-choice");
-                // Back up to the choice the walkthrough makes; the end shows all four specialties.
-                Rect last = instance.requireElement("officer-specialty-FIELD_MEDICINE-train").box().borderBox();
-                document.pointerScrolled(last.x() + 12, last.y() + 12, -4000);
-                document.pointerScrolled(first.x() + 12, first.y() + 12, 420);
-                guide.update();
-                click.accept("officer-specialty-SALVAGE_STEWARDSHIP-train");
+                click.accept("officer-specialty-SALVAGE_STEWARDSHIP-rank-1");
                 if (sabine.career().level(OfficerSpecialty.SALVAGE_STEWARDSHIP) != 1) {
                     throw new IllegalStateException("Click-through specialty choice did not train Sabine at scale " + scale);
                 }
@@ -2098,7 +2103,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             click.accept("guide-dismiss");
             click.accept("command:" + company.captain.id());
             frames.add(new SnapshotArtifact("flow-officer-dossier.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
-            click.accept("officer-specialty-TACTICAL_COVER-train");
+            click.accept("officer-specialty-TACTICAL_COVER-rank-1");
             if (company.captain.career().level(OfficerSpecialty.TACTICAL_COVER) != 1)
                 throw new IllegalStateException("Officer training did not commit through the dossier");
             frames.add(new SnapshotArtifact("flow-officer-trained.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));

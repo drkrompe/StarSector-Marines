@@ -6,6 +6,8 @@ import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
+import com.dillon.starsectormarines.battle.modifier.UnitModifiers;
+import com.dillon.starsectormarines.battle.modifier.UnitStat;
 import com.dillon.starsectormarines.battle.squad.DigInSystem;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -39,10 +41,21 @@ public final class CombatService {
     private final EntityWorld entityWorld;
     private final BattleComponents components;
 
+    private final UnitModifiers modifiers;
+
+    /** With no modifiers in force: the issued stats read as they are. */
     public CombatService(EntityWorld entityWorld, BattleComponents components) {
+        this(entityWorld, components, new UnitModifiers());
+    }
+
+    public CombatService(EntityWorld entityWorld, BattleComponents components, UnitModifiers modifiers) {
         this.entityWorld = entityWorld;
         this.components = components;
+        this.modifiers = modifiers;
     }
+
+    /** The modifiers this service resolves its stats through. */
+    public UnitModifiers modifiers() { return modifiers; }
 
     /** Presence check — true iff {@code id} carries COMBAT (is a live combatant). Gate field reads on this. */
     public boolean has(long id) { return entityWorld.has(id, components.COMBAT); }
@@ -50,10 +63,24 @@ public final class CombatService {
     public float attackDamage(long id) { return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_DAMAGE); }
     public void setAttackDamage(long id, float v) { entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_DAMAGE, v); }
 
-    public float attackRange(long id) { return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_RANGE); }
+    /** Weapon reach in cells as modified right now ({@link UnitStat#ATTACK_RANGE}). */
+    public float attackRange(long id) {
+        return modifiers.resolve(id, UnitStat.ATTACK_RANGE,
+                entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_RANGE));
+    }
+    /** Sets the issued reach; modifiers apply on top of it when it is read. */
     public void setAttackRange(long id, float v) { entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_RANGE, v); }
 
-    public float accuracy(long id) { return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_ACCURACY); }
+    /** Accuracy of the unit's own fire as modified right now ({@link UnitStat#ACCURACY}). */
+    public float accuracy(long id) {
+        return modifiers.resolve(id, UnitStat.ACCURACY,
+                entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_ACCURACY));
+    }
+
+    /** Multiplier on the morale a hit or near miss on {@code id} drains ({@link UnitStat#MORALE_DRAIN}). */
+    public float moraleDrainMultiplier(long id) {
+        return modifiers.resolve(id, UnitStat.MORALE_DRAIN, 1f);
+    }
     public void setAccuracy(long id, float v) { entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ACCURACY, v); }
 
     public float cooldownTimer(long id) { return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_COOLDOWN_TIMER); }
@@ -220,7 +247,10 @@ public final class CombatService {
         entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_DIG_IN_SECONDS, seconds);
     }
 
-    /** Whether {@code id} is dug in on a fighting position right now; false for a non-combatant or a corpse. */
+    /**
+     * Whether {@code id} is dug in on a fighting position right now; false for a non-combatant or a
+     * corpse. Reads the raw clock, never a modified stat, because {@code DugInModifier} asks it.
+     */
     public boolean isDugIn(long id) {
         return DigInSystem.isDugIn(digInSeconds(id));
     }

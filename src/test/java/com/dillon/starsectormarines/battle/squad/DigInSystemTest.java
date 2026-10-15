@@ -155,19 +155,30 @@ class DigInSystemTest {
     }
 
     @Test
-    void hitDrainIsHalvedForADugInMarine() {
-        float loose = SquadMoraleSystem.hitDrain(1f, 1f, false);
+    void drainsScaleByTheMarinesOwnMultiplier() {
+        float loose = SquadMoraleSystem.hitDrain(1f, 1f, 1f);
         assertEquals(SquadMoraleSystem.MORALE_DROP_ON_HIT, loose, 1e-6f);
-        assertEquals(loose * DigInSystem.DUG_IN_MORALE_DRAIN_MULT, SquadMoraleSystem.hitDrain(1f, 1f, true), 1e-6f);
+        assertEquals(loose * 0.5f, SquadMoraleSystem.hitDrain(1f, 1f, 0.5f), 1e-6f);
         assertEquals(0.5f * SquadMoraleSystem.MORALE_DROP_ON_HIT / 0.25f,
-                SquadMoraleSystem.hitDrain(0.25f, 1f, true), 1e-6f, "cap scaling still applies");
+                SquadMoraleSystem.hitDrain(0.25f, 1f, 0.5f), 1e-6f, "cap scaling still applies");
+        assertEquals(SquadMoraleSystem.MORALE_DROP_ON_NEAR_MISS * 0.5f,
+                SquadMoraleSystem.nearMissDrain(1f, 1f, 0.5f), 1e-6f);
     }
 
     @Test
-    void nearMissDrainIsHalvedForADugInMarine() {
-        float loose = SquadMoraleSystem.nearMissDrain(1f, 1f, false);
-        assertEquals(SquadMoraleSystem.MORALE_DROP_ON_NEAR_MISS, loose, 1e-6f);
-        assertEquals(loose * 0.5f, SquadMoraleSystem.nearMissDrain(1f, 1f, true), 1e-6f);
+    void aDugInMarineReachesFurtherAndIsHarderToRattleUntilHeLeaves() {
+        float issued = sim.getRoster().combat().attackRange(marine);
+        stand(8, 4);
+        tick(TICKS_TO_DIG);
+
+        assertEquals(issued + DigInSystem.DUG_IN_RANGE_BONUS, sim.getRoster().combat().attackRange(marine), 1e-6f);
+        assertEquals(DigInSystem.DUG_IN_MORALE_DRAIN_MULT,
+                sim.getRoster().combat().moraleDrainMultiplier(marine), 1e-6f);
+
+        stand(8, 7);
+        tick(1);
+        assertEquals(issued, sim.getRoster().combat().attackRange(marine), 1e-6f, "nothing left behind");
+        assertEquals(1f, sim.getRoster().combat().moraleDrainMultiplier(marine), 1e-6f);
     }
 
     @Test
