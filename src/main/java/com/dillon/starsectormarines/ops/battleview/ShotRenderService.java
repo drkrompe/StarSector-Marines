@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
+import com.dillon.starsectormarines.battle.weapon.SoftLaunch;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.fx.FxSlot;
 import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxRuntime;
@@ -154,9 +155,12 @@ public final class ShotRenderService implements RenderSystem {
     /** Where a sprite-bodied shot is in the air right now, in projected cell space, and which way it points. */
     public record SpriteFlight(float x, float y, float bearing, float progress) {}
 
-    /** The in-flight pose of a projectile-sprite shot: straight, boosted, arced or guided. */
+    /** The in-flight pose of a projectile-sprite shot: straight, boosted, arced, soft-launched or guided. */
     static SpriteFlight spriteFlight(ShotEvent s, ShotFx fx) {
         float linearProgress = 1f - Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
+        if (fx.softLaunch() != null && s.guidedFlight == null) {
+            return softLaunchFlight(s, fx, linearProgress);
+        }
         float progress = fx.boostRamp() ? Projectile.applyBoostCurve(linearProgress) : linearProgress;
         float px = s.fromX + (s.toX - s.fromX) * progress;
         float pz = s.fromZ + (s.toZ - s.fromZ) * progress;
@@ -180,10 +184,51 @@ public final class ShotRenderService implements RenderSystem {
     }
 
     /**
+     * A two-stage missile's pose: kicked out and climbing through its coast, then levelling onto its
+     * target under power. The bearing is read off the flown path a moment ahead rather than off the
+     * straight line, so the missile points up the screen as it climbs and swings onto the target as
+     * the motor takes over.
+     */
+    private static SpriteFlight softLaunchFlight(ShotEvent s, ShotFx fx, float t) {
+        float[] here = softLaunchPoint(s, fx, t);
+        float ahead = Math.min(1f, t + 0.02f);
+        float[] next = ahead > t ? softLaunchPoint(s, fx, ahead) : here;
+        float bearing = next[0] != here[0] || next[1] != here[1]
+                ? bearingDeg(here[0], here[1], next[0], next[1])
+                : bearingDeg(s.fromX, s.visualFromY(), s.toX, s.visualToY());
+        return new SpriteFlight(here[0], here[1], bearing, here[2]);
+    }
+
+    private static float[] softLaunchPoint(ShotEvent s, ShotFx fx, float t) {
+        SoftLaunch launch = fx.softLaunch();
+        float distance = (float) Math.hypot(s.toX - s.fromX, s.toY - s.fromY);
+        float progress = launch.progress(t, s.lifetimeMax, distance, fx.boostRamp());
+        float x = s.fromX + (s.toX - s.fromX) * progress;
+        float z = s.fromZ + (s.toZ - s.fromZ) * progress;
+        float y = s.fromY + (s.toY - s.fromY) * progress + z;
+        if (fx.arcHeight() > 0f) y += fx.arcHeight() * 4f * progress * (1f - progress);
+        y += launch.lift(t, s.lifetimeMax);
+        return new float[] {x, y, progress};
+    }
+
+    /** Whether a soft-launched shot's motor is burning yet; true for every shot that does not soft-launch. */
+    static boolean motorLit(ShotEvent s, ShotFx fx) {
+        if (fx.softLaunch() == null || s.guidedFlight != null) return true;
+        float t = 1f - Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
+        return fx.softLaunch().ignited(t, s.lifetimeMax);
+    }
+
+    /**
      * Whether a projectile-sprite shot sheds its authored trail from where it is now. A host calls this once per
      * rendered frame, so a headless review that wants the same smoke column has to call it once per simulation tick.
      */
     public static void spawnTrail(ImpactFx impactFx, ShotEvent s, SpriteFlight flight) {
+        ShotFx fx = ShotFx.of(s);
+        if (!motorLit(s, fx)) return;
+        if (fx.softLaunch() != null && !s.ignitionShown) {
+            s.ignitionShown = true;
+            WeaponFxRuntime.spawnIgnition(impactFx, s, flight.x(), flight.y(), flight.bearing());
+        }
         if ((s.guidedFlight != null || flight.progress() > 0.02f && flight.progress() < 0.98f)
                 && !WeaponFxRuntime.definition(s).layers(FxSlot.TRAIL).isEmpty()) {
             float headingRad = (float) Math.toRadians(flight.bearing());

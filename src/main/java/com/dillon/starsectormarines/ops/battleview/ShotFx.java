@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.MountClass;
+import com.dillon.starsectormarines.battle.weapon.SoftLaunch;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.render2d.ContrailStyle;
 
@@ -37,9 +38,10 @@ import java.util.Set;
  * @param arcHeight  visual parabola peak in cells; {@code 0} = flat
  * @param boostRamp  accelerate-from-rest boost-then-cruise flight curve
  * @param contrail   ribbon style, or {@code null} for none
+ * @param softLaunch two-stage coast before the motor lights, or {@code null}
  */
 public record ShotFx(Body body, TracerTail tracerTail, float arcHeight, boolean boostRamp,
-                     ContrailStyle contrail) {
+                     ContrailStyle contrail, SoftLaunch softLaunch) {
 
     /** S3's soft white-base energy bolt, retained for the pulse-rifle family. */
     public static final String PULSE_BOLT_SPRITE_PATH = "graphics/fx/round_bolt.png";
@@ -97,7 +99,7 @@ public record ShotFx(Body body, TracerTail tracerTail, float arcHeight, boolean 
 
     /** No weapon source (detonations / legacy callers) → a faction-default tracer. */
     private static final ShotFx NO_SOURCE = new ShotFx(
-            new Tracer(null, WeaponDef.BeamStyle.DEFAULT), null, 0f, false, null);
+            new Tracer(null, WeaponDef.BeamStyle.DEFAULT), null, 0f, false, null, null);
 
     /** The composition for a shot — never null; dispatches on the single non-null weapon source. */
     public static ShotFx of(ShotEvent s) {
@@ -124,14 +126,15 @@ public record ShotFx(Body body, TracerTail tracerTail, float arcHeight, boolean 
                 tracerTail(weapon),
                 weapon.arcHeight,
                 weapon.boostRamp,
-                contrail);
+                contrail,
+                weapon.softLaunch);
     }
 
     private static ShotFx derivePrimary(WeaponDef weapon) {
         Body body = weapon.projectileSpritePath != null
                 ? new Sprite(weapon.projectileSpritePath, weapon.projectileVisualCells)
                 : bolt(weapon);
-        return new ShotFx(body, tracerTail(weapon), 0f, false, null);
+        return new ShotFx(body, tracerTail(weapon), 0f, false, null, null);
     }
 
     private static Bolt bolt(WeaponDef weapon) {
@@ -165,7 +168,7 @@ public record ShotFx(Body body, TracerTail tracerTail, float arcHeight, boolean 
         return new ShotFx(body, tracerTail(w.weaponDef()),
                 w.weaponDef().arcHeight, w.weaponDef().boostRamp,
                 w.activation() == SpecialActivation.DIRECT_EXPLOSIVE
-                        ? ContrailStyle.MISSILE_SMOKE : null);
+                        ? ContrailStyle.MISSILE_SMOKE : null, null);
     }
 
     private static ShotFx deriveMech(WeaponDef weapon) {
@@ -174,7 +177,7 @@ public record ShotFx(Body body, TracerTail tracerTail, float arcHeight, boolean 
         Body body = weapon.projectileSpritePath != null
                 ? new Sprite(weapon.projectileSpritePath, weapon.projectileVisualCells)
                 : new Tracer(weapon.tracerColor, weapon.beamStyle);
-        return new ShotFx(body, tracerTail(weapon), weapon.arcHeight, false, null);
+        return new ShotFx(body, tracerTail(weapon), weapon.arcHeight, false, null, null);
     }
 
     private static TracerTail tracerTail(WeaponDef weapon) {

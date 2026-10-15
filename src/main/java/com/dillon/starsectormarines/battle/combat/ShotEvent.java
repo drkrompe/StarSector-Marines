@@ -39,6 +39,11 @@ public class ShotEvent {
     public float toZ;
     /** Optional simulation-owned curved flight; presentation never steers it. */
     public GuidedMissile guidedFlight;
+    /**
+     * Presentation bookkeeping for a soft-launched missile: set once its motor's ignition has been
+     * drawn, so the flash is emitted once however many frames read the shot. The sim never reads it.
+     */
+    public boolean ignitionShown;
     public final boolean hit;
     public final Faction shooterFaction;
     /** Firing entity id, or {@code 0L} for anonymous/aerial legacy sources. */
