@@ -305,7 +305,7 @@ public class InfantryWeapons {
                         : damage;
                 shots.queueImpact(new ShotService.PendingImpact(res.victimId(), shooter,
                         res.flightTime(), appliedDamage, penetration, moraleImpact,
-                        res.friendlyHit()));
+                        res.friendlyHit(), res.victimPart()));
             }
 
             // One visible traveling body per projectile. Simultaneous
@@ -418,7 +418,7 @@ public class InfantryWeapons {
                 shots.queueImpact(new ShotService.PendingImpact(
                         res.victimId(), shooter, res.flightTime(), damage,
                         sec.penetration(), roster.identity().type(shooter).moraleImpact,
-                        res.friendlyHit(), sec));
+                        res.friendlyHit(), sec, res.victimPart()));
             }
             shots.postShot(ShotEvent.special(fromX, fromY, 0f,
                     res.endX(), res.endY(), res.endZ(),
