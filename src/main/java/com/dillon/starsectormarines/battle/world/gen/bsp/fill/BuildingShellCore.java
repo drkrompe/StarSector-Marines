@@ -315,7 +315,7 @@ final class BuildingShellCore {
             case MEDICAL_CLINIC -> purpose == RoomPurpose.TREATMENT_ROOM
                     || purpose == RoomPurpose.PATIENT_WARD;
             case DENSE_TENEMENT -> purpose == RoomPurpose.BEDROOM;
-            case SHED, HOME, ARMORY -> false;
+            case SHED, HOME, ARMORY, MEDICAL_SUPPORT -> false;
         };
     }
 

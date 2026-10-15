@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — campaign freight buildings and complete working yards share templates with ordinary industrial parcels and compounds.
+Updated: 2026-10-15 - shared working yards include medical receiving and transfer courts, with purpose-furnished supply annexes.
 
 Earlier 2026-10-13 — reversible authored damage layers give Relief a worn checkpoint without changing its landing contract; Relief rear working courts preserve the expanded landing and assembly apron.
 
@@ -268,6 +268,18 @@ margin retain cross-yard circulation. Smaller parcels keep their compact yard
 grammar rather than shrinking vehicles or clipping a template. A template
 publishes scenery and topology only; objectives, ownership, force budgets and
 story beats remain the mission's decisions.
+
+A medical campus owns three complementary parcels: a purpose-partitioned clinic,
+a medical supply annex and an open service court. The annex handles clean stock,
+consumable storage and packing rather than repeating a generic warehouse. The
+court faces shared circulation, with receiving and patient transfer on opposite
+sides of a five-cell drive aisle, narrowing to three cells in compact courts. Patient transfer remains open; delivery vehicles
+and utility equipment occupy separate pockets. Concrete pedestrian margins and
+crossings connect the buildings without carpeting the whole yard in warning
+stripes. Equipment turns with its court and only appears where its full footprint
+fits. Small courts retain access before capacity. Shared roads, thresholds, berths
+and neighboring parcels keep their ownership; the court never creates a new
+capture objective or changes the clinic's mission role.
 
 Campaign-sized industrial templates need planned ground: ordinary BSP leaves
 stop at eighteen cells. Before compound claims and road-graph publication, a
