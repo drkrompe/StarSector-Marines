@@ -1774,12 +1774,15 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     static List<SnapshotArtifact> renderBarracksCommand(SnapshotContext context) throws Exception {
         return renderBarracksCommand(context, List.of("dossier", "dossier-trained", "command", "profiles",
                 "empty", "large", "transfers", "guide", "guide-transfer", "guide-replenish",
-                "guide-equipment"), true);
+                "guide-equipment"), true, true);
     }
 
-    /** The command board in {@code states}; {@code full} adds results, induction and the click-through flow. */
+    /**
+     * The command board in {@code states}; {@code full} adds results and the click-through
+     * flow, and {@code induction} the officer induction at 100% and 150%.
+     */
     static List<SnapshotArtifact> renderBarracksCommand(SnapshotContext context, List<String> states,
-                                                        boolean full) throws Exception {
+                                                        boolean full, boolean induction) throws Exception {
         DiskRegistries.installMapGeneration(context.modRoot().getParent());
         CompanyManagementGuide.install(new JSONObject(Files.readString(context.modRoot().resolve(CompanyManagementGuide.PATH))));
         HeadlessSvgAssets.install(context.modRoot());
@@ -1900,10 +1903,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 hints.clear();
             }
         }
-        if (full) {
-            images.addAll(renderOfficerInduction(context, renderer, 1f, 1.5f));
-            images.addAll(renderBarracksFlow(context, renderer));
-        }
+        if (induction) images.addAll(renderOfficerInduction(context, renderer, 1f, 1.5f));
+        if (full) images.addAll(renderBarracksFlow(context, renderer));
         return images;
     }
 
@@ -1946,9 +1947,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 click.accept("command:" + sabine.id());
                 capture.accept("02-specialties");
                 Rect first = instance.requireElement("officer-specialty-TACTICAL_COVER-train").box().borderBox();
-                document.pointerScrolled(first.x() + 12, first.y() + 12, 420);
+                document.pointerScrolled(first.x() + 12, first.y() + 12, 4000);
                 guide.update();
                 capture.accept("03-scroll-choice");
+                // Back up to the choice the walkthrough makes; the end shows all four specialties.
+                Rect last = instance.requireElement("officer-specialty-FIELD_MEDICINE-train").box().borderBox();
+                document.pointerScrolled(last.x() + 12, last.y() + 12, -4000);
+                document.pointerScrolled(first.x() + 12, first.y() + 12, 420);
+                guide.update();
                 click.accept("officer-specialty-SALVAGE_STEWARDSHIP-train");
                 if (sabine.career().level(OfficerSpecialty.SALVAGE_STEWARDSHIP) != 1) {
                     throw new IllegalStateException("Click-through specialty choice did not train Sabine at scale " + scale);
