@@ -4,7 +4,7 @@ Status: ACTIVE — modeled ground direct fire is shipped; one manual feel pass r
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — cover hides body parts, lane props included; the part decides what a hit is worth and whether it wounds.
+Updated: 2026-10-15 — a committed outcome names the environment feature that stopped the round, and arrival wears it.
 
 Ballistics makes a direct shot a committed physical event instead of an
 accuracy result applied at the muzzle. It owns contact along the predicted
@@ -37,8 +37,13 @@ projectile.
 - **Obscuration** is matter on the path that degrades the sight picture
   without being a contact. Smoke is the only obscurant today. It is measured
   as a depth in cells and never appears among contacts.
+- A **struck feature** is the piece of the environment a round stopped in: the
+  crossed prop's cell for a crossed-cover stop, the cell or shared edge that
+  lent edge cover for a cover catch at the body, the blocking cell for a wall
+  stop. It names a place rather than a prop; cover from the ground a man stands
+  in names nothing.
 - A **committed outcome** is the resolved endpoint, stop kind, victim if any,
-  and flight time. Later movement does not reroll it; a target already dead at
+  struck feature if any, and flight time. Later movement does not reroll it; a target already dead at
   arrival simply cannot receive the delayed payload.
 - A **visual shot** mirrors that committed flight for presentation. It is not
   the authority for collision or damage.
@@ -250,6 +255,13 @@ and throw reservations may also inspect fresh launch commitments. This is a
 decision-observation delay, not an extra tick of physical flight. An unfinished
 or failed update phase cannot publish partial launches or advance their clocks.
 
+The resolver names the struck feature and never writes the world. A direct
+payload that stopped in one is queued against it beside the impact clock and,
+on arrival, spent on whatever stands there through the map-structure channel
+(`combat-durability-nouns.md`, material rating). Attributing a cover catch to
+edge cover or to a trench reuses the catch's own roll, so naming the feature
+costs no random draw and a fight in the open replays unchanged.
+
 `ShotEvent` and the render path observe the same flight. Traveling bolts and
 sprites advance to arrival, while a non-traveling tracer remains a presentation
 form. Presentation may choose silhouette, color, sound, and impact treatment,
@@ -277,6 +289,7 @@ becoming their simulation authority. `air-nouns.md` owns airborne behavior and
 the decision to extend this ground model into the air domain.
 
 Area exposure and per-part armour are the open half of `body-part-cover.md`;
-part consequences — damage by part and limb wounds — are shipped. Cover erosion, lead error, point-defense generalization, and modeled aerial
+part consequences — damage by part and limb wounds — are shipped, and so is
+small-arms wear of the cover a round stops in. Lead error, point-defense generalization, and modeled aerial
 fire are extension paths, not contracted Ballistics work. Current acceptance
 is indexed in `stories.md`; completed historical slices are in `shipped.md`.

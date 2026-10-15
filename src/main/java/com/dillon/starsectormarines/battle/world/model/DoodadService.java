@@ -175,6 +175,19 @@ public final class DoodadService {
         return result;
     }
 
+    /**
+     * The definition id of the standing destructible prop a structural hit on this cell would reach, in the
+     * order {@code MapEditor.damageWall} dispatches — rock, natural object, registered prop, cover prop — or
+     * null when no destructible prop stands here. Read-only.
+     */
+    public String damageablePropIdAt(int x, int y, CellTopology topology) {
+        String id = rocks.standingIdAt(x, y, topology, TileRegistry.installed());
+        if (id == null) id = naturalProps.standingIdAt(x, y);
+        if (id == null) id = destructibleProps.standingIdAt(x, y);
+        if (id == null) id = destructibleCover.standingIdAt(x, y);
+        return id;
+    }
+
     /** Restore surviving prop/nature contributions after the grid rebakes a breached cell's neighbors. */
     public void refreshBlockingCover(int x, int y, CellTopology topology) {
         for (Doodad prop : doodads) {
