@@ -180,26 +180,13 @@ public final class DefenderRoster {
     }
 
     /**
-     * The least of the risk curve's mech candidates a market-backed operation keeps: a market with no heavy lean at all
-     * still keeps this share. UNTUNED, on the headcount band's reasoning: the risk curve is the ceiling, so nothing
-     * grows, and a market's armour picks the place between.
-     */
-    static final float MECH_BAND_FLOOR = 0.5f;
-
-    /** Heavy lean at which a market keeps every mech candidate the risk curve offers. UNTUNED. */
-    static final float HEAVY_LEAN_FOR_FULL_MECHS = 0.25f;
-
-    /**
-     * The risk curve's mech candidates, kept in proportion to the market's heavy lean. The candidates are an ordered
-     * prefix (anchor first), so the kept ones are the front of it, as {@link #affordableMechVariants} keeps them. No
-     * market backing the battle keeps them all; a garrison with any candidates keeps at least one.
+     * The risk curve's mech candidates, kept in proportion to the market's heavy lean
+     * ({@link MarketGarrison#keepHeavy}). The candidates are an ordered prefix (anchor first), so the kept ones are the
+     * front of it, as {@link #affordableMechVariants} keeps them. No market backing the battle keeps them all.
      */
     static List<MechVariant> bandedMechs(List<MechVariant> candidates, MarketGarrison garrison) {
-        if (candidates.isEmpty() || garrison == null || garrison.isNone()) return candidates;
-        float fill = Math.min(1f, garrison.heavy() / HEAVY_LEAN_FOR_FULL_MECHS);
-        float share = MECH_BAND_FLOOR + (1f - MECH_BAND_FLOOR) * fill;
-        int kept = Math.max(1, (int) Math.ceil(candidates.size() * share - 1e-4f));
-        return List.copyOf(candidates.subList(0, Math.min(candidates.size(), kept)));
+        if (candidates.isEmpty() || garrison == null) return candidates;
+        return List.copyOf(candidates.subList(0, garrison.keepHeavy(candidates.size())));
     }
 
     /**
