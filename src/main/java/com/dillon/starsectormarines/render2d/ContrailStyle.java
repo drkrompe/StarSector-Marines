@@ -66,16 +66,17 @@ public final class ContrailStyle {
             /*additive*/ false);
 
     /**
-     * A hair-thin, short-lived cyan streak for a point-defence interceptor: a
-     * small hot motor rather than a smoke column, so a salvo reads as darts of
-     * light crossing to the rounds and not as a sky full of exhaust. Additive,
-     * tapering as it ages.
+     * A hair-thin, short wisp for a point-defence interceptor: a small chemical
+     * motor, burning orange at the missile and cooling to grey smoke a few cells
+     * back, so a salvo reads as darts crossing to the rounds rather than as a
+     * sky full of exhaust. Smoke rather than light, so alpha-blended; it widens
+     * only a little as it ages.
      */
     public static final ContrailStyle INTERCEPTOR_WISP = new ContrailStyle(
-            /*duration*/ 0.09f,
-            /*startW*/ 0.035f, /*endW*/ 0.015f,
-            /*start*/ 0.80f, 0.96f, 1.00f, 0.75f,
-            /*end*/   0.45f, 0.80f, 1.00f, 0.00f,
+            /*duration*/ 0.12f,
+            /*startW*/ 0.03f, /*endW*/ 0.06f,
+            /*start*/ 1.00f, 0.72f, 0.36f, 0.85f,
+            /*end*/   0.55f, 0.53f, 0.50f, 0.00f,
             /*minSegLen*/ 0.05f,
-            /*additive*/ true);
+            /*additive*/ false);
 }
