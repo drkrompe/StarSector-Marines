@@ -702,6 +702,8 @@ final class FortAssault {
                         followOrFire(fire, orders);
                         return orders;
                     }
+                    if (heldAspect == null) notes.add("company takes aim at the aspect at (" + aspect[0] + "," + aspect[1] + "): "
+                            + tasks.get(0).reason());
                     heldAspect = aspect;
                     for (DefenceStructureTactics.Task task : tasks) {
                         orders.put(task.squadId(), new Order(task.assignment(), AssignmentReason.ASSAULT_COMMIT));

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 - the outer belt carries a fence line of industrial fence (breakable, with gaps) where it carried wire, and no wire art or fixture remains; earlier: a fort may carry an optional anti-air yard (`FortAspect.AIR_DEFENCE`: console, guided battery and flak; declared per kind, not yet by any mission) that the strike officer weighs and the command plan can open, and ships and gunships were measured against forts (`ship-vs-fort`); earlier: a fort exports its assault approaches (`FortPlan.approaches()`: each gate with the nests that cover it, an entry cell, its approach lane across the belt, and a breach section of wall) and the fort frame rides on the disclosed facts, so a company can be driven through base of fire, entry, objective and hold (`phased-assault.md`); the muster that does it is on by default (owner decision) though it has not beaten the trickle on the Conquest fort fixtures. Earlier: structure work is kept: mech and drone squads (they cannot enter a bunker) and works crews are never offered it, only named-officer groups are excluded (every campaign squad has an acting-NCO group), a squad on a fort task is not drafted into an uncontested compound capture, a maneuver against one contact is bounded to 1800 ticks, and a structure-task squad that closes no ground for 3000 ticks is benched for 9000 (the bunker take has not been completed by a starter company: squads die at 3-8 cells to nests and garrison, which is a strength gap and not a command defect); a fort is disclosed to a company by any of its works (wall, gates, bastion nests) coming into view, not only the platform or generator standing inside the wall, which a company beside the fort never saw; a works crew held by the ambient service is never offered fort work (a lone relief technician held the one take-the-bunker task for 22,900 ticks and never moved). Earlier: a shield fort's dome is sized from what it covers (its works at least, the keep when sited to protect it); every declared fort's ground is reserved and slid off programmed places before roads grow; the axis-only Conquest recipe carries the fort stage and a shortfall is logged; review frames no longer draw empty mission-card panels. Earlier: Conquest sites its declared forts as barriers (`FortSitingPolicy`, `FortSiting`, reserved ground); fort restraint, command awareness, building art by function, shield fort (slice 3); redoubt/citadel remain.
+Updated: 2026-10-14 - a fort's sensors are the radar on its fire-control bunker and spot for the side that holds it (the side's air director calls strikes through it, with no marine radio on the map), the anti-air yard leads with two Ridgewatch missile batteries, and a side that is flown at works the hostile bunker first (`FortSensors`, `SkyNeed`); earlier: the outer belt carries a fence line of industrial fence (breakable, with gaps) where it carried wire, and no wire art or fixture remains; earlier: a fort may carry an optional anti-air yard (`FortAspect.AIR_DEFENCE`: console, guided battery and flak; declared per kind, not yet by any mission) that the strike officer weighs and the command plan can open, and ships and gunships were measured against forts (`ship-vs-fort`); earlier: a fort exports its assault approaches (`FortPlan.approaches()`: each gate with the nests that cover it, an entry cell, its approach lane across the belt, and a breach section of wall) and the fort frame rides on the disclosed facts, so a company can be driven through base of fire, entry, objective and hold (`phased-assault.md`); the muster that does it is on by default (owner decision) though it has not beaten the trickle on the Conquest fort fixtures. Earlier: structure work is kept: mech and drone squads (they cannot enter a bunker) and works crews are never offered it, only named-officer groups are excluded (every campaign squad has an acting-NCO group), a squad on a fort task is not drafted into an uncontested compound capture, a maneuver against one contact is bounded to 1800 ticks, and a structure-task squad that closes no ground for 3000 ticks is benched for 9000 (the bunker take has not been completed by a starter company: squads die at 3-8 cells to nests and garrison, which is a strength gap and not a command defect); a fort is disclosed to a company by any of its works (wall, gates, bastion nests) coming into view, not only the platform or generator standing inside the wall, which a company beside the fort never saw; a works crew held by the ambient service is never offered fort work (a lone relief technician held the one take-the-bunker task for 22,900 ticks and never moved). Earlier: a shield fort's dome is sized from what it covers (its works at least, the keep when sited to protect it); every declared fort's ground is reserved and slid off programmed places before roads grow; the axis-only Conquest recipe carries the fort stage and a shortfall is logged; review frames no longer draw empty mission-card panels. Earlier: Conquest sites its declared forts as barriers (`FortSitingPolicy`, `FortSiting`, reserved ground); fort restraint, command awareness, building art by function, shield fort (slice 3); redoubt/citadel remain.
 
 Read `ground-defences.md` first (the battery, the dome, nests, fire control, the placement
 law), then the "Authored relationships within a compound" section of `compound-programs.md`,
@@ -42,7 +42,7 @@ place that can be reached, and each aspect can be shut down on its own:
 | Magazine | a hardened store | wrecking it (it goes up) | sustained fire: the guns fire out ready rounds, then stop |
 | Power | a plant or capacitor bank | taking or wrecking it | everything that draws on it — the dome, the guns' traverse, fire control's sensors |
 | Emitter | the shield generator | destroying it | the dome, permanently |
-| Sensors | a mast or radar | wrecking it | the envelope shrinks to what the fort can see by eye |
+| Sensors | the radar on the fire-control bunker's roof (not a separate building) | taking the bunker (it then watches for the taker) or wrecking it | the fort spotting for its holder's air; without power the dish does not turn and the fort sees only by eye |
 
 Capture is the existing rule: an aspect belongs to whoever holds its place unopposed, either
 side may hold it, and a captured aspect works for its new holder. Nothing is special about
@@ -326,9 +326,12 @@ yard within the works. It is a fort *aspect* like the others (`FortAspect.AIR_DE
 declares it yet, and no mission should until it is a design decision about that mission's air.
 
 - **Layout.** `AirDefenceYard` is a 7x7 yard with a gap in its sandbag ring; each plan (`BatteryFort`, `ShieldFort`) places
-  one, clear of its buildings, lanes and centrepiece, and `FortStage` stamps the console, the guided battery
-  (`ridge-aa`) and two flak mounts as ordinary posts tagged to the fort. Art reuses the console base, the ridge base and
-  the flak mounts; a purpose-drawn SAM yard would be an upgrade, not a prerequisite.
+  one, clear of its buildings, lanes and centrepiece, and `FortStage` stamps the console, **two Ridgewatch missile batteries**
+  (`ridge-aa`, either side of a one-cell walkway that runs from the gate the length of the yard) and two flak mounts beside the console
+  as the close-in defence, as ordinary posts tagged to the fort. It leads with the launchers because it is a missile site. Art reuses the
+  console base, the ridge base and mount (the twin-pod launcher turns to track its target and the base's tubes read as a launcher at
+  game scale, with the round drawn as a small missile sprite in flight) and the flak mounts; a purpose-drawn SAM launcher with a visible
+  exhaust and a contrail would be an upgrade, not a prerequisite.
 - **Rules (written for sides).** The console is the aspect's core and is held by presence like the others. A wrecked
   console silences every mount for good; a console contested, or held by a side the mount is not friendly to, silences
   them; a fort without power runs them at the quarter rate; taking the yard turns every mount to the taker, who is then
@@ -349,6 +352,34 @@ declares it yet, and no mission should until it is a design decision about that 
   is a reading and not a verdict, because the fort's existing nests drain a lone bomber that crosses the works without
   any help from the yard. The yard's marginal value is reach (a guided round at 62 cells from a battery with reach
   75), the officer's refusal and craft that stay (see below), not a lone bomber's survival.
+
+## Built: the fort spots for its side's air
+
+A fort's **sensors** are the radar on the roof of its fire-control bunker, the building that already has a radar in its art. They are
+not a separate aspect with a building of their own: the bunker is where the fort's aim, and so its eyes, live, and a sixth building would
+have been a parallel noun for the same thing. A battery fort therefore has sensors; a shield fort has none yet (its control room has no
+dish).
+
+- **An observer for the holder's air pool.** The radar is an operator for whichever side holds the bunker (`FortSensors`), through the same
+  `CommsOperators` that a marine's radio is, so the side's air director calls a strike onto what the fort can see exactly as it would
+  for a radio operator's sighting, and the player's air power would too, were a fort in the player's hands. It needs no marine with a
+  radio on the map.
+- **Fair knowledge.** The fort designates only ground it has in sight: inside its reach and over a line of real ground, in which the
+  fort's own works are looked over (the dish stands above its roof) and anything else blocks as it blocks a rifleman. It vouches for no
+  belief, so it never calls on ground it cannot see. The director now also picks its target from what an operator sees: it used to take
+  the densest concentration anywhere on the map and then ask whether anyone could see it.
+- **State, written for sides.** Taking the bunker makes the radar watch for the taker; a contested bunker watches for nobody; a wrecked
+  bunker stops it for good. Without the plant the dish does not turn and the fort has only the eye of its watchkeepers
+  (`FortSensors.EYE_RANGE_CELLS`, against `RADAR_RANGE_CELLS`); a taken bunker whose plant is still the other side's is dim for the
+  same reason. A call holds the fort's net for a cooldown, as it holds a marine's radio.
+- **Control.** `FortService.setSpotting(false)` switches the calling off for one battle (the fort still sees); it is the comparison
+  control the scene and the trial fixture field `fortSpotting` use.
+- **A reason to open the sky.** A side whose units have lately had a hostile armed aircraft in view (`AirSupportFacts.flownAt`, its own
+  eyes, not the enemy's pool) is told it is flown at (`SkyNeed`). `FortTactics` then works a hostile battery fort's bunker first, ahead of
+  even a yard that shuts its own sky, by taking it rather than wrecking the magazine instead (which blinds nobody); and a fort off the line
+  of march is still a company's fort when its radar spots for aircraft flying at the side, or its yard shuts the sky to the strikes the
+  side could place (`ConquestCommand.opensTheSky`). Mechanics, not tuning: the window (`FLOWN_AT_WINDOW_TICKS`) and the ranges are
+  UNTUNED.
 
 ## Measured: ships and gunships against forts
 
