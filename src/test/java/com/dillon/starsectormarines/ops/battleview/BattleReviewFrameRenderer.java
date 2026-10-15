@@ -149,7 +149,7 @@ public final class BattleReviewFrameRenderer {
     public BufferedImage render(BattleSimulation simulation, String caption,
                                 ReviewAnnotations annotations,
                                 ReviewImpactFx impacts) throws IOException {
-        BufferedImage image = renderer.renderHostPass(pass(simulation), width, height);
+        BufferedImage image = renderer.renderHostPass(pass(simulation, impacts), width, height);
         if (impacts != null) {
             impacts.paint(image, cameraFor(image.getWidth(), image.getHeight(), simulation));
         }
@@ -284,8 +284,13 @@ public final class BattleReviewFrameRenderer {
         };
     }
 
-    private BattleSceneHostPass pass(BattleSimulation simulation) {
-        return new BattleSceneHostPass() {
+    private BattleSceneHostPass pass(BattleSimulation simulation, ReviewImpactFx impacts) {
+        return new ReviewHostPass() {
+            @Override
+            public DrawList overlay(BattleCamera camera) {
+                return impacts == null ? null : impacts.overlay(camera);
+            }
+
             @Override
             public BattleSceneFrame prepare(CanvasHostViewport viewport, float alphaMult) {
                 BattleCamera camera = cameraFor(viewport.width(), viewport.height(), simulation);
@@ -306,6 +311,9 @@ public final class BattleReviewFrameRenderer {
             }
         };
     }
+
+    /** The scene pass, with the presentation services a feed owns brought into the same drain. */
+    private interface ReviewHostPass extends BattleSceneHostPass, HeadlessBattleSceneRenderer.ReviewOverlayPass { }
 
     /** Fits the whole grid under the caption band, so a frame never crops the battlefield. */
     private BattleCamera cameraFor(float viewportWidth, float viewportHeight,
