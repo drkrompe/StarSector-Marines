@@ -214,17 +214,44 @@ public final class DetachmentResolver {
         if (remaining == 0 || playerShuttles == null || playerShuttles.isEmpty()) {
             return out;
         }
-        for (int i = 0; i < playerShuttles.size() && remaining > 0; i++) {
+        int[] passengers = waveMajorPassengers(m, playerShuttles, remaining);
+        for (int i = 0; i < playerShuttles.size(); i++) {
+            if (passengers[i] == 0) continue;
             FittedBoat boat = playerShuttles.get(i);
             int seatsPerSortie = m.marineArrivalPolicy.seatsPerSortie(boat.pattern());
-            int passengers = i == playerShuttles.size() - 1
-                    ? remaining : Math.min(remaining, seatsPerSortie);
-            int cycles = (passengers + seatsPerSortie - 1) / seatsPerSortie;
+            int cycles = (passengers[i] + seatsPerSortie - 1) / seatsPerSortie;
             out.add(new ShuttleAssignment(boat.pattern(), boat, cycles,
-                    seatsPerSortie, passengers));
-            remaining -= passengers;
+                    seatsPerSortie, passengers[i]));
         }
         return out;
+    }
+
+    /**
+     * Splits the named force across the company's boats one wave at a time:
+     * every boat flies each trip, in priority order, until nobody is left.
+     *
+     * <p><b>Follow-up trips use every boat.</b> Filling one sortie per boat
+     * and handing the remainder to the last boat made two six-seat boats
+     * carrying twenty-four marines fly 6 and 18 — the first boat went home
+     * after one trip while the second flew three, so the company came up to
+     * strength a whole round trip later than the lift allowed. Wave-major
+     * filling flies 12 and 12 in two trips. Only the final wave can be short,
+     * so each boat's sorties are full before its last one, as
+     * {@link ShuttleAssignment} requires; that is also the order
+     * {@code CampaignMarineDeployment} seats the manifest in.
+     */
+    private static int[] waveMajorPassengers(Mission m, List<FittedBoat> boats, int personnel) {
+        int[] passengers = new int[boats.size()];
+        int remaining = personnel;
+        while (remaining > 0) {
+            for (int i = 0; i < boats.size() && remaining > 0; i++) {
+                int load = Math.min(remaining,
+                        m.marineArrivalPolicy.seatsPerSortie(boats.get(i).pattern()));
+                passengers[i] += load;
+                remaining -= load;
+            }
+        }
+        return passengers;
     }
 
     // ---- enemy heavy-armor gate (moved verbatim from the briefing screens) ----
