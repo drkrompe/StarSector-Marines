@@ -3,11 +3,15 @@ package com.dillon.starsectormarines.campaign;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineSoldier;
+import com.dillon.starsectormarines.marine.MarineSoldierStatus;
+import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.Status;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * A garrison overrun in the player's absence whose survivors have gone to ground — see
@@ -29,6 +33,9 @@ public final class StrandedDetachment {
 
     /** Days the survivors can hold out before nobody is left to collect. A first proposal. */
     public static final int RECOVERY_DAYS = 30;
+
+    /** Days between losses while a detachment waits. A first proposal. */
+    public static final int ATTRITION_INTERVAL_DAYS = 10;
 
     /** Matches a failed extraction after employer default. */
     static final float LOST_CAPTAIN_INJURY_DAYS = 45f;
@@ -59,6 +66,48 @@ public final class StrandedDetachment {
     /** Starts the recovery clock on a failed row that still holds its survivors. */
     static void strand(CampaignState state, int row, int day) {
         state.contractStrandedUntilTick[row] = day + RECOVERY_DAYS;
+        state.contractStrandedIntervals[row] = 0;
+    }
+
+    /**
+     * Applies every attrition interval that has elapsed by {@code day}: each one lists one
+     * living marine per stranded squad as missing. Who is struck is seeded from the
+     * contract, its defence event and the interval index, so a replayed day strikes the
+     * same people, and the applied-interval watermark keeps an interval from striking
+     * twice. Missing, never killed: nobody saw them die. The captain is never struck
+     * here; their fate is settled by the pickup or the deadline.
+     *
+     * <p>The interval that falls on the deadline itself is left to {@link #expire}.
+     *
+     * @return the names of the marines listed missing today, in order
+     */
+    public static List<String> attrition(CampaignState state, int row, MarineRoster roster,
+                                         int day) {
+        List<String> lost = new ArrayList<>();
+        if (!isStranded(state, row) || roster == null) return lost;
+        int deadline = state.contractStrandedUntilTick[row];
+        int start = deadline - RECOVERY_DAYS;
+        int due = Math.max(0, Math.min(day, deadline - 1) - start) / ATTRITION_INTERVAL_DAYS;
+        long contractId = state.contractId[row];
+        while (state.contractStrandedIntervals[row] < due) {
+            int interval = ++state.contractStrandedIntervals[row];
+            Random seed = new Random(contractId * 1_000_003L
+                    ^ state.contractDefenseEventKey[row] * 31L ^ interval);
+            for (MarineSquad squad : roster.squadsStationedOn(contractId)) {
+                List<MarineSoldier> living = new ArrayList<>();
+                for (MarineSoldier soldier : roster.squadMembers(squad)) {
+                    if (soldier.status() == MarineSoldierStatus.ACTIVE
+                            || soldier.status() == MarineSoldierStatus.WIA) {
+                        living.add(soldier);
+                    }
+                }
+                if (living.isEmpty()) continue;
+                MarineSoldier struck = living.get(seed.nextInt(living.size()));
+                if (roster.listStationedMissing(contractId, struck.id())) lost.add(struck.name());
+            }
+        }
+        state.contractMarinesCommitted[row] = roster.stationedLivingCount(contractId);
+        return lost;
     }
 
     /**

@@ -397,6 +397,8 @@ public final class CampaignState implements Serializable {
      * row keeps its personnel reserved past its settlement. See {@link StrandedDetachment}.
      */
     public int[]   contractStrandedUntilTick = filledInts(INITIAL_CAPACITY, -1);
+    /** Attrition intervals already applied to a stranded detachment; 0 otherwise. */
+    public int[]   contractStrandedIntervals = new int[INITIAL_CAPACITY];
     /**
      * Identity of the pending response most recently pushed at the player as an event
      * popup — the Garrison defense event key, or the Cadre incident's due day widened
@@ -1225,6 +1227,7 @@ public final class CampaignState implements Serializable {
         contractDefenseAttackerStrength[i] = 0f;
         contractResponseDeadlineTick[i] = -1;
         contractStrandedUntilTick[i] = -1;
+        contractStrandedIntervals[i] = 0;
         contractNoticeAckKey[i]     = 0L;
         contractNoticeAckStage[i]   = 0;
         contractSalvageBaseline[i]  = salvageBaseline;
@@ -2052,6 +2055,10 @@ public final class CampaignState implements Serializable {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractStrandedUntilTick = filledInts(n, -1);
         }
+        if (contractStrandedIntervals == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractStrandedIntervals = new int[n];
+        }
         if (contractOperationTier == null) {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractOperationTier = new byte[n];
@@ -2210,6 +2217,7 @@ public final class CampaignState implements Serializable {
         Arrays.fill(contractResponseDeadlineTick, oldLength, n, -1);
         contractStrandedUntilTick = Arrays.copyOf(contractStrandedUntilTick, n);
         Arrays.fill(contractStrandedUntilTick, oldLength, n, -1);
+        contractStrandedIntervals = Arrays.copyOf(contractStrandedIntervals, n);
         contractNoticeAckKey = Arrays.copyOf(contractNoticeAckKey, n);
         contractNoticeAckStage = Arrays.copyOf(contractNoticeAckStage, n);
         contractSalvageBaseline   = Arrays.copyOf(contractSalvageBaseline, n);
