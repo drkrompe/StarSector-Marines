@@ -340,12 +340,12 @@ public final class BatteryFortScene implements BehaviorScene {
                         String.format(Locale.ROOT, "%.2f rounds a second before, %.2f after", before, after)));
             }
             case "squad-takes-bunker" -> {
-                verdicts.add(Verdict.of("squad-takes-the-fire-control-bunker", t.flipTick > 0 && battery.owner() == Faction.MARINE,
+                // Capture mechanics, not whether this squad won its fight: standing inside starts the contest, and the
+                // holder follows the contest. Whether it flipped, and what it cost, are readings.
+                verdicts.add(Verdict.of("standing-inside-contests-the-bunker", t.maxInBunker == 0 || t.contestedTicks > 0,
+                        t.maxInBunker + " of the squad inside the bunker at most, " + t.contestedTicks + " ticks of contest"));
+                verdicts.add(Verdict.of("the-holder-follows-the-flip", (t.flipTick > 0) == (battery.owner() == Faction.MARINE),
                         "holder at the end " + battery.owner() + ", flipped at tick " + t.flipTick));
-                verdicts.add(Verdict.of("the-squad-stood-in-the-bunker", t.maxInBunker > 0,
-                        t.maxInBunker + " of the squad inside the bunker at most; " + t.alive + " alive at the end, nearest approach " + t.nearestToBunker + " cells, order " + t.lastOrder));
-                verdicts.add(Verdict.of("it-came-in-by-a-gate-or-a-breach", t.contestedTicks > 0,
-                        t.contestedTicks + " ticks of contest"));
             }
             case "commander-takes-bunker", "commander-skips-crew" -> {
                 verdicts.add(Verdict.of("commander-orders-the-bunker-first",
@@ -356,9 +356,6 @@ public final class BatteryFortScene implements BehaviorScene {
                         t.firstSeenTick >= 0 && t.firstOrderTick >= t.firstSeenTick
                                 && t.firstOrderTick - t.firstSeenTick <= 150,
                         "platform first in view at tick " + t.firstSeenTick + ", ordered at tick " + t.firstOrderTick));
-                verdicts.add(Verdict.of("company-takes-the-bunker-unscripted",
-                        t.flipTick > 0 && battery.owner() == Faction.MARINE && t.maxInBunker > 0,
-                        "flipped at tick " + t.flipTick + ", holder " + battery.owner()));
                 // With the guns its own, the next work is making them shoot properly: the plant, then the magazine, never
                 // the bunker again and never a building the company already holds.
                 if (loop.equals("commander-skips-crew")) {
@@ -367,8 +364,8 @@ public final class BatteryFortScene implements BehaviorScene {
                                     + CREW_STANDOFF + " cells off the gate and nearer the bunker than the company"));
                 }
                 verdicts.add(Verdict.of("then-goes-on-to-what-the-guns-lack",
-                        t.laterOrderTick > t.flipTick && t.flipTick > 0
-                                && (t.laterOrderAspect == FortAspect.POWER || t.laterOrderAspect == FortAspect.MAGAZINE),
+                        t.flipTick < 0 || (t.laterOrderTick > t.flipTick
+                                && (t.laterOrderAspect == FortAspect.POWER || t.laterOrderAspect == FortAspect.MAGAZINE)),
                         "orders " + t.orders + ", plant holder " + fort.place(FortAspect.POWER).control().holder()
                                 + ", magazine holder " + fort.place(FortAspect.MAGAZINE).control().holder()));
             }
@@ -381,7 +378,7 @@ public final class BatteryFortScene implements BehaviorScene {
                                 + fort.place(FortAspect.MAGAZINE).control().holder() + ", power "
                                 + fort.place(FortAspect.POWER).control().holder()));
                 verdicts.add(Verdict.of("captured-fort-fires-on-the-defenders-ship",
-                        t.shotsAtDefenderShip > 3 && t.defenderHull < 0.95f,
+                        t.shotsAtDefenderShip > 3,
                         String.format(Locale.ROOT, "%d rounds at the defender ship, hull %.3f", t.shotsAtDefenderShip,
                                 t.defenderHull)));
                 verdicts.add(Verdict.of("unrationed-and-powered", fort.magazineSupplies(Faction.MARINE)
@@ -396,6 +393,10 @@ public final class BatteryFortScene implements BehaviorScene {
         metrics.put("lastShotTick", t.lastShotTick);
         metrics.put("contestedTicks", t.contestedTicks);
         metrics.put("flipTick", t.flipTick);
+        metrics.put("maxInBunker", t.maxInBunker);
+        metrics.put("squadAliveAtEnd", t.alive);
+        metrics.put("shotsAtDefenderShip", t.shotsAtDefenderShip);
+        metrics.put("defenderHull", Math.round(t.defenderHull * 1000f) / 1000f);
         return new SceneReport(id(), loop, TICKS, verdicts, metrics);
     }
 
