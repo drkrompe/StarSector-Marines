@@ -209,6 +209,35 @@ class FightingPositionClaimsTest {
     }
 
     @Test
+    void aTeamWithNoRunNearItsStretchHoldsItInTheOpenRatherThanCrowdingAnother() {
+        // A short trench under the first team's stretch, and open ground under the second's.
+        FightingPositionIndex index = trench(4, 15, 10);
+        FrontageLine line = FrontageLine.facing(4, 10, 40, 10, 20, 2, NO_THREAT, NO_THREAT);
+        Order order = new Order(22, 10, 20, NO_THREAT, NO_THREAT, -1, line);
+        int[] cells = unassigned(8);
+
+        FightingPositionClaims.fillLine(index, W, order, NO_COVER, cells, twoTeams(4), new HashSet<>());
+
+        for (int i = 0; i < 4; i++) assertTrue(cells[i] >= 0 && cells[i] % W <= 15, "team 0 holds the trench");
+        for (int i = 4; i < 8; i++) assertEquals(-1, cells[i], "team 1 holds its own stretch in the open");
+    }
+
+    @Test
+    void cellsGoInTheOrderTheMenStandAlongTheLine() {
+        FightingPositionIndex index = trench(4, 15, 10);
+        FrontageLine line = FrontageLine.facing(4, 10, 15, 10, 10, 2, NO_THREAT, NO_THREAT);
+        Order order = new Order(10, 10, 12, NO_THREAT, NO_THREAT, -1, line);
+        int[] cells = unassigned(4);
+        float[] along = {0.9f, 0.1f, 0.6f, 0.3f};
+
+        FightingPositionClaims.fillLine(index, W, order, NO_COVER, cells, new int[4], List.of(0),
+                new HashSet<>(), along);
+
+        assertTrue(cells[1] % W < cells[3] % W && cells[3] % W < cells[2] % W && cells[2] % W < cells[0] % W,
+                "the leftmost man takes the leftmost cell: " + Arrays.toString(cells));
+    }
+
+    @Test
     void aSquadTakesAContiguousBlockNearestTheOrderCentre() {
         FightingPositionIndex index = trench(5, 34, 10);
         int[] cells = unassigned(6);

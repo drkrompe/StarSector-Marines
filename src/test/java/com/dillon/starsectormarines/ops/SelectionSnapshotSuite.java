@@ -20,6 +20,8 @@ import com.dillon.starsectormarines.battle.scene.SceneWorld;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.ui.highlight.FightingPositionHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
+import com.dillon.starsectormarines.battle.ui.highlight.SquadMoveOrderHighlightPublisher;
+import com.dillon.starsectormarines.battle.ui.picking.SelectionOrders;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.squad.DigInSystem;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -44,7 +46,7 @@ public final class SelectionSnapshotSuite implements SnapshotSuite {
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         return List.of(renderSelection(context, true), renderSelection(context, false),
-                renderFightingPositions(context));
+                renderFightingPositions(context), renderLine(context, false), renderLine(context, true));
     }
 
     private SnapshotArtifact renderSelection(SnapshotContext context, boolean group) throws Exception {
@@ -155,6 +157,57 @@ public final class SelectionSnapshotSuite implements SnapshotSuite {
                 }
             };
             return new SnapshotArtifact("fighting-positions.png", renderer.renderHostPass(pass, 1920, 1080));
+        } finally {
+            DigInSystem.setEnabledForEvidence(previous);
+        }
+    }
+
+    /**
+     * A selected squad of eight dragging a line across a trench and on over open ground: while the
+     * drag is held, a ring where each marine will stand (green on the trench, pale beyond it); once
+     * released and walked, the same squad standing in those rings under the held line.
+     */
+    private SnapshotArtifact renderLine(SnapshotContext context, boolean held) throws Exception {
+        HeadlessUiRenderer renderer = new HeadlessUiRenderer(
+                HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
+                new HeadlessBattleSceneRenderer(context.modRoot(), true));
+        SceneWorld world = SceneBuilder.openGround(64, 36)
+                .squad("alpha").size(8).inFile(22, 8, 1, 0).done()
+                .squad("enemy").faction(Faction.DEFENDER).size(2).inFile(60, 33, 1, 0).done()
+                .build();
+        boolean previous = DigInSystem.isEnabled();
+        DigInSystem.setEnabledForEvidence(true);
+        try (BattleSimulation sim = world.sim()) {
+            dig(sim, 14, 25, 20);
+            for (int i = 0; i < 5; i++) sim.advance(1f / 30f);
+            Selection selection = new Selection();
+            selection.selectSquad(world.squadId("alpha"));
+            HighlightOverlay highlights = new HighlightOverlay();
+            if (held) {
+                SelectionOrders.requestLine(sim, selection, 12, 20, 48, 20);
+                for (int i = 0; i < 900; i++) sim.advance(1f / 30f);
+                SquadMoveOrderHighlightPublisher.publish(selection, sim, highlights);
+            } else {
+                highlights.putLines(HighlightOverlay.SRC_SQUAD_LINE_PREVIEW,
+                        SelectionOrders.previewMarks(sim, selection, 12, 20, 48, 20));
+            }
+            sim.getFogOfWar().tick(0, sim.getRoster());
+            BattleCamera camera = new BattleCamera(64, 36);
+            camera.setViewport(0, 0, 1920, 1080, 1920 / 64f);
+            BattleSceneHostPass pass = new BattleSceneHostPass() {
+                @Override public BattleSceneFrame prepare(CanvasHostViewport viewport, float alpha) {
+                    return new BattleSceneFrame(new RenderContext(sim, camera, null,
+                            alpha, 0, false, highlights, selection,
+                            BattleRenderHostProfile.EMBEDDED_SCENE),
+                            EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS, RenderLayer.HIGHLIGHTS,
+                                    RenderLayer.UNITS));
+                }
+                @Override public void draw(CanvasHostViewport viewport, float alpha) {
+                    throw new IllegalStateException("Headless evidence only");
+                }
+            };
+            return new SnapshotArtifact(held ? "line-held.png" : "line-preview.png",
+                    renderer.renderHostPass(pass, 1920, 1080));
         } finally {
             DigInSystem.setEnabledForEvidence(previous);
         }

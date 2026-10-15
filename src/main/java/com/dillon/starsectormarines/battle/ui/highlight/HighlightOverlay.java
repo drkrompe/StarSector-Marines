@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.ui.highlight;
 
+import com.dillon.starsectormarines.battle.squad.FrontageLine;
+
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -109,6 +111,36 @@ public final class HighlightOverlay {
     public static final Color COLOR_DOCTRINE_DISENGAGE = new Color(0xFF, 0x60, 0x60, 0xA0); // red
 
     private final Map<String, List<CellHighlight>> sources = new LinkedHashMap<>();
+    private final Map<String, List<LineMark>> lineSources = new LinkedHashMap<>();
+
+    /**
+     * A drawn frontage, drawn as a stroke with its front rather than as cells, and, while the drag
+     * that draws it is still under way, the ring each marine will stand in.
+     */
+    public record LineMark(FrontageLine line, List<PlaceMark> places) {
+        public LineMark {
+            places = places == null ? List.of() : List.copyOf(places);
+        }
+    }
+
+    /** Where one marine will stand ({@code x}, {@code y} a cell), and whether it is a position rather than open ground. */
+    public record PlaceMark(long member, int x, int y, boolean position) { }
+
+    /** Replaces the line marks under {@code sourceId}; empty or null drops them. */
+    public void putLines(String sourceId, List<LineMark> marks) {
+        if (marks == null || marks.isEmpty()) {
+            lineSources.remove(sourceId);
+            return;
+        }
+        lineSources.put(sourceId, List.copyOf(marks));
+    }
+
+    /** Every line mark, in insertion order. */
+    public List<LineMark> lineMarks() {
+        List<LineMark> marks = new ArrayList<>();
+        for (List<LineMark> list : lineSources.values()) marks.addAll(list);
+        return marks;
+    }
 
     /**
      * Replaces the highlight list under {@code sourceId}. Pass an empty list
@@ -124,10 +156,12 @@ public final class HighlightOverlay {
 
     public void clear(String sourceId) {
         sources.remove(sourceId);
+        lineSources.remove(sourceId);
     }
 
     public void clearAll() {
         sources.clear();
+        lineSources.clear();
     }
 
     public boolean hasSource(String sourceId) {

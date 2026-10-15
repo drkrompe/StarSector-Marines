@@ -18,7 +18,6 @@ import com.dillon.starsectormarines.battle.mech.MechTargeting;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
-import com.dillon.starsectormarines.battle.squad.DigInSystem;
 import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
@@ -42,12 +41,6 @@ public final class DefendArea implements Action {
     private static final float QUIET_DENSITY_DIVISOR = 1.77f;
     /** Quiet members stay well inside the edge so a flank is not the first thing outside the circle. */
     private static final float QUIET_MAX_RADIUS_SHARE = 0.7f;
-    /** A member of a drawn line without a prepared position stands this far behind it. */
-    private static final float LINE_REARWARD_OFFSET = 1f;
-    /** How far ahead of the line the point cover is judged against stands, when no threat is believed. */
-    private static final float LINE_FRONT_PROBE = 10f;
-    /** Small, so a member settles into cover near his own share rather than crowding a neighbour's. */
-    private static final int LINE_COVER_SEARCH_RADIUS = 2;
     private static final double GOLDEN_ANGLE = Math.PI * (3d - Math.sqrt(5d));
 
     private final int centerX;
@@ -234,39 +227,27 @@ public final class DefendArea implements Action {
                                Squad squad, BattleView sim) {
         int ordinal = memberOrdinal(member, squad, sim);
         int count = Math.max(1, squad.autonomousMemberCount(sim));
-        float[] share = line.pointAt((ordinal + 0.5f) / count, -LINE_REARWARD_OFFSET);
-        int desiredX = Math.round(share[0]);
-        int desiredY = Math.round(share[1]);
-        int fromX = threatX;
-        int fromY = threatY;
-        if (fromX < 0 || fromY < 0) {
-            float[] front = line.pointAt((ordinal + 0.5f) / count, LINE_FRONT_PROBE);
-            fromX = Math.round(front[0]);
-            fromY = Math.round(front[1]);
-        }
-        int[] covered = sim.getTacticalScoring().bestCoverCell(
-                fromX, fromY, desiredX, desiredY, LINE_COVER_SEARCH_RADIUS);
-        if (covered != null && line.covers(covered[0], covered[1])
-                && !claimedByOther(covered[0], covered[1], member, sim)) {
-            return covered;
-        }
-        return nearestWalkableInside(desiredX, desiredY, sim);
+        int[] covered = LinePlacement.coveredCell(line, ordinal, count, threatX, threatY, sim,
+                (x, y) -> claimedByOther(x, y, member, sim));
+        if (covered != null) return covered;
+        int[] share = LinePlacement.share(line, ordinal, count);
+        return nearestWalkableInside(share[0], share[1], sim);
     }
 
     /**
-     * The fighting-position cell this member holds under the squad's claims, or {@code null}
-     * (overflow, no positions in the circle, or the feature off). Claims are settled in the
+     * The position this member holds under the squad's claims (a fighting-position cell, or a
+     * building post on a drawn line), or {@code null}: overflow, no positions in the ground, or
+     * fighting positions off on an order that is not a line. Claims are settled in the
      * serial phase before dispatch; this only reads them.
      */
     private static int[] claimedCell(long member, BattleView sim) {
-        if (!DigInSystem.isEnabled()) return null;
         return sim.fightingPositionClaims().cellOf(member);
     }
 
 
     /** A member left without a position must not settle on one a squadmate holds. */
     private static boolean claimedByOther(int x, int y, long member, BattleView sim) {
-        return DigInSystem.isEnabled() && sim.fightingPositionClaims()
+        return sim.fightingPositionClaims()
                 .isClaimedByOther(x, y, sim.getGrid().getWidth(), member);
     }
 

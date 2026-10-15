@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.ui.picking;
 
+import com.dillon.starsectormarines.battle.decision.goap.action.LinePlacement;
+import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
 import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -103,6 +105,26 @@ public final class SelectionOrders {
                     threat ? picture.primaryCellX() : -1, threat ? picture.primaryCellY() : -1));
         }
         return lines;
+    }
+
+    /**
+     * {@link #previewLines} with where every marine of each squad will stand on its line: the
+     * claims' own dry run and the order's own overflow rule, so a ring drawn under the drag is
+     * where the marine goes once it is released.
+     */
+    public static List<HighlightOverlay.LineMark> previewMarks(BattleSimulation sim, Selection selection,
+                                                                int x0, int y0, int x1, int y1) {
+        List<Squad> holders = lineHolders(sim, selection);
+        List<FrontageLine> lines = previewLines(sim, selection, x0, y0, x1, y1);
+        List<HighlightOverlay.LineMark> marks = new ArrayList<>(lines.size());
+        for (int i = 0; i < lines.size(); i++) {
+            List<HighlightOverlay.PlaceMark> places = new ArrayList<>();
+            for (LinePlacement.Place place : LinePlacement.preview(sim, holders.get(i), lines.get(i))) {
+                places.add(new HighlightOverlay.PlaceMark(place.member(), place.x(), place.y(), place.position()));
+            }
+            marks.add(new HighlightOverlay.LineMark(lines.get(i), places));
+        }
+        return marks;
     }
 
     private static List<Squad> lineHolders(BattleSimulation sim, Selection selection) {
