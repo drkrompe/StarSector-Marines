@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.FightingPositionRole;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -71,7 +72,7 @@ class TrenchOccupantCoverTest {
 
     @Test
     void aTrenchCoversItsOccupantAlikeFromFrontBackAndAlongTheRun() {
-        float full = BallisticResolver.BLOCK_CHANCE_BY_LEVEL[DoodadCover.HEAVY.level()];
+        float full = CoverProfile.expectedOccupantInterception(DoodadCover.HEAVY.level());
         float front = blockedShare(TX, ROW - 20);
         float back = blockedShare(TX, ROW + 20);
         float alongWest = blockedShare(TX - 20, ROW);
@@ -129,7 +130,42 @@ class TrenchOccupantCoverTest {
     }
 
     @Test
-    void aHitThatLandsCutsDamageByTheTrenchFromEveryBearingAtRange() {
+    void aRoundThatGetsPastTheTrenchHitsWhatShowsAboveIt() {
+        BattleSimulation sim = arena(false);
+        NavigationGrid grid = sim.getGrid();
+        DoodadService doodads = trenchDoodads(grid);
+        long target = sim.spawn(new EntitySpec("in-trench", Faction.DEFENDER, UnitType.MARINE, TX, ROW));
+        long shooter = sim.spawn(new EntitySpec("shooter", Faction.MARINE, UnitType.MARINE, TX, ROW - 20));
+        BallisticResolver resolver = new BallisticResolver(grid, doodads, sim.getUnitIndex(), sim.getRoster());
+        Random rng = new Random(3L);
+        int[] landed = new int[BodyPart.values().length];
+        for (int i = 0; i < SHOTS; i++) {
+            BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, MAX_RANGE, rng);
+            if (res.victimId() == target) landed[res.victimPart().ordinal()]++;
+        }
+        assertEquals(0, landed[BodyPart.LEGS.ordinal()], "the legs are below the lip");
+        assertTrue(landed[BodyPart.HEAD.ordinal()] + landed[BodyPart.ARMS.ordinal()]
+                        > landed[BodyPart.TORSO.ordinal()],
+                "head and arms take most of what lands: " + Arrays.toString(landed));
+    }
+
+    @Test
+    void aRoundThatLandsOnAPartTakesNoFurtherCutForTheTrench() {
+        float open = damageTakenOnPart(false);
+        assertEquals(open, damageTakenOnPart(true), 1e-3f);
+    }
+
+    private static float damageTakenOnPart(boolean trench) {
+        BattleSimulation sim = arena(trench);
+        long target = sim.spawn(new EntitySpec("target", Faction.DEFENDER, UnitType.MARINE, TX, ROW));
+        long shooter = sim.spawn(new EntitySpec("shooter", Faction.MARINE, UnitType.MARINE, TX, ROW - 20));
+        float before = sim.world().hp(target) + (sim.world().hasArmor(target) ? sim.world().armor(target) : 0f);
+        sim.getRoster().damageService().applyDamage(target, shooter, 10f, 100f, 0f, BodyPart.HEAD);
+        return before - sim.world().hp(target) - (sim.world().hasArmor(target) ? sim.world().armor(target) : 0f);
+    }
+
+    @Test
+    void aPayloadWithNoPartIsStillCutByTheTrenchFromEveryBearingAtRange() {
         float full = DamageResolver.COVER_DAMAGE_REDUCTION[DoodadCover.HEAVY.level()];
         for (int[] at : new int[][] {{TX, ROW - 20}, {TX, ROW + 20}, {TX - 20, ROW}}) {
             float open = damageTaken(false, at[0], at[1]);

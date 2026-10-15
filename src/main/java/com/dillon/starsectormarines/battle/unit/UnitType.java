@@ -300,6 +300,19 @@ public enum UnitType {
     public boolean isGroundVehicle() { return this == GROUND_VEHICLE; }
 
     /**
+     * Whether a round landing on this archetype lands on a body part — a head, arms, torso or
+     * legs — and so meets cover part by part. People do; machines, structures and creatures are one
+     * whole-body contact and keep the flat cover chance. See {@code body-part-cover.md}.
+     */
+    public boolean hasBodyParts() {
+        return switch (this) {
+            case MARINE, MARINE_BLUE, MARINE_RED, MILITIA,
+                 CIVILIAN, ENGINEER, TECHNICIAN, SCIENTIST -> true;
+            default -> false;
+        };
+    }
+
+    /**
      * Whether this infantry archetype has the modular body/head asset set (and,
      * for combatants, modular weapon layers).
      * These units retain their legacy sheet and SPRITE component as a load-failure

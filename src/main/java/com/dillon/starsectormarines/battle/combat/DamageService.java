@@ -56,8 +56,11 @@ public final class DamageService {
          *        flyby strafing, the vanilla-combat bridge's mirrored hull
          *        damage). Carried for telemetry attribution only — it does
          *        not affect what the hit does.
+         * @param part where on a person a modeled round landed, or null for a payload with no
+         *        part (area, strafing, scripted, or a body without parts)
          */
-        void apply(long targetId, long attackerId, float damage, float penetration, float moraleImpact);
+        void apply(long targetId, long attackerId, float damage, float penetration, float moraleImpact,
+                   BodyPart part);
     }
     @FunctionalInterface public interface ReprioApplier {
         /**
@@ -102,6 +105,7 @@ public final class DamageService {
     private float[] dmgDamage = new float[INITIAL_DAMAGE_CAPACITY];
     private float[] dmgPenetration = new float[INITIAL_DAMAGE_CAPACITY];
     private float[] dmgMoraleImpact = new float[INITIAL_DAMAGE_CAPACITY];
+    private BodyPart[] dmgPart = new BodyPart[INITIAL_DAMAGE_CAPACITY];
     private int dmgCount = 0;
     private final Object dmgLock = new Object();
 
@@ -185,8 +189,14 @@ public final class DamageService {
      * path.
      */
     public void applyDamage(long target, long attackerId, float damage, float penetration, float moraleImpact) {
+        applyDamage(target, attackerId, damage, penetration, moraleImpact, null);
+    }
+
+    /** {@link #applyDamage(long, long, float, float, float)} for a modeled round that landed on {@code part}. */
+    public void applyDamage(long target, long attackerId, float damage, float penetration, float moraleImpact,
+                            BodyPart part) {
         if (!insideParallel && !deferCombatEffects) {
-            damageApplier.apply(target, attackerId, damage, penetration, moraleImpact);
+            damageApplier.apply(target, attackerId, damage, penetration, moraleImpact, part);
             return;
         }
         synchronized (dmgLock) {
@@ -197,6 +207,7 @@ public final class DamageService {
             dmgDamage[i] = damage;
             dmgPenetration[i] = penetration;
             dmgMoraleImpact[i] = moraleImpact;
+            dmgPart[i] = part;
             dmgCount = i + 1;
         }
     }
@@ -207,6 +218,7 @@ public final class DamageService {
         dmgDamage = Arrays.copyOf(dmgDamage, newCapacity);
         dmgPenetration = Arrays.copyOf(dmgPenetration, newCapacity);
         dmgMoraleImpact = Arrays.copyOf(dmgMoraleImpact, newCapacity);
+        dmgPart = Arrays.copyOf(dmgPart, newCapacity);
     }
 
     /** Target-reprioritize write. Inline writes unconditionally; queued path (parallel UPDATE_UNITS or the deferred {@code FIRING} phase — see {@link #deferCombatEffects}) snapshots {@code expectedTargetId} so the flush can detect a concurrent self-retarget and preserve the newer choice. */
@@ -286,7 +298,9 @@ public final class DamageService {
         int n = dmgCount;
         if (n == 0) return;
         for (int i = 0; i < n; i++) {
-            damageApplier.apply(dmgTargetId[i], dmgAttackerId[i], dmgDamage[i], dmgPenetration[i], dmgMoraleImpact[i]);
+            damageApplier.apply(dmgTargetId[i], dmgAttackerId[i], dmgDamage[i], dmgPenetration[i], dmgMoraleImpact[i],
+                    dmgPart[i]);
+            dmgPart[i] = null;
         }
         dmgCount = 0;
     }

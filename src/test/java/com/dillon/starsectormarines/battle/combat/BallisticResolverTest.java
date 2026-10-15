@@ -845,14 +845,14 @@ class BallisticResolverTest {
 
         BallisticResolver.Resolution blocked = resolver.resolve(
                 shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE,
-                new QueueRandom(0f, 0.5f, 0.5f, 0.01f));
+                new QueueRandom(0f, 0.5f, 0.5f, 0.02f));
         BallisticResolver.Resolution cleared = resolver.resolve(
                 shooter, target, 1f, 0f, VEL, MAX_TARGETING_RANGE,
-                new QueueRandom(0f, 0.5f, 0.5f, 0.02f));
+                new QueueRandom(0f, 0.5f, 0.5f, 0.03f));
 
         assertEquals(BallisticResolver.StopKind.COVER_CLIP, blocked.kind());
         assertEquals(target, cleared.victimId(),
-                "the 2.7-cell contact scales level-three cover below a 0.02 roll");
+                "the 2.7-cell contact scales level-three cover of the torso (0.70) to about 0.026");
     }
 
     // ---- S2: time-domain contact solve + shooter lead ----
