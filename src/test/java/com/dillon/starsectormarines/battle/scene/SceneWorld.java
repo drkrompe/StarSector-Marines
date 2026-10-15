@@ -23,16 +23,18 @@ public final class SceneWorld {
     private final Map<String, Integer> squadIds;
     private final Map<String, long[]> members;
     private final Map<String, Long> unitIds;
+    private final long[] structures;
 
     SceneWorld(BattleSimulation sim, int width, int height,
                Map<String, Integer> squadIds, Map<String, long[]> members,
-               Map<String, Long> unitIds) {
+               Map<String, Long> unitIds, long[] structures) {
         this.sim = sim;
         this.width = width;
         this.height = height;
         this.squadIds = new LinkedHashMap<>(squadIds);
         this.members = new LinkedHashMap<>(members);
         this.unitIds = new LinkedHashMap<>(unitIds);
+        this.structures = structures.clone();
     }
 
     public BattleSimulation sim() { return sim; }
@@ -65,6 +67,11 @@ public final class SceneWorld {
     }
 
     /** Zone id at a cell, or the detector's own "no zone" answer for a doorway. */
+    /** The turret structures spawned from the scene's defence posts, in post order. */
+    public long[] structures() {
+        return structures.clone();
+    }
+
     public int zoneAt(int x, int y) {
         return sim.getZoneGraph().zoneIdAt(x, y);
     }
