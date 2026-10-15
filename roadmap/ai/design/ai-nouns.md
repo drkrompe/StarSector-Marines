@@ -2215,8 +2215,11 @@ rather than splitting one team between them. A team's home run must lie within
 the band of its own stretch; a team with nothing that near holds its stretch on
 open ground rather than crowding into another team's trench. A full team spills
 onto another run only where that run reaches its own stretch, never into the
-next team's share. Within a team, cells go out in the order the marines stand
-along the line, so nobody crosses a squadmate's path to a post. While the drag
+next team's share. Within its run a team spreads over its stretch as far as the
+line was drawn: each marine takes the free cell nearest an even share of it, so
+a long drag opens the team out along a trench and a short one keeps it shoulder
+to shoulder. Cells go out in the order the marines stand along the line, so
+nobody crosses a squadmate's path to a post. While the drag
 is held the screen previews the result as a ring where each marine will stand,
 computed by the same allocation the order runs, so the rings are the cells the
 released order claims.

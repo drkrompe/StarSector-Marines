@@ -223,6 +223,31 @@ class FightingPositionClaimsTest {
     }
 
     @Test
+    void aTeamSpreadsAlongItsTrenchAsFarAsTheLineIsDrawn() {
+        FightingPositionIndex index = trench(4, 35, 10);
+        int[] longCells = unassigned(4);
+        FrontageLine longLine = FrontageLine.facing(4, 10, 35, 10, 20, 2, NO_THREAT, NO_THREAT);
+        FightingPositionClaims.fillLine(index, W, new Order(20, 10, 20, NO_THREAT, NO_THREAT, -1, longLine),
+                NO_COVER, longCells, new int[4], List.of(0), new HashSet<>(), null);
+        int[] shortCells = unassigned(4);
+        FrontageLine shortLine = FrontageLine.facing(18, 10, 22, 10, 20, 2, NO_THREAT, NO_THREAT);
+        FightingPositionClaims.fillLine(index, W, new Order(20, 10, 20, NO_THREAT, NO_THREAT, -1, shortLine),
+                NO_COVER, shortCells, new int[4], List.of(0), new HashSet<>(), null);
+
+        assertTrue(spanX(longCells) >= 20, "a long drag opens them out: " + Arrays.toString(longCells));
+        assertTrue(spanX(shortCells) <= 4, "a short one keeps them close: " + Arrays.toString(shortCells));
+    }
+
+    private static int spanX(int[] cells) {
+        int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
+        for (int cell : cells) {
+            min = Math.min(min, cell % W);
+            max = Math.max(max, cell % W);
+        }
+        return max - min;
+    }
+
+    @Test
     void cellsGoInTheOrderTheMenStandAlongTheLine() {
         FightingPositionIndex index = trench(4, 15, 10);
         FrontageLine line = FrontageLine.facing(4, 10, 15, 10, 10, 2, NO_THREAT, NO_THREAT);
