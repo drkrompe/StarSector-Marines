@@ -138,10 +138,12 @@ seam), `architecture.md` (the external-state boundary) and
   with whatever cargo is left. The company's squads are invisible to Nexerelin
   until a later story decides whether to report them.
 - **Map scale.** Market size never chooses the map. Every Marine-resolved
-  invasion is fought on Conquest's authored map. A small market differs only
-  in the strength of its garrison, so a small colony is a light defence on the
-  full ground. Conquest's tier floor governs generated offers, not a player
-  invasion.
+  invasion is fought on Conquest's authored map. Market size is a population
+  dial: it reaches the battle only as environment, through the target
+  profile's settlement scale (how built-up the ground is and how many people
+  live on it). It never sets the map's dimensions or the garrison. The
+  garrison follows ground strength (law 7). Conquest's tier floor governs
+  generated offers, not a player invasion.
 
 ## Boundaries
 
