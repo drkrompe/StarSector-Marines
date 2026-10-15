@@ -503,8 +503,21 @@ final class FortAssault {
         /** Whether the side is shut out of the sky by anti-air it knows; set by the muster each pulse. */
         private SkyNeed skyNeed = SkyNeed.NONE;
 
+        /** Whether this run has been flown at: once it has, it stays on the radar until the radar is not the side's to take. */
+        private boolean flownAt;
+
         void skyNeed(SkyNeed skyNeed) {
-            this.skyNeed = skyNeed;
+            flownAt |= skyNeed.flownAt();
+            this.skyNeed = new SkyNeed(skyNeed.shut(), flownAt);
+        }
+
+        /**
+         * Whether the plan goes straight for the hostile bunker's radar: the company has been flown at and the bunker is a
+         * disclosed aspect that is not ours. Set-up steps (position, suppress, entry, hold) are for a fort worked at leisure;
+         * a radar spotting for aircraft that are bombing the company is not.
+         */
+        boolean radarFirst(Faction perspective, Objective objective) {
+            return flownAt && FortTactics.hostileRadar(perspective, objective.aspects());
         }
 
         Execution(Works works, NestBelief belief, Way way, int tick) {
@@ -653,6 +666,12 @@ final class FortAssault {
             }
             sortRoles(fire, breach, assault);
 
+            if (step != Step.OBJECTIVE && radarFirst(perspective, objective)) {
+                // The wall will not be cut first: the breachers go in with the assault (a machine keeps its place as fire), or they
+                // would hold the role the objective step gives no order to.
+                convertBreachers(breach, byId);
+                go(Step.OBJECTIVE, tick, notes, "radar first: the company is being flown at and the bunker's radar spots for it");
+            }
             advance(tick, fire, breach, assault, byId, topology, notes);
             sortRoles(fire, breach, assault);
             planStrikes(tick, members, byId);
@@ -691,7 +710,8 @@ final class FortAssault {
                             perspective, objective.aspects(), candidates, topology, skyNeed);
                     if (tasks.isEmpty()) return candidates.isEmpty() ? orders : null;
                     int[] aspect = {tasks.get(0).structure().cellX(), tasks.get(0).structure().cellY()};
-                    if (heldAspect != null && (heldAspect[0] != aspect[0] || heldAspect[1] != aspect[1])) {
+                    boolean turned = heldAspect != null && (heldAspect[0] != aspect[0] || heldAspect[1] != aspect[1]);
+                    if (turned && !stillHostile(perspective, objective, heldAspect)) {
                         fallen = heldAspect;
                         heldAspect = aspect;
                         go(Step.HOLD, tick, notes, "the aspect at (" + fallen[0] + "," + fallen[1] + ") is no longer work");
@@ -704,6 +724,8 @@ final class FortAssault {
                     }
                     if (heldAspect == null) notes.add("company takes aim at the aspect at (" + aspect[0] + "," + aspect[1] + "): "
                             + tasks.get(0).reason());
+                    else if (turned) notes.add("company turns from the aspect at (" + heldAspect[0] + "," + heldAspect[1]
+                            + ") to the one at (" + aspect[0] + "," + aspect[1] + "), which is still work: " + tasks.get(0).reason());
                     heldAspect = aspect;
                     for (DefenceStructureTactics.Task task : tasks) {
                         orders.put(task.squadId(), new Order(task.assignment(), AssignmentReason.ASSAULT_COMMIT));
@@ -711,6 +733,14 @@ final class FortAssault {
                 }
             }
             return orders;
+        }
+
+        /** Whether the aspect at a cell is still disclosed and not ours: work to do, not a fallen aspect to hold. */
+        private static boolean stillHostile(Faction perspective, Objective objective, int[] cell) {
+            for (DefenceStructureFact aspect : objective.aspects()) {
+                if (aspect.cellX() == cell[0] && aspect.cellY() == cell[1] && perspective.hostileTo(aspect.holder())) return true;
+            }
+            return false;
         }
 
         private Order fireOrder(int id) {

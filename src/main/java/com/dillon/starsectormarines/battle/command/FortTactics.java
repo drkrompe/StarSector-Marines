@@ -131,6 +131,17 @@ public final class FortTactics {
         return picks;
     }
 
+    /**
+     * Whether the side has been disclosed a fort bunker (its radar) that is not its own: the thing to go for the moment
+     * its units are being flown at ({@link SkyNeed#flownAt()}). Only a disclosed aspect is ever in {@code aspects}.
+     */
+    public static boolean hostileRadar(Faction perspective, List<DefenceStructureFact> aspects) {
+        for (DefenceStructureFact aspect : aspects) {
+            if (aspect.kind() == Kind.FIRE_CONTROL && perspective.hostileTo(aspect.holder())) return true;
+        }
+        return false;
+    }
+
     /** A hostile anti-air yard is work: first when it keeps the side's own air out, last otherwise. */
     private static void chooseAir(Faction perspective, DefenceStructureFact air, boolean skyWanted, List<Pick> picks) {
         if (air == null || !perspective.hostileTo(air.holder())) return;

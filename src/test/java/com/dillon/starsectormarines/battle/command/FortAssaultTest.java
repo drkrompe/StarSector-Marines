@@ -372,6 +372,93 @@ class FortAssaultTest {
     }
 
     @Test
+    void aCompanyThatIsFlownAtGoesStraightForTheDisclosedRadarInsteadOfSettingUpFirst() {
+        Picture p = new Picture();
+        p.execution.skyNeed(new SkyNeed(false, true));
+        Map<Integer, Order> orders = p.run(0);
+        assertEquals(FortAssault.Step.OBJECTIVE, p.execution.step(), "no positioning, suppression or entry first");
+        assertTrue(p.notes.stream().anyMatch(n -> n.contains("radar first")));
+        assertTrue(p.notes.stream().anyMatch(n -> n.contains("company takes aim") && n.contains("blind their air")),
+                "the pick is the bunker, for the sky");
+        assertEquals(AssignmentReason.ASSAULT_COMMIT, orders.get(5).reason());
+    }
+
+    /** Open ground but for the one wall cell a breach would cut. */
+    private static CommandTopology walledAt(int wallX, int wallY) {
+        NavigationGrid grid = new NavigationGrid(SIZE, SIZE);
+        for (int y = 0; y < SIZE; y++) {
+            for (int x = 0; x < SIZE; x++) if (x != wallX || y != wallY) grid.setWalkableFloor(x, y);
+        }
+        return CommandTopology.freeze(new BattleSimulation(grid, new CellTopology(SIZE, SIZE)));
+    }
+
+    @Test
+    void radarFirstOrdersEveryMemberIncludingTheBreachersNobodyWillNowAskToCutTheWall() {
+        Picture p = new Picture();
+        FortAssault.Way breach = p.works.ways.stream().filter(w -> w.variant() == Variant.BREACH).findFirst().orElseThrow();
+        p.execution = new FortAssault.Execution(p.works, p.belief, new FortAssault.Defence(breach, 0, 0, 0f, FortAssault.BreachMeans.CLOSE, null), 0);
+        CommandTopology walled = walledAt(breach.mouthX() - breach.outX(), breach.mouthY() - breach.outY());
+        Picture control = new Picture();
+        control.execution = new FortAssault.Execution(control.works, control.belief, new FortAssault.Defence(breach, 0, 0, 0f, FortAssault.BreachMeans.CLOSE, null), 0);
+        control.execution.run(0, M, control.objective, control.members, control.bodies, walled, control.notes);
+        assertTrue(control.execution.breachSquads() > 0, "the control, set up as before, holds breachers: " + control.notes);
+        p.execution.skyNeed(new SkyNeed(false, true));
+        Map<Integer, Order> orders = p.execution.run(0, M, p.objective, p.members, p.bodies, walled, p.notes);
+        assertEquals(FortAssault.Step.OBJECTIVE, p.execution.step());
+        assertEquals(0, p.execution.breachSquads(), "none is left holding a role the objective step gives no order to");
+        assertTrue(orders.keySet().containsAll(p.members), "every squad of the company is ordered, was " + orders.keySet());
+    }
+
+    @Test
+    void aCompanyThatIsNotFlownAtSetsUpAsBefore() {
+        Picture p = new Picture();
+        p.execution.skyNeed(SkyNeed.NONE);
+        p.run(0);
+        assertEquals(FortAssault.Step.POSITION, p.execution.step());
+    }
+
+    @Test
+    void theRadarIsNotRushedOnceItIsOursOrWhenNeverDisclosed() {
+        Picture p = new Picture();
+        p.execution.skyNeed(new SkyNeed(false, true));
+        int[] core = {p.objective.cellX(), p.objective.cellY()};
+        DefenceStructureFact bunkerOurs = new DefenceStructureFact(Kind.FIRE_CONTROL, core[0], core[1], M, D, false, 5,
+                core[0], core[1], 1, Family.BATTERY_FORT, new int[0], new int[0], p.frame);
+        assertFalse(p.execution.radarFirst(M, new Objective(1, Family.BATTERY_FORT, core[0], core[1], List.of(bunkerOurs), 0, p.frame)));
+        assertFalse(p.execution.radarFirst(M, new Objective(1, Family.BATTERY_FORT, core[0], core[1], List.of(), 0, p.frame)));
+        assertTrue(p.execution.radarFirst(M, p.objective));
+    }
+
+    @Test
+    void aCompanyAlreadyOnAnotherAspectTurnsToTheRadarWhenFlownAtAndDoesNotHoldTheOldOne() {
+        Picture p = new Picture();
+        int[] bunker = {p.objective.cellX(), p.objective.cellY()};
+        int[] plant = p.frame.cell(BatteryFort.coreCentre(FortAspect.POWER)[0], BatteryFort.coreCentre(FortAspect.POWER)[1]);
+        DefenceStructureFact plantHostile = new DefenceStructureFact(Kind.FORT_POWER, plant[0], plant[1], D, D, false, 5,
+                bunker[0], bunker[1], 1, Family.BATTERY_FORT, new int[0], new int[0], p.frame);
+        DefenceStructureFact bunkerOurs = new DefenceStructureFact(Kind.FIRE_CONTROL, bunker[0], bunker[1], M, D, false, 5,
+                bunker[0], bunker[1], 1, Family.BATTERY_FORT, new int[0], new int[0], p.frame);
+        // The company is at the plant: the bunker is ours (or unknown), so the plant is the only work.
+        Objective plantOnly = new Objective(1, Family.BATTERY_FORT, bunker[0], bunker[1], List.of(bunkerOurs, plantHostile), 0, p.frame);
+        p.run(0);
+        p.run(FortAssault.POSITION_TIMEOUT_TICKS);
+        p.run(FortAssault.POSITION_TIMEOUT_TICKS + FortAssault.SUPPRESS_MAX_TICKS);
+        for (int id : List.of(3, 4, 5, 6)) p.put(id, p.works.ways.get(0).entryX(), p.works.ways.get(0).entryY());
+        int tick = FortAssault.POSITION_TIMEOUT_TICKS + FortAssault.SUPPRESS_MAX_TICKS + 30;
+        p.execution.run(tick, M, plantOnly, p.members, p.bodies, p.topology, p.notes);
+        assertEquals(FortAssault.Step.OBJECTIVE, p.execution.step());
+        // Aircraft arrive and the bunker is seen to be the other side's after all.
+        DefenceStructureFact bunkerHostile = new DefenceStructureFact(Kind.FIRE_CONTROL, bunker[0], bunker[1], D, D, false, 5,
+                bunker[0], bunker[1], 1, Family.BATTERY_FORT, new int[0], new int[0], p.frame);
+        Objective both = new Objective(1, Family.BATTERY_FORT, bunker[0], bunker[1], List.of(bunkerHostile, plantHostile), 0, p.frame);
+        p.execution.skyNeed(new SkyNeed(false, true));
+        Map<Integer, Order> orders = p.execution.run(tick + 30, M, both, p.members, p.bodies, p.topology, p.notes);
+        assertEquals(FortAssault.Step.OBJECTIVE, p.execution.step(), "turned, not held");
+        assertTrue(p.notes.stream().anyMatch(n -> n.contains("company turns from the aspect")), String.valueOf(p.notes));
+        assertEquals(AssignmentReason.ASSAULT_COMMIT, orders.get(5).reason());
+    }
+
+    @Test
     void noFireElementMeansTheAssaultAssemblesAndGoesInWithoutWaiting() {
         Picture p = new Picture();
         p.members.removeAll(List.of(1, 2, 3, 4));
