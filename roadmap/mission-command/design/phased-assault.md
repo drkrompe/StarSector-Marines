@@ -6,7 +6,7 @@ Slices are on the mission-command board.
 
 Written: 2026-10-13
 
-Updated: 2026-10-14 — standing fire missions and the mortar section are standing behaviour (their switches and dials are gone; timings are constants, sections-off is a per-simulation scene control); mortar use is a squad behaviour, the mortar section (see Mortar sections: as built); outranged sections never set a tube down (an outranged trigger was measured on A Cold Account and Cold Start and removed); the kit now reaches ground-start companies.
+Updated: 2026-10-14 — contested sky on the trial ground measured (defender air pool, tail-chase cover): the sky is barely contested, no bomber is downed before release, the yard is a by-product rather than a target; standing fire missions and the mortar section are standing behaviour (switches gone; timings are constants, sections-off is a per-simulation scene control); the kit reaches ground-start companies.
 
 Read `conquest-command.md`, `forts.md` and `ai-nouns.md` first.
 
@@ -466,6 +466,29 @@ Readings. With the fort on the lane the trickle loses nearly the whole force (64
 Three seeds is small and the fixtures are a controlled construction, but the direction is consistent: **on the trial ground the muster beats the trickle where the fort is in the way, and lances plus air win the most.** **Flipped on by owner decision (2026-10-14):** the muster (with plans) is standing behaviour, with no switch, on the trial result, although the Conquest fort fixtures still disagree (ahead on one of three); `-Dbattle.command.muster=false` keeps the trickle control.
 
 **Mortar setup, diagnosed.** Counting each `tryCommitDeploy` call for the two tube gunners over 9,000 ticks (8 runs, kit declared, muster on): the gunner was **not settled** in 69–90% of calls (the section is marching: a gunner holding a path never sets up, and a standing mission does not stop a walking section), the section believed nothing worth a tube in band in 7–24%, the section was under fire in 1–3%, other-members-moving in 1–3%, and the danger ring was never reached. Fewer than 0.1% of calls had an assigned mission at all: the force has only two tube squads in sixteen, standing missions are only given while a squad is 30–46 cells from disclosed works, and a marching squad passes that band in a few pulses (one squad received them on 7 pulses in 9,000 ticks). Plans do assign missions to the base-of-fire squads, and those are the runs with mission rounds. An experiment that held a lane infantry squad in place (bounded 1,500 ticks, then a cooldown) while it held a standing mission changed three of twelve runs and produced no mission rounds in any, so it was removed; (with lances in play it also exposed a mech route search that repeated a whole-map flood for an unreachable goal; fixed in the clearance planner). The answer that replaced it is the next section: not holding the whole squad but detaching a crew and leashing the rest.
+
+
+## Contested sky on the trial ground: measured
+
+Kit + air fixtures (sixteen six-seat Aeroshuttles, `supportKit` conquest, two lances, attacker pool of three bombers and two fighters with regeneration), six seeds (41-46) per cell, real hull speeds (`InstalledHullEngines`), defender radios every second infantry squad. Cells: (a) no defender air, (b) a defender pool of three bombers and two fighters called through those radios, (c) (b) plus the fort's anti-air yard. Fort on the lane played to 18,000 ticks, offset to 9,000.
+
+| fort | cell | marine wins | mean ticks | mean marine losses | attacker airframes lost (mean) | defender sorties launched (mean) | defender bomb sorties (total) | air-to-air kills (total) |
+|---|---|---|---|---|---|---|---|---|
+| lane | a | 6 of 6 | 8,545 | 38.0 | 5.7 | 0 | 0 | 0 |
+| lane | b | 5 of 6 (one timeout) | 10,395 | 56.8 | 6.8 | 1.3 | 3 | 4 |
+| lane | c | 6 of 6 | 9,259 | 56.5 | 7.3 | 0.8 | 0 | 0 |
+| offset | a | 6 of 6 | 6,050 | 10.7 | 0.3 | 0 | 0 | 0 |
+| offset | b | 6 of 6 | 6,115 | 10.7 | 0.8 | 0.2 | 0 | 1 |
+| offset | c | 6 of 6 | 6,155 | 8.8 | 1.7 | 0.2 | 0 | 0 |
+
+Readings, not rates beyond six seeds a cell:
+
+- **The sky is barely contested.** Defenders launched one sortie a run on the lane and a sixth of one offset, mostly cover patrols (the director's reason to ask is a hostile armed aircraft over its units); only 3 defender bomb sorties flew in 12 lane runs, two of them landing on marine groups (40 and 46 marines within twelve cells at the call). The cause is the radios, not the stock: of the defenders' operators (typically 2-5 at the start) few survive to see a marine group, so the pool sits full. Attacker airframes still die, almost entirely to the ground AA bubble (typically 3-7 a run on the lane, none to fighters in the no-defender-air cells), not to defender fighters (4 air-to-air kills in 12 lane runs).
+- **Marine losses rose with defender air on the lane** (38.0 to 56.8, one timeout) and the (c) mean equals (b)'s, but six seeds with one timeout (seed 41, 90 marines lost, 11 attacker airframes lost) is a seed-dependent reading and not a measured effect of defender air. The offset fort was untouched.
+- **Bombers downed before release: zero, either side**, in the trial and in the `fighter-cover` sweeps. The tail chase turns misses into kills (23 of 24 raiders downed against 0 for head-on lead pursuit at real speeds) but all of them during or after the stick; see `air-nouns.md` Air support pool.
+- **The yard is the plan's cost, not its target.** With the yard the attacker lost more airframes on the lane (7.3 against 5.7) and the marine plan never went for it as a goal: the yard ended with all three mounts standing in some runs and wrecked in others, as a by-product of the push on the fort. Whether it is worth taking is unanswered by this evidence: a company that opens the sky first is still the open question.
+
+Not claimed: defender strikes on a landing zone or muster at scale (none were seen; the fixture field `defenderAirPool` and `ContestedAirProbe` are the instrument for it), and any balance conclusion; a stronger defender signal needs more radios surviving, which is a mission-design choice.
 
 ## Mortar sections: as built
 

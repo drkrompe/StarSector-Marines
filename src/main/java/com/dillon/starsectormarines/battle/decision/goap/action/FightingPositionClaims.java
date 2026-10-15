@@ -2,6 +2,10 @@ package com.dillon.starsectormarines.battle.decision.goap.action;
 
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.decision.DefenseFrontage;
+import com.dillon.starsectormarines.battle.decision.DefenseFrontage.Aperture;
+import com.dillon.starsectormarines.battle.decision.TacticalMap;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleView;
@@ -38,7 +42,8 @@ import java.util.TreeSet;
  * before anyone is given a new cell, so a lower-numbered squad cannot take a cell a neighbour
  * is already standing in. Marines left without a cell get no entry and use the ordinary
  * search. With {@link DigInSystem#isEnabled()} off, or no positions on the map, no claims
- * exist and {@link DefendArea} behaves exactly as it did.
+ * exist and {@link DefendArea} behaves exactly as it did, except for a drawn line: the window
+ * and door posts of buildings it crosses are positions of its own, and need no trench.
  *
  * <p>See the fighting-positions section of {@code ai-nouns.md}.
  */
@@ -55,10 +60,12 @@ public final class FightingPositionClaims {
     /**
      * One squad's ordered circle and the threat it believes in ({@code threatX < 0}: none). A
      * line order also carries the drawn {@link FrontageLine}, and then the line's band rather
-     * than the circle is the ground its positions are taken from.
+     * than the circle is the ground its positions are taken from, and the window and door posts
+     * of the buildings it crosses: {@code posts} maps each post's {@link #key} to a run id of its
+     * own building, numbered past the map's trench runs, so a building is filled as one run.
      */
     public record Order(int centerX, int centerY, int radius, int threatX, int threatY,
-                        int runId, FrontageLine line) {
+                        int runId, FrontageLine line, Map<Long, Integer> posts) {
         /** An order that may use any position run inside the circle. */
         public Order(int centerX, int centerY, int radius, int threatX, int threatY) {
             this(centerX, centerY, radius, threatX, threatY, -1);
@@ -68,9 +75,20 @@ public final class FightingPositionClaims {
             this(centerX, centerY, radius, threatX, threatY, runId, null);
         }
 
+        public Order(int centerX, int centerY, int radius, int threatX, int threatY,
+                     int runId, FrontageLine line) {
+            this(centerX, centerY, radius, threatX, threatY, runId, line, Map.of());
+        }
+
+        /** The run a cell belongs to: a trench run, else a building post's run, else -1. */
+        int runAt(FightingPositionIndex index, int x, int y) {
+            int run = index == null ? -1 : index.runIdAt(x, y);
+            return run >= 0 ? run : posts.getOrDefault(key(x, y), -1);
+        }
+
         /** Whether the order may take the cell: a position cell inside its ground, on its run if it names one. */
         boolean admits(FightingPositionIndex index, int x, int y) {
-            int run = index.runIdAt(x, y);
+            int run = runAt(index, x, y);
             boolean inGround = line != null ? line.covers(x, y) : inside(x, y);
             return run >= 0 && inGround && (runId < 0 || runId == run);
         }
@@ -99,6 +117,15 @@ public final class FightingPositionClaims {
     /** The fire teams each line-holding squad was cut for last tick; tick-phase only. */
     private Map<Integer, List<Integer>> lineTeams = Map.of();
     private volatile Map<Integer, Long> byCell = Map.of();
+    /** Each line-holding squad's building posts, kept until its line or the walls change; tick-phase only. */
+    private final Map<Integer, LinePosts> linePosts = new HashMap<>();
+
+    private record LinePosts(FrontageLine line, long revision, Map<Long, Integer> posts) { }
+
+    /** A cell as a map key; posts are keyed this way because the order does not know the map's width. */
+    static long key(int x, int y) {
+        return ((long) x << 32) ^ (y & 0xffffffffL);
+    }
 
     /** The cell this marine holds, or {@code null}. The array is shared; do not modify it. */
     public int[] cellOf(long member) {
@@ -118,10 +145,8 @@ public final class FightingPositionClaims {
     /** Recomputes every claim. Serial phase only: after the squad replan, before unit dispatch. */
     public void tick(BattleView sim) {
         FightingPositionIndex index = DigInSystem.isEnabled() ? sim.fightingPositions() : null;
-        if (index == null || index.runCount() == 0) {
-            publish(Map.of(), Map.of());
-            return;
-        }
+        // Without trench runs only a drawn line has anything to take, from the buildings it crosses.
+        boolean trenches = index != null && index.runCount() > 0;
         NavigationGrid grid = sim.getGrid();
         int width = grid.getWidth();
         Probe probe = new Probe() {
@@ -141,8 +166,12 @@ public final class FightingPositionClaims {
         List<Squad> squads = new ArrayList<>();
         for (Squad squad : sim.getSquads()) {
             if (squad.isDroneSquad() || squad.isMechSquad() || squad.aliveMembers <= 0) continue;
+            if (!trenches && sim.frontageLineOf(squad.id) == null) continue;
             if (defendArea(squad) != null) squads.add(squad);
         }
+        Set<Integer> lineSquads = new HashSet<>();
+        for (Squad squad : squads) if (sim.frontageLineOf(squad.id) != null) lineSquads.add(squad.id);
+        linePosts.keySet().retainAll(lineSquads);
         if (squads.isEmpty()) {
             publish(Map.of(), Map.of());
             return;
@@ -164,9 +193,11 @@ public final class FightingPositionClaims {
             SquadContactPicture picture = squad.contactPicture;
             boolean threat = picture != null && picture.hasContacts()
                     && picture.primaryCellX() >= 0 && picture.primaryCellY() >= 0;
+            FrontageLine line = sim.frontageLineOf(squad.id);
             orders[s] = new Order(area.centerX(), area.centerY(), area.radius(),
                     threat ? picture.primaryCellX() : -1, threat ? picture.primaryCellY() : -1,
-                    occupyRun(sim, squad), sim.frontageLineOf(squad.id));
+                    occupyRun(sim, squad), line,
+                    line == null ? Map.of() : postsFor(squad.id, line, trenches ? index.runCount() : 0, sim));
             List<Long> available = new ArrayList<>();
             TreeSet<Integer> everyTeam = new TreeSet<>();
             for (int i = 0, count = sim.squadMemberCount(squad.id); i < count; i++) {
@@ -219,6 +250,45 @@ public final class FightingPositionClaims {
         }
         lineTeams = nextLineTeams;
         publish(nextByMember, nextByCell);
+    }
+
+    private Map<Long, Integer> postsFor(int squadId, FrontageLine line, int firstRun, BattleView sim) {
+        long revision = sim.getGrid().topologyRevision();
+        LinePosts cached = linePosts.get(squadId);
+        if (cached != null && cached.line().equals(line) && cached.revision() == revision) return cached.posts();
+        Map<Long, Integer> posts = buildingPosts(line, firstRun, sim);
+        linePosts.put(squadId, new LinePosts(line, revision, posts));
+        return posts;
+    }
+
+    /**
+     * The posts a drawn line takes from held buildings: each building's window and door stances
+     * inside the line's band whose opening faces the line's front, one run id per building from
+     * {@code firstRun}. A building is held from inside, so its posts are its frontage stances
+     * rather than the line's own cells, and a window facing the rear is no post on this line.
+     */
+    static Map<Long, Integer> buildingPosts(FrontageLine line, int firstRun, BattleView sim) {
+        TacticalMap map = sim.getTacticalMap();
+        if (map == null) return Map.of();
+        int reach = FrontageLine.BAND + DefenseFrontage.COMPOUND_MARGIN + 1;
+        int minX = Math.min(line.x0(), line.x1()) - reach;
+        int maxX = Math.max(line.x0(), line.x1()) + reach;
+        int minY = Math.min(line.y0(), line.y1()) - reach;
+        int maxY = Math.max(line.y0(), line.y1()) + reach;
+        Map<Long, Integer> posts = new HashMap<>();
+        int run = firstRun;
+        for (TacticalNode node : map.all()) {
+            if (node.kind != TacticalNode.Kind.INNER_POSITION) continue;
+            if (node.right < minX || node.left > maxX || node.bottom < minY || node.top > maxY) continue;
+            boolean any = false;
+            for (Aperture aperture : DefenseFrontage.forStructure(node, sim)) {
+                if (aperture.facing().dx * line.frontX() + aperture.facing().dy * line.frontY() <= 0f) continue;
+                if (!line.covers(aperture.stanceX(), aperture.stanceY())) continue;
+                if (posts.putIfAbsent(key(aperture.stanceX(), aperture.stanceY()), run) == null) any = true;
+            }
+            if (any) run++;
+        }
+        return posts;
     }
 
     private void publish(Map<Long, int[]> members, Map<Integer, Long> cells) {
@@ -288,9 +358,10 @@ public final class FightingPositionClaims {
      *
      * <p>A team stays on one run while that run has room: runs are tried nearest the team's
      * stretch first, covered runs before uncovered ones, and a team spills onto the next run
-     * only when the first is full. Fire teams fight as teams, so splitting one across two
-     * trenches to stand a cell nearer its stretch is the wrong trade. Members left without a
-     * cell stay -1 and hold the line on ordinary ground.
+     * only when the first is full, and then only onto a run that reaches its own stretch: a team
+     * that fills a small building does not take the next team's. Fire teams fight as teams, so
+     * splitting one across two trenches to stand a cell nearer its stretch is the wrong trade.
+     * Members left without a cell stay -1 and hold the line on ordinary ground.
      *
      * @param teams      each member's fire-team index, parallel to {@code cells}
      * @param squadTeams every team the squad has, ascending, including teams with nobody to place
@@ -311,7 +382,7 @@ public final class FightingPositionClaims {
                 if (x < 0 || y < 0 || x >= width || !order.admits(index, x, y) || !probe.walkable(x, y)) continue;
                 int cell = y * width + x;
                 if (claimed.contains(cell)) continue;
-                candidates.add(new int[]{cell, order.cover(probe, x, y), index.runIdAt(x, y)});
+                candidates.add(new int[]{cell, order.cover(probe, x, y), order.runAt(index, x, y)});
             }
         }
         if (candidates.isEmpty()) return;
@@ -346,10 +417,24 @@ public final class FightingPositionClaims {
                     .thenComparing(c -> bestOfRun.get(c[2]), nearStretch)
                     .thenComparingInt(c -> c[1] > 0 ? 0 : 1)
                     .thenComparing(nearStretch));
-            List<int[]> chosen = new ArrayList<>(free.subList(0, Math.min(slots.size(), free.size())));
+            // The team's first run is its own however far it lies; another run is taken only where it
+            // reaches the team's stretch, so a team that fills its building does not spill into the
+            // next team's and leave that team short. Its extra men hold the line beside it instead.
+            int home = free.get(0)[2];
+            List<int[]> chosen = new ArrayList<>();
+            for (int[] c : free) {
+                if (chosen.size() >= slots.size()) break;
+                if (c[2] == home || nearStretchGap(bestOfRun.get(c[2]), line, width, from, to) == 0f) chosen.add(c);
+            }
             float[] start = line.pointAt(from, 0f);
             handOut(chosen, cells, slots, claimed, width, Math.round(start[0]), Math.round(start[1]));
         }
+    }
+
+    /** How far, as a fraction of the line, a cell lies outside the stretch {@code [from, to]}. */
+    private static float nearStretchGap(int[] cell, FrontageLine line, int width, float from, float to) {
+        float t = line.along(cell[0] % width, cell[0] / width);
+        return Math.max(0f, Math.max(from - t, t - to));
     }
 
     /**

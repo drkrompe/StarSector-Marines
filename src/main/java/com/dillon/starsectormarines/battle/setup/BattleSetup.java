@@ -3956,6 +3956,7 @@ public final class BattleSetup {
                                           GroundRosterProfile groundRoster,
                                           Random rng,
                                           int minimumPatrolMembers) {
+        DefenderObserverIssue observers = DefenderObserverIssue.of(sim);
         TacticalMap tactical = map.tacticalMap;
         List<TacticalNode> defenderNodes = (tactical != null)
                 ? new ArrayList<>(tactical.forFaction(Faction.DEFENDER))
@@ -4040,6 +4041,7 @@ public final class BattleSetup {
                     // not in a fire-suppression flag on the squad.
                     squad.holdsFireUntilKillZone = (mechVariant == null);
                 }
+                observers.issue(unit, mechVariant == null, spawned == 0);
                 unit.squad(squad.id);
                 long member = sim.spawn(unit);
                 attachMechLoadout(sim, member, mechVariant, groundRoster);
@@ -4110,6 +4112,7 @@ public final class BattleSetup {
                     squad = sim.getSquad(sid);
                     squad.assignedNode = anchor;
                 }
+                observers.issue(unit, mechVariant == null, spawned == 0);
                 unit.squad(squad.id);
                 long member = sim.spawn(unit);
                 attachMechLoadout(sim, member, mechVariant, groundRoster);
@@ -4137,6 +4140,7 @@ public final class BattleSetup {
                                                    DefenderRoster roster,
                                                    GroundRosterProfile groundRoster,
                                                    Random rng) {
+        DefenderObserverIssue observers = DefenderObserverIssue.of(sim);
         // Same mech-vs-infantry split as allocateDefenders — each squad
         // drains from a single source queue so mechs and infantry never
         // share membership.
@@ -4180,6 +4184,7 @@ public final class BattleSetup {
                     // No assignedNode — PatrolRoute falls back to the
                     // squad centroid as its wander seed when this is null.
                 }
+                observers.issue(unit, mechVariant == null, spawned == 0);
                 unit.squad(squad.id);
                 long member = sim.spawn(unit);
                 attachMechLoadout(sim, member, mechVariant, groundRoster);
