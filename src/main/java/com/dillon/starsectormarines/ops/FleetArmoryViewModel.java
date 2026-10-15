@@ -1441,6 +1441,9 @@ public final class FleetArmoryViewModel {
             List<DoctrineSpan> carriesSpans,
             Runnable select, Runnable issue, boolean issueDisabled,
             String issueReason, boolean issued) implements MarkupPropertySource {
+        /** Inert click handler for a card shown where nothing can be issued; its button is hidden. */
+        private static final Runnable NO_ISSUE = () -> { };
+
         /** The same card carrying its own Issue action and the reason it may be refused. */
         DoctrineTile withIssue(Runnable action, boolean disabled, String reason, boolean alreadyIssued) {
             return new DoctrineTile(id, headerId, nameId, rarityId, ratingId, metadataRowId,
@@ -1457,7 +1460,7 @@ public final class FleetArmoryViewModel {
                 case "id" -> id;
                 case "issueId" -> id + ":issue";
                 case "issueReasonId" -> id + ":issue-reason";
-                case "issue" -> issue;
+                case "issue" -> issue != null ? issue : NO_ISSUE;
                 case "issueDisabled" -> issueDisabled || issued;
                 case "issueLabel" -> Strings.get(issued ? "loadoutIssuedState" : "loadoutIssueAction");
                 case "issueButtonClasses" -> issue == null ? "doctrine-issue-button-hidden"

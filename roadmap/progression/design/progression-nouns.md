@@ -406,8 +406,17 @@ The armory has three deliberately separate layers. Equipment template cards are
 permanent collected capability. A **weapon definition** is reusable twelve-billet
 intent authored only from collected templates; a **tactic sheet** is the armour
 half and is *not* authored the same way — it names roles and a tradition, and the
-armoury fills them from the best owned pattern for each job
-(`role-and-access.md`). The exact kit on a marine is the materialized result.
+card's own patterns fill them, best for each job (`role-and-access.md`). The exact
+kit on a marine is the materialized result.
+
+**A card defines the whole squad.** The player's flexibility is the pairing of one
+Weapon Loadout with one Armor / Equipment sheet, not building either half from parts.
+The early mixed sections (Tri-Tachyon Specter Section, Hegemony Arbalest Section,
+Salvage-assisted Section) are the transition into power armor — a few recovered,
+lower-tier suits (two, two and four of twelve) among ordinary kit — so that a whole
+squad does not move into powered armor the moment the first suit is acquired. Every
+sheet works the same way: the card carries every pattern its twelve billets wear and
+issues exactly those, whatever else the company owns.
 
 **Knowing a tactic sheet is separate from being able to fill its billets.** A
 new company knows only Watchman's Kit. Learning a suit specification can teach
@@ -416,9 +425,9 @@ that could substitute that suit. Janus teaches Tri-Tachyon recon, for example,
 without granting Hegemony or Sindrian formations. Wayline's accepted refit teaches
 its own formation, and the alternative becomes usable when its offered technology
 has been learned. These are permanent company permissions, not another consumable
-item or equipment charge. Issue requires both a learned sheet and legal owned
-patterns for its billets. A missing specialist role can still fall back within a
-learned sheet's armor class; fallback never establishes knowledge of a sheet.
+item or equipment charge. Issue requires both a learned sheet and the
+sheet's own patterns, which learning its card always provides. A role the sheet does
+not cover falls back to its line kit; fallback never establishes knowledge of a sheet.
 
 Older companies retain formations already assigned to squads or saved in profiles,
 along with learned specifications and materialized equipment. Other sheets are

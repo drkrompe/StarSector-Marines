@@ -93,6 +93,17 @@ public final class ArmorIssueResolver {
                 plan.description(), issued);
     }
 
+    /**
+     * Issues a tactic sheet as a player's Armory fields it. A sheet card defines the whole
+     * squad, so it is resolved from exactly its bundled patterns and ignores what else the
+     * company owns: two companies holding the same card field the same squad. The
+     * role/tradition rules still decide which bundled pattern fills which billet.
+     */
+    public static SquadArmorDoctrine issueSheet(SquadArmorPlan plan) {
+        List<String> bundle = ArmorSheetBundles.patternsFor(plan.id());
+        return resolve(plan, pattern -> bundle.contains(pattern.id()));
+    }
+
     /** Convenience for "everything the catalog has", used by previews and tests. */
     public static SquadArmorDoctrine resolveUnrestricted(SquadArmorPlan plan) {
         return resolve(plan, pattern -> true);

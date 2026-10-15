@@ -219,10 +219,9 @@ class SquadEquipmentDoctrineTest {
                 ArmorRole wanted = plan.roleAt(billet);
                 ArmorRole worn = MarineArmorCatalogRegistry.require(
                         preview.billet(billet).armorId()).role();
-                boolean ownsWanted = MarineArmorCatalogRegistry.installed().all().stream()
-                        .anyMatch(pattern -> pattern.role() == wanted
-                                && roster.armory().ownsArmorTemplate(pattern.id()));
-                assertEquals(ownsWanted ? wanted : ArmorRole.LINE, worn,
+                boolean carriesWanted = ArmorSheetBundles.patternsFor(plan.id()).stream()
+                        .anyMatch(id -> MarineArmorCatalogRegistry.require(id).role() == wanted);
+                assertEquals(carriesWanted ? wanted : ArmorRole.LINE, worn,
                         "billet " + billet + " wanted a " + wanted.key);
             }
             for (int local = 1; local < MarineSquad.TEAM_SIZE; local++) {
