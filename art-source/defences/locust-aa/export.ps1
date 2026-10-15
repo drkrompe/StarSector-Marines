@@ -34,7 +34,14 @@ foreach ($name in @('locust-mount', 'ground-base')) {
             }
             if ($maxX -lt 0 -or $transparent -eq 0) { throw "$name is empty or lacks transparent space" }
             $target.Save((Join-Path $layers "$name.png"), [System.Drawing.Imaging.ImageFormat]::Png)
-            $measurements += [ordered]@{name=$name; masterSize=$source.Width; layerSize=512; pivot=@(256,256); alphaBounds=@($minX,$minY,($maxX+1),($maxY+1)); transparentPixels=$transparent}
+            $pivot = @(256,256)
+            if ($name -eq 'locust-mount') {
+                # The round floor contains the whole mount silhouette. Its bounds
+                # locate the painted yaw center despite ImageGen's framing drift.
+                # Record registration; never shift pixels in the retained frames.
+                $pivot = @((($minX+$maxX+1)/2.0), (($minY+$maxY+1)/2.0))
+            }
+            $measurements += [ordered]@{name=$name; masterSize=$source.Width; layerSize=512; pivot=$pivot; alphaBounds=@($minX,$minY,($maxX+1),($maxY+1)); transparentPixels=$transparent}
         } finally { $g.Dispose(); $target.Dispose() }
     } finally { $source.Dispose() }
 }
@@ -62,7 +69,7 @@ try {
     $g.Clear([System.Drawing.Color]::FromArgb(23,30,32))
     $g.DrawString('LOCUST / GROUND AA', $titleFont, $white, 60, 35)
     $g.DrawString('Approved elongated head  |  Parallel forward tubes  |  Side trunnions over the gimbal floor', $smallFont, $muted, 62, 95)
-    $labels = @('APPROVED BLENDER GUIDE', 'IMAGEGEN RESKIN')
+    $labels = @('BLENDER GEOMETRY GUIDE', 'IMAGEGEN RESKIN')
     for ($i = 0; $i -lt 2; $i++) {
         $x = 40 + 780*$i
         $g.FillRectangle($panel, $x, 160, 760, 800)
