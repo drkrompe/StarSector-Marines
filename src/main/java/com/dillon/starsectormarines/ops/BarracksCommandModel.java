@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.OfficerSpecialty;
 import com.dillon.starsectormarines.marine.OfficerInduction;
 import com.dillon.starsectormarines.marine.OfficerInduction.Step;
+import com.dillon.starsectormarines.marine.OfficerCareer;
 import com.dillon.starsectormarines.marine.Status;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
@@ -126,12 +127,6 @@ public final class BarracksCommandModel {
         bind(reactor, "officerTraits", this::officerTraits);
         bind(reactor, "officerBiography", this::officerBiography);
         bind(reactor, "officerHistory", this::officerHistory);
-        // A card is 152px plus 10px padding each side and a 1px border; the list
-        // gaps them by 12px. Sized from the count so a new specialty is never clipped.
-        bind(reactor, "officerSpecialtyStyle", () -> {
-            int count = officerSpecialties().size();
-            return "height: " + Math.max(0, count * 174 + (count - 1) * 12) + "px;";
-        });
         bind(reactor, "officerHistoryStyle", () -> "height: " + (officerHistory().size() * 52) + "px;");
         cards = reactor.computed(() -> { revision.get(); return squads(); });
         // The raise tile rides at the end of the last page: a markup loop owns all of
@@ -341,33 +336,109 @@ public final class BarracksCommandModel {
         return officer.rank().isTerminal() ? Strings.get("openingBarracksCommandColonelHighestCommandRank")
                 : Strings.format("openingBarracksCommandXpTo", officer.xp(), officer.rank().xpToNext(), officer.rank().promote().displayName());
     }
+    private static final String TREE_LINE = "#738578";
+    private static final String TREE_LINE_TRAINED = "#dec58a";
+
+    /** Where one rank of one specialty stands for the selected officer. */
+    enum SpecialtyNode { LOCKED, AVAILABLE, TRAINED }
+
+    static SpecialtyNode specialtyNode(int level, int rank, boolean canTrain) {
+        if (level >= rank) return SpecialtyNode.TRAINED;
+        return level == rank - 1 && canTrain ? SpecialtyNode.AVAILABLE : SpecialtyNode.LOCKED;
+    }
+
+    private static boolean canTrain(MarineCaptain officer) {
+        return officer.status() != Status.KIA && officer.career().availablePoints(officer.rank()) > 0;
+    }
+
+    /** One column per specialty, its ranks stacked top to bottom; a new specialty is a new neighbour. */
     private List<Map<String, Object>> officerSpecialties() {
         MarineCaptain officer = selectedOfficer();
         if (officer == null) return List.of();
         List<Map<String, Object>> rows = new ArrayList<>();
-        for (OfficerSpecialty specialty : OfficerSpecialty.values()) {
+        OfficerSpecialty[] paths = OfficerSpecialty.values();
+        for (OfficerSpecialty specialty : paths) {
             int level = officer.career().level(specialty);
             String id = "officer-specialty-" + specialty.name();
-            rows.add(row("id", id, "titleId", id + "-title", "effectId", id + "-effect",
-                    "headerId", id + "-header", "iconId", id + "-icon", "footerId", id + "-footer",
-                    "progressId", id + "-progress", "levelId", id + "-level", "costId", id + "-cost",
-                    "icon", "graphics/ui/officers/" + specialty.name().toLowerCase(Locale.ROOT).replace('_', '-') + ".svg",
-                    "progress", "graphics/ui/officers/specialty-rank-" + level + ".svg",
-                    "level", Strings.format("openingBarracksCommandRanks", level), "cost", level == 2 ? "" : Strings.get("openingBarracksCommandPoint"),
-                    "nextId", id + "-next", "trainId", id + "-train",
-                    "title", specialty.label(),
-                    "effect", level == 0 ? Strings.get("openingBarracksCommandNotTrained") : specialty.effect(level),
-                    "next", level == 2 ? Strings.get("openingBarracksCommandMastered") : Strings.format("openingBarracksCommandNext2", specialty.effect(level + 1)),
-                    "button", level == 2 ? Strings.get("openingBarracksCommandMastered2") : Strings.get("openingBarracksCommandTrain"),
-                    "disabled", officer.status() == Status.KIA || level == 2 || officer.career().availablePoints(officer.rank()) == 0,
-                    "train", (Runnable) () -> {
-                        if (officer.train(specialty)) {
-                            officer.commendations().add(Strings.format("openingBarracksCommandDayTrained", (int) currentDay.getAsDouble(), specialty.label(), officer.career().level(specialty)));
-                            refresh();
-                        }
-                    }));
+            // One crossbar under the root: each branch draws its half either side of
+            // its drop, and the outermost halves are left open so the bar ends at a branch.
+            boolean first = specialty.ordinal() == 0;
+            boolean last = specialty.ordinal() == paths.length - 1;
+            Map<String, Object> row = row("id", id, "titleId", id + "-title", "iconId", id + "-icon",
+                    "headerId", id + "-header", "linkId", id + "-link", "specialty", specialty,
+                    "icon", specialtyEmblem(specialty), "title", specialty.label(),
+                    "link", "graphics/ui/officers/specialty-link-" + (level >= OfficerCareer.MAX_LEVEL ? "on" : "off") + ".svg",
+                    "barId", id + "-bar", "barLeftId", id + "-bar-left", "barRightId", id + "-bar-right",
+                    "dropId", id + "-drop",
+                    "barLeftStyle", "background-color: " + (first ? "transparent" : TREE_LINE) + ";",
+                    "barRightStyle", "background-color: " + (last ? "transparent" : TREE_LINE) + ";",
+                    "dropStyle", "background-color: " + (level > 0 ? TREE_LINE_TRAINED : TREE_LINE) + ";");
+            for (int rank = 1; rank <= OfficerCareer.MAX_LEVEL; rank++) {
+                SpecialtyNode node = specialtyNode(level, rank, canTrain(officer));
+                String nodeId = id + "-rank-" + rank;
+                row.put("node" + rank + "Id", nodeId);
+                row.put("node" + rank + "ImageId", nodeId + "-image");
+                row.put("node" + rank + "Icon", "graphics/ui/officers/specialty-node-" + rank + "-"
+                        + node.name().toLowerCase(Locale.ROOT) + ".svg");
+                row.put("node" + rank + "Disabled", node != SpecialtyNode.AVAILABLE);
+                row.put("node" + rank + "Train", (Runnable) () -> {
+                    if (specialtyNode(officer.career().level(specialty), officer.career().level(specialty) + 1,
+                            canTrain(officer)) != SpecialtyNode.AVAILABLE) return;
+                    if (officer.train(specialty)) {
+                        officer.commendations().add(Strings.format("openingBarracksCommandDayTrained", (int) currentDay.getAsDouble(), specialty.label(), officer.career().level(specialty)));
+                        refresh();
+                    }
+                });
+            }
+            rows.add(row);
         }
         return rows;
+    }
+
+    private static String specialtyEmblem(OfficerSpecialty specialty) {
+        return "graphics/ui/officers/" + specialty.name().toLowerCase(Locale.ROOT).replace('_', '-') + ".svg";
+    }
+
+    /** The specialty columns as last published, for hover wiring. */
+    @SuppressWarnings("unchecked")
+    public List<Map<String, Object>> specialtyColumns() {
+        return (List<Map<String, Object>>) ((ComputedSignal<?>) props.get("officerSpecialties")).get();
+    }
+
+    /** The tree's root: the officer's training budget, which every branch spends from. */
+    public SpecSheet specialtyRootSheet() {
+        MarineCaptain officer = selectedOfficer();
+        if (officer == null) return null;
+        return new SpecSheet(officer.name(), Strings.get("openingBarracksCommandSpecialtyRootSubtitle"),
+                "graphics/ui/officers/specialty-root.svg", "item",
+                List.of(SpecSheet.Stat.of(Strings.get("openingBarracksCommandSpecialtyRootPoints"),
+                        Integer.toString(officer.career().availablePoints(officer.rank())))),
+                List.of(Strings.get("openingBarracksCommandSpecialtyRootNote")));
+    }
+
+    /** What one rank does and whether it can be trained now: the hover answer in place of on-page copy. */
+    public SpecSheet specialtySheet(OfficerSpecialty specialty, int rank) {
+        MarineCaptain officer = selectedOfficer();
+        if (officer == null) return null;
+        int level = officer.career().level(specialty);
+        SpecialtyNode node = specialtyNode(level, rank, canTrain(officer));
+        String state = switch (node) {
+            case TRAINED -> Strings.get("openingBarracksCommandSpecialtyTrained");
+            case AVAILABLE -> Strings.get("openingBarracksCommandSpecialtyReady");
+            case LOCKED -> officer.status() == Status.KIA ? Strings.get("openingBarracksCommandSpecialtyUnavailable")
+                    : level < rank - 1 ? Strings.get("openingBarracksCommandSpecialtyNeedsRankOne")
+                    : Strings.get("openingBarracksCommandSpecialtyNoPoint");
+        };
+        List<String> notes = new ArrayList<>();
+        notes.add(specialty.effect(rank));
+        if (node == SpecialtyNode.AVAILABLE) notes.add(Strings.get("openingBarracksCommandSpecialtyClickToTrain"));
+        return new SpecSheet(Strings.format("openingBarracksCommandSpecialtyRankTitle", specialty.label(), rank == 1 ? "I" : "II"),
+                state, specialtyEmblem(specialty), "item",
+                List.of(SpecSheet.Stat.of(Strings.get("openingBarracksCommandSpecialtyRankStat"),
+                                Strings.format("openingBarracksCommandSpecialtyRankOf", rank, OfficerCareer.MAX_LEVEL)),
+                        SpecSheet.Stat.of(Strings.get("openingBarracksCommandSpecialtyCostStat"),
+                                Strings.get("openingBarracksCommandPoint"))),
+                notes);
     }
     private String officerTraits() {
         MarineCaptain officer = selectedOfficer();
@@ -720,7 +791,7 @@ public final class BarracksCommandModel {
         if (step == Step.INTRODUCTION) return inductionOfficerTarget();
         if (step == Step.SPECIALTY)
             return !dossier || selectedOfficer() != inductionOfficer() ? inductionOfficerTarget()
-                    : "officer-specialty-TACTICAL_COVER-train";
+                    : "officer-specialty-TACTICAL_COVER-rank-1";
         if (step == Step.READY) return inductionOfficerTarget();
         if (dossier) return "officer-formations";
         if (step == Step.FORMATION) return "barracks-raise-squad";
@@ -749,7 +820,7 @@ public final class BarracksCommandModel {
             case "command:all" -> Strings.get("openingBarracksCommandChooseAllFormationsSoTheUnassignedSquad");
             case "barracks-select-all" -> Strings.get("openingBarracksCommandMarkTheSquadYouWantHerTo");
             case "barracks-command-list" -> Strings.get("openingBarracksCommandRecruitAnAvailableOfficerToContinue");
-            case "officer-specialty-TACTICAL_COVER-train" -> Strings.get("openingBarracksCommandScrollToCompareAllThreeSpecialtiesUse");
+            case "officer-specialty-TACTICAL_COVER-rank-1" -> Strings.get("openingBarracksCommandHoverToCompareSpecialties");
             default -> inductionTarget().endsWith(":assign") ? Strings.get("openingBarracksCommandClickAssignSelectedOnTheCommanderCard") : Strings.get("openingBarracksCommandOpenTheHighlightedOfficerPortrait");
         };
     }
