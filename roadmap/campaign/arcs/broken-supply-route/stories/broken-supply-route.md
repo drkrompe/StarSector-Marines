@@ -2,7 +2,7 @@
 
 Status: IN PROGRESS — campaign integration and headless checks implemented; live acceptance remains.
 Written: 2026-10-10
-Updated: 2026-10-15 — acceptance checks follow the crossroads militia layout and rocket teams.
+Updated: 2026-10-15 — acceptance checks follow the militia blocks drawing the raider waves.
 
 ## Standing model
 
@@ -50,9 +50,10 @@ Run from a real campaign at 1920x1080 and 100% UI scale:
   a defeated attempt never returns. Confirm the cumulative delivery award once,
   Route Security after success, and no unlock after total loss.
 - During Thunder Run's last-objective push, verify small side-road attacks reach
-  both rear militia posts and their guns engage. Check that the technical parks at
-  the first crossroad and noses into its side arm after the Crossing window,
-  while the heavy escorts go forward, and no attack pool refills after a
+  both rear militia posts and their guns engage. Check that the crossroad picket's
+  gun is up during the Dispatch window, that side-arm waves fight the militia
+  blocks before the company's posts, and that the technical holds the south
+  shoulder while the heavy escorts go forward, and no attack pool refills after a
   recapture. Verify the rocket teams spend only their issued crude rockets and
   can damage the technical and gun bays, and the first hauler's actual destruction produces a blast and
   lingering smoke without obstructing the road.

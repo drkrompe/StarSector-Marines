@@ -36,7 +36,9 @@ public final class CompanyClocks {
         /** A stationed detachment is waiting on the player to answer something. */
         RESPONSE,
         /** A stationing term is running out. */
-        TERM_ENDING
+        TERM_ENDING,
+        /** Survivors of an overrun garrison are waiting to be collected. */
+        RECOVERY
     }
 
     /** One deadline, flattened for rendering. */
@@ -122,6 +124,14 @@ public final class CompanyClocks {
             entries.add(new Entry(Kind.TERM_ENDING, contractId, expires,
                     state.contractMarketId[row], patronName(state, contractId), null,
                     hasPendingResponse(entries, contractId)));
+        }
+
+        for (int row = 0; row < state.contractCount; row++) {
+            if (!StrandedDetachment.isStranded(state, row)) continue;
+            long contractId = state.contractId[row];
+            entries.add(new Entry(Kind.RECOVERY, contractId,
+                    state.contractStrandedUntilTick[row], state.contractMarketId[row],
+                    patronName(state, contractId), null, false));
         }
 
         entries.sort(Comparator.comparingInt((Entry e) -> e.deadlineDay)

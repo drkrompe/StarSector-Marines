@@ -60,13 +60,15 @@ public final class DefenceReport {
     /**
      * Everything the account may state. {@code landed} is false for a raid that turned
      * back before planetfall; {@code unnamedLost} carries losses from a count-only legacy
-     * assignment, which has no marines to name.
+     * assignment, which has no marines to name. {@code goneToGroundDays} is the recovery
+     * window of an overrun garrison whose survivors are stranded, or 0.
      */
     public record Facts(long eventKey, int day, Place place, boolean landed, Outcome outcome,
                         String captainName, List<String> squadNames,
                         List<String> killed, List<String> missing, int wounded,
                         int unnamedLost, int seatsStood, int seatsLiving,
-                        float stationedStrength, float attackerStrength) {
+                        float stationedStrength, float attackerStrength,
+                        int goneToGroundDays) {
     }
 
     private DefenceReport() {}
@@ -124,6 +126,10 @@ public final class DefenceReport {
             if (!losses) lines.add(text.apply("defenceReportNoLosses"));
             lines.add(format(text.apply("defenceReportLiving"),
                     facts.seatsLiving(), facts.seatsStood()));
+            if (facts.goneToGroundDays() > 0) {
+                lines.add(format(text.apply("defenceReportGoneToGround"),
+                        facts.goneToGroundDays()));
+            }
         }
 
         int stationed = Math.round(facts.stationedStrength());

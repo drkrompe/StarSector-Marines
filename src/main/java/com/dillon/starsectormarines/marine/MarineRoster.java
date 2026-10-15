@@ -537,6 +537,28 @@ public class MarineRoster implements Serializable {
         return released;
     }
 
+    /**
+     * Lists one living marine of a stationed squad as missing without releasing the
+     * assignment — a stranded detachment losing people while it waits.
+     *
+     * @return whether the marine was living and stationed on {@code contractId}
+     */
+    public boolean listStationedMissing(long contractId, String soldierId) {
+        MarineSoldier soldier = soldierById(soldierId);
+        if (soldier == null || (soldier.status() != MarineSoldierStatus.ACTIVE
+                && soldier.status() != MarineSoldierStatus.WIA)) {
+            return false;
+        }
+        for (MarineSquad squad : squadsStationedOn(contractId)) {
+            if (squadMembers(squad).contains(soldier)) {
+                soldier.setStatus(MarineSoldierStatus.MIA);
+                soldier.setUnavailableUntilDay(0f);
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** Marks every recoverable member MIA before releasing an overrun assignment. */
     public int failStationingExtraction(long contractId) {
         List<MarineSquad> stationed = squadsStationedOn(contractId);

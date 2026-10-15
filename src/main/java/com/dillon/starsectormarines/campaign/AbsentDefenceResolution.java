@@ -43,8 +43,10 @@ public final class AbsentDefenceResolution {
     /** Reputation the employer takes off for a garrison that fought the raid and lost. */
     private static final int OVERRUN_HOUSE_DELTA = -1;
 
+    /** For an overrun that left nobody to strand: wiped out, or a count-only legacy row. */
     private static final String OVERRUN_NOTE =
             "Recalled after the stationed garrison was overrun in their absence.";
+
 
     /**
      * Raid effectiveness credited to a raid whose ground strength was never estimated.
@@ -140,10 +142,18 @@ public final class AbsentDefenceResolution {
                 applyCasualties(payload, roster, casualties, day, victory);
         GarrisonDefenseResolution.Result result = GarrisonDefenseResolution.apply(
                 state, payload.contractId, payload.eventKey, casualties, false, victory,
-                roster, StationingLapseResolution.deployed(payload.fireteamIds, roster));
+                roster, StationingLapseResolution.deployed(payload.fireteamIds, roster), true);
         if (result == null) return false;
         if (result == GarrisonDefenseResolution.Result.ASSIGNMENT_FAILED) {
-            StationingLapseResolution.restoreStrandedCaptain(captain, day, OVERRUN_NOTE);
+            int row = state.contractIndex(payload.contractId);
+            if (roster != null && !roster.squadsStationedOn(payload.contractId).isEmpty()) {
+                // The survivors went to ground on a planet the employer no longer holds.
+                // They stay bound to the assignment, captain included, until the company
+                // collects them or the recovery runs out.
+                StrandedDetachment.strand(state, row, day);
+            } else {
+                StationingLapseResolution.restoreStrandedCaptain(captain, day, OVERRUN_NOTE);
+            }
             // Not lapsedForContract: the garrison stood and was beaten. Writing off a
             // fought defence as a walked-away contract would cost the employer standing
             // the player never actually spent.
@@ -176,10 +186,13 @@ public final class AbsentDefenceResolution {
         int seatsLiving = Math.max(0,
                 seatsStood - killed.size() - missing.size() - unnamedLost);
         int happened = Math.max(0, Math.min(payload.triggeredDay, day));
+        int row = state.contractIndex(payload.contractId);
+        int goneToGround = StrandedDetachment.isStranded(state, row)
+                ? Math.max(0, state.contractStrandedUntilTick[row] - day) : 0;
         DefenceReport.Facts facts = new DefenceReport.Facts(payload.eventKey, happened,
                 place, landed, outcome, captain != null ? captain.name() : null,
                 squadNames, killed, missing, wounded, unnamedLost, seatsStood, seatsLiving,
-                stationed, payload.attackerStrength);
+                stationed, payload.attackerStrength, goneToGround);
         state.addChronicleGarrisonDefence(payload.eventKey, payload.marketId,
                 payload.attackerFactionId, outcome, seatsStood, seatsLiving,
                 DefenceReport.compose(facts, Strings::get), happened, Math.max(happened, day));

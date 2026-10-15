@@ -69,7 +69,9 @@ public final class CompanyNews {
         String actor = houseName(state, state.chronicleActorHouseId[row]);
         String target = houseName(state, state.chronicleTargetHouseId[row]);
         boolean companyReport = type == ChronicleEventType.SILENT_COLONY
-                || type == ChronicleEventType.GARRISON_DEFENCE;
+                || type == ChronicleEventType.GARRISON_DEFENCE
+                || type == ChronicleEventType.DETACHMENT_RECOVERED
+                || type == ChronicleEventType.DETACHMENT_LOST;
         if (!companyReport && actor == null && target == null) {
             return null;
         }
