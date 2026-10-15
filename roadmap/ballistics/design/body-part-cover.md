@@ -1,8 +1,8 @@
 # Body-part cover
 
-Status: ACTIVE — exposure shipped; part consequences, area exposure and per-part armour remain.
+Status: ACTIVE — exposure and part consequences shipped; area exposure and per-part armour remain.
 
-Updated: 2026-10-15 — first slice shipped; parts are read from where the round meets the body.
+Updated: 2026-10-15 — part consequences shipped: damage by part, limb wounds as unit modifiers, dressed by a medic.
 
 Written: 2026-10-15
 
@@ -73,18 +73,26 @@ here.
 
 ## Where this goes after the first slice
 
-- **Part consequences.** A part decides what a hit does: a head hit is worth
-  more damage, a limb hit less. A leg wound slows a man and an arm wound costs
-  him accuracy, each as a named unit modifier (`ai-nouns.md`, Unit modifiers),
-  never as a branch at the read site. This is what gives the battlefield medic
-  something specific to treat.
+- **Part consequences** (shipped). A part decides what a hit does: a head hit
+  is worth more damage (×1.6), a limb hit less (arms ×0.75, legs ×0.85), the
+  torso a little more (×1.1), so the share-weighted mean over an uncovered body
+  is one and only cover — which leaves the head and arms to hit — shifts the
+  average. A limb hit that removes structure leaves a wound: each leg wound
+  slows a man ×0.85 and each arm wound costs him ×0.85 accuracy, stacking to a
+  floor of ×0.6, each as a named unit modifier (`ai-nouns.md`, Unit
+  modifiers), never as a branch at the read site. A medic's completed
+  treatment dresses them. Still open here: the medic choosing a patient
+  *because* of a wound (today he chooses on health and armour, and a wound
+  needs structure lost, so the wounded are usually also the hurt), wound
+  presentation on the body, and AI reading wounds.
 - **Area exposure.** A blast asks which parts it can reach rather than rolling
   a hit: a shell bursting outside a trench reaches only what shows above it, a
   grenade landing in the trench reaches everything. That retires the last use of
   the flat damage reduction and makes a trench the right answer to shelling and
   the wrong answer to a grenade.
-- **Per-part armour.** Armour stays one layer over the whole body until part
-  consequences exist and armour patterns want to say helmet versus plate.
+- **Per-part armour.** Armour stays one layer over the whole body; the part
+  multiplier acts on the payload before it. Per-part armour waits for armour
+  patterns that want to say helmet versus plate.
 - **Profiles from geometry.** Profiles start as a short table keyed by cover
   level and by kind (edge cover, a feature crossed in the lane, a trench's
   occupant). Deriving them from a prop's authored height is possible later, but
@@ -102,8 +110,10 @@ here.
   roll a body contact makes.
 - A body part is never a second hidden hit roll on the intended target: a round
   that hits and reaches an exposed part lands.
-- Part shares and cover profiles are data, read in one place; nothing else
-  re-derives them.
+- Part shares, part multipliers and cover profiles are data, read in one
+  place; nothing else re-derives them.
+- A wound is a unit modifier, and needs structure removed: a hit the armour
+  absorbed whole never reached the man.
 
 ## Boundaries
 
