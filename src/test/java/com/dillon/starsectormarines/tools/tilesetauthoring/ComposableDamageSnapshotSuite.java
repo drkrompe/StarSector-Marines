@@ -26,11 +26,11 @@ import java.util.List;
 /** Assembled furniture through real structural damage, placement rotations and the production renderer. */
 public final class ComposableDamageSnapshotSuite implements SnapshotSuite {
     public String id() { return "composable-damage"; }
-    public String label() { return "Console, storage and clinic damage states"; }
+    public String label() { return "Furniture and factory machinery damage states"; }
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         DiskRegistries.installMapGeneration(context.projectRoot());
         List<SnapshotArtifact> images = new ArrayList<>();
-        for (String family : List.of("consoles", "storage", "clinic")) for (int turn=0;turn<4;turn++)
+        for (String family : List.of("consoles", "storage", "clinic", "factory")) for (int turn=0;turn<4;turn++)
             images.add(new SnapshotArtifact(family+"-turn-"+turn+".png",board(context,family,turn)));
         return images;
     }
@@ -54,6 +54,12 @@ public final class ComposableDamageSnapshotSuite implements SnapshotSuite {
                     f.place("main-stores.pallet",p[0],p[1],0,turn);f.place("main-stores.cases",p[0],p[1],0,turn);
                 }
                 f.place("main-stores.tally",2,5,0,turn);f.place("main-stores.packing",9,5,0,turn);
+            } else if(family.equals("factory")) {
+                f.place("factory-machines.fabricator",3,12,0,turn);
+                f.place("factory-machines.assembly",10,12,0,turn);
+                f.place("factory-machines.coolant",3,5,0,turn);
+                f.place("main-stores.packing",10,5,0,turn);
+                f.place("mess-galley.stool",11,3,0,turn);
             } else {
                 f.place("sickbay-clinic.bed",2,13,0,turn);f.place("sickbay-clinic.linen-low",2,13,0,turn);
                 f.place("sickbay-clinic.monitor",2,15,0,turn);
@@ -69,7 +75,10 @@ public final class ComposableDamageSnapshotSuite implements SnapshotSuite {
                 if(state>0&&!d.definitionId().endsWith(state==1?"-damaged":"-destroyed"))
                     throw new IllegalStateException("Missed state: "+d.definitionId());
                 if(state==2)for(int y=d.cellY;y<d.cellY+d.footprintCellsY;y++)for(int x=d.cellX;x<d.cellX+d.footprintCellsX;x++)
-                    if(!f.grid.isWalkable(x,y)||f.topology.isFixture(x,y))throw new IllegalStateException("Wreck blocks floor");
+                    if(!f.grid.isWalkable(x,y)||f.grid.blocksStructuralLineOfSight(x,y)||f.topology.isFixture(x,y))throw new IllegalStateException("Wreck blocks floor or sight");
+                if(state<2 && d.definitionId().startsWith("factory-machines."))
+                    for(int y=d.cellY;y<d.cellY+d.footprintCellsY;y++)for(int x=d.cellX;x<d.cellX+d.footprintCellsX;x++)
+                        if(f.grid.isWalkable(x,y)||f.grid.isSeeThrough(x,y))throw new IllegalStateException("Standing machine lost obstruction");
             }
             MapResult map=new MapResult(f.grid,f.topology,0,0,19,19,List.of(),f.props.getDoodads());
             int x=20+state*640;
@@ -100,7 +109,7 @@ public final class ComposableDamageSnapshotSuite implements SnapshotSuite {
             RoomPose pose=new RoomPose(turn,false);int[] a=pose.map(x,y,20,20),b=pose.map(x+w-1,y+h-1,20,20);
             Doodad d=new Doodad(Math.min(a[0],b[0]),Math.min(a[1],b[1]),def,(turn+facing)%4);
             if(d.cover>0)for(int py=d.cellY;py<d.cellY+d.footprintCellsY;py++)for(int px=d.cellX;px<d.cellX+d.footprintCellsX;px++) {
-                grid.setWalkable(px,py,false);grid.setSeeThrough(px,py,true);topology.setFixture(px,py,true);
+                grid.setWalkable(px,py,false);grid.setSeeThrough(px,py,!id.startsWith("factory-machines."));topology.setFixture(px,py,true);
             }
             props.addDoodad(d);
         }

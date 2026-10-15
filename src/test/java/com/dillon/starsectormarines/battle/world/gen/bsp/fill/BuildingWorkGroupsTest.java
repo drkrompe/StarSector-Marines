@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomPose;
 import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +17,8 @@ class BuildingWorkGroupsTest {
     private final BuildingWorkGroups groups = new BuildingWorkGroups(grid, topology, doodads);
     BuildingWorkGroupsTest() {
         for (int y = 0; y < 24; y++) for (int x = 0; x < 24; x++) {
-            grid.setWalkableFloor(x, y); topology.setRoomPurpose(x, y, RoomPurpose.PATIENT_WARD);
+            grid.setWalkableFloor(x, y); grid.setSeeThrough(x, y, true);
+            topology.setRoomPurpose(x, y, RoomPurpose.PATIENT_WARD);
         }
     }
 
@@ -73,5 +75,23 @@ class BuildingWorkGroupsTest {
             assertFalse(fixture.groups.place(BuildingWorkGroups.cargoDesk(true), 3, 3, (turn + 2) % 4, RoomPurpose.PATIENT_WARD),
                     "an opposite bench cannot consume the tally desk's service row");
         }
+    }
+
+    @Test void machineFootprintsAreOpaqueAndKeepOperatingAndCrossAislesAtEveryPose() {
+        for (String id : List.of("factory-machines.fabricator", "factory-machines.assembly", "factory-machines.coolant"))
+            for (int turn = 0; turn < 4; turn++) {
+                BuildingWorkGroupsTest fixture = new BuildingWorkGroupsTest();
+                var group = BuildingWorkGroups.machine(id);
+                assertTrue(fixture.groups.place(group, 3, 3, turn, RoomPurpose.PATIENT_WARD));
+                Doodad machine = fixture.doodads.get(0);
+                RoomPose pose = new RoomPose(turn, false);
+                for (int y = 0; y < pose.posedHeight(group.width(), group.height()); y++)
+                    for (int x = 0; x < pose.posedWidth(group.width(), group.height()); x++) {
+                        boolean occupied = machine.occupiesCell(x + 3, y + 3);
+                        assertEquals(!occupied, fixture.grid.isWalkable(x + 3, y + 3));
+                        assertEquals(!occupied, fixture.grid.isSeeThrough(x + 3, y + 3));
+                    }
+                assertFalse(fixture.groups.place(group, 3, 3, (turn + 2) % 4, RoomPurpose.PATIENT_WARD));
+            }
     }
 }

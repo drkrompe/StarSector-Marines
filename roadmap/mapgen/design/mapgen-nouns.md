@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — story maps dig trench through the shared prepared-ground helper.
+Updated: 2026-10-15 — factory work groups reserve machinery operating aisles and retain full-footprint damage.
 
 Earlier 2026-10-13 — reversible authored damage layers give Relief a worn checkpoint without changing its landing contract; Relief rear working courts preserve the expanded landing and assembly apron.
 
@@ -325,6 +325,12 @@ and staging belong on the production floor. Compact lots keep the smaller
 support plan and use individual supply stacks where complete groups cannot
 fit. The two-cell service spine connects opposed entrances independently of
 these working areas; furnishing preserves it and the machine operators' aisles.
+Production equipment has substantial, opaque multi-cell footprints: enclosed
+fabrication cells, roller-bed assembly machines and coolant skids face toward
+the working floor. Complete bays reserve two-cell operator and cross aisles
+before cargo staging. Equipment variety precedes repeats, and smaller floors
+take only what fits. Standing damage retains obstruction; destroyed machines
+leave low debris and release their whole movement, sight and cover footprint.
 
 A clinic's equipment follows care: reception has charting and waiting seats;
 triage pairs readouts with assessment; treatment owns examination couches,

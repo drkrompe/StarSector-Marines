@@ -15,7 +15,9 @@ import java.util.Set;
 
 /** Complete working groups: furniture, contained visual layers and protected access turn together. */
 final class BuildingWorkGroups {
-    record Part(String id, int x, int y, boolean blocking) {}
+    record Part(String id, int x, int y, boolean blocking, boolean seeThrough) {
+        Part(String id, int x, int y, boolean blocking) { this(id, x, y, blocking, true); }
+    }
     record Group(int width, int height, List<Part> parts) {
         Group { parts = List.copyOf(parts); }
     }
@@ -72,6 +74,14 @@ final class BuildingWorkGroups {
         parts.add(new Part(packing ? "main-stores.packing" : "main-stores.tally", 0, 0, true));
         if (!packing) parts.add(new Part("mess-galley.stool", 1, 1, false));
         return new Group(3, 3, parts);
+    }
+
+    /** Operator face is south; two clear rows in front and a two-cell cross aisle at the side. */
+    static Group machine(String id) {
+        var def = TileRegistry.installed().doodad(id);
+        if (def == null) throw new IllegalArgumentException("Unknown factory machine: " + id);
+        return new Group(def.footprintCellsX + 2, def.footprintCellsY + 2,
+                List.of(new Part(id, 0, 2, true, false)));
     }
 
     /** Adjacent cabinet modules form a continuous wall bank with a two-cell working aisle. */
@@ -161,7 +171,12 @@ final class BuildingWorkGroups {
         for (Part part : group.parts) {
             var def = TileRegistry.installed().doodad(part.id);
             int[] at = anchor(group, part, turn);
-            doodads.add(new Doodad(x + at[0], y + at[1], def, turn));
+            Doodad doodad = new Doodad(x + at[0], y + at[1], def, turn);
+            doodads.add(doodad);
+            if (part.blocking && !part.seeThrough)
+                for (int py = doodad.cellY; py < doodad.cellY + doodad.footprintCellsY; py++)
+                    for (int px = doodad.cellX; px < doodad.cellX + doodad.footprintCellsX; px++)
+                        grid.setSeeThrough(px, py, false);
         }
         RoomPose pose = new RoomPose(turn, false);
         for (int dy = 0; dy < pose.posedHeight(group.width, group.height); dy++)

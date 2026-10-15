@@ -470,9 +470,10 @@ final class BuildingLayouts {
 
     /**
      * Furnishes a qualifying factory without obstructing its service spine.
-     * Opaque machinery hugs the production-side exterior wall at three-cell
-     * intervals, creating a broad longitudinal lane plus two-cell cross gaps.
-     * Support-room and loading props remain low enough to shoot across.
+     * Full-footprint opaque machines face inward from the production side,
+     * retaining two-cell operating and cross aisles. Receiving and support
+     * furniture share the same reserved-access fitter; compact floors retain
+     * smaller machines or the legacy line when complete bays cannot fit.
      */
     private static void applyIndustrialFacility(NavigationGrid grid, CellTopology topology,
                                                  PartitionLayout partition,
@@ -489,13 +490,29 @@ final class BuildingLayouts {
         DoodadDef parts = TileRegistry.installed().doodad("doodad.industrial-crate-stack");
         DoodadDef pallet = TileRegistry.installed().doodad("doodad.industrial-pallet-stack");
 
-        stampIndustrialProductionLine(grid, topology, partition,
-                bl, bt, br, bb, new DoodadDef[]{machine, tank}, doodads);
         if (stampPurposeConsoleBanks(grid, topology, bl, bt, br, bb, RoomPurpose.CONTROL_ROOM, doodads) == 0)
             stampPurposeFixture(grid, topology, bl, bt, br, bb,
                     RoomPurpose.CONTROL_ROOM, console, doodads, rng, true);
         else preservePlacementDraw(topology, bl, bt, br, bb, RoomPurpose.CONTROL_ROOM, rng);
         BuildingWorkGroups storage = new BuildingWorkGroups(grid, topology, doodads);
+        int[] floor = purposeBounds(topology, bl, bt, br, bb, RoomPurpose.PRODUCTION_FLOOR);
+        boolean vertical = partition.orient == PartitionLayout.Orient.VERTICAL;
+        boolean lowSide = (vertical ? floor[2] : floor[3]) < partition.preferredPerimeterDoorAlong;
+        int machineTurn = vertical ? (lowSide ? 1 : 3) : (lowSide ? 2 : 0);
+        int machineCount = storage.fit(bl, bt, br, bb, RoomPurpose.PRODUCTION_FLOOR,
+                BuildingWorkGroups.machine("factory-machines.fabricator"), 1, machineTurn);
+        machineCount += storage.fit(bl, bt, br, bb, RoomPurpose.PRODUCTION_FLOOR,
+                BuildingWorkGroups.machine("factory-machines.assembly"), 1, machineTurn);
+        machineCount += storage.fit(bl, bt, br, bb, RoomPurpose.PRODUCTION_FLOOR,
+                BuildingWorkGroups.machine("factory-machines.coolant"), 1, machineTurn);
+        machineCount += storage.fit(bl, bt, br, bb, RoomPurpose.PRODUCTION_FLOOR,
+                BuildingWorkGroups.machine("factory-machines.assembly"),
+                purposeFixtureBudget(topology, bl, bt, br, bb, RoomPurpose.PRODUCTION_FLOOR, 0, 2, 120), machineTurn);
+        if (machineCount == 0) {
+            stampIndustrialProductionLine(grid, topology, partition,
+                    bl, bt, br, bb, new DoodadDef[]{machine, tank}, doodads);
+            storage = new BuildingWorkGroups(grid, topology, doodads);
+        }
         int racks = storage.fit(bl, bt, br, bb, RoomPurpose.PARTS_CAGE,
                 BuildingWorkGroups.stockedRack("cases"), 2);
         if (racks > 0) {
