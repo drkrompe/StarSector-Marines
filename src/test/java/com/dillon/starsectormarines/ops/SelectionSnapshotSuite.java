@@ -165,7 +165,7 @@ public final class SelectionSnapshotSuite implements SnapshotSuite {
     /**
      * A selected squad of eight dragging a line across a trench and on over open ground: while the
      * drag is held, a ring where each marine will stand (green on the trench, pale beyond it); once
-     * released and walked, the same squad standing in those rings under the held line.
+     * released and walked, the same squad standing where the rings were, with nothing drawn.
      */
     private SnapshotArtifact renderLine(SnapshotContext context, boolean held) throws Exception {
         HeadlessUiRenderer renderer = new HeadlessUiRenderer(

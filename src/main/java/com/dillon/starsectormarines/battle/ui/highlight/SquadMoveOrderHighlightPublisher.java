@@ -17,16 +17,15 @@ public final class SquadMoveOrderHighlightPublisher {
                                HighlightOverlay overlay) {
         if (selection == null || sim == null || overlay == null) return;
         List<CellHighlight> areas = new ArrayList<>();
-        List<HighlightOverlay.LineMark> lines = new ArrayList<>();
         for (int selected : selection.getSelectedSquadIds()) {
             ActiveOrder order = sim.getSquadMoveOrderService().activeOrder(selected);
-            if (order instanceof ActiveDefendAreaOrder defend) {
-                if (defend.line() != null) lines.add(new HighlightOverlay.LineMark(defend.line(), List.of()));
-                else areas.addAll(defendAreaHighlights(defend));
+            // A line order is drawn only while it is being dragged: a standing stroke across the
+            // map for every selected line is noise, and the men on their posts already show it.
+            if (order instanceof ActiveDefendAreaOrder defend && defend.line() == null) {
+                areas.addAll(defendAreaHighlights(defend));
             }
         }
         overlay.put(HighlightOverlay.SRC_SQUAD_MOVE_DESTINATION, areas);
-        overlay.putLines(HighlightOverlay.SRC_SQUAD_MOVE_DESTINATION, lines);
     }
 
     /**
