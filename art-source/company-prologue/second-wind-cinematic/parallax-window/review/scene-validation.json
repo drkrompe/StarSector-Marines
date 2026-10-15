@@ -1,0 +1,93 @@
+{
+  "passed": true,
+  "errors": [],
+  "paths_relative_to": "parallax-window directory",
+  "source": "../painted-window/jangala-painted-window.blend",
+  "scene": "jangala-parallax-window.blend",
+  "half_frame_samples": 96,
+  "tested_frames": [
+    120,
+    167.5
+  ],
+  "ship_mesh_count": 171,
+  "changed_meshes": [],
+  "max_camera_local_matrix_delta": 0.0,
+  "max_root_rotation_delta": 0.0,
+  "max_root_scale_delta": 0.0,
+  "max_root_location_m": 0.0,
+  "max_inverse_scenery_error_m": 0.0004920811613951751,
+  "feature_count": 15,
+  "max_cabin_precision_residual_px": 0.023440770271498934,
+  "rms_cabin_precision_residual_px": 0.00485044465172076,
+  "max_cabin_screen_second_difference_px": 0.03544521835840442,
+  "missing_texture_paths": [],
+  "layer_depth_order_correct": true,
+  "layer_movement_order_correct": true,
+  "parallax_layers": [
+    {
+      "name": "PARALLAX | near trees",
+      "declared_depth_m": 5000.0,
+      "actual_reference_depth_m": 4999.99951171875,
+      "screen_positions_120_168": [
+        [
+          1098.1565345904075,
+          528.4557776332239
+        ],
+        [
+          798.9840898760689,
+          553.4547238768696
+        ]
+      ],
+      "movement_px": 300.2150878780857
+    },
+    {
+      "name": "PARALLAX | medium trees and river",
+      "declared_depth_m": 10500.0,
+      "actual_reference_depth_m": 10499.9990234375,
+      "screen_positions_120_168": [
+        [
+          1028.3294869326137,
+          534.2906146274416
+        ],
+        [
+          886.5103971821449,
+          546.14108119117
+        ]
+      ],
+      "movement_px": 142.31334363098063
+    },
+    {
+      "name": "PARALLAX | far trees",
+      "declared_depth_m": 20000.0,
+      "actual_reference_depth_m": 19999.998046875,
+      "screen_positions_120_168": [
+        [
+          996.481329065253,
+          536.9518581457424
+        ],
+        [
+          922.0977363616396,
+          543.167377837637
+        ]
+      ],
+      "movement_px": 74.64282650420857
+    },
+    {
+      "name": "PARALLAX | distant hills",
+      "declared_depth_m": 34000.0,
+      "actual_reference_depth_m": 33999.99609375,
+      "screen_positions_120_168": [
+        [
+          981.6265613882338,
+          538.1930954783667
+        ],
+        [
+          937.8819539639894,
+          541.848424937741
+        ]
+      ],
+      "movement_px": 43.89706268257392
+    }
+  ],
+  "limits": "Numeric transform/geometry/asset checks; alpha gaps, matte edges and visual composition require rendered review. No blend saved."
+}

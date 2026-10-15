@@ -1,5 +1,9 @@
 # Painted Jangala window test
 
+The follow-up [layered parallax study](../parallax-window/README.md) retains this
+painting treatment while adding independent landscape layers, moving cloud and
+Atlas traffic, with a precision correction for the earlier cabin jitter.
+
 A four-second 2.5D painting test for the retained high-window shot, using the
 original ship and camera animation. It studies a painted campaign-art treatment
 through the actual crew viewport. The render and projection checks passed;
