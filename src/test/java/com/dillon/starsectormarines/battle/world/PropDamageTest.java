@@ -14,14 +14,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PropDamageTest {
     private static final class Ground implements AutoCloseable {
-        final NavigationGrid grid = new NavigationGrid(8, 8);
-        final CellTopology topology = new CellTopology(8, 8);
+        final NavigationGrid grid = new NavigationGrid(12, 12);
+        final CellTopology topology = new CellTopology(12, 12);
         final DoodadService props = new DoodadService(grid);
         final NavigationService navigation;
         final MapEditor editor;
         final List<PropDamage.Effect> cues = new ArrayList<>();
         Ground() {
-            for (int y = 0; y < 8; y++) for (int x = 0; x < 8; x++) {
+            for (int y = 0; y < 12; y++) for (int x = 0; x < 12; x++) {
                 grid.setWalkableFloor(x, y); topology.setGroundKind(x, y, CellTopology.GroundKind.GRASS);
             }
             navigation = new NavigationService(grid, topology, false);
@@ -114,6 +114,47 @@ class PropDamageTest {
             g.props.addStaticCover(3, 3, 1, .2f);
             g.editor.damageWall(3, 3, 100);
             assertEquals(1, g.props.getDoodadLevelOnCell(3, 3));
+        }
+    }
+
+    @Test void collapsedRackBringsDownAllContainedStockAndFrameInEveryPose() {
+        for(int turn=0;turn<4;turn++)try(Ground g=new Ground()) {
+            g.prop("main-stores.rack",true,turn,false);
+            Doodad rack=g.props.getDoodads().get(0);
+            g.props.addDoodad(new Doodad(3,3,TileRegistry.installed().doodad("main-stores.cases"),turn));
+            g.props.addDoodad(new Doodad(3+rack.footprintCellsX-2,3+rack.footprintCellsY-2,
+                    TileRegistry.installed().doodad("main-stores.cartons"),turn));
+            g.props.addDoodad(new Doodad(3,3,TileRegistry.installed().doodad("main-stores.frame"),turn));
+            g.props.addDoodad(new Doodad(0,0,TileRegistry.installed().doodad("main-stores.cases"),turn));
+            g.editor.damageWall(3,3,100);
+            for(Doodad d:g.props.getDoodads().subList(0,4))assertTrue(d.definitionId().endsWith("-destroyed"));
+            assertEquals("main-stores.cases",g.props.getDoodads().get(4).definitionId());
+            for(int y=3;y<3+rack.footprintCellsY;y++)for(int x=3;x<3+rack.footprintCellsX;x++){
+                assertTrue(g.grid.isWalkable(x,y));assertFalse(g.topology.isFixture(x,y));
+            }
+        }
+    }
+
+    @Test void beddingRegisteredBeforeItsBedCollapsesWithTheBase() {
+        try(Ground g=new Ground()) {
+            g.props.addDoodad(new Doodad(3,3,TileRegistry.installed().doodad("sickbay-clinic.linen-low"),0));
+            g.prop("sickbay-clinic.bed",true,0,false);
+            g.props.setPropEffectSink((x,y,e,size)->{});
+            g.editor.damageWall(3,4,100);
+            assertTrue(g.props.getDoodads().stream().allMatch(d->d.definitionId().endsWith("-destroyed")));
+            assertTrue(g.grid.isWalkable(3,3));assertTrue(g.grid.isWalkable(3,4));
+        }
+    }
+
+    @Test void decorativeLayersAndStoolsChangeStateWithoutCreatingOrClearingObstruction() {
+        for(String id:PropDamage.DECORATIONS)try(Ground g=new Ground()) {
+            g.prop(id,false,0,false);
+            assertFalse(g.editor.damageWall(3,3,35));
+            assertEquals(id+"-damaged",g.props.getDoodads().get(0).definitionId());
+            assertTrue(g.editor.damageWall(3,3,65));
+            assertEquals(id+"-destroyed",g.props.getDoodads().get(0).definitionId());
+            assertTrue(g.grid.isWalkable(3,3));assertFalse(g.grid.isDoorway(3,3));
+            assertEquals(0,g.props.getDoodadCoverAt(3,3));assertTrue(g.cues.isEmpty());
         }
     }
 }

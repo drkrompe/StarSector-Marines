@@ -5,16 +5,8 @@ is not.
 
 Written: 2026-08-28
 
-Updated: 2026-08-30 — the ward is told which road it keeps rather than
-deriving it; see the vehicle-corridor section of `mapgen-nouns.md`.
-
-Updated: 2026-08-28 — the Conquest fortress ward now packs, furnishes and berths
-from its own program, so steps 2 to 4 are shipped for that family; its buildings
-now author their walls and keep them out of the street, the wall stamper no
-longer demolishes the ward it encloses, and the ward bounds how far its
-buildings may be glued together. Step 1 — a compound sized to hold what it
-owes — remains the open piece, and is still what blocks the hangar in an ordinary
-military base.
+Updated: 2026-10-15 � whole authored layouts are shared by campaign and remote
+mission hosts; insertion among city neighbors still requires a prior claim.
 
 Read `mapgen-nouns.md` for the recipe, context, stage, and validation
 obligations any of this inherits. `ship-interiors-nouns.md` owns the deck
@@ -280,8 +272,15 @@ the gate mouths to the wider road network. Cardinal rotation carries buildings,
 doors, yards and spline roads together. Existing fittings, shell materials,
 perimeter defenses and tactical-place publication still own their normal work.
 This does not grant permission to overwrite a city's roads or neighbors: a
-story map can reserve its site outright, while a city still needs the prior
-claim described in `cross-leaf-footprint-planning.md`.
+story or remote-installation host can reserve its site outright, while a city
+still needs the prior claim described in `cross-leaf-footprint-planning.md`.
+Remote Assault uses the complete maintenance-outpost family where the map has
+room for both the installation and a separate approach. Its standard and
+extra-magazine variants preserve the same courts and gate circulation. The
+host owns external roads, arrival berths and terrain, while the mission owns
+forces, objectives and defensive strength. A host that cannot satisfy the
+whole footprint or the declared defensive installations keeps its ordinary
+programmed layout instead of clipping the template or dropping obligations.
 
 ## What does not transfer
 

@@ -136,14 +136,7 @@ public final class JunctionCompound {
     private static void serviceYards(GenContext c) {
         StoryServiceYard yard = new StoryServiceYard(c);
         // Warehouse overflow: three dispatch bays and a separate pallet-storage court.
-        yard.gravel(62, 69, 88, 87);
-        yard.fence(62, 69, 88, 87);
-        for (int x : new int[]{65, 73, 81}) {
-            yard.bay(x, 72, x + 5, 78);
-            // Container doors face the stacks; the flatbed loads from the side.
-            yard.prop(x + 1, 75, x == 73 ? "parked-flatbed-truck" : "parked-cargo-truck", x == 73 ? 0 : 3);
-            yard.cargo(x, 82);
-        }
+        ServiceYardTemplate.FREIGHT_MARSHALLING.place(c, 62, 69, 0);
         // The weigh-house's inspection lay-by faces the loading street, not the main road.
         yard.bay(77, 39, 81, 50);
         yard.prop(78, 45, "parked-utility-truck", 1);

@@ -45,7 +45,7 @@ public final class FortApproaches {
     /** Indices of the nests with the cell within {@link #NEST_COVER_CELLS}. */
     static List<Integer> covering(FortPlan plan, int x, int y) {
         List<Integer> covering = new ArrayList<>();
-        List<int[]> nests = plan.nests();
+        List<int[]> nests = plan.defenceNests();
         for (int i = 0; i < nests.size(); i++) {
             if (Math.hypot(nests.get(i)[0] - x, nests.get(i)[1] - y) <= NEST_COVER_CELLS) covering.add(i);
         }
@@ -68,7 +68,7 @@ public final class FortApproaches {
      * works' yard: the thinnest honest place to cut. Scanned in a fixed order so the answer is the same on every run.
      */
     private static AssaultApproach breach(FortPlan plan) {
-        List<int[]> nests = plan.nests();
+        List<int[]> nests = plan.defenceNests();
         List<FortPlan.Gate> gates = plan.gates();
         int[] centre = plan.centrepiece();
         int[][] steps = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};

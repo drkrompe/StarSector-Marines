@@ -1,0 +1,237 @@
+{
+  "sheetName": "main-stores-damage",
+  "sheet": "art-source/tilesets/main-stores-damage.raw.png",
+  "cellPx": 128,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "main-stores",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/main-stores-damage.png",
+  "note": "Built-in ImageGen reskin of retained full-footprint geometry. Damaged source padding registered against intact silhouettes; destroyed fragments retain local slot frames. Native alpha, no pixel edits or keying. See art-source/console-bank/damage.",
+  "entries": [
+    {
+      "rect": [
+        106,
+        24,
+        102,
+        269
+      ],
+      "id": "main-stores.rack-damaged",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "footprintCells": [
+        2,
+        6
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        109,
+        340,
+        92,
+        262
+      ],
+      "id": "main-stores.rack-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        6
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        420,
+        24,
+        101,
+        268
+      ],
+      "id": "main-stores.frame-damaged",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        6
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        427,
+        340,
+        88,
+        262
+      ],
+      "id": "main-stores.frame-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        6
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        643,
+        11,
+        287,
+        297
+      ],
+      "id": "main-stores.cartons-damaged",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        653,
+        340,
+        262,
+        262
+      ],
+      "id": "main-stores.cartons-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        951,
+        9,
+        303,
+        300
+      ],
+      "id": "main-stores.cases-damaged",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        967,
+        340,
+        262,
+        262
+      ],
+      "id": "main-stores.cases-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        19,
+        641,
+        272,
+        279
+      ],
+      "id": "main-stores.pallet-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        26,
+        967,
+        262,
+        262
+      ],
+      "id": "main-stores.pallet-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        329,
+        735,
+        285,
+        109
+      ],
+      "id": "main-stores.tally-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        334,
+        1054,
+        268,
+        94
+      ],
+      "id": "main-stores.tally-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        640,
+        735,
+        296,
+        109
+      ],
+      "id": "main-stores.packing-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        653,
+        1053,
+        267,
+        96
+      ],
+      "id": "main-stores.packing-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "included": true
+    }
+  ]
+}

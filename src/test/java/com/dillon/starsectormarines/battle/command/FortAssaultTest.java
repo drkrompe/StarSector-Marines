@@ -70,7 +70,8 @@ class FortAssaultTest {
         for (int turns = 0; turns < 4; turns++) {
             FortAssault.Works works = FortAssault.Works.of(frame(turns));
             assertEquals(3, works.ways.size(), "main gate, postern, breach at turn " + turns);
-            assertEquals(4, works.nests.size());
+            assertEquals(BatteryFort.PLAN.defenceNests().size(), works.nests.size(), "the belt's guns are the plan's as much as the bastions'");
+            assertTrue(works.nests.size() > BatteryFort.NESTS.size());
             for (FortAssault.Way way : works.ways) {
                 assertEquals(1, Math.abs(way.outX()) + Math.abs(way.outY()), "a cardinal step outward at turn " + turns);
                 int depth = 4;
@@ -98,19 +99,19 @@ class FortAssaultTest {
     void aNestNeverSeenIsBelievedLiveAndOneSeenThenGoneUnderWitnessIsBelievedDead() {
         FortAssault.Works works = FortAssault.Works.of(frame(0));
         FortAssault.NestBelief belief = new FortAssault.NestBelief(works.nests.size());
-        assertEquals(4, belief.liveCount());
+        assertEquals(works.nests.size(), belief.liveCount());
         int[] nest0 = works.nests.get(0);
         List<int[]> witness = List.of(new int[] {nest0[0] - 15, nest0[1] - 10});
         belief.update(works, List.of(), witness);
-        assertEquals(4, belief.liveCount(), "never seen alive: still believed there");
+        assertEquals(works.nests.size(), belief.liveCount(), "never seen alive: still believed there");
         belief.update(works, List.of(new int[] {nest0[0], nest0[1]}), witness);
-        assertEquals(4, belief.liveCount(), "seen alive");
+        assertEquals(works.nests.size(), belief.liveCount(), "seen alive");
         belief.update(works, List.of(), List.of(new int[] {nest0[0] - 80, nest0[1]}));
-        assertEquals(4, belief.liveCount(), "no one in sight of it: no reason to think it gone");
+        assertEquals(works.nests.size(), belief.liveCount(), "no one in sight of it: no reason to think it gone");
         belief.update(works, List.of(), witness);
-        assertEquals(3, belief.liveCount(), "seen, now gone, with a squad in sight: dead");
+        assertEquals(works.nests.size() - 1, belief.liveCount(), "seen, now gone, with a squad in sight: dead");
         belief.update(works, List.of(new int[] {nest0[0], nest0[1]}), witness);
-        assertEquals(3, belief.liveCount(), "a dead nest stays dead");
+        assertEquals(works.nests.size() - 1, belief.liveCount(), "a dead nest stays dead");
     }
 
     @Test
@@ -123,11 +124,11 @@ class FortAssaultTest {
         // The garrison stands beside the nest: men are not the nest, and a nest is seen only by an emplacement on it.
         int tick = 1000;
         belief.update(works, List.of(), squad, topology, tick);
-        assertEquals(4, belief.liveCount(), "one look is not enough");
+        assertEquals(works.nests.size(), belief.liveCount(), "one look is not enough");
         belief.update(works, List.of(), squad, topology, tick + FortAssault.NEST_UNSEEN_TICKS - 1);
-        assertEquals(4, belief.liveCount(), "nor is a little less than the wait");
+        assertEquals(works.nests.size(), belief.liveCount(), "nor is a little less than the wait");
         belief.update(works, List.of(), squad, topology, tick + FortAssault.NEST_UNSEEN_TICKS);
-        assertEquals(3, belief.liveCount(), "in clear view, unanswered, for the wait: the lane squads got there first");
+        assertEquals(works.nests.size() - 1, belief.liveCount(), "in clear view, unanswered, for the wait: the lane squads got there first");
         assertFalse(belief.live(0));
     }
 
@@ -141,14 +142,14 @@ class FortAssaultTest {
         List<int[]> distant = List.of(new int[] {nest0[0] - 60, nest0[1]});
         far.update(works, List.of(), distant, topology, 0);
         far.update(works, List.of(), distant, topology, 10_000);
-        assertEquals(4, far.liveCount(), "a squad too far to see it learns nothing");
+        assertEquals(works.nests.size(), far.liveCount(), "a squad too far to see it learns nothing");
 
         FortAssault.NestBelief answered = new FortAssault.NestBelief(works.nests.size());
         List<int[]> near = List.of(new int[] {nest0[0] - 10, nest0[1] - 8});
         List<int[]> emplacement = List.of(new int[] {nest0[0], nest0[1]});
         answered.update(works, emplacement, near, topology, 0);
         answered.update(works, emplacement, near, topology, 10_000);
-        assertEquals(4, answered.liveCount(), "a nest with a gun still standing on it is live");
+        assertTrue(answered.live(0), "a nest with a gun still standing on it is live");
     }
 
     // ------------------------------------------------------------------------------------- readiness: the defence
@@ -160,9 +161,12 @@ class FortAssaultTest {
         int[] west = {works.ways.get(0).mouthX() - 60, works.ways.get(0).mouthY()};
         FortAssault.Defence all = FortAssault.assess(works, belief, west[0], west[1], false, false);
         assertEquals(Variant.MAIN_GATE, all.way().variant(), "the company that comes from the west takes the west gate");
-        assertEquals(2, all.liveCovering());
-        assertEquals(2, all.liveOther());
-        assertEquals(2 * FortAssault.NEST_COVERING_STRENGTH + 2 * FortAssault.NEST_OTHER_STRENGTH
+        int covering = all.way().covering().size();
+        assertTrue(covering >= 2, "the gate is covered by at least two guns");
+        assertEquals(covering, all.liveCovering());
+        int other = works.nests.size() - covering;
+        assertEquals(other, all.liveOther());
+        assertEquals(covering * FortAssault.NEST_COVERING_STRENGTH + other * FortAssault.NEST_OTHER_STRENGTH
                 + FortAssault.GATE_STRENGTH, all.strength(), 0.001f);
         assertTrue(AssaultMuster.required(Family.BATTERY_FORT, 0, 0, all.strength()) > 2 * AssaultMuster.FORT_BASE_STRENGTH * 0.9,
                 "a fort with its nests up asks for roughly twice the bare baseline");
@@ -187,7 +191,8 @@ class FortAssaultTest {
         FortAssault.Defence chosen = FortAssault.assess(works, belief, east[0], east[1], false, false);
         assertEquals(Variant.MAIN_GATE, chosen.way().variant(), "the least covered gate wins even from the far side");
         assertEquals(0, chosen.liveCovering());
-        assertEquals(2 * FortAssault.NEST_OTHER_STRENGTH + FortAssault.GATE_STRENGTH, chosen.strength(), 0.001f);
+        assertEquals((works.nests.size() - main.covering().size()) * FortAssault.NEST_OTHER_STRENGTH + FortAssault.GATE_STRENGTH,
+                chosen.strength(), 0.001f);
     }
 
     @Test
@@ -263,7 +268,8 @@ class FortAssaultTest {
             for (int i : p.works.ways.get(0).covering()) {
                 nearest = Math.min(nearest, Math.hypot(p.works.nests.get(i)[0] - at[0], p.works.nests.get(i)[1] - at[1]));
             }
-            assertEquals(FortAssault.FIRE_STANDOFF_MACHINE, nearest, 3.0, "a mech stands past the nests' reach");
+            assertTrue(nearest >= FortAssault.MIN_FIRE_STANDOFF && nearest <= FortAssault.FIRE_STANDOFF_MACHINE + 3.0,
+                    "a mech stands off the nest it answers, " + nearest + " from the nearest covering one");
         }
         int fireInfantry = 0;
         for (int id : List.of(3, 4, 5, 6)) {
@@ -290,10 +296,14 @@ class FortAssaultTest {
         assertEquals(FortAssault.Step.SUPPRESS, p.execution.step(), "everyone is where they were sent");
         p.run(300);
         assertEquals(FortAssault.Step.SUPPRESS, p.execution.step(), "the covering nests are believed live: the assault waits");
-        int[] cover0 = p.works.nests.get(p.works.ways.get(0).covering().get(0));
-        int[] cover1 = p.works.nests.get(p.works.ways.get(0).covering().get(1));
-        List<int[]> witnesses = List.of(new int[] {cover0[0] - 14, cover0[1] - 10}, new int[] {cover1[0] - 14, cover1[1] + 10});
-        p.belief.update(p.works, List.of(cover0, cover1), witnesses);
+        List<int[]> coverNests = new ArrayList<>();
+        List<int[]> witnesses = new ArrayList<>();
+        for (int i : p.works.ways.get(0).covering()) {
+            int[] nest = p.works.nests.get(i);
+            coverNests.add(nest);
+            witnesses.add(new int[] {nest[0] - 14, nest[1] - 10});
+        }
+        p.belief.update(p.works, coverNests, witnesses);
         p.run(330);
         assertEquals(FortAssault.Step.SUPPRESS, p.execution.step(), "seen alive is not dead");
         p.belief.update(p.works, List.of(), witnesses);
@@ -324,7 +334,7 @@ class FortAssaultTest {
         assertEquals(FortAssault.Step.SUPPRESS, p.execution.step());
         p.run(60 + FortAssault.SUPPRESS_MAX_TICKS);
         assertEquals(FortAssault.Step.ENTRY, p.execution.step(), "the nests were never killed; it goes in on the clock");
-        assertEquals(2, p.execution.liveCovering());
+        assertEquals(p.works.ways.get(0).covering().size(), p.execution.liveCovering());
     }
 
     @Test
@@ -407,6 +417,72 @@ class FortAssaultTest {
         assertEquals(FortAssault.Step.OBJECTIVE, p.execution.step());
         assertEquals(0, p.execution.breachSquads(), "none is left holding a role the objective step gives no order to");
         assertTrue(orders.keySet().containsAll(p.members), "every squad of the company is ordered, was " + orders.keySet());
+    }
+
+    private static boolean anyOrder(Map<Integer, Order> orders, AssignmentReason reason) {
+        return orders.values().stream().anyMatch(o -> o.reason() == reason);
+    }
+
+    @Test
+    void aCloseBreacherWaitsWithTheAssaultWhileTheNestsCoveringTheWallAreStillAnsweringThenIsLetGo() {
+        Picture p = new Picture();
+        FortAssault.Way breach = p.works.ways.stream().filter(w -> w.variant() == Variant.BREACH).findFirst().orElseThrow();
+        p.execution = new FortAssault.Execution(p.works, p.belief, new FortAssault.Defence(breach, 0, 0, 0f, FortAssault.BreachMeans.CLOSE, null), 0);
+        CommandTopology walled = walledAt(breach.mouthX() - breach.outX(), breach.mouthY() - breach.outY());
+        Map<Integer, Order> first = p.execution.run(0, M, p.objective, p.members, p.bodies, walled, p.notes);
+        assertTrue(p.execution.breachSquads() > 0, "the company holds a breacher: " + p.notes);
+        assertFalse(anyOrder(first, AssignmentReason.ASSAULT_BREACH), "no one is sent to the wall under the nests that cover it");
+        int tick = FortAssault.POSITION_TIMEOUT_TICKS;
+        p.execution.run(tick, M, p.objective, p.members, p.bodies, walled, p.notes);
+        assertEquals(FortAssault.Step.SUPPRESS, p.execution.step());
+        Map<Integer, Order> suppressing = p.execution.run(tick + FortAssault.SUPPRESS_MAX_TICKS - 1, M, p.objective, p.members, p.bodies, walled, p.notes);
+        assertFalse(anyOrder(suppressing, AssignmentReason.ASSAULT_BREACH), "still inside the suppression window");
+        Map<Integer, Order> released = p.execution.run(tick + FortAssault.SUPPRESS_MAX_TICKS, M, p.objective, p.members, p.bodies, walled, p.notes);
+        assertTrue(anyOrder(released, AssignmentReason.ASSAULT_BREACH), "the window served, the breacher goes to the wall");
+        for (Order order : released.values()) {
+            if (order.reason() == AssignmentReason.ASSAULT_BREACH) assertTrue(order.assignment().breaches());
+        }
+    }
+
+    @Test
+    void aCloseBreacherIsLetGoAtOnceWhenNoCoveringNestIsBelievedLive() {
+        Picture p = new Picture();
+        FortAssault.Way breach = p.works.ways.stream().filter(w -> w.variant() == Variant.BREACH).findFirst().orElseThrow();
+        List<int[]> alive = new ArrayList<>();
+        List<int[]> witness = new ArrayList<>();
+        for (int i : breach.covering()) {
+            alive.add(p.works.nests.get(i));
+            witness.add(new int[] {p.works.nests.get(i)[0] - 12, p.works.nests.get(i)[1] - 12});
+        }
+        p.belief.update(p.works, alive, witness);
+        p.belief.update(p.works, List.of(), witness);
+        p.execution = new FortAssault.Execution(p.works, p.belief, new FortAssault.Defence(breach, 0, 0, 0f, FortAssault.BreachMeans.CLOSE, null), 0);
+        CommandTopology walled = walledAt(breach.mouthX() - breach.outX(), breach.mouthY() - breach.outY());
+        Map<Integer, Order> orders = p.execution.run(0, M, p.objective, p.members, p.bodies, walled, p.notes);
+        assertTrue(anyOrder(orders, AssignmentReason.ASSAULT_BREACH), "nothing answers the wall: the sappers go");
+    }
+
+    @Test
+    void theWallIsGivenItsTimeFromABreacherArrivingNotFromTheStepStarting() {
+        Picture p = new Picture();
+        FortAssault.Way breach = p.works.ways.stream().filter(w -> w.variant() == Variant.BREACH).findFirst().orElseThrow();
+        List<int[]> alive = new ArrayList<>();
+        List<int[]> witness = new ArrayList<>();
+        for (int i : breach.covering()) {
+            alive.add(p.works.nests.get(i));
+            witness.add(new int[] {p.works.nests.get(i)[0] - 12, p.works.nests.get(i)[1] - 12});
+        }
+        p.belief.update(p.works, alive, witness);
+        p.belief.update(p.works, List.of(), witness);
+        p.execution = new FortAssault.Execution(p.works, p.belief, new FortAssault.Defence(breach, 0, 0, 0f, FortAssault.BreachMeans.CLOSE, null), 0);
+        CommandTopology walled = walledAt(breach.mouthX() - breach.outX(), breach.mouthY() - breach.outY());
+        p.execution.run(0, M, p.objective, p.members, p.bodies, walled, p.notes);
+        // Everyone is where they were sent but the breachers, who are still walking: the step is SUPPRESS and stays there
+        // past the old step-clock timeout, because the walk is not the wall's time.
+        int tick = FortAssault.POSITION_TIMEOUT_TICKS;
+        p.execution.run(tick, M, p.objective, p.members, p.bodies, walled, p.notes);
+        p.execution.run(tick + FortAssault.BREACH_TIMEOUT_TICKS + 10, M, p.objective, p.members, p.bodies, walled, p.notes);
+        assertEquals(FortAssault.Step.SUPPRESS, p.execution.step(), "a breacher still walking up has not had its wall time yet");
     }
 
     @Test

@@ -15,7 +15,9 @@ import java.util.Random;
  *
  * <p>Smaller lots retain the legacy binary warehouse plan. The minimum is
  * sized so the production side has four cells of depth after accounting for
- * two separator walls, a two-cell spine, and a two-cell support wing.
+ * two separator walls, a two-cell spine, and a two-cell support wing. Lots
+ * with at least nineteen interior cells on both axes instead give receiving
+ * and support six cells of depth for complete work groups and handling aisles.
  */
 final class IndustrialPartitionStrategy implements PartitionStrategy {
 
@@ -23,8 +25,13 @@ final class IndustrialPartitionStrategy implements PartitionStrategy {
     static final int MIN_LONG_DIM = 15;
     static final int MIN_SHORT_DIM = 12;
 
-    private static final int LOADING_DEPTH = 3;
-    private static final int SUPPORT_DEPTH = 2;
+    private static final int COMPACT_LOADING_DEPTH = 3;
+    private static final int COMPACT_SUPPORT_DEPTH = 2;
+
+    /** Large lots can afford complete racks, benches and their handling aisles. */
+    private static boolean workingSupportRooms(int interiorAcross, int interiorAlong) {
+        return interiorAcross >= 19 && interiorAlong >= 19;
+    }
 
     private IndustrialPartitionStrategy() {}
 
@@ -65,7 +72,10 @@ final class IndustrialPartitionStrategy implements PartitionStrategy {
                                                    BuildingPlacement.Side frontage,
                                                    boolean productionFirst) {
         int interiorAcross = br - bl - 1;
-        int productionDepth = interiorAcross - SUPPORT_DEPTH - 4;
+        boolean workingRooms = workingSupportRooms(interiorAcross, bb - bt - 1);
+        int supportDepth = workingRooms ? 6 : COMPACT_SUPPORT_DEPTH;
+        int loadingDepth = workingRooms ? 6 : COMPACT_LOADING_DEPTH;
+        int productionDepth = interiorAcross - supportDepth - 4;
         int productionMin;
         int productionMax;
         int supportMin;
@@ -84,7 +94,7 @@ final class IndustrialPartitionStrategy implements PartitionStrategy {
             supportMax = br - 1;
         } else {
             supportMin = bl + 1;
-            supportMax = supportMin + SUPPORT_DEPTH - 1;
+            supportMax = supportMin + supportDepth - 1;
             firstWall = supportMax + 1;
             spineLow = firstWall + 1;
             secondWall = spineLow + 2;
@@ -102,8 +112,8 @@ final class IndustrialPartitionStrategy implements PartitionStrategy {
         }
 
         boolean frontAtLow = frontage != BuildingPlacement.Side.BOTTOM;
-        int loadingMin = frontAtLow ? longMin : longMax - LOADING_DEPTH + 1;
-        int loadingMax = frontAtLow ? longMin + LOADING_DEPTH - 1 : longMax;
+        int loadingMin = frontAtLow ? longMin : longMax - loadingDepth + 1;
+        int loadingMax = frontAtLow ? longMin + loadingDepth - 1 : longMax;
         int productionLongMin = frontAtLow ? loadingMax + 1 : longMin;
         int productionLongMax = frontAtLow ? longMax : loadingMin - 1;
         int splitWall = (longMin + longMax) / 2;
@@ -145,7 +155,10 @@ final class IndustrialPartitionStrategy implements PartitionStrategy {
                                                      BuildingPlacement.Side frontage,
                                                      boolean productionFirst) {
         int interiorAcross = bb - bt - 1;
-        int productionDepth = interiorAcross - SUPPORT_DEPTH - 4;
+        boolean workingRooms = workingSupportRooms(interiorAcross, br - bl - 1);
+        int supportDepth = workingRooms ? 6 : COMPACT_SUPPORT_DEPTH;
+        int loadingDepth = workingRooms ? 6 : COMPACT_LOADING_DEPTH;
+        int productionDepth = interiorAcross - supportDepth - 4;
         int productionMin;
         int productionMax;
         int supportMin;
@@ -164,7 +177,7 @@ final class IndustrialPartitionStrategy implements PartitionStrategy {
             supportMax = bb - 1;
         } else {
             supportMin = bt + 1;
-            supportMax = supportMin + SUPPORT_DEPTH - 1;
+            supportMax = supportMin + supportDepth - 1;
             firstWall = supportMax + 1;
             spineLow = firstWall + 1;
             secondWall = spineLow + 2;
@@ -182,8 +195,8 @@ final class IndustrialPartitionStrategy implements PartitionStrategy {
         }
 
         boolean frontAtLow = frontage != BuildingPlacement.Side.RIGHT;
-        int loadingMin = frontAtLow ? longMin : longMax - LOADING_DEPTH + 1;
-        int loadingMax = frontAtLow ? longMin + LOADING_DEPTH - 1 : longMax;
+        int loadingMin = frontAtLow ? longMin : longMax - loadingDepth + 1;
+        int loadingMax = frontAtLow ? longMin + loadingDepth - 1 : longMax;
         int productionLongMin = frontAtLow ? loadingMax + 1 : longMin;
         int productionLongMax = frontAtLow ? longMax : loadingMin - 1;
         int splitWall = (longMin + longMax) / 2;

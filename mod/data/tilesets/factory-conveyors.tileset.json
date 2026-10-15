@@ -1,0 +1,44 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "name": "factory-machines.conveyor",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "name": "factory-machines.conveyor-damaged",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "name": "factory-machines.conveyor-destroyed",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 0,
+      "cover": "med",
+      "id": "factory-machines.conveyor",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 1,
+      "cover": "med",
+      "id": "factory-machines.conveyor-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 2,
+      "cover": "none",
+      "id": "factory-machines.conveyor-destroyed",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/tilesets/factory-conveyors.png"
+}

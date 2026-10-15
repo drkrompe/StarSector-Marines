@@ -120,6 +120,10 @@ final class FortAssault {
     static final int NEST_REACH_CELLS = 24;
     /** Ticks the plan waits for a wall to come down before the assault goes in regardless. UNTUNED. */
     static final int BREACH_TIMEOUT_TICKS = 2400;
+    /** Ticks the plan allows a let-go breacher for each cell of straight line to its place, a walk round a fort being longer than that and a machine slower. UNTUNED. */
+    static final int BREACH_WALK_TICKS_PER_CELL = 60;
+    /** Ticks added to a breacher's walk allowance: the walk is bounded, the wall is then given its {@link #BREACH_TIMEOUT_TICKS}. UNTUNED. */
+    static final int BREACH_WALK_SLACK_TICKS = 600;
 
     /** Ticks a requested strike is taken to be on its way: the call, the corridor in from the map edge, the pass. UNTUNED. */
     static final int STRIKE_FLIGHT_TICKS = 1200;
@@ -178,7 +182,7 @@ final class FortAssault {
                 ways.add(new Way(a.variant(), a.gateIndex(), mouth[0], mouth[1], beyond[0] - mouth[0],
                         beyond[1] - mouth[1], entry[0], entry[1], a.covering()));
             }
-            for (int[] nest : frame.plan().nests()) nests.add(frame.cell(nest[0], nest[1]));
+            for (int[] nest : frame.plan().defenceNests()) nests.add(frame.cell(nest[0], nest[1]));
             int[] centre = frame.cell(frame.plan().centrepiece()[0], frame.plan().centrepiece()[1]);
             centreX = centre[0];
             centreY = centre[1];
@@ -492,6 +496,12 @@ final class FortAssault {
         private final BreachMeans means;
         private Staffing staffing;
         private int[] assembly;
+
+        private final Map<Integer, Integer> breachGo = new TreeMap<>();
+        /** The tick by which every let-go breacher should have reached its place, allowing for the walk. */
+        private int breachWalkUntil = -1;
+        /** The tick a breacher first stood at its place, from which the wall is given its time, or -1. */
+        private int breachArrivedTick = -1;
         private int[] heldAspect;
         private int[] fallen;
         private int liveCovering;
@@ -681,7 +691,14 @@ final class FortAssault {
                 case POSITION, SUPPRESS -> {
                     for (int id : fire) orders.put(id, fireOrder(id));
                     int[] wall = breachCell(topology);
-                    for (int id : breach) orders.put(id, breachOrder(id, wall));
+                    for (int id : breach) {
+                        if (breachMayGo(tick, id, fire.isEmpty(), byId)) {
+                            orders.put(id, breachOrder(id, wall));
+                        } else {
+                            orders.put(id, new Order(ObjectiveAssignment.advanceTrack(id, assembly[0], assembly[1]),
+                                    AssignmentReason.ASSAULT_STAGE));
+                        }
+                    }
                     for (int id : assault) {
                         orders.put(id, new Order(ObjectiveAssignment.advanceTrack(id, assembly[0], assembly[1]),
                                 AssignmentReason.ASSAULT_STAGE));
@@ -773,6 +790,31 @@ final class FortAssault {
             ObjectiveAssignment order = ObjectiveAssignment.attackMove(id, cell[0], cell[1]);
             if (wall != null) order = order.withBreach(wall[0], wall[1]);
             return new Order(order, AssignmentReason.ASSAULT_BREACH);
+        }
+
+        /**
+         * Whether a breacher is let go to the wall now. A breacher is the first thing to reach the wall and the last thing
+         * to leave it, so it does not walk into the reach of nests believed live that cover the way in while they are
+         * still answering: it waits with the assault until the base of fire has had its suppression window, the covering
+         * nests are believed dead, or there is no fire element to wait for. A breacher whose place is out of every live
+         * nest's reach has nothing to wait for. Once let go it stays let go.
+         */
+        private boolean breachMayGo(int tick, int id, boolean noFireElement, Map<Integer, Body> byId) {
+            if (breachGo.containsKey(id)) return true;
+            int[] place = breachPositions.get(id);
+            boolean go = liveCovering == 0 || noFireElement || (place != null && !inNestReach(place[0], place[1]))
+                    || (step == Step.SUPPRESS && tick - stepTick >= suppressWindow(tick));
+            if (!go) return false;
+            breachGo.put(id, tick);
+            Body body = byId.get(id);
+            double walk = body == null || place == null ? 0 : Math.hypot(body.anchorX() - place[0], body.anchorY() - place[1]);
+            breachWalkUntil = Math.max(breachWalkUntil, tick + (int) Math.ceil(walk * BREACH_WALK_TICKS_PER_CELL) + BREACH_WALK_SLACK_TICKS);
+            return true;
+        }
+
+        /** Ticks of suppression the assault gives its fire element: a strike on its way is waited for. */
+        private int suppressWindow(int tick) {
+            return SUPPRESS_MAX_TICKS + (strikeInFlight(tick) ? STRIKE_FLIGHT_TICKS : 0);
         }
 
         private void sortRoles(List<Integer> fire, List<Integer> breach, List<Integer> assault) {
@@ -911,10 +953,23 @@ final class FortAssault {
                             || tick - commitTick >= ASSEMBLY_TIMEOUT_TICKS;
                     // A strike on its way is waited for: the nest it was called on is not yet answered for, and the assault does
                     // not walk up under it.
-                    int suppressMax = SUPPRESS_MAX_TICKS + (strikeInFlight(tick) ? STRIKE_FLIGHT_TICKS : 0);
+                    int suppressMax = suppressWindow(tick);
                     boolean suppressed = liveCovering == 0 || fire.isEmpty() || elapsed >= suppressMax;
+                    // The wall's own time runs from a breacher standing at it, not from the step's start: the breachers are held
+                    // back until the covering nests have had their suppression and then walk to the wall, which a fort's far
+                    // side makes a long way. The walk has its own bound.
+                    if (breachArrivedTick < 0) {
+                        for (int id : breach) {
+                            if (breachGo.containsKey(id) && arrivedShare(List.of(id), i -> breachPositions.get(i), byId) > 0f) {
+                                breachArrivedTick = tick;
+                            }
+                        }
+                    }
+                    boolean breachHeld = false;
+                    for (int id : breach) breachHeld |= !breachGo.containsKey(id);
                     boolean walled = way.variant() == Variant.BREACH && !breach.isEmpty() && breachCell(topology) != null
-                            && elapsed < BREACH_TIMEOUT_TICKS;
+                            && (breachHeld
+                            || (breachArrivedTick < 0 ? tick < breachWalkUntil : tick - breachArrivedTick < BREACH_TIMEOUT_TICKS));
                     if (assembled && suppressed && !walled) {
                         convertBreachers(breach, byId);
                         go(Step.ENTRY, tick, notes, way.variant() == Variant.BREACH && !breach.isEmpty() && breachCell(topology) == null
