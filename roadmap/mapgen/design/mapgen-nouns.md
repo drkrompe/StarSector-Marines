@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — factory work groups reserve machinery operating aisles and retain full-footprint damage.
+Updated: 2026-10-15 — campaign freight buildings and complete working yards share templates with ordinary industrial parcels and compounds.
 
 Earlier 2026-10-13 — reversible authored damage layers give Relief a worn checkpoint without changing its landing contract; Relief rear working courts preserve the expanded landing and assembly apron.
 
@@ -238,8 +238,8 @@ L-shaped wings, open courts, T-shaped halls and offset loading rooms leave real
 outdoor ground in their cuts: the bounding rectangle is not a building mask and
 must not roof or repaint those cells. Every usable interior and firing recess
 remains reachable through doors with fixtures present, in all four orientations.
-Story maps may explicitly place the same plans, with larger freight variants
-reserved for authored facilities. They retain the same rotation, interior,
+Story maps may explicitly place the same plans, including larger freight variants
+also available to fitting industrial parcels and compound warehouses. They retain the same rotation, interior,
 window and material rules; they are not stretched versions of a small stamp.
 Open the Junction pairs a compact weigh-house and offset freight office with
 an L-shaped loading depot. Relay Nine pairs a switch-house service wing with
@@ -256,6 +256,29 @@ whole rotated footprint as a visible fixture; floor markings do not obstruct.
 Fence openings preserve cross-yard movement, while thresholds, roads, berths
 and mission destinations remain reachable. A smaller building does not imply
 that its old parcel should become undifferentiated empty pavement.
+
+A **working-yard template** carries its complete ground, fence openings, vehicle
+bays, stock and equipment in one local frame. Freight marshalling, maintenance
+and power courts share this identity between authored campaign sites and ordinary
+industrial compounds. The host owns the parcel before choosing a fitting pose;
+the complete yard refuses roads, reserved circulation, berths, occupied ground
+and doorway approaches before changing anything. Rotation carries each full
+equipment footprint and heading together. Four generous gates and a clear outer
+margin retain cross-yard circulation. Smaller parcels keep their compact yard
+grammar rather than shrinking vehicles or clipping a template. A template
+publishes scenery and topology only; objectives, ownership, force budgets and
+story beats remain the mission's decisions.
+
+Campaign-sized industrial templates need planned ground: ordinary BSP leaves
+stop at eighteen cells. Before compound claims and road-graph publication, a
+bounded industrial planning pass may join complete industrial parcels and their
+internal minor streets into a fitting building lot or working yard. The outer
+street ring must remain complete; trunk roads, compound seeds, partial neighbors
+and non-industrial ownership refuse the claim. The template supplies the fit
+requirement. At most one building lot and one yard are promoted per map, with
+stable selection and no planning RNG draws. The road graph is derived from the
+resulting streets, so it cannot retain a route through a new facility. Ordinary
+fillers and compound claims then consume the enlarged parcels normally.
 
 Building materials are paired wall, floor and accent surfaces, independent of
 the ground kind's tactical meaning. Warm masonry, ceramic civic surfaces and

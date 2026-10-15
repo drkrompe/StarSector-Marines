@@ -89,8 +89,8 @@ public enum BuildingStamp {
             "+..,,,,e   ",
             "#d.,,cc#   ",
             "###s####   "),
-    /** Larger story facilities use explicit placement, not random city selection. */
-    FREIGHT_L("Freight depot with office wing", BuildingKind.INDUSTRIAL, BuildingStyle.DEPOT, false,
+    /** Freight facilities shared by authored missions and sufficiently large city parcels. */
+    FREIGHT_L("Freight depot with office wing", BuildingKind.INDUSTRIAL, BuildingStyle.DEPOT,
             "###n####            ",
             "#......#            ",
             "#cc..cc#            ",
@@ -108,7 +108,7 @@ public enum BuildingStamp {
             "#......#.,,,,,,,,,.#",
             "#......#.,,,,,,,,,c#",
             "############++######"),
-    FREIGHT_T("Freight transfer workshop", BuildingKind.INDUSTRIAL, BuildingStyle.WORKSHOP, false,
+    FREIGHT_T("Freight transfer workshop", BuildingKind.INDUSTRIAL, BuildingStyle.WORKSHOP,
             "      ###n###      ",
             "      #,,,,,#      ",
             "      #,,,,c#      ",
@@ -133,16 +133,10 @@ public enum BuildingStamp {
     final BuildingKind kind;
     final BuildingStyle style;
     private final List<String> rows;
-    private final boolean procedural;
     final int width;
     final int height;
 
     BuildingStamp(String label, BuildingKind kind, BuildingStyle style, String... rows) {
-        this(label, kind, style, true, rows);
-    }
-
-    BuildingStamp(String label, BuildingKind kind, BuildingStyle style, boolean procedural, String... rows) {
-        this.procedural = procedural;
         this.label = label;
         this.kind = kind;
         this.style = style;
@@ -181,11 +175,26 @@ public enum BuildingStamp {
      * drawing, so tall lots can use turned wide plans and refused lots spend no RNG.
      */
     static boolean tryPlace(BlockLeaf leaf, GenContext ctx, BuildingKind kind) {
+        return tryPlace(leaf, ctx, kind, List.of(values()));
+    }
+
+    /** A compound warehouse can reuse a complete freight building without becoming a second factory. */
+    static boolean tryPlaceFreight(BlockLeaf leaf, GenContext ctx) {
+        return tryPlace(leaf, ctx, BuildingKind.INDUSTRIAL, List.of(FREIGHT_L, FREIGHT_T));
+    }
+
+    public static boolean fitsFreightParcel(int width, int height) {
+        for (BuildingStamp stamp : List.of(FREIGHT_L,FREIGHT_T)) for (int turn=0;turn<2;turn++)
+            if (stamp.width(turn)<=width && stamp.height(turn)<=height && stamp.width*stamp.height*2>=width*height) return true;
+        return false;
+    }
+
+    private static boolean tryPlace(BlockLeaf leaf, GenContext ctx, BuildingKind kind, List<BuildingStamp> templates) {
         if (leaf.left < 1 || leaf.top < 1 || leaf.right >= ctx.width - 1
                 || leaf.bottom >= ctx.height - 1) return false;
         List<Choice> choices = new ArrayList<>();
-        for (BuildingStamp stamp : values()) {
-            if (!stamp.procedural || stamp.kind != kind) continue;
+        for (BuildingStamp stamp : templates) {
+            if (stamp.kind != kind) continue;
             for (int turn = 0; turn < 4; turn++) {
                 if (stamp.width(turn) <= leaf.width() && stamp.height(turn) <= leaf.height()
                         && stamp.width(turn) * stamp.height(turn) * 2 >= leaf.area()) {

@@ -1,12 +1,11 @@
 # Cross-leaf footprint planning
 
-Status: PROPOSED
+Status: IN PROGRESS — bounded industrial template parcels are supported; general compound programs remain open.
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — `compound-programs.md` now owns why a coherent footprint
-is wanted and what decides its size. This story remains the seam where such a
-claim has to coexist with roads, parcel ownership, and neighboring fills.
+Updated: 2026-10-15 — industrial buildings and working yards have a bounded prior
+claim; broader cross-family programs and nonrectangular compound footprints remain.
 
 Read `compound-programs.md` and `mapgen-nouns.md` before implementing this
 story.
@@ -19,6 +18,11 @@ impossible. This is one shared planning seam for civic, commercial, industrial,
 medical, residential, and dense-city content—not a special case per filler.
 
 ## Acceptance
+
+The industrial case is defined in `mapgen-nouns.md`: whole industrial leaves,
+internal minor streets, protected trunk roads and a complete exterior street ring.
+Remaining work is a shared program-driven claim for the other families and whole
+compound layouts, including nonrectangular ownership and declared vehicle gates.
 
 - A planning stage claims an explicit connected set of eligible leaves before
   conflicting fill dispatch.

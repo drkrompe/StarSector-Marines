@@ -45,7 +45,7 @@ class IndustrialCompoundFillerTest {
                 BuildingPlacement.Side.BOTTOM, BuildingPlacement.Side.TOP);
         assertDoorwaysOnOpposedSides(fixture.grid, UTILITY,
                 BuildingPlacement.Side.TOP, BuildingPlacement.Side.BOTTOM);
-        int factoryDoor = doorwayAlong(fixture.grid, FACTORY, BuildingPlacement.Side.BOTTOM);
+        int factoryDoor = doorwayAlong(fixture.grid, fixture.topology, FACTORY, BuildingPlacement.Side.BOTTOM);
         assertEquals(RoomPurpose.INDUSTRIAL_SPINE,
                 inwardPurpose(fixture.topology, FACTORY,
                         BuildingPlacement.Side.BOTTOM, factoryDoor));
@@ -166,7 +166,8 @@ class IndustrialCompoundFillerTest {
                                                       BuildingPlacement.Side second) {
         assertTrue(hasDoorway(grid, leaf, first), "missing doorway on " + first);
         assertTrue(hasDoorway(grid, leaf, second), "missing doorway on " + second);
-        assertEquals(2, perimeterDoorwayCount(grid, leaf));
+        assertEquals(leaf == FACTORY ? 5 : 2, perimeterDoorwayCount(grid, leaf),
+                "factory adds a three-cell cargo bay to its opposed personnel entrances");
     }
 
     private static boolean hasDoorway(NavigationGrid grid, BlockLeaf leaf,
@@ -198,7 +199,7 @@ class IndustrialCompoundFillerTest {
         return count;
     }
 
-    private static int doorwayAlong(NavigationGrid grid, BlockLeaf leaf,
+    private static int doorwayAlong(NavigationGrid grid, CellTopology topology, BlockLeaf leaf,
                                     BuildingPlacement.Side side) {
         int min = side == BuildingPlacement.Side.TOP || side == BuildingPlacement.Side.BOTTOM
                 ? leaf.left + 1 : leaf.top + 1;
@@ -209,7 +210,7 @@ class IndustrialCompoundFillerTest {
                     : side == BuildingPlacement.Side.RIGHT ? leaf.right : along;
             int y = side == BuildingPlacement.Side.TOP ? leaf.top
                     : side == BuildingPlacement.Side.BOTTOM ? leaf.bottom : along;
-            if (grid.isDoorway(x, y)) return along;
+            if (grid.isDoorway(x, y) && inwardPurpose(topology, leaf, side, along) == RoomPurpose.INDUSTRIAL_SPINE) return along;
         }
         return -1;
     }
