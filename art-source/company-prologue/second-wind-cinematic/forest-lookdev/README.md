@@ -51,6 +51,9 @@ variable override. Pillow and FFmpeg provide the review composition and encode.
 The [review directory](review/) contains the
 [motion study](review/jangala-forest-motion-study.mp4),
 [contact sheet](review/contact-sheet.jpg) and [poster](review/poster.jpg).
+The movie is 14.5 MB (13.8 MiB); FFprobe reports 384 frames at 24 fps and a
+complete FFmpeg decode succeeds. [Media validation](review/media-validation.json)
+records the delivery dimensions and frame count.
 Review foliage depth and parallax through the actual windows, distant canopy
 silhouettes, understory coverage, cutout edges and atmospheric separation.
 
