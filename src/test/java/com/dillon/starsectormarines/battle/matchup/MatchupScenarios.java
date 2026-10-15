@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.scene.SceneWorld;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
@@ -88,42 +89,48 @@ public final class MatchupScenarios {
         }
     }
 
-    /** Scenario 2: the same crossing, with the defenders dug in along a twelve-cell trench. */
+    /**
+     * Scenario 2: the same crossing, with the defenders dug in along a twelve-cell trench. The trench runs north to
+     * south, square across the attackers' line of advance and facing them. Laid east to west it points straight down
+     * the attackers' axis, which is an enfilade: they would be firing along its length and the defenders would be
+     * flanked by the geometry before any loadout mattered.
+     */
     static final class Trench implements MatchupScenario {
         @Override public String id() { return "trench"; }
 
         @Override public String label() {
-            return "Trench: the open-field crossing onto defenders holding a twelve-cell trench";
+            return "Trench: the open-field crossing onto defenders holding a twelve-cell trench square across the approach";
         }
 
         @Override public int maxTicks() { return TICK_LIMIT; }
 
         @Override public SceneWorld build(MarineLoadout[] attackerKit, MarineLoadout[] defenderKit, long seed) {
             SceneBuilder builder = arena(seed);
-            attackers(builder, attackerKit, DEFENDER_X + TRENCH_CELLS / 2, MID_Y);
+            int y0 = MID_Y - TRENCH_CELLS / 2;
+            attackers(builder, attackerKit, DEFENDER_X, MID_Y);
             builder.squad(MatchupScenario.DEFENDERS)
                     .faction(Faction.DEFENDER).type(UnitType.MARINE_RED)
                     .loadouts(defenderKit)
-                    .inFile(DEFENDER_X, MID_Y, 1, 0)
-                    .assigned(id -> ObjectiveAssignment.defendArea(id, DEFENDER_X + TRENCH_CELLS / 2, MID_Y))
+                    .inFile(DEFENDER_X, y0, 0, 1)
+                    .assigned(id -> ObjectiveAssignment.defendArea(id, DEFENDER_X, MID_Y))
                     .done();
             SceneWorld world = builder.build();
-            dig(world, DEFENDER_X, DEFENDER_X + TRENCH_CELLS - 1, MID_Y);
+            dig(world, DEFENDER_X, y0, y0 + TRENCH_CELLS - 1);
             return world;
         }
 
-        /** A straight trench, each cell joined to its east and west neighbours. */
-        private static void dig(SceneWorld world, int x0, int x1, int y) {
+        /** A straight north-south trench, each cell joined to its neighbours above and below (mask N1 S4; north is +y). */
+        private static void dig(SceneWorld world, int x, int y0, int y1) {
             TileRegistry registry = TileRegistry.installed();
-            for (int x = x0; x <= x1; x++) {
-                int mask = (x < x1 ? 2 : 0) | (x > x0 ? 8 : 0);
+            for (int y = y0; y <= y1; y++) {
+                int mask = (y < y1 ? 1 : 0) | (y > y0 ? 4 : 0);
                 DoodadDef def = registry.doodad("doodad.fort-trench-" + mask);
                 if (def == null) throw new IllegalStateException("no trench piece for mask " + mask);
                 world.sim().addDoodad(new Doodad(x, y, def));
             }
             FightingPositionIndex index = world.sim().fightingPositions();
-            int run = index.runIdAt(x0, y);
-            int cells = x1 - x0 + 1;
+            int run = index.runIdAt(x, y0);
+            int cells = y1 - y0 + 1;
             if (run < 0 || index.runSize(run) != cells) {
                 throw new IllegalStateException("The trench did not come out as one fighting position of " + cells);
             }
@@ -171,10 +178,51 @@ public final class MatchupScenarios {
                 throw new IllegalStateException("The building is not a zone of its own (zone " + zone
                         + "), so a clear order would name the ground the attackers already stand on");
             }
+            paint(world.sim().getTopology());
             Squad squad = world.squad(MatchupScenario.ATTACKERS);
             squad.assignedObjective = ObjectiveAssignment.clearZone(
                     world.squadId(MatchupScenario.ATTACKERS), zone);
             return world;
+        }
+
+        /**
+         * Gives the building's cells the walls and floor the renderer draws. The scene builder cuts walls into the
+         * navigation grid only, which is all a behaviour needs and leaves a building that draws as bare ground.
+         * Stamped from the same fields a generated building sets: wall tag, exposed-face mask, ground and surface.
+         */
+        private static void paint(CellTopology topology) {
+            int wall = topology.surfaceIndex("colony.masonry-wall");
+            int floor = topology.surfaceIndex("colony.limestone");
+            for (int y = BUILDING_NORTH_Y; y <= BUILDING_SOUTH_Y; y++) {
+                for (int x = BUILDING_WEST_X; x <= BUILDING_EAST_X; x++) {
+                    boolean ring = x == BUILDING_WEST_X || x == BUILDING_EAST_X
+                            || y == BUILDING_NORTH_Y || y == BUILDING_SOUTH_Y;
+                    boolean door = x == BUILDING_WEST_X && y == MID_Y;
+                    boolean solid = ring && !door;
+                    topology.setGroundKind(x, y, CellTopology.GroundKind.INDOOR);
+                    topology.setSurface(x, y, solid ? wall : floor);
+                    topology.setWall(x, y, solid);
+                    int mask = 0;
+                    if (solid) {
+                        if (!isSolid(x, y + 1)) mask |= CellTopology.WALL_DIR_N;
+                        if (!isSolid(x, y - 1)) mask |= CellTopology.WALL_DIR_S;
+                        if (!isSolid(x + 1, y)) mask |= CellTopology.WALL_DIR_E;
+                        if (!isSolid(x - 1, y)) mask |= CellTopology.WALL_DIR_W;
+                    } else if (door) {
+                        mask = CellTopology.WALL_DIR_W;
+                    }
+                    topology.setWallDirMask(x, y, mask);
+                }
+            }
+        }
+
+        private static boolean isSolid(int x, int y) {
+            boolean inside = x >= BUILDING_WEST_X && x <= BUILDING_EAST_X
+                    && y >= BUILDING_NORTH_Y && y <= BUILDING_SOUTH_Y;
+            if (!inside) return false;
+            boolean ring = x == BUILDING_WEST_X || x == BUILDING_EAST_X
+                    || y == BUILDING_NORTH_Y || y == BUILDING_SOUTH_Y;
+            return ring && !(x == BUILDING_WEST_X && y == MID_Y);
         }
     }
 }
