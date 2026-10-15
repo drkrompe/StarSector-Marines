@@ -116,16 +116,12 @@ public final class FortBelt {
 
         Cell[][] grid = new Cell[w][h];
 
-        // The trench and sandbag line, run by run along the trace.
+        // The trench, run along the trace: one continuous fighting line, cover from every bearing on its own. Sandbag is laid only where a
+        // position needs it: a traverse across the trench, and the pit round each nest.
         for (int i = 0; i < path.size(); i++) {
             int x = path.get(i)[0], y = path.get(i)[1];
             if (inLane(spec, x, y, 3)) continue;
             int s = i % PERIOD;
-            if (s >= 12 && s < 17) {
-                int[] out = outward(spec, x, y, pathIndex);
-                put(grid, new Cell(x, y, Role.BAG, out[0], out[1]));
-                continue;
-            }
             put(grid, new Cell(x, y, Role.TRENCH, 0, 0));
             if (s == 6 || s == 22) continue;
             for (int[] d : STEPS) {

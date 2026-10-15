@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.command.trace;
 
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.fort.Fort;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -9,6 +10,7 @@ import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -37,6 +39,11 @@ final class FortDefenderPositionProbe {
         int peakDugIn;
         int peakOverlapping;
         /** Squad-samples whose garrison node stands its members on prepared ground (a belt garrison). */
+        /** On-position marine-samples inside the works and out on the belt, and the distinct position cells each ever held. */
+        long onWorksPositionSamples;
+        long onBeltPositionSamples;
+        final Set<Long> worksCellsEver = new HashSet<>();
+        final Set<Long> beltCellsEver = new HashSet<>();
         long preparedGarrisonSquadSamples;
         int peakPreparedGarrisons;
         int peakInfantryMembers;
@@ -139,6 +146,11 @@ final class FortDefenderPositionProbe {
                 long member = sim.squadMemberAt(squad.id, i);
                 if (index.isFightingPositionCell(sim.world().cellX(member), sim.world().cellY(member))) {
                     tally.onPositionMarineSamples++;
+                    int mx = sim.world().cellX(member), my = sim.world().cellY(member);
+                    boolean works = false;
+                    for (Fort fort : sim.forts().forts()) works |= fort.frame().isWorks(mx, my);
+                    if (works) tally.onWorksPositionSamples++; else tally.onBeltPositionSamples++;
+                    (works ? tally.worksCellsEver : tally.beltCellsEver).add(((long) my << 32) | mx);
                 }
                 if (sim.fightingPositionClaims().cellOf(member) != null) {
                     tally.claimedMarineSamples++;
@@ -208,6 +220,8 @@ final class FortDefenderPositionProbe {
                     t.unassigned, t.preparedGarrisonSquadSamples, t.peakPreparedGarrisons, t.peakPreparedGarrisonMembers, t.peakInfantryMembers, t.onPositionMarineSamples,
                     t.reactiveSquadSamples, t.peakReactive, t.reactiveSquadsEver.size(), t.manEvents, t.releaseEvents,
                     t.reactiveDugInMarineSamples, t.kinds));
+            out.append(String.format(Locale.ROOT, "  - %s position split: on-position samples in the works %d (%d distinct cells), on the belt %d (%d distinct cells)%n",
+                    entry.getKey(), t.onWorksPositionSamples, t.worksCellsEver.size(), t.onBeltPositionSamples, t.beltCellsEver.size()));
             if (!t.episodes.isEmpty()) {
                 int sent = t.episodes.size();
                 int arrived = 0;
