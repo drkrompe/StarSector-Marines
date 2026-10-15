@@ -153,7 +153,8 @@ test {
                 'commander-balance', 'conquest-trial-evidence',
                 'sabotage-command-evidence', 'assault-command-evidence', 'relief-command-evidence', 'counterattack-command-evidence', 'junction-command-evidence', 'relay-nine-command-evidence', 'thunder-run-command-evidence', 'last-lift-command-evidence', 'supply-route-campaign-evidence',
                 'raid-command-evidence', 'extraction-command-evidence', 'corvus-command-evidence', 'power-suit-campaign-evidence',
-                'crew-liveliness', 'shader-evidence', 'render-evidence', 'garrison-evidence'
+                'crew-liveliness', 'shader-evidence', 'render-evidence', 'garrison-evidence',
+                'loadout-card-sheet'
     }
     testLogging {
         // Audit-style tests print their report to stdout — stream it to the
@@ -269,6 +270,26 @@ tasks.register('garrisonEvidence', Test) {
     maxParallelForks = 1
     outputs.upToDateWhen { false }
     systemProperty 'starsectorDir', starsectorDir.absolutePath
+    testLogging {
+        showStandardStreams = true
+    }
+}
+
+// The design-pass sheet for every loadout card: seat-by-seat contents, the numbers a scaling
+// pass works from, and which faction channels sell each card. Written from the shipped data so
+// it cannot drift from it. Opt-in and excluded from `test`; it asserts nothing.
+tasks.register('loadoutCardSheet', Test) {
+    group = 'verification'
+    description = 'Write the loadout card stat sheet (cards.md and cards.csv); opt-in, excluded from test.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'loadout-card-sheet'
+    }
+    maxParallelForks = 1
+    outputs.upToDateWhen { false }
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    systemProperty 'loadoutCardSheet.dir', layout.buildDirectory.dir('reports/loadout-cards').get().asFile.absolutePath
     testLogging {
         showStandardStreams = true
     }
