@@ -111,6 +111,12 @@ final class AssaultMuster {
      * and shut a small force out of mustering at all, so the floor is a share of what the lane has. UNTUNED.
      */
     static final float LANE_KEEP_SHARE = 0.5f;
+    /**
+     * The share of what an objective is believed to take that is enough to commit once the side is being flown at and the
+     * objective's radar is disclosed: a muster bombed where it stands is losing strength by waiting, and the radar is the
+     * thing that stops it. Equal to the share below which a timed-out muster stands down. UNTUNED.
+     */
+    static final float AIR_RAID_COMMIT_SHARE = 0.5f;
     /** A company left with less than this fraction of the strength it committed is broken. UNTUNED. */
     static final float BROKEN_FRACTION = 0.25f;
     /** Inside this many cells of the objective the company is in the fight and no longer waits for its stragglers. */
@@ -360,6 +366,16 @@ final class AssaultMuster {
         return Readiness.GATHERING;
     }
 
+    /**
+     * As {@link #judge(float, int, int, int)}, for a side that may be flown at: a muster that is being bombed and has a
+     * hostile radar to go for commits at {@link #AIR_RAID_COMMIT_SHARE} of what it believes the objective takes, rather than
+     * sitting at the rally accumulating strength under the aircraft the radar is calling.
+     */
+    static Readiness judge(float arrivedStrength, int required, int tick, int timeoutTick, boolean airRaid) {
+        if (airRaid && arrivedStrength > 0f && arrivedStrength >= AIR_RAID_COMMIT_SHARE * required) return Readiness.READY;
+        return judge(arrivedStrength, required, tick, timeoutTick);
+    }
+
     /** Whether a cell is walkable and reachable from the drop zone. */
     @FunctionalInterface
     interface Ground {
@@ -491,7 +507,9 @@ final class AssaultMuster {
         for (Objective objective : ordered) {
             Company company = companies.get(objective.fortId());
             if (company == null) {
-                if (tick < standDownUntil.getOrDefault(objective.fortId(), 0)) continue;
+                boolean flown = air.skyNeed().flownAt() && FortTactics.hostileRadar(perspective, objective.aspects());
+                // A stand-down leaves the fort to the lanes; it does not outlast the radar being flown at the side.
+                if (!flown && tick < standDownUntil.getOrDefault(objective.fortId(), 0)) continue;
                 // Free is not the same as recruitable: a lone squad on its lane, or one off the drop zone's ground, is free and
                 // will not be taken, and a company formed around nobody stands at its rally until the timeout.
                 if (recruitable(byId, ground).isEmpty()) continue;
@@ -513,7 +531,7 @@ final class AssaultMuster {
                 continue;
             }
             if (company.stage == Stage.MUSTER) {
-                claimedByCompanies += muster(tick, objective, company, byId, drop, hostiles, ground, cap - claimedByCompanies, notes);
+                claimedByCompanies += muster(tick, perspective, objective, company, byId, drop, hostiles, ground, cap - claimedByCompanies, notes);
             }
             if (company.stage == Stage.ASSAULT) {
                 assault(tick, perspective, objective, company, byId, topology, orders, notes);
@@ -621,7 +639,7 @@ final class AssaultMuster {
     }
 
     /** Recruits, re-checks the rally point, judges readiness. Returns how many squads were newly recruited. */
-    private int muster(int tick, Objective objective, Company company, Map<Integer, Body> byId, int[] drop,
+    private int muster(int tick, Faction perspective, Objective objective, Company company, Map<Integer, Body> byId, int[] drop,
                        List<int[]> hostiles, Ground ground, int roomLeft, List<String> notes) {
         int required = requiredNow(objective, company, byId, new int[] {company.rallyX, company.rallyY});
         if (!safe(company.rallyX, company.rallyY, hostiles)) {
@@ -694,8 +712,10 @@ final class AssaultMuster {
         } else {
             company.fullSince = -1;
         }
-        Readiness readiness = judge(arrivedStrength, required, tick, company.timeoutTick);
-        if (readiness == Readiness.READY && !staffedAtRally(objective, company, byId, tick)) readiness = Readiness.GATHERING;
+        boolean airRaid = air.skyNeed().flownAt() && FortTactics.hostileRadar(perspective, objective.aspects());
+        Readiness readiness = judge(arrivedStrength, required, tick, company.timeoutTick, airRaid);
+        // A plan that cannot be fully staffed is gone into as it is when the muster is being bombed: waiting for the filler is the cost.
+        if (readiness == Readiness.READY && !airRaid && !staffedAtRally(objective, company, byId, tick)) readiness = Readiness.GATHERING;
         if (readiness == Readiness.TIMED_OUT && arrivedStrength < MIN_COMMIT_SHARE * required
                 && standDowns.getOrDefault(company.fortId, 0) < STAND_DOWN_LIMIT && tick >= company.expectUntil) {
             // Too little to be worth the lives: the squads go back to the lanes and the muster tries again later. Bounded, so a
@@ -712,7 +732,7 @@ final class AssaultMuster {
             company.stage = Stage.ASSAULT;
             company.stageTick = tick;
             company.strengthAtCommit = strengthOf(company, byId);
-            company.reason = (readiness == Readiness.READY ? "ready: " : "timed out: ") + Math.round(arrivedStrength)
+            company.reason = (readiness == Readiness.READY ? (airRaid && arrivedStrength < required ? "flown at, radar disclosed: " : "ready: ") : "timed out: ") + Math.round(arrivedStrength)
                     + " at the rally of " + required + " believed needed, committing "
                     + Math.round(company.strengthAtCommit) + " in " + company.members.size() + " squads";
             notes.add("company for fort " + company.fortId + " commits (" + company.reason + ")");

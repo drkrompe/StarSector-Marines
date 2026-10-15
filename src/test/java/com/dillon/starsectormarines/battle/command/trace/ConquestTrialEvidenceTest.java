@@ -242,11 +242,17 @@ class ConquestTrialEvidenceTest {
      */
     private static JSONObject skyNotes(String trace) throws JSONException {
         int blind = 0, open = 0, firstBlind = -1, firstOpen = -1;
+        int firstFormed = -1, firstCommit = -1, firstAim = -1, firstRadarAim = -1;
         Pattern tickOf = Pattern.compile("\"tick\":(\\d+)");
         for (String line : trace.split("\n")) {
             if (!line.contains("\"perspective\":\"MARINE\"")) continue;
             Matcher m = tickOf.matcher(line);
             int tick = m.find() ? Integer.parseInt(m.group(1)) : -1;
+            if (firstFormed < 0 && line.contains("company formed for fort")) firstFormed = tick;
+            if (firstCommit < 0 && line.contains(" commits (")) firstCommit = tick;
+            boolean aims = line.contains("company takes aim at the aspect") || line.contains("company turns from the aspect");
+            if (firstAim < 0 && aims) firstAim = tick;
+            if (firstRadarAim < 0 && aims && line.contains("blind their air")) firstRadarAim = tick;
             if (line.contains("blind their air")) {
                 blind++;
                 if (firstBlind < 0) firstBlind = tick;
@@ -257,7 +263,9 @@ class ConquestTrialEvidenceTest {
             }
         }
         return new JSONObject().put("blindTheirAirPulses", blind).put("firstBlindTick", firstBlind)
-                .put("openTheSkyPulses", open).put("firstOpenTick", firstOpen);
+                .put("openTheSkyPulses", open).put("firstOpenTick", firstOpen)
+                .put("firstCompanyFormedTick", firstFormed).put("firstCommitTick", firstCommit)
+                .put("firstTakesAimTick", firstAim).put("firstRadarAimTick", firstRadarAim);
     }
 
     private static Outcome playFixture(JSONObject f, int maxTicks, Path visualRoot) throws Exception {
@@ -291,6 +299,7 @@ class ConquestTrialEvidenceTest {
             FortDefenderPositionProbe positionUse = new FortDefenderPositionProbe();
             FireSupportProbe fireSupport = new FireSupportProbe();
             ContestedAirProbe contested = new ContestedAirProbe(fortCentre[0], fortCentre[1], FORT_REACH);
+            BunkerProbe bunkerProbe = new BunkerProbe();
             int wallOpenAtStart = openedWallCells(sim, ground);
             FightingPositionIndex startPositions = sim.fightingPositions();
             assertTrue(startPositions.runCount() > 0, "the trial fort stands a belt of fighting positions");
@@ -311,6 +320,7 @@ class ConquestTrialEvidenceTest {
                 positionUse.sample(sim);
                 fireSupport.sample(sim);
                 contested.sample(sim);
+                bunkerProbe.sample(sim);
                 peakMarines = Math.max(peakMarines, count(sim, Faction.MARINE));
                 if (objectiveTaken < 0 && held(compounds, ground.objective())) objectiveTaken = tick;
                 if (keepTaken < 0 && held(compounds, ground.keep())) keepTaken = tick;
@@ -373,6 +383,7 @@ class ConquestTrialEvidenceTest {
                     .put("callsFromForts", new JSONObject().put("defender", sim.airPool().callsFromForts(Faction.DEFENDER))
                             .put("marine", sim.airPool().callsFromForts(Faction.MARINE)))
                     .put("skyNotes", skyNotes(trace))
+                    .put("bunker", bunkerProbe.json())
                     .put("sectionsOpened", sim.fieldMortars().sections().opened())
                     .put("sectionsExpired", sim.fieldMortars().sections().expired())
                     .put("sectionsAbandoned", sim.fieldMortars().sections().abandoned())
