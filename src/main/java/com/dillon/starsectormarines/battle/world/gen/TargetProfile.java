@@ -85,6 +85,9 @@ import java.util.Set;
  *                      forward observers with a comms radio. {@link SquadSupportDeclaration#NONE} for a mission that said nothing.
  * @param declaredAssault how the mission's attacking Conquest commander takes defended works: {@link AssaultStyle#MUSTER}, the
  *                      standing behaviour, for a mission that said nothing, or {@link AssaultStyle#TRICKLE} as that mission's own choice.
+ * @param garrison      the market's own garrison estimate ({@link MarketGarrisonEstimate}): strength, quality, heavy lean
+ *                      and readiness. {@link MarketGarrison#NONE} when no market backs the battle or the caller describes a
+ *                      world rather than its defenders.
  */
 public record TargetProfile(int marketSize, int stability, int defenseLevel,
                             int spaceportTier, String factionId,
@@ -100,7 +103,8 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
                             MechDropDeclaration declaredMechDrops,
                             AirPoolDeclaration declaredAirPool,
                             SquadSupportDeclaration declaredSupportKit,
-                            AssaultStyle declaredAssault) {
+                            AssaultStyle declaredAssault,
+                            MarketGarrison garrison) {
 
     /**
      * The baseline read used when no campaign market backs the battle (headless
@@ -128,11 +132,34 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         if (declaredAirPool == null) declaredAirPool = AirPoolDeclaration.NONE;
         if (declaredSupportKit == null) declaredSupportKit = SquadSupportDeclaration.NONE;
         if (declaredAssault == null) declaredAssault = AssaultStyle.MUSTER;
+        if (garrison == null) garrison = MarketGarrison.NONE;
         functions = (functions == null || functions.isEmpty())
                 ? Collections.unmodifiableSet(EnumSet.noneOf(EconomicFunction.class))
                 : Collections.unmodifiableSet(EnumSet.copyOf(functions));
         groundDefence = nonNegative(groundDefence);
         stationedStrength = nonNegative(stationedStrength);
+    }
+
+    /** The profile with every declaration and no garrison estimate: every caller that predates the estimate. */
+    public TargetProfile(int marketSize, int stability, int defenseLevel,
+                         int spaceportTier, String factionId,
+                         Set<EconomicFunction> functions,
+                         SurfacePalette surface,
+                         SettlementLink link,
+                         float groundDefence,
+                         float stationedStrength,
+                         boolean groundDefences,
+                         boolean heavyBatteries,
+                         boolean planetaryShield,
+                         GroundDefences declaredDefences,
+                         MechDropDeclaration declaredMechDrops,
+                         AirPoolDeclaration declaredAirPool,
+                         SquadSupportDeclaration declaredSupportKit,
+                         AssaultStyle declaredAssault) {
+        this(marketSize, stability, defenseLevel, spaceportTier, factionId,
+                functions, surface, link, groundDefence, stationedStrength,
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences,
+                declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault, MarketGarrison.NONE);
     }
 
     /**
@@ -291,7 +318,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 overrideFactionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault, garrison);
     }
 
     /**
@@ -305,7 +332,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault, garrison);
     }
 
     /**
@@ -316,7 +343,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declared, declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault);
+                groundDefences, heavyBatteries, planetaryShield, declared, declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault, garrison);
     }
 
     /**
@@ -327,7 +354,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declared, declaredAirPool, declaredSupportKit, declaredAssault);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declared, declaredAirPool, declaredSupportKit, declaredAssault, garrison);
     }
 
     /**
@@ -338,7 +365,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declared, declaredSupportKit, declaredAssault);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declared, declaredSupportKit, declaredAssault, garrison);
     }
 
     /**
@@ -349,7 +376,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declared, declaredAssault);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declared, declaredAssault, garrison);
     }
 
     /**
@@ -360,6 +387,17 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit, declared);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit, declared, garrison);
+    }
+
+    /**
+     * This profile with the market's garrison estimate, every other read left as it was. Called once, at the launch
+     * boundary, by the resolver that read the market.
+     */
+    public TargetProfile withGarrison(MarketGarrison estimate) {
+        return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
+                factionId, functions, surface, link,
+                groundDefence, stationedStrength,
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault, estimate);
     }
 }

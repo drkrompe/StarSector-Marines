@@ -74,6 +74,7 @@ import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
+import com.dillon.starsectormarines.battle.combat.EnvironmentWear;
 import com.dillon.starsectormarines.battle.combat.fx.Decal;
 import com.dillon.starsectormarines.battle.combat.WoundService;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
@@ -367,6 +368,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final CellTopology topology;
     /** Runtime map-modification coordinator: wall breach / roof crack / structure-to-rubble. Sequences the topology writes + navigation walkability/zone-graph writes + the roof-collapse decal sink. Owns behavior {@link NavigationService} no longer holds. */
     private final MapEditor mapEditor;
+    /** Wears the environment a direct round stopped in, through {@link #mapEditor}. */
+    private final EnvironmentWear environmentWear;
     /** Roster service: live unit registry + squad registry + spawn queue + ID counters. */
     private final UnitRosterService rosterService;
     private final AirSystem airSystem;
@@ -674,7 +677,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     @Override public List<DefenceStructureFact> defenceStructures() {
         List<DefenceStructureFact> out = new ArrayList<>();
         for (FortressBattery battery : fortressBatteries.batteries()) {
-            if (battery.destroyed()) continue;
+            // A fort whose guns are gone is still work while its bunker stands: the radar on it spots for its holder.
+            if (!battery.fireControlStands()) continue;
             Fort.Place bunker = battery.fort() == null ? null : battery.fort().place(FortAspect.FIRE_CONTROL);
             if (bunker != null) {
                 // A fort's fire control is its bunker, not the ground round the guns: that is where a commander
@@ -689,8 +693,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                         FORT_BUNKER_REACH_CELLS, seenX, seenY,
                         battery.fort().id(), DefenceStructureFact.Family.BATTERY_FORT,
                         battery.fort().exteriorCells(), fortBeltCells(seenX, seenY), battery.fort().frame()));
-                // The other two aspects only matter while the guns can still be commanded: a wrecked bunker ends them.
-                addBatteryFortAspect(out, battery, FortAspect.MAGAZINE, DefenceStructureFact.Kind.FORT_MAGAZINE, seenX, seenY);
+                // The other aspects only matter while the bunker can still command something: a wrecked bunker ends
+                // them. The magazine feeds only the guns; the plant also turns the radar, so it outlives them.
+                if (!battery.destroyed()) {
+                    addBatteryFortAspect(out, battery, FortAspect.MAGAZINE, DefenceStructureFact.Kind.FORT_MAGAZINE, seenX, seenY);
+                }
                 addBatteryFortAspect(out, battery, FortAspect.POWER, DefenceStructureFact.Kind.FORT_POWER, seenX, seenY);
                 addBatteryFortAspect(out, battery, FortAspect.AIR_DEFENCE, DefenceStructureFact.Kind.FORT_AIR_DEFENCE, seenX, seenY);
                 continue;
@@ -1000,6 +1007,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final TaskPointService taskPoints;
     /** Post-movement ground-unit separation and terrain-aware squad-formation relaxation. See {@link SeparationSystem} class doc; ticked right after the occupancy-delta drain, before the spawn flush. */
     private final SeparationSystem separation;
+    /** Moving and parked ground hulls push infantry out of their footprint and bow wave. See {@link VehicleRepulsionSystem}. */
+    private final VehicleRepulsionSystem vehicleRepulsion;
     /** Off-by-default, bounded quiet-infantry spreading/yielding experiment. */
     private final SquadTrafficSystem squadTraffic;
     /** Short-range allied-infantry steer away from hostile alien bodies. */
@@ -1074,6 +1083,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             if (!applyingInitialDamage) effects.spawnPropDamage(x, y, effect, size);
         });
         this.mapEditor.setDoodads(doodadService);
+        this.environmentWear = new EnvironmentWear(grid, topology, doodadService, mapEditor);
+        this.shots.setStrikeFilter(environmentWear::wouldWear);
         // DamageService construction is staged: the resolver needs the roster
         // (squad map + units list) and the equipment-drop service, both of
         // which we build right after. We construct the service second and
@@ -1192,6 +1203,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.swarmAvoidance = new SwarmAvoidanceSystem(
                 rosterService, unitIndex, grid);
         this.separation = new SeparationSystem(rosterService, unitIndex, grid);
+        this.vehicleRepulsion = new VehicleRepulsionSystem(rosterService, unitIndex, grid);
         this.squadTraffic = Boolean.getBoolean(SquadTrafficSystem.PROPERTY)
                 ? new SquadTrafficSystem(grid, rosterService) : null;
         this.mechCollisionEscape = new com.dillon.starsectormarines.battle.mech.MechCollisionEscapeSystem(
@@ -1333,6 +1345,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     @Override public com.dillon.starsectormarines.battle.grenade.FragGrenadeService fragGrenades() { return fragGrenades; }
     /** Categorization tags (street / rubble / wall / vehicle / etc.) for renderer + placement filters. Sibling to {@link #grid}; the pathfinder doesn't touch this. */
     public CellTopology getTopology()      { return topology; }
+    /** How much the battle's direct fire has worn the environment; see {@link EnvironmentWear}. */
+    public EnvironmentWear environmentWear() { return environmentWear; }
     /** Zone+portal graph layered on the {@link NavigationGrid}. Rebuilt on wall destruction so AI queries reflect the current map. */
     public ZoneGraph getZoneGraph()        { return zoneGraph; }
 
@@ -1444,6 +1458,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public ConvoyService convoy() { return rosterService.convoy(); }
     /** Who is riding in what — the data owner for {@code RIDING}, and the gate a pass consults to skip a passenger. */
     public VehicleTransportService transport() { return transport; }
+    public VehicleRepulsionSystem vehicleRepulsion() { return vehicleRepulsion; }
 
     @Override
     public boolean isRiding(long id) { return rosterService.isRiding(id); }
@@ -2869,6 +2884,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // read final POSITION). See SeparationSystem class doc.
         swarmAvoidance.tick(TICK_DT, directControl.activeUnitId());
         separation.tick(TICK_DT, directControl.activeUnitId());
+        // Hulls win against bodies: after relaxation so a shove apart cannot
+        // put somebody back under a truck.
+        vehicleRepulsion.tick(TICK_DT);
         mechCollisionEscape.tick(TICK_DT);
         if (directControl.unitActive()) {
             MitigationSystem.faceManual(directControl.activeUnitId(), rosterService.mitigations(),
@@ -3098,6 +3116,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // so DamageService.applyDamage resolves inline through this sink rather
         // than re-queuing for a drain that already ran this tick.
         shots.tickImpacts(TICK_DT, this::applyPendingImpact);
+        // The same flight clock for a round that stopped in the environment: it wears what it hit.
+        shots.tickStrikes(TICK_DT, environmentWear::apply);
         shots.tickShots(TICK_DT);
         tickProfile.lap(TickProfile.Phase.SHOTS);
         equipmentDropSystem.tick();

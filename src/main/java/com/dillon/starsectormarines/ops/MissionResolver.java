@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.nexerelin.NexInvasionSettlement;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.air.AirLoss;
 import com.dillon.starsectormarines.battle.warship.ShipSupportResult;
 import com.dillon.starsectormarines.battle.evacuation.PickupManifest;
@@ -462,6 +464,20 @@ public final class MissionResolver {
             if (result != PolityDefenceResolution.Result.RESOLVED_WON
                     && result != PolityDefenceResolution.Result.RESOLVED_LOST) {
                 return;
+            }
+        }
+        if (outcome.missionSource == MissionSource.NEX_INVASION) {
+            CampaignStateScript script = CampaignStateScript.getInstance();
+            NexInvasionSettlement.Result result = NexInvasionSettlement.apply(
+                    script != null ? script.state() : null, outcome.missionId, outcome.victory);
+            LOG.info("MarineOps: Nexerelin invasion " + outcome.missionId + " → " + result);
+            // Exactly-once: a replayed result hands nothing further to Nexerelin and
+            // writes nothing further back. A result Nexerelin could not take still
+            // writes the company's own losses back, because those happened.
+            if (result == NexInvasionSettlement.Result.ALREADY_SETTLED) return;
+            if (result == NexInvasionSettlement.Result.NOT_APPLIED
+                    && Global.getSector() != null && Global.getSector().getCampaignUI() != null) {
+                Global.getSector().getCampaignUI().addMessage(Strings.get("nexInvasionNotApplied"));
             }
         }
         CargoAPI cargo = Global.getSector() != null && Global.getSector().getPlayerFleet() != null

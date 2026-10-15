@@ -1,8 +1,8 @@
 # Body-part cover
 
-Status: ACTIVE — exposure and part consequences shipped; area exposure and per-part armour remain.
+Status: ACTIVE — exposure, lane props, part consequences and small-arms wear shipped; area exposure and per-part armour remain.
 
-Updated: 2026-10-15 — lane props catch by part; part consequences shipped: damage by part, limb wounds dressed by a medic.
+Updated: 2026-10-15 — three slices shipped and folded; intent recorded that prepared positions are meant to be dangerous.
 
 Written: 2026-10-15
 
@@ -14,6 +14,24 @@ identically, the protection is counted twice, and nothing about *where* a man
 was hit can ever matter.
 
 This direction replaces the one number with **what cover hides of the man**.
+
+**A prepared position is meant to be dangerous to assault.** With parts, the
+rounds that get past cover land mostly on the head and arms, the head is worth
+more, and a man firing from a trench is a hard target that hits back at full
+strength. Riflemen walking at a dug-in line are supposed to lose. The answer to
+a prepared position is what the attacker brings — heavier loadouts and
+equipment, heavy and area weapons, smoke, flanking to strip the cover's
+bearing, closing to where a trench hides nothing — not a softer cover table.
+Measured on the Conquest trial ground, the two shipped slices together moved
+the riflemen-only control from a narrow win to a timeout and raised marine
+losses by about a fifth; that shift is the design working, and balance is
+pursued through the attacker's tools.
+
+**Stacked cover is not independent.** A prop in the lane and cover at the body
+both hide mostly the legs and torso, so behind both a man is less protected
+than two independent rolls would make him: what the first misses is mostly
+head and arms, which the second hides least of. That is physical — two low
+walls do not hide a head — and is kept rather than corrected.
 
 ## The model
 
@@ -76,7 +94,7 @@ aircraft take no terrain cover, and the rest keep the flat catch and damage cut
 by level. A mech hit-location model is a separate question and is not assumed
 here.
 
-## Where this goes after the first slice
+## Shipped and open
 
 - **Part consequences** (shipped). A part decides what a hit does: a head hit
   is worth more damage (×1.6), a limb hit less (arms ×0.75, legs ×0.85), the
@@ -95,6 +113,13 @@ here.
   grenade landing in the trench reaches everything. That retires the last use of
   the flat damage reduction and makes a trench the right answer to shelling and
   the wrong answer to a grenade.
+- **Small arms wearing cover down** (shipped, `small-arms-wear.md`). A round
+  that stops in a crate, a sandbag or a wall names that feature, and its
+  payload wears it on arrival through the map-structure channel, by its
+  penetration against the feature's material rating
+  (`combat-durability-nouns.md`). Rifles chew crates and fences, wear sandbags
+  slowly and leave masonry standing; anti-materiel rounds open walls. The
+  resolver stays read-only; the write is serial at arrival.
 - **Per-part armour.** Armour stays one layer over the whole body; the part
   multiplier acts on the payload before it. Per-part armour waits for armour
   patterns that want to say helmet versus plate.

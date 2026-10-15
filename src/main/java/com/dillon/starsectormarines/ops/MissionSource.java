@@ -22,6 +22,8 @@ package com.dillon.starsectormarines.ops;
  *       and no campaign writeback.</li>
  *   <li>{@link #POLITY_DEFENCE} — a vanilla raid on the player's own colony,
  *       fought by a briefing-time selection rather than a contract.</li>
+ *   <li>{@link #NEX_INVASION} — the player's own Nexerelin invasion, fought as a
+ *       Conquest and settled through Nexerelin rather than a contract.</li>
  * </ul>
  */
 public enum MissionSource {
@@ -44,7 +46,14 @@ public enum MissionSource {
      */
     POLITY_DEFENCE,
     /** Repeatable authored jobs. Append-only: ordinals are persisted. */
-    RECURRING;
+    RECURRING,
+    /**
+     * The player's own invasion of a market under Nexerelin, fought as a Conquest
+     * against the market's whole garrison and settled by handing the result to
+     * Nexerelin ({@code nexerelin-nouns.md}). No contract, no MRB credibility.
+     * Append-only: ordinals are persisted.
+     */
+    NEX_INVASION;
 
     public boolean isCivilianRescue() {
         return this == CAMPAIGN_EVENT

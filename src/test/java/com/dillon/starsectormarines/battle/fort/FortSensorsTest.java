@@ -61,6 +61,16 @@ class FortSensorsTest {
     }
 
     @Test
+    void theRadarOutlivesTheGunsAndStillChangesSidesWithTheBunker() {
+        Fort fort = fort(Faction.DEFENDER, true, true);
+        fort.battery().markDestroyed();
+        assertTrue(FortSensors.observesFor(fort, Faction.DEFENDER), "the dish is on the bunker, not the platform");
+        take(fort.battery().fireControl(), Faction.MARINE);
+        assertTrue(FortSensors.observesFor(fort, Faction.MARINE));
+        assertFalse(FortSensors.observesFor(fort, Faction.DEFENDER));
+    }
+
+    @Test
     void aContestedBunkerWatchesForNobody() {
         Fort fort = fort(Faction.DEFENDER, true, true);
         fort.battery().fireControl().tick(0.1f, false, Faction.MARINE);

@@ -58,6 +58,12 @@ dependencies {
     // Bundled into the mod jar via the fat-jar config below.
     implementation project(':asset-pipeline')
 
+    // Nexerelin's signatures, compile-only: the real classes come from Nexerelin
+    // itself and only when it is enabled. Also on the test classpath, which is
+    // what makes verifyModJarBoundary treat them as tool-only (nex-stubs/build.gradle).
+    compileOnly project(':nex-stubs')
+    testImplementation project(':nex-stubs')
+
     // fastutil-core: primitive-keyed maps/sets for hot AI/sim paths (squad lookup,
     // crowding tables, zone ids). Shaded into our own namespace via shadowJar's
     // relocate rule below so it can't collide with another mod's copy on the
@@ -314,7 +320,7 @@ tasks.register('loadoutMatchup', Test) {
     systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
     forwardBattleSwitches(delegate)
     systemProperty 'loadoutMatchup.dir', layout.buildDirectory.dir('reports/loadout-matchups').get().asFile.absolutePath
-    ['scenarios', 'seeds', 'parallelism', 'attacker', 'defender', 'gifs', 'gifSeeds'].each { name ->
+    ['scenarios', 'seeds', 'parallelism', 'attacker', 'defender', 'gifs', 'gifSeeds', 'fireMission'].each { name ->
         if (providers.gradleProperty(name).isPresent()) {
             systemProperty "loadoutMatchup.${name}", providers.gradleProperty(name).get()
         }

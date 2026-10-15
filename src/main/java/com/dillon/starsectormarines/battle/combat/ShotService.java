@@ -141,7 +141,56 @@ public final class ShotService {
         }
     }
 
+    /** Callback the strike-arrival path uses to wear the struck feature; see {@link EnvironmentWear}. */
+    @FunctionalInterface
+    public interface StrikeSink {
+        void apply(PendingStrike strike);
+    }
+
+    /**
+     * A round's payload arriving at the piece of the environment it stopped in — the
+     * {@link PendingImpact} of a round whose contact was not a body. Queued only for a round
+     * that stopped in a named {@link StruckFeature} and carries a direct payload; an area
+     * round's structural damage belongs to its detonation instead, and a miss into open ground
+     * queues nothing.
+     */
+    public static final class PendingStrike {
+        public final StruckFeature feature;
+        public final long shooterId;
+        public float remainingTime;
+        public final float damage;
+        public final float penetration;
+
+        public PendingStrike(StruckFeature feature, long shooterId, float remainingTime,
+                             float damage, float penetration) {
+            this.feature = feature;
+            this.shooterId = shooterId;
+            this.remainingTime = remainingTime;
+            this.damage = damage;
+            this.penetration = penetration;
+        }
+    }
+
+    /**
+     * Read-only question asked at queue time (from the parallel dispatch): could this payload
+     * wear whatever stands at the feature now? Lets a round that cannot hurt what it hit skip
+     * its record entirely.
+     */
+    @FunctionalInterface
+    public interface StrikeFilter {
+        boolean wears(StruckFeature feature, float damage, float penetration);
+    }
+
+    private volatile StrikeFilter strikeFilter;
+
+    /** Installs the queue-time filter; null queues every named strike. */
+    public void setStrikeFilter(StrikeFilter filter) {
+        this.strikeFilter = filter;
+    }
+
     private final List<ShotEvent> activeShots = new ArrayList<>();
+    /** In-flight {@link PendingStrike}s; same monitor discipline as {@link #activeImpacts}. */
+    private final List<PendingStrike> activeStrikes = new ArrayList<>();
     /** Shots fired during the last advance. Cleared at the top of each advance, populated per tick. Drives one-shot audio in the renderer. */
     private final List<ShotEvent> shotsThisFrame = new ArrayList<>();
     /** Shots whose lifetime ran out during the last advance — the "arrival" event for projectile-style shots. The renderer reads this to spawn impact FX at the endpoint when the projectile sprite actually reaches its target, rather than at launch time. */
@@ -299,6 +348,25 @@ public final class ShotService {
         }
     }
 
+    /**
+     * Queues a resolved round's payload against the feature it stopped in, when it stopped in
+     * one and the payload can do anything at all. Parallel-safe, like {@link #queueImpact}.
+     * Callers pass only direct payloads: a round that arrives as a detonation does its
+     * structural damage through the detonation's authored wall damage.
+     */
+    public void queueStrike(BallisticResolver.Resolution resolution, long shooterId,
+                            float damage, float penetration) {
+        StruckFeature feature = resolution.struck();
+        if (feature == null || !(damage > 0f) || !(penetration > 0f)) return;
+        // A rifle round into masonry is the common case and wears nothing: no record for it.
+        if (strikeFilter != null && !strikeFilter.wears(feature, damage, penetration)) return;
+        PendingStrike strike = new PendingStrike(feature, shooterId, resolution.flightTime(),
+                damage, penetration);
+        synchronized (activeStrikes) {
+            activeStrikes.add(strike);
+        }
+    }
+
     // ---- Read accessors ----
 
     public List<ShotEvent> getActiveShots() { return activeShots; }
@@ -442,6 +510,34 @@ public final class ShotService {
                 sink.apply(impact);
                 activeImpacts.remove(i);
             }
+        }
+    }
+
+    /**
+     * Advances every in-flight {@link PendingStrike}; an arrived strike wears its feature
+     * through {@code sink}. Serial, beside {@link #tickImpacts}. Arrived strikes are applied in
+     * queue order, and a feature's structure only ever falls, so the tick a feature breaks
+     * does not depend on the order its strikes are applied in.
+     */
+    public void tickStrikes(float dt, StrikeSink sink) {
+        if (activeStrikes.isEmpty()) return;
+        int kept = 0;
+        for (int i = 0, n = activeStrikes.size(); i < n; i++) {
+            PendingStrike strike = activeStrikes.get(i);
+            strike.remainingTime -= dt;
+            if (strike.remainingTime <= 0f) {
+                sink.apply(strike);
+            } else {
+                activeStrikes.set(kept++, strike);
+            }
+        }
+        activeStrikes.subList(kept, activeStrikes.size()).clear();
+    }
+
+    /** In-flight environment strikes, for tests and evidence. */
+    public int pendingStrikeCount() {
+        synchronized (activeStrikes) {
+            return activeStrikes.size();
         }
     }
 }

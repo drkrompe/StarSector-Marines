@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — Wayline wins Asharu salvage accounts by undercutting rivals.
+Updated: 2026-10-15 — Thunder Run retimed toward the final run; reactive column driving.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -1002,8 +1002,8 @@ ordinary hull and local, wall-limited camera feed show the danger; neither its
 loss nor survival is scripted. It is outside the three-load contract and does
 not respawn on retries or change the award ledger.
 
-Capturing Dispatch opens a 90-second defensive dispatch window; East Crossing
-opens a 120-second window. The countdown is a public timetable, not a hidden
+Capturing Dispatch opens a 60-second defensive dispatch window; East Crossing
+opens an 80-second window. The countdown is a public timetable, not a hidden
 survival test or a capture reset. Earlier gains must still be held before the
 next leg releases. Mission command holds the company during each window unless
 a lost site needs restoring; player orders remain authoritative. Castle's
@@ -1035,8 +1035,23 @@ pushes on toward the exit. Its hull, turret, ammunition and damage are ordinary
 combat state; losing it does not manufacture a victory or block surviving cargo.
 At the final release, the two APC escorts
 advance along the road flanks and hold the crossing; freight follows after a
-14-second lead interval, with subsequent loads released 22 seconds apart. The escorts leave only after the last surviving load passes
-the crossing. Physical chassis steering, terrain, shared damage, turret fire
+12-second lead interval, with subsequent loads released 16 seconds apart. The escorts leave only after the last surviving load passes
+the crossing.
+
+The sequence decides when each hull moves and where it stops; a column driver
+decides how it drives there. Each leg is a gently weaving lane inside the
+freight band rather than a ruler line, merging onto a new lane slowly enough for
+the chassis and settling straight before its stop. While a hull is on the road it
+reacts to what it can see: haulers drift toward the shoulder away from hostile
+infantry beside the road and the heavy lead edges toward them, while the escorts
+keep the flank lanes that are the screen. A hauler that has just been hit stops
+cruising at four-fifths speed and runs flat out. Wrecks and parked hulls ahead
+are passed on the nearest lane that clears them, across the whole band if it
+must be, and a stop that lies on one is met beside it. A hull keeps a few cells
+behind the column member ahead in its lane and waits behind one that has paused.
+It slows for friendly infantry in the road and gives hostile infantry only its
+bow wave (`convoy-nouns.md`). All of this is ordinary chassis steering and speed:
+it never moves a hull directly, and delivery is still only a physical exit. Physical chassis steering, terrain, shared damage, turret fire
 and wrecks remain authoritative. A hull must leave the map through the freight exit to
 count as delivered; capture, release, apparent proximity and a missing sprite
 cannot grant delivery. Each active carrier must be accounted for before victory.
@@ -1048,17 +1063,21 @@ two crude unguided rockets each. Poor accuracy, slow aiming and low penetration
 let them threaten freight without granting an effective military anti-armor kit.
 The advance load's fate still comes from combat rather than a scripted kill.
 Fourteen low-tech raiders guard the roadside buildings. Six more already man
-two rifle bays at the exit checkpoint. A finite ninety-two-person pressure pool
-arrives in twenty-three four-person batches: one already attacking the earlier load,
-five across Dispatch defense and departure, seven across East Crossing defense and
-the outbound approach, and four during the final run. Six additional four-person squads alternate between
+two rifle bays at the exit checkpoint. A finite seventy-two-person pressure pool
+arrives in eighteen four-person batches: one already attacking the earlier load,
+four across Dispatch defense and departure, four across East Crossing defense,
+one blocking the outbound approach, and four interdicting the final run. Four
+additional four-person squads alternate between
 the militia gun posts after the East Crossing defense window, entering through
 the north/south road mouths while the company pushes on Outbound Gate. Each
 attacks the prepared post itself through ordinary squad movement and fire; no
 teleportation, instant damage or infinite replenishment protects or threatens it.
-Their clocks survive subsequent captures. Some later Crossing attacks use
-the outbound side roads to block the company's next advance, rather than all
-chasing its rear. The timetable retains each phase's first release clock through
+Their clocks survive subsequent captures. The last Crossing attack uses
+the outbound side road to block the company's next advance, rather than
+chasing its rear. The weight sits on the final run on purpose: a heavier
+timetable before it, with longer holds, wore the company out against Outbound
+Gate before the column ever rolled, so the convoy the mission is named for was
+never played. The timetable retains each phase's first release clock through
 later progress, so an early capture cannot cancel a trailing attack. A minimum
 interval between arrivals prevents overdue batches appearing together.
 Later batches enter through the north/south road mouths and interdict the road

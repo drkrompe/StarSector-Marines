@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.world.gen.ShepherdBasin;
+import com.dillon.starsectormarines.battle.world.gen.MarketGarrison;
 import com.dillon.starsectormarines.battle.world.gen.NorthWeir;
 import com.dillon.starsectormarines.battle.command.AssaultStyle;
 import com.dillon.starsectormarines.battle.command.WaterUnderSealCommand;
@@ -506,7 +507,7 @@ public final class BattleSetup {
         DefenderForcePlan defenders = defenderForcePlan(
                 MissionType.SABOTAGE, tier, risk, enemyHasHeavyArmor,
                 assignments, defensePosts, marineFighterSupport,
-                enemyFighterSupport, groundRoster);
+                enemyFighterSupport, groundRoster, garrisonOf(profile));
         List<LandingPad> lzCells = LandingPadSelector.select(
                 map, assignments.size(), LZ_MIN_SEPARATION);
         SabotageSiteLayout siteLayout = SabotageSiteLayout.select(
@@ -1080,7 +1081,7 @@ public final class BattleSetup {
         }
         DefenderForcePlan defenders = defenderForcePlan(
                 type, tier, risk, enemyHasHeavyArmor, assignments, defensePosts,
-                marineFighterSupport, enemyFighterSupport, groundRoster);
+                marineFighterSupport, enemyFighterSupport, groundRoster, garrisonOf(profile));
         List<LandingPad> lzCells = LandingPadSelector.select(
                 map, assignments.size(), LZ_MIN_SEPARATION);
         RaidTargetLayout raidLayout = type == MissionType.RAID
@@ -2580,7 +2581,7 @@ public final class BattleSetup {
                 : defenderForcePlan(
                 MissionType.CONQUEST, tier, risk, enemyHasHeavyArmor,
                 assignments, map.defensePosts, marineFighterSupport,
-                enemyFighterSupport, groundRoster);
+                enemyFighterSupport, groundRoster, garrisonOf(profile));
         // Conquest defense posts come pre-stamped by the generator — the
         // biome-aware DefensePostStamper on the stock recipe (BEACH→PORT→
         // kill-zone tiers + rear ARTILLERY battery), PrecinctDefence's stated
@@ -2866,7 +2867,8 @@ public final class BattleSetup {
         int squads = AlliedGarrisonSize.squads(profile, alliedGarrisonStrengthMult);
         if (squads <= 0) return;
         AlliedGarrison.install(sim, map,
-                GroundRosterRegistry.resolve(alliedGarrisonFactionId), squads, risk,
+                GroundRosterRegistry.resolve(alliedGarrisonFactionId), squads,
+                garrisonOf(profile).quality(), risk,
                 new Random(seed ^ ALLIED_GARRISON_SEED_SALT));
     }
 
@@ -2903,11 +2905,17 @@ public final class BattleSetup {
         }
     }
 
+    /** The target market's garrison estimate, or none when no market backs the battle. */
+    private static MarketGarrison garrisonOf(TargetProfile profile) {
+        return profile != null ? profile.garrison() : MarketGarrison.NONE;
+    }
+
     private static DefenderForcePlan defenderForcePlan(
             MissionType type, OperationTier tier, RiskLevel risk,
             boolean enemyHasHeavyArmor, List<ShuttleAssignment> assignments,
             List<DefensePost> defensePosts, FlybyRoster marineFighterSupport,
-            FlybyRoster enemyFighterSupport, GroundRosterProfile groundRoster) {
+            FlybyRoster enemyFighterSupport, GroundRosterProfile groundRoster,
+            MarketGarrison garrison) {
         // Conquest is an authored late-game set piece, not an encounter that
         // softens itself to match the committed detachment. Its population,
         // mech groups, fighter wings, and fortifications all survive intact
@@ -2916,7 +2924,7 @@ public final class BattleSetup {
                 ? Float.POSITIVE_INFINITY
                 : BattleForceScore.attackers(assignments, marineFighterSupport);
         DefenderRoster roster = DefenderRoster.forMission(
-                type, tier, risk, enemyHasHeavyArmor, attackerScore, groundRoster);
+                type, tier, risk, enemyHasHeavyArmor, attackerScore, groundRoster, garrison);
         FlybyRoster affordableFighters = BattleForceScore.affordableFighterSupport(
                 enemyFighterSupport, roster, attackerScore);
         List<DefensePost> affordablePosts = BattleForceScore.affordableDefensePosts(
@@ -3982,12 +3990,7 @@ public final class BattleSetup {
         UnitType mechType = UnitType.HEAVY_MECH;
         Deque<MechVariant> mechQueue = new ArrayDeque<>(roster.mechVariants);
         Deque<GroundRosterProfile.ForceTier> infQueue = new ArrayDeque<>();
-        for (int i = 0; i < roster.eliteCount; i++) {
-            infQueue.add(GroundRosterProfile.ForceTier.ELITE);
-        }
-        for (int i = 0; i < roster.militiaCount; i++) {
-            infQueue.add(GroundRosterProfile.ForceTier.BULK);
-        }
+        infQueue.addAll(roster.infantryOrder());
 
         int defenderIdx = 0;
         List<TacticalNode> patrolAnchors = new ArrayList<>();
@@ -4147,12 +4150,7 @@ public final class BattleSetup {
         UnitType mechType = UnitType.HEAVY_MECH;
         Deque<MechVariant> mechQueue = new ArrayDeque<>(roster.mechVariants);
         Deque<GroundRosterProfile.ForceTier> infQueue = new ArrayDeque<>();
-        for (int i = 0; i < roster.eliteCount; i++) {
-            infQueue.add(GroundRosterProfile.ForceTier.ELITE);
-        }
-        for (int i = 0; i < roster.militiaCount; i++) {
-            infQueue.add(GroundRosterProfile.ForceTier.BULK);
-        }
+        infQueue.addAll(roster.infantryOrder());
 
         int defenderIdx = 0;
         int cellIdx = 0;

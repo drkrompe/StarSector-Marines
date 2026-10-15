@@ -111,6 +111,15 @@ public final class PropDamage {
         return level;
     }
 
+    /** The definition id of a surviving registered prop owning this cell, or null. */
+    public String standingIdAt(int x, int y) {
+        if (!grid.inBounds(x, y)) return null;
+        List<Entry> at = owners.get(grid.index(x, y));
+        if (at == null) return null;
+        for (int i = 0; i < at.size(); i++) if (at.get(i).hp > 0) return at.get(i).original.definitionId();
+        return null;
+    }
+
     public CoverPropDamage.Result damage(int x, int y, int amount, long attack, ClearedCell cleared) {
         if (!grid.inBounds(x, y)) return CoverPropDamage.Result.NOT_COVER_PROP;
         List<Entry> at = owners.get(grid.index(x, y));

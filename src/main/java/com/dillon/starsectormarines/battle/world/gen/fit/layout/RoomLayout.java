@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.fit.layout;
 
 import com.dillon.starsectormarines.battle.world.gen.fit.Hookup;
+import com.dillon.starsectormarines.battle.world.gen.fit.ConsoleBankLayout;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPose;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
@@ -70,7 +71,7 @@ public record RoomLayout(RoomPurpose purpose, RoomFit fit, RoomShape shape,
     public int provides() {
         int count = 0;
         for (LayoutOp op : ops) {
-            if (op instanceof LayoutOp.Fixture || op instanceof LayoutOp.Assembly) count++;
+            if (op instanceof LayoutOp.Fixture || op instanceof LayoutOp.Assembly || op instanceof LayoutOp.ConsoleBank) count++;
         }
         return count;
     }
@@ -109,6 +110,19 @@ public record RoomLayout(RoomPurpose purpose, RoomFit fit, RoomShape shape,
         for (LayoutOp op : ops) {
             int[] cell;
             int spanX, spanY;
+            if (op instanceof LayoutOp.ConsoleBank bank) {
+                for (ConsoleBankLayout.Piece piece : ConsoleBankLayout.resolveWorld(bank.cells(), bank.closed(), bank.operatorRight())) {
+                    if (TileRegistry.installed().doodad(piece.id()) == null
+                            || !shape.contains(piece.cell().x(), piece.cell().y())) return false;
+                }
+                for (ConsoleBankLayout.Cell source : ConsoleBankLayout.occupiedCells(bank.cells(), bank.closed())) {
+                    if (!shape.contains(source.x(), source.y())) return false;
+                    int[] mapped = pose.map(source.x(), source.y(), canonicalWidth, canonicalHeight);
+                    if (taken[mapped[0]][mapped[1]]) return false;
+                    taken[mapped[0]][mapped[1]] = true;
+                }
+                continue;
+            }
             if (op instanceof LayoutOp.Fixture fixture) {
                 DoodadDef def = TileRegistry.installed().doodad(fixture.doodadId());
                 if (def == null) return false;
@@ -189,6 +203,8 @@ public record RoomLayout(RoomPurpose purpose, RoomFit fit, RoomShape shape,
     public List<String> doodadIds() {
         List<String> ids = new ArrayList<>();
         for (LayoutOp op : ops) {
+            if (op instanceof LayoutOp.ConsoleBank bank)
+                for (ConsoleBankLayout.Piece piece : ConsoleBankLayout.resolveWorld(bank.cells(), bank.closed(), bank.operatorRight())) ids.add(piece.id());
             if (op instanceof LayoutOp.Fixture fixture) ids.add(fixture.doodadId());
             if (op instanceof LayoutOp.Assembly assembly) {
                 ids.add(assembly.baseId());

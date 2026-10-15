@@ -102,13 +102,40 @@ public final class DurabilityModel {
 
     /** Returns armor-removal efficiency in [0.10, 1.00]. */
     public static float armorEfficiency(float penetration, float armorRating) {
+        return MIN_ARMOR_EFFICIENCY + (1f - MIN_ARMOR_EFFICIENCY)
+                * penetrationRatio(penetration, armorRating);
+    }
+
+    /**
+     * Below this share of a material's rating a round does it no harm at all; see
+     * {@link #materialEfficiency}.
+     */
+    public static final float MATERIAL_BITE_RATIO = 0.5f;
+
+    /**
+     * The share of a round's payload damage that wears a piece of the environment
+     * of {@code materialRating}: zero while penetration is under
+     * {@link #MATERIAL_BITE_RATIO} of the rating, rising linearly to full at the
+     * rating — the same ratio and the same ceiling as {@link #armorEfficiency}.
+     *
+     * <p>What a material does not take is armour's chip floor. That floor exists
+     * so every weapon can eventually strip a combatant's plate; given to a wall,
+     * it would let a rifle squad cut through a building in seconds. A material a
+     * round cannot bite is a material that round cannot wear.
+     */
+    public static float materialEfficiency(float penetration, float materialRating) {
+        float ratio = penetrationRatio(penetration, materialRating);
+        return Math.max(0f, (ratio - MATERIAL_BITE_RATIO) / (1f - MATERIAL_BITE_RATIO));
+    }
+
+    /** How far {@code penetration} reaches toward {@code rating}, in [0, 1]: what both laws read. */
+    public static float penetrationRatio(float penetration, float rating) {
         requireNonNegativeFinite("penetration", penetration);
-        requireNonNegativeFinite("armorRating", armorRating);
-        if (armorRating <= 0f) {
-            throw new IllegalArgumentException("armorRating must be positive");
+        requireNonNegativeFinite("rating", rating);
+        if (rating <= 0f) {
+            throw new IllegalArgumentException("rating must be positive");
         }
-        float ratio = Math.min(1f, penetration / armorRating);
-        return MIN_ARMOR_EFFICIENCY + (1f - MIN_ARMOR_EFFICIENCY) * ratio;
+        return Math.min(1f, penetration / rating);
     }
 
     private static void requireNonNegativeFinite(String name, float value) {

@@ -143,9 +143,9 @@
           "squadId": "reinforced-squad-01",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.squad-automatic",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -174,9 +174,9 @@
           "squadId": "reinforced-squad-01",
           "strength": 12
         },
-        "equipmentGrade": "MASTERWORK",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.dmr",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "GIFTED",
           "experienceXp": 800
@@ -212,7 +212,7 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": null
       },
       {
         "armorCapacity": 22,
@@ -267,9 +267,9 @@
           "squadId": "reinforced-squad-01",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.squad-automatic",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "GIFTED",
           "experienceXp": 800
@@ -298,9 +298,9 @@
           "squadId": "reinforced-squad-01",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.dmr",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -336,7 +336,7 @@
           "aptitude": "LIMITED",
           "experienceXp": 100
         },
-        "specialEquipmentId": "special.anti-materiel-rifle"
+        "specialEquipmentId": null
       },
       {
         "armorCapacity": 22,
@@ -391,9 +391,9 @@
           "squadId": "reinforced-squad-01",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.squad-automatic",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -422,9 +422,9 @@
           "squadId": "reinforced-squad-01",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.dmr",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "GIFTED",
           "experienceXp": 100
@@ -460,7 +460,7 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": null
       },
       {
         "armorCapacity": 85,
@@ -486,7 +486,7 @@
         },
         "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "primaryWeaponId": "weapon.smg",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -522,7 +522,7 @@
           "aptitude": "GIFTED",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.satchel-charge"
       },
       {
         "armorCapacity": 85,
@@ -546,9 +546,9 @@
           "squadId": "reinforced-squad-02",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -577,9 +577,9 @@
           "squadId": "reinforced-squad-02",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "LIMITED",
           "experienceXp": 800
@@ -608,9 +608,9 @@
           "squadId": "reinforced-squad-02",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -646,7 +646,7 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.frag-grenade"
+        "specialEquipmentId": "special.smoke-grenade"
       },
       {
         "armorCapacity": 85,
@@ -670,9 +670,9 @@
           "squadId": "reinforced-squad-02",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "EXCEPTIONAL",
           "experienceXp": 800
@@ -701,9 +701,9 @@
           "squadId": "reinforced-squad-02",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -734,7 +734,7 @@
         },
         "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "primaryWeaponId": "weapon.smg",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -763,14 +763,14 @@
           "squadId": "reinforced-squad-02",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.smg",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "GIFTED",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.rocket-launcher"
       },
       {
         "armorCapacity": 85,
@@ -794,9 +794,9 @@
           "squadId": "reinforced-squad-02",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -856,9 +856,9 @@
           "squadId": "reinforced-squad-03",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.pulse-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -918,9 +918,9 @@
           "squadId": "reinforced-squad-03",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.squad-automatic",
         "soldierProfile": {
           "aptitude": "LIMITED",
           "experienceXp": 800
@@ -949,9 +949,9 @@
           "squadId": "reinforced-squad-03",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MASTERWORK",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.dmr",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -980,9 +980,9 @@
           "squadId": "reinforced-squad-03",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.pulse-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -1042,14 +1042,14 @@
           "squadId": "reinforced-squad-03",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.pulse-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.smoke-grenade"
       },
       {
         "armorCapacity": 55,
@@ -1073,9 +1073,9 @@
           "squadId": "reinforced-squad-03",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.dmr",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -1104,9 +1104,9 @@
           "squadId": "reinforced-squad-03",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.pulse-rifle",
         "soldierProfile": {
           "aptitude": "GIFTED",
           "experienceXp": 800
@@ -1135,9 +1135,9 @@
           "squadId": "reinforced-squad-03",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.squad-automatic",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -1173,7 +1173,7 @@
           "aptitude": "LIMITED",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.smoke-grenade"
       },
       {
         "armorCapacity": 55,
@@ -1197,9 +1197,9 @@
           "squadId": "reinforced-squad-03",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.dmr",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -1207,12 +1207,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 70,
-        "armorClass": "power-suit",
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
+        "armorCapacity": 14,
+        "armorClass": "standard",
+        "armorFamily": "BLUE_SCOUT",
+        "armorIncomingAccuracyMult": 0.8999999761581421,
+        "armorMoveSpeedMult": 0.9800000190734863,
+        "armorRating": 9,
         "campaignSoldierId": "reinforced-marine-037",
         "campaignSquad": {
           "commandGroup": {
@@ -1228,9 +1228,9 @@
           "squadId": "reinforced-squad-04",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -1238,44 +1238,13 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 70,
-        "armorClass": "power-suit",
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
+        "armorCapacity": 9,
+        "armorClass": "standard",
+        "armorFamily": "CHARCOAL",
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.9599999785423279,
+        "armorRating": 8,
         "campaignSoldierId": "reinforced-marine-038",
-        "campaignSquad": {
-          "commandGroup": {
-            "groupId": "nco:reinforced-squad-04",
-            "label": "Squad 04 / acting NCO",
-            "namedOfficer": false,
-            "officerId": null
-          },
-          "fireTeamIndex": 0,
-          "label": "Squad 04",
-          "leader": false,
-          "moraleRecoveryMultiplier": 1,
-          "squadId": "reinforced-squad-04",
-          "strength": 12
-        },
-        "equipmentGrade": "SERVICE",
-        "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
-        "soldierProfile": {
-          "aptitude": "GIFTED",
-          "experienceXp": 800
-        },
-        "specialEquipmentId": null
-      },
-      {
-        "armorCapacity": 70,
-        "armorClass": "power-suit",
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
-        "campaignSoldierId": "reinforced-marine-039",
         "campaignSquad": {
           "commandGroup": {
             "groupId": "nco:reinforced-squad-04",
@@ -1294,19 +1263,19 @@
         "integralSystemArmorId": null,
         "primaryWeaponId": "weapon.squad-automatic",
         "soldierProfile": {
-          "aptitude": "STEADY",
-          "experienceXp": 800
+          "aptitude": "GIFTED",
+          "experienceXp": 350
         },
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 70,
-        "armorClass": "power-suit",
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
-        "campaignSoldierId": "reinforced-marine-040",
+        "armorCapacity": 9,
+        "armorClass": "standard",
+        "armorFamily": "CHARCOAL",
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.9599999785423279,
+        "armorRating": 8,
+        "campaignSoldierId": "reinforced-marine-039",
         "campaignSquad": {
           "commandGroup": {
             "groupId": "nco:reinforced-squad-04",
@@ -1326,18 +1295,80 @@
         "primaryWeaponId": "weapon.dmr",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 800
+          "experienceXp": 350
         },
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 70,
-        "armorClass": "power-suit",
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
+        "armorCapacity": 6,
+        "armorClass": "standard",
+        "armorFamily": "OUTLAW",
+        "armorIncomingAccuracyMult": 1.0199999809265137,
+        "armorMoveSpeedMult": 0.9599999785423279,
+        "armorRating": 3,
+        "campaignSoldierId": "reinforced-marine-040",
+        "campaignSquad": {
+          "commandGroup": {
+            "groupId": "nco:reinforced-squad-04",
+            "label": "Squad 04 / acting NCO",
+            "namedOfficer": false,
+            "officerId": null
+          },
+          "fireTeamIndex": 0,
+          "label": "Squad 04",
+          "leader": false,
+          "moraleRecoveryMultiplier": 1,
+          "squadId": "reinforced-squad-04",
+          "strength": 12
+        },
+        "equipmentGrade": "SERVICE",
+        "integralSystemArmorId": null,
+        "primaryWeaponId": "weapon.field-rifle",
+        "soldierProfile": {
+          "aptitude": "STEADY",
+          "experienceXp": 100
+        },
+        "specialEquipmentId": "special.rocket-launcher"
+      },
+      {
+        "armorCapacity": 9,
+        "armorClass": "standard",
+        "armorFamily": "CHARCOAL",
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.9599999785423279,
+        "armorRating": 8,
         "campaignSoldierId": "reinforced-marine-041",
+        "campaignSquad": {
+          "commandGroup": {
+            "groupId": "nco:reinforced-squad-04",
+            "label": "Squad 04 / acting NCO",
+            "namedOfficer": false,
+            "officerId": null
+          },
+          "fireTeamIndex": 1,
+          "label": "Squad 04",
+          "leader": false,
+          "moraleRecoveryMultiplier": 1,
+          "squadId": "reinforced-squad-04",
+          "strength": 12
+        },
+        "equipmentGrade": "SERVICE",
+        "integralSystemArmorId": null,
+        "primaryWeaponId": "weapon.field-rifle",
+        "soldierProfile": {
+          "aptitude": "GIFTED",
+          "experienceXp": 350
+        },
+        "specialEquipmentId": null
+      },
+      {
+        "armorCapacity": 9,
+        "armorClass": "standard",
+        "armorFamily": "CHARCOAL",
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.9599999785423279,
+        "armorRating": 8,
+        "campaignSoldierId": "reinforced-marine-042",
         "campaignSquad": {
           "commandGroup": {
             "groupId": "nco:reinforced-squad-04",
@@ -1354,21 +1385,52 @@
         },
         "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "primaryWeaponId": "weapon.squad-automatic",
         "soldierProfile": {
-          "aptitude": "GIFTED",
-          "experienceXp": 800
+          "aptitude": "STEADY",
+          "experienceXp": 350
         },
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 70,
-        "armorClass": "power-suit",
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
-        "campaignSoldierId": "reinforced-marine-042",
+        "armorCapacity": 9,
+        "armorClass": "standard",
+        "armorFamily": "CHARCOAL",
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.9599999785423279,
+        "armorRating": 8,
+        "campaignSoldierId": "reinforced-marine-043",
+        "campaignSquad": {
+          "commandGroup": {
+            "groupId": "nco:reinforced-squad-04",
+            "label": "Squad 04 / acting NCO",
+            "namedOfficer": false,
+            "officerId": null
+          },
+          "fireTeamIndex": 1,
+          "label": "Squad 04",
+          "leader": false,
+          "moraleRecoveryMultiplier": 1,
+          "squadId": "reinforced-squad-04",
+          "strength": 12
+        },
+        "equipmentGrade": "MILSPEC",
+        "integralSystemArmorId": null,
+        "primaryWeaponId": "weapon.dmr",
+        "soldierProfile": {
+          "aptitude": "LIMITED",
+          "experienceXp": 350
+        },
+        "specialEquipmentId": null
+      },
+      {
+        "armorCapacity": 6,
+        "armorClass": "standard",
+        "armorFamily": "MILITIA",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.9700000286102295,
+        "armorRating": 5,
+        "campaignSoldierId": "reinforced-marine-044",
         "campaignSquad": {
           "commandGroup": {
             "groupId": "nco:reinforced-squad-04",
@@ -1388,79 +1450,17 @@
         "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 800
+          "experienceXp": 100
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.anti-materiel-rifle"
       },
       {
-        "armorCapacity": 70,
-        "armorClass": "power-suit",
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
-        "campaignSoldierId": "reinforced-marine-043",
-        "campaignSquad": {
-          "commandGroup": {
-            "groupId": "nco:reinforced-squad-04",
-            "label": "Squad 04 / acting NCO",
-            "namedOfficer": false,
-            "officerId": null
-          },
-          "fireTeamIndex": 1,
-          "label": "Squad 04",
-          "leader": false,
-          "moraleRecoveryMultiplier": 1,
-          "squadId": "reinforced-squad-04",
-          "strength": 12
-        },
-        "equipmentGrade": "MILSPEC",
-        "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
-        "soldierProfile": {
-          "aptitude": "LIMITED",
-          "experienceXp": 800
-        },
-        "specialEquipmentId": "special.smoke-grenade"
-      },
-      {
-        "armorCapacity": 70,
-        "armorClass": "power-suit",
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
-        "campaignSoldierId": "reinforced-marine-044",
-        "campaignSquad": {
-          "commandGroup": {
-            "groupId": "nco:reinforced-squad-04",
-            "label": "Squad 04 / acting NCO",
-            "namedOfficer": false,
-            "officerId": null
-          },
-          "fireTeamIndex": 1,
-          "label": "Squad 04",
-          "leader": false,
-          "moraleRecoveryMultiplier": 1,
-          "squadId": "reinforced-squad-04",
-          "strength": 12
-        },
-        "equipmentGrade": "MILSPEC",
-        "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.dmr",
-        "soldierProfile": {
-          "aptitude": "STEADY",
-          "experienceXp": 800
-        },
-        "specialEquipmentId": null
-      },
-      {
-        "armorCapacity": 70,
-        "armorClass": "power-suit",
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
+        "armorCapacity": 9,
+        "armorClass": "standard",
+        "armorFamily": "CHARCOAL",
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.9599999785423279,
+        "armorRating": 8,
         "campaignSoldierId": "reinforced-marine-045",
         "campaignSquad": {
           "commandGroup": {
@@ -1476,22 +1476,22 @@
           "squadId": "reinforced-squad-04",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 800
+          "experienceXp": 350
         },
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 70,
-        "armorClass": "power-suit",
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
+        "armorCapacity": 9,
+        "armorClass": "standard",
+        "armorFamily": "CHARCOAL",
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.9599999785423279,
+        "armorRating": 8,
         "campaignSoldierId": "reinforced-marine-046",
         "campaignSquad": {
           "commandGroup": {
@@ -1512,49 +1512,18 @@
         "primaryWeaponId": "weapon.squad-automatic",
         "soldierProfile": {
           "aptitude": "EXCEPTIONAL",
-          "experienceXp": 800
+          "experienceXp": 350
         },
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 70,
-        "armorClass": "power-suit",
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
+        "armorCapacity": 6,
+        "armorClass": "standard",
+        "armorFamily": "MILITIA",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.9700000286102295,
+        "armorRating": 5,
         "campaignSoldierId": "reinforced-marine-047",
-        "campaignSquad": {
-          "commandGroup": {
-            "groupId": "nco:reinforced-squad-04",
-            "label": "Squad 04 / acting NCO",
-            "namedOfficer": false,
-            "officerId": null
-          },
-          "fireTeamIndex": 2,
-          "label": "Squad 04",
-          "leader": false,
-          "moraleRecoveryMultiplier": 1,
-          "squadId": "reinforced-squad-04",
-          "strength": 12
-        },
-        "equipmentGrade": "SERVICE",
-        "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
-        "soldierProfile": {
-          "aptitude": "STEADY",
-          "experienceXp": 800
-        },
-        "specialEquipmentId": "special.smoke-grenade"
-      },
-      {
-        "armorCapacity": 70,
-        "armorClass": "power-suit",
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
-        "campaignSoldierId": "reinforced-marine-048",
         "campaignSquad": {
           "commandGroup": {
             "groupId": "nco:reinforced-squad-04",
@@ -1574,17 +1543,48 @@
         "primaryWeaponId": "weapon.dmr",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 800
+          "experienceXp": 100
         },
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
+        "armorCapacity": 6,
+        "armorClass": "standard",
+        "armorFamily": "OUTLAW",
+        "armorIncomingAccuracyMult": 1.0199999809265137,
+        "armorMoveSpeedMult": 0.9599999785423279,
+        "armorRating": 3,
+        "campaignSoldierId": "reinforced-marine-048",
+        "campaignSquad": {
+          "commandGroup": {
+            "groupId": "nco:reinforced-squad-04",
+            "label": "Squad 04 / acting NCO",
+            "namedOfficer": false,
+            "officerId": null
+          },
+          "fireTeamIndex": 2,
+          "label": "Squad 04",
+          "leader": false,
+          "moraleRecoveryMultiplier": 1,
+          "squadId": "reinforced-squad-04",
+          "strength": 12
+        },
+        "equipmentGrade": "SERVICE",
+        "integralSystemArmorId": null,
+        "primaryWeaponId": "weapon.field-rifle",
+        "soldierProfile": {
+          "aptitude": "STEADY",
+          "experienceXp": 100
+        },
+        "specialEquipmentId": "special.rocket-launcher"
+      },
+      {
+        "armorCapacity": 70,
         "armorClass": "power-suit",
-        "armorFamily": "RED_ELITE",
-        "armorIncomingAccuracyMult": 0.9800000190734863,
-        "armorMoveSpeedMult": 0.8600000143051147,
-        "armorRating": 12,
+        "armorFamily": "BULWARK_HEAVY",
+        "armorIncomingAccuracyMult": 0.949999988079071,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-049",
         "campaignSquad": {
           "commandGroup": {
@@ -1602,7 +1602,7 @@
         },
         "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.smg",
+        "primaryWeaponId": "weapon.pulse-rifle",
         "soldierProfile": {
           "aptitude": "GIFTED",
           "experienceXp": 800
@@ -1610,12 +1610,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
+        "armorCapacity": 70,
         "armorClass": "power-suit",
-        "armorFamily": "RED_ELITE",
-        "armorIncomingAccuracyMult": 0.9800000190734863,
-        "armorMoveSpeedMult": 0.8600000143051147,
-        "armorRating": 12,
+        "armorFamily": "BULWARK_HEAVY",
+        "armorIncomingAccuracyMult": 0.949999988079071,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-050",
         "campaignSquad": {
           "commandGroup": {
@@ -1638,15 +1638,15 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.satchel-charge"
+        "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
+        "armorCapacity": 70,
         "armorClass": "power-suit",
-        "armorFamily": "RED_ELITE",
-        "armorIncomingAccuracyMult": 0.9800000190734863,
-        "armorMoveSpeedMult": 0.8600000143051147,
-        "armorRating": 12,
+        "armorFamily": "BULWARK_HEAVY",
+        "armorIncomingAccuracyMult": 0.949999988079071,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-051",
         "campaignSquad": {
           "commandGroup": {
@@ -1662,9 +1662,9 @@
           "squadId": "reinforced-squad-05",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.pulse-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -1672,11 +1672,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 50,
+        "armorCapacity": 70,
         "armorClass": "power-suit",
-        "armorFamily": "ARBALEST_HEAVY",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
+        "armorFamily": "BULWARK_HEAVY",
+        "armorIncomingAccuracyMult": 0.949999988079071,
+        "armorMoveSpeedMult": 0.8999999761581421,
         "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-052",
         "campaignSquad": {
@@ -1693,9 +1693,9 @@
           "squadId": "reinforced-squad-05",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.pulse-rifle",
         "soldierProfile": {
           "aptitude": "GIFTED",
           "experienceXp": 800
@@ -1703,12 +1703,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
+        "armorCapacity": 70,
         "armorClass": "power-suit",
-        "armorFamily": "RED_ELITE",
-        "armorIncomingAccuracyMult": 0.9800000190734863,
-        "armorMoveSpeedMult": 0.8600000143051147,
-        "armorRating": 12,
+        "armorFamily": "BULWARK_HEAVY",
+        "armorIncomingAccuracyMult": 0.949999988079071,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-053",
         "campaignSquad": {
           "commandGroup": {
@@ -1724,9 +1724,9 @@
           "squadId": "reinforced-squad-05",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.pulse-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -1734,12 +1734,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
+        "armorCapacity": 70,
         "armorClass": "power-suit",
-        "armorFamily": "RED_ELITE",
-        "armorIncomingAccuracyMult": 0.9800000190734863,
-        "armorMoveSpeedMult": 0.8600000143051147,
-        "armorRating": 12,
+        "armorFamily": "BULWARK_HEAVY",
+        "armorIncomingAccuracyMult": 0.949999988079071,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-054",
         "campaignSquad": {
           "commandGroup": {
@@ -1762,15 +1762,15 @@
           "aptitude": "LIMITED",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.smoke-grenade"
+        "specialEquipmentId": "special.frag-grenade"
       },
       {
-        "armorCapacity": 60,
+        "armorCapacity": 70,
         "armorClass": "power-suit",
-        "armorFamily": "RED_ELITE",
-        "armorIncomingAccuracyMult": 0.9800000190734863,
-        "armorMoveSpeedMult": 0.8600000143051147,
-        "armorRating": 12,
+        "armorFamily": "BULWARK_HEAVY",
+        "armorIncomingAccuracyMult": 0.949999988079071,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-055",
         "campaignSquad": {
           "commandGroup": {
@@ -1786,9 +1786,9 @@
           "squadId": "reinforced-squad-05",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.pulse-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -1796,12 +1796,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
+        "armorCapacity": 70,
         "armorClass": "power-suit",
-        "armorFamily": "RED_ELITE",
-        "armorIncomingAccuracyMult": 0.9800000190734863,
-        "armorMoveSpeedMult": 0.8600000143051147,
-        "armorRating": 12,
+        "armorFamily": "BULWARK_HEAVY",
+        "armorIncomingAccuracyMult": 0.949999988079071,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-056",
         "campaignSquad": {
           "commandGroup": {
@@ -1817,9 +1817,9 @@
           "squadId": "reinforced-squad-05",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.pulse-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -1827,13 +1827,44 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
+        "armorCapacity": 70,
         "armorClass": "power-suit",
-        "armorFamily": "RED_ELITE",
-        "armorIncomingAccuracyMult": 0.9800000190734863,
-        "armorMoveSpeedMult": 0.8600000143051147,
-        "armorRating": 12,
+        "armorFamily": "BULWARK_HEAVY",
+        "armorIncomingAccuracyMult": 0.949999988079071,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-057",
+        "campaignSquad": {
+          "commandGroup": {
+            "groupId": "nco:reinforced-squad-05",
+            "label": "Squad 05 / acting NCO",
+            "namedOfficer": false,
+            "officerId": null
+          },
+          "fireTeamIndex": 2,
+          "label": "Squad 05",
+          "leader": false,
+          "moraleRecoveryMultiplier": 1,
+          "squadId": "reinforced-squad-05",
+          "strength": 12
+        },
+        "equipmentGrade": "MILSPEC",
+        "integralSystemArmorId": null,
+        "primaryWeaponId": "weapon.pulse-rifle",
+        "soldierProfile": {
+          "aptitude": "GIFTED",
+          "experienceXp": 800
+        },
+        "specialEquipmentId": null
+      },
+      {
+        "armorCapacity": 70,
+        "armorClass": "power-suit",
+        "armorFamily": "BULWARK_HEAVY",
+        "armorIncomingAccuracyMult": 0.949999988079071,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 11,
+        "campaignSoldierId": "reinforced-marine-058",
         "campaignSquad": {
           "commandGroup": {
             "groupId": "nco:reinforced-squad-05",
@@ -1852,49 +1883,18 @@
         "integralSystemArmorId": null,
         "primaryWeaponId": "weapon.smg",
         "soldierProfile": {
-          "aptitude": "GIFTED",
+          "aptitude": "STEADY",
           "experienceXp": 800
         },
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
+        "armorCapacity": 70,
         "armorClass": "power-suit",
-        "armorFamily": "RED_ELITE",
-        "armorIncomingAccuracyMult": 0.9800000190734863,
-        "armorMoveSpeedMult": 0.8600000143051147,
-        "armorRating": 12,
-        "campaignSoldierId": "reinforced-marine-058",
-        "campaignSquad": {
-          "commandGroup": {
-            "groupId": "nco:reinforced-squad-05",
-            "label": "Squad 05 / acting NCO",
-            "namedOfficer": false,
-            "officerId": null
-          },
-          "fireTeamIndex": 2,
-          "label": "Squad 05",
-          "leader": false,
-          "moraleRecoveryMultiplier": 1,
-          "squadId": "reinforced-squad-05",
-          "strength": 12
-        },
-        "equipmentGrade": "SERVICE",
-        "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
-        "soldierProfile": {
-          "aptitude": "STEADY",
-          "experienceXp": 800
-        },
-        "specialEquipmentId": "special.rocket-launcher"
-      },
-      {
-        "armorCapacity": 60,
-        "armorClass": "power-suit",
-        "armorFamily": "RED_ELITE",
-        "armorIncomingAccuracyMult": 0.9800000190734863,
-        "armorMoveSpeedMult": 0.8600000143051147,
-        "armorRating": 12,
+        "armorFamily": "BULWARK_HEAVY",
+        "armorIncomingAccuracyMult": 0.949999988079071,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-059",
         "campaignSquad": {
           "commandGroup": {
@@ -1910,9 +1910,9 @@
           "squadId": "reinforced-squad-05",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.pulse-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -1920,11 +1920,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 50,
+        "armorCapacity": 70,
         "armorClass": "power-suit",
-        "armorFamily": "ARBALEST_HEAVY",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
+        "armorFamily": "BULWARK_HEAVY",
+        "armorIncomingAccuracyMult": 0.949999988079071,
+        "armorMoveSpeedMult": 0.8999999761581421,
         "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-060",
         "campaignSquad": {
@@ -1951,12 +1951,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 14,
-        "armorClass": "standard",
-        "armorFamily": "BLUE_SCOUT",
-        "armorIncomingAccuracyMult": 0.8999999761581421,
-        "armorMoveSpeedMult": 0.9800000190734863,
-        "armorRating": 9,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "LIONS_MANTLE",
+        "armorIncomingAccuracyMult": 1.0099999904632568,
+        "armorMoveSpeedMult": 0.8299999833106995,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-061",
         "campaignSquad": {
           "commandGroup": {
@@ -1972,22 +1972,22 @@
           "squadId": "reinforced-squad-06",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.smg",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.frag-grenade"
       },
       {
-        "armorCapacity": 9,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9599999785423279,
-        "armorMoveSpeedMult": 0.9599999785423279,
-        "armorRating": 8,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "LIONS_MANTLE",
+        "armorIncomingAccuracyMult": 1.0099999904632568,
+        "armorMoveSpeedMult": 0.8299999833106995,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-062",
         "campaignSquad": {
           "commandGroup": {
@@ -2003,22 +2003,22 @@
           "squadId": "reinforced-squad-06",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.smg",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "LIMITED",
-          "experienceXp": 350
+          "experienceXp": 800
         },
-        "specialEquipmentId": "special.satchel-charge"
+        "specialEquipmentId": "special.rocket-launcher"
       },
       {
-        "armorCapacity": 9,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9599999785423279,
-        "armorMoveSpeedMult": 0.9599999785423279,
-        "armorRating": 8,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "LIONS_MANTLE",
+        "armorIncomingAccuracyMult": 1.0099999904632568,
+        "armorMoveSpeedMult": 0.8299999833106995,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-063",
         "campaignSquad": {
           "commandGroup": {
@@ -2039,17 +2039,17 @@
         "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 350
+          "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.frag-grenade"
       },
       {
-        "armorCapacity": 6,
-        "armorClass": "standard",
-        "armorFamily": "OUTLAW",
-        "armorIncomingAccuracyMult": 1.0199999809265137,
-        "armorMoveSpeedMult": 0.9599999785423279,
-        "armorRating": 3,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "LIONS_MANTLE",
+        "armorIncomingAccuracyMult": 1.0099999904632568,
+        "armorMoveSpeedMult": 0.8299999833106995,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-064",
         "campaignSquad": {
           "commandGroup": {
@@ -2070,17 +2070,17 @@
         "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 100
+          "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.frag-grenade"
       },
       {
-        "armorCapacity": 9,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9599999785423279,
-        "armorMoveSpeedMult": 0.9599999785423279,
-        "armorRating": 8,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "LIONS_MANTLE",
+        "armorIncomingAccuracyMult": 1.0099999904632568,
+        "armorMoveSpeedMult": 0.8299999833106995,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-065",
         "campaignSquad": {
           "commandGroup": {
@@ -2101,17 +2101,17 @@
         "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "GIFTED",
-          "experienceXp": 350
+          "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.frag-grenade"
       },
       {
-        "armorCapacity": 9,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9599999785423279,
-        "armorMoveSpeedMult": 0.9599999785423279,
-        "armorRating": 8,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "LIONS_MANTLE",
+        "armorIncomingAccuracyMult": 1.0099999904632568,
+        "armorMoveSpeedMult": 0.8299999833106995,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-066",
         "campaignSquad": {
           "commandGroup": {
@@ -2127,22 +2127,22 @@
           "squadId": "reinforced-squad-06",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.smg",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 350
+          "experienceXp": 800
         },
-        "specialEquipmentId": "special.smoke-grenade"
+        "specialEquipmentId": "special.rocket-launcher"
       },
       {
-        "armorCapacity": 9,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9599999785423279,
-        "armorMoveSpeedMult": 0.9599999785423279,
-        "armorRating": 8,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "LIONS_MANTLE",
+        "armorIncomingAccuracyMult": 1.0099999904632568,
+        "armorMoveSpeedMult": 0.8299999833106995,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-067",
         "campaignSquad": {
           "commandGroup": {
@@ -2163,17 +2163,17 @@
         "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 350
+          "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.frag-grenade"
       },
       {
-        "armorCapacity": 6,
-        "armorClass": "standard",
-        "armorFamily": "MILITIA",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.9700000286102295,
-        "armorRating": 5,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "LIONS_MANTLE",
+        "armorIncomingAccuracyMult": 1.0099999904632568,
+        "armorMoveSpeedMult": 0.8299999833106995,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-068",
         "campaignSquad": {
           "commandGroup": {
@@ -2194,17 +2194,17 @@
         "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "GIFTED",
-          "experienceXp": 100
+          "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.frag-grenade"
       },
       {
-        "armorCapacity": 9,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9599999785423279,
-        "armorMoveSpeedMult": 0.9599999785423279,
-        "armorRating": 8,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "LIONS_MANTLE",
+        "armorIncomingAccuracyMult": 1.0099999904632568,
+        "armorMoveSpeedMult": 0.8299999833106995,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-069",
         "campaignSquad": {
           "commandGroup": {
@@ -2220,22 +2220,22 @@
           "squadId": "reinforced-squad-06",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.smg",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 350
+          "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.frag-grenade"
       },
       {
-        "armorCapacity": 9,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9599999785423279,
-        "armorMoveSpeedMult": 0.9599999785423279,
-        "armorRating": 8,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "LIONS_MANTLE",
+        "armorIncomingAccuracyMult": 1.0099999904632568,
+        "armorMoveSpeedMult": 0.8299999833106995,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-070",
         "campaignSquad": {
           "commandGroup": {
@@ -2256,17 +2256,17 @@
         "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "LIMITED",
-          "experienceXp": 350
+          "experienceXp": 800
         },
         "specialEquipmentId": "special.rocket-launcher"
       },
       {
-        "armorCapacity": 6,
-        "armorClass": "standard",
-        "armorFamily": "MILITIA",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.9700000286102295,
-        "armorRating": 5,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "LIONS_MANTLE",
+        "armorIncomingAccuracyMult": 1.0099999904632568,
+        "armorMoveSpeedMult": 0.8299999833106995,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-071",
         "campaignSquad": {
           "commandGroup": {
@@ -2287,17 +2287,17 @@
         "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 100
+          "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.rocket-launcher"
       },
       {
-        "armorCapacity": 6,
-        "armorClass": "standard",
-        "armorFamily": "OUTLAW",
-        "armorIncomingAccuracyMult": 1.0199999809265137,
-        "armorMoveSpeedMult": 0.9599999785423279,
-        "armorRating": 3,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "LIONS_MANTLE",
+        "armorIncomingAccuracyMult": 1.0099999904632568,
+        "armorMoveSpeedMult": 0.8299999833106995,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-072",
         "campaignSquad": {
           "commandGroup": {
@@ -2313,22 +2313,22 @@
           "squadId": "reinforced-squad-06",
           "strength": 12
         },
-        "equipmentGrade": "MASTERWORK",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.dmr",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 100
+          "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.frag-grenade"
       },
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "LIONS_MANTLE",
-        "armorIncomingAccuracyMult": 1.0099999904632568,
-        "armorMoveSpeedMult": 0.8299999833106995,
-        "armorRating": 10,
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-073",
         "campaignSquad": {
           "commandGroup": {
@@ -2346,7 +2346,7 @@
         },
         "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "primaryWeaponId": "weapon.smg",
         "soldierProfile": {
           "aptitude": "EXCEPTIONAL",
           "experienceXp": 800
@@ -2356,10 +2356,10 @@
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "LIONS_MANTLE",
-        "armorIncomingAccuracyMult": 1.0099999904632568,
-        "armorMoveSpeedMult": 0.8299999833106995,
-        "armorRating": 10,
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-074",
         "campaignSquad": {
           "commandGroup": {
@@ -2375,22 +2375,22 @@
           "squadId": "reinforced-squad-07",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.smg",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.satchel-charge"
       },
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "LIONS_MANTLE",
-        "armorIncomingAccuracyMult": 1.0099999904632568,
-        "armorMoveSpeedMult": 0.8299999833106995,
-        "armorRating": 10,
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-075",
         "campaignSquad": {
           "commandGroup": {
@@ -2406,9 +2406,9 @@
           "squadId": "reinforced-squad-07",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.squad-automatic",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -2418,10 +2418,10 @@
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "LIONS_MANTLE",
-        "armorIncomingAccuracyMult": 1.0099999904632568,
-        "armorMoveSpeedMult": 0.8299999833106995,
-        "armorRating": 10,
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-076",
         "campaignSquad": {
           "commandGroup": {
@@ -2437,9 +2437,9 @@
           "squadId": "reinforced-squad-07",
           "strength": 12
         },
-        "equipmentGrade": "MASTERWORK",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.dmr",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "GIFTED",
           "experienceXp": 800
@@ -2449,42 +2449,11 @@
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "LIONS_MANTLE",
-        "armorIncomingAccuracyMult": 1.0099999904632568,
-        "armorMoveSpeedMult": 0.8299999833106995,
-        "armorRating": 10,
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-077",
-        "campaignSquad": {
-          "commandGroup": {
-            "groupId": "nco:reinforced-squad-07",
-            "label": "Squad 07 / acting NCO",
-            "namedOfficer": false,
-            "officerId": null
-          },
-          "fireTeamIndex": 1,
-          "label": "Squad 07",
-          "leader": false,
-          "moraleRecoveryMultiplier": 1,
-          "squadId": "reinforced-squad-07",
-          "strength": 12
-        },
-        "equipmentGrade": "MILSPEC",
-        "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
-        "soldierProfile": {
-          "aptitude": "STEADY",
-          "experienceXp": 800
-        },
-        "specialEquipmentId": null
-      },
-      {
-        "armorCapacity": 60,
-        "armorClass": "power-suit",
-        "armorFamily": "LIONS_MANTLE",
-        "armorIncomingAccuracyMult": 1.0099999904632568,
-        "armorMoveSpeedMult": 0.8299999833106995,
-        "armorRating": 10,
-        "campaignSoldierId": "reinforced-marine-078",
         "campaignSquad": {
           "commandGroup": {
             "groupId": "nco:reinforced-squad-07",
@@ -2511,10 +2480,41 @@
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "LIONS_MANTLE",
-        "armorIncomingAccuracyMult": 1.0099999904632568,
-        "armorMoveSpeedMult": 0.8299999833106995,
-        "armorRating": 10,
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
+        "campaignSoldierId": "reinforced-marine-078",
+        "campaignSquad": {
+          "commandGroup": {
+            "groupId": "nco:reinforced-squad-07",
+            "label": "Squad 07 / acting NCO",
+            "namedOfficer": false,
+            "officerId": null
+          },
+          "fireTeamIndex": 1,
+          "label": "Squad 07",
+          "leader": false,
+          "moraleRecoveryMultiplier": 1,
+          "squadId": "reinforced-squad-07",
+          "strength": 12
+        },
+        "equipmentGrade": "MILSPEC",
+        "integralSystemArmorId": null,
+        "primaryWeaponId": "weapon.smg",
+        "soldierProfile": {
+          "aptitude": "STEADY",
+          "experienceXp": 800
+        },
+        "specialEquipmentId": "special.smoke-grenade"
+      },
+      {
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-079",
         "campaignSquad": {
           "commandGroup": {
@@ -2530,22 +2530,22 @@
           "squadId": "reinforced-squad-07",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "GIFTED",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.smoke-grenade"
+        "specialEquipmentId": null
       },
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "LIONS_MANTLE",
-        "armorIncomingAccuracyMult": 1.0099999904632568,
-        "armorMoveSpeedMult": 0.8299999833106995,
-        "armorRating": 10,
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-080",
         "campaignSquad": {
           "commandGroup": {
@@ -2561,9 +2561,9 @@
           "squadId": "reinforced-squad-07",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.dmr",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -2573,10 +2573,10 @@
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "LIONS_MANTLE",
-        "armorIncomingAccuracyMult": 1.0099999904632568,
-        "armorMoveSpeedMult": 0.8299999833106995,
-        "armorRating": 10,
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-081",
         "campaignSquad": {
           "commandGroup": {
@@ -2594,7 +2594,7 @@
         },
         "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "primaryWeaponId": "weapon.smg",
         "soldierProfile": {
           "aptitude": "LIMITED",
           "experienceXp": 800
@@ -2604,10 +2604,10 @@
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "LIONS_MANTLE",
-        "armorIncomingAccuracyMult": 1.0099999904632568,
-        "armorMoveSpeedMult": 0.8299999833106995,
-        "armorRating": 10,
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-082",
         "campaignSquad": {
           "commandGroup": {
@@ -2623,22 +2623,22 @@
           "squadId": "reinforced-squad-07",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.squad-automatic",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.rocket-launcher"
       },
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "LIONS_MANTLE",
-        "armorIncomingAccuracyMult": 1.0099999904632568,
-        "armorMoveSpeedMult": 0.8299999833106995,
-        "armorRating": 10,
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-083",
         "campaignSquad": {
           "commandGroup": {
@@ -2661,15 +2661,15 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.smoke-grenade"
+        "specialEquipmentId": null
       },
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "LIONS_MANTLE",
-        "armorIncomingAccuracyMult": 1.0099999904632568,
-        "armorMoveSpeedMult": 0.8299999833106995,
-        "armorRating": 10,
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-084",
         "campaignSquad": {
           "commandGroup": {
@@ -2685,7 +2685,7 @@
           "squadId": "reinforced-squad-07",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "MASTERWORK",
         "integralSystemArmorId": null,
         "primaryWeaponId": "weapon.dmr",
         "soldierProfile": {
@@ -2697,10 +2697,10 @@
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "RELIQUARY_HEAVY",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.8199999928474426,
-        "armorRating": 14,
+        "armorFamily": "RED_ELITE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.8600000143051147,
+        "armorRating": 12,
         "campaignSoldierId": "reinforced-marine-085",
         "campaignSquad": {
           "commandGroup": {
@@ -2716,9 +2716,9 @@
           "squadId": "reinforced-squad-08",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.pulse-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -2728,10 +2728,10 @@
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "RELIQUARY_HEAVY",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.8199999928474426,
-        "armorRating": 14,
+        "armorFamily": "RED_ELITE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.8600000143051147,
+        "armorRating": 12,
         "campaignSoldierId": "reinforced-marine-086",
         "campaignSquad": {
           "commandGroup": {
@@ -2749,7 +2749,7 @@
         },
         "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.squad-automatic",
+        "primaryWeaponId": "weapon.smg",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -2759,10 +2759,10 @@
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "RELIQUARY_HEAVY",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.8199999928474426,
-        "armorRating": 14,
+        "armorFamily": "RED_ELITE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.8600000143051147,
+        "armorRating": 12,
         "campaignSoldierId": "reinforced-marine-087",
         "campaignSquad": {
           "commandGroup": {
@@ -2778,9 +2778,9 @@
           "squadId": "reinforced-squad-08",
           "strength": 12
         },
-        "equipmentGrade": "MASTERWORK",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.dmr",
+        "primaryWeaponId": "weapon.pulse-rifle",
         "soldierProfile": {
           "aptitude": "GIFTED",
           "experienceXp": 800
@@ -2788,12 +2788,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
+        "armorCapacity": 50,
         "armorClass": "power-suit",
-        "armorFamily": "RELIQUARY_HEAVY",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.8199999928474426,
-        "armorRating": 14,
+        "armorFamily": "ARBALEST_HEAVY",
+        "armorIncomingAccuracyMult": 0.9900000095367432,
+        "armorMoveSpeedMult": 0.8399999737739563,
+        "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-088",
         "campaignSquad": {
           "commandGroup": {
@@ -2809,22 +2809,22 @@
           "squadId": "reinforced-squad-08",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.pulse-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": null
       },
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "RELIQUARY_HEAVY",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.8199999928474426,
-        "armorRating": 14,
+        "armorFamily": "RED_ELITE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.8600000143051147,
+        "armorRating": 12,
         "campaignSoldierId": "reinforced-marine-089",
         "campaignSquad": {
           "commandGroup": {
@@ -2840,9 +2840,9 @@
           "squadId": "reinforced-squad-08",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.pulse-rifle",
         "soldierProfile": {
           "aptitude": "LIMITED",
           "experienceXp": 800
@@ -2852,10 +2852,10 @@
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "RELIQUARY_HEAVY",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.8199999928474426,
-        "armorRating": 14,
+        "armorFamily": "RED_ELITE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.8600000143051147,
+        "armorRating": 12,
         "campaignSoldierId": "reinforced-marine-090",
         "campaignSquad": {
           "commandGroup": {
@@ -2873,20 +2873,20 @@
         },
         "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.squad-automatic",
+        "primaryWeaponId": "weapon.smg",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.frag-grenade"
       },
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "RELIQUARY_HEAVY",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.8199999928474426,
-        "armorRating": 14,
+        "armorFamily": "RED_ELITE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.8600000143051147,
+        "armorRating": 12,
         "campaignSoldierId": "reinforced-marine-091",
         "campaignSquad": {
           "commandGroup": {
@@ -2904,7 +2904,7 @@
         },
         "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.dmr",
+        "primaryWeaponId": "weapon.pulse-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -2914,10 +2914,10 @@
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "RELIQUARY_HEAVY",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.8199999928474426,
-        "armorRating": 14,
+        "armorFamily": "RED_ELITE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.8600000143051147,
+        "armorRating": 12,
         "campaignSoldierId": "reinforced-marine-092",
         "campaignSquad": {
           "commandGroup": {
@@ -2933,22 +2933,22 @@
           "squadId": "reinforced-squad-08",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.pulse-rifle",
         "soldierProfile": {
           "aptitude": "EXCEPTIONAL",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.anti-materiel-rifle"
+        "specialEquipmentId": null
       },
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "RELIQUARY_HEAVY",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.8199999928474426,
-        "armorRating": 14,
+        "armorFamily": "RED_ELITE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.8600000143051147,
+        "armorRating": 12,
         "campaignSoldierId": "reinforced-marine-093",
         "campaignSquad": {
           "commandGroup": {
@@ -2964,9 +2964,9 @@
           "squadId": "reinforced-squad-08",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.pulse-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -2976,10 +2976,10 @@
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "RELIQUARY_HEAVY",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.8199999928474426,
-        "armorRating": 14,
+        "armorFamily": "RED_ELITE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.8600000143051147,
+        "armorRating": 12,
         "campaignSoldierId": "reinforced-marine-094",
         "campaignSquad": {
           "commandGroup": {
@@ -2997,7 +2997,7 @@
         },
         "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.squad-automatic",
+        "primaryWeaponId": "weapon.smg",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -3007,10 +3007,10 @@
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "RELIQUARY_HEAVY",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.8199999928474426,
-        "armorRating": 14,
+        "armorFamily": "RED_ELITE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.8600000143051147,
+        "armorRating": 12,
         "campaignSoldierId": "reinforced-marine-095",
         "campaignSquad": {
           "commandGroup": {
@@ -3028,7 +3028,7 @@
         },
         "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.dmr",
+        "primaryWeaponId": "weapon.pulse-rifle",
         "soldierProfile": {
           "aptitude": "GIFTED",
           "experienceXp": 800
@@ -3036,12 +3036,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
+        "armorCapacity": 50,
         "armorClass": "power-suit",
-        "armorFamily": "RELIQUARY_HEAVY",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.8199999928474426,
-        "armorRating": 14,
+        "armorFamily": "ARBALEST_HEAVY",
+        "armorIncomingAccuracyMult": 0.9900000095367432,
+        "armorMoveSpeedMult": 0.8399999737739563,
+        "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-096",
         "campaignSquad": {
           "commandGroup": {
@@ -3057,22 +3057,22 @@
           "squadId": "reinforced-squad-08",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MASTERWORK",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.dmr",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": null
       },
       {
-        "armorCapacity": 85,
+        "armorCapacity": 70,
         "armorClass": "power-suit",
-        "armorFamily": "FOUNDRY_BREAKER",
-        "armorIncomingAccuracyMult": 1,
-        "armorMoveSpeedMult": 0.800000011920929,
-        "armorRating": 6,
+        "armorFamily": "BULWARK_HEAVY",
+        "armorIncomingAccuracyMult": 0.949999988079071,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-097",
         "campaignSquad": {
           "commandGroup": {
@@ -3095,15 +3095,15 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.frag-grenade"
       },
       {
-        "armorCapacity": 85,
+        "armorCapacity": 70,
         "armorClass": "power-suit",
-        "armorFamily": "FOUNDRY_BREAKER",
-        "armorIncomingAccuracyMult": 1,
-        "armorMoveSpeedMult": 0.800000011920929,
-        "armorRating": 6,
+        "armorFamily": "BULWARK_HEAVY",
+        "armorIncomingAccuracyMult": 0.949999988079071,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-098",
         "campaignSquad": {
           "commandGroup": {
@@ -3126,15 +3126,15 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.rocket-launcher"
       },
       {
-        "armorCapacity": 85,
+        "armorCapacity": 70,
         "armorClass": "power-suit",
-        "armorFamily": "FOUNDRY_BREAKER",
-        "armorIncomingAccuracyMult": 1,
-        "armorMoveSpeedMult": 0.800000011920929,
-        "armorRating": 6,
+        "armorFamily": "BULWARK_HEAVY",
+        "armorIncomingAccuracyMult": 0.949999988079071,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-099",
         "campaignSquad": {
           "commandGroup": {
@@ -3157,15 +3157,15 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.frag-grenade"
       },
       {
-        "armorCapacity": 85,
+        "armorCapacity": 70,
         "armorClass": "power-suit",
-        "armorFamily": "FOUNDRY_BREAKER",
-        "armorIncomingAccuracyMult": 1,
-        "armorMoveSpeedMult": 0.800000011920929,
-        "armorRating": 6,
+        "armorFamily": "BULWARK_HEAVY",
+        "armorIncomingAccuracyMult": 0.949999988079071,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-100",
         "campaignSquad": {
           "commandGroup": {
@@ -3188,15 +3188,15 @@
           "aptitude": "EXCEPTIONAL",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.frag-grenade"
       },
       {
-        "armorCapacity": 85,
+        "armorCapacity": 70,
         "armorClass": "power-suit",
-        "armorFamily": "FOUNDRY_BREAKER",
-        "armorIncomingAccuracyMult": 1,
-        "armorMoveSpeedMult": 0.800000011920929,
-        "armorRating": 6,
+        "armorFamily": "BULWARK_HEAVY",
+        "armorIncomingAccuracyMult": 0.949999988079071,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-101",
         "campaignSquad": {
           "commandGroup": {
@@ -3219,15 +3219,15 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.frag-grenade"
       },
       {
-        "armorCapacity": 85,
+        "armorCapacity": 70,
         "armorClass": "power-suit",
-        "armorFamily": "FOUNDRY_BREAKER",
-        "armorIncomingAccuracyMult": 1,
-        "armorMoveSpeedMult": 0.800000011920929,
-        "armorRating": 6,
+        "armorFamily": "BULWARK_HEAVY",
+        "armorIncomingAccuracyMult": 0.949999988079071,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-102",
         "campaignSquad": {
           "commandGroup": {
@@ -3250,15 +3250,15 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.rocket-launcher"
       },
       {
-        "armorCapacity": 85,
+        "armorCapacity": 70,
         "armorClass": "power-suit",
-        "armorFamily": "FOUNDRY_BREAKER",
-        "armorIncomingAccuracyMult": 1,
-        "armorMoveSpeedMult": 0.800000011920929,
-        "armorRating": 6,
+        "armorFamily": "BULWARK_HEAVY",
+        "armorIncomingAccuracyMult": 0.949999988079071,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-103",
         "campaignSquad": {
           "commandGroup": {
@@ -3281,15 +3281,15 @@
           "aptitude": "GIFTED",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.frag-grenade"
       },
       {
-        "armorCapacity": 85,
+        "armorCapacity": 70,
         "armorClass": "power-suit",
-        "armorFamily": "FOUNDRY_BREAKER",
-        "armorIncomingAccuracyMult": 1,
-        "armorMoveSpeedMult": 0.800000011920929,
-        "armorRating": 6,
+        "armorFamily": "BULWARK_HEAVY",
+        "armorIncomingAccuracyMult": 0.949999988079071,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-104",
         "campaignSquad": {
           "commandGroup": {
@@ -3312,15 +3312,15 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.frag-grenade"
       },
       {
-        "armorCapacity": 85,
+        "armorCapacity": 70,
         "armorClass": "power-suit",
-        "armorFamily": "FOUNDRY_BREAKER",
-        "armorIncomingAccuracyMult": 1,
-        "armorMoveSpeedMult": 0.800000011920929,
-        "armorRating": 6,
+        "armorFamily": "BULWARK_HEAVY",
+        "armorIncomingAccuracyMult": 0.949999988079071,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-105",
         "campaignSquad": {
           "commandGroup": {
@@ -3343,15 +3343,15 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.frag-grenade"
       },
       {
-        "armorCapacity": 85,
+        "armorCapacity": 70,
         "armorClass": "power-suit",
-        "armorFamily": "FOUNDRY_BREAKER",
-        "armorIncomingAccuracyMult": 1,
-        "armorMoveSpeedMult": 0.800000011920929,
-        "armorRating": 6,
+        "armorFamily": "BULWARK_HEAVY",
+        "armorIncomingAccuracyMult": 0.949999988079071,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-106",
         "campaignSquad": {
           "commandGroup": {
@@ -3374,15 +3374,15 @@
           "aptitude": "GIFTED",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.rocket-launcher"
       },
       {
-        "armorCapacity": 85,
+        "armorCapacity": 70,
         "armorClass": "power-suit",
-        "armorFamily": "FOUNDRY_BREAKER",
-        "armorIncomingAccuracyMult": 1,
-        "armorMoveSpeedMult": 0.800000011920929,
-        "armorRating": 6,
+        "armorFamily": "BULWARK_HEAVY",
+        "armorIncomingAccuracyMult": 0.949999988079071,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-107",
         "campaignSquad": {
           "commandGroup": {
@@ -3405,15 +3405,15 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.rocket-launcher"
       },
       {
-        "armorCapacity": 85,
+        "armorCapacity": 70,
         "armorClass": "power-suit",
-        "armorFamily": "FOUNDRY_BREAKER",
-        "armorIncomingAccuracyMult": 1,
-        "armorMoveSpeedMult": 0.800000011920929,
-        "armorRating": 6,
+        "armorFamily": "BULWARK_HEAVY",
+        "armorIncomingAccuracyMult": 0.949999988079071,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-108",
         "campaignSquad": {
           "commandGroup": {
@@ -3436,15 +3436,15 @@
           "aptitude": "LIMITED",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.frag-grenade"
       },
       {
-        "armorCapacity": 60,
-        "armorClass": "power-suit",
-        "armorFamily": "RELIQUARY_HEAVY",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.8199999928474426,
-        "armorRating": 14,
+        "armorCapacity": 14,
+        "armorClass": "standard",
+        "armorFamily": "BLUE_SCOUT",
+        "armorIncomingAccuracyMult": 0.8999999761581421,
+        "armorMoveSpeedMult": 0.9800000190734863,
+        "armorRating": 9,
         "campaignSoldierId": "reinforced-marine-109",
         "campaignSquad": {
           "commandGroup": {
@@ -3460,9 +3460,9 @@
           "squadId": "reinforced-squad-10",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -3470,12 +3470,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
-        "armorClass": "power-suit",
-        "armorFamily": "RELIQUARY_HEAVY",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.8199999928474426,
-        "armorRating": 14,
+        "armorCapacity": 9,
+        "armorClass": "standard",
+        "armorFamily": "CHARCOAL",
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.9599999785423279,
+        "armorRating": 8,
         "campaignSoldierId": "reinforced-marine-110",
         "campaignSquad": {
           "commandGroup": {
@@ -3493,20 +3493,20 @@
         },
         "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.smg",
+        "primaryWeaponId": "weapon.squad-automatic",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 800
+          "experienceXp": 350
         },
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
-        "armorClass": "power-suit",
-        "armorFamily": "RELIQUARY_HEAVY",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.8199999928474426,
-        "armorRating": 14,
+        "armorCapacity": 9,
+        "armorClass": "standard",
+        "armorFamily": "CHARCOAL",
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.9599999785423279,
+        "armorRating": 8,
         "campaignSoldierId": "reinforced-marine-111",
         "campaignSquad": {
           "commandGroup": {
@@ -3522,22 +3522,22 @@
           "squadId": "reinforced-squad-10",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "MASTERWORK",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "primaryWeaponId": "weapon.dmr",
         "soldierProfile": {
           "aptitude": "GIFTED",
-          "experienceXp": 800
+          "experienceXp": 350
         },
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
-        "armorClass": "power-suit",
-        "armorFamily": "RELIQUARY_HEAVY",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.8199999928474426,
-        "armorRating": 14,
+        "armorCapacity": 6,
+        "armorClass": "standard",
+        "armorFamily": "OUTLAW",
+        "armorIncomingAccuracyMult": 1.0199999809265137,
+        "armorMoveSpeedMult": 0.9599999785423279,
+        "armorRating": 3,
         "campaignSoldierId": "reinforced-marine-112",
         "campaignSquad": {
           "commandGroup": {
@@ -3553,22 +3553,22 @@
           "squadId": "reinforced-squad-10",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 800
+          "experienceXp": 100
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.rocket-launcher"
       },
       {
-        "armorCapacity": 60,
-        "armorClass": "power-suit",
-        "armorFamily": "RELIQUARY_HEAVY",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.8199999928474426,
-        "armorRating": 14,
+        "armorCapacity": 9,
+        "armorClass": "standard",
+        "armorFamily": "CHARCOAL",
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.9599999785423279,
+        "armorRating": 8,
         "campaignSoldierId": "reinforced-marine-113",
         "campaignSquad": {
           "commandGroup": {
@@ -3584,22 +3584,22 @@
           "squadId": "reinforced-squad-10",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 800
+          "experienceXp": 350
         },
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
-        "armorClass": "power-suit",
-        "armorFamily": "RELIQUARY_HEAVY",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.8199999928474426,
-        "armorRating": 14,
+        "armorCapacity": 9,
+        "armorClass": "standard",
+        "armorFamily": "CHARCOAL",
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.9599999785423279,
+        "armorRating": 8,
         "campaignSoldierId": "reinforced-marine-114",
         "campaignSquad": {
           "commandGroup": {
@@ -3617,20 +3617,20 @@
         },
         "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.smg",
+        "primaryWeaponId": "weapon.squad-automatic",
         "soldierProfile": {
           "aptitude": "GIFTED",
-          "experienceXp": 800
+          "experienceXp": 350
         },
-        "specialEquipmentId": "special.frag-grenade"
+        "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
-        "armorClass": "power-suit",
-        "armorFamily": "RELIQUARY_HEAVY",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.8199999928474426,
-        "armorRating": 14,
+        "armorCapacity": 9,
+        "armorClass": "standard",
+        "armorFamily": "CHARCOAL",
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.9599999785423279,
+        "armorRating": 8,
         "campaignSoldierId": "reinforced-marine-115",
         "campaignSquad": {
           "commandGroup": {
@@ -3648,20 +3648,20 @@
         },
         "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "primaryWeaponId": "weapon.dmr",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 800
+          "experienceXp": 350
         },
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
-        "armorClass": "power-suit",
-        "armorFamily": "RELIQUARY_HEAVY",
+        "armorCapacity": 6,
+        "armorClass": "standard",
+        "armorFamily": "MILITIA",
         "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.8199999928474426,
-        "armorRating": 14,
+        "armorMoveSpeedMult": 0.9700000286102295,
+        "armorRating": 5,
         "campaignSoldierId": "reinforced-marine-116",
         "campaignSquad": {
           "commandGroup": {
@@ -3677,22 +3677,22 @@
           "squadId": "reinforced-squad-10",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "LIMITED",
-          "experienceXp": 800
+          "experienceXp": 100
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.anti-materiel-rifle"
       },
       {
-        "armorCapacity": 60,
-        "armorClass": "power-suit",
-        "armorFamily": "RELIQUARY_HEAVY",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.8199999928474426,
-        "armorRating": 14,
+        "armorCapacity": 9,
+        "armorClass": "standard",
+        "armorFamily": "CHARCOAL",
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.9599999785423279,
+        "armorRating": 8,
         "campaignSoldierId": "reinforced-marine-117",
         "campaignSquad": {
           "commandGroup": {
@@ -3708,22 +3708,22 @@
           "squadId": "reinforced-squad-10",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 800
+          "experienceXp": 350
         },
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
-        "armorClass": "power-suit",
-        "armorFamily": "RELIQUARY_HEAVY",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.8199999928474426,
-        "armorRating": 14,
+        "armorCapacity": 9,
+        "armorClass": "standard",
+        "armorFamily": "CHARCOAL",
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.9599999785423279,
+        "armorRating": 8,
         "campaignSoldierId": "reinforced-marine-118",
         "campaignSquad": {
           "commandGroup": {
@@ -3741,20 +3741,20 @@
         },
         "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.smg",
+        "primaryWeaponId": "weapon.squad-automatic",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 800
+          "experienceXp": 350
         },
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
-        "armorClass": "power-suit",
-        "armorFamily": "RELIQUARY_HEAVY",
+        "armorCapacity": 6,
+        "armorClass": "standard",
+        "armorFamily": "MILITIA",
         "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.8199999928474426,
-        "armorRating": 14,
+        "armorMoveSpeedMult": 0.9700000286102295,
+        "armorRating": 5,
         "campaignSoldierId": "reinforced-marine-119",
         "campaignSquad": {
           "commandGroup": {
@@ -3772,20 +3772,20 @@
         },
         "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "primaryWeaponId": "weapon.dmr",
         "soldierProfile": {
           "aptitude": "EXCEPTIONAL",
-          "experienceXp": 800
+          "experienceXp": 100
         },
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
-        "armorClass": "power-suit",
-        "armorFamily": "RELIQUARY_HEAVY",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.8199999928474426,
-        "armorRating": 14,
+        "armorCapacity": 6,
+        "armorClass": "standard",
+        "armorFamily": "OUTLAW",
+        "armorIncomingAccuracyMult": 1.0199999809265137,
+        "armorMoveSpeedMult": 0.9599999785423279,
+        "armorRating": 3,
         "campaignSoldierId": "reinforced-marine-120",
         "campaignSquad": {
           "commandGroup": {
@@ -3801,22 +3801,22 @@
           "squadId": "reinforced-squad-10",
           "strength": 12
         },
-        "equipmentGrade": "MASTERWORK",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.dmr",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 800
+          "experienceXp": 100
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.rocket-launcher"
       },
       {
-        "armorCapacity": 55,
+        "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "SPECTER_HEAVY",
-        "armorIncomingAccuracyMult": 0.8999999761581421,
-        "armorMoveSpeedMult": 0.9399999976158142,
-        "armorRating": 10,
+        "armorFamily": "RED_ELITE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.8600000143051147,
+        "armorRating": 12,
         "campaignSoldierId": "reinforced-marine-121",
         "campaignSquad": {
           "commandGroup": {
@@ -3842,12 +3842,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 55,
+        "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "SPECTER_HEAVY",
-        "armorIncomingAccuracyMult": 0.8999999761581421,
-        "armorMoveSpeedMult": 0.9399999976158142,
-        "armorRating": 10,
+        "armorFamily": "RED_ELITE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.8600000143051147,
+        "armorRating": 12,
         "campaignSoldierId": "reinforced-marine-122",
         "campaignSquad": {
           "commandGroup": {
@@ -3873,12 +3873,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 55,
+        "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "SPECTER_HEAVY",
-        "armorIncomingAccuracyMult": 0.8999999761581421,
-        "armorMoveSpeedMult": 0.9399999976158142,
-        "armorRating": 10,
+        "armorFamily": "RED_ELITE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.8600000143051147,
+        "armorRating": 12,
         "campaignSoldierId": "reinforced-marine-123",
         "campaignSquad": {
           "commandGroup": {
@@ -3904,12 +3904,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 55,
+        "armorCapacity": 50,
         "armorClass": "power-suit",
-        "armorFamily": "SPECTER_HEAVY",
-        "armorIncomingAccuracyMult": 0.8999999761581421,
-        "armorMoveSpeedMult": 0.9399999976158142,
-        "armorRating": 10,
+        "armorFamily": "ARBALEST_HEAVY",
+        "armorIncomingAccuracyMult": 0.9900000095367432,
+        "armorMoveSpeedMult": 0.8399999737739563,
+        "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-124",
         "campaignSquad": {
           "commandGroup": {
@@ -3935,12 +3935,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 55,
+        "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "SPECTER_HEAVY",
-        "armorIncomingAccuracyMult": 0.8999999761581421,
-        "armorMoveSpeedMult": 0.9399999976158142,
-        "armorRating": 10,
+        "armorFamily": "RED_ELITE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.8600000143051147,
+        "armorRating": 12,
         "campaignSoldierId": "reinforced-marine-125",
         "campaignSquad": {
           "commandGroup": {
@@ -3966,12 +3966,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 55,
+        "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "SPECTER_HEAVY",
-        "armorIncomingAccuracyMult": 0.8999999761581421,
-        "armorMoveSpeedMult": 0.9399999976158142,
-        "armorRating": 10,
+        "armorFamily": "RED_ELITE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.8600000143051147,
+        "armorRating": 12,
         "campaignSoldierId": "reinforced-marine-126",
         "campaignSquad": {
           "commandGroup": {
@@ -3997,12 +3997,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 55,
+        "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "SPECTER_HEAVY",
-        "armorIncomingAccuracyMult": 0.8999999761581421,
-        "armorMoveSpeedMult": 0.9399999976158142,
-        "armorRating": 10,
+        "armorFamily": "RED_ELITE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.8600000143051147,
+        "armorRating": 12,
         "campaignSoldierId": "reinforced-marine-127",
         "campaignSquad": {
           "commandGroup": {
@@ -4028,12 +4028,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 55,
+        "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "SPECTER_HEAVY",
-        "armorIncomingAccuracyMult": 0.8999999761581421,
-        "armorMoveSpeedMult": 0.9399999976158142,
-        "armorRating": 10,
+        "armorFamily": "RED_ELITE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.8600000143051147,
+        "armorRating": 12,
         "campaignSoldierId": "reinforced-marine-128",
         "campaignSquad": {
           "commandGroup": {
@@ -4059,12 +4059,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 55,
+        "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "SPECTER_HEAVY",
-        "armorIncomingAccuracyMult": 0.8999999761581421,
-        "armorMoveSpeedMult": 0.9399999976158142,
-        "armorRating": 10,
+        "armorFamily": "RED_ELITE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.8600000143051147,
+        "armorRating": 12,
         "campaignSoldierId": "reinforced-marine-129",
         "campaignSquad": {
           "commandGroup": {
@@ -4090,12 +4090,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 55,
+        "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "SPECTER_HEAVY",
-        "armorIncomingAccuracyMult": 0.8999999761581421,
-        "armorMoveSpeedMult": 0.9399999976158142,
-        "armorRating": 10,
+        "armorFamily": "RED_ELITE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.8600000143051147,
+        "armorRating": 12,
         "campaignSoldierId": "reinforced-marine-130",
         "campaignSquad": {
           "commandGroup": {
@@ -4121,12 +4121,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 55,
+        "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "SPECTER_HEAVY",
-        "armorIncomingAccuracyMult": 0.8999999761581421,
-        "armorMoveSpeedMult": 0.9399999976158142,
-        "armorRating": 10,
+        "armorFamily": "RED_ELITE",
+        "armorIncomingAccuracyMult": 0.9800000190734863,
+        "armorMoveSpeedMult": 0.8600000143051147,
+        "armorRating": 12,
         "campaignSoldierId": "reinforced-marine-131",
         "campaignSquad": {
           "commandGroup": {
@@ -4152,12 +4152,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 55,
+        "armorCapacity": 50,
         "armorClass": "power-suit",
-        "armorFamily": "SPECTER_HEAVY",
-        "armorIncomingAccuracyMult": 0.8999999761581421,
-        "armorMoveSpeedMult": 0.9399999976158142,
-        "armorRating": 10,
+        "armorFamily": "ARBALEST_HEAVY",
+        "armorIncomingAccuracyMult": 0.9900000095367432,
+        "armorMoveSpeedMult": 0.8399999737739563,
+        "armorRating": 11,
         "campaignSoldierId": "reinforced-marine-132",
         "campaignSquad": {
           "commandGroup": {
@@ -4183,12 +4183,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 8,
-        "armorClass": "standard",
-        "armorFamily": "BLUE_SCOUT",
-        "armorIncomingAccuracyMult": 0.9300000071525574,
-        "armorMoveSpeedMult": 1.0099999904632568,
-        "armorRating": 6,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "LIONS_MANTLE",
+        "armorIncomingAccuracyMult": 1.0099999904632568,
+        "armorMoveSpeedMult": 0.8299999833106995,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-133",
         "campaignSquad": {
           "commandGroup": {
@@ -4209,17 +4209,17 @@
         "primaryWeaponId": "weapon.pulse-rifle",
         "soldierProfile": {
           "aptitude": "GIFTED",
-          "experienceXp": 350
+          "experienceXp": 800
         },
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 22,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.7799999713897705,
-        "armorRating": 13,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "LIONS_MANTLE",
+        "armorIncomingAccuracyMult": 1.0099999904632568,
+        "armorMoveSpeedMult": 0.8299999833106995,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-134",
         "campaignSquad": {
           "commandGroup": {
@@ -4245,12 +4245,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 22,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.7799999713897705,
-        "armorRating": 13,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "LIONS_MANTLE",
+        "armorIncomingAccuracyMult": 1.0099999904632568,
+        "armorMoveSpeedMult": 0.8299999833106995,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-135",
         "campaignSquad": {
           "commandGroup": {
@@ -4276,11 +4276,11 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 15,
-        "armorClass": "standard",
-        "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9599999785423279,
-        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "LIONS_MANTLE",
+        "armorIncomingAccuracyMult": 1.0099999904632568,
+        "armorMoveSpeedMult": 0.8299999833106995,
         "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-136",
         "campaignSquad": {
@@ -4307,12 +4307,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 22,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.7799999713897705,
-        "armorRating": 13,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "LIONS_MANTLE",
+        "armorIncomingAccuracyMult": 1.0099999904632568,
+        "armorMoveSpeedMult": 0.8299999833106995,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-137",
         "campaignSquad": {
           "commandGroup": {
@@ -4338,12 +4338,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 22,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.7799999713897705,
-        "armorRating": 13,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "LIONS_MANTLE",
+        "armorIncomingAccuracyMult": 1.0099999904632568,
+        "armorMoveSpeedMult": 0.8299999833106995,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-138",
         "campaignSquad": {
           "commandGroup": {
@@ -4369,12 +4369,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 22,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.7799999713897705,
-        "armorRating": 13,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "LIONS_MANTLE",
+        "armorIncomingAccuracyMult": 1.0099999904632568,
+        "armorMoveSpeedMult": 0.8299999833106995,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-139",
         "campaignSquad": {
           "commandGroup": {
@@ -4400,12 +4400,12 @@
         "specialEquipmentId": "special.smoke-grenade"
       },
       {
-        "armorCapacity": 6,
-        "armorClass": "standard",
-        "armorFamily": "MILITIA",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.9700000286102295,
-        "armorRating": 5,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "LIONS_MANTLE",
+        "armorIncomingAccuracyMult": 1.0099999904632568,
+        "armorMoveSpeedMult": 0.8299999833106995,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-140",
         "campaignSquad": {
           "commandGroup": {
@@ -4426,17 +4426,17 @@
         "primaryWeaponId": "weapon.dmr",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 100
+          "experienceXp": 800
         },
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 22,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.7799999713897705,
-        "armorRating": 13,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "LIONS_MANTLE",
+        "armorIncomingAccuracyMult": 1.0099999904632568,
+        "armorMoveSpeedMult": 0.8299999833106995,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-141",
         "campaignSquad": {
           "commandGroup": {
@@ -4462,12 +4462,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 22,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.7799999713897705,
-        "armorRating": 13,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "LIONS_MANTLE",
+        "armorIncomingAccuracyMult": 1.0099999904632568,
+        "armorMoveSpeedMult": 0.8299999833106995,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-142",
         "campaignSquad": {
           "commandGroup": {
@@ -4493,12 +4493,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 6,
-        "armorClass": "standard",
-        "armorFamily": "MILITIA",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.9700000286102295,
-        "armorRating": 5,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "LIONS_MANTLE",
+        "armorIncomingAccuracyMult": 1.0099999904632568,
+        "armorMoveSpeedMult": 0.8299999833106995,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-143",
         "campaignSquad": {
           "commandGroup": {
@@ -4519,16 +4519,16 @@
         "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "LIMITED",
-          "experienceXp": 100
+          "experienceXp": 800
         },
         "specialEquipmentId": "special.smoke-grenade"
       },
       {
-        "armorCapacity": 15,
-        "armorClass": "standard",
-        "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9599999785423279,
-        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "LIONS_MANTLE",
+        "armorIncomingAccuracyMult": 1.0099999904632568,
+        "armorMoveSpeedMult": 0.8299999833106995,
         "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-144",
         "campaignSquad": {
@@ -4557,10 +4557,10 @@
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "LIONS_MANTLE",
-        "armorIncomingAccuracyMult": 1.0099999904632568,
-        "armorMoveSpeedMult": 0.8299999833106995,
-        "armorRating": 10,
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-145",
         "campaignSquad": {
           "commandGroup": {
@@ -4588,10 +4588,10 @@
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "LIONS_MANTLE",
-        "armorIncomingAccuracyMult": 1.0099999904632568,
-        "armorMoveSpeedMult": 0.8299999833106995,
-        "armorRating": 10,
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-146",
         "campaignSquad": {
           "commandGroup": {
@@ -4619,10 +4619,10 @@
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "LIONS_MANTLE",
-        "armorIncomingAccuracyMult": 1.0099999904632568,
-        "armorMoveSpeedMult": 0.8299999833106995,
-        "armorRating": 10,
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-147",
         "campaignSquad": {
           "commandGroup": {
@@ -4650,10 +4650,10 @@
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "LIONS_MANTLE",
-        "armorIncomingAccuracyMult": 1.0099999904632568,
-        "armorMoveSpeedMult": 0.8299999833106995,
-        "armorRating": 10,
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-148",
         "campaignSquad": {
           "commandGroup": {
@@ -4681,10 +4681,10 @@
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "LIONS_MANTLE",
-        "armorIncomingAccuracyMult": 1.0099999904632568,
-        "armorMoveSpeedMult": 0.8299999833106995,
-        "armorRating": 10,
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-149",
         "campaignSquad": {
           "commandGroup": {
@@ -4712,10 +4712,10 @@
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "LIONS_MANTLE",
-        "armorIncomingAccuracyMult": 1.0099999904632568,
-        "armorMoveSpeedMult": 0.8299999833106995,
-        "armorRating": 10,
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-150",
         "campaignSquad": {
           "commandGroup": {
@@ -4743,10 +4743,10 @@
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "LIONS_MANTLE",
-        "armorIncomingAccuracyMult": 1.0099999904632568,
-        "armorMoveSpeedMult": 0.8299999833106995,
-        "armorRating": 10,
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-151",
         "campaignSquad": {
           "commandGroup": {
@@ -4774,10 +4774,10 @@
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "LIONS_MANTLE",
-        "armorIncomingAccuracyMult": 1.0099999904632568,
-        "armorMoveSpeedMult": 0.8299999833106995,
-        "armorRating": 10,
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-152",
         "campaignSquad": {
           "commandGroup": {
@@ -4805,10 +4805,10 @@
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "LIONS_MANTLE",
-        "armorIncomingAccuracyMult": 1.0099999904632568,
-        "armorMoveSpeedMult": 0.8299999833106995,
-        "armorRating": 10,
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-153",
         "campaignSquad": {
           "commandGroup": {
@@ -4836,10 +4836,10 @@
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "LIONS_MANTLE",
-        "armorIncomingAccuracyMult": 1.0099999904632568,
-        "armorMoveSpeedMult": 0.8299999833106995,
-        "armorRating": 10,
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-154",
         "campaignSquad": {
           "commandGroup": {
@@ -4867,10 +4867,10 @@
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "LIONS_MANTLE",
-        "armorIncomingAccuracyMult": 1.0099999904632568,
-        "armorMoveSpeedMult": 0.8299999833106995,
-        "armorRating": 10,
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-155",
         "campaignSquad": {
           "commandGroup": {
@@ -4898,10 +4898,10 @@
       {
         "armorCapacity": 60,
         "armorClass": "power-suit",
-        "armorFamily": "LIONS_MANTLE",
-        "armorIncomingAccuracyMult": 1.0099999904632568,
-        "armorMoveSpeedMult": 0.8299999833106995,
-        "armorRating": 10,
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-156",
         "campaignSquad": {
           "commandGroup": {
@@ -4927,12 +4927,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
+        "armorCapacity": 55,
         "armorClass": "power-suit",
-        "armorFamily": "RED_ELITE",
-        "armorIncomingAccuracyMult": 0.9800000190734863,
-        "armorMoveSpeedMult": 0.8600000143051147,
-        "armorRating": 12,
+        "armorFamily": "SPECTER_HEAVY",
+        "armorIncomingAccuracyMult": 0.8999999761581421,
+        "armorMoveSpeedMult": 0.9399999976158142,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-157",
         "campaignSquad": {
           "commandGroup": {
@@ -4950,7 +4950,7 @@
         },
         "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.smg",
+        "primaryWeaponId": "weapon.pulse-rifle",
         "soldierProfile": {
           "aptitude": "GIFTED",
           "experienceXp": 800
@@ -4958,12 +4958,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
+        "armorCapacity": 55,
         "armorClass": "power-suit",
-        "armorFamily": "RED_ELITE",
-        "armorIncomingAccuracyMult": 0.9800000190734863,
-        "armorMoveSpeedMult": 0.8600000143051147,
-        "armorRating": 12,
+        "armorFamily": "SPECTER_HEAVY",
+        "armorIncomingAccuracyMult": 0.8999999761581421,
+        "armorMoveSpeedMult": 0.9399999976158142,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-158",
         "campaignSquad": {
           "commandGroup": {
@@ -4979,22 +4979,22 @@
           "squadId": "reinforced-squad-14",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.smg",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.satchel-charge"
+        "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
+        "armorCapacity": 55,
         "armorClass": "power-suit",
-        "armorFamily": "RED_ELITE",
-        "armorIncomingAccuracyMult": 0.9800000190734863,
-        "armorMoveSpeedMult": 0.8600000143051147,
-        "armorRating": 12,
+        "armorFamily": "SPECTER_HEAVY",
+        "armorIncomingAccuracyMult": 0.8999999761581421,
+        "armorMoveSpeedMult": 0.9399999976158142,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-159",
         "campaignSquad": {
           "commandGroup": {
@@ -5010,9 +5010,9 @@
           "squadId": "reinforced-squad-14",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.squad-automatic",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -5020,12 +5020,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 50,
+        "armorCapacity": 55,
         "armorClass": "power-suit",
-        "armorFamily": "ARBALEST_HEAVY",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorFamily": "SPECTER_HEAVY",
+        "armorIncomingAccuracyMult": 0.8999999761581421,
+        "armorMoveSpeedMult": 0.9399999976158142,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-160",
         "campaignSquad": {
           "commandGroup": {
@@ -5041,9 +5041,9 @@
           "squadId": "reinforced-squad-14",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MASTERWORK",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.dmr",
         "soldierProfile": {
           "aptitude": "GIFTED",
           "experienceXp": 800
@@ -5051,44 +5051,13 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
+        "armorCapacity": 55,
         "armorClass": "power-suit",
-        "armorFamily": "RED_ELITE",
-        "armorIncomingAccuracyMult": 0.9800000190734863,
-        "armorMoveSpeedMult": 0.8600000143051147,
-        "armorRating": 12,
+        "armorFamily": "SPECTER_HEAVY",
+        "armorIncomingAccuracyMult": 0.8999999761581421,
+        "armorMoveSpeedMult": 0.9399999976158142,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-161",
-        "campaignSquad": {
-          "commandGroup": {
-            "groupId": "nco:reinforced-squad-14",
-            "label": "Squad 14 / acting NCO",
-            "namedOfficer": false,
-            "officerId": null
-          },
-          "fireTeamIndex": 1,
-          "label": "Squad 14",
-          "leader": false,
-          "moraleRecoveryMultiplier": 1,
-          "squadId": "reinforced-squad-14",
-          "strength": 12
-        },
-        "equipmentGrade": "SERVICE",
-        "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
-        "soldierProfile": {
-          "aptitude": "STEADY",
-          "experienceXp": 800
-        },
-        "specialEquipmentId": null
-      },
-      {
-        "armorCapacity": 60,
-        "armorClass": "power-suit",
-        "armorFamily": "RED_ELITE",
-        "armorIncomingAccuracyMult": 0.9800000190734863,
-        "armorMoveSpeedMult": 0.8600000143051147,
-        "armorRating": 12,
-        "campaignSoldierId": "reinforced-marine-162",
         "campaignSquad": {
           "commandGroup": {
             "groupId": "nco:reinforced-squad-14",
@@ -5105,20 +5074,51 @@
         },
         "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.smg",
+        "primaryWeaponId": "weapon.pulse-rifle",
+        "soldierProfile": {
+          "aptitude": "STEADY",
+          "experienceXp": 800
+        },
+        "specialEquipmentId": null
+      },
+      {
+        "armorCapacity": 55,
+        "armorClass": "power-suit",
+        "armorFamily": "SPECTER_HEAVY",
+        "armorIncomingAccuracyMult": 0.8999999761581421,
+        "armorMoveSpeedMult": 0.9399999976158142,
+        "armorRating": 10,
+        "campaignSoldierId": "reinforced-marine-162",
+        "campaignSquad": {
+          "commandGroup": {
+            "groupId": "nco:reinforced-squad-14",
+            "label": "Squad 14 / acting NCO",
+            "namedOfficer": false,
+            "officerId": null
+          },
+          "fireTeamIndex": 1,
+          "label": "Squad 14",
+          "leader": false,
+          "moraleRecoveryMultiplier": 1,
+          "squadId": "reinforced-squad-14",
+          "strength": 12
+        },
+        "equipmentGrade": "SERVICE",
+        "integralSystemArmorId": null,
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "LIMITED",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.smoke-grenade"
+        "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
+        "armorCapacity": 55,
         "armorClass": "power-suit",
-        "armorFamily": "RED_ELITE",
-        "armorIncomingAccuracyMult": 0.9800000190734863,
-        "armorMoveSpeedMult": 0.8600000143051147,
-        "armorRating": 12,
+        "armorFamily": "SPECTER_HEAVY",
+        "armorIncomingAccuracyMult": 0.8999999761581421,
+        "armorMoveSpeedMult": 0.9399999976158142,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-163",
         "campaignSquad": {
           "commandGroup": {
@@ -5134,22 +5134,22 @@
           "squadId": "reinforced-squad-14",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.pulse-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.smoke-grenade"
       },
       {
-        "armorCapacity": 60,
+        "armorCapacity": 55,
         "armorClass": "power-suit",
-        "armorFamily": "RED_ELITE",
-        "armorIncomingAccuracyMult": 0.9800000190734863,
-        "armorMoveSpeedMult": 0.8600000143051147,
-        "armorRating": 12,
+        "armorFamily": "SPECTER_HEAVY",
+        "armorIncomingAccuracyMult": 0.8999999761581421,
+        "armorMoveSpeedMult": 0.9399999976158142,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-164",
         "campaignSquad": {
           "commandGroup": {
@@ -5165,9 +5165,9 @@
           "squadId": "reinforced-squad-14",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.dmr",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
@@ -5175,12 +5175,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
+        "armorCapacity": 55,
         "armorClass": "power-suit",
-        "armorFamily": "RED_ELITE",
-        "armorIncomingAccuracyMult": 0.9800000190734863,
-        "armorMoveSpeedMult": 0.8600000143051147,
-        "armorRating": 12,
+        "armorFamily": "SPECTER_HEAVY",
+        "armorIncomingAccuracyMult": 0.8999999761581421,
+        "armorMoveSpeedMult": 0.9399999976158142,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-165",
         "campaignSquad": {
           "commandGroup": {
@@ -5198,7 +5198,7 @@
         },
         "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.smg",
+        "primaryWeaponId": "weapon.pulse-rifle",
         "soldierProfile": {
           "aptitude": "GIFTED",
           "experienceXp": 800
@@ -5206,12 +5206,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
+        "armorCapacity": 55,
         "armorClass": "power-suit",
-        "armorFamily": "RED_ELITE",
-        "armorIncomingAccuracyMult": 0.9800000190734863,
-        "armorMoveSpeedMult": 0.8600000143051147,
-        "armorRating": 12,
+        "armorFamily": "SPECTER_HEAVY",
+        "armorIncomingAccuracyMult": 0.8999999761581421,
+        "armorMoveSpeedMult": 0.9399999976158142,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-166",
         "campaignSquad": {
           "commandGroup": {
@@ -5227,22 +5227,22 @@
           "squadId": "reinforced-squad-14",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.squad-automatic",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": null
       },
       {
-        "armorCapacity": 60,
+        "armorCapacity": 55,
         "armorClass": "power-suit",
-        "armorFamily": "RED_ELITE",
-        "armorIncomingAccuracyMult": 0.9800000190734863,
-        "armorMoveSpeedMult": 0.8600000143051147,
-        "armorRating": 12,
+        "armorFamily": "SPECTER_HEAVY",
+        "armorIncomingAccuracyMult": 0.8999999761581421,
+        "armorMoveSpeedMult": 0.9399999976158142,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-167",
         "campaignSquad": {
           "commandGroup": {
@@ -5265,15 +5265,15 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.smoke-grenade"
       },
       {
-        "armorCapacity": 50,
+        "armorCapacity": 55,
         "armorClass": "power-suit",
-        "armorFamily": "ARBALEST_HEAVY",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.8399999737739563,
-        "armorRating": 11,
+        "armorFamily": "SPECTER_HEAVY",
+        "armorIncomingAccuracyMult": 0.8999999761581421,
+        "armorMoveSpeedMult": 0.9399999976158142,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-168",
         "campaignSquad": {
           "commandGroup": {
@@ -5289,7 +5289,7 @@
           "squadId": "reinforced-squad-14",
           "strength": 12
         },
-        "equipmentGrade": "MASTERWORK",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
         "primaryWeaponId": "weapon.dmr",
         "soldierProfile": {
@@ -5299,12 +5299,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 70,
-        "armorClass": "power-suit",
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
+        "armorCapacity": 8,
+        "armorClass": "standard",
+        "armorFamily": "BLUE_SCOUT",
+        "armorIncomingAccuracyMult": 0.9300000071525574,
+        "armorMoveSpeedMult": 1.0099999904632568,
+        "armorRating": 6,
         "campaignSoldierId": "reinforced-marine-169",
         "campaignSquad": {
           "commandGroup": {
@@ -5325,17 +5325,17 @@
         "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 800
+          "experienceXp": 350
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.frag-grenade"
       },
       {
-        "armorCapacity": 70,
-        "armorClass": "power-suit",
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
+        "armorCapacity": 22,
+        "armorClass": "standard",
+        "armorFamily": "CHARCOAL",
+        "armorIncomingAccuracyMult": 0.9900000095367432,
+        "armorMoveSpeedMult": 0.7799999713897705,
+        "armorRating": 13,
         "campaignSoldierId": "reinforced-marine-170",
         "campaignSquad": {
           "commandGroup": {
@@ -5351,22 +5351,22 @@
           "squadId": "reinforced-squad-15",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.squad-automatic",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "LIMITED",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.rocket-launcher"
       },
       {
-        "armorCapacity": 70,
-        "armorClass": "power-suit",
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
+        "armorCapacity": 22,
+        "armorClass": "standard",
+        "armorFamily": "CHARCOAL",
+        "armorIncomingAccuracyMult": 0.9900000095367432,
+        "armorMoveSpeedMult": 0.7799999713897705,
+        "armorRating": 13,
         "campaignSoldierId": "reinforced-marine-171",
         "campaignSquad": {
           "commandGroup": {
@@ -5382,22 +5382,22 @@
           "squadId": "reinforced-squad-15",
           "strength": 12
         },
-        "equipmentGrade": "MASTERWORK",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.dmr",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.frag-grenade"
       },
       {
-        "armorCapacity": 70,
-        "armorClass": "power-suit",
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
+        "armorCapacity": 15,
+        "armorClass": "standard",
+        "armorFamily": "ARMY_GREEN",
+        "armorIncomingAccuracyMult": 0.9599999785423279,
         "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
+        "armorRating": 10,
         "campaignSoldierId": "reinforced-marine-172",
         "campaignSquad": {
           "commandGroup": {
@@ -5420,15 +5420,15 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.frag-grenade"
       },
       {
-        "armorCapacity": 70,
-        "armorClass": "power-suit",
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
+        "armorCapacity": 22,
+        "armorClass": "standard",
+        "armorFamily": "CHARCOAL",
+        "armorIncomingAccuracyMult": 0.9900000095367432,
+        "armorMoveSpeedMult": 0.7799999713897705,
+        "armorRating": 13,
         "campaignSoldierId": "reinforced-marine-173",
         "campaignSquad": {
           "commandGroup": {
@@ -5451,15 +5451,15 @@
           "aptitude": "EXCEPTIONAL",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.frag-grenade"
       },
       {
-        "armorCapacity": 70,
-        "armorClass": "power-suit",
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
+        "armorCapacity": 22,
+        "armorClass": "standard",
+        "armorFamily": "CHARCOAL",
+        "armorIncomingAccuracyMult": 0.9900000095367432,
+        "armorMoveSpeedMult": 0.7799999713897705,
+        "armorRating": 13,
         "campaignSoldierId": "reinforced-marine-174",
         "campaignSquad": {
           "commandGroup": {
@@ -5475,22 +5475,22 @@
           "squadId": "reinforced-squad-15",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.squad-automatic",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.rocket-launcher"
       },
       {
-        "armorCapacity": 70,
-        "armorClass": "power-suit",
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
+        "armorCapacity": 22,
+        "armorClass": "standard",
+        "armorFamily": "CHARCOAL",
+        "armorIncomingAccuracyMult": 0.9900000095367432,
+        "armorMoveSpeedMult": 0.7799999713897705,
+        "armorRating": 13,
         "campaignSoldierId": "reinforced-marine-175",
         "campaignSquad": {
           "commandGroup": {
@@ -5506,22 +5506,22 @@
           "squadId": "reinforced-squad-15",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.dmr",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.frag-grenade"
       },
       {
-        "armorCapacity": 70,
-        "armorClass": "power-suit",
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
+        "armorCapacity": 6,
+        "armorClass": "standard",
+        "armorFamily": "MILITIA",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.9700000286102295,
+        "armorRating": 5,
         "campaignSoldierId": "reinforced-marine-176",
         "campaignSquad": {
           "commandGroup": {
@@ -5542,17 +5542,17 @@
         "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "GIFTED",
-          "experienceXp": 800
+          "experienceXp": 100
         },
-        "specialEquipmentId": "special.anti-materiel-rifle"
+        "specialEquipmentId": "special.frag-grenade"
       },
       {
-        "armorCapacity": 70,
-        "armorClass": "power-suit",
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
+        "armorCapacity": 22,
+        "armorClass": "standard",
+        "armorFamily": "CHARCOAL",
+        "armorIncomingAccuracyMult": 0.9900000095367432,
+        "armorMoveSpeedMult": 0.7799999713897705,
+        "armorRating": 13,
         "campaignSoldierId": "reinforced-marine-177",
         "campaignSquad": {
           "commandGroup": {
@@ -5575,78 +5575,16 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.frag-grenade"
       },
       {
-        "armorCapacity": 70,
-        "armorClass": "power-suit",
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
+        "armorCapacity": 22,
+        "armorClass": "standard",
+        "armorFamily": "CHARCOAL",
+        "armorIncomingAccuracyMult": 0.9900000095367432,
+        "armorMoveSpeedMult": 0.7799999713897705,
+        "armorRating": 13,
         "campaignSoldierId": "reinforced-marine-178",
-        "campaignSquad": {
-          "commandGroup": {
-            "groupId": "nco:reinforced-squad-15",
-            "label": "Squad 15 / acting NCO",
-            "namedOfficer": false,
-            "officerId": null
-          },
-          "fireTeamIndex": 2,
-          "label": "Squad 15",
-          "leader": false,
-          "moraleRecoveryMultiplier": 1,
-          "squadId": "reinforced-squad-15",
-          "strength": 12
-        },
-        "equipmentGrade": "MILSPEC",
-        "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.squad-automatic",
-        "soldierProfile": {
-          "aptitude": "STEADY",
-          "experienceXp": 800
-        },
-        "specialEquipmentId": null
-      },
-      {
-        "armorCapacity": 70,
-        "armorClass": "power-suit",
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
-        "campaignSoldierId": "reinforced-marine-179",
-        "campaignSquad": {
-          "commandGroup": {
-            "groupId": "nco:reinforced-squad-15",
-            "label": "Squad 15 / acting NCO",
-            "namedOfficer": false,
-            "officerId": null
-          },
-          "fireTeamIndex": 2,
-          "label": "Squad 15",
-          "leader": false,
-          "moraleRecoveryMultiplier": 1,
-          "squadId": "reinforced-squad-15",
-          "strength": 12
-        },
-        "equipmentGrade": "MILSPEC",
-        "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.dmr",
-        "soldierProfile": {
-          "aptitude": "GIFTED",
-          "experienceXp": 800
-        },
-        "specialEquipmentId": null
-      },
-      {
-        "armorCapacity": 70,
-        "armorClass": "power-suit",
-        "armorFamily": "BULWARK_HEAVY",
-        "armorIncomingAccuracyMult": 0.949999988079071,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 11,
-        "campaignSoldierId": "reinforced-marine-180",
         "campaignSquad": {
           "commandGroup": {
             "groupId": "nco:reinforced-squad-15",
@@ -5671,12 +5609,74 @@
         "specialEquipmentId": "special.rocket-launcher"
       },
       {
-        "armorCapacity": 14,
+        "armorCapacity": 6,
         "armorClass": "standard",
-        "armorFamily": "BLUE_SCOUT",
-        "armorIncomingAccuracyMult": 0.8999999761581421,
-        "armorMoveSpeedMult": 0.9800000190734863,
-        "armorRating": 9,
+        "armorFamily": "MILITIA",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.9700000286102295,
+        "armorRating": 5,
+        "campaignSoldierId": "reinforced-marine-179",
+        "campaignSquad": {
+          "commandGroup": {
+            "groupId": "nco:reinforced-squad-15",
+            "label": "Squad 15 / acting NCO",
+            "namedOfficer": false,
+            "officerId": null
+          },
+          "fireTeamIndex": 2,
+          "label": "Squad 15",
+          "leader": false,
+          "moraleRecoveryMultiplier": 1,
+          "squadId": "reinforced-squad-15",
+          "strength": 12
+        },
+        "equipmentGrade": "SERVICE",
+        "integralSystemArmorId": null,
+        "primaryWeaponId": "weapon.field-rifle",
+        "soldierProfile": {
+          "aptitude": "GIFTED",
+          "experienceXp": 100
+        },
+        "specialEquipmentId": "special.rocket-launcher"
+      },
+      {
+        "armorCapacity": 15,
+        "armorClass": "standard",
+        "armorFamily": "ARMY_GREEN",
+        "armorIncomingAccuracyMult": 0.9599999785423279,
+        "armorMoveSpeedMult": 0.8999999761581421,
+        "armorRating": 10,
+        "campaignSoldierId": "reinforced-marine-180",
+        "campaignSquad": {
+          "commandGroup": {
+            "groupId": "nco:reinforced-squad-15",
+            "label": "Squad 15 / acting NCO",
+            "namedOfficer": false,
+            "officerId": null
+          },
+          "fireTeamIndex": 2,
+          "label": "Squad 15",
+          "leader": false,
+          "moraleRecoveryMultiplier": 1,
+          "squadId": "reinforced-squad-15",
+          "strength": 12
+        },
+        "equipmentGrade": "SERVICE",
+        "integralSystemArmorId": null,
+        "primaryWeaponId": "weapon.field-rifle",
+        "soldierProfile": {
+          "aptitude": "STEADY",
+          "experienceXp": 800
+        },
+        "specialEquipmentId": "special.frag-grenade"
+      },
+      {
+        "armorCapacity": 85,
+        "armorClass": "power-suit",
+        "armorFamily": "FOUNDRY_BREAKER",
+        "armorIncomingAccuracyMult": 1,
+        "armorMoveSpeedMult": 0.800000011920929,
+        "armorRating": 6,
         "campaignSoldierId": "reinforced-marine-181",
         "campaignSquad": {
           "commandGroup": {
@@ -5694,7 +5694,7 @@
         },
         "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "primaryWeaponId": "weapon.smg",
         "soldierProfile": {
           "aptitude": "LIMITED",
           "experienceXp": 800
@@ -5702,12 +5702,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 9,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9599999785423279,
-        "armorMoveSpeedMult": 0.9599999785423279,
-        "armorRating": 8,
+        "armorCapacity": 85,
+        "armorClass": "power-suit",
+        "armorFamily": "FOUNDRY_BREAKER",
+        "armorIncomingAccuracyMult": 1,
+        "armorMoveSpeedMult": 0.800000011920929,
+        "armorRating": 6,
         "campaignSoldierId": "reinforced-marine-182",
         "campaignSquad": {
           "commandGroup": {
@@ -5723,22 +5723,22 @@
           "squadId": "reinforced-squad-16",
           "strength": 12
         },
-        "equipmentGrade": "SERVICE",
+        "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.field-rifle",
+        "primaryWeaponId": "weapon.smg",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 350
+          "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.satchel-charge"
       },
       {
-        "armorCapacity": 9,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9599999785423279,
-        "armorMoveSpeedMult": 0.9599999785423279,
-        "armorRating": 8,
+        "armorCapacity": 85,
+        "armorClass": "power-suit",
+        "armorFamily": "FOUNDRY_BREAKER",
+        "armorIncomingAccuracyMult": 1,
+        "armorMoveSpeedMult": 0.800000011920929,
+        "armorRating": 6,
         "campaignSoldierId": "reinforced-marine-183",
         "campaignSquad": {
           "commandGroup": {
@@ -5754,22 +5754,22 @@
           "squadId": "reinforced-squad-16",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.squad-automatic",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 350
+          "experienceXp": 800
         },
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 6,
-        "armorClass": "standard",
-        "armorFamily": "OUTLAW",
-        "armorIncomingAccuracyMult": 1.0199999809265137,
-        "armorMoveSpeedMult": 0.9599999785423279,
-        "armorRating": 3,
+        "armorCapacity": 85,
+        "armorClass": "power-suit",
+        "armorFamily": "FOUNDRY_BREAKER",
+        "armorIncomingAccuracyMult": 1,
+        "armorMoveSpeedMult": 0.800000011920929,
+        "armorRating": 6,
         "campaignSoldierId": "reinforced-marine-184",
         "campaignSquad": {
           "commandGroup": {
@@ -5785,54 +5785,23 @@
           "squadId": "reinforced-squad-16",
           "strength": 12
         },
-        "equipmentGrade": "MASTERWORK",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.dmr",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "GIFTED",
-          "experienceXp": 100
+          "experienceXp": 800
         },
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 9,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9599999785423279,
-        "armorMoveSpeedMult": 0.9599999785423279,
-        "armorRating": 8,
+        "armorCapacity": 85,
+        "armorClass": "power-suit",
+        "armorFamily": "FOUNDRY_BREAKER",
+        "armorIncomingAccuracyMult": 1,
+        "armorMoveSpeedMult": 0.800000011920929,
+        "armorRating": 6,
         "campaignSoldierId": "reinforced-marine-185",
-        "campaignSquad": {
-          "commandGroup": {
-            "groupId": "nco:reinforced-squad-16",
-            "label": "Squad 16 / acting NCO",
-            "namedOfficer": false,
-            "officerId": null
-          },
-          "fireTeamIndex": 1,
-          "label": "Squad 16",
-          "leader": false,
-          "moraleRecoveryMultiplier": 1,
-          "squadId": "reinforced-squad-16",
-          "strength": 12
-        },
-        "equipmentGrade": "MILSPEC",
-        "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
-        "soldierProfile": {
-          "aptitude": "STEADY",
-          "experienceXp": 350
-        },
-        "specialEquipmentId": null
-      },
-      {
-        "armorCapacity": 9,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9599999785423279,
-        "armorMoveSpeedMult": 0.9599999785423279,
-        "armorRating": 8,
-        "campaignSoldierId": "reinforced-marine-186",
         "campaignSquad": {
           "commandGroup": {
             "groupId": "nco:reinforced-squad-16",
@@ -5852,17 +5821,48 @@
         "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 350
+          "experienceXp": 800
         },
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 9,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9599999785423279,
-        "armorMoveSpeedMult": 0.9599999785423279,
-        "armorRating": 8,
+        "armorCapacity": 85,
+        "armorClass": "power-suit",
+        "armorFamily": "FOUNDRY_BREAKER",
+        "armorIncomingAccuracyMult": 1,
+        "armorMoveSpeedMult": 0.800000011920929,
+        "armorRating": 6,
+        "campaignSoldierId": "reinforced-marine-186",
+        "campaignSquad": {
+          "commandGroup": {
+            "groupId": "nco:reinforced-squad-16",
+            "label": "Squad 16 / acting NCO",
+            "namedOfficer": false,
+            "officerId": null
+          },
+          "fireTeamIndex": 1,
+          "label": "Squad 16",
+          "leader": false,
+          "moraleRecoveryMultiplier": 1,
+          "squadId": "reinforced-squad-16",
+          "strength": 12
+        },
+        "equipmentGrade": "MILSPEC",
+        "integralSystemArmorId": null,
+        "primaryWeaponId": "weapon.smg",
+        "soldierProfile": {
+          "aptitude": "STEADY",
+          "experienceXp": 800
+        },
+        "specialEquipmentId": "special.smoke-grenade"
+      },
+      {
+        "armorCapacity": 85,
+        "armorClass": "power-suit",
+        "armorFamily": "FOUNDRY_BREAKER",
+        "armorIncomingAccuracyMult": 1,
+        "armorMoveSpeedMult": 0.800000011920929,
+        "armorRating": 6,
         "campaignSoldierId": "reinforced-marine-187",
         "campaignSquad": {
           "commandGroup": {
@@ -5878,22 +5878,22 @@
           "squadId": "reinforced-squad-16",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "GIFTED",
-          "experienceXp": 350
+          "experienceXp": 800
         },
-        "specialEquipmentId": "special.smoke-grenade"
+        "specialEquipmentId": null
       },
       {
-        "armorCapacity": 6,
-        "armorClass": "standard",
-        "armorFamily": "MILITIA",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.9700000286102295,
-        "armorRating": 5,
+        "armorCapacity": 85,
+        "armorClass": "power-suit",
+        "armorFamily": "FOUNDRY_BREAKER",
+        "armorIncomingAccuracyMult": 1,
+        "armorMoveSpeedMult": 0.800000011920929,
+        "armorRating": 6,
         "campaignSoldierId": "reinforced-marine-188",
         "campaignSquad": {
           "commandGroup": {
@@ -5909,22 +5909,22 @@
           "squadId": "reinforced-squad-16",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.dmr",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 100
+          "experienceXp": 800
         },
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 9,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9599999785423279,
-        "armorMoveSpeedMult": 0.9599999785423279,
-        "armorRating": 8,
+        "armorCapacity": 85,
+        "armorClass": "power-suit",
+        "armorFamily": "FOUNDRY_BREAKER",
+        "armorIncomingAccuracyMult": 1,
+        "armorMoveSpeedMult": 0.800000011920929,
+        "armorRating": 6,
         "campaignSoldierId": "reinforced-marine-189",
         "campaignSquad": {
           "commandGroup": {
@@ -5942,20 +5942,20 @@
         },
         "equipmentGrade": "MILSPEC",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.pulse-rifle",
+        "primaryWeaponId": "weapon.smg",
         "soldierProfile": {
           "aptitude": "LIMITED",
-          "experienceXp": 350
+          "experienceXp": 800
         },
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 9,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9599999785423279,
-        "armorMoveSpeedMult": 0.9599999785423279,
-        "armorRating": 8,
+        "armorCapacity": 85,
+        "armorClass": "power-suit",
+        "armorFamily": "FOUNDRY_BREAKER",
+        "armorIncomingAccuracyMult": 1,
+        "armorMoveSpeedMult": 0.800000011920929,
+        "armorRating": 6,
         "campaignSoldierId": "reinforced-marine-190",
         "campaignSquad": {
           "commandGroup": {
@@ -5971,22 +5971,22 @@
           "squadId": "reinforced-squad-16",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "SERVICE",
         "integralSystemArmorId": null,
-        "primaryWeaponId": "weapon.squad-automatic",
+        "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 350
+          "experienceXp": 800
         },
-        "specialEquipmentId": null
+        "specialEquipmentId": "special.rocket-launcher"
       },
       {
-        "armorCapacity": 6,
-        "armorClass": "standard",
-        "armorFamily": "MILITIA",
-        "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.9700000286102295,
-        "armorRating": 5,
+        "armorCapacity": 85,
+        "armorClass": "power-suit",
+        "armorFamily": "FOUNDRY_BREAKER",
+        "armorIncomingAccuracyMult": 1,
+        "armorMoveSpeedMult": 0.800000011920929,
+        "armorRating": 6,
         "campaignSoldierId": "reinforced-marine-191",
         "campaignSquad": {
           "commandGroup": {
@@ -6007,17 +6007,17 @@
         "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 100
+          "experienceXp": 800
         },
-        "specialEquipmentId": "special.smoke-grenade"
+        "specialEquipmentId": null
       },
       {
-        "armorCapacity": 6,
-        "armorClass": "standard",
-        "armorFamily": "OUTLAW",
-        "armorIncomingAccuracyMult": 1.0199999809265137,
-        "armorMoveSpeedMult": 0.9599999785423279,
-        "armorRating": 3,
+        "armorCapacity": 85,
+        "armorClass": "power-suit",
+        "armorFamily": "FOUNDRY_BREAKER",
+        "armorIncomingAccuracyMult": 1,
+        "armorMoveSpeedMult": 0.800000011920929,
+        "armorRating": 6,
         "campaignSoldierId": "reinforced-marine-192",
         "campaignSquad": {
           "commandGroup": {
@@ -6033,22 +6033,22 @@
           "squadId": "reinforced-squad-16",
           "strength": 12
         },
-        "equipmentGrade": "MILSPEC",
+        "equipmentGrade": "MASTERWORK",
         "integralSystemArmorId": null,
         "primaryWeaponId": "weapon.dmr",
         "soldierProfile": {
           "aptitude": "EXCEPTIONAL",
-          "experienceXp": 100
+          "experienceXp": 800
         },
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 8,
-        "armorClass": "standard",
-        "armorFamily": "BLUE_SCOUT",
-        "armorIncomingAccuracyMult": 0.9300000071525574,
-        "armorMoveSpeedMult": 1.0099999904632568,
-        "armorRating": 6,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-193",
         "campaignSquad": {
           "commandGroup": {
@@ -6069,17 +6069,17 @@
         "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "STEADY",
-          "experienceXp": 350
+          "experienceXp": 800
         },
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 22,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.7799999713897705,
-        "armorRating": 13,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-194",
         "campaignSquad": {
           "commandGroup": {
@@ -6105,12 +6105,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 22,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.7799999713897705,
-        "armorRating": 13,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-195",
         "campaignSquad": {
           "commandGroup": {
@@ -6136,12 +6136,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 15,
-        "armorClass": "standard",
-        "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9599999785423279,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 10,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-196",
         "campaignSquad": {
           "commandGroup": {
@@ -6167,12 +6167,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 22,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.7799999713897705,
-        "armorRating": 13,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-197",
         "campaignSquad": {
           "commandGroup": {
@@ -6198,12 +6198,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 22,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.7799999713897705,
-        "armorRating": 13,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-198",
         "campaignSquad": {
           "commandGroup": {
@@ -6229,12 +6229,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 22,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.7799999713897705,
-        "armorRating": 13,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-199",
         "campaignSquad": {
           "commandGroup": {
@@ -6260,12 +6260,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 6,
-        "armorClass": "standard",
-        "armorFamily": "MILITIA",
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "RELIQUARY_HEAVY",
         "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.9700000286102295,
-        "armorRating": 5,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-200",
         "campaignSquad": {
           "commandGroup": {
@@ -6286,17 +6286,17 @@
         "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "EXCEPTIONAL",
-          "experienceXp": 100
+          "experienceXp": 800
         },
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 22,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.7799999713897705,
-        "armorRating": 13,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-201",
         "campaignSquad": {
           "commandGroup": {
@@ -6322,12 +6322,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 22,
-        "armorClass": "standard",
-        "armorFamily": "CHARCOAL",
-        "armorIncomingAccuracyMult": 0.9900000095367432,
-        "armorMoveSpeedMult": 0.7799999713897705,
-        "armorRating": 13,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-202",
         "campaignSquad": {
           "commandGroup": {
@@ -6353,12 +6353,12 @@
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 6,
-        "armorClass": "standard",
-        "armorFamily": "MILITIA",
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "RELIQUARY_HEAVY",
         "armorIncomingAccuracyMult": 0.9700000286102295,
-        "armorMoveSpeedMult": 0.9700000286102295,
-        "armorRating": 5,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-203",
         "campaignSquad": {
           "commandGroup": {
@@ -6379,17 +6379,17 @@
         "primaryWeaponId": "weapon.field-rifle",
         "soldierProfile": {
           "aptitude": "GIFTED",
-          "experienceXp": 100
+          "experienceXp": 800
         },
         "specialEquipmentId": null
       },
       {
-        "armorCapacity": 15,
-        "armorClass": "standard",
-        "armorFamily": "ARMY_GREEN",
-        "armorIncomingAccuracyMult": 0.9599999785423279,
-        "armorMoveSpeedMult": 0.8999999761581421,
-        "armorRating": 10,
+        "armorCapacity": 60,
+        "armorClass": "power-suit",
+        "armorFamily": "RELIQUARY_HEAVY",
+        "armorIncomingAccuracyMult": 0.9700000286102295,
+        "armorMoveSpeedMult": 0.8199999928474426,
+        "armorRating": 14,
         "campaignSoldierId": "reinforced-marine-204",
         "campaignSquad": {
           "commandGroup": {

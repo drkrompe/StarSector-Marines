@@ -43,6 +43,7 @@ import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.fort.FortKind;
 import com.dillon.starsectormarines.battle.world.gen.FortSitingPolicy;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
+import com.dillon.starsectormarines.battle.world.gen.MarketGarrison;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -960,7 +961,28 @@ public final class BattleFixtureJson {
             }
             encoded.put("declaredSupportKit", sides);
         }
+        if (!profile.garrison().isNone()) {
+            JSONObject garrison = new JSONObject();
+            garrison.put("strength", profile.garrison().strength());
+            garrison.put("quality", profile.garrison().quality());
+            garrison.put("heavy", profile.garrison().heavy());
+            garrison.put("readiness", profile.garrison().readiness());
+            if (profile.garrison().whole()) garrison.put("whole", true);
+            encoded.put("garrison", garrison);
+        }
         return encoded;
+    }
+
+    /** The garrison estimate a fixture recorded; a fixture that predates the estimate, or names none, has none. */
+    private static MarketGarrison garrison(JSONObject encoded) throws Exception {
+        JSONObject garrison = encoded.optJSONObject("garrison");
+        if (garrison == null) return MarketGarrison.NONE;
+        return new MarketGarrison(
+                (float) garrison.getDouble("strength"),
+                (float) garrison.getDouble("quality"),
+                (float) garrison.getDouble("heavy"),
+                (float) garrison.optDouble("readiness", 1d),
+                garrison.optBoolean("whole", false));
     }
 
     private static TargetProfile targetProfileFromJson(
@@ -1010,7 +1032,8 @@ public final class BattleFixtureJson {
                 declaredMechDrops(encoded), declaredAirPool(encoded), declaredSupportKit(encoded),
                 encoded.has("declaredAssault")
                         ? enumValue(AssaultStyle.class, encoded.getString("declaredAssault"), "assault style")
-                        : AssaultStyle.MUSTER);
+                        : AssaultStyle.MUSTER,
+                garrison(encoded));
     }
 
     /** The support kits a fixture declares; a fixture that predates kits, or names none, declares none. */

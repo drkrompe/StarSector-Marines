@@ -270,9 +270,9 @@
       "mount": "turret-mount",
       "catalog": { "displayName": "@gearCatalogWeaponFieldMortarDisplayName", "modelName": "@gearCatalogWeaponFieldMortarModelName", "designation": "MTR", "designationTiered": false },
       "sim": {
-        "_comment": "UNTUNED first pass. Range outreaches a wall nest (24 cells) and a rifle (22); the minimum range is the tube's dead zone, so a team rushed inside it must pack up or fight with the rifles it carries.",
-        "range": 52.0, "minRange": 14.0, "damage": 64.0, "accuracy": 0.62, "cooldown": 4.0, "penetration": 16.0,
-        "hitSpread": 1.7, "roundVelocity": 34.0, "aoeRadius": 1.9, "wallDamage": 40, "wallDamageRadius": 1.6,
+        "_comment": "Tuned 2026-10-15 with loadoutMatchup. At first pass (64 dmg / 1.9 aoe / 1.7 spread / 14 rounds) one tube decided every trench and building fight it could reach. Now a round that lands kills armored men in a burst of 1.4 cells, but the wide hitSpread scatters it several cells at range, so it punishes men bunched on an approach far more than it picks off a dispersed line, and six rounds give an attack a costly chance rather than a sure thing. It does not open an emplacement on its own. Range outreaches a wall nest (24 cells) and a rifle (22); the minimum range is the tube's dead zone, so a team rushed inside it must pack up or fight with the rifles it carries.",
+        "range": 52.0, "minRange": 14.0, "damage": 48, "accuracy": 0.62, "cooldown": 4.0, "penetration": 16.0,
+        "hitSpread": 5, "roundVelocity": 34.0, "aoeRadius": 1.4, "wallDamage": 40, "wallDamageRadius": 1.6,
         "flightSec": 1.5, "arcHeight": 5.5, "interceptableProjectile": true, "pointDefenseTarget": true,
         "indirectFire": true, "noLosAccuracyMult": 0.55, "noiseMagnitude": 1.4
       },

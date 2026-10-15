@@ -233,7 +233,12 @@ Do not run builds or leave generated task files there.
   both dispatch windows and replaces it with a move afterward), or `unarmedFinal` (diagnostic empty escort
   magazines on the final leg), or `silentTankFinal` (only the heavy lead
   loses its cannon ammunition). Reports include exit-gun destruction ticks and actual escort shots, damage, kills
-  and remaining durability. `companySize` selects named personnel (default 24).
+  and remaining durability, vehicle repulsion pushes, and the column driver's
+  reroutes, wreck/parked-hull swerves, station waits and hauler sprints.
+  `companySize` selects named personnel (default 24). `-PsnapshotEveryTicks=N`
+  records `review.gif` (whole map every N ticks) and `convoy-run.gif` (a stepped
+  follow camera on the column through the final run) per fixture; both are
+  full-frame GIFs and large.
   Reports separate living militia from their assembled field guns. Default
   observation is 27000 ticks.
   Replays run **side by side by default**, on half the machine's processors —
@@ -693,8 +698,17 @@ Do not run builds or leave generated task files there.
   starter armor) and every sheet (with starter weapons) against the starter issue, once
   attacking and once defending, at `-Pseeds=3` seeds; starter-vs-starter is the control row
   every other row is read against, because the ground favours one side. `-Pattacker=` /
-  `-Pdefender=` (`weapons:x+armor:y`) replace the ladder with one explicit matchup,
-  `-Pscenarios=open-field,trench` selects ground, `-Pparallelism=N` sets fights run side by
+  `-Pdefender=` (`weapons:x+armor:y`) replace the ladder with an explicit matchup;
+  several sides separated by `;` fight every pairing. Either half may be an uncarded
+  experiment, for trying an issue before authoring it: `kit:field-rifle@surplus,rocket-launcher*2,frag-grenade*6`
+  (every seat the primary at that grade, the listed specials on the first seats in order) and
+  `mix:cordon-shell*10,packframe*2` (armor patterns adding up to twelve); the `weapon.`,
+  `special.` and `armor.` prefixes may be left off. `-PfireMission=true` gives the attackers'
+  order a fire mission on the ground the defenders start on, as a commander does for a squad
+  carrying crew-served tubes; without one a marching squad never halts to set a field mortar
+  down, so a tube on the attack is idle against a trench or building. `runs.csv` reports each
+  side's specials used and its mortars' set-ups, rounds, damage and kills (a tube is its own
+  entity, so its fire is not in the squad's figures). `-Pscenarios=open-field,trench` selects ground, `-Pparallelism=N` sets fights run side by
   side (default half the processors; 1 is the serial control). The sim seed changes every hit
   and morale roll and nothing else. A fight ends when a side is wiped out, when both stand
   with no damage for 1,200 ticks (`STALEMATE`) or at the tick limit; neither is a draw, so
@@ -704,10 +718,11 @@ Do not run builds or leave generated task files there.
   construction with a detached kit, not a campaign roster, and not balance acceptance.
   `-Pgifs=true` records each fight's first `-PgifSeeds=1` seeds as a 1920x1080 GIF under
   `gifs/<scenario>/` (linked from the Replay column of `matchups.md` and `runs.csv`); it is on
-  by default for an explicit `-Pattacker`/`-Pdefender` matchup and off for the ladder, where it
+  by default for up to four explicit `-Pattacker`/`-Pdefender` pairings and off otherwise, where it
   would write a gigabyte. A recording only reads the sim: sparse frames until the first damage,
-  dense after it, shots and impacts drawn, a camera that follows the main body of the fight
-  (a routed straggler is left out of the framing), capped at 360 frames. A scenario's walls have
+  dense after it, shots and impacts drawn, a camera that follows the attackers' main body until
+  the first damage and both sides' after it (a routed straggler is left out of the framing, so a
+  standoff fight frames both places), capped at 360 frames. A scenario's walls have
   no art, so a scenario overrides `annotations()` to box what it built. Rendering takes turns
   across the side-by-side fights and costs about 20-30s a recording.
   A new scenario implements `MatchupScenario` and joins `MatchupScenarios.all()`.
@@ -1233,6 +1248,7 @@ The discovered suite ids and default output directories are:
 | `squad-medic` | Eight armored marines with a Field Medicine officer marching under an attack move, four of them hurt, then firing on a target past the objective that fires back. Three loops at 1920x1080, 100% scale: planted, keep-moving, and a no-medic control, through the production unit and marker renderers — the medic's cross badge, the kneel over an open kit, and dressing mist and sealant flecks at the patient — with diagnostic MEDIC/PATIENT labels on top. Verdicts and readings are `sceneEvidence`'s; stills at the opening treatments and the arrival | `build/snapshots/squad-medic/` |
 | `barracks-medic` | The Barracks command board at 1920x1080, 100% scale, with the selected officer trained in Field Medicine: each of their squad cards marks its medic billet with a green plate, beside the amber wound mark and the NCO chevron | `build/snapshots/barracks-medic/` |
 | `officer-dossier` | The officer dossier untrained and trained, and Castle's induction from introduction through the specialty lesson to a ready company, at 1920x1080 and 150%. The single specialty tree (one root, a branch per specialty) untrained and trained, a hovered rank's sheet, and the lesson's highlight over the whole tree | `build/snapshots/officer-dossier/` |
+| `small-arms-wear` | Eight field rifles against four rooted defenders for two minutes at 1920x1080, 100% scale: a crate row shot away, a sandbag line worn more slowly, a windowed masonry wall that rifle fire does not mark, and the same wall opened by scripted anti-materiel rounds. The acceptance for rounds wearing the cover they stop in; stills at the start, middle and end of each loop | `build/snapshots/small-arms-wear/` |
 
 Run all suites with `gradlew.bat createSnapshots`. Use
 `-Psnapshot=<id>` for one suite or a comma-separated selector for several; quote
