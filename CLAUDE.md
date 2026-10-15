@@ -709,7 +709,8 @@ Do not run builds or leave generated task files there.
   carrying crew-served tubes; without one a marching squad never halts to set a field mortar
   down, so a tube on the attack is idle against a trench or building. `runs.csv` reports each
   side's specials used and its mortars' set-ups, rounds, damage and kills (a tube is its own
-  entity, so its fire is not in the squad's figures). `-Pscenarios=open-field,trench` selects ground, `-Pparallelism=N` sets fights run side by
+  entity, so its fire is not in the squad's figures) and the hostile rounds its point defence engaged
+  and stopped. `-Pscenarios=open-field,trench` selects ground, `-Pparallelism=N` sets fights run side by
   side (default half the processors; 1 is the serial control). The sim seed changes every hit
   and morale roll and nothing else. A fight ends when a side is wiped out, when both stand
   with no damage for 1,200 ticks (`STALEMATE`) or at the tick limit; neither is a draw, so
