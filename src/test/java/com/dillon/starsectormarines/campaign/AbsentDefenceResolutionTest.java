@@ -41,8 +41,12 @@ class AbsentDefenceResolutionTest {
         assertEquals(Status.GARRISONED, fixture.captain.status());
     }
 
+    /**
+     * An overrun fails the assignment, but its survivors do not walk home: they go to
+     * ground, still bound to the contract, until the company collects them.
+     */
     @Test
-    void aSuccessfulRaidOverrunsTheGarrisonAndFailsTheAssignment() {
+    void aSuccessfulRaidOverrunsTheGarrisonAndStrandsItsSurvivors() {
         Fixture fixture = new Fixture();
         fixture.state.contractDefenseAttackerStrength[0] = 900f;
 
@@ -52,11 +56,19 @@ class AbsentDefenceResolutionTest {
         assertEquals(Outcome.OVERRUN, outcome);
         assertEquals(ContractState.FAILED,
                 ContractState.fromByte(fixture.state.contractState[0]));
-        assertEquals(0, fixture.state.contractMarinesCommitted[0]);
-        assertEquals(-1, fixture.state.contractCaptainId[0]);
-        assertFalse(fixture.squad.stationed());
-        assertEquals(Status.ACTIVE, fixture.captain.status());
+        assertTrue(StrandedDetachment.isStranded(fixture.state, 0));
+        assertEquals(DAY + StrandedDetachment.RECOVERY_DAYS,
+                fixture.state.contractStrandedUntilTick[0]);
+        assertTrue(fixture.squad.stationed());
+        assertEquals(fixture.roster.stationedLivingCount(fixture.contractId),
+                fixture.state.contractMarinesCommitted[0]);
+        assertTrue(fixture.state.contractCaptainId[0] >= 0);
+        assertEquals(Status.GARRISONED, fixture.captain.status());
         assertEquals(1, fixture.state.repContractsFailed[fixture.state.repIndex(1L)]);
+        // Real copy or bare keys, depending on whether a catalog is installed.
+        String account = fixture.state.chronicleAccount[0];
+        assertTrue(account.contains("defenceReportGoneToGround")
+                || account.contains("gone to ground"), account);
     }
 
     @Test
@@ -157,7 +169,7 @@ class AbsentDefenceResolutionTest {
         state.contractDefenseAttackerStrength[0] = attackerStrength;
     }
 
-    private static final class Fixture {
+    static final class Fixture {
         final CampaignState state = new CampaignState();
         final MarineRoster roster = new MarineRoster();
         final MarineCaptain captain =
