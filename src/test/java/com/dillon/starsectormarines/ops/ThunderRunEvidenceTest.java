@@ -228,7 +228,7 @@ class ThunderRunEvidenceTest {
                     }
                     for (var shot : sim.getShotsThisFrame())
                         if (shot.weaponDef() != null && "weapon.scrap-rocket".equals(shot.weaponDef().id)) openingRocketShots++;
-                    if (rearStart < 0 && sim.getStoryBeats().stream().anyMatch(e -> e.id().endsWith("road_batch_17"))) {
+                    if (rearStart < 0 && sim.getStoryBeats().stream().anyMatch(e -> e.id().endsWith("road_batch_" + ThunderRunPacing.FIRST_REAR_BATCH))) {
                         rearStart = tick;
                         for (long gun : measuredGuns) rearGunRounds.put(gun, sim.telemetry().roundsFired(gun));
                     }
@@ -386,7 +386,11 @@ class ThunderRunEvidenceTest {
                         .put("kestrelLaunched", sim.getWaylineGunship().launched()).put("kestrelLost", sim.getWaylineGunship().lost())
                         .put("kestrelEncounter", kestrelEncounter)
                         .put("airWrecks", sim.getAirfieldService().groundWrecks().size())
-                        .put("beats",beats).put("escorts",escortReports).put("firstFinalShot",firstFinalShot);
+                        .put("beats",beats).put("escorts",escortReports).put("firstFinalShot",firstFinalShot)
+                        .put("vehiclePushes", sim.vehicleRepulsion().pushes())
+                        .put("driving", new JSONObject().put("reroutes", column.drivingCounters()[0])
+                                .put("swerves", column.drivingCounters()[1]).put("stationWaitTicks", column.drivingCounters()[2])
+                                .put("haulerSprints", column.drivingCounters()[3]));
                 if(column.outcome()!=null) {
                     int paid=route.settle(mission.id,sim.getWinner()==Faction.MARINE,null,column.outcome());
                     assertTrue(paid>=0); assertEquals(-1,route.settle(mission.id,sim.getWinner()==Faction.MARINE,null,column.outcome()));
@@ -400,7 +404,9 @@ class ThunderRunEvidenceTest {
                 }
                 Files.writeString(dir.resolve("summary.json"),report.toString(2)); reports.put(report);
                 Files.writeString(output.resolve("summary.json"),reports.toString(2));
-                System.out.println("[thunder-run] "+name+" "+report.getString("result")+" tick="+sim.getSimTickIndex()+" phase="+column.phase());
+                System.out.println("[thunder-run] "+name+" "+report.getString("result")+" tick="+sim.getSimTickIndex()+" phase="+column.phase()
+                        +" delivered="+column.deliveredCount()+" lost="+column.lostCount()+" marines="+count(sim,Faction.MARINE)
+                        +" pushes="+sim.vehicleRepulsion().pushes()+" driving="+report.getJSONObject("driving"));
             }
         }
     }
