@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — A fort's bunker radar is an operator for its holder's pool (no marine radio needed) and the director designates only what an operator sees; Cover fighters fly a tail chase (Talon patrol, slot behind the prey, anti-air they know of breaks the chase); Air support pool: bomb, strafe and fighter cover with air-to-air guns, per-errand ledger; HUD plate; comms operators; fort AA makes a strike costly.
+Updated: 2026-10-15 — Replacement battle artwork preserves native hull geometry; appearance-only nozzle registration follows the reconstructed art.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -98,6 +98,12 @@ present, who owns it, and what it can do in the battle.
 altitude. It is not a second physics body. Visual scale, offset, and engine
 intensity are derived from that state and the body, keeping the simulation and
 the rendered craft anchored to the same actor.
+
+Replacement battle artwork is registered to the original hull frame. Texture
+resolution does not change the aircraft's physical size, centre of gravity or
+weapon locations. When reconstructed art places an engine nozzle differently,
+its appearance may offset the visible plume in that same hull frame; engine
+geometry for flight and thrust demand stays authoritative and unchanged.
 
 A craft's drawn size is `AirAppearance.GROUND_SCALE` on the ground rising to
 `GROUND_SCALE × ALTITUDE_SCALE_GAIN` at altitude — the gain is factored out as

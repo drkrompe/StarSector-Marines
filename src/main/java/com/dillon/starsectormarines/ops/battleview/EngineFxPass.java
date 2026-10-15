@@ -26,7 +26,8 @@ public record EngineFxPass(Airframe frame, float worldX, float worldY, float fac
 
     /** Draws the plumes through the given sprites rather than the pass's own. */
     public void draw(SpriteAPI glow, SpriteAPI flame) {
-        EngineFxRenderer.draw(EngineSlotResolver.resolve(frame), worldX, worldY, facingDegrees, scaleMult,
+        EngineFxRenderer.draw(frame.engineVisualOffsets().applyTo(EngineSlotResolver.resolve(frame)),
+                worldX, worldY, facingDegrees, scaleMult,
                 altOffsetCells, intensity, alphaMult, camera, glow, flame, perSlotDemand);
     }
 }

@@ -23,22 +23,29 @@ public final class MissileAaScaleSnapshotSuite implements SnapshotSuite {
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         SceneRegistries.installArmoury(context.projectRoot());
         InstalledHullSpecs.install(); InstalledHullEngines.install(); InstalledVanillaData.install();
+        try {
+            return List.of(new SnapshotArtifact("scale-reference.png", renderLineup(context, false)),
+                    new SnapshotArtifact("parked-reference.png", renderLineup(context, true)));
+        } finally { InstalledHullEngines.uninstall();TurretSlotResolver.useHullSpecs(null); }
+    }
+    private BufferedImage renderLineup(SnapshotContext context, boolean parked) throws Exception {
         try (var sim = SceneBuilder.openGround(40,30).missionCompletion(false).build().sim()) {
             for (int y=0;y<30;y++) for (int x=0;x<40;x++)
                 sim.getTopology().setGroundKind(x,y,GroundKind.STONE);
             String[] turrets={"locust","swarmer","proximity"};
             for (int i=0;i<3;i++) sim.spawn(MapTurret.create("scale-"+i,Faction.MARINE,
                     "structure.aa-"+turrets[i],8+i*8,13));
-            FighterProfile[] fighters={FighterProfile.TALON,FighterProfile.WASP,FighterProfile.THUNDER,FighterProfile.BROADSWORD};
-            float[] xs={5,12,20,27};
-            for (int i=0;i<4;i++) {
-                long id=sim.spawnSortie(fighters[i],Faction.MARINE,xs[i],4,xs[i],4,xs[i],28,0);
-                sim.world().mission(id).state=ShuttleState.INCOMING;
-                sim.world().setAltitudeT(id,1);
+            FighterProfile[] fighters={FighterProfile.TALON,FighterProfile.WASP,FighterProfile.THUNDER,FighterProfile.BROADSWORD,FighterProfile.LONGBOW,FighterProfile.DAGGER};
+            float[] xs={3,8.2f,13.4f,18.6f,23.8f,29};
+            for (int i=0;i<fighters.length;i++) {
+                float y=parked ? 5.5f : 4;
+                long id=sim.spawnSortie(fighters[i],Faction.MARINE,xs[i],y,xs[i],y,xs[i],28,0);
+                sim.world().mission(id).state=parked ? ShuttleState.LOADING : ShuttleState.INCOMING;
+                sim.world().setAltitudeT(id,parked ? 0 : 1);
                 sim.world().kinematics(id).facingDegrees=90;
             }
             var renderer=new BattleReviewFrameRenderer(context.modRoot(),1920,1080,16,9,32);
-            BufferedImage image=renderer.render(sim,"STAGED SCALE REFERENCE / normal cruise appearance / no engagement");
+            BufferedImage image=renderer.render(sim,parked ? "STAGED SCALE REFERENCE / normal ground and parked appearance / no engagement" : "STAGED SCALE REFERENCE / normal cruise appearance / no engagement");
             Graphics2D g=image.createGraphics();
             g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             g.setColor(new Color(230,239,236,24));
@@ -47,21 +54,21 @@ public final class MissileAaScaleSnapshotSuite implements SnapshotSuite {
             for(int y=15;y<1080;y+=60)if(y>=130&&y<=1010)g.drawLine(0,y,1920,y);
             g.setColor(new Color(19,27,30,240)); g.fillRect(0,30,1920,100);g.fillRect(0,1010,1920,70);
             g.setColor(new Color(235,240,236)); g.setFont(new Font("Segoe UI",Font.PLAIN,32));
-            g.drawString("Turrets and fighters / one shared scale",60,76);
+            g.drawString(parked ? "Turrets and parked fighters / one shared scale" : "Turrets and fighters / one shared scale",60,76);
             g.setFont(new Font("Segoe UI",Font.PLAIN,22));
             g.drawString("60 px per cell  •  every object at the same scale",60,112);
             g.setFont(new Font("Segoe UI",Font.PLAIN,25));
             String[] names={"Locust","Swarmer","Proximity Charge"};
             for(int i=0;i<3;i++) label(g,names[i],(8+i*8)*60,430);
-            String[] hulls={"Talon","Wasp","Thunder","Broadsword"};
-            for(int i=0;i<4;i++) label(g,hulls[i],Math.round(xs[i]*60),850);
+            String[] hulls={"Talon","Wasp","Thunder","Broadsword","Longbow","Dagger"};
+            for(int i=0;i<hulls.length;i++) label(g,hulls[i],Math.round(xs[i]*60),850);
             g.setFont(new Font("Segoe UI",Font.PLAIN,20));
-            g.drawString("Static lineup / existing production sprites, mount dimensions and aircraft cruise appearance",60,1054);
+            g.drawString(parked ? "Static lineup / production sprites and normal ground appearance" : "Static lineup / existing production sprites, mount dimensions and aircraft cruise appearance",60,1054);
             g.setStroke(new BasicStroke(3));g.drawLine(1660,1040,1720,1040);
             g.drawLine(1660,1033,1660,1047);g.drawLine(1720,1033,1720,1047);
             g.drawString("1 cell",1740,1047);g.dispose();
-            return List.of(new SnapshotArtifact("scale-reference.png",image));
-        } finally { InstalledHullEngines.uninstall();TurretSlotResolver.useHullSpecs(null); }
+            return image;
+        }
     }
     private static void label(Graphics2D g,String text,int x,int y) {
         int width=g.getFontMetrics().stringWidth(text);
