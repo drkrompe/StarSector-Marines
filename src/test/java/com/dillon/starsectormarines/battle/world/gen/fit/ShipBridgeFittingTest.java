@@ -68,17 +68,20 @@ class ShipBridgeFittingTest {
     private static void assertBanks(Fixture f) {
         var firstWatch = f.ctx.fixtureTasks.stream().filter(task -> task.affordance() == Affordance.WATCH)
                 .limit(5).toList();
-        for(String id:List.of("plot","helm","systems","console-west","console-east")) {
-            assertEquals(1,f.ops.stream().filter(op->op instanceof LayoutOp.Assembly a
-                    && a.baseId().equals("ship-bridge."+id)).count(),id);
-            var bank = f.ctx.doodads.stream().filter(d -> ("ship-bridge." + id).equals(d.definitionId()))
-                    .findFirst().orElseThrow();
-            assertTrue(firstWatch.stream().anyMatch(task -> task.fixtureX() >= bank.cellX
-                    && task.fixtureX() < bank.cellX + bank.footprintCellsX
-                    && task.fixtureY() >= bank.cellY && task.fixtureY() < bank.cellY + bank.footprintCellsY),
-                    "First five watch positions must cover " + id);
+        assertEquals(1, f.ops.stream().filter(op -> op instanceof LayoutOp.Assembly a
+                && a.baseId().equals("ship-bridge.plot")).count());
+        var banks = f.ops.stream().filter(LayoutOp.ConsoleBank.class::isInstance)
+                .map(LayoutOp.ConsoleBank.class::cast).toList();
+        assertEquals(4, banks.size());
+        assertEquals(12, f.ctx.doodads.stream().filter(d -> d.definitionId().startsWith("console-bank.")).count());
+        for (LayoutOp.ConsoleBank bank : banks) {
+            assertTrue(firstWatch.stream().anyMatch(task -> bank.cells().stream().anyMatch(cell -> {
+                int[] posed = f.floor.toLocal(cell.x(), cell.y());
+                return task.fixtureX() == posed[0] + 4 && task.fixtureY() == posed[1] + 4;
+            })), "First five watch positions must cover every bank");
         }
     }
+
     private static void verify(Fixture f) {
         assertTrue(f.floor.circulationSurvives());assertEquals(0,f.floor.dropUnreachableWork());
         f.floor.seal();HashSet<String> stands=new HashSet<>();
@@ -98,6 +101,17 @@ class ShipBridgeFittingTest {
             assertEquals(Affordance.WATCH, task.affordance());
             assertTrue(f.ctx.topology.isFixture(task.fixtureX(),task.fixtureY()));
             assertEquals(1,Math.abs(task.cellX()-task.fixtureX())+Math.abs(task.cellY()-task.fixtureY()));
+            var console = f.ctx.doodads.stream().filter(d -> d.cellX == task.fixtureX()
+                    && d.cellY == task.fixtureY() && d.definitionId().startsWith("console-bank.")).findFirst();
+            if (console.isPresent()) {
+                var d = console.get();
+                int dx = d.definitionId().endsWith("end-left") ? 1 : d.definitionId().endsWith("end-right") ? -1 : 0;
+                int dy = dx == 0 ? -1 : 0;
+                if (d.mirrored) dx = -dx;
+                for (int turn = 0; turn < d.quarterTurns; turn++) { int old = dx; dx = -dy; dy = old; }
+                assertEquals(dx, task.cellX() - task.fixtureX(), "Operator must face the control edge");
+                assertEquals(dy, task.cellY() - task.fixtureY(), "Operator must face the control edge");
+            }
         }
     }
     private static void walkable(Fixture f,int x,int y) {

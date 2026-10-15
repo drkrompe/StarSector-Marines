@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
+import com.dillon.starsectormarines.battle.world.gen.fit.ConsoleBankLayout;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -10,8 +11,8 @@ import com.dillon.starsectormarines.testsupport.DiskRegistries;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
-import com.dillon.starsectormarines.tools.tilesetauthoring.ConsoleBankLayout.Cell;
-import com.dillon.starsectormarines.tools.tilesetauthoring.ConsoleBankLayout.Piece;
+import com.dillon.starsectormarines.battle.world.gen.fit.ConsoleBankLayout.Cell;
+import com.dillon.starsectormarines.battle.world.gen.fit.ConsoleBankLayout.Piece;
 
 import java.awt.Color;
 import java.awt.Font;

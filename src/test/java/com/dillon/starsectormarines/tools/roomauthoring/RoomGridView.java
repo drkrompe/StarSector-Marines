@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.tools.roomauthoring;
 
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.LayoutOp;
+import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayout;
+import com.dillon.starsectormarines.battle.world.gen.fit.ConsoleBankLayout;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 
 import javax.swing.JComponent;
@@ -56,6 +58,15 @@ public final class RoomGridView extends JComponent {
         };
     }
 
+    private List<ConsoleBankLayout.Cell> bankPath = List.of();
+    private boolean operatorRight;
+
+    public void bankPath(List<ConsoleBankLayout.Cell> cells, boolean right) {
+        bankPath = List.copyOf(cells);
+        operatorRight = right;
+        repaint();
+    }
+
     private RoomDraft draft;
     /** The room as the renderer draws it, one image pixel-aligned to the grid. */
     private BufferedImage backdrop;
@@ -84,8 +95,9 @@ public final class RoomGridView extends JComponent {
             public void mousePressed(MouseEvent e) {
                 if (draft == null) return;
                 int x = e.getX() / cellPx;
-                int y = e.getY() / cellPx;
+                int y = draft.height() - 1 - e.getY() / cellPx;
                 if (x < 0 || y < 0 || x >= draft.width() || y >= draft.height()) return;
+                lastPaintedX = x; lastPaintedY = y;
                 onClick.accept(x, y);
                 repaint();
             }
@@ -95,7 +107,7 @@ public final class RoomGridView extends JComponent {
                 // Dragging paints, because painting a floor one click at a time
                 // over a forty-cell bay is not something anybody would finish.
                 hoverX = e.getX() / cellPx;
-                hoverY = e.getY() / cellPx;
+                hoverY = draft == null ? -1 : draft.height() - 1 - e.getY() / cellPx;
                 if (draft == null) return;
                 if (hoverX < 0 || hoverY < 0
                         || hoverX >= draft.width() || hoverY >= draft.height()) return;
@@ -116,7 +128,7 @@ public final class RoomGridView extends JComponent {
             @Override
             public void mouseMoved(MouseEvent e) {
                 hoverX = e.getX() / cellPx;
-                hoverY = e.getY() / cellPx;
+                hoverY = draft == null ? -1 : draft.height() - 1 - e.getY() / cellPx;
                 repaint();
             }
 
@@ -130,6 +142,8 @@ public final class RoomGridView extends JComponent {
         addMouseListener(mouse);
         addMouseMotionListener(mouse);
     }
+
+    RoomLayout currentLayout() { return draft.layout(); }
 
     public void show(RoomDraft draft) {
         this.draft = draft;
@@ -226,7 +240,7 @@ public final class RoomGridView extends JComponent {
         for (int x = 0; x < draft.width(); x++) {
             for (int y = 0; y < draft.height(); y++) {
                 int px = x * cellPx;
-                int py = y * cellPx;
+                int py = (draft.height() - 1 - y) * cellPx;
                 if (!draft.isFloor(x, y)) {
                     // Not deck at all: cover whatever the backdrop had there, so
                     // a hole in the footprint reads as a hole.
@@ -254,7 +268,7 @@ public final class RoomGridView extends JComponent {
                 List<LayoutOp> here = draft.at(x, y);
                 if (here.isEmpty()) continue;
                 int px = x * cellPx;
-                int py = y * cellPx;
+                int py = (draft.height() - 1 - y) * cellPx;
                 for (LayoutOp op : here) {
                     if (op instanceof LayoutOp.Paving) {
                         g.setColor(PAVING);
@@ -262,7 +276,7 @@ public final class RoomGridView extends JComponent {
                     }
                 }
                 for (LayoutOp op : here) {
-                    if (op instanceof LayoutOp.Fixture || op instanceof LayoutOp.Assembly || op instanceof LayoutOp.Partition) {
+                    if (op instanceof LayoutOp.Fixture || op instanceof LayoutOp.Assembly || op instanceof LayoutOp.ConsoleBank || op instanceof LayoutOp.Partition) {
                         // Outlined rather than filled: the fixture's own art is
                         // already under this, and covering it would hide the
                         // thing the author is placing.
@@ -284,9 +298,26 @@ public final class RoomGridView extends JComponent {
             }
         }
 
+        g.setColor(new Color(70, 230, 220, 100));
+        for (ConsoleBankLayout.Cell cell : bankPath)
+            g.fillRect(cell.x() * cellPx, (draft.height() - 1 - cell.y()) * cellPx, cellPx, cellPx);
+        g.setColor(new Color(120, 255, 220));
+        g.setStroke(new BasicStroke(2f));
+        for (int i = 1; i < bankPath.size(); i++) {
+            ConsoleBankLayout.Cell a = bankPath.get(i - 1), b = bankPath.get(i);
+            int ax = a.x() * cellPx + cellPx / 2, ay = (draft.height() - 1 - a.y()) * cellPx + cellPx / 2;
+            int bx = b.x() * cellPx + cellPx / 2, by = (draft.height() - 1 - b.y()) * cellPx + cellPx / 2;
+            g.drawLine(ax, ay, bx, by);
+            int sign = operatorRight ? 1 : -1;
+            int dx = Integer.signum(by - ay) * -sign, dy = Integer.signum(bx - ax) * sign;
+            int mx = (ax + bx) / 2, my = (ay + by) / 2;
+            int ex = mx + dx * cellPx / 3, ey = my + dy * cellPx / 3;
+            g.drawLine(mx, my, ex, ey);
+            g.fillOval(ex - 3, ey - 3, 6, 6);
+        }
         if (hoverX >= 0 && hoverX < draft.width() && hoverY >= 0 && hoverY < draft.height()) {
             g.setColor(HOVER);
-            g.fillRect(hoverX * cellPx, hoverY * cellPx, cellPx, cellPx);
+            g.fillRect(hoverX * cellPx, (draft.height() - 1 - hoverY) * cellPx, cellPx, cellPx);
         }
         g.dispose();
     }

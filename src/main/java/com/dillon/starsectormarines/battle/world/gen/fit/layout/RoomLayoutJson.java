@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.fit.layout;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.fit.Hookup;
+import com.dillon.starsectormarines.battle.world.gen.fit.ConsoleBankLayout;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -72,6 +73,17 @@ public final class RoomLayoutJson {
         int x = op.optInt("x");
         int y = op.optInt("y");
         switch (kind) {
+            case "consoleBank":
+                JSONArray path = op.optJSONArray("cells");
+                if (path == null) throw new IllegalArgumentException("room layout: console bank needs cells");
+                List<ConsoleBankLayout.Cell> cells = new ArrayList<>();
+                for (int i = 0; i < path.length(); i++) {
+                    JSONArray cell = path.optJSONArray(i);
+                    if (cell == null || cell.length() != 2)
+                        throw new IllegalArgumentException("room layout: console bank cell must be [x, y]");
+                    cells.add(new ConsoleBankLayout.Cell(cell.optInt(0), cell.optInt(1)));
+                }
+                return new LayoutOp.ConsoleBank(cells, op.optBoolean("closed", false), op.optBoolean("operatorRight", true));
             case "lane":
                 return new LayoutOp.Lane(x, y, span(op, "spanX"), span(op, "spanY"));
             case "closed":
@@ -229,7 +241,12 @@ public final class RoomLayoutJson {
 
     private static JSONObject writeOp(LayoutOp op) throws JSONException {
         JSONObject json = new JSONObject();
-        if (op instanceof LayoutOp.Lane lane) {
+        if (op instanceof LayoutOp.ConsoleBank bank) {
+            JSONArray cells = new JSONArray();
+            for (ConsoleBankLayout.Cell cell : bank.cells()) cells.put(new JSONArray().put(cell.x()).put(cell.y()));
+            json.put("op", "consoleBank").put("cells", cells).put("closed", bank.closed())
+                    .put("operatorRight", bank.operatorRight());
+        } else if (op instanceof LayoutOp.Lane lane) {
             json.put("op", "lane").put("x", lane.x()).put("y", lane.y())
                     .put("spanX", lane.spanX()).put("spanY", lane.spanY());
         } else if (op instanceof LayoutOp.Closed closed) {

@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.tools.roomauthoring;
 
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomFittings;
+import com.dillon.starsectormarines.battle.world.gen.fit.ConsoleBankLayout;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPose;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayout;
@@ -13,7 +15,6 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
-import com.dillon.starsectormarines.battle.world.tiles.GridLayout;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
 import com.dillon.starsectormarines.tools.authoring.AuthoringPage;
@@ -39,10 +40,12 @@ import javax.swing.JSplitPane;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.CardLayout;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.GridLayout;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -134,6 +137,11 @@ public final class RoomAuthoringPage implements AuthoringPage {
     private boolean loading;
 
     public RoomAuthoringPage(AuthoringPageContext context) throws Exception {
+        this(context, null);
+    }
+
+    /** Open a supplied layout directly, or choose a room from the generated ship. */
+    public RoomAuthoringPage(AuthoringPageContext context, RoomLayout initial) throws Exception {
         this.context = context;
         this.wizard = new Wizard(this::backToChooser, context::reportStatus);
 
@@ -159,12 +167,14 @@ public final class RoomAuthoringPage implements AuthoringPage {
             touched();
         });
 
+        bankSide.addActionListener(e -> grid.bankPath(bankStroke, bankSide.getSelectedIndex() == 0));
         rooms.onOpen(purpose -> openSelectedRoom());
 
         screens.add(chooserScreen(), CHOOSER);
         screens.add(wizard, WIZARD);
         root.add(screens, BorderLayout.CENTER);
-        showChooser();
+        if (initial == null) showChooser();
+        else openLayout(initial);
     }
 
     /**
@@ -335,17 +345,24 @@ public final class RoomAuthoringPage implements AuthoringPage {
             context.reportStatus("The ship has no " + purpose + " to copy.");
             return;
         }
-        RoomLayout seed = RoomLayoutSeed.from(purpose, shape, (RoomFit) level.getSelectedItem());
+        RoomFit selectedFit = (RoomFit) level.getSelectedItem();
+        RoomLayout seed = RoomLayoutSeed.from(RoomFittings.forShipRoom(purpose, shape, selectedFit),
+                purpose, shape, selectedFit);
         if (seed == null) {
             context.reportStatus(purpose + " has no fitting to copy, so there is nothing to seed.");
             return;
         }
+        openLayout(seed);
+    }
+
+    private void openLayout(RoomLayout seed) {
         draft = new RoomDraft(seed);
-        dirty = false;
+        cancelBank();
         String wall = draft.bulkhead();
         bulkhead.setSelectedItem(wall == null ? DECK_BULKHEAD : wall);
         footprintWidth.setValue(draft.width());
         footprintHeight.setValue(draft.height());
+        dirty = false;
         grid.show(draft);
         grid.backdrop(null);
         redrawBackdrop();
@@ -384,6 +401,7 @@ public final class RoomAuthoringPage implements AuthoringPage {
                                 + "can go — and whether it still fits.",
                         this::footprintBody)
                         .onEnter(() -> {
+                            cancelBank();
                             grid.onClick(this::toggleCell);
                             grid.onStroke(this::redrawBackdrop);
                         }),
@@ -394,14 +412,14 @@ public final class RoomAuthoringPage implements AuthoringPage {
                                 + "which is what keeps a furnished room walkable from its door.",
                         this::deckBody)
                         .onEnter(() -> {
+                            cancelBank();
                             grid.onClick(this::useDeckTool);
                             grid.onStroke(this::redrawBackdrop);
                         }),
 
                 new LambdaStep("The fixtures",
-                        "Click to stand the chosen fixture on a cell, or right of the grid "
-                                + "pick another. A fixture that affords work publishes it, and "
-                                + "the count of fixtures is what the room provides.",
+                        "Place individual fixtures or draw a connected console bank. "
+                                + "Banks follow the path and operator side you choose; crew work positions remain separate.",
                         this::fixtureBody)
                         .onEnter(() -> {
                             grid.onClick(this::placeFixture);
@@ -538,8 +556,75 @@ public final class RoomAuthoringPage implements AuthoringPage {
         grid.repaint();
     }
 
+    private boolean bankTool;
+    private final List<ConsoleBankLayout.Cell> bankStroke = new ArrayList<>();
+    private final JComboBox<String> bankSide = new JComboBox<>(new String[]{"Right of path", "Left of path"});
+    private final JComboBox<String> bankEnds = new JComboBox<>(new String[]{"Open bank / end caps", "Closed island"});
+
+    private void cancelBank() {
+        bankStroke.clear();
+        grid.bankPath(bankStroke, bankSide.getSelectedIndex() == 0);
+    }
+
+    private void bankCell(int x, int y) {
+        ConsoleBankLayout.Cell next = new ConsoleBankLayout.Cell(x, y);
+        if (bankStroke.isEmpty()) bankStroke.add(next);
+        else {
+            ConsoleBankLayout.Cell last = bankStroke.get(bankStroke.size() - 1);
+            if (last.equals(next)) return;
+            if (last.x() != x && last.y() != y) {
+                context.reportStatus("Choose a cell in the same row or column to turn the bank.");
+                return;
+            }
+            int dx = Integer.signum(x - last.x()), dy = Integer.signum(y - last.y());
+            List<ConsoleBankLayout.Cell> extension = new ArrayList<>();
+            for (int cx = last.x() + dx, cy = last.y() + dy;; cx += dx, cy += dy) {
+                ConsoleBankLayout.Cell cell = new ConsoleBankLayout.Cell(cx, cy);
+                if (bankStroke.contains(cell)) {
+                    context.reportStatus("The path cannot cross itself. Use Closed island to join its ends.");
+                    return;
+                }
+                extension.add(cell);
+                if (cx == x && cy == y) break;
+            }
+            bankStroke.addAll(extension);
+        }
+        grid.bankPath(bankStroke, bankSide.getSelectedIndex() == 0);
+        context.reportStatus(bankStroke.size() + " console cells selected. Add corners, then Place bank.");
+    }
+
+    private void commitBank() {
+        try {
+            draft.addConsoleBank(bankStroke, bankEnds.getSelectedIndex() == 1, bankSide.getSelectedIndex() == 0);
+            cancelBank();
+            touched();
+            grid.show(draft);
+            updateTally();
+            context.reportStatus("Console bank placed. Click any of its cells with Single fixture to remove the whole bank.");
+        } catch (IllegalArgumentException failure) {
+            context.reportStatus(failure.getMessage());
+        }
+    }
+
     private JComponent fixtureBody() {
         JPanel side = column();
+        ButtonGroup modes = new ButtonGroup();
+        JRadioButton single = new JRadioButton("Single fixture / erase", !bankTool);
+        JRadioButton bank = new JRadioButton("Connected console bank", bankTool);
+        modes.add(single); modes.add(bank);
+        single.addActionListener(e -> { bankTool = false; cancelBank(); fixtureMode(); });
+        bank.addActionListener(e -> { bankTool = true; fixtureMode(); });
+        side.add(single); side.add(bank);
+        side.add(new JLabel("Operator side")); side.add(bankSide);
+        side.add(bankEnds);
+        JButton placeBank = new JButton("Place bank");
+        placeBank.addActionListener(e -> commitBank()); side.add(placeBank);
+        JButton cancel = new JButton("Clear path");
+        cancel.addActionListener(e -> cancelBank()); side.add(cancel);
+        side.add(new JLabel("<html><div style='width:225px'>Click or drag along rows and columns. Click each corner. "
+                + "For an island, finish beside the first cell. Arrows show the operator side. "
+                + "Banks are placed and erased as one piece; they do not add crew positions.</div></html>"));
+        side.add(Box.createVerticalStrut(12));
         side.add(new JLabel("Fixture"));
         side.add(fixtureId);
         side.add(Box.createVerticalStrut(6));
@@ -547,14 +632,31 @@ public final class RoomAuthoringPage implements AuthoringPage {
         side.add(affordance);
         side.add(Box.createVerticalStrut(8));
 
-        side.add(new JLabel("<html><i>Clicking a cell that already carries "
+        side.add(new JLabel("<html><div style='width:225px'><i>Clicking a cell that already carries "
                 + "something takes it away, so one control both places and "
-                + "corrects.</i></html>"));
+                + "corrects.</i></div></html>"));
+        for (Component child : side.getComponents()) {
+            if (!(child instanceof JComponent component)) continue;
+            component.setAlignmentX(Component.LEFT_ALIGNMENT);
+            if (component instanceof JComboBox<?>) {
+                component.setPreferredSize(new Dimension(248, 28));
+                component.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
+            }
+        }
+        side.add(Box.createVerticalGlue());
+        fixtureMode();
         return split(side);
     }
 
+    private void fixtureMode() {
+        fixtureId.setEnabled(!bankTool);
+        affordance.setEnabled(!bankTool);
+        bankSide.setEnabled(bankTool);
+        bankEnds.setEnabled(bankTool);
+    }
+
     private JComponent compareBody() {
-        JPanel pair = new JPanel(new java.awt.GridLayout(1, 2, 8, 0));
+        JPanel pair = new JPanel(new GridLayout(1, 2, 8, 0));
         pair.add(before);
         pair.add(after);
 
@@ -641,6 +743,7 @@ public final class RoomAuthoringPage implements AuthoringPage {
     }
 
     private void placeFixture(int x, int y) {
+        if (bankTool) { bankCell(x, y); return; }
         // Clicking a cell that already carries something takes it away, so one
         // control both places and corrects rather than needing a mode switch.
         if (!draft.removeAt(x, y)) {
@@ -671,7 +774,7 @@ public final class RoomAuthoringPage implements AuthoringPage {
         List<RoomPose> poses = layout.posesThatFit();
 
         StringBuilder said = new StringBuilder("<html><b>").append(report.placed())
-                .append("</b> fixtures stand up — this room's capacity.");
+                .append("</b> fixture groups / ").append(report.work()).append(" work positions.");
         if (poses.size() < RoomPose.all().size()) {
             said.append("<br>Survives ").append(poses.size()).append(" of ")
                     .append(RoomPose.all().size()).append(" poses — a prop's footprint does "

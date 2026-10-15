@@ -1,7 +1,8 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
-import com.dillon.starsectormarines.tools.tilesetauthoring.ConsoleBankLayout.Cell;
-import com.dillon.starsectormarines.tools.tilesetauthoring.ConsoleBankLayout.Piece;
+import com.dillon.starsectormarines.battle.world.gen.fit.ConsoleBankLayout;
+import com.dillon.starsectormarines.battle.world.gen.fit.ConsoleBankLayout.Cell;
+import com.dillon.starsectormarines.battle.world.gen.fit.ConsoleBankLayout.Piece;
 import org.junit.jupiter.api.Test;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,6 +36,14 @@ class ConsoleBankLayoutTest {
                 List.of(new Cell(0,0),new Cell(2,0)),false,true));
         assertThrows(IllegalArgumentException.class,()->ConsoleBankLayout.resolve(
                 List.of(new Cell(0,0),new Cell(1,0),new Cell(0,0)),false,true));
+    }
+
+    @Test void islandOwnsItsServiceCoreButOpenBanksDoNot() {
+        List<Cell> path = List.of(new Cell(1, 1), new Cell(2, 1), new Cell(3, 1),
+                new Cell(3, 2), new Cell(3, 3), new Cell(2, 3), new Cell(1, 3), new Cell(1, 2));
+        assertEquals(9, ConsoleBankLayout.occupiedCells(path, true).size());
+        assertTrue(ConsoleBankLayout.occupiedCells(path, true).contains(new Cell(2, 2)));
+        assertEquals(path, ConsoleBankLayout.occupiedCells(path, false));
     }
 
     private static Cell rotate(Cell c,int turns) {
