@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-10-15
 
-Updated: 2026-10-15 — slices 1–4 shipped; captured markets, breach pickup and the live pass remain.
+Updated: 2026-10-15 — slices 1–5 shipped; breach pickup and the live pass remain.
 
 Read `contracts-nouns.md` (stationing, response, recovery, settlement, laws 4–7
 and 11), `meta-progression.md` ("Defending the polity: the vanilla seam"),
@@ -233,7 +233,7 @@ one loss per stranded squad every 10 days.
 4. **Attrition and expiry.** *Shipped.* Expiry landed with slice 2 so an
    overrun never strands people forever; seeded interval losses followed.
    Tests pin same-people-on-replay and the captain-last order.
-5. **Captured market.** A Garrison whose market changes owner (vanilla
+5. **Captured market.** *Shipped.* A Garrison whose market changes owner (vanilla
    transfer, decivilisation, or a Nexerelin invasion the raid seam ignores)
    strands its detachment through the same recovery and pickup, with a
    defence report whose spine says the market fell rather than that a raid
@@ -264,6 +264,17 @@ one loss per stranded squad every 10 days.
 - **Attrition never strikes the captain**, rather than striking them last. A
   captain listed missing is a second, larger mechanic (officer MIA and its
   roster consequences) that this story does not need.
+- **A captured market is a failed assignment with no reputation change.** The
+  player did nothing wrong and the employer did not breach; the market simply
+  fell. The capture report is its own company report ("Garrison at X cut
+  off") rather than a defence report, because no defence was fought.
+- **The owner is recorded on first sight of a running assignment**, not at
+  acceptance, so saves that already hold a Garrison pick it up on load. A
+  market that cannot be read changes nothing; a market that vanishes or is
+  decivilised counts as fallen.
+- **A capture voids any pending defence on that market.** If a raid overran
+  the garrison the same day, the absent settlement runs first and the
+  overrun owns the stranding.
 - **The interval that lands on the deadline belongs to the expiry**, so the
   last day does not first take one more marine and then list the rest
   missing anyway. With the 30/10 proposal that is two losses per squad.

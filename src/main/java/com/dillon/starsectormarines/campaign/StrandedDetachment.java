@@ -70,6 +70,53 @@ public final class StrandedDetachment {
     }
 
     /**
+     * The market under a running Garrison changed hands: the assignment fails through no
+     * fault of the player or the employer, any pending defence is void, and the
+     * survivors go to ground exactly as an overrun garrison's do. No reputation moves.
+     *
+     * <p>Only a named assignment can go to ground; a count-only legacy row has no people
+     * to hide and is left alone.
+     *
+     * @param newOwnerName the new owner's display name, or null when the market fell silent
+     * @return whether the detachment was stranded
+     */
+    public static boolean strandOnCapture(CampaignState state, int row, MarineRoster roster,
+                                          int day, int newOwnerFactionId, String placeName,
+                                          String newOwnerName) {
+        if (state == null || roster == null || row < 0 || row >= state.contractCount
+                || ContractType.fromByte(state.contractType[row]) != ContractType.GARRISON) {
+            return false;
+        }
+        ContractState contractState = ContractState.fromByte(state.contractState[row]);
+        if (contractState != ContractState.ACTIVE && contractState != ContractState.IN_PROGRESS) {
+            return false;
+        }
+        long contractId = state.contractId[row];
+        if (roster.squadsStationedOn(contractId).isEmpty()) return false;
+        int living = roster.stationedLivingCount(contractId);
+        if (living <= 0) return false;
+        MarineCaptain captain = StationingLapseResolution.assignedCaptain(
+                state, contractId, roster);
+
+        GarrisonDefenseResolution.clearPendingDefense(state, row);
+        state.contractResponseDeadlineTick[row] = -1;
+        state.contractState[row] = ContractState.FAILED.toByte();
+        state.contractMarinesCommitted[row] = living;
+        strand(state, row, day);
+
+        String where = place(placeName);
+        String who = captain != null ? captain.name() : Strings.get("strandedDetachmentCompany");
+        String account = newOwnerName != null && !newOwnerName.isBlank()
+                ? MessageFormat.format(Strings.get("strandedDetachmentCapturedAccount"),
+                        where, day, newOwnerName, who, living, RECOVERY_DAYS)
+                : MessageFormat.format(Strings.get("strandedDetachmentSilencedAccount"),
+                        where, day, who, living, RECOVERY_DAYS);
+        state.addChronicleMarketLost(contractId, state.contractMarketId[row],
+                newOwnerFactionId, living, account, day, day);
+        return true;
+    }
+
+    /**
      * Applies every attrition interval that has elapsed by {@code day}: each one lists one
      * living marine per stranded squad as missing. Who is struck is seeded from the
      * contract, its defence event and the interval index, so a replayed day strikes the

@@ -88,14 +88,27 @@ class StrandedDetachmentTest {
         assertEquals(Status.GARRISONED, fixture.captain.status());
     }
 
+    /**
+     * Stranded straight from a full detachment rather than through an overrun: overrun
+     * fates are seeded per soldier id, and ids are random, so two overruns would leave two
+     * different sets of survivors to choose from.
+     */
     @Test
     void theSameWaitStrikesTheSamePeople() {
-        AbsentDefenceResolutionTest.Fixture first = overrun();
-        AbsentDefenceResolutionTest.Fixture second = overrun();
-        int day = DAY + StrandedDetachment.ATTRITION_INTERVAL_DAYS;
+        AbsentDefenceResolutionTest.Fixture first = strandedWhole();
+        AbsentDefenceResolutionTest.Fixture second = strandedWhole();
+        int day = DAY + 2 * StrandedDetachment.ATTRITION_INTERVAL_DAYS;
 
-        assertEquals(StrandedDetachment.attrition(first.state, 0, first.roster, day),
-                StrandedDetachment.attrition(second.state, 0, second.roster, day));
+        List<String> lost = StrandedDetachment.attrition(first.state, 0, first.roster, day);
+        assertEquals(2, lost.size());
+        assertEquals(lost, StrandedDetachment.attrition(second.state, 0, second.roster, day));
+    }
+
+    private static AbsentDefenceResolutionTest.Fixture strandedWhole() {
+        AbsentDefenceResolutionTest.Fixture fixture = new AbsentDefenceResolutionTest.Fixture();
+        fixture.state.contractState[0] = ContractState.FAILED.toByte();
+        StrandedDetachment.strand(fixture.state, 0, DAY);
+        return fixture;
     }
 
     /** The interval landing on the deadline belongs to the expiry, not to attrition. */
