@@ -101,6 +101,8 @@ final class BuildingLayouts {
         CIVIC_HEADQUARTERS,
         /** Medical clinic. Reception and clinical/support rooms flank a clear circulation spine. */
         MEDICAL_CLINIC,
+        /** Medical supply annex: clean handling, consumable storage and dispatch. */
+        MEDICAL_SUPPORT,
         /** Narrow dense-block tenement row with a common room and private bedroom. */
         DENSE_TENEMENT,
         /** Narrow dense-block market row with a shop floor and rear stockroom. */
@@ -147,6 +149,7 @@ final class BuildingLayouts {
                     grid, topology, partition, bl, bt, br, bb, doodads, rng); break;
             case MEDICAL_CLINIC: applyMedicalClinic(
                     grid, topology, bl, bt, br, bb, doodads, rng); break;
+            case MEDICAL_SUPPORT: applyMedicalSupport(grid, topology, bl, bt, br, bb, doodads); break;
             case DENSE_TENEMENT: applyDenseTenement(
                     grid, topology, bl, bt, br, bb, doodads, rng); break;
             case DENSE_MARKET: applyDenseMarket(
@@ -773,6 +776,18 @@ final class BuildingLayouts {
         for (RoomPurpose purpose : new RoomPurpose[]{RoomPurpose.MEDICAL_RECEPTION, RoomPurpose.TRIAGE,
                 RoomPurpose.TREATMENT_ROOM, RoomPurpose.PHARMACY, RoomPurpose.PHARMACY})
             preservePlacementDraw(topology, bl, bt, br, bb, purpose, rng);
+    }
+
+    private static void applyMedicalSupport(NavigationGrid grid, CellTopology topology,
+                                            int bl, int bt, int br, int bb, List<Doodad> doodads) {
+        BuildingWorkGroups groups = new BuildingWorkGroups(grid, topology, doodads);
+        groups.fit(bl, bt, br, bb, RoomPurpose.PHARMACY, BuildingWorkGroups.nurseStation(), 1);
+        groups.fit(bl, bt, br, bb, RoomPurpose.PHARMACY, BuildingWorkGroups.sink(), 1);
+        groups.fit(bl, bt, br, bb, RoomPurpose.PHARMACY, BuildingWorkGroups.cabinets(2), 2);
+        groups.fit(bl, bt, br, bb, RoomPurpose.PHARMACY, BuildingWorkGroups.stockedRack("cartons"),
+                Math.max(1, (br-bl-1)*(bb-bt-1)/65));
+        groups.fit(bl, bt, br, bb, RoomPurpose.PHARMACY, BuildingWorkGroups.cargoDesk(true), 1);
+        groups.fit(bl, bt, br, bb, RoomPurpose.PHARMACY, BuildingWorkGroups.pallets(1, "cases"), 2);
     }
 
     /** Furnishes both rooms of a narrow tenement without obstructing the shared alley doors. */

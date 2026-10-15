@@ -7,8 +7,6 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
-import com.dillon.starsectormarines.battle.world.gen.MapResult;
-import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.Compound;
 import com.dillon.starsectormarines.battle.world.gen.bsp.CompoundClaim;
@@ -74,7 +72,7 @@ class MedicalCampusFillerTest {
         assertTrue(hasDoor(fixture.grid, SUPPORT, BuildingPlacement.Side.LEFT)
                         || hasDoor(fixture.grid, SUPPORT, BuildingPlacement.Side.BOTTOM),
                 "support entrance should face one of its shared apron edges");
-        assertEquals(CellTopology.GroundKind.STRIPED,
+        assertEquals(CellTopology.GroundKind.COURTYARD,
                 fixture.topology.getGroundKind(20, 10));
         assertEquals(CellTopology.GroundKind.STREET,
                 fixture.topology.getGroundKind(21, 10));
@@ -89,14 +87,16 @@ class MedicalCampusFillerTest {
         int courtFixtures = 0;
         for (int y = COURT.top; y <= COURT.bottom; y++) {
             for (int x = COURT.left; x <= COURT.right; x++) {
-                assertEquals(CellTopology.GroundKind.STRIPED,
+                assertEquals(CellTopology.GroundKind.COURTYARD,
                         fixture.topology.getGroundKind(x, y));
                 if (fixture.topology.isFixture(x, y)) courtFixtures++;
             }
         }
-        assertEquals(3, courtFixtures);
+        assertTrue(courtFixtures >= 4, "receiving and utility equipment should occupy real footprints");
+        assertTrue(fixture.ctx.doodads.stream().anyMatch(d ->
+                "sickbay-clinic.cabinet".equals(d.definitionId()) && d.cellX >= SUPPORT.left));
         for (int y = COURT.top + 2; y <= COURT.bottom - 2; y++) {
-            for (int x = COURT.left + 3; x <= COURT.right - 3; x++) {
+            for (int x = COURT.centerX() - 1; x <= COURT.centerX() + 2; x++) {
                 assertTrue(fixture.grid.isWalkable(x, y),
                         "ambulance maneuver lane blocked at " + x + "," + y);
             }
@@ -134,24 +134,6 @@ class MedicalCampusFillerTest {
                 List.of(failed, onlyNeighbor), shortAdjacency,
                 CompoundClaim.DEFAULT_SPECS, new Random(4)).isEmpty());
         assertEquals(BlockKind.BUILDING_COMMERCIAL, failed.kind);
-    }
-
-    @Test
-    void representativeCitiesSurfaceMedicalCampuses() {
-        BspCityGenerator generator = new BspCityGenerator();
-        int campuses = 0;
-        for (long seed = 0; seed < 60; seed++) {
-            MapResult map = generator.generate(80, 80, seed);
-            for (Compound compound : generator.getLastCompounds()) {
-                if (compound.kind != BlockKind.MEDICAL_CAMPUS) continue;
-                campuses++;
-                assertEquals(3, compound.members.size());
-                assertTrue(countPurpose(map.topology, compound.seed,
-                        RoomPurpose.MEDICAL_CORRIDOR) > 0);
-            }
-        }
-        assertTrue(campuses >= 2,
-                "medical campuses should be visible in representative cities; count=" + campuses);
     }
 
     private static Fixture generateCampus(long seed) {

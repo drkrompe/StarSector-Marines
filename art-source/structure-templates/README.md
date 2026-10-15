@@ -9,6 +9,7 @@ is required. The durable placement model lives in `mapgen-nouns.md`.
 | Freight marshalling yard | Junction warehouse overflow | `ServiceYardTemplate.FREIGHT_MARSHALLING`, industrial yards and compounds |
 | Maintenance yard | Relay Nine service court | `ServiceYardTemplate.MAINTENANCE`, industrial yards and compounds |
 | Whole maintenance outpost, standard or extra magazine | A Cold Account | Larger remote Assault missions and the campaign host |
+| Medical service court and supply annex | Ordinary medical campus | Rotatable claimed courts, procedural medical compounds |
 | Power court | Relay Nine outdoor power installation | `ServiceYardTemplate.POWER_COURT`, industrial yards and compounds |
 
 Building plans retain their console banks, stocked shelves, windows and usable
@@ -47,3 +48,19 @@ General program-driven and nonrectangular city claims remain in
 `cross-leaf-footprint-planning.md`. Relief's checkpoint and Shepherd's salvage
 yard also have reusable working areas, but their mission gates, road progression,
 landing reservations and unique hull objectives still belong to their hosts.
+
+Run `gradlew.bat createSnapshots -Psnapshot=medical-campus` for the medical
+compound review: compact and expanded clinics, all four service-court poses,
+and a campus selected by the ordinary city generator. These use the existing
+clinic, storage and parked-vehicle art, including their registered damage states.
+The delivery hauler is receiving stock; the patient transfer bay is deliberately
+empty. Shared concrete circulation and a three- to five-cell court drive remain clear.
+Supply annexes contain medical cabinets, clean handling, stock racks and packing
+space. Court modules shrink in number when a parcel cannot accommodate them.
+
+The medical evidence checks furnished floor connectivity, real interior anchors,
+reserved roads and landing berths across eight ordinary cities, existing small-city
+adoption, and infantry connectivity on both full-size Conquest axes. The broader
+Conquest road-graph check finds a blocked cell at (208, 300) in seed 42 on the
+unchanged baseline as well; this pass does not claim to repair that separate issue.
+The review frames are production Java2D renders, not live game captures.
