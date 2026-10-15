@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.airsupport.CommsOperators.Operator;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -97,6 +98,8 @@ public final class AirPoolService {
     private record Sortie(long craft, ShuttleMission mission, Faction side, AirPoolKind kind, AirMission job, float x, float y) {}
 
     private final AirPoolDeclaration declaration;
+    /** Whether cover fighters launched from here fly the old head-on lead pursuit instead of the tail chase: a scene's control, never a mission's choice. */
+    private boolean headOnCover;
     private final Map<Faction, Map<AirPoolKind, Ledger>> ledgers = new EnumMap<>(Faction.class);
     private final List<PendingCall> pending = new ArrayList<>();
     private final List<Sortie> sorties = new ArrayList<>();
@@ -115,6 +118,14 @@ public final class AirPoolService {
             }
             ledgers.put(side.getKey(), perKind);
         }
+    }
+
+    /**
+     * Makes cover fighters launched from here after this call fly the old head-on lead pursuit rather than the tail chase
+     * ({@code AirIntercept}). Per-instance state for a scene's control loop; the production service never sets it.
+     */
+    public void useHeadOnCoverPursuit(boolean headOn) {
+        this.headOnCover = headOn;
     }
 
     // ---- reads ----
@@ -404,15 +415,16 @@ public final class AirPoolService {
         AirCorridor corridor = AirCorridor.acrossNearestEdge(call.kind.name(), sim.getGrid().getWidth(),
                 sim.getGrid().getHeight(), home[0], home[1], call.x, call.y);
         if (corridor == null) return false;
-        long craft = sim.spawnSortie(call.kind.profile(), call.side, call.x, call.y,
+        FighterProfile airframe = call.job == AirMission.COVER ? call.kind.coverProfile() : call.kind.profile();
+        long craft = sim.spawnSortie(airframe, call.side, call.x, call.y,
                 corridor.entryX, corridor.entryY, corridor.exitX, corridor.exitY, 0f);
         ShuttleMission mission = world.mission(craft);
         mission.strikeSortie = true;
         mission.poolSortie = true;
         mission.passesLeft = call.kind.passes();
-        mission.ordnance = call.kind.ordnance();
+        mission.ordnance = call.job == AirMission.COVER ? airframe.ordnance() : call.kind.ordnance();
         mission.aaExposure = call.kind.aaExposure();
-        if (call.job == AirMission.COVER) beginCover(world, craft, mission, call);
+        if (call.job == AirMission.COVER) beginCover(world, craft, mission, call, airframe, headOnCover);
         ledger.outFlying++;
         ledger.launched++;
         tallyOf(call.side, call.job).launched++;
@@ -422,12 +434,13 @@ public final class AirPoolService {
     }
 
     /** Turns a fresh fighter sortie into a patrol: the ring it holds about the ground, sized to what the airframe can fly. */
-    private static void beginCover(World world, long craft, ShuttleMission mission, PendingCall call) {
+    private static void beginCover(World world, long craft, ShuttleMission mission, PendingCall call, FighterProfile airframe, boolean headOn) {
         AirBody body = world.kinematics(craft);
         mission.cover = new CoverDuty(call.x, call.y);
+        mission.cover.headOnPursuit = headOn;
         mission.orbitCentreX = call.x;
         mission.orbitCentreY = call.y;
-        mission.orbitRadius = CoverDuty.ringRadius(call.kind.profile().flight().minTurnRadiusCells());
+        mission.orbitRadius = CoverDuty.ringRadius(airframe.flight().minTurnRadiusCells());
         mission.orbitClockwise = GunshipOrbit.clockwiseFrom(body.x, body.y, body.facingDegrees, call.x, call.y,
                 mission.orbitRadius);
     }

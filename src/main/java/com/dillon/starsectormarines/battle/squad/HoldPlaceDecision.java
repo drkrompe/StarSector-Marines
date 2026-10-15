@@ -11,6 +11,10 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
  * system and the cursor preview alike so the verb the cursor promises is the one the click
  * gives.
  *
+ * <p>An order into a place the squad believes is occupied is the same order: the hold clears
+ * rooms holding an enemy before it settles, which is why the cursor names it differently
+ * ({@link #believedOccupied}) without the click resolving to anything else.
+ *
  * <p>Pure: no world, no state. Callers decide which squads the question applies to (infantry
  * only) and resolve the more specific answers — a ride, an uncaptured compound, a trench —
  * first.
@@ -18,6 +22,20 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
 public final class HoldPlaceDecision {
 
     private HoldPlaceDecision() { }
+
+    /**
+     * Whether {@code squad} believes a hostile is inside {@code place}: some contact it holds was
+     * last placed within the footprint. Belief, not truth, so the cursor never says what the
+     * squad could not know; the hold itself clears the rooms it finds occupied either way.
+     */
+    public static boolean believedOccupied(Squad squad, TacticalNode place) {
+        if (squad == null || place == null) return false;
+        for (BelievedContact contact : squad.believedContacts()) {
+            int x = contact.lastSeenCellX(), y = contact.lastSeenCellY();
+            if (x >= place.left && x <= place.right && y >= place.top && y <= place.bottom) return true;
+        }
+        return false;
+    }
 
     /**
      * The held place a click at ({@code cellX}, {@code cellY}) lands in, or null. Where two

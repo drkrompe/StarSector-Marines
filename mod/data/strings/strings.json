@@ -404,6 +404,8 @@
     "battleShipCommandSelectHint": "Select {0} · {1}",
     "battleShipHeading": "Ship",
     "battleOrderOccupyPosition": "OCCUPY POSITION",
+    "battleOrderClearPlace": "CLEAR AND HOLD",
+    "battleOrderSecureCompound": "SECURE COMPOUND",
     "battleShipMove": "Move",
     "battleShipHold": "Hold",
     "battleShipAuto": "Auto",
