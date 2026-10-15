@@ -475,6 +475,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         float cellSize = rangeTrial == null ? layout.cellSize
                 : Math.min(layout.gridW / gridW, (layout.gridH - 180f) / gridH);
         camera.setViewport(layout.gridX, layout.gridY, layout.gridW, layout.gridH, Math.max(1f, cellSize));
+        cameraControls.edgeScroll(position.getX(), position.getY(), position.getWidth(), position.getHeight());
         if (openingCamera && sim != null && sim.companyStartsOnGround())
             camera.centerOn(sim.companyGroundStartX(), sim.companyGroundStartY());
         ensureHud();
