@@ -1,0 +1,24 @@
+Aircraft ImageGen up-res review
+
+Generated with the built-in image_gen tool from the six existing FighterProfile
+sprites in the installed Starsector core. Native dimensions, authored pivots,
+source paths, selected masters and exact prompt files are in manifest.json.
+
+These are transparent art-review masters, not installed runtime replacements.
+The generated alpha and full canvases are retained unchanged. A later runtime
+export must register the approved silhouettes to the original hull frame,
+pivot, weapons and engine landmarks rather than use the master pixel dimensions
+as physical aircraft size. Gameplay size and handling have not been changed.
+
+Talon v3 restores its offset gun and cockpit; Longbow v2 restores the unequal
+forward launchers; Dagger v2 restores the forked nose and unequal ordnance.
+Wasp v2 reduces the rear perspective of its engine openings. Earlier versions
+are retained with their prompts for comparison. Master canvas padding and
+proportions still require registration before runtime use; ImageGen detail
+reconstruction is not an exact geometric upscale of the native pixel mask.
+
+render-review.ps1 lays out original and selected draft at the same display size
+per pair. All source pixels and alpha are unchanged; the sheet merely draws
+whole images and labels. Panel display sizes are for art review, not relative
+gameplay scale. Re-run it with PowerShell; StarsectorCore can select the source
+installation. review.png is the resulting 1920x1080 comparison.
