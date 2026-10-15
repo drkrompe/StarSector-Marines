@@ -7,7 +7,9 @@ public enum ChronicleEventType {
     HOUSE_DORMANT,
     THRONE_CLAIM_APPLIED,
     KINGMAKER_TESTAMENT,
-    SILENT_COLONY;
+    SILENT_COLONY,
+    /** A Garrison defence settled without the player; see {@code stranded-detachment-recovery.md}. */
+    GARRISON_DEFENCE;
 
     private static final ChronicleEventType[] VALUES = values();
 
