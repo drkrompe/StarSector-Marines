@@ -1,9 +1,13 @@
 # Jangala: naturalistic cinematic look
 
-Style proof for the accepted parallax window shot. The visual direction follows
+Style direction approved by the user on 2026-10-15 for the accepted parallax
+window shot. The visual direction follows
 the current campaign stills: grounded cinematic realism, tactile industrial
 materials, natural vegetation and convincing daylight. Keep Jangala lush and
 welcoming. Wear and physical detail supply the grit.
+
+The project [cinematic-production skill](../../../../.agents/skills/cinematic-production/SKILL.md)
+records the reusable style, parallax and geometry-controlled reskinning workflow.
 
 ## Retained images
 
@@ -54,5 +58,5 @@ existing stabilized root and camera motion. The layered-next-scenes coverage
 measurements still govern how wide near scenery needs to be.
 
 No revised animation, game assets, narration or runtime integration is included
-in this style proof. The generated images have been visually reviewed for the
-requested realism and daylight; they remain subject to the user's art-direction review.
+in this style proof. The user has approved its realism and daylight direction;
+registered motion layers and moving hull textures remain separate production work.
