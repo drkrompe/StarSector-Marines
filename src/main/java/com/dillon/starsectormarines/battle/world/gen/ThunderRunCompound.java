@@ -34,23 +34,25 @@ public final class ThunderRunCompound {
     public static final int WIDTH = 320, HEIGHT = 144;
     public record Cell(int x, int y) {}
     /**
-     * Militia gun bays at the first crossroads, where the road raiders arrive. Dispatch's
-     * looks east from the verge into the crossroad mouth; Crossing's stands inside the north
-     * arm, looking west across it, so raiders coming down that arm meet it first.
+     * Militia gun bays on the mouths of the first crossroad's two side arms, which is where the
+     * road raiders come in. They are the first thing a raider walking down an arm meets, ahead of
+     * the company's posts, so they draw fire rather than sit behind the people taking it. The north
+     * bay's crew is the employer's picket, there from the start; the south bay waits on the Crossing.
      */
-    public static final List<Cell> SUPPORT_POSTS = List.of(new Cell(146, 64), new Cell(171, 57));
-    /** Crew stands behind each gun, away from the company's roadside screens. */
-    public static final List<Cell> MILITIA_POSTS = List.of(new Cell(144, 64), new Cell(173, 57));
+    public static final List<Cell> SUPPORT_POSTS = List.of(new Cell(156, 63), new Cell(174, 88));
+    /** Crew stands beside each gun, out of the arm. */
+    public static final List<Cell> MILITIA_POSTS = List.of(new Cell(154, 63), new Cell(174, 91));
     /**
-     * Where the militia technical parks after each defensive window: the south verge short of
-     * the crossroad, then nosed into the crossroad's south arm once the Crossing is held, a
-     * roadblock that soaks fire and shoves raiders back.
+     * The militia technical's roadblock on the road's south shoulder west of the junction, across the line raiders walking off
+     * that arm take toward Dispatch. It drives up as soon as Dispatch falls.
      */
-    public static final List<Cell> TECHNICAL_STOPS = List.of(new Cell(150, 84), new Cell(161, 87));
+    public static final Cell TECHNICAL_STOP = new Cell(151, 81);
     public static final List<List<Cell>> COMPANY_POSTS = List.of(
             List.of(new Cell(33, 64), new Cell(33, 86), new Cell(38, 64), new Cell(38, 86)),
-            List.of(new Cell(133, 65), new Cell(122, 85), new Cell(145, 65), new Cell(114, 85)),
-            List.of(new Cell(153, 65), new Cell(161, 88), new Cell(194, 65), new Cell(201, 85)),
+            // Dispatch's hold stands behind the crossroad picket and the technical, not in front of them.
+            List.of(new Cell(133, 65), new Cell(122, 85), new Cell(138, 66), new Cell(114, 85)),
+            // Back from the arm mouths, flanking the junction: the militia meet raiders first.
+            List.of(new Cell(148, 66), new Cell(148, 84), new Cell(192, 66), new Cell(192, 84)),
             List.of(new Cell(263, 65), new Cell(263, 85), new Cell(285, 66), new Cell(285, 84)));
 
     public static Cell companyPost(int site, int detachment) {
@@ -295,7 +297,7 @@ public final class ThunderRunCompound {
     }
     /** Prepared positions use the same real cover and transparent fixtures as ordinary defense posts. */
     private static void fortifications(GenContext c) {
-        // Dispatch looks east into the crossroad; Crossing looks west across its north arm.
+        // Each bay sits on one side arm's mouth, looking across it.
         supportEmplacement(c, SUPPORT_POSTS.get(0), true);
         supportEmplacement(c, SUPPORT_POSTS.get(1), false);
         // Firing aprons face the road, with a wide opening aligned to each actual doorway.
