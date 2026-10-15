@@ -98,7 +98,9 @@ class BuildingStampTest {
                     int[] p = stamp.posed(d.cellX - 2, d.cellY - 2, turn);
                     final int facing = turn;
                     assertTrue(rotated.doodads.stream().anyMatch(r -> r.cellX == p[0] + 2
-                            && r.cellY == p[1] + 2 && r.quarterTurns == facing));
+                            && r.cellY == p[1] + 2 && r.definitionId().equals(d.definitionId())
+                            && (d.definitionId().equals("mess-galley.stool")
+                            || r.quarterTurns == Math.floorMod(d.quarterTurns + facing, 4))));
                 }
                 for (var window : original.grid.getEdgeBarriers()) {
                     int[] p = stamp.posed(window.structureCellX() - 2, window.structureCellY() - 2, turn);
@@ -107,6 +109,23 @@ class BuildingStampTest {
                 }
             }
         }
+    }
+
+    @Test
+    void operationsTemplatesHaveSeatedLBanksInEveryPose() {
+        for (BuildingStamp stamp : new BuildingStamp[]{BuildingStamp.T_WORKSHOP, BuildingStamp.FREIGHT_L, BuildingStamp.FREIGHT_T})
+            for (int turn = 0; turn < 4; turn++) {
+                GenContext ctx = open(stamp.width(turn) + 4, stamp.height(turn) + 4);
+                stamp.place(ctx, 2, 2, turn);
+                assertEquals(1, ctx.doodads.stream().filter(d -> d.definitionId().endsWith("inside-corner")).count(), stamp.name());
+                var seats = ctx.doodads.stream().filter(d -> d.definitionId().equals("mess-galley.stool")).toList();
+                assertFalse(seats.isEmpty(), stamp.name());
+                for (Doodad seat : seats) {
+                    assertTrue(ctx.grid.isWalkable(seat.cellX, seat.cellY));
+                    assertFalse(ctx.topology.isFixture(seat.cellX, seat.cellY));
+                    assertEquals(0, seat.cover);
+                }
+            }
     }
 
     @Test
