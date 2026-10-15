@@ -114,17 +114,18 @@ public final class DefenderRoster {
     /**
      * As above, with the target market's own garrison estimate. A market's {@link MarketGarrison#quality} sets the
      * elite share of the infantry in place of the risk curve, so a military world is more professional than a mining
-     * outpost at the same risk. {@link MarketGarrison#NONE} keeps the risk curve.
+     * outpost at the same risk, and its {@link MarketGarrison#strength} places the headcount inside the tier's band
+     * ({@link #bandedTotal}). {@link MarketGarrison#NONE} keeps the risk curve and the tier's whole count.
      */
     public static DefenderRoster forMission(MissionType type, OperationTier tier,
                                             RiskLevel risk, boolean hasHeavyArmor,
                                             float attackerScore,
                                             GroundRosterProfile groundRoster,
                                             MarketGarrison garrison) {
-        int total = totalFor(type, tier, risk);
+        int total = bandedTotal(totalFor(type, tier, risk), garrison);
         float eliteRatio = eliteRatio(risk, garrison);
         List<MechVariant> mechVariants = affordableMechVariants(total, eliteRatio,
-                mechVariantsFor(type, risk, hasHeavyArmor, groundRoster), attackerScore);
+                bandedMechs(mechVariantsFor(type, risk, hasHeavyArmor, groundRoster), garrison), attackerScore);
         int mechs = mechVariants.size();
         // Mechs come out of the total. Elites take their slice of what's left;
         // the rest fills with militia.
@@ -150,6 +151,65 @@ public final class DefenderRoster {
 
     /** Smallest defending force worth generating — below this a battle has no shape. */
     private static final int MINIMUM_DEFENDERS = 8;
+
+    /**
+     * The least of the tier's count a market-backed operation fields: the weakest garrison at a tier still turns out
+     * this share. UNTUNED: chosen so no fight grows and none collapses; change it once play settles how much lighter an
+     * outpost should be than a fortress world at the same tier.
+     */
+    static final float BAND_FLOOR = 0.7f;
+
+    /**
+     * Vanilla ground-defence strength worth one defender, for placing a market inside its tier's band and for sizing a
+     * garrison faced whole. UNTUNED: at this rate an Established contract fills at about a size 5 colony and a Full
+     * Strength one at about a fortified size 7 world.
+     */
+    public static final float STRENGTH_PER_DEFENDER = 4f;
+
+    /**
+     * The tier's count, placed inside its band by what the market keeps on its ground. A contract is an operation the
+     * market's owner meets with the share of its garrison the situation calls for, never the whole of it, so the tier
+     * is the ceiling and {@link #BAND_FLOOR} of it the floor; the market's strength picks the place between. A
+     * garrison able to fill the tier's count fields all of it. No market backing the battle keeps the tier's count.
+     */
+    static int bandedTotal(int tierTotal, MarketGarrison garrison) {
+        if (garrison == null || garrison.isNone()) return tierTotal;
+        float fill = Math.min(1f, garrison.strength() / (tierTotal * STRENGTH_PER_DEFENDER));
+        float share = BAND_FLOOR + (1f - BAND_FLOOR) * fill;
+        return Math.max(Math.min(tierTotal, MINIMUM_DEFENDERS), Math.round(tierTotal * share));
+    }
+
+    /**
+     * The least of the risk curve's mech candidates a market-backed operation keeps: a market with no heavy lean at all
+     * still keeps this share. UNTUNED, on the headcount band's reasoning: the risk curve is the ceiling, so nothing
+     * grows, and a market's armour picks the place between.
+     */
+    static final float MECH_BAND_FLOOR = 0.5f;
+
+    /** Heavy lean at which a market keeps every mech candidate the risk curve offers. UNTUNED. */
+    static final float HEAVY_LEAN_FOR_FULL_MECHS = 0.25f;
+
+    /**
+     * The risk curve's mech candidates, kept in proportion to the market's heavy lean. The candidates are an ordered
+     * prefix (anchor first), so the kept ones are the front of it, as {@link #affordableMechVariants} keeps them. No
+     * market backing the battle keeps them all; a garrison with any candidates keeps at least one.
+     */
+    static List<MechVariant> bandedMechs(List<MechVariant> candidates, MarketGarrison garrison) {
+        if (candidates.isEmpty() || garrison == null || garrison.isNone()) return candidates;
+        float fill = Math.min(1f, garrison.heavy() / HEAVY_LEAN_FOR_FULL_MECHS);
+        float share = MECH_BAND_FLOOR + (1f - MECH_BAND_FLOOR) * fill;
+        int kept = Math.max(1, (int) Math.ceil(candidates.size() * share - 1e-4f));
+        return List.copyOf(candidates.subList(0, Math.min(candidates.size(), kept)));
+    }
+
+    /**
+     * The whole garrison as a headcount, for an operation that faces all of it rather than a tier's share: a player
+     * invasion. Never fewer than the smallest force worth generating. See {@code nexerelin-nouns.md}.
+     */
+    public static int wholeGarrisonCount(MarketGarrison garrison) {
+        if (garrison == null || garrison.isNone()) return MINIMUM_DEFENDERS;
+        return Math.max(MINIMUM_DEFENDERS, Math.round(garrison.strength() / STRENGTH_PER_DEFENDER));
+    }
 
     /**
      * Defenders for an operation: the tier's curve, weighted by what the
