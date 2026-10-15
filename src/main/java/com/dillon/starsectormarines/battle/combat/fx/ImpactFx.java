@@ -63,12 +63,25 @@ public final class ImpactFx {
     private static final Color SPARK_COLOR       = new Color(0xFF, 0xE0, 0x80);
 
     private final List<Particle> particles = new ArrayList<>();
-    private final Random rng = new Random();
+    private final Random rng;
     private SpriteAPI particleSheetSprite;
     private SpriteAPI glowSprite;
     private SpriteAPI explosionRingSprite;
     private final SpriteAPI[] explosionSprites = new SpriteAPI[SPRITE_EXPLOSIONS.length];
     private boolean spritesLoadAttempted;
+
+    public ImpactFx() {
+        this(new Random());
+    }
+
+    /** An effects backend whose jitter is a function of {@code seed}, so a headless review draws the same pixels twice. */
+    public ImpactFx(long seed) {
+        this(new Random(seed));
+    }
+
+    private ImpactFx(Random rng) {
+        this.rng = rng;
+    }
 
     /** Lazy-loads shared particle/glow assets and vanilla explosion sprites. Safe to call repeatedly; failures are logged and affected layers no-op. */
     public void ensureSprites() {

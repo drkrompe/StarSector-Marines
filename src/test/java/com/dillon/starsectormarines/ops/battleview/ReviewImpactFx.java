@@ -45,7 +45,9 @@ import java.util.Map;
  */
 public final class ReviewImpactFx {
 
-    private final ImpactFx fx = new ImpactFx();
+    /** Fixed, so the same battle drawn twice jitters its smoke and blasts the same way. */
+    private static final long REVIEW_SEED = 0x5EEDFACEL;
+    private final ImpactFx fx = new ImpactFx(REVIEW_SEED);
     private final ContrailFxService contrails = new ContrailFxService();
     private final BeamFxService beams = new BeamFxService();
     private OrdnanceTraceFxService traces;
