@@ -153,7 +153,12 @@ per piece rather than keyed by sheet name:
 Walls, transition autotiles and overlays declare no border, because that edge
 contrast communicates topology rather than atlas separation.
 
-`pack_parked_vehicles.py` still writes `parked-vehicles.png`; that sheet has not
-moved to the exporter yet, and its documents declare nothing, so the guard has
-no quarrel with it.
+`parked-vehicles.tileset-authoring.json` owns the six overhead industrial and
+colonial vehicle sprites. Export it with `tools/authoring.cmd tileset_export`
+and `{"name":"parked-vehicles"}` on stdin. The retained geometry guide and
+prompt describe the camera and slot order; the full placement cuts preserve
+alpha and aspect. Legacy map ids and tactical footprints stay stable. The
+former two-strip packer is retired, so export is the only atlas producer.
+`createSnapshots -Psnapshot=parked-vehicles` checks all four rotations at game
+scale, a closer gallery, and the production Counterattack freight yard.
 
