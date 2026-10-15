@@ -85,6 +85,16 @@ public final class AlliedGarrison {
     public static Installed install(BattleSimulation sim, MapResult map,
                                     GroundRosterProfile roster, int squads,
                                     RiskLevel risk, Random rng) {
+        return install(sim, map, roster, squads, 0f, risk, rng);
+    }
+
+    /**
+     * As above, with the market's garrison quality: that share of the line is drawn from the roster's elite issue,
+     * spread through every post rather than gathered in one ({@link DefenderRoster#infantryOrder}).
+     */
+    public static Installed install(BattleSimulation sim, MapResult map,
+                                    GroundRosterProfile roster, int squads, float quality,
+                                    RiskLevel risk, Random rng) {
         if (sim == null || map == null || roster == null || squads <= 0) {
             return Installed.NONE;
         }
@@ -93,11 +103,16 @@ public final class AlliedGarrison {
                 map.grid, anchor[0], anchor[1], squads * SQUAD_SIZE);
         if (cells.isEmpty()) return Installed.NONE;
 
-        UnitType type = roster.unitType(GroundRosterProfile.ForceTier.BULK);
+        float share = Float.isNaN(quality) ? 0f : Math.max(0f, Math.min(1f, quality));
+        int elites = Math.round(cells.size() * share);
+        List<GroundRosterProfile.ForceTier> order = DefenderRoster.infantryOrder(elites, cells.size() - elites);
         List<Integer> squadIds = new ArrayList<>();
         Squad squad = null;
         int members = 0;
-        for (int[] cell : cells) {
+        for (int i = 0; i < cells.size(); i++) {
+            int[] cell = cells.get(i);
+            GroundRosterProfile.ForceTier tier = order.get(i);
+            UnitType type = roster.unitType(tier);
             if (squad == null || members >= SQUAD_SIZE) {
                 if (squad != null) squad.originalSize = members;
                 members = 0;
@@ -107,7 +122,7 @@ public final class AlliedGarrison {
             EntitySpec unit = BattleSetup.makeDefender(
                             "ally-" + (squadIds.size() - 1) + "-" + members,
                             Faction.ALLY, type, cell[0], cell[1], risk, roster,
-                            GroundRosterProfile.ForceTier.BULK, rng, null)
+                            tier, rng, null)
                     .role(UnitRole.GARRISON)
                     .squad(squad.id)
                     .home(cell[0], cell[1]);
