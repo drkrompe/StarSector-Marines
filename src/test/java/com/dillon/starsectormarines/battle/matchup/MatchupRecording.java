@@ -68,13 +68,13 @@ public final class MatchupRecording {
     }
 
     /** Called once per tick before the sim advances. {@code status} is the caption's live reading. */
-    void observe(BattleSimulation sim, int tick, boolean damageDealt, String status, long[] bodies) {
+    void observe(BattleSimulation sim, int tick, boolean damageDealt, String status, long[][] sides) {
         if (damageDealt) engaged = true;
         sinceFrame++;
         int every = engaged ? ENGAGED_EVERY_TICKS : APPROACH_EVERY_TICKS;
         if (sinceFrame < every) return;
         sinceFrame = 0;
-        capture(sim, tick, status, bodies);
+        capture(sim, tick, status, sides);
     }
 
     /** Called once per tick after the sim advanced, so shots fired this tick can be drawn as impacts. */
@@ -85,18 +85,18 @@ public final class MatchupRecording {
     }
 
     /** The final state, so the recording always ends on the result. */
-    void finish(BattleSimulation sim, int tick, String status, long[] bodies) {
-        capture(sim, tick, FINAL + status, bodies);
+    void finish(BattleSimulation sim, int tick, String status, long[][] sides) {
+        capture(sim, tick, FINAL + status, sides);
     }
 
-    private void capture(BattleSimulation sim, int tick, String status, long[] bodies) {
+    private void capture(BattleSimulation sim, int tick, String status, long[][] sides) {
         try {
             // Streamed to disk as it goes: 1920x1080 frames are six megabytes each, so holding a fight's worth would
             // exhaust the heap. Past the cap the recording stops growing but still ends on the result (`last`).
             boolean last = status.startsWith(FINAL);
             if (frames >= MAX_FRAMES && !last) return;
             BufferedImage frame;
-            frameCamera(sim, bodies);
+            frameCamera(sim, sides);
             synchronized (RENDER_LOCK) {
                 frame = opaque(renderer.render(sim, title + "   t=" + tick + "   " + status.replace(FINAL, ""),
                         annotations, fx));
@@ -113,11 +113,38 @@ public final class MatchupRecording {
     }
 
     /**
-     * Follows the fight: the camera frames the main body of the living bodies, easing toward it frame to frame.
-     * Bodies far from the median (a routed survivor running for the map edge) are left out, or the frame would
-     * stretch to keep one man in view and everything else would be a speck.
+     * Follows the fight: the camera frames the main body of each side, easing toward it frame to frame. A body far
+     * from its own side's median (a routed survivor running for the map edge) is left out, or the frame would stretch
+     * to keep one man in view and everything else would be a speck. Before the first damage only the first side, the
+     * attackers, is framed, so the approach is not a whole-map view; once anything is hit, both are, because a fight
+     * at standoff range (a mortar shelling a trench fifty cells off) is a fight between two places.
      */
-    private void frameCamera(BattleSimulation sim, long[] bodies) {
+    private void frameCamera(BattleSimulation sim, long[][] sides) {
+        float[] box = {Float.MAX_VALUE, -Float.MAX_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE};
+        int framedSides = engaged ? sides.length : 1;
+        for (int s = 0; s < framedSides; s++) frameSide(sim, sides[s], box);
+        if (box[0] > box[1]) {
+            for (long[] side : sides) frameSide(sim, side, box);
+        }
+        if (box[0] > box[1]) return;
+        float minX = box[0], maxX = box[1], minY = box[2], maxY = box[3];
+        float aspect = (float) WIDTH / (HEIGHT - BattleReviewFrameRenderer.HEADER_HEIGHT);
+        float across = Math.max(MIN_CELLS_ACROSS,
+                Math.max(maxX - minX + 2 * MARGIN_CELLS, (maxY - minY + 2 * MARGIN_CELLS) * aspect));
+        float x = (minX + maxX) / 2f;
+        float y = (minY + maxY) / 2f;
+        if (Float.isNaN(cameraX)) {
+            cameraX = x; cameraY = y; cameraAcross = across;
+        } else {
+            cameraX += (x - cameraX) * CAMERA_EASE;
+            cameraY += (y - cameraY) * CAMERA_EASE;
+            cameraAcross += (across - cameraAcross) * CAMERA_EASE;
+        }
+        renderer.refocus(cameraX, cameraY, cameraAcross);
+    }
+
+    /** Widens {@code box} (minX, maxX, minY, maxY) to one side's living main body. */
+    private static void frameSide(BattleSimulation sim, long[] bodies, float[] box) {
         float[] xs = new float[bodies.length];
         float[] ys = new float[bodies.length];
         int n = 0;
@@ -134,27 +161,13 @@ public final class MatchupRecording {
         Arrays.sort(sy);
         float medianX = sx[n / 2];
         float medianY = sy[n / 2];
-        float minX = Float.MAX_VALUE, maxX = -Float.MAX_VALUE, minY = Float.MAX_VALUE, maxY = -Float.MAX_VALUE;
         for (int i = 0; i < n; i++) {
             if (Math.abs(xs[i] - medianX) > OUTLIER_CELLS || Math.abs(ys[i] - medianY) > OUTLIER_CELLS) continue;
-            minX = Math.min(minX, xs[i]);
-            maxX = Math.max(maxX, xs[i]);
-            minY = Math.min(minY, ys[i]);
-            maxY = Math.max(maxY, ys[i]);
+            box[0] = Math.min(box[0], xs[i]);
+            box[1] = Math.max(box[1], xs[i]);
+            box[2] = Math.min(box[2], ys[i]);
+            box[3] = Math.max(box[3], ys[i]);
         }
-        float aspect = (float) WIDTH / (HEIGHT - BattleReviewFrameRenderer.HEADER_HEIGHT);
-        float across = Math.max(MIN_CELLS_ACROSS,
-                Math.max(maxX - minX + 2 * MARGIN_CELLS, (maxY - minY + 2 * MARGIN_CELLS) * aspect));
-        float x = (minX + maxX) / 2f;
-        float y = (minY + maxY) / 2f;
-        if (Float.isNaN(cameraX)) {
-            cameraX = x; cameraY = y; cameraAcross = across;
-        } else {
-            cameraX += (x - cameraX) * CAMERA_EASE;
-            cameraY += (y - cameraY) * CAMERA_EASE;
-            cameraAcross += (across - cameraAcross) * CAMERA_EASE;
-        }
-        renderer.refocus(cameraX, cameraY, cameraAcross);
     }
 
     /** Closes the GIF; a recording with no frames writes nothing. */

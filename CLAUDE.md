@@ -703,7 +703,12 @@ Do not run builds or leave generated task files there.
   experiment, for trying an issue before authoring it: `kit:field-rifle@surplus,rocket-launcher*2,frag-grenade*6`
   (every seat the primary at that grade, the listed specials on the first seats in order) and
   `mix:cordon-shell*10,packframe*2` (armor patterns adding up to twelve); the `weapon.`,
-  `special.` and `armor.` prefixes may be left off. `-Pscenarios=open-field,trench` selects ground, `-Pparallelism=N` sets fights run side by
+  `special.` and `armor.` prefixes may be left off. `-PfireMission=true` gives the attackers'
+  order a fire mission on the ground the defenders start on, as a commander does for a squad
+  carrying crew-served tubes; without one a marching squad never halts to set a field mortar
+  down, so a tube on the attack is idle against a trench or building. `runs.csv` reports each
+  side's specials used and its mortars' set-ups, rounds, damage and kills (a tube is its own
+  entity, so its fire is not in the squad's figures). `-Pscenarios=open-field,trench` selects ground, `-Pparallelism=N` sets fights run side by
   side (default half the processors; 1 is the serial control). The sim seed changes every hit
   and morale roll and nothing else. A fight ends when a side is wiped out, when both stand
   with no damage for 1,200 ticks (`STALEMATE`) or at the tick limit; neither is a draw, so
@@ -715,8 +720,9 @@ Do not run builds or leave generated task files there.
   `gifs/<scenario>/` (linked from the Replay column of `matchups.md` and `runs.csv`); it is on
   by default for up to four explicit `-Pattacker`/`-Pdefender` pairings and off otherwise, where it
   would write a gigabyte. A recording only reads the sim: sparse frames until the first damage,
-  dense after it, shots and impacts drawn, a camera that follows the main body of the fight
-  (a routed straggler is left out of the framing), capped at 360 frames. A scenario's walls have
+  dense after it, shots and impacts drawn, a camera that follows the attackers' main body until
+  the first damage and both sides' after it (a routed straggler is left out of the framing, so a
+  standoff fight frames both places), capped at 360 frames. A scenario's walls have
   no art, so a scenario overrides `annotations()` to box what it built. Rendering takes turns
   across the side-by-side fights and costs about 20-30s a recording.
   A new scenario implements `MatchupScenario` and joins `MatchupScenarios.all()`.
