@@ -69,6 +69,8 @@ public final class ConsoleRoomSnapshotSuite implements SnapshotSuite {
         List<SnapshotArtifact> artifacts = new ArrayList<>();
         artifacts.add(new SnapshotArtifact("console-rooms.png", board));
         artifacts.add(new SnapshotArtifact("command-building-shapes.png", buildings(renderer)));
+        artifacts.add(new SnapshotArtifact("building-readouts.png", readouts(renderer)));
+        artifacts.add(new SnapshotArtifact("building-console-templates.png", consoleTemplates(renderer)));
         RoomLayout seed = RoomLayoutSeed.from(RoomFittings.forShipRoom(RoomPurpose.BRIDGE,
                 RoomRecipe.COMMAND.shape(), RoomFit.STANDARD), RoomPurpose.BRIDGE,
                 RoomRecipe.COMMAND.shape(), RoomFit.STANDARD);
@@ -156,7 +158,68 @@ public final class ConsoleRoomSnapshotSuite implements SnapshotSuite {
         g.dispose(); return image;
     }
 
+    private static BufferedImage consoleTemplates(HeadlessBattleMapRenderer renderer) {
+        BufferedImage image = board(); Graphics2D g = image.createGraphics();
+        text(g, "AUTHORED BUILDINGS / L-SHAPED OPERATIONS DESKS", 36, 58, 28);
+        BuildingStamp[] stamps = {BuildingStamp.T_WORKSHOP, BuildingStamp.FREIGHT_L, BuildingStamp.FREIGHT_T};
+        for (int i = 0; i < stamps.length; i++) {
+            BuildingStamp stamp = stamps[i];
+            int w = stamp.width + 4, h = stamp.height + 4;
+            NavigationGrid grid = new NavigationGrid(w, h); CellTopology topology = new CellTopology(w, h);
+            for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) {
+                grid.setWalkableFloor(x, y); topology.setGroundKind(x, y, GroundKind.STREET);
+            }
+            GenContext ctx = new GenContext(grid, topology, new Random(42), w, h, 42);
+            stamp.place(ctx, 2, 2, 0); new FinalizeStage().run(ctx); verifyConnected(grid);
+            MapResult map = new MapResult(grid, topology, 0, 0, 0, 0, ctx.pois, ctx.doodads);
+            int x = 24 + i * 630;
+            text(g, stamp.label, x, 145, 22);
+            g.drawImage(renderer.render(map, 42, 26), x, 185, null);
+            text(g, "Connected L bank + mess-hall stools", x, 865, 19);
+            text(g, i == 0 ? "Used by procedural industrial lots" : "Used by authored story facilities", x, 905, 18);
+            text(g, "Doors, windows and exterior cuts preserved", x, 945, 17);
+        }
+        text(g, "Production building templates and battle renderer / 1920 x 1080", 36, 1045, 17);
+        g.dispose(); return image;
+    }
+
     private static MapResult building(int w, int h, long seed, BuildingPlacement.Side frontage) {
+        return building(w, h, seed, frontage, new BuildingShellCore.BuildingConfig(GroundKind.INDOOR, "SKY_PORT",
+                PointOfInterest.Kind.COMMS, BuildingLayouts.LayoutRecipe.COMMAND_CENTER, BuildingKind.FORTIFIED,
+                new RoomPurpose[]{RoomPurpose.KEEP_THRONE, RoomPurpose.KEEP_INNER, RoomPurpose.KEEP_ENTRY},
+                TernaryPartitionStrategy.DEFAULT));
+    }
+
+    private static BufferedImage readouts(HeadlessBattleMapRenderer renderer) {
+        BufferedImage image = board(); Graphics2D g = image.createGraphics();
+        text(g, "BUILDING READOUTS / SEATED WORKSTATIONS", 44, 50, 28);
+        String[] names = {"Command facility", "Industrial control room", "Civic server room", "Clinic monitoring"};
+        BuildingShellCore.BuildingConfig[] configs = {null, BuildingIndustrialFiller.CONFIG,
+                BuildingCivicFiller.CONFIG, MedicalCampusFiller.CLINIC_CONFIG};
+        for (int i = 0; i < configs.length; i++) {
+            int x = 36 + i % 2 * 950, y = 90 + i / 2 * 480;
+            MapResult map = null;
+            for (BuildingPlacement.Side side : BuildingPlacement.Side.values()) {
+                MapResult candidate = configs[i] == null ? building(26, 21, 42, side)
+                        : building(26, 21, 42, side, configs[i]);
+                if (side == BuildingPlacement.Side.BOTTOM) map = candidate;
+            }
+            long modules = map.doodads.stream().filter(d -> d.definitionId().startsWith("console-bank.")).count();
+            long seats = map.doodads.stream().filter(d -> d.definitionId().equals("mess-galley.stool")).count();
+            if (modules == 0 || seats == 0) throw new IllegalStateException(names[i] + " has no seated console bank");
+            text(g, names[i], x, y, 22);
+            g.drawImage(renderer.render(map, 42, 17), x, y + 20, null);
+            text(g, modules + " console modules", x + 550, y + 115, 19);
+            text(g, seats + " mess-hall stools", x + 550, y + 150, 19);
+            text(g, "Working-side seats", x + 550, y + 215, 18);
+            text(g, "Clear service aisles", x + 550, y + 250, 18);
+            text(g, "All four entrances checked", x + 550, y + 285, 18);
+        }
+        g.dispose(); return image;
+    }
+
+    private static MapResult building(int w, int h, long seed, BuildingPlacement.Side frontage,
+                                      BuildingShellCore.BuildingConfig config) {
         int width = w + 4, height = h + 4;
         NavigationGrid grid = new NavigationGrid(width, height);
         CellTopology topology = new CellTopology(width, height);
@@ -165,10 +228,7 @@ public final class ConsoleRoomSnapshotSuite implements SnapshotSuite {
         }
         GenContext ctx = new GenContext(grid, topology, new Random(seed), width, height, seed);
         BuildingShellCore.carve(new BlockLeaf(2, 2, w + 1, h + 1, false), grid, topology, ctx.doodads,
-                new Random(seed), new BuildingShellCore.BuildingConfig(GroundKind.INDOOR, "SKY_PORT",
-                        PointOfInterest.Kind.COMMS, BuildingLayouts.LayoutRecipe.COMMAND_CENTER, BuildingKind.FORTIFIED,
-                        new RoomPurpose[]{RoomPurpose.KEEP_THRONE, RoomPurpose.KEEP_INNER, RoomPurpose.KEEP_ENTRY},
-                        TernaryPartitionStrategy.DEFAULT), new BuildingPlacement(frontage, true));
+                new Random(seed), config, new BuildingPlacement(frontage, true));
         new FinalizeStage().run(ctx);
         verifyConnected(grid);
         for (var d : ctx.doodads) if (d.definitionId().startsWith("console-bank.")) {
@@ -188,7 +248,7 @@ public final class ConsoleRoomSnapshotSuite implements SnapshotSuite {
             int[] c = queue.removeFirst(); reached++;
             for (int[] d : new int[][]{{1,0},{-1,0},{0,1},{0,-1}}) {
                 int x = c[0] + d[0], y = c[1] + d[1];
-                if (grid.inBounds(x, y) && grid.isWalkable(x, y) && !seen[x][y]) {
+                if (grid.inBounds(x, y) && !seen[x][y] && grid.canTraverseCellStep(c[0], c[1], x, y)) {
                     seen[x][y] = true; queue.add(new int[]{x, y});
                 }
             }

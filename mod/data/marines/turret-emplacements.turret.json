@@ -54,7 +54,7 @@
     },
     {
       "id": "mount.field-mortar", "weapon": "weapon.field-mortar",
-      "sim": { "ammoCapacity": 14, "turnRateDegPerSec": 120.0 },
+      "sim": { "ammoCapacity": 6, "turnRateDegPerSec": 120.0 },
       "render": { "visualCells": 1.2969, "muzzleOffsetCells": 0.571, "sprite": "graphics/structures/field-mortar-turret.png", "recoilSprite": "graphics/structures/field-mortar-tube.png" }
     },
     { "id": "mount.shield-generator-core", "weapon": "weapon.pd-interceptor", "sim": { "ammoCapacity": 1, "turnRateDegPerSec": 60.0 } },

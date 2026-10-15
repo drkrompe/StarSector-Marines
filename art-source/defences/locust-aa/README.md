@@ -13,9 +13,10 @@ Proximity Charge Launcher; those two art passes are still pending.
 - `locust-reskin-guide.png`: centered 1024-square overhead render of the approved
   Blender assembly. `render-reskin-guide.py` derives it from the retained
   `proposals/microphone-head/proposal.blend` without changing that scene.
-- `ground-base.master.png`: separate stationary foundation, up-resed from the
-  project's Ridgewatch base. This is new ground-emplacement art, not a vanilla
-  Locust layer.
+- `ground-base.master.png`: separate stationary tower derived from the project's
+  Ridgewatch base. A raised central crown, broad sloping wall faces, tapered
+  corner supports and dark lower foot imply height in the overhead view.
+  This is new ground-emplacement art, not a vanilla Locust layer.
 - `layers/locust-mount.png` and `layers/ground-base.png`: 512 x 512 RGBA exports,
   with registration pivots recorded in `export-metadata.json`. The mount includes the
   rotating gimbal floor; the ground base is a separate stationary foundation.
@@ -27,15 +28,23 @@ Proximity Charge Launcher; those two art passes are still pending.
 - `composite.png`: transparent 512-square tower/mount assembly at the shared
   center pivot. `composite-review.png` shows forward and 45-degree traverse
   views plus 256/192/128/64-pixel canvas studies at 1920 x 1080.
+- `depth-review.png`: 1920 x 1080 comparison of the earlier flat foundation and
+  the tower depth pass under the same approved turret; made by `depth-review.ps1`.
 - The two `*.prompt.txt` files preserve the exact built-in ImageGen prompts.
   The revised mount prompt uses the new circular-floor overhead guide and
   `sources/locust-square-platform.png`, the prior approved painted mount,
   as its material and unchanged-head reference. The guide owns the new floor
   silhouette; the retained art supplies the established finish and head details.
+  The tower prompt refines `sources/ground-base-depth-first-pass.png`, with
+  `sources/ground-base-flat.png` as the original outline reference. The first
+  pass and its exact prompt are retained in `sources/`; its second reference,
+  `ground-base-flat-composite.png`, shows the area concealed by the turret.
 
-The elongated head was already approved. The user requested a rounded rotating
-platform after reviewing it over the tower; its new painted finish remains for
-review. The circular floor has radius 1.02, thickness 0.22 and center Z 0.22
+The elongated head and rounded rotating platform are approved. The tower depth
+pass changes the stationary base only. Its broad wall planes and self-occlusion
+suggest a raised armored pedestal; no external ground shadow or camera tilt is
+baked into the sprite. This is implied height, not a measured tower height or
+runtime elevation. The circular floor has radius 1.02, thickness 0.22 and center Z 0.22
 (top Z 0.33). Rear cooling ribs taper inside its perimeter. Head dimensions,
 18 parallel launch bores, 20-degree displayed pitch, side cheeks, trunnions and
 axle height are fixed. The foundation remains a separate stationary layer.
@@ -56,6 +65,7 @@ From the repository root in PowerShell:
 ```powershell
 ./art-source/defences/locust-aa/export.ps1
 ./art-source/defences/locust-aa/composite.ps1
+./art-source/defences/locust-aa/depth-review.ps1
 ```
 
 To regenerate the input guide first:
@@ -71,13 +81,18 @@ writes `export-metadata.json` and the review sheet. The circular floor encloses
 the complete mount, so its visible bounds locate the painted yaw center at
 (256.5, 248.5) in the 512-square export. This compensates for ImageGen's small
 framing drift through draw-time registration, preserving every source pixel.
-The separate composite script aligns that pivot to the foundation's (256, 256)
-and rotates around it. It reads both masters and metadata beside itself and
+The tower bearing is visually registered at (256, 242), corresponding to about
+(627, 593) in its master; its raised crown is slightly above the frame center.
+The separate composite script aligns both pivots to the assembly's (256, 256)
+and rotates only the mount. It reads both masters and metadata beside itself and
 writes the assembly previews there without cropping or repainting either layer.
 Generated masters arrived
 at 1254 x 1254 despite the requested 1024 square canvas. The masters have faint
 alpha residue in some empty pixels; alpha is preserved, and the boundary
-check rejects alpha >= 8. Visible bounds are measured at alpha >= 32.
+check rejects alpha >= 8. Visible bounds are measured at alpha >= 32. The new
+tower preserves the octagonal design, though generated perimeter bounds differ
+slightly from the flat source; full frames are retained rather than distorted
+to force a pixel-exact outline.
 
 ## Source provenance and remaining family
 

@@ -95,6 +95,77 @@ class AnimatedGifWriterTest {
         }
     }
 
+    @Test
+    void mostlyStaticSequenceEncodesAsSmallDeltasAndDecodesToTheSamePixels() throws Exception {
+        for (AnimatedGifWriter.Palette palette : AnimatedGifWriter.Palette.values()) {
+            int frames = 12;
+            BufferedImage[] sequence = new BufferedImage[frames];
+            for (int f = 0; f < frames; f++) {
+                BufferedImage image = new BufferedImage(256, 256, BufferedImage.TYPE_INT_RGB);
+                for (int y = 0; y < 256; y++) {
+                    for (int x = 0; x < 256; x++) {
+                        // busy but fixed background: LZW cannot flatten it
+                        image.setRGB(x, y, new Color((x * 7) & 0xff, (y * 13) & 0xff,
+                                (x * y) & 0xff).getRGB());
+                    }
+                }
+                Graphics2D g = image.createGraphics();
+                g.setColor(Color.WHITE);
+                g.fillRect(10 + f * 4, 20, 6, 6);
+                g.dispose();
+                sequence[f] = image;
+            }
+            Path gif = tempDir.resolve("delta-" + palette + ".gif");
+            try (AnimatedGifWriter writer = new AnimatedGifWriter(gif, 100, palette)) {
+                for (BufferedImage image : sequence) writer.append(image);
+            }
+            Path single = tempDir.resolve("single-" + palette + ".gif");
+            try (AnimatedGifWriter writer = new AnimatedGifWriter(single, 100, palette)) {
+                writer.append(sequence[0]);
+            }
+            assertTrue(gif.toFile().length() < single.toFile().length() * 3,
+                    palette + ": twelve frames must cost far less than twelve whole frames, was "
+                            + gif.toFile().length() + " vs one frame " + single.toFile().length());
+
+            Iterator<ImageReader> readers = ImageIO.getImageReadersByFormatName("gif");
+            ImageReader reader = readers.next();
+            try (ImageInputStream input = ImageIO.createImageInputStream(gif.toFile())) {
+                reader.setInput(input);
+                assertEquals(frames, reader.getNumImages(true));
+                for (int f = 0; f < frames; f++) {
+                    BufferedImage decoded = reader.read(f);
+                    // composite the delta over the previous canvas the way a viewer does
+                    if (f == 0) canvas = new BufferedImage(256, 256, BufferedImage.TYPE_INT_ARGB);
+                    Graphics2D g = canvas.createGraphics();
+                    org.w3c.dom.Node descriptor = ((javax.imageio.metadata.IIOMetadataNode)
+                            reader.getImageMetadata(f).getAsTree("javax_imageio_gif_image_1.0"))
+                            .getElementsByTagName("ImageDescriptor").item(0);
+                    int left = Integer.parseInt(descriptor.getAttributes()
+                            .getNamedItem("imageLeftPosition").getNodeValue());
+                    int top = Integer.parseInt(descriptor.getAttributes()
+                            .getNamedItem("imageTopPosition").getNodeValue());
+                    g.drawImage(decoded, left, top, null);
+                    g.dispose();
+                    for (int y = 0; y < 256; y += 5) {
+                        for (int x = 0; x < 256; x += 3) {
+                            Color expected = new Color(sequence[f].getRGB(x, y));
+                            Color actual = new Color(canvas.getRGB(x, y));
+                            int tolerance = palette == AnimatedGifWriter.Palette.COMPACT ? 52 : 48;
+                            assertTrue(Math.abs(expected.getRed() - actual.getRed()) <= tolerance
+                                            && Math.abs(expected.getGreen() - actual.getGreen()) <= tolerance
+                                            && Math.abs(expected.getBlue() - actual.getBlue()) <= tolerance,
+                                    palette + " frame " + f + " at " + x + "," + y);
+                        }
+                    }
+                }
+            } finally {
+                reader.dispose();
+            }
+        }
+    }
+
+    private BufferedImage canvas;
+
     private static BufferedImage frame(Color color) {
         BufferedImage image = new BufferedImage(
                 8, 8, BufferedImage.TYPE_INT_ARGB);

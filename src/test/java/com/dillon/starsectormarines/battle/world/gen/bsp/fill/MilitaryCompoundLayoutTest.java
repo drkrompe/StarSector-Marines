@@ -43,7 +43,7 @@ class MilitaryCompoundLayoutTest {
     void roleBuildingsUseDistinctFixturesAndFaceTheSharedParadeGround() {
         GenContext ctx = filled(17L);
 
-        assertTrue(count(ctx.doodads, "doodad.military-command-console") >= 4,
+        assertTrue(ctx.doodads.stream().filter(d -> d.definitionId().startsWith("console-bank.")).count() >= 2,
                 "command and operations chambers need console banks, not token props");
         assertEquals(1, count(ctx.doodads, "doodad.military-tactical-table"),
                 "the command chamber centers on one planning table");
@@ -66,17 +66,17 @@ class MilitaryCompoundLayoutTest {
     @Test
     void commandBanksAddVisualDensityWithoutBarricadingTheOperationsFloor() {
         GenContext ctx = filled(17L);
-        DoodadDef console = TileRegistry.installed().doodad("doodad.military-command-console");
         int banks = 0;
         for (Doodad doodad : ctx.doodads) {
-            if (!matches(doodad, console) || !inset(COMMAND).contains(doodad.cellX, doodad.cellY)) {
+            if (!doodad.definitionId().startsWith("console-bank.") || !inset(COMMAND).contains(doodad.cellX, doodad.cellY)) {
                 continue;
             }
             banks++;
-            assertTrue(ctx.grid.isWalkable(doodad.cellX, doodad.cellY));
-            assertFalse(ctx.topology.isFixture(doodad.cellX, doodad.cellY));
+            assertFalse(ctx.grid.isWalkable(doodad.cellX, doodad.cellY));
+            assertTrue(ctx.topology.isFixture(doodad.cellX, doodad.cellY));
+            assertTrue(ctx.grid.isSeeThrough(doodad.cellX, doodad.cellY));
         }
-        assertTrue(banks >= 4, "command post should read as a staffed operations floor");
+        assertTrue(banks >= 2, "compact command post must fit a complete capped console bank");
 
         Doodad table = only(ctx.doodads, "doodad.military-tactical-table");
         assertTrue(ctx.topology.isFixture(table.cellX, table.cellY));
