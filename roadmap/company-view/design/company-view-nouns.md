@@ -795,17 +795,21 @@ workshop order consumes its own bill. Following the lesson needs no market trip.
 Deliberately pausing to spend or sell those stores elsewhere can still create a
 shortfall; the lesson never manufactures resources or overrides a workshop refusal.
 
-Lieutenant Mira Hale is the recurring founding field commander: a former convoy
-escort who values clear orders and an accounted muster. Her ordinary appointment,
-career and service record carry that role; it grants no immunity from loss, extra
-specialty point or invented recruitment charge. The dossier retains her authored
-background and dedicated female portrait. Existing default Mira portraits upgrade
-without replacing player-customized likenesses.
+Lieutenant Sabine Hale is the recurring founding field commander. She commanded
+the escort section on Harker's Claim's ore runs, and the twelve who stayed with
+her when the operator stopped paying for escorts became the company's first
+squad. She values clear orders and a counted muster. Her ordinary appointment,
+career and service record carry that role, with no extra specialty point or
+invented recruitment charge. She is the one officer who cannot be lost in
+battle: she carries the long story and later the company's ground-commander
+voice, so a lost battle that would kill another officer wounds her instead, for
+the same time as any wiped officer. The dossier retains her authored background
+and dedicated female portrait.
 
-After commissioning, Castle introduces Mira's portrait and guides an actual
+After commissioning, Castle introduces Sabine's portrait and guides an actual
 specialty choice. Barracks then guides the ordinary twelve-Marine, 36-supply,
 24-food founding transaction on its Raise Squad tile, which includes baseline field
-kit; with Mira's command open the squad musters straight into it. A squad that
+kit; with Sabine's command open the squad musters straight into it. A squad that
 reached Barracks unassigned is homed through the capacity-checked Assign Selected
 button on the commander card.
 Completion requires a current company ship with owned lift, an actually trained
@@ -820,8 +824,8 @@ and squad preparation. Ship selection, commissioning, specialty training, squad
 founding and assignment remain real orders. The opening lesson has no Later
 control and Escape does not dismiss it. Return to campaign remains available for
 travel or resupply; the required lesson returns on re-entry. Advancing dialogue
-cannot substitute for real orders. If Mira has been lost or dismissed, a surviving
-officer can carry the unfinished lesson without resurrecting her.
+cannot substitute for real orders. The lesson always belongs to Sabine, since
+she cannot be lost; no other officer takes it over.
 
 Legacy companies without induction stay exempt; existing officer-only lessons
 retain their scope and progress. All ordinary deployment routes enforce the same
@@ -1271,7 +1275,7 @@ Its bridge illustration is presentation, not a new hull-condition authority.
 
 A reviewed 5,000-credit yard order installs the permanent Mercenary Company
 Conversion on the owned, active hull. Company designation still uses the ordinary
-preparation preflight and resumes lift, Mira, squad founding and assignment.
+preparation preflight and resumes lift, Sabine, squad founding and assignment.
 
 The Cerberus opening names **Mercenary Company Conversion** explicitly and directs
 the player to Marine operations in the planet menu, not the vanilla Refit picker.
@@ -1297,7 +1301,7 @@ stores rather than claiming every counted item is in the hold.
 
 Leaving a room or its planet dialog spends no stores and completes no preparation
 step. Re-entering through the company shortcut, mission board, or a direct room
-link resumes the required step derived from the saved company: ship, lift, Mira,
+link resumes the required step derived from the saved company: ship, lift, Sabine,
 formation, then assignment. HQ may present the same guided handoff. Required
 preparation does not interrupt an active battle, settlement, or developer mission.
 If a remaining order needs reserved stores that are currently ashore, Castle names

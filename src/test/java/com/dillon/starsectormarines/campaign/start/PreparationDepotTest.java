@@ -24,8 +24,8 @@ class PreparationDepotTest {
         Map<String, Float> cargo = new HashMap<>(protectedStart ? Map.of() : Map.of(Commodities.SUPPLIES, 25f));
         Resources resources = new Resources(new WorkshopStores(cargo(cargo), depot, Purpose.PREFLIGHT));
         MarineRoster roster = new MarineRoster();
-        MarineCaptain mira = new MarineCaptain("Mira Hale", null, Rank.LIEUTENANT, 0);
-        roster.add(mira); roster.beginCompanyPreparation(mira);
+        MarineCaptain sabine = new MarineCaptain("Sabine Hale", null, Rank.LIEUTENANT, 0);
+        roster.add(sabine); roster.beginCompanyPreparation(sabine);
         assertTrue(CompanyPreparation.canPrepare(roster, ShuttleType.HERMES, 1, resources));
         resources = new Resources(new WorkshopStores(cargo(cargo), depot, Purpose.BOAT));
         roster.setCompanyShip("cerberus", "Second Wind", 75);
@@ -35,11 +35,11 @@ class PreparationDepotTest {
         assertEquals(36, depot.available(Commodities.SUPPLIES));
         depot = roundTrip(depot);
         resources = new Resources(new WorkshopStores(cargo(cargo), depot, Purpose.SQUAD));
-        roster.officerInduction().introduce(mira);
-        assertTrue(mira.train(OfficerSpecialty.TACTICAL_COVER));
+        roster.officerInduction().introduce(sabine);
+        assertTrue(sabine.train(OfficerSpecialty.TACTICAL_COVER));
         var squad = new SquadFoundingWorkshop(roster, resources).foundSquad().squad();
         assertNotNull(squad);
-        roster.assignCaptainToSquad(mira.id(), squad.id());
+        roster.assignCaptainToSquad(sabine.id(), squad.id());
         assertTrue(roster.officerInduction().finish(roster));
         assertTrue(depot.stock().values().stream().allMatch(n -> n == 0));
         assertEquals(protectedStart ? Map.of() : Map.of(Commodities.SUPPLIES, 25f), cargo);

@@ -22,11 +22,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OfficerInductionTest {
     private final MarineRoster roster = new MarineRoster();
-    private final MarineCaptain mira = new MarineCaptain("Mira Hale", null, Rank.LIEUTENANT, 0f);
+    private final MarineCaptain sabine = new MarineCaptain("Sabine Hale", null, Rank.LIEUTENANT, 0f);
 
     private OfficerInduction begin() {
-        roster.add(mira);
-        roster.beginOfficerInduction(mira);
+        roster.add(sabine);
+        roster.beginOfficerInduction(sabine);
         return roster.officerInduction();
     }
 
@@ -35,25 +35,25 @@ class OfficerInductionTest {
         OfficerInduction induction = begin();
         assertEquals(Step.INTRODUCTION, induction.step(roster));
         assertFalse(induction.finish(roster));
-        induction.introduce(mira);
+        induction.introduce(sabine);
         assertEquals(Step.SPECIALTY, induction.step(roster));
-        assertTrue(mira.train(specialty));
-        assertFalse(mira.train(specialty), "No extra tutorial point");
+        assertTrue(sabine.train(specialty));
+        assertFalse(sabine.train(specialty), "No extra tutorial point");
         induction = roundTrip(induction);
-        assertEquals(mira.id(), induction.miraId());
+        assertEquals(sabine.id(), induction.foundingOfficerId());
         assertEquals(Step.FORMATION, induction.step(roster));
         MarineSquad squad = roster.createSquad();
         assertEquals(Step.FORMATION, induction.step(roster), "Empty formations cannot satisfy induction");
         roster.recruitToSquad(squad.id(), 12);
         assertEquals(Step.ASSIGNMENT, induction.step(roster));
         assertFalse(induction.finish(roster));
-        roster.assignCaptainToSquad(mira.id(), squad.id());
+        roster.assignCaptainToSquad(sabine.id(), squad.id());
         assertEquals(Step.READY, induction.step(roster));
         assertTrue(induction.finish(roster));
         induction = roundTrip(induction);
         assertTrue(induction.complete());
         assertFalse(induction.finish(roster), "Final acknowledgement is once only");
-        roster.removeById(mira.id());
+        roster.removeById(sabine.id());
         assertEquals(Step.COMPLETE, induction.step(roster), "Later losses never re-lock a veteran company");
     }
 
@@ -72,42 +72,25 @@ class OfficerInductionTest {
         assertTrue(roster.officerInductionRequired());
         model.resumeGuide();
         assertTrue(model.guideVisible());
-        assertEquals("command:" + mira.id(), model.guideTargetId());
-        model.selectCommand(mira.id());
+        assertEquals("command:" + sabine.id(), model.guideTargetId());
+        model.selectCommand(sabine.id());
         assertTrue(model.guideVisible(), "Officer lesson remains visible in dossier");
         assertEquals("officer-specialty-TACTICAL_COVER-train", model.guideTargetId());
         assertEquals(Step.SPECIALTY, roster.officerInduction().step(roster));
     }
 
-    @Test void reopeningPreservesChoicesAndLostMiraIsNotRecreated() {
+    @Test void reopeningPreservesChoicesAndKeepsTheFoundingOfficer() {
         OfficerInduction induction = begin();
-        induction.introduce(mira);
-        mira.train(OfficerSpecialty.RECOVERY_PLANNING);
-        roster.beginOfficerInduction(mira);
+        induction.introduce(sabine);
+        sabine.train(OfficerSpecialty.RECOVERY_PLANNING);
+        roster.beginOfficerInduction(sabine);
         assertSame(induction, roster.officerInduction());
         assertEquals(Step.FORMATION, induction.step(roster));
-        mira.setStatus(Status.KIA);
-        assertNull(induction.officer(roster));
-        assertFalse(induction.finish(roster));
-        var replacement = new MarineCaptain("Replacement", null, Rank.LIEUTENANT, 0f);
-        roster.add(replacement);
-        assertSame(replacement, induction.officer(roster));
-        assertEquals(Step.SPECIALTY, induction.step(roster));
-        assertEquals(Status.KIA, mira.status());
-    }
-
-    @Test void portraitUpgradePreservesCustomizedOfficersAndLegacyExemption() {
-        mira.setPortraitSprite("graphics/portraits/portrait_mercenary01.png");
-        roster.add(mira);
-        var customized = new MarineCaptain("Mira Hale", "my-custom-portrait.png", Rank.CAPTAIN, 0f);
-        var other = new MarineCaptain("Another Officer", "graphics/portraits/portrait_mercenary01.png", Rank.CAPTAIN, 0f);
-        roster.add(customized);
+        var other = new MarineCaptain("Another Officer", null, Rank.LIEUTENANT, 0f);
         roster.add(other);
-        OfficerInduction.migrateMiraPortrait(roster);
-        assertEquals(OfficerInduction.MIRA_PORTRAIT, mira.portraitSprite());
-        assertEquals("my-custom-portrait.png", customized.portraitSprite());
-        assertEquals("graphics/portraits/portrait_mercenary01.png", other.portraitSprite());
-        assertFalse(roster.officerInductionRequired());
+        assertSame(sabine, induction.officer(roster), "Only the founding officer carries the lesson");
+        assertTrue(sabine.founding());
+        assertFalse(other.founding());
     }
 
     private static void action(BarracksCommandModel model, String key) {

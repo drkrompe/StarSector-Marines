@@ -2114,49 +2114,116 @@
       "selectedTake": null
     },
     {
-      "id": "marines_mara_relief_briefing",
+      "id": "marines_mara_relief_briefing_01",
       "missionId": "story_opening_relief",
-      "event": "briefing",
-      "text": "The raiders have our depot. Now they're hitting our freight checkpoint. Land on the rear unloading apron and reinforce the gate. More raiders are approaching along the freight and warehouse service roads. Wayline provides militia and one shuttle. Eliminate the bandit force, and bring as many people home as you can. Six thousand credits on success. Then we can deal with the depot.",
-      "synthesisText": "The raiders have our depot. Now they're hitting our freight checkpoint. Land on the rear unloading apron and reinforce the gate. More raiders are approaching along the freight and warehouse service roads. Wayline provides militia and one shuttle. Eliminate the bandit force, and bring as many people home as you can. Six thousand credits on success. Then we can deal with the depot.",
-      "durationSeconds": 22.8,
+      "event": "briefing.01",
+      "text": "Mara Venn. Castle sent your particulars, and I've read them twice. I broker for Wayline, and since the spring I run it, because our director took a post off-world and somebody had to.",
+      "synthesisText": "Mara Venn. Castle sent your particulars, and I've read them twice. I broker for Wayline, and since the spring I run it, because our director took a post off-world and somebody had to.",
+      "durationSeconds": 12.8,
       "priority": 10,
       "expiresSeconds": 18,
       "supersedes": []
+    },
+    {
+      "id": "marines_mara_relief_briefing_02",
+      "missionId": "story_opening_relief",
+      "event": "briefing.02",
+      "text": "A year ago we ran freighters between worlds. We lost three cargoes in a season and sold the hulls to cover them, so now we're drivers on one planet's roads, pooling what's left so nobody has to sell their truck as well.",
+      "synthesisText": "A year ago we ran freighters between worlds. We lost three cargoes in a season and sold the hulls to cover them, so now we're drivers on one planet's roads, pooling what's left so nobody has to sell their truck as well.",
+      "durationSeconds": 15.28,
+      "priority": 10,
+      "expiresSeconds": 18,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_relief_briefing_03",
+      "missionId": "story_opening_relief",
+      "event": "briefing.03",
+      "text": "Raiders took our depot a month ago. Now they're at our freight checkpoint, and if that falls there's no road left to haul on. The watch holding it is paid from the same collection as your fee. I know half of them from the loading shifts.",
+      "synthesisText": "Raiders took our depot a month ago. Now they're at our freight checkpoint, and if that falls there's no road left to haul on. The watch holding it is paid from the same collection as your fee. I know half of them from the loading shifts.",
+      "durationSeconds": 14.24,
+      "priority": 10,
+      "expiresSeconds": 18,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_relief_briefing_04",
+      "missionId": "story_opening_relief",
+      "event": "briefing.04",
+      "text": "Licensed companies cost more than we have. You cost what we have. Help them hold that gate, and you'll be paid on success, agreed in writing. I'd rather you than nothing, and I expect you'd rather us than nothing too. One job at a time, Commander.",
+      "synthesisText": "Licensed companies cost more than we have. You cost what we have. Help them hold that gate, and you'll be paid on success, agreed in writing. I'd rather you than nothing, and I expect you'd rather us than nothing too. One job at a time, Commander.",
+      "durationSeconds": 17.44,
+      "priority": 10,
+      "expiresSeconds": 18,
+      "supersedes": []
+    },
+    {
+      "id": "sabine_relief_briefing_trips",
+      "missionId": "story_opening_relief",
+      "event": "briefing.05",
+      "text": "One boat, so we go down in trips. First team takes the apron and holds it until the rest are on the ground. Nobody walks to that gate alone.",
+      "durationSeconds": 8.72,
+      "priority": 10,
+      "expiresSeconds": 18,
+      "supersedes": [],
+      "speaker": "SABINE HALE / FIELD COMMAND",
+      "portrait": "graphics/portraits/sabine-hale.png",
+      "voiceId": "HxukbcZk1kzjQXromIdh",
+      "synthesisText": "[calm, practical] One boat, so we go down in trips. First team takes the apron and holds it until the rest are on the ground. Nobody walks to that gate alone."
     },
     {
       "id": "marines_mara_relief_started",
       "missionId": "story_opening_relief",
       "event": "opening.relief.started",
-      "text": "Mara here. Our people are holding the checkpoint. Get your first team down, then move up to the gate.",
-      "synthesisText": "Mara here. Our people are holding the checkpoint. Get your first team down, then move up to the gate.",
-      "durationSeconds": 6.48,
+      "text": "Mara here. Your first boat's headed for the rear unloading apron. Our watch is holding the gate, but not for long on their own.",
+      "synthesisText": "Mara here. Your first boat's headed for the rear unloading apron. Our watch is holding the gate, but not for long on their own.",
+      "durationSeconds": 7.76,
       "priority": 10,
       "expiresSeconds": 20,
       "supersedes": []
     },
     {
-      "id": "marines_mara_relief_player_landed",
+      "id": "marines_mara_relief_roads",
       "missionId": "story_opening_relief",
-      "event": "opening.relief.player_landed",
-      "text": "Your people are on the ground. Get them to the checkpoint. Our militia need the help.",
-      "synthesisText": "Your people are on the ground. Get them to the checkpoint. Our militia need the help.",
-      "durationSeconds": 5.12,
+      "event": "opening.relief.roads",
+      "text": "The raiders are coming up the freight and warehouse service roads. That's where the gate gets hit.",
+      "synthesisText": "The raiders are coming up the freight and warehouse service roads. That's where the gate gets hit.",
+      "durationSeconds": 5.52,
       "priority": 10,
-      "expiresSeconds": 18,
-      "supersedes": [
-        "opening.relief.started"
-      ]
+      "expiresSeconds": 30,
+      "supersedes": []
     },
     {
-      "id": "marines_mara_relief_employer_landed",
+      "id": "marines_mara_relief_militia_inbound",
       "missionId": "story_opening_relief",
-      "event": "opening.relief.employer_landed",
-      "text": "Wayline militia are down. Keep them together with your people. These are drivers defending their road.",
-      "synthesisText": "Wayline militia are down. Keep them together with your people. These are drivers defending their road.",
-      "durationSeconds": 7.12,
+      "event": "opening.relief.militia_inbound",
+      "text": "Our militia are coming in on the only shuttle we've got. Keep them with your people. They're drivers defending their road.",
+      "synthesisText": "Our militia are coming in on the only shuttle we've got. Keep them with your people. They're drivers defending their road.",
+      "durationSeconds": 7.36,
       "priority": 10,
-      "expiresSeconds": 18,
+      "expiresSeconds": 45,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_relief_depot",
+      "missionId": "story_opening_relief",
+      "event": "opening.relief.depot",
+      "text": "They knew which night the depot's gate crew was short. I still don't know how. This is where we stop them taking the road as well.",
+      "synthesisText": "They knew which night the depot's gate crew was short. I still don't know how. This is where we stop them taking the road as well.",
+      "durationSeconds": 8.4,
+      "priority": 10,
+      "expiresSeconds": 60,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_relief_orders",
+      "missionId": "story_opening_relief",
+      "event": "opening.relief.orders",
+      "text": "Break the assault and bring as many of our people home as you can, Commander.",
+      "synthesisText": "Break the assault and bring as many of our people home as you can, Commander.",
+      "durationSeconds": 4.8,
+      "priority": 10,
+      "expiresSeconds": 75,
       "supersedes": []
     },
     {
@@ -2169,44 +2236,48 @@
       "priority": 20,
       "expiresSeconds": 18,
       "supersedes": [
-        "opening.relief.started",
-        "opening.relief.player_landed"
+        "opening.relief.started"
       ]
     },
     {
       "id": "marines_mara_relief_militia_line_weakened",
       "missionId": "story_opening_relief",
       "event": "opening.relief.militia_line_weakened",
-      "text": "The checkpoint militia are taking heavy losses. Get support to the line before it breaks.",
-      "synthesisText": "The checkpoint militia are taking heavy losses. Get support to the line before it breaks.",
-      "durationSeconds": 5.84,
+      "text": "The checkpoint watch is taking heavy losses. Get support to the line before it breaks.",
+      "synthesisText": "The checkpoint watch is taking heavy losses. Get support to the line before it breaks.",
+      "durationSeconds": 5.52,
       "priority": 40,
       "expiresSeconds": 12,
-      "supersedes": []
+      "supersedes": [],
+      "interrupts": true
     },
     {
       "id": "marines_mara_relief_militia_line_lost",
       "missionId": "story_opening_relief",
       "event": "opening.relief.militia_line_lost",
-      "text": "We've lost the checkpoint's original defenders. Finish this, Captain. Bring the rest of our people home.",
-      "synthesisText": "We've lost the checkpoint's original defenders. Finish this, Captain. Bring the rest of our people home.",
-      "durationSeconds": 6.88,
+      "text": "We've lost the checkpoint's own watch. Finish this, Commander. Bring the rest of our people home.",
+      "synthesisText": "We've lost the checkpoint's own watch. Finish this, Commander. Bring the rest of our people home.",
+      "durationSeconds": 6.48,
       "priority": 50,
       "expiresSeconds": 15,
       "supersedes": [
         "opening.relief.militia_line_weakened",
         "opening.relief.started",
-        "opening.relief.player_landed",
-        "opening.relief.checkpoint_reached"
-      ]
+        "opening.relief.checkpoint_reached",
+        "opening.relief.roads",
+        "opening.relief.militia_inbound",
+        "opening.relief.depot",
+        "opening.relief.orders"
+      ],
+      "interrupts": true
     },
     {
       "id": "marines_mara_counterattack_briefing",
       "missionId": "story_opening_counterattack",
       "event": "briefing",
-      "text": "Their assault is broken. Recovered traffic logs identify the occupied Wayline depot. Land at the western staging apron and advance with our militia through the freight gate, loading yard, and dispatch warehouse. Expect gate guards and a reserve deeper inside. Eliminate the bandit force. We provide one shuttle; your company needs lift for two sorties. Nine thousand credits on success, and I'll vouch for your company with Independent brokers. Let's give our drivers their road back.",
-      "synthesisText": "Their assault is broken. Recovered traffic logs identify the occupied Wayline depot. Land at the western staging apron and advance with our militia through the freight gate, loading yard, and dispatch warehouse. Expect gate guards and a reserve deeper inside. Eliminate the bandit force. We provide one shuttle; your company needs lift for two sorties. Nine thousand credits on success, and I'll vouch for your company with Independent brokers. Let's give our drivers their road back.",
-      "durationSeconds": 30.24,
+      "text": "Their assault is broken. Recovered traffic logs identify the occupied Wayline depot. Land at the western staging apron and advance with our militia through the freight gate, loading yard, and dispatch warehouse. Expect gate guards and a reserve deeper inside. Eliminate the bandit force. We provide one shuttle; your company needs lift for two sorties. You'll be paid on success, and I'll vouch for your company with Independent brokers. Let's give our drivers their road back.",
+      "synthesisText": "Their assault is broken. Recovered traffic logs identify the occupied Wayline depot. Land at the western staging apron and advance with our militia through the freight gate, loading yard, and dispatch warehouse. Expect gate guards and a reserve deeper inside. Eliminate the bandit force. We provide one shuttle; your company needs lift for two sorties. You'll be paid on success, and I'll vouch for your company with Independent brokers. Let's give our drivers their road back.",
+      "durationSeconds": 30.0,
       "priority": 10,
       "expiresSeconds": 18,
       "supersedes": []
@@ -2295,9 +2366,9 @@
       "id": "marines_mara_junction_briefing",
       "missionId": "story_supply_route_junction",
       "event": "briefing",
-      "text": "Getting the depot back has put Wayline on its feet again, Captain. We've scraped together enough to hire close air support: Talon Two, a Mudskipper gunship and crew. They'll cover your company's advance under our direction. Both outlying roads are still cut. Capture Weigh Station, Freight Yard, and Junction Dispatch, and keep the western turnout secure. Six militia will hold your gains while you push forward. Twelve thousand credits on success. Then we decide which stranded crew we can support. Let's get that junction working for us.",
-      "synthesisText": "Getting the depot back has put Wayline on its feet again, Captain. We've scraped together enough to hire close air support: Talon Two, a Mudskipper gunship and crew. They'll cover your company's advance under our direction. Both outlying roads are still cut. Capture Weigh Station, Freight Yard, and Junction Dispatch, and keep the western turnout secure. Six militia will hold your gains while you push forward. Twelve thousand credits on success. Then we decide which stranded crew we can support. Let's get that junction working for us.",
-      "durationSeconds": 34.48,
+      "text": "Getting the depot back has put Wayline on its feet again, Commander. We've scraped together enough to hire close air support: Talon Two, a Mudskipper gunship and crew. They'll cover your company's advance under our direction. Both outlying roads are still cut. Capture Weigh Station, Freight Yard, and Junction Dispatch, and keep the western turnout secure. Six militia will hold your gains while you push forward. You're paid on success. Then we decide which stranded crew we can support. Let's get that junction working for us.",
+      "synthesisText": "Getting the depot back has put Wayline on its feet again, Commander. We've scraped together enough to hire close air support: Talon Two, a Mudskipper gunship and crew. They'll cover your company's advance under our direction. Both outlying roads are still cut. Capture Weigh Station, Freight Yard, and Junction Dispatch, and keep the western turnout secure. Six militia will hold your gains while you push forward. You're paid on success. Then we decide which stranded crew we can support. Let's get that junction working for us.",
+      "durationSeconds": 33.2,
       "priority": 10,
       "expiresSeconds": 25,
       "supersedes": []
@@ -2902,9 +2973,9 @@
       "id": "marines_mara_thunder_run_briefing",
       "missionId": "story_supply_route_thunder_run",
       "event": "briefing",
-      "text": "The junction is open. Now we put freight through the corridor. Talon Two is coming back to give your company close air support once Dispatch is secured. We've hired more muscle on the ground, too: a twin-cannon heavy tank and two reinforced armored personnel carriers for the final breakthrough. Eight militia will help hold the ground you take. Land at the staging apron and clear Dispatch Post, East Crossing, and Outbound Gate. Hold the earlier strongpoints to release each convoy leg. The tank breaks the exit checkpoint's gun line; the armored escorts screen the crossing while our unarmed freight haulers pass. Keep the road open until the loads are through. Six thousand credits, plus four thousand for each carrier delivered across the job, paid when the run is complete. Dispatch tracks the losses and deliveries. We return only for loads still waiting.",
-      "synthesisText": "The junction is open. Now we put freight through the corridor. Talon Two is coming back to give your company close air support once Dispatch is secured. We've hired more muscle on the ground, too: a twin-cannon heavy tank and two reinforced armored personnel carriers for the final breakthrough. Eight militia will help hold the ground you take. Land at the staging apron and clear Dispatch Post, East Crossing, and Outbound Gate. Hold the earlier strongpoints to release each convoy leg. The tank breaks the exit checkpoint's gun line; the armored escorts screen the crossing while our unarmed freight haulers pass. Keep the road open until the loads are through. Six thousand credits, plus four thousand for each carrier delivered across the job, paid when the run is complete. Dispatch tracks the losses and deliveries. We return only for loads still waiting.",
-      "durationSeconds": 51.44,
+      "text": "The junction is open. Now we put freight through the corridor. Talon Two is coming back to give your company close air support once Dispatch is secured. We've hired more muscle on the ground, too: a twin-cannon heavy tank and two reinforced armored personnel carriers for the final breakthrough. Eight militia will help hold the ground you take. Land at the staging apron and clear Dispatch Post, East Crossing, and Outbound Gate. Hold the earlier strongpoints to release each convoy leg. The tank breaks the exit checkpoint's gun line; the armored escorts screen the crossing while our unarmed freight haulers pass. Keep the road open until the loads are through. You're paid when the run is complete, with more for every carrier that gets through. Dispatch tracks the losses and deliveries. We return only for loads still waiting.",
+      "synthesisText": "The junction is open. Now we put freight through the corridor. Talon Two is coming back to give your company close air support once Dispatch is secured. We've hired more muscle on the ground, too: a twin-cannon heavy tank and two reinforced armored personnel carriers for the final breakthrough. Eight militia will help hold the ground you take. Land at the staging apron and clear Dispatch Post, East Crossing, and Outbound Gate. Hold the earlier strongpoints to release each convoy leg. The tank breaks the exit checkpoint's gun line; the armored escorts screen the crossing while our unarmed freight haulers pass. Keep the road open until the loads are through. You're paid when the run is complete, with more for every carrier that gets through. Dispatch tracks the losses and deliveries. We return only for loads still waiting.",
+      "durationSeconds": 50.32,
       "priority": 10,
       "expiresSeconds": 25,
       "supersedes": []

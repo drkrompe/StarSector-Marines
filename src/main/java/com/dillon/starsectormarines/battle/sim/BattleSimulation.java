@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
 import com.dillon.starsectormarines.battle.setup.ColdStartSequence;
 import com.dillon.starsectormarines.battle.setup.SupportKitIssue;
@@ -1620,6 +1621,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return squadMoveOrders.activeOrder(squadId)
                 instanceof SquadMoveOrderService.ActiveDefendAreaOrder defend
                 ? defend.occupyRunId() : -1;
+    }
+
+    @Override
+    public FrontageLine frontageLineOf(int squadId) {
+        return squadMoveOrders.activeOrder(squadId)
+                instanceof SquadMoveOrderService.ActiveDefendAreaOrder defend
+                ? defend.line() : null;
     }
 
     @Override

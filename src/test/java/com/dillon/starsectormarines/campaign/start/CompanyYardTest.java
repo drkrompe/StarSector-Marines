@@ -174,7 +174,8 @@ class CompanyYardTest {
             uiMethods.put("getCurrentInteractionDialog", dialog);
             assertTrue(CompanyYardCMD.openRequired(dialog, Map.of(MemKeys.LOCAL, memory)));
             assertTrue(lines.stream().anyMatch(line -> line.contains("Mercenary Company Conversion")));
-            assertTrue(lines.stream().anyMatch(line -> line.contains("Nessa Venn")));
+            assertTrue(lines.stream().anyMatch(line -> line.contains("Nessa met us")));
+            assertTrue(lines.stream().anyMatch(line -> line.contains("Wayline road")), "Jangala meets Mara through her sister");
             lines.clear();
             planetMethods.put("getId", "other");
             assertTrue(CompanyYardCMD.openRequired(dialog, Map.of(MemKeys.LOCAL, memory)));

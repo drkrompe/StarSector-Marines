@@ -84,10 +84,13 @@ public final class CompanyYardCMD extends BaseCommandPlugin {
     }
     private static void review(InteractionDialogAPI dialog, FleetMemberAPI ship) {
         portrait(dialog);
-        if (CerberusCompanyStart.conversionRequired())
+        if (CerberusCompanyStart.conversionRequired()) {
             dialog.getTextPanel().addPara(personalYard(ship)
                     ? Strings.get("openingCompanyYardCMDNessaVennMetUsAtTheBerth")
                     : Strings.get("openingCompanyYardCMDTheYardCanMakeRoomForBunks"));
+            // Jangala only: the player meets Mara through her sister's yard.
+            if (personalYard(ship)) dialog.getTextPanel().addPara(Strings.get("openingCompanyYardCMDHerRacksAreHalfEmptyMostOf"));
+        }
         dialog.getTextPanel().addPara(Strings.format("openingCompanyYardCMDMercenaryCompanyConversion", (ship == null ? "" : " - " + ship.getShipName())));
         dialog.getTextPanel().addPara(Strings.get("openingCompanyYardCMDPermanentInstallationPersonnelCapacityCargoCapacityExpanded"));
         int credits = (int) Global.getSector().getPlayerFleet().getCargo().getCredits().get();

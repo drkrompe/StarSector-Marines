@@ -47,6 +47,8 @@ public final class HighlightOverlay {
             "vehicle-move-refused";
     /** Prepared ground and the selection's claimed cells; see {@code FightingPositionHighlightPublisher}. */
     public static final String SRC_FIGHTING_POSITIONS = "fighting-positions";
+    /** The line a right drag in progress would give the selected squads. */
+    public static final String SRC_SQUAD_LINE_PREVIEW = "squad-line-preview";
     public static final String SRC_FIGHTING_POSITION_CLAIMS = "fighting-position-claims";
     public static final String SRC_CAPTAIN         = "captain";
     public static final String SRC_BELIEVED_CONTACTS = "believed-contacts";

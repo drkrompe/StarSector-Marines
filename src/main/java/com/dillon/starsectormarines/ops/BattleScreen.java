@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.audio.BattleMusicPlaylist;
@@ -263,6 +264,8 @@ public class BattleScreen implements Screen, BattleUiContext {
      * because it is the debug damage gesture.
      */
     private final CameraControls cameraControls = new CameraControls(true);
+    /** The lines a right drag in progress would give, or null when no drag is under way. */
+    private List<FrontageLine> linePreview;
     private float speedMultiplier = 1f;
     /** Owns all loaded sprite sheets, frame data, and ensure/load methods. */
     private final BattleSprites sprites = new BattleSprites();
@@ -662,6 +665,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                             directControlInput.pointerY()));
         }
         SquadMoveOrderHighlightPublisher.publish(selection, sim, highlights);
+        SquadMoveOrderHighlightPublisher.publishLinePreview(linePreview, highlights);
         FightingPositionHighlightPublisher.publish(selection, sim, highlights,
                 camera != null ? camera.visibleCells() : null);
         VehicleMoveOrderHighlightPublisher.publish(selection, sim, highlights);
@@ -1730,15 +1734,40 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     /**
      * Camera input: wheel-to-zoom (zoom-to-cursor — the world point under the
-     * mouse stays under the mouse), RMB-drag-to-pan (no shift; shift+RMB is
-     * the debug wall-damage gesture and gets consumed earlier), and
-     * WASD/arrow-key pan (the key flags are flipped here on down/up events
-     * and the actual pan integration happens in {@link #advance} so a held
-     * key keeps panning between events).
+     * mouse stays under the mouse), middle-drag-to-pan, and WASD/arrow-key pan
+     * (the key flags are flipped here on down/up events and the actual pan
+     * integration happens in {@link #advance} so a held key keeps panning
+     * between events). The right button is the order button: a click is a
+     * contextual order and a drag is a line to hold (shift+RMB is the debug
+     * wall-damage gesture and gets consumed earlier).
      */
     private void handleCameraInput(List<InputEventAPI> events) {
         cameraControls.process(events, camera, CameraControls.PointerSpace.SCREEN,
-                this::requestSelectedTacticalOrder, this::battleChromeBlocksWorldPointer);
+                this::requestSelectedTacticalOrder, this::dragSelectedLine,
+                this::battleChromeBlocksWorldPointer);
+    }
+
+    /**
+     * A right drag: previews the line the selection would be given while the button is held,
+     * and gives it on release.
+     */
+    private void dragSelectedLine(float startX, float startY, float x, float y, boolean released) {
+        BattleSimulation sim = getSim();
+        if (sim == null || camera == null || sim.directControl().active()) {
+            linePreview = null;
+            return;
+        }
+        int x0 = (int) Math.floor(camera.screenToCellX(startX));
+        int y0 = (int) Math.floor(camera.screenToCellY(startY));
+        int x1 = (int) Math.floor(camera.screenToCellX(x));
+        int y1 = (int) Math.floor(camera.screenToCellY(y));
+        if (released) {
+            linePreview = null;
+            SelectionOrders.requestLine(sim, selection, x0, y0, x1, y1);
+            return;
+        }
+        linePreview = Math.hypot(x1 - x0, y1 - y0) < FrontageLine.MIN_LENGTH ? null
+                : SelectionOrders.previewLines(sim, selection, x0, y0, x1, y1);
     }
 
     /** Selection changes during input must publish the same plates and bounds before the next handler/render. */

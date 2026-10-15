@@ -25,6 +25,9 @@
     },
     "rivet": {
       "voiceId": "fGdXUaoUKa9laV1tzoOT"
+    },
+    "sabine": {
+      "voiceId": "HxukbcZk1kzjQXromIdh"
     }
   },
   "actors": [
@@ -1374,6 +1377,127 @@
       "text": "Steady hands. Do the job properly.",
       "synthesisText": "[firm, brisk, smoky voice] Steady hands. Do the job properly.",
       "durationSeconds": 2.96
+    },
+    {
+      "id": "marines_op_sabine_call",
+      "speaker": "command",
+      "text": "Sabine. This is Command.",
+      "synthesisText": "Sabine. This is Command.",
+      "durationSeconds": 2.08
+    },
+    {
+      "id": "marines_op_sabine_ack",
+      "speaker": "sabine",
+      "text": "Sabine. Go ahead, Castle.",
+      "synthesisText": "[calm, focused] Sabine. Go ahead, Castle.",
+      "durationSeconds": 2.4
+    },
+    {
+      "id": "marines_op_sabine_handoff_kestrel",
+      "speaker": "sabine",
+      "text": "Copy, Castle. Kestrel Two, you've got the lead. Everyone else, on them.",
+      "synthesisText": "[calm, firm] Copy, Castle. Kestrel Two, you've got the lead. Everyone else, on them.",
+      "durationSeconds": 5.04
+    },
+    {
+      "id": "marines_op_sabine_handoff_hammer",
+      "speaker": "sabine",
+      "text": "Copy, Castle. Hammer, take point. Rest of you, cover them.",
+      "synthesisText": "[calm, firm] Copy, Castle. Hammer, take point. Rest of you, cover them.",
+      "durationSeconds": 4.48
+    },
+    {
+      "id": "marines_op_sabine_handoff_viper",
+      "speaker": "sabine",
+      "text": "Copy. Viper, you're out front. Don't get ahead of the others.",
+      "synthesisText": "[calm, firm] Copy. Viper, you're out front. Don't get ahead of the others.",
+      "durationSeconds": 4.24
+    },
+    {
+      "id": "marines_op_sabine_handoff_jackal",
+      "speaker": "sabine",
+      "text": "Copy, Castle. Jackal, lead us in. Everyone else, follow on.",
+      "synthesisText": "[calm, firm] Copy, Castle. Jackal, lead us in. Everyone else, follow on.",
+      "durationSeconds": 4.96
+    },
+    {
+      "id": "marines_op_sabine_handoff_ox",
+      "speaker": "sabine",
+      "text": "Copy. Ox, you've got the lead. The rest of you, keep with Ox.",
+      "synthesisText": "[calm, firm] Copy. Ox, you've got the lead. The rest of you, keep with Ox.",
+      "durationSeconds": 4.72
+    },
+    {
+      "id": "marines_op_sabine_handoff_rivet",
+      "speaker": "sabine",
+      "text": "Copy, Castle. Rivet, out front. Everyone else, with them.",
+      "synthesisText": "[calm, firm] Copy, Castle. Rivet, out front. Everyone else, with them.",
+      "durationSeconds": 4.64
+    },
+    {
+      "id": "marines_op_sabine_withdraw_kestrel",
+      "speaker": "sabine",
+      "text": "Copy, Castle. We're pulling back. Kestrel Two, you're last out. Nobody gets left.",
+      "synthesisText": "[urgent, clipped, steady] Copy, Castle. We're pulling back. Kestrel Two, you're last out. Nobody gets left.",
+      "durationSeconds": 5.36
+    },
+    {
+      "id": "marines_op_sabine_withdraw_hammer",
+      "speaker": "sabine",
+      "text": "Copy. Back to the rally point. Hammer, you're last out. Nobody gets left.",
+      "synthesisText": "[urgent, clipped, steady] Copy. Back to the rally point. Hammer, you're last out. Nobody gets left.",
+      "durationSeconds": 4.8
+    },
+    {
+      "id": "marines_op_sabine_withdraw_viper",
+      "speaker": "sabine",
+      "text": "Copy, Castle. We're pulling back. Viper, cover us out. Nobody gets left.",
+      "synthesisText": "[urgent, clipped, steady] Copy, Castle. We're pulling back. Viper, cover us out. Nobody gets left.",
+      "durationSeconds": 4.96
+    },
+    {
+      "id": "marines_op_sabine_withdraw_jackal",
+      "speaker": "sabine",
+      "text": "Copy. Pulling back. Jackal, you're last out. Count everyone past you.",
+      "synthesisText": "[urgent, clipped, steady] Copy. Pulling back. Jackal, you're last out. Count everyone past you.",
+      "durationSeconds": 4.8
+    },
+    {
+      "id": "marines_op_sabine_withdraw_ox",
+      "speaker": "sabine",
+      "text": "Copy, Castle. We're pulling back. Ox, you're last out. Nobody gets left.",
+      "synthesisText": "[urgent, clipped, steady] Copy, Castle. We're pulling back. Ox, you're last out. Nobody gets left.",
+      "durationSeconds": 5.04
+    },
+    {
+      "id": "marines_op_sabine_withdraw_rivet",
+      "speaker": "sabine",
+      "text": "Copy. Back to the rally point. Rivet, you're last out. Nobody gets left.",
+      "synthesisText": "[urgent, clipped, steady] Copy. Back to the rally point. Rivet, you're last out. Nobody gets left.",
+      "durationSeconds": 4.96
     }
-  ]
+  ],
+  "fieldCommand": {
+    "id": "sabine",
+    "label": "SABINE HALE / FIELD COMMAND",
+    "portrait": "graphics/portraits/sabine-hale.png",
+    "call": "marines_op_sabine_call",
+    "ack": "marines_op_sabine_ack",
+    "handoffs": {
+      "kestrel": "marines_op_sabine_handoff_kestrel",
+      "hammer": "marines_op_sabine_handoff_hammer",
+      "viper": "marines_op_sabine_handoff_viper",
+      "jackal": "marines_op_sabine_handoff_jackal",
+      "ox": "marines_op_sabine_handoff_ox",
+      "rivet": "marines_op_sabine_handoff_rivet"
+    },
+    "withdrawHandoffs": {
+      "kestrel": "marines_op_sabine_withdraw_kestrel",
+      "hammer": "marines_op_sabine_withdraw_hammer",
+      "viper": "marines_op_sabine_withdraw_viper",
+      "jackal": "marines_op_sabine_withdraw_jackal",
+      "ox": "marines_op_sabine_withdraw_ox",
+      "rivet": "marines_op_sabine_withdraw_rivet"
+    }
+  }
 }

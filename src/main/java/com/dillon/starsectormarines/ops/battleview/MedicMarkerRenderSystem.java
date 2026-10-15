@@ -6,17 +6,17 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.fs.starfarer.api.graphics.SpriteAPI;
 
 /**
  * Which marine is the squad medic, and the treatment in hand ({@code squad-medic.md}).
  *
  * <p>The medic carries a small red cross on a white plate at the upper left of
- * the body, opposite side from nothing and clear of the health bar above, so it
- * reads as identity rather than as a state. It is deliberately not amber:
- * amber is the company's mark for <em>wounded</em>. While the medic is
- * treating, a green line joins medic and patient and a ring around the patient
- * fills with the treatment's progress; while the medic is on the way, the line
- * alone is drawn, faintly.
+ * the body, clear of the health bar above, so it reads as identity rather than
+ * as a state. It is deliberately not amber: amber is the company's mark for
+ * <em>wounded</em>. A treatment is shown in the world rather than as an
+ * overlay: the medic kneels over an open kit, and the patient gives off
+ * {@link TreatmentParticles} for whatever is being restored.
  *
  * <p>Drawn in {@link RenderLayer#UNITS} after the bodies, so it sits on top of
  * them the way the health bar does. Only the player's own marines are marked,
@@ -29,7 +29,16 @@ public final class MedicMarkerRenderSystem implements RenderSystem {
     private static final float MIN_CROSS_PX = 7f;
     /** A badge, not a sign: it stops growing as the camera closes in. */
     private static final float MAX_CROSS_PX = 15f;
-    private static final float RING_SEGMENTS = 24f;
+    /** Below this a particle is a pixel or two and the treatment is the kneel alone. */
+    private static final float MIN_PARTICLE_CELL_PX = 10f;
+    /** Cell y increases up the screen, so dressing mist rises toward +y. */
+    private static final float SCREEN_UP_Y = 1f;
+
+    private final BattleSprites sprites;
+
+    public MedicMarkerRenderSystem(BattleSprites sprites) {
+        this.sprites = sprites;
+    }
 
     @Override public RenderLayer layer() { return RenderLayer.UNITS; }
 
@@ -51,30 +60,58 @@ public final class MedicMarkerRenderSystem implements RenderSystem {
             float mx = sim.world().renderX(carrier);
             float my = sim.world().renderY(carrier);
             float radius = Math.max(0.42f, sim.getRoster().radius(carrier));
-            float sx = camera.cellToScreenX(mx);
-            float sy = camera.cellToScreenY(my);
 
-            long patient = medic.patientId() == 0L ? 0L : sim.resolveUnit(medic.patientId());
-            if (patient != 0L && medic.phase() != SquadMedic.Phase.IDLE) {
-                float patientAlpha = ctx.alphaMult * visibleAlpha(sim, patient, selected);
-                if (patientAlpha > 0f) {
-                    float px = camera.cellToScreenX(sim.world().renderX(patient));
-                    float py = camera.cellToScreenY(sim.world().renderY(patient));
-                    boolean treating = medic.phase() == SquadMedic.Phase.TREATING;
-                    float link = Math.min(medicAlpha, patientAlpha) * (treating ? 0.75f : 0.35f);
-                    out.addLine(RenderLayer.UNITS, sx, sy, px, py, 2f, 0.45f, 0.95f, 0.55f, link);
-                    if (treating) {
-                        float ringPx = Math.max(0.42f, sim.getRoster().radius(patient)) * 1.35f * cellPx;
-                        ring(out, px, py, ringPx, 1f, patientAlpha * 0.25f);
-                        ring(out, px, py, ringPx, medic.treatmentProgress(), patientAlpha);
-                    }
-                }
+            if (medic.phase() == SquadMedic.Phase.TREATING && cellPx >= MIN_PARTICLE_CELL_PX) {
+                long patient = medic.patientId() == 0L ? 0L : sim.resolveUnit(medic.patientId());
+                if (patient != 0L) treatment(ctx, view, out, medic, patient, mx, my);
             }
 
             if (!view.visible(mx, my, radius * 3f)) continue;
             float size = Math.max(MIN_CROSS_PX, Math.min(MAX_CROSS_PX, CROSS_CELLS * cellPx));
-            cross(out, sx - radius * cellPx, sy + radius * cellPx, size, medicAlpha);
+            cross(out, camera.cellToScreenX(mx) - radius * cellPx,
+                    camera.cellToScreenY(my) + radius * cellPx, size, medicAlpha);
         }
+    }
+
+    private void treatment(RenderContext ctx, ViewCull view, DrawList out, SquadMedic medic,
+                           long patient, float mx, float my) {
+        BattleSimulation sim = ctx.sim;
+        BattleCamera camera = ctx.camera;
+        // The particles are the world, not a mark: only the fog dims them, never selection.
+        float alpha = ctx.alphaMult * visibleAlpha(sim, patient, true);
+        if (alpha <= 0f) return;
+        float px = sim.world().renderX(patient);
+        float py = sim.world().renderY(patient);
+        float body = Math.max(0.42f, sim.getRoster().radius(patient));
+        if (!view.visible(px, py, body * 3f)) return;
+        sprites.ensureShadowSprite();
+        SpriteAPI disc = sprites.shadowBlobSprite();
+        if (disc == null) return;
+        boolean health = sim.world().hp(patient) < sim.world().maxHp(patient);
+        boolean armor = sim.world().hasArmor(patient)
+                && sim.world().armor(patient) < sim.world().maxArmor(patient);
+        float tx = mx - px;
+        float ty = my - py;
+        float len = (float) Math.hypot(tx, ty);
+        if (len < 1e-3f) {
+            tx = 0f;
+            ty = 1f;
+        } else {
+            tx /= len;
+            ty /= len;
+        }
+        float cellPx = camera.cellPxSize();
+        float sx = camera.cellToScreenX(px);
+        float sy = camera.cellToScreenY(py);
+        float elapsed = medic.treatmentProgress() * medic.medicine.channelSeconds();
+        TreatmentParticles.emit(elapsed, patient, health, armor, tx, ty, SCREEN_UP_Y, body,
+                (kind, dx, dy, size, a) -> {
+                    boolean dressing = kind == TreatmentParticles.Kind.DRESSING;
+                    float d = size * cellPx;
+                    out.addSprite(RenderLayer.UNITS, disc, sx + dx * cellPx, sy + dy * cellPx, d, d, 0f,
+                            dressing ? 0.94f : 0.62f, dressing ? 0.95f : 0.74f,
+                            dressing ? 0.90f : 0.86f, a * alpha);
+                });
     }
 
     /** The mark's opacity for a marine of the player's, or 0 where the fog hides them. */
@@ -99,18 +136,5 @@ public final class MedicMarkerRenderSystem implements RenderSystem {
         out.addSolidRect(RenderLayer.UNITS, x - h, y - h, x + h, y + h, 0.96f, 0.96f, 0.94f, alpha);
         out.addSolidRect(RenderLayer.UNITS, x - reach, y - arm, x + reach, y + arm, 0.85f, 0.12f, 0.12f, alpha);
         out.addSolidRect(RenderLayer.UNITS, x - arm, y - reach, x + arm, y + reach, 0.85f, 0.12f, 0.12f, alpha);
-    }
-
-    /** A green arc round {@code (x, y)} covering {@code fraction} of a full turn from the top, clockwise. */
-    static void ring(DrawList out, float x, float y, float radius, float fraction, float alpha) {
-        int segments = Math.round(RING_SEGMENTS * Math.max(0f, Math.min(1f, fraction)));
-        for (int i = 0; i < segments; i++) {
-            double a = Math.PI / 2 - 2 * Math.PI * i / RING_SEGMENTS;
-            double b = Math.PI / 2 - 2 * Math.PI * (i + 1) / RING_SEGMENTS;
-            out.addLine(RenderLayer.UNITS,
-                    x + radius * (float) Math.cos(a), y + radius * (float) Math.sin(a),
-                    x + radius * (float) Math.cos(b), y + radius * (float) Math.sin(b),
-                    2.5f, 0.45f, 0.95f, 0.55f, alpha);
-        }
     }
 }

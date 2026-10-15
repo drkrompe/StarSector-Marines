@@ -43,9 +43,10 @@ class OpeningOperationStoryHooksTest {
         var hooks=new OpeningOperationStoryHooks(OpeningOperationKind.RELIEF,log);
         hooks.observe(facts(1,false,false,8,8,0,false,Result.RUNNING));
         hooks.observe(facts(2,false,false,8,0,2,false,Result.RUNNING));
-        assertEquals(List.of("opening.relief.started","opening.relief.militia_line_lost",
+        assertEquals(List.of("opening.relief.started","opening.relief.roads","opening.relief.militia_inbound",
+                "opening.relief.depot","opening.relief.orders","opening.relief.militia_line_lost",
                 "opening.relief.freight_wave_arrived","opening.relief.service_wave_arrived"),ids(log));
-        assertEquals(2,log.playerEventsAfter(0).size());
+        assertEquals(6,log.playerEventsAfter(0).size());
         hooks.observe(facts(3,true,true,8,0,2,false,Result.RUNNING));
         assertTrue(ids(log).contains("opening.relief.checkpoint_reached"));
     }
@@ -53,7 +54,7 @@ class OpeningOperationStoryHooksTest {
         var log=new StoryBeatLog();
         var hooks=new OpeningOperationStoryHooks(OpeningOperationKind.RELIEF,log);
         hooks.observe(facts(1,false,false,0,0,0,false,Result.RUNNING));
-        assertEquals(1,log.events().size());
+        assertEquals(5,log.events().size(), "Launch starts the whole radio exchange, nothing more");
         hooks.observe(facts(2,false,false,8,4,0,false,Result.RUNNING));
         hooks.observe(facts(3,false,false,8,0,0,false,Result.RUNNING));
         assertTrue(ids(log).containsAll(List.of("opening.relief.militia_line_weakened","opening.relief.militia_line_lost")));

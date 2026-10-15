@@ -68,8 +68,8 @@ class CompanyPreparationResumeTest {
                     "getEconomy", stub(EconomyAPI.class, Map.of("getMarket", market)))));
             CerberusCompanyStart.establishDepot(stub(FleetMemberAPI.class, Map.of("getId", "starter")), market);
             var roster = new MarineRoster();
-            var mira = new MarineCaptain("Mira Hale", null, Rank.LIEUTENANT, 0);
-            roster.add(mira); roster.beginCompanyPreparation(mira);
+            var sabine = new MarineCaptain("Sabine Hale", null, Rank.LIEUTENANT, 0);
+            roster.add(sabine); roster.beginCompanyPreparation(sabine);
             assertCaptured(roster, ScreenId.SHIP_TRANSFER);
             roster.setCompanyShip("starter", "Second Wind", 75);
             roster.boatDeck().registerFoundingWrecks("starter");
@@ -114,10 +114,10 @@ class CompanyPreparationResumeTest {
             assertEquals(0, CerberusCompanyStart.depot().available("metals"));
             assertEquals(36, CerberusCompanyStart.depot().available("supplies"));
             assertCaptured(roster, ScreenId.BARRACKS);
-            mira = roster.officerInduction().officer(roster);
-            roster.officerInduction().introduce(mira);
+            sabine = roster.officerInduction().officer(roster);
+            roster.officerInduction().introduce(sabine);
             assertCaptured(roster, ScreenId.BARRACKS);
-            assertTrue(mira.train(OfficerSpecialty.TACTICAL_COVER));
+            assertTrue(sabine.train(OfficerSpecialty.TACTICAL_COVER));
             assertEquals(ScreenId.BARRACKS, CompanyPreparationRoute.resolve(ScreenId.FLEET_ARMORY, roster, false),
                     "Squads are raised in Barracks, so the first formation resumes there");
             assertEquals(ScreenId.BARRACKS, CompanyPreparationRoute.resolve(ScreenId.MISSION_SELECT, roster, false));
@@ -127,7 +127,7 @@ class CompanyPreparationResumeTest {
             var squad = new SquadFoundingWorkshop(roster, new CampaignSquadFoundingResources()).foundSquad().squad();
             assertNotNull(squad);
             assertCaptured(roster, ScreenId.BARRACKS);
-            roster.assignCaptainToSquad(mira.id(), squad.id());
+            roster.assignCaptainToSquad(sabine.id(), squad.id());
             assertCaptured(roster, ScreenId.BARRACKS);
             assertTrue(roster.officerInduction().finish(roster));
             for (ScreenId id : ScreenId.values()) assertEquals(id, CompanyPreparationRoute.resolve(id, roster, false));
@@ -138,14 +138,14 @@ class CompanyPreparationResumeTest {
     @Test void establishedAndLegacyOfficerOnlyCompaniesKeepTheirRoutes() {
         var roster = new MarineRoster();
         for (ScreenId id : ScreenId.values()) assertEquals(id, CompanyPreparationRoute.resolve(id, roster, false));
-        var mira = new MarineCaptain("Mira Hale", null, Rank.LIEUTENANT, 0);
-        roster.add(mira); roster.beginOfficerInduction(mira);
+        var sabine = new MarineCaptain("Sabine Hale", null, Rank.LIEUTENANT, 0);
+        roster.add(sabine); roster.beginOfficerInduction(sabine);
         for (ScreenId id : ScreenId.values()) assertEquals(id, CompanyPreparationRoute.resolve(id, roster, false));
     }
 
     private static void assertCaptured(MarineRoster roster, ScreenId expected) {
         for (ScreenId entry : List.of(ScreenId.MISSION_SELECT, ScreenId.BARRACKS, ScreenId.FLEET_ARMORY,
-                ScreenId.FLEET_ARMORY_OVERVIEW, ScreenId.SHIP_TRANSFER, ScreenId.BOAT_DECK,
+                ScreenId.SHIP_TRANSFER, ScreenId.BOAT_DECK,
                 ScreenId.MECH_LAB, ScreenId.SHIP_VIEW, ScreenId.BRIEFING, ScreenId.SQUAD_DEPLOYMENT))
             assertEquals(expected, CompanyPreparationRoute.resolve(entry, roster, false), entry.name());
         for (ScreenId untouched : List.of(ScreenId.BATTLE, ScreenId.RESULTS, ScreenId.LOOT,
