@@ -57,10 +57,27 @@ public final class BatteryFort {
     /** The middle of the battery platform's three-by-three footprint. */
     public static final int[] PLATFORM = {OX + 36, OY + 28};
 
-    /** Bastion nests, one inside each corner bastion's pointed face. */
-    public static final List<int[]> NESTS = List.of(
-            new int[]{OX - 1, OY - 1}, new int[]{OX + WORKS_W, OY - 1},
-            new int[]{OX - 1, OY + WORKS_H}, new int[]{OX + WORKS_W, OY + WORKS_H});
+    /**
+     * Each corner bastion's centre in the works' frame, the diagonal its missile battery stands toward (its tip), and the axis
+     * its nest looks along, in nest order. A nest stands on the bastion face that looks along a curtain (or at the vertex on that axis), as a
+     * flanking gun does: it sees almost everything outside the works and enfilades the face beside it, which is also what keeps
+     * the gates and the breach within its reach.
+     */
+    private static final int[][] BASTIONS = {
+            {1, 1, -1, -1, 0, -1}, {WORKS_W - 2, 1, 1, -1, 0, -1}, {1, WORKS_H - 2, -1, 1, 1, 1}, {WORKS_W - 2, WORKS_H - 2, 1, 1, 1, 0}};
+
+    /**
+     * Bastion nests, one in an embrasure on the outer face of each corner bastion, where it can fire out of the works
+     * (a nest in the open floor of the pocket was boxed in by the wall round it). Each is a notch cut in the wall's outer
+     * layer, so the wall stands behind it.
+     */
+    public static final List<int[]> NESTS;
+
+    /** Which bastions (indices of {@link #NESTS}) stand a Ridgewatch missile battery when the fort carries the anti-air aspect: the two farthest from the main gate. */
+    private static final int[] AIR_BASTIONS = {1, 3};
+
+    /** How far from a bastion's centre, toward its tip, its missile battery's middle stands. */
+    private static final int BATTERY_POCKET_STEPS = 2;
 
     /**
      * The gatehouse pieces: a tower either side of each gate, and the gate leaves over each passage. A west-facing gate
@@ -125,6 +142,13 @@ public final class BatteryFort {
             }
         }
         for (int[] gate : GATE_CELLS) WALL[gate[0]][gate[1]] = false;
+        List<int[]> nests = new ArrayList<>();
+        for (int[] b : BASTIONS) {
+            int[] nest = BastionSites.embrasure(INSIDE, OX + b[0], OY + b[1], b[4], b[5]);
+            WALL[nest[0]][nest[1]] = false;
+            nests.add(nest);
+        }
+        NESTS = List.copyOf(nests);
         for (int x = 0; x < WIDTH; x++) {
             for (int y = 0; y < HEIGHT; y++) {
                 boolean near = false;
@@ -171,7 +195,20 @@ public final class BatteryFort {
         @Override public int[] centrepiece() { return PLATFORM; }
         @Override public FortAspect centrepieceAspect() { return null; }
         @Override public AirDefenceYard airDefence() { return AIR_DEFENCE; }
+        @Override public List<int[]> airBatteries() { return AIR_BATTERIES; }
     };
+
+    /** The Ridgewatch batteries' middles: in the pocket behind the nest of each of the {@link #AIR_BASTIONS}. */
+    private static final List<int[]> AIR_BATTERIES = airBatteries();
+
+    private static List<int[]> airBatteries() {
+        List<int[]> out = new ArrayList<>();
+        for (int i : AIR_BASTIONS) {
+            int[] b = BASTIONS[i];
+            out.add(BastionSites.pocket(OX + b[0], OY + b[1], b[2], b[3], BATTERY_POCKET_STEPS));
+        }
+        return List.copyOf(out);
+    }
 
     private static final List<FortAspect> ASPECTS = List.of(FortAspect.FIRE_CONTROL, FortAspect.MAGAZINE, FortAspect.POWER);
 
