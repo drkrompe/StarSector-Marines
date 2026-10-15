@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.command;
 
+import com.dillon.starsectormarines.battle.decision.goap.action.AttackMove;
+import com.dillon.starsectormarines.battle.fort.FortAspect;
+import com.dillon.starsectormarines.battle.fort.FortFrame;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 import java.util.ArrayList;
@@ -23,7 +26,8 @@ import java.util.TreeMap;
  *   <li>{@link Role#RETAKE}: a structure built for this side is now held by an enemy;</li>
  *   <li>{@link Role#TAKE}: an enemy structure this side has seen. The squad is sent to the ground around it with an
  *       attack move, so it takes the structure by standing there or wrecks it by shooting it, whichever the fight
- *       allows.</li>
+ *       allows. Where a fort aspect is held inside a building, that ground is the building's own floor, well in from
+ *       its walls, because only somebody on the floor takes it.</li>
  * </ul>
  *
  * <p>The aspects of one fort are not each a task: {@link FortTactics} chooses which of them is work, in what order, and
@@ -195,7 +199,8 @@ public final class DefenceStructureTactics {
      *
      * <p>A squad carrying demolition is authorised to wreck where the pick is a wreck, and everyone else goes at
      * the same aspect to take it. A machine squad (a mech lance cannot enter a bunker) is sent to a standoff cell
-     * outside the structure's reach, with sight of it, as base of fire.
+     * outside the structure's reach, with sight of it, as base of fire. An infantry squad already near the building an
+     * aspect is held in is told to occupy it instead of attack-moving to it ({@link #occupyOrder}).
      *
      * @param fort one fort's facts, all sharing a fort id
      * @return one task per reachable candidate, or empty when the fort offers no work to this side
@@ -223,17 +228,23 @@ public final class DefenceStructureTactics {
         FortTactics.Pick pick = picks.get(0);
         String reason = "company vs fort " + pick.structure().fortId() + " "
                 + pick.structure().family().name().toLowerCase(Locale.ROOT) + ": " + pick.reason();
+        int[] floor = floorOf(pick.structure());
         for (Candidate candidate : candidates) {
             boolean wreck = pick.wreck() && candidate.demolition();
             ObjectiveAssignment held = candidate.incumbent();
+            ObjectiveAssignment occupy = wreck || candidate.machine() || floor == null ? null
+                    : occupyOrder(candidate, floor, pick.structure(), topology);
+            if (occupy != null) {
+                tasks.add(new Task(candidate.squadId(), occupy, pick.role(), pick.structure(), reason, false));
+                continue;
+            }
             int[] cell;
-            if (held != null && held.kind() == AssignmentKind.ATTACK_MOVE && near(held.targetCellX(), held.targetCellY(), pick.structure())
-                    && !candidate.machine()
-                    && topology.reachable(candidate.anchorCellX(), candidate.anchorCellY(), held.targetCellX(), held.targetCellY())) {
+            if (held != null && held.kind() == AssignmentKind.ATTACK_MOVE && !candidate.machine()
+                    && keepsOrderTo(candidate, held.targetCellX(), held.targetCellY(), pick.structure(), topology)) {
                 cell = new int[] {held.targetCellX(), held.targetCellY()};
             } else {
                 cell = candidate.machine() ? standoffCell(candidate, pick.structure(), topology)
-                        : approachCell(candidate, pick.structure(), topology);
+                        : takeCell(candidate, pick.structure(), topology);
             }
             if (cell == null) continue;
             tasks.add(new Task(candidate.squadId(),
@@ -241,6 +252,53 @@ public final class DefenceStructureTactics {
                     pick.role(), pick.structure(), reason, wreck));
         }
         return tasks;
+    }
+
+    /**
+     * How near the building an aspect is held in a company squad must be, in cells from the building's floor, before
+     * it is told to occupy the building rather than attack-move to it. UNTUNED.
+     */
+    static final int OCCUPY_REACH_CELLS = 12;
+    /** How much further than {@link #OCCUPY_REACH_CELLS} a squad already occupying may drift and keep the order. */
+    static final int OCCUPY_KEEP_EXTRA_CELLS = 6;
+    /**
+     * Radius of the area defence that occupies a building: two cells round the deep cell of {@link #roomCell}, which
+     * lies wholly on the building's own floor, so the area's members stand where the take is counted.
+     */
+    static final int OCCUPY_RADIUS_CELLS = 2;
+
+    /**
+     * The order that puts a squad near a building into it: an area defence on the building's deepest floor cell, when
+     * the squad is within {@link #OCCUPY_REACH_CELLS} of the floor (or already holds that order and is within the
+     * keep margin); {@code null} while it is still further out, when the attack move stands.
+     *
+     * <p>Why not the attack move all the way: an attack move fights what it meets, and squads under one attack move
+     * divide their shared contact into a base of fire and a maneuver round it. At a fort the shared contact was the
+     * gun platform twenty cells off the bunker, so a company sent to the bunker stood fixing and flanking the guns
+     * for as long as they stood, a few cells from the bunker's door, and nobody went in. A take is counted only for
+     * somebody standing on the building's floor; an area defence walks its members onto the floor and fights from
+     * there.
+     */
+    private static ObjectiveAssignment occupyOrder(Candidate squad, int[] floor, DefenceStructureFact structure,
+                                                   CommandTopology topology) {
+        int gap = gapToFloor(squad.anchorCellX(), squad.anchorCellY(), floor);
+        ObjectiveAssignment held = squad.incumbent();
+        if (held != null && held.kind() == AssignmentKind.DEFEND_AREA
+                && held.targetRadiusCells() == OCCUPY_RADIUS_CELLS
+                && gap <= OCCUPY_REACH_CELLS + OCCUPY_KEEP_EXTRA_CELLS
+                && keepsOrderTo(squad, held.targetCellX(), held.targetCellY(), structure, topology)) {
+            return held;
+        }
+        if (gap > OCCUPY_REACH_CELLS) return null;
+        int[] cell = roomCell(squad, structure, topology);
+        return cell == null ? null : ObjectiveAssignment.defendArea(squad.squadId(), cell[0], cell[1], OCCUPY_RADIUS_CELLS);
+    }
+
+    /** Cells from a cell to the nearest floor cell, Chebyshev; zero on the floor. */
+    private static int gapToFloor(int x, int y, int[] floor) {
+        int dx = Math.max(0, Math.max(floor[0] - x, x - floor[2]));
+        int dy = Math.max(0, Math.max(floor[1] - y, y - floor[3]));
+        return Math.max(dx, dy);
     }
 
     /** How far outside a structure's reach a machine squad stands as base of fire, at the nearest. UNTUNED. */
@@ -299,6 +357,8 @@ public final class DefenceStructureTactics {
                     || !nearForKind(held.kind(), held.targetCellX(), held.targetCellY(), want.structure)) continue;
             if (!topology.reachable(candidate.anchorCellX(), candidate.anchorCellY(),
                     held.targetCellX(), held.targetCellY())) continue;
+            if (kind == AssignmentKind.ATTACK_MOVE
+                    && !keepsOrderTo(candidate, held.targetCellX(), held.targetCellY(), want.structure, topology)) continue;
             return new Task(candidate.squadId(), held.withWreckAuthorised(want.wreck), want.role, want.structure,
                     want.reason, want.wreck);
         }
@@ -316,7 +376,8 @@ public final class DefenceStructureTactics {
             long dy = candidate.anchorCellY() - want.structure.cellY();
             long gap = dx * dx + dy * dy;
             if (gap > bestGap || (gap == bestGap && best != null && candidate.squadId() > best.squadId())) continue;
-            int[] cell = approachCell(candidate, want.structure, topology);
+            int[] cell = want.role == Role.DEFEND ? approachCell(candidate, want.structure, topology)
+                    : takeCell(candidate, want.structure, topology);
             if (cell == null) continue;
             best = candidate;
             bestCell = cell;
@@ -364,6 +425,113 @@ public final class DefenceStructureTactics {
 
     private static AssignmentKind kindFor(Role role) {
         return role == Role.DEFEND ? AssignmentKind.DEFEND_AREA : AssignmentKind.ATTACK_MOVE;
+    }
+
+    /**
+     * Where a squad is sent to take or retake a structure: inside the building the aspect is held in, when it has one
+     * ({@link #roomCell}), else the doorstep ({@link #approachCell}).
+     */
+    private static int[] takeCell(Candidate squad, DefenceStructureFact structure, CommandTopology topology) {
+        int[] room = roomCell(squad, structure, topology);
+        return room != null ? room : approachCell(squad, structure, topology);
+    }
+
+    /**
+     * Whether an order to a cell that a squad already carries still serves taking the structure, so it is kept rather
+     * than reissued: within the structure's reach and reachable, and, where the aspect is held in a building, at one of that
+     * building's deepest cells. An order left over to the doorstep, or to a room cell beside the wall, is replaced.
+     */
+    private static boolean keepsOrderTo(Candidate squad, int x, int y, DefenceStructureFact structure,
+                                        CommandTopology topology) {
+        if (!near(x, y, structure)
+                || !topology.reachable(squad.anchorCellX(), squad.anchorCellY(), x, y)) return false;
+        int[] floor = floorOf(structure);
+        if (floor == null) return true;
+        int deepest = deepestReachable(squad, floor, topology);
+        return deepest < 0 || (inside(floor, x, y) && depth(floor, x, y) == deepest);
+    }
+
+    /**
+     * The interior floor of the building a fort aspect is held in, as inclusive world bounds {@code {minX, minY, maxX,
+     * maxY}}, read from the fort's disclosed works frame; {@code null} for a bare structure, a fort with no frame, and
+     * the anti-air yard, which is open ground with no wall to stand behind, and for a fact whose cell is not on that
+     * floor. Geometry of the works the side has disclosed, not a sighting of anyone.
+     */
+    static int[] floorOf(DefenceStructureFact structure) {
+        FortFrame frame = structure.works();
+        if (frame == null || !structure.ofFort()) return null;
+        FortAspect aspect = switch (structure.kind()) {
+            case FIRE_CONTROL -> FortAspect.FIRE_CONTROL;
+            case FORT_MAGAZINE -> FortAspect.MAGAZINE;
+            case FORT_POWER -> FortAspect.POWER;
+            case SHIELD_GENERATOR -> FortAspect.CONTROL_ROOM;
+            case FORT_AIR_DEFENCE -> null;
+        };
+        if (aspect == null) return null;
+        int[] f = frame.plan().floor(aspect);
+        int[] floor = frame.bounds(f[0], f[1], f[2], f[3]);
+        // The aspect is held in the room its core stands in; a floor that does not hold the fact's own cell is not it.
+        return inside(floor, structure.cellX(), structure.cellY()) ? floor : null;
+    }
+
+    /**
+     * The cell a squad is sent to when it is to take an aspect held inside a building: the walkable floor cell deepest
+     * inside the building (the most steps from its edge) that the squad can reach, nearest the squad among equals,
+     * ties to the lower row then the lower column. {@code null} when the aspect is held in no building or no floor cell
+     * is reachable.
+     *
+     * <p>Why deep and not merely inside: an attack move is done when a member stands within
+     * {@link AttackMove#ARRIVAL_RADIUS} of its cell, measured as the crow flies. A cell against the building's wall is
+     * that close to the ground on the far side of the wall, so a squad sent to it arrived in the courtyard behind the
+     * wall, nearer by air than the long way round through the door, and the room it had to stand in for the take
+     * stayed empty. The deeper the cell, the further the far side of every wall is from it.
+     */
+    static int[] roomCell(Candidate squad, DefenceStructureFact structure, CommandTopology topology) {
+        int[] floor = floorOf(structure);
+        if (floor == null) return null;
+        int deepest = deepestReachable(squad, floor, topology);
+        if (deepest < 0) return null;
+        int[] best = null;
+        long bestGap = Long.MAX_VALUE;
+        for (int y = floor[1]; y <= floor[3]; y++) {
+            for (int x = floor[0]; x <= floor[2]; x++) {
+                if (depth(floor, x, y) != deepest || !standable(squad, x, y, topology)) continue;
+                long gx = x - squad.anchorCellX();
+                long gy = y - squad.anchorCellY();
+                long gap = gx * gx + gy * gy;
+                if (gap < bestGap) {
+                    bestGap = gap;
+                    best = new int[] {x, y};
+                }
+            }
+        }
+        return best;
+    }
+
+    /** The greatest depth of a floor cell the squad can stand on, or -1 when it can reach none. */
+    private static int deepestReachable(Candidate squad, int[] floor, CommandTopology topology) {
+        int deepest = -1;
+        for (int y = floor[1]; y <= floor[3]; y++) {
+            for (int x = floor[0]; x <= floor[2]; x++) {
+                int d = depth(floor, x, y);
+                if (d > deepest && standable(squad, x, y, topology)) deepest = d;
+            }
+        }
+        return deepest;
+    }
+
+    private static boolean standable(Candidate squad, int x, int y, CommandTopology topology) {
+        return topology.inBounds(x, y) && topology.isWalkable(x, y)
+                && topology.reachable(squad.anchorCellX(), squad.anchorCellY(), x, y);
+    }
+
+    /** Steps from a floor cell to the nearest cell outside the floor, less one: zero for a cell against the wall. */
+    private static int depth(int[] floor, int x, int y) {
+        return Math.min(Math.min(x - floor[0], floor[2] - x), Math.min(y - floor[1], floor[3] - y));
+    }
+
+    private static boolean inside(int[] floor, int x, int y) {
+        return x >= floor[0] && x <= floor[2] && y >= floor[1] && y <= floor[3];
     }
 
     /**

@@ -4,6 +4,9 @@ import com.dillon.starsectormarines.battle.command.DefenceStructureFact.Kind;
 import com.dillon.starsectormarines.battle.command.DefenceStructureTactics.Candidate;
 import com.dillon.starsectormarines.battle.command.DefenceStructureTactics.Role;
 import com.dillon.starsectormarines.battle.command.DefenceStructureTactics.Task;
+import com.dillon.starsectormarines.battle.decision.goap.action.AttackMove;
+import com.dillon.starsectormarines.battle.fort.FortAspect;
+import com.dillon.starsectormarines.battle.fort.FortFrame;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.shield.ShieldGenerator;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -11,6 +14,7 @@ import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
@@ -291,5 +295,107 @@ class DefenceStructureTacticsTest {
                 "within the work's reach");
         assertTrue(post.targetCellX() < 40, "on the squad's side of the work");
         assertTrue(DefenceStructureTactics.isTask(post, List.of(works)));
+    }
+
+    // A battery fort's bunker on ground with nothing else on it: its floor walled round, one door on the south face.
+    private static final FortFrame FRAME = new FortFrame(BatteryFort.PLAN, 10, 10, 0);
+    private static final int WORLD = 120;
+
+    private static int[] bunkerFloor() {
+        int[] f = BatteryFort.floor(FortAspect.FIRE_CONTROL);
+        return FRAME.bounds(f[0], f[1], f[2], f[3]);
+    }
+
+    private static CommandTopology walledBunker() {
+        int[] floor = bunkerFloor();
+        int doorX = floor[0] + 3;
+        int doorY = floor[3] + 1;
+        NavigationGrid grid = new NavigationGrid(WORLD, WORLD);
+        for (int y = 0; y < WORLD; y++) {
+            for (int x = 0; x < WORLD; x++) {
+                boolean ring = x >= floor[0] - 1 && x <= floor[2] + 1 && y >= floor[1] - 1 && y <= floor[3] + 1
+                        && !(x >= floor[0] && x <= floor[2] && y >= floor[1] && y <= floor[3]);
+                if (!ring || (x == doorX && y == doorY)) grid.setWalkableFloor(x, y);
+            }
+        }
+        return CommandTopology.freeze(new BattleSimulation(grid, new CellTopology(WORLD, WORLD)));
+    }
+
+    private static DefenceStructureFact fortBunker() {
+        int[] floor = bunkerFloor();
+        int coreX = (floor[0] + floor[2]) / 2;
+        int coreY = (floor[1] + floor[3]) / 2;
+        return new DefenceStructureFact(Kind.FIRE_CONTROL, coreX, coreY, Faction.DEFENDER, Faction.DEFENDER, false, 4,
+                coreX, coreY, 0, DefenceStructureFact.Family.BATTERY_FORT, new int[0], new int[0], FRAME);
+    }
+
+    private static boolean onFloor(int x, int y) {
+        int[] floor = bunkerFloor();
+        return x >= floor[0] && x <= floor[2] && y >= floor[1] && y <= floor[3];
+    }
+
+    /** Whether every cell within {@code radius} of the cell's centre, as the crow flies, is the bunker's own floor. */
+    private static boolean onlyFloorWithin(int x, int y, float radius) {
+        int r = (int) Math.ceil(radius);
+        for (int dy = -r; dy <= r; dy++) {
+            for (int dx = -r; dx <= r; dx++) {
+                if (dx * dx + dy * dy <= radius * radius && !onFloor(x + dx, y + dy)) return false;
+            }
+        }
+        return true;
+    }
+
+    @Test
+    void aCompanySquadFarFromABunkerIsSentToAFloorCellNoGroundOutsideTheWallsCanArriveAt() {
+        CommandTopology topology = walledBunker();
+        int[] floor = bunkerFloor();
+        // North of the bunker, away from its door: the doorstep nearest by air is behind the north wall.
+        Candidate far = squad(1, (floor[0] + floor[2]) / 2, floor[1] - 30);
+
+        List<Task> tasks = DefenceStructureTactics.planMassed(Faction.MARINE, List.of(fortBunker()), List.of(far), topology);
+
+        assertEquals(1, tasks.size());
+        ObjectiveAssignment order = tasks.get(0).assignment();
+        assertEquals(AssignmentKind.ATTACK_MOVE, order.kind(), "still out of reach of the building: an attack move to it");
+        assertTrue(onlyFloorWithin(order.targetCellX(), order.targetCellY(), AttackMove.ARRIVAL_RADIUS),
+                "an attack move is done within " + AttackMove.ARRIVAL_RADIUS + " cells of its cell, so nothing that near may be"
+                        + " outside the bunker; was (" + order.targetCellX() + "," + order.targetCellY() + ")");
+    }
+
+    @Test
+    void aCompanySquadAtTheBunkerIsToldToOccupyItsFloorRatherThanFightPastIt() {
+        CommandTopology topology = walledBunker();
+        int[] floor = bunkerFloor();
+        Candidate close = squad(1, floor[0] - 6, floor[3] + 4);
+
+        List<Task> tasks = DefenceStructureTactics.planMassed(Faction.MARINE, List.of(fortBunker()), List.of(close), topology);
+
+        assertEquals(1, tasks.size());
+        ObjectiveAssignment order = tasks.get(0).assignment();
+        assertEquals(AssignmentKind.DEFEND_AREA, order.kind(),
+                "an area defence walks its members onto the floor; an attack move fights whatever it has in view");
+        assertEquals(DefenceStructureTactics.OCCUPY_RADIUS_CELLS, order.targetRadiusCells());
+        assertTrue(onlyFloorWithin(order.targetCellX(), order.targetCellY(), order.targetRadiusCells()),
+                "the area lies wholly on the floor, where the take is counted");
+        assertFalse(tasks.get(0).wreck());
+    }
+
+    @Test
+    void anOccupyingSquadKeepsItsOrderWithinTheMarginAndIsSentBackByAttackMoveBeyondIt() {
+        CommandTopology topology = walledBunker();
+        int[] floor = bunkerFloor();
+        int x = (floor[0] + floor[2]) / 2;
+        ObjectiveAssignment occupy = DefenceStructureTactics.planMassed(Faction.MARINE, List.of(fortBunker()),
+                List.of(squad(1, x, floor[3] + 3)), topology).get(0).assignment();
+        assertEquals(AssignmentKind.DEFEND_AREA, occupy.kind());
+
+        int drifted = floor[3] + DefenceStructureTactics.OCCUPY_REACH_CELLS + DefenceStructureTactics.OCCUPY_KEEP_EXTRA_CELLS;
+        ObjectiveAssignment kept = DefenceStructureTactics.planMassed(Faction.MARINE, List.of(fortBunker()),
+                List.of(new Candidate(1, x, drifted, occupy)), topology).get(0).assignment();
+        assertEquals(occupy, kept, "a squad pushed back a little keeps the building, rather than flipping orders");
+
+        ObjectiveAssignment beyond = DefenceStructureTactics.planMassed(Faction.MARINE, List.of(fortBunker()),
+                List.of(new Candidate(1, x, drifted + 1, occupy)), topology).get(0).assignment();
+        assertEquals(AssignmentKind.ATTACK_MOVE, beyond.kind(), "further out, it fights its way back in");
     }
 }
