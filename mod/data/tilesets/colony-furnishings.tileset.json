@@ -1,0 +1,224 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "name": "colony-furnishings.case",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "name": "colony-furnishings.case-damaged",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "name": "colony-furnishings.case-destroyed",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "name": "colony-furnishings.locker",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "name": "colony-furnishings.locker-damaged",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "name": "colony-furnishings.locker-destroyed",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "name": "colony-furnishings.desk",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "name": "colony-furnishings.desk-damaged",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "name": "colony-furnishings.desk-destroyed",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "name": "colony-furnishings.utility",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "name": "colony-furnishings.utility-damaged",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "name": "colony-furnishings.utility-destroyed",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "name": "colony-furnishings.galley",
+      "row": 0
+    },
+    {
+      "col": 13,
+      "name": "colony-furnishings.galley-damaged",
+      "row": 0
+    },
+    {
+      "col": 14,
+      "name": "colony-furnishings.galley-destroyed",
+      "row": 0
+    },
+    {
+      "col": 15,
+      "name": "colony-furnishings.shelf",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "colony-furnishings.shelf-damaged",
+      "row": 1
+    },
+    {
+      "col": 1,
+      "name": "colony-furnishings.shelf-destroyed",
+      "row": 1
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.38,
+      "col": 0,
+      "cover": "med",
+      "id": "colony-furnishings.case",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.38,
+      "col": 1,
+      "cover": "med",
+      "id": "colony-furnishings.case-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 2,
+      "cover": "none",
+      "id": "colony-furnishings.case-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.45,
+      "col": 3,
+      "cover": "med",
+      "id": "colony-furnishings.locker",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.45,
+      "col": 4,
+      "cover": "med",
+      "id": "colony-furnishings.locker-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 5,
+      "cover": "none",
+      "id": "colony-furnishings.locker-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.38,
+      "col": 6,
+      "cover": "med",
+      "id": "colony-furnishings.desk",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.38,
+      "col": 7,
+      "cover": "med",
+      "id": "colony-furnishings.desk-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 8,
+      "cover": "none",
+      "id": "colony-furnishings.desk-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.45,
+      "col": 9,
+      "cover": "med",
+      "id": "colony-furnishings.utility",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.45,
+      "col": 10,
+      "cover": "med",
+      "id": "colony-furnishings.utility-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 11,
+      "cover": "none",
+      "id": "colony-furnishings.utility-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.45,
+      "col": 12,
+      "cover": "med",
+      "id": "colony-furnishings.galley",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.45,
+      "col": 13,
+      "cover": "med",
+      "id": "colony-furnishings.galley-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 14,
+      "cover": "none",
+      "id": "colony-furnishings.galley-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.75,
+      "col": 15,
+      "cover": "heavy",
+      "id": "colony-furnishings.shelf",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.75,
+      "col": 0,
+      "cover": "heavy",
+      "id": "colony-furnishings.shelf-damaged",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 1,
+      "cover": "none",
+      "id": "colony-furnishings.shelf-destroyed",
+      "row": 1
+    }
+  ],
+  "sheet": "graphics/tilesets/colony-furnishings.png"
+}

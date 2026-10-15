@@ -50,10 +50,10 @@ public final class PlazaFiller implements BlockFiller {
 
         TileRegistry reg = TileRegistry.installed();
         DoodadDef[] plazaDoodads = {
-            reg.doodad("doodad.desk-dam"),
-            reg.doodad("doodad.desk-dam"),
-            reg.doodad("doodad.chair-s-yellow-dam"),
-            reg.doodad("doodad.chair-s-green-dam"),
+            reg.doodad("mess-galley.stool"),
+            reg.doodad("mess-galley.stool"),
+            reg.doodad("mess-galley.stool"),
+            reg.doodad("mess-galley.stool"),
         };
 
         // Carve the leaf as walkable brick-paved plaza pavement.

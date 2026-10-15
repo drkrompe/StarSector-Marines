@@ -96,6 +96,15 @@ final class BuildingWorkGroups {
                 new Part("main-stores.cases", 7, 2, false)));
     }
 
+    /** Retail thresholds retain their full one-cell turning envelope, including diagonals. */
+    void reserveDoorSurrounds(int bl, int bt, int br, int bb) {
+        for (int y = bt; y <= bb; y++) for (int x = bl; x <= br; x++) {
+            if (!grid.isDoorway(x, y)) continue;
+            for (int dy = -1; dy <= 1; dy++) for (int dx = -1; dx <= 1; dx++)
+                access.add(new Cell(x + dx, y + dy));
+        }
+    }
+
     /** Wider perimeter door runs are cargo approaches; furniture cannot consume their two inner rows. */
     void reserveCargoApproaches(int bl, int bt, int br, int bb) {
         for (int y = bt; y <= bb; y++) for (int x = bl; x <= br; x++) {
