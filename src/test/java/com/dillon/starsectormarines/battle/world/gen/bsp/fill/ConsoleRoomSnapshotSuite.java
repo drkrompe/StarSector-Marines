@@ -50,15 +50,15 @@ public final class ConsoleRoomSnapshotSuite implements SnapshotSuite {
                 .filter(c -> c.purpose() == RoomPurpose.BRIDGE).findFirst().orElseThrow();
         long modules = deck.doodads.stream().filter(d -> bridge.contains(d.cellX, d.cellY)
                 && d.definitionId().startsWith("console-bank.")).count();
-        if (modules != 12) throw new IllegalStateException("Ship bridge lost console banks: " + modules);
+        if (modules != 26) throw new IllegalStateException("Ship bridge lost console banks: " + modules);
         BufferedImage board = board();
         Graphics2D g = board.createGraphics();
         text(g, "CONSOLE BANKS / IN SERVICE", 44, 54, 28);
         text(g, "Generated ship command center", 44, 105, 22);
         g.drawImage(renderer.renderView(deck, 42, bridge.originX() + bridge.width() / 2f,
                 bridge.originY() + bridge.depth() / 2f, bridge.width() + 4, bridge.depth() + 4, 44), 30, 136, null);
-        text(g, "Four connected banks / tactical plot / nine watch positions", 44, 957, 18);
-        text(g, "Hatch approaches and the inner walkway remain clear.", 44, 988, 18);
+        text(g, "Two L banks / two U banks / nine watch positions", 44, 957, 18);
+        text(g, "Square command area / two-cell inner walkway / clear hatches.", 44, 988, 18);
         text(g, "Ground command facility", 1070, 105, 22);
         MapResult ground = building(26, 21, 42, BuildingPlacement.Side.BOTTOM);
         g.drawImage(renderer.render(ground, 42, 28), 1050, 166, null);
@@ -73,7 +73,37 @@ public final class ConsoleRoomSnapshotSuite implements SnapshotSuite {
                 RoomRecipe.COMMAND.shape(), RoomFit.STANDARD), RoomPurpose.BRIDGE,
                 RoomRecipe.COMMAND.shape(), RoomFit.STANDARD);
         artifacts.add(new SnapshotArtifact("console-room-editor.png", editor(context, seed)));
+        artifacts.add(new SnapshotArtifact("ship-cic.png", cic(context, seed)));
         return artifacts;
+    }
+
+    private static BufferedImage cic(SnapshotContext context, RoomLayout seed) throws Exception {
+        BufferedImage image = board();
+        BufferedImage detail, backdrop;
+        try (RoomPreview preview = new RoomPreview(context.projectRoot())) {
+            detail = preview.render(seed, 64);
+            backdrop = preview.render(seed, 38);
+        }
+        SwingUtilities.invokeAndWait(() -> {
+            RoomGridView grid = new RoomGridView();
+            grid.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+            grid.show(new RoomDraft(seed)); grid.cellSize(38); grid.backdrop(backdrop);
+            grid.setSize(grid.getPreferredSize());
+            Graphics2D g = image.createGraphics();
+            text(g, "SHIP CIC / WRAPAROUND WATCH STATIONS", 44, 55, 28);
+            text(g, "Two L-shaped navigation / systems banks and two U-shaped side stations", 44, 104, 21);
+            g.drawImage(detail, 44, 152, null);
+            text(g, "CREW + CIRCULATION", 1190, 185, 23);
+            g.translate(1190, 222); grid.paint(g); g.translate(-1190, -222);
+            text(g, "Green: nine watch stands + hatch sentry", 1190, 790, 18);
+            text(g, "Cyan: protected walkways", 1190, 825, 18);
+            text(g, "Square central plot / two-cell inner aisle", 1190, 890, 18);
+            text(g, "Original crew positions and room footprint", 1190, 925, 18);
+            text(g, "Editable paths in the room editor", 1190, 960, 18);
+            text(g, "Production ship-room renderer + actual room-editor overlay / 1920 x 1080 / 100% UI scale", 44, 1045, 17);
+            g.dispose();
+        });
+        return image;
     }
 
     private static BufferedImage editor(SnapshotContext context, RoomLayout seed) throws Exception {

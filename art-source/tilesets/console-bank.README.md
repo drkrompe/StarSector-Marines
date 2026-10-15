@@ -75,13 +75,17 @@ isolated standable floor. The kit itself creates no crew duties.
 
 `ConsoleBankLayout.resolveWorld` handles Y-up room/map coordinates; module
 image turns are converted to normalized placement turns, including mirrored
-rooms. The ship keeps its nine watch positions and hatch sentry. Ground command
+rooms. The ship CIC uses two L banks and two U banks around the square tactical
+plot, with a reserved two-cell inner aisle. It keeps all nine existing watch
+positions and its hatch sentry. Ground command
 rooms use short wall-backed runs with two clear operator rows and real gaps at
 openings. Large command chambers use the shared tactical plot. Small civilian
 stamps and generic narrow bridges keep their existing fittings.
 
 The `console-rooms` suite checks and renders a generated ship and four command
-building footprints/frontages. `console-editor` drives the actual fixture
+building footprints/frontages. Its `ship-cic.png` pairs a detailed ship-room
+render with the real editor's work-position and circulation overlay.
+`console-editor` drives the actual fixture
 controls and grid events. Retained review images are under
 `../console-bank/review/`. These are production Java2D renderer and Swing
 captures, not live OpenGL evidence. Outside corners retain a slightly wider
