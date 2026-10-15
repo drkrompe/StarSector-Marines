@@ -43,8 +43,6 @@ class ShipBridgeFittingTest {
         for(RoomPose pose:RoomPose.all()) {
             Fixture f=fit(pose,List.of(new int[]{8,-1}));
             assertBanks(f);assertEquals(10,f.ctx.fixtureTasks.size());verify(f);
-            for(int y=4;y<=8;y++) for(int x=6;x<=10;x++)
-                if(x==6 || x==10 || y==4 || y==8) walkable(f,x,y);
         }
     }
 
@@ -73,7 +71,15 @@ class ShipBridgeFittingTest {
         var banks = f.ops.stream().filter(LayoutOp.ConsoleBank.class::isInstance)
                 .map(LayoutOp.ConsoleBank.class::cast).toList();
         assertEquals(4, banks.size());
-        assertEquals(12, f.ctx.doodads.stream().filter(d -> d.definitionId().startsWith("console-bank.")).count());
+        assertEquals(26, f.ctx.doodads.stream().filter(d -> d.definitionId().startsWith("console-bank.")).count());
+        assertEquals(List.of(1L, 1L, 2L, 2L), banks.stream().map(bank ->
+                ConsoleBankLayout.resolveWorld(bank.cells(), bank.closed(), bank.operatorRight()).stream()
+                        .filter(piece -> piece.id().endsWith("corner")).count()).toList(), "Two L banks and two U banks");
+        for (int[] stand : new int[][]{{8,4}, {7,11}, {9,1}, {3,5}, {13,5}, {3,7}, {13,7}, {9,11}, {7,1}}) {
+            int[] local = f.floor.toLocal(stand[0], stand[1]);
+            assertTrue(f.ctx.fixtureTasks.stream().anyMatch(task -> task.affordance() == Affordance.WATCH
+                    && task.cellX() == local[0] + 4 && task.cellY() == local[1] + 4), "Keep every existing watch stand");
+        }
         for (LayoutOp.ConsoleBank bank : banks) {
             assertTrue(firstWatch.stream().anyMatch(task -> bank.cells().stream().anyMatch(cell -> {
                 int[] posed = f.floor.toLocal(cell.x(), cell.y());
@@ -85,6 +91,9 @@ class ShipBridgeFittingTest {
     private static void verify(Fixture f) {
         assertTrue(f.floor.circulationSurvives());assertEquals(0,f.floor.dropUnreachableWork());
         f.floor.seal();HashSet<String> stands=new HashSet<>();
+        // A square two-cell band around the plot remains open through every pose and hatch choice.
+        for (int y = 3; y <= 9; y++) for (int x = 5; x <= 11; x++)
+            if (Math.abs(x - 8) >= 2 || Math.abs(y - 6) >= 2) walkable(f, x, y);
         assertEquals(1, f.ctx.fixtureTasks.stream().filter(task -> task.affordance() == Affordance.GUARD).count());
         for(var task:f.ctx.fixtureTasks) {
             assertTrue(stands.add(task.cellX()+","+task.cellY()));
