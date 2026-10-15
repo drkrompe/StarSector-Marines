@@ -8,17 +8,20 @@ import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.JunctionCompound;
 import java.util.ArrayList;
 
 /** Wayline directs one named aircraft from public progress and friendly positions, never hidden enemies. */
 public final class WaylineGunship {
     public static final String CALLSIGN = "Talon Two";
+    /** Seconds Talon Two keeps working the Dispatch trench after the Freight Yard falls, before heading home. */
+    static final float LAST_PASS_SECONDS = 8f;
     private final boolean freight;
     private final StoryBeatLog log;
     private long aircraft;
     private ShuttleMission sortie;
-    private int station = 1, holdUntil;
-    private boolean held;
+    /** Whether Talon Two has gone ahead to the Dispatch trench, and whether its time there is running out. */
+    private boolean ahead, windingDown;
     private ThunderRunAirPass freightPass;
 
     public WaylineGunship(boolean freight, StoryBeatLog log) {
@@ -61,20 +64,20 @@ public final class WaylineGunship {
             beat(sim, "on_station");
         if (sim.world().hp(aircraft) < sim.world().maxHp(aircraft) * .8f) beat(sim, "hit");
         if (sortie.state != ShuttleState.ORBIT) return;
-        var site = sites.get(station);
-        if (site.state == CompoundState.MARINE_HELD && !held) {
-            held = true;
-            holdUntil = sim.getSimTickIndex() + 30 * 30;
-            beat(sim, "covering_militia");
+        // Wayline sends it ahead rather than leaving it over ground already taken: once the Weigh Station
+        // falls, Talon Two goes on to the trench in front of Dispatch and works that later obstacle while the
+        // company takes the Freight Yard. The trench is an authored work on the briefing map, not a hidden enemy.
+        if (!ahead && sites.get(1).state == CompoundState.MARINE_HELD) {
+            ahead = true;
+            int[] trench = JunctionCompound.trenchCentre(JunctionCompound.TRENCHES.size() - 1);
+            sortie.orbitCentreX = trench[0] + .5f;
+            sortie.orbitCentreY = trench[1] + .5f;
+            beat(sim, "working_trench");
         }
-        if (held && sim.getSimTickIndex() >= holdUntil && station < 3) {
-            var next = sites.get(station + 1);
-            if (companyNear(sim, next.captureCellX, next.captureCellY, 32f)) {
-                station++;
-                held = false;
-                sortie.orbitCentreX = next.captureCellX;
-                sortie.orbitCentreY = next.captureCellY;
-            }
+        // Once the Freight Yard is the company's, the trench gets a last pass and Dispatch is left to them.
+        if (ahead && !windingDown && sites.get(2).state == CompoundState.MARINE_HELD) {
+            windingDown = true;
+            sortie.orbitSecondsLeft = Math.min(sortie.orbitSecondsLeft, LAST_PASS_SECONDS);
         }
     }
 

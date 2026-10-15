@@ -94,7 +94,7 @@ class GatedHousingFillerTest {
         assertEquals(2, outerGateCells, "compound receives one two-cell public gate");
         assertTrue(courtyardPlanters >= 4,
                 "shared courtyard and its two-cell apron receive distributed planter cover");
-        assertTrue(count(fixture.ctx.doodads, "doodad.desk-dam") >= 2,
+        assertTrue(count(fixture.ctx.doodads, "mess-galley.stool") >= 2,
                 "shared domestic space receives more than tactical cover");
         assertAllWalkableCellsConnected(fixture.grid);
 

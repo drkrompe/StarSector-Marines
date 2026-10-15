@@ -171,7 +171,9 @@ Do not run builds or leave generated task files there.
   Junction's default matrix flies the lift a company has at that point in the
   campaign: three interiors with two Hermes making three four-seat trips (24),
   one Hermes making six, and one Hermes making three (12, understrength), plus
-  militia-held-at-landing and absent-player controls. `-PsnapshotEveryTicks=N`
+  militia-held-at-landing and absent-player controls.
+  `-Dbattle.junction.talonTwo=false` is the no-gunship control for the trenches.
+  `-PsnapshotEveryTicks=N`
   records a whole-map `review.gif`; add `-PsnapshotFocus=x,y,cellsAcross` for a
   close view instead (the Weigh Station is about `72,50`). `-Pmission=junction`
   replays the production finite territorial factory; it does not create a campaign
@@ -1210,6 +1212,7 @@ The discovered suite ids and default output directories are:
 
 | Suite | Evidence | Output |
 |-------|----------|--------|
+| `apc` | Registered overhead APC hulls at four headings and battle scale, plus a full independent twin-MG rotation with ballistic muzzle marks; controlled art poses at 1920x1080/100%, not traverse timing or combat acceptance | `build/snapshots/apc/` |
 | `shepherd-basin` | Three recovery-map visits at 1920×1080, authored night lighting, detailed grounded Shepherd and scrap, cargo/infantry access and clear construction plots across palettes and seeds; controlled player observation verifies lit hull surfaces and hidden hostiles, not full mission play or campaign settlement | `build/snapshots/shepherd-basin/` |
 | `ship-command-ui` | Production ship selector and contextual build tray at 1920×1080/100%, remote Move/Hold/Auto, physical turret construction, takeover handback and Cold Start's grounded power gate; controlled fixtures, not Working Passage or campaign ownership acceptance | `build/snapshots/ship-command-ui/` |
 | `working-passage` | Production departure mission with named companies and fitted boats, full-size low-hover Morrow, two construction stops, militia holds and physical climb-out; absent arrival, withheld construction, withdrawal/retry and disabled-ship controls. 1920×1080/100%, detached playback rather than live campaign acceptance; report in `build/reports/working-passage/playback.txt` | `build/snapshots/working-passage/` |
@@ -1233,7 +1236,7 @@ The discovered suite ids and default output directories are:
 | `hq-intel` | Animated HQ receivers, dossier selection and a labelled fixture arrival at 1920x1080, 100% scale | `build/snapshots/hq-intel/` |
 | `firing-line` | Two animated loops of six marines in column in a corridor: the file shooting through its own men, and the same file stepping a cell out of each other's lanes. The acceptance for the friendly-lane step-aside | `build/snapshots/firing-line/` |
 | `frontage-scene` | Animated garrison stand-to on a generated compound, one loop per approach edge | `build/snapshots/frontage-scene/` |
-| `point-defence` | Animated LRM salvos against a placed interceptor pod: rounds stopped, rounds missed, rounds arriving; and the same salvos against a section wearing the interceptor pack, a close view at 1920x1080, 100% scale, every other tick so an interceptor's flight and trail are in frame, with close stills of the pack worn and of its first launch | `build/snapshots/point-defence/` |
+| `point-defence` | Animated LRM salvos against a placed interceptor pod: rounds stopped, rounds missed, rounds arriving; and the same salvos against a section wearing the interceptor pack, a close view at 1920x1080, 100% scale, every other tick so an interceptor's flight and trail are in frame, with close stills of the pack worn and of its first launch, and that launch tick by tick (`interceptor-pack-launch.gif`): the unlit coast out of the tube, the motor lighting, the run | `build/snapshots/point-defence/` |
 | `deployable-cover` | Animated controlled comparison of a placed revetment: the same fire into a covered lane, an open lane, and a screened post shot from the flank | `build/snapshots/deployable-cover/` |
 | `integral-system-fx` | A running integral system's halo: a narrow authored screen beside a wide one draining their soak pools, one breaking under concentrated fire, and one pattern's screen at four facings | `build/snapshots/integral-system-fx/` |
 | `perception-sweep` | The player's own picture — fog overlay and hidden-unit gating included — before, during, and after a Janus sensor sweep | `build/snapshots/perception-sweep/` |

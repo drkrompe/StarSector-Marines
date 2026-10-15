@@ -67,7 +67,10 @@ class CommercialFloorPlanTest {
                     assertFalse(grid.isWalkable(x, y), "fixture blocks movement at " + x + "," + y);
                     assertTrue(grid.isSeeThrough(x, y), "shelf preserves lines of fire at " + x + "," + y);
                     assertFalse(nearDoorway(grid, x, y), "fixture invades doorway clearance at " + x + "," + y);
-                    assertTrue(hasHeavyDoodadAt(doodads, x, y), "fixture carries heavy shelf cover");
+                    if (purpose == RoomPurpose.SHOP_FLOOR)
+                        assertTrue(hasHeavyDoodadAt(doodads, x, y), "sales fixtures carry heavy shelf cover");
+                    else assertTrue(hasCoverDoodadAt(doodads, x, y),
+                            "stock fixtures carry physical cargo cover");
                 }
             }
             assertTrue(shopCells >= 40, "seed " + seed + " sales floor cells=" + shopCells);
@@ -173,6 +176,10 @@ class CommercialFloorPlanTest {
             }
         }
         return false;
+    }
+
+    private static boolean hasCoverDoodadAt(List<Doodad> doodads, int x, int y) {
+        return doodads.stream().anyMatch(d -> d.cover > 0 && d.occupiesCell(x, y));
     }
 
     private static boolean hasHeavyDoodadAt(List<Doodad> doodads, int x, int y) {

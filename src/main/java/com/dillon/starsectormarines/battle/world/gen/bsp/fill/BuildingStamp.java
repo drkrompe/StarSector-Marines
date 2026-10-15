@@ -373,11 +373,11 @@ public enum BuildingStamp {
 
     private static String prop(char cell) {
         switch (cell) {
-            case 'b': return "doodad.chair-south-green";
-            case 'h': return "doodad.chest-1";
-            case 'c': return "doodad.crate";
-            case 'k': return "doodad.shelf-1";
-            case 'd': return "doodad.desk-1";
+            case 'b': return "mess-galley.stool";
+            case 'h': return "colony-furnishings.locker";
+            case 'c': return "colony-furnishings.case";
+            case 'k': return "colony-furnishings.shelf";
+            case 'd': return "colony-furnishings.desk";
             default: return null;
         }
     }

@@ -68,12 +68,13 @@ public final class ContrailStyle {
     /**
      * A hair-thin, short wisp for a point-defence interceptor: a small chemical
      * motor, burning orange at the missile and cooling to grey smoke a few cells
-     * back, so a salvo reads as darts crossing to the rounds rather than as a
+     * back -- a twentieth of a second, a few cells behind a missile sprinting at
+     * ninety cells a second -- so a salvo reads as darts crossing to the rounds rather than as a
      * sky full of exhaust. Smoke rather than light, so alpha-blended; it widens
      * only a little as it ages.
      */
     public static final ContrailStyle INTERCEPTOR_WISP = new ContrailStyle(
-            /*duration*/ 0.12f,
+            /*duration*/ 0.05f,
             /*startW*/ 0.03f, /*endW*/ 0.06f,
             /*start*/ 1.00f, 0.72f, 0.36f, 0.85f,
             /*end*/   0.55f, 0.53f, 0.50f, 0.00f,
