@@ -4,7 +4,7 @@ Status: ACTIVE — modeled ground direct fire is shipped; one manual feel pass r
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — cover hides body parts, including a prop crossed in the lane; a hit on an exposed part takes no cover cut.
+Updated: 2026-10-15 — cover hides body parts, lane props included; the part decides what a hit is worth and whether it wounds.
 
 Ballistics makes a direct shot a committed physical event instead of an
 accuracy result applied at the muzzle. It owns contact along the predicted
@@ -29,7 +29,8 @@ projectile.
 - A **body part** is where on a person a round lands: legs, torso, arms or
   head, stacked up the body in bands as tall as each part's share of the
   silhouette. Machines, structures and creatures have none; they are one
-  whole-body contact.
+  whole-body contact. The part rides on the damage payload, where it scales
+  the hit and may leave a limb wound (`combat-durability-nouns.md`).
 - A **cover profile** is what a cover feature hides of a person, per body
   part, from a shooter at full distance. There is one per kind of cover —
   edge, a trench's occupant, and a prop crossed in the lane — and per level.
@@ -190,7 +191,9 @@ as exposed as it was. A round that reaches an exposed part has beaten the
 cover and lands with no further damage cut for it: cover is counted once.
 Profiles are set so each level stops about what the older flat model's block
 chance and damage cut took off together; the difference is which parts are
-left to hit. Bodies without parts keep that flat model — a 15%, 30% or 45%
+left to hit, and that difference matters: a head hit is worth more than a limb
+hit, so a man whose legs and torso are hidden takes fewer hits but harder
+ones. In the open the part multipliers average out to the authored damage. Bodies without parts keep that flat model — a 15%, 30% or 45%
 catch by level, then the same cut on what lands — and a payload with no part,
 such as an area burst, a strafe or unattributed damage, still has its damage
 cut by the cover where it lands.
@@ -273,7 +276,7 @@ owns frame collection and paint order; it presents committed shots without
 becoming their simulation authority. `air-nouns.md` owns airborne behavior and
 the decision to extend this ground model into the air domain.
 
-Part consequences, area exposure and per-part armour are the open half of
-`body-part-cover.md`. Cover erosion, lead error, point-defense generalization, and modeled aerial
+Area exposure and per-part armour are the open half of `body-part-cover.md`;
+part consequences — damage by part and limb wounds — are shipped. Cover erosion, lead error, point-defense generalization, and modeled aerial
 fire are extension paths, not contracted Ballistics work. Current acceptance
 is indexed in `stories.md`; completed historical slices are in `shipped.md`.

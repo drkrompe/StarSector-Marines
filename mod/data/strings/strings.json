@@ -406,6 +406,8 @@
     "battleOrderOccupyPosition": "OCCUPY POSITION",
     "battleOrderClearPlace": "CLEAR AND HOLD",
     "unitModifierDugIn": "Dug in",
+    "unitModifierLegWound": "Leg wound",
+    "unitModifierArmWound": "Arm wound",
     "battleOrderSecureCompound": "SECURE COMPOUND",
     "battleShipMove": "Move",
     "battleShipHold": "Hold",
