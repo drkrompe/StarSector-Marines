@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.control.ShipCommandService;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.scene.SceneBuilder;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -231,6 +232,9 @@ public final class ShipCommandUiSnapshotSuite implements SnapshotSuite {
                 AtomicReference<String> power = new AtomicReference<>();
                 BattleShipCommandController controller = new BattleShipCommandController(() -> sim, selection, targeting,
                         power::set, power::get, () -> {});
+                // The campaign overlay lands the company; with nobody of it standing Cold Start fails and the
+                // grounded host is never commissioned.
+                sim.spawn(new EntitySpec("ship-ui-company", Faction.MARINE, UnitType.MARINE, 131, 108));
                 tick(sim, 1);
                 plates.update(controller.state());
                 if (!powered) {

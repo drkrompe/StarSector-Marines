@@ -77,6 +77,7 @@ public final class SceneEvidenceCli {
         try {
             return scene.play(FrameSink.NONE);
         } catch (Exception failure) {
+            failure.printStackTrace();
             String detail = failure.getClass().getSimpleName()
                     + (failure.getMessage() == null ? "" : ": " + failure.getMessage());
             return List.of(new SceneReport(scene.id(), "main", 0,

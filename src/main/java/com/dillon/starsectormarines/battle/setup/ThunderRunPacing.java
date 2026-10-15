@@ -34,6 +34,16 @@ public final class ThunderRunPacing {
     /** Rear attacks start after the Crossing hold, while the company advances on the last objective. */
     public static int rearPost(int batch) { return batch >= FIRST_REAR_BATCH ? (batch - FIRST_REAR_BATCH) % 2 : -1; }
 
+    /**
+     * Raiders in this batch issued crude scrap rockets: the opening team against the
+     * advance load, one Dispatch and one Crossing wave against the militia technical and
+     * guns, and the first rear attack on each gun post.
+     */
+    public static int rocketCarriers(int batch) {
+        return batch == 0 || batch == 2 || batch == 6 ? 2
+                : batch == FIRST_REAR_BATCH || batch == FIRST_REAR_BATCH + 1 ? 1 : 0;
+    }
+
     public static int holdTicks(int phase) {
         return (phase == 1 ? 60 : phase == 2 ? 80 : 0) * TICKS_PER_SECOND;
     }

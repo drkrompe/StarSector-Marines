@@ -449,19 +449,19 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         WaylineNarration narration = WaylineNarration.parse(new JSONObject(Files.readString(
                 context.modRoot().resolve(WaylineNarration.PATH))));
         Map<String, Object> narratedBriefing = BriefingViewModel.campaignPreviewProps(false);
-        BriefingViewModel.putNarration(narratedBriefing, narration.find("story_opening_relief", "briefing"), true);
+        BriefingViewModel.putNarration(narratedBriefing, narration.find("story_opening_relief", "briefing.01"), true);
         narratedBriefing.put("missionTitle", "Hold Until Relieved");
         narratedBriefing.put("missionKicker", "ASSAULT  ·  LOW RISK  ·  First Contract");
         BriefingViewModel.putForceComparison(narratedBriefing, OperationTier.FIRST_CONTRACT, RiskLevel.LOW, 12, 12);
         BriefingViewModel.putReward(narratedBriefing, Mission.builder().payout(6000).build());
         BriefingViewModel.putFactionIdentity(narratedBriefing, "employer", "Independent", OpeningBroker.CREST);
 
-        narratedBriefing.put("missionFlavor", narration.find("story_opening_relief", "briefing").text());
+        narratedBriefing.put("missionFlavor", narration.find("story_opening_relief", "briefing.01").text());
         BriefingSurvey conquestSurvey = productionSurvey(context, "conquest-full-strength-west-v3.json", 1008);
         BriefingSurvey sabotageSurvey = productionSurvey(context, "sabotage-site-groups-v2.json", 12);
         BriefingSurvey understrengthSurvey = productionSurvey(context, "sabotage-site-groups-v2.json", 6);
         Map<String, Object> stoppedBriefing = new HashMap<>(narratedBriefing);
-        BriefingViewModel.putNarration(stoppedBriefing, narration.find("story_opening_relief", "briefing"), false);
+        BriefingViewModel.putNarration(stoppedBriefing, narration.find("story_opening_relief", "briefing.01"), false);
         return List.of(
                 new SnapshotArtifact("mission-briefing-narration-stopped-wide.png",
                         renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
@@ -2139,11 +2139,21 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             }
             frames.add(new SnapshotArtifact("flow-05-replenished.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             var equipment = new BarracksEquipmentIssue(company.roster, company);
-            var bill = equipment.preview(model.command().selected()).cost();
+            var before = equipment.preview(model.command().selected());
             click.accept("barracks-issue");
-            if (bill.isZero() || !company.available().plus(bill).equals(originalCargo)
-                    || !equipment.preview(model.command().selected()).cost().isZero() || company.recruits() != 17) {
-                throw new IllegalStateException("Equipment issue did not pay its separate combined bill");
+            // Learned equipment is free to fit (see `progression-nouns.md`): the issue is judged by what the
+            // squads now carry and by the company's cargo and recruits being untouched, not by a bill.
+            boolean carried = company.squads.stream()
+                    .filter(squad -> before.entries().stream()
+                            .anyMatch(e -> e.eligible() && e.squadId().equals(squad.id())
+                                    && e.weapons().equals(squad.weaponDoctrineId())
+                                    && e.armor().equals(squad.armorDoctrineId())))
+                    .count() == before.eligible();
+            if (before.eligible() == 0 || !before.cost().isZero() || !carried
+                    || !company.available().equals(originalCargo) || company.recruits() != 17) {
+                throw new IllegalStateException("Equipment issue did not fit the selected squads for free: eligible "
+                        + before.eligible() + ", cost " + before.cost() + ", carried " + carried
+                        + ", available " + company.available() + ", recruits " + company.recruits());
             }
             frames.add(new SnapshotArtifact("flow-06-equipped.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             hints.clear();

@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.panel.ShipOrderTargetingPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadOrderTargetingPanel.Mode;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -114,6 +115,9 @@ public final class HudCompositionSnapshotSuite implements SnapshotSuite {
             try (BattleSimulation sim = BattleSetup.createColdStart(14101,
                     List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1, 6)),
                     new TargetProfile(0, 0, 0, 0, "pirates", Set.of(), SurfacePalette.ARID, SettlementLink.ROAD), true, true)) {
+                // The campaign overlay lands the company in play; with nobody of it standing the sequence fails and
+                // the battle is decided before the grounded host is commissioned.
+                sim.spawn(new EntitySpec("hud-company", Faction.MARINE, UnitType.MARINE, 131, 108));
                 sim.advance(BattleSimulation.TICK_DT);
                 Selection selection = new Selection();
                 selection.selectWarship(sim.getColdStart().tender().ship());

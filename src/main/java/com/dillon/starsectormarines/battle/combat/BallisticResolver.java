@@ -237,6 +237,16 @@ public final class BallisticResolver {
         this.bodies = roster.bodies();
     }
 
+    /** {@code target}'s ground velocity in cells/sec, as this resolver's own lead reads it. */
+    public float targetVelocityX(long target) {
+        return TargetMotion.velocityX(bodies, roster.movement(), target);
+    }
+
+    /** {@code target}'s ground velocity in cells/sec, as this resolver's own lead reads it. */
+    public float targetVelocityY(long target) {
+        return TargetMotion.velocityY(bodies, roster.movement(), target);
+    }
+
     /**
      * Resolves the shooter's round against {@code target}, walking every
      * wall/doodad/unit contact along the ray in time order and returning
@@ -317,16 +327,8 @@ public final class BallisticResolver {
         // mover; they only balance as a pair (see ballistics-nouns.md). wTarget
         // = 0 for a non-mover (turret/hub target), which zeroes tLead's
         // contribution and reproduces S1's aim point exactly.
-        float wTargetX = 0f;
-        float wTargetY = 0f;
-        BodyCarrier targetCarrier = bodies.carrierOf(target);
-        if (targetCarrier != null) {
-            wTargetX = targetCarrier.velocityX(target);
-            wTargetY = targetCarrier.velocityY(target);
-        } else if (movement.has(target)) {
-            wTargetX = movement.velX(target);
-            wTargetY = movement.velY(target);
-        }
+        float wTargetX = TargetMotion.velocityX(bodies, movement, target);
+        float wTargetY = TargetMotion.velocityY(bodies, movement, target);
         float tLead = dist(fromX, fromY, targetX, targetY) / roundVelocity;
         float leadX = targetX + wTargetX * tLead;
         float leadY = targetY + wTargetY * tLead;

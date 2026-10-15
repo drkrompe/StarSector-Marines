@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.deployable;
 
+import com.dillon.starsectormarines.battle.combat.TargetMotion;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment.FireMission;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
@@ -12,6 +13,7 @@ import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.DeployableEmplacementSpec;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 
@@ -528,13 +530,23 @@ public final class FieldMortarService {
     /**
      * Whether a round at {@code target} would land on somebody the tube's side does not
      * want hurt: any friendly body within the warhead's radius plus a margin of where the
-     * round is aimed. A mortar does not choose whom its splash reaches, so the check is
+     * round is aimed, widened by the scatter the round can land with at that range. A mortar
+     * does not choose whom its splash reaches, nor exactly where it falls, so the check is
      * the crew's: they will not call a round onto their own.
      */
     public boolean friendlyUnderRound(Tube tube, long target, BattleView sim) {
-        float radius = tube.structure.mount.weapon.aoeRadius + FRIENDLY_MARGIN_CELLS;
-        float x = sim.world().x(target);
-        float y = sim.world().y(target);
+        WeaponDef weapon = tube.structure.mount.weapon;
+        float targetX = sim.world().x(target);
+        float targetY = sim.world().y(target);
+        float range = (float) Math.hypot(targetX - (tube.cellX + 0.5f), targetY - (tube.cellY + 0.5f));
+        // The round is led, so the ground to keep clear is where the target
+        // will be when it lands, not where it stands now.
+        float speed = weapon.projectileCellsPerSec();
+        float leadTime = speed > 0f ? range / speed : weapon.flightSec;
+        float x = targetX + TargetMotion.velocityX(sim.bodies(), sim.movement(), target) * leadTime;
+        float y = targetY + TargetMotion.velocityY(sim.bodies(), sim.movement(), target) * leadTime;
+        float scatter = weapon.hitSpread * Math.min(1f, range / Math.max(0.0001f, weapon.range));
+        float radius = weapon.aoeRadius + scatter + FRIENDLY_MARGIN_CELLS;
         LongBucket bucket = scratch.get();
         sim.getUnitIndex().gather(x, y, radius, bucket);
         float radiusSq = radius * radius;
