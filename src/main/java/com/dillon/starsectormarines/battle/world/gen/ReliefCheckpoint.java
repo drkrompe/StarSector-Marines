@@ -193,7 +193,7 @@ public final class ReliefCheckpoint {
         yard.cargo(125, 56);
         yard.prop(132, 56, "stores-cargo-loader", 0);
         yard.bay(137, 39, 141, 48);
-        yard.prop(138, 42, "parked-flatbed-truck", 1);
+        yard.prop(138, 42, "parked-flatbed-truck", 3);
         // Relay power is outside its doors, on the apron-facing service strip.
         yard.prop(72, 52, "industrial-cable-reel", 0);
         yard.prop(76, 52, "industrial-drum-cluster", 0);
@@ -213,11 +213,11 @@ public final class ReliefCheckpoint {
         yard.prop(60, 46, "industrial-pallet-stack", 0);
         yard.prop(60, 50, "industrial-dumpster", 0);
 
-        // Delivery vehicles face the shared maneuvering aisle, away from the boat stands.
+        // Freight backs toward the stacks; the colony rover waits side-on in its own bay.
         for (int x : new int[]{42, 49, 56}) yard.bay(x, 16, x + 5, 21);
-        yard.prop(43, 18, "parked-cargo-truck", 1);
+        yard.prop(43, 18, "parked-cargo-truck", 3);
         yard.prop(50, 18, "parked-flatbed-truck", 1);
-        yard.prop(57, 18, "parked-box-van", 1);
+        yard.prop(57, 18, "parked-box-van", 0);
         yard.cargo(43, 23);
         yard.prop(51, 24, "industrial-pallet-stack", 0);
         yard.prop(57, 24, "industrial-pipe-bundle", 0);

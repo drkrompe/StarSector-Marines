@@ -235,6 +235,10 @@ Do not run builds or leave generated task files there.
   loses its cannon ammunition). Reports include exit-gun destruction ticks and actual escort shots, damage, kills
   and remaining durability, vehicle repulsion pushes, and the column driver's
   reroutes, wreck/parked-hull swerves, station waits and hauler sprints.
+  `holdDamageTaken` says who absorbed the raiders' fire in phases 1-2 (marines,
+  militia infantry, militia guns, each hull by structure+armor lost), split by
+  phase and hold/push; `holdDamageDealtByRaiders` splits the shooting into
+  garrison, waves and emplacements.
   `companySize` selects named personnel (default 24). `-PsnapshotEveryTicks=N`
   records `review.gif` (whole map every N ticks), `crossroads.gif` (a fixed
   camera on the first crossroads through both holds, with the militia guns and

@@ -1,12 +1,10 @@
 # Stranded detachment: the defence report and the pickup
 
-Status: DRAFT
+Status: IN PROGRESS
 
 Written: 2026-10-15
 
-Updated: 2026-10-15 — owner decisions folded: capture strands a garrison;
-breach uses the pickup unless the market is hostile; postings release on
-overrun; the live pass is not a gate; the report carries a flavoured account.
+Updated: 2026-10-15 — slice 1 (defence report) shipped; slices 2–7 remain.
 
 Read `contracts-nouns.md` (stationing, response, recovery, settlement, laws 4–7
 and 11), `meta-progression.md` ("Defending the polity: the vanilla seam"),
@@ -218,7 +216,7 @@ one loss per stranded squad every 10 days.
 
 ## Slices
 
-1. **Defence report.** New Chronicle company-report event type; append on
+1. **Defence report.** *Shipped.* New Chronicle company-report event type; append on
    every absent settlement; the frozen account (spine plus seeded colour);
    HQ terminal formatting. Unit tests: one report per event key under
    replay, fields match the settlement, the same seed composes the same
@@ -246,6 +244,19 @@ one loss per stranded squad every 10 days.
    pass does happen: one overrun with the player elsewhere, the report read,
    a loss landing, the survivors collected; a second left to expire; and,
    with Nexerelin installed, one Garrison market invaded.
+
+## Decided while shipping
+
+- **The raid's shape is not in the report yet.** The pending defence payload
+  carries the attacker faction but not whether the raid was a pirate-base
+  raid, a punitive expedition or a fleet group. Adding it means carrying the
+  shape from the threat reader through the arming trigger onto the payload.
+- **"When" is the day the defence armed**, not a landing day. Vanilla does not
+  record when a raid touched down; the day the raid reached its action stage
+  is the nearest frozen fact.
+- **The colour pools are pipe-separated lines in `strings.json`**, one key per
+  climate and per outcome. A pool line takes no arguments, which is what keeps
+  it from naming anybody; a unit test reads the shipped file and enforces it.
 
 ## Acceptance
 

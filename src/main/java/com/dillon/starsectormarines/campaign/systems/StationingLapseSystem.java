@@ -5,14 +5,21 @@ import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.CampaignTable;
 import com.dillon.starsectormarines.campaign.ContractType;
+import com.dillon.starsectormarines.campaign.DefenceReport;
 import com.dillon.starsectormarines.campaign.GarrisonDefensePayload;
 import com.dillon.starsectormarines.campaign.GarrisonDefenseTriggerType;
 import com.dillon.starsectormarines.campaign.StationingIncidentPayload;
 import com.dillon.starsectormarines.campaign.StationingLapseResolution;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
+import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.FactionAPI;
+import com.fs.starfarer.api.campaign.econ.MarketAPI;
+import com.fs.starfarer.api.campaign.econ.MarketConditionAPI;
 
 import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Gives every pending Garrison defense and Cadre incident a response deadline, and
@@ -56,9 +63,15 @@ public final class StationingLapseSystem implements CampaignSystem {
         float defenderStrength(String marketId);
     }
 
+    /** The defended market and its attacker as the defence report names them. */
+    interface PlaceSource {
+        DefenceReport.Place place(String marketId, String attackerFactionId);
+    }
+
     private final RosterSource rosterSource;
     private final RaidStatusSource raidStatusSource;
     private final DefenderStrengthSource defenderStrengthSource;
+    private final PlaceSource placeSource;
 
     public StationingLapseSystem() {
         this(StationingLapseSystem::liveRoster);
@@ -70,9 +83,17 @@ public final class StationingLapseSystem implements CampaignSystem {
 
     StationingLapseSystem(RosterSource rosterSource, RaidStatusSource raidStatusSource,
                           DefenderStrengthSource defenderStrengthSource) {
+        this(rosterSource, raidStatusSource, defenderStrengthSource,
+                StationingLapseSystem::livePlace);
+    }
+
+    StationingLapseSystem(RosterSource rosterSource, RaidStatusSource raidStatusSource,
+                          DefenderStrengthSource defenderStrengthSource,
+                          PlaceSource placeSource) {
         this.rosterSource = rosterSource;
         this.raidStatusSource = raidStatusSource;
         this.defenderStrengthSource = defenderStrengthSource;
+        this.placeSource = placeSource;
     }
 
     @Override
@@ -168,11 +189,12 @@ public final class StationingLapseSystem implements CampaignSystem {
             state.contractResponseDeadlineTick[row] = expires;
             return;
         }
+        DefenceReport.Place place = placeSource.place(marketId, defense.attackerFactionKey);
         if (status == RaidStatus.LANDED) {
             AbsentDefenceResolution.applyLanded(state, defense, roster, day,
-                    defenderStrengthSource.defenderStrength(marketId));
+                    defenderStrengthSource.defenderStrength(marketId), place);
         } else {
-            AbsentDefenceResolution.applyHeld(state, defense, roster, day);
+            AbsentDefenceResolution.applyHeld(state, defense, roster, day, place);
         }
         disarmIfSettled(state, row);
     }
@@ -188,6 +210,31 @@ public final class StationingLapseSystem implements CampaignSystem {
         long deadline = anchor + windowDays;
         if (expiresTick >= 0) deadline = Math.min(deadline, expiresTick);
         return (int) Math.min(Integer.MAX_VALUE, Math.max(observedDay, deadline));
+    }
+
+    /**
+     * Names read off the live sector when the defence settles; anything that cannot be
+     * read stays null, and the report says so neutrally rather than guessing.
+     */
+    static DefenceReport.Place livePlace(String marketId, String attackerFactionId) {
+        if (Global.getSector() == null) return DefenceReport.Place.UNKNOWN;
+        MarketAPI market = marketId != null && Global.getSector().getEconomy() != null
+                ? Global.getSector().getEconomy().getMarket(marketId) : null;
+        FactionAPI attacker = attackerFactionId != null
+                ? Global.getSector().getFaction(attackerFactionId) : null;
+        String attackerName = attacker != null ? attacker.getDisplayName() : null;
+        if (market == null) {
+            return new DefenceReport.Place(null, null, DefenceReport.Climate.UNKNOWN,
+                    attackerName);
+        }
+        Set<String> conditions = new HashSet<>();
+        for (MarketConditionAPI condition : market.getConditions()) {
+            conditions.add(condition.getId());
+        }
+        String system = market.getStarSystem() != null
+                ? market.getStarSystem().getBaseName() : null;
+        return new DefenceReport.Place(market.getName(), system,
+                DefenceReport.Climate.from(conditions), attackerName);
     }
 
     private static MarineRoster liveRoster() {
