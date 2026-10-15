@@ -1,0 +1,29 @@
+Built-in image_gen edit of arrival.reference.png.
+Latest user direction: eight to ten years of micro/small asteroid impacts;
+a heavily cratered hull jury-rigged just enough to limp into port.
+Accepted V3 primary geometry and all fixed hardpoints remain the authority.
+
+Use case: precise-object-edit.
+Revise the attached ARRIVAL AT JANGALA ship reference to show MUCH HEAVIER PHYSICAL IMPACT DAMAGE. The current sheet still looks like a moderately worn ship with some soot. This one must look like a CRATERED salvaged hull which barely limped into port after eight to ten years exposed to micro- and small asteroid impacts in a belt, followed by desperate jury-rigging to escape. This is a material/damage variant of the same accepted V3 spacecraft, not a new design.
+
+PRESERVE the ship's recognizable overall silhouette, primary hull volumes, thickness profile, broad forebody, recessed waist, twin aft casings, cameras and four-panel layout. Preserve ALL FOUR raised turrets and their mount positions, ALL FOUR engine nozzles and exact positions, existing bay openings, and the single low horizontal forward-port pod. Local dents, craters and torn OUTER ARMOR are explicitly requested; major hardpoints, pressure-body shape and ship proportions must not move.
+
+DAMAGE MUST READ AS DEPTH, NOT ONLY COLOR:
+- Replace several existing dark surface scars with unmistakable concave IMPACT CRATERS: crushed inward armor dishes, irregular spalled rims, bent plate seams, chipped laminated edges and dark exposed backing. Make two or three substantial crater clusters immediately legible at sheet scale, with dozens of medium pits and dense fine peening around them. Vary impact size and age; a few oblique strikes leave long gouged furrows crossing several armor plates. This is accumulated rock damage, not neat evenly spaced bullet holes.
+- Major landmark A: forward PORT shoulder above and ahead of the low pod, around the already scarred region. A broad overlapping cluster of bashed-in outer plates, one very readable deep crater with a bent crescent rim, several smaller impacts and an adjacent long scrape. Preserve the pod and turret.
+- Major landmark B: PORT aft engine-room shoulder/outboard casing, in the existing dark scar area. A second heavy impact depression with a crushed armor panel and a short torn edge exposing only dark structural backing, NOT an open inhabited room. Keep the engine mount locations and nozzle rings intact.
+- Additional smaller old craters across the opposite shoulder, dorsal casing and stern outer armor, with the greatest density on exposed faces. Respect perspective and put the same major scars on the same HULL-LOCAL panels in the different views. Some damage is naturally hidden from some cameras.
+- A few outer access covers are absent, bent or crudely reattached within their existing footprint, revealing battered ribs/duct shielding and blackened service backing. No vast cutout and no broken-off bow/engine pod.
+
+JURY-RIGGED SURVIVAL:
+Thin mismatched scrap-steel patch plates bridge selected punctures but do not neatly hide the whole crater; crooked welded seams and dark sealant beads close the actual pressure leaks behind damaged outer armor. Use a few clamped splints, cargo-rail reinforcing straps across damaged existing ribs, external cable/conduit bypasses secured close to the hull. These repairs look rushed, functional, scavenged and ugly, not a professional naval rebuild. Patch overlaps, old drilled fastener patterns and grind marks should tell the story. Essential inner pressure boundaries are sealed; many other compartments may be isolated. She is damaged but coherent and has made port: no active explosion, flames, smoke, venting atmosphere, hanging huge cables or exposed people.
+
+WEAR AND PALETTE:
+Substantially eroded dirty cream and faded oxide-orange paint, exposed dark gray steel, impact-polished edges, old carbon scoring, oily service stains. Broad distressed areas must coexist with remaining original livery so the ship's identity survives. Distinct physical gouges and dent shadows, not uniformly blackened surfaces or a grainy dirt overlay. No terrestrial water-rust waterfalls, moss or organic decay.
+The side pod remains dirty ivory/cream with oxide-orange repair panel and dark metal round hatch. NO BLUE OR TURQUOISE. Preserve its low horizontal position, orientation and exact size.
+Keep the crew's small hand-painted "SECOND WIND" over the old registry, slightly scuffed but readable. Do not add new logos.
+
+LOCKS:
+Exactly four raised turrets, no missing gun, no fifth turret, no recessed gun wells. Exactly four nozzles in the established two lateral pairs on one horizontal plane, larger outside and smaller inside; in true side elevation only one outer profile is visible, other engines occluded. No spare engine or damaged nozzle that changes the count. Port bay still open with empty worn cradle and dim amber light; opposite bay remains sealed. No operational shuttle, no new door or cutaway, no altered engine positions.
+Keep the same neutral studio lighting and light-grey background; do not use darker lighting to fake damage.
+Preserve title "SECOND WIND / ARRIVAL AT JANGALA". Subtitle "CRATERED HULL / JURY-RIGGED TO MAKE PORT". Replace the old ELEVEN YEARS footer with "YEARS IN THE BELT - PATCHED JUST ENOUGH TO MAKE PORT" to match the revised eight-to-ten-year lore without a contradictory number. Keep all four view captions and sheet framing. Full ship visible in each panel, no extra inset. The first visual impression must be severe, old rock-impact damage and desperate repair, unmistakably much worse than the input.

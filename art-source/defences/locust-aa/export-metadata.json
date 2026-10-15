@@ -4,16 +4,16 @@
     "masterSize": 1254,
     "layerSize": 512,
     "pivot": [
-      256,
-      256
+      256.5,
+      248.5
     ],
     "alphaBounds": [
-      84,
-      101,
-      428,
-      419
+      83,
+      75,
+      430,
+      422
     ],
-    "transparentPixels": 161018
+    "transparentPixels": 168170
   },
   {
     "name": "ground-base",

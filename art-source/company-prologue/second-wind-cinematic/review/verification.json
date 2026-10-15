@@ -1,0 +1,159 @@
+{
+  "format": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "width": 1920,
+        "height": 1080,
+        "pix_fmt": "yuv420p",
+        "r_frame_rate": "24/1",
+        "duration": "12.000000",
+        "nb_read_frames": "288"
+      }
+    ],
+    "format": {
+      "duration": "12.000000",
+      "size": "5083212"
+    }
+  },
+  "decoded_frames": 288,
+  "audio": null,
+  "decoded_frame_mean_abs_changes": {
+    "minimum": 0.4359207818930041,
+    "median": 0.6371990740740741,
+    "maximum": 0.9466358024691358
+  },
+  "composition": {
+    "description": "Second Wind approaches a berth above Jangala. Arrival establishing shot before the planetary-yard conversion. Fixed-view layered 2.5D composite.",
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "duration_seconds": 12,
+    "inputs": {
+      "background": "background.png",
+      "ship": "ship.png",
+      "foreground": "foreground.png"
+    },
+    "output_directory": "build",
+    "background": {
+      "overscan": 1.07,
+      "offset_start": [
+        8,
+        0
+      ],
+      "offset_end": [
+        -10,
+        -3
+      ]
+    },
+    "ship": {
+      "center_start": [
+        1180,
+        650
+      ],
+      "center_end": [
+        1000,
+        620
+      ],
+      "width_start": 900,
+      "width_end": 950,
+      "light_strength": 0.018,
+      "grade": {
+        "saturation": 0.88,
+        "luminance_knots": [
+          0,
+          16,
+          64,
+          128,
+          200,
+          255
+        ],
+        "gain_knots": [
+          1.0,
+          0.91,
+          0.76,
+          0.76,
+          0.84,
+          0.87
+        ],
+        "dock_bounce_strength": 0.05,
+        "dock_bounce_rgb": [
+          1.0,
+          0.6,
+          0.24
+        ],
+        "dock_bounce_width": 0.32
+      }
+    },
+    "foreground": {
+      "overscan": 1.09,
+      "offset_start": [
+        35,
+        8
+      ],
+      "offset_end": [
+        -35,
+        -8
+      ],
+      "opacity": 1.0
+    },
+    "grade": {
+      "exposure": 1.0,
+      "saturation": 0.92,
+      "rgb_gain": [
+        1.015,
+        1.0,
+        0.99
+      ],
+      "vignette": 0.11,
+      "grain": 0.35,
+      "letterbox_aspect": 2.39
+    },
+    "encoding": {
+      "crf": 20,
+      "preset": "medium"
+    },
+    "preview_times": [
+      0,
+      3,
+      6,
+      9,
+      11.9
+    ]
+  },
+  "sources": {
+    "ship.png": {
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGBA",
+      "bytes": 2175904,
+      "sha256": "b6995cc15fa28c8e217e4a32681a30e884e289f9c9edd3b4b414f98049141d8b",
+      "transparent_pixel_fraction": 0.46227
+    },
+    "background.png": {
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "bytes": 2387563,
+      "sha256": "4f7db4c912af73fddb77911345ad8c3dc831a868250f5456f2136b014648e191"
+    },
+    "foreground.png": {
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGBA",
+      "bytes": 686297,
+      "sha256": "05bcc5162644d1c9a925b3bd0bfb4054c298327cf9fecaff232353df509980fb",
+      "transparent_pixel_fraction": 0.78045
+    }
+  },
+  "movie_sha256": "19e916a00544d7e15a4b70d397d80df95d2fdbdc226a86125bbd75bc489794de",
+  "visual_review": "Full-resolution middle still and five-frame progression inspected; graded hull remains suspended clear of the berth floor; macrogeometry and damage stay fixed."
+}
