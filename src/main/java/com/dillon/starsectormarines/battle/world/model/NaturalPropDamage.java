@@ -57,6 +57,15 @@ public final class NaturalPropDamage {
         for (int cell : entry.cells) owners.computeIfAbsent(cell, unused -> new ArrayList<>()).add(entry);
     }
 
+    /** The definition id of a standing natural object owning this cell, or null. */
+    public String standingIdAt(int x, int y) {
+        if (!grid.inBounds(x, y)) return null;
+        List<Entry> at = owners.get(grid.index(x, y));
+        if (at == null) return null;
+        for (Entry entry : at) if (entry.hp > 0) return entry.original.definitionId();
+        return null;
+    }
+
     /** Attack identity deduplicates a blast visiting several cells of the same object. */
     public Result damage(int x, int y, int amount, long attack, ClearedCell cleared) {
         if (!grid.inBounds(x, y)) return Result.NOT_NATURAL_PROP;

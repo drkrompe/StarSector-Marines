@@ -62,3 +62,4 @@ com.dillon.starsectormarines.battle.deployable.FieldMortarScene
 com.dillon.starsectormarines.battle.fort.FortAirDefenceScene
 com.dillon.starsectormarines.battle.fort.ShipVsFortScene
 com.dillon.starsectormarines.battle.infantry.SquadMedicScene
+com.dillon.starsectormarines.battle.combat.SmallArmsWearScene
