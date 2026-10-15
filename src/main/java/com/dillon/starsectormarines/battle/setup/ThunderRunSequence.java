@@ -217,7 +217,11 @@ public final class ThunderRunSequence {
         float offset = id == advanceHauler ? 16 : id == heavyLead ? 20 : escorts.contains(id) ? 8
                 : -8 * new ArrayList<>(cargo.values()).indexOf(id);
         float goal = phase == 1 ? 117 + offset : phase == 2 ? 214 + offset : ThunderRunCompound.WIDTH + 40 + offset;
-        if (id == technical) goal = phase == 1 ? 135 : 193;
+        if (id == technical) {
+            var stop = ThunderRunCompound.TECHNICAL_STOPS.get(phase == 1 ? 0 : 1);
+            driver.order(sim, id, stop.x(), stop.y(), VehicleLeg.MOVE_ORDER);
+            return;
+        }
         if (phase == 3 && escorts.contains(id) && !escortExitOrdered) goal = 273;
         if (phase == 3 && id == heavyLead && !heavyExitOrdered) goal = 294;
         boolean departing = id == heavyLead ? heavyExitOrdered : !escorts.contains(id) || escortExitOrdered;

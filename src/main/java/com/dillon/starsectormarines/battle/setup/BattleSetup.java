@@ -1950,7 +1950,7 @@ public final class BattleSetup {
             for (int[] cell : pickSpawnCluster(map.grid, x, y, ThunderRunPacing.RAIDERS_PER_BATCH)) {
                 var raider = makeOpeningMilitia("freight-road-raider-" + reserve.size(), Faction.DEFENDER,
                         cell[0], cell[1], rng).role(UnitRole.PATROL);
-                if (batch == 0 && member < 2)
+                if (member < ThunderRunPacing.rocketCarriers(batch))
                     raider.specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SCRAP_ROCKET_ID), 2);
                 reserve.add(raider);
                 member++;
