@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.HoldPlaceDecision;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadBeliefs;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveHoldPlaceOrder;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveMoveOrder;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -77,6 +78,32 @@ class HoldPlaceOrderTest {
         assertSame(PLACE, squad.assignedObjective.targetNode());
         assertTrue(HoldPlaceGoal.INSTANCE.relevance(WorldStateBuilder.build(squad, sim), squad, sim) > 0f,
                 "the player's hold has a goal that will act on it");
+    }
+
+    @Test
+    void aPlaceTheSquadBelievesIsOccupiedReadsClearAndIsTheSameHold() {
+        int enemy = sim.mintSquad(Faction.DEFENDER, UnitType.MILITIA);
+        long occupant = sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MILITIA, 41, 41).squad(enemy));
+        SquadBeliefs.sighted(sim.getSquad(squadId), occupant, 41, 41, sim.getSimTickIndex());
+
+        TacticalOrderIntent intent = TacticalOrderIntent.resolve(sim, selection, 42, 48);
+        assertEquals(TacticalOrderIntent.CLEAR, intent);
+        assertTrue(intent.assault() && intent.actionable());
+        assertEquals(TacticalOrderIntent.MOVE, TacticalOrderIntent.resolve(sim, selection, 35, 48),
+                "outside the place the occupant changes nothing");
+
+        click(42, 48);
+
+        assertInstanceOf(ActiveHoldPlaceOrder.class, sim.getSquadMoveOrderService().activeOrder(squadId));
+        assertTrue(sim.getSquad(squadId).hasPlayerOrder(AssignmentKind.HOLD_NODE));
+    }
+
+    @Test
+    void anOccupantTheSquadHasNotSeenDoesNotShowOnTheCursor() {
+        Squad squad = sim.getSquad(squadId);
+        assertFalse(squad.hasBelievedContacts());
+        assertFalse(HoldPlaceDecision.believedOccupied(squad, PLACE));
+        assertEquals(TacticalOrderIntent.OCCUPY, TacticalOrderIntent.resolve(sim, selection, 42, 48));
     }
 
     @Test

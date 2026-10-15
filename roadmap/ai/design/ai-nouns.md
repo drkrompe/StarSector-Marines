@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — the player's right-drag line order: a frontage band cut per fire team, facing the threat or away from the approach, with a skirmish line where there is no prepared ground.
+Updated: 2026-10-14 — the order cursor reads clear-and-hold in red over a held place the squad believes is occupied, and secure over an uncaptured compound; the right-drag line order.
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -2195,6 +2195,12 @@ not. Like a defense area, it stands until superseded or withdrawn. The order
 resolves after the trench and before plain ground, and the cursor announces it
 with the same occupy verb. Where footprints overlap, the smaller place is the
 one pointed at.
+
+A held place the squad **believes** holds an enemy is the same order, and the
+cursor says so in the hostile colour — clear and hold, enemy inside — because
+the hold clears any room it finds occupied before it settles. Belief, not truth:
+an occupant nobody has seen leaves the cursor reading occupy. A click inside an
+uncaptured compound is announced the same way, as securing it.
 
 A right-drag across the ground is a **line** order: the player draws the
 frontage rather than a place. It is the same defend-area context, with the
