@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
+import com.dillon.starsectormarines.ops.battleview.ReviewStyle;
 
 import java.util.List;
 
@@ -141,6 +143,13 @@ public final class MatchupScenarios {
         }
 
         @Override public int maxTicks() { return TICK_LIMIT; }
+
+        @Override public ReviewAnnotations annotations() {
+            return ReviewAnnotations.builder()
+                    .box(BUILDING_WEST_X, BUILDING_NORTH_Y, BUILDING_EAST_X, BUILDING_SOUTH_Y,
+                            "BUILDING (door west)", ReviewStyle.OBJECTIVE)
+                    .build();
+        }
 
         @Override public SceneWorld build(MarineLoadout[] attackerKit, MarineLoadout[] defenderKit, long seed) {
             SceneBuilder builder = arena(seed)

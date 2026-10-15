@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -34,21 +35,33 @@ class LoadoutMatchupEvidence {
 
     private static final long SEED_BASE = 20261001L;
 
+    /** Where this run writes GIFs, or null for none; set once per run before any fight starts. */
+    private static Path gifDir;
+    private static int gifSeeds;
+    /** The GIF each recorded fight wrote, by scenario|pairing|seed, relative to the report folder. */
+    private static final Map<String, String> GIFS = new ConcurrentHashMap<>();
+
     @Test
     void fightsTheMatrix() throws Exception {
         Path out = Path.of(System.getProperty("loadoutMatchup.dir", "build/reports/loadout-matchups"));
         Files.createDirectories(out);
         List<MatchupScenario> scenarios = scenarios();
+        List<Pairing> pairings = pairings();
+        String gifSetting = System.getProperty("loadoutMatchup.gifs", "auto");
+        boolean explicit = pairings.size() == 1 && pairings.get(0).role.equals("explicit");
+        boolean gifs = gifSetting.equals("true") || gifSetting.equals("auto") && explicit;
+        gifDir = gifs ? out.resolve("gifs") : null;
+        gifSeeds = Integer.getInteger("loadoutMatchup.gifSeeds", 1);
+        GIFS.clear();
         int seedCount = Integer.getInteger("loadoutMatchup.seeds", 3);
         int parallelism = Integer.getInteger("loadoutMatchup.parallelism",
                 Math.max(1, Runtime.getRuntime().availableProcessors() / 2));
 
-        List<Pairing> pairings = pairings();
         List<Job> jobs = new ArrayList<>();
         for (Pairing pairing : pairings) {
             for (MatchupScenario scenario : scenarios) {
                 for (int s = 0; s < seedCount; s++) {
-                    jobs.add(new Job(pairing, scenario, SEED_BASE + s));
+                    jobs.add(new Job(pairing, scenario, SEED_BASE + s, s));
                 }
             }
         }
@@ -79,7 +92,7 @@ class LoadoutMatchupEvidence {
 
     private record Pairing(String name, String role, MatchupSide attacker, MatchupSide defender) {}
 
-    private record Job(Pairing pairing, MatchupScenario scenario, long seed) {}
+    private record Job(Pairing pairing, MatchupScenario scenario, long seed, int seedIndex) {}
 
     private static List<MatchupScenario> scenarios() {
         String selected = System.getProperty("loadoutMatchup.scenarios");
@@ -130,8 +143,33 @@ class LoadoutMatchupEvidence {
         return results;
     }
 
-    private static MatchupPlay.Result run(Job job) {
-        return MatchupPlay.play(job.scenario, job.pairing.attacker, job.pairing.defender, job.seed);
+    private static MatchupPlay.Result run(Job job) throws Exception {
+        if (gifDir == null || job.seedIndex < 0 || job.seedIndex >= gifSeeds) {
+            return MatchupPlay.play(job.scenario, job.pairing.attacker, job.pairing.defender, job.seed);
+        }
+        String name = slug(job.pairing.name) + "-seed" + job.seed + ".gif";
+        Path file = gifDir.resolve(job.scenario.id()).resolve(name);
+        MatchupRecording recording = new MatchupRecording(Path.of("mod"), file,
+                job.scenario.id() + "   " + shortName(job.pairing), job.scenario.annotations());
+        MatchupPlay.Result result = MatchupPlay.play(job.scenario, job.pairing.attacker, job.pairing.defender,
+                job.seed, recording);
+        recording.write();
+        GIFS.put(key(result), "gifs/" + job.scenario.id() + "/" + name);
+        return result;
+    }
+
+    private static String key(MatchupPlay.Result r) {
+        return r.scenario() + "|" + r.attacker() + "|" + r.defender() + "|" + r.seed();
+    }
+
+    private static String shortName(Pairing pairing) {
+        return pairing.role.equals("explicit") ? pairing.name : pairing.name.replaceAll(" \\(loadout-card:[^)]*\\)", "");
+    }
+
+    private static String slug(String text) {
+        String slug = text.replaceAll("\\(loadout-card:[^)]*\\)", "").replaceAll("[^A-Za-z0-9]+", "-")
+                .replaceAll("^-|-$", "");
+        return slug.length() > 90 ? slug.substring(0, 90) : slug;
     }
 
     /**
@@ -142,8 +180,8 @@ class LoadoutMatchupEvidence {
         List<Job> twice = new ArrayList<>();
         Pairing control = new Pairing("control", "control", MatchupSide.STARTER, MatchupSide.STARTER);
         for (MatchupScenario scenario : scenarios) {
-            twice.add(new Job(control, scenario, SEED_BASE));
-            twice.add(new Job(control, scenario, SEED_BASE));
+            twice.add(new Job(control, scenario, SEED_BASE, -1));
+            twice.add(new Job(control, scenario, SEED_BASE, -1));
         }
         List<MatchupPlay.Result> r = play(twice, Math.max(2, parallelism));
         for (int i = 0; i < r.size(); i += 2) {
@@ -159,7 +197,7 @@ class LoadoutMatchupEvidence {
     private record Row(String pairing, String scenario, String attacker, String defender, int fights,
                        int attackerWins, int defenderWins, int mutual, int stalemate, int unresolved,
                        float attackerSurvivors, float defenderSurvivors, float meanTicks,
-                       float attackerDamageTaken, float defenderDamageTaken, float exchange) {
+                       float attackerDamageTaken, float defenderDamageTaken, float exchange, String gif) {
 
         static Row of(String pairing, List<MatchupPlay.Result> r) {
             int aw = 0, dw = 0, bd = 0, sm = 0, un = 0;
@@ -180,9 +218,17 @@ class LoadoutMatchupEvidence {
                 ex += x.exchange();
             }
             int n = r.size();
+            String gif = "";
+            for (MatchupPlay.Result x : r) {
+                String found = GIFS.get(key(x));
+                if (found != null) {
+                    gif = found;
+                    break;
+                }
+            }
             MatchupPlay.Result first = r.get(0);
             return new Row(pairing, first.scenario(), first.attacker(), first.defender(), n, aw, dw, bd, sm, un,
-                    as / n, ds / n, ticks / n, at / n, dt / n, ex / n);
+                    as / n, ds / n, ticks / n, at / n, dt / n, ex / n, gif);
         }
     }
 
@@ -202,8 +248,8 @@ class LoadoutMatchupEvidence {
         for (MatchupScenario s : scenarios) md.append("- `").append(s.id()).append("` — ").append(s.label()).append('\n');
         for (MatchupScenario s : scenarios) {
             md.append("\n## ").append(s.id()).append("\n\n")
-                    .append("| Matchup | Att wins | Def wins | Both dead | Stalemate | Timeout | Att left | Def left | Exchange | Ticks | Att dmg taken | Def dmg taken |\n")
-                    .append("|---|---|---|---|---|---|---|---|---|---|---|\n");
+                    .append("| Matchup | Att wins | Def wins | Both dead | Stalemate | Timeout | Att left | Def left | Exchange | Ticks | Att dmg taken | Def dmg taken | Replay |\n")
+                    .append("|---|---|---|---|---|---|---|---|---|---|---|---|---|\n");
             for (Row r : rows) {
                 if (!r.scenario.equals(s.id())) continue;
                 md.append("| ").append(r.pairing).append(" | ").append(r.attackerWins).append("/").append(r.fights)
@@ -212,7 +258,9 @@ class LoadoutMatchupEvidence {
                         .append(" | ").append(f1(r.attackerSurvivors)).append(" | ").append(f1(r.defenderSurvivors))
                         .append(" | ").append(f1(r.exchange)).append(" | ").append(Math.round(r.meanTicks))
                         .append(" | ").append(Math.round(r.attackerDamageTaken))
-                        .append(" | ").append(Math.round(r.defenderDamageTaken)).append(" |\n");
+                        .append(" | ").append(Math.round(r.defenderDamageTaken))
+                        .append(" | ").append(r.gif.isEmpty() ? "" : "[gif](" + r.gif.replace(" ", "%20") + ")")
+                        .append(" |\n");
             }
         }
         return md.toString();
@@ -237,7 +285,7 @@ class LoadoutMatchupEvidence {
     private static String runs(List<MatchupPlay.Result> results) {
         StringBuilder csv = new StringBuilder("scenario,attacker,defender,seed,winner,ticks,attacker_survivors,"
                 + "defender_survivors,attacker_damage_taken,defender_damage_taken,attacker_damage_mitigated,"
-                + "defender_damage_mitigated,attacker_rounds,defender_rounds\n");
+                + "defender_damage_mitigated,attacker_rounds,defender_rounds,gif\n");
         for (MatchupPlay.Result r : results) {
             csv.append(r.scenario()).append(',').append(q(r.attacker())).append(',').append(q(r.defender()))
                     .append(',').append(r.seed()).append(',').append(r.winner()).append(',').append(r.ticks())
@@ -245,7 +293,8 @@ class LoadoutMatchupEvidence {
                     .append(',').append(f1(r.attackerDamageTaken())).append(',').append(f1(r.defenderDamageTaken()))
                     .append(',').append(f1(r.attackerDamageMitigated())).append(',')
                     .append(f1(r.defenderDamageMitigated())).append(',').append(r.attackerRounds())
-                    .append(',').append(r.defenderRounds()).append('\n');
+                    .append(',').append(r.defenderRounds()).append(',')
+                    .append(GIFS.getOrDefault(key(r), "")).append('\n');
         }
         return csv.toString();
     }
