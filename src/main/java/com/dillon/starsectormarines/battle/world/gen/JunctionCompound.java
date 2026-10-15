@@ -31,6 +31,17 @@ import java.util.Random;
 /** Authored small territorial profile. Decoration never adds capture requirements. */
 public final class JunctionCompound {
     public static final int WIDTH = 192, HEIGHT = 112;
+    /**
+     * The two trench lines dug across the company's way in, each {x, top y, bottom y}: one west of the
+     * Freight Yard and one west of Dispatch. A rifle squad that walks into a manned trench pays for it;
+     * they are where Talon Two goes ahead to work while the company is still taking the site behind.
+     */
+    public static final List<int[]> TRENCHES = List.of(new int[]{95, 38, 49}, new int[]{133, 43, 54});
+    /** The middle cell of trench {@code i}, where its squad is posted and Talon Two circles. */
+    public static int[] trenchCentre(int i) {
+        int[] t = TRENCHES.get(i);
+        return new int[]{t[0], (t[1] + t[2]) / 2};
+    }
     /** Where the second counterattack waits, just inside the map on the road from Rill. */
     public static final int RILL_ROAD_X = 174, RILL_ROAD_Y = 4;
     public static final List<String> SITE_NAMES = List.of("Western turnout", "Weigh Station", "Freight Yard", "Junction Dispatch");
@@ -47,6 +58,7 @@ public final class JunctionCompound {
                 JunctionCompound::buildings, JunctionCompound::perimeter, JunctionCompound::cargo,
                 finished -> RoadRasterizer.clearReplacedSurfaces(finished.topology, finished.width, finished.height),
                 JunctionCompound::yardSurfaces, JunctionCompound::serviceYards, JunctionCompound::terrain,
+                JunctionCompound::trenches,
                 new FinalizeStage(), new OutdoorLandscapeStage(21, 56, 148, 55))).run(c);
         List<TacticalNode> sites = new ArrayList<>();
         sites.add(new TacticalNode(TacticalNode.Kind.BEACHHEAD, 21, 56,
@@ -55,7 +67,7 @@ public final class JunctionCompound {
         for (int i = 0; i < 3; i++) {
             PointOfInterest p = c.pois.get(i);
             sites.add(new TacticalNode(kinds[i], p.interiorAnchorX, p.interiorAnchorY,
-                    p.left, p.top, p.right, p.bottom, Faction.DEFENDER, 50 + i * 10, 6 + 2 * i));
+                    p.left, p.top, p.right, p.bottom, Faction.DEFENDER, 50 + i * 10, 6 + 4 * i));
         }
         MapResult map = new MapResult(c.grid, c.topology, 21, 56, 148, 55,
                 c.pois, c.doodads, new TacticalMap(sites), c.get(BspKeys.BUILDINGS),
@@ -165,6 +177,14 @@ public final class JunctionCompound {
     private static void pave(GenContext c, int l, int t, int r, int b, GroundKind kind) {
         for (int y = t; y <= b; y++) for (int x = l; x <= r; x++) {
             c.grid.setWalkableFloor(x, y); c.topology.setGroundKind(x, y, kind);
+        }
+    }
+    private static void trenches(GenContext c) {
+        for (int[] t : TRENCHES) {
+            List<int[]> line = new ArrayList<>();
+            for (int y = t[1]; y <= t[2]; y++)
+                if (!c.topology.isFixture(t[0], y)) line.add(new int[]{t[0], y});
+            PreparedGround.trenchLine(c, line);
         }
     }
     private static void perimeter(GenContext c) {
