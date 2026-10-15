@@ -53,6 +53,13 @@ Only `t3-endgame-nouns.md` may change vanilla market ownership, faction identity
 or faction diplomacy. Other campaign domains may prepare or observe the facts
 that T3 needs, but cannot perform that external political transition.
 
+There is one bounded exception, owned by `nexerelin-nouns.md`. When Nexerelin
+is installed and the player chooses to fight a Nexerelin invasion as a Marine
+Operations battle, the mod picks the battle's outcome, and Nexerelin's own
+end-of-battle path makes every external write. The mod never transfers the
+market itself. This is the same rule the vanilla raid seam follows in
+`meta-progression.md`.
+
 ## Extension laws
 
 - Give every persisted fact a stable identity and an owner before exposing it
