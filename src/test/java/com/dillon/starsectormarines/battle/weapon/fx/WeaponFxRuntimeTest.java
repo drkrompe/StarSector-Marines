@@ -11,9 +11,12 @@ import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class WeaponFxRuntimeTest {
 
@@ -61,6 +64,26 @@ class WeaponFxRuntimeTest {
                 WeaponFxRuntime.definition(special));
         assertSame(srm.fx, WeaponFxRuntime.definition(mech));
         assertSame(arbalest.mount.weapon.fx, WeaponFxRuntime.definition(turret));
+    }
+
+    @Test
+    void ridgewatchLaunchVentsBackblastOppositeItsBearingLikeTheLocust() {
+        StructureDef ridge = TurretCatalogRegistry.requireStructure(TurretCatalogRegistry.RIDGE_AA_STRUCTURE_ID);
+        for (float[] aim : new float[][]{{9f, 5f, -1f, 0f}, {4f, 10f, 0f, -1f}, {-1f, 5f, 1f, 0f}, {4f, 0f, 0f, 1f}}) {
+            ShotEvent shot = new ShotEvent(4f, 5f, aim[0], aim[1], true, Faction.DEFENDER, 0.15f, ridge);
+            List<FxParticleCommand> plume = WeaponFxComposer.compose(ridge.mount.weapon.fx, FxSlot.LAUNCH,
+                    WeaponFxRuntime.launchContext(shot));
+            assertFalse(plume.isEmpty(), "a launch leaves a plume");
+            int venting = 0;
+            for (FxParticleCommand puff : plume) {
+                if (puff.velocityX() == 0f && puff.velocityY() == 0f) continue;
+                venting++;
+                if (aim[2] != 0f) assertEquals(aim[2], Math.signum(puff.velocityX()), EPS);
+                if (aim[3] != 0f) assertEquals(aim[3], Math.signum(puff.velocityY()), EPS);
+            }
+            assertTrue(venting >= 4, "the plume is several puffs, not a wisp: " + venting);
+        }
+        assertFalse(ridge.mount.weapon.fx.layers(FxSlot.MUZZLE).isEmpty());
     }
 
     private static void assertBackblast(float fromX, float fromY, float toX, float toY,

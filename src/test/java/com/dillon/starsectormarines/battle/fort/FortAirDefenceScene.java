@@ -98,6 +98,8 @@ public final class FortAirDefenceScene implements BehaviorScene {
     private static final int EVENT_TICK = 150;
     private static final int FORCE_TICK = 900;
     /** The window of the forced strike that the yard's loop records densely, and the cadence it records at. */
+    /** Ticks after the yard changes hands at which its mounts are counted. */
+    static final int AFTER_FLIP_TICKS = 60;
     static final int SALVO_FROM = 1120, SALVO_TO = 1220, SALVO_EVERY = 4;
     private static final int SPOTTER_X = 74;
     /** The radio squad stands well back, out of the fort's reach, so it is never suppressed; the scouts ahead sight the works. */
@@ -402,7 +404,9 @@ public final class FortAirDefenceScene implements BehaviorScene {
             seesMassAtEnd = FortSensors.sees(sim, fort, mass[0], mass[1]);
             rangeAtEnd = FortSensors.range(fort);
             fortObservesForOldHolderAtEnd = FortSensors.observesFor(fort, Faction.DEFENDER);
-            observesForMarinesAtEnd = FortSensors.observesFor(fort, Faction.MARINE);
+            // Latched: a strike the company calls may wreck the very bunker it spots through, and the question is whether
+            // the fort ever spotted for the company, not whether the bunker outlived the strike.
+            observesForMarinesAtEnd |= FortSensors.observesFor(fort, Faction.MARINE);
         }
     }
 
@@ -468,6 +472,15 @@ public final class FortAirDefenceScene implements BehaviorScene {
     }
 
     // ------------------------------------------------------------------------------------------------ verdicts
+
+    private static String mountDetail(BattleSimulation sim, Fort fort) {
+        StringBuilder sb = new StringBuilder(" [");
+        for (long id : fort.airMountIds()) {
+            sb.append(sim.world().isAlive(id) ? sim.turretState().structure(id).id : "?").append(' ')
+                    .append(sim.world().isAlive(id) ? sim.identity().faction(id).name() : "DEAD").append("; ");
+        }
+        return sb.append(']').toString();
+    }
 
     private SceneReport report(String loop, Run run, Run control, Run other) {
         Trace t = run.trace();
@@ -545,8 +558,8 @@ public final class FortAirDefenceScene implements BehaviorScene {
                 verdicts.add(Verdict.of("the-company-takes-the-yard",
                         fort.place(FortAspect.AIR_DEFENCE).control().holder() == Faction.MARINE && t.flipTick > 0,
                         "holder " + fort.place(FortAspect.AIR_DEFENCE).control().holder() + ", flipped at tick " + t.flipTick));
-                verdicts.add(Verdict.of("the-mounts-change-sides", t.mountsMarine == fort.airMountIds().size(),
-                        t.mountsMarine + " of " + fort.airMountIds().size() + " mounts are the company's"));
+                verdicts.add(Verdict.of("the-mounts-change-sides", t.mountsAliveAfterFlip >= 2 && t.mountsMarineAfterFlip == t.mountsAliveAfterFlip,
+                        t.mountsMarineAfterFlip + " of " + t.mountsAliveAfterFlip + " standing mounts are the company's " + AFTER_FLIP_TICKS + " ticks after the flip, of " + fort.airMountIds().size() + mountDetail(sim, fort)));
                 verdicts.add(Verdict.of("it-does-not-fire-on-its-own-holders-bomber", t.mountShotsAfterFlip == 0,
                         t.mountShotsAfterFlip + " yard rounds after the flip"));
                 verdicts.add(Verdict.of("the-director-no-longer-counts-it",
@@ -591,7 +604,8 @@ public final class FortAirDefenceScene implements BehaviorScene {
         float distanceAtFirstShot = Float.NaN;
         float ridgeRange;
         int flipTick = -1;
-        int mountsMarine;
+        /** Mounts standing, and the company's among them, a moment after the yard changed hands: a mount can be shot up in the fight round it. */
+        int mountsAliveAfterFlip, mountsMarineAfterFlip;
         int mountShotsAtFlip;
         int mountShotsAfterFlip;
         String outcome = "none";
@@ -686,8 +700,13 @@ public final class FortAirDefenceScene implements BehaviorScene {
             lastShots = shots;
             if (yard != null) {
                 int marine = 0;
-                for (long id : fort.airMountIds()) if (sim.identity().faction(id) == Faction.MARINE) marine++;
-                mountsMarine = marine;
+                for (long id : fort.airMountIds()) if (sim.world().isAlive(id) && sim.identity().faction(id) == Faction.MARINE) marine++;
+                if (flipTick >= 0 && tick == flipTick + AFTER_FLIP_TICKS) {
+                    int alive = 0;
+                    for (long id : fort.airMountIds()) if (sim.world().isAlive(id)) alive++;
+                    mountsAliveAfterFlip = alive;
+                    mountsMarineAfterFlip = marine;
+                }
             }
 
             boolean bomberInReach = false;

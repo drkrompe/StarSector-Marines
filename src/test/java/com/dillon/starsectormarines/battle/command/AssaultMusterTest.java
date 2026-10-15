@@ -57,6 +57,14 @@ class AssaultMusterTest {
     // ---------------------------------------------------------------------------------------- readiness judgement
 
     @Test
+    void aMusterBeingBombedCommitsAtHalfStrengthWithoutWaitingForTheTimeout() {
+        assertEquals(Readiness.GATHERING, AssaultMuster.judge(11f, 24, 100, 4600, true), "under half of what it takes");
+        assertEquals(Readiness.READY, AssaultMuster.judge(12f, 24, 100, 4600, true), "half is enough while flown at");
+        assertEquals(Readiness.GATHERING, AssaultMuster.judge(12f, 24, 100, 4600, false), "left alone it still waits");
+        assertEquals(Readiness.GATHERING, AssaultMuster.judge(0f, 24, 100, 4600, true), "nobody at the rally is no company");
+    }
+
+    @Test
     void whatAFortIsBelievedToTakeGrowsWithWhatIsBelievedNearItAndWithBrokenAttempts() {
         int base = AssaultMuster.required(Family.BATTERY_FORT, 0, 0);
         assertEquals(AssaultMuster.FORT_BASE_STRENGTH, base);
@@ -226,6 +234,30 @@ class AssaultMusterTest {
         CompanyState committed = company(pulse(muster, AssaultMuster.MUSTER_TIMEOUT_TICKS + 700, objectives, come, topology));
         assertEquals("ASSAULT", committed.stage(), "a muster never waits forever");
         assertTrue(committed.strength() < committed.required(), "and the commit says it went in short");
+    }
+
+    @Test
+    void aShortCompanyBeingFlownAtCommitsAtOnceAgainstADisclosedRadarAndOneThatIsNotWaitsItsGrace() {
+        CommandTopology topology = openTopology();
+        List<Objective> objectives = List.of(fort(1, 70, 150, 0));
+        List<Body> bodies = List.of(squad(1, 20, 150, 12), squad(2, 22, 150, 12));
+        AssaultMuster bombed = new AssaultMuster();
+        Result flown = bombed.plan(0, M, objectives, bodies, DROP, List.of(), null, topology,
+                AirSupportFacts.NONE.withFlownAt(true));
+        assertEquals("ASSAULT", company(flown).stage(), "12 of the 24 it believes it takes, and the radar is spotting for the bombers");
+        assertTrue(flown.notes().stream().anyMatch(n -> n.contains("flown at, radar disclosed")), flown.notes().toString());
+        assertEquals("MUSTER", company(pulse(new AssaultMuster(), 0, objectives, bodies, topology)).stage(), "unbombed, it waits");
+    }
+
+    @Test
+    void aShortCompanyBeingFlownAtDoesNotCommitAgainstAFortWhoseRadarIsNotDisclosed() {
+        CommandTopology topology = openTopology();
+        DefenceStructureFact plant = new DefenceStructureFact(Kind.FORT_POWER, 70, 150, D, D, false, 5, 70, 150, 1, Family.BATTERY_FORT);
+        List<Objective> objectives = List.of(new Objective(1, Family.BATTERY_FORT, 70, 150, List.of(plant), 0));
+        List<Body> bodies = List.of(squad(1, 20, 150, 12), squad(2, 22, 150, 12));
+        Result flown = new AssaultMuster().plan(0, M, objectives, bodies, DROP, List.of(), null, topology,
+                AirSupportFacts.NONE.withFlownAt(true));
+        assertEquals("MUSTER", company(flown).stage(), "nothing disclosed to go for");
     }
 
     @Test
