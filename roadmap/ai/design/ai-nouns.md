@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — unit modifiers: named conditions read through at every stat read; dug-in rifles reach half a cell further.
+Updated: 2026-10-15 — unit modifiers include limb wounds (leg: speed, arm: accuracy).
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -2254,7 +2254,8 @@ cohesion law still apply.
 
 A **unit modifier** is a named condition that changes a unit's stats while it
 holds: being dug in, a running suit system's stance, an officer's Tactical
-Cover. It is distinct from **issue**, the base stats a unit was given by its
+Cover, a leg wound slowing a man or an arm wound spoiling his aim
+(`combat-durability-nouns.md`). It is distinct from **issue**, the base stats a unit was given by its
 weapon, grade, armour or chassis. Issue is stored on the unit; a modifier never
 is.
 

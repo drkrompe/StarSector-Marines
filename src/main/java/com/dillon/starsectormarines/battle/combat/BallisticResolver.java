@@ -606,11 +606,21 @@ public final class BallisticResolver {
         events.sort((a, b) -> Float.compare(a.t, b.t));
         List<BodyHit> bodyHits = new ArrayList<>();
         int penetrationsRemaining = bodyPenetrations;
+        // The part the committed aim landed on, when the round is headed for a person. A prop
+        // crossed in the lane short of him catches by that part; no roll is spent deciding it.
+        BodyPart intendedPart = onTarget && target != 0L && bodies.carrierOf(target) == null
+                && roster.identity().type(target).hasBodyParts()
+                ? BodyPart.atHeight(targetHeightFraction) : null;
         for (Event e : events) {
             float proximityScale = proximityCatchScale(e.t * roundVelocity);
             if (e.doodad) {
-                float blockChance = BLOCK_CHANCE_BY_LEVEL[
-                        Math.min(e.doodadLevel, BLOCK_CHANCE_BY_LEVEL.length - 1)]
+                int level = Math.min(e.doodadLevel, BLOCK_CHANCE_BY_LEVEL.length - 1);
+                // A part-bound round meets the prop by that part (a low crate passes head shots);
+                // anything else — a miss, point aim, a partless target, or a round already through
+                // its man — keeps the flat chance.
+                float blockChance = (intendedPart != null && !anyIntended(bodyHits)
+                        ? CoverProfile.crossed(level, intendedPart)
+                        : BLOCK_CHANCE_BY_LEVEL[level])
                         * proximityScale;
                 if (blockChance > 0f && rng.nextFloat() < blockChance) {
                     return new Resolution(e.x, e.y, e.z, e.t, 0L,

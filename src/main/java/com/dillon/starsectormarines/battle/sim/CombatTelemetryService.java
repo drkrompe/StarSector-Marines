@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.combat.BodyPart;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 /**
@@ -54,6 +56,15 @@ public final class CombatTelemetryService {
 
     private final EntityWorld entityWorld;
     private final BattleComponents components;
+
+    /**
+     * Battle-wide tallies, by the side that was struck and the body part: rounds that landed on a
+     * part, and the limb wounds they left. A balance artifact rather than a per-soldier record —
+     * it says what share of hits cover leaves on the head — so it is not on the {@code TELEMETRY}
+     * row. Written from the serial damage path only.
+     */
+    private final int[][] partHits = new int[Faction.values().length][BodyPart.values().length];
+    private final int[][] partWounds = new int[Faction.values().length][BodyPart.values().length];
 
     public CombatTelemetryService(EntityWorld entityWorld, BattleComponents components) {
         this.entityWorld = entityWorld;
@@ -181,6 +192,26 @@ public final class CombatTelemetryService {
     /** One burst {@code carrierId}'s placed emplacement fired at a warhead, hit or miss. */
     public void recordOrdnanceEngaged(long carrierId) {
         bumpInt(carrierId, BattleComponents.TELEMETRY_ORDNANCE_ENGAGED, 1);
+    }
+
+    /** A payload landed on {@code part} of a man of {@code struck}'s side. Serial damage path only. */
+    public void recordPartHit(Faction struck, BodyPart part) {
+        partHits[struck.ordinal()][part.ordinal()]++;
+    }
+
+    /** A hit on {@code part} of a man of {@code struck}'s side left a wound. Serial damage path only. */
+    public void recordWound(Faction struck, BodyPart part) {
+        partWounds[struck.ordinal()][part.ordinal()]++;
+    }
+
+    /** Payloads that landed on {@code part} of {@code struck}'s men this battle. */
+    public int partHits(Faction struck, BodyPart part) {
+        return partHits[struck.ordinal()][part.ordinal()];
+    }
+
+    /** Wounds left on {@code part} of {@code struck}'s men this battle. */
+    public int partWounds(Faction struck, BodyPart part) {
+        return partWounds[struck.ordinal()][part.ordinal()];
     }
 
     // ---- internals ----

@@ -141,41 +141,64 @@ public final class ShotRenderService implements RenderSystem {
             ShuttleSpriteCache cache = sprites.projectileSprite(sprite.spritePath());
             if (cache == null) continue;
 
-            float linearProgress = 1f - Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
-            float progress = fx.boostRamp() ? Projectile.applyBoostCurve(linearProgress) : linearProgress;
-            float px = s.fromX + (s.toX - s.fromX) * progress;
-            float pz = s.fromZ + (s.toZ - s.fromZ) * progress;
-            float py = s.fromY + (s.toY - s.fromY) * progress + pz;
-            float bearing;
-            float arcH = fx.arcHeight();
-            if (arcH > 0f) {
-                py += arcH * 4f * progress * (1f - progress);
-                float tangentDy = (s.visualToY() - s.visualFromY())
-                        + arcH * 4f * (1f - 2f * progress);
-                bearing = bearingDeg(0f, 0f, s.toX - s.fromX, tangentDy);
-            } else {
-                bearing = bearingDeg(s.fromX, s.visualFromY(), s.toX, s.visualToY());
-            }
-            if (s.guidedFlight != null) {
-                px = s.guidedFlight.x;
-                py = s.guidedFlight.y + s.guidedFlight.z;
-                bearing = s.guidedFlight.visualBearingDegrees();
-            }
+            SpriteFlight flight = spriteFlight(s, fx);
             float pxH = sprite.visualCells() * cellPx;
             float pxW = pxH * cache.aspect;
             out.addSprite(RenderLayer.SHOTS, cache.sprite,
-                    cam.cellToScreenX(px), cam.cellToScreenY(py),
-                    pxW, pxH, bearing, 1f, 1f, 1f, alphaMult);
-
-            if ((s.guidedFlight != null || progress > 0.02f && progress < 0.98f)
-                    && !WeaponFxRuntime.definition(s).layers(FxSlot.TRAIL).isEmpty()) {
-                float headingRad = (float) Math.toRadians(bearing);
-                float tailDx = -(float) Math.sin(headingRad) * 0.15f;
-                float tailDy = -(float) Math.cos(headingRad) * 0.15f;
-                WeaponFxRuntime.spawnTrail(
-                        impactFx, s, px + tailDx, py + tailDy, bearing);
-            }
+                    cam.cellToScreenX(flight.x()), cam.cellToScreenY(flight.y()),
+                    pxW, pxH, flight.bearing(), 1f, 1f, 1f, alphaMult);
+            spawnTrail(impactFx, s, flight);
         }
+    }
+
+    /** Where a sprite-bodied shot is in the air right now, in projected cell space, and which way it points. */
+    public record SpriteFlight(float x, float y, float bearing, float progress) {}
+
+    /** The in-flight pose of a projectile-sprite shot: straight, boosted, arced or guided. */
+    static SpriteFlight spriteFlight(ShotEvent s, ShotFx fx) {
+        float linearProgress = 1f - Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
+        float progress = fx.boostRamp() ? Projectile.applyBoostCurve(linearProgress) : linearProgress;
+        float px = s.fromX + (s.toX - s.fromX) * progress;
+        float pz = s.fromZ + (s.toZ - s.fromZ) * progress;
+        float py = s.fromY + (s.toY - s.fromY) * progress + pz;
+        float bearing;
+        float arcH = fx.arcHeight();
+        if (arcH > 0f) {
+            py += arcH * 4f * progress * (1f - progress);
+            float tangentDy = (s.visualToY() - s.visualFromY())
+                    + arcH * 4f * (1f - 2f * progress);
+            bearing = bearingDeg(0f, 0f, s.toX - s.fromX, tangentDy);
+        } else {
+            bearing = bearingDeg(s.fromX, s.visualFromY(), s.toX, s.visualToY());
+        }
+        if (s.guidedFlight != null) {
+            px = s.guidedFlight.x;
+            py = s.guidedFlight.y + s.guidedFlight.z;
+            bearing = s.guidedFlight.visualBearingDegrees();
+        }
+        return new SpriteFlight(px, py, bearing, progress);
+    }
+
+    /**
+     * Whether a projectile-sprite shot sheds its authored trail from where it is now. A host calls this once per
+     * rendered frame, so a headless review that wants the same smoke column has to call it once per simulation tick.
+     */
+    public static void spawnTrail(ImpactFx impactFx, ShotEvent s, SpriteFlight flight) {
+        if ((s.guidedFlight != null || flight.progress() > 0.02f && flight.progress() < 0.98f)
+                && !WeaponFxRuntime.definition(s).layers(FxSlot.TRAIL).isEmpty()) {
+            float headingRad = (float) Math.toRadians(flight.bearing());
+            float tailDx = -(float) Math.sin(headingRad) * 0.15f;
+            float tailDy = -(float) Math.cos(headingRad) * 0.15f;
+            WeaponFxRuntime.spawnTrail(
+                    impactFx, s, flight.x() + tailDx, flight.y() + tailDy, flight.bearing());
+        }
+    }
+
+    /** The trail of one active shot, if it is a sprite-bodied one; the host-facing entry for review feeds. */
+    public static void spawnTrail(ImpactFx impactFx, ShotEvent s) {
+        ShotFx fx = ShotFx.of(s);
+        if (!(fx.body() instanceof ShotFx.Sprite)) return;
+        spawnTrail(impactFx, s, spriteFlight(s, fx));
     }
 
     static BoltPose boltPose(ShotEvent shot, ShotFx.Bolt bolt) {

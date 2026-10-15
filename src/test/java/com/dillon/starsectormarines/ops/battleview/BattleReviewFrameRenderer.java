@@ -36,6 +36,12 @@ public final class BattleReviewFrameRenderer {
 
     public static final int HEADER_HEIGHT = 30;
 
+    /**
+     * The animation clock a review frame is drawn at. Pinned rather than read from the wall, so the same battle state
+     * draws the same pixels twice; zero is also what the shield dome and fort buildings already saw here.
+     */
+    static final float REVIEW_CLOCK_SECONDS = 0f;
+
     private static final int CAPTION_MARGIN = 12;
     private static final int MAX_CAPTION_POINTS = 14;
     private static final int MIN_CAPTION_POINTS = 9;
@@ -155,7 +161,7 @@ public final class BattleReviewFrameRenderer {
     public BufferedImage render(BattleSimulation simulation, String caption,
                                 ReviewAnnotations annotations,
                                 ReviewImpactFx impacts) throws IOException {
-        BufferedImage image = renderer.renderHostPass(pass(simulation), width, height);
+        BufferedImage image = renderer.renderHostPass(pass(simulation, impacts), width, height);
         if (impacts != null) {
             impacts.paint(image, cameraFor(image.getWidth(), image.getHeight(), simulation));
         }
@@ -290,15 +296,20 @@ public final class BattleReviewFrameRenderer {
         };
     }
 
-    private BattleSceneHostPass pass(BattleSimulation simulation) {
-        return new BattleSceneHostPass() {
+    private BattleSceneHostPass pass(BattleSimulation simulation, ReviewImpactFx impacts) {
+        return new ReviewHostPass() {
+            @Override
+            public DrawList overlay(BattleCamera camera) {
+                return impacts == null ? null : impacts.overlay(camera);
+            }
+
             @Override
             public BattleSceneFrame prepare(CanvasHostViewport viewport, float alphaMult) {
                 BattleCamera camera = cameraFor(viewport.width(), viewport.height(), simulation);
                 RenderContext context = new RenderContext(simulation, camera,
                         null, alphaMult, 0f, false,
                         new HighlightOverlay(), new Selection(),
-                        BattleRenderHostProfile.EMBEDDED_SCENE);
+                        BattleRenderHostProfile.EMBEDDED_SCENE, REVIEW_CLOCK_SECONDS);
                 EnumSet<RenderLayer> layers = EnumSet.copyOf(REVIEW_LAYERS);
                 if (impactEffects || Float.isFinite(focusX)) { layers.add(RenderLayer.SHOTS); layers.add(RenderLayer.IMPACT_FX); }
                 if (unitShadows) layers.add(RenderLayer.UNIT_SHADOWS);
@@ -312,6 +323,9 @@ public final class BattleReviewFrameRenderer {
             }
         };
     }
+
+    /** The scene pass, with the presentation services a feed owns brought into the same drain. */
+    private interface ReviewHostPass extends BattleSceneHostPass, HeadlessBattleSceneRenderer.ReviewOverlayPass { }
 
     /** Fits the whole grid under the caption band, so a frame never crops the battlefield. */
     private BattleCamera cameraFor(float viewportWidth, float viewportHeight,

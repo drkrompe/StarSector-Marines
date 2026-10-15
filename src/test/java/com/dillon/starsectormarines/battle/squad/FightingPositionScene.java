@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.squad;
 
+import com.dillon.starsectormarines.battle.combat.BodyPart;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.scene.BehaviorScene;
 import com.dillon.starsectormarines.battle.scene.FrameSink;
@@ -436,6 +437,19 @@ public final class FightingPositionScene implements BehaviorScene {
 
     // ---- instrument ----
 
+    /**
+     * Hits on the squad's side by body part, and the limb wounds they left. In a trench the shares
+     * should skew toward head and arms; in the open they follow the silhouette.
+     */
+    private static void putPartReadings(Map<String, Number> m, int[] hits, int[] wounds) {
+        for (BodyPart part : BodyPart.values()) {
+            String name = part.name().charAt(0) + part.name().substring(1).toLowerCase(Locale.ROOT);
+            m.put("hits" + name, hits[part.ordinal()]);
+        }
+        m.put("woundsLegs", wounds[BodyPart.LEGS.ordinal()]);
+        m.put("woundsArms", wounds[BodyPart.ARMS.ordinal()]);
+    }
+
     /** The under-fire traces of one loop, one per enemy line, read as a single sample. */
     private static final class Pool {
 
@@ -486,6 +500,15 @@ public final class FightingPositionScene implements BehaviorScene {
                 m.put("line" + i + "MarinesAlive", traces.get(i).alive);
                 m.put("line" + i + "DamageTaken", traces.get(i).damageTaken());
             }
+            int[] hits = new int[BodyPart.values().length];
+            int[] wounds = new int[BodyPart.values().length];
+            for (Trace t : traces) {
+                for (int p = 0; p < hits.length; p++) {
+                    hits[p] += t.partHits[p];
+                    wounds[p] += t.partWounds[p];
+                }
+            }
+            putPartReadings(m, hits, wounds);
             return m;
         }
     }
@@ -533,6 +556,11 @@ public final class FightingPositionScene implements BehaviorScene {
         int holdMarineTicks;
         int holdOnPositionTicks;
         boolean claimCollision;
+        /** The squad's side, read once while its men are alive; the part tallies are kept by side. */
+        Faction side;
+        /** Battle-wide hits and wounds on the squad's side, by body part (telemetry, so every round counts). */
+        final int[] partHits = new int[BodyPart.values().length];
+        final int[] partWounds = new int[BodyPart.values().length];
 
         Trace(SceneWorld world, String key, String... otherKeys) {
             this.world = world;
@@ -575,6 +603,15 @@ public final class FightingPositionScene implements BehaviorScene {
                     if (damageAtDigIn < 0f) damageAtDigIn = damageTaken();
                     enemyRounds = rounds;
                     enemyRoundsInWindow = rounds - enemyRoundsAtDigIn;
+                }
+            }
+            if (side == null && marines.length > 0 && sim.resolveUnit(marines[0]) != 0L) {
+                side = sim.getRoster().identity().faction(marines[0]);
+            }
+            if (side != null) {
+                for (BodyPart part : BodyPart.values()) {
+                    partHits[part.ordinal()] = telemetry.partHits(side, part);
+                    partWounds[part.ordinal()] = telemetry.partWounds(side, part);
                 }
             }
             int width = world.width();
@@ -685,6 +722,7 @@ public final class FightingPositionScene implements BehaviorScene {
             m.put("maxClaimedAtOnce", maxClaimedAtOnce);
             m.put("unclaimedAtEnd", unclaimedAtEnd);
             m.put("unclaimedOnPositionAtEnd", unclaimedOnPositionAtEnd);
+            putPartReadings(m, partHits, partWounds);
             return m;
         }
     }

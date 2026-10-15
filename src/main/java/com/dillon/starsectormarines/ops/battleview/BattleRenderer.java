@@ -930,7 +930,9 @@ public class BattleRenderer {
      * their distinct simulation-owned symbology.
      */
     private void collectObjectiveMarkers(BattleSimulation sim, DrawList out, float alphaMult) {
-        float now = (float) (System.currentTimeMillis() / 1000.0);
+        // A host that owns its clock (a deterministic review, a deck scene) pins the markers' pulse to it.
+        float now = Float.isFinite(rc.animationTimeSeconds) ? rc.animationTimeSeconds
+                : (float) (System.currentTimeMillis() / 1000.0);
         float cellPx = rc.camera.cellPxSize();
         objectiveArcMesh.reset();
         if (sim.getColdAccount() != null) {
