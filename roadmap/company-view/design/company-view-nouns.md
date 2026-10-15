@@ -1194,7 +1194,8 @@ The retained bridge dashboard has four concerns:
   mood and live readiness facts; it may change as the company's situation changes
   without rewriting that rating.
 - **Situation board** leads with obligations that can hurt the company: pending response
-  deadlines and live stationing term endings. Overdue clocks are due now, never
+  deadlines, live stationing term endings, and the recovery deadline of a stranded
+  detachment. Overdue clocks are due now, never
   rendered as negative time. One contract may own both clocks. An intel terminal
   consolidates company dispatches, confirmed reports and unverified traffic into
   source windows, a compact report rundown and a focused briefing. Each source
