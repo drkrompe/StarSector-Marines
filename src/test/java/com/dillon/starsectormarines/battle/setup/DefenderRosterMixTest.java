@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.world.gen.MarketGarrison;
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.OperationTier;
@@ -46,9 +47,43 @@ class DefenderRosterMixTest {
         DefenderRoster curve = DefenderRoster.forMission(MissionType.ASSAULT, OperationTier.ESTABLISHED,
                 RiskLevel.LOW, false, Float.POSITIVE_INFINITY, null, MarketGarrison.NONE);
         DefenderRoster professional = DefenderRoster.forMission(MissionType.ASSAULT, OperationTier.ESTABLISHED,
-                RiskLevel.LOW, false, Float.POSITIVE_INFINITY, null, new MarketGarrison(300f, 0.6f, 0f, 1f));
-        assertEquals(curve.totalCount, professional.totalCount, "quality changes the mix, not the headcount");
+                RiskLevel.LOW, false, Float.POSITIVE_INFINITY, null, new MarketGarrison(10_000f, 0.6f, 0f, 1f));
+        assertEquals(curve.totalCount, professional.totalCount, "a garrison that fills the tier fields all of it");
         assertEquals(Math.round(curve.totalCount * 0.30f), curve.eliteCount);
         assertEquals(Math.round(professional.totalCount * 0.6f), professional.eliteCount);
+    }
+
+    @Test
+    void marketStrengthPlacesHeadcountInsideTheTiersBand() {
+        int tier = 100;
+        float fills = tier * DefenderRoster.STRENGTH_PER_DEFENDER;
+        assertEquals(100, DefenderRoster.bandedTotal(tier, MarketGarrison.NONE), "no market keeps the tier count");
+        assertEquals(100, DefenderRoster.bandedTotal(tier, new MarketGarrison(fills * 3f, 0.3f, 0f, 1f)),
+                "the tier is the ceiling");
+        assertEquals(85, DefenderRoster.bandedTotal(tier, new MarketGarrison(fills / 2f, 0.3f, 0f, 1f)));
+        assertEquals(70, DefenderRoster.bandedTotal(tier, new MarketGarrison(0f, 0.3f, 0f, 1f)),
+                "the weakest garrison still fields the band floor");
+        assertEquals(8, DefenderRoster.bandedTotal(8, new MarketGarrison(0f, 0.3f, 0f, 1f)),
+                "never below the smallest force worth generating");
+    }
+
+    @Test
+    void heavyLeanKeepsAShareOfTheRiskCurvesMechs() {
+        List<MechVariant> six = List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.SIROCCO,
+                MechVariant.BULWARK, MechVariant.HOUND, MechVariant.SIROCCO);
+        assertEquals(six, DefenderRoster.bandedMechs(six, MarketGarrison.NONE), "no market keeps them all");
+        assertEquals(six, DefenderRoster.bandedMechs(six, new MarketGarrison(100f, 0.3f, 0.4f, 1f)));
+        assertEquals(six.subList(0, 3), DefenderRoster.bandedMechs(six, new MarketGarrison(100f, 0.3f, 0f, 1f)),
+                "an unarmoured market keeps the front half, anchor first");
+        assertEquals(List.of(MechVariant.BULWARK),
+                DefenderRoster.bandedMechs(List.of(MechVariant.BULWARK), new MarketGarrison(100f, 0.3f, 0f, 1f)));
+        assertEquals(List.of(), DefenderRoster.bandedMechs(List.of(), new MarketGarrison(100f, 0.3f, 1f, 1f)));
+    }
+
+    @Test
+    void wholeGarrisonFollowsStrength() {
+        assertEquals(250, DefenderRoster.wholeGarrisonCount(
+                new MarketGarrison(250 * DefenderRoster.STRENGTH_PER_DEFENDER, 0.3f, 0f, 1f)));
+        assertEquals(8, DefenderRoster.wholeGarrisonCount(new MarketGarrison(4f, 0.3f, 0f, 1f)));
     }
 }
