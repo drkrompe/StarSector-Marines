@@ -285,7 +285,7 @@ class LoadoutMatchupEvidence {
     private static String runs(List<MatchupPlay.Result> results) {
         StringBuilder csv = new StringBuilder("scenario,attacker,defender,seed,winner,ticks,attacker_survivors,"
                 + "defender_survivors,attacker_damage_taken,defender_damage_taken,attacker_damage_mitigated,"
-                + "defender_damage_mitigated,attacker_rounds,defender_rounds,gif\n");
+                + "defender_damage_mitigated,attacker_rounds,defender_rounds,turrets,turrets_left,turret_rounds,gif\n");
         for (MatchupPlay.Result r : results) {
             csv.append(r.scenario()).append(',').append(q(r.attacker())).append(',').append(q(r.defender()))
                     .append(',').append(r.seed()).append(',').append(r.winner()).append(',').append(r.ticks())
@@ -293,7 +293,8 @@ class LoadoutMatchupEvidence {
                     .append(',').append(f1(r.attackerDamageTaken())).append(',').append(f1(r.defenderDamageTaken()))
                     .append(',').append(f1(r.attackerDamageMitigated())).append(',')
                     .append(f1(r.defenderDamageMitigated())).append(',').append(r.attackerRounds())
-                    .append(',').append(r.defenderRounds()).append(',')
+                    .append(',').append(r.defenderRounds()).append(',').append(r.turretStart())
+                    .append(',').append(r.turretsLeft()).append(',').append(r.turretRounds()).append(',')
                     .append(GIFS.getOrDefault(key(r), "")).append('\n');
         }
         return csv.toString();

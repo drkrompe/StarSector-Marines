@@ -9,6 +9,9 @@ import com.dillon.starsectormarines.battle.scene.SceneBuilder;
 import com.dillon.starsectormarines.battle.scene.SceneWorld;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.turret.DefensePost;
+import com.dillon.starsectormarines.battle.turret.DefensePostKind;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -47,7 +50,7 @@ public final class MatchupScenarios {
     private static final int TICK_LIMIT = 9000;
 
     public static List<MatchupScenario> all() {
-        return List.of(new OpenField(), new Trench(), new Building());
+        return List.of(new OpenField(), new Trench(false), new Trench(true), new Building());
     }
 
     public static MatchupScenario byId(String id) {
@@ -103,10 +106,22 @@ public final class MatchupScenarios {
      * flanked by the geometry before any loadout mattered.
      */
     static final class Trench implements MatchupScenario {
-        @Override public String id() { return "trench"; }
+        /**
+         * Whether a Vulcan emplacement stands at each end of the trench: the heavily defended version of the line,
+         * where the squad in the trench is covered by two automatic guns firing across its front.
+         */
+        private final boolean fortified;
+
+        Trench(boolean fortified) {
+            this.fortified = fortified;
+        }
+
+        @Override public String id() { return fortified ? "trench-vulcans" : "trench"; }
 
         @Override public String label() {
-            return "Trench: the open-field crossing onto defenders holding a twelve-cell trench square across the approach";
+            return fortified
+                    ? "Trench with Vulcans: the trench line with a Vulcan emplacement at its north and south ends"
+                    : "Trench: the open-field crossing onto defenders holding a twelve-cell trench square across the approach";
         }
 
         @Override public int maxTicks() { return TICK_LIMIT; }
@@ -114,6 +129,11 @@ public final class MatchupScenarios {
         @Override public SceneWorld build(MarineLoadout[] attackerKit, MarineLoadout[] defenderKit, long seed) {
             SceneBuilder builder = arena(seed);
             int y0 = MID_Y - TRENCH_CELLS / 2;
+            if (fortified) {
+                // On the run's line with one clear cell past each end: the guns flank the squad rather than replace any
+                // of its positions, and a cell gap keeps the run itself twelve cells long.
+                builder.posts(List.of(vulcan(DEFENDER_X, y0 - 2), vulcan(DEFENDER_X, y0 + TRENCH_CELLS + 1)));
+            }
             attackers(builder, attackerKit, DEFENDER_X, MID_Y);
             builder.squad(MatchupScenario.DEFENDERS)
                     .faction(Faction.DEFENDER).type(UnitType.MARINE_RED)
@@ -127,6 +147,11 @@ public final class MatchupScenarios {
             world.squad(MatchupScenario.DEFENDERS).assignedObjective = ObjectiveAssignment.defendRun(
                     world.squadId(MatchupScenario.DEFENDERS), DEFENDER_X, MID_Y, TRENCH_CELLS / 2 + 1, run);
             return world;
+        }
+
+        private static DefensePost vulcan(int x, int y) {
+            return new DefensePost(DefensePostKind.LIGHT, x, y,
+                    List.of(new DefensePost.TurretSpec(TurretCatalogRegistry.VULCAN_STRUCTURE_ID, x, y)));
         }
 
         /** A straight north-south trench, each cell joined to its neighbours above and below (mask N1 S4; north is +y). */
