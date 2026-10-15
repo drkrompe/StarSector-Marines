@@ -8,7 +8,7 @@ public enum ChronicleEventType {
     THRONE_CLAIM_APPLIED,
     KINGMAKER_TESTAMENT,
     SILENT_COLONY,
-    /** A Garrison defence settled without the player; see {@code stranded-detachment-recovery.md}. */
+    /** A Garrison defence settled without the player; see {@code contracts-nouns.md} (stranded detachments). */
     GARRISON_DEFENCE,
     /** A stranded detachment was collected by the company. */
     DETACHMENT_RECOVERED,

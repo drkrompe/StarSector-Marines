@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 
 /**
  * Notices a Garrison whose market changed hands and strands its detachment — see
- * {@code stranded-detachment-recovery.md}.
+ * {@code contracts-nouns.md} (stranded detachments).
  *
  * <p>It reads only market ownership, so every way a market can change hands is covered
  * the same way: a vanilla transfer, decivilisation, or a Nexerelin invasion (which the

@@ -158,7 +158,7 @@ public final class HeadlessArmoryPreviewRenderer {
                         new FireTeamBillet("Observer", WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID),
                                 EquipmentGrade.SERVICE, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.COMMS_RADIO_ID),
                                 MarineArmorPattern.CHARCOAL)),
-                new PreviewCase("point-defence-pack", "Palisade interceptor pack · Legionary line suit",
+                new PreviewCase("point-defence-pack", "Arrestor interceptor pack · Legionary line suit",
                         new FireTeamBillet("Escort", WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID),
                                 EquipmentGrade.SERVICE, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.POINT_DEFENCE_PACK_ID),
                                 MarineArmorPattern.ARMY_GREEN)));

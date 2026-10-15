@@ -1822,13 +1822,17 @@ public final class BattleSetup {
             spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, post.anchorX, post.anchorY, post.garrisonSize),
                     Faction.DEFENDER, "junction-guard-" + i, post, rng);
         }
-        spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, layout.reserve().interiorAnchorX, layout.reserve().interiorAnchorY, 4), Faction.DEFENDER, "junction-reserve", null, rng);
+        spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, layout.reserve().interiorAnchorX, layout.reserve().interiorAnchorY, 8), Faction.DEFENDER, "junction-reserve", null, rng);
+        // A second finite counterattack waits on the road from Rill and comes in once a second site falls.
+        spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, JunctionCompound.RILL_ROAD_X, JunctionCompound.RILL_ROAD_Y, 8),
+                Faction.DEFENDER, "junction-rill-road", null, rng);
         for (Squad squad : sim.getSquads()) if (squad.faction == Faction.DEFENDER && squad.assignedNode == null)
             if (!sim.handoffSquadCommand(squad.id, OpeningOperationCommand.issuer(Faction.DEFENDER),
                     CommandAuthority.MISSION_COMMAND, JunctionCommand.issuer(Faction.DEFENDER), null, "finite Junction reserve"))
                 throw new IllegalStateException("Junction reserve command handoff failed");
         for (Faction faction : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER))
-            sim.setAutonomousCommander(faction, new JunctionCommand(faction, layout.reserve().interiorAnchorX, layout.reserve().interiorAnchorY), ConquestCommandDisclosure.INSTANCE);
+            sim.setAutonomousCommander(faction, new JunctionCommand(faction, layout.reserve().interiorAnchorX, layout.reserve().interiorAnchorY,
+                    JunctionCompound.RILL_ROAD_X, JunctionCompound.RILL_ROAD_Y), ConquestCommandDisclosure.INSTANCE);
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(JunctionCommand.issuer(Faction.MARINE), "Company support joins the operation"));
         sim.installJunctionStoryHooks();
         sim.installWaylineGunship(false);
