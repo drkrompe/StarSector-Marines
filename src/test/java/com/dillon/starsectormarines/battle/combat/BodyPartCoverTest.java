@@ -56,6 +56,31 @@ class BodyPartCoverTest {
     }
 
     @Test
+    void crossedCoverIsLowAndMonotone() {
+        for (int level = 0; level <= 3; level++) {
+            assertTrue(CoverProfile.crossed(level, BodyPart.LEGS) >= CoverProfile.crossed(level, BodyPart.TORSO));
+            assertTrue(CoverProfile.crossed(level, BodyPart.TORSO) >= CoverProfile.crossed(level, BodyPart.ARMS));
+            assertTrue(CoverProfile.crossed(level, BodyPart.ARMS) >= CoverProfile.crossed(level, BodyPart.HEAD));
+            if (level > 0) {
+                for (BodyPart part : BodyPart.values()) {
+                    assertTrue(CoverProfile.crossed(level, part) >= CoverProfile.crossed(level - 1, part));
+                }
+            }
+        }
+        for (BodyPart part : BodyPart.values()) assertEquals(0f, CoverProfile.crossed(0, part));
+        assertEquals(0f, CoverProfile.crossed(1, BodyPart.HEAD));
+        assertEquals(0f, CoverProfile.crossed(2, BodyPart.HEAD));
+    }
+
+    @Test
+    void crossedCoverStopsAsManyRoundsAsTheFlatChanceItReplaces() {
+        for (int level = 1; level <= 3; level++) {
+            assertEquals(BallisticResolver.BLOCK_CHANCE_BY_LEVEL[level],
+                    CoverProfile.expectedCrossedInterception(level), 0.03f, "level " + level);
+        }
+    }
+
+    @Test
     void onlyPeopleHaveBodyParts() {
         assertTrue(UnitType.MARINE.hasBodyParts());
         assertTrue(UnitType.MILITIA.hasBodyParts());
