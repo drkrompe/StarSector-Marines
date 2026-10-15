@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — Opening militia kit and staged checkpoint engagement.
+Updated: 2026-10-15 — Illustrated opening and founding-yard review with a limited conversion and continuing restoration.
 
 ## Purpose
 
@@ -1257,7 +1257,7 @@ The optional Cerberus company start is selected through vanilla character creati
 It gives the player one unconverted Cerberus, 500 spendable credits and travel reserves;
 it neither designates the vessel nor awards a shuttle, squad, mech or specialty.
 Castle directs the player to an accessible planetary spaceport, preferring Jangala.
-A new selection first opens **Second Wind**, a skippable illustrated bridge prologue
+A new selection first opens **Second Wind**, a skippable eight-scene illustrated prologue
 with Castle's portrait and readable dialogue. The crew escaped **Harker's Claim**, an
 independent mining asteroid, after its operator withdrew. Company scrip became
 worthless as the colony's supplies ran out. They restored a grounded Cerberus; the player
@@ -1282,7 +1282,12 @@ that course and returns to the campaign. The Intel log retains the origin and
 next real preparation instruction. Page progress and explicit completion or skip
 survive saves; ordinary starts and pre-prologue saves do not opt in on load.
 The opening grants no resources, repairs, conversion, recruits or mission progress.
-Its bridge illustration is presentation, not a new hull-condition authority.
+Its illustrations are presentation, not a new hull-condition authority. Each beat
+has its own image: bridge, Claim, last carrier, emergency repairs, boarding,
+port approach, makeshift sleeping space and the estimate. Exterior workers wear
+sealed industrial EVA suits; boarding takes place inside a pressurized loading dock.
+Exterior views use an upscaled vanilla Cerberus sprite as their identity reference.
+Runtime art is full-frame 1200x800 JPEG; larger masters and reference art stay outside `mod/`.
 
 A reviewed 5,000-credit yard order installs the permanent Mercenary Company
 Conversion on the owned, active hull. Company designation still uses the ordinary
@@ -1291,7 +1296,14 @@ preparation preflight and resumes lift, Sabine, squad founding and assignment.
 The Cerberus opening names **Mercenary Company Conversion** explicitly and directs
 the player to Marine operations in the planet menu, not the vanilla Refit picker.
 At an accessible planetary port that entry opens the actual 5,000-credit conversion
-review first. It spends nothing until Install conversion is confirmed. Until the
+review first, using the prologue's retained document and custom visual host.
+Inspection, reviewed order and completion pair Castle's account with makeshift
+sleeping space, the battered hull and newly fitted bunks. The order buys +18
+personnel places and trades away 25 cargo; the remaining damaged rooms, second
+bay and Mech Lab stay damaged. Castle refers to Engineering's survey in character.
+The planet interaction remains alive as the docking and depot authority, and
+Return to port restores its ordinary menu. It spends nothing until Install
+conversion is confirmed. Until the
 founding conversion is installed, no alternative hull can bypass company designation.
 
 A `PreparationDepot` is a finite prepaid consignment at the planet that converted

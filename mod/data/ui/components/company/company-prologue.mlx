@@ -1,13 +1,13 @@
-<template props="title,narrative,dialogue,portrait,image,page,manifest,reserve,destination,nextLabel,backDisabled,next,back,skip">
+<template props="heading,caption,note,skipLabel,title,narrative,dialogue,portrait,image,page,manifest,reserve,destination,nextLabel,nextDisabled,backDisabled,next,back,skip">
   <div id="prologue-root" class="prologue-root">
     <div id="prologue-header" class="prologue-header console-header">
-      <div id="prologue-heading" class="label title">{i18n.openingUiCompanyPrologueSecondWindPrologue}</div>
+      <div id="prologue-heading" class="label title">{heading}</div>
       <div id="prologue-page" class="label tone-muted">{page}</div>
     </div>
     <div id="prologue-body" class="prologue-body">
       <div id="prologue-left" class="prologue-left">
         <img id="prologue-art" class="prologue-art" src="{image}" />
-        <div id="prologue-caption" class="label tone-muted prologue-caption">{i18n.openingUiCompanyPrologueTheSecondWindFlightDeck}</div>
+        <div id="prologue-caption" class="label tone-muted prologue-caption">{caption}</div>
         <div id="prologue-manifest" class="label prologue-copy">{manifest}</div>
         <div id="prologue-reserve" class="label prologue-copy tone-muted">{reserve}</div>
         <div id="prologue-objective" class="label tone-accent prologue-copy">{destination}</div>
@@ -24,11 +24,11 @@
         </div>
         <div id="prologue-controls" class="prologue-controls console-rail">
           <button id="prologue-back" class="prologue-back" disabled="{backDisabled}" onclick="{back}">{i18n.openingUiCompanyPrologueBack}</button>
-          <button id="prologue-next" class="prologue-next" onclick="{next}">{nextLabel}</button>
+          <button id="prologue-next" class="prologue-next" disabled="{nextDisabled}" onclick="{next}">{nextLabel}</button>
         </div>
       </div>
     </div>
-    <div id="prologue-footer" class="prologue-footer"><div id="prologue-note" class="label tone-muted prologue-note">{i18n.openingUiCompanyPrologueAtPortMarineOperationsMercenaryCompanyConversion}</div><button id="prologue-skip" class="prologue-skip" onclick="{skip}">{i18n.openingUiCompanyPrologueSkipIntroduction}</button></div>
+    <div id="prologue-footer" class="prologue-footer"><div id="prologue-note" class="label tone-muted prologue-note">{note}</div><button id="prologue-skip" class="prologue-skip" onclick="{skip}">{skipLabel}</button></div>
   </div>
 </template>
 <style>
@@ -38,10 +38,9 @@
 .prologue-body { flex-direction: row; flex-grow: 1; gap: 24px; overflow: hidden; }
 .prologue-left { width: 57%; flex-direction: column; gap: 16px; overflow: hidden; }
 .prologue-art { width: 100%; height: 0px; flex-grow: 1; }
-.prologue-caption { height: 22px; }
+.prologue-caption { white-space: normal; }
 .prologue-copy { white-space: normal; }
 #prologue-narrative, #prologue-dialogue { font-family: prose; }
-.prologue-left .prologue-copy { height: 32px; }
 .prologue-story { width: 0px; flex-grow: 1; flex-direction: column; padding: 24px; gap: 22px; border-width: 1px; }
 .prologue-title { white-space: normal; height: 60px; }
 .prologue-reading { flex-direction: column; height: 0px; flex-grow: 1; gap: 24px; overflow: scroll; }
