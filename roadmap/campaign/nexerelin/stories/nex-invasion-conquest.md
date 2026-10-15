@@ -4,7 +4,7 @@ Status: PLANNED — slice 0 (spike) is next.
 
 Written: 2026-10-15
 
-Updated: 2026-10-15 — Preference storage (per save) and map scale (independent of market size) decided.
+Updated: 2026-10-15 — Preference storage (per save) and map scale (independent of market size; size is a population dial) decided.
 
 Read `nexerelin-nouns.md` in full first. Also read `meta-progression.md` (the
 company and the polity), `architecture.md` (external-state boundary),
@@ -115,11 +115,14 @@ proceed with a named workaround; or redesign settlement.
   lift.
 - **Map scale is independent of market size** (decided). Every invasion is
   fought on Conquest's authored map, whatever the size of the market. Market
-  size never shrinks or grows the map.
+  size is a population dial and is purely environmental. It reaches the
+  battle through the target profile's settlement scale (how built-up the
+  ground is and how many people live on it), as it does for every other
+  operation. It never sets the map's dimensions, the tier or the garrison.
 - The opposition and operation tier come from the market's ground strength
   (law 7). Conquest's tier floor governs which generated offers are valid. A
   player invasion is not an offer, so a weak garrison is not refused; it is
-  simply a light defence on the full map. If testing shows that a weak
+  simply a light defence on the full map, whatever the population. If testing shows that a weak
   garrison on the full map needs special handling, raise it with the user
   rather than switching profile.
 - Law 7: the demand reads the same ground strength Nexerelin would field,
