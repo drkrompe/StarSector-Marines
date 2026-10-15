@@ -76,7 +76,7 @@ final class ThunderRunColumnDriver {
 
     private static final class Plan {
         final Role role;
-        final float baseLane;
+        float baseLane;
         float goalX;
         VehicleLeg leg;
         float lane;
@@ -104,6 +104,13 @@ final class ThunderRunColumnDriver {
         if (id != 0L) plans.put(id, new Plan(role, lane));
     }
 
+    /** Sends {@code id} to {@code goalX} on a new lane {@code laneY}, which it then keeps. */
+    void order(BattleSimulation sim, long id, float goalX, float laneY, VehicleLeg leg) {
+        Plan plan = plans.get(id);
+        if (plan != null) plan.baseLane = laneY;
+        order(sim, id, goalX, leg);
+    }
+
     /** Sends {@code id} along its lane to {@code goalX}; replaces any leg it was on. */
     void order(BattleSimulation sim, long id, float goalX, VehicleLeg leg) {
         Plan plan = plans.get(id);
@@ -114,7 +121,7 @@ final class ThunderRunColumnDriver {
             VehicleMission mission = sim.convoy().mission(id);
             GroundBody body = sim.convoy().body(id);
             mission.authoredRouteX = new float[]{body.x, goalX};
-            mission.authoredRouteY = new float[]{body.y, body.y};
+            mission.authoredRouteY = new float[]{body.y, plan.role == Role.TECHNICAL ? plan.baseLane : body.y};
             mission.authoredLeg = leg;
             return;
         }

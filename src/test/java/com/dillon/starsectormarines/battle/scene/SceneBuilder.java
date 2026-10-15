@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
 import java.util.ArrayList;
@@ -58,6 +59,7 @@ public final class SceneBuilder {
     private final NavigationGrid grid;
     private final CellTopology topology;
     private final List<DefensePost> posts = new ArrayList<>();
+    private final List<Doodad> doodads = new ArrayList<>();
     private final List<Object> spawnOrder = new ArrayList<>();
     private final Map<String, SquadSpec> squads = new LinkedHashMap<>();
     private final Map<String, UnitEntry> units = new LinkedHashMap<>();
@@ -92,6 +94,17 @@ public final class SceneBuilder {
      */
     public static SceneBuilder over(NavigationGrid grid, CellTopology topology) {
         return new SceneBuilder(grid, topology);
+    }
+
+    /**
+     * The doodads a generator laid alongside the terrain it stamped (a fort yard's sandbag rings, a belt's fence),
+     * handed to the simulation as {@code BattleSetup} hands a map's. A scene that stamps and drops them fights on
+     * ground the shipped map would not have.
+     */
+    public SceneBuilder doodads(List<Doodad> laid) {
+        checkOpen();
+        doodads.addAll(laid);
+        return this;
     }
 
     /** Defence posts the generator stamped, spawned through the production path when the scene is built. */
@@ -235,6 +248,7 @@ public final class SceneBuilder {
                 ? new BattleSimulation(grid, topology)
                 : new BattleSimulation(grid, topology, simSeed);
         sim.setMissionCompletionEnabled(missionCompletion);
+        for (Doodad doodad : doodads) sim.addDoodad(doodad);
         long[] structures = new long[0];
         if (!posts.isEmpty()) {
             sim.setDefensePosts(posts);

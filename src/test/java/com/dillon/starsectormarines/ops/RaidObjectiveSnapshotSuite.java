@@ -41,9 +41,10 @@ public final class RaidObjectiveSnapshotSuite implements SnapshotSuite {
             assertTrue(sim.getGrid().isWalkable(raid.targetCellX(), raid.targetCellY()));
             assertNotEquals(0, sim.getTopology().getBuildingId(raid.targetCellX(), raid.targetCellY()));
             var survey = BriefingSurvey.capture(sim);
-            assertTrue(survey.markers().stream().anyMatch(m -> m.label().equals("1 / SEIZE")
+            // The briefing survey names the shared objective picture's markers: the archive and the landing zone to return to.
+            assertTrue(survey.markers().stream().anyMatch(m -> m.label().equals(raid.targetName())
                     && m.x() == raid.targetCellX() && m.y() == raid.targetCellY()));
-            assertTrue(survey.markers().stream().anyMatch(m -> m.label().equals("2 / RETURN")
+            assertTrue(survey.markers().stream().anyMatch(m -> m.label().equals("Landing zone")
                     && m.x() == raid.egressCellX() && m.y() == raid.egressCellY()));
             var map = new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080).render(sim,
                     "ASHARU / HUD PHASE FIXTURE / tick-zero observer map; GL bitmap world labels omitted");

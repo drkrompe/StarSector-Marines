@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.command.ConquestCommand;
 import com.dillon.starsectormarines.battle.command.ConquestCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.ConquestTrackLayout;
 import com.dillon.starsectormarines.battle.command.DefenceStructureFact;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.scene.BehaviorScene;
 import com.dillon.starsectormarines.battle.scene.FrameSink;
@@ -37,6 +38,7 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
@@ -119,7 +121,8 @@ public final class BatteryFortScene implements BehaviorScene {
     /** The stamped terrain and where the fort stands in it. */
     private record FortSceneWorld(NavigationGrid grid, CellTopology topology,
                                   List<com.dillon.starsectormarines.battle.turret.DefensePost> posts,
-                                  com.dillon.starsectormarines.battle.world.gen.fortress.CompoundLayout.Placement at) {
+                                  List<Doodad> doodads,
+                  com.dillon.starsectormarines.battle.world.gen.fortress.CompoundLayout.Placement at) {
         int[] cell(int lx, int ly) {
             return at.cell(lx, ly);
         }
@@ -141,7 +144,7 @@ public final class BatteryFortScene implements BehaviorScene {
                 new GroundDefences(0, false).withForts(FortKind.BATTERY_FORT, 1)));
         FortStage stage = new FortStage();
         stage.run(ctx);
-        return new FortSceneWorld(grid, topology, List.copyOf(ctx.defensePosts), stage.placed().get(0).placement());
+        return new FortSceneWorld(grid, topology, List.copyOf(ctx.defensePosts), List.copyOf(ctx.doodads), stage.placed().get(0).placement());
     }
 
     private Run playOne(String loop, FrameSink frames) throws Exception {
@@ -149,7 +152,7 @@ public final class BatteryFortScene implements BehaviorScene {
         boolean crewLoop = loop.equals("commander-skips-crew");
         boolean commander = loop.equals("commander-takes-bunker") || crewLoop;
         boolean assault = loop.equals("squad-takes-bunker") || commander;
-        SceneBuilder builder = SceneBuilder.over(terrain.grid(), terrain.topology()).posts(terrain.posts())
+        SceneBuilder builder = SceneBuilder.over(terrain.grid(), terrain.topology()).posts(terrain.posts()).doodads(terrain.doodads())
                 .missionCompletion(false);
         int[] start = terrain.cell(BatteryFort.OX - 8, BatteryFort.OY + 17);
         if (commander) {
@@ -158,7 +161,17 @@ public final class BatteryFortScene implements BehaviorScene {
             FortPlan.Gate gate = FortPlan.of(FortKind.BATTERY_FORT).gates().get(0);
             start = terrain.cell(gate.mouthX() + gate.outX() * COMMANDER_STANDOFF, gate.mouthY() + gate.outY() * COMMANDER_STANDOFF);
         }
-        if (assault) builder.squad("company").faction(Faction.MARINE).size(10).at(start[0], start[1]).primary("weapon.smg").done();
+        if (assault) {
+            var company = builder.squad("company").faction(Faction.MARINE).size(10).at(start[0], start[1]).primary("weapon.smg");
+            if (!commander) {
+                // The player's move order is released on arrival and hands back to the squad's mission; with none the
+                // squad drifts off the bunker before the capture clock runs out. An assault is given the point to take and stay on.
+                int[] core = BatteryFort.coreCentre(FortAspect.FIRE_CONTROL);
+                int[] hold = terrain.cell(core[0] - 2, core[1]);
+                company.assigned(id -> ObjectiveAssignment.attackMove(id, hold[0], hold[1]));
+            }
+            company.done();
+        }
         if (crewLoop) {
             // A works crew relieving a captured shed, standing nearer the fort than the company: the nearest squad to the
             // bunker, and one the dispatcher does not run while the work holds it.
