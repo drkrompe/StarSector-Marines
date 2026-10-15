@@ -1,0 +1,62 @@
+{
+  "passed": true,
+  "movie": "review/jangala-painted-window-test.mp4",
+  "full_decode": "FFmpeg -xerror completed with exit 0",
+  "resolution": [
+    1920,
+    1080
+  ],
+  "fps": 24,
+  "decoded_frames": 96,
+  "duration_seconds": 4,
+  "audio": false,
+  "codec": "h264",
+  "pixel_format": "yuv420p",
+  "movie_bytes": 1536429,
+  "movie_sha256": "de402fe1fa5150a174d8664626e385c5b2e983f97acdc58d04d4128f0fb71f8b",
+  "unique_source_frames": 96,
+  "adjacent_mean_absolute_pixel_change_0_to_255": {
+    "min": 1.447920685442387,
+    "max": 3.1786926118827163,
+    "mean": 2.109964803985272
+  },
+  "assets": {
+    "cabin-painted-v1.png": {
+      "size": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "bytes": 2125767,
+      "sha256": "7fba60c3a153f6702486d2ebc8274d8ecf9425b4aa191829f852171173279d7b"
+    },
+    "cabin-painted-v2.png": {
+      "size": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "bytes": 2248759,
+      "sha256": "6fb1dca9058f47613528d707fc05c74a562425391e98711f0121ca09dfd4157a"
+    },
+    "landscape-painted-v1.png": {
+      "size": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "bytes": 2513111,
+      "sha256": "8ecf3f47698c237db0a7078290e69770468afcc4d77d0a7228b73ecbd43da897"
+    },
+    "landscape-painted-v2.png": {
+      "size": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "bytes": 2578064,
+      "sha256": "58972856053cff731faace7010450d9f2227543bc048d67789286d3a472b7014"
+    }
+  },
+  "limits": "Decode, dimensions and uniqueness checks do not establish artistic acceptance."
+}

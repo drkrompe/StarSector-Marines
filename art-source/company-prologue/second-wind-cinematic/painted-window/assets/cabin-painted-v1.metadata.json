@@ -1,0 +1,12 @@
+{
+  "mode": "built-in image_gen",
+  "relative_path_base": ". (this metadata directory)",
+  "intent": "style-transfer edit",
+  "raw_output": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-a8b3c074-8058-4733-b073-fb1d1431982d.png",
+  "edit_target": null,
+  "historical_guide": "Intermediate 26mm grey-cabin guide with landscape v1; overwritten during experiments. This v1 output is retained as a style reference for v2, whose exact input guide is retained separately.",
+  "actual_resolution": [1672, 941],
+  "material_reference": "../../../cargo-billets.master.png",
+  "prompt": "../prompts/cabin-v1.txt",
+  "retained_pixels": "Unmodified tool output; projected only onto the cabin/ship surfaces."
+}

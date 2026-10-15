@@ -1,0 +1,20 @@
+{
+  "tool": "built-in image_gen",
+  "relative_path_base": ".. (painted-window directory)",
+  "intent": "style-transfer edit",
+  "source_image": "guides/landscape-guide.png",
+  "prompt": "prompts/landscape-v1.txt",
+  "output": "assets/landscape-painted-v1.png",
+  "generated_source": "C:/Users/Dillon/.codex/generated_images/01a14104-8645-7910-b951-161f69f20438/exec-8314b8db-3388-4e29-9dc2-7051c99f9608.png",
+  "requested_dimensions": [
+    1920,
+    1080
+  ],
+  "actual_dimensions": [
+    1672,
+    941
+  ],
+  "mode": "RGB",
+  "pixel_modifications": false,
+  "review": "Visibly painterly broad canopy, subdued olive/teal and slate-blue river; diagonal river and low ridge arrangement broadly retained. River banks are organically reshaped; projection alignment requires scene review. No people, structures, window frame or orbital imagery."
+}

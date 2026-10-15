@@ -1,0 +1,17 @@
+{
+  "tool": "image_gen.imagegen",
+  "relative_path_base": ". (this metadata directory)",
+  "mode": "edit",
+  "raw_source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-f4fbf07d-2882-422e-8448-3d366992c05f.png",
+  "inputs": [
+    "../guides/cabin-paint-guide-v2.png",
+    "cabin-painted-v1.png"
+  ],
+  "prompt": "../prompts/cabin-v2.txt",
+  "transparent_background": false,
+  "actual_resolution": [
+    1672,
+    941
+  ],
+  "retained_unchanged": true
+}
