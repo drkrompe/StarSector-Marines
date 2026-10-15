@@ -1,10 +1,10 @@
-# Console bank prototype
+# Modular console banks
 
 Six one-cell modules: two straight variants, an inside corner, an outside
 corner and two end caps. Every exported frame is 128x128 with its complete
 cell canvas. The operator side belongs to the authored stroke; placement
-rotation belongs to the layout. This kit is registered for rendering and
-authoring but no production room fitting selects it yet.
+rotation belongs to the layout. The room editor, ship bridge and ground
+command-center fitting share this kit and its path resolver.
 
 ## Retained production inputs
 
@@ -40,7 +40,7 @@ In a session worktree, with JAVA_HOME set as in CLAUDE.md:
 & "$env:JAVA_HOME/bin/java.exe" src/test/java/com/dillon/starsectormarines/tools/tilesetauthoring/ConsoleBankTemplate.java art-source/templates/console-bank.png
 & "$env:JAVA_HOME/bin/java.exe" src/test/java/com/dillon/starsectormarines/tools/tilesetauthoring/ConsoleBankTemplate.java art-source/templates/console-bank-connected.png connected
 '{"name":"console-bank"}' | .\tools\authoring.cmd tileset_export -
-.\gradlew.bat createSnapshots '-Psnapshot=console-banks'
+.\gradlew.bat createSnapshots '-Psnapshot=console-banks,console-rooms,console-editor'
 .\gradlew.bat :test --tests '*ConsoleBankLayoutTest' --tests '*ProjectTilesetSeedsTest'
 ```
 
@@ -59,7 +59,30 @@ detail views are 64px/cell and small views are 24px/cell. The second board
 overlays the placement grid. Retained review copies are under
 `../console-bank/review/`.
 
-The prototype proves cell composition, working-side selection and visual
-registration. Outside corners have a slightly wider housing than the straight
-sections. This is not a room-editor brush, a production room fitting, combat
-acceptance or a live OpenGL capture.
+## Room placement
+
+In Rooms, open a room and advance to **The fixtures**. Choose **Connected
+console bank**, click or drag along rows and columns, and click each corner.
+Choose the operator side and open ends or a closed island, then **Place bank**.
+For a loop, stop beside the first cell; do not repeat it. **Clear path** cancels
+the proposal. In **Single fixture / erase**, clicking any bank cell removes the
+whole bank and its associated work points. Compare the hull before keeping it.
+
+Banks are saved as paths in room JSON and replay through the ordinary room
+fitting guards. Placement preserves reserved circulation and existing reachable
+work positions. Closed islands claim their service core so it cannot become
+isolated standable floor. The kit itself creates no crew duties.
+
+`ConsoleBankLayout.resolveWorld` handles Y-up room/map coordinates; module
+image turns are converted to normalized placement turns, including mirrored
+rooms. The ship keeps its nine watch positions and hatch sentry. Ground command
+rooms use short wall-backed runs with two clear operator rows and real gaps at
+openings. Large command chambers use the shared tactical plot. Small civilian
+stamps and generic narrow bridges keep their existing fittings.
+
+The `console-rooms` suite checks and renders a generated ship and four command
+building footprints/frontages. `console-editor` drives the actual fixture
+controls and grid events. Retained review images are under
+`../console-bank/review/`. These are production Java2D renderer and Swing
+captures, not live OpenGL evidence. Outside corners retain a slightly wider
+housing than the straight sections.

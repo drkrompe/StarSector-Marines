@@ -162,3 +162,6 @@ com.dillon.starsectormarines.battle.fort.RenderParitySnapshotSuite
 com.dillon.starsectormarines.battle.fort.FortEarthworksSnapshotSuite
 com.dillon.starsectormarines.battle.combat.SmallArmsWearSceneSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.ConsoleBankSnapshotSuite
+
+com.dillon.starsectormarines.battle.world.gen.bsp.fill.ConsoleRoomSnapshotSuite
+com.dillon.starsectormarines.tools.roomauthoring.ConsoleBankEditorSnapshotSuite
