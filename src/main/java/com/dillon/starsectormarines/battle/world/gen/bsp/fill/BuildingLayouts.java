@@ -491,8 +491,10 @@ final class BuildingLayouts {
 
         stampIndustrialProductionLine(grid, topology, partition,
                 bl, bt, br, bb, new DoodadDef[]{machine, tank}, doodads);
-        stampPurposeFixture(grid, topology, bl, bt, br, bb,
-                RoomPurpose.CONTROL_ROOM, console, doodads, rng, true);
+        if (stampPurposeConsoleBanks(grid, topology, bl, bt, br, bb, RoomPurpose.CONTROL_ROOM, doodads) == 0)
+            stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                    RoomPurpose.CONTROL_ROOM, console, doodads, rng, true);
+        else preservePlacementDraw(topology, bl, bt, br, bb, RoomPurpose.CONTROL_ROOM, rng);
         stampPurposeFixture(grid, topology, bl, bt, br, bb,
                 RoomPurpose.PARTS_CAGE, parts, doodads, rng, true);
         stampPurposeFixture(grid, topology, bl, bt, br, bb,
@@ -667,6 +669,7 @@ final class BuildingLayouts {
                 purposeFixtureBudget(topology, bl, bt, br, bb,
                         RoomPurpose.SERVER_ROOM, 3, 6, 4), 2, false, true);
         preservePlacementDraw(topology, bl, bt, br, bb, RoomPurpose.SERVER_ROOM, rng);
+        stampPurposeConsoleBanks(grid, topology, bl, bt, br, bb, RoomPurpose.SERVER_ROOM, doodads);
     }
 
     /**
@@ -693,10 +696,14 @@ final class BuildingLayouts {
 
         stampPurposeFixture(grid, topology, bl, bt, br, bb,
                 RoomPurpose.MEDICAL_RECEPTION, receptionDesk, doodads, rng, true);
-        stampPurposeFixture(grid, topology, bl, bt, br, bb,
-                RoomPurpose.TRIAGE, triageStation, doodads, rng, true);
-        stampPurposeFixture(grid, topology, bl, bt, br, bb,
-                RoomPurpose.TREATMENT_ROOM, treatmentConsole, doodads, rng, false);
+        if (stampPurposeConsoleBanks(grid, topology, bl, bt, br, bb, RoomPurpose.TRIAGE, doodads) == 0)
+            stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                    RoomPurpose.TRIAGE, triageStation, doodads, rng, true);
+        else preservePlacementDraw(topology, bl, bt, br, bb, RoomPurpose.TRIAGE, rng);
+        if (stampPurposeConsoleBanks(grid, topology, bl, bt, br, bb, RoomPurpose.TREATMENT_ROOM, doodads) == 0)
+            stampPurposeFixture(grid, topology, bl, bt, br, bb,
+                    RoomPurpose.TREATMENT_ROOM, treatmentConsole, doodads, rng, false);
+        else preservePlacementDraw(topology, bl, bt, br, bb, RoomPurpose.TREATMENT_ROOM, rng);
         stampOneOrientedFixturePerPurposeRoom(grid, topology, bl, bt, br, bb,
                 RoomPurpose.PATIENT_WARD, beds, doodads, rng, true);
         stampPurposeFixture(grid, topology, bl, bt, br, bb,
@@ -1321,11 +1328,11 @@ final class BuildingLayouts {
     }
 
     /** Short complete banks use actual supporting walls, leaving two clear operator rows. */
-    private static void stampPurposeConsoleBanks(NavigationGrid grid, CellTopology topology,
+    private static int stampPurposeConsoleBanks(NavigationGrid grid, CellTopology topology,
             int bl, int bt, int br, int bb, RoomPurpose purpose, List<Doodad> doodads) {
         DoodadDef probe = TileRegistry.installed().doodad("console-bank.straight");
         int[] bounds = purposeBounds(topology, bl, bt, br, bb, purpose);
-        if (probe == null || bounds == null) return;
+        if (probe == null || bounds == null) return 0;
         int placed = 0;
         List<ConsoleBankLayout.Cell> operatorCells = new ArrayList<>();
         for (WallSide side : WallSide.values()) {
@@ -1339,18 +1346,19 @@ final class BuildingLayouts {
                 if (clear) for (int depth = 1; depth <= 2; depth++) {
                     int x = cell[0] + inwardX * depth, y = cell[1] + inwardY * depth;
                     if (!grid.inBounds(x, y) || topology.getRoomPurpose(x, y) != purpose
-                            || !canPlaceDoodad(grid, x, y, probe, doodads)) clear = false;
+                            || !grid.isWalkable(x, y) || topology.isFixture(x, y)
+                            || isOccupied(x, y, doodads)) clear = false;
                 }
                 boolean adjacent = run.isEmpty() || cell != null &&
                         Math.abs(run.get(run.size() - 1).x() - cell[0])
                         + Math.abs(run.get(run.size() - 1).y() - cell[1]) == 1;
                 if (!clear || !adjacent || run.size() == 5) {
-                    if (run.size() >= 3 && stampConsoleRun(grid, topology, run,
+                    if (run.size() >= 2 && BuildingConsoleBanks.place(grid, topology, run,
                             side == WallSide.N || side == WallSide.W, doodads)) {
                         for (ConsoleBankLayout.Cell occupied : run) for (int depth = 1; depth <= 2; depth++)
                             operatorCells.add(new ConsoleBankLayout.Cell(occupied.x() + inwardX * depth,
                                     occupied.y() + inwardY * depth));
-                        if (++placed == 2) return;
+                        if (++placed == 2) return placed;
                         clear = false; // Leave a gap between separately capped banks.
                     }
                     run.clear();
@@ -1358,24 +1366,7 @@ final class BuildingLayouts {
                 if (clear) run.add(new ConsoleBankLayout.Cell(cell[0], cell[1]));
             }
         }
-    }
-
-    private static boolean stampConsoleRun(NavigationGrid grid, CellTopology topology,
-            List<ConsoleBankLayout.Cell> cells, boolean operatorRight, List<Doodad> doodads) {
-        List<ConsoleBankLayout.Piece> pieces = ConsoleBankLayout.resolveWorld(cells, false, operatorRight);
-        for (ConsoleBankLayout.Piece piece : pieces)
-            if (TileRegistry.installed().doodad(piece.id()) == null) return false;
-        ConsoleBankLayout.Cell first = cells.get(0), last = cells.get(cells.size() - 1);
-        if (PlacementGuards.wouldStrandGround(grid, Math.min(first.x(), last.x()), Math.min(first.y(), last.y()),
-                Math.abs(last.x() - first.x()) + 1, Math.abs(last.y() - first.y()) + 1)) return false;
-        for (ConsoleBankLayout.Piece piece : pieces) {
-            int x = piece.cell().x(), y = piece.cell().y();
-            grid.setWalkable(x, y, false);
-            grid.setSeeThrough(x, y, true);
-            topology.setFixture(x, y, true);
-            doodads.add(new Doodad(x, y, TileRegistry.installed().doodad(piece.id()), -piece.clockwiseTurns()));
-        }
-        return true;
+        return placed;
     }
 
     /**

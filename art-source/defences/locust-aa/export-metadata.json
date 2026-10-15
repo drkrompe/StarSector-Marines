@@ -21,14 +21,14 @@
     "layerSize": 512,
     "pivot": [
       256,
-      256
+      242
     ],
     "alphaBounds": [
+      37,
       44,
-      52,
-      469,
-      459
+      476,
+      457
     ],
-    "transparentPixels": 91363
+    "transparentPixels": 86331
   }
 ]

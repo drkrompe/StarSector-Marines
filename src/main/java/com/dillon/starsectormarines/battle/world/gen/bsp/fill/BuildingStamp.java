@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.fit.ConsoleBankLayout.Cell;
 import com.dillon.starsectormarines.battle.world.model.BuildingKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -67,7 +68,7 @@ public enum BuildingStamp {
             "###s#####+###"),
     T_WORKSHOP("T workshop", BuildingKind.INDUSTRIAL, BuildingStyle.WORKSHOP,
             "##n#######n##",
-            "#c.c.#..d..c#",
+            "#c.c.#.....c#",
             "+....+......+",
             "+....#......+",
             "#....#......#",
@@ -105,12 +106,12 @@ public enum BuildingStamp {
             "w......#.,,,,,,,,,.#",
             "#......+.,,,,,,,,,.e",
             "#......#.,,,,,,,,,.#",
-            "#d.....#.,,,,,,,,,c#",
+            "#......#.,,,,,,,,,c#",
             "############++######"),
     FREIGHT_T("Freight transfer workshop", BuildingKind.INDUSTRIAL, BuildingStyle.WORKSHOP, false,
             "      ###n###      ",
             "      #,,,,,#      ",
-            "      #d,,,c#      ",
+            "      #,,,,c#      ",
             "      #,,,,,#      ",
             "      #,,,,,e      ",
             "      #,,,,,#      ",
@@ -298,12 +299,42 @@ public enum BuildingStamp {
                 }
             }
         }
+        placeConsoleBank(ctx, left, bottom, turns);
         if (interior == null || entrance == null) throw new IllegalStateException("stamp has no entrance");
+        // Furnishing may occupy the first authored floor cell; retain a real interior anchor.
+        if (!ctx.grid.isWalkable(interior[0], interior[1])) {
+            outer: for (int y = 0; y < height; y++) for (int x = 0; x < width; x++) {
+                if (cell(x, y) != '.' && cell(x, y) != ',') continue;
+                int[] p = posed(x, y, turns);
+                if (ctx.grid.isWalkable(left + p[0], bottom + p[1])) {
+                    interior = new int[]{left + p[0], bottom + p[1]};
+                    break outer;
+                }
+            }
+        }
         PointOfInterest.Kind poiKind = kind == BuildingKind.INDUSTRIAL
                 ? PointOfInterest.Kind.DEPOT : PointOfInterest.Kind.RESIDENTIAL;
         ctx.pois.add(new PointOfInterest(poiKind, left, bottom,
                 left + width(turns) - 1, bottom + height(turns) - 1,
                 entrance[0], entrance[1], interior[0], interior[1]));
+    }
+
+    /** Authored operations desks turn with their whole building, including the operator side. */
+    private void placeConsoleBank(GenContext ctx, int left, int bottom, int turns) {
+        List<Cell> path = switch (this) {
+            case T_WORKSHOP -> List.of(new Cell(7, 8), new Cell(7, 9), new Cell(8, 9), new Cell(9, 9));
+            case FREIGHT_L -> List.of(new Cell(1, 3), new Cell(1, 2), new Cell(1, 1),
+                    new Cell(2, 1), new Cell(3, 1), new Cell(4, 1));
+            case FREIGHT_T -> List.of(new Cell(7, 14), new Cell(7, 15), new Cell(7, 16),
+                    new Cell(8, 16), new Cell(9, 16));
+            default -> List.of();
+        };
+        if (path.isEmpty()) return;
+        List<Cell> world = path.stream().map(cell -> {
+            int[] p = posed(cell.x(), cell.y(), turns);
+            return new Cell(left + p[0], bottom + p[1]);
+        }).toList();
+        BuildingConsoleBanks.place(ctx.grid, ctx.topology, world, this != FREIGHT_L, ctx.doodads);
     }
 
     private static int wallBit(Direction side) {
