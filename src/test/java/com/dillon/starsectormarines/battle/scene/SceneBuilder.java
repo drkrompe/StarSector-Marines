@@ -288,6 +288,7 @@ public final class SceneBuilder {
         private int specialSeats;
         private int specialAmmo;
         private boolean stationary;
+        private Consumer<EntitySpec> each = spec -> { };
         private float health = -1f;
         private float armorCapacity;
         private float armorRating;
@@ -434,6 +435,15 @@ public final class SceneBuilder {
             return this;
         }
 
+        /**
+         * Handed every member's spec after its kit and squad are seeded and before it spawns: for what the
+         * builder does not model, such as a garrison's role and home cell.
+         */
+        public SquadSpec each(Consumer<EntitySpec> customiser) {
+            this.each = Objects.requireNonNull(customiser, "customiser");
+            return this;
+        }
+
         /** Immobile: a fixed emplacement, or a body that must stay where it was put. */
         public SquadSpec stationary() {
             this.stationary = true;
@@ -503,6 +513,7 @@ public final class SceneBuilder {
                 if (stationary) spec.moveSpeed(0f);
                 if (health > 0f) spec.health(health);
                 if (armorCapacity > 0f) spec.armor(armorCapacity, armorRating);
+                each.accept(spec);
                 spawned[i] = sim.spawn(spec);
                 if (mechVariant != null) {
                     sim.world().attachMechLoadout(spawned[i],
