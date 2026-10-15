@@ -33,6 +33,24 @@ public final class HullKinematicsResolver {
     private static final Map<String, AirHandling> CACHE_BY_HULL =
             new ConcurrentHashMap<>();
 
+    /**
+     * Where a hull's raw maneuver numbers come from when there is no loaded game to ask: {@code {maxSpeed, acceleration,
+     * deceleration, maxTurnRate}} in the units of {@code ship_data.csv}, or {@code null} for a hull it does not know.
+     * Headless code installs one so that a Dagger and a Talon do not both fly as the generic fallback fighter; the game
+     * never does.
+     */
+    public interface EngineSource {
+        float[] engine(String hullId);
+    }
+
+    private static volatile EngineSource engineSource;
+
+    /** Installs (or, with {@code null}, removes) the headless source of maneuver numbers, forgetting what was resolved without it. */
+    public static void useEngineSource(EngineSource source) {
+        engineSource = source;
+        CACHE_BY_HULL.clear();
+    }
+
     private HullKinematicsResolver() {}
 
     /**
@@ -47,6 +65,11 @@ public final class HullKinematicsResolver {
     }
 
     private static AirHandling doResolve(String hullId) {
+        EngineSource headless = engineSource;
+        if (headless != null) {
+            float[] e = headless.engine(hullId);
+            if (e != null && e.length >= 4 && e[0] > 0f && e[3] > 0f) return HullKinematics.fromSpec(e[0], e[1], e[2], e[3]);
+        }
         try {
             ShipHullSpecAPI spec = Global.getSettings().getHullSpec(hullId);
             ShipHullSpecAPI.EngineSpecAPI eng = spec.getEngineSpec();
