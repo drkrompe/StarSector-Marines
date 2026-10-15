@@ -4,7 +4,7 @@ Status: ACTIVE — modeled ground direct fire is shipped; one manual feel pass r
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — cover hides body parts; a hit that lands on an exposed part takes no cover cut.
+Updated: 2026-10-15 — cover hides body parts, including a prop crossed in the lane; a hit on an exposed part takes no cover cut.
 
 Ballistics makes a direct shot a committed physical event instead of an
 accuracy result applied at the muzzle. It owns contact along the predicted
@@ -31,7 +31,8 @@ projectile.
   silhouette. Machines, structures and creatures have none; they are one
   whole-body contact.
 - A **cover profile** is what a cover feature hides of a person, per body
-  part, from a shooter at full distance.
+  part, from a shooter at full distance. There is one per kind of cover —
+  edge, a trench's occupant, and a prop crossed in the lane — and per level.
 - **Obscuration** is matter on the path that degrades the sight picture
   without being a contact. Smoke is the only obscurant today. It is measured
   as a depth in cells and never appears among contacts.
@@ -194,11 +195,22 @@ catch by level, then the same cut on what lands — and a payload with no part,
 such as an area burst, a strafe or unattributed damage, still has its damage
 cut by the cover where it lands.
 
-Edge cover catches and friendly incidental contacts are zero within two cells
-of the muzzle, then use a smoothstep ramp to full strength at eight cells.
-Walkable features crossed in the lane catch at 15%, 30% or 45% by level once
-fully downrange, whatever part the round was flying toward. This does not
-weaken walls, hostile incidental contacts, or the intended target.
+Edge cover catches, crossed-prop catches and friendly incidental contacts are
+zero within two cells of the muzzle, then use a smoothstep ramp to full
+strength at eight cells. This does not weaken walls, hostile incidental
+contacts, or the intended target.
+
+**A prop crossed in the lane catches by the part the round is headed for.** A
+walkable feature the round passes over short of an intended person meets it
+with the crossed profile's coverage of the part the committed aim landed on,
+so a low crate catches leg and torso shots and lets head shots pass. The
+crossed profile is low and is set so each level stops as many rounds as the
+flat 15%, 30% or 45% it replaced; only which rounds it stops changed. A round
+headed for no part — an authored miss, point aim, a target without parts, or a
+penetrating round already through its man — keeps the flat catch by level. The
+part is read from where the aim lands on the man, not from the round's drawn
+height at the prop, whose authored catch-height still decides which rounds the
+prop can meet at all; deciding the part spends no roll.
 
 A trench is a hole, not an obstacle. It never catches a round crossing it and
 lends nothing to the cells beside it; it covers only the man standing in it,

@@ -2,7 +2,7 @@
 
 Status: ACTIVE — exposure shipped; part consequences, area exposure and per-part armour remain.
 
-Updated: 2026-10-15 — first slice shipped; parts are read from where the round meets the body.
+Updated: 2026-10-15 — a prop crossed in the lane now catches by the part the round is headed for.
 
 Written: 2026-10-15
 
@@ -49,11 +49,16 @@ and shoulders, not because of a hidden percentage. An incidental victim — a ma
 a stray round crosses — is struck on whatever part is at the round's height
 there.
 
-The part is read from the round's height relative to the aim pattern, which is
-tight around the point of aim. Making the drawn impact and a crossed prop's
-catch band follow the part as well — a crate in the lane catching leg shots and
-passing head shots — needs the aim pattern to span the whole silhouette, and is
-left to the profiles-from-geometry step below.
+A prop crossed in the lane short of the man catches by the same part: a round
+headed for his legs meets a crate's crossed profile for legs, so a low crate in
+the lane catches leg and torso shots and lets head shots pass, while stopping as
+many rounds in all as its flat chance did. The part is the one the aim landed
+on, not one read from the round's drawn height at the prop: that height is
+tight around the point of aim, so the drawn impact and the prop's own
+catch-height band do not yet follow the part. Making them follow needs the aim
+pattern to span the whole silhouette, and is left to the profiles-from-geometry
+step below. A round headed for no part — a miss, point aim, a partless target —
+meets a crossed prop at the flat chance by level.
 
 **Cover is counted once.** A round that reaches an exposed part has beaten the
 cover; it does not also have its damage cut. The flat damage reduction remains
