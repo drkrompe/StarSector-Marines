@@ -16,6 +16,12 @@ prop damage. One blast spends damage once per machine, irrespective of area.
 The canonical operator face is south (image bottom). Fitting reserves two
 cells in front and a two-cell cross aisle, rotated with the complete bay.
 
+Production lines place raw cartons, a conveyor, the machine, a second conveyor
+and finished cases together, with two clear rows on each working side. The
+one-cell conveyor has medium cover, 0.5-cell half-height, and passes sight;
+it has matching damaged/destroyed states. Its horizontal rails meet across
+tile edges. Factory receiving also has a separate 2–3-cell cargo opening.
+
 ## Retained production inputs
 
 - Geometry producer: `../templates/factory-machines-guide.ps1`; output beside it.
@@ -23,6 +29,12 @@ cells in front and a two-cell cross aisle, rotated with the complete bay.
 - Accepted native-alpha output: `../tilesets/factory-machines.raw.png` (1254x1254).
 - Full placement cuts and export metadata: `../tilesets/factory-machines.tileset-authoring.json`.
 - Normal exporter: `tools/authoring.cmd tileset_export -` with `{"name":"factory-machines"}`.
+- Conveyor guide: `../templates/factory-conveyor-guide.ps1` and its PNG;
+  prompt: `conveyor.prompt.txt`; raw and authoring document:
+  `../tilesets/factory-conveyors.*`. Export with `{"name":"factory-conveyors"}`.
+  The accepted output is 2172x724, with three 724-square placement frames.
+  The intact cut starts four pixels in, at the actual solid rail edge, to avoid
+  a transparent seam; vertical placement padding and native alpha are retained.
 
 The guide has three machine columns and intact/damaged/destroyed rows. ImageGen
 changed output size and horizontal spacing, so cuts use inspected output bounds,

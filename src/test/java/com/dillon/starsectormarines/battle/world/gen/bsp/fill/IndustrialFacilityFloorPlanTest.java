@@ -46,9 +46,9 @@ class IndustrialFacilityFloorPlanTest {
 
             assertNotNull(poi, frontage.toString());
             assertEquals(PointOfInterest.Kind.DEPOT, poi.kind);
-            assertEquals(2, perimeterDoorways(grid, leaf), frontage.toString());
-            int loadingDoor = doorwayAlong(grid, leaf, frontage);
-            int serviceDoor = doorwayAlong(grid, leaf, frontage.opposite());
+            assertTrue(perimeterDoorways(grid, leaf) >= 4, "personnel entrances plus a cargo bay " + frontage);
+            int loadingDoor = doorwayAlong(grid, topology, leaf, frontage);
+            int serviceDoor = doorwayAlong(grid, topology, leaf, frontage.opposite());
             assertTrue(loadingDoor >= 0, "loading entrance " + frontage);
             assertEquals(loadingDoor, serviceDoor, "doors align on service spine " + frontage);
             assertEquals(RoomPurpose.INDUSTRIAL_SPINE,
@@ -154,7 +154,7 @@ class IndustrialFacilityFloorPlanTest {
         return count;
     }
 
-    private static int doorwayAlong(NavigationGrid grid, BlockLeaf leaf,
+    private static int doorwayAlong(NavigationGrid grid, CellTopology topology, BlockLeaf leaf,
                                     BuildingPlacement.Side side) {
         int min = side == BuildingPlacement.Side.TOP || side == BuildingPlacement.Side.BOTTOM
                 ? leaf.left + 1 : leaf.top + 1;
@@ -165,7 +165,7 @@ class IndustrialFacilityFloorPlanTest {
                     : side == BuildingPlacement.Side.RIGHT ? leaf.right : along;
             int y = side == BuildingPlacement.Side.TOP ? leaf.top
                     : side == BuildingPlacement.Side.BOTTOM ? leaf.bottom : along;
-            if (grid.isDoorway(x, y)) return along;
+            if (grid.isDoorway(x, y) && inwardPurpose(topology, leaf, side, along) == RoomPurpose.INDUSTRIAL_SPINE) return along;
         }
         return -1;
     }
@@ -207,6 +207,16 @@ class IndustrialFacilityFloorPlanTest {
                     == RoomPurpose.PRODUCTION_FLOOR && isMachine(doodad)) machines.add(doodad);
         }
         for (Doodad machine : machines) {
+            if (machine.definitionId().startsWith("factory-machines.")) {
+                int[] face = new int[][]{{0,-1},{1,0},{0,1},{-1,0}}[machine.quarterTurns];
+                for (int y = machine.cellY; y < machine.cellY + machine.footprintCellsY; y++)
+                    for (int x = machine.cellX; x < machine.cellX + machine.footprintCellsX; x++) {
+                        if (machine.occupiesCell(x + face[0], y + face[1])) continue;
+                        for (int step = 1; step <= 2; step++)
+                            assertTrue(grid.isWalkable(x + face[0]*step, y + face[1]*step), "clear operator face");
+                    }
+                continue;
+            }
             int across = vertical ? machine.cellX : machine.cellY;
             int direction = Integer.compare(spineLow, across);
             if (direction > 0) across += (vertical ? machine.footprintCellsX : machine.footprintCellsY) - 1;
@@ -224,7 +234,8 @@ class IndustrialFacilityFloorPlanTest {
     private static boolean isMachine(Doodad doodad) {
         return "doodad.industrial-machine-tool".equals(doodad.definitionId())
                 || "doodad.industrial-fluid-tank".equals(doodad.definitionId())
-                || doodad.definitionId().startsWith("factory-machines.");
+                || (doodad.definitionId().startsWith("factory-machines.")
+                    && !doodad.definitionId().startsWith("factory-machines.conveyor"));
     }
 
     private static int purposeComponents(CellTopology topology, BlockLeaf leaf,

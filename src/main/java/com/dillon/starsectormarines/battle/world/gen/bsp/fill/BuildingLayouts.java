@@ -495,23 +495,33 @@ final class BuildingLayouts {
                     RoomPurpose.CONTROL_ROOM, console, doodads, rng, true);
         else preservePlacementDraw(topology, bl, bt, br, bb, RoomPurpose.CONTROL_ROOM, rng);
         BuildingWorkGroups storage = new BuildingWorkGroups(grid, topology, doodads);
+        storage.reserveCargoApproaches(bl, bt, br, bb);
         int[] floor = purposeBounds(topology, bl, bt, br, bb, RoomPurpose.PRODUCTION_FLOOR);
         boolean vertical = partition.orient == PartitionLayout.Orient.VERTICAL;
         boolean lowSide = (vertical ? floor[2] : floor[3]) < partition.preferredPerimeterDoorAlong;
         int machineTurn = vertical ? (lowSide ? 1 : 3) : (lowSide ? 2 : 0);
         int machineCount = storage.fit(bl, bt, br, bb, RoomPurpose.PRODUCTION_FLOOR,
-                BuildingWorkGroups.machine("factory-machines.fabricator"), 1, machineTurn);
+                BuildingWorkGroups.productionLine(true), 1, machineTurn);
         machineCount += storage.fit(bl, bt, br, bb, RoomPurpose.PRODUCTION_FLOOR,
-                BuildingWorkGroups.machine("factory-machines.assembly"), 1, machineTurn);
+                BuildingWorkGroups.productionLine(false),
+                purposeFixtureBudget(topology, bl, bt, br, bb, RoomPurpose.PRODUCTION_FLOOR, 1, 3, 120), machineTurn);
+        if (machineCount == 0) {
+            machineCount += storage.fit(bl, bt, br, bb, RoomPurpose.PRODUCTION_FLOOR,
+                    BuildingWorkGroups.productionLine(false), 1, (machineTurn + 1) % 4);
+        }
+        if (machineCount == 0) {
+            machineCount += storage.fit(bl, bt, br, bb, RoomPurpose.PRODUCTION_FLOOR,
+                    BuildingWorkGroups.machine("factory-machines.fabricator"), 1, machineTurn);
+            machineCount += storage.fit(bl, bt, br, bb, RoomPurpose.PRODUCTION_FLOOR,
+                    BuildingWorkGroups.machine("factory-machines.assembly"), 1, machineTurn);
+        }
         machineCount += storage.fit(bl, bt, br, bb, RoomPurpose.PRODUCTION_FLOOR,
                 BuildingWorkGroups.machine("factory-machines.coolant"), 1, machineTurn);
-        machineCount += storage.fit(bl, bt, br, bb, RoomPurpose.PRODUCTION_FLOOR,
-                BuildingWorkGroups.machine("factory-machines.assembly"),
-                purposeFixtureBudget(topology, bl, bt, br, bb, RoomPurpose.PRODUCTION_FLOOR, 0, 2, 120), machineTurn);
         if (machineCount == 0) {
             stampIndustrialProductionLine(grid, topology, partition,
                     bl, bt, br, bb, new DoodadDef[]{machine, tank}, doodads);
             storage = new BuildingWorkGroups(grid, topology, doodads);
+            storage.reserveCargoApproaches(bl, bt, br, bb);
         }
         int racks = storage.fit(bl, bt, br, bb, RoomPurpose.PARTS_CAGE,
                 BuildingWorkGroups.stockedRack("cases"), 2);
@@ -534,8 +544,13 @@ final class BuildingLayouts {
             if (banks == 0) storage.fit(bl, bt, br, bb, RoomPurpose.LOADING_BAY,
                     BuildingWorkGroups.pallets(1, "cartons"), 1);
             preservePlacementDraw(topology, bl, bt, br, bb, RoomPurpose.LOADING_BAY, rng);
-        } else stampPurposeFixture(grid, topology, bl, bt, br, bb,
-                RoomPurpose.LOADING_BAY, pallet, doodads, rng, true);
+        } else {
+            // Even the compact fallback must honor the cargo approach reservation.
+            if (pallet != null) storage.fit(bl, bt, br, bb, RoomPurpose.LOADING_BAY,
+                    new BuildingWorkGroups.Group(2, 3,
+                            List.of(new BuildingWorkGroups.Part(pallet.id, 0, 0, true))), 1);
+            preservePlacementDraw(topology, bl, bt, br, bb, RoomPurpose.LOADING_BAY, rng);
+        }
         storage.fit(bl, bt, br, bb, RoomPurpose.PRODUCTION_FLOOR, BuildingWorkGroups.palletIsland(List.of(
                         new ConsoleBankLayout.Cell(0, 0), new ConsoleBankLayout.Cell(1, 0),
                         new ConsoleBankLayout.Cell(0, 1)), "cases"),

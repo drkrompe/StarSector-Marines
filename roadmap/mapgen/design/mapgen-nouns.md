@@ -327,10 +327,18 @@ fit. The two-cell service spine connects opposed entrances independently of
 these working areas; furnishing preserves it and the machine operators' aisles.
 Production equipment has substantial, opaque multi-cell footprints: enclosed
 fabrication cells, roller-bed assembly machines and coolant skids face toward
-the working floor. Complete bays reserve two-cell operator and cross aisles
-before cargo staging. Equipment variety precedes repeats, and smaller floors
-take only what fits. Standing damage retains obstruction; destroyed machines
+the working floor. Production lines group raw-material cartons, infeed rollers,
+a machine, outfeed rollers and finished cases in one accepted arrangement.
+Lines rotate as a whole and repeat along a common axis; their two-cell operating
+and service aisles remain clear before more cargo or coolant equipment is fitted.
+Compact floors try a shallower assembly line before falling back to separate bays.
+Conveyor modules join at their edges and are low, destructible fixtures.
+Standing damage retains obstruction; destroyed machines
 leave low debris and release their whole movement, sight and cover footprint.
+A factory cargo opening leads directly from outside into receiving, separate
+from its personnel entrances. It is three cells wide where the frontage permits,
+with a two-cell minimum, and reserves two interior rows against furnishing.
+The bay is opened before windows and furniture, so neither can close its throat.
 
 A clinic's equipment follows care: reception has charting and waiting seats;
 triage pairs readouts with assessment; treatment owns examination couches,

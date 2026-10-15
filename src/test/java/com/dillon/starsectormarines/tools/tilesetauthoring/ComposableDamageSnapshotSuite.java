@@ -56,6 +56,8 @@ public final class ComposableDamageSnapshotSuite implements SnapshotSuite {
                 f.place("main-stores.tally",2,5,0,turn);f.place("main-stores.packing",9,5,0,turn);
             } else if(family.equals("factory")) {
                 f.place("factory-machines.fabricator",3,12,0,turn);
+                f.place("factory-machines.conveyor",6,13,0,turn);
+                f.place("factory-machines.conveyor",7,13,0,turn);
                 f.place("factory-machines.assembly",10,12,0,turn);
                 f.place("factory-machines.coolant",3,5,0,turn);
                 f.place("main-stores.packing",10,5,0,turn);
@@ -76,7 +78,7 @@ public final class ComposableDamageSnapshotSuite implements SnapshotSuite {
                     throw new IllegalStateException("Missed state: "+d.definitionId());
                 if(state==2)for(int y=d.cellY;y<d.cellY+d.footprintCellsY;y++)for(int x=d.cellX;x<d.cellX+d.footprintCellsX;x++)
                     if(!f.grid.isWalkable(x,y)||f.grid.blocksStructuralLineOfSight(x,y)||f.topology.isFixture(x,y))throw new IllegalStateException("Wreck blocks floor or sight");
-                if(state<2 && d.definitionId().startsWith("factory-machines."))
+                if(state<2 && d.definitionId().startsWith("factory-machines.") && !d.definitionId().startsWith("factory-machines.conveyor"))
                     for(int y=d.cellY;y<d.cellY+d.footprintCellsY;y++)for(int x=d.cellX;x<d.cellX+d.footprintCellsX;x++)
                         if(f.grid.isWalkable(x,y)||f.grid.isSeeThrough(x,y))throw new IllegalStateException("Standing machine lost obstruction");
             }
@@ -109,7 +111,7 @@ public final class ComposableDamageSnapshotSuite implements SnapshotSuite {
             RoomPose pose=new RoomPose(turn,false);int[] a=pose.map(x,y,20,20),b=pose.map(x+w-1,y+h-1,20,20);
             Doodad d=new Doodad(Math.min(a[0],b[0]),Math.min(a[1],b[1]),def,(turn+facing)%4);
             if(d.cover>0)for(int py=d.cellY;py<d.cellY+d.footprintCellsY;py++)for(int px=d.cellX;px<d.cellX+d.footprintCellsX;px++) {
-                grid.setWalkable(px,py,false);grid.setSeeThrough(px,py,!id.startsWith("factory-machines."));topology.setFixture(px,py,true);
+                grid.setWalkable(px,py,false);grid.setSeeThrough(px,py,!id.startsWith("factory-machines.") || id.startsWith("factory-machines.conveyor"));topology.setFixture(px,py,true);
             }
             props.addDoodad(d);
         }

@@ -216,6 +216,8 @@ final class BuildingShellCore {
                 grid, topology, bl, bt, br, bb, rng, config.interiorGround, placement);
         punchPerimeterDoorways(grid, topology, bl, bt, br, bb, layout, placement,
                 rng, config.interiorGround);
+        if (layout.tacticalIndustrial) FactoryLoadingBay.carve(grid, topology, bl, bt, br, bb,
+                placement.frontage, config.interiorGround);
 
         int cx = (bl + br) / 2;
         int cy = (bt + bb) / 2;

@@ -11,6 +11,18 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OpeningTilesTest {
     @Test
+    void cargoRunsSuppressIntermediateFramesOnBothAxes() {
+        for (Direction along : new Direction[]{Direction.N, Direction.E}) {
+            NavigationGrid grid = new NavigationGrid(7, 7);
+            for (int i = 0; i < 3; i++) grid.setDoorway(2 + along.dx * i, 2 + along.dy * i, true);
+            for (int i = 0; i < 3; i++) assertTrue(OpeningTiles.wideDoorway(grid, 2 + along.dx * i, 2 + along.dy * i));
+            grid.setDoorway(6, 6, true);
+            assertFalse(OpeningTiles.wideDoorway(grid, 6, 6));
+            assertFalse(OpeningTiles.wideDoorway(grid, 1, 2));
+        }
+    }
+
+    @Test
     void canonicalEdgesRecoverAllFourOwnerFacings() {
         for (Direction direction : Direction.CARDINALS) {
             NavigationGrid grid = new NavigationGrid(3, 3);

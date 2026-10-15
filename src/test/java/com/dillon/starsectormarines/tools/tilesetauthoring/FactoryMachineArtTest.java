@@ -9,6 +9,22 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.*;
 
 class FactoryMachineArtTest {
+    @Test void conveyorStatesJoinAtTheirRailsAndReleaseCoverWhenWrecked() throws Exception {
+        var registry=TileRegistry.installed();
+        for(String suffix:new String[]{"","-damaged","-destroyed"}) {
+            var d=registry.doodad("factory-machines.conveyor"+suffix);
+            assertNotNull(d); assertEquals(1,d.footprintCellsX); assertEquals(1,d.footprintCellsY);
+            if(suffix.equals("-destroyed")) { assertEquals(0,d.cover.level()); assertEquals(0f,d.ballisticHalfHeight); continue; }
+            var image=ImageIO.read(Path.of("mod").resolve(d.sheetPath).toFile());
+            int joined=0;
+            for(int y=0;y<d.sourceCellPx;y++) {
+                int left=image.getRGB(d.col*d.sourceCellPx,d.row*d.sourceCellPx+y)>>>24;
+                int right=image.getRGB((d.col+1)*d.sourceCellPx-1,d.row*d.sourceCellPx+y)>>>24;
+                if(left>40 && right>40) joined++;
+            }
+            assertTrue(joined>d.sourceCellPx*.35,"feed cannot acquire transparent end gaps");
+        }
+    }
     @Test void substantialMachineArtHasMatchingDamageFramesAndOpenWreckage() throws Exception {
         var registry = TileRegistry.installed();
         for (String name : new String[]{"fabricator", "assembly", "coolant"}) {

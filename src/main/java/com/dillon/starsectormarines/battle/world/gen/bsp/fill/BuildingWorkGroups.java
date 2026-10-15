@@ -84,6 +84,32 @@ final class BuildingWorkGroups {
                 List.of(new Part(id, 0, 2, true, false)));
     }
 
+    /** Raw cartons enter at the left; machined cases leave at the right, with continuous roller feeds. */
+    static Group productionLine(boolean fabrication) {
+        return new Group(9, fabrication ? 7 : 6, List.of(
+                new Part("main-stores.pallet", 0, 2, true),
+                new Part("main-stores.cartons", 0, 2, false),
+                new Part("factory-machines.conveyor", 2, 3, true),
+                new Part(fabrication ? "factory-machines.fabricator" : "factory-machines.assembly", 3, 2, true, false),
+                new Part("factory-machines.conveyor", 6, 3, true),
+                new Part("main-stores.pallet", 7, 2, true),
+                new Part("main-stores.cases", 7, 2, false)));
+    }
+
+    /** Wider perimeter door runs are cargo approaches; furniture cannot consume their two inner rows. */
+    void reserveCargoApproaches(int bl, int bt, int br, int bb) {
+        for (int y = bt; y <= bb; y++) for (int x = bl; x <= br; x++) {
+            if (!grid.isDoorway(x,y)) continue;
+            if (y == bt || y == bb) {
+                if (!grid.isDoorway(x-1,y) && !grid.isDoorway(x+1,y)) continue;
+                for (int step = 1; step <= 2; step++) access.add(new Cell(x, y + (y == bt ? step : -step)));
+            } else if (x == bl || x == br) {
+                if (!grid.isDoorway(x,y-1) && !grid.isDoorway(x,y+1)) continue;
+                for (int step = 1; step <= 2; step++) access.add(new Cell(x + (x == bl ? step : -step), y));
+            }
+        }
+    }
+
     /** Adjacent cabinet modules form a continuous wall bank with a two-cell working aisle. */
     static Group cabinets(int modules) {
         if (modules < 1) throw new IllegalArgumentException("A cabinet bank needs modules");

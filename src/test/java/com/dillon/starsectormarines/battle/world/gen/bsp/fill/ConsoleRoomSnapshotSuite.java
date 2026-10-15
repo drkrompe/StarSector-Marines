@@ -225,12 +225,12 @@ public final class ConsoleRoomSnapshotSuite implements SnapshotSuite {
         MapResult large = building(26, 21, 42, BuildingPlacement.Side.BOTTOM, BuildingIndustrialFiller.CONFIG);
         g.drawImage(renderer.render(large, 42, 30), 30, 135, null);
         text(g, "26 x 21 factory / complete working rooms", 40, 110, 21);
-        text(g, "RECEIVING", 1020, 165, 21);
-        text(g, "Packing bench, seated tally desk and carton pallets", 1020, 205, 19);
+        text(g, "RECEIVING / WIDE CARGO BAY", 1020, 165, 21);
+        text(g, "Three-cell opening with a protected unloading approach", 1020, 205, 18);
         text(g, "PARTS CAGE", 1020, 280, 21);
         text(g, "Stocked racks with protected picking aisles", 1020, 320, 19);
         text(g, "PRODUCTION + CONTROL", 1020, 395, 21);
-        text(g, "Fabrication cells, assembly beds and coolant skids", 1020, 435, 19);
+        text(g, "Raw cartons > conveyor > machine > finished cases", 1020, 435, 19);
         text(g, "Two-cell operator and cross aisles / seated readouts", 1020, 475, 18);
         text(g, "Compact sites keep their smaller support wing", 1020, 555, 20);
         MapResult compact = building(17, 13, 42, BuildingPlacement.Side.BOTTOM, BuildingIndustrialFiller.CONFIG);
@@ -240,15 +240,16 @@ public final class ConsoleRoomSnapshotSuite implements SnapshotSuite {
                 for (long seed : new long[]{41,42}) {
                     MapResult map = building(size[0], size[1], seed, side, BuildingIndustrialFiller.CONFIG);
                     for (String id : new String[]{"main-stores.rack", "main-stores.packing", "main-stores.tally", "main-stores.pallet",
-                            "factory-machines.fabricator", "factory-machines.assembly"})
+                            "factory-machines.fabricator", "factory-machines.conveyor"})
                         if (map.doodads.stream().noneMatch(d -> id.equals(d.definitionId())))
                             throw new IllegalStateException("Factory " + size[0] + "x" + size[1] + " / " + side + " / " + seed + " missing " + id);
+                    verifyCargoBay(map);
                     for (int y = 0; y < map.grid.getHeight(); y++) for (int x = 0; x < map.grid.getWidth(); x++)
                         if (map.topology.getRoomPurpose(x,y) == RoomPurpose.INDUSTRIAL_SPINE && !map.grid.isWalkable(x,y))
                             throw new IllegalStateException("Factory service spine obstructed");
                 }
         for (BuildingPlacement.Side side : BuildingPlacement.Side.values())
-            building(17, 13, 41, side, BuildingIndustrialFiller.CONFIG);
+            verifyCargoBay(building(17, 13, 41, side, BuildingIndustrialFiller.CONFIG));
         text(g, "Production Java2D renderer / clear service spine / all four frontages / existing damage states", 40, 1045, 17);
         g.dispose(); return image;
     }
@@ -330,7 +331,8 @@ public final class ConsoleRoomSnapshotSuite implements SnapshotSuite {
             if (grid.isWalkable(d.cellX, d.cellY) || !topology.isFixture(d.cellX, d.cellY)
                     || topology.isWall(d.cellX, d.cellY)) throw new IllegalStateException("Console is not a fixture");
         }
-        for (var d : ctx.doodads) if (d.definitionId().startsWith("factory-machines.")) {
+        for (var d : ctx.doodads) if (d.definitionId().startsWith("factory-machines.")
+                && !d.definitionId().startsWith("factory-machines.conveyor")) {
             int[] face = new int[][]{{0,-1},{1,0},{0,1},{-1,0}}[d.quarterTurns];
             for (int y = d.cellY; y < d.cellY + d.footprintCellsY; y++)
                 for (int x = d.cellX; x < d.cellX + d.footprintCellsX; x++) {
@@ -343,6 +345,22 @@ public final class ConsoleRoomSnapshotSuite implements SnapshotSuite {
                 }
         }
         return new MapResult(grid, topology, 0, 0, 0, 0, ctx.pois, ctx.doodads);
+    }
+
+    private static void verifyCargoBay(MapResult map) {
+        int count = 0;
+        for (int y = 0; y < map.grid.getHeight(); y++) for (int x = 0; x < map.grid.getWidth(); x++) {
+            if (!map.grid.isDoorway(x,y)) continue;
+            for (int[] d : new int[][]{{1,0},{-1,0},{0,1},{0,-1}}) {
+                if (!map.topology.inBounds(x+d[0],y+d[1])
+                        || map.topology.getRoomPurpose(x+d[0],y+d[1]) != RoomPurpose.LOADING_BAY) continue;
+                if (!map.grid.isDoorway(x+d[1],y+d[0]) && !map.grid.isDoorway(x-d[1],y-d[0])) continue;
+                count++;
+                for (int step = -1; step <= 2; step++)
+                    if (!map.grid.isWalkable(x+d[0]*step,y+d[1]*step)) throw new IllegalStateException("Cargo approach blocked");
+            }
+        }
+        if (count < 2) throw new IllegalStateException("Factory has no two-cell cargo bay");
     }
 
     private static void verifyConnected(NavigationGrid grid) {

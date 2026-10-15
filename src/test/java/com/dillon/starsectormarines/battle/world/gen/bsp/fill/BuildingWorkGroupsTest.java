@@ -94,4 +94,25 @@ class BuildingWorkGroupsTest {
                 assertFalse(fixture.groups.place(group, 3, 3, (turn + 2) % 4, RoomPurpose.PATIENT_WARD));
             }
     }
+
+    @Test void wholeProductionLineTurnsWithItsStockFeedsAndClearWorkingRows() {
+        for (int turn=0;turn<4;turn++) {
+            BuildingWorkGroupsTest fixture = new BuildingWorkGroupsTest();
+            var group = BuildingWorkGroups.productionLine(true);
+            assertTrue(fixture.groups.place(group,3,3,turn,RoomPurpose.PATIENT_WARD));
+            assertEquals(7,fixture.doodads.size());
+            assertEquals(2,fixture.doodads.stream().filter(d -> d.definitionId().equals("factory-machines.conveyor")).count());
+            RoomPose pose = new RoomPose(turn,false);
+            for (int y : new int[]{0,1,5,6}) for(int x=0;x<group.width();x++) {
+                int[] at=pose.map(x,y,group.width(),group.height());
+                assertTrue(fixture.grid.isWalkable(3+at[0],3+at[1]));
+            }
+            Doodad input=fixture.doodads.get(0), stock=fixture.doodads.get(1);
+            assertEquals(input.cellX,stock.cellX); assertEquals(input.cellY,stock.cellY);
+            for (Doodad d : fixture.doodads) assertEquals(turn,d.quarterTurns);
+        }
+        grid.setDoorway(7,6,true);
+        assertFalse(groups.place(BuildingWorkGroups.productionLine(true),3,3,0,RoomPurpose.PATIENT_WARD));
+        assertTrue(doodads.isEmpty(),"rejected lines cannot leave orphan stock or a conveyor behind");
+    }
 }
