@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.world.gen.fit.RoomPose;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.AuthoredFitting;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayout;
+import com.dillon.starsectormarines.battle.world.gen.ship.stage.ShipMaterialStage;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
@@ -75,6 +76,7 @@ public final class RoomPreview implements AutoCloseable {
             int y = margin + cell[1];
             grid.setWalkableFloor(x, y);
             topology.setGroundKind(x, y, GroundKind.INDOOR);
+            topology.setRoomPurpose(x, y, layout.purpose());
         }
         for (int[] cell : shape.wall()) {
             int x = margin + cell[0];
@@ -92,6 +94,9 @@ public final class RoomPreview implements AutoCloseable {
         // After the fill, because a bulkhead the room authored is stamped during
         // it and a face derived before would be derived from the wrong walls.
         WallMasks.stampUnclaimed(topology);
+        // This is the ship's room editor: use the same shell materials and thin edge trim
+        // as the generated deck, including walls visible in a chamfered room's corners.
+        new ShipMaterialStage().run(ctx);
 
         MapResult map = new MapResult(grid, topology, 0, 0, 0, 0,
                 new ArrayList<>(), new ArrayList<>(ctx.doodads));
