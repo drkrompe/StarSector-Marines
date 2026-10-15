@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.marine.ArmorIssueResolver;
 import com.dillon.starsectormarines.marine.ArmorRole;
 import com.dillon.starsectormarines.marine.ArmorClass;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
+import com.dillon.starsectormarines.marine.MarineArmory;
 import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
 import com.dillon.starsectormarines.marine.SquadArmorPlan;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
@@ -174,13 +175,16 @@ class DebugCompanyTest {
         assertEquals(SquadEquipmentDoctrines.weaponDoctrines().size(),
                 weaponDoctrines.size(),
                 "the first shuffle bag exposes every faction-flavored weapon doctrine");
-        // Every stocked protection class participates in the shuffle.
+        // A sheet is a fixed squad, so a stage draws from the sheets carrying the best armour
+        // it has collected; every one of those participates in the shuffle.
+        int best = SquadEquipmentDoctrines.armorPlans().stream().filter(roster.armory()::canIssue)
+                .mapToInt(plan -> bestTier(roster.armory(), plan)).max().orElseThrow();
         Set<String> authored = new HashSet<>();
         for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
-            if (roster.armory().canIssue(plan)) authored.add(plan.id());
+            if (roster.armory().canIssue(plan) && bestTier(roster.armory(), plan) == best) authored.add(plan.id());
         }
         assertEquals(authored, armorDoctrines,
-                "the first shuffle bag exposes every authored armour plan");
+                "the first shuffle bag exposes every sheet at the stage's best armour tier");
     }
 
     /**
@@ -242,6 +246,11 @@ class DebugCompanyTest {
                 }
             }
         }
+    }
+
+    private static int bestTier(MarineArmory armory, SquadArmorPlan plan) {
+        return armory.issue(plan).issueIds().stream()
+                .mapToInt(id -> MarineArmorCatalogRegistry.require(id).tier()).max().orElse(1);
     }
 
     private static boolean classAvailable(SquadArmorPlan plan, DebugBilletPlan ceiling) {

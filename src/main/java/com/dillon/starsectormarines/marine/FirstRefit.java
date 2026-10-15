@@ -49,8 +49,8 @@ public final class FirstRefit implements Serializable {
             armory.unlockPrimary(WeaponRegistry.SQUAD_AUTOMATIC_ID, EquipmentGrade.MILSPEC);
         } else {
             armory.unlockPrimary(WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.MILSPEC);
-            armory.unlockArmor(MarineArmorPattern.BLUE_SCOUT);
         }
+        grantSheetPatterns(armory, path);
         // Plans are reusable intent. The unchosen plan still requires its technology,
         // acquired through ordinary market, patron, recovery, or collection rewards.
         for (Path plan : Path.values()) {
@@ -81,9 +81,7 @@ public final class FirstRefit implements Serializable {
             return new SquadEquipmentPreview(SquadEquipmentResult.INVALID_SQUAD, List.of());
         }
         if (claimed && technologyKnown(roster, path)) return roster.previewSquadEquipment(squadId, path.weapons, path.armor);
-        SquadArmorDoctrine armor = ArmorIssueResolver.resolve(SquadEquipmentDoctrines.armorPlanById(path.armor),
-                pattern -> roster.armory().ownsArmorTemplate(pattern.id())
-                        || path == Path.FORWARD_SCREEN && MarineArmorPattern.BLUE_SCOUT.id.equals(pattern.id()));
+        SquadArmorDoctrine armor = ArmorIssueResolver.issueSheet(SquadEquipmentDoctrines.armorPlanById(path.armor));
         List<SquadWeaponIssue> weapons = weapons(path);
         List<SquadEquipmentBillet> billets = new ArrayList<>();
         for (int i = 0; i < MarineSquad.CAPACITY; i++) {
@@ -104,14 +102,29 @@ public final class FirstRefit implements Serializable {
         return path == Path.STEADY_LINE
                 ? armory.ownsPrimaryTemplate(WeaponRegistry.SQUAD_AUTOMATIC_ID, EquipmentGrade.MILSPEC)
                 : armory.ownsPrimaryTemplate(WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.MILSPEC)
-                    && armory.ownsArmorTemplate(MarineArmorPattern.BLUE_SCOUT);
+                    && sheetPatternsOwned(armory, path);
+    }
+
+    /** The refit hands over its formation whole: every pattern the path's tactic sheet wears. */
+    private static void grantSheetPatterns(MarineArmory armory, Path path) {
+        for (String pattern : ArmorSheetBundles.patternsFor(path.armor)) armory.unlockArmor(pattern);
+    }
+
+    private static boolean sheetPatternsOwned(MarineArmory armory, Path path) {
+        for (String pattern : ArmorSheetBundles.patternsFor(path.armor)) {
+            if (!armory.ownsArmorTemplate(pattern)) return false;
+        }
+        return true;
     }
 
     /** Repairs a saved lesson receipt without awarding technology or fitting equipment. */
     void repairArmorPlanKnowledge(MarineArmory armory) {
         if (!claimed) return;
         for (Path path : Path.values()) {
-            if (chosenPath == null || chosenPath == path) armory.acquireArmorPlan(path.armor);
+            if (chosenPath == null || chosenPath == path) {
+                grantSheetPatterns(armory, path);
+                armory.acquireArmorPlan(path.armor);
+            }
         }
         armory.repairArmorPlanKnowledge();
     }

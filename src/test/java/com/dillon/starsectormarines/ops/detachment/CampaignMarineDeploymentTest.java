@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.EquipmentTestFixtures;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -79,7 +80,7 @@ class CampaignMarineDeploymentTest {
         assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(
                 roster.squads().get(0).id(),
                 SquadEquipmentDoctrines.LINE_INFANTRY_WEAPONS,
-                SquadEquipmentDoctrines.LEAGUE_LINE_ARMOR));
+                SquadEquipmentDoctrines.CHURCH_LINE_ARMOR));
 
         CampaignMarineDeployment deployment = CampaignMarineDeployment.freeze(roster, 1);
         MarineLoadout seat = deployment.seat(0);
@@ -91,13 +92,14 @@ class CampaignMarineDeploymentTest {
         // Experience is issued with the armour: Bastion line armor is a
         // tier-3 pattern, so the seat freezes at the veteran band.
         assertEquals(ExperienceTier.VETERAN.minimumXp, seat.soldierProfile.experienceXp());
-        assertEquals(LayeredArmorFamily.CHARCOAL, seat.armorFamily);
-        assertEquals(MarineArmorPattern.CHARCOAL.armorCapacity, seat.armorCapacity, 1e-6f);
-        assertEquals(MarineArmorPattern.CHARCOAL.armorRating,
+        var palatine = MarineArmorCatalogRegistry.require("armor.palatine");
+        assertEquals(LayeredArmorFamily.PALATINE, seat.armorFamily);
+        assertEquals(palatine.armorCapacity(), seat.armorCapacity, 1e-6f);
+        assertEquals(palatine.armorRating(),
                 seat.armorRating, 1e-6f);
-        assertEquals(MarineArmorPattern.CHARCOAL.moveSpeedMult,
+        assertEquals(palatine.moveSpeedMult(),
                 seat.armorMoveSpeedMult, 1e-6f);
-        assertEquals(MarineArmorPattern.CHARCOAL.incomingAccuracyMult,
+        assertEquals(palatine.incomingAccuracyMult(),
                 seat.armorIncomingAccuracyMult, 1e-6f);
     }
 

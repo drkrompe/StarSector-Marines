@@ -52,7 +52,7 @@
           <div id="officer-squads" class="label wrap officer-copy">{command.officerSquads}</div>
           <div id="officer-scope" class="label muted wrap officer-copy">{i18n.openingUiShipboardBarracksSpecialtiesFollowTheSquadsThisOfficerLeads}</div>
           <div id="officer-training" class="label heading warm wrap officer-copy">{command.officerTraining}</div>
-          <div id="officer-specialty-list" class="officer-list">
+          <div id="officer-specialty-list" class="officer-list" style="{command.officerSpecialtyStyle}">
           <div each="specialty in command.officerSpecialties" key="{specialty.id}" id="{specialty.id}" class="officer-specialty console-readout">
             <div id="{specialty.headerId}" class="officer-specialty-header">
               <img id="{specialty.iconId}" class="officer-specialty-icon" src="{specialty.icon}" />
@@ -377,7 +377,6 @@
   .officer-line { height: 23px; }
   .officer-scroll { flex-direction: column; height: 0px; flex-grow: 1; gap: 12px; overflow: scroll; }
   .officer-list { flex-direction: column; height: auto; gap: 12px; }
-  #officer-specialty-list { height: 546px; }
   .officer-history-note { height: 40px; }
   .officer-copy { height: auto; }
   .officer-specialty { flex-direction: column; height: 152px; padding: 10px; gap: 6px; border-width: 1px; }

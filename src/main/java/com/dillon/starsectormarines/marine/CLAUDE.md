@@ -62,9 +62,10 @@ unknown technology remain blockers.
 remain immutable fixtures; authoring consumes nothing but may reference only
 collected templates. **There is no custom armour catalog and nothing should add
 one back.** An armour doctrine id always names a `SquadArmorPlan`, and
-`armorDoctrineById` resolves it through `ArmorIssueResolver` against what the
-armoury owns — a stored twelve is frozen kit, which is the artifact the plan model
-exists to remove. Legacy per-team template ids remain save input only:
+`armorDoctrineById` resolves it through `ArmorIssueResolver.issueSheet`: every sheet
+issues exactly the patterns its card carries (`ArmorSheetBundles`), never whatever else
+the armoury happens to own, so a card is the same squad for every company. Roles and
+tradition still decide which bundled pattern fills which billet. Legacy per-team template ids remain save input only:
 `MarineRoster.readResolve` composes complete legacy weapon intent into a
 deterministic custom definition without changing kits, assigns the starter tactic
 sheet rather than preserving the card's twelve concrete patterns, and the first

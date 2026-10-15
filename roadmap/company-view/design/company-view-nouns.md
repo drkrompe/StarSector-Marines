@@ -54,8 +54,9 @@ shared mapping instead of assigning paths independently in each screen.
   without redefining the other.
 - **Squad profile** — a named, reusable pairing of a known weapon loadout and an
   armor tactic sheet. Assignment records desired equipment without issuing it.
-  The tactic sheet resolves against current template ownership at issue time;
-  the profile does not freeze twelve armor patterns or hold equipment stock.
+  A sheet issues exactly the patterns its card carries, regardless of what else
+  the company owns; the profile does not freeze twelve armor patterns or hold
+  equipment stock.
 - **Squad equipment issue** — the explicit atomic transaction that resolves one
   weapon doctrine and one armor doctrine into the selected squad's exact twelve
   materialized kits.
