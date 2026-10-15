@@ -39,3 +39,4 @@ Written: 2026-08-23
 | `g31-stationing-response-deadlines.md` | 2026-08-22 | `e25fa582` | `contracts-nouns.md` |
 | `g32-player-event-popup.md` | 2026-08-22 | `89ad8bac` | `contracts-nouns.md` |
 | `system-scoped-contract-supply.md` | 2026-09-01 | `bd0699b9e` | `contracts-nouns.md` |
+| `stranded-detachment-recovery.md` | 2026-10-15 | `99b02c3f9`, `8b879e589`, `3459f275e`, `47724eb5c`, `657d114f6` | `contracts-nouns.md`, `company-view-nouns.md` |

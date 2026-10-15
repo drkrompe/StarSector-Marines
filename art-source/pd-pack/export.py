@@ -1,4 +1,4 @@
-"""Mechanical export of the Palisade interceptor pack art (a miniature vertical launcher): raw ImageGen reskins -> mod/graphics/.
+"""Mechanical export of the Hegemony Arrestor interceptor pack art (a miniature vertical launcher): raw ImageGen reskins -> mod/graphics/.
 
 Reads the retained raws in art-source/pd-pack/raw/ and the code-owned guides written by
 art-source/templates/pd-pack-guide.py. Nothing here repaints: each raw is resampled to its guide

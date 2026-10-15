@@ -18,6 +18,14 @@ package com.dillon.starsectormarines.battle.air;
  * turning of the craft as it arrives, and then held, so the craft is never seen reversing its
  * circuit mid-visit.
  *
+ * <p><b>Flown, not drawn with compasses.</b> A gunship's ring is not a circle. It is an oval
+ * that slowly turns and wobbles, so no two laps are the same: the craft tightens in to work the
+ * ground and slows and dips as it does, then opens out, climbs and picks up pace on the wide leg.
+ * A constant radius at a constant pace and height turned the craft at one fixed rate for the whole
+ * visit, which read as a model on a turntable. The swing is bounded by {@link #SWING_FRACTION}, so
+ * the turret keeps the ground within reach from every point of it. Cover fighters keep the plain
+ * ring: they hold a station between jobs rather than work a target.
+ *
  * <p>Heading uses the sprite convention shared by {@link AirBody}: {@code 0°} is +Y, positive
  * counter-clockwise.
  */
@@ -31,6 +39,13 @@ public final class GunshipOrbit {
     public static final float STATION_SECONDS = 40f;
     /** The craft is on the ring, for the purposes of starting the clock, once within this multiple of the radius. */
     public static final float ENTER_FACTOR = 1.15f;
+
+    /** The furthest the worked ring swings in or out of its radius, as a fraction of it. */
+    public static final float SWING_FRACTION = 0.24f;
+    /** How fast the oval turns about the ground it is centred on, radians/sec. */
+    private static final float LOITER_DRIFT_RAD_PER_SEC = 0.11f;
+    /** The lowest a working gunship dips, as an altitude fraction; it is at full height on the widest leg. */
+    public static final float LOW_ALTITUDE_T = 0.82f;
 
     /** The least angle round the ring the carrot is held ahead of the craft, radians. */
     private static final float MIN_LEAD_RAD = 0.5f;
@@ -51,6 +66,64 @@ public final class GunshipOrbit {
         mission.orbitSecondsLeft = STATION_SECONDS;
         mission.orbitClockwise = clockwiseFrom(bodyX, bodyY, facingDeg,
                 mission.lzX, mission.lzY, RADIUS_CELLS);
+        // Each sortie's oval starts turned to wherever it came from, so two visits do not trace the same shape.
+        mission.orbitLoiterPhase = (float) Math.atan2(bodyY - mission.lzY, bodyX - mission.lzX);
+    }
+
+    /**
+     * The worked ring's radius at {@code angle} round the centre: an oval with a third-lobe wobble,
+     * turned by {@code loiterPhase}. Stays within {@link #SWING_FRACTION} of {@code radius}.
+     */
+    public static float workedRadius(float radius, double angle, float loiterPhase) {
+        double swing = 0.75 * Math.sin(2 * angle + loiterPhase) + 0.25 * Math.sin(3 * angle - 1.7 * loiterPhase);
+        return (float) (radius * (1 + SWING_FRACTION * swing));
+    }
+
+    /** {@link #workedRadius} at the craft's own bearing from the centre. */
+    public static float workedRadiusAt(float bodyX, float bodyY, float centreX, float centreY,
+                                       float radius, float loiterPhase) {
+        return workedRadius(radius, Math.atan2(bodyY - centreY, bodyX - centreX), loiterPhase);
+    }
+
+    /** The oval's turn after {@code dt} seconds. */
+    public static float advanceLoiter(float loiterPhase, float dt) {
+        return (float) ((loiterPhase + LOITER_DRIFT_RAD_PER_SEC * dt) % (2 * Math.PI));
+    }
+
+    /**
+     * The pace for a craft on a worked ring of this local radius: slower through the tight ends and
+     * faster along the wide legs, as a pilot flies it, with a slow surge on top.
+     */
+    public static float workedPace(float localRadius, float radius, float loiterPhase) {
+        float surge = 1f + 0.1f * (float) Math.sin(3.1 * loiterPhase);
+        return ORBIT_SPEED * (float) Math.sqrt(localRadius / radius) * surge;
+    }
+
+    /** The height a working gunship holds at this local radius: low where it tightens in, full height on the wide leg. */
+    public static float workedAltitude(float localRadius, float radius) {
+        float t = (localRadius / radius - (1 - SWING_FRACTION)) / (2 * SWING_FRACTION);
+        t = Math.max(0f, Math.min(1f, t));
+        return LOW_ALTITUDE_T + (1f - LOW_ALTITUDE_T) * t;
+    }
+
+    /**
+     * The point to steer at on the worked ring: as {@link #carrot}, with the radius taken at the
+     * carrot's own bearing.
+     */
+    public static float[] workedCarrot(float bodyX, float bodyY, float centreX, float centreY,
+                                       float radius, boolean clockwise, float loiterPhase) {
+        double rx = bodyX - centreX;
+        double ry = bodyY - centreY;
+        double d = Math.hypot(rx, ry);
+        double theta = d < 1e-6 ? 0.0 : Math.atan2(ry, rx);
+        double lead = MIN_LEAD_RAD;
+        float local = workedRadius(radius, theta, loiterPhase);
+        if (d > local) lead = Math.max(lead, Math.acos(local / d));
+        double angle = clockwise ? theta - lead : theta + lead;
+        float r = workedRadius(radius, angle, loiterPhase);
+        return new float[]{
+                (float) (centreX + r * Math.cos(angle)),
+                (float) (centreY + r * Math.sin(angle))};
     }
 
     /**
@@ -121,7 +194,12 @@ public final class GunshipOrbit {
      * single tick.
      */
     public static AirHandling paced(AirHandling base, float currentSpeed, float dt) {
-        float cap = Math.max(ORBIT_SPEED, currentSpeed - base.brakingAccel() * dt);
+        return paced(base, currentSpeed, dt, ORBIT_SPEED);
+    }
+
+    /** {@link #paced} toward {@code pace} rather than the ring's fixed cruise. */
+    public static AirHandling paced(AirHandling base, float currentSpeed, float dt, float pace) {
+        float cap = Math.max(pace, currentSpeed - base.brakingAccel() * dt);
         return new Paced(base, Math.min(cap, base.maxSpeed()));
     }
 

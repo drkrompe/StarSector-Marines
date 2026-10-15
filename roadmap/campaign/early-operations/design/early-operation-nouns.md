@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — arm waves break the militia blocks first; employer picket holds the north bay from the start.
+Updated: 2026-10-15 — Junction's two counterattacks wait for a second gain and can retake ground.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -889,11 +889,19 @@ boat; the company still captures the rooms and the militia still hold them.
 The company takes the first outstanding site in approach order, returning to
 lost ground when needed. Employer militia initially cover the landing, then
 move to hold the first confirmed gain and retain that duty through reversals.
-They remain a separate allied force. Site guards retain garrison authority;
-one finite reserve waits in the maintenance building until a hostile site is
-confirmed captured, then approaches the first lost site along a screened
-service route. No repeated capture creates additional raiders. A reserve killed
-before commitment cannot produce an announcement that it counterattacked.
+They remain a separate allied force. Site guards retain garrison authority and
+grow from the Weigh Station to Dispatch. Two finite counterattacks wait until a
+second site is confirmed captured: by then the company is committed further on,
+Talon Two has followed it, and the militia hold the first gain alone. The
+maintenance reserve then approaches that first gain along a screened service
+route, strong enough to take it back from the militia, while a column waiting on
+the road from Rill marches on the second gain, which nobody holds once the
+company leaves. Committing either earlier walked it into the company and the
+gunship, and it died without ever threatening a site. A reversal sends the
+company back to retake lost ground before Dispatch. No repeated capture creates
+additional raiders. A counterattack killed before commitment cannot produce an
+announcement that it counterattacked. The fight stays well short of Thunder Run:
+a finite forty raiders against the freight finale's ninety.
 
 Command reads frozen territory state and own-force reports, never live opposing
 positions. Local contact, survival and cohesion remain squad decisions. External

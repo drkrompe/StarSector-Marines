@@ -5,6 +5,11 @@
     python art-source/fort-buildings/export.py bunker     # one
 
 Frame geometry is the contract in art-source/templates/fort-buildings-guide.py (read its header).
+
+The sheets are drawn on the local frame, which runs y DOWN (row 0 is the north wall), but the battle draws cell +y up the
+screen; so every building and blast-door frame is written flipped top to bottom, which is what makes a sprite drawn upright
+land on the cells of the plan it was authored for. Rotor, banner and door coordinates in the catalog stay in the authored
+(y-down) frame. The gatehouse pieces and the parts are symmetric across that axis and are written as cropped.
 Outputs: mod/graphics/fort/<name>.png
 """
 from pathlib import Path
@@ -38,6 +43,10 @@ def crop(im, box, size):
     return im.crop(scaled).resize(size, Image.Resampling.LANCZOS)
 
 
+def flip_v(im):
+    return im.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+
+
 def load(name):
     im = Image.open(HERE / 'raw' / f'{name}.raw.png').convert('RGBA')
     if im.getextrema()[3][0] != 0:
@@ -49,7 +58,7 @@ def building(name):
     cw, ch, s = BUILDINGS[name]
     im = load(name)
     for q, slot in enumerate(SLOTS):
-        crop(im, panel_box(q, cw, ch, s), (cw * PX, ch * PX)).save(OUT / f'{name}-{slot}.png')
+        flip_v(crop(im, panel_box(q, cw, ch, s), (cw * PX, ch * PX))).save(OUT / f'{name}-{slot}.png')
 
 
 def parts():
@@ -66,7 +75,7 @@ def parts():
 def blastdoor():
     im = load('blastdoor')
     for q, name in ((0, 'blast-door'), (1, 'blast-door-damaged')):
-        crop(im, panel_box(q, 3, 1, DOOR_PX), (3 * PX, PX)).save(OUT / f'{name}.png')
+        flip_v(crop(im, panel_box(q, 3, 1, DOOR_PX), (3 * PX, PX))).save(OUT / f'{name}.png')
 
 
 def gatehouse():
