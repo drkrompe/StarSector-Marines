@@ -4,6 +4,9 @@ Status: DRAFT
 
 Written: 2026-10-15
 
+Updated: 2026-10-15 — owner decisions: capture strands a garrison (slice 6);
+the report names dead and missing, counts wounded, and carries a flavoured account.
+
 Read `contracts-nouns.md` (stationing, response, recovery, settlement, laws 4–7
 and 11), `meta-progression.md` ("Defending the polity: the vanilla seam"),
 `stationed-ground-defence.md` (the absent settlement this builds on),
@@ -73,18 +76,55 @@ in `company-view-nouns.md`.
 settlement it appends one Chronicle row of a new company-report event type,
 carrying what the settlement already knows:
 
-- the market, the attacker faction, and the campaign day;
-- the graded outcome (held, held with losses, overrun);
-- the marines struck, split by fate (WIA, KIA, MIA), and the living seats
-  left;
-- the detachment's stationed contribution against the raid's ground strength,
-  which is the number that shows the retainer bought something.
+- **where:** the market, its system, and its planet conditions;
+- **who:** the attacker faction and the raid's shape (pirate-base raid,
+  punitive expedition, or fleet-group raid), and the stationed squads and
+  captain by name;
+- **when:** the day the raid landed or turned back;
+- **what:** the graded outcome (held, held with losses, overrun); the killed
+  and missing by name and the wounded as a count; the living seats left;
+- **how much it mattered:** the detachment's stationed contribution against
+  the raid's ground strength, the number that shows the retainer bought
+  something.
 
 The HQ intel terminal shows it in the company operations stream with
 confirmed confidence, the way a Silent Colony result already appears there.
-Its detail names the struck marines; the roster remains the authority on
-their current status, so the report reads names at write time and never
-re-derives them.
+Names are frozen into the row when it is written. The roster stays the
+authority on each marine's current status, and the report never re-derives
+who was struck.
+
+**The account.** Above the facts the report reads as a short after-action
+account in the comms officer's voice, so a reader gets a story and not just a
+table. The account is composed when the row is written, seeded from the event
+key, and frozen into the row, so it reads the same forever and on every
+replay. It has two parts:
+
+- **The spine** is the facts above, written as prose: "Pirate raiders from
+  the Askonia belt came down on Sindria's ore terminal on day 214. Sergeant
+  Vey's section held the landing road for six hours before the line broke."
+  Every claim in the spine is a persisted fact.
+- **The colour** is drawn from seeded pools keyed by outcome × raid shape ×
+  planet condition: weather, terrain, the hour, how the comms traffic
+  sounded, the mood of the survivors' check-in. A hot world gets heat shimmer
+  over the wire; a toxic one gets rebreathers; a held defence ends on relief,
+  an overrun one on static.
+
+`narrative-nouns.md` law 1 sets the boundary: narrative never invents
+motive, hidden knowledge, or off-screen consequence. Colour is framing in the
+`themes.md` sense, and it is bounded:
+
+- it never credits a named marine with a deed or a kill;
+- it never states a consequence for the market, the employer, or the
+  attacker;
+- it never contradicts a fact in the spine.
+
+"The survivors report the raiders came in low out of the dust" is colour.
+"Corporal Hale killed four of them at the gate" is an invented fact and is
+out. Whether named-marine anecdotes should ever be allowed is a narrative
+decision, and it would need an amendment to that law.
+
+The pools live in `strings.json` beside the existing HQ news strings, so the
+voice can be written and localised without code changes.
 
 A won fought defence and a held absent one both deserve a line, but the
 fought one already has a debrief. This story reports **absent** settlements
@@ -167,8 +207,10 @@ one loss per stranded squad every 10 days.
 ## Slices
 
 1. **Defence report.** New Chronicle company-report event type; append on
-   every absent settlement; HQ terminal formatting. Unit tests: one report per
-   event key under replay, fields match the settlement.
+   every absent settlement; the frozen account (spine plus seeded colour);
+   HQ terminal formatting. Unit tests: one report per event key under
+   replay, fields match the settlement, the same seed composes the same
+   account, and no colour line names a marine.
 2. **Gone to ground.** Overrun keeps the assignment reserved and creates the
    pickup recovery with its deadline; all-dead overrun still releases. Tests
    on the resolution with a fake roster.
@@ -176,15 +218,25 @@ one loss per stranded squad every 10 days.
    Situation-board obligation row.
 4. **Attrition and expiry.** Seeded interval losses and the deadline failure.
    Tests pin same-people-on-replay and the captain-last order.
-5. **Live pass.** One overrun with the player elsewhere: read the report,
+5. **Captured market.** A Garrison whose market changes owner (vanilla
+   transfer, decivilisation, or a Nexerelin invasion the raid seam ignores)
+   strands its detachment through the same recovery and pickup, with a
+   defence report whose spine says the market fell rather than that a raid
+   landed. Detection reads market ownership on the daily tick; no Nexerelin
+   class is referenced. A posting on the player's own market that the player
+   loses follows the same path.
+6. **Live pass.** One overrun with the player elsewhere: read the report,
    watch a loss land, fly to the market and collect the survivors; a second
    left to expire.
 
 ## Acceptance
 
 - Every absent vanilla-triggered defence produces exactly one company report
-  in the HQ intel terminal naming the outcome, the struck marines, and the
+  in the HQ intel terminal with its frozen account: where, who, when and
+  what, the killed and missing by name, the wounded as a count, and the
   stationed contribution.
+- A Garrison whose market changes hands strands its survivors and offers
+  the same pickup.
 - An overrun with survivors leaves them reserved, shows a recovery obligation
   with its deadline, and returns them through the planet interaction without a
   battle.
@@ -204,16 +256,8 @@ one loss per stranded squad every 10 days.
 
 ## Open questions
 
-- **Market changes hands while stationed.** Nothing today ends a Garrison
-  when its market is captured (by vanilla or by Nexerelin, whose invasions the
-  raid seam deliberately ignores). Capture is the clearest case for "gone to
-  ground" and probably belongs to this story's recovery, triggered by an
-  ownership change rather than a raid. Leaning: yes, as a sixth slice, once
-  the pickup exists.
 - **Breach as pickup.** Should a breached contract on a market the patron
   still holds use the pickup too, keeping the fought extraction only when the
   patron is hostile? Leaning: decide after the live pass.
 - **Posting overrun.** A posting on the player's own market cannot really
   strand anyone the player can't reach. Leaning: postings release as today.
-- **Named casualties in the report.** If a report names twelve people, the
-  detail grows long. Leaning: name the dead and missing, count the wounded.
