@@ -69,7 +69,8 @@ public record SnapshotArtifact(Path relativePath, List<BufferedImage> frames,
         // List.copyOf rejects null elements itself; asking the resulting
         // immutable list whether it contains null would throw instead of
         // answering.
-        frames = List.copyOf(frames);
+        // A compressed list is kept as it is: copying it would inflate every frame at once.
+        if (!(frames instanceof CompressedFrameList)) frames = List.copyOf(frames);
         if (frames.isEmpty()) {
             throw new IllegalArgumentException("snapshot artifact has no frames: " + relativePath);
         }
