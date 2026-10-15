@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.world.gen.MarketGarrison;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -107,14 +108,28 @@ public final class DefenderRoster {
                                             RiskLevel risk, boolean hasHeavyArmor,
                                             float attackerScore,
                                             GroundRosterProfile groundRoster) {
+        return forMission(type, tier, risk, hasHeavyArmor, attackerScore, groundRoster, MarketGarrison.NONE);
+    }
+
+    /**
+     * As above, with the target market's own garrison estimate. A market's {@link MarketGarrison#quality} sets the
+     * elite share of the infantry in place of the risk curve, so a military world is more professional than a mining
+     * outpost at the same risk. {@link MarketGarrison#NONE} keeps the risk curve.
+     */
+    public static DefenderRoster forMission(MissionType type, OperationTier tier,
+                                            RiskLevel risk, boolean hasHeavyArmor,
+                                            float attackerScore,
+                                            GroundRosterProfile groundRoster,
+                                            MarketGarrison garrison) {
         int total = totalFor(type, tier, risk);
-        List<MechVariant> mechVariants = affordableMechVariants(total, risk,
+        float eliteRatio = eliteRatio(risk, garrison);
+        List<MechVariant> mechVariants = affordableMechVariants(total, eliteRatio,
                 mechVariantsFor(type, risk, hasHeavyArmor, groundRoster), attackerScore);
         int mechs = mechVariants.size();
         // Mechs come out of the total. Elites take their slice of what's left;
         // the rest fills with militia.
         int nonMech = Math.max(0, total - mechs);
-        int elites = eliteCountFor(nonMech, risk);
+        int elites = eliteCountFor(nonMech, eliteRatio);
         int militia = nonMech - elites;
         return new DefenderRoster(total, elites, mechVariants, militia, patrolSizeFor(risk), risk);
     }
@@ -152,6 +167,11 @@ public final class DefenderRoster {
         float variance = risk != null ? risk.forceMult : 1f;
         return Math.max(MINIMUM_DEFENDERS,
                 Math.round(resolved.defenderBase * weight * variance));
+    }
+
+    /** The market's garrison quality when a market backs the battle, otherwise the risk curve. */
+    static float eliteRatio(RiskLevel risk, MarketGarrison garrison) {
+        return garrison != null && !garrison.isNone() ? garrison.quality() : eliteRatioFor(risk);
     }
 
     private static float eliteRatioFor(RiskLevel risk) {
@@ -215,26 +235,52 @@ public final class DefenderRoster {
      * it never degenerates into a random lone specialist.
      */
     private static List<MechVariant> affordableMechVariants(
-            int total, RiskLevel risk, List<MechVariant> candidates,
+            int total, float eliteRatio, List<MechVariant> candidates,
             float attackerScore) {
         if (!Float.isFinite(attackerScore) || candidates.isEmpty()) return candidates;
         List<MechVariant> selected = new ArrayList<>(candidates);
         float budget = BattleForceScore.defenderBudget(attackerScore);
         while (!selected.isEmpty()
-                && defenderScore(total, risk, selected) > budget) {
+                && defenderScore(total, eliteRatio, selected) > budget) {
             selected.remove(selected.size() - 1);
         }
         return List.copyOf(selected);
     }
 
-    private static float defenderScore(int total, RiskLevel risk,
+    private static float defenderScore(int total, float eliteRatio,
                                        List<MechVariant> mechVariants) {
         int nonMech = Math.max(0, total - mechVariants.size());
-        int elites = eliteCountFor(nonMech, risk);
+        int elites = eliteCountFor(nonMech, eliteRatio);
         return BattleForceScore.defenders(nonMech - elites, elites, mechVariants);
     }
 
-    private static int eliteCountFor(int nonMech, RiskLevel risk) {
-        return Math.min(nonMech, Math.round(nonMech * eliteRatioFor(risk)));
+    private static int eliteCountFor(int nonMech, float eliteRatio) {
+        return Math.min(nonMech, Math.round(nonMech * eliteRatio));
+    }
+
+    /**
+     * The infantry in the order squads draw it: elites spread evenly through the bulk rather than queued ahead of it.
+     * Squads fill from the front, so a queue of every elite first gave the top posts all-elite squads and every other
+     * post an all-bulk one. Spread, every squad mixes the two in about the roster's proportion, each soldier rolling
+     * their own kit from the faction's issue. The spread is centred, so a short squad near the front still draws an
+     * elite when the share calls for one.
+     */
+    public List<GroundRosterProfile.ForceTier> infantryOrder() {
+        return infantryOrder(eliteCount, militiaCount);
+    }
+
+    static List<GroundRosterProfile.ForceTier> infantryOrder(int elites, int bulk) {
+        int total = Math.max(0, elites) + Math.max(0, bulk);
+        List<GroundRosterProfile.ForceTier> order = new ArrayList<>(total);
+        for (int i = 0; i < total; i++) {
+            boolean elite = elitesBefore(i + 1, elites, total) > elitesBefore(i, elites, total);
+            order.add(elite ? GroundRosterProfile.ForceTier.ELITE : GroundRosterProfile.ForceTier.BULK);
+        }
+        return order;
+    }
+
+    /** How many of the first {@code position} places hold an elite: a rounded, centred running share. */
+    private static long elitesBefore(int position, int elites, int total) {
+        return ((long) position * elites + total / 2) / total;
     }
 }
