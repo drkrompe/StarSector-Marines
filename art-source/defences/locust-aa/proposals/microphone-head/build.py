@@ -1,5 +1,5 @@
 """Geometry-only proposal. Run in an isolated Blender background process.
-The head is a capped cylinder, with every bore parallel to the forward axis.
+The compact head pitches between side trunnions over a yaw deck.
 No ImageGen is invoked. Source geometry is retained for review and adjustment.
 """
 from pathlib import Path
@@ -52,27 +52,51 @@ def cube(name, center, dims, material, bevel=0.04):
     objects.append(ob)
     return ob
 
-cube('Rear magazine box', (0,-0.63,0.27), (1.12,1.0,0.46), armor)
-cube('Rear service panel', (0,-0.76,0.52), (0.88,0.65,0.07), armor)
+def cylinder(name, center, radius, depth, material, direction=(0,0,1)):
+    bpy.ops.mesh.primitive_cylinder_add(vertices=64, radius=radius, depth=depth, location=center)
+    ob = bpy.context.object
+    ob.name = name
+    ob.rotation_mode = 'QUATERNION'
+    ob.rotation_quaternion = Vector(direction).to_track_quat('Z','Y')
+    ob.data.materials.append(material)
+    edge = ob.modifiers.new('Bearing bevel', 'BEVEL')
+    edge.width = 0.018
+    edge.segments = 3
+    ob.modifiers.new('Weighted normals', 'WEIGHTED_NORMAL')
+    objects.append(ob)
+    return ob
+
+# The floor and cheeks rotate together in yaw. The head is centered over them.
+deck_top = 0.33
+axle_height = 1.16
+cylinder('Yaw bearing beneath floor', (0,0,0.09), 0.77, 0.18, metal)
+cube('Gimbal floor', (0,0,0.22), (1.98,1.64,0.22), armor, 0.10)
+cube('Rear drive cover', (0,-0.64,0.35), (0.96,0.30,0.12), armor)
 for side in (-1,1):
-    cube('Compact side trunnion', (side*0.73,-0.27,0.31), (0.30,0.66,0.36), metal)
-    cube('Hinge armor', (side*0.89,-0.27,0.33), (0.12,0.52,0.40), armor)
-    for i in range(6):
-        cube('Cooling rib', (side*0.59,-0.46-i*0.105,0.46), (0.14,0.045,0.08), metal, 0.01)
+    cube('Cheek support clipped to head', (side*0.80,0,0.74), (0.23,0.68,0.90), armor, 0.055)
+    cylinder('Fixed side bearing', (side*0.79,0,axle_height), 0.255, 0.25, metal, (1,0,0))
+    cylinder('Outer axle cap', (side*0.935,0,axle_height), 0.20, 0.07, armor, (1,0,0))
+    cylinder('Axle center', (side*0.978,0,axle_height), 0.085, 0.025, metal, (1,0,0))
+    for i in range(4):
+        cube('Deck cooling rib', (side*0.71,-0.48-i*0.08,0.37), (0.24,0.035,0.06), metal, 0.008)
+
+head_start = len(objects)
+for side in (-1,1):
+    cylinder('Head trunnion boss', (side*0.625,0,0), 0.22, 0.13, armor, (1,0,0))
 
 # Rounded microphone-style head: straight cylindrical skirt plus convex front cap.
-# Local +Y is the firing axis; the entire head is elevated 25 degrees.
+# Local +Y is the firing axis. All head parts share one actual pitch parent.
 radius = 0.62
-pitch = Matrix.Rotation(radians(25), 4, 'X')
-origin = Vector((0,0.23,0.57))
+cap_start = -0.04
+cap_depth = 0.59
 def world(p):
-    return origin + pitch.to_3x3() @ Vector(p)
-axis = pitch.to_3x3() @ Vector((0,1,0))
-ring_profile = [(-0.43, radius), (-0.30, radius), (0.22, radius)]
+    return Vector(p)
+axis = Vector((0,1,0))
+ring_profile = [(-0.45, radius), (-0.30, radius), (cap_start, radius)]
 for i in range(1,17):
     theta = i*pi/2/17
-    ring_profile.append((0.22+radius*sin(theta),radius*cos(theta)))
-ring_profile.append((0.22+radius,0.002))
+    ring_profile.append((cap_start+cap_depth*sin(theta),radius*cos(theta)))
+ring_profile.append((cap_start+cap_depth,0.002))
 verts = []
 faces = []
 segments = 64
@@ -103,7 +127,7 @@ ports=[]
 for z,columns in [(-0.35,4),(-0.12,5),(0.12,5),(0.35,4)]:
     for col in range(columns):
         x=(col-(columns-1)/2)*0.20
-        mouth_y=0.22+sqrt(radius*radius-x*x-z*z)
+        mouth_y=cap_start+cap_depth*sqrt(1-(x*x+z*z)/(radius*radius))
         surface=world((x,mouth_y,z))
         bpy.ops.mesh.primitive_cylinder_add(vertices=32,radius=0.063,depth=0.76,location=surface-axis*0.25)
         cutter=bpy.context.object
@@ -125,10 +149,29 @@ for z,columns in [(-0.35,4),(-0.12,5),(0.12,5),(0.35,4)]:
         objects.append(floor)
         ports.append((x,z))
 
+yaw=bpy.data.objects.new('Yaw deck assembly',None)
+scene.collection.objects.link(yaw)
+elevation=bpy.data.objects.new('Head elevation pivot - shared X axle',None)
+scene.collection.objects.link(elevation)
+elevation.parent=yaw
+elevation.location=(0,0,axle_height)
+elevation.rotation_euler=(radians(25),0,0)
+for index, ob in enumerate(objects):
+    ob.parent=elevation if index >= head_start else yaw
+objects.extend([yaw,elevation])
+
+# The entire shell clears the floor throughout the proposed elevation range.
+clearances={}
+for angle in (0,25,45,65):
+    rotation=Matrix.Rotation(radians(angle),3,'X')
+    clearance=min((rotation @ Vector(v)).z+axle_height for v in verts)-deck_top
+    assert clearance > 0.04, (angle,clearance)
+    clearances[angle]=round(clearance,3)
+
 bpy.ops.object.camera_add(location=(0,0,12))
 camera=bpy.context.object
 camera.data.type='ORTHO'
-camera.data.ortho_scale=7.5
+camera.data.ortho_scale=8.9
 camera.rotation_euler=(0,0,0)
 scene.camera=camera
 for pos,energy,size in [((-3,4,7),850,4),((4,-2,6),300,5)]:
@@ -139,22 +182,33 @@ for pos,energy,size in [((-3,4,7),850,4),((4,-2,6),300,5)]:
     light.data.size=size
     light.rotation_euler=(Vector((0,0,0.3))-light.location).to_track_quat('-Z','Y').to_euler()
 
-# Left: exact overhead. Right: same geometry tilted for explanatory inspection.
+# Three views preserve the rig: floor/cheeks in yaw, head on its own pitch axle.
 left=bpy.data.objects.new('Overhead presentation root',None)
 scene.collection.objects.link(left)
-right=bpy.data.objects.new('Angled presentation root',None)
-scene.collection.objects.link(right)
-for ob in objects:
-    clone=ob.copy()
-    clone.data=ob.data
-    scene.collection.objects.link(clone)
-    clone.parent=right
-    ob.parent=left
-left.location=(-1.78,-0.05,0)
-right.location=(1.72,-0.05,0)
-right.rotation_euler=(radians(45),radians(-15),radians(-20))
+def duplicate_rig(name):
+    root=bpy.data.objects.new(name,None)
+    scene.collection.objects.link(root)
+    copies={}
+    for ob in objects:
+        clone=ob.copy()
+        scene.collection.objects.link(clone)
+        copies[ob]=clone
+    for ob,clone in copies.items():
+        clone.parent=copies.get(ob.parent,root)
+    return root,copies
+angled,_=duplicate_rig('Angled presentation root')
+side,side_objects=duplicate_rig('Side inspection root')
+yaw.parent=left
+left.location=(-2.75,-0.05,0)
+angled.location=(0,-0.35,0)
+angled.rotation_euler=(radians(48),radians(-15),radians(155))
+side.location=(2.75,-0.85,0)
+side.rotation_mode='QUATERNION'
+side.rotation_quaternion=Matrix(((0,1,0),(0,0,1),(1,0,0))).to_quaternion()
 scene.render.filepath=str(HERE/'shape-views.png')
 bpy.context.preferences.filepaths.save_version = 0
 bpy.ops.wm.save_as_mainfile(filepath=str(HERE/'proposal.blend'))
 bpy.ops.render.render(write_still=True)
-print({'parallel_ports':len(ports),'pitch_degrees':25,'render':scene.render.filepath})
+print({'parallel_ports':len(ports),'pitch_degrees':25,'head_length':1.0,
+       'axle_height':axle_height,'floor_clearance_by_elevation':clearances,
+       'render':scene.render.filepath})
