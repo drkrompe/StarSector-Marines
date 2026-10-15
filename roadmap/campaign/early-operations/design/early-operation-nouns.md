@@ -888,7 +888,7 @@ sends it ahead to the trench in front of Dispatch, which it works while the
 company is still taking the Freight Yard. Once the Freight Yard falls, it makes
 one last pass and leaves. Its circle over that trench also reaches the edge of
 Dispatch. The trenches are where the company most needs it: without Talon Two
-the same matrix costs half the company and wipes out an understrength one. It
+the same matrix loses whole companies. It
 has a bounded visit and uses the ordinary gunship weapons and flight
 rules. It adds no player power card, supply bill, personnel requirement or owned
 boat; the company still captures the rooms and the militia still hold them.
@@ -908,7 +908,7 @@ confirmed. Nobody holds that site once the company leaves it. A reversal sends t
 company back to retake lost ground before Dispatch. No repeated capture creates
 additional raiders. A counterattack killed before commitment cannot produce an
 announcement that it counterattacked. The fight stays well short of Thunder Run:
-a finite fifty-two raiders, trench squads included, against the freight finale's ninety.
+a finite fifty-eight raiders, trench squads included, against the freight finale's ninety.
 
 Command reads frozen territory state and own-force reports, never live opposing
 positions. Local contact, survival and cohesion remain squad decisions. External

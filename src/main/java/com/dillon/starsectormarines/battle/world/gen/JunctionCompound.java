@@ -67,7 +67,7 @@ public final class JunctionCompound {
         for (int i = 0; i < 3; i++) {
             PointOfInterest p = c.pois.get(i);
             sites.add(new TacticalNode(kinds[i], p.interiorAnchorX, p.interiorAnchorY,
-                    p.left, p.top, p.right, p.bottom, Faction.DEFENDER, 50 + i * 10, 6 + 2 * i));
+                    p.left, p.top, p.right, p.bottom, Faction.DEFENDER, 50 + i * 10, 6 + 4 * i));
         }
         MapResult map = new MapResult(c.grid, c.topology, 21, 56, 148, 55,
                 c.pois, c.doodads, new TacticalMap(sites), c.get(BspKeys.BUILDINGS),

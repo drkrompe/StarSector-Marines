@@ -1842,6 +1842,10 @@ public final class BattleSetup {
         }
         spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, layout.reserve().interiorAnchorX, layout.reserve().interiorAnchorY, 8), Faction.DEFENDER, "junction-reserve", null, rng);
         // Each trench is manned by its own squad, holding the trench itself rather than the site behind it.
+        // The squad is detached from the site, and the trench order comes from the same garrison issuer that
+        // posted it there: a different issuer at the same authority is refused, which left the squads under
+        // their spawn order and walking into the building behind the trench.
+        Set<Integer> trenchSquads = new HashSet<>();
         for (int t = 0; t < JunctionCompound.TRENCHES.size(); t++) {
             int[] trench = JunctionCompound.TRENCHES.get(t);
             int[] centre = JunctionCompound.trenchCentre(t);
@@ -1853,15 +1857,19 @@ public final class BattleSetup {
             spawnOpeningMilitiaSquads(sim, cells, Faction.DEFENDER, "junction-trench-" + t, post, rng, 6);
             int run = sim.fightingPositions().runIdAt(centre[0], centre[1]);
             if (run < 0) throw new IllegalStateException("Junction trench " + t + " is not a fighting position");
-            for (Squad squad : List.copyOf(sim.getSquads())) if (!before.contains(squad.id))
+            for (Squad squad : List.copyOf(sim.getSquads())) if (!before.contains(squad.id)) {
+                squad.assignedNode = null;
+                trenchSquads.add(squad.id);
                 sim.assignSquadCommand(ObjectiveAssignment.defendRun(squad.id, centre[0], centre[1],
                                 (trench[2] - trench[1]) / 2 + 1, run),
-                        CommandAuthority.GARRISON, "junction-trench", "man the trench across the approach");
+                        CommandAuthority.GARRISON, "opening-local-garrison", "man the trench across the approach");
+            }
         }
         // A second finite counterattack waits on the road from Rill and comes in once a second site falls.
         spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, JunctionCompound.RILL_ROAD_X, JunctionCompound.RILL_ROAD_Y, 8),
                 Faction.DEFENDER, "junction-rill-road", null, rng);
-        for (Squad squad : sim.getSquads()) if (squad.faction == Faction.DEFENDER && squad.assignedNode == null)
+        for (Squad squad : sim.getSquads()) if (squad.faction == Faction.DEFENDER && squad.assignedNode == null
+                && !trenchSquads.contains(squad.id))
             if (!sim.handoffSquadCommand(squad.id, OpeningOperationCommand.issuer(Faction.DEFENDER),
                     CommandAuthority.MISSION_COMMAND, JunctionCommand.issuer(Faction.DEFENDER), null, "finite Junction reserve"))
                 throw new IllegalStateException("Junction reserve command handoff failed");
