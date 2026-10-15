@@ -44,6 +44,8 @@ public final class FortTactics {
     public static final int HOLD_BOTH_SQUADS = 2;
     /** Rank of the anti-air yard when the side is not shut out of the sky: after every other aspect. */
     static final int AIR_LAST_RANK = 9;
+    /** Rank of the bunker while its radar is spotting for aircraft that are flying at the side: before the yard. */
+    static final int SENSORS_RANK = -2;
 
     private FortTactics() {}
 
@@ -75,6 +77,17 @@ public final class FortTactics {
      */
     public static List<Pick> choose(Faction perspective, List<DefenceStructureFact> fort, List<Candidate> candidates,
                                     boolean skyWanted) {
+        return choose(perspective, fort, candidates, SkyNeed.of(skyWanted));
+    }
+
+    /**
+     * As above, with both reasons a side may want the sky ({@link SkyNeed}). Being flown at adds a second: the bunker's
+     * radar is how a fort spots for its side's air ({@code forts.md}), so a hostile fort whose bunker is not ours is
+     * worked first, by taking it (never by wrecking the magazine instead, which blinds nobody), and the yard that shuts
+     * our own strikes follows it.
+     */
+    public static List<Pick> choose(Faction perspective, List<DefenceStructureFact> fort, List<Candidate> candidates,
+                                    SkyNeed need) {
         List<Pick> picks = new ArrayList<>();
         if (fort.isEmpty()) return picks;
         Family family = fort.get(0).family();
@@ -112,9 +125,9 @@ public final class FortTactics {
         if (family == Family.SHIELD_FORT) {
             chooseShield(perspective, room, plant, candidates, picks);
         } else {
-            chooseBattery(perspective, bunker, plant, magazine, candidates, picks);
+            chooseBattery(perspective, bunker, plant, magazine, candidates, picks, need.flownAt());
         }
-        chooseAir(perspective, air, skyWanted, picks);
+        chooseAir(perspective, air, need.shut(), picks);
         return picks;
     }
 
@@ -128,11 +141,18 @@ public final class FortTactics {
     }
 
     private static void chooseBattery(Faction perspective, DefenceStructureFact bunker, DefenceStructureFact plant,
-                                      DefenceStructureFact magazine, List<Candidate> candidates, List<Pick> picks) {
+                                      DefenceStructureFact magazine, List<Candidate> candidates, List<Pick> picks,
+                                      boolean flownAt) {
         if (bunker == null) return;
         boolean gunsHostile = perspective.hostileTo(bunker.holder());
         if (gunsHostile) {
             boolean ours = perspective.friendlyTo(bunker.originalHolder());
+            if (flownAt) {
+                picks.add(new Pick(bunker, ours ? Role.RETAKE : Role.TAKE, SENSORS_RANK, 1, false,
+                        "blind their air: our units are being flown at, and the bunker's radar spots for the other side's "
+                                + "aircraft - take it, which also silences the guns"));
+                return;
+            }
             DefenceStructureFact wreckable = wreckInstead(perspective, bunker, magazine, candidates);
             if (wreckable != null) {
                 picks.add(new Pick(wreckable, roleFor(perspective, wreckable), 0, 1, true,

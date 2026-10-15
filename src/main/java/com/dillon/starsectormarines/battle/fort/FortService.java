@@ -21,6 +21,17 @@ public final class FortService {
     private final Map<Long, Fort> airMountFort = new HashMap<>();
     private final List<Fort> forts = new ArrayList<>();
     private final List<Fort> view = Collections.unmodifiableList(forts);
+    private boolean spotting = true;
+
+    /** Whether a fort's radar spots for its holder's air ({@link FortSensors}); on unless a scene turns it off for a control. */
+    public boolean spotting() {
+        return spotting;
+    }
+
+    /** The comparison control, per battle: with spotting off the forts keep their radar but call nothing in. */
+    public void setSpotting(boolean spotting) {
+        this.spotting = spotting;
+    }
 
     private Fort fort(int id) {
         return byId.computeIfAbsent(id, key -> {
@@ -71,6 +82,15 @@ public final class FortService {
     /** The fort whose yard mount {@code id} is, or {@code null} for a gun that is no fort's anti-air. */
     public Fort airMountFort(long id) {
         return airMountFort.get(id);
+    }
+
+    /** The fort whose bunker core is {@code coreId} (where its radar stands), or {@code null}. */
+    public Fort sensorFort(long coreId) {
+        for (Fort fort : forts) {
+            Fort.Place bunker = FortSensors.bunker(fort);
+            if (bunker != null && bunker.coreId() == coreId) return fort;
+        }
+        return null;
     }
 
     /** Records one of the fort's wall nests. */

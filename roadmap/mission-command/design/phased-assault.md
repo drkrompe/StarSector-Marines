@@ -6,7 +6,7 @@ Slices are on the mission-command board.
 
 Written: 2026-10-13
 
-Updated: 2026-10-14 — contested sky on the trial ground measured (defender air pool, tail-chase cover): the sky is barely contested, no bomber is downed before release, the yard is a by-product rather than a target; standing fire missions and the mortar section are standing behaviour (switches gone; timings are constants, sections-off is a per-simulation scene control); the kit reaches ground-start companies.
+Updated: 2026-10-14 — the fort's radar spots for the defenders' air and the sky is contested (lane fort: defender air 0.8 to 18 sorties a run, lane lost 6 of 6 with spotting on); contested sky on the trial ground measured (defender air pool, tail-chase cover): the sky is barely contested, no bomber is downed before release, the yard is a by-product rather than a target; standing fire missions and the mortar section are standing behaviour (switches gone; timings are constants, sections-off is a per-simulation scene control); the kit reaches ground-start companies.
 
 Read `conquest-command.md`, `forts.md` and `ai-nouns.md` first.
 
@@ -489,6 +489,21 @@ Readings, not rates beyond six seeds a cell:
 - **The yard is the plan's cost, not its target.** With the yard the attacker lost more airframes on the lane (7.3 against 5.7) and the marine plan never went for it as a goal: the yard ended with all three mounts standing in some runs and wrecked in others, as a by-product of the push on the fort. Whether it is worth taking is unanswered by this evidence: a company that opens the sky first is still the open question.
 
 Not claimed: defender strikes on a landing zone or muster at scale (none were seen; the fixture field `defenderAirPool` and `ContestedAirProbe` are the instrument for it), and any balance conclusion; a stronger defender signal needs more radios surviving, which is a mission-design choice.
+
+## Contested sky with the fort spotting: measured
+
+Same kit + air fixture (sixteen six-seat Aeroshuttles, `supportKit` conquest, two lances, attacker pool of three bombers and two fighters, defender pool of three bombers and two fighters through radios on every second infantry squad, the yard now two Ridgewatch batteries and flak), seeds 41-46, lane fort to 18,000 ticks and offset to 9,000. The control is `fortSpotting:false` (the fort still sees; nothing is called through it; the director's sight-filtered targeting stays). One run each, so six seeds a cell.
+
+| fort | fort spotting | marine wins | mean ticks | mean marine losses | defender sorties (mean) | defender bomb sorties (total) | sorties on LZ / fort / open ground | marines within 12 cells at the call (mean) | calls through the fort | attacker airframes lost (mean) | plan went for the bunker (runs) | bunker taken / wrecked | yard taken / wrecked |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| lane | off | 6 of 6 | 9,505 | 47.8 | 0.8 | 0 | 0 / 3 / 2 | 3.6 | 0 | 2.3 | 2 | 0 / 0 | 0 / 0 |
+| lane | on | 0 of 6 (all timeouts) | 18,000 | 95.8 | 18.2 | 60 | 0 / 38 / 71 | 19.3 | 108 | 2.0 | 5 | 0 / 1 | 0 / 2 |
+| offset | off | 6 of 6 | 6,830 | 24.5 | 1.0 | 0 | 2 / 1 / 3 | 9.2 | 0 | 1.7 | 0 | 0 / 0 | 0 / 0 |
+| offset | on | 5 of 6 (one timeout) | 6,745 | 21.0 | 3.0 | 2 | 2 / 9 / 7 | 9.2 | 12 | 2.0 | 0 | 0 / 0 | 0 / 1 |
+
+- **The sky is contested now, on the lane.** Every defender call in the spotting cells went through the fort (108 of 108); the radios the defenders carry were not what called. Defender bomb sorties went from 0 in six runs to 60, each on a concentration the fort had in sight, with 19 marines within twelve cells at the call on average (a heuristic, not a damage ledger). Marine losses doubled (47.8 to 95.8) and no lane run was won in 18,000 ticks. Offset the fort is far from the line and the effect is small (3.0 sorties a run, five of six won).
+- **Whether the fort is worth taking for the sky: on this evidence yes, and the attacker does not manage it.** The plan now treats the hostile bunker as the first work when its units are flown at, and a company took aim at it in five of six lane runs, but only at tick 6,000 to 16,500 (the company reaches its objective step late, after base of fire and entry), and it took the bunker in none and wrecked it in one; the yard was wrecked in two. The fort is the only thing that stops the sorties and the company reaches it too late.
+- **Not a balance conclusion.** The defender pool, regeneration and the 48-cell radar are first-pass; forts are not weakened for this. Marine losses are not attributed to bombs; only exposure at the call is measured. The off cells also carry the director's sight-filtered targeting (an earlier cell reached 0 to 3 sorties with the omniscient pick), which is why off differs a little from the earlier table. Evidence: `commanderEvidence -Pmission=conquest-trial` with fixture field `fortSpotting`; scene loops `fort-spots`, `spots-control`, `spots-wrecked`, `spots-unpowered`, `spots-taken` in `fort-air-defence`.
 
 ## Mortar sections: as built
 
