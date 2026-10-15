@@ -94,11 +94,9 @@ public final class Doodad {
     /**
      * Whether this prop is drawn mirrored rather than merely turned.
      *
-     * <p>For anything with a side to it — a vehicle above all — a half turn is
-     * the wrong operation. The art is drawn lit from one direction, so rotating
-     * it through a hundred and eighty degrees lights it from underneath and it
-     * reads as upside down. Mirroring turns it round and keeps the light where
-     * it was. Quarter turns are fine as rotations; the half turn is not.
+     * <p>Used by art or room layouts that explicitly require a reflected pose.
+     * The overhead parked fleet instead uses cardinal rotations, preserving
+     * the side of its crane, access steps and other asymmetric fittings.
      */
     public final boolean mirrored;
 

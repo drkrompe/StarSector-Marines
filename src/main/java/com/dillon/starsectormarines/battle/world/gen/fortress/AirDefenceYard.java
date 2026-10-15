@@ -1,54 +1,69 @@
 package com.dillon.starsectormarines.battle.world.gen.fortress;
 
+import com.dillon.starsectormarines.battle.fort.FortAspect;
+import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
+
 import java.util.List;
 
 /**
- * The control yard of a fort's optional anti-air aspect, as authored geometry in the fort's own local frame: a
- * seven-by-seven sandbagged yard in the open ground of the works holding the plotting console and the two flak positions
- * that are the aspect's close-in defence. The ring of bags is broken by one gate that opens on a walkway to the console.
+ * The control room of a fort's optional anti-air aspect, as authored geometry in the fort's own local frame: a small
+ * hardened command room (seven by five) in the open ground of the works holding the plotting console between two banks
+ * of seated plotters, with a single door and the two flak positions that are the aspect's close-in defence standing
+ * either side of it outside.
  *
- * <p>The yard is the aspect's <em>control point</em>, not its launchers. The Ridgewatch missile batteries stand out on the
+ * <p>The room is the aspect's <em>control point</em>, not its launchers. The Ridgewatch missile batteries stand out on the
  * fort's bastions ({@link FortPlan#airBatteries()}), so the controlled airspace is as wide as the works and no single
- * strike silences both; wrecking the console still silences them, losing power still slows them, and holding the yard
- * still turns every mount to the holder. The yard is open air, not a building: whoever holds the ground inside it holds
- * the console. Each kind of fort chooses where its yard stands, on ground its layout left free; see {@code forts.md}.
+ * strike silences both; wrecking the console still silences them, losing power still slows them, and holding the room
+ * still turns every mount to the holder. Whoever holds the floor inside it holds the console. Each kind of fort chooses
+ * where its room stands, on ground its layout left free; see {@code forts.md}.
  *
- * @param centreX centre of the yard, in the footprint frame
- * @param centreY centre of the yard, in the footprint frame
- * @param gapDx   local direction of the one break in the ring of bags (a unit axis vector)
- * @param gapDy   as {@code gapDx}
+ * @param centreX centre of the room's floor, in the footprint frame
+ * @param centreY centre of the room's floor, in the footprint frame
+ * @param gapDx   local direction of the room's door, which must be a north or south one: always 0
+ * @param gapDy   {@code 1} for a door on the south (the console against the north wall), {@code -1} for the north
  */
 public record AirDefenceYard(int centreX, int centreY, int gapDx, int gapDy) {
 
-    /** Half the width of the inner yard: the yard is {@code 2 * HALF + 1} cells on a side. */
-    public static final int HALF = 3;
-    /** Row, from the yard's centre, of the plotting console's middle; the console stands over the {@link #CONSOLE_COLUMN} column. */
-    public static final int CONSOLE_ROW = 2;
-    /** Column, from the yard's centre, of the console's middle (east of the walkway). */
-    public static final int CONSOLE_COLUMN = 2;
-    /** Row, from the yard's centre, of the close-in flak positions, and the two columns they stand in (west of the walkway). */
-    public static final int FLAK_ROW = 2;
-    public static final int[] FLAK_COLUMNS = {-3, -1};
+    /** Half the width of the floor: it is {@code 2 * HALF_WIDTH + 1} cells across. */
+    public static final int HALF_WIDTH = 3;
+    /** Half the depth of the floor. */
+    public static final int HALF_DEPTH = 2;
+    /** How far from the door the flak positions stand either side, and how far out from the wall. */
+    public static final int FLAK_OFFSET = 2;
 
-    /** The inner yard: x, y, width, height in the footprint frame. This is the ground whose holder holds the aspect. */
+    /** How many plotters the garrison keeps at the console's banks. */
+    public static final int CREW = 2;
+
+    public AirDefenceYard {
+        if (gapDx != 0 || Math.abs(gapDy) != 1) throw new IllegalArgumentException("the control room's door is on a north or south wall");
+    }
+
+    /** The room's floor: x, y, width, height in the footprint frame. This is the ground whose holder holds the aspect. */
     public int[] floor() {
-        int side = 2 * HALF + 1;
-        return new int[]{centreX - HALF, centreY - HALF, side, side};
+        return new int[]{centreX - HALF_WIDTH, centreY - HALF_DEPTH, 2 * HALF_WIDTH + 1, 2 * HALF_DEPTH + 1};
     }
 
-    /** The middle of the three-by-three plotting console, east of the yard's walkway. */
+    /** The room as authored: a command room, the console against the wall opposite its door. */
+    public FortRoom room() {
+        int[] floor = floor();
+        boolean south = gapDy > 0;
+        return FortRooms.commandRoom(FortAspect.AIR_DEFENCE, true, floor[0], floor[1], south,
+                List.of(new Doorway(HALF_WIDTH, south ? floor[3] : -1)), CREW);
+    }
+
+    /** The middle of the three-by-three plotting console, against the wall opposite the door. */
     public int[] consoleCentre() {
-        return new int[]{centreX + CONSOLE_COLUMN, centreY + CONSOLE_ROW};
+        return room().coreCentre();
     }
 
-    /** The cells of the close-in flak positions, beside the console. */
+    /** The cells of the close-in flak positions, one either side of the door and just outside the wall. */
     public List<int[]> flakCells() {
-        return List.of(new int[]{centreX + FLAK_COLUMNS[0], centreY + FLAK_ROW},
-                new int[]{centreX + FLAK_COLUMNS[1], centreY + FLAK_ROW});
+        int row = centreY + gapDy * (HALF_DEPTH + 2);
+        return List.of(new int[]{centreX - FLAK_OFFSET, row}, new int[]{centreX + FLAK_OFFSET, row});
     }
 
-    /** The gap in the ring of bags as its middle cell. */
+    /** The door as its middle cell, in the wall ring. */
     public int[] gapCell() {
-        return new int[]{centreX + gapDx * (HALF + 1), centreY + gapDy * (HALF + 1)};
+        return new int[]{centreX, centreY + gapDy * (HALF_DEPTH + 1)};
     }
 }

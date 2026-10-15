@@ -304,7 +304,7 @@ public final class ShepherdBasin {
         StoryServiceYard yard = new StoryServiceYard(c);
         yard.gravel(43, 47, 64, 59);
         yard.bay(45, 49, 54, 57);
-        yard.prop(47, 51, "parked-flatbed-truck", 0);
+        yard.prop(47, 51, "parked-flatbed-truck", 2);
         yard.cargo(58, 51);
         yard.gravel(87, 84, 99, 132);
         yard.bay(89, 87, 97, 97);
@@ -318,7 +318,7 @@ public final class ShepherdBasin {
         }
         yard.gravel(204, 52, 228, 64);
         yard.fence(204, 52, 228, 64);
-        yard.prop(208, 56, "parked-utility-truck", 0);
+        yard.prop(208, 56, "parked-utility-truck", 2);
         yard.cargo(220, 57);
         yard.gravel(287, 96, 296, 107);
         yard.prop(290, 98, "industrial-pipe-bundle", 0);
@@ -335,7 +335,7 @@ public final class ShepherdBasin {
             yard.prop(137,y+2,"industrial-turbine-set",0);
             yard.prop(144,y+2,"industrial-pipe-bundle",0);
         }
-        yard.prop(127,130,"parked-flatbed-truck",1);
+        yard.prop(127,130,"parked-flatbed-truck",3);
         yard.cargo(119,134);
     }
 
@@ -363,7 +363,10 @@ public final class ShepherdBasin {
             yard.prop(98, 117, "industrial-cable-reel", 0);
             yard.prop(154, 111, "industrial-turbine-set", 0);
             yard.prop(154, 120, "industrial-machine-tool", 0);
-            yard.prop(90, 114, "parked-utility-truck", 1);
+            yard.prop(90, 114, "parked-utility-truck", 3);
+            // The repair effort brings fluid supply and crew transport into separate service bays.
+            yard.prop(92, 119, "parked-tanker-truck", 2);
+            yard.prop(91, 96, "parked-box-van", 2);
             yard.cargo(87, 81);
             yard.prop(113, 118, "industrial-switchboard", 0);
             yard.prop(149, 110, "industrial-cable-reel", 0);
