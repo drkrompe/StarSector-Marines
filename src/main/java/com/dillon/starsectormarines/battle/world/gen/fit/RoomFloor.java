@@ -40,6 +40,7 @@ public final class RoomFloor {
     private final boolean[][] shut;
     private final List<int[]> closed = new ArrayList<>();
     private final List<int[]> blockingFixtures = new ArrayList<>();
+    private final List<int[]> consoleCells = new ArrayList<>();
     private final List<LayoutOp.Partition> partitions = new ArrayList<>();
     /**
      * Cells held for somebody to stand and work at.
@@ -318,6 +319,12 @@ public final class RoomFloor {
             ctx.grid.setSeeThrough(x, y, false);
             ctx.topology.setFixture(x, y, true);
         }
+        for (int[] cell : consoleCells) {
+            int x = left + cell[0], y = top + cell[1];
+            ctx.grid.setWalkable(x, y, false);
+            ctx.grid.setSeeThrough(x, y, true);
+            ctx.topology.setFixture(x, y, true);
+        }
         for (LayoutOp.Partition partition : partitions) {
             int[] rect = toLocalRect(partition.x(), partition.y(), partition.spanX(), partition.spanY());
             for (int dy = 0; dy < rect[3]; dy++) for (int dx = 0; dx < rect[2]; dx++) {
@@ -328,6 +335,37 @@ public final class RoomFloor {
                 ctx.topology.setSurface(x, y, ctx.topology.surfaceIndex(partition.blockId()));
             }
         }
+    }
+
+    /** Canonical Y-up path. Check every module before claiming any of this bank. */
+    public boolean placeConsoleBank(List<ConsoleBankLayout.Cell> cells, boolean closed, boolean operatorRight) {
+        List<ConsoleBankLayout.Piece> pieces = ConsoleBankLayout.resolveWorld(cells, closed, operatorRight);
+        for (ConsoleBankLayout.Piece piece : pieces) {
+            DoodadDef def = TileRegistry.installed().doodad(piece.id());
+            if (def == null || def.footprintCellsX != 1 || def.footprintCellsY != 1) return false;
+            int[] cell = toLocal(piece.cell().x(), piece.cell().y());
+            if (!isFree(cell[0], cell[1], 1, 1)) return false;
+        }
+        List<ConsoleBankLayout.Cell> occupied = ConsoleBankLayout.occupiedCells(cells, closed);
+        for (ConsoleBankLayout.Cell source : occupied) {
+            int[] cell = toLocal(source.x(), source.y());
+            if (!isFree(cell[0], cell[1], 1, 1)) return false;
+        }
+        report(new LayoutOp.ConsoleBank(cells, closed, operatorRight));
+        for (ConsoleBankLayout.Cell source : occupied) {
+            int[] cell = toLocal(source.x(), source.y());
+            free[cell[0]][cell[1]] = false;
+            consoleCells.add(cell);
+        }
+        for (ConsoleBankLayout.Piece piece : pieces) {
+            int[] cell = toLocal(piece.cell().x(), piece.cell().y());
+            // Reflection reverses the module's rotation before the room's own turn.
+            int turns = pose().quarterTurns() + (pose().mirrored() ? 1 : -1) * piece.clockwiseTurns();
+            ctx.doodads.add(new Doodad(left + cell[0], top + cell[1],
+                    TileRegistry.installed().doodad(piece.id()), Math.floorMod(turns, 4), pose().mirrored()));
+        }
+        placed++;
+        return true;
     }
 
     /** Canonical assembly coordinates; the base owns occupancy and all other layers are decoration. */

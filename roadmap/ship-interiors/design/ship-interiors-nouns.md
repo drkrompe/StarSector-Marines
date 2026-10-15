@@ -605,7 +605,14 @@ the old scattered packing, loose gear and alternating grating in these rooms.
 The displayed circuits do not assert a new power or coolant simulation.
 
 The ship bridge groups navigation, systems and paired side watch stations
-around one central tactical plot. Operators stand outboard of their consoles
+around one central tactical plot. Its banks compose one-cell straights, corners
+and handed end caps with an explicit operator side. The room editor records a
+connected path as one fixture group, selects the joins, and accepts or refuses
+the complete bank. Open paths end in caps; a closed island also claims its
+inaccessible service core. The bank follows room rotation and reflection, while
+work positions remain separately authored beside the control edge. Opening a
+ship room in the editor uses its ship fitting or matching authored layout.
+Operators stand outboard of their consoles
 and face inward; the command position faces the plot's control edge. An inner
 walkway and open perimeter join the groups across an enclosed, broad operations
 floor with small corner chamfers. A muted central floor inset distinguishes the

@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.tools.roomauthoring;
 
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.fit.Hookup;
+import com.dillon.starsectormarines.battle.world.gen.fit.ConsoleBankLayout;
+import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayoutCheck;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.LayoutOp;
@@ -82,7 +84,7 @@ public final class RoomDraft {
     public int provides() {
         int count = 0;
         for (LayoutOp op : ops) {
-            if (op instanceof LayoutOp.Fixture || op instanceof LayoutOp.Assembly) count++;
+            if (op instanceof LayoutOp.Fixture || op instanceof LayoutOp.Assembly || op instanceof LayoutOp.ConsoleBank) count++;
         }
         return count;
     }
@@ -117,10 +119,15 @@ public final class RoomDraft {
         }
         floor = grown;
         // Anything now outside the room goes with it, for the reason above.
+        List<LayoutOp.ConsoleBank> removedBanks = ops.stream().filter(LayoutOp.ConsoleBank.class::isInstance)
+                .map(LayoutOp.ConsoleBank.class::cast).filter(bank -> !within(bank, width, height)).toList();
         ops.removeIf(op -> !within(op, width, height));
+        for (LayoutOp.ConsoleBank bank : removedBanks) removeBankWork(bank);
     }
 
     private boolean within(LayoutOp op, int width, int height) {
+        if (op instanceof LayoutOp.ConsoleBank bank)
+            return bank.cells().stream().allMatch(c -> c.x() >= 0 && c.y() >= 0 && c.x() < width && c.y() < height);
         int[] cell = cellOf(op);
         return cell == null || (cell[0] < width && cell[1] < height);
     }
@@ -238,6 +245,31 @@ public final class RoomDraft {
         ops.add(new LayoutOp.Fixture(x, y, doodadId, affordance));
     }
 
+    /** Commit one complete bank only when replay accepts it and preserves circulation. */
+    public void addConsoleBank(List<ConsoleBankLayout.Cell> cells, boolean closed, boolean operatorRight) {
+        LayoutOp.ConsoleBank bank = new LayoutOp.ConsoleBank(cells, closed, operatorRight);
+        for (ConsoleBankLayout.Cell cell : cells) {
+            if (!isFloor(cell.x(), cell.y()) || isLane(cell.x(), cell.y()))
+                throw new IllegalArgumentException("Keep the bank on free deck, outside reserved walkways.");
+        }
+        ops.add(bank);
+        try {
+            RoomLayoutCheck.Report check = RoomLayoutCheck.replay(layout());
+            if (!check.clean() || check.workDropped() > 0)
+                throw new IllegalArgumentException(String.join(" ", check.complaints()));
+        } catch (RuntimeException failure) {
+            ops.remove(ops.size() - 1);
+            throw failure;
+        }
+    }
+
+    private static boolean covers(LayoutOp op, int x, int y) {
+        if (op instanceof LayoutOp.ConsoleBank bank)
+            return ConsoleBankLayout.occupiedCells(bank.cells(), bank.closed()).contains(new ConsoleBankLayout.Cell(x, y));
+        int[] cell = cellOf(op);
+        return cell != null && cell[0] == x && cell[1] == y;
+    }
+
     /** Lay floor covering here, which does not claim the cell. */
     public void pave(int x, int y, String doodadId) {
         if (!isFloor(x, y)) return;
@@ -253,21 +285,26 @@ public final class RoomDraft {
      */
     public boolean removeAt(int x, int y) {
         for (int i = ops.size() - 1; i >= 0; i--) {
-            int[] cell = cellOf(ops.get(i));
-            if (cell != null && cell[0] == x && cell[1] == y) {
-                ops.remove(i);
+            if (covers(ops.get(i), x, y)) {
+                LayoutOp removed = ops.remove(i);
+                if (removed instanceof LayoutOp.ConsoleBank bank)
+                    removeBankWork(bank);
                 return true;
             }
         }
         return false;
     }
 
+    private void removeBankWork(LayoutOp.ConsoleBank bank) {
+        ops.removeIf(op -> op instanceof LayoutOp.Task task
+                && bank.cells().contains(new ConsoleBankLayout.Cell(task.fixtureX(), task.fixtureY())));
+    }
+
     /** What stands on a cell, outermost last, for the view and for a tooltip. */
     public List<LayoutOp> at(int x, int y) {
         List<LayoutOp> here = new ArrayList<>();
         for (LayoutOp op : ops) {
-            int[] cell = cellOf(op);
-            if (cell != null && cell[0] == x && cell[1] == y) here.add(op);
+            if (covers(op, x, y)) here.add(op);
         }
         return here;
     }

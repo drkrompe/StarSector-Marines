@@ -36,10 +36,10 @@ public final class ShipBridgeFitting implements RoomFitting {
         guard(floor);
 
         if (put(floor, cx - 1, cy - 1, "plot")) task(floor, cx, cy - 2, cx, cy - 1);
-        boolean helm = put(floor, cx - 1, cy + bankY, "helm");
-        boolean systems = put(floor, cx - 1, cy - bankY, "systems");
-        boolean west = put(floor, cx - bankX, cy - 1, "console-west");
-        boolean east = put(floor, cx + bankX, cy - 1, "console-east");
+        boolean helm = bank(floor, cx - 1, cy + bankY, 1, 0, false);
+        boolean systems = bank(floor, cx - 1, cy - bankY, 1, 0, true);
+        boolean west = bank(floor, cx - bankX, cy - 1, 0, 1, false);
+        boolean east = bank(floor, cx + bankX, cy - 1, 0, 1, true);
         // A short watch covers plot, navigation and systems before doubling a bank.
         if (helm) task(floor, cx - 1, cy + bankY + 1, cx - 1, cy + bankY);
         if (systems) task(floor, cx + 1, cy - bankY - 1, cx + 1, cy - bankY);
@@ -70,6 +70,12 @@ public final class ShipBridgeFitting implements RoomFitting {
                 if (floor.fixtureTask(x, y, Affordance.GUARD, door.x(), door.y())) return;
             }
         }
+    }
+
+    private boolean bank(RoomFloor floor, int x, int y, int dx, int dy, boolean right) {
+        return floor.placeConsoleBank(List.of(new ConsoleBankLayout.Cell(x, y),
+                new ConsoleBankLayout.Cell(x + dx, y + dy),
+                new ConsoleBankLayout.Cell(x + 2 * dx, y + 2 * dy)), false, right);
     }
 
     private boolean put(RoomFloor floor, int x, int y, String id) {
