@@ -1,0 +1,14 @@
+main-stores.rack-damaged	106	24	102	269	2	6	heavy	1.1
+main-stores.rack-destroyed	109	340	92	262	2	6	none	0
+main-stores.frame-damaged	420	24	101	268	2	6	none	0
+main-stores.frame-destroyed	427	340	88	262	2	6	none	0
+main-stores.cartons-damaged	643	11	287	297	2	2	none	0
+main-stores.cartons-destroyed	653	340	262	262	2	2	none	0
+main-stores.cases-damaged	951	9	303	300	2	2	none	0
+main-stores.cases-destroyed	967	340	262	262	2	2	none	0
+main-stores.pallet-damaged	19	641	272	279	2	2	med	0.5
+main-stores.pallet-destroyed	26	967	262	262	2	2	none	0
+main-stores.tally-damaged	329	735	285	109	3	1	med	0.5
+main-stores.tally-destroyed	334	1054	268	94	3	1	none	0
+main-stores.packing-damaged	640	735	296	109	3	1	med	0.5
+main-stores.packing-destroyed	653	1053	267	96	3	1	none	0

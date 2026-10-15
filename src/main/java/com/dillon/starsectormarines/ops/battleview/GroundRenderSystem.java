@@ -942,6 +942,7 @@ public final class GroundRenderSystem implements RenderSystem {
         @Override
         public void resolve(int x, int y, GroundMesh.CellSink sink) {
             if (topology.isWall(x, y) || !grid.isDoorway(x, y) || topology.isRubble(x, y)) return;
+            if (OpeningTiles.wideDoorway(grid, x, y)) return;
             Direction facing = OpeningTiles.doorFacing(topology, x, y);
             GridBlockDef skin = OpeningTiles.skin(tileReg, topology, x, y, facing, false);
             SpriteAPI sheet = skin == null ? null : sheetFor(skin.sheetPath);

@@ -8,7 +8,6 @@ import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
-import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.DoorwayClearanceStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InteriorAnchorFitStage;
@@ -20,9 +19,6 @@ import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
 import com.dillon.starsectormarines.battle.world.gen.precinct.MapPlacement;
-import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
-import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
-import com.dillon.starsectormarines.battle.world.gen.road.RoadGraphBuilder;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Point;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Route;
@@ -37,7 +33,6 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.CompoundLayout.Bui
 import com.dillon.starsectormarines.battle.world.gen.fortress.CompoundLayout.Cluster;
 import com.dillon.starsectormarines.battle.world.gen.fortress.CompoundLayout.Yard;
 
-import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -126,29 +121,7 @@ public final class MaintenanceOutpost {
     }
 
     private static void grounds(GenContext c, CompoundLayout.Placement site, Fortification fortification) {
-        var program = new FortressProgram(site.layout().clusters().stream()
-                .flatMap(group -> group.buildings().stream())
-                .map(b -> new FortressBuilding(b.purpose(), b.shape(), Ward.YARD, 1)).toList(), 0);
-        var precinct = Precinct.garrison("Maintenance outpost", site.x() + 40, site.y() + 35,
-                GrownTrunkPlan.Profile.of(0), program, fortification);
-        c.put(BspKeys.PRECINCTS, new PrecinctPlan(List.of(precinct), MapPlacement.EAST));
-        var claim = new int[c.width][c.height];
-        var road = new int[c.width][c.height];
-        for (int x = 0; x < c.width; x++) {
-            Arrays.fill(claim[x], GrownTrunkPlan.UNOWNED);
-            Arrays.fill(road[x], GrownTrunkPlan.UNOWNED);
-            for (int y = 0; y < c.height; y++) {
-                c.grid.setWalkableFloor(x, y);
-                c.topology.setGroundKind(x, y, c.get(BspKeys.MARKET_PROFILE).surface().inlandGround());
-                if (site.contains(x, y)) claim[x][y] = 0;
-            }
-        }
-        for (var yard : site.layout().yards()) for (int dx = 0; dx < yard.width(); dx++)
-            for (int dy = 0; dy < yard.height(); dy++) {
-                int[] at = site.cell(yard.x() + dx, yard.y() + dy);
-                c.topology.setGroundKind(at[0], at[1], GroundKind.COURTYARD);
-                c.topology.setSurface(at[0], at[1], c.topology.surfaceIndex(Material.CONCRETE.block(1)));
-            }
+        CompoundGround.reserve(c, "Maintenance outpost", site, fortification, MapPlacement.EAST);
         supplyPads(c);
         var localRoads = new ArrayList<>(site.roads(c.seed));
         localRoads.add(new Route("Outpost access", List.of(point(site, 79, 35),
@@ -159,19 +132,7 @@ public final class MaintenanceOutpost {
                 new Point(c.width - 58, c.height / 2 - 22),
                 new Point(c.width - 58, c.height / 2 + 22)), 3, 1, .55, c.seed,
                 Material.CONCRETE));
-        var routes = new RoadPlan(c.width, c.height, localRoads);
-        var raster = RoadRasterizer.rasterize(routes);
-        RoadRasterizer.stamp(routes, raster, c.grid, c.topology);
-        var reservation = new boolean[c.width][c.height];
-        for (int x = 0; x < c.width; x++) for (int y = 0; y < c.height; y++) {
-            if (raster.road(x, y)) road[x][y] = 0;
-            reservation[x][y] = raster.shoulder()[y * c.width + x];
-        }
-        c.put(BspKeys.PRECINCT_CLAIM, claim);
-        c.put(BspKeys.PRECINCT_ROAD, road);
-        c.put(BspKeys.ROAD_RESERVATION, reservation);
-        c.put(BspKeys.ROAD_CELLS, reservation);
-        c.put(BspKeys.ROAD_GRAPH, RoadGraphBuilder.build(reservation));
+        CompoundGround.roads(c, localRoads);
     }
 
     /** Supply-run hardstands: only paved working ground is cleared of fine field dressing. */

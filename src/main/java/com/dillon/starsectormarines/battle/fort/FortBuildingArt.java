@@ -236,6 +236,15 @@ public final class FortBuildingArt {
     }
 
     /**
+     * Where a point of the art, given in cells from the top-left of the building floor, falls on the plan's floor in the
+     * same terms: unchanged, or through the centre when the art is turned half a revolution to put its door where the
+     * plan's is. Rotors, lights and the banner are registered to the plan's fixtures through this one law.
+     */
+    public static float[] registered(boolean halfTurned, float floorWidth, float floorHeight, float x, float y) {
+        return halfTurned ? new float[]{floorWidth - x, floorHeight - y} : new float[]{x, y};
+    }
+
+    /**
      * Whether the art must be turned half a revolution to put its door where a plan's building has it, given whether
      * that building's door is on the top edge of its floor. Registration is kept by turning the rotors and banner too.
      */

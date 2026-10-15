@@ -53,7 +53,9 @@ public enum EnvironmentMaterial {
             "doodad.military-bunk", "doodad.residential-bed-h", "doodad.residential-bed-head-e",
             "doodad.residential-bed-v", "doodad.residential-bed-head-n",
             "doodad.desk-1", "doodad.desk-2",
-            "doodad.shelf-empty", "doodad.shelf-1", "doodad.shelf-2", "doodad.shelf-3");
+            "doodad.shelf-empty", "doodad.shelf-1", "doodad.shelf-2", "doodad.shelf-3",
+            "main-stores.pallet", "main-stores.cartons", "sickbay-clinic.linen-high",
+            "sickbay-clinic.linen-low", "mess-galley.stool");
 
     private final float rating;
 
@@ -89,7 +91,7 @@ public enum EnvironmentMaterial {
             return SANDBAG;
         }
         if (PropDamage.BARRELS.contains(definitionId)) return DRUM;
-        if (PropDamage.EQUIPMENT.containsKey(definitionId)) {
+        if (PropDamage.EQUIPMENT.containsKey(definitionId) || PropDamage.DECORATIONS.contains(definitionId)) {
             return FURNITURE.contains(definitionId) ? WOOD : MACHINERY;
         }
         if (RockDamage.IDS.contains(definitionId)) return STONE;

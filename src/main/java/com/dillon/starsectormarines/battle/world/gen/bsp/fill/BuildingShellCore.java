@@ -216,6 +216,8 @@ final class BuildingShellCore {
                 grid, topology, bl, bt, br, bb, rng, config.interiorGround, placement);
         punchPerimeterDoorways(grid, topology, bl, bt, br, bb, layout, placement,
                 rng, config.interiorGround);
+        if (layout.tacticalIndustrial) FactoryLoadingBay.carve(grid, topology, bl, bt, br, bb,
+                placement.frontage, config.interiorGround);
 
         int cx = (bl + br) / 2;
         int cy = (bt + bb) / 2;
@@ -313,7 +315,7 @@ final class BuildingShellCore {
             case MEDICAL_CLINIC -> purpose == RoomPurpose.TREATMENT_ROOM
                     || purpose == RoomPurpose.PATIENT_WARD;
             case DENSE_TENEMENT -> purpose == RoomPurpose.BEDROOM;
-            case SHED, HOME, ARMORY -> false;
+            case SHED, HOME, ARMORY, MEDICAL_SUPPORT -> false;
         };
     }
 

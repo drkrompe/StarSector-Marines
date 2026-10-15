@@ -95,3 +95,14 @@ controls and grid events. Retained review images are under
 `../console-bank/review/`. These are production Java2D renderer and Swing
 captures, not live OpenGL evidence. Outside corners retain a slightly wider
 housing than the straight sections.
+
+## Damage states
+
+All six modules have registered damaged and destroyed pairs in the separate
+`console-bank-damage` sheet. Damaged pieces retain the connected worktop shape;
+destroyed pieces leave low separated electronics and housing fragments. The
+ordinary prop-damage channel preserves poses and releases the destroyed cell's
+cover and fixture obstruction. The source guide, prompts, cuts, storage/clinic
+companion sets and before/after assembly reviews are in
+`../console-bank/damage/README.md`. Run `createSnapshots -Psnapshot=composable-damage`
+to exercise the real damage boundary in all four rotations.

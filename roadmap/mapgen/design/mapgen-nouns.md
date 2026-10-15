@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — story maps dig trench through the shared prepared-ground helper.
+Updated: 2026-10-15 - shared working yards include medical receiving and transfer courts, with purpose-furnished supply annexes.
 
 Earlier 2026-10-13 — reversible authored damage layers give Relief a worn checkpoint without changing its landing contract; Relief rear working courts preserve the expanded landing and assembly apron.
 
@@ -238,8 +238,8 @@ L-shaped wings, open courts, T-shaped halls and offset loading rooms leave real
 outdoor ground in their cuts: the bounding rectangle is not a building mask and
 must not roof or repaint those cells. Every usable interior and firing recess
 remains reachable through doors with fixtures present, in all four orientations.
-Story maps may explicitly place the same plans, with larger freight variants
-reserved for authored facilities. They retain the same rotation, interior,
+Story maps may explicitly place the same plans, including larger freight variants
+also available to fitting industrial parcels and compound warehouses. They retain the same rotation, interior,
 window and material rules; they are not stretched versions of a small stamp.
 Open the Junction pairs a compact weigh-house and offset freight office with
 an L-shaped loading depot. Relay Nine pairs a switch-house service wing with
@@ -256,6 +256,41 @@ whole rotated footprint as a visible fixture; floor markings do not obstruct.
 Fence openings preserve cross-yard movement, while thresholds, roads, berths
 and mission destinations remain reachable. A smaller building does not imply
 that its old parcel should become undifferentiated empty pavement.
+
+A **working-yard template** carries its complete ground, fence openings, vehicle
+bays, stock and equipment in one local frame. Freight marshalling, maintenance
+and power courts share this identity between authored campaign sites and ordinary
+industrial compounds. The host owns the parcel before choosing a fitting pose;
+the complete yard refuses roads, reserved circulation, berths, occupied ground
+and doorway approaches before changing anything. Rotation carries each full
+equipment footprint and heading together. Four generous gates and a clear outer
+margin retain cross-yard circulation. Smaller parcels keep their compact yard
+grammar rather than shrinking vehicles or clipping a template. A template
+publishes scenery and topology only; objectives, ownership, force budgets and
+story beats remain the mission's decisions.
+
+A medical campus owns three complementary parcels: a purpose-partitioned clinic,
+a medical supply annex and an open service court. The annex handles clean stock,
+consumable storage and packing rather than repeating a generic warehouse. The
+court faces shared circulation, with receiving and patient transfer on opposite
+sides of a five-cell drive aisle, narrowing to three cells in compact courts. Patient transfer remains open; delivery vehicles
+and utility equipment occupy separate pockets. Concrete pedestrian margins and
+crossings connect the buildings without carpeting the whole yard in warning
+stripes. Equipment turns with its court and only appears where its full footprint
+fits. Small courts retain access before capacity. Shared roads, thresholds, berths
+and neighboring parcels keep their ownership; the court never creates a new
+capture objective or changes the clinic's mission role.
+
+Campaign-sized industrial templates need planned ground: ordinary BSP leaves
+stop at eighteen cells. Before compound claims and road-graph publication, a
+bounded industrial planning pass may join complete industrial parcels and their
+internal minor streets into a fitting building lot or working yard. The outer
+street ring must remain complete; trunk roads, compound seeds, partial neighbors
+and non-industrial ownership refuse the claim. The template supplies the fit
+requirement. At most one building lot and one yard are promoted per map, with
+stable selection and no planning RNG draws. The road graph is derived from the
+resulting streets, so it cannot retain a route through a new facility. Ordinary
+fillers and compound claims then consume the enlarged parcels normally.
 
 Building materials are paired wall, floor and accent surfaces, independent of
 the ground kind's tactical meaning. Warm masonry, ceramic civic surfaces and
@@ -309,6 +344,46 @@ carry L-shaped operations desks whose modules and stools rotate with the plan.
 Their outside cuts, window recesses and interior anchors remain usable.
 This treatment follows room purpose and available working space rather than
 turning residential or shop footprints into control rooms.
+
+Complete **work groups** compose existing fixtures, their contained stock or
+linen layers, and protected access in one local frame. Stocked shelf banks use
+three stock slots and one retaining frame; joined pallet slots form rows or
+L-shaped islands with a handling apron, and cabinet modules form continuous
+wall runs. The group places whole or not at all, rotates together, and refuses
+later furniture on its access cells. Stock and linen add no duplicate blocking
+or cover. Industrial floors use pallet staging islands, command annexes use
+stocked shelving, and the authored L freight depot carries a stocked rack.
+Large factories allocate a deeper support wing and receiving zone before
+furnishing: parts cages hold stocked racks with picking access, while receiving
+pairs packing and seated tally desks with grouped carton pallets. Machinery
+and staging belong on the production floor. Compact lots keep the smaller
+support plan and use individual supply stacks where complete groups cannot
+fit. The two-cell service spine connects opposed entrances independently of
+these working areas; furnishing preserves it and the machine operators' aisles.
+Production equipment has substantial, opaque multi-cell footprints: enclosed
+fabrication cells, roller-bed assembly machines and coolant skids face toward
+the working floor. Production lines group raw-material cartons, infeed rollers,
+a machine, outfeed rollers and finished cases in one accepted arrangement.
+Lines rotate as a whole and repeat along a common axis; their two-cell operating
+and service aisles remain clear before more cargo or coolant equipment is fitted.
+Compact floors try a shallower assembly line before falling back to separate bays.
+Conveyor modules join at their edges and are low, destructible fixtures.
+Standing damage retains obstruction; destroyed machines
+leave low debris and release their whole movement, sight and cover footprint.
+A factory cargo opening leads directly from outside into receiving, separate
+from its personnel entrances. It is three cells wide where the frontage permits,
+with a two-cell minimum, and reserves two interior rows against furnishing.
+The bay is opened before windows and furniture, so neither can close its throat.
+
+A clinic's equipment follows care: reception has charting and waiting seats;
+triage pairs readouts with assessment; treatment owns examination couches,
+monitors, trolleys and washing; the ward has aligned monitored beds with side
+access and a two-cell stretcher approach; pharmacy has cabinet banks and a
+dispensing station. Bed and examination capacity grows with usable room space.
+Small wards may retain one bed when a complete larger bay cannot fit. The
+medical corridor, doors and firing recesses stay usable. These furnishings do
+not create patients, simulated medical work or campaign supplies.
+
 Civic headquarters follow the same authored-program rule as ship mech labs:
 their two-cell spine, opposing entrances, room depths, and fixture groups are
 designed as one floor-plan family rather than discovered by random door and
@@ -822,7 +897,15 @@ A Cold Account uses this family, with records in the accessible
 dispatch office rather than whichever facility happens to be nearest. Its
 vehicle gates and bay approach preserve three-cell clearance after furnishing
 and defenses; field berths and infantry approaches remain connected. This is
-an authored mission consumer, not a replacement for every procedural garrison.
+an authored mission consumer. The same whole layout is available to remote
+Assault missions when their tier supplies enough ground for the site and a
+separate arrival area. Standard and extra-magazine variants rotate as complete
+assemblies; the host connects the main gate to its approach and supplies clear
+landing berths. Mission tier, risk and target rating still choose fortification.
+Small maps, single-gate citadels and missions declaring additional defensive
+installations retain their ordinary generator. A remote template reserves its
+site before any fill; inserting it among city neighbors still requires the prior
+claim in `cross-leaf-footprint-planning.md`.
 Its wider battlefield places the outpost in a mountain basin with an open eastern
 approach. Its mountains continue beyond the western, northern and southern
 map boundaries; overlapping masses, projecting spurs and open gullies vary

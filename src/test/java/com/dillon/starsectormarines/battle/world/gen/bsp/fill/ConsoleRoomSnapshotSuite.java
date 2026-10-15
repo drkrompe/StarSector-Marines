@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
+import com.dillon.starsectormarines.battle.world.gen.fit.ConsoleBankLayout.Cell;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFittings;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayout;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayoutSeed;
@@ -71,6 +72,9 @@ public final class ConsoleRoomSnapshotSuite implements SnapshotSuite {
         artifacts.add(new SnapshotArtifact("command-building-shapes.png", buildings(renderer)));
         artifacts.add(new SnapshotArtifact("building-readouts.png", readouts(renderer)));
         artifacts.add(new SnapshotArtifact("building-console-templates.png", consoleTemplates(renderer)));
+        artifacts.add(new SnapshotArtifact("clinic-workgroups.png", clinic(renderer)));
+        artifacts.add(new SnapshotArtifact("storage-workgroups.png", storage(renderer)));
+        artifacts.add(new SnapshotArtifact("factory-workgroups.png", factory(renderer)));
         RoomLayout seed = RoomLayoutSeed.from(RoomFittings.forShipRoom(RoomPurpose.BRIDGE,
                 RoomRecipe.COMMAND.shape(), RoomFit.STANDARD), RoomPurpose.BRIDGE,
                 RoomRecipe.COMMAND.shape(), RoomFit.STANDARD);
@@ -158,6 +162,98 @@ public final class ConsoleRoomSnapshotSuite implements SnapshotSuite {
         g.dispose(); return image;
     }
 
+    private static BufferedImage clinic(HeadlessBattleMapRenderer renderer) {
+        BufferedImage image = board(); Graphics2D g = image.createGraphics();
+        text(g, "CLINIC / ROOMS WITH A WORKING PURPOSE", 40, 56, 28);
+        MapResult large = building(26, 21, 42, BuildingPlacement.Side.BOTTOM, MedicalCampusFiller.CLINIC_CONFIG);
+        g.drawImage(renderer.render(large, 42, 30), 30, 135, null);
+        text(g, "26 x 21 clinic", 40, 110, 21);
+        long beds = large.doodads.stream().filter(d -> d.definitionId().equals("sickbay-clinic.bed")).count();
+        long exams = large.doodads.stream().filter(d -> d.definitionId().equals("sickbay-clinic.exam")).count();
+        if (beds < 3 || exams < 2) throw new IllegalStateException("Large clinic lost its ward / examination bays");
+        text(g, "RECEPTION", 1020, 165, 20);
+        text(g, "Charting desk + grouped waiting seats", 1020, 200, 19);
+        text(g, "TRIAGE + TREATMENT", 1020, 270, 20);
+        text(g, exams + " examination couches, monitors, trolleys and scrub sink", 1020, 305, 18);
+        text(g, "WARD", 1020, 375, 20);
+        text(g, beds + " monitored beds in aligned ranks + nursing station", 1020, 410, 19);
+        text(g, "PHARMACY", 1020, 480, 20);
+        text(g, "Connected cabinet banks + dispensing / charting desk", 1020, 515, 18);
+        text(g, "Compact clinic keeps its smaller accommodation", 1020, 600, 20);
+        MapResult small = building(15, 12, 42, BuildingPlacement.Side.BOTTOM, MedicalCampusFiller.CLINIC_CONFIG);
+        g.drawImage(renderer.render(small, 42, 22), 1020, 625, null);
+        for (int[] size : new int[][]{{15,12},{21,26},{30,24}})
+            for (BuildingPlacement.Side side : BuildingPlacement.Side.values())
+                building(size[0], size[1], 42, side, MedicalCampusFiller.CLINIC_CONFIG);
+        text(g, "Complete bays / protected bedside access / two-cell circulation / production renderer", 40, 1045, 17);
+        g.dispose(); return image;
+    }
+
+    private static BufferedImage storage(HeadlessBattleMapRenderer renderer) {
+        BufferedImage image = board(); Graphics2D g = image.createGraphics();
+        text(g, "COMPOSABLE STORAGE / STOCK + STRUCTURE + ACCESS", 40, 58, 28);
+        BuildingWorkGroups.Group[] groups = {BuildingWorkGroups.stockedRack("cartons"),
+                BuildingWorkGroups.palletIsland(List.of(new Cell(0,0), new Cell(1,0), new Cell(0,1)), "cases"),
+                BuildingWorkGroups.cabinets(3)};
+        String[] labels = {"Stocked shelf bank", "L-shaped pallet island", "Connected cabinet run"};
+        for (int i = 0; i < groups.length; i++) {
+            NavigationGrid grid = new NavigationGrid(14,14); CellTopology topology = new CellTopology(14,14);
+            for (int y = 0; y < 14; y++) for (int x = 0; x < 14; x++) {
+                grid.setWalkableFloor(x,y); topology.setGroundKind(x,y,GroundKind.INDOOR);
+                topology.setRoomPurpose(x,y,RoomPurpose.STOCKROOM);
+                topology.setSurface(x,y,topology.surfaceIndex("ship-floor-trim.passage"));
+            }
+            GenContext ctx = new GenContext(grid,topology,new Random(42),14,14,42);
+            int x = (14 - groups[i].width()) / 2, y = (14 - groups[i].height()) / 2;
+            if (!new BuildingWorkGroups(grid,topology,ctx.doodads).place(groups[i],x,y,0,RoomPurpose.STOCKROOM))
+                throw new IllegalStateException("Storage prototype failed: " + labels[i]);
+            MapResult map = new MapResult(grid,topology,0,0,0,0,ctx.pois,ctx.doodads);
+            int panel = 28 + i * 630;
+            text(g, labels[i], panel, 145, 23);
+            g.drawImage(renderer.render(map,42,42),panel,190,null);
+            text(g, i == 0 ? "Three independently filled stock slots" : i == 1 ? "Joined 2 x 2 stock slots" : "Repeated 2 x 1 cabinet modules", panel, 845, 20);
+            text(g, i == 0 ? "Rack base + stock + retaining frame" : i == 1 ? "Two-cell handling apron on every side" : "Two-cell working aisle", panel, 885, 18);
+            text(g, "Whole-group placement and rotation", panel, 930, 18);
+        }
+        text(g, "Existing production assets composed by the building fitter / 1920 x 1080",40,1045,17);
+        g.dispose(); return image;
+    }
+
+    private static BufferedImage factory(HeadlessBattleMapRenderer renderer) {
+        BufferedImage image = board(); Graphics2D g = image.createGraphics();
+        text(g, "FACTORY / RECEIVING, PARTS AND PRODUCTION", 40, 56, 28);
+        MapResult large = building(26, 21, 42, BuildingPlacement.Side.BOTTOM, BuildingIndustrialFiller.CONFIG);
+        g.drawImage(renderer.render(large, 42, 30), 30, 135, null);
+        text(g, "26 x 21 factory / complete working rooms", 40, 110, 21);
+        text(g, "RECEIVING / WIDE CARGO BAY", 1020, 165, 21);
+        text(g, "Three-cell opening with a protected unloading approach", 1020, 205, 18);
+        text(g, "PARTS CAGE", 1020, 280, 21);
+        text(g, "Stocked racks with protected picking aisles", 1020, 320, 19);
+        text(g, "PRODUCTION + CONTROL", 1020, 395, 21);
+        text(g, "Raw cartons > conveyor > machine > finished cases", 1020, 435, 19);
+        text(g, "Two-cell operator and cross aisles / seated readouts", 1020, 475, 18);
+        text(g, "Compact sites keep their smaller support wing", 1020, 555, 20);
+        MapResult compact = building(17, 13, 42, BuildingPlacement.Side.BOTTOM, BuildingIndustrialFiller.CONFIG);
+        g.drawImage(renderer.render(compact, 42, 24), 1020, 590, null);
+        for (int[] size : new int[][]{{21,21},{26,21},{21,26},{30,24}})
+            for (BuildingPlacement.Side side : BuildingPlacement.Side.values())
+                for (long seed : new long[]{41,42}) {
+                    MapResult map = building(size[0], size[1], seed, side, BuildingIndustrialFiller.CONFIG);
+                    for (String id : new String[]{"main-stores.rack", "main-stores.packing", "main-stores.tally", "main-stores.pallet",
+                            "factory-machines.fabricator", "factory-machines.conveyor"})
+                        if (map.doodads.stream().noneMatch(d -> id.equals(d.definitionId())))
+                            throw new IllegalStateException("Factory " + size[0] + "x" + size[1] + " / " + side + " / " + seed + " missing " + id);
+                    verifyCargoBay(map);
+                    for (int y = 0; y < map.grid.getHeight(); y++) for (int x = 0; x < map.grid.getWidth(); x++)
+                        if (map.topology.getRoomPurpose(x,y) == RoomPurpose.INDUSTRIAL_SPINE && !map.grid.isWalkable(x,y))
+                            throw new IllegalStateException("Factory service spine obstructed");
+                }
+        for (BuildingPlacement.Side side : BuildingPlacement.Side.values())
+            verifyCargoBay(building(17, 13, 41, side, BuildingIndustrialFiller.CONFIG));
+        text(g, "Production Java2D renderer / clear service spine / all four frontages / existing damage states", 40, 1045, 17);
+        g.dispose(); return image;
+    }
+
     private static BufferedImage consoleTemplates(HeadlessBattleMapRenderer renderer) {
         BufferedImage image = board(); Graphics2D g = image.createGraphics();
         text(g, "AUTHORED BUILDINGS / L-SHAPED OPERATIONS DESKS", 36, 58, 28);
@@ -235,7 +331,36 @@ public final class ConsoleRoomSnapshotSuite implements SnapshotSuite {
             if (grid.isWalkable(d.cellX, d.cellY) || !topology.isFixture(d.cellX, d.cellY)
                     || topology.isWall(d.cellX, d.cellY)) throw new IllegalStateException("Console is not a fixture");
         }
+        for (var d : ctx.doodads) if (d.definitionId().startsWith("factory-machines.")
+                && !d.definitionId().startsWith("factory-machines.conveyor")) {
+            int[] face = new int[][]{{0,-1},{1,0},{0,1},{-1,0}}[d.quarterTurns];
+            for (int y = d.cellY; y < d.cellY + d.footprintCellsY; y++)
+                for (int x = d.cellX; x < d.cellX + d.footprintCellsX; x++) {
+                    if (grid.isWalkable(x,y) || grid.isSeeThrough(x,y) || !topology.isFixture(x,y))
+                        throw new IllegalStateException("Machine footprint lost its physical obstruction");
+                    if (d.occupiesCell(x + face[0], y + face[1])) continue;
+                    for (int step = 1; step <= 2; step++)
+                        if (!grid.isWalkable(x + face[0] * step, y + face[1] * step))
+                            throw new IllegalStateException("Machine operating aisle obstructed");
+                }
+        }
         return new MapResult(grid, topology, 0, 0, 0, 0, ctx.pois, ctx.doodads);
+    }
+
+    private static void verifyCargoBay(MapResult map) {
+        int count = 0;
+        for (int y = 0; y < map.grid.getHeight(); y++) for (int x = 0; x < map.grid.getWidth(); x++) {
+            if (!map.grid.isDoorway(x,y)) continue;
+            for (int[] d : new int[][]{{1,0},{-1,0},{0,1},{0,-1}}) {
+                if (!map.topology.inBounds(x+d[0],y+d[1])
+                        || map.topology.getRoomPurpose(x+d[0],y+d[1]) != RoomPurpose.LOADING_BAY) continue;
+                if (!map.grid.isDoorway(x+d[1],y+d[0]) && !map.grid.isDoorway(x-d[1],y-d[0])) continue;
+                count++;
+                for (int step = -1; step <= 2; step++)
+                    if (!map.grid.isWalkable(x+d[0]*step,y+d[1]*step)) throw new IllegalStateException("Cargo approach blocked");
+            }
+        }
+        if (count < 2) throw new IllegalStateException("Factory has no two-cell cargo bay");
     }
 
     private static void verifyConnected(NavigationGrid grid) {
