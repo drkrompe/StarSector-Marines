@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
@@ -108,6 +109,29 @@ public final class SmokeTactics {
             return reserveAndAim(squad, carrier, threat, sx, sy, sim);
         }
     }
+
+    /**
+     * Serves the smoke screens the squads' orders carry: a squad told to put a cloud on a cell throws one from a grenadier within
+     * range of it, unless a cloud already stands there or a throw is already reserved. Where the grenadiers stand is the
+     * order's business (it moves them within range); this only throws.
+     */
+    public static void serveScreens(BattleControl sim) {
+        for (Squad squad : sim.getSquads()) {
+            ObjectiveAssignment order = squad.assignmentForExecution();
+            if (order == null || !order.screens()) continue;
+            int tx = order.screenMission().cellX();
+            int ty = order.screenMission().cellY();
+            synchronized (squad.lock) {
+                if (reservationResolvedOrPending(squad, sim)) continue;
+                if (sim.smokeFields().hasSmokeNear(tx + 0.5f, ty + 0.5f, SCREEN_DUPLICATE_CELLS)) continue;
+                long carrier = chooseCarrier(squad, tx, ty, sim);
+                if (carrier != 0L) reserveAndAim(squad, carrier, 0L, tx, ty, sim);
+            }
+        }
+    }
+
+    /** A cloud this close to a screen's cell is that screen already up. */
+    public static final float SCREEN_DUPLICATE_CELLS = 1.5f;
 
     /** Starts at most one useful smoke throw while displacers continue withdrawing. */
     public static void coverWithdrawal(Squad squad, BattleControl sim) {

@@ -141,14 +141,15 @@ final class SatchelApproach {
 
     /**
      * Whether every exposed cell has a standing cloud on the line from the nest to it: the cloud's centre within its
-     * radius of the segment. False when there is nothing exposed (that is HIDDEN, not blinded) or no cloud.
+     * radius of the segment, and standing for at least {@code minLife} more ticks (the time the walk takes: a cloud that thins out
+     * under the sappers screens nothing). False when there is nothing exposed (that is HIDDEN, not blinded) or no cloud.
      */
-    static boolean blinded(int[] nest, List<int[]> exposed, List<Cloud> clouds, int tick) {
+    static boolean blinded(int[] nest, List<int[]> exposed, List<Cloud> clouds, int tick, int minLife) {
         if (exposed.isEmpty()) return false;
         for (int[] cell : exposed) {
             boolean screened = false;
             for (Cloud cloud : clouds) {
-                if (tick < cloud.untilTick()
+                if (cloud.untilTick() > tick && cloud.untilTick() - tick >= minLife
                         && distanceToSegment(cloud.x(), cloud.y(), nest[0] + 0.5, nest[1] + 0.5, cell[0] + 0.5, cell[1] + 0.5)
                         <= cloud.radius()) {
                     screened = true;
@@ -158,6 +159,35 @@ final class SatchelApproach {
             if (!screened) return false;
         }
         return true;
+    }
+
+    /** How far from the route, toward the nest, a cloud is put: close enough for a grenadier at the route to reach it. */
+    static final double SCREEN_OFFSET_CELLS = 4;
+
+    /**
+     * Where to put clouds so that every exposed cell has one on its line to the nest: for each cell not yet screened, a point
+     * {@link #SCREEN_OFFSET_CELLS} from it toward the nest (never past halfway), then every cell whose line that cloud covers is
+     * done. Own-force ground between the nest and the route; nothing of the nest but its cell is read.
+     */
+    static List<int[]> screenPoints(int[] nest, List<int[]> exposed, double cloudRadius) {
+        List<int[]> points = new ArrayList<>();
+        boolean[] covered = new boolean[exposed.size()];
+        for (int i = 0; i < exposed.size(); i++) {
+            if (covered[i]) continue;
+            int[] cell = exposed.get(i);
+            double dx = nest[0] - cell[0];
+            double dy = nest[1] - cell[1];
+            double d = Math.hypot(dx, dy);
+            double t = d == 0 ? 0 : Math.min(SCREEN_OFFSET_CELLS, d * 0.5) / d;
+            int px = (int) Math.round(cell[0] + dx * t);
+            int py = (int) Math.round(cell[1] + dy * t);
+            points.add(new int[] {px, py});
+            for (int j = i; j < exposed.size(); j++) {
+                if (distanceToSegment(px + 0.5, py + 0.5, nest[0] + 0.5, nest[1] + 0.5, exposed.get(j)[0] + 0.5, exposed.get(j)[1] + 0.5)
+                        <= cloudRadius) covered[j] = true;
+            }
+        }
+        return points;
     }
 
     private static double distanceToSegment(double px, double py, double ax, double ay, double bx, double by) {
@@ -176,11 +206,11 @@ final class SatchelApproach {
      * @param engaged   whether a friendly element in position against this nest has been engaging it for the settle time
      */
     static Reading read(int nest, int[] cell, boolean live, List<int[]> route, double reach, Sight sight, boolean engaged,
-                        List<Cloud> clouds, int tick) {
+                        List<Cloud> clouds, int tick, int minLife) {
         if (!live) return new Reading(nest, Answer.DEAD);
         List<int[]> exposed = exposed(cell, route, reach, sight);
         if (exposed.isEmpty()) return new Reading(nest, Answer.HIDDEN);
-        if (blinded(cell, exposed, clouds, tick)) return new Reading(nest, Answer.BLINDED);
+        if (blinded(cell, exposed, clouds, tick, minLife)) return new Reading(nest, Answer.BLINDED);
         if (engaged) return new Reading(nest, Answer.SUPPRESSED);
         return new Reading(nest, null);
     }

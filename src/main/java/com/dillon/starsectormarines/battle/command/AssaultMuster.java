@@ -241,6 +241,13 @@ final class AssaultMuster {
     private final Map<Integer, FortFrame> placedFrames = new HashMap<>();
     /** What the side's air can do for the plan this pulse, and the strikes the plans have asked for in it. */
     private AirSupportFacts air = AirSupportFacts.NONE;
+    /** The clouds of smoke standing on the field this pulse. */
+    private List<SmokeCloudFact> smoke = List.of();
+
+    /** Sets the clouds standing this pulse, before the plan is asked for. */
+    void smoke(List<SmokeCloudFact> clouds) {
+        smoke = List.copyOf(clouds);
+    }
     private final List<StrikeRequest> strikeRequests = new ArrayList<>();
     /** What each fort's company did with its held close breachers, kept past the company for evidence. */
     private final Map<Integer, FortAssault.SatchelRecord> satchelRecords = new TreeMap<>();
@@ -848,6 +855,7 @@ final class AssaultMuster {
             if (company.execution != null) {
                 company.execution.skyNeed(air.skyNeed());
                 company.execution.strikes(new FortAssault.Strikes(air, true, clock));
+                company.execution.clouds(smoke, tick);
                 Map<Integer, Order> planned = company.execution.run(tick, perspective, objective, company.members, byId,
                         topology, notes);
                 if (planned == null) {

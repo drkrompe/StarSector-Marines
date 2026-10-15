@@ -110,7 +110,7 @@ public final class AssaultMusterScene implements BehaviorScene {
     private static final String MARINE_RIFLE = "weapon.field-rifle";
 
     private static final List<String> ALL_LOOPS = List.of("control-trickle", "plan", "plan-with-lance",
-            "breach-cannon", "breach-charges", "plan-mortar", "plan-air", "plan-mortar-air", "combined-arms");
+            "breach-cannon", "breach-charges", "breach-charges-smoke", "plan-mortar", "plan-air", "plan-mortar-air", "combined-arms");
     private static final String CHARGE_KIT = "special.satchel-charge";
     private static final String ROCKET_KIT = "special.rocket-launcher";
     private static final String RADIO_KIT = "special.comms-radio";
@@ -224,8 +224,9 @@ public final class AssaultMusterScene implements BehaviorScene {
             var spec = builder.squad(key).faction(Faction.MARINE).size(squadSize).at(at[0], at[1]).primary(MARINE_RIFLE);
             // The capability loops differ only in the kit the same company carries.
             // Rockets answer the nests; the charges are carried by other squads, so a close breach is the plan the company can staff.
-            if (loop.equals("breach-charges") && i % 3 == 1) spec.special(CHARGE_KIT, 4);
-            if (loop.equals("breach-charges") && i % 3 == 2) spec.special(ROCKET_KIT, 4, 3);
+            if (chargesLoop(loop) && i % 3 == 1) spec.special(CHARGE_KIT, 4);
+            if (chargesLoop(loop) && i % 3 == 2) spec.special(ROCKET_KIT, 4, 3);
+            if (loop.equals("breach-charges-smoke") && i % 3 == 0) spec.special(SpecialEquipmentRegistry.SMOKE_GRENADE_ID, 2);
             issueFireSupport(loop, i, spec);
             spec.done();
         }
@@ -298,6 +299,11 @@ public final class AssaultMusterScene implements BehaviorScene {
             }
             default -> { }
         }
+    }
+
+    /** The loops whose company carries satchels for the sappers and rockets for the base of fire. */
+    private static boolean chargesLoop(String loop) {
+        return loop.equals("breach-charges") || loop.equals("breach-charges-smoke");
     }
 
     private static boolean hasAir(String loop) {
@@ -384,6 +390,10 @@ public final class AssaultMusterScene implements BehaviorScene {
                                 || s.lastHeldTick - s.lastProgressTick <= SatchelApproach.PATIENCE_TICKS + SATCHEL_PULSE_ALLOWANCE_TICKS,
                         s == null ? "no satchel record" : "held " + s.heldTicks() + " ticks, " + (s.lastHeldTick - s.lastProgressTick) + " since a further nest was answered (patience " + SatchelApproach.PATIENCE_TICKS
                                 + "), released at " + s.releasedTick + ", approach changed at " + s.approachChangedTick + " " + s.approachChange));
+                verdicts.add(Verdict.of("a-smoke-screen-asked-for-was-thrown",
+                        s == null || s.asked(SatchelApproach.Enabler.SMOKE) == 0 || !t.cloudsStood.isEmpty(),
+                        s == null ? "no satchel record" : s.asked(SatchelApproach.Enabler.SMOKE) + " screens ordered, " + t.cloudsStood.size()
+                                + " clouds stood (first at tick " + t.firstCloudTick + ")"));
                 verdicts.add(Verdict.of("a-held-sapper-is-waiting-on-an-action-or-has-none-available",
                         s == null || s.heldSinceTick < 0 || s.releasedTick >= 0 || s.asked.values().stream().mapToInt(Integer::intValue).sum() > 0
                                 || s.unservablePulses > 0 || s.pendingPulses > 0,
@@ -482,6 +492,7 @@ public final class AssaultMusterScene implements BehaviorScene {
         metrics.put("satchelHeldTicks", sr == null ? 0 : sr.heldTicks());
         metrics.put("satchelAskedEngage", sr == null ? 0 : sr.asked(SatchelApproach.Enabler.ENGAGE));
         metrics.put("satchelAskedSmoke", sr == null ? 0 : sr.asked(SatchelApproach.Enabler.SMOKE));
+        metrics.put("smokeCloudsStood", t.cloudsStood.size());
         metrics.put("satchelAskedStrike", sr == null ? 0 : sr.asked(SatchelApproach.Enabler.STRIKE));
         metrics.put("satchelTicksSinceProgress", sr == null ? 0 : Math.max(0, sr.lastHeldTick - sr.lastProgressTick));
         metrics.put("satchelNestsDiedWhileHeld", sr == null ? 0 : sr.nestsDiedWhileHeld);
@@ -843,6 +854,9 @@ public final class AssaultMusterScene implements BehaviorScene {
         String breachSquadKit = "";
         ConquestCommand command;
         final BreachMechanics breach = new BreachMechanics();
+        /** Every cloud of smoke that stood on the field, by id, and the tick the first did. */
+        final Set<Long> cloudsStood = new HashSet<>();
+        int firstCloudTick = -1;
         /** Whether a squad committed to the company ever carried a field mortar, or a forward observer's radio. */
         boolean companyCarriesTubes;
         boolean companyCarriesRadio;
@@ -947,6 +961,9 @@ public final class AssaultMusterScene implements BehaviorScene {
 
         @Override public void observe(BattleSimulation sim, int tick) {
             observeFireSupport(sim, tick);
+            for (var cloud : sim.smokeFields().activeFields()) {
+                if (cloudsStood.add(cloud.id()) && firstCloudTick < 0) firstCloudTick = tick;
+            }
             breach.observe(sim, tick);
             long core = fort.place(FortAspect.FIRE_CONTROL).coreId();
             float bx = sim.world().x(core);

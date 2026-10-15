@@ -1087,6 +1087,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     squad.underFireRecently || squad.moraleBroken || squad.primaryEngageableMembers > 0,
                     squad.originalAssignment, squad.machine ? -1 : stripFor(squad), squad.capabilities));
         }
+        muster.smoke(frame.facts().smokeClouds());
         AssaultMuster.Result result = muster.plan(frame.tick(), frame.perspective(), objectives, bodies, dropZone,
                 hostiles, emplacements, frame.topology(), frame.facts().airSupport());
         strikeWishes.addAll(result.strikes());

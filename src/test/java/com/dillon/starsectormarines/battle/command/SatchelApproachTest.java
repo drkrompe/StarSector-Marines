@@ -29,7 +29,7 @@ class SatchelApproachTest {
     private static final int[] NEST = {20, 10};
 
     private static Reading read(boolean live, SatchelApproach.Sight sight, boolean engaged, List<Cloud> clouds, int tick) {
-        return SatchelApproach.read(3, NEST, live, ROUTE, REACH, sight, engaged, clouds, tick);
+        return SatchelApproach.read(3, NEST, live, ROUTE, REACH, sight, engaged, clouds, tick, 0);
     }
 
     // ------------------------------------------------------------------------------------------ the four answers
@@ -46,7 +46,7 @@ class SatchelApproachTest {
 
     @Test
     void aNestOutOfReachOfEveryCellOfTheRouteIsHiddenToo() {
-        Reading far = SatchelApproach.read(0, new int[] {20, 200}, true, ROUTE, REACH, OPEN, false, List.of(), 0);
+        Reading far = SatchelApproach.read(0, new int[] {20, 200}, true, ROUTE, REACH, OPEN, false, List.of(), 0, 0);
         assertEquals(Answer.HIDDEN, far.answer());
     }
 
@@ -102,6 +102,31 @@ class SatchelApproachTest {
         assertEquals(0, cells.get(0)[0]);
         assertEquals(2, cells.get(1)[0]);
         assertEquals(4, cells.get(cells.size() - 1)[0]);
+    }
+
+    @Test
+    void aCloudThatWillNotLastTheCrossingBlindsNothing() {
+        List<Cloud> cloud = List.of(new Cloud(20f, 5f, 12f, 100));
+        assertTrue(SatchelApproach.read(3, NEST, true, ROUTE, REACH, OPEN, false, cloud, 50, 50).answer() == Answer.BLINDED);
+        assertTrue(SatchelApproach.read(3, NEST, true, ROUTE, REACH, OPEN, false, cloud, 50, 51).open(),
+                "one tick short of the crossing and the sapper walks out from under it");
+    }
+
+    @Test
+    void screenPointsPutACloudOnTheLineToEveryExposedCell() {
+        List<int[]> exposed = SatchelApproach.exposed(NEST, ROUTE, REACH, OPEN);
+        List<int[]> points = SatchelApproach.screenPoints(NEST, exposed, 2.25);
+        assertFalse(points.isEmpty());
+        List<Cloud> clouds = new java.util.ArrayList<>();
+        for (int[] p : points) clouds.add(new Cloud(p[0] + 0.5f, p[1] + 0.5f, 2.25f, 1000));
+        assertTrue(SatchelApproach.blinded(NEST, exposed, clouds, 0, 0), "the clouds the plan asks for do screen the route");
+        assertTrue(points.size() < exposed.size(), "a cloud covers several cells, or smoke would be a grenade a step");
+    }
+
+    @Test
+    void smokeIsTheChoiceWhenItIsTheOnlyCheaperThingThanTheAir() {
+        Plan plan = SatchelApproach.plan(ONE_OPEN, new Kit(EnumSet.of(Enabler.SMOKE, Enabler.STRIKE), EnumSet.noneOf(Enabler.class)));
+        assertEquals(List.of(new Move(3, Enabler.SMOKE)), plan.moves());
     }
 
     // ------------------------------------------------------------------------------------------ the plan
