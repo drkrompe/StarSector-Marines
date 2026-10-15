@@ -1,0 +1,116 @@
+{
+  "alphaMin": 16,
+  "blocks": [],
+  "cellPx": 128,
+  "entries": [
+    {
+      "ballisticHalfHeight": 0.55,
+      "cover": "heavy",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "doodad.parked-utility-truck",
+      "included": true,
+      "note": "Industrial service crawler with generator, tool lockers and folded crane. Parked scenery; legacy id retained for existing map placements.",
+      "rect": [
+        0,
+        50,
+        557,
+        371
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.55,
+      "cover": "heavy",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "doodad.parked-flatbed-truck",
+      "included": true,
+      "note": "Industrial flatbed hauler with secured machinery crates. Parked scenery; legacy id retained for existing map placements.",
+      "rect": [
+        557,
+        50,
+        557,
+        371
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.55,
+      "cover": "heavy",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "doodad.parked-tanker-truck",
+      "included": true,
+      "note": "Colonial fluid tanker with roof filler and retaining straps. Parked scenery; legacy id retained for existing map placements.",
+      "rect": [
+        1115,
+        50,
+        557,
+        371
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.55,
+      "cover": "heavy",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "doodad.parked-box-van",
+      "included": true,
+      "note": "Colonial expedition rover with roof cargo and air filtration. Parked scenery; legacy id retained for existing map placements.",
+      "rect": [
+        0,
+        520,
+        557,
+        371
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.55,
+      "cover": "heavy",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "doodad.parked-cargo-truck",
+      "included": true,
+      "note": "Enclosed industrial freight hauler with ribbed container roof. Parked scenery; legacy id retained for existing map placements.",
+      "rect": [
+        557,
+        520,
+        557,
+        371
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.55,
+      "cover": "heavy",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "doodad.parked-armored-apc",
+      "included": true,
+      "note": "Armored colonial personnel transport with twin roof hatches. Parked scenery; legacy id retained for existing map placements.",
+      "rect": [
+        1115,
+        520,
+        557,
+        371
+      ]
+    }
+  ],
+  "gridCols": 3,
+  "gridRows": 2,
+  "idPrefix": "doodad.parked",
+  "note": "Replaces the six legacy side-view truck sprites in the existing parked-vehicles runtime catalog. Measured 1672x941 RGBA; exactly six pieces at alpha thresholds 16/40/96/160. Strict overhead geometry-guided ImageGen art, nose east. Reading order: service crawler, flatbed, tanker, colony rover, freight hauler, armored transport. Authored approximately 3:2 full placement frames preserve aspect, centers and alpha while excluding the wide inter-row sheet gutter. Existing stable ids, 3x2 footprints, heavy cover and 0.55 ballistic half-height are retained. Export intentionally replaces mod/graphics/tilesets/parked-vehicles.png and its catalog; maps resolve the same ids at newly packed coordinates. This document and ordinary tileset_export are the sole producer; the previous two-strip packer is retired. Guide and exact prompt are retained.",
+  "outputSheet": "graphics/tilesets/parked-vehicles.png",
+  "sheet": "art-source/tilesets/parked-vehicles.raw.png",
+  "sheetName": "parked-vehicles"
+}
