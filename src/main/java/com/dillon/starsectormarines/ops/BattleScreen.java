@@ -265,7 +265,9 @@ public class BattleScreen implements Screen, BattleUiContext {
      */
     private final CameraControls cameraControls = new CameraControls(true);
     /** The lines a right drag in progress would give, or null when no drag is under way. */
-    private List<FrontageLine> linePreview;
+    private List<HighlightOverlay.LineMark> linePreview;
+    /** The drag's cells the preview was last worked out for; a move inside the same cells keeps it. */
+    private long linePreviewKey = Long.MIN_VALUE;
     private float speedMultiplier = 1f;
     /** Owns all loaded sprite sheets, frame data, and ensure/load methods. */
     private final BattleSprites sprites = new BattleSprites();
@@ -1764,11 +1766,16 @@ public class BattleScreen implements Screen, BattleUiContext {
         int y1 = (int) Math.floor(camera.screenToCellY(y));
         if (released) {
             linePreview = null;
+            linePreviewKey = Long.MIN_VALUE;
             SelectionOrders.requestLine(sim, selection, x0, y0, x1, y1);
             return;
         }
+        long key = ((long) (x0 & 0xffff) << 48) | ((long) (y0 & 0xffff) << 32)
+                | ((long) (x1 & 0xffff) << 16) | (y1 & 0xffff);
+        if (key == linePreviewKey) return;
+        linePreviewKey = key;
         linePreview = Math.hypot(x1 - x0, y1 - y0) < FrontageLine.MIN_LENGTH ? null
-                : SelectionOrders.previewLines(sim, selection, x0, y0, x1, y1);
+                : SelectionOrders.previewMarks(sim, selection, x0, y0, x1, y1);
     }
 
     /** Selection changes during input must publish the same plates and bounds before the next handler/render. */

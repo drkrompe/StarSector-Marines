@@ -293,6 +293,7 @@ public class BattleRenderer {
                 RenderSystem.of(RenderLayer.HIGHLIGHTS, (ctx, out) ->
                         highlightRenderer.collect(ctx.highlights, ctx.camera, out, ctx.alphaMult)),
                 new SelectionRingRenderSystem(),
+                new OrderLineRenderSystem(),
                 new DugInMarkerRenderSystem(),
                 RenderSystem.of(RenderLayer.FOG, (ctx, out) -> collectFogOverlay(ctx, out)),
                 RenderSystem.of(RenderLayer.FOG, doodads::collectVisibleSurfaces),

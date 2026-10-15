@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — right-drag draws a line order; middle-drag and the window edge pan the battle camera.
+Updated: 2026-10-14 — line orders preview as ghost rings where each marine will stand.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -601,7 +601,10 @@ stale selections. With that exact friendly Mech selected, a stationary
 right-click on world ground requests a one-shot tactical move; the simulation's
 resolved reachable destination remains simulation-owned without a persistent
 destination-cell overlay. Crossing the pointer threshold instead draws a line order for the selection
-(see `ai-nouns.md`, occupy), previewed with its front while the button is held;
+(see `ai-nouns.md`, occupy), previewed while the button is held as a stroke with
+ticks toward its front and a dashed ring tethered to each marine where they will
+stand — green on a position, pale on open ground — rather than as highlighted
+cells; once released, the held line keeps its stroke;
 the camera pans by middle-drag, the keyboard, and resting the pointer on the
 window edge, and HUD chrome blocks the world
 request behind it. The verb under the pointer is drawn as a target marker; an
