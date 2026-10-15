@@ -679,6 +679,34 @@ Do not run builds or leave generated task files there.
   mobility and systems kept as separate columns, plus which faction channels sell it, followed
   by the armor-pattern and weapon-grade reference tables. Read from the shipped data, so it
   cannot drift; opt-in and excluded from `test`. Ratings leave out cover, morale and orders.
+- `gradlew.bat loadoutMatchup` → fights loadouts against each other headlessly and writes
+  `matchups.md`, `matchups.csv` and per-fight `runs.csv` under `build/reports/loadout-matchups/`.
+  Twelve regular marines a side, kit exactly as the cards issue it (`LoadoutCardIssue.seats`:
+  the weapon card's billet plus the sheet's pattern for that billet), in three starter
+  scenarios on one skeleton (attackers attack-move in from the west, defenders hold the east):
+  `open-field`, `trench` (twelve-cell fighting-position trench) and `building` (walled, one
+  doorway, attackers ordered to clear it). The default ladder fights every weapon card (on
+  starter armor) and every sheet (with starter weapons) against the starter issue, once
+  attacking and once defending, at `-Pseeds=3` seeds; starter-vs-starter is the control row
+  every other row is read against, because the ground favours one side. `-Pattacker=` /
+  `-Pdefender=` (`weapons:x+armor:y`) replace the ladder with one explicit matchup,
+  `-Pscenarios=open-field,trench` selects ground, `-Pparallelism=N` sets fights run side by
+  side (default half the processors; 1 is the serial control). The sim seed changes every hit
+  and morale roll and nothing else. A fight ends when a side is wiped out, when both stand
+  with no damage for 1,200 ticks (`STALEMATE`) or at the tick limit; neither is a draw, so
+  read survivors. Each run replays the control twice side by side first and reports a
+  determinism failure in the header. Any `-Dbattle.*` switch is forwarded, so a behaviour
+  tweak shows as the rows that move between a run and its control run. Controlled
+  construction with a detached kit, not a campaign roster, and not balance acceptance.
+  `-Pgifs=true` records each fight's first `-PgifSeeds=1` seeds as a 1920x1080 GIF under
+  `gifs/<scenario>/` (linked from the Replay column of `matchups.md` and `runs.csv`); it is on
+  by default for an explicit `-Pattacker`/`-Pdefender` matchup and off for the ladder, where it
+  would write a gigabyte. A recording only reads the sim: sparse frames until the first damage,
+  dense after it, shots and impacts drawn, a camera that follows the main body of the fight
+  (a routed straggler is left out of the framing), capped at 360 frames. A scenario's walls have
+  no art, so a scenario overrides `annotations()` to box what it built. Rendering takes turns
+  across the side-by-side fights and costs about 20-30s a recording.
+  A new scenario implements `MatchupScenario` and joins `MatchupScenarios.all()`.
 - `gradlew.bat crewEvidence` → crews a transport and a capital from their own
   room programs, runs each for four minutes of ship's time, and reports what the
   complement actually spent it doing: the idle share, the activity histogram, the
