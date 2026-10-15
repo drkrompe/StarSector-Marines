@@ -28,6 +28,8 @@ import com.dillon.starsectormarines.battle.world.gen.ConquestTrialGround.Placeme
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
+import com.dillon.starsectormarines.testsupport.InstalledHullEngines;
+import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import org.json.JSONArray;
@@ -69,7 +71,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * mission's {@code AssaultStyle.TRICKLE}; {@code musterPlans:false} is rejected, since plans are part of the muster),
  * {@code supportKit} ({@code {"mortarTeamEvery":6,"observerEvery":4}}, or {@code "conquest"} for those periods; absent
  * issues none); {@code mechDrops} (lances of the Conquest composition the marine commander may call; absent none);
- * {@code airPool} ({@code {"bombers":3,"fighters":2,"regen":true}}; absent none). The trial map is authored with no
+ * {@code airPool} ({@code {"bombers":3,"fighters":2,"regen":true}}; absent none). {@code defenderAirPool} (the same shape, plus
+ * {@code observerEvery}, default 3: the defenders' pool and the comms operators it is called through, issued by the same
+ * kit path a mission declares; absent none). The trial map is authored with no
  * mission layer above it, so none of the mission's declarations apply unless the fixture states them.
  */
 @Tag("conquest-trial-evidence")
@@ -81,6 +85,16 @@ class ConquestTrialEvidenceTest {
 
     @Test
     void playsTheTrialMatrix() throws Exception {
+        InstalledHullSpecs.install();
+        InstalledHullEngines.install();
+        try {
+            playMatrix();
+        } finally {
+            InstalledHullEngines.uninstall();
+        }
+    }
+
+    private void playMatrix() throws Exception {
         assertEquals(Integer.MAX_VALUE, UnitUpdateSystem.configuredMinimumParallelUnits(),
                 "evidence runs force the serial scheduler");
         Path output = Path.of(System.getProperty(PREFIX + ".outputDir", "build/reports/commander/conquest-trial"));
@@ -169,9 +183,20 @@ class ConquestTrialEvidenceTest {
             boolean regen = pool.optBoolean("regen", true);
             int bombers = pool.optInt("bombers", 0);
             int fighters = pool.optInt("fighters", 0);
-            profile = profile.withDeclaredAirPool(AirPoolDeclaration.NONE.with(Faction.MARINE, AirPoolAllowance.of(
+            profile = profile.withDeclaredAirPool(profile.declaredAirPool().with(Faction.MARINE, AirPoolAllowance.of(
                     new AirPoolStock(bombers, bombers, regen ? 40f : 0f),
                     new AirPoolStock(fighters, fighters, regen ? 25f : 0f), true)));
+        }
+        JSONObject defence = f.optJSONObject("defenderAirPool");
+        if (defence != null) {
+            boolean regen = defence.optBoolean("regen", true);
+            int bombers = defence.optInt("bombers", 0);
+            int fighters = defence.optInt("fighters", 0);
+            profile = profile.withDeclaredAirPool(profile.declaredAirPool().with(Faction.DEFENDER, AirPoolAllowance.of(
+                    new AirPoolStock(bombers, bombers, regen ? 40f : 0f),
+                    new AirPoolStock(fighters, fighters, regen ? 25f : 0f), true)));
+            profile = profile.withDeclaredSupportKit(profile.declaredSupportKit().with(Faction.DEFENDER,
+                    new SquadSupportKit(0, defence.optInt("observerEvery", 3))));
         }
         return profile;
     }
@@ -236,6 +261,7 @@ class ConquestTrialEvidenceTest {
             FortOutcomes forts = new FortOutcomes();
             FortDefenderPositionProbe positionUse = new FortDefenderPositionProbe();
             FireSupportProbe fireSupport = new FireSupportProbe();
+            ContestedAirProbe contested = new ContestedAirProbe(fortCentre[0], fortCentre[1], FORT_REACH);
             int wallOpenAtStart = openedWallCells(sim, ground);
             FightingPositionIndex startPositions = sim.fightingPositions();
             assertTrue(startPositions.runCount() > 0, "the trial fort stands a belt of fighting positions");
@@ -255,6 +281,7 @@ class ConquestTrialEvidenceTest {
                 forts.sample(sim);
                 positionUse.sample(sim);
                 fireSupport.sample(sim);
+                contested.sample(sim);
                 peakMarines = Math.max(peakMarines, count(sim, Faction.MARINE));
                 if (objectiveTaken < 0 && held(compounds, ground.objective())) objectiveTaken = tick;
                 if (keepTaken < 0 && held(compounds, ground.keep())) keepTaken = tick;
@@ -296,7 +323,7 @@ class ConquestTrialEvidenceTest {
                     + String.format(Locale.ROOT, "- companies (marine trace notes): formed %d, committed %d, broken %d, "
                             + "stood down %d, dissolved %d, recruits released %d, strikes asked %d%n",
                             life[0], life[1], life[2], life[3], life[4], life[5], life[6])
-                    + forts.describe(sim) + fireSupport.describe(sim) + ConquestCommandBalanceTest.fortOrders(trace)
+                    + forts.describe(sim) + fireSupport.describe(sim) + contested.describe(sim) + ConquestCommandBalanceTest.fortOrders(trace)
                     + positionUse.describe();
             JSONObject json = new JSONObject().put("fixture", f).put("winner", winner).put("ticks", ticks)
                     .put("objectiveTakenTick", objectiveTaken).put("keepTakenTick", keepTaken)
@@ -311,6 +338,7 @@ class ConquestTrialEvidenceTest {
                     .put("nestsKilled", fireSupport.nestKills()[0]).put("nestsKilledByMortar", fireSupport.nestKills()[1])
                     .put("nestsKilledByAir", fireSupport.nestKills()[2])
                     .put("airPoolByMission", FireSupportProbe.poolJson(sim))
+                    .put("contestedAir", contested.json(sim))
                     .put("sectionsOpened", sim.fieldMortars().sections().opened())
                     .put("sectionsExpired", sim.fieldMortars().sections().expired())
                     .put("sectionsAbandoned", sim.fieldMortars().sections().abandoned())
