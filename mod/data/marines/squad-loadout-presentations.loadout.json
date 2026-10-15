@@ -208,6 +208,24 @@
       "lore": "@gearCatalogCorporateSpecterSectionLore"
     },
     {
+      "id": "weapons:trench-clearing",
+      "kind": "WEAPON",
+      "tier": 2,
+      "rarity": "UNCOMMON",
+      "provenance": "@gearCatalogWeaponsTrenchClearingProvenance",
+      "factionLogo": "graphics/factions/neutral_traders.png",
+      "lore": "@gearCatalogWeaponsTrenchClearingLore"
+    },
+    {
+      "id": "armor:freeport-assault",
+      "kind": "ARMOR",
+      "tier": 2,
+      "rarity": "UNCOMMON",
+      "provenance": "@gearCatalogFreeportAssaultProvenance",
+      "factionLogo": "graphics/factions/neutral_traders.png",
+      "lore": "@gearCatalogFreeportAssaultLore"
+    },
+    {
       "id": "armor:hegemony-arbalest-section",
       "kind": "ARMOR",
       "tier": 3,

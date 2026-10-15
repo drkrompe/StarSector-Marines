@@ -375,7 +375,7 @@ public final class VehicleControlSystem {
         float taper = (float) Math.sqrt(2f * type.brakingAccel * Math.max(0f, remaining));
         float curveCap = VehicleController.curvatureSpeedCap(px, py, startIdx, body.x, body.y, type.maxSpeed);
         float terrainSpeed = type.maxSpeed * navigation.getGrid().groundSpeedMultiplier(body.x, body.y);
-        float targetSpeed = Math.min(Math.min(terrainSpeed, taper), curveCap);
+        float targetSpeed = Math.min(Math.min(Math.min(terrainSpeed, taper), curveCap), Math.max(0f, mission.speedCap));
         body.speed = Math.copySign(Math.min(Math.abs(body.speed), terrainSpeed), body.speed);
 
         float cdx = carrot.x - body.x, cdy = carrot.y - body.y;

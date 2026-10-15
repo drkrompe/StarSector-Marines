@@ -11,7 +11,7 @@ Read `campaign-battle-bridge-nouns.md` before changing a bridge story.
 | Story | Status | Dependencies / freshness |
 | --- | --- | --- |
 | `defense-intensity-feel-pass.md` | Ready | The shipped overwatch scaling has headless wiring coverage but still needs representative in-game tuning acceptance; manual acceptance only. |
-| `market-garrison-model.md` | In progress — slice 2 next | One garrison estimate per market (strength, quality, heavy lean, readiness) of our own, identical with or without Nexerelin, mixed through every squad. Needed by `nex-invasion-conquest.md` slice 2. |
+| `market-garrison-model.md` | In progress — consumers wired; calibration next | One garrison estimate per market (strength, quality, heavy lean, readiness) of our own, identical with or without Nexerelin, mixed through every squad. Needed by `nex-invasion-conquest.md` slice 2. |
 | `target-profile-defense-authority-cleanup.md` | Proposed | `MissionLaunch` currently resolves both `TargetProfile` and the separate `DetachmentResolver.planetHasHeavyArmaments` market scan. Consolidate one market read without silently changing the mech predicate. |
 
 Economic district content is not bridge backlog: its shared substrate and
