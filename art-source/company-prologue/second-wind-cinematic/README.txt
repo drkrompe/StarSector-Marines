@@ -1,5 +1,11 @@
 SECOND WIND - JANGALA ARRIVAL CINEMATIC
 
+Status: compositing technique prototype; physical staging rejected in review.
+The hangar opening, ship attitude and approach path do not form a coherent
+docking maneuver. Retain this export as motion/lighting evidence only. Plan the
+storyboard, then resolve ship/berth clearance, cameras and travel in a shared
+Blender blockout before producing the next detailed scene layers.
+
 A 12-second, silent, fixed-angle 2.5D compositing study. The damaged Second Wind
 coasts toward an industrial berth above Jangala. This is an arrival establishing
 shot, before the campaign's planetary-yard berthing conversion. The orbital
