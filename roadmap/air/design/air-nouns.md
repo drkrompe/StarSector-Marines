@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — Gunships fly a worked ring; replacement battle artwork preserves native hull geometry with appearance-only nozzle registration.
+Updated: 2026-10-15 — Native hull geometry anchors replacement artwork and self-lit engine masks; visible exhaust distinguishes acceleration from steady cruise.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -104,6 +104,13 @@ resolution does not change the aircraft's physical size, centre of gravity or
 weapon locations. When reconstructed art places an engine nozzle differently,
 its appearance may offset the visible plume in that same hull frame; engine
 geometry for flight and thrust demand stays authoritative and unchanged.
+
+An engine's visible burn follows its realized work: a compact idle, a restrained
+sustaining flame at steady speed, and a longer, brighter plume while accelerating.
+Individual nozzles also respond to turning demand, with smooth attack and decay
+on the simulation clock. Night missions retain self-lit nozzle and exhaust masks
+at the same hull hardpoints while environmental shade still darkens the airframe.
+Engine light neither reveals fog nor changes the craft's motion or detection.
 
 A craft's drawn size is `AirAppearance.GROUND_SCALE` on the ground rising to
 `GROUND_SCALE × ALTITUDE_SCALE_GAIN` at altitude — the gain is factored out as

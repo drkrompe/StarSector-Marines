@@ -42,7 +42,7 @@ import com.dillon.starsectormarines.battle.air.AirHandling;
 public final class ThrusterDemand {
 
     /** Coast-sustain weight: how much current velocity (vs accel) keeps aligned mains lit. */
-    private static final float W_VEL = 0.6f;
+    private static final float W_VEL = 0.25f;
     /** Acceleration-bloom weight: the "stand on the throttle" contribution. Dominant by design — this is the "intended velocity change" read. */
     private static final float W_ACCEL = 1.0f;
 

@@ -7,7 +7,7 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
 /**
- * One aircraft's engine plumes as a {@link RenderLayer#SHUTTLES} custom pass.
+ * One aircraft's emissive nozzle/exhaust masks as an {@link RenderLayer#AIRCRAFT_LIGHTS} custom pass.
  *
  * <p>It is a named type rather than a lambda so a host that cannot run GL can recognise it: the live drain simply
  * {@link #run runs} it, and the headless review drain calls {@link #draw} with sprites of its own that record where

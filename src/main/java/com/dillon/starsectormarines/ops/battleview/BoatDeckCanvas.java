@@ -59,7 +59,7 @@ public final class BoatDeckCanvas implements CanvasProducer {
     private static final EnumSet<RenderLayer> BACKDROP_LAYERS = EnumSet.of(
             RenderLayer.GROUND, RenderLayer.DOODADS);
     private static final EnumSet<RenderLayer> ACTOR_LAYERS = EnumSet.of(
-            RenderLayer.UNITS, RenderLayer.SHUTTLES, RenderLayer.SHOTS);
+            RenderLayer.UNITS, RenderLayer.SHUTTLES, RenderLayer.AIRCRAFT_LIGHTS, RenderLayer.SHOTS);
 
     private final CompanyDeck ship;
     private final Supplier<DeckGraph.Compartment> bay;

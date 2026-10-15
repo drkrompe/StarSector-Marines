@@ -64,6 +64,22 @@ class EngineFxRendererTest {
         assertEquals(Color.WHITE, glow.color);
     }
 
+    @Test void idleAndCruiseStayVisiblyShorterAndDimmerThanAccelerationWithUniformFallback() {
+        var glow = new Recorder(); var flame = new Recorder(); var camera = camera();
+        for (float demand : new float[]{0, .25f, 1})
+            EngineFxRenderer.draw(new EngineSlotData[]{SLOT}, 50, 50, 0, 1, 0,
+                    1, 1, camera, glow.sprite, flame.sprite, new float[]{demand});
+        Draw idle = flame.draws.get(0), cruise = flame.draws.get(1), boost = flame.draws.get(2);
+        assertTrue(idle.height() < cruise.height());
+        assertTrue(cruise.height() < boost.height() * .65f);
+        assertTrue(cruise.alpha() < boost.alpha() * .55f);
+        assertTrue(glow.draws.get(0).alpha() > 0 && glow.draws.get(0).alpha() < .1f,
+                "idle keeps a restrained live nozzle glow");
+        EngineFxRenderer.draw(new EngineSlotData[]{SLOT}, 50, 50, 0, 1, 0,
+                1, 1, camera, glow.sprite, flame.sprite);
+        assertEquals(boost, flame.draws.get(3), "missing demand preserves uniform-throttle callers");
+    }
+
     @Test void demandChangesLengthWidthAndBrightnessContinuouslyWithoutMovingTheNozzle() {
         var glow = new Recorder(); var flame = new Recorder(); var camera = camera();
         for (float demand : new float[]{0, .49f, .5f, .51f, 1})

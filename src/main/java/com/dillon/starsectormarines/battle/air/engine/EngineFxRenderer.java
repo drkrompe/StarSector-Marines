@@ -45,10 +45,10 @@ public final class EngineFxRenderer {
     /**
      * Per-slot floor when a {@code perSlotDemand} array is supplied: an idle
      * thruster (demand 0) still draws at this fraction of the master intensity,
-     * so a lit engine never blinks fully dark. Matches the old uniform
-     * {@code Shuttle.HOVER_FX_FLOOR} so a stationary hover reads the same.
+     * so a live nozzle keeps a modest glow while reserving a clear bloom for
+     * acceleration. Flight-phase intensity still gates landed engines off.
      */
-    private static final float DEMAND_FLOOR = 0.45f;
+    private static final float DEMAND_FLOOR = 0.1f;
 
     private EngineFxRenderer() {}
 

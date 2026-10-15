@@ -1230,6 +1230,8 @@ The discovered suite ids and default output directories are:
 | `layers` | One combined composition sheet per authored unit | `build/snapshots/layers/` |
 | `ship-decks` | Generated ship-deck plan views, tinted by longitudinal zone | `build/snapshots/ship-decks/` |
 | `ships-boats` | One hull's own boats: a bay with its rank of shuttles, every bay ringed with the door it launches through, and an animated turnaround — a boat leaving its berth, the berth standing empty, and the boat home again | `build/snapshots/ships-boats/` |
+| `aircraft-thrusters` | Six existing fighters and bombers in controlled loiter, with native hull geometry and shared engine effects; 10 seconds at 1920x1080, 15 fps, matching 60 px/cell cameras | `build/snapshots/aircraft-thrusters/` |
+| `aircraft-thrusters-night` | The same six aircraft under production night shade, with native steering and smoothed engine demand through idle, acceleration, cruise and braking; 16 seconds at 1920x1080, 15 fps. Controlled throttle inputs, not a combat sortie | `build/snapshots/aircraft-thrusters-night/` |
 | `turrets` | Authored mount-state strips, including projectile and impact effects | `build/snapshots/turrets/` |
 | `ui` | Marine Ops screens at authored viewport sizes, including the scale-invariant battle task-force plate and MLX command rail | `build/snapshots/ui/` |
 | `hq-intel` | Animated HQ receivers, dossier selection and a labelled fixture arrival at 1920x1080, 100% scale | `build/snapshots/hq-intel/` |

@@ -12,11 +12,11 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
 /**
- * Emits the {@link RenderLayer#SHUTTLES} layer — aircraft (shuttles) and their
- * mounted turrets, above the ground/unit/roof stack so they pierce the fog-roof.
+ * Emits aircraft and mounted turrets into {@link RenderLayer#SHUTTLES}, above
+ * the ground/unit/roof stack, and engine masks into {@link RenderLayer#AIRCRAFT_LIGHTS}.
  *
- * <p>Each shuttle emits, in submission (= paint) order: a {@code CUSTOM} engine-FX
- * pass (own-GL, drawn under the hull), a {@code SPRITE} hull (whole rotated
+ * <p>Each shuttle emits a {@code CUSTOM} engine-FX pass into
+ * {@link RenderLayer#AIRCRAFT_LIGHTS}, followed by a {@code SPRITE} hull (whole rotated
  * sprite), then per mounted turret an optional recoil-displaced barrel
  * {@code SPRITE} and the base {@code SPRITE}. Faithful port of the former inline
  * {@code BattleRenderer.renderShuttles}/{@code renderShuttleEngines}/
@@ -24,8 +24,10 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
  * {@code SPRITE} command (which resets sprite angle after each draw, so the old
  * end-of-pass {@code setAngle(0)} reset loop is gone).
  *
- * <p>Engine FX manages its own GL bracket, so it rides the drain's {@code CUSTOM}
- * escape hatch rather than the textured-quad bracket.
+ * <p>The engine masks paint once, above environmental shade, so their light is
+ * independent of the hull's night tint. They retain this collector's admission,
+ * camera culling and exact hull pose. Engine FX manages its own GL bracket, so it
+ * rides the drain's {@code CUSTOM} escape hatch rather than the textured-quad bracket.
  */
 public final class ShuttleRenderSystem implements RenderSystem {
 
@@ -77,12 +79,14 @@ public final class ShuttleRenderSystem implements RenderSystem {
             float engineFxIntensity = AirAppearance.thrusterPlume(mission.state, altitudeT);
             float[] thrusterGlow = ctx.sim.getThrusterGlow(id);
 
-            // Engine FX (own GL) under the hull. The per-slot demand (smoothed
+            // Self-lit engine masks. The per-slot demand (smoothed
             // each sim tick by AirSystem's ThrusterFxSystem) blooms the thrusters
             // actually pushing / turning the hull and ramps instead of snapping.
-            out.addCustom(RenderLayer.SHUTTLES, new EngineFxPass(frame, body.x, body.y,
-                    body.facingDegrees, scaleMult, altOffset, engineFxIntensity, alphaMult, cam,
-                    sprites.engineGlowSprite(), sprites.engineFlameSprite(), thrusterGlow));
+            if (!mission.destroyed && engineFxIntensity > 0f) {
+                out.addCustom(RenderLayer.AIRCRAFT_LIGHTS, new EngineFxPass(frame, body.x, body.y,
+                        body.facingDegrees, scaleMult, altOffset, engineFxIntensity, alphaMult, cam,
+                        sprites.engineGlowSprite(), sprites.engineFlameSprite(), thrusterGlow));
+            }
 
             // Hull. Length is derived from the hull's sprite pixel extent via
             // the one global pixel-density factor (HullFootprintResolver), not a

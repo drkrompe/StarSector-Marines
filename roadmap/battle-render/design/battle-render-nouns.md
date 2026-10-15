@@ -4,7 +4,7 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — shoulder-pod firing follows committed launches; observed grounded surfaces admit night lighting without revealing ground.
+Updated: 2026-10-15 — Aircraft engine masks remain emissive above environmental shade without changing hull shading or observation.
 
 ## Vocabulary
 
@@ -88,6 +88,10 @@ Updated: 2026-10-13 — shoulder-pod firing follows committed launches; observed
   and oriented heads that remain visible when unpowered; interior strips retain
   their separate fixture identity. Appearance never changes the authored light pool.
   Ship-compartment lighting is separate.
+- **Aircraft engine light** is the nozzle and exhaust's own emissive alpha mask,
+  drawn once after environmental shade. It follows the admitted aircraft's pose,
+  appearance offsets and smoothed thrust demand. The hull retains night shading;
+  engine emission does not light the ground or grant observation through fog.
 
 ## Ownership and flow
 

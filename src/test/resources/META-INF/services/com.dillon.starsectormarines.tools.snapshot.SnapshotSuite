@@ -165,3 +165,4 @@ com.dillon.starsectormarines.battle.world.gen.bsp.fill.ServiceYardSnapshotSuite
 com.dillon.starsectormarines.battle.setup.WholeCompoundSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.bsp.fill.MedicalCampusSnapshotSuite
 com.dillon.starsectormarines.battle.air.AircraftThrustersSnapshotSuite
+com.dillon.starsectormarines.battle.air.AircraftThrustersNightSnapshotSuite
