@@ -135,6 +135,15 @@ public final class MissionDefencePolicy {
     }
 
     /**
+     * The market profile as this mission meets it. A Nexerelin invasion meets the market's whole garrison; every
+     * other operation meets the share its tier engages ({@code nexerelin-nouns.md}, law 7).
+     */
+    public static TargetProfile garrisonFaced(Mission mission, TargetProfile market) {
+        if (mission == null || market == null || mission.source != MissionSource.NEX_INVASION) return market;
+        return market.withGarrison(market.garrison().asWhole());
+    }
+
+    /**
      * The defences this mission declares.
      *
      * @param market the target world's profile as the market gave it; its signals are an input, not the answer

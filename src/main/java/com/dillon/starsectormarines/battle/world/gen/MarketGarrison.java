@@ -18,11 +18,18 @@ package com.dillon.starsectormarines.battle.world.gen;
  * @param heavy     how far the force leans toward heavy support, {@code 0..1}
  * @param readiness the multiplier already applied to {@link #strength} for recent fighting at the market,
  *                  {@code 0..1}; {@code 1} for a garrison nobody has recently fought
+ * @param whole     whether this operation meets the whole garrison rather than the share its tier engages. Only a
+ *                  player invasion does ({@code nexerelin-nouns.md}); every contract operation is banded by its tier.
  */
-public record MarketGarrison(float strength, float quality, float heavy, float readiness) {
+public record MarketGarrison(float strength, float quality, float heavy, float readiness, boolean whole) {
 
     /** No market, no garrison: a consumer that reads it keeps its own mission-authored defaults. */
     public static final MarketGarrison NONE = new MarketGarrison(0f, 0f, 0f, 1f);
+
+    /** A garrison an operation meets only in part, as every contract operation does. */
+    public MarketGarrison(float strength, float quality, float heavy, float readiness) {
+        this(strength, quality, heavy, readiness, false);
+    }
 
     public MarketGarrison {
         strength = clamp(strength, 0f, Float.MAX_VALUE);
@@ -54,6 +61,11 @@ public record MarketGarrison(float strength, float quality, float heavy, float r
         float fill = Math.min(1f, heavy / HEAVY_LEAN_FOR_FULL);
         float share = HEAVY_BAND_FLOOR + (1f - HEAVY_BAND_FLOOR) * fill;
         return Math.min(candidates, Math.max(1, (int) Math.ceil(candidates * share - 1e-4f)));
+    }
+
+    /** The same garrison, met whole: the defender count is its whole strength, not its tier's band. */
+    public MarketGarrison asWhole() {
+        return whole ? this : new MarketGarrison(strength, quality, heavy, readiness, true);
     }
 
     /** Whether this is the absence of a garrison rather than a garrison. */

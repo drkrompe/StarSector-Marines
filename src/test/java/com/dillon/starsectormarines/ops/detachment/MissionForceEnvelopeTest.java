@@ -46,6 +46,16 @@ class MissionForceEnvelopeTest {
         assertEquals(4, MissionForceEnvelope.minimumPersonnel(defence, 96));
     }
 
+    /** The player's own invasion goes in with whatever the company has, though it is a Conquest. */
+    @Test
+    void aNexerelinInvasionMayLaunchUnderstrength() {
+        Mission invasion = mission(MissionSource.NEX_INVASION, MissionType.CONQUEST,
+                OperationTier.REINFORCED);
+
+        assertTrue(MissionForceEnvelope.allowsUnderstrength(invasion));
+        assertEquals(4, MissionForceEnvelope.minimumPersonnel(invasion, 96));
+    }
+
     @Test
     void authoredAndConquestWorkKeepTheirExistingGate() {
         Mission story = mission(MissionSource.STORY, MissionType.RAID,

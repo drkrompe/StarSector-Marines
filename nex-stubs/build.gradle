@@ -1,0 +1,30 @@
+// Compile-only stand-ins for the few Nexerelin signatures the mod's Nexerelin
+// compatibility calls (`nex-invasion-conquest.md`). The real classes come from
+// Nexerelin's own jar at runtime, and only when Nexerelin is enabled; this
+// module never ships. The root project takes it compileOnly, and takes it
+// testImplementation too so `verifyModJarBoundary` counts these classes as
+// tool-only and fails the build if one ever reaches StarsectorMarines.jar.
+//
+// Declare only what is called, with the exact descriptor Nexerelin 0.12.2d
+// (Histidine91/Nexerelin 9b0ddac) has, and keep every body a throw: a stub that
+// does something would be a second, wrong implementation.
+plugins {
+    id 'java-library'
+}
+
+def starsectorCore = new File(file(providers.gradleProperty('starsectorDir').get()), 'starsector-core')
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 17
+    options.encoding = 'UTF-8'
+}
+
+dependencies {
+    compileOnly files(new File(starsectorCore, 'starfarer.api.jar'))
+}

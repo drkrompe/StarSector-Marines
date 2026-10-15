@@ -115,14 +115,17 @@ public final class DefenderRoster {
      * As above, with the target market's own garrison estimate. A market's {@link MarketGarrison#quality} sets the
      * elite share of the infantry in place of the risk curve, so a military world is more professional than a mining
      * outpost at the same risk, and its {@link MarketGarrison#strength} places the headcount inside the tier's band
-     * ({@link #bandedTotal}). {@link MarketGarrison#NONE} keeps the risk curve and the tier's whole count.
+     * ({@link #bandedTotal}). {@link MarketGarrison#NONE} keeps the risk curve and the tier's whole count. A garrison
+     * {@linkplain MarketGarrison#whole met whole} fields {@link #wholeGarrisonCount} instead of the tier's band.
      */
     public static DefenderRoster forMission(MissionType type, OperationTier tier,
                                             RiskLevel risk, boolean hasHeavyArmor,
                                             float attackerScore,
                                             GroundRosterProfile groundRoster,
                                             MarketGarrison garrison) {
-        int total = bandedTotal(totalFor(type, tier, risk), garrison);
+        int total = garrison != null && garrison.whole() && !garrison.isNone()
+                ? wholeGarrisonCount(garrison)
+                : bandedTotal(totalFor(type, tier, risk), garrison);
         float eliteRatio = eliteRatio(risk, garrison);
         List<MechVariant> mechVariants = affordableMechVariants(total, eliteRatio,
                 bandedMechs(mechVariantsFor(type, risk, hasHeavyArmor, groundRoster), garrison), attackerScore);

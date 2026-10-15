@@ -86,4 +86,17 @@ class DefenderRosterMixTest {
                 new MarketGarrison(250 * DefenderRoster.STRENGTH_PER_DEFENDER, 0.3f, 0f, 1f)));
         assertEquals(8, DefenderRoster.wholeGarrisonCount(new MarketGarrison(4f, 0.3f, 0f, 1f)));
     }
+
+    @Test
+    void aGarrisonMetWholeFieldsItsWholeCountWhateverTheTier() {
+        MarketGarrison large = new MarketGarrison(1_000f, 0.5f, 0f, 1f);
+        DefenderRoster banded = DefenderRoster.forMission(MissionType.CONQUEST, OperationTier.FIRST_CONTRACT,
+                RiskLevel.HIGH, false, Float.POSITIVE_INFINITY, null, large);
+        DefenderRoster whole = DefenderRoster.forMission(MissionType.CONQUEST, OperationTier.FIRST_CONTRACT,
+                RiskLevel.HIGH, false, Float.POSITIVE_INFINITY, null, large.asWhole());
+        assertTrue(banded.totalCount < DefenderRoster.wholeGarrisonCount(large), "a tier caps a contract's share");
+        assertEquals(DefenderRoster.wholeGarrisonCount(large), whole.totalCount, "an invasion meets all of it");
+        assertEquals(Math.round((whole.totalCount - whole.mechVariants.size()) * 0.5f), whole.eliteCount,
+                "still mixed by the garrison's quality");
+    }
 }

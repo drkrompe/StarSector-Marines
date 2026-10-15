@@ -28,6 +28,11 @@ class GarrisonFixtureJsonTest {
         TargetProfile decoded = ((CivilianRescueBattleFixture) BattleFixtureJson.fromJson(encoded)).targetProfile();
         assertEquals(garrison, decoded.garrison());
 
+        MarketGarrison whole = garrison.asWhole();
+        TargetProfile decodedWhole = ((CivilianRescueBattleFixture) BattleFixtureJson.fromJson(
+                BattleFixtureJson.toJson(fixture(TargetProfile.NEUTRAL.withGarrison(whole))))).targetProfile();
+        assertEquals(whole, decodedWhole.garrison(), "an invasion replays against the whole garrison");
+
         JSONObject plain = BattleFixtureJson.toJson(fixture(TargetProfile.NEUTRAL));
         assertFalse(plain.getJSONObject("targetProfile").has("garrison"));
         encoded.getJSONObject("targetProfile").remove("garrison");

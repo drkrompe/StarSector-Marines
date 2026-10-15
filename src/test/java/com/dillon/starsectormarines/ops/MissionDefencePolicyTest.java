@@ -67,6 +67,15 @@ class MissionDefencePolicyTest {
     }
 
     @Test
+    void onlyANexerelinInvasionMeetsTheWholeGarrison() {
+        TargetProfile market = FORTRESS_MARKET.withGarrison(new MarketGarrison(400f, 0.3f, 0.1f, 1f));
+        Mission invasion = Mission.builder().type(MissionType.CONQUEST).source(MissionSource.NEX_INVASION).build();
+        assertTrue(MissionDefencePolicy.garrisonFaced(invasion, market).garrison().whole());
+        assertEquals(market, MissionDefencePolicy.garrisonFaced(of(MissionType.CONQUEST), market),
+                "a contract Conquest meets its tier's share");
+    }
+
+    @Test
     void conquestSitesItsFortsAsBarriersWhenItDeclaresAny() {
         GroundDefences declared = MissionDefencePolicy.conquest(FORTRESS_MARKET);
         assertEquals(MissionDefencePolicy.CONQUEST_FORTS_COVER_THE_APPROACH
