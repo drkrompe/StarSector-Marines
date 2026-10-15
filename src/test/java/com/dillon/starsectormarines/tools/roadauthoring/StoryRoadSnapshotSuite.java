@@ -159,6 +159,8 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
     private static void verifyServiceYards(String name, MapResult map) {
         int equipment = 0;
         for(var prop:map.doodads) {
+            // A trench is dug ground a marine stands in, walkable by design; it is not yard equipment.
+            if(prop.definitionId().startsWith("doodad.fort-trench")) continue;
             if(!map.topology.isFixture(prop.cellX,prop.cellY)
                     || map.grid.hasTag(prop.cellX,prop.cellY,CellTag.NATURAL_SOLID)
                     || map.topology.getBuildingId(prop.cellX,prop.cellY)!=0) continue;
@@ -168,7 +170,7 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
                     if(map.grid.isWalkable(x,y)||!map.topology.isFixture(x,y)
                             ||map.topology.isWall(x,y)||map.topology.getBuildingId(x,y)!=0
                             ||map.topology.getGroundKind(x,y)==GroundKind.STREET)
-                        throw new IllegalStateException(name+" yard fixture footprint disagrees at "+x+","+y);
+                        throw new IllegalStateException(name+" yard fixture footprint disagrees at "+x+","+y+" (walkable="+map.grid.isWalkable(x,y)+", fixture="+map.topology.isFixture(x,y)+", wall="+map.topology.isWall(x,y)+", building="+map.topology.getBuildingId(x,y)+", ground="+map.topology.getGroundKind(x,y)+"; prop "+prop.definitionId()+" at "+prop.cellX+","+prop.cellY+")");
                     for(int yy=y-2;yy<=y+2;yy++)for(int xx=x-2;xx<=x+2;xx++)
                         if(map.grid.inBounds(xx,yy)&&map.grid.isDoorway(xx,yy))
                             throw new IllegalStateException(name+" yard fixture crowds a doorway");
