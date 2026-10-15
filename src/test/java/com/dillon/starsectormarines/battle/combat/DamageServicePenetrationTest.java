@@ -43,7 +43,7 @@ class DamageServicePenetrationTest {
 
     private static DamageService service(List<Float> appliedPenetration) {
         return new DamageService(
-                (target, attacker, damage, penetration, morale) ->
+                (target, attacker, damage, penetration, morale, part) ->
                         appliedPenetration.add(penetration),
                 (target, expected) -> { },
                 (target, x, y) -> { },

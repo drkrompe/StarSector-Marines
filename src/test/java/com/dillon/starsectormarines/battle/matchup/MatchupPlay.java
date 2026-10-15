@@ -31,9 +31,18 @@ public final class MatchupPlay {
     }
 
     public static Result play(MatchupScenario scenario, MatchupSide attacker, MatchupSide defender, long seed) {
+        return play(scenario, attacker, defender, seed, null);
+    }
+
+    /** As above, additionally watched by {@code recording} (null for none). The recording only reads the sim. */
+    public static Result play(MatchupScenario scenario, MatchupSide attacker, MatchupSide defender, long seed,
+                              MatchupRecording recording) {
         SceneWorld world = scenario.build(attacker.seats(), defender.seats(), seed);
         long[] attackers = world.members(MatchupScenario.ATTACKERS);
         long[] defenders = world.members(MatchupScenario.DEFENDERS);
+        long[] both = new long[attackers.length + defenders.length];
+        System.arraycopy(attackers, 0, both, 0, attackers.length);
+        System.arraycopy(defenders, 0, both, attackers.length, defenders.length);
         SceneRun run = SceneRun.of(world);
         BattleSimulation sim = world.sim();
         int ticks = 0;
@@ -44,8 +53,12 @@ public final class MatchupPlay {
         int lastDamageTick = -1;
         boolean stalemate = false;
         while (ticks < scenario.maxTicks() && attackersLeft > 0 && defendersLeft > 0) {
+            if (recording != null) {
+                recording.observe(sim, ticks, damageSoFar > 0f, status(sim, attackers, defenders), both);
+            }
             run.step();
             ticks++;
+            if (recording != null) recording.advanced(sim);
             attackersLeft = standing(sim, attackers);
             defendersLeft = standing(sim, defenders);
             float damage = taken(telemetry, attackers) + taken(telemetry, defenders);
@@ -59,6 +72,7 @@ public final class MatchupPlay {
                 break;
             }
         }
+        if (recording != null) recording.finish(sim, ticks, status(sim, attackers, defenders), both);
         String winner;
         if (attackersLeft == 0 && defendersLeft == 0) winner = "BOTH_DESTROYED";
         else if (defendersLeft == 0) winner = "ATTACKERS";
@@ -69,6 +83,11 @@ public final class MatchupPlay {
                 taken(telemetry, attackers), taken(telemetry, defenders),
                 mitigated(telemetry, attackers), mitigated(telemetry, defenders),
                 rounds(telemetry, attackers), rounds(telemetry, defenders));
+    }
+
+    private static String status(BattleSimulation sim, long[] attackers, long[] defenders) {
+        return "attackers " + standing(sim, attackers) + "/" + attackers.length
+                + "   defenders " + standing(sim, defenders) + "/" + defenders.length;
     }
 
     private static int standing(BattleSimulation sim, long[] ids) {

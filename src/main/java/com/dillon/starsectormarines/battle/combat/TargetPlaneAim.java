@@ -16,7 +16,11 @@ final class TargetPlaneAim {
     private static final float HIT_JITTER_BASELINE = 0.20f;
     private static final float AXIS_EPSILON = 1e-6f;
 
-    record Sample(boolean onTarget, float lateral, float elevation) {}
+    /**
+     * {@code heightFraction} is where an on-target sample landed up the sampled pattern, 0 at its
+     * foot and 1 at its top, uniform over hits; it picks the body part. A miss carries 0.5.
+     */
+    record Sample(boolean onTarget, float lateral, float elevation, float heightFraction) {}
 
     private TargetPlaneAim() {}
 
@@ -33,8 +37,9 @@ final class TargetPlaneAim {
             float lateralMax = Math.min(horizontal * 0.90f, jitter);
             float elevationMax = Math.min(vertical * 0.90f, jitter);
             float lateral = signed(rng.nextFloat()) * lateralMax;
-            float elevation = signed(rng.nextFloat()) * elevationMax;
-            return new Sample(true, lateral, elevation);
+            float heightFraction = rng.nextFloat();
+            float elevation = signed(heightFraction) * elevationMax;
+            return new Sample(true, lateral, elevation, heightFraction);
         }
 
         float angle = rng.nextFloat() * (float) (Math.PI * 2.0);
@@ -51,7 +56,7 @@ final class TargetPlaneAim {
                 + rng.nextFloat() * (MISS_CLEARANCE_MAX - MISS_CLEARANCE_MIN)
                 + Math.max(0f, effectiveSpread);
         float distance = boundaryDistance + clearance;
-        return new Sample(false, lateralDir * distance, elevationDir * distance);
+        return new Sample(false, lateralDir * distance, elevationDir * distance, 0.5f);
     }
 
     private static float signed(float unit) {
