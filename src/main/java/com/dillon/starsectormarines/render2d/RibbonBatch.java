@@ -46,6 +46,23 @@ public final class RibbonBatch {
 
     public boolean isEmpty() { return quadCount == 0; }
 
+    /** Queued quads — what a CPU drain walks instead of {@link #flush}. */
+    public int quadCount() { return quadCount; }
+
+    /** Screen x of one corner of a queued quad (corners wind left-a, right-a, right-b, left-b). */
+    public float vertexX(int quad, int vertex) { return data[quad * FLOATS_PER_QUAD + vertex * 6]; }
+
+    /** Screen y of one corner of a queued quad. */
+    public float vertexY(int quad, int vertex) { return data[quad * FLOATS_PER_QUAD + vertex * 6 + 1]; }
+
+    /** One colour channel (0 red, 1 green, 2 blue, 3 alpha) of one corner of a queued quad. */
+    public float vertexChannel(int quad, int vertex, int channel) {
+        return data[quad * FLOATS_PER_QUAD + vertex * 6 + 2 + channel];
+    }
+
+    /** Drops the queue without drawing it, for a drain that read the quads itself. */
+    public void clear() { quadCount = 0; }
+
     /**
      * Queue one trail's segments. No-op for trails with fewer than 2
      * samples. The {@code alphaMult} (e.g. dialog fade-in) is folded

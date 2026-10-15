@@ -174,7 +174,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     /** Cells → OpenAL world units, for positional SFX. */
     private static final float AUDIO_WORLD_UNITS_PER_CELL = BattleShotAudio.WORLD_UNITS_PER_CELL;
     /** Radius, in cells, of the burst drawn where a point-defence emplacement stopped a warhead. Presentation only; nothing is damaged. */
-    private static final float INTERCEPT_BURST_CELLS = 0.9f;
+    public static final float INTERCEPT_BURST_CELLS = 0.9f;
     /** OpenAL distance the distant-boom emitter sits from the camera focus. Far enough to attenuate noticeably (read as "off in the distance") but close enough to remain audible. */
     private static final float DISTANT_BOOM_EMITTER_DISTANCE = 600f;
 
