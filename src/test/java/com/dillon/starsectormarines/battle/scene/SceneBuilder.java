@@ -235,9 +235,10 @@ public final class SceneBuilder {
                 ? new BattleSimulation(grid, topology)
                 : new BattleSimulation(grid, topology, simSeed);
         sim.setMissionCompletionEnabled(missionCompletion);
+        long[] structures = new long[0];
         if (!posts.isEmpty()) {
             sim.setDefensePosts(posts);
-            BattleSetup.spawnDefensePostTurrets(sim, posts);
+            structures = BattleSetup.spawnDefensePostTurrets(sim, posts).toLongArray();
         }
 
         Map<String, Integer> squadIds = new LinkedHashMap<>();
@@ -253,7 +254,7 @@ public final class SceneBuilder {
                 unitIds.put(unit.key, unit.spawnInto(sim));
             }
         }
-        return new SceneWorld(sim, width, height, squadIds, members, unitIds);
+        return new SceneWorld(sim, width, height, squadIds, members, unitIds, structures);
     }
 
     private void claim(String key) {

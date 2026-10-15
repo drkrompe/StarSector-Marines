@@ -13,14 +13,16 @@ public final class MatchupPlay {
 
     private MatchupPlay() {}
 
-    /** What one run came to. {@code winner} is ATTACKERS, DEFENDERS or BOTH_DESTROYED (a side wiped out), STALEMATE (both stand, no damage for
+    /** What one run came to. {@code winner} is ATTACKERS, DEFENDERS or BOTH_DESTROYED (a side wiped out; the defenders'
+     * side includes its turrets), STALEMATE (both stand, no damage for
      * {@link #STALEMATE_TICKS}) or UNRESOLVED (the tick limit). */
     public record Result(String scenario, String attacker, String defender, long seed, String winner,
                          int ticks, int attackerStart, int defenderStart,
                          int attackerSurvivors, int defenderSurvivors,
                          float attackerDamageTaken, float defenderDamageTaken,
                          float attackerDamageMitigated, float defenderDamageMitigated,
-                         int attackerRounds, int defenderRounds) {
+                         int attackerRounds, int defenderRounds, int turretStart, int turretsLeft,
+                         int turretRounds) {
 
         /** Defenders killed per attacker killed; the attackers' kills when they lost none. */
         public float exchange() {
@@ -40,28 +42,32 @@ public final class MatchupPlay {
         SceneWorld world = scenario.build(attacker.seats(), defender.seats(), seed);
         long[] attackers = world.members(MatchupScenario.ATTACKERS);
         long[] defenders = world.members(MatchupScenario.DEFENDERS);
-        long[] both = new long[attackers.length + defenders.length];
+        long[] turrets = world.structures();
+        long[] both = new long[attackers.length + defenders.length + turrets.length];
         System.arraycopy(attackers, 0, both, 0, attackers.length);
         System.arraycopy(defenders, 0, both, attackers.length, defenders.length);
+        System.arraycopy(turrets, 0, both, attackers.length + defenders.length, turrets.length);
         SceneRun run = SceneRun.of(world);
         BattleSimulation sim = world.sim();
         int ticks = 0;
         int attackersLeft = attackers.length;
         int defendersLeft = defenders.length;
+        int turretsLeft = turrets.length;
         CombatTelemetryService telemetry = sim.telemetry();
         float damageSoFar = 0f;
         int lastDamageTick = -1;
         boolean stalemate = false;
-        while (ticks < scenario.maxTicks() && attackersLeft > 0 && defendersLeft > 0) {
+        while (ticks < scenario.maxTicks() && attackersLeft > 0 && defendersLeft + turretsLeft > 0) {
             if (recording != null) {
-                recording.observe(sim, ticks, damageSoFar > 0f, status(sim, attackers, defenders), both);
+                recording.observe(sim, ticks, damageSoFar > 0f, status(sim, attackers, defenders, turrets), both);
             }
             run.step();
             ticks++;
             if (recording != null) recording.advanced(sim);
             attackersLeft = standing(sim, attackers);
             defendersLeft = standing(sim, defenders);
-            float damage = taken(telemetry, attackers) + taken(telemetry, defenders);
+            turretsLeft = standing(sim, turrets);
+            float damage = taken(telemetry, attackers) + taken(telemetry, defenders) + taken(telemetry, turrets);
             if (damage > damageSoFar) {
                 damageSoFar = damage;
                 lastDamageTick = ticks;
@@ -72,22 +78,25 @@ public final class MatchupPlay {
                 break;
             }
         }
-        if (recording != null) recording.finish(sim, ticks, status(sim, attackers, defenders), both);
+        if (recording != null) recording.finish(sim, ticks, status(sim, attackers, defenders, turrets), both);
         String winner;
-        if (attackersLeft == 0 && defendersLeft == 0) winner = "BOTH_DESTROYED";
-        else if (defendersLeft == 0) winner = "ATTACKERS";
+        int defenceLeft = defendersLeft + turretsLeft;
+        if (attackersLeft == 0 && defenceLeft == 0) winner = "BOTH_DESTROYED";
+        else if (defenceLeft == 0) winner = "ATTACKERS";
         else if (attackersLeft == 0) winner = "DEFENDERS";
         else winner = stalemate ? "STALEMATE" : "UNRESOLVED";
         return new Result(scenario.id(), attacker.label(), defender.label(), seed, winner, ticks,
                 attackers.length, defenders.length, attackersLeft, defendersLeft,
                 taken(telemetry, attackers), taken(telemetry, defenders),
                 mitigated(telemetry, attackers), mitigated(telemetry, defenders),
-                rounds(telemetry, attackers), rounds(telemetry, defenders));
+                rounds(telemetry, attackers), rounds(telemetry, defenders),
+                turrets.length, turretsLeft, rounds(telemetry, turrets));
     }
 
-    private static String status(BattleSimulation sim, long[] attackers, long[] defenders) {
+    private static String status(BattleSimulation sim, long[] attackers, long[] defenders, long[] turrets) {
         return "attackers " + standing(sim, attackers) + "/" + attackers.length
-                + "   defenders " + standing(sim, defenders) + "/" + defenders.length;
+                + "   defenders " + standing(sim, defenders) + "/" + defenders.length
+                + (turrets.length == 0 ? "" : "   turrets " + standing(sim, turrets) + "/" + turrets.length);
     }
 
     private static int standing(BattleSimulation sim, long[] ids) {
