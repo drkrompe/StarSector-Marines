@@ -208,6 +208,15 @@
       "lore": "@gearCatalogCorporateSpecterSectionLore"
     },
     {
+      "id": "armor:hegemony-arbalest-section",
+      "kind": "ARMOR",
+      "tier": 3,
+      "rarity": "UNCOMMON",
+      "provenance": "@gearCatalogHegemonyArbalestSectionProvenance",
+      "factionLogo": "graphics/factions/hegemony.png",
+      "lore": "@gearCatalogHegemonyArbalestSectionLore"
+    },
+    {
       "id": "armor:corporate-heavy",
       "kind": "ARMOR",
       "tier": 4,

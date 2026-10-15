@@ -176,10 +176,8 @@ class FirstRefitTest {
             }
             assertTrue(offered, "The alternative must reach ordinary markets without a license");
             assertEquals(LoadoutCardLearning.Result.LEARNED, LoadoutCardLearning.learn(roster.armory(), card));
-            if (other == FirstRefit.Path.FORWARD_SCREEN) {
-                assertEquals(LoadoutCardLearning.Result.LEARNED, LoadoutCardLearning.learn(roster.armory(),
-                        new LoadoutCard(LoadoutCard.Kind.SHEET, SquadEquipmentDoctrines.RECON_ARMOR).id()));
-            }
+            assertEquals(LoadoutCardLearning.Result.LEARNED, LoadoutCardLearning.learn(roster.armory(),
+                    new LoadoutCard(LoadoutCard.Kind.SHEET, other.armor).id()));
             assertFalse(roster.firstRefit().claim(roster, other));
             assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(squad, other.weapons, other.armor));
             assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(squad, choice.weapons, choice.armor));
@@ -195,6 +193,7 @@ class FirstRefitTest {
         assertTrue(legacy.claimed()); assertNull(legacy.chosenPath());
         var saved = MarineRoster.class.getDeclaredField("firstRefit");
         saved.setAccessible(true); saved.set(roster, legacy);
+        legacy.repairArmorPlanKnowledge(roster.armory());
         var before = Set.copyOf(roster.armory().ownedEquipmentTemplateIds());
         assertFalse(legacy.claim(roster, FirstRefit.Path.STEADY_LINE));
         for (var path : FirstRefit.Path.values()) {

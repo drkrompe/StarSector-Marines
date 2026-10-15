@@ -31,6 +31,7 @@ public final class SquadEquipmentDoctrines {
     public static final String OUTLAW_LINE_ARMOR = "armor:outlaw-line";
     public static final String SALVAGE_ASSISTED_ARMOR = "armor:salvage-assisted";
     public static final String CORPORATE_SPECTER_SECTION_ARMOR = "armor:corporate-specter-section";
+    public static final String HEGEMONY_ARBALEST_SECTION_ARMOR = "armor:hegemony-arbalest-section";
     public static final String HEGEMONY_SHOCK_ARMOR = "armor:hegemony-shock";
     public static final String CORPORATE_HEAVY_ARMOR = "armor:corporate-heavy";
     public static final String LEAGUE_HEAVY_ARMOR = "armor:league-heavy";
@@ -210,6 +211,12 @@ public final class SquadEquipmentDoctrines {
                     List.of(ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.STANDARD,
                             ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.POWER_SUIT,
                             ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.POWER_SUIT, ArmorClass.STANDARD)),
+            new SquadArmorPlan(HEGEMONY_ARBALEST_SECTION_ARMOR, "@loadoutHegemonyArbalestSectionName",
+                    "@loadoutHegemonyArbalestSectionDescription",
+                    ArmorTradition.HEGEMONY, SquadRoleMix.BALANCED, ArmorClass.STANDARD,
+                    List.of(ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.POWER_SUIT,
+                            ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.STANDARD,
+                            ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.POWER_SUIT)),
             powerSuitPlan(HEGEMONY_SHOCK_ARMOR, "Hegemony XIV Shock Protection",
                     "A deliberate breach: two teams through the door and one making the hole bigger.",
                     ArmorTradition.HEGEMONY, SquadRoleMix.BREACH),

@@ -125,7 +125,7 @@ class FleetArmoryViewModelTest {
         model.showArmorPickerAction().run();
         assertEquals("1 known", model.loadoutBrowserSummary().get());
 
-        roster.armory().unlockArmor(MarineArmorPattern.BLUE_SCOUT);
+        EquipmentTestFixtures.learnSheet(roster.armory(), SquadEquipmentDoctrines.RECON_ARMOR);
         model.refresh();
 
         assertEquals(2, model.armorDoctrineTiles().get().size());

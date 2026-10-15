@@ -63,11 +63,13 @@ class YardOwnersRewardTest {
         assertEquals(36000,AgreusArcCampaign.settleYard(p,victory(m),cargo,Set.of(AgreusArcProgress.ARBALEST_CARD)));
         assertTrue(cards.isEmpty()); assertTrue(p.yardCompleted());
     }
-    @Test void armorLearnedPiecemealStillEnablesMixedSheetWithoutTheCard() {
+    @Test void suitsAloneDoNotTeachTheSectionButEveryBundledPatternDoes() {
         var roster=new MarineRoster();
         roster.armory().acquireEquipmentTemplate(EquipmentTemplateCatalog.armorId("armor.arbalest-recovered"));
-        assertFalse(roster.armory().knowsArmorPlan(SquadEquipmentDoctrines.SALVAGE_ASSISTED_ARMOR));
         roster.armory().acquireEquipmentTemplate(EquipmentTemplateCatalog.armorId("armor.specter-recovered"));
+        assertFalse(roster.armory().knowsArmorPlan(SquadEquipmentDoctrines.SALVAGE_ASSISTED_ARMOR));
+        roster.armory().acquireEquipmentTemplate(EquipmentTemplateCatalog.armorId("armor.scout"));
+        roster.armory().acquireEquipmentTemplate(EquipmentTemplateCatalog.armorId("armor.militia"));
         assertTrue(roster.armory().knowsArmorPlan(SquadEquipmentDoctrines.SALVAGE_ASSISTED_ARMOR));
     }
     static MissionOutcome victory(Mission m) {

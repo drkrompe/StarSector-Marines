@@ -2,8 +2,12 @@ package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Data-authored identity, presentation, appearance family, and combat values for
@@ -28,7 +32,19 @@ public record MarineArmorCatalogDef(
         float armorRating,
         float moveSpeedMult,
         float incomingAccuracyMult,
-        IntegralSystemDef integralSystem) {
+        IntegralSystemDef integralSystem,
+        List<String> sheets) {
+    public MarineArmorCatalogDef {
+        sheets = sheets == null ? List.of() : List.copyOf(sheets);
+    }
+
+    /**
+     * Tactic sheets this pattern is added to on top of the ones that already carry it, by
+     * sheet id. This is how a contributed pattern reaches a squad: a sheet issues only what
+     * its card carries, so a pattern no sheet lists can be collected but never worn.
+     */
+    public List<String> sheets() { return sheets; }
+
     public String displayName() { return Strings.resolve(displayName); }
 
     public String description() { return Strings.resolve(description); }
@@ -41,7 +57,7 @@ public record MarineArmorCatalogDef(
             float moveSpeedMult, float incomingAccuracyMult, IntegralSystemDef integralSystem) {
         this(id, displayName, role, ArmorClass.STANDARD, tradition, description, tier,
                 iconPath, appearanceFamily, armorCapacity, armorRating, moveSpeedMult,
-                incomingAccuracyMult, integralSystem);
+                incomingAccuracyMult, integralSystem, List.of());
     }
 
     public static MarineArmorCatalogDef parse(JSONObject json) throws JSONException {
@@ -76,7 +92,8 @@ public record MarineArmorCatalogDef(
                 nonNegative(battle, "incomingAccuracyMult", id),
                 battle.has("integralSystem")
                         ? IntegralSystemDef.parse(battle.getJSONObject("integralSystem"), id)
-                        : null);
+                        : null,
+                sheets(catalog.optJSONArray("sheets")));
     }
 
     /**
@@ -86,6 +103,14 @@ public record MarineArmorCatalogDef(
      */
     public boolean hasIntegralSystem() {
         return integralSystem != null;
+    }
+
+    private static List<String> sheets(JSONArray array) throws JSONException {
+        List<String> sheets = new ArrayList<>();
+        if (array != null) {
+            for (int i = 0; i < array.length(); i++) sheets.add(array.getString(i));
+        }
+        return sheets;
     }
 
     private static float nonNegative(JSONObject json, String key, String owner)
