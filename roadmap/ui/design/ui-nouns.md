@@ -604,7 +604,8 @@ destination-cell overlay. Crossing the pointer threshold instead draws a line or
 (see `ai-nouns.md`, occupy), previewed while the button is held as a stroke with
 ticks toward its front and a dashed ring tethered to each marine where they will
 stand — green on a position, pale on open ground — rather than as highlighted
-cells; once released, the held line keeps its stroke;
+cells; once released nothing stays drawn, since a standing stroke for every
+selected line would be noise and the marines on their posts already show it;
 the camera pans by middle-drag, the keyboard, and resting the pointer on the
 window edge, and HUD chrome blocks the world
 request behind it. The verb under the pointer is drawn as a target marker; an
