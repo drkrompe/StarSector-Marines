@@ -1217,6 +1217,7 @@ The discovered suite ids and default output directories are:
 | `shield-dome` | An Onslaught shelling defenders under a planetary shield dome, 1920x1080 with a close view: the rounds absorbed as flux with a pool gauge filling, the overload and the gap in which they land, the recovery, against a no-dome control and a loop with the generator destroyed. Verdicts are the scene's | `build/snapshots/shield-dome/` |
 | `assault-muster` | One battery fort and a company in the planned assault: the `plan` loop only, 1920x1080 at 100% scale, whole map and a close view of the fort's west face as an animation plus a PNG still per frame, across positioning a base of fire, suppression and entry. The verdicts and per-loop readings (control-trickle (a mission that chooses the trickle), plan, plan with a lance) are `sceneEvidence`'s; forts are not weakened for it | `build/snapshots/assault-muster/` |
 | `fighting-position` | A twelve-marine squad and a twelve-cell trench, five loops at 1920x1080, 100% scale, with the fighting-position layer (position cells green, claimed cells white, dug-in marines magenta): fighting positions on and off with marines rooted at 1000 health over six enemy placements, a controlled isolation of the composure benefit rather than a battle outcome; a squad filling an empty trench; a free-moving, ordinary-health squad taking and holding a trench under live DMR fire; and overflow onto a shared run (disjoint claims, overflow in ordinary cover). One still per loop | `build/snapshots/fighting-position/` |
+| `render-parity` | One production-stamped battery fort with its anti-air yard and every doodad the generator laid for it handed to the simulation: the yard's sandbag rings and gravel, the belt's sandbag lines and industrial fence, three close views at 1920x1080, 100% scale. A check that the review drain draws earthworks at all, not a battle | `build/snapshots/render-parity/` |
 | `squad-medic` | Eight armored marines with a Field Medicine officer marching under an attack move, four of them hurt, then firing on a target past the objective that fires back. Three loops at 1920x1080, 100% scale: planted, keep-moving, and a no-medic control, through the production unit and marker renderers — the medic's cross badge, the kneel over an open kit, and dressing mist and sealant flecks at the patient — with diagnostic MEDIC/PATIENT labels on top. Verdicts and readings are `sceneEvidence`'s; stills at the opening treatments and the arrival | `build/snapshots/squad-medic/` |
 | `barracks-medic` | The Barracks command board at 1920x1080, 100% scale, with the selected officer trained in Field Medicine: each of their squad cards marks its medic billet with a green plate, beside the amber wound mark and the NCO chevron | `build/snapshots/barracks-medic/` |
 | `officer-dossier` | The officer dossier untrained and trained, and Castle's induction from introduction through the specialty lesson to a ready company, at 1920x1080 and 150%. The single specialty tree (one root, a branch per specialty) untrained and trained, a hovered rank's sheet, and the lesson's highlight over the whole tree | `build/snapshots/officer-dossier/` |
@@ -1249,6 +1250,42 @@ rather than a composition, an animated GIF built from a frame sequence. The
 runner writes both; a suite never writes files itself. Animated review frames
 come from `BattleReviewFrameRenderer`, shared with commander evidence so the
 two do not drift into separate camera fits and marker palettes.
+
+#### What a review frame draws, against the live screen
+
+`BattleReviewFrameRenderer` collects the **production** `BattleRenderer` layers
+and drains them through a Java2D backend (`HeadlessBattleSceneRenderer`), so a
+layer that goes through the draw list is drawn the way the game draws it. What
+differs is the part of the live presentation that is not in the draw list: GL
+custom passes, and services the screen ticks every rendered frame. A feed
+(`ReviewImpactFx.feed`, called once per simulation tick) owns that second half
+and drains the same simulation lists `BattleScreen.advance` does.
+
+| Live layer / feature | Review frame |
+|----------------------|--------------|
+| Ground, decals, doodads (sandbag, fence, trench, rubble), parked vehicles | Drawn. Terrain relief, sun shading and normal-mapped lighting are the GL composite and are not drawn; `sun-shadows` holds the CPU model |
+| Units, bodies, health bars, medic and satchel markers | Drawn |
+| Unit shadows, roofs and fort building art | Drawn when asked for (`withUnitShadows`, `withRoofs`); off by default so bodies stay readable |
+| Aircraft hulls, turrets and shadows, warships, convoys, drones | Drawn |
+| Aircraft engine plumes (`EngineFxPass`) | Drawn (additive, replayed through recording sprites) |
+| Projectile bodies, hitscan tracers, bolts, tracer tails | Drawn (`SHOTS`) |
+| Missile and projectile contrails (`ContrailFxService`) | Drawn as flat-coloured ribbon segments through the shared `RibbonBatch` geometry; additive plume styles draw as ordinary blends |
+| Lingering beams and delivered-ordnance traces (falling bombs, gun-run streaks) | Drawn |
+| Weapon `fx` blocks: launch, muzzle, trail, impact, aftermath; heavy blasts, rolling blasts, wall dust, wreck smoke and fire; point-defence intercept bursts | Drawn from the real `ImpactFx` fed per tick, painted over the frame |
+| Smoke clouds, shield domes, point-defence bubbles, demolition packs, tender sites | Drawn (shield domes by the CPU model of their shader, in blocks) |
+| Night lighting pools | Drawn. Muzzle, impact and fire lights (`GroundLightService`) are not fed, so a night battle's shots do not light the ground |
+| Capture-point rings and ticks, objective annuli | Drawn |
+| Objective, compound and fort **text** labels (GL bitmap font runnables) | Not drawn; reviews name places with `ReviewAnnotations`. Mission-marker and salvage cards are drawn as labels but the mission layer is left out on purpose |
+| Fog of war | Not drawn: a review is a neutral observer |
+| Highlights, selection rings, order lines, zone and convoy debug overlays | Not drawn: UI and debug |
+| Ship-deck lighting (`DECK_LIGHTING`) and deck scenes | Not drawn here; the ship-deck suites have their own renderer |
+
+A frame is a pure function of simulation state and the feed's history: the feed's
+jitter is seeded, and the animation clock is pinned (`REVIEW_CLOCK_SECONDS`) so
+no wall-clock pulse reaches the pixels. Scenes built over a bare grid get no
+doodads unless they hand the generator's `ctx.doodads` to the simulation; the
+fort scenes do not, so their frames show none of a fort's earthworks
+(`render-parity` hands them over).
 
 ### Behavior scenes
 
