@@ -52,20 +52,28 @@
           <div id="officer-squads" class="label wrap officer-copy">{command.officerSquads}</div>
           <div id="officer-scope" class="label muted wrap officer-copy">{i18n.openingUiShipboardBarracksSpecialtiesFollowTheSquadsThisOfficerLeads}</div>
           <div id="officer-training" class="label heading warm wrap officer-copy">{command.officerTraining}</div>
-          <div id="officer-specialty-list" class="officer-list" style="{command.officerSpecialtyStyle}">
-          <div each="specialty in command.officerSpecialties" key="{specialty.id}" id="{specialty.id}" class="officer-specialty console-readout">
-            <div id="{specialty.headerId}" class="officer-specialty-header">
-              <img id="{specialty.iconId}" class="officer-specialty-icon" src="{specialty.icon}" />
-              <div id="{specialty.titleId}" class="label heading warm officer-specialty-title">{specialty.title}</div>
+          <div id="officer-specialty-list" class="specialty-tree console-readout">
+          <img id="specialty-root" class="specialty-root" src="graphics/ui/officers/specialty-root.svg" />
+          <div id="specialty-trunk" class="specialty-trunk"></div>
+          <div id="specialty-branches" class="specialty-branches">
+          <div each="specialty in command.officerSpecialties" key="{specialty.id}" id="{specialty.id}" class="specialty-path">
+            <div id="{specialty.barId}" class="specialty-bar">
+              <div id="{specialty.barLeftId}" class="specialty-bar-half" style="{specialty.barLeftStyle}"></div>
+              <div id="{specialty.barRightId}" class="specialty-bar-half" style="{specialty.barRightStyle}"></div>
             </div>
-            <div id="{specialty.effectId}" class="label wrap officer-copy">{specialty.effect}</div>
-            <div id="{specialty.nextId}" class="label muted wrap officer-copy">{specialty.next}</div>
-            <div id="{specialty.footerId}" class="officer-specialty-footer">
-              <img id="{specialty.progressId}" class="officer-rank-track" src="{specialty.progress}" />
-              <div id="{specialty.levelId}" class="label muted officer-rank-label">{specialty.level}</div>
-              <button id="{specialty.trainId}" class="officer-train console-action" disabled="{specialty.disabled}" onclick="{specialty.train}">{specialty.button}</button>
-              <div id="{specialty.costId}" class="label warm officer-point-cost">{specialty.cost}</div>
+            <div id="{specialty.dropId}" class="specialty-drop" style="{specialty.dropStyle}"></div>
+            <div id="{specialty.headerId}" class="specialty-path-header">
+              <img id="{specialty.iconId}" class="specialty-emblem" src="{specialty.icon}" />
+              <div id="{specialty.titleId}" class="label heading warm specialty-path-title">{specialty.title}</div>
             </div>
+            <button id="{specialty.node1Id}" class="specialty-node" style="background-color: transparent; background-image: none; border-width: 0px; opacity: 1;" disabled="{specialty.node1Disabled}" onclick="{specialty.node1Train}">
+              <img id="{specialty.node1ImageId}" class="specialty-node-image" src="{specialty.node1Icon}" />
+            </button>
+            <img id="{specialty.linkId}" class="specialty-link" src="{specialty.link}" />
+            <button id="{specialty.node2Id}" class="specialty-node" style="background-color: transparent; background-image: none; border-width: 0px; opacity: 1;" disabled="{specialty.node2Disabled}" onclick="{specialty.node2Train}">
+              <img id="{specialty.node2ImageId}" class="specialty-node-image" src="{specialty.node2Icon}" />
+            </button>
+          </div>
           </div>
           </div>
           <div id="officer-traits" class="label muted wrap officer-copy">{command.officerTraits}</div>
@@ -379,15 +387,20 @@
   .officer-list { flex-direction: column; height: auto; gap: 12px; }
   .officer-history-note { height: 40px; }
   .officer-copy { height: auto; }
-  .officer-specialty { flex-direction: column; height: 152px; padding: 10px; gap: 6px; border-width: 1px; }
-  .officer-specialty-header { flex-direction: row; align-items: center; height: 36px; gap: 12px; }
-  .officer-specialty-icon { width: 36px; height: 36px; }
-  .officer-specialty-title { width: 0px; flex-grow: 1; height: 36px; white-space: normal; }
-  .officer-specialty-footer { flex-direction: row; align-items: center; height: 30px; gap: 12px; }
-  .officer-rank-track { width: 92px; height: 28px; }
-  .officer-rank-label { width: 112px; height: 30px; white-space: normal; }
-  .officer-point-cost { width: 100px; height: 30px; white-space: normal; }
+  .specialty-tree { flex-direction: column; align-items: center; height: 380px; padding: 10px 10px 4px 10px; gap: 0px; border-width: 1px; }
+  .specialty-root { width: 56px; height: 56px; }
+  .specialty-trunk { width: 2px; height: 16px; background-color: #dec58a; }
+  .specialty-branches { flex-direction: row; width: 100%; height: 298px; gap: 0px; }
+  .specialty-path { flex-direction: column; align-items: center; width: 0px; flex-grow: 1; height: 298px; gap: 4px; }
+  .specialty-bar { flex-direction: row; width: 100%; height: 2px; gap: 0px; }
+  .specialty-bar-half { width: 0px; flex-grow: 1; height: 2px; }
+  .specialty-drop { width: 2px; height: 16px; }
+  .specialty-path-header { flex-direction: column; align-items: center; width: 100%; height: 90px; gap: 6px; }
+  .specialty-emblem { width: 44px; height: 44px; }
+  .specialty-path-title { width: 100%; height: 40px; white-space: normal; text-align: center; }
+  .specialty-node { width: 68px; height: 68px; padding: 2px; }
+  .specialty-node-image { width: 64px; height: 64px; pointer-events: none; }
+  .specialty-link { width: 8px; height: 22px; }
   .guide-progress { width: 98px; height: 24px; }
-  .officer-train { width: 112px; height: 28px; text-align: center; font-family: heading; }
   .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; flex-grow: 0; }
 </style>
