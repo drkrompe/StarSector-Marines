@@ -2163,7 +2163,9 @@ squad, not one beside the run or at its far end.
 
 **What it pays is composure and reach, never protection.** Cover already
 reduces damage and stops rounds, and the cells of a position already carry it;
-a dug-in damage bonus would count the same ground twice. A hit or near-miss on a
+a dug-in damage bonus would count the same ground twice. (A trench covers the
+man in it from every bearing, more the further off the shooter is; see
+`ballistics-nouns.md`.) A hit or near-miss on a
 dug-in marine drains their fire team's morale at a reduced rate; death drain and
 recovery are unchanged. A dug-in rifle is braced and reaches half a cell
 further. Without that, an attacker carrying the same rifle could step in to fire

@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.DeathDispatcher;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 
 import java.util.Random;
@@ -63,6 +64,7 @@ public final class DamageResolver {
     public static final float[] COVER_DAMAGE_REDUCTION = { 0f, 0.15f, 0.30f, 0.45f };
 
     private final NavigationGrid grid;
+    private final DoodadService doodads;
     private final Int2ObjectMap<Squad> squads;
     private final UnitRosterService roster;
     private final EquipmentDropService equipmentDrops;
@@ -73,6 +75,7 @@ public final class DamageResolver {
     private final DurabilityModel.Resolution durability = new DurabilityModel.Resolution();
 
     public DamageResolver(NavigationService navigation,
+                          DoodadService doodads,
                           UnitRosterService roster,
                           EquipmentDropService equipmentDrops,
                           LongConsumer deathSink,
@@ -80,6 +83,7 @@ public final class DamageResolver {
                           IntSupplier simTick,
                           Random rng) {
         this.grid = navigation.getGrid();
+        this.doodads = doodads;
         this.squads = roster.getSquadsMap();
         this.roster = roster;
         this.equipmentDrops = equipmentDrops;
@@ -116,6 +120,25 @@ public final class DamageResolver {
     }
 
     /**
+     * Damage cut from the ground the target stands in — a trench — against <em>this</em> hit.
+     *
+     * <p>A trench has no facing: it covers the man in it from every direction, and more the
+     * further off the shooter is ({@link BallisticResolver#occupantCoverScale}). An unattributed
+     * hit has no distance to read; a detonation with no attacker is the shelling a trench was dug
+     * against, so it meets the full cut.
+     */
+    private float occupantCoverAgainst(World world, long targetId, long attackerId,
+                                       int targetCellX, int targetCellY) {
+        int level = doodads.occupantCoverAt(targetCellX, targetCellY, 0f);
+        if (level <= 0) return 0f;
+        float cut = COVER_DAMAGE_REDUCTION[Math.min(level, COVER_DAMAGE_REDUCTION.length - 1)];
+        if (attackerId == targetId || !roster.isAliveById(attackerId)) return cut;
+        float dx = world.x(attackerId) - world.x(targetId);
+        float dy = world.y(attackerId) - world.y(targetId);
+        return cut * BallisticResolver.occupantCoverScale((float) Math.sqrt(dx * dx + dy * dy));
+    }
+
+    /**
      * Resolves a damage event. Idempotent w.r.t. already-dead targets — a
      * target killed by a prior queued entry is skipped entirely when a stacked
      * entry resolves against it later in the same flush, so it doesn't re-emit
@@ -140,7 +163,9 @@ public final class DamageResolver {
         float tx = world.x(targetId);
         float ty = world.y(targetId);
         int targetCover = coverAgainst(world, targetId, attackerId, tcx, tcy);
-        float dr = COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)];
+        float dr = Math.max(
+                COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)],
+                occupantCoverAgainst(world, targetId, attackerId, tcx, tcy));
         float hpBefore = world.hp(targetId);
         boolean hasArmor = world.hasArmor(targetId);
         float armorBefore = hasArmor ? world.armor(targetId) : 0f;
