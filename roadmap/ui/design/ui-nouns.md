@@ -604,7 +604,9 @@ destination-cell overlay. Crossing the pointer threshold instead draws a line or
 (see `ai-nouns.md`, occupy), previewed with its front while the button is held;
 the camera pans by middle-drag, the keyboard, and resting the pointer on the
 window edge, and HUD chrome blocks the world
-request behind it. A selected friendly infantry squad
+request behind it. The verb under the pointer is drawn as a target marker; an
+order that sends the squad into enemy-held ground (clearing a building it
+believes occupied, securing a compound) is drawn in the hostile colour. A selected friendly infantry squad
 uses the same gesture at squad scope, whether selection came from one
 world member or the squad roster; the surface supplies only the requested cell
 and does not mutate mission authority or combat state. When that cell lies

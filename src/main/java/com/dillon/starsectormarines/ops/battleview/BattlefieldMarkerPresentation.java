@@ -102,6 +102,11 @@ public final class BattlefieldMarkerPresentation {
                 dome.tone(), base.radiusCells(), true);
     }
 
+    /** A ground order into ground the enemy holds: carried out, but said in the hostile colour. */
+    public static TargetMarker assault(String displayName, String status) {
+        return new TargetMarker(displayName.toUpperCase(Locale.ROOT), status, HOSTILE, 0f, true);
+    }
+
     public static TargetMarker target(String displayName, boolean valid,
                                       float radiusCells) {
         String label = displayName == null || displayName.isBlank()
