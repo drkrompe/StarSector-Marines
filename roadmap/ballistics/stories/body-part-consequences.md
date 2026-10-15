@@ -93,9 +93,10 @@ wounds need structure lost and the wounded are already the hurt.
 
 1. `BodyPart.damageMultiplier`, applied in `DamageResolver.resolve` when a part
    is present, before mitigation and armour.
-2. `WoundService` owned by the roster: per-unit leg and arm wound counts, the
-   battle's part-hit and wound tallies; `WoundModifier` registered beside the
-   other modifier sources, named `unitModifierWounded`.
+2. `WoundService` owned by the roster: per-unit leg and arm wound counts;
+   `WoundModifier` registered once per limb beside the other modifier sources,
+   named `unitModifierLegWound` and `unitModifierArmWound`. Battle-wide part-hit
+   and wound tallies by struck side on `CombatTelemetryService`.
 3. `DamageResolver` records the part hit and, for a limb hit with structure
    damage, the wound.
 4. `SquadMedicSystem` dresses the patient's wounds on a completed treatment.
