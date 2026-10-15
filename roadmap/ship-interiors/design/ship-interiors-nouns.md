@@ -1328,6 +1328,8 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     concrete working floors. Open thresholds and observation glass follow that
     shell. Material selection changes presentation, not circulation, cover,
     work sites or berth capacity; an authored surface remains authoritative.
+    The isolated room-editor preview applies the same ship material and trim
+    pass, so chamfered corners do not acquire generic building-wall tiles.
     Structural shell cells receive that material even where vacuum remains
     beneath them. Open vacuum never receives a floor through this material pass.
 

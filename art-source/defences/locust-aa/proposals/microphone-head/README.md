@@ -12,7 +12,13 @@ Extra length is split fore and aft of the side axle (local Y -0.78 to +0.92)
 rather than shifting the whole
 head forward. The bores extend into the longer magazine to one rear plane.
 
-The floor and both cheek supports form one yaw assembly over a circular
+The user requested a circular rotating floor after the elongated head was
+approved and composited over the tower. Its radius is 1.02, thickness 0.22,
+and center Z is 0.22 (top Z 0.33). The rear cooling ribs taper to remain
+inside the round perimeter. This changes the floor silhouette while keeping
+the head, bores, cheeks, side bearings, axle height and pitch geometry fixed.
+
+The circular floor and both cheek supports form one yaw assembly over a circular
 bearing. The cheeks clip onto opposite sides of the head at one horizontal
 axle. The head, its bosses and bore interiors share a separate pitch parent,
 so the launcher can elevate without tipping the floor or supports. The
@@ -30,7 +36,11 @@ Views show the overhead footprint, an angled assembly and the side axle.
 It writes `proposal.blend` and the transparent 1920x1080 `shape-views.png` at
 100% render scale. `review.ps1` adds labels at the same resolution without
 resizing. No ImageGen call is part of this geometry script. The separate reskin
-workflow replaces the earlier mount art while retaining the ground foundation.
+workflow uses the new overhead guide and the prior approved painted mount at
+`../../sources/locust-square-platform.png` as its style and unchanged-head
+reference while retaining the ground foundation. The elongated head is already
+approved; the rounded platform is user-requested and its painted finish remains
+for review.
 
 ```powershell
 & 'C:/Program Files/Blender Foundation/Blender 5.2/blender.exe' --background --factory-startup --python art-source/defences/locust-aa/proposals/microphone-head/build.py

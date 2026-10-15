@@ -71,8 +71,9 @@ deck_top = 0.33
 axle_height = 1.32
 preview_pitch = 20
 maximum_pitch = 25
+deck_radius = 1.02
 cylinder('Yaw bearing beneath floor', (0,0,0.09), 0.77, 0.18, metal)
-cube('Gimbal floor', (0,0,0.22), (1.98,1.64,0.22), armor, 0.10)
+cylinder('Circular gimbal floor', (0,0,0.22), deck_radius, 0.22, armor)
 cube('Rear drive cover', (0,-0.64,0.35), (0.96,0.30,0.12), armor)
 for side in (-1,1):
     cube('Cheek support clipped to head', (side*0.80,0,0.82), (0.23,0.68,1.06), armor, 0.055)
@@ -80,7 +81,12 @@ for side in (-1,1):
     cylinder('Outer axle cap', (side*0.935,0,axle_height), 0.20, 0.07, armor, (1,0,0))
     cylinder('Axle center', (side*0.978,0,axle_height), 0.085, 0.025, metal, (1,0,0))
     for i in range(4):
-        cube('Deck cooling rib', (side*0.71,-0.48-i*0.08,0.37), (0.24,0.035,0.06), metal, 0.008)
+        rib_y = -0.48-i*0.08
+        rib_inner = 0.59
+        # Retain the rows but shorten their outer ends inside the circular rim.
+        rib_outer = min(0.83, sqrt((deck_radius-0.035)**2-(abs(rib_y)+0.0175)**2))
+        cube('Deck cooling rib', (side*(rib_inner+rib_outer)/2,rib_y,0.37),
+             (rib_outer-rib_inner,0.035,0.06), metal, 0.008)
 
 head_start = len(objects)
 for side in (-1,1):
@@ -230,5 +236,6 @@ bpy.ops.wm.save_as_mainfile(filepath=str(HERE/'proposal.blend'))
 bpy.ops.render.render(write_still=True)
 print({'parallel_ports':len(ports),'pitch_degrees':preview_pitch,
        'maximum_pitch_degrees':maximum_pitch,'head_length':round(cap_start+cap_depth-rear_end,2),
+       'deck_radius':deck_radius,
        'axle_height':axle_height,'floor_clearance_by_elevation':clearances,
        'render':scene.render.filepath})
