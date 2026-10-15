@@ -49,8 +49,9 @@ seam), `architecture.md` (the external-state boundary) and
   mission family that can stand in for the Nex battle. In the alpha, only the
   player invasion is supported, and it maps to Conquest.
 - The **ground combat preference** is the player's standing choice for
-  supported entry points: Nexerelin, Marine Operations, or ask each time. Ask
-  is the default. It is never consulted for an unsupported entry point.
+  supported entry points: Nexerelin, Marine Operations, or ask each time. It
+  belongs to the save, and a new save starts at Ask. It is never consulted for
+  an unsupported entry point.
 - A **handoff battle** is the Nex ground battle record created for a
   Marine-resolved invasion. It exists only so that Nexerelin's own
   end-of-battle path can apply the outcome. It never runs a turn.
@@ -136,9 +137,11 @@ seam), `architecture.md` (the external-state boundary) and
   marines. A player who builds a company and then chooses Nexerelin invades
   with whatever cargo is left. The company's squads are invisible to Nexerelin
   until a later story decides whether to report them.
-- **Map scale.** Generic Conquest is authored at 560x336 and has tier floors,
-  while Nexerelin lets the player invade markets of every size. The invasion
-  story owns how market size maps to a Conquest profile.
+- **Map scale.** Market size never chooses the map. Every Marine-resolved
+  invasion is fought on Conquest's authored map. A small market differs only
+  in the strength of its garrison, so a small colony is a light defence on the
+  full ground. Conquest's tier floor governs generated offers, not a player
+  invasion.
 
 ## Boundaries
 
