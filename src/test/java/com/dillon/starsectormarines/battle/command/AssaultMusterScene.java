@@ -304,6 +304,14 @@ public final class AssaultMusterScene implements BehaviorScene {
         return loop.equals("plan-air") || loop.equals("plan-mortar-air") || loop.equals("combined-arms");
     }
 
+    /** Pulses of slack allowed on the satchel hold's bound before it must have ended: the plan is read once a pulse. */
+    private static final int SATCHEL_PULSE_ALLOWANCE_TICKS = 300;
+
+    /** The first fort's record of what its company did with the sappers it held, or null when no company ran a plan. */
+    private static FortAssault.SatchelRecord satchelRecord(Trace t) {
+        return t.command == null ? null : t.command.satchelRecords().values().stream().findFirst().orElse(null);
+    }
+
     private static int[] clamp(int[] cell) {
         return new int[] {Math.max(4, Math.min(WIDTH - 5, cell[0])), Math.max(4, Math.min(HEIGHT - 5, cell[1]))};
     }
@@ -363,6 +371,24 @@ public final class AssaultMusterScene implements BehaviorScene {
                     b.chargesDamagedWall == b.chargesResolved,
                     b.chargesSet + " charges set, " + b.chargesResolved + " detonated, " + b.chargesDamagedWall
                             + " of those lowered or opened their wall cell"));
+            // A sapper stands under every gun that sees its approach while it sets the charge, so it is let go only when the plan has
+            // judged the approach survivable (every nest on it dead, suppressed, screened or out of sight), and the hold is bounded.
+            FortAssault.SatchelRecord s = satchelRecord(t);
+            if (closeBreach) {
+                verdicts.add(Verdict.of("no-sapper-is-ordered-to-the-wall-before-its-approach-is-survivable",
+                        s == null || b.firstOrderTick < 0 || (s.releasedTick >= 0 && b.firstOrderTick >= s.releasedTick && s.openAtRelease == 0),
+                        s == null ? "no satchel record" : "first order to open the wall at tick " + b.firstOrderTick + ", approach judged survivable at tick "
+                                + s.releasedTick + " with " + s.openAtRelease + " nests open, answers " + s.answersAtRelease));
+                verdicts.add(Verdict.of("a-held-company-works-its-approach-or-changes-it",
+                        s == null || s.heldSinceTick < 0 || s.releasedTick >= 0 || s.approachChangedTick >= 0
+                                || s.lastHeldTick - s.lastProgressTick <= SatchelApproach.PATIENCE_TICKS + SATCHEL_PULSE_ALLOWANCE_TICKS,
+                        s == null ? "no satchel record" : "held " + s.heldTicks() + " ticks, " + (s.lastHeldTick - s.lastProgressTick) + " since a further nest was answered (patience " + SatchelApproach.PATIENCE_TICKS
+                                + "), released at " + s.releasedTick + ", approach changed at " + s.approachChangedTick + " " + s.approachChange));
+                verdicts.add(Verdict.of("a-held-sapper-is-waiting-on-an-action-or-has-none-available",
+                        s == null || s.heldSinceTick < 0 || s.releasedTick >= 0 || s.asked.values().stream().mapToInt(Integer::intValue).sum() > 0
+                                || s.unservablePulses > 0 || s.pendingPulses > 0,
+                        s == null ? "no satchel record" : "asked " + s.asked + ", pulses with an open nest nothing could answer " + s.unservablePulses + ", pulses with one already in motion " + s.pendingPulses + ", last reading " + s.lastReadings));
+            }
         }
         // The combined-arms loop reports the tubes as readings only: its mission nest may be dead before the section arrives.
         if (loop.equals("plan-mortar") || loop.equals("plan-mortar-air")) {
@@ -450,6 +476,17 @@ public final class AssaultMusterScene implements BehaviorScene {
         metrics.put("breachSquadsDied", t.breach.tracks.values().stream().filter(s -> s.diedTick >= 0).count());
         metrics.put("wallChargesSet", t.breach.chargesSet);
         metrics.put("wallChargesDetonated", t.breach.chargesResolved);
+        FortAssault.SatchelRecord sr = satchelRecord(t);
+        metrics.put("satchelHeldSinceTick", sr == null ? -1 : sr.heldSinceTick);
+        metrics.put("satchelReleasedTick", sr == null ? -1 : sr.releasedTick);
+        metrics.put("satchelHeldTicks", sr == null ? 0 : sr.heldTicks());
+        metrics.put("satchelAskedEngage", sr == null ? 0 : sr.asked(SatchelApproach.Enabler.ENGAGE));
+        metrics.put("satchelAskedSmoke", sr == null ? 0 : sr.asked(SatchelApproach.Enabler.SMOKE));
+        metrics.put("satchelAskedStrike", sr == null ? 0 : sr.asked(SatchelApproach.Enabler.STRIKE));
+        metrics.put("satchelTicksSinceProgress", sr == null ? 0 : Math.max(0, sr.lastHeldTick - sr.lastProgressTick));
+        metrics.put("satchelNestsDiedWhileHeld", sr == null ? 0 : sr.nestsDiedWhileHeld);
+        metrics.put("satchelApproachChangedTick", sr == null ? -1 : sr.approachChangedTick);
+        metrics.put("satchelUnservablePulses", sr == null ? 0 : sr.unservablePulses);
         metrics.put("lanceInCompanyTick", t.lanceInCompanyTick);
         metrics.put("nestsKilledByMortar", t.killedByMortar);
         metrics.put("nestsKilledByAir", t.killedByAir);
@@ -515,6 +552,8 @@ public final class AssaultMusterScene implements BehaviorScene {
 
         /** Every squad that was ever ordered to open the wall, followed to the end of the battle. */
         final Map<Integer, SquadTrack> tracks = new TreeMap<>();
+        /** The fort whose nests the sappers are measured against, for the loss log. */
+        Fort fort;
 
         /** One breacher squad's course: when it was ordered, how close it came, whether it stood idle, how it ended. */
         static final class SquadTrack {
@@ -538,7 +577,10 @@ public final class AssaultMusterScene implements BehaviorScene {
                 this.wallY = cy + 0.5f;
             }
 
-            void observe(BattleSimulation sim, Squad squad, boolean orderedNow, int tick) {
+            /** Where the squad last lost a man: the nearest live nest and its distance. */
+            String lastLoss = "";
+
+            void observe(BattleSimulation sim, Fort fort, Squad squad, boolean orderedNow, int tick) {
                 World world = sim.world();
                 int count = sim.squadMemberCount(squad.id);
                 double sx = 0;
@@ -557,6 +599,7 @@ public final class AssaultMusterScene implements BehaviorScene {
                     }
                 }
                 if (startAlive == 0) startAlive = living;
+                if (alive > living && living > 0 && fort != null) lastLoss = lossNote(sim, fort, sx / living, sy / living, tick, alive - living);
                 if (alive > 0 && living == 0 && diedTick < 0) diedTick = tick;
                 alive = living;
                 if (ordered && !orderedNow) releasedTick = tick;
@@ -572,6 +615,24 @@ public final class AssaultMusterScene implements BehaviorScene {
                     sampleX = cx;
                     sampleY = cy;
                 }
+            }
+
+            private static String lossNote(BattleSimulation sim, Fort fort, double x, double y, int tick, int lost) {
+                World w = sim.world();
+                int bestIndex = -1;
+                double best = Double.MAX_VALUE;
+                int index = 0;
+                for (long nest : fort.nestIds()) {
+                    if (w.isAlive(nest)) {
+                        double d = Math.hypot(w.x(nest) - x, w.y(nest) - y);
+                        if (d < best) {
+                            best = d;
+                            bestIndex = index;
+                        }
+                    }
+                    index++;
+                }
+                return "-" + lost + "@" + tick + " at " + Math.round(x) + "," + Math.round(y) + " nearest live nest #" + bestIndex + " " + Math.round(best) + " cells";
             }
 
             void vanished(int tick) {
@@ -593,7 +654,7 @@ public final class AssaultMusterScene implements BehaviorScene {
             String describe(int id) {
                 return "sq" + id + " ordered@" + orderedTick + " " + startAlive + "->" + alive + " closest=" + Math.round(best)
                         + "@" + bestTick + (diedTick >= 0 ? " died@" + diedTick : "") + (releasedTick >= 0 ? " released@" + releasedTick : "")
-                        + " idle=" + idleTicks + " " + end();
+                        + " idle=" + idleTicks + " " + end() + (lastLoss.isEmpty() ? "" : " lastLoss " + lastLoss);
             }
         }
 
@@ -609,7 +670,7 @@ public final class AssaultMusterScene implements BehaviorScene {
                     tracks.put(squad.id, track);
                 }
                 seen.add(squad.id);
-                track.observe(sim, squad, orderedNow, tick);
+                track.observe(sim, fort, squad, orderedNow, tick);
             }
             for (Map.Entry<Integer, SquadTrack> e : tracks.entrySet()) {
                 if (!seen.contains(e.getKey())) e.getValue().vanished(tick);
@@ -821,6 +882,7 @@ public final class AssaultMusterScene implements BehaviorScene {
             this.keys = keys;
             this.world = world;
             this.garrison = world.members("garrison");
+            this.breach.fort = fort;
             for (String key : keys) startMarines += world.members(key).length;
         }
 

@@ -448,6 +448,11 @@ public final class ConquestCommand implements ConquestFrontCommand,
     /** What the air has said to every strike the plans asked for, for evidence. */
     private final Map<AirPoolService.Outcome, Integer> strikeOutcomes = new EnumMap<>(AirPoolService.Outcome.class);
 
+    /** What each fort's company did with its held close breachers, for evidence; the commander never reads it. */
+    Map<Integer, FortAssault.SatchelRecord> satchelRecords() {
+        return muster.satchelRecords();
+    }
+
     /** How many strikes the plans asked for, by what the air said, over the battle so far. */
     public Map<AirPoolService.Outcome, Integer> strikeOutcomes() {
         return Map.copyOf(strikeOutcomes);
