@@ -233,6 +233,9 @@ public final class SquadMedicSystem {
                 && (maxArmor <= 0f || ward.armor(patient) >= maxArmor);
         if (medic.phaseTimer <= 0f || whole) {
             medic.completed++;
+            // A finished treatment dresses the limb wounds too: the slowed walk and the
+            // shaken aim end with it. An interrupted one leaves them.
+            ward.dressWounds(patient);
             finish(medic);
         }
     }
@@ -347,6 +350,8 @@ public final class SquadMedicSystem {
         /** Armor capacity when whole; zero for an armorless marine. */
         float maxArmor(long member);
         void setArmor(long member, float armor);
+        /** Dresses the limb wounds {@code member} carries. */
+        void dressWounds(long member);
     }
 
     private record SimWard(Squad squad, BattleSimulation sim, long controlled) implements Ward {
@@ -375,5 +380,6 @@ public final class SquadMedicSystem {
             return sim.world().hasArmor(member) ? sim.world().maxArmor(member) : 0f;
         }
         @Override public void setArmor(long member, float armor) { sim.world().setArmor(member, armor); }
+        @Override public void dressWounds(long member) { sim.wounds().dress(member); }
     }
 }

@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.battle.combat.BodyPart;
+import com.dillon.starsectormarines.battle.combat.WoundService;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -184,6 +186,34 @@ public class SquadMedicSystemTest {
         assertEquals(4L, medic.medicId(), "the next middle-team marine takes the billet");
     }
 
+    @Test
+    public void aCompletedTreatmentDressesThePatientsWounds() {
+        Ward ward = squad();
+        ward.hp.put(4L, 5f);
+        ward.wounds.wound(4L, BodyPart.LEGS);
+        ward.wounds.wound(4L, BodyPart.ARMS);
+        SquadMedic medic = medicFor(ward);
+        ward.x.put(4L, 2.5f);
+        runUntilIdle(medic, ward);
+        assertEquals(1, medic.completed());
+        assertEquals(0, ward.wounds.wounds(4L, BodyPart.LEGS));
+        assertEquals(0, ward.wounds.wounds(4L, BodyPart.ARMS));
+    }
+
+    @Test
+    public void anInterruptedTreatmentLeavesTheWounds() {
+        Ward ward = squad();
+        ward.hp.put(4L, 5f);
+        ward.wounds.wound(4L, BodyPart.LEGS);
+        SquadMedic medic = medicFor(ward);
+        ward.x.put(4L, 2.5f);
+        for (int i = 0; i < 30; i++) SquadMedicSystem.step(medic, ward, DT);
+        ward.x.put(4L, 2f + RANK_ONE.reachCells() + 1f);
+        SquadMedicSystem.step(medic, ward, DT);
+        assertEquals(1, medic.interrupted());
+        assertEquals(1, ward.wounds.wounds(4L, BodyPart.LEGS));
+    }
+
     /** Leader 1 and marine 2 in team 0; 3 (the medic), 4 and 5 in team 1; all whole. */
     private static Ward squad() {
         Ward ward = new Ward(1L);
@@ -218,6 +248,7 @@ public class SquadMedicSystemTest {
         final Map<Long, Float> hp = new HashMap<>();
         final Map<Long, Float> armor = new HashMap<>();
         final Map<Long, Float> pressure = new HashMap<>();
+        final WoundService wounds = new WoundService();
 
         Ward(long leader) { this.leader = leader; }
 
@@ -243,5 +274,6 @@ public class SquadMedicSystemTest {
         @Override public float armor(long member) { return armor.get(member); }
         @Override public float maxArmor(long member) { return 5f; }
         @Override public void setArmor(long member, float value) { armor.put(member, value); }
+        @Override public void dressWounds(long member) { wounds.dress(member); }
     }
 }
