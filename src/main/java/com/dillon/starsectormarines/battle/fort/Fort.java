@@ -249,6 +249,18 @@ public final class Fort {
         return powered(owner) ? 1f : UNPOWERED_RATE;
     }
 
+    private int sensorReadyTick;
+
+    /** The tick before which the fort's net cannot place another call (a call holds it for a cooldown). */
+    public int sensorReadyTick() {
+        return sensorReadyTick;
+    }
+
+    /** Holds the fort's net until {@code tick}. */
+    public void holdSensorNetUntil(int tick) {
+        sensorReadyTick = tick;
+    }
+
     /** The entity ids of the wall nests tagged to this fort, for evidence; a command never reads these. */
     public List<Long> nestIds() {
         return List.copyOf(nests);

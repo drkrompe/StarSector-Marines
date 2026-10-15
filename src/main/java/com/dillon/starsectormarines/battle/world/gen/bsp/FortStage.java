@@ -968,8 +968,9 @@ public final class FortStage implements GenStage {
         if (yard == null) throw new IllegalStateException("a " + plan.kind() + " has no anti-air yard");
         FortTag tag = new FortTag(fortId, FortAspect.AIR_DEFENCE, at.x(), at.y(), at.pose().quarterTurns());
         emitStructure(ctx, plan.coreStructureId(FortAspect.AIR_DEFENCE), at.cell(yard.consoleCentre()[0], yard.consoleCentre()[1]), tag);
-        emitStructure(ctx, TurretCatalogRegistry.RIDGE_AA_STRUCTURE_ID,
-                at.cell(yard.batteryCentre()[0], yard.batteryCentre()[1]), tag);
+        for (int[] battery : yard.batteryCentres()) {
+            emitStructure(ctx, TurretCatalogRegistry.RIDGE_AA_STRUCTURE_ID, at.cell(battery[0], battery[1]), tag);
+        }
         for (int[] flak : yard.flakCells()) {
             emitStructure(ctx, TurretCatalogRegistry.ANTI_AIR_STRUCTURE_ID, at.cell(flak[0], flak[1]), tag);
         }

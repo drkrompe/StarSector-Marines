@@ -670,6 +670,15 @@ Do not run builds or leave generated task files there.
   runs, plus the windows and runs no node covers. Writes
   `build/reports/garrison/summary.md`. Map evidence, not battle evidence; opt-in
   and excluded from `test`. See `garrisonables.md`.
+- `gradlew.bat loadoutCardSheet` → the design-pass stat sheet for every loadout card,
+  written to `build/reports/loadout-cards/cards.md` and `cards.csv`. Each card lists its access
+  tier and unlock gate, the twelve billets seat by seat (weapon, grade, special, or armor pattern
+  with its capacity / rating / speed / system), strength as `LoadoutEffectiveness` measures it
+  (effective DPS and FIRE rating; absorbed damage and GUARD rating) with matchup columns
+  (weapons vs bare / line / suit armor, suits vs pen 1 / 7 / 14 fire), and reach, specials,
+  mobility and systems kept as separate columns, plus which faction channels sell it, followed
+  by the armor-pattern and weapon-grade reference tables. Read from the shipped data, so it
+  cannot drift; opt-in and excluded from `test`. Ratings leave out cover, morale and orders.
 - `gradlew.bat crewEvidence` → crews a transport and a capital from their own
   room programs, runs each for four minutes of ship's time, and reports what the
   complement actually spent it doing: the idle share, the activity histogram, the

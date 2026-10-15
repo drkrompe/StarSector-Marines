@@ -73,12 +73,21 @@ public final class LoadoutEffectiveness {
      * left out rather than guessed at.
      */
     public static float effectiveDps(WeaponDef weapon, EquipmentGrade grade) {
+        return effectiveDps(weapon, grade, referenceArmorRating());
+    }
+
+    /**
+     * The same measure against a named target: a rating of zero or less is an unarmoured
+     * marine, which takes every point of damage that lands. This is what shows a weapon
+     * that is strong against one kind of plate and useless against another.
+     */
+    public static float effectiveDps(WeaponDef weapon, EquipmentGrade grade, float targetArmorRating) {
         if (weapon == null || grade == null) return 0f;
         float dps = InfantryCombatStats.estimatedDps(weapon, grade, REFERENCE_SHOOTER);
         float hit = InfantryCombatStats.accuracyAtRangeFraction(
                 weapon, grade, REFERENCE_SHOOTER, REFERENCE_RANGE_FRACTION);
-        float through = DurabilityModel.armorEfficiency(
-                weapon.penetration, referenceArmorRating());
+        float through = targetArmorRating <= 0f ? 1f
+                : DurabilityModel.armorEfficiency(weapon.penetration, targetArmorRating);
         return dps * hit * through;
     }
 
@@ -96,10 +105,15 @@ public final class LoadoutEffectiveness {
      * nothing at all between its wearer and their own structure.
      */
     public static float patternResilience(MarineArmorCatalogDef pattern) {
+        return patternResilience(pattern, referencePenetration());
+    }
+
+    /** The same measure against fire of a named penetration rather than the catalog mean. */
+    public static float patternResilience(MarineArmorCatalogDef pattern, float penetration) {
         if (pattern == null || pattern.armorCapacity() <= 0f
                 || pattern.armorRating() <= 0f) return 0f;
         float efficiency = DurabilityModel.armorEfficiency(
-                referencePenetration(), pattern.armorRating());
+                penetration, pattern.armorRating());
         float absorbed = pattern.armorCapacity() / efficiency;
         float incomingAccuracy = Math.max(0.01f, pattern.incomingAccuracyMult());
         return absorbed / incomingAccuracy;
