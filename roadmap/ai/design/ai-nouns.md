@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — the order cursor reads clear-and-hold in red over a held place the squad believes is occupied, and secure over an uncaptured compound; the right-drag line order.
+Updated: 2026-10-14 — a dragged line mans the forward-facing doors and windows of the buildings it crosses; the order cursor reads clear-and-hold in red over a held place the squad believes is occupied.
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -2211,7 +2211,12 @@ away from where the squad came from. Cover is judged against the threat, or
 against the front when there is none. The line is cut into one stretch per fire
 team, and each team takes the run nearest its own stretch and stays whole on it
 while the run has room, so a line drawn across two trenches seats teams in each
-rather than splitting one team between them. The cut counts the squad's fire
+rather than splitting one team between them. A full team spills onto another run
+only where that run reaches its own stretch, never into the next team's share.
+A **held building** the line crosses is a run of its own: its posts are the
+interior stances at the doors and windows that open toward the line's front,
+and they need no trench, so a line drawn through a street of buildings mans
+their windows. The cut counts the squad's fire
 teams, not only those on the ground; when the set of teams changes (a lift lands,
 a team is lost) the whole line is cut again, so a team that arrived first does
 not keep the share meant for the rest. Marines left over take ordinary cover in

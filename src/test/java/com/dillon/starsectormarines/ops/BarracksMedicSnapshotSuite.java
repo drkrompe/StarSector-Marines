@@ -10,6 +10,6 @@ public final class BarracksMedicSnapshotSuite implements SnapshotSuite {
     @Override public String id() { return "barracks-medic"; }
     @Override public String label() { return "Barracks squad medic billets"; }
     @Override public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
-        return UiSnapshotSuite.renderBarracksCommand(context, List.of("medic"), false);
+        return UiSnapshotSuite.renderBarracksCommand(context, List.of("medic"), false, false);
     }
 }
