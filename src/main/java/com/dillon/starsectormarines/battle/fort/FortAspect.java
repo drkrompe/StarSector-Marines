@@ -16,8 +16,8 @@ public enum FortAspect {
     /** The room whose holder the dome obeys: whoever holds it is the side the dome protects. */
     CONTROL_ROOM("CONTROL ROOM"),
     /**
-     * The optional anti-air aspect: a plotting console in an open, sandbagged yard inside the works, with the fort's
-     * dedicated air-defence mounts standing round it. The mounts obey whoever holds the yard; a wrecked console silences
+     * The optional anti-air aspect: a plotting console in a small hardened control room inside the works, with the fort's
+     * dedicated air-defence mounts standing at its door. The mounts obey whoever holds the room; a wrecked console silences
      * them for good. Present only on a fort whose declaration asks for it.
      */
     AIR_DEFENCE("AIR DEFENCE");
