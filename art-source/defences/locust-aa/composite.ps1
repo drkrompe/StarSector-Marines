@@ -4,6 +4,7 @@ Add-Type -AssemblyName System.Drawing
 $sourceRoot = $PSScriptRoot
 $registration = Get-Content -Raw (Join-Path $sourceRoot 'export-metadata.json') | ConvertFrom-Json
 $mountRegistration = $registration | Where-Object { $_.name -eq 'locust-mount' }
+$towerRegistration = $registration | Where-Object { $_.name -eq 'ground-base' }
 $tower = [System.Drawing.Bitmap]::FromFile((Join-Path $sourceRoot 'ground-base.master.png'))
 $turret = [System.Drawing.Bitmap]::FromFile((Join-Path $sourceRoot 'locust-mount.master.png'))
 function Draw-Layer($graphics, $sprite, [single]$x, [single]$y, [int]$size) {
@@ -12,7 +13,7 @@ function Draw-Layer($graphics, $sprite, [single]$x, [single]$y, [int]$size) {
     $graphics.DrawImage($sprite, [System.Drawing.RectangleF]::new($x,$y,$size,$size), [System.Drawing.RectangleF]::new(0,0,$sprite.Width,$sprite.Height), [System.Drawing.GraphicsUnit]::Pixel)
 }
 function Draw-Assembly($graphics, [int]$x, [int]$y, [int]$size, [single]$angle = 0) {
-    Draw-Layer $graphics $tower $x $y $size
+    Draw-Layer $graphics $tower ($x+$size/2-$size*$towerRegistration.pivot[0]/$towerRegistration.layerSize) ($y+$size/2-$size*$towerRegistration.pivot[1]/$towerRegistration.layerSize) $size
     $state = $graphics.Save()
     try {
         $graphics.TranslateTransform(($x + $size/2), ($y + $size/2))
@@ -38,7 +39,7 @@ $panel = [System.Drawing.SolidBrush]::new([System.Drawing.Color]::FromArgb(39,48
 try {
     $g.Clear([System.Drawing.Color]::FromArgb(23,30,32))
     $g.DrawString('LOCUST / TOWER COMPOSITE', $title, $white, 60, 35)
-    $g.DrawString('Circular platform and fixed tower  |  Shared center pivot  |  Original relative scale', $small, $muted, 62, 95)
+    $g.DrawString('Tapered tower walls  |  Registered bearing pivot  |  Approved turret artwork unchanged', $small, $muted, 62, 95)
     $g.FillRectangle($panel, 40,160,840,810)
     $g.DrawString('FORWARD', $label,$white,62,180)
     Draw-Assembly $g 60 210 800
