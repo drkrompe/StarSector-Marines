@@ -66,4 +66,24 @@ class GuidedMissileTest {
         assertFalse(missile.powered());
     }
 
+    @Test void contactSweepsBothBodiesAndRejectsPathsCrossedAtDifferentTimes() {
+        var missile = new GuidedMissile(0, 0, -90, 15, new Guidance(240, 125, 5));
+        missile.previousX = 0; missile.previousY = 0; missile.previousZ = 0;
+        missile.x = 10; missile.y = 0; missile.z = 0;
+        assertEquals(Float.POSITIVE_INFINITY, missile.contactFraction(5, 5, 0, .1f));
+        assertTrue(Float.isFinite(missile.contactFractionMoving(5, -5, 0, 5, 5, 0, .1f)),
+                "aircraft crosses the moving missile between observations");
+        assertEquals(Float.POSITIVE_INFINITY, missile.contactFractionMoving(5, -10, 0, 5, 0, 0, .1f),
+                "paths cross at different times, so there is no contact");
+    }
+
+    @Test void movingTargetCanBeContactedBeforeItsFinalStepLeavesTheMap() {
+        var missile = new GuidedMissile(98, 0, -90, 15, new Guidance(240, 125, 5));
+        missile.previousX = 98; missile.previousY = 0; missile.previousZ = 0;
+        missile.x = 100; missile.y = 0; missile.z = 0;
+        float fraction = missile.contactFractionMoving(97, -2, 0, 101, 2, 0, .1f);
+        assertTrue(Float.isFinite(fraction));
+        assertTrue(98 + 2 * fraction < 100, "contact precedes the boundary despite the target ending outside");
+    }
+
 }

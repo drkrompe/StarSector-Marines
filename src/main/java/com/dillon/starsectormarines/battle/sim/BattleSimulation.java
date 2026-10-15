@@ -1241,6 +1241,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.heavy = new HeavyWeapons(rosterService, grid, ballisticResolver, shots, detonations, rng);
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire,
                 rng, this::spawn, effects, resupply, this);
+        this.airSystem.setIncomingMissiles(shots::getActiveShots);
         this.airSystem.setAirfield(airfieldService);
         // A gun run delivers through the same AoE pipeline as every other
         // explosion, so the air system needs it too.
@@ -3102,6 +3103,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             airSystem.tick(TICK_DT);
             groundAntiAir.tick(this);
             airToAir.tick(this);
+            airSystem.finishMissileContacts();
         }
         tickProfile.lap(TickProfile.Phase.AIR_SYSTEM);
         // Ground convoys ride the same ordering rule for the same reason —

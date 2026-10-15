@@ -4,7 +4,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.Set;
 
-/** Atmospheric missile parameters in cells and seconds; vanilla reference uses 20 native units per cell. */
+/** Atmospheric missile parameters in cells and seconds; the weapon catalog owns flight calibration. */
 public record AirMissileSpec(boolean guided, boolean retargetCloser, float launchSpeed,
         float cruiseSpeed, float acceleration, float deceleration, float turnRateDegPerSec,
         float lifetime, float launchSpreadDeg, float fuseRadius, float blastRadius, float blastCoreRadius, boolean friendlyFire) {

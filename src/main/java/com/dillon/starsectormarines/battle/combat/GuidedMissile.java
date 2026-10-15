@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.weapon.AirMissileSpec;
 public final class GuidedMissile {
     public float x, y, z, previousX, previousY, previousZ;
     public float heading, pitch, speed, remaining;
+    public float stepSeconds;
     public final float launchBearingDegrees;
     private final float maxSpeed;
     private final Guidance guidance;
@@ -58,6 +59,7 @@ public final class GuidedMissile {
     public void advance(float dt, boolean tracking, float tx, float ty, float tz) {
         previousX = x; previousY = y; previousZ = z;
         dt = Math.min(dt, remaining);
+        stepSeconds = dt;
         if (tracking && (spec == null || spec.guided())) {
             float dx = tx - x, dy = ty - y;
             float turn = (float) Math.toRadians(guidance.turnRate()) * dt;
@@ -86,8 +88,16 @@ public final class GuidedMissile {
 
     /** Earliest segment/sphere contact, or positive infinity when the travelled segment misses. */
     public float contactFraction(float tx, float ty, float tz, float radius) {
-        float dx = x - previousX, dy = y - previousY, dz = z - previousZ;
-        float ox = previousX - tx, oy = previousY - ty, oz = previousZ - tz;
+        return contactFractionMoving(tx, ty, tz, tx, ty, tz, radius);
+    }
+
+    /** Earliest contact in the common tick, sweeping projectile motion relative to the moving target. */
+    public float contactFractionMoving(float fromX, float fromY, float fromZ,
+                                       float toX, float toY, float toZ, float radius) {
+        float dx = x - previousX - (toX - fromX);
+        float dy = y - previousY - (toY - fromY);
+        float dz = z - previousZ - (toZ - fromZ);
+        float ox = previousX - fromX, oy = previousY - fromY, oz = previousZ - fromZ;
         float c = ox * ox + oy * oy + oz * oz - radius * radius;
         if (c <= 0) return 0f;
         float a = dx * dx + dy * dy + dz * dz;

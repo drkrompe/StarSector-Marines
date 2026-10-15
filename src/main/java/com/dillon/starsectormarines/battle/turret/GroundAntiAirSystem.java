@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.fort.FortFrame;
 import com.dillon.starsectormarines.battle.air.AirLocomotion;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.GuidedMissile;
+import com.dillon.starsectormarines.battle.combat.UnguidedMissileAim;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.AirMissileSpec;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -94,6 +95,15 @@ public final class GroundAntiAirSystem {
         float aimX = target == 0 ? sim.world().x(id) + (float) Math.cos(held) * weapon.range : sim.world().x(target);
         float aimY = target == 0 ? sim.world().y(id) + (float) Math.sin(held) * weapon.range : sim.world().y(target);
         float aimZ = target == 0 ? 4f : AirAppearance.visualAltitudeOffsetCells(sim.world().altitudeT(target));
+        if (target != 0 && weapon.airMissile != null && !weapon.airMissile.guided()) {
+            var body = sim.world().kinematics(target);
+            if (body != null) {
+                float lead = UnguidedMissileAim.interceptSeconds(aimX - sim.world().x(id),
+                        aimY - sim.world().y(id), aimZ, body.vx, body.vy, weapon.airMissile);
+                aimX += body.vx * lead;
+                aimY += body.vy * lead;
+            }
+        }
         float bearing = target == 0 ? state.facingDegrees(id)
                 : TurretAim.bearingTo(sim.world().x(id), sim.world().y(id), aimX, aimY);
         float facing = TurretAim.slewToward(state.facingDegrees(id), bearing, structure.mount.turnRateDegPerSec * dt);
@@ -217,7 +227,7 @@ public final class GroundAntiAirSystem {
                     && sim.getGrid().blocksStructuralLineOfSight(cx, cy)) {
                 flight.remaining = 0f;
                 missile.shot.flightImpact = true;
-                if (spec != null && spec.blastRadius() > 0f) applyFamilyBlast(sim, missile);
+                if (spec != null && spec.blastRadius() > 0f) applyFamilyBlast(sim, missile, 1f);
             }
             missile.shot.toX = flight.x; missile.shot.toY = flight.y; missile.shot.toZ = flight.z;
             if (flight.remaining <= 0f) {
@@ -237,21 +247,43 @@ public final class GroundAntiAirSystem {
                 && (!hostileOnly || missile.shot.shooterFaction.hostileTo(sim.world().airFaction(candidate)));
     }
 
+    /** Contact includes the last in-bounds portion of a boundary-crossing craft, unlike acquisition. */
+    private static boolean eligibleContact(BattleSimulation sim, Missile missile, long candidate, boolean hostileOnly) {
+        if (!sim.world().isAlive(candidate)) return false;
+        var mission = sim.world().mission(candidate);
+        if (mission == null || mission.destroyed || !mission.isOnMap()
+                || !AirLocomotion.of(mission.state).airborne()
+                || hostileOnly && !missile.shot.shooterFaction.hostileTo(sim.world().airFaction(candidate))) return false;
+        var body = sim.world().kinematics(candidate);
+        return sim.getGrid().inBounds((int) Math.floor(sim.world().x(candidate)), (int) Math.floor(sim.world().y(candidate)))
+                || body != null && sim.getGrid().inBounds((int) Math.floor(body.previousX), (int) Math.floor(body.previousY));
+    }
+
     private static void resolveFamilyContact(BattleSimulation sim, Missile missile) {
         var spec = missile.weapon.airMissile;
         var flight = missile.flight;
         long contacted = 0;
         float first = Float.POSITIVE_INFINITY;
         for (long candidate : sim.getAirEntityIds()) {
-            if (!eligible(sim, missile, candidate, !spec.friendlyFire())) continue;
+            if (!eligibleContact(sim, missile, candidate, !spec.friendlyFire())) continue;
             float x = sim.world().x(candidate), y = sim.world().y(candidate);
             float z = AirAppearance.visualAltitudeOffsetCells(sim.world().altitudeT(candidate));
             boolean hostile = missile.shot.shooterFaction.hostileTo(sim.world().airFaction(candidate));
             float radius = sim.world().airframe(candidate).targetRadiusCells() + (hostile ? spec.fuseRadius() : 0f);
-            float fraction = flight.contactFraction(x, y, z, radius);
-            if (fraction < first) { first = fraction; contacted = candidate; }
+            var body = sim.world().kinematics(candidate);
+            float stepFraction = Math.min(1f, flight.stepSeconds / BattleSimulation.TICK_DT);
+            float fraction = body == null ? flight.contactFraction(x, y, z, radius)
+                    : flight.contactFractionMoving(body.previousX, body.previousY, body.previousAltitude,
+                            body.previousX + (x - body.previousX) * stepFraction,
+                            body.previousY + (y - body.previousY) * stepFraction,
+                            body.previousAltitude + (z - body.previousAltitude) * stepFraction, radius);
+            float contactX = flight.previousX + (flight.x - flight.previousX) * fraction;
+            float contactY = flight.previousY + (flight.y - flight.previousY) * fraction;
+            if (Float.isFinite(fraction) && sim.getGrid().inBounds((int) Math.floor(contactX), (int) Math.floor(contactY))
+                    && fraction < first) { first = fraction; contacted = candidate; }
         }
         if (contacted == 0) return;
+        missile.shot.flightContactId = contacted;
         // Stop at the first physical contact, even when a tick would otherwise cross the entire hull.
         flight.x = flight.previousX + (flight.x - flight.previousX) * first;
         flight.y = flight.previousY + (flight.y - flight.previousY) * first;
@@ -263,17 +295,25 @@ public final class GroundAntiAirSystem {
             sim.telemetry().recordRoundHit(missile.shooter);
             return;
         }
-        applyFamilyBlast(sim, missile);
+        applyFamilyBlast(sim, missile, first * Math.min(1f, flight.stepSeconds / BattleSimulation.TICK_DT));
     }
 
     /** The same payload is spent once whether the charge meets an aircraft or terrain. */
-    private static void applyFamilyBlast(BattleSimulation sim, Missile missile) {
+    private static void applyFamilyBlast(BattleSimulation sim, Missile missile, float contactFraction) {
         var spec = missile.weapon.airMissile;
         var flight = missile.flight;
         for (long candidate : sim.getAirEntityIds()) {
-            if (!eligible(sim, missile, candidate, !spec.friendlyFire())) continue;
-            float dx = sim.world().x(candidate) - flight.x, dy = sim.world().y(candidate) - flight.y;
-            float dz = AirAppearance.visualAltitudeOffsetCells(sim.world().altitudeT(candidate)) - flight.z;
+            if (!eligibleContact(sim, missile, candidate, !spec.friendlyFire())) continue;
+            var body = sim.world().kinematics(candidate);
+            float x = sim.world().x(candidate), y = sim.world().y(candidate);
+            float z = AirAppearance.visualAltitudeOffsetCells(sim.world().altitudeT(candidate));
+            if (body != null) {
+                x = body.previousX + (x - body.previousX) * contactFraction;
+                y = body.previousY + (y - body.previousY) * contactFraction;
+                z = body.previousAltitude + (z - body.previousAltitude) * contactFraction;
+            }
+            float dx = x - flight.x, dy = y - flight.y;
+            float dz = z - flight.z;
             float surface = Math.max(0f, (float) Math.sqrt(dx * dx + dy * dy + dz * dz)
                     - sim.world().airframe(candidate).targetRadiusCells());
             float damage = missile.weapon.damage * spec.damageFraction(surface);

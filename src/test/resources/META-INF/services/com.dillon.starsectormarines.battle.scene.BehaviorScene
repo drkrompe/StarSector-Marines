@@ -64,3 +64,4 @@ com.dillon.starsectormarines.battle.fort.ShipVsFortScene
 com.dillon.starsectormarines.battle.infantry.SquadMedicScene
 com.dillon.starsectormarines.battle.combat.SmallArmsWearScene
 com.dillon.starsectormarines.battle.air.MissileAaEffectsScene
+com.dillon.starsectormarines.battle.air.MissileAaFightersScene

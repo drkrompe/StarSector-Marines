@@ -1412,15 +1412,46 @@ one direct payload, without invented blast damage or friendly collision. Their
 orange motor flame and smoke follow the physical body and stop when its flight
 ends; losing the launcher does not erase a released missile.
 
+A fighter can react to a real, closing guided missile that is pursuing it. Its
+sortie owns a short, bounded warning delay and a brief forward-moving lateral
+jink with an opposite correction, flown through the same hull-limited steering as its
+ordinary task. The forward direction dominates the lateral and away components,
+so a head-on warning does not ask the fighter to reverse and brake away its
+speed. The maneuver temporarily replaces ordinary strike advancement, then returns
+the unchanged sortie to normal flight. Cover duty's station, rest and chase
+clocks keep running, and spent or aborted work still ends. Nose guns may take
+an ordinary opportunity if their real firing cone still holds; the break adds
+no special firing prohibition. It never moves
+the craft twice, changes its durability or supplies a missed-hit roll. A spent,
+receding or distant round is no warning. Transports, gunships and ground or
+landing procedures keep their existing flight owners. An evidence fixture may
+disable the reaction on its own fighters to compare the same attack with and
+without evasion. Whether the break buys an escape remains a consequence of
+speed, geometry, missile fuel and contact: both bodies' movement is swept over
+the same tick so fast crossings cannot masquerade as dodges between samples.
+A fighter crossing the map boundary retains its final physical segment until
+contacts resolve; only surviving exits complete their departure afterward.
+
 A Proximity Charge is an unguided drifting charge, launched once every two
 seconds within a twenty-degree full cone (the atmospheric interpretation is
 plus or minus ten degrees). Automatic fire keeps a ten-cell minimum stand-off,
 outside its 7.5-cell blast radius, so the mount does not routinely launch into
 its own blast envelope; this is a ground-emplacement adaptation rather than a
 vanilla minimum range. It leaves quickly and slows during its four-second
-flight. Its purple glow and launch smoke are unpowered presentation: it has no
-continuous rocket exhaust. The common atmospheric conversion is twenty native
-game units per cell, so its forty-unit hostile proximity fuse is two cells,
+flight. The emplacement leads its observed target at launch, accounting for
+that slowdown and the target's current horizontal velocity. Traverse and launch
+elevation use the same predicted point; once released, the charge never steers.
+A turn or speed change can defeat that prediction, and a target beyond the
+charge's finite reach supplies no promised interception. Its purple glow and
+launch smoke are unpowered presentation: it has no
+continuous rocket exhaust. Missile distances use twenty native game units per
+cell; guided linear motion is additionally calibrated for the faster atmospheric
+fighter handling, with Locust and Swarmer cruise speeds of forty and thirty
+cells per second. Guided angular speed is separately calibrated against fighter
+handling so a fast missile still has a turn it must physically fly, leaving a
+lateral break a physical escape window rather than a missed-hit roll.
+The charge retains the unpowered distance/speed conversion,
+so its forty-unit hostile proximity fuse is two cells,
 its 150-unit blast radius is 7.5 cells and its seventy-five-unit full-damage core
 is 3.75 cells. Physical contact with an airborne craft or blocking terrain also detonates the charge. Outside the core,
 damage falls to zero at the outer radius. The blast can catch friendly aircraft
@@ -1429,8 +1460,8 @@ must actually bring them inside its volume, while intact roofs and intervening
 structure protect ground occupants. Neither fuel expiry nor leaving the map
 creates a detonation at an invented endpoint.
 
-These atmospheric mounts, tower proportions, speeds and damage are first-pass,
-untuned content. The damage mapping preserves a qualitative distinction:
+These atmospheric mounts, tower proportions, speeds and damage remain an
+initial calibration. The damage mapping preserves a qualitative distinction:
 Locust fragmentation uses zero penetration and struggles against armor;
 Swarmer and Proximity Charge use penetration sixteen and twenty-four as an
 explicit initial mapping of their high-explosive identity. Those figures are

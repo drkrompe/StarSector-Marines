@@ -343,6 +343,11 @@ public final class ShuttleMission {
     public boolean gunshipWithdrawAfterIngress;
     /** Last actual guided-AA launch against this craft, for observed threat responses. */
     public int lastMissileLaunchTick = -1;
+    /** Diagnostic paired-control switch; production fighters react to actual incoming guided missiles. */
+    public boolean missileEvasionEnabled = true;
+    /** One terminal fighter segment remains physical until this tick's missile contacts resolve. */
+    public boolean pendingMissileExit;
+    public final FighterMissileEvasion missileEvasion = new FighterMissileEvasion();
     /** Radius of the ring a gunship holds about its target, in cells. */
     public float orbitRadius;
     /** Whether the ring is flown clockwise (target to the right of the heading) or counter-clockwise. */

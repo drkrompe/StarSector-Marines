@@ -101,15 +101,70 @@ frames at twenty frames/second. Raw frames remain untracked build output.
 
 Ten loops cover the three firing subjects, three friendly-only controls, two
 live-target retarget controls, and the Proximity friendly-blast/no-launcher pair.
-The retained subjects launch 30 Locust, 8 Swarmer and 4 Proximity rounds in seven
-seconds; Proximity has one detonation and two silent misses that leave the map
-(recorded under the report's general `flameouts` counter). All three launchers
-survive. The nearby hostile/friendly pair both lose 470 HP after armor, versus
-zero without a launcher. These observations validate behavior, not mission balance.
+The subjects launch 30 Locust, 8 Swarmer and 4 Proximity rounds in seven seconds;
+all three launchers survive the diagnostic orbit. The nearby hostile/friendly
+pair both take blast damage, versus zero without a launcher. These observations
+validate behavior, not mission balance. The retained effects clip predates the
+guided cruise-speed calibration and Proximity launch lead; it preserves the
+approved visual treatment. Re-running the commands uses current flight timing.
 
 The ordinary turret workbench preserves the dedicated missile catalog and all
 flight/muzzle fields, but its illustrative flight controls and three-round
 preview use legacy trajectory fields. Use this production scene for missile
 physics review; tune `airMissile` flight parameters in the weapon data.
-The three catalog entries are available for placement; existing mission layouts
-and campaign unlocks are unchanged.
+The three catalog entries are available for placement. The debug fighter range
+below uses them together; campaign unlocks are unchanged.
+
+## In-game fighter range
+
+Open **Company HQ → DEBUG → STORY + REPEATABLE**, choose the **Missile range**
+location, then **Missile AA / Fighter Range** and deploy from its briefing.
+This is the ordinary detached debug-company launch: twelve named marines arrive
+at a southern observation apron while three allied batteries defend separate
+lanes. The Locust is west, Swarmer center and Proximity east. The neutral observer
+view reveals the approaching hostile aircraft without changing their targeting.
+
+Six finite waves bring one fighter per lane, starting after four seconds and
+spaced fifteen seconds apart: Talon, Wasp, Thunder, Broadsword, Talon, Wasp.
+These are ordinary armed strike sorties with normal hull health, steering and
+physical exits. Towers can be destroyed. Each lane marker tracks its assigned
+fighter waves, losses and escapes; missiles can retarget across lanes, so these
+are cohort counts rather than isolated battery scores. The battle stays open
+after the waves; withdraw to finish.
+Pause and zoom in to inspect the launch mouths, backblast and missile paths.
+
+Guided cruise speed is calibrated for the existing atmospheric fighter speeds:
+40 cells/second for Locust and 30 for Swarmer. Guided turn rate is calibrated
+to 60 degrees/second, giving a fighter's lateral break a physical escape window. Their
+finite fuel, salvos and payloads remain. Fighters react to a closing guided missile
+with a delayed, finite steering break using their own hull handling. Contacts
+sweep both moving bodies over the same tick. Proximity predicts the target's
+motion once at launch, including the charge's deceleration; its spread and
+unsteered flight still permit misses.
+
+Run the paired production-factory evidence and its short visual excerpt with:
+
+```powershell
+./gradlew.bat sceneEvidence -Pscene=missile-aa-fighters --console=plain
+./gradlew.bat createSnapshots -Psnapshot=missile-aa-fighters --console=plain
+```
+
+Reports install and verify the actual hull engine specifications, then compare
+the same finite attack with normal evasion, evasion disabled, and no batteries.
+They retain actual launches, contacts, expiries, losses,
+physical exits, unresolved sorties and battery survival. A successful run checks
+accounting and exercised mechanisms; it does not assert a universal hit rate.
+The snapshot excerpt begins at the first actual AA release and changes only the
+camera. The earlier effects clip uses its durable diagnostic transport and is
+not the fighter balance comparison.
+
+At the retained 40/30 speed and 60-degree turn calibration, three seeds each
+finish with 17 fighters destroyed and one Thunder escaped, all three batteries surviving.
+All 54 fighters escape the paired no-AA control. Disabling evasion instead
+produces 41 losses and 13 escapes across the three runs, but falling aircraft
+destroy batteries in those runs; that total is not a clean measure of dodge
+effectiveness. The normal runs demonstrate an escape with all batteries active,
+not a universal 94% kill probability. Across those runs, actual aircraft-contact
+triggers are 30/540 Locust rounds, 16/96 Swarmer rounds and 12/28 Proximity
+charges; other rounds expire without contact. Multiple direct hits can be
+needed against armor, and a proximity blast can damage more than its trigger.

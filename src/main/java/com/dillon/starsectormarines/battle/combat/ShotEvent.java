@@ -43,6 +43,8 @@ public class ShotEvent {
     public boolean flightResolved, flightImpact;
     /** Current physical flight guidance target, published for observed behavior evidence. */
     public long flightTargetId;
+    /** Actual craft whose body/fuse triggered this flight, distinct from the intended guidance target. */
+    public long flightContactId;
     public final boolean hit;
     public final Faction shooterFaction;
     /** Firing entity id, or {@code 0L} for anonymous/aerial legacy sources. */
