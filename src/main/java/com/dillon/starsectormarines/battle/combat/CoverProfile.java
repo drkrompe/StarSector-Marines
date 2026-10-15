@@ -5,10 +5,12 @@ package com.dillon.starsectormarines.battle.combat;
  * lands on a hidden part has stopped in the cover; one that lands on an exposed part has beaten it,
  * so a body-part hit takes no further damage cut for the cover it got past.
  *
- * <p>Two kinds of cover reach a body. <b>Edge cover</b> is a wall, parapet or prop on the
+ * <p>Three kinds of cover reach a body. <b>Edge cover</b> is a wall, parapet or prop on the
  * boundary of the cell the man stands in, between him and the shooter. <b>Occupant cover</b> is
- * the ground he stands in — a trench — and hides him from every bearing. Each has one profile per
- * cover level; the distance ramps that scale them belong to {@link BallisticResolver}.
+ * the ground he stands in — a trench — and hides him from every bearing. <b>Crossed cover</b> is a
+ * walkable prop the round passes over somewhere in the lane, short of the man; it catches the
+ * round by the part the round is headed for. Each has one profile per cover level; the distance
+ * ramps that scale them belong to {@link BallisticResolver}.
  *
  * <p>The rows were set so a level's expected interception equals what the old flat model's block
  * chance and damage cut took off together (level 3 hid about 70% of fire, level 2 half, level 1 a
@@ -33,6 +35,19 @@ public final class CoverProfile {
         {0.20f, 0.50f, 0.90f, 1.00f},
     };
 
+    /**
+     * Crossed cover (a crate in the lane) by level. Low: it catches rounds headed for the legs and
+     * torso and lets head shots pass. Each row's expected interception equals the flat
+     * {@link BallisticResolver#BLOCK_CHANCE_BY_LEVEL} chance it replaces for part-bound rounds, so a
+     * lane prop stops as many rounds as before, only different ones.
+     */
+    private static final float[][] CROSSED = {
+        {0f, 0f, 0f, 0f},
+        {0f, 0f, 0.04f, 0.45f},
+        {0f, 0.05f, 0.20f, 0.70f},
+        {0.05f, 0.20f, 0.40f, 0.85f},
+    };
+
     private CoverProfile() {}
 
     /** Fraction of {@code part} edge cover of {@code level} hides at full distance. */
@@ -43,6 +58,18 @@ public final class CoverProfile {
     /** Fraction of {@code part} the ground of occupant-cover {@code level} hides at full distance. */
     public static float occupant(int level, BodyPart part) {
         return OCCUPANT[clampLevel(level)][part.ordinal()];
+    }
+
+    /** Fraction of the rounds headed for {@code part} a prop of {@code level} crossed in the lane catches at full distance. */
+    public static float crossed(int level, BodyPart part) {
+        return CROSSED[clampLevel(level)][part.ordinal()];
+    }
+
+    /** Share of all part-bound rounds a prop of {@code level} crossed in the lane would catch. */
+    public static float expectedCrossedInterception(int level) {
+        float sum = 0f;
+        for (BodyPart part : BodyPart.values()) sum += part.share * crossed(level, part);
+        return sum;
     }
 
     /** Share of all hits on an uncovered person that edge cover of {@code level} would stop. */
