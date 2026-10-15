@@ -69,6 +69,7 @@
     {
       "factionId": "hegemony",
       "offers": [
+        { "templateId": "equipment-template:special.point-defence-pack", "sources": { "license": 6, "patron": 4 } },
         { "templateId": "equipment-template:special.vibro-blade", "sources": { "market": 12, "license": 6 } },
         { "templateId": "equipment-template:weapon.field-rifle:service", "sources": { "market": 14 } },
         { "templateId": "equipment-template:weapon.field-rifle:milspec", "sources": { "license": 12, "patron": 5 } },
@@ -105,7 +106,6 @@
         { "templateId": "equipment-template:special.smoke-grenade", "sources": { "market": 8 } },
         { "templateId": "equipment-template:special.anti-materiel-rifle", "sources": { "license": 8, "patron": 6 } },
         { "templateId": "equipment-template:special.point-defence-emplacement", "sources": { "license": 6, "patron": 4 } },
-        { "templateId": "equipment-template:special.point-defence-pack", "sources": { "license": 6, "patron": 4 } },
         { "templateId": "equipment-template:armor.riot-shell", "sources": {"market": 12} }
       ]
     },

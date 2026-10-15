@@ -678,7 +678,7 @@ keeping with how the rest of the equipment model treats recovery.
 The built-in identities are the rocket launcher, anti-materiel
 rifle, Wayfarer smoke grenades, Breachhand mag-clamp satchel, Shattercap
 fragmentation grenades, the Emberjaw thermal breacher, the Quillon
-vibro-blade, the Palisade interceptor pod and pack, and the Rampart field revetment.
+vibro-blade, the Palisade interceptor pod, the Arrestor interceptor pack, and the Rampart field revetment.
 The first two are direct-fire activations, Shattercap
 is an arcing weapon activation, smoke and satchels are utility activations,
 the pod and the revetment are deployable activations, and
@@ -965,18 +965,29 @@ carrier standing inside a friendly pod's existing bubble declines rather than
 stacking a second. Like every other executor, the placement authors no path,
 clears none, and never retargets its carrier.
 
-The **Palisade interceptor pack** is the same gun worn instead of set down, for
-a squad that has to keep moving. A pod placed by an advancing section is left
+The **Arrestor interceptor pack** does the pod's job worn instead of set down, for
+a squad that has to keep moving. It is Hegemony issue where the pod is not: a
+chemical-motor missile kit in khaki plate and amber lights, the line army's
+answer to shellfire, while energy point defence is the Tri-Tachyon direction.
+A pod placed by an advancing section is left
 behind by it, and the placement channel stops a marine in the middle of a bound,
 so in measured fights an attacking squad almost never put one down and one it
 did put down covered ground nobody stood on any more. The pack is switched on
 rather than placed: the same reactive trigger, but no channel and no halt, so it
 can come on mid-bound. It mints nothing — the carrier *is* the mount — covers the
-ground around wherever they now stand, and goes with them when they fall. It is
-deliberately the lesser gun: a shorter reach, a slower cycle, a poorer chance
-and a smaller magazine than the pod, so it takes the odd shell off a moving
-section rather than refusing a barrage. A pod is held ground; a pack is an
-escort.
+ground around wherever they now stand, and goes with them when they fall.
+
+The pack is a miniature launcher rather than a gun, and **its engagement takes
+time**. The pod's burst is resolved where the round is; the pack's interceptor
+is a missile in flight, which climbs out of its tube, lights a second motor and
+runs onto where the round will be when it arrives, and only then does the
+round come apart or fly on. So a round that would land before an interceptor
+could reach it is not engaged at all, and a shell already over the section is
+past saving — the pack has to see rounds early, which is why it reaches further
+than its gun-armed cousin while being the lesser mount in every other way: a
+slower cycle, a poorer chance and six interceptors. It takes the odd shell off
+a moving section rather than refusing a barrage. A pod is held ground; a pack
+is an escort.
 
 Placement never seals the cell it stands on. A carried pod sits on the floor its
 carrier was standing on; closing that cell would both trap the carrier and shut

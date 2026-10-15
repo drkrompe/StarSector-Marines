@@ -1,12 +1,12 @@
-"""Mechanical export of the Palisade interceptor pack art: raw ImageGen reskins -> mod/graphics/.
+"""Mechanical export of the Hegemony Arrestor interceptor pack art (a miniature vertical launcher): raw ImageGen reskins -> mod/graphics/.
 
 Reads the retained raws in art-source/pd-pack/raw/ and the code-owned guides written by
 art-source/templates/pd-pack-guide.py. Nothing here repaints: each raw is resampled to its guide
 frame, its own alpha is kept and bounded by a slightly grown guide silhouette so a drifted edge
 cannot add material the geometry never had, then downsampled to game scale.
 
-  graphics/battle/fx/pd-pack.png                    the pack as worn from above, 336x368 = the carrier
-                                                    layer's 0.42 x 0.46 aspect
+  graphics/battle/fx/pd-pack.png                    the pack as worn from above, 432x472 = the carrier
+                                                    layer's 0.54 x 0.59 aspect
   graphics/ui/armory/special-point-defence-pack.png the pack as an icon, cropped square about its alpha, 512 px
 """
 from pathlib import Path
@@ -27,7 +27,7 @@ def load(name):
 
 
 def main():
-    pack = load('pd-pack-pack').resize((336, 368), Image.LANCZOS)
+    pack = load('pd-pack-pack').resize((432, 472), Image.LANCZOS)
     out = ROOT / 'mod/graphics/battle/fx/pd-pack.png'
     pack.save(out)
     print(out.relative_to(ROOT), pack.size)

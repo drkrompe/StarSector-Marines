@@ -117,6 +117,7 @@ public record ShotFx(Body body, TracerTail tracerTail, float arcHeight, boolean 
         ContrailStyle contrail = switch (weapon.contrailProfile) {
             case NONE -> null;
             case MISSILE_SMOKE -> ContrailStyle.MISSILE_SMOKE;
+            case INTERCEPTOR_WISP -> ContrailStyle.INTERCEPTOR_WISP;
         };
         return new ShotFx(
                 new Sprite(weapon.projectileSpritePath, weapon.projectileVisualCells),

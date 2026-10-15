@@ -352,6 +352,8 @@ public final class ShuttleMission {
     public float orbitRadius;
     /** Whether the ring is flown clockwise (target to the right of the heading) or counter-clockwise. */
     public boolean orbitClockwise;
+    /** How far a gunship's worked oval has turned about its centre; see {@link GunshipOrbit#workedRadius}. */
+    public float orbitLoiterPhase;
     /** Seconds on the ring before the craft turns for the exit; counted only while it is circling. */
     public float orbitSecondsLeft;
 

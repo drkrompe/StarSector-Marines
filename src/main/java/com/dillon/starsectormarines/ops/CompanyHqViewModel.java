@@ -526,13 +526,14 @@ final class CompanyHqViewModel {
                         "companyHqNewsGarrisonDefence" + entry.defenceOutcome().name()), market);
                 detail = entry.account() != null ? entry.account() : "";
             }
-            case DETACHMENT_RECOVERED, DETACHMENT_LOST -> {
+            case DETACHMENT_RECOVERED, DETACHMENT_LOST, GARRISON_MARKET_LOST -> {
                 String market = entry.marketName() != null ? entry.marketName()
                         : Strings.get("defenceReportUnknownPlace");
-                headline = MessageFormat.format(Strings.get(
-                        entry.type() == ChronicleEventType.DETACHMENT_RECOVERED
-                                ? "companyHqNewsDetachmentRecovered"
-                                : "companyHqNewsDetachmentLost"), market);
+                headline = MessageFormat.format(Strings.get(switch (entry.type()) {
+                    case DETACHMENT_RECOVERED -> "companyHqNewsDetachmentRecovered";
+                    case DETACHMENT_LOST -> "companyHqNewsDetachmentLost";
+                    default -> "companyHqNewsGarrisonCutOff";
+                }), market);
                 detail = entry.account() != null ? entry.account() : "";
             }
             default -> throw new IllegalStateException("Unhandled Chronicle event " + entry.type());
@@ -545,7 +546,8 @@ final class CompanyHqViewModel {
                 entry.type() == ChronicleEventType.SILENT_COLONY
                         || entry.type() == ChronicleEventType.GARRISON_DEFENCE
                         || entry.type() == ChronicleEventType.DETACHMENT_RECOVERED
-                        || entry.type() == ChronicleEventType.DETACHMENT_LOST,
+                        || entry.type() == ChronicleEventType.DETACHMENT_LOST
+                        || entry.type() == ChronicleEventType.GARRISON_MARKET_LOST,
                 entry.actorFactionId() == null ? "" : factionCrest(entry.actorFactionId()),
                 entry.actorName() == null ? "" : entry.actorName());
     }

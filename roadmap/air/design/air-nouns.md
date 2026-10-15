@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — Replacement battle artwork preserves native hull geometry; appearance-only nozzle registration follows the reconstructed art.
+Updated: 2026-10-15 — Gunships fly a worked ring; replacement battle artwork preserves native hull geometry with appearance-only nozzle registration.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -92,7 +92,7 @@ derived. It is intentionally separate from a craft's mission/loadout identity:
 one says how the hull moves and is shaped; the other says why this instance is
 present, who owns it, and what it can do in the battle.
 
-**A gunship** is a craft whose sortie is to circle a ground point rather than land on it or run in at it. It holds a broad ring of fixed radius over the point for a bounded visit while its turret covers the ground beneath. It is flown in its own phase, `ORBIT`, because nothing in a circling visit ends on a line: it ends on the clock the sortie was given. See **Gunships** under Roles and lifecycle.
+**A gunship** is a craft whose sortie is to circle a ground point rather than land on it or run in at it. It works a broad, slowly turning oval over the point for a bounded visit while its turret covers the ground beneath. It is flown in its own phase, `ORBIT`, because nothing in a circling visit ends on a line: it ends on the clock the sortie was given. See **Gunships** under Roles and lifecycle.
 
 **Air appearance** is authored render state such as flight phase and apparent
 altitude. It is not a second physics body. Visual scale, offset, and engine
@@ -1348,14 +1348,22 @@ Conquest already delivered this way; every other mission now does too.
 
 **Gunships.** The sortie that is *for* working a target by staying over it. A
 called Mudskipper (Close Air Support, `command-powers-nouns.md`) enters off the
-map from the nearest edge, joins a broad ring of fixed radius about the targeted
+map from the nearest edge, joins a broad ring about the targeted
 point tangent to its approach rather than flying to the point and out again, and
 circles overhead of it for a bounded visit, then leaves the way it came. The
 visit's clock runs only while it is on the ring, so what the player buys is the
 time the turret had the ground. It holds one direction round for the whole visit
 and a slower pace than its own cruise, and the ring is sized so the airframe's
 turning circle fits inside it. The station radius is sixteen cells at four cells
-per second, about twenty-five seconds per circuit. Mudskipper transit is seven
+per second, about twenty-five seconds per circuit. The ring is *worked*, not
+drawn: an oval that slowly turns and wobbles, swinging up to a quarter of the
+radius in and out, so no two laps trace the same line. The craft slows and dips
+as it tightens in to work the ground, then opens out, climbs and picks up pace
+on the wide leg, and its hover bob quickens as it hangs and settles as it runs.
+A fixed radius at one pace and height turned it at one rate for the whole visit,
+which read as a model on a turntable and flattened the visit the player paid
+for. The swing keeps the ground inside the turret's reach from every point.
+Cover fighters keep the plain ring, since they hold a station between jobs. Mudskipper transit is seven
 cells per second, with gradual acceleration and a restrained heading slew so
 entry and departure share its deliberate overwatch feel.
 

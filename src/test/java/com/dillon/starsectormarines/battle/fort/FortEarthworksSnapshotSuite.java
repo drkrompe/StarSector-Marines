@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BuildingFloodFill;
 import com.dillon.starsectormarines.battle.world.gen.bsp.FortStage;
+import com.dillon.starsectormarines.battle.world.gen.fortress.BatteryFort;
 import com.dillon.starsectormarines.battle.world.gen.fortress.CompoundLayout.Placement;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortBelt;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
@@ -104,6 +105,13 @@ public final class FortEarthworksSnapshotSuite implements SnapshotSuite {
                 BattleReviewFrameRenderer closeView = new BattleReviewFrameRenderer(context.modRoot(), WIDTH_PX,
                         HEIGHT_PX, whole[0] + 0.5f, whole[1] + 0.5f, 64f);
                 artifacts.add(new SnapshotArtifact(name + "-fort-works.png", closeView.render(sim, "earthworks works / " + census)));
+                if (kind == FortKind.BATTERY_FORT) {
+                    int[] bay = BatteryFort.PLAN.suiteBounds(FortAspect.MAGAZINE);
+                    int[] magazine = at.cell(bay[0] + bay[2] / 2, bay[1] + bay[3] / 2);
+                    BattleReviewFrameRenderer magazineView = new BattleReviewFrameRenderer(context.modRoot(), WIDTH_PX,
+                            HEIGHT_PX, magazine[0] + 0.5f, magazine[1] + 0.5f, 40f);
+                    artifacts.add(new SnapshotArtifact(name + "-magazine.png", magazineView.render(sim, "magazine berm / " + census)));
+                }
                 for (FortBelt.Cell cell : plan.belt()) {
                     if (cell.role() != FortBelt.Role.NEST) continue;
                     int[] nest = at.cell(cell.x(), cell.y());

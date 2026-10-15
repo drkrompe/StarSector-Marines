@@ -13,6 +13,8 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
+import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
+import com.dillon.starsectormarines.ops.battleview.ReviewImpactFx;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
@@ -86,6 +88,29 @@ public final class PointDefenceSceneSnapshotSuite implements SnapshotSuite {
      */
     private static final float SECTION_STAND_IN_HP = 100_000f;
 
+    /** The worn pack's loop is reviewed by eye, so it is drawn at the review size and nearly every tick. */
+    private static final int REVIEW_WIDTH = 1920;
+    private static final int REVIEW_HEIGHT = 1080;
+    private static final int PACK_TICKS = 540;
+    /**
+     * Every other tick. An interceptor crosses its ten cells in about a fifth of a
+     * second, so a frame every sixth tick shows a launch and an arrival and nothing
+     * of the flight between them, which is the part this loop exists to show.
+     */
+    private static final int PACK_FRAME_EVERY_TICKS = 2;
+    private static final int PACK_FRAME_DELAY_MILLIS = 66;
+    /**
+     * Framed on the ground between the section and the incoming rounds, close
+     * enough that an interceptor -- a fifth of a cell long -- is a missile and not
+     * a pixel, with the section at the right edge and the meeting points in view.
+     */
+    private static final float PACK_FOCUS_X = SECTION_CELL_X - 7f;
+    private static final float PACK_FOCUS_CELLS_ACROSS = 26f;
+    private static final int PACK_CARRIER_X = SECTION_CELL_X + 1;
+    private static final int PACK_CARRIER_Y = LANE_CELL_Y + 2;
+    /** Close enough that the pack on the carrier's back is drawn at a size its livery can be judged at. */
+    private static final float CLOSE_UP_CELLS_ACROSS = 6f;
+
     @Override public String id() { return "point-defence"; }
 
     @Override public String label() { return "Point defence: a salvo partly stopped, partly arriving"; }
@@ -95,7 +120,16 @@ public final class PointDefenceSceneSnapshotSuite implements SnapshotSuite {
         BattleReviewFrameRenderer renderer =
                 new BattleReviewFrameRenderer(context.modRoot(), FRAME_WIDTH, FRAME_HEIGHT);
         installTurretCatalog(context.modRoot());
-        return List.of(record(renderer));
+        BattleReviewFrameRenderer review = new BattleReviewFrameRenderer(context.modRoot(),
+                REVIEW_WIDTH, REVIEW_HEIGHT, PACK_FOCUS_X, LANE_CELL_Y + 0.5f, PACK_FOCUS_CELLS_ACROSS)
+                .withImpactEffects();
+        BattleReviewFrameRenderer closeUp = new BattleReviewFrameRenderer(context.modRoot(),
+                REVIEW_WIDTH, REVIEW_HEIGHT, PACK_CARRIER_X + 0.5f, PACK_CARRIER_Y + 0.5f,
+                CLOSE_UP_CELLS_ACROSS).withImpactEffects();
+        List<SnapshotArtifact> artifacts = new ArrayList<>();
+        artifacts.add(record(renderer));
+        artifacts.addAll(recordPack(review, closeUp, new ReviewImpactFx(context.modRoot())));
+        return artifacts;
     }
 
     /**
@@ -151,6 +185,74 @@ public final class PointDefenceSceneSnapshotSuite implements SnapshotSuite {
         }
         return SnapshotArtifact.animation("salvo-under-point-defence.gif",
                 frames, FRAME_DELAY_MILLIS);
+    }
+
+    /**
+     * The same salvos into the same section, answered this time by the worn
+     * interceptor pack on one marine's back: small missiles going up out of the
+     * pack and turning onto the rounds. Switched on at tick zero, so every salvo
+     * meets it; the magazine of six runs dry partway through, which is part of
+     * what the loop shows.
+     */
+    private List<SnapshotArtifact> recordPack(BattleReviewFrameRenderer renderer,
+                                              BattleReviewFrameRenderer closeUp,
+                                              ReviewImpactFx impacts) throws Exception {
+        BattleSimulation sim = openArena();
+        WeaponDef lrm = WeaponRegistry.require("weapon.mech-lrm-artillery");
+        SpecialEquipmentDef pack = SpecialEquipmentRegistry.require(
+                SpecialEquipmentRegistry.POINT_DEFENCE_PACK_ID);
+
+        long mech = sim.spawn(new EntitySpec("lrm-mech", Faction.DEFENDER,
+                UnitType.HEAVY_MECH, MECH_CELL_X, LANE_CELL_Y).role(UnitRole.STRUCTURE));
+        List<Long> section = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            section.add(sim.spawn(new EntitySpec("rifleman-" + i, Faction.MARINE,
+                    UnitType.MARINE, SECTION_CELL_X + (i % 3), LANE_CELL_Y - 1 + i / 3)
+                    .role(UnitRole.STRUCTURE)
+                    .health(SECTION_STAND_IN_HP)));
+        }
+        long carrier = sim.spawn(new EntitySpec("pd-carrier", Faction.MARINE,
+                UnitType.MARINE, PACK_CARRIER_X, PACK_CARRIER_Y)
+                .role(UnitRole.STRUCTURE)
+                .health(SECTION_STAND_IN_HP)
+                .specialEquipment(pack, pack.startingAmmo()));
+        sim.pointDefense().queuePlacement(carrier, Faction.MARINE,
+                PACK_CARRIER_X, PACK_CARRIER_Y, pack.deployableEmplacementSpec());
+
+        List<BufferedImage> frames = new ArrayList<>(PACK_TICKS / PACK_FRAME_EVERY_TICKS + 1);
+        List<SnapshotArtifact> stills = new ArrayList<>();
+        int launchedBefore = 0;
+        for (int tick = 0; tick <= PACK_TICKS; tick++) {
+            fireScheduledSalvoRound(sim, tick, mech, section, lrm);
+            if (tick == 1) {
+                stills.add(new SnapshotArtifact("interceptor-pack-worn.png",
+                        closeUp.render(sim, "Interceptor pack on its carrier", ReviewAnnotations.NONE, impacts)));
+            }
+            int launched = sim.telemetry().ordnanceEngaged(carrier);
+            if (launchedBefore == 0 && launched > 0) {
+                stills.add(new SnapshotArtifact("interceptor-pack-launch.png",
+                        closeUp.render(sim, "First interceptor leaving the pack  •  t" + tick,
+                                ReviewAnnotations.NONE, impacts)));
+            }
+            launchedBefore = launched;
+            if (tick % PACK_FRAME_EVERY_TICKS == 0) {
+                frames.add(renderer.render(sim, packCaption(sim, carrier, tick),
+                        ReviewAnnotations.NONE, impacts));
+            }
+            sim.advance(BattleSimulation.TICK_DT);
+            impacts.feed(sim);
+        }
+        stills.add(SnapshotArtifact.animation("salvo-under-interceptor-pack.gif",
+                frames, PACK_FRAME_DELAY_MILLIS));
+        return stills;
+    }
+
+    private static String packCaption(BattleSimulation sim, long carrier, int tick) {
+        String state = sim.pointDefense().activeEmplacements().isEmpty() ? "pack dry" : "pack live";
+        return String.format(Locale.ROOT,
+                "LRM salvos on a section wearing an interceptor pack  •  t%-4d  •  %s  •  launched %d, stopped %d",
+                tick, state, sim.telemetry().ordnanceEngaged(carrier),
+                sim.telemetry().ordnanceIntercepted(carrier));
     }
 
     /** Walks one round of the current salvo downrange, at the authored burst spacing. */

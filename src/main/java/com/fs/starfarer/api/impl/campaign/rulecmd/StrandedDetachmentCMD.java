@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Planet-menu pickup of a stranded detachment — see {@code stranded-detachment-recovery.md}.
+ * Planet-menu pickup of a stranded detachment — see {@code contracts-nouns.md} (stranded detachments).
  * No battle runs: reaching the market is the whole risk, and the domain release goes
  * through {@link StrandedDetachment#pickup}.
  *

@@ -168,9 +168,12 @@ Do not run builds or leave generated task files there.
   defender orders and casualties; vicinity is not capture. The harness verifies
   that the production air entities retain each committed player airframe. These
   are factory-loadout controls, not current campaign roster acceptance.
-  Junction's default matrix covers three interiors with two twelve-person squads,
-  four squads, and two understrength four-person squads, plus reserve/hold,
-  single-ferry, absent-player and refitted-boat controls. `-Pmission=junction`
+  Junction's default matrix flies the lift a company has at that point in the
+  campaign: three interiors with two Hermes making three four-seat trips (24),
+  one Hermes making six, and one Hermes making three (12, understrength), plus
+  militia-held-at-landing and absent-player controls. `-PsnapshotEveryTicks=N`
+  records a whole-map `review.gif`; add `-PsnapshotFocus=x,y,cellsAcross` for a
+  close view instead (the Weigh Station is about `72,50`). `-Pmission=junction`
   replays the production finite territorial factory; it does not create a campaign
   offer. Custom fixture fields are `id`, `seed`, `playerType`, `playerBoats`,
   `playerSeats`, and `playerCycles`, plus optional fitting ids and `playerDelay`.
@@ -1230,7 +1233,7 @@ The discovered suite ids and default output directories are:
 | `hq-intel` | Animated HQ receivers, dossier selection and a labelled fixture arrival at 1920x1080, 100% scale | `build/snapshots/hq-intel/` |
 | `firing-line` | Two animated loops of six marines in column in a corridor: the file shooting through its own men, and the same file stepping a cell out of each other's lanes. The acceptance for the friendly-lane step-aside | `build/snapshots/firing-line/` |
 | `frontage-scene` | Animated garrison stand-to on a generated compound, one loop per approach edge | `build/snapshots/frontage-scene/` |
-| `point-defence` | Animated LRM salvos against a placed interceptor pod: rounds stopped, rounds missed, rounds arriving | `build/snapshots/point-defence/` |
+| `point-defence` | Animated LRM salvos against a placed interceptor pod: rounds stopped, rounds missed, rounds arriving; and the same salvos against a section wearing the interceptor pack, a close view at 1920x1080, 100% scale, every other tick so an interceptor's flight and trail are in frame, with close stills of the pack worn and of its first launch | `build/snapshots/point-defence/` |
 | `deployable-cover` | Animated controlled comparison of a placed revetment: the same fire into a covered lane, an open lane, and a screened post shot from the flank | `build/snapshots/deployable-cover/` |
 | `integral-system-fx` | A running integral system's halo: a narrow authored screen beside a wide one draining their soak pools, one breaking under concentrated fire, and one pattern's screen at four facings | `build/snapshots/integral-system-fx/` |
 | `perception-sweep` | The player's own picture — fog overlay and hidden-unit gating included — before, during, and after a Janus sensor sweep | `build/snapshots/perception-sweep/` |
@@ -1357,6 +1360,24 @@ prime it; the JUnit extension and `CreateSnapshotsCli` call it, and a scene
 calls it itself so a scratch harness gets it too. Anything that *measures*
 aircraft size should assert `HullFootprintResolver.isMeasured` rather than
 trust the number, because the fallback is silent by design.
+
+**A scene's verdicts assert mechanics; outcomes are readings.** Features are
+still landing, and every one of them moves who wins a fight: a verdict such as
+"the wall came down", "the company took the bunker", "a raider was shot down" or
+"at least N defenders died" goes red on an unrelated merge, or on a seed change,
+without anything it was written to protect having broken. Assert what the
+machinery does — the plan gave the breach to squads that carry the kit, a
+breacher with the wall in reach and kit ready spent it within a few seconds, a
+planted charge damaged the wall it was set on, the holder follows the flip,
+nothing is fired at your own side — and where the mechanic needs a precondition
+the fight may not supply (a breacher alive at the wall), make the verdict
+conditional on it and say so in the detail rather than demanding the precondition.
+Wall-down ticks, rounds, kills, losses and who held what at the end go in the
+report's metrics, where a person reads them. A scripted, deterministic effect
+(a placed barrage on a fixed target, a bomb on a nest) may still be asserted
+as a mechanic; an unscripted fight may not. `assault-muster` takes
+`-Dbattle.scene.assaultMuster.seed=<long>` so a verdict's seed-stability can be
+shown rather than assumed.
 
 Prefer a scene over a mission harness whenever the question is about one
 behavior rather than about a whole battle's balance, and add another scene
