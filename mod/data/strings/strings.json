@@ -405,6 +405,7 @@
     "battleShipHeading": "Ship",
     "battleOrderOccupyPosition": "OCCUPY POSITION",
     "battleOrderClearPlace": "CLEAR AND HOLD",
+    "unitModifierDugIn": "Dug in",
     "battleOrderSecureCompound": "SECURE COMPOUND",
     "battleShipMove": "Move",
     "battleShipHold": "Hold",

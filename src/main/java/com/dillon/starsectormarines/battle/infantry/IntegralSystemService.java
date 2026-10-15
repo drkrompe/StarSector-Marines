@@ -16,12 +16,12 @@ import com.dillon.starsectormarines.marine.PerceptionSweepSpec;
  * the {@code SECONDARY_WEAPON} precedent: a unit whose suit declares nothing
  * has no component and every question here answers "no" for it.
  *
- * <p><b>The effect is recomputed, never accumulated.</b> Movement speed is
- * derived each time as {@code base * multiplier} from
- * {@code MOVEMENT_BASE_MOVE_SPEED}, so activating twice cannot compound and an
- * expiry cannot leave a remainder behind. That matters more than it sounds:
- * scale-on-activate/unscale-on-expire drifts with float rounding and breaks
- * outright the first time two effects overlap.
+ * <p><b>The effect is read through, never written.</b> A running system's
+ * stance reaches movement speed and accuracy through {@link
+ * IntegralSystemModifier}, resolved at every read, so activating twice cannot
+ * compound and an expiry has nothing to restore. Scale-on-activate and
+ * unscale-on-expire drifts with float rounding and breaks outright the first
+ * time two effects overlap.
  */
 public final class IntegralSystemService {
 
@@ -165,8 +165,8 @@ public final class IntegralSystemService {
 
     /**
      * The movement multiplier this unit's running system contributes, or
-     * {@code 1} when nothing is running. Public so presentation and tests can
-     * read the same number the mover does without recomputing the rules.
+     * {@code 1} when nothing is running. The mover reads it through {@link
+     * IntegralSystemModifier}.
      */
     public float moveSpeedMultiplier(long id) {
         IntegralSystemDef def = spec(id);
@@ -179,14 +179,8 @@ public final class IntegralSystemService {
 
     /**
      * What this unit's running system does to the accuracy of its own fire, or
-     * {@code 1} when nothing is running. Only a brace contributes one.
-     *
-     * <p><b>Read through at fire time rather than written onto the unit.</b>
-     * Movement speed has to be stored because the mover reads a column; accuracy
-     * has a seam at the moment a shot leaves the barrel, and taking it there
-     * means there is no stored value to restore and therefore no residue an
-     * expiry could leave behind. The service's standing "recomputed, never
-     * accumulated" rule holds here for free.
+     * {@code 1} when nothing is running. Only a brace contributes one. Read
+     * through {@link IntegralSystemModifier}.
      */
     public float accuracyMultiplier(long id) {
         IntegralSystemDef def = spec(id);
@@ -212,19 +206,8 @@ public final class IntegralSystemService {
     }
 
     private void applyEffect(long id, IntegralSystemDef def) {
-        BraceSpec brace = def.brace();
-        if (brace != null) {
-            // The whole cost of a stance, and the same recomputation the boost
-            // uses in the opposite direction — one path to the live speed means
-            // a brace and a boost cannot compound and neither leaves a
-            // remainder. A suit carries one system, so they never coexist, but
-            // the arithmetic does not depend on that staying true.
-            setMoveSpeedFromBase(id, brace.moveSpeedMult());
-            return;
-        }
         BreacherAssistSpec breacher = def.breacherAssist();
         if (breacher == null) return;
-        setMoveSpeedFromBase(id, breacher.moveSpeedMult());
         // The screen is mitigation, owned by combat-durability rather than by
         // this service: the authored pair is handed over and the durability
         // side owns the arc, the clock, and the expiry from there.
@@ -238,21 +221,6 @@ public final class IntegralSystemService {
      * standing "no residue" rule holds even if the two ever disagree by a tick.
      */
     private void clearEffect(long id) {
-        setMoveSpeedFromBase(id, 1f);
         mitigations.clear(id);
-    }
-
-    /**
-     * Recomputes the live movement speed from the untouched base. A unit with
-     * no MOVEMENT component (a turret wearing nothing that moves) is simply
-     * skipped rather than fabricating a column.
-     */
-    private void setMoveSpeedFromBase(long id, float multiplier) {
-        if (!entityWorld.has(id, components.MOVEMENT)) return;
-        float base = entityWorld.getFloat(id, components.MOVEMENT,
-                BattleComponents.MOVEMENT_BASE_MOVE_SPEED);
-        if (base <= 0f) return;
-        entityWorld.setFloat(id, components.MOVEMENT,
-                BattleComponents.MOVEMENT_MOVE_SPEED, base * Math.max(0f, multiplier));
     }
 }

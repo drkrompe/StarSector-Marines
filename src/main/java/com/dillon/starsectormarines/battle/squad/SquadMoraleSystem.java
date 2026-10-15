@@ -162,7 +162,7 @@ public final class SquadMoraleSystem {
                 team.timeSinceUnderFire = 0f;
                 if (team.drainCooldown > 0f) continue;
                 team.morale = Math.max(0f, team.morale - nearMissDrain(team.cap(), shot.moraleImpact,
-                        roster.combat().isDugIn(grazed)));
+                        roster.combat().moraleDrainMultiplier(grazed)));
                 team.drainCooldown = MORALE_DRAIN_COOLDOWN;
             }
         }
@@ -186,18 +186,18 @@ public final class SquadMoraleSystem {
 
     /**
      * Morale drained from a fire team by one non-fatal hit (the death drain is separate and never
-     * scaled): {@link #MORALE_DROP_ON_HIT} over the team's cap, times the shot's impact, times
-     * {@link DigInSystem#DUG_IN_MORALE_DRAIN_MULT} when the marine hit is dug in.
+     * scaled): {@link #MORALE_DROP_ON_HIT} over the team's cap, times the shot's impact, times the
+     * marine's own drain multiplier ({@code CombatService.moraleDrainMultiplier}).
      */
-    public static float hitDrain(float cap, float moraleImpact, boolean dugIn) {
+    public static float hitDrain(float cap, float moraleImpact, float drainMultiplier) {
         float base = (cap > 0f) ? MORALE_DROP_ON_HIT / cap : MORALE_DROP_ON_HIT;
-        return base * moraleImpact * DigInSystem.moraleDrainScale(dugIn);
+        return base * moraleImpact * drainMultiplier;
     }
 
-    /** Morale drained by one near miss: {@link #MORALE_DROP_ON_NEAR_MISS} cap-scaled, with the same dug-in scaling as {@link #hitDrain}. */
-    public static float nearMissDrain(float cap, float moraleImpact, boolean dugIn) {
+    /** Morale drained by one near miss: {@link #MORALE_DROP_ON_NEAR_MISS} cap-scaled, scaled as {@link #hitDrain} is. */
+    public static float nearMissDrain(float cap, float moraleImpact, float drainMultiplier) {
         float base = (cap > 0f) ? MORALE_DROP_ON_NEAR_MISS / cap : MORALE_DROP_ON_NEAR_MISS;
-        return base * moraleImpact * DigInSystem.moraleDrainScale(dugIn);
+        return base * moraleImpact * drainMultiplier;
     }
 
     /**
