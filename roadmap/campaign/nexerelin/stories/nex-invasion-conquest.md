@@ -4,6 +4,8 @@ Status: PLANNED — slice 0 (spike) is next.
 
 Written: 2026-10-15
 
+Updated: 2026-10-15 — Per-save preference and fixed map scale decided; defenders come from `market-garrison-model.md`.
+
 Read `nexerelin-nouns.md` in full first. Also read `meta-progression.md` (the
 company and the polity), `architecture.md` (external-state boundary),
 `campaign-battle-bridge-nouns.md`, `mission-tier-nouns.md` and
@@ -93,10 +95,9 @@ proceed with a named workaround; or redesign settlement.
 
 ## Slice 1 — preference and fork
 
-- Preference storage, decided by the user before the slice starts: a per-save
-  value in the mod's campaign state or a game-wide setting (LunaLib, which adds
-  a dependency, or our own settings file). The Marine Operations screen must be
-  able to change it.
+- The preference is stored per save, in the mod's campaign state, so it
+  survives save and reload and needs no LunaLib dependency. A new save starts
+  at Ask. The Marine Operations screen must be able to change it.
 - The intercepting rule and its command, gated on `nexerelin` being enabled and
   on the Invade option being supported (the alpha has only one supported entry
   point).
@@ -112,15 +113,23 @@ proceed with a named workaround; or redesign settlement.
 - A Marine Operations invasion operation targeting the market, with mission
   family Conquest, the ordinary target profile, company squads and committed
   lift.
-- **Tier mapping** (open; settle it here with the user): how a market's size
-  and ground strength choose a Conquest profile. Generic Conquest is authored
-  at 560x336 with tier floors, but Nexerelin allows invading a size-3 market.
-  Choose between clamping to the Conquest floor, using a small territorial
-  profile below it (`early-operation-nouns.md`), and refusing below the floor
-  with an explanation, in which case Nexerelin remains the resolver.
-- Law 7: the demand reads the same ground strength Nexerelin would field,
-  including its garrison size multiplier. A test compares the two strengths on
-  a fixture market.
+- **Map scale is independent of market size** (decided). Every invasion is
+  fought on Conquest's authored map, whatever the size of the market. Market
+  size is a population dial and is purely environmental. It reaches the
+  battle through the target profile's settlement scale (how built-up the
+  ground is and how many people live on it), as it does for every other
+  operation. It never sets the map's dimensions.
+- The defenders are the market garrison estimate (`market-garrison-model.md`,
+  law 7): headcount and mix from size, stability, structures and supply, with
+  Nexerelin's recent-damage memory read when it is present. That story is a
+  dependency of this slice. A player invasion faces the whole estimate, not a
+  tier-capped share. Conquest's tier floor governs which generated offers are
+  valid; a player invasion is not an offer, so a weak garrison is not refused.
+  It is simply a light defence on the full map. If testing shows that a weak
+  garrison on the full map needs special handling, raise it with the user
+  rather than switching profile.
+- Calibration against Nexerelin's own estimate is part of
+  `market-garrison-model.md` slice 3, run with Nexerelin installed.
 - Backing out of the briefing returns to the market's defences with nothing
   committed.
 
