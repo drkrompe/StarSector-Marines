@@ -124,7 +124,9 @@ second roster.
    detachment fought that raid through vanilla's own strength ratio whether or
    not the player came, so an unanswered vanilla-triggered defence settles
    from vanilla's result — held, held with losses, or overrun — graded on the
-   raid effectiveness computed with the detachment counted.
+   raid effectiveness computed with the detachment counted. That settlement
+   is reported to the company once, as a confirmed Chronicle defence report
+   whose account is frozen when it is written.
 11. A stationed detachment's strength reaches vanilla through one attributable,
     replay-safe modifier on the protected market's ground defences, applied
     for the term and removed with it. A won vanilla-triggered defence ends the
