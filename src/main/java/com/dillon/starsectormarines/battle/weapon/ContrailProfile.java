@@ -5,7 +5,8 @@ import org.json.JSONException;
 /** Data-facing projectile-ribbon identity; render consumers resolve its geometry. */
 public enum ContrailProfile {
     NONE("none"),
-    MISSILE_SMOKE("missile-smoke");
+    MISSILE_SMOKE("missile-smoke"),
+    INTERCEPTOR_WISP("interceptor-wisp");
 
     public final String key;
 

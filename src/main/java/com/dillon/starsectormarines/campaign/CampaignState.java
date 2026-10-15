@@ -400,6 +400,12 @@ public final class CampaignState implements Serializable {
     /** Attrition intervals already applied to a stranded detachment; 0 otherwise. */
     public int[]   contractStrandedIntervals = new int[INITIAL_CAPACITY];
     /**
+     * Faction slot that owned a Garrison's market when the assignment was first
+     * observed running, or -1 before then. A different owner later means the market
+     * fell and the detachment is cut off ({@link StrandedDetachment#strandOnCapture}).
+     */
+    public int[]   contractMarketOwnerFactionId = filledInts(INITIAL_CAPACITY, -1);
+    /**
      * Identity of the pending response most recently pushed at the player as an event
      * popup — the Garrison defense event key, or the Cadre incident's due day widened
      * to a long. A contract row is either GARRISON or CADRE, never both, so one column
@@ -913,6 +919,21 @@ public final class CampaignState implements Serializable {
                 recovered, account, happenedTick, learnedTick);
     }
 
+    /**
+     * Appends the company's report that a Garrison's market changed hands and its
+     * detachment went to ground. Idempotent per contract; {@code chronicleSourceFactionId}
+     * holds the new owner, or -1 when the market fell silent.
+     *
+     * @return the Chronicle event id, or -1 when the facts are malformed
+     */
+    public long addChronicleMarketLost(long contractId, int marketId, int newOwnerFactionId,
+                                       int stranded, String account, int happenedTick,
+                                       int learnedTick) {
+        return addCompanyReport(ChronicleEventType.GARRISON_MARKET_LOST, contractId,
+                marketId, newOwnerFactionId, (byte) -1, stranded, stranded, account,
+                happenedTick, learnedTick);
+    }
+
     private long addCompanyReport(ChronicleEventType type, long sourceKey, int marketId,
                                   int factionId, byte defenceOutcome, int seatsAtRisk,
                                   int seatsLiving, String account, int happenedTick,
@@ -1228,6 +1249,7 @@ public final class CampaignState implements Serializable {
         contractResponseDeadlineTick[i] = -1;
         contractStrandedUntilTick[i] = -1;
         contractStrandedIntervals[i] = 0;
+        contractMarketOwnerFactionId[i] = -1;
         contractNoticeAckKey[i]     = 0L;
         contractNoticeAckStage[i]   = 0;
         contractSalvageBaseline[i]  = salvageBaseline;
@@ -2059,6 +2081,10 @@ public final class CampaignState implements Serializable {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractStrandedIntervals = new int[n];
         }
+        if (contractMarketOwnerFactionId == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractMarketOwnerFactionId = filledInts(n, -1);
+        }
         if (contractOperationTier == null) {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractOperationTier = new byte[n];
@@ -2218,6 +2244,8 @@ public final class CampaignState implements Serializable {
         contractStrandedUntilTick = Arrays.copyOf(contractStrandedUntilTick, n);
         Arrays.fill(contractStrandedUntilTick, oldLength, n, -1);
         contractStrandedIntervals = Arrays.copyOf(contractStrandedIntervals, n);
+        contractMarketOwnerFactionId = Arrays.copyOf(contractMarketOwnerFactionId, n);
+        Arrays.fill(contractMarketOwnerFactionId, oldLength, n, -1);
         contractNoticeAckKey = Arrays.copyOf(contractNoticeAckKey, n);
         contractNoticeAckStage = Arrays.copyOf(contractNoticeAckStage, n);
         contractSalvageBaseline   = Arrays.copyOf(contractSalvageBaseline, n);

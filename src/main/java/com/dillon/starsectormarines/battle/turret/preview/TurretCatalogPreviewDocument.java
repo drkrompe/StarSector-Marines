@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.turret.preview;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
 import com.dillon.starsectormarines.battle.combat.Projectile;
-import com.dillon.starsectormarines.battle.weapon.ContrailProfile;
 import com.dillon.starsectormarines.battle.weapon.fx.FxBlend;
 import com.dillon.starsectormarines.battle.weapon.fx.FxCompositionContext;
 import com.dillon.starsectormarines.battle.weapon.fx.FxLayerKind;
@@ -338,9 +337,12 @@ public final class TurretCatalogPreviewDocument {
                                     int releaseIndex) {
             if (scene.projectile == null || scene.mount.weapon.projectileVisualCells <= 0f) return;
             FlightPoint point = flightPoint(scene.mount, rawProgress, releaseIndex);
-            if (scene.mount.weapon.contrailProfile == ContrailProfile.MISSILE_SMOKE) {
-                drawMissileContrail(context, rawProgress, releaseIndex);
-            }
+            ContrailStyle contrail = switch (scene.mount.weapon.contrailProfile) {
+                case NONE -> null;
+                case MISSILE_SMOKE -> ContrailStyle.MISSILE_SMOKE;
+                case INTERCEPTOR_WISP -> ContrailStyle.INTERCEPTOR_WISP;
+            };
+            if (contrail != null) drawMissileContrail(context, rawProgress, releaseIndex, contrail);
             float trailX = point.x() - directionX()
                     * scene.mount.weapon.projectileVisualCells * 0.35f;
             float trailY = point.y() - directionY()
@@ -355,8 +357,7 @@ public final class TurretCatalogPreviewDocument {
         }
 
         private void drawMissileContrail(CanvasContext context, float rawProgress,
-                                         int releaseIndex) {
-            ContrailStyle style = ContrailStyle.MISSILE_SMOKE;
+                                         int releaseIndex, ContrailStyle style) {
             FlightPoint previous = flightPoint(scene.mount, rawProgress, releaseIndex);
             for (int sample = 1; sample <= 8; sample++) {
                 float sampleProgress = Math.max(0f, rawProgress - sample * 0.025f);
