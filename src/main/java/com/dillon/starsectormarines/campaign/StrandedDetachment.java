@@ -15,9 +15,14 @@ import java.util.Random;
 
 /**
  * A garrison overrun in the player's absence whose survivors have gone to ground — see
- * {@code stranded-detachment-recovery.md}.
+ * {@code contracts-nouns.md} (stranded detachments).
  *
- * <p>The stranded detachment is not a new roster or a new contract. It is the failed
+ * <p>It strands three ways: a garrison overrun in the player's absence, a garrison whose
+ * market changed hands (both {@code FAILED}), and an employer breach on a market not
+ * hostile to the player ({@code DEFAULTED}); a breach on a hostile market keeps its fought
+ * extraction instead.
+ *
+ * <p>The stranded detachment is not a new roster or a new contract. It is the settled
  * stationing assignment held open past its settlement: the surviving squads stay bound to
  * the parent contract and the captain stays {@link Status#GARRISONED}, exactly as a
  * defaulted contract already holds its detachment until extraction resolves
@@ -44,10 +49,38 @@ public final class StrandedDetachment {
 
     /** Whether this contract row holds a detachment waiting to be collected. */
     public static boolean isStranded(CampaignState state, int row) {
-        return state != null && row >= 0 && row < state.contractCount
-                && ContractType.fromByte(state.contractType[row]).isStationing()
-                && ContractState.fromByte(state.contractState[row]) == ContractState.FAILED
-                && state.contractStrandedUntilTick[row] >= 0;
+        if (state == null || row < 0 || row >= state.contractCount
+                || !ContractType.fromByte(state.contractType[row]).isStationing()
+                || state.contractStrandedUntilTick[row] < 0) {
+            return false;
+        }
+        ContractState contractState = ContractState.fromByte(state.contractState[row]);
+        return contractState == ContractState.FAILED || contractState == ContractState.DEFAULTED;
+    }
+
+    /**
+     * An employer breach on a market not hostile to the player: the detachment waits
+     * for a pickup instead of being fought out. Only a named assignment can wait; a
+     * count-only legacy row keeps the fought extraction, which knows how to return a
+     * bare marine count.
+     *
+     * @return whether the detachment was stranded
+     */
+    public static boolean strandOnBreach(CampaignState state, int row, MarineRoster roster,
+                                         int day) {
+        if (state == null || roster == null || row < 0 || row >= state.contractCount
+                || !ContractType.fromByte(state.contractType[row]).isStationing()
+                || ContractState.fromByte(state.contractState[row]) != ContractState.DEFAULTED
+                || state.contractStrandedUntilTick[row] >= 0) {
+            return false;
+        }
+        long contractId = state.contractId[row];
+        if (roster.squadsStationedOn(contractId).isEmpty()
+                || roster.stationedLivingCount(contractId) <= 0) {
+            return false;
+        }
+        strand(state, row, day);
+        return true;
     }
 
     /** Contract ids of every detachment stranded on the market with vanilla id {@code marketId}. */
@@ -67,6 +100,53 @@ public final class StrandedDetachment {
     static void strand(CampaignState state, int row, int day) {
         state.contractStrandedUntilTick[row] = day + RECOVERY_DAYS;
         state.contractStrandedIntervals[row] = 0;
+    }
+
+    /**
+     * The market under a running Garrison changed hands: the assignment fails through no
+     * fault of the player or the employer, any pending defence is void, and the
+     * survivors go to ground exactly as an overrun garrison's do. No reputation moves.
+     *
+     * <p>Only a named assignment can go to ground; a count-only legacy row has no people
+     * to hide and is left alone.
+     *
+     * @param newOwnerName the new owner's display name, or null when the market fell silent
+     * @return whether the detachment was stranded
+     */
+    public static boolean strandOnCapture(CampaignState state, int row, MarineRoster roster,
+                                          int day, int newOwnerFactionId, String placeName,
+                                          String newOwnerName) {
+        if (state == null || roster == null || row < 0 || row >= state.contractCount
+                || ContractType.fromByte(state.contractType[row]) != ContractType.GARRISON) {
+            return false;
+        }
+        ContractState contractState = ContractState.fromByte(state.contractState[row]);
+        if (contractState != ContractState.ACTIVE && contractState != ContractState.IN_PROGRESS) {
+            return false;
+        }
+        long contractId = state.contractId[row];
+        if (roster.squadsStationedOn(contractId).isEmpty()) return false;
+        int living = roster.stationedLivingCount(contractId);
+        if (living <= 0) return false;
+        MarineCaptain captain = StationingLapseResolution.assignedCaptain(
+                state, contractId, roster);
+
+        GarrisonDefenseResolution.clearPendingDefense(state, row);
+        state.contractResponseDeadlineTick[row] = -1;
+        state.contractState[row] = ContractState.FAILED.toByte();
+        state.contractMarinesCommitted[row] = living;
+        strand(state, row, day);
+
+        String where = place(placeName);
+        String who = captain != null ? captain.name() : Strings.get("strandedDetachmentCompany");
+        String account = newOwnerName != null && !newOwnerName.isBlank()
+                ? MessageFormat.format(Strings.get("strandedDetachmentCapturedAccount"),
+                        where, day, newOwnerName, who, living, RECOVERY_DAYS)
+                : MessageFormat.format(Strings.get("strandedDetachmentSilencedAccount"),
+                        where, day, who, living, RECOVERY_DAYS);
+        state.addChronicleMarketLost(contractId, state.contractMarketId[row],
+                newOwnerFactionId, living, account, day, day);
+        return true;
     }
 
     /**
@@ -128,9 +208,9 @@ public final class StrandedDetachment {
         roster.releaseStationing(contractId);
         if (captain != null && captain.status() == Status.GARRISONED) {
             captain.setStatus(Status.ACTIVE);
-            captain.commendations().add("Day " + day + ": Recovered from " + where
-                    + " after the garrison was overrun.");
+            captain.commendations().add("Day " + day + ": Recovered from " + where + ".");
         }
+        settleBreach(state, row, day);
         clear(state, row);
         String who = captain != null ? captain.name()
                 : Strings.get("strandedDetachmentCompany");
@@ -160,14 +240,25 @@ public final class StrandedDetachment {
             captain.setStatus(Status.INJURED);
             captain.setInjuredUntilDay(day + LOST_CAPTAIN_INJURY_DAYS);
             captain.commendations().add("Day " + day + ": Made it out of " + where
-                    + " alone after the stranded garrison could not be recovered.");
+                    + " alone after the stranded detachment could not be recovered.");
         }
+        settleBreach(state, row, day);
         clear(state, row);
         state.addChronicleDetachmentOutcome(ChronicleEventType.DETACHMENT_LOST,
                 contractId, state.contractMarketId[row], living, 0,
                 MessageFormat.format(Strings.get("strandedDetachmentLostAccount"),
                         where, living), day, day);
         return living;
+    }
+
+    /**
+     * A breached employer answers for the breach when the recovery resolves, whichever
+     * way it goes — the same moment a fought extraction settles it.
+     */
+    private static void settleBreach(CampaignState state, int row, int day) {
+        if (ContractState.fromByte(state.contractState[row]) == ContractState.DEFAULTED) {
+            ContractReputation.employerBreachedForContract(state, state.contractId[row], day);
+        }
     }
 
     private static void clear(CampaignState state, int row) {

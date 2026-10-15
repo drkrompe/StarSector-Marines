@@ -5,8 +5,11 @@ import com.dillon.starsectormarines.battle.world.gen.fit.ConsoleBankLayout;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPose;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.LayoutOp;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayoutCheck;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -15,6 +18,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -187,6 +191,20 @@ class FortRoomsTest {
     }
 
     /** Every cell a layout puts a fixture or console on, in the room's own frame. */
+    /** A fixture whose doodad is not registered is silently refused and the room merely comes out sparser. */
+    @Test
+    void everyFixtureIsAShippedDoodad() throws Exception {
+        TileRegistryTestInstaller.install(Path.of("").toAbsolutePath());
+        TileRegistry registry = TileRegistry.installed();
+        for (FortRoom room : everyRoom()) {
+            for (LayoutOp op : room.ops()) {
+                if (op instanceof LayoutOp.Fixture f) {
+                    assertNotNull(registry.doodad(f.doodadId()), room.aspect() + " names " + f.doodadId());
+                }
+            }
+        }
+    }
+
     private static List<int[]> furnishedCells(FortRoom room) {
         List<int[]> cells = new ArrayList<>();
         for (LayoutOp op : room.ops()) {

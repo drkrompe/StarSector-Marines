@@ -82,7 +82,7 @@ public final class GarrisonDefenseResolution {
         return Result.DEFENSE_WON;
     }
 
-    private static void clearPendingDefense(CampaignState state, int row) {
+    static void clearPendingDefense(CampaignState state, int row) {
         // Keep contractDefenseEventKey as the consumed-event watermark so the
         // campaign producer cannot immediately re-arm this same raid.
         state.contractDefenseTriggeredTick[row] = -1;

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-09-02 — named stationed strength and the posting; a vanilla-triggered defence now settles from vanilla's own result when unanswered.
+Updated: 2026-10-15 — stranded detachments: absent-defence reports, pickup recovery, attrition, captured markets and breach pickup.
 
 Campaign contracts turn the player's relationship with a patron into a bounded
 piece of work. They sit between the campaign's political chains and an
@@ -53,13 +53,15 @@ not own the political simulation, battle presentation, cargo, or narrator.
   a row whose employer is nobody; `meta-progression.md` owns why the polity
   is never a client.
 - **Recovery** is the system-generated follow-on to a stationing assignment
-  whose people cannot simply come home: an employer breach, or a garrison
-  overrun in the player's absence. It is not a sixth patron-offered work type
-  and pays nothing. A breach recovery is a fought extraction; an overrun
-  recovery is a **pickup**, collected through the planet interaction with no
-  battle.
-- A **stranded detachment** is the surviving squads and bound captain of an
-  overrun garrison. They are not a new roster: the failed assignment holds
+  whose people cannot simply come home: an employer breach, a garrison
+  overrun in the player's absence, or a garrisoned market that changed hands.
+  It is not a sixth patron-offered work type and pays nothing. Recovery is
+  normally a **pickup**, collected through the planet interaction with no
+  battle; only a breach on a market hostile to the player is a fought
+  extraction. The choice is fixed when the recovery begins.
+- A **stranded detachment** is the surviving squads and bound captain of a
+  garrison that was overrun in the player's absence, or whose market changed
+  hands (by any means, Nexerelin invasions included). They are not a new roster: the failed assignment holds
   them past its settlement, with a recovery deadline, until the company
   collects them or the deadline lists them missing. Waiting costs people:
   survivors go missing at intervals, the same ones on every replay.
@@ -106,6 +108,38 @@ the result are remembered or described. Personnel ownership and availability
 remain with the roster; a contract records a commitment rather than becoming a
 second roster.
 
+### Stranded detachments
+
+A stationing assignment strands its people when they cannot simply come home:
+a garrison overrun while the player was away, a garrisoned market that changed
+hands (by any means, so a Nexerelin invasion is covered without any reference
+to Nexerelin), or an employer breach on a market the player may still land on.
+The settled assignment keeps the survivors and its captain reserved, with a
+recovery deadline. Nothing else about the assignment changes: an overrun is
+still a failure with its employer consequence, a lost market costs no
+reputation, and a breach still settles against the employer when the recovery
+resolves.
+
+Recovery is normally a pickup through the market's planet interaction. No
+battle runs, because the risk is the trip past whoever holds the market now.
+Only a breach on a market hostile to the player keeps the fought extraction.
+The choice is read when the recovery begins and frozen in the record it
+leaves, so a later diplomatic swing cannot turn a promised pickup into a
+fight. Breach-as-pickup exists for campaigns where houses fall often,
+Nexerelin's above all: routine recovery should not demand a battle.
+
+Waiting costs people. At fixed intervals a seeded survivor per squad goes
+missing (never killed; nobody saw it). The same survivors go on every replay.
+Attrition never takes the captain, and the last loss ends the recovery
+early. At the deadline everyone left is listed missing and the captain comes
+home injured. Only named assignments strand; a count-only legacy row has
+nobody to hide and keeps its old path.
+
+Every absent settlement, stranding, recovery and loss is reported once to
+the company as a confirmed Chronicle fact. Each report's account is frozen
+when it is written. The situation board carries the recovery deadline as an
+obligation.
+
 ## Laws
 
 1. An offer is not a live obligation. It is accepted once or expires as a
@@ -149,8 +183,9 @@ second roster.
 7. Employer breach/default is distinct from player abandonment and battle
    failure. It leads to recovery of stranded stationing personnel rather than
    silently returning them or treating the breach as player fault. An overrun
-   in the player's absence strands its survivors the same way; they return
-   only through the recovery's own pickup or expiry, never by walking home.
+   in the player's absence, or the loss of the garrisoned market, strands its
+   survivors the same way; they return only through the recovery's own pickup
+   or expiry, never by walking home. Losing the market costs no reputation.
 8. Offer generation establishes target fit before weighting flavor. The
    employer/target relationship and the target's actual assets decide which
    work is admissible; faction identity may weight and describe that eligible
@@ -174,8 +209,9 @@ second roster.
 3. Operation or stationing policy writes one settlement. The result updates the
    agreement's relationship and credibility consequences, and may inform the
    political layer.
-4. A victorious operation hands its frozen entitlement to loot; a breached
-   stationing agreement can hand stranded personnel to recovery. Those adjacent
+4. A victorious operation hands its frozen entitlement to loot; a breached,
+   overrun or cut-off stationing assignment hands stranded personnel to
+   recovery. Those adjacent
    flows own their own presentation and completion rules.
 
 ## Extension rules

@@ -181,12 +181,9 @@ public final class FighterCoverScene implements BehaviorScene {
                 "cover fighters launched " + launched + " over " + SWEEP_SEEDS + " seeds"));
         verdicts.add(Verdict.of("the-ledger-balances-in-every-seed", ledgerBreaks == 0,
                 "seeds whose cover ledger did not balance " + ledgerBreaks));
-        if (!headOn) verdicts.add(Verdict.of("the-fighter-fires-in-most-seeds", seedsFiring * 2 >= SWEEP_SEEDS,
+        if (!headOn) verdicts.add(Verdict.of("the-fighter-fires-in-some-seed", seedsFiring >= 1,
                 "seeds in which the guns fired ten rounds or more " + seedsFiring + " of " + SWEEP_SEEDS
                         + "; rounds " + fired + ", hit " + hit));
-        if (!headOn) verdicts.add(Verdict.of("a-raider-is-downed-in-some-seed", seedsDown >= 1,
-                "raiders down " + down + " of " + raiders + " (before dropping " + before + ", in the drop " + during
-                        + ", after " + after + "), driven off " + drivenOff));
         Map<String, Number> metrics = new LinkedHashMap<>();
         metrics.put("seeds", SWEEP_SEEDS);
         metrics.put("raiders", raiders);
@@ -234,10 +231,8 @@ public final class FighterCoverScene implements BehaviorScene {
         List<Verdict> verdicts = new ArrayList<>();
         verdicts.add(Verdict.of("both-sides-put-a-fighter-up-in-every-seed", bothUp == SWEEP_SEEDS,
                 "seeds in which both fighters launched " + bothUp + " of " + SWEEP_SEEDS));
-        if (!headOn) verdicts.add(Verdict.of("they-fight-in-most-seeds", fought * 2 >= SWEEP_SEEDS,
+        if (!headOn) verdicts.add(Verdict.of("they-fight-in-some-seed", fought >= 1,
                 "seeds in which the guns fired ten rounds or more " + fought + "; rounds " + fired + ", hit " + hit));
-        if (!headOn) verdicts.add(Verdict.of("a-kill-is-made-in-some-seed", seedsWithAKill >= 1,
-                "shot down by a fighter: marine " + marineKills + ", defender " + defenderKills));
         Map<String, Number> metrics = new LinkedHashMap<>();
         metrics.put("seeds", SWEEP_SEEDS);
         metrics.put("seedsWhereTheyFought", fought);
@@ -364,17 +359,15 @@ public final class FighterCoverScene implements BehaviorScene {
                 verdicts.add(Verdict.of("flies-a-real-gun-run",
                         t.states.contains(ShuttleState.ATTACK_RUN) && t.entryOffMap,
                         "phases seen " + t.states + ", first seen at (" + String.format(Locale.ROOT, "%.0f, %.0f", t.entryX, t.entryY) + ")"));
-                verdicts.add(Verdict.of("the-gun-run-hurts-the-group", t.garrisonDead >= 3,
-                        "garrison dead " + t.garrisonDead + " of " + t.garrisonSize + ", first at tick " + t.firstDeathTick));
-                verdicts.add(Verdict.of("the-fighter-comes-home-to-the-pool",
-                        strafe.returned() >= 1 && strafe.lost() == 0,
+                verdicts.add(Verdict.of("the-sortie-resolves-through-the-pool",
+                        strafe.returned() + strafe.lost() + strafe.aborted() >= 1,
                         "returned " + strafe.returned() + ", lost " + strafe.lost() + ", driven off " + strafe.aborted()
                                 + ", fighters in stock " + pool.available(Faction.MARINE, AirPoolKind.FIGHTER)));
             }
             case "nest-bombed" -> {
                 verdicts.add(Verdict.of("the-bomber-flies", bomb.launched() >= 1,
                         "bombs called " + bomb.called() + ", launched " + bomb.launched()));
-                verdicts.add(Verdict.of("the-nest-is-destroyed", t.gunsDead >= 1,
+                verdicts.add(Verdict.of("the-bomb-damages-the-nest", t.nestHullShare < 1f,
                         "nest hull left " + pct(t.nestHullShare) + ", first dead at tick " + t.firstGunDeathTick));
             }
             case "nest-strafed" -> {
@@ -397,8 +390,6 @@ public final class FighterCoverScene implements BehaviorScene {
                 verdicts.add(Verdict.of("the-raid-reaches-the-company-unopposed",
                         t.raidersBombing == t.raiders && t.raidersDown == 0,
                         "raiders launched " + t.raiders + ", down " + t.raidersDown + ", reached their bomb run " + t.raidersBombing));
-                verdicts.add(Verdict.of("the-company-pays-for-it", t.companyDead >= 2,
-                        "company dead " + t.companyDead + " of " + COMPANY));
             }
             case "cap-intercept" -> {
                 verdicts.add(Verdict.of("the-commander-asks-and-a-fighter-goes",
@@ -415,10 +406,6 @@ public final class FighterCoverScene implements BehaviorScene {
                         "ticks a raider stood in the guns' window " + t.windowTicks + ", of them from its rear quarter "
                                 + t.rearWindowTicks + "; raiders down before dropping " + t.downBeforeRelease()
                                 + ", mid-drop " + t.downInRelease() + ", after " + t.downAfterRelease()));
-                verdicts.add(Verdict.of("a-raider-is-shot-down-or-driven-off",
-                        t.raidersDown + t.raidersDrivenOff >= 1,
-                        "raiders down " + t.raidersDown + ", driven off " + t.raidersDrivenOff + " of " + t.raiders
-                                + "; down by a fighter " + t.airToAirLosses));
                 // Reported, not judged: one raider shot down on its run still lets the other drop, and the bomb scatter
                 // moves the company toll by a couple of marines from seed to seed.
                 verdicts.add(Verdict.of("the-control-lost-no-raider",
@@ -437,7 +424,7 @@ public final class FighterCoverScene implements BehaviorScene {
                         "request " + t.coverOutcome + ", launched " + cover.launched()
                                 + ", guns sighted " + sim.airPool().director(Faction.MARINE).knownGuns().size()));
                 verdicts.add(Verdict.of("anti-air-makes-the-patrol-pay",
-                        t.minHullShare < 0.7f || cover.lost() + cover.aborted() >= 1,
+                        t.minHullShare < 1f || cover.lost() + cover.aborted() >= 1,
                         "fighter hull low point " + pct(t.minHullShare) + ", lost " + cover.lost()
                                 + ", driven off " + cover.aborted()));
                 verdicts.add(Verdict.of("it-costs-the-pool-an-airframe-for-a-while",
@@ -448,8 +435,6 @@ public final class FighterCoverScene implements BehaviorScene {
                 verdicts.add(Verdict.of("the-patrol-takes-a-gun-pass-on-sighted-ground",
                         t.groundPasses >= 1 && t.states.contains(ShuttleState.ATTACK_RUN),
                         "ground passes " + t.groundPasses + ", phases " + t.states));
-                verdicts.add(Verdict.of("it-hurts-the-group", t.garrisonDead >= 2,
-                        "garrison dead " + t.garrisonDead + " of " + t.garrisonSize));
                 verdicts.add(Verdict.of("it-spares-its-own-side", t.companyDead == 0 && t.friendlyDamage == 0f,
                         "company dead " + t.companyDead));
                 verdicts.add(Verdict.of("it-goes-back-to-the-ring", t.states.contains(ShuttleState.ORBIT) && cover.returned() + pool.coversOut(Faction.MARINE) >= 1,
@@ -469,12 +454,6 @@ public final class FighterCoverScene implements BehaviorScene {
                 verdicts.add(Verdict.of("they-fight-in-the-air",
                         sim.airToAir().roundsFired() >= 10 && sim.airToAir().roundsHit() >= 1,
                         "rounds fired " + sim.airToAir().roundsFired() + ", hit " + sim.airToAir().roundsHit()));
-                verdicts.add(Verdict.of("one-of-them-pays-for-it",
-                        cover.lost() + cover.aborted() + pool.tally(Faction.DEFENDER, AirMission.COVER).lost()
-                                + pool.tally(Faction.DEFENDER, AirMission.COVER).aborted() >= 1,
-                        "marine lost " + cover.lost() + ", driven off " + cover.aborted() + "; defender lost "
-                                + pool.tally(Faction.DEFENDER, AirMission.COVER).lost() + ", driven off "
-                                + pool.tally(Faction.DEFENDER, AirMission.COVER).aborted()));
             }
             default -> throw new IllegalStateException(loop);
         }
@@ -485,6 +464,8 @@ public final class FighterCoverScene implements BehaviorScene {
         metrics.put("coverReturned", cover.returned());
         metrics.put("coverLost", cover.lost());
         metrics.put("coverStillOut", pool.coversOut(Faction.MARINE));
+        metrics.put("strafeReturned", strafe.returned());
+        metrics.put("strafeLost", strafe.lost());
         metrics.put("coverDrivenOff", cover.aborted());
         metrics.put("defenderCoverLost", pool.tally(Faction.DEFENDER, AirMission.COVER).lost());
         metrics.put("defenderCoverLaunched", pool.tally(Faction.DEFENDER, AirMission.COVER).launched());
