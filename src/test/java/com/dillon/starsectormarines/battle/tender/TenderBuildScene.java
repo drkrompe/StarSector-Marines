@@ -367,7 +367,8 @@ public final class TenderBuildScene implements BehaviorScene {
             if (phase == ConstructionOrder.Phase.COMPLETE && completeTick < 0) completeTick = tick;
             boolean hit = false;
             for (Long id : tender.builders) {
-                float now = sim.world().hp(id);
+                // A builder killed this tick is a corpse until the tender's own pass drops it: no HEALTH to read.
+                float now = sim.world().isAlive(id) ? sim.world().hp(id) : 0f;
                 Float before = hp.put(id, now);
                 if (before != null && now < before) {
                     builderDamage += before - now;
