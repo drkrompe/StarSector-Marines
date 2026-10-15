@@ -240,6 +240,7 @@ owns frame collection and paint order; it presents committed shots without
 becoming their simulation authority. `air-nouns.md` owns airborne behavior and
 the decision to extend this ground model into the air domain.
 
-Cover erosion, lead error, point-defense generalization, and modeled aerial
+Body-part cover (`body-part-cover.md`) is the agreed direction for replacing
+the flat cover chance. Cover erosion, lead error, point-defense generalization, and modeled aerial
 fire are extension paths, not contracted Ballistics work. Current acceptance
 is indexed in `stories.md`; completed historical slices are in `shipped.md`.
