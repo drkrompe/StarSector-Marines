@@ -33,7 +33,8 @@ public final class MatchupPlay {
                          float attackerDamageMitigated, float defenderDamageMitigated,
                          int attackerRounds, int defenderRounds, int turretStart, int turretsLeft,
                          int turretRounds, int attackerSpecialsUsed, int defenderSpecialsUsed,
-                         Mortars attackerMortars, Mortars defenderMortars) {
+                         Mortars attackerMortars, Mortars defenderMortars,
+                         Interceptions attackerInterceptions, Interceptions defenderInterceptions) {
 
         /** Defenders killed per attacker killed; the attackers' kills when they lost none. */
         public float exchange() {
@@ -50,6 +51,9 @@ public final class MatchupPlay {
     public record Mortars(int setUps, int rounds, float damage, int kills) {
         static final Mortars NONE = new Mortars(0, 0, 0f, 0);
     }
+
+    /** What one side's point defence did: hostile rounds it engaged, and how many of those it stopped. */
+    public record Interceptions(int engaged, int stopped) {}
 
     /** Running tally of every tube seen, by entity, read each tick because a packed tube leaves the service. */
     private static final class MortarWatch {
@@ -156,7 +160,8 @@ public final class MatchupPlay {
                 rounds(telemetry, attackers), rounds(telemetry, defenders),
                 turrets.length, turretsLeft, rounds(telemetry, turrets),
                 specials(telemetry, attackers), specials(telemetry, defenders),
-                mortars.of(attackerFaction), mortars.of(defenderFaction));
+                mortars.of(attackerFaction), mortars.of(defenderFaction),
+                interceptions(telemetry, attackers), interceptions(telemetry, defenders));
     }
 
     /** A fire mission over the defenders' starting ground: its centre, and a radius that takes all of them in. */
@@ -182,6 +187,16 @@ public final class MatchupPlay {
         int total = 0;
         for (long id : ids) if (telemetry.isRecorded(id)) total += telemetry.secondaryUsed(id);
         return total;
+    }
+
+    private static Interceptions interceptions(CombatTelemetryService telemetry, long[] ids) {
+        int engaged = 0, stopped = 0;
+        for (long id : ids) {
+            if (!telemetry.isRecorded(id)) continue;
+            engaged += telemetry.ordnanceEngaged(id);
+            stopped += telemetry.ordnanceIntercepted(id);
+        }
+        return new Interceptions(engaged, stopped);
     }
 
     private static String status(BattleSimulation sim, long[] attackers, long[] defenders, long[] turrets) {

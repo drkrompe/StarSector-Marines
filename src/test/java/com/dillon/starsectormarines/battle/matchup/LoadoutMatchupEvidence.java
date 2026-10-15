@@ -299,7 +299,8 @@ class LoadoutMatchupEvidence {
                 + "defender_damage_mitigated,attacker_rounds,defender_rounds,turrets,turrets_left,turret_rounds,"
                 + "attacker_specials_used,defender_specials_used,attacker_mortar_setups,attacker_mortar_rounds,"
                 + "attacker_mortar_damage,attacker_mortar_kills,defender_mortar_setups,defender_mortar_rounds,"
-                + "defender_mortar_damage,defender_mortar_kills,gif\n");
+                + "defender_mortar_damage,defender_mortar_kills,attacker_pd_engaged,attacker_pd_stopped,"
+                + "defender_pd_engaged,defender_pd_stopped,gif\n");
         for (MatchupPlay.Result r : results) {
             csv.append(r.scenario()).append(',').append(q(r.attacker())).append(',').append(q(r.defender()))
                     .append(',').append(r.seed()).append(',').append(r.winner()).append(',').append(r.ticks())
@@ -311,6 +312,7 @@ class LoadoutMatchupEvidence {
                     .append(',').append(r.turretsLeft()).append(',').append(r.turretRounds()).append(',')
                     .append(r.attackerSpecialsUsed()).append(',').append(r.defenderSpecialsUsed()).append(',')
                     .append(mortars(r.attackerMortars())).append(',').append(mortars(r.defenderMortars())).append(',')
+                    .append(pd(r.attackerInterceptions())).append(',').append(pd(r.defenderInterceptions())).append(',')
                     .append(GIFS.getOrDefault(key(r), "")).append('\n');
         }
         return csv.toString();
@@ -318,6 +320,10 @@ class LoadoutMatchupEvidence {
 
     private static String mortars(MatchupPlay.Mortars m) {
         return m.setUps() + "," + m.rounds() + "," + f1(m.damage()) + "," + m.kills();
+    }
+
+    private static String pd(MatchupPlay.Interceptions i) {
+        return i.engaged() + "," + i.stopped();
     }
 
     private static String q(String s) { return '"' + s.replace("\"", "\"\"") + '"'; }

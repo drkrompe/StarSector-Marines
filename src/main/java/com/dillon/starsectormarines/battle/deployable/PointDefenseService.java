@@ -137,7 +137,7 @@ public final class PointDefenseService {
             else postEngagement(pod, engaged.currentX(), engaged.currentY(), stopped, sim);
         }
         ageMarks(dt);
-        publishSnapshot();
+        publishSnapshot(sim);
     }
 
     /**
@@ -184,6 +184,10 @@ public final class PointDefenseService {
         if (pending.isEmpty()) return;
         for (PendingPlacement placement : pending) {
             DeployableEmplacementSpec spec = placement.spec;
+            if (spec.carried()) {
+                mintCarried(placement, sim);
+                continue;
+            }
             long entityId = sim.spawn(DeployedEmplacement.create(
                     "emplacement-" + nextId, placement.faction, spec.structureId(),
                     placement.cellX, placement.cellY));
@@ -193,6 +197,22 @@ public final class PointDefenseService {
                     placement.cellX + 0.5f, placement.cellY + 0.5f));
         }
         pending.clear();
+    }
+
+    /**
+     * A carried mount is the carrier: it mints no entity, reads its position off the marine
+     * wearing it each tick, and ends when they fall. One per carrier, so a second switch-on
+     * while the first still runs adds nothing.
+     */
+    private void mintCarried(PendingPlacement placement, BattleControl sim) {
+        long carrier = sim.resolveUnit(placement.carrierId);
+        if (carrier == 0L) return;
+        for (LiveEmplacement live : active) {
+            if (live.carried && live.entityId == carrier) return;
+        }
+        StructureDef structure = DeployedEmplacement.requireBounded(placement.spec.structureId());
+        active.add(new LiveEmplacement(nextId++, carrier, placement.carrierId, placement.faction,
+                structure, placement.spec, sim.world().x(carrier), sim.world().y(carrier)));
     }
 
     /**
@@ -264,10 +284,13 @@ public final class PointDefenseService {
         // way the pod is working rather than seeing a tracer leave a fixed
         // barrel. Snapped rather than slewed: the traverse on a cluster mount
         // is far faster than the tick, and a slew rate here would be a second
-        // authority over the mount's authored turn rate.
-        sim.turretState().setFacingDegrees(pod.entityId,
-                (float) Math.toDegrees(Math.atan2(toY - fromY, toX - fromX)));
-        sim.turretState().setRecoilTimer(pod.entityId, 0f);
+        // authority over the mount's authored turn rate. A carried mount has
+        // no turret of its own to point; the burst leaves its carrier.
+        if (!pod.carried) {
+            sim.turretState().setFacingDegrees(pod.entityId,
+                    (float) Math.toDegrees(Math.atan2(toY - fromY, toX - fromX)));
+            sim.turretState().setRecoilTimer(pod.entityId, 0f);
+        }
         sim.postShot(new ShotEvent(pod.entityId, fromX, fromY, toX, toY,
                 stopped, pod.faction, ENGAGEMENT_TRACER_SECONDS, pod.structure));
         marks.add(new EngagementMark(pod.faction, toX, toY, stopped,
@@ -281,6 +304,8 @@ public final class PointDefenseService {
      * with a kill for a pod that simply ran down.
      */
     private void burnOut(LiveEmplacement pod, BattleControl sim) {
+        // A spent pack is simply empty; the marine wearing it is not.
+        if (pod.carried) return;
         long id = sim.resolveUnit(pod.entityId);
         if (id == 0L) return;
         float remaining = sim.world().hp(id)
@@ -288,11 +313,14 @@ public final class PointDefenseService {
         sim.applyExternalDamage(id, remaining + 1f, Float.MAX_VALUE);
     }
 
-    private void publishSnapshot() {
+    private void publishSnapshot(BattleControl sim) {
         ArrayList<EmplacementView> views = new ArrayList<>(active.size());
         for (LiveEmplacement pod : active) {
+            // A carried mount covers wherever its carrier now stands.
+            float x = pod.carried ? sim.world().x(pod.entityId) : pod.spawnX;
+            float y = pod.carried ? sim.world().y(pod.entityId) : pod.spawnY;
             views.add(new EmplacementView(pod.id, pod.entityId, pod.carrierId, pod.faction,
-                    pod.spawnX, pod.spawnY, pod.interceptRadius, pod.remainingLifetime,
+                    x, y, pod.interceptRadius, pod.remainingLifetime,
                     pod.totalLifetime, pod.engagementsRemaining));
         }
         snapshot = List.copyOf(views);
@@ -337,6 +365,8 @@ public final class PointDefenseService {
         final long carrierId;
         final Faction faction;
         final StructureDef structure;
+        /** Worn rather than set down: {@link #entityId} is the carrier. */
+        final boolean carried;
         final float interceptRadius;
         final float engagementInterval;
         /** The mount weapon's authored accuracy against a moving warhead. */
@@ -356,6 +386,7 @@ public final class PointDefenseService {
             this.carrierId = carrierId;
             this.faction = faction;
             this.structure = structure;
+            this.carried = spec.carried();
             // Reach and rate come from the mount's gun, magazine from the
             // mount itself: one emplacement, one answer per question.
             this.interceptRadius = structure.mount.weapon.range;
