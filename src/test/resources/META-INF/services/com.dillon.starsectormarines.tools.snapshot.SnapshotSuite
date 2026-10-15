@@ -169,3 +169,4 @@ com.dillon.starsectormarines.tools.tilesetauthoring.ComposableDamageSnapshotSuit
 com.dillon.starsectormarines.tools.tilesetauthoring.ParkedVehiclesSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.bsp.fill.ServiceYardSnapshotSuite
 com.dillon.starsectormarines.battle.setup.WholeCompoundSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.bsp.fill.MedicalCampusSnapshotSuite

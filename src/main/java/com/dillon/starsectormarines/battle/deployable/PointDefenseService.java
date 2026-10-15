@@ -290,7 +290,7 @@ public final class PointDefenseService {
                 if (ldx * ldx + ldy * ldy > reachSq) continue;
                 if (distanceSq > reachSq * LAUNCH_REACH_MULT * LAUNCH_REACH_MULT) continue;
                 // Only at a round it can reach before the round lands, and one interceptor per round.
-                float reach = (float) Math.sqrt(distanceSq) / pod.launchSpeed;
+                float reach = pod.coastSeconds + (float) Math.sqrt(distanceSq) / pod.launchSpeed;
                 if (p.remainingTime <= reach + LAUNCH_MARGIN_SECONDS) continue;
                 if (isChased(p)) continue;
             } else if (distanceSq > reachSq) {
@@ -305,18 +305,21 @@ public final class PointDefenseService {
     /**
      * Fires an interceptor missile at where {@code round} will be when the missile gets there,
      * one step like a led gun: the time to the round now, then the round's own flight extrapolated
-     * that far. Whether it connects is rolled now, so the battle replays identically, and applied
+     * that far. A soft-launched interceptor coasts out of its tube before its motor lights, and that
+     * coast is part of its flight: it is aimed further along the round's path and arrives that much
+     * later. Whether it connects is rolled now, so the battle replays identically, and applied
      * when it arrives; the magazine and the interval are spent at launch, as a burst's are.
      */
     private void launch(LiveEmplacement pod, Projectile round, BattleControl sim) {
         WeaponDef weapon = pod.structure.mount.weapon;
         float fromX = sim.world().x(pod.entityId);
         float fromY = sim.world().y(pod.entityId);
-        float reach = (float) Math.hypot(round.currentX() - fromX, round.currentY() - fromY) / pod.launchSpeed;
+        float reach = pod.coastSeconds
+                + (float) Math.hypot(round.currentX() - fromX, round.currentY() - fromY) / pod.launchSpeed;
         float aimX = round.xAfter(reach);
         float aimY = round.yAfter(reach);
         float flight = Math.max(BattleSimulation.TICK_DT,
-                (float) Math.hypot(aimX - fromX, aimY - fromY) / pod.launchSpeed);
+                pod.coastSeconds + (float) Math.hypot(aimX - fromX, aimY - fromY) / pod.launchSpeed);
         boolean stopped = rng.nextFloat() < pod.hitChance;
         pod.engagementsRemaining--;
         pod.engagementTimer = pod.engagementInterval;
@@ -480,6 +483,8 @@ public final class PointDefenseService {
          * resolves on the spot. Read from the mount weapon's authored round velocity.
          */
         final float launchSpeed;
+        /** Seconds a soft-launched interceptor coasts out of its tube before its motor lights; zero otherwise. */
+        final float coastSeconds;
         final float totalLifetime;
         final float spawnX;
         final float spawnY;
@@ -502,6 +507,8 @@ public final class PointDefenseService {
             this.engagementInterval = structure.mount.weapon.cooldown;
             this.hitChance = structure.mount.weapon.accuracy;
             this.launchSpeed = structure.mount.weapon.roundVelocity;
+            this.coastSeconds = structure.mount.weapon.softLaunch != null
+                    ? structure.mount.weapon.softLaunch.seconds() : 0f;
             this.totalLifetime = spec.lifetimeSeconds();
             this.remainingLifetime = spec.lifetimeSeconds();
             this.engagementsRemaining = structure.mount.ammoCapacity;

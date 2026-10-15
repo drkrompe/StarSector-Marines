@@ -20,11 +20,25 @@ public final class WeaponFxRuntime {
         return weapon != null ? weapon.fx : LEGACY_RIFLE;
     }
 
-    /** Emits launch and muzzle composition at their carrier-appropriate origins. */
+    /**
+     * Emits launch and muzzle composition at their carrier-appropriate origins. A soft-launched
+     * missile leaves its tube on the muzzle composition alone; its launch composition is the motor
+     * lighting, and waits for {@link #spawnIgnition}.
+     */
     public static void spawnMuzzle(ImpactFx backend, ShotEvent shot) {
         WeaponFxDef fx = definition(shot);
-        backend.spawnAuthored(fx, FxSlot.LAUNCH, launchContext(shot));
+        WeaponDef weapon = shot.weaponDef();
+        if (weapon == null || weapon.softLaunch == null) {
+            backend.spawnAuthored(fx, FxSlot.LAUNCH, launchContext(shot));
+        }
         backend.spawnAuthored(fx, FxSlot.MUZZLE, muzzleContext(shot));
+    }
+
+    /** Emits a soft-launched missile's launch composition where its motor lights, pointed the way it flies. */
+    public static void spawnIgnition(ImpactFx backend, ShotEvent shot,
+                                     float x, float y, float bearingDegrees) {
+        backend.spawnAuthored(definition(shot), FxSlot.LAUNCH,
+                new FxCompositionContext(x, y, bearingDegrees, false, eventSeedTime(shot)));
     }
 
     /** Emits both the immediate impact and its delayed authored aftermath. */

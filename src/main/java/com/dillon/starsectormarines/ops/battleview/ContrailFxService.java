@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.ops.battleview;
 
-import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.render2d.ContrailTrail;
 
@@ -72,17 +71,11 @@ public final class ContrailFxService {
         for (ShotEvent s : shots) {
             ShotFx fx = ShotFx.of(s);
             if (fx.contrail() == null) continue;
-            float linearProgress = 1f - clamp01(s.lifetime / Math.max(0.001f, s.lifetimeMax));
-            float progress = fx.boostRamp() ? Projectile.applyBoostCurve(linearProgress) : linearProgress;
-            float px = s.fromX + (s.toX - s.fromX) * progress;
-            float pz = s.fromZ + (s.toZ - s.fromZ) * progress;
-            float py = s.fromY + (s.toY - s.fromY) * progress + pz;
-            float arcH = fx.arcHeight();
-            if (arcH > 0f) py += arcH * 4f * progress * (1f - progress);
-            if (s.guidedFlight != null) {
-                px = s.guidedFlight.x;
-                py = s.guidedFlight.y + s.guidedFlight.z;
-            }
+            // A soft-launched missile coasts out of its tube unlit: no smoke until the motor burns.
+            if (!ShotRenderService.motorLit(s, fx)) continue;
+            ShotRenderService.SpriteFlight flight = ShotRenderService.spriteFlight(s, fx);
+            float px = flight.x();
+            float py = flight.y();
             ContrailTrail trail = live.get(s);
             if (trail == null) {
                 trail = new ContrailTrail(fx.contrail(), 32);
@@ -107,9 +100,5 @@ public final class ContrailFxService {
     public void collect(DrawList out, float alphaMult) {
         for (ContrailTrail t : live.values()) out.addRibbon(RenderLayer.SHOTS, t, alphaMult);
         for (ContrailTrail t : decaying)      out.addRibbon(RenderLayer.SHOTS, t, alphaMult);
-    }
-
-    private static float clamp01(float v) {
-        return Math.max(0f, Math.min(1f, v));
     }
 }

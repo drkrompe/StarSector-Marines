@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.turret.preview;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
 import com.dillon.starsectormarines.battle.combat.Projectile;
+import com.dillon.starsectormarines.battle.weapon.SoftLaunch;
 import com.dillon.starsectormarines.battle.weapon.fx.FxBlend;
 import com.dillon.starsectormarines.battle.weapon.fx.FxCompositionContext;
 import com.dillon.starsectormarines.battle.weapon.fx.FxLayerKind;
@@ -361,6 +362,8 @@ public final class TurretCatalogPreviewDocument {
             FlightPoint previous = flightPoint(scene.mount, rawProgress, releaseIndex);
             for (int sample = 1; sample <= 8; sample++) {
                 float sampleProgress = Math.max(0f, rawProgress - sample * 0.025f);
+                // Smoke only from where the motor was burning: a soft launch's coast leaves none.
+                if (!previewMotorLit(scene.mount, sampleProgress, releaseIndex)) break;
                 FlightPoint next = flightPoint(scene.mount, sampleProgress, releaseIndex);
                 float age = sample / 8f;
                 Color smoke = new Color(
@@ -538,17 +541,46 @@ public final class TurretCatalogPreviewDocument {
     private static FlightPoint flightPoint(TurretMountDef mount, float rawProgress,
                                            int releaseIndex) {
         float clamped = Math.max(0f, Math.min(1f, rawProgress));
-        float progress = mount.weapon.boostRamp
-                ? Projectile.applyBoostCurve(clamped) : clamped;
         TurretMountGeometry.Point muzzle = TurretMountGeometry.muzzle(
                 previewTurretX(mount), TURRET_Y, FACING_DEGREES, mount, releaseIndex);
         float muzzleX = muzzle.x();
         float muzzleY = muzzle.y();
+        SoftLaunch launch = mount.weapon.softLaunch;
+        float progress;
+        float lift = 0f;
+        if (launch != null) {
+            // The preview's flight is a storyboard, not a clock: time it as the real round would be
+            // over the preview's distance, so the coast takes the share of the flight it does in battle.
+            float distance = (float) Math.hypot(IMPACT_X - muzzleX, IMPACT_Y - muzzleY);
+            float flight = previewFlightSeconds(mount, distance);
+            progress = launch.progress(clamped, flight, distance, mount.weapon.boostRamp);
+            // Scaled as the preview scales an arc, so the climb fits the strip.
+            lift = Math.min(1.25f, launch.lift(clamped, flight) * 0.35f);
+        } else {
+            progress = mount.weapon.boostRamp ? Projectile.applyBoostCurve(clamped) : clamped;
+        }
         float x = muzzleX + (IMPACT_X - muzzleX) * progress;
         float y = muzzleY + (IMPACT_Y - muzzleY) * progress;
         float previewArc = Math.min(1.25f, mount.weapon.arcHeight * 0.35f);
         y += previewArc * 4f * progress * (1f - progress);
+        y += lift;
         return new FlightPoint(x, y);
+    }
+
+    private static float previewFlightSeconds(TurretMountDef mount, float distanceCells) {
+        SoftLaunch launch = mount.weapon.softLaunch;
+        float powered = mount.weapon.roundVelocity > 0f ? distanceCells / mount.weapon.roundVelocity : 0f;
+        return (launch != null ? launch.seconds() : 0f) + powered;
+    }
+
+    /** Whether a preview round's motor is burning at {@code rawProgress}; always, for a round that does not soft-launch. */
+    private static boolean previewMotorLit(TurretMountDef mount, float rawProgress, int releaseIndex) {
+        SoftLaunch launch = mount.weapon.softLaunch;
+        if (launch == null) return true;
+        TurretMountGeometry.Point muzzle = TurretMountGeometry.muzzle(
+                previewTurretX(mount), TURRET_Y, FACING_DEGREES, mount, releaseIndex);
+        float distance = (float) Math.hypot(IMPACT_X - muzzle.x(), IMPACT_Y - muzzle.y());
+        return launch.ignited(Math.max(0f, Math.min(1f, rawProgress)), previewFlightSeconds(mount, distance));
     }
 
     private static float bearingDegrees(float fromX, float fromY, float toX, float toY) {
