@@ -63,6 +63,7 @@ public final class SceneBuilder {
     private final Map<String, UnitEntry> units = new LinkedHashMap<>();
     private boolean missionCompletion;
     private boolean built;
+    private Long simSeed;
 
     private SceneBuilder(int width, int height) {
         if (width <= 0 || height <= 0) {
@@ -115,6 +116,16 @@ public final class SceneBuilder {
      */
     public SceneBuilder missionCompletion(boolean enabled) {
         this.missionCompletion = enabled;
+        return this;
+    }
+
+    /**
+     * Seeds the simulation's one random stream, which decides every hit and morale roll. A scene that compares
+     * outcomes across many runs of one world varies this and nothing else; omitted, the sim's fixed default seed.
+     */
+    public SceneBuilder seed(long seed) {
+        checkOpen();
+        this.simSeed = seed;
         return this;
     }
 
@@ -220,7 +231,9 @@ public final class SceneBuilder {
     public SceneWorld build() {
         checkOpen();
         built = true;
-        BattleSimulation sim = new BattleSimulation(grid, topology);
+        BattleSimulation sim = simSeed == null
+                ? new BattleSimulation(grid, topology)
+                : new BattleSimulation(grid, topology, simSeed);
         sim.setMissionCompletionEnabled(missionCompletion);
         if (!posts.isEmpty()) {
             sim.setDefensePosts(posts);
@@ -270,6 +283,7 @@ public final class SceneBuilder {
         private boolean armed = true;
         private long kitSeed = DEFAULT_KIT_SEED;
         private String primaryWeaponId;
+        private MarineLoadout[] issuedKit;
         private String specialEquipmentId;
         private int specialSeats;
         private int specialAmmo;
@@ -357,6 +371,19 @@ public final class SceneBuilder {
         public SquadSpec primary(String weaponId) {
             this.armed = true;
             this.primaryWeaponId = Objects.requireNonNull(weaponId, "weaponId");
+            return this;
+        }
+
+        /**
+         * Issues this exact kit, one loadout per seat, in seat order: what a campaign deployment hands the battle.
+         * The squad's size becomes the kit's length.
+         */
+        public SquadSpec loadouts(MarineLoadout[] kit) {
+            Objects.requireNonNull(kit, "kit");
+            if (kit.length == 0) throw new IllegalArgumentException("A kit needs at least one seat");
+            this.armed = true;
+            this.issuedKit = kit.clone();
+            this.size = kit.length;
             return this;
         }
 
@@ -459,7 +486,7 @@ public final class SceneBuilder {
             }
             int squadId = sim.mintSquad(faction, type);
             MarineLoadout[] kit = armed && mechVariant == null
-                    ? (primaryWeaponId != null ? uniformKit()
+                    ? (issuedKit != null ? issuedKit : primaryWeaponId != null ? uniformKit()
                             : InfantryLoadoutRolls.playerSquad(size, new Random(kitSeed)))
                     : null;
             spawned = new long[size];

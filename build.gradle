@@ -154,7 +154,7 @@ test {
                 'sabotage-command-evidence', 'assault-command-evidence', 'relief-command-evidence', 'counterattack-command-evidence', 'junction-command-evidence', 'relay-nine-command-evidence', 'thunder-run-command-evidence', 'last-lift-command-evidence', 'supply-route-campaign-evidence',
                 'raid-command-evidence', 'extraction-command-evidence', 'corvus-command-evidence', 'power-suit-campaign-evidence',
                 'crew-liveliness', 'shader-evidence', 'render-evidence', 'garrison-evidence',
-                'loadout-card-sheet'
+                'loadout-card-sheet', 'loadout-matchup'
     }
     testLogging {
         // Audit-style tests print their report to stdout — stream it to the
@@ -290,6 +290,35 @@ tasks.register('loadoutCardSheet', Test) {
     outputs.upToDateWhen { false }
     systemProperty 'starsectorDir', starsectorDir.absolutePath
     systemProperty 'loadoutCardSheet.dir', layout.buildDirectory.dir('reports/loadout-cards').get().asFile.absolutePath
+    testLogging {
+        showStandardStreams = true
+    }
+}
+
+// Fights loadouts against each other, headless, on the starter scenarios (open field, trench, building) at
+// several seeds, and reports who wins and at what cost. Opt-in and excluded from `test`: it plays whole battles,
+// which is evidence. Serial scheduler for the reason sceneEvidence uses it; the fights themselves run side by side.
+tasks.register('loadoutMatchup', Test) {
+    group = 'verification'
+    description = 'Fight loadout cards against each other headlessly; opt-in, excluded from test.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'loadout-matchup'
+    }
+    maxParallelForks = 1
+    outputs.upToDateWhen { false }
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    systemProperty 'battle.influence.async', 'false'
+    systemProperty 'battle.pathfinding.asyncClearance', 'false'
+    systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
+    forwardBattleSwitches(delegate)
+    systemProperty 'loadoutMatchup.dir', layout.buildDirectory.dir('reports/loadout-matchups').get().asFile.absolutePath
+    ['scenarios', 'seeds', 'parallelism', 'attacker', 'defender'].each { name ->
+        if (providers.gradleProperty(name).isPresent()) {
+            systemProperty "loadoutMatchup.${name}", providers.gradleProperty(name).get()
+        }
+    }
     testLogging {
         showStandardStreams = true
     }
