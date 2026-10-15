@@ -3,23 +3,30 @@ package com.dillon.starsectormarines.battle.command;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.JunctionCompound;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /** Mission-specific duties over frozen public territory and own-force reports only. */
 public final class JunctionCommand implements AutonomousMissionCommand<ConquestCommandFrame, JunctionCommand.Picture> {
     public record Picture(int targetSite, boolean reserveCommitted, List<Integer> commandedSquads) {
         public Picture { commandedSquads = List.copyOf(commandedSquads); }
     }
+    /** Within this many cells of its target's capture cell the road column stops marching and holds it. */
+    private static final double ROAD_ARRIVAL = 10;
     private final Faction faction;
-    private final int reserveX, reserveY;
+    private final int reserveX, reserveY, roadX, roadY;
     private final JunctionTactics tactics = new JunctionTactics();
     private volatile Picture picture;
-    private boolean reserveOnApproach;
-    public JunctionCommand(Faction faction, int reserveX, int reserveY) {
+    private boolean reserveOnApproach, roadOnTarget, classified;
+    /** Defender squads that started at the Rill road post rather than in the maintenance building. */
+    private final Set<Integer> roadColumn = new HashSet<>();
+    public JunctionCommand(Faction faction, int reserveX, int reserveY, int roadX, int roadY) {
         if (faction != Faction.MARINE && faction != Faction.ALLY && faction != Faction.DEFENDER)
             throw new IllegalArgumentException("Junction command requires a fighting faction");
         this.faction = faction;
         this.reserveX = reserveX; this.reserveY = reserveY;
+        this.roadX = roadX; this.roadY = roadY;
     }
     public static String issuer(Faction faction) { return "junction:" + faction; }
     @Override public Faction faction() { return faction; }
@@ -31,11 +38,23 @@ public final class JunctionCommand implements AutonomousMissionCommand<ConquestC
         var sites = frame.facts().compounds();
         var states = sites.stream().map(ConquestCommandFacts.Compound::state).toList();
         tactics.observe(states);
+        if (faction == Faction.DEFENDER && !classified) {
+            // Own-force reports only: each squad belongs to whichever waiting post it started nearer.
+            for (var squad : frame.squads())
+                if (squad.aliveMembers() > 0 && Math.hypot(squad.centroidX() - roadX, squad.centroidY() - roadY)
+                        < Math.hypot(squad.centroidX() - reserveX, squad.centroidY() - reserveY)) roadColumn.add(squad.squadId());
+            classified = true;
+        }
         if (faction == Faction.DEFENDER && tactics.reserveCommitted())
             for (var squad : frame.squads()) {
                 var directive = squad.directive();
-                if (directive != null && strategyId().equals(directive.issuer()) && squad.aliveMembers() > 0
-                        && Math.hypot(squad.centroidX() - 59, squad.centroidY() - 23) <= 5) reserveOnApproach = true;
+                if (directive == null || !strategyId().equals(directive.issuer()) || squad.aliveMembers() <= 0) continue;
+                if (roadColumn.contains(squad.squadId())) {
+                    if (!tactics.roadColumnCommitted()) continue;
+                    var target = sites.get(tactics.secondSecured());
+                    if (Math.hypot(squad.centroidX() - target.captureCellX(), squad.centroidY() - target.captureCellY()) <= ROAD_ARRIVAL)
+                        roadOnTarget = true;
+                } else if (Math.hypot(squad.centroidX() - 59, squad.centroidY() - 23) <= 5) reserveOnApproach = true;
             }
         int target = faction == Faction.MARINE ? tactics.assaultTarget(states)
                 : faction == Faction.ALLY ? tactics.militiaTarget()
@@ -56,6 +75,15 @@ public final class JunctionCommand implements AutonomousMissionCommand<ConquestC
                 continue;
             }
             commanded.add(squad.squadId());
+            if (faction == Faction.DEFENDER && roadColumn.contains(squad.squadId())) {
+                ObjectiveAssignment road = roadAssignment(squad.squadId(), sites);
+                String roadReason = !tactics.roadColumnCommitted() ? "JUNCTION_ROAD_WAIT"
+                        : roadOnTarget ? "JUNCTION_RETAKE_SECOND_LOSS" : "JUNCTION_ROAD_COUNTERATTACK";
+                if (sameAssignment(old.assignment(), road)) road = old.assignment();
+                proposals.add(CommandProposal.assign(road, CommandAuthority.MISSION_COMMAND, roadReason,
+                        road == old.assignment() ? CommandStabilityBreak.NONE : CommandStabilityBreak.CONTEXT_INVALIDATED));
+                continue;
+            }
             ObjectiveAssignment assignment = faction == Faction.MARINE
                     ? ObjectiveAssignment.secureCompound(squad.squadId(), place.captureZoneId(), place.node())
                     : faction == Faction.DEFENDER && !tactics.reserveCommitted()
@@ -72,6 +100,13 @@ public final class JunctionCommand implements AutonomousMissionCommand<ConquestC
                 commanded.size(), faction == Faction.DEFENDER && !tactics.reserveCommitted() ? commanded.size() : 0,
                 List.of(JunctionCompound.SITE_NAMES.get(target)), proposals,
                 new Picture(target, tactics.reserveCommitted(), commanded));
+    }
+    /** The Rill road column waits at its post, marches on the second gain, then holds its capture cell. */
+    private ObjectiveAssignment roadAssignment(int squadId, List<ConquestCommandFacts.Compound> sites) {
+        if (!tactics.roadColumnCommitted()) return ObjectiveAssignment.defendArea(squadId, roadX, roadY, 3);
+        var target = sites.get(tactics.secondSecured());
+        return roadOnTarget ? ObjectiveAssignment.defendArea(squadId, target.captureCellX(), target.captureCellY(), 3)
+                : ObjectiveAssignment.attackMove(squadId, target.captureCellX(), target.captureCellY());
     }
     private static boolean sameAssignment(ObjectiveAssignment a, ObjectiveAssignment b) {
         return a != null && a.kind() == b.kind() && a.targetZoneId() == b.targetZoneId()

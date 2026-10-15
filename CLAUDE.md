@@ -168,9 +168,10 @@ Do not run builds or leave generated task files there.
   defender orders and casualties; vicinity is not capture. The harness verifies
   that the production air entities retain each committed player airframe. These
   are factory-loadout controls, not current campaign roster acceptance.
-  Junction's default matrix covers three interiors with two twelve-person squads,
-  four squads, and two understrength four-person squads, plus reserve/hold,
-  single-ferry, absent-player and refitted-boat controls. `-Pmission=junction`
+  Junction's default matrix flies the lift a company has at that point in the
+  campaign: three interiors with two Hermes making three four-seat trips (24),
+  one Hermes making six, and one Hermes making three (12, understrength), plus
+  militia-held-at-landing and absent-player controls. `-Pmission=junction`
   replays the production finite territorial factory; it does not create a campaign
   offer. Custom fixture fields are `id`, `seed`, `playerType`, `playerBoats`,
   `playerSeats`, and `playerCycles`, plus optional fitting ids and `playerDelay`.

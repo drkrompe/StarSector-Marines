@@ -1,0 +1,17 @@
+{
+  "cellPx": 128,
+  "cells": [{
+    "col": 0,
+    "description": "Operator seat for the fort console banks: round, rotation-neutral, no cover.",
+    "name": "fort-fittings.seat",
+    "row": 0
+  }],
+  "doodads": [{
+    "ballisticHalfHeight": 0,
+    "col": 0,
+    "cover": "none",
+    "id": "fort-fittings.seat",
+    "row": 0
+  }],
+  "sheet": "graphics/doodads/fort-fittings.png"
+}
