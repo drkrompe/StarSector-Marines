@@ -68,6 +68,15 @@ public final class DeployableTactics {
         if (!hasInboundOrdnance(faction, x, y, reach, sim.snapshotActiveProjectiles())) {
             return false;
         }
+        if (spec.carried()) {
+            // A pack is switched on, not set down: no channel, no halt, and the
+            // carrier's tick goes on as if nothing happened, so it never costs a
+            // marine a step or a shot in the middle of a bound.
+            world.setSecondaryAmmo(unit, world.secondaryAmmo(unit) - 1);
+            sim.telemetry().recordSecondaryUsed(unit);
+            sim.pointDefense().queuePlacement(unit, faction, world.cellX(unit), world.cellY(unit), spec);
+            return false;
+        }
         world.setSecondaryActionTimer(unit, spec.deployDuration());
         world.setSecondaryFired(unit, false);
         world.setSecondaryAimTargetId(unit, 0L);

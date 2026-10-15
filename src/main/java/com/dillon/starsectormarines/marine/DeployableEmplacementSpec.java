@@ -29,13 +29,23 @@ import java.io.Serializable;
  *                         crew-served emplacement again; zero when it is not recoverable
  * @param redeployCooldown sim-seconds after packing before the carrier may set
  *                         the emplacement down again; zero when it is not recoverable
+ * @param carried          the mount stays on the carrier's back rather than being set
+ *                         down: it switches on without halting them, covers ground around
+ *                         wherever they are, and goes with them when they fall
  */
 public record DeployableEmplacementSpec(
         String structureId,
         float deployDuration,
         float lifetimeSeconds,
         float packDuration,
-        float redeployCooldown) implements Serializable {
+        float redeployCooldown,
+        boolean carried) implements Serializable {
+
+    public DeployableEmplacementSpec(String structureId, float deployDuration,
+                                     float lifetimeSeconds, float packDuration,
+                                     float redeployCooldown) {
+        this(structureId, deployDuration, lifetimeSeconds, packDuration, redeployCooldown, false);
+    }
 
     /** An expendable pod: placed once, never recovered. */
     public DeployableEmplacementSpec(String structureId, float deployDuration,
