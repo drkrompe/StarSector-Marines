@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayDeque;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.Random;
 
@@ -79,6 +80,11 @@ class FortStageTest {
         assertTrue(batteriesOnly.defensePosts.isEmpty(), "a bare battery is not a fort");
     }
 
+    /** The belt's token picket: the one guard post among the nodes, the rest being the rooms' crews. */
+    private static List<TacticalNode> pickets(GenContext ctx) {
+        return ctx.tactical.stream().filter(n -> n.kind == TacticalNode.Kind.GUARDPOST).toList();
+    }
+
     @Test
     void aBeltSeatsOneTokenPicketByTheMainGate() {
         for (int turn = 0; turn < 4; turn++) {
@@ -86,8 +92,8 @@ class FortStageTest {
             CompoundLayout.Placement at = BatteryFort.layout().at(60, 40, turn);
             FortStage.stamp(ctx, BatteryFort.PLAN, at, 0);
 
-            assertEquals(1, ctx.tactical.size(), "one picket holds the belt until the commander mans the rest, turn " + turn);
-            TacticalNode picket = ctx.tactical.get(0);
+            assertEquals(1, pickets(ctx).size(), "one picket holds the belt until the commander mans the rest, turn " + turn);
+            TacticalNode picket = pickets(ctx).get(0);
             assertEquals(TacticalNode.Kind.GUARDPOST, picket.kind);
             assertTrue(picket.garrisonSize <= FortStage.PICKET_SIZE && picket.garrisonSize > 0, "a token force, turn " + turn);
             FortPlan.Gate gate = BatteryFort.PLAN.gates().get(0);
@@ -138,9 +144,9 @@ class FortStageTest {
             GenContext ctx = field(declared(1));
             FortStage.stamp(ctx, BatteryFort.PLAN, BatteryFort.layout().at(60, 40, turn), 0);
 
-            assertEquals(1, ctx.tactical.size(), "one picket, turn " + turn);
+            assertEquals(1, pickets(ctx).size(), "one picket, turn " + turn);
             Set<Long> claimed = new HashSet<>();
-            for (TacticalNode node : ctx.tactical) {
+            for (TacticalNode node : pickets(ctx)) {
                 assertEquals(TacticalNode.Kind.GUARDPOST, node.kind);
                 assertEquals(Faction.DEFENDER, node.defaultGuard);
                 assertFalse(node.standPositions().isEmpty());
@@ -167,7 +173,8 @@ class FortStageTest {
         ctx.put(BspKeys.TACTICAL_MAP, linked);
         FortStage.stamp(ctx, BatteryFort.PLAN, BatteryFort.layout().at(60, 40, 0), 0);
 
-        assertEquals(1, linked.forFaction(Faction.DEFENDER).size(), "the map built before this stage ran gets the node");
+        assertEquals(1 + BatteryFort.PLAN.rooms().stream().filter(r -> !r.stands().isEmpty()).count(),
+                linked.forFaction(Faction.DEFENDER).size(), "the map built before this stage ran gets the picket and each crew");
         assertTrue(ctx.tactical.isEmpty(), "the stale list is not the delivery path once a map exists");
     }
 

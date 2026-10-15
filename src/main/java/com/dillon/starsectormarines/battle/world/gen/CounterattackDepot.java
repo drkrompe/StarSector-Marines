@@ -147,15 +147,17 @@ public final class CounterattackDepot {
     }
     private static void cargo(GenContext c) {
         StoryServiceYard yard = new StoryServiceYard(c);
-        // Open maintenance berth behind the freight gate; its approach stays
-        // sits beside the loading dogleg, south of the weigh office.
-        yard.bay(82, 38, 86, 40);
+        // The Hound's maintenance berth remains open and unmarked between the
+        // road dogleg and the weigh office's seed-dependent doorway.
         // Inbound trailer court, outside the gate's line of advance.
         yard.gravel(39, 8, 59, 17);
         yard.fence(39, 8, 59, 17);
         yard.bay(42, 10, 47, 15);
         yard.prop(43, 12, "parked-cargo-truck", 1);
         yard.cargo(51, 11);
+        // Dispatch transport waits across the rear edge, beyond the loading aisle.
+        yard.bay(51, 14, 57, 16);
+        yard.prop(53, 15, "parked-box-van", 2);
         // Upper approach workshop service apron.
         yard.gravel(41, 72, 60, 78);
         yard.prop(44, 74, "industrial-turbine-set", 0);
@@ -165,13 +167,15 @@ public final class CounterattackDepot {
         yard.bay(94, 68, 101, 74);
         yard.cargo(95, 70);
         yard.bay(130, 65, 142, 74);
-        yard.prop(132, 68, "parked-flatbed-truck", 1);
+        yard.prop(132, 68, "parked-flatbed-truck", 2);
         yard.cargo(137, 70);
         yard.prop(131, 73, "stores-cargo-loader", 0);
         yard.gravel(112, 20, 140, 28);
         for (int x : new int[]{115, 124, 133}) {
             yard.bay(x, 21, x + 5, 27);
-            yard.prop(x + 1, 24, "parked-cargo-truck", 1);
+            // An outbound hauler, side-loading flatbed and inbound container truck.
+            yard.prop(x + 1, 24, x == 124 ? "parked-flatbed-truck" : "parked-cargo-truck",
+                    x == 115 ? 3 : x == 124 ? 0 : 1);
         }
     }
 

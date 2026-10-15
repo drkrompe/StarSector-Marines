@@ -1942,6 +1942,13 @@ public final class BattleSetup {
                             new int[]{cell.x(), cell.y()}, new int[]{cell.x() + 1, cell.y()}),
                     Faction.DEFENDER, "freight-checkpoint-" + cell.y(), post, rng, 3);
         }
+        // The employer's picket already holds the first crossroad's north arm when the company lands;
+        // its gun goes up while the company is still fighting for Dispatch.
+        var picket = ThunderRunCompound.MILITIA_POSTS.get(0);
+        spawnOpeningMilitiaSquads(sim, List.of(new int[]{picket.x() - 1, picket.y()}, new int[]{picket.x(), picket.y()},
+                        new int[]{picket.x() - 1, picket.y() + 1}, new int[]{picket.x(), picket.y() + 1}),
+                Faction.ALLY, "wayline-crossroad-picket",
+                openingDefenseNode(picket.x(), picket.y(), Faction.ALLY, map.grid), rng, 4);
         List<EntitySpec> reserve = new ArrayList<>();
         for (int batch = 0; batch < ThunderRunPacing.BATCHES; batch++) {
             int x = batch == 0 ? 128 : ThunderRunPacing.usesOutboundRoad(batch) ? 275 : 165;

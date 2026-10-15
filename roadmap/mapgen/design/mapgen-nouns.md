@@ -1050,11 +1050,13 @@ ways is a change to two accessors and everything follows. A site anywhere but a
 fortress ward fronts onto whatever it was built along, and that can be any
 direction.
 
-**A quarter turn is a rotation; a half turn must be a mirror.** Props are drawn
-lit from one direction, so turning a vehicle through a hundred and eighty
-degrees lights it from underneath and it reads as upside down. Mirroring turns
-it round and keeps the light where it was. A vertical flip through a half turn
-is the horizontal mirror that does it.
+**The overhead parked fleet uses real cardinal headings.** A half turn rotates
+the vehicle; it does not mirror its crane, access steps or other asymmetric
+fittings. Placement measures the rotated footprint before claiming ground.
+Campaign yards give vehicles a working role: freight backs toward cargo,
+service vehicles stand beside machinery, and colony transport waits in a
+separate bay. Vehicles leave roads, landing clearances, doorways and maneuvering
+aisles open; they remain grounded heavy cover, not passable decoration.
 
 **A site with no runway is not a diminished airfield; it is what most airbases
 are.** Aircraft that land vertically need somewhere to stand and somewhere to be

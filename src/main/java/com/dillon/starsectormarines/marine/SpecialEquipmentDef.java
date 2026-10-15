@@ -329,7 +329,8 @@ public record SpecialEquipmentDef(
                 positive(activation, "deployDuration", id),
                 positive(activation, "lifetimeSeconds", id),
                 crewServed ? positive(activation, "packDuration", id) : 0f,
-                crewServed ? positive(activation, "redeployCooldown", id) : 0f);
+                crewServed ? positive(activation, "redeployCooldown", id) : 0f,
+                !crewServed && activation.optBoolean("carried", false));
     }
 
     /**

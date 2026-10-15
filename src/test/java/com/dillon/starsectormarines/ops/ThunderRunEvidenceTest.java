@@ -52,6 +52,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import com.dillon.starsectormarines.tools.snapshot.AnimatedGifWriter;
 import static org.junit.jupiter.api.Assertions.*;
@@ -161,6 +163,18 @@ class ThunderRunEvidenceTest {
                 }
                 var sites = List.copyOf(sim.getCompoundService().getRecords());
                 int previousPhase = -1, landedTick = -1, finalTick = -1;
+                // Where the holds' damage lands: who absorbs it, and where both sides stand.
+                Map<String, Float> soak = new LinkedHashMap<>();
+                Map<Long, Float> lastTaken = new HashMap<>();
+                Map<Long, String> soakKey = new HashMap<>();
+                Map<Long, Float> lastHull = new HashMap<>();
+                Map<String, Float> dealt = new TreeMap<>();
+                Map<Long, String> dealtKey = new HashMap<>();
+                Map<Long, Float> lastDealt = new HashMap<>();
+                Set<Long> garrison = new HashSet<>();
+                for (int i = 0; i < sim.liveUnitCount(); i++)
+                    if (sim.identity().faction(sim.liveUnitAt(i)) == Faction.DEFENDER) garrison.add(sim.liveUnitAt(i));
+                int[] raiderAt = new int[ThunderRunCompound.WIDTH / 10 + 1], marineAt = new int[raiderAt.length];
                 int orderedHold = 0;
                 int[] quietTicks = new int[4], longestQuiet = new int[4], combatTicks = new int[4];
                 int[] longestQuietEnd = new int[4];
@@ -211,6 +225,42 @@ class ThunderRunEvidenceTest {
                     }
                     sim.advance(BattleSimulation.TICK_DT);
                     impacts.feed(sim);
+                    if (column.phase() == 1 || column.phase() == 2) {
+                        for (int i = 0; i < sim.liveUnitCount(); i++) {
+                            long unit = sim.liveUnitAt(i);
+                            Faction faction = sim.identity().faction(unit);
+                            if (faction == Faction.DEFENDER && !sim.identity().type(unit).isStatic() && sim.getSimTickIndex() % 30 == 0)
+                                raiderAt[Math.min(raiderAt.length - 1, (int) sim.world().x(unit) / 10)]++;
+                            if (faction == Faction.MARINE && sim.getSimTickIndex() % 30 == 0)
+                                marineAt[Math.min(marineAt.length - 1, (int) sim.world().x(unit) / 10)]++;
+                            if (faction == Faction.DEFENDER) {
+                                // Whoever was on the map before the first wave is garrison; later bodies are waves.
+                                if (!dealtKey.containsKey(unit) && sim.telemetry().isRecorded(unit))
+                                    dealtKey.put(unit, sim.identity().type(unit).isStatic() ? "emplacements"
+                                            : garrison.contains(unit) ? "garrison" : "waves");
+                                continue;
+                            }
+                            if (faction != Faction.MARINE && faction != Faction.ALLY) continue;
+                            if (!sim.telemetry().isRecorded(unit)) sim.getEntityWorld().addComponent(unit, sim.getBattleComponents().TELEMETRY);
+                            soakKey.putIfAbsent(unit, faction == Faction.MARINE ? "marines" : sim.identity().type(unit).isTurret() ? "militiaGuns" : "militiaInfantry");
+                        }
+                        // Hulls resolve through the body-damage path, which keeps no telemetry: read what they lost.
+                        for (long vehicle : sim.getConvoyVehicleIds()) {
+                            float hull = sim.convoy().structure(vehicle) + sim.world().armor(vehicle);
+                            Float before = lastHull.put(vehicle, hull);
+                            if (before != null && hull < before)
+                                soak.merge("p" + column.phase() + (column.holdSite() > 0 ? "hold " : "push ") + "vehicle:" + sim.convoy().vehicleType(vehicle).name(), before - hull, Float::sum);
+                        }
+                        // Every body ever seen, so a killing blow on one that just left the roster still counts.
+                        for (var seen : dealtKey.entrySet()) {
+                            float now = sim.telemetry().damageDealt(seen.getKey());
+                            float before = lastDealt.getOrDefault(seen.getKey(), 0f);
+                            if (now > before) dealt.merge("p" + column.phase() + (column.holdSite() > 0 ? "hold " : "push ") + seen.getValue(), now - before, Float::sum);
+                            lastDealt.put(seen.getKey(), now);
+                        }
+                        for (var seen : soakKey.entrySet())
+                            if (sim.telemetry().isRecorded(seen.getKey())) soakDelta(sim, seen.getKey(), "p" + column.phase() + (column.holdSite() > 0 ? "hold " : "push ") + seen.getValue(), soak, lastTaken);
+                    }
                     int combatPhase = column.phase();
                     if (sim.getShotsThisFrame().isEmpty()) {
                         quietTicks[combatPhase]++;
@@ -291,7 +341,7 @@ class ThunderRunEvidenceTest {
                                     .put("assignment",String.valueOf(squad.assignedObjective)));
                         samples.put(new JSONObject().put("tick",tick).put("phase",column.phase()).put("marines",count(sim,Faction.MARINE))
                                 .put("militia",militiaCount(sim)).put("raiders",count(sim,Faction.DEFENDER)).put("vehicles",vehicles)
-                                .put("duties", duties)
+                                .put("duties", duties).put("raiders", raiderCells(sim))
                                 .put("sites",new JSONArray(sites.stream().map(r->r.state.name()).toList())));
                         Files.writeString(dir.resolve("samples.json"),samples.toString(2));
                     }
@@ -418,6 +468,9 @@ class ThunderRunEvidenceTest {
                         .put("kestrelEncounter", kestrelEncounter)
                         .put("airWrecks", sim.getAirfieldService().groundWrecks().size())
                         .put("beats",beats).put("escorts",escortReports).put("firstFinalShot",firstFinalShot)
+                        .put("holdDamageTaken", new JSONObject(soak)).put("holdDamageDealtByRaiders", new JSONObject(dealt))
+                        .put("holdRaiderPositionsByX10", new JSONArray(raiderAt))
+                        .put("holdMarinePositionsByX10", new JSONArray(marineAt))
                         .put("vehiclePushes", sim.vehicleRepulsion().pushes())
                         .put("driving", new JSONObject().put("reroutes", column.drivingCounters()[0])
                                 .put("swerves", column.drivingCounters()[1]).put("stationWaitTicks", column.drivingCounters()[2])
@@ -440,6 +493,26 @@ class ThunderRunEvidenceTest {
             }
         }
     }
+    /** Every mobile raider's position, rounded to cells. */
+    private static JSONArray raiderCells(BattleSimulation sim) {
+        JSONArray out = new JSONArray();
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            long unit = sim.liveUnitAt(i);
+            if (sim.identity().faction(unit) != Faction.DEFENDER || sim.identity().type(unit).isStatic()) continue;
+            out.put(new JSONArray(List.of(Math.round(sim.world().x(unit)), Math.round(sim.world().y(unit)))));
+        }
+        return out;
+    }
+
+    /** Adds the fire {@code unit} absorbed since it was last seen to {@code key}. */
+    private static void soakDelta(BattleSimulation sim, long unit, String key, Map<String, Float> soak, Map<Long, Float> lastTaken) {
+        // Absorbed fire: what reached the body plus what its armor or screen refused.
+        float taken = sim.telemetry().damageTaken(unit) + sim.telemetry().damageMitigated(unit);
+        float before = lastTaken.getOrDefault(unit, 0f);
+        if (taken > before) soak.merge(key, taken - before, Float::sum);
+        lastTaken.put(unit, taken);
+    }
+
     /** Names the militia gun bays and the technical, so a reader can find them among the raiders. */
     private static ReviewAnnotations crossroadsMarks(BattleSimulation sim, ThunderRunSequence column) {
         var marks = ReviewAnnotations.builder();

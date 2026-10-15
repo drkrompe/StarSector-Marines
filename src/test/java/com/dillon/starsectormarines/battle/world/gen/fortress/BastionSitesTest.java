@@ -137,8 +137,8 @@ class BastionSitesTest {
             AirDefenceYard yard = plan.airDefence();
             assertNotNull(yard);
             for (int[] b : batteries) {
-                assertTrue(Math.hypot(b[0] - yard.centreX(), b[1] - yard.centreY()) > AirDefenceYard.HALF + 2,
-                        plan.kind() + " battery stands outside the yard");
+                assertTrue(Math.hypot(b[0] - yard.centreX(), b[1] - yard.centreY()) > AirDefenceYard.HALF_WIDTH + 2,
+                        plan.kind() + " battery stands outside the control room");
             }
         }
     }

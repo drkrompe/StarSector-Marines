@@ -87,6 +87,29 @@ class AbsentDefenceResolutionTest {
         assertEquals(SEATS - 2, fixture.roster.stationedActiveCount(fixture.contractId));
     }
 
+    /** Every absent settlement leaves the company exactly one account of it. */
+    @Test
+    void anAbsentSettlementWritesOneDefenceReport() {
+        Fixture fixture = new Fixture();
+        GarrisonDefensePayload payload = fixture.payload();
+        DefenceReport.Place place = new DefenceReport.Place("Jangala", "Corvus",
+                DefenceReport.Climate.TEMPERATE, "Pirate");
+
+        AbsentDefenceResolution.applyLanded(fixture.state, payload, fixture.roster, DAY,
+                300f, place);
+        AbsentDefenceResolution.applyLanded(fixture.state, payload, fixture.roster, DAY,
+                300f, place);
+
+        assertEquals(1, fixture.state.chronicleCount);
+        assertEquals(ChronicleEventType.GARRISON_DEFENCE,
+                ChronicleEventType.fromByte(fixture.state.chronicleEventType[0]));
+        assertEquals(EVENT_KEY, fixture.state.chronicleSourceEventId[0]);
+        assertEquals(Outcome.HELD.ordinal(), fixture.state.chronicleDefenceOutcome[0]);
+        assertEquals(SEATS, fixture.state.chronicleSurvivorsAtRisk[0]);
+        assertTrue(fixture.state.chronicleAccount[0] != null
+                && !fixture.state.chronicleAccount[0].isBlank());
+    }
+
     @Test
     void aSettledDefenceCannotBeSettledTwice() {
         Fixture fixture = new Fixture();
