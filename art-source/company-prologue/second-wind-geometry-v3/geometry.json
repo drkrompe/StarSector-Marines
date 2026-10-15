@@ -1,0 +1,165 @@
+{
+  "status": "Proposed geometry reference; no scene art or gameplay changes",
+  "axes": {
+    "+X": "bow",
+    "+Y": "port",
+    "+Z": "dorsal"
+  },
+  "units": "Vanilla hull-space units; no canonical metre scale asserted",
+  "revision": "V3: heavier forebody and engine rooms; recessed waist; layered armor and service machinery",
+  "thickness_profile": {
+    "method": "Upper Z uses plateaus and linear chamfer transitions between stations; lower hull has uniform 1.25 depth multiplier for level keel",
+    "stations": [
+      [
+        -40,
+        1.15
+      ],
+      [
+        -29,
+        1.5
+      ],
+      [
+        -6,
+        1.5
+      ],
+      [
+        3,
+        1.1
+      ],
+      [
+        18,
+        1.1
+      ],
+      [
+        26,
+        1.5
+      ],
+      [
+        40,
+        1.5
+      ],
+      [
+        52,
+        1.15
+      ],
+      [
+        60,
+        1.05
+      ]
+    ],
+    "deck_datum": 0,
+    "attachments": "Engine and port-pod coordinates unchanged from V2"
+  },
+  "engine_source": "starsector-core/data/hulls/warhound.ship engineSlots",
+  "engines": [
+    {
+      "location": [
+        -41,
+        31,
+        0
+      ],
+      "width": 12,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "location": [
+        -39,
+        24,
+        0
+      ],
+      "width": 8,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "location": [
+        -39,
+        -24,
+        0
+      ],
+      "width": 8,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "location": [
+        -41,
+        -31,
+        0
+      ],
+      "width": 12,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ]
+    }
+  ],
+  "pod": {
+    "center": [
+      37,
+      33,
+      1
+    ],
+    "dimensions": [
+      19,
+      8,
+      6
+    ],
+    "long_axis": "+X",
+    "function": "Proposed service/airlock pod; not canonical lore"
+  },
+  "cameras": [
+    {
+      "name": "port-quarter",
+      "position": [
+        100,
+        130,
+        100
+      ],
+      "orthographic_scale": 163
+    },
+    {
+      "name": "top",
+      "position": [
+        0,
+        0,
+        180
+      ],
+      "orthographic_scale": 205
+    },
+    {
+      "name": "port-side",
+      "position": [
+        0,
+        180,
+        0
+      ],
+      "orthographic_scale": 132
+    },
+    {
+      "name": "stern",
+      "position": [
+        -180,
+        0,
+        0
+      ],
+      "orthographic_scale": 112
+    }
+  ],
+  "bay_state": {
+    "port": "open, empty cradle",
+    "starboard": "sealed, awaits repair"
+  },
+  "mesh_authority": "All views render the same objects; generated surface art is subordinate to this geometry."
+}
