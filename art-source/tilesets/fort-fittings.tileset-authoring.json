@@ -1,0 +1,115 @@
+{
+  "alphaMin": 16,
+  "blocks": [],
+  "cellPx": 128,
+  "entries": [
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort-fittings.seat",
+      "included": true,
+      "note": "Operator seat for the fort console banks: round, rotation-neutral, no cover.",
+      "rect": [
+        0,
+        0,
+        512,
+        512
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort-fittings.seat-alt1",
+      "included": false,
+      "note": "Alternate rendering of the same seat, not exported.",
+      "rect": [
+        512,
+        0,
+        512,
+        512
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort-fittings.seat-alt2",
+      "included": false,
+      "note": "Alternate rendering of the same seat, not exported.",
+      "rect": [
+        1024,
+        0,
+        512,
+        512
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort-fittings.seat-alt3",
+      "included": false,
+      "note": "Alternate rendering of the same seat, not exported.",
+      "rect": [
+        0,
+        512,
+        512,
+        512
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort-fittings.seat-alt4",
+      "included": false,
+      "note": "Alternate rendering of the same seat, not exported.",
+      "rect": [
+        512,
+        512,
+        512,
+        512
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort-fittings.seat-alt5",
+      "included": false,
+      "note": "Alternate rendering of the same seat, not exported.",
+      "rect": [
+        1024,
+        512,
+        512,
+        512
+      ]
+    }
+  ],
+  "gridCols": 3,
+  "gridRows": 2,
+  "idPrefix": "fort-fittings",
+  "note": "Fort fittings: the operator seat that stands at the seated console stations of the fort rooms (FortRoomKit.SEAT). Built-in ImageGen reskin of templates/fort-fittings-guide.png (code-rendered by fort-fittings-guide.py); exact prompt retained beside this file; raw retained unmodified. 1536x1024 RGBA, six 512px frames of the same seat as alternatives; frame 0 is exported at 128px, the rest are retained and excluded. Image generation did not hold scale on a mostly empty canvas (two single-frame attempts came back 1.5-2x too large), hence the six frames.",
+  "sheet": "art-source/tilesets/fort-fittings.raw.png",
+  "sheetName": "fort-fittings"
+}
