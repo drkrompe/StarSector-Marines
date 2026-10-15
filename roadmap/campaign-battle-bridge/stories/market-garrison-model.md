@@ -1,6 +1,6 @@
 # Market garrison model
 
-Status: IN PROGRESS — slice 1 and mixed squads implemented; headcount, heavy lean and allied consumers next.
+Status: IN PROGRESS — slices 1 and 2 implemented; polity doctrine dials and slice 3 calibration remain.
 
 Written: 2026-10-15
 
@@ -94,8 +94,14 @@ It has four outputs: strength, quality, heavy lean and readiness.
 - **Hostile garrisons in market-backed operations.** The model says what is
   on the ground, and the tier's demand caps what this operation may be asked
   to face (precinct law: the world's rating says what is there; the demand
-  says what the operation faces). Strength becomes headcount, quality sets
-  the elite share, and heavy lean weighs mechs and installations. **Squads
+  says what the operation faces). **The tier sets a band, and the market
+  picks the place in it.** A contract is an operation the market's owner
+  meets with the share of its garrison the situation calls for, not the whole
+  garrison, so the tier's count is the ceiling and 70% of it the floor; the
+  market's strength (4 ground-defence points per defender) picks where it
+  lands. Heavy lean does the same for mechs: the risk curve's candidates are
+  the ceiling, and a market keeps between half and all of them, anchor first.
+  Nothing grows past today's numbers. Quality sets the elite share. **Squads
   are mixed.** Today `BattleSetup.allocateDefenders` queues every elite before
   every bulk soldier, so the top-priority posts get all-elite squads and
   everything else gets all-bulk squads. Slice 2 spreads elites evenly across
@@ -137,11 +143,15 @@ fixture operations that state their own forces ignore the estimate.
    Unit tests cover size, military shift, structures, unknown industries,
    shortages, readiness and stationed subtraction. Fixture JSON round-trips
    the value.
-2. **Mixed squads and consumers.** Done: elites spread evenly through
-   defender squads (`DefenderRoster.infantryOrder`), and a market's quality
-   sets the hostile elite share in place of the risk curve. Remaining:
-   headcount from strength under the tier ceiling, heavy lean on mech and
-   installation candidates, and allied headcount and mix. Existing
+2. **Mixed squads and consumers** (implemented). Elites spread evenly
+   through defender and allied squads (`DefenderRoster.infantryOrder`). A
+   market's quality sets the hostile and allied elite share, its strength
+   places the headcount in the tier's band (`DefenderRoster.bandedTotal`), and
+   its heavy lean keeps a share of the mech candidates
+   (`DefenderRoster.bandedMechs`). `DefenderRoster.wholeGarrisonCount` sizes a
+   garrison faced whole, for player invasions. Remaining: the polity
+   doctrine's dials, and emplacements, which `MissionDefencePolicy` still
+   declares from structure flags. Existing
    evidence
    (`commanderEvidence`, `garrisonEvidence`) shows the change on fixtures; the
    canonical Conquest fixtures with no market stay unchanged.
