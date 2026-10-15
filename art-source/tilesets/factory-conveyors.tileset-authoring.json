@@ -1,0 +1,61 @@
+{
+  "sheetName": "factory-conveyors",
+  "sheet": "art-source/tilesets/factory-conveyors.raw.png",
+  "cellPx": 128,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "factory-machines",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/factory-conveyors.png",
+  "note": "Native-alpha built-in ImageGen reskin. Actual output 2172x724; three full square frames, horizontal feed. See factory-machines/conveyor.prompt.txt.",
+  "entries": [
+    {
+      "rect": [
+        4,
+        0,
+        720,
+        724
+      ],
+      "id": "factory-machines.conveyor",
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        724,
+        0,
+        724,
+        724
+      ],
+      "id": "factory-machines.conveyor-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        1448,
+        0,
+        724,
+        724
+      ],
+      "id": "factory-machines.conveyor-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    }
+  ]
+}

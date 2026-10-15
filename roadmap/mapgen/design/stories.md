@@ -15,7 +15,7 @@ three lane-seeding defects it uncovered are fixed and folded into
 | `compound-vehicle-hangar.md` | BLOCKED | Fill, packing, furnishing and berths are shipped and proven in the Conquest fortress; the hangar waits only on a compound parcel a bay fits in — measured at 29% of compounds today. |
 | `world-surface-palette.md` | IN PROGRESS | Distinct toxic, irradiated, volcanic and ash material families remain; palette-specific terrain and obstacles must preserve access. |
 | `settlement-off-map-link.md` | PLANNED | Every settlement reachable off-map by road or by landing pad; an off-grid outpost is the pad case. |
-| `cross-leaf-footprint-planning.md` | PROPOSED | Plan one coherent multi-leaf structure before roads and per-leaf fills commit the parcel layout. First step of `compound-programs.md`. |
+| `cross-leaf-footprint-planning.md` | IN PROGRESS | Bounded industrial template parcels are supported; general compound programs, other families and nonrectangular claims remain. |
 | `station-corridor-arenas.md` | PROPOSED | Give station junctions and gates intentional tactical space without turning transit into cover soup. |
 | `station-theme-fills.md` | PROPOSED | Fill station room purposes with distinct, tactically meaningful themes. |
 | `station-role-placement.md` | PROPOSED | Use station topology roles for the first placement consumer. |

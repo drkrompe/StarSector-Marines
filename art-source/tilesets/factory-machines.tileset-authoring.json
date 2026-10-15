@@ -1,0 +1,157 @@
+{
+  "sheetName": "factory-machines",
+  "sheet": "art-source/tilesets/factory-machines.raw.png",
+  "cellPx": 128,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "factory-machines",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/factory-machines.png",
+  "note": "Built-in ImageGen reskin of factory-machines-guide.png. Actual 1254-square output; full placement frames registered per state, native alpha retained. Canonical operator side south. See art-source/factory-machines.",
+  "entries": [
+    {
+      "rect": [
+        44,
+        44,
+        352,
+        352
+      ],
+      "id": "factory-machines.fabricator",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        44,
+        462,
+        352,
+        352
+      ],
+      "id": "factory-machines.fabricator-damaged",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        44,
+        866,
+        352,
+        352
+      ],
+      "id": "factory-machines.fabricator-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        450,
+        90,
+        408,
+        272
+      ],
+      "id": "factory-machines.assembly",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "footprintCells": [
+        3,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        450,
+        508,
+        408,
+        272
+      ],
+      "id": "factory-machines.assembly-damaged",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "footprintCells": [
+        3,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        450,
+        916,
+        408,
+        272
+      ],
+      "id": "factory-machines.assembly-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        3,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        934,
+        88,
+        280,
+        280
+      ],
+      "id": "factory-machines.coolant",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        934,
+        506,
+        280,
+        280
+      ],
+      "id": "factory-machines.coolant-damaged",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        934,
+        894,
+        280,
+        280
+      ],
+      "id": "factory-machines.coolant-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "included": true
+    }
+  ]
+}

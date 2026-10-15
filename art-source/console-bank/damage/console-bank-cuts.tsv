@@ -1,0 +1,6 @@
+console-bank.straight	32	32	320	320	384	1	1	med	0.65
+console-bank.straight-alt	416	32	320	320	384	1	1	med	0.65
+console-bank.inside-corner	800	32	320	320	384	1	1	med	0.65
+console-bank.outside-corner	32	800	320	320	384	1	1	med	0.65
+console-bank.end-left	416	800	320	320	384	1	1	med	0.65
+console-bank.end-right	800	800	320	320	384	1	1	med	0.65

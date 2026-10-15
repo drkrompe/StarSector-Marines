@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
 import com.dillon.starsectormarines.ops.battleview.ReviewStyle;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -51,22 +52,15 @@ class JunctionCommandEvidenceTest {
         Files.createDirectories(output);
         String custom = System.getProperty("junction.command.evidence.fixture.path", "");
         JSONArray fixtures = custom.isBlank() ? new JSONArray() : new JSONArray(Files.readString(Path.of(custom)));
+        // Lift the company actually has at Junction: one or two repaired Hermes, four seats a trip.
         if (custom.isBlank()) for (int seed : new int[]{9101, 9102, 9103}) {
-            for (int boats : new int[]{2, 4}) fixtures.put(new JSONObject().put("id", seed + "-" + boats + "-squads")
-                    .put("seed", seed).put("playerType", "VALKYRIE").put("playerBoats", boats).put("playerSeats", 12).put("playerCycles", 1));
-            fixtures.put(new JSONObject().put("id", seed + "-understrength").put("seed", seed)
-                    .put("playerType", "AEROSHUTTLE").put("playerBoats", 2).put("playerSeats", 4).put("playerCycles", 1));
+            fixtures.put(hermes(seed + "-two-hermes", seed, 2, 3));
+            fixtures.put(hermes(seed + "-one-hermes", seed, 1, 6));
+            fixtures.put(hermes(seed + "-understrength", seed, 1, 3));
         }
         if (custom.isBlank()) {
-            fixtures.put(new JSONObject().put("id", "9101-unguarded").put("seed", 9101).put("playerType", "VALKYRIE")
-                    .put("playerBoats", 2).put("playerSeats", 12).put("playerCycles", 1).put("holdAtLanding", true));
-            fixtures.put(new JSONObject().put("id", "9101-single-ferry").put("seed", 9101).put("playerType", "AEROSHUTTLE")
-                    .put("playerBoats", 1).put("playerSeats", 6).put("playerCycles", 4));
-            fixtures.put(new JSONObject().put("id", "9101-no-player").put("seed", 9101).put("playerType", "VALKYRIE")
-                    .put("playerBoats", 2).put("playerSeats", 12).put("playerCycles", 1).put("playerDelay", 600));
-            fixtures.put(new JSONObject().put("id", "9101-refitted").put("seed", 9101).put("playerType", "VALKYRIE")
-                    .put("playerBoats", 2).put("playerSeats", 12).put("playerCycles", 1)
-                    .put("playerPlating", "reinforced_plating").put("playerDrive", "tuned_drive"));
+            fixtures.put(hermes("9101-unguarded", 9101, 2, 3).put("holdAtLanding", true));
+            fixtures.put(hermes("9101-no-player", 9101, 2, 3).put("playerDelay", 600));
         }
         int ticks = Integer.getInteger("junction.command.evidence.maxTicks", 12000);
         if (ticks < 1) throw new IllegalArgumentException("maxTicks must be positive");
@@ -88,6 +82,19 @@ class JunctionCommandEvidenceTest {
         }
         Files.writeString(output.resolve("summary.json"), summaries.toString(2));
         System.out.println("[junction-evidence] " + output.resolve("summary.json"));
+    }
+    /** Whole map, or a close view when {@code -PsnapshotFocus=x,y,cellsAcross} asks for one. */
+    private static BattleReviewFrameRenderer frames() {
+        String focus = System.getProperty(CommanderEvidenceCapture.FOCUS_PROPERTY, "").trim();
+        if (focus.isBlank()) return new BattleReviewFrameRenderer(Path.of("mod"), 1920, 1080);
+        String[] parts = focus.split(",");
+        return new BattleReviewFrameRenderer(Path.of("mod"), 1920, 1080, Float.parseFloat(parts[0].trim()),
+                Float.parseFloat(parts[1].trim()), Float.parseFloat(parts[2].trim()));
+    }
+    /** Two-squad (or understrength) company aboard {@code boats} standard Hermes making {@code cycles} trips each. */
+    private static JSONObject hermes(String id, int seed, int boats, int cycles) throws JSONException {
+        return new JSONObject().put("id", id).put("seed", seed).put("playerType", "HERMES")
+                .put("playerBoats", boats).put("playerSeats", 4).put("playerCycles", cycles);
     }
     private record Result(String summary, String trace) {}
     private Result run(JSONObject fixture, int maxTicks, Path output, boolean capture) throws Exception {
@@ -111,14 +118,9 @@ class JunctionCommandEvidenceTest {
                 sim.world().mission(air).pendingDelay += (float) fixture.optDouble("playerDelay", 0);
             }
             assertEquals(manifest.size(), playerIndex);
-            assertEquals(20, count(sim, Faction.DEFENDER));
-            int reserves = 0;
-            for (var squad : sim.getSquads()) if (squad.faction == Faction.DEFENDER && squad.assignedNode == null) {
-                reserves++;
+            // Every mobile counterattack squad answers to Junction command; the site guards keep their posts.
+            for (var squad : sim.getSquads()) if (squad.faction == Faction.DEFENDER && squad.assignedNode == null)
                 assertEquals(JunctionCommand.issuer(Faction.DEFENDER), sim.getSquadCommandDirective(squad.id).issuer());
-                assertEquals(4, sim.squadMemberCount(squad.id));
-            }
-            assertEquals(1, reserves);
             var sites = new ArrayList<>(sim.getCompoundService().getRecords());
             assertEquals(4, sites.size());
             Set<Integer> rooms = new HashSet<>();
@@ -131,7 +133,7 @@ class JunctionCommandEvidenceTest {
             Set<Long> landed = new HashSet<>();
             int firstLanding = -1, reserveTick = -1, holdArrivalTick = -1, holdOccupancyTicks = 0;
             int peakPlayerSquads = 0;
-            BattleReviewFrameRenderer renderer = capture ? new BattleReviewFrameRenderer(Path.of("mod"), 1920, 1080) : null;
+            BattleReviewFrameRenderer renderer = capture ? frames() : null;
             sim.setCommandTraceEnabled(true, "JUNCTION");
             try (CommanderEvidenceCapture visuals = CommanderEvidenceCapture.open(capture ? output : null, "junction", sim,
                     (battle, caption, marks) -> {

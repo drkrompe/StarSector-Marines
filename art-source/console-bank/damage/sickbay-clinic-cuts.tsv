@@ -1,0 +1,11 @@
+sickbay-clinic.bed	112	32	160	320	384	1	2	med	0.38
+sickbay-clinic.linen-high	496	32	160	320	384	1	2	none	0
+sickbay-clinic.linen-low	880	32	160	320	384	1	2	none	0
+sickbay-clinic.monitor	1184	32	320	320	384	1	1	med	0.65
+sickbay-clinic.station	1568	112	320	160	384	2	1	med	0.5
+sickbay-clinic.cabinet	1952	112	320	160	384	2	1	heavy	1.1
+sickbay-clinic.sink	32	800	320	320	384	1	1	med	0.5
+sickbay-clinic.trolley	416	800	320	320	384	1	1	med	0.45
+sickbay-clinic.exam	800	880	320	160	384	2	1	med	0.38
+sickbay-clinic.screen	1264	800	160	320	384	1	2	light	0.8
+mess-galley.stool	1568	800	320	320	384	1	1	none	0

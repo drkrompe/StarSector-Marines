@@ -115,7 +115,9 @@ uses one ordinary infantry seat, and refit does not turn them into Mech Support.
 Company lift is sized to that named commitment, not to the seats on one trip
 or the mission's authored drop count. Smaller boats repeat trips until every
 selected ACTIVE member has a seat; a partial final load carries only those
-members still waiting. Authored minimum-force gates remain separate from this
+members still waiting. Trips are filled a wave at a time across every committed
+boat, so follow-up trips fly the whole lift rather than one boat repeating while
+the others stand idle; only the final wave may be short. Authored minimum-force gates remain separate from this
 transport schedule. Stationed response forces and Conquest's arrival plan retain
 their own commitment boundaries.
 

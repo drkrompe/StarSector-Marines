@@ -678,7 +678,7 @@ keeping with how the rest of the equipment model treats recovery.
 The built-in identities are the rocket launcher, anti-materiel
 rifle, Wayfarer smoke grenades, Breachhand mag-clamp satchel, Shattercap
 fragmentation grenades, the Emberjaw thermal breacher, the Quillon
-vibro-blade, the Palisade interceptor pod and pack, and the Rampart field revetment.
+vibro-blade, the Palisade interceptor pod, the Arrestor interceptor pack, and the Rampart field revetment.
 The first two are direct-fire activations, Shattercap
 is an arcing weapon activation, smoke and satchels are utility activations,
 the pod and the revetment are deployable activations, and
@@ -965,8 +965,11 @@ carrier standing inside a friendly pod's existing bubble declines rather than
 stacking a second. Like every other executor, the placement authors no path,
 clears none, and never retargets its carrier.
 
-The **Palisade interceptor pack** is the same gun worn instead of set down, for
-a squad that has to keep moving. A pod placed by an advancing section is left
+The **Arrestor interceptor pack** does the pod's job worn instead of set down, for
+a squad that has to keep moving. It is Hegemony issue where the pod is not: a
+chemical-motor missile kit in khaki plate and amber lights, the line army's
+answer to shellfire, while energy point defence is the Tri-Tachyon direction.
+A pod placed by an advancing section is left
 behind by it, and the placement channel stops a marine in the middle of a bound,
 so in measured fights an attacking squad almost never put one down and one it
 did put down covered ground nobody stood on any more. The pack is switched on

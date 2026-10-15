@@ -255,7 +255,7 @@ dented and destroyed identities, preserving their one-cell and two-by-two
 footprints. Open curved shells and scattered metal expose the original ground.
 Full-frame cuts preserve pivots and orientation; the group owns one structure
 pool across its footprint. Stock overlays retain zero cover in every state,
-and their destruction leaves underlying rack and pallet bases intact.
+and destroying stock alone does not remove a surviving rack or pallet base.
 
 Registered compound equipment shares that whole-prop damage model: generators,
 radar dishes, machine tools, fluid tanks, control/command consoles, tactical
@@ -270,6 +270,15 @@ metal, wood, bedding and stock differences, with ground visible between pieces;
 loaded shelves scatter their own contents while empty shelves remain empty.
 These inert furnishings emit compact collapse dust only. The `furnishing-damage`
 suite includes adjoining shelf bays as well as isolated rotated and mirrored states.
+Modular console cells, main-store racks and pallet/workbench modules, clinic
+equipment, their stock/linen/frame layers and mess stools also retain paired
+damage states. Connected consoles keep their authored joins while damaged;
+destroyed cells become separate low fragments. Each base owns its original
+whole-footprint structure pool. Contained stock, retaining frames and bedding
+can take local damage independently, but collapse with their supporting rack,
+pallet or bed; unrelated nearby fixtures remain independent. Decorative layers
+keep zero cover and do not own floor obstruction. The `composable-damage` suite
+exercises assembled banks and layered furnishings in all four rotations.
 Every state preserves the full placement frame, rotation and mirror. A single
 blast spends the group's structure once, even when it visits several footprint
 cells. Destroyed equipment releases its own physical or directional cover and

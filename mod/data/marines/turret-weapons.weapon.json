@@ -518,21 +518,21 @@
         "arcHeight": 1.2
       },
       "render": {
-        "tracerColor": "9FE8FF",
+        "tracerColor": "FFB347",
         "projectileSprite": "graphics/missiles/missile_locust.png",
         "projectileVisualCells": 0.22,
         "contrail": "interceptor-wisp"
       },
       "fx": {
         "muzzle": [
-          { "kind": "glow", "radius": 0.30, "lifetime": 0.08, "color": "9FE8FF" },
+          { "kind": "glow", "radius": 0.30, "lifetime": 0.08, "color": "FFB347" },
           { "kind": "smoke", "radius": 0.12, "lifetime": 0.30 }
         ],
         "trail": [
-          { "kind": "glow", "radius": 0.10, "lifetime": 0.15, "color": "9FE8FF" }
+          { "kind": "glow", "radius": 0.10, "lifetime": 0.15, "color": "FF9A3C" }
         ],
         "impact": [
-          { "kind": "glow", "radius": 0.46, "lifetime": 0.16, "color": "BFF2FF" },
+          { "kind": "glow", "radius": 0.46, "lifetime": 0.16, "color": "FFD08A" },
           { "kind": "smoke", "radius": 0.18, "lifetime": 0.40 }
         ]
       },

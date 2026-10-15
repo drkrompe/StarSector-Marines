@@ -1,0 +1,232 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "name": "main-stores.rack-damaged",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "name": "main-stores.rack-destroyed",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "name": "main-stores.frame-damaged",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "name": "main-stores.frame-destroyed",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "name": "main-stores.cartons-damaged",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "name": "main-stores.cartons-destroyed",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "name": "main-stores.cases-damaged",
+      "row": 0
+    },
+    {
+      "col": 14,
+      "name": "main-stores.cases-destroyed",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "main-stores.pallet-damaged",
+      "row": 6
+    },
+    {
+      "col": 2,
+      "name": "main-stores.pallet-destroyed",
+      "row": 6
+    },
+    {
+      "col": 4,
+      "name": "main-stores.tally-damaged",
+      "row": 6
+    },
+    {
+      "col": 7,
+      "name": "main-stores.tally-destroyed",
+      "row": 6
+    },
+    {
+      "col": 10,
+      "name": "main-stores.packing-damaged",
+      "row": 6
+    },
+    {
+      "col": 13,
+      "name": "main-stores.packing-destroyed",
+      "row": 6
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 0,
+      "cover": "heavy",
+      "footprintCells": [
+        2,
+        6
+      ],
+      "id": "main-stores.rack-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 2,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        6
+      ],
+      "id": "main-stores.rack-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 4,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        6
+      ],
+      "id": "main-stores.frame-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 6,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        6
+      ],
+      "id": "main-stores.frame-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 8,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "main-stores.cartons-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 10,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "main-stores.cartons-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 12,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "main-stores.cases-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 14,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "main-stores.cases-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 0,
+      "cover": "med",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "main-stores.pallet-damaged",
+      "row": 6
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 2,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "main-stores.pallet-destroyed",
+      "row": 6
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 4,
+      "cover": "med",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "main-stores.tally-damaged",
+      "row": 6
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 7,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "main-stores.tally-destroyed",
+      "row": 6
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 10,
+      "cover": "med",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "main-stores.packing-damaged",
+      "row": 6
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 13,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "main-stores.packing-destroyed",
+      "row": 6
+    }
+  ],
+  "sheet": "graphics/tilesets/main-stores-damage.png"
+}

@@ -67,6 +67,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitFloorStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitSolidStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.LabelLeavesStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.IndustrialTemplateParcelStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.LaneRouteStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PedestrianFrameStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.RoadGraphStage;
@@ -200,6 +201,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new BspPartitionStage(),                    // Step 1b
                 new ZoningOverlayStage(),                   // Step 1c
                 new LabelLeavesStage(),                     // Step 2
+                new IndustrialTemplateParcelStage(),        // Whole industrial footprints before streets become a graph
                 new CompoundSeedStage(),                    // Step 2a   conquest-only
                 new AirbasePadSeedStage(),                  // Step 2a'  city landmark
                 landingLinkStage,                           // Step 2a'' landing-linked settlements only
@@ -274,6 +276,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new BspPartitionStage(),                    // Step 1b
                 new ZoningOverlayStage(),                   // Step 1c   binds DISTRICT_MAP
                 new LabelLeavesStage(),                     // Step 2
+                new IndustrialTemplateParcelStage(),        // Reserve fitting industrial lots before claim and road publication
                 new SpaceportDistrictPlanStage(),           // Step 2a   campaign civilian spaceport
                 landingLinkStage,                           // Step 2a'' landing-linked settlements only
                 new CompoundClaimStage(),                   // Step 2b

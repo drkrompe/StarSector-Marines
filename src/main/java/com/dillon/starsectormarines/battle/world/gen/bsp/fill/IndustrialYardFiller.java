@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.ServiceYardTemplate;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -40,6 +41,7 @@ public final class IndustrialYardFiller implements BlockFiller {
     @Override
     public void fill(BlockLeaf leaf, GenContext ctx) {
         paintOpenDirt(leaf, ctx.grid, ctx.topology);
+        if (ServiceYardTemplate.tryFit(leaf, ctx)) return;
         furnishArea(leaf, ctx, false, ctx.rng.nextInt(4));
     }
 

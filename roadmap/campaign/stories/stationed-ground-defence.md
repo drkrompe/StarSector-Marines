@@ -141,7 +141,10 @@ agree. Casualties are applied through the ordinary personnel outcome path.
    squad and the player elsewhere; one fought and won; one fleet-group raid
    on a patron market sharing the player's colony system. Read the raid
    intel's assessment before and after stationing, and check the raiders
-   wear their own faction's kit.
+   wear their own faction's kit. Stranded detachments ride on the same pass:
+   one overrun collected by pickup, one left to run out, and, with Nexerelin
+   installed, one Garrison market invaded. Read each company report as it
+   arrives.
 
 ## Decided while shipping
 

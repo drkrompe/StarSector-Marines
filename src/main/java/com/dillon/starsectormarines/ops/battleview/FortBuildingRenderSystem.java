@@ -39,8 +39,11 @@ import java.util.Map;
  */
 public final class FortBuildingRenderSystem implements RenderSystem {
 
-    /** Sprite angle is the on-screen heading of the local +x axis; flip if the draw convention turns the other way. */
-    private static final float ANGLE_SIGN = -1f;
+    /**
+     * Sprite angle is the on-screen heading of the local +x axis. The battle is drawn with cell +y up the screen and
+     * sprite angles run counter-clockwise on that screen, so the heading is the plain {@code atan2} of the axis.
+     */
+    private static final float ANGLE_SIGN = 1f;
     /** How much of a holder's colour washes over the roof of a building taken from its original owner. */
     private static final float TAKEN_WASH = 0.4f;
     /** A radar and a banner stay legible with the roof faded away; this is the least alpha they draw at. */
@@ -174,8 +177,8 @@ public final class FortBuildingRenderSystem implements RenderSystem {
         if (flag != null) {
             float[] tint = ShieldDomeRenderSystem.tintFor(holder);
             float size = banner.cells() * (taken ? TAKEN_BANNER_SCALE : 1f);
-            float[] at = localPoint(frame, floor, flipped ? floor[2] - banner.x() : banner.x(),
-                    flipped ? floor[3] - banner.y() : banner.y());
+            float[] reg = FortBuildingArt.registered(flipped, floor[2], floor[3], banner.x(), banner.y());
+            float[] at = localPoint(frame, floor, reg[0], reg[1]);
             float h = size * cellPx;
             out.addSprite(RenderLayer.ROOFS, flag.sprite, cam.cellToScreenX(at[0]), cam.cellToScreenY(at[1]),
                     h * flag.aspect, h, 0f, tint[0], tint[1], tint[2], standing);
@@ -327,20 +330,15 @@ public final class FortBuildingRenderSystem implements RenderSystem {
 
     /** The world point, in cells, of a point given in cells from the top-left of the local rectangle {@code floor}. */
     private static float[] localPoint(FortFrame frame, int[] floor, float px, float py) {
-        int[] a = frame.cell(0, 0);
-        int[] ex = frame.across();
-        int[] ey = frame.downward();
-        float u = floor[0] + px - 0.5f;
-        float v = floor[1] + py - 0.5f;
-        return new float[]{a[0] + 0.5f + ex[0] * u + ey[0] * v, a[1] + 0.5f + ex[1] * u + ey[1] * v};
+        return frame.point(floor[0] + px, floor[1] + py);
     }
 
     /** Draws a sprite authored in the local frame, centred at ({@code px}, {@code py}) cells into the rectangle. */
     private void put(DrawList out, RenderLayer layer, BattleCamera cam, FortFrame frame, int[] floor,
                      ShuttleSpriteCache sprite, float cellsW, float cellsH, float px, float py, float angle,
                      float r, float g, float b, float a, boolean additive, boolean flipped) {
-        float[] at = flipped ? localPoint(frame, floor, floor[2] - px, floor[3] - py)
-                : localPoint(frame, floor, px, py);
+        float[] reg = FortBuildingArt.registered(flipped, floor[2], floor[3], px, py);
+        float[] at = localPoint(frame, floor, reg[0], reg[1]);
         float cellPx = cam.cellPxSize();
         float sx = cam.cellToScreenX(at[0]);
         float sy = cam.cellToScreenY(at[1]);

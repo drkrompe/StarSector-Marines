@@ -31,6 +31,8 @@ import java.util.Random;
 /** Authored small territorial profile. Decoration never adds capture requirements. */
 public final class JunctionCompound {
     public static final int WIDTH = 192, HEIGHT = 112;
+    /** Where the second counterattack waits, just inside the map on the road from Rill. */
+    public static final int RILL_ROAD_X = 174, RILL_ROAD_Y = 4;
     public static final List<String> SITE_NAMES = List.of("Western turnout", "Weigh Station", "Freight Yard", "Junction Dispatch");
     public record Layout(MapResult map, List<TacticalNode> sites, PointOfInterest reserve) {
         public Layout { sites = List.copyOf(sites); }
@@ -53,7 +55,7 @@ public final class JunctionCompound {
         for (int i = 0; i < 3; i++) {
             PointOfInterest p = c.pois.get(i);
             sites.add(new TacticalNode(kinds[i], p.interiorAnchorX, p.interiorAnchorY,
-                    p.left, p.top, p.right, p.bottom, Faction.DEFENDER, 50 + i * 10, i == 2 ? 8 : 4));
+                    p.left, p.top, p.right, p.bottom, Faction.DEFENDER, 50 + i * 10, 6 + 2 * i));
         }
         MapResult map = new MapResult(c.grid, c.topology, 21, 56, 148, 55,
                 c.pois, c.doodads, new TacticalMap(sites), c.get(BspKeys.BUILDINGS),
@@ -134,14 +136,7 @@ public final class JunctionCompound {
     private static void serviceYards(GenContext c) {
         StoryServiceYard yard = new StoryServiceYard(c);
         // Warehouse overflow: three dispatch bays and a separate pallet-storage court.
-        yard.gravel(62, 69, 88, 87);
-        yard.fence(62, 69, 88, 87);
-        for (int x : new int[]{65, 73, 81}) {
-            yard.bay(x, 72, x + 5, 78);
-            // Container doors face the stacks; the flatbed loads from the side.
-            yard.prop(x + 1, 75, x == 73 ? "parked-flatbed-truck" : "parked-cargo-truck", x == 73 ? 0 : 3);
-            yard.cargo(x, 82);
-        }
+        ServiceYardTemplate.FREIGHT_MARSHALLING.place(c, 62, 69, 0);
         // The weigh-house's inspection lay-by faces the loading street, not the main road.
         yard.bay(77, 39, 81, 50);
         yard.prop(78, 45, "parked-utility-truck", 1);

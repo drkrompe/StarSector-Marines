@@ -23,6 +23,7 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 
 import com.dillon.starsectormarines.battle.world.gen.fortress.MaintenanceOutpost;
+import com.dillon.starsectormarines.battle.world.gen.fortress.CompoundMissionMap;
 
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 
@@ -1053,6 +1054,23 @@ public final class BattleSetup {
                 marineAir, enemyAir, sprawl, null, 1f, true, null, null);
     }
 
+    /** Whole campaign-derived sites are an ordinary remote-assault choice when the tier affords their approach. */
+    static boolean usesCompoundTemplate(MissionType type, MapScale scale, PrecinctPlan.Sprawl sprawl) {
+        return type == MissionType.ASSAULT && sprawl == PrecinctPlan.Sprawl.REMOTE
+                && CompoundMissionMap.fits(scale.width, scale.height);
+    }
+
+    static MapResult proceduralOperationMap(MissionType type, OperationTier tier, RiskLevel risk,
+            TargetProfile profile, MapScale scale, long seed, PrecinctPlan.Sprawl sprawl, PrecinctPlan precincts) {
+        PrecinctPlan.Sprawl resolved = sprawl != null ? sprawl
+                : profile != null && profile.marketSize() > 0 ? SettlementZoning.sprawlFor(profile.marketSize()) : null;
+        var fortification = MissionFortification.demand(tier, risk).resolve(profile == null ? 0 : profile.defenseLevel());
+        if (usesCompoundTemplate(type, scale, resolved) && CompoundMissionMap.supports(profile, fortification)) {
+            return CompoundMissionMap.generate(scale.width, scale.height, seed, profile, fortification);
+        }
+        return MAP_GEN.generate(scale.width, scale.height, seed, null, profile, precincts);
+    }
+
     private static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
             boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk, MissionType type,
             TargetProfile profile, FlybyRoster marineFighterSupport, FlybyRoster enemyFighterSupport,
@@ -1066,7 +1084,7 @@ public final class BattleSetup {
         MapResult map = coldAccount
                 ? MaintenanceOutpost.generate(MaintenanceOutpost.WIDTH, MaintenanceOutpost.HEIGHT, seed, profile,
                         precincts.objective().fortification())
-                : MAP_GEN.generate(scale.width, scale.height, seed, null, profile, precincts);
+                : proceduralOperationMap(type, tier, risk, profile, scale, seed, sprawl, precincts);
         Random rng = new Random(seed);
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
         List<Doodad> vehiclePlacements = stampVehicles(map, rng);
@@ -1822,13 +1840,17 @@ public final class BattleSetup {
             spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, post.anchorX, post.anchorY, post.garrisonSize),
                     Faction.DEFENDER, "junction-guard-" + i, post, rng);
         }
-        spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, layout.reserve().interiorAnchorX, layout.reserve().interiorAnchorY, 4), Faction.DEFENDER, "junction-reserve", null, rng);
+        spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, layout.reserve().interiorAnchorX, layout.reserve().interiorAnchorY, 8), Faction.DEFENDER, "junction-reserve", null, rng);
+        // A second finite counterattack waits on the road from Rill and comes in once a second site falls.
+        spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, JunctionCompound.RILL_ROAD_X, JunctionCompound.RILL_ROAD_Y, 8),
+                Faction.DEFENDER, "junction-rill-road", null, rng);
         for (Squad squad : sim.getSquads()) if (squad.faction == Faction.DEFENDER && squad.assignedNode == null)
             if (!sim.handoffSquadCommand(squad.id, OpeningOperationCommand.issuer(Faction.DEFENDER),
                     CommandAuthority.MISSION_COMMAND, JunctionCommand.issuer(Faction.DEFENDER), null, "finite Junction reserve"))
                 throw new IllegalStateException("Junction reserve command handoff failed");
         for (Faction faction : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER))
-            sim.setAutonomousCommander(faction, new JunctionCommand(faction, layout.reserve().interiorAnchorX, layout.reserve().interiorAnchorY), ConquestCommandDisclosure.INSTANCE);
+            sim.setAutonomousCommander(faction, new JunctionCommand(faction, layout.reserve().interiorAnchorX, layout.reserve().interiorAnchorY,
+                    JunctionCompound.RILL_ROAD_X, JunctionCompound.RILL_ROAD_Y), ConquestCommandDisclosure.INSTANCE);
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(JunctionCommand.issuer(Faction.MARINE), "Company support joins the operation"));
         sim.installJunctionStoryHooks();
         sim.installWaylineGunship(false);

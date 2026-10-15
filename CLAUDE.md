@@ -168,9 +168,12 @@ Do not run builds or leave generated task files there.
   defender orders and casualties; vicinity is not capture. The harness verifies
   that the production air entities retain each committed player airframe. These
   are factory-loadout controls, not current campaign roster acceptance.
-  Junction's default matrix covers three interiors with two twelve-person squads,
-  four squads, and two understrength four-person squads, plus reserve/hold,
-  single-ferry, absent-player and refitted-boat controls. `-Pmission=junction`
+  Junction's default matrix flies the lift a company has at that point in the
+  campaign: three interiors with two Hermes making three four-seat trips (24),
+  one Hermes making six, and one Hermes making three (12, understrength), plus
+  militia-held-at-landing and absent-player controls. `-PsnapshotEveryTicks=N`
+  records a whole-map `review.gif`; add `-PsnapshotFocus=x,y,cellsAcross` for a
+  close view instead (the Weigh Station is about `72,50`). `-Pmission=junction`
   replays the production finite territorial factory; it does not create a campaign
   offer. Custom fixture fields are `id`, `seed`, `playerType`, `playerBoats`,
   `playerSeats`, and `playerCycles`, plus optional fitting ids and `playerDelay`.
@@ -1230,7 +1233,7 @@ The discovered suite ids and default output directories are:
 | `hq-intel` | Animated HQ receivers, dossier selection and a labelled fixture arrival at 1920x1080, 100% scale | `build/snapshots/hq-intel/` |
 | `firing-line` | Two animated loops of six marines in column in a corridor: the file shooting through its own men, and the same file stepping a cell out of each other's lanes. The acceptance for the friendly-lane step-aside | `build/snapshots/firing-line/` |
 | `frontage-scene` | Animated garrison stand-to on a generated compound, one loop per approach edge | `build/snapshots/frontage-scene/` |
-| `point-defence` | Animated LRM salvos against a placed interceptor pod: rounds stopped, rounds missed, rounds arriving; and the same salvos against a section wearing the interceptor pack, a close view at 1920x1080, 100% scale, every other tick so an interceptor's flight and trail are in frame | `build/snapshots/point-defence/` |
+| `point-defence` | Animated LRM salvos against a placed interceptor pod: rounds stopped, rounds missed, rounds arriving; and the same salvos against a section wearing the interceptor pack, a close view at 1920x1080, 100% scale, every other tick so an interceptor's flight and trail are in frame, with close stills of the pack worn and of its first launch | `build/snapshots/point-defence/` |
 | `deployable-cover` | Animated controlled comparison of a placed revetment: the same fire into a covered lane, an open lane, and a screened post shot from the flank | `build/snapshots/deployable-cover/` |
 | `integral-system-fx` | A running integral system's halo: a narrow authored screen beside a wide one draining their soak pools, one breaking under concentrated fire, and one pattern's screen at four facings | `build/snapshots/integral-system-fx/` |
 | `perception-sweep` | The player's own picture — fog overlay and hidden-unit gating included — before, during, and after a Janus sensor sweep | `build/snapshots/perception-sweep/` |

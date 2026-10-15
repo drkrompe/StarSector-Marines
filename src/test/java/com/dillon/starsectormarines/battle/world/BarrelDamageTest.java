@@ -62,22 +62,25 @@ class BarrelDamageTest {
                 }
     }
 
-    @Test void destroyingStockRetainsItsPalletCoverAndObstruction() {
+    @Test void destroyingWeakenedStockRetainsItsSurvivingPalletCoverAndObstruction() {
         try (Ground g = new Ground()) {
             for (int y = 3; y < 5; y++) for (int x = 3; x < 5; x++) {
                 g.grid.setWalkable(x, y, false); g.topology.setFixture(x, y, true);
             }
             Doodad pallet = new Doodad(3, 3, TileRegistry.installed().doodad("main-stores.pallet"), 0);
-            g.props.addDoodad(pallet);
             g.barrel("main-stores.drums", 3, 3, true, 0, false);
+            g.editor.damageWall(4, 4, 60);
+            g.props.addDoodad(pallet);
             int cover = g.grid.getCellCoverAtFacing(2, 3, NavigationGrid.FACING_E);
             assertEquals(2, cover);
-            assertTrue(g.editor.damageWall(4, 4, 100));
-            assertSame(pallet, g.props.getDoodads().get(0));
+            assertTrue(g.editor.damageWall(4, 4, 40));
+            assertEquals("main-stores.drums-destroyed", g.props.getDoodads().get(0).definitionId());
+            assertEquals("main-stores.pallet-damaged", g.props.getDoodads().get(1).definitionId());
             assertEquals(cover, g.grid.getCellCoverAtFacing(2, 3, NavigationGrid.FACING_E));
-            assertFalse(g.editor.damageWall(3, 3, 1000));
             assertFalse(g.grid.isWalkable(3, 3)); assertTrue(g.topology.isFixture(3, 3));
             assertFalse(g.navigation.isNavigationTopologyDirty());
+            assertTrue(g.editor.damageWall(3, 3, 1000));
+            assertTrue(g.grid.isWalkable(3, 3)); assertFalse(g.topology.isFixture(3, 3));
         }
     }
 

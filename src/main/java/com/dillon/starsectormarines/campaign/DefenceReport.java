@@ -11,7 +11,7 @@ import java.util.function.Function;
 
 /**
  * Composes the company's after-action account of a Garrison defence that settled without
- * the player — see {@code stranded-detachment-recovery.md}.
+ * the player — see {@code contracts-nouns.md} (stranded detachments).
  *
  * <p>The account has a <em>spine</em> and <em>colour</em>. Every claim in the spine is a
  * fact the settlement froze: who attacked, where, when, who stood the post, how it ended

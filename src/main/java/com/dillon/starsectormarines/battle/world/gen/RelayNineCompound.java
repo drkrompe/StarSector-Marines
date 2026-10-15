@@ -145,28 +145,10 @@ public final class RelayNineCompound {
             yard.prop(140, y + 1, "industrial-cable-reel", 0);
         }
         // Maintenance yard beside the T workshop: spare machinery and service vehicles.
-        yard.gravel(165, 80, 183, 99);
-        yard.fence(165, 80, 183, 99);
-        yard.bay(168, 82, 173, 90);
-        yard.prop(169, 86, "parked-utility-truck", 3);
-        yard.bay(176, 82, 181, 90);
-        yard.prop(177, 86, "parked-flatbed-truck", 0);
-        // Fluid delivery stands across the back of the service bays, below the turbine aisle.
-        yard.prop(170, 91, "parked-tanker-truck", 2);
-        yard.prop(168, 95, "industrial-turbine-set", 0);
-        yard.prop(176, 95, "industrial-machine-tool", 0);
-        yard.prop(179, 95, "industrial-pipe-bundle", 0);
+        ServiceYardTemplate.MAINTENANCE.place(c, 165, 80, 0);
         // An outdoor power installation explains the switch house and relay demand.
         // Kept west of Relay Hall, leaving both hall approaches and the south road open.
-        yard.gravel(124, 46, 148, 59);
-        yard.fence(124, 46, 148, 59);
-        for (int x : new int[]{127, 137}) {
-            yard.prop(x, 49, "industrial-turbine-set", 0);
-            yard.prop(x, 55, "industrial-reactor-housing", 0);
-            yard.prop(x + 4, 56, "industrial-switchboard", 0);
-        }
-        yard.prop(145, 49, "industrial-fluid-tank", 0);
-        yard.prop(145, 55, "industrial-pump-set", 1);
+        ServiceYardTemplate.POWER_COURT.place(c, 124, 46, 0);
         // Switch-house service recess: small local controls, never across its north entrance.
         yard.gravel(86, 41, 92, 57);
         yard.fence(67, 39, 94, 59);

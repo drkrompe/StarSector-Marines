@@ -35,7 +35,13 @@ import java.util.Locale;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Regenerates the two-second design review of the Tri-Arch shoulder laser's one-second beam. */
+/**
+ * Renders the two-second design review of the Tri-Arch shoulder laser's one-second beam.
+ *
+ * <p>Writes to {@code build/previews/} so an ordinary {@code :test} run never modifies a
+ * checked-in file. The reviewed copy in {@code roadmap/mechs/previews/} is refreshed on
+ * purpose: run this test and copy the output over it in the commit that changes the beam.
+ */
 class LaserFxFeelPreviewTest {
 
     private static final int WIDTH = 960;
@@ -68,7 +74,8 @@ class LaserFxFeelPreviewTest {
         particles.addAll(WeaponFxComposer.compose(laser.fx, FxSlot.IMPACT,
                 new FxCompositionContext(IMPACT_X, BEAM_Y, 90f, false, 0.314f)));
         Assets assets = new Assets(mod, core);
-        Path output = project.resolve("roadmap/mechs/previews/laser-1s-beam-2s-review.gif");
+        Path output = project.resolve("build/previews/laser-1s-beam-2s-review.gif");
+        Files.createDirectories(output.getParent());
 
         try (AnimatedGifWriter gif = new AnimatedGifWriter(output, FRAME_MILLIS)) {
             for (int frame = 0; frame < FRAMES; frame++) {

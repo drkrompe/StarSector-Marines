@@ -83,4 +83,36 @@ class GunshipOrbitTest {
         assertTrue(paced.minTurnRadiusCells() < GunshipOrbit.RADIUS_CELLS,
                 "a ring tighter than the craft's turning circle would be an orbit it can never join");
     }
+
+    @Test
+    void theWorkedRingSwingsButStaysWithinItsBand() {
+        float least = Float.MAX_VALUE, most = 0f;
+        for (int a = 0; a < 360; a++) for (float phase = 0f; phase < 6.3f; phase += 0.7f) {
+            float r = GunshipOrbit.workedRadius(GunshipOrbit.RADIUS_CELLS, Math.toRadians(a), phase);
+            least = Math.min(least, r);
+            most = Math.max(most, r);
+        }
+        float band = GunshipOrbit.SWING_FRACTION * GunshipOrbit.RADIUS_CELLS;
+        assertTrue(least >= GunshipOrbit.RADIUS_CELLS - band - 1e-3f && most <= GunshipOrbit.RADIUS_CELLS + band + 1e-3f,
+                "the swing is bounded: " + least + " to " + most);
+        assertTrue(most - least > band, "and it really does swing, or the ring is the circle it replaced");
+    }
+
+    @Test
+    void theTightEndIsFlownSlowerAndLowerThanTheWideLeg() {
+        float tight = GunshipOrbit.RADIUS_CELLS * (1 - GunshipOrbit.SWING_FRACTION);
+        float wide = GunshipOrbit.RADIUS_CELLS * (1 + GunshipOrbit.SWING_FRACTION);
+        assertTrue(GunshipOrbit.workedPace(tight, GunshipOrbit.RADIUS_CELLS, 0f)
+                < GunshipOrbit.workedPace(wide, GunshipOrbit.RADIUS_CELLS, 0f));
+        assertEquals(GunshipOrbit.LOW_ALTITUDE_T, GunshipOrbit.workedAltitude(tight, GunshipOrbit.RADIUS_CELLS), 1e-4f);
+        assertEquals(1f, GunshipOrbit.workedAltitude(wide, GunshipOrbit.RADIUS_CELLS), 1e-4f);
+    }
+
+    @Test
+    void theWorkedRingsTightestPointIsStillFlyable() {
+        float tight = GunshipOrbit.RADIUS_CELLS * (1 - GunshipOrbit.SWING_FRACTION);
+        float pace = GunshipOrbit.workedPace(tight, GunshipOrbit.RADIUS_CELLS, 0f) * 1.1f;
+        AirHandling paced = GunshipOrbit.paced(ShuttleType.MUDSKIPPER, 0f, 1f / 30f, pace);
+        assertTrue(paced.minTurnRadiusCells() < tight, "the craft can turn as tight as the oval asks of it");
+    }
 }

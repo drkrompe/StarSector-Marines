@@ -36,6 +36,13 @@ worked pallet bank beside a gangway. STOW belongs beside shelves and pallets,
 READOUT beside the tally desk, and REPAIR beside the recovery bench. Displayed
 stock is visual dressing, not a campaign inventory or a new cargo capacity.
 
+Ground building work groups also reuse the rack, frame and stock layers for
+command annex shelving and the authored L freight depot. Industrial floors use
+joined pallet slots in L-shaped staging islands. These groups reserve their
+handling aisles and rotate their stock with the physical bases. The
+`console-rooms` snapshot suite shows these building fittings and standalone
+storage assemblies in `art-source/console-bank/review/storage-workgroups.png`.
+
 With JAVA_HOME set as documented in CLAUDE.md:
 
 ```powershell

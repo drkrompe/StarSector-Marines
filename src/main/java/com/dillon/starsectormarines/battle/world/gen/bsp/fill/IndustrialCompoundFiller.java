@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.ServiceYardTemplate;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.Compound;
 import com.dillon.starsectormarines.battle.world.gen.bsp.CompoundFiller;
@@ -68,7 +69,7 @@ public final class IndustrialCompoundFiller implements CompoundFiller {
         BuildingPlacement.Side yardFrontage = findFrontage(yard, apron);
 
         carveBuilding(factory, BuildingIndustrialFiller.CONFIG, factoryPlacement, ctx);
-        carveBuilding(utility, UTILITY_CONFIG, utilityPlacement, ctx);
+        if (!BuildingStamp.tryPlaceFreight(utility, ctx)) carveBuilding(utility, UTILITY_CONFIG, utilityPlacement, ctx);
         carveFencedYard(yard, yardFrontage, apron, ctx);
         furnishApron(compound, apron, ctx.get(BspKeys.ROAD_RESERVATION), ctx);
     }
@@ -182,9 +183,10 @@ public final class IndustrialCompoundFiller implements CompoundFiller {
                                         BuildingPlacement.Side frontage,
                                         boolean[][] apron,
                                         GenContext ctx) {
+        IndustrialYardFiller.paintOpenDirt(yard, ctx.grid, ctx.topology);
+        if (ServiceYardTemplate.tryFit(yard, ctx)) return;
         if (frontage == null) frontage = BuildingPlacement.Side.LEFT;
         int gateStart = gateStart(yard, frontage, apron);
-        IndustrialYardFiller.paintOpenDirt(yard, ctx.grid, ctx.topology);
         if (yard.width() > 4 && yard.height() > 4) {
             BlockLeaf inset = new BlockLeaf(
                     yard.left + 1, yard.top + 1, yard.right - 1, yard.bottom - 1, false);
