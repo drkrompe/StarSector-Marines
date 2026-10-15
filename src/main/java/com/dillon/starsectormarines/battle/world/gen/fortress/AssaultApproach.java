@@ -20,7 +20,7 @@ import java.util.List;
  * @param outY      as {@code outX}
  * @param entryX    a cell inside the wall, past the gatehouse (or through the breach), where the way in is made good
  * @param entryY    as {@code entryX}
- * @param covering  indices into {@link FortPlan#nests()} of the nests that have the mouth within their reach
+ * @param covering  indices into {@link FortPlan#defenceNests()} of the nests that have the mouth within their reach
  * @param lane      the approach lane in front of the way in, from the mouth outward to the footprint's edge: the cells
  *                  the belt and fence are left open across
  */

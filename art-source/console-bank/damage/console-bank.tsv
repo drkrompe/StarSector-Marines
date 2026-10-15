@@ -1,0 +1,6 @@
+console-bank.straight	mod/graphics/tilesets/console-bank.png	0	0	128	128	1	1	med	0.65
+console-bank.straight-alt	mod/graphics/tilesets/console-bank.png	128	0	128	128	1	1	med	0.65
+console-bank.inside-corner	mod/graphics/tilesets/console-bank.png	256	0	128	128	1	1	med	0.65
+console-bank.outside-corner	mod/graphics/tilesets/console-bank.png	384	0	128	128	1	1	med	0.65
+console-bank.end-left	mod/graphics/tilesets/console-bank.png	512	0	128	128	1	1	med	0.65
+console-bank.end-right	mod/graphics/tilesets/console-bank.png	640	0	128	128	1	1	med	0.65

@@ -1,0 +1,12 @@
+console-bank.straight-damaged	37	59	312	277	1	1	med	0.65
+console-bank.straight-destroyed	30	392	302	302	1	1	none	0
+console-bank.straight-alt-damaged	404	55	311	281	1	1	med	0.65
+console-bank.straight-alt-destroyed	392	392	302	302	1	1	none	0
+console-bank.inside-corner-damaged	755	28	298	309	1	1	med	0.65
+console-bank.inside-corner-destroyed	754	392	302	302	1	1	none	0
+console-bank.outside-corner-damaged	30	727	307	314	1	1	med	0.65
+console-bank.outside-corner-destroyed	30	1116	302	302	1	1	none	0
+console-bank.end-left-damaged	401	741	302	321	1	1	med	0.65
+console-bank.end-left-destroyed	392	1116	302	302	1	1	none	0
+console-bank.end-right-damaged	761	740	295	322	1	1	med	0.65
+console-bank.end-right-destroyed	754	1116	302	302	1	1	none	0

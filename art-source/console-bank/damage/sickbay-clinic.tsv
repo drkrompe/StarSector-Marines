@@ -1,0 +1,11 @@
+sickbay-clinic.bed	mod/graphics/tilesets/sickbay-clinic.png	0	0	64	128	1	2	med	0.38
+sickbay-clinic.linen-high	mod/graphics/tilesets/sickbay-clinic.png	64	0	64	128	1	2	none	0
+sickbay-clinic.linen-low	mod/graphics/tilesets/sickbay-clinic.png	128	0	64	128	1	2	none	0
+sickbay-clinic.monitor	mod/graphics/tilesets/sickbay-clinic.png	192	0	64	64	1	1	med	0.65
+sickbay-clinic.station	mod/graphics/tilesets/sickbay-clinic.png	256	0	128	64	2	1	med	0.5
+sickbay-clinic.cabinet	mod/graphics/tilesets/sickbay-clinic.png	384	0	128	64	2	1	heavy	1.1
+sickbay-clinic.sink	mod/graphics/tilesets/sickbay-clinic.png	512	0	64	64	1	1	med	0.5
+sickbay-clinic.trolley	mod/graphics/tilesets/sickbay-clinic.png	576	0	64	64	1	1	med	0.45
+sickbay-clinic.exam	mod/graphics/tilesets/sickbay-clinic.png	640	0	128	64	2	1	med	0.38
+sickbay-clinic.screen	mod/graphics/tilesets/sickbay-clinic.png	768	0	64	128	1	2	light	0.8
+mess-galley.stool	mod/graphics/tilesets/mess-galley.png	384	0	64	64	1	1	none	0

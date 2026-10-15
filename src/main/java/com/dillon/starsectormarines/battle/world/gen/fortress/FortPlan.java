@@ -81,6 +81,17 @@ public interface FortPlan {
     List<FortBelt.Cell> belt();
 
     /**
+     * Every gun an assault on this fort answers to: the bastion nests ({@link #nests()}, in that order) and then the nests
+     * of the outer belt, which stand off the works across open ground and reach the approaches as far as the bastions do.
+     * Indices into this list are what an {@link AssaultApproach} names as covering its mouth.
+     */
+    default List<int[]> defenceNests() {
+        List<int[]> out = new ArrayList<>(nests());
+        out.addAll(FortBelt.nests(belt()));
+        return out;
+    }
+
+    /**
      * Where this kind stands its optional anti-air yard, or {@code null} for a kind that has none. Present in the plan
      * whether or not a given fort asks for it: whether to stamp it is the declaration's, not the plan's.
      */

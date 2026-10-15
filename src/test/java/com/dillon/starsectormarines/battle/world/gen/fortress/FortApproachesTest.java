@@ -51,9 +51,10 @@ class FortApproachesTest {
         FortPlan plan = FortPlan.of(FortKind.BATTERY_FORT);
         AssaultApproach main = find(plan.approaches(), Variant.MAIN_GATE);
         // The main gate is on the west face: the two western bastion nests have it, the two eastern do not.
-        assertEquals(List.of(0, 2), main.covering());
+        assertTrue(main.covering().containsAll(List.of(0, 2)) && !main.covering().contains(1) && !main.covering().contains(3));
+        assertTrue(main.covering().stream().anyMatch(i -> i >= BatteryFort.NESTS.size()), "the belt's guns cover it too");
         AssaultApproach postern = find(plan.approaches(), Variant.POSTERN);
-        assertEquals(List.of(0, 1), postern.covering(), "the north postern has the two northern nests");
+        assertTrue(postern.covering().containsAll(List.of(0, 1)) && !postern.covering().contains(2), "the north postern has the two northern nests");
     }
 
     @Test

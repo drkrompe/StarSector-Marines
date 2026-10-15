@@ -1,0 +1,152 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "name": "factory-machines.fabricator",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "name": "factory-machines.fabricator-damaged",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "name": "factory-machines.fabricator-destroyed",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "name": "factory-machines.assembly",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "name": "factory-machines.assembly-damaged",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "factory-machines.assembly-destroyed",
+      "row": 3
+    },
+    {
+      "col": 3,
+      "name": "factory-machines.coolant",
+      "row": 3
+    },
+    {
+      "col": 5,
+      "name": "factory-machines.coolant-damaged",
+      "row": 3
+    },
+    {
+      "col": 7,
+      "name": "factory-machines.coolant-destroyed",
+      "row": 3
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 0,
+      "cover": "heavy",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "factory-machines.fabricator",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 3,
+      "cover": "heavy",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "factory-machines.fabricator-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 6,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "factory-machines.fabricator-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 9,
+      "cover": "heavy",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "factory-machines.assembly",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 12,
+      "cover": "heavy",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "factory-machines.assembly-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "factory-machines.assembly-destroyed",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 3,
+      "cover": "heavy",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "factory-machines.coolant",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 5,
+      "cover": "heavy",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "factory-machines.coolant-damaged",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 7,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "factory-machines.coolant-destroyed",
+      "row": 3
+    }
+  ],
+  "sheet": "graphics/tilesets/factory-machines.png"
+}

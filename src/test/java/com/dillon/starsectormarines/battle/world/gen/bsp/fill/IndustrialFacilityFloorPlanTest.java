@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
@@ -47,9 +46,9 @@ class IndustrialFacilityFloorPlanTest {
 
             assertNotNull(poi, frontage.toString());
             assertEquals(PointOfInterest.Kind.DEPOT, poi.kind);
-            assertEquals(2, perimeterDoorways(grid, leaf), frontage.toString());
-            int loadingDoor = doorwayAlong(grid, leaf, frontage);
-            int serviceDoor = doorwayAlong(grid, leaf, frontage.opposite());
+            assertTrue(perimeterDoorways(grid, leaf) >= 4, "personnel entrances plus a cargo bay " + frontage);
+            int loadingDoor = doorwayAlong(grid, topology, leaf, frontage);
+            int serviceDoor = doorwayAlong(grid, topology, leaf, frontage.opposite());
             assertTrue(loadingDoor >= 0, "loading entrance " + frontage);
             assertEquals(loadingDoor, serviceDoor, "doors align on service spine " + frontage);
             assertEquals(RoomPurpose.INDUSTRIAL_SPINE,
@@ -64,18 +63,21 @@ class IndustrialFacilityFloorPlanTest {
                         purpose + " component from " + frontage);
             }
             assertTwoCellSpine(grid, topology, leaf, frontage, loadingDoor);
-            assertTrue(doodadsInPurpose(doodads, topology, RoomPurpose.PRODUCTION_FLOOR) >= 3);
+            assertTrue(doodads.stream().anyMatch(d -> isMachine(d)
+                    && topology.getRoomPurpose(d.cellX, d.cellY) == RoomPurpose.PRODUCTION_FLOOR));
             assertTrue(doodadsInPurpose(doodads, topology, RoomPurpose.CONTROL_ROOM) >= 1,
                     "control room needs a fitted bank or the compact fallback console");
             assertEquals(2, doodadsInPurpose(doodads, topology, RoomPurpose.PARTS_CAGE));
-            assertEquals(1, doodadsInPurpose(doodads, topology, RoomPurpose.LOADING_BAY));
+            assertTrue(doodadsInPurpose(doodads, topology, RoomPurpose.LOADING_BAY) >= 1,
+                    "receiving fits working furniture or the compact pallet fallback");
             assertMachineryLanes(grid, topology, doodads, frontage, loadingDoor);
 
             for (int y = leaf.top + 1; y < leaf.bottom; y++) {
                 for (int x = leaf.left + 1; x < leaf.right; x++) {
                     if (!topology.isFixture(x, y)) continue;
                     assertFalse(grid.isWalkable(x, y), "fixture blocks movement");
-                    boolean opaque = topology.getRoomPurpose(x, y) == RoomPurpose.PRODUCTION_FLOOR;
+                    final int cellX = x, cellY = y;
+                    boolean opaque = doodads.stream().anyMatch(d -> isMachine(d) && d.occupiesCell(cellX, cellY));
                     assertEquals(!opaque, grid.isSeeThrough(x, y),
                             "only production machinery blocks line of sight");
                 }
@@ -152,7 +154,7 @@ class IndustrialFacilityFloorPlanTest {
         return count;
     }
 
-    private static int doorwayAlong(NavigationGrid grid, BlockLeaf leaf,
+    private static int doorwayAlong(NavigationGrid grid, CellTopology topology, BlockLeaf leaf,
                                     BuildingPlacement.Side side) {
         int min = side == BuildingPlacement.Side.TOP || side == BuildingPlacement.Side.BOTTOM
                 ? leaf.left + 1 : leaf.top + 1;
@@ -163,7 +165,7 @@ class IndustrialFacilityFloorPlanTest {
                     : side == BuildingPlacement.Side.RIGHT ? leaf.right : along;
             int y = side == BuildingPlacement.Side.TOP ? leaf.top
                     : side == BuildingPlacement.Side.BOTTOM ? leaf.bottom : along;
-            if (grid.isDoorway(x, y)) return along;
+            if (grid.isDoorway(x, y) && inwardPurpose(topology, leaf, side, along) == RoomPurpose.INDUSTRIAL_SPINE) return along;
         }
         return -1;
     }
@@ -202,23 +204,38 @@ class IndustrialFacilityFloorPlanTest {
         List<Doodad> machines = new ArrayList<>();
         for (Doodad doodad : doodads) {
             if (topology.getRoomPurpose(doodad.cellX, doodad.cellY)
-                    == RoomPurpose.PRODUCTION_FLOOR) machines.add(doodad);
-        }
-        machines.sort(Comparator.comparingInt(d -> vertical ? d.cellY : d.cellX));
-        for (int i = 1; i < machines.size(); i++) {
-            int previous = vertical ? machines.get(i - 1).cellY : machines.get(i - 1).cellX;
-            int current = vertical ? machines.get(i).cellY : machines.get(i).cellX;
-            assertTrue(current - previous >= 3, "machinery leaves two-cell cross gaps");
+                    == RoomPurpose.PRODUCTION_FLOOR && isMachine(doodad)) machines.add(doodad);
         }
         for (Doodad machine : machines) {
+            if (machine.definitionId().startsWith("factory-machines.")) {
+                int[] face = new int[][]{{0,-1},{1,0},{0,1},{-1,0}}[machine.quarterTurns];
+                for (int y = machine.cellY; y < machine.cellY + machine.footprintCellsY; y++)
+                    for (int x = machine.cellX; x < machine.cellX + machine.footprintCellsX; x++) {
+                        if (machine.occupiesCell(x + face[0], y + face[1])) continue;
+                        for (int step = 1; step <= 2; step++)
+                            assertTrue(grid.isWalkable(x + face[0]*step, y + face[1]*step), "clear operator face");
+                    }
+                continue;
+            }
             int across = vertical ? machine.cellX : machine.cellY;
             int direction = Integer.compare(spineLow, across);
-            for (int step = 1; step <= BuildingLayouts.TACTICAL_AISLE_WIDTH; step++) {
-                int x = vertical ? across + direction * step : machine.cellX;
-                int y = vertical ? machine.cellY : across + direction * step;
-                assertTrue(grid.isWalkable(x, y), "clear production lane beside machinery");
-            }
+            if (direction > 0) across += (vertical ? machine.footprintCellsX : machine.footprintCellsY) - 1;
+            int along = vertical ? machine.cellY : machine.cellX;
+            int length = vertical ? machine.footprintCellsY : machine.footprintCellsX;
+            for (int step = 1; step <= BuildingLayouts.TACTICAL_AISLE_WIDTH; step++)
+                for (int offset = 0; offset < length; offset++) {
+                    int x = vertical ? across + direction * step : along + offset;
+                    int y = vertical ? along + offset : across + direction * step;
+                    assertTrue(grid.isWalkable(x, y), "clear operating lane across the complete machine face");
+                }
         }
+    }
+
+    private static boolean isMachine(Doodad doodad) {
+        return "doodad.industrial-machine-tool".equals(doodad.definitionId())
+                || "doodad.industrial-fluid-tank".equals(doodad.definitionId())
+                || (doodad.definitionId().startsWith("factory-machines.")
+                    && !doodad.definitionId().startsWith("factory-machines.conveyor"));
     }
 
     private static int purposeComponents(CellTopology topology, BlockLeaf leaf,

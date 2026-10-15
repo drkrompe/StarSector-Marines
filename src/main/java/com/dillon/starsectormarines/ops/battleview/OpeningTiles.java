@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.nav.Direction;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
@@ -9,6 +10,16 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 /** Opening appearance follows its shell; navigation remains owned by the actual gap or barrier. */
 final class OpeningTiles {
     private OpeningTiles() {}
+
+    /** A contiguous cargo opening uses the actual shell ends as jambs, never one frame per cell. */
+    static boolean wideDoorway(NavigationGrid grid, int x, int y) {
+        if (!grid.isDoorway(x, y)) return false;
+        for (Direction direction : Direction.CARDINALS) {
+            int nx = x + direction.dx, ny = y + direction.dy;
+            if (grid.inBounds(nx, ny) && grid.isDoorway(nx, ny)) return true;
+        }
+        return false;
+    }
 
     static Direction facing(SharedEdgeBarrier barrier) {
         boolean ownerIsCanonical = barrier.structureCellX() == barrier.cellX()

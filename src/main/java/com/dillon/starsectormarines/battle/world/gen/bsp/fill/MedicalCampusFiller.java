@@ -4,16 +4,16 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.MedicalServiceCourt;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.Compound;
 import com.dillon.starsectormarines.battle.world.gen.bsp.CompoundFiller;
 import com.dillon.starsectormarines.battle.world.model.BuildingKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
-import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
-import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
-import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -23,7 +23,7 @@ import java.util.List;
  * Three-parcel medical campus. The large seed becomes a purpose-partitioned
  * clinic, the larger neighboring parcel becomes a supplies/support building,
  * and the remaining parcel stays open as an ambulance court. Both buildings
- * face the shared striped circulation while its vehicle reservation remains
+ * face the shared concrete circulation while its vehicle reservation remains
  * untouched.
  */
 public final class MedicalCampusFiller implements CompoundFiller {
@@ -39,7 +39,8 @@ public final class MedicalCampusFiller implements CompoundFiller {
     private static final BuildingShellCore.BuildingConfig SUPPORT_CONFIG =
             new BuildingShellCore.BuildingConfig(
                     GroundKind.TILE, "WAREHOUSE", PointOfInterest.Kind.MEDICAL,
-                    BuildingLayouts.LayoutRecipe.WAREHOUSE, BuildingKind.MEDICAL);
+                    BuildingLayouts.LayoutRecipe.MEDICAL_SUPPORT, BuildingKind.MEDICAL,
+                    new RoomPurpose[]{RoomPurpose.PHARMACY}, new BinaryPartitionStrategy(0f));
 
     @Override
     public BlockKind kind() {
@@ -69,7 +70,16 @@ public final class MedicalCampusFiller implements CompoundFiller {
 
         carveBuilding(clinic, CLINIC_CONFIG, placementToward(clinic, apron), ctx);
         carveBuilding(support, SUPPORT_CONFIG, placementToward(support, apron), ctx);
-        carveAmbulanceCourt(ambulanceCourt, ctx);
+        BuildingPlacement.Side frontage = findFrontage(ambulanceCourt, apron);
+        int turn = frontage == null ? 0 : switch (frontage) {
+            case TOP -> 0;
+            case RIGHT -> 1;
+            case BOTTOM -> 2;
+            case LEFT -> 3;
+        };
+        MedicalServiceCourt.stamp(ctx, ambulanceCourt, turn);
+        for (int y=0;y<ctx.height;y++) for (int x=0;x<ctx.width;x++)
+            if (apron[x][y] && !ctx.get(BspKeys.ROAD_RESERVATION)[x][y]) ctx.markMadeGround(x,y);
     }
 
     private static void carveBuilding(BlockLeaf leaf,
@@ -113,7 +123,8 @@ public final class MedicalCampusFiller implements CompoundFiller {
                 apron[x][y] = true;
                 if (roadReservation[x][y]) continue;
                 grid.setWalkableFloor(x, y);
-                topology.setGroundKind(x, y, GroundKind.STRIPED);
+                topology.setGroundKind(x, y, GroundKind.COURTYARD);
+                topology.setSurface(x, y, topology.surfaceIndex(Material.CONCRETE.block(1)));
             }
         }
         return apron;
@@ -173,44 +184,4 @@ public final class MedicalCampusFiller implements CompoundFiller {
         return score;
     }
 
-    private static void carveAmbulanceCourt(BlockLeaf court, GenContext ctx) {
-        for (int y = court.top; y <= court.bottom; y++) {
-            for (int x = court.left; x <= court.right; x++) {
-                ctx.grid.setWalkableFloor(x, y);
-                ctx.grid.setSeeThrough(x, y, true);
-                ctx.topology.setGroundKind(x, y, GroundKind.STRIPED);
-                ctx.topology.setWall(x, y, false);
-                ctx.topology.setFixture(x, y, false);
-            }
-        }
-
-        TileRegistry registry = TileRegistry.installed();
-        DoodadDef[] cover = {
-                registry.doodad("doodad.industrial-pallet-stack"),
-                registry.doodad("doodad.industrial-cable-reel"),
-                registry.doodad("doodad.box")
-        };
-        int[][] cells = {
-                {court.left + 1, court.top + 1},
-                {court.right - 1, court.top + 1},
-                {court.left + 1, court.bottom - 1},
-                {court.right - 1, court.bottom - 1}
-        };
-        int offset = ctx.rng.nextInt(cells.length);
-        for (int i = 0; i < 3; i++) {
-            int[] cell = cells[(offset + i) % cells.length];
-            stampLowCover(ctx, cell[0], cell[1], cover[i]);
-        }
-    }
-
-    private static void stampLowCover(GenContext ctx, int x, int y, DoodadDef prop) {
-        if (!ctx.grid.inBounds(x, y) || !ctx.grid.isWalkable(x, y)) return;
-        for (Doodad doodad : ctx.doodads) {
-            if (doodad.occupiesCell(x, y)) return;
-        }
-        ctx.grid.setWalkable(x, y, false);
-        ctx.grid.setSeeThrough(x, y, true);
-        ctx.topology.setFixture(x, y, true);
-        ctx.doodads.add(new Doodad(x, y, prop));
-    }
 }
