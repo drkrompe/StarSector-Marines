@@ -31,15 +31,16 @@ import java.awt.Color;
 public final class EngineFxRenderer {
 
     /** Length scales between {@link #LEN_INTENSITY_FLOOR}× at intensity 0 and 1.0× at intensity 1. */
-    private static final float LEN_INTENSITY_FLOOR = 0.4f;
+    private static final float LEN_INTENSITY_FLOOR = 0.35f;
     /** Width scales between {@link #WIDTH_INTENSITY_FLOOR}× at intensity 0 and 1.0× at intensity 1. */
-    private static final float WIDTH_INTENSITY_FLOOR = 0.7f;
+    private static final float WIDTH_INTENSITY_FLOOR = 0.65f;
     /** Per-frame alpha multiplier — flame alpha = alphaMult × (FLOOR + (1 - FLOOR) × intensity). */
-    private static final float ALPHA_INTENSITY_FLOOR = 0.5f;
-    /** Glow halo is {@link #GLOW_WIDTH_MULT}× the flame width — slightly bigger than the column so it reads as a bloom around the nozzle. */
-    private static final float GLOW_WIDTH_MULT = 2.0f;
-    /** Minimum glow display size — guards against degenerate glows on tiny / parked entities. */
-    private static final float GLOW_MIN_CELL_FRACTION = 0.4f;
+    private static final float ALPHA_INTENSITY_FLOOR = 0.18f;
+    /** A restrained nozzle bloom, measured against native nozzle width rather than the narrowed exhaust. */
+    private static final float GLOW_WIDTH_MULT = 1.1f;
+    private static final float GLOW_ALPHA_MULT = 0.2f;
+    private static final float FLAME_WIDTH_MULT = 0.7f;
+    private static final float FLAME_LENGTH_MULT = 0.72f;
 
     /**
      * Per-slot floor when a {@code perSlotDemand} array is supplied: an idle
@@ -121,9 +122,9 @@ public final class EngineFxRenderer {
             float plumeDX = (float) -Math.sin(plumeRad);
             float plumeDY = (float)  Math.cos(plumeRad);
 
-            float lenCells   = es.lengthCells * scaleMult
+            float lenCells   = es.lengthCells * scaleMult * FLAME_LENGTH_MULT
                     * (LEN_INTENSITY_FLOOR   + (1f - LEN_INTENSITY_FLOOR)   * intensityS);
-            float widthCells = es.widthCells  * scaleMult
+            float widthCells = es.widthCells  * scaleMult * FLAME_WIDTH_MULT
                     * (WIDTH_INTENSITY_FLOOR + (1f - WIDTH_INTENSITY_FLOOR) * intensityS);
             float lenPx = lenCells * cellPx;
             float widthPx = widthCells * cellPx;
@@ -133,10 +134,11 @@ public final class EngineFxRenderer {
             Color flame = EngineStylePalette.flameColor(es.style);
 
             if (glowSprite != null) {
-                float glowSize = Math.max(widthPx * GLOW_WIDTH_MULT, cellPx * GLOW_MIN_CELL_FRACTION);
+                float glowSize = es.widthCells * scaleMult * cellPx * GLOW_WIDTH_MULT
+                        * (WIDTH_INTENSITY_FLOOR + (1f - WIDTH_INTENSITY_FLOOR) * intensityS);
                 glowSprite.setSize(glowSize, glowSize);
                 glowSprite.setAngle(0f);
-                glowSprite.setAlphaMult(flameAlpha);
+                glowSprite.setAlphaMult(flameAlpha * GLOW_ALPHA_MULT);
                 glowSprite.setAdditiveBlend();
                 glowSprite.setColor(flame);
                 glowSprite.renderAtCenter(screenX, screenY);
