@@ -158,4 +158,3 @@ bpy.context.preferences.filepaths.save_version = 0
 bpy.ops.wm.save_as_mainfile(filepath=str(HERE/'proposal.blend'))
 bpy.ops.render.render(write_still=True)
 print({'parallel_ports':len(ports),'pitch_degrees':25,'render':scene.render.filepath})
-
