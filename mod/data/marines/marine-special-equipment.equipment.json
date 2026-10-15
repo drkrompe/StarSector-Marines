@@ -607,12 +607,12 @@
           "pivot": [0.5, 0.5],
           "carried": {
             "offsetShoulders": [0.0, -0.26],
-            "angleDegrees": 180.0,
+            "angleDegrees": 0.0,
             "occlusion": "over-body"
           },
           "using": {
             "offsetShoulders": [0.0, -0.26],
-            "angleDegrees": 180.0,
+            "angleDegrees": 0.0,
             "occlusion": "over-body"
           },
           "visibleWhileCarried": true,

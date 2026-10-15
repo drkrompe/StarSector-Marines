@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.combat.Interceptable;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
+import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.command.SquadDirectiveControl;
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
@@ -94,6 +95,9 @@ public interface BattleControl extends BattleView, SquadDirectiveControl {
 
     /** Publish a visible/audible shot event without resolving a round through the weapon pipeline. */
     void postShot(ShotEvent shot);
+
+    /** Put a projectile in flight; it advances with every other round and lands its payload, if any, on arrival. */
+    void queueProjectile(Projectile p);
 
     /** Replace a unit's path; queues the occupancy/destIndex delta. Pass an empty path (or {@link #clearPath}) to drop the current path. */
     void setPath(long u, int[] newPath);
