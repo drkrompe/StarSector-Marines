@@ -17,6 +17,7 @@ import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DebugTransportManifestTest {
@@ -74,12 +75,46 @@ class DebugTransportManifestTest {
         assertEquals(5, manifest.size(), "three employer craft plus two player craft");
         ShuttleAssignment firstPlayer = manifest.get(3);
         ShuttleAssignment secondPlayer = manifest.get(4);
-        assertEquals(12, firstPlayer.embarkedPersonnel);
-        assertEquals(13, secondPlayer.embarkedPersonnel);
-        assertEquals(2, secondPlayer.cycles);
-        assertEquals(12, secondPlayer.seatsForCycle(0));
-        assertEquals(1, secondPlayer.seatsForCycle(1));
+        assertEquals(13, firstPlayer.embarkedPersonnel);
+        assertEquals(2, firstPlayer.cycles);
+        assertEquals(12, firstPlayer.seatsForCycle(0));
+        assertEquals(1, firstPlayer.seatsForCycle(1));
+        assertEquals(12, secondPlayer.embarkedPersonnel);
+        assertEquals(1, secondPlayer.cycles);
         assertEquals(25, CampaignMarineDeployment.requiredSeats(manifest, 3));
+    }
+
+    @Test
+    void followUpTripsFlyEveryCommittedBoat() {
+        Mission mission = mission(MissionSource.STORY, 0, 0);
+        List<FittedBoat> pair = boats(ShuttleType.AEROSHUTTLE, ShuttleType.AEROSHUTTLE);
+        int seats = mission.marineArrivalPolicy.seatsPerSortie(ShuttleType.AEROSHUTTLE);
+
+        List<ShuttleAssignment> manifest =
+                DetachmentResolver.buildShuttleManifestForPersonnel(mission, pair, seats * 4);
+
+        assertEquals(2, manifest.size());
+        for (ShuttleAssignment lift : manifest) {
+            assertEquals(2, lift.cycles, "both boats fly both waves");
+            assertEquals(seats * 2, lift.embarkedPersonnel);
+        }
+        assertSame(pair.get(0), manifest.get(0).airframe);
+        assertSame(pair.get(1), manifest.get(1).airframe);
+    }
+
+    @Test
+    void aShortFinalWaveFallsToThePriorityBoatOnly() {
+        Mission mission = mission(MissionSource.STORY, 0, 0);
+        List<FittedBoat> trio = boats(ShuttleType.AEROSHUTTLE, ShuttleType.AEROSHUTTLE,
+                ShuttleType.AEROSHUTTLE);
+        int seats = mission.marineArrivalPolicy.seatsPerSortie(ShuttleType.AEROSHUTTLE);
+
+        List<ShuttleAssignment> manifest =
+                DetachmentResolver.buildShuttleManifestForPersonnel(mission, trio, seats * 3 + 1);
+
+        assertEquals(List.of(2, 1, 1), manifest.stream().map(a -> a.cycles).toList());
+        assertEquals(1, manifest.get(0).seatsForCycle(1));
+        assertEquals(seats * 3 + 1, CampaignMarineDeployment.requiredSeats(manifest, 0));
     }
 
     @ParameterizedTest
