@@ -1,0 +1,25 @@
+Generated with the built-in image_gen tool from a deterministic Blender geometry guide.
+Status: reference V2 for user review; no scene placement or runtime replacement.
+
+Inputs:
+1. second-wind-geometry/second-wind-geometry.reference.png: authoritative geometry and camera guide.
+2. second-wind-design-v1.reference.png: material and wear reference only.
+
+The editable geometry is in second-wind-geometry/second-wind-geometry.blend, with its reproducible source script and coordinate manifest beside it. The first angular blockout reskin was rejected because it copied the guide's boxy hull too literally. The retained guide rounds the hull while keeping the pod and engine coordinates fixed.
+
+The appendage's service/airlock purpose is a design proposal, not established lore. No canonical physical length or deck capacity is asserted. Engine XY placements and relative width ratios come from vanilla warhound.ship; solid nozzle sizes and Z positions are art interpretation. Bays remain one open port bay and one sealed starboard bay, with no repaired boat implied.
+
+This generated sheet is surface reference, not CAD. The Blender model is the geometric authority. Fine plate patterns may vary between generated views. The .reference.png suffix keeps it out of pack.ps1's runtime inputs.
+
+Visual review of retained output:
+Four views retained. Port pod is low and horizontal in quarter and side views,
+below the hull in the bow-left top projection, and mostly occluded at the left
+edge of the stern. Four nozzles appear in lateral pairs in top/quarter views,
+as one visible outer profile in the side view, and as four level mouths in the
+stern view, with larger outer nozzles. Rounded hull revision retained. Surface
+paneling and fine details remain an AI interpretation, not a consistent UV map.
+The saved Blender file reopens successfully with all four cameras and nozzles.
+
+Final generation prompt:
+undefined
+
