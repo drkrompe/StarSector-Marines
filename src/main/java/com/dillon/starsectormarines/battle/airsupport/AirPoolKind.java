@@ -38,6 +38,16 @@ public enum AirPoolKind {
         return profile;
     }
 
+    /**
+     * The airframe that flies this kind's cover patrol. A patrol is an interceptor's errand, and a tail chase closes at the
+     * <em>difference</em> of the two craft's speeds: a Broadsword has a seventh more speed than the Dagger it hunts and
+     * never gains on it, where a Talon is nearly twice as fast. Only the fighter kind patrols; the other kinds answer
+     * with their ordinary airframe.
+     */
+    public FighterProfile coverProfile() {
+        return this == FIGHTER ? FighterProfile.TALON : profile;
+    }
+
     /** Attack passes a sortie of this kind makes before it turns for home. */
     public int passes() {
         return passes;

@@ -51,6 +51,12 @@ public final class CoverDuty {
     /** Ground passes left. */
     public int groundPassesLeft = GROUND_PASSES;
 
+    /**
+     * Whether this fighter flies the old head-on lead pursuit instead of the tail chase ({@link AirIntercept}). A scene's
+     * comparison control and nothing else: it is set where the sortie is made, from the pool it was launched from.
+     */
+    public boolean headOnPursuit;
+
     /** The aircraft being pursued, or {@code 0}. Set by tasking, cleared by flight when the prey is gone. */
     public long preyId;
 

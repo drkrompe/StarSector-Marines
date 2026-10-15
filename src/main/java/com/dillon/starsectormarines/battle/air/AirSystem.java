@@ -1675,9 +1675,11 @@ public class AirSystem {
     }
 
     /**
-     * A cover fighter pursuing a hostile aircraft. It steers at where the prey will be and the guns, which belong to
+     * A cover fighter pursuing a hostile aircraft. It flies the tail chase {@link AirIntercept} lays out (a slot in the
+     * prey's wake, reached from the rear quarter or by the set-up that gets it there) and the guns, which belong to
      * {@link AirToAirFire}, fire while the prey stands in their window. The chase is bounded: it ends when the prey is
-     * down or gone, the magazine is dry, or the chase has run its seconds, and the fighter goes back to its ring.
+     * down or gone, the magazine is dry, the chase has run its seconds, or the pool called it off over anti-air the side
+     * knows of ({@code CoverTasking}), and the fighter goes back to its ring.
      */
     private void tickIntercept(long id, ShuttleMission mission, AirBody body, AirHandling flight, float dt) {
         CoverDuty duty = mission.cover;
@@ -1696,8 +1698,13 @@ public class AirSystem {
             return;
         }
         AirBody prey = world.kinematics(duty.preyId);
-        float[] lead = AirToAirGun.leadPoint(body.x, body.y, body.speed(), prey.x, prey.y, prey.vx, prey.vy);
-        AirSteeringSystem.steer(body, lead[0], lead[1], SteeringMode.CRUISE, flight, dt);
+        if (duty.headOnPursuit) {
+            float[] lead = AirToAirGun.leadPoint(body.x, body.y, body.speed(), prey.x, prey.y, prey.vx, prey.vy);
+            AirSteeringSystem.steer(body, lead[0], lead[1], SteeringMode.CRUISE, flight, dt);
+        } else {
+            AirIntercept.Plan plan = AirIntercept.plan(body.x, body.y, body.vx, body.vy, flight.maxSpeed(), prey.x, prey.y, prey.vx, prey.vy);
+            AirSteeringSystem.steer(body, plan.x(), plan.y(), plan.mode(), flight, dt);
+        }
         world.setAltitudeT(id, 1f);
         world.setFlightPhase(id, world.flightPhase(id) + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
     }
@@ -2205,6 +2212,14 @@ public class AirSystem {
     private static final float RELEASE_CONE_DEG = 30f;
 
     /**
+     * A cover fighter on a gun pass holds its fire when a round would land this close to a combatant of its own side, in
+     * cells beyond the round's own blast. A pilot sees the friendly marks on the ground it flies over; the pass is laid
+     * out before it starts and runs on across ground the tasking never judged, and the tasking's clearance covers only the
+     * aim point.
+     */
+    private static final float FRIENDLY_HOLD_MARGIN_CELLS = 4f;
+
+    /**
      * Lays out the next pass: a straight line in through the target and out
      * the far side.
      *
@@ -2373,6 +2388,10 @@ public class AirSystem {
 
         OrdnanceFlight.Impact arrival = load.flight.deliver(
                 body.x, body.y, body.facingDegrees, body.vx, body.vy);
+        if (mission.cover != null && mission.cover.strafing
+                && friendlyWithin(world.airFaction(id), arrival.x(), arrival.y(), load.aoeRadiusCells + FRIENDLY_HOLD_MARGIN_CELLS)) {
+            return;
+        }
         float scatter = load.scatterCells * (mission.poolSortie ? aimSpoil(id) : 1f);
         float impactX = arrival.x() + (float) rng.nextGaussian() * scatter;
         float impactY = arrival.y() + (float) rng.nextGaussian() * scatter;
@@ -2396,6 +2415,21 @@ public class AirSystem {
         }
     }
 
+
+    /** Whether a live combatant of {@code side} stands within {@code radius} cells of the point. */
+    private boolean friendlyWithin(Faction side, float x, float y, float radius) {
+        if (side == null) return false;
+        long[] ours = roster.factionDenseArray(side);
+        float limit = radius * radius;
+        for (int i = 0, n = roster.factionLiveCount(side); i < n; i++) {
+            long unit = ours[i];
+            if (!roster.isAliveById(unit)) continue;
+            float dx = world.x(unit) - x;
+            float dy = world.y(unit) - y;
+            if (dx * dx + dy * dy <= limit && roster.identity().type(unit).combatant) return true;
+        }
+        return false;
+    }
     /**
      * Whether the target lies close enough to the nose for the aircraft to be
      * attacking it at all.
