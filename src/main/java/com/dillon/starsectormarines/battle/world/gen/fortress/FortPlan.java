@@ -70,7 +70,7 @@ public interface FortPlan {
     /** The cells of the wall left open as gates. */
     List<int[]> gateCells();
 
-    /** Wall-nest cells, one in each bastion. */
+    /** Wall-nest cells, one in each bastion, each in an embrasure on the wall's outer face so it can fire out of the works. */
     List<int[]> nests();
 
     /** Paved vehicle lanes (x, y, width, height) in the footprint frame. */
@@ -85,6 +85,15 @@ public interface FortPlan {
      */
     default AirDefenceYard airDefence() {
         return null;
+    }
+
+    /**
+     * The middles of the three-by-three Ridgewatch missile batteries a fort carrying the anti-air aspect stands out on its
+     * bastions, in the footprint frame (empty for a kind with no yard). Spread across the works so the airspace they
+     * cover is as wide as the fort; the yard ({@link #airDefence()}) holds only the console that commands them.
+     */
+    default List<int[]> airBatteries() {
+        return List.of();
     }
 
     /** The aspects housed in buildings, in the order their cores are stamped. */
