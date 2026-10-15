@@ -1,0 +1,365 @@
+{
+  "sheetName": "sickbay-clinic-damage",
+  "sheet": "art-source/tilesets/sickbay-clinic-damage.raw.png",
+  "cellPx": 128,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "sickbay-clinic",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/sickbay-clinic-damage.png",
+  "note": "Built-in ImageGen reskin of retained full-footprint geometry. Damaged source padding registered against intact silhouettes; destroyed fragments retain local slot frames. Native alpha, no pixel edits or keying. See art-source/console-bank/damage.",
+  "entries": [
+    {
+      "rect": [
+        74,
+        20,
+        108,
+        220
+      ],
+      "id": "sickbay-clinic.bed-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.38,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        73,
+        263,
+        109,
+        228
+      ],
+      "id": "sickbay-clinic.bed-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        326,
+        21,
+        116,
+        218
+      ],
+      "id": "sickbay-clinic.linen-high-damaged",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        330,
+        277,
+        108,
+        214
+      ],
+      "id": "sickbay-clinic.linen-high-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        582,
+        18,
+        116,
+        221
+      ],
+      "id": "sickbay-clinic.linen-low-damaged",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        586,
+        277,
+        108,
+        214
+      ],
+      "id": "sickbay-clinic.linen-low-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        791,
+        23,
+        211,
+        212
+      ],
+      "id": "sickbay-clinic.monitor-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        789,
+        277,
+        214,
+        214
+      ],
+      "id": "sickbay-clinic.monitor-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        1043,
+        75,
+        216,
+        109
+      ],
+      "id": "sickbay-clinic.station-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        1045,
+        320,
+        214,
+        133
+      ],
+      "id": "sickbay-clinic.station-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        1302,
+        75,
+        214,
+        109
+      ],
+      "id": "sickbay-clinic.cabinet-damaged",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        1301,
+        325,
+        214,
+        120
+      ],
+      "id": "sickbay-clinic.cabinet-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        25,
+        533,
+        210,
+        213
+      ],
+      "id": "sickbay-clinic.sink-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        21,
+        789,
+        214,
+        214
+      ],
+      "id": "sickbay-clinic.sink-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        278,
+        527,
+        216,
+        228
+      ],
+      "id": "sickbay-clinic.trolley-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        277,
+        789,
+        214,
+        214
+      ],
+      "id": "sickbay-clinic.trolley-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        524,
+        579,
+        237,
+        118
+      ],
+      "id": "sickbay-clinic.exam-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.38,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        533,
+        836,
+        218,
+        134
+      ],
+      "id": "sickbay-clinic.exam-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        842,
+        524,
+        108,
+        229
+      ],
+      "id": "sickbay-clinic.screen-damaged",
+      "cover": "light",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        842,
+        789,
+        108,
+        214
+      ],
+      "id": "sickbay-clinic.screen-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        1030,
+        519,
+        245,
+        246
+      ],
+      "id": "mess-galley.stool-damaged",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        1045,
+        789,
+        214,
+        214
+      ],
+      "id": "mess-galley.stool-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    }
+  ]
+}

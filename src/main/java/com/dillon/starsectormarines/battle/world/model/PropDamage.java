@@ -38,7 +38,28 @@ public final class PropDamage {
             Map.entry("doodad.shelf-empty", new Profile(Effect.NONE, Effect.DUST)),
             Map.entry("doodad.shelf-1", new Profile(Effect.NONE, Effect.DUST)),
             Map.entry("doodad.shelf-2", new Profile(Effect.NONE, Effect.DUST)),
-            Map.entry("doodad.shelf-3", new Profile(Effect.NONE, Effect.DUST)));
+            Map.entry("doodad.shelf-3", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("console-bank.straight", new Profile(Effect.SMOKE, Effect.FIRE)),
+            Map.entry("console-bank.straight-alt", new Profile(Effect.SMOKE, Effect.FIRE)),
+            Map.entry("console-bank.inside-corner", new Profile(Effect.SMOKE, Effect.FIRE)),
+            Map.entry("console-bank.outside-corner", new Profile(Effect.SMOKE, Effect.FIRE)),
+            Map.entry("console-bank.end-left", new Profile(Effect.SMOKE, Effect.FIRE)),
+            Map.entry("console-bank.end-right", new Profile(Effect.SMOKE, Effect.FIRE)),
+            Map.entry("main-stores.rack", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("main-stores.pallet", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("main-stores.tally", new Profile(Effect.SMOKE, Effect.DUST)),
+            Map.entry("main-stores.packing", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("sickbay-clinic.bed", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("sickbay-clinic.monitor", new Profile(Effect.SMOKE, Effect.FIRE)),
+            Map.entry("sickbay-clinic.station", new Profile(Effect.SMOKE, Effect.DUST)),
+            Map.entry("sickbay-clinic.cabinet", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("sickbay-clinic.sink", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("sickbay-clinic.trolley", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("sickbay-clinic.exam", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("sickbay-clinic.screen", new Profile(Effect.NONE, Effect.DUST)));
+    /** Zero-cover layers and walkable seating still have visual damage states. */
+    public static final Set<String> DECORATIONS = Set.of("main-stores.frame", "main-stores.cartons",
+            "main-stores.cases", "sickbay-clinic.linen-high", "sickbay-clinic.linen-low", "mess-galley.stool");
     private static final Profile SILENT = new Profile(Effect.NONE, Effect.NONE);
     @FunctionalInterface public interface EffectSink { void accept(float x, float y, Effect effect, float footprintSize); }
     public static final int STARTING_HP = 100;
@@ -71,7 +92,7 @@ public final class PropDamage {
 
     public boolean register(int index, Doodad prop, TileRegistry registry) {
         if (prop.definitionId() == null || (!BARRELS.contains(prop.definitionId())
-                && !EQUIPMENT.containsKey(prop.definitionId()))) return false;
+                && !EQUIPMENT.containsKey(prop.definitionId()) && !DECORATIONS.contains(prop.definitionId()))) return false;
         DoodadDef damaged = registry == null ? null : registry.doodad(prop.definitionId() + "-damaged");
         DoodadDef destroyed = registry == null ? null : registry.doodad(prop.definitionId() + "-destroyed");
         if (damaged == null || destroyed == null
@@ -145,6 +166,7 @@ public final class PropDamage {
                 continue;
             }
             result = CoverPropDamage.Result.DESTROYED;
+            collapseSupportedLayers(entry);
             for (int i = 0; i < entry.cells.length; i++) {
                 if (!entry.blocking[i]) continue;
                 int cell = entry.cells[i];
@@ -159,5 +181,31 @@ public final class PropDamage {
             }
         }
         return result;
+    }
+
+    /** A collapsed base cannot leave intact supported stock or bedding suspended over its wreck. */
+    private void collapseSupportedLayers(Entry base) {
+        for (int cell : base.cells) for (Entry layer : owners.get(cell)) {
+            Doodad b = base.original, p = layer.original;
+            if (layer.hp <= 0 || !supports(b.definitionId(), p.definitionId())
+                    || p.cellX < b.cellX || p.cellY < b.cellY
+                    || p.cellX + p.footprintCellsX > b.cellX + b.footprintCellsX
+                    || p.cellY + p.footprintCellsY > b.cellY + b.footprintCellsY) continue;
+            layer.hp = 0;
+            props.set(layer.index, new Doodad(p.cellX, p.cellY, layer.destroyed, p.quarterTurns, p.mirrored));
+        }
+    }
+
+    private static boolean supports(String base, String layer) {
+        return switch (base) {
+            case "main-stores.rack" -> "main-stores.frame".equals(layer) || isStock(layer);
+            case "main-stores.pallet" -> isStock(layer);
+            case "sickbay-clinic.bed" -> "sickbay-clinic.linen-high".equals(layer) || "sickbay-clinic.linen-low".equals(layer);
+            default -> false;
+        };
+    }
+
+    private static boolean isStock(String id) {
+        return "main-stores.cartons".equals(id) || "main-stores.cases".equals(id) || "main-stores.drums".equals(id);
     }
 }

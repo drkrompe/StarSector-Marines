@@ -1,0 +1,205 @@
+{
+  "sheetName": "console-bank-damage",
+  "sheet": "art-source/tilesets/console-bank-damage.raw.png",
+  "cellPx": 128,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "console-bank",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/console-bank-damage.png",
+  "note": "Built-in ImageGen reskin of retained full-footprint geometry. Damaged source padding registered against intact silhouettes; destroyed fragments retain local slot frames. Native alpha, no pixel edits or keying. See art-source/console-bank/damage.",
+  "entries": [
+    {
+      "rect": [
+        37,
+        59,
+        312,
+        277
+      ],
+      "id": "console-bank.straight-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        30,
+        392,
+        302,
+        302
+      ],
+      "id": "console-bank.straight-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        404,
+        55,
+        311,
+        281
+      ],
+      "id": "console-bank.straight-alt-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        392,
+        392,
+        302,
+        302
+      ],
+      "id": "console-bank.straight-alt-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        755,
+        28,
+        298,
+        309
+      ],
+      "id": "console-bank.inside-corner-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        754,
+        392,
+        302,
+        302
+      ],
+      "id": "console-bank.inside-corner-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        30,
+        727,
+        307,
+        314
+      ],
+      "id": "console-bank.outside-corner-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        30,
+        1116,
+        302,
+        302
+      ],
+      "id": "console-bank.outside-corner-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        401,
+        741,
+        302,
+        321
+      ],
+      "id": "console-bank.end-left-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        392,
+        1116,
+        302,
+        302
+      ],
+      "id": "console-bank.end-left-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        761,
+        740,
+        295,
+        322
+      ],
+      "id": "console-bank.end-right-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        754,
+        1116,
+        302,
+        302
+      ],
+      "id": "console-bank.end-right-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "included": true
+    }
+  ]
+}

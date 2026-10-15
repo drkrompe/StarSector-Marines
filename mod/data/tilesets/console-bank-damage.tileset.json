@@ -1,0 +1,152 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "name": "console-bank.straight-damaged",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "name": "console-bank.straight-destroyed",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "name": "console-bank.straight-alt-damaged",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "name": "console-bank.straight-alt-destroyed",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "name": "console-bank.inside-corner-damaged",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "name": "console-bank.inside-corner-destroyed",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "name": "console-bank.outside-corner-damaged",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "name": "console-bank.outside-corner-destroyed",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "name": "console-bank.end-left-damaged",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "name": "console-bank.end-left-destroyed",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "name": "console-bank.end-right-damaged",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "name": "console-bank.end-right-destroyed",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 0,
+      "cover": "med",
+      "id": "console-bank.straight-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 1,
+      "cover": "none",
+      "id": "console-bank.straight-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 2,
+      "cover": "med",
+      "id": "console-bank.straight-alt-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "id": "console-bank.straight-alt-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 4,
+      "cover": "med",
+      "id": "console-bank.inside-corner-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 5,
+      "cover": "none",
+      "id": "console-bank.inside-corner-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 6,
+      "cover": "med",
+      "id": "console-bank.outside-corner-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 7,
+      "cover": "none",
+      "id": "console-bank.outside-corner-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 8,
+      "cover": "med",
+      "id": "console-bank.end-left-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 9,
+      "cover": "none",
+      "id": "console-bank.end-left-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 10,
+      "cover": "med",
+      "id": "console-bank.end-right-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 11,
+      "cover": "none",
+      "id": "console-bank.end-right-destroyed",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/tilesets/console-bank-damage.png"
+}
