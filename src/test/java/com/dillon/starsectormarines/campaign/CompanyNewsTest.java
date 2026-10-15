@@ -31,6 +31,27 @@ class CompanyNewsTest {
         assertEquals("Jangala", entries.get(0).marketName());
     }
 
+    /** A defence report has no house subject; it is the company's own and names the raider. */
+    @Test
+    void aGarrisonDefenceReportCarriesItsAccountAndAttacker() {
+        Fixture fixture = fixture();
+        int pirates = fixture.state.factionRegistry.intern("pirates");
+        fixture.state.addChronicleGarrisonDefence(77L, fixture.market, pirates,
+                AbsentDefenceGrade.Outcome.OVERRUN, 12, 4, "The relay ended in static.", 30, 31);
+
+        List<CompanyNews.Entry> entries = CompanyNews.latest(
+                fixture.state, 40, 5, ignored -> "Jangala");
+
+        assertEquals(1, entries.size());
+        assertEquals(ChronicleEventType.GARRISON_DEFENCE, entries.get(0).type());
+        assertEquals(AbsentDefenceGrade.Outcome.OVERRUN, entries.get(0).defenceOutcome());
+        assertEquals("pirates", entries.get(0).actorFactionId());
+        assertEquals("The relay ended in static.", entries.get(0).account());
+        assertEquals(1L, fixture.state.addChronicleGarrisonDefence(77L, fixture.market,
+                pirates, AbsentDefenceGrade.Outcome.OVERRUN, 12, 4, "again", 30, 31));
+        assertEquals(1, fixture.state.chronicleCount);
+    }
+
     @Test
     void limitIsHonestAndMalformedSubjectsAreSkipped() {
         Fixture fixture = fixture();

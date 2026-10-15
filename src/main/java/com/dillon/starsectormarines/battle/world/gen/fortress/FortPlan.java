@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.fortress;
 import com.dillon.starsectormarines.battle.fort.FortAspect;
 import com.dillon.starsectormarines.battle.fort.FortKind;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -94,6 +95,36 @@ public interface FortPlan {
      */
     default List<int[]> airBatteries() {
         return List.of();
+    }
+
+    /**
+     * Every room of every aspect's suite, in the order the layout stamps its buildings. An aspect is housed in a suite and
+     * not a point: its main room carries the core and the roof art, and an ante-room or two stand in front of it.
+     */
+    List<FortRoom> rooms();
+
+    /**
+     * The floors that together are the place of {@code aspect}: every room of its suite, so holding the aspect means
+     * holding all of them. An aspect with no rooms of the plan's own (the anti-air control room is stamped on request)
+     * is its {@link #floor} alone, and an aspect housed in no building at all (the emitter) has an empty suite.
+     */
+    default List<int[]> suite(FortAspect aspect) {
+        List<int[]> floors = new ArrayList<>();
+        for (FortRoom room : rooms()) if (room.aspect() == aspect) floors.add(room.floor());
+        if (floors.isEmpty() && aspect == FortAspect.AIR_DEFENCE) floors.add(floor(aspect));
+        return floors;
+    }
+
+    /** The bounding box of {@code aspect}'s suite floors: x, y, width, height in the footprint frame. */
+    default int[] suiteBounds(FortAspect aspect) {
+        int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE;
+        for (int[] f : suite(aspect)) {
+            minX = Math.min(minX, f[0]);
+            minY = Math.min(minY, f[1]);
+            maxX = Math.max(maxX, f[0] + f[2]);
+            maxY = Math.max(maxY, f[1] + f[3]);
+        }
+        return new int[]{minX, minY, maxX - minX, maxY - minY};
     }
 
     /** The aspects housed in buildings, in the order their cores are stamped. */

@@ -1,54 +1,110 @@
 {
-  "sheet": "graphics/tilesets/parked-vehicles.png",
   "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "description": "Industrial service crawler with generator, tool lockers and folded crane. Parked scenery; legacy id retained for existing map placements.",
+      "name": "doodad.parked-utility-truck",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "Industrial flatbed hauler with secured machinery crates. Parked scenery; legacy id retained for existing map placements.",
+      "name": "doodad.parked-flatbed-truck",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "Colonial fluid tanker with roof filler and retaining straps. Parked scenery; legacy id retained for existing map placements.",
+      "name": "doodad.parked-tanker-truck",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "description": "Colonial expedition rover with roof cargo and air filtration. Parked scenery; legacy id retained for existing map placements.",
+      "name": "doodad.parked-box-van",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "description": "Enclosed industrial freight hauler with ribbed container roof. Parked scenery; legacy id retained for existing map placements.",
+      "name": "doodad.parked-cargo-truck",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "description": "Armored colonial personnel transport with twin roof hatches. Parked scenery; legacy id retained for existing map placements.",
+      "name": "doodad.parked-armored-apc",
+      "row": 2
+    }
+  ],
   "doodads": [
     {
+      "ballisticHalfHeight": 0.55,
+      "col": 0,
+      "cover": "heavy",
+      "footprintCells": [
+        3,
+        2
+      ],
       "id": "doodad.parked-utility-truck",
-      "col": 0,
-      "row": 0,
-      "footprintCells": [3, 2],
-      "cover": "heavy",
-      "ballisticHalfHeight": 0.55
+      "row": 0
     },
     {
+      "ballisticHalfHeight": 0.55,
+      "col": 3,
+      "cover": "heavy",
+      "footprintCells": [
+        3,
+        2
+      ],
       "id": "doodad.parked-flatbed-truck",
-      "col": 3,
-      "row": 0,
-      "footprintCells": [3, 2],
-      "cover": "heavy",
-      "ballisticHalfHeight": 0.55
+      "row": 0
     },
     {
+      "ballisticHalfHeight": 0.55,
+      "col": 6,
+      "cover": "heavy",
+      "footprintCells": [
+        3,
+        2
+      ],
       "id": "doodad.parked-tanker-truck",
-      "col": 6,
-      "row": 0,
-      "footprintCells": [3, 2],
-      "cover": "heavy",
-      "ballisticHalfHeight": 0.55
+      "row": 0
     },
     {
+      "ballisticHalfHeight": 0.55,
+      "col": 9,
+      "cover": "heavy",
+      "footprintCells": [
+        3,
+        2
+      ],
       "id": "doodad.parked-box-van",
-      "col": 0,
-      "row": 2,
-      "footprintCells": [3, 2],
-      "cover": "heavy",
-      "ballisticHalfHeight": 0.55
+      "row": 0
     },
     {
+      "ballisticHalfHeight": 0.55,
+      "col": 12,
+      "cover": "heavy",
+      "footprintCells": [
+        3,
+        2
+      ],
       "id": "doodad.parked-cargo-truck",
-      "col": 3,
-      "row": 2,
-      "footprintCells": [3, 2],
-      "cover": "heavy",
-      "ballisticHalfHeight": 0.55
+      "row": 0
     },
     {
-      "id": "doodad.parked-armored-apc",
-      "col": 6,
-      "row": 2,
-      "footprintCells": [3, 2],
+      "ballisticHalfHeight": 0.55,
+      "col": 0,
       "cover": "heavy",
-      "ballisticHalfHeight": 0.55
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "doodad.parked-armored-apc",
+      "row": 2
     }
-  ]
+  ],
+  "sheet": "graphics/tilesets/parked-vehicles.png"
 }

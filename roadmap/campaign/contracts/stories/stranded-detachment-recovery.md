@@ -1,11 +1,10 @@
 # Stranded detachment: the defence report and the pickup
 
-Status: DRAFT
+Status: IN PROGRESS
 
 Written: 2026-10-15
 
-Updated: 2026-10-15 — owner decisions: capture strands a garrison (slice 6);
-the report names dead and missing, counts wounded, and carries a flavoured account.
+Updated: 2026-10-15 — slice 1 (defence report) shipped; slices 2–7 remain.
 
 Read `contracts-nouns.md` (stationing, response, recovery, settlement, laws 4–7
 and 11), `meta-progression.md` ("Defending the polity: the vanilla seam"),
@@ -59,11 +58,15 @@ in `company-view-nouns.md`.
   status; it is the parent assignment held open past its settlement, exactly
   as a defaulted contract already holds its detachment until extraction
   resolves.
-- A recovery is **resolved** one of two ways, chosen by why it exists:
-  - **Extraction**, the existing fought `EXTRACTION` mission, for employer
-    breach. Unchanged by this story.
-  - **Pickup**, new: the player's fleet reaches the market and collects the
-    detachment through the planet interaction. No battle runs.
+- A recovery is **resolved** one of two ways, chosen by whether the market
+  will let the company leave:
+  - **Pickup**, new and the default: the player's fleet reaches the market
+    and collects the detachment through the planet interaction. No battle
+    runs. Every overrun and capture recovery is a pickup, and so is a breach
+    recovery while the market's owner is not hostile to the player.
+  - **Extraction**, the existing fought `EXTRACTION` mission, only for a
+    breach recovery on a market whose owner is hostile to the player: the
+    detachment has to be fought out.
 - A **defence report** is a company-stream Chronicle fact written when a
   vanilla-triggered Garrison defence settles without the player. It is a
   learned record of the settlement, not a second settlement store.
@@ -173,6 +176,13 @@ would to any approach; this story adds no encounter of its own.
 The option requires the player fleet to be at the market and nothing else.
 Lift capacity is not modelled; the company's own boats carry its own people.
 
+**Breach recovery uses the pickup too**, unless the market's owner is hostile
+to the player when the recovery is created. Hostility is read then and frozen
+on the recovery, so a later diplomatic swing cannot turn a promised pickup
+into a battle or the reverse. This matters most to Nexerelin players, where
+houses fall and markets change hands far more often than in vanilla: breach
+becomes routine there, and routine recovery should not demand a fight.
+
 ### Waiting has a cost
 
 A pickup recovery is not free to postpone. On each fixed interval after the
@@ -206,7 +216,7 @@ one loss per stranded squad every 10 days.
 
 ## Slices
 
-1. **Defence report.** New Chronicle company-report event type; append on
+1. **Defence report.** *Shipped.* New Chronicle company-report event type; append on
    every absent settlement; the frozen account (spine plus seeded colour);
    HQ terminal formatting. Unit tests: one report per event key under
    replay, fields match the settlement, the same seed composes the same
@@ -225,9 +235,28 @@ one loss per stranded squad every 10 days.
    landed. Detection reads market ownership on the daily tick; no Nexerelin
    class is referenced. A posting on the player's own market that the player
    loses follows the same path.
-6. **Live pass.** One overrun with the player elsewhere: read the report,
-   watch a loss land, fly to the market and collect the survivors; a second
-   left to expire.
+6. **Breach as pickup.** A breach recovery on a market not hostile to the
+   player is created as a pickup, with the hostility read frozen on the row;
+   a hostile one keeps the fought extraction. Tests pin both branches and
+   that a later relation change does not flip the frozen choice.
+7. **Live pass. Not a gate.** The owner will not be running live passes on
+   this soon, so the story ships on unit and headless evidence. When a live
+   pass does happen: one overrun with the player elsewhere, the report read,
+   a loss landing, the survivors collected; a second left to expire; and,
+   with Nexerelin installed, one Garrison market invaded.
+
+## Decided while shipping
+
+- **The raid's shape is not in the report yet.** The pending defence payload
+  carries the attacker faction but not whether the raid was a pirate-base
+  raid, a punitive expedition or a fleet group. Adding it means carrying the
+  shape from the threat reader through the arming trigger onto the payload.
+- **"When" is the day the defence armed**, not a landing day. Vanilla does not
+  record when a raid touched down; the day the raid reached its action stage
+  is the nearest frozen fact.
+- **The colour pools are pipe-separated lines in `strings.json`**, one key per
+  climate and per outcome. A pool line takes no arguments, which is what keeps
+  it from naming anybody; a unit test reads the shipped file and enforces it.
 
 ## Acceptance
 
@@ -242,22 +271,21 @@ one loss per stranded squad every 10 days.
   battle.
 - Left alone, the detachment loses the same marines on every replay, and the
   remainder go MIA at the deadline.
-- A breach-spawned recovery still resolves through its fought extraction.
+- A breach recovery resolves by pickup on a market not hostile to the
+  player, and through its fought extraction on a hostile one.
+- An overrun posting releases its survivors as today; a posting whose market
+  the player loses strands them.
 
 ## Out of scope
 
-- Changing breach recovery to a pickup. A patron that defaults is still on
-  the ground and may obstruct the company; whether breach should also be a
-  pickup is an open question below.
 - Reports for fought defences, which already debrief.
 - Prisoner exchange or ransom for MIA marines.
 - A ground mission to rescue a stranded detachment. The direction is a
   fly-by pickup.
 
-## Open questions
+## Decided
 
-- **Breach as pickup.** Should a breached contract on a market the patron
-  still holds use the pickup too, keeping the fought extraction only when the
-  patron is hostile? Leaning: decide after the live pass.
-- **Posting overrun.** A posting on the player's own market cannot really
-  strand anyone the player can't reach. Leaning: postings release as today.
+- **Posting overrun releases.** A posting is on the player's own market, so
+  there is nobody between the company and its people: an overrun posting
+  releases its survivors as today. A posting whose market the player loses
+  strands them like any capture (slice 5).

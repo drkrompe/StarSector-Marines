@@ -517,6 +517,13 @@ final class CompanyHqViewModel {
                         Math.max(0, entry.survivorsAtRisk()),
                         archiveLabel(entry.archiveOutcome()));
             }
+            case GARRISON_DEFENCE -> {
+                String market = entry.marketName() != null ? entry.marketName()
+                        : Strings.get("defenceReportUnknownPlace");
+                headline = MessageFormat.format(Strings.get(
+                        "companyHqNewsGarrisonDefence" + entry.defenceOutcome().name()), market);
+                detail = entry.account() != null ? entry.account() : "";
+            }
             default -> throw new IllegalStateException("Unhandled Chronicle event " + entry.type());
         }
         return new NewsPost("hq-news-" + entry.id(),
@@ -524,7 +531,8 @@ final class CompanyHqViewModel {
                         ? "news-card rumor-surface" : "news-card"),
                 kicker, headline, Strings.format("openingCompanyHqReceived", detail, ageText(Math.max(0, day - entry.learnedDay()))),
                 entry.confidence() == ChronicleConfidence.RUMOR,
-                entry.type() == ChronicleEventType.SILENT_COLONY,
+                entry.type() == ChronicleEventType.SILENT_COLONY
+                        || entry.type() == ChronicleEventType.GARRISON_DEFENCE,
                 entry.actorFactionId() == null ? "" : factionCrest(entry.actorFactionId()),
                 entry.actorName() == null ? "" : entry.actorName());
     }

@@ -383,8 +383,19 @@ public final class ThunderRunCompound {
         TileRegistry tiles = TileRegistry.installed();
         if (tiles == null) return;
         var prop = tiles.doodad("doodad.industrial-crate-stack");
-        if (prop != null) for (int[] lot : new int[][]{{75,37},{88,37},{203,62},{218,62},{249,110},{260,110},{312,60},{312,62},{312,89},{312,91}})
+        if (prop != null) for (int[] lot : new int[][]{{75,37},{88,37},{249,110},{260,110},{312,60},{312,62},{312,89},{312,91}})
             c.doodads.add(new Doodad(lot[0], lot[1], prop));
+        // A receiving court behind the freight road. The central doorway aisle
+        // stays open and the fifteen-cell convoy carriageway remains untouched.
+        StoryServiceYard yard = new StoryServiceYard(c);
+        yard.gravel(201, 56, 209, 64);
+        yard.gravel(218, 56, 231, 64);
+        yard.bay(201, 56, 209, 61);
+        yard.prop(203, 58, "parked-flatbed-truck", 0);
+        yard.cargo(203, 62);
+        yard.bay(218, 56, 229, 61);
+        yard.prop(221, 58, "parked-cargo-truck", 2);
+        yard.cargo(222, 62);
     }
     /** District-specific materials use the existing atlas without changing other missions. */
     private static void surfaces(GenContext c) {
