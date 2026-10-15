@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-14
 
-Updated: 2026-10-13 - a shield fort sizes its dome from what it covers (`forts.md`); where a declared fort stands is the mission's decision too (`FortSitingPolicy`, see `forts.md`); planetary shield dome drawn by a shader with per-round impacts; slices 1 to 5 built; commanders treat known structures as take, retake and defend work; captured structures change sides with their holder; barrage is absorbed by a dome, not denied; placement authority moved from map generation to the mission; either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
+Updated: 2026-10-15 - a fort's guided batteries stand on its bastions, not in its control yard (`forts.md`); earlier: a shield fort sizes its dome from what it covers (`forts.md`); where a declared fort stands is the mission's decision too (`FortSitingPolicy`, see `forts.md`); planetary shield dome drawn by a shader with per-round impacts; slices 1 to 5 built; commanders treat known structures as take, retake and defend work; captured structures change sides with their holder; barrage is absorbed by a dome, not denied; placement authority moved from map generation to the mission; either side may hold them, the dome stops incoming fire only, balance and how often a battle has them are left to mission design and play.
 
 Read `air-nouns.md` (**Overhead ships**, the balance law), `warship-behaviours.md` (gap
 G5, the declared capital hazard and standoff), `ship-support.md`, and the command-power
@@ -86,7 +86,7 @@ drain aircraft through the air-threat field). They do not threaten a capital, ke
 ordinary ground-to-ship weak. Nothing new is required beyond the profile signal deciding
 how many there are.
 
-A fort may add a dedicated **anti-air yard** to its works (`forts.md`, optional anti-air aspect): a guided battery and flak that reach well beyond a nest's bubble, shut down by wrecking, power or capture like any aspect. It is declared per fort kind and is still absent from every shipped mission.
+A fort may add a dedicated **anti-air yard** to its works (`forts.md`, optional anti-air aspect): guided batteries (on its bastions) and flak (in the control yard) that reach well beyond a nest's bubble, shut down by wrecking, power or capture like any aspect. It is declared per fort kind and is still absent from every shipped mission.
 
 ## What this does to a battle
 
