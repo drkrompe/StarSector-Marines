@@ -1394,6 +1394,49 @@ infantry and do not also apply the older abstract turret threat drain. Destroyin
 the emplacement removes its future fire; a mission must not script a shoot-down
 regardless of whether the guns survived.
 
+**Missile anti-air families.** Dedicated Locust, Swarmer and Proximity Charge emplacements are aircraft-only
+weapons. They acquire hostile airborne craft through the ordinary anti-air
+mount authority, and every released round has one physical flight shared by
+collision, effects and sound. They neither engage overhead ships nor add missile
+hit points, interception targets or a new point-defence model. Existing mission
+batteries, including Ridgewatch, and the ground-artillery Locust retain their
+own established behavior; these are additional catalog choices.
+
+The Swarmer releases four missiles at 0.2-second intervals; the Locust releases
+thirty at 0.1-second intervals. Both wait five seconds after the last round
+before starting another salvo. A committed salvo completes even if its original
+target is lost. Each missile accelerates, leads moving craft and turns within
+its finite powered flight. It may switch to a closer eligible hostile aircraft
+while its previous target still lives. Contact with a hostile aircraft applies
+one direct payload, without invented blast damage or friendly collision. Their
+orange motor flame and smoke follow the physical body and stop when its flight
+ends; losing the launcher does not erase a released missile.
+
+A Proximity Charge is an unguided drifting charge, launched once every two
+seconds within a twenty-degree full cone (the atmospheric interpretation is
+plus or minus ten degrees). Automatic fire keeps a ten-cell minimum stand-off,
+outside its 7.5-cell blast radius, so the mount does not routinely launch into
+its own blast envelope; this is a ground-emplacement adaptation rather than a
+vanilla minimum range. It leaves quickly and slows during its four-second
+flight. Its purple glow and launch smoke are unpowered presentation: it has no
+continuous rocket exhaust. The common atmospheric conversion is twenty native
+game units per cell, so its forty-unit hostile proximity fuse is two cells,
+its 150-unit blast radius is 7.5 cells and its seventy-five-unit full-damage core
+is 3.75 cells. Physical contact with an airborne craft or blocking terrain also detonates the charge. Outside the core,
+damage falls to zero at the outer radius. The blast can catch friendly aircraft
+and exposed ground bodies, including the launcher: altitude and body extent
+must actually bring them inside its volume, while intact roofs and intervening
+structure protect ground occupants. Neither fuel expiry nor leaving the map
+creates a detonation at an invented endpoint.
+
+These atmospheric mounts, tower proportions, speeds and damage are first-pass,
+untuned content. The damage mapping preserves a qualitative distinction:
+Locust fragmentation uses zero penetration and struggles against armor;
+Swarmer and Proximity Charge use penetration sixteen and twenty-four as an
+explicit initial mapping of their high-explosive identity. Those figures are
+mod choices, not a claim that the ground durability model reproduces vanilla
+damage-type arithmetic.
+
 An authored fixed AA mount may stand entirely on a terrain summit. Its air
 firing line clears the continuous supporting hill from that origin, then
 resumes ordinary structural obstruction: a separate ridge or intervening

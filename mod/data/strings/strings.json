@@ -6,6 +6,15 @@
 	# Starsector merges later JSONs on top.
 
 	"marineOps": {
+    "gearCatalogStructureAaLocustDisplayName": "Locust Missile Battery",
+    "gearCatalogStructureAaSwarmerDisplayName": "Swarmer Missile Battery",
+    "gearCatalogStructureAaProximityDisplayName": "Proximity Missile Battery",
+    "gearCatalogWeaponAaLocustDisplayName": "Locust AA Launcher",
+    "gearCatalogWeaponAaLocustModelName": "Locust",
+    "gearCatalogWeaponAaSwarmerDisplayName": "Swarmer AA Launcher",
+    "gearCatalogWeaponAaSwarmerModelName": "Swarmer",
+    "gearCatalogWeaponAaProximityDisplayName": "Proximity AA Launcher",
+    "gearCatalogWeaponAaProximityModelName": "Proximity",
     "openingYardHeading": "SECOND WIND / PLANETARY YARD",
     "openingYardReceipt": "WORK ACCEPTED",
     "openingYardHomeTitle": "ROOM TO LIVE",

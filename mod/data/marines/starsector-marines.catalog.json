@@ -77,7 +77,8 @@
   ],
   "weapons": [
     "data/marines/marine-weapons.weapon.json",
-    "data/marines/turret-weapons.weapon.json"
+    "data/marines/turret-weapons.weapon.json",
+            "data/marines/missile-aa-weapons.weapon.json"
   ],
   "specialEquipment": [
     "data/marines/marine-special-equipment.equipment.json"

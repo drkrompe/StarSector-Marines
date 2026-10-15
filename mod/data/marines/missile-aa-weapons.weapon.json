@@ -1,0 +1,441 @@
+{
+  "weapons": [
+    {
+      "id": "weapon.aa-locust",
+      "mount": "turret-mount",
+      "catalog": {
+        "displayName": "@gearCatalogWeaponAaLocustDisplayName",
+        "modelName": "@gearCatalogWeaponAaLocustModelName",
+        "designation": "LCT",
+        "designationTiered": false
+      },
+      "sim": {
+        "range": 70,
+        "damage": 200,
+        "accuracy": 1,
+        "cooldown": 5,
+        "penetration": 0,
+        "burstCount": 30,
+        "burstSpacing": 0.1,
+        "aoeRadius": 0,
+        "airMissile": {
+          "guided": true,
+          "retargetCloser": true,
+          "launchSpeed": 5,
+          "cruiseSpeed": 20,
+          "acceleration": 125,
+          "deceleration": 125,
+          "turnRateDegPerSec": 240,
+          "lifetime": 6,
+          "fuseRadius": 0,
+          "blastRadius": 0,
+          "blastCoreRadius": 0,
+          "friendlyFire": false
+        }
+      },
+      "render": {
+        "projectileSprite": "graphics/missiles/missile_locust.png",
+        "projectileVisualCells": 0.7
+      },
+      "fx": {
+        "launch": [
+          {
+            "velocityForward": [
+              -1.2,
+              -0.65
+            ],
+            "kind": "smoke",
+            "offsetForward": [
+              -0.16,
+              -0.05
+            ],
+            "count": 1,
+            "lifetime": [
+              0.45,
+              0.65
+            ],
+            "color": "A9A59C",
+            "offsetLateral": [
+              -0.08,
+              0.08
+            ],
+            "radius": [
+              0.16,
+              0.24
+            ],
+            "velocityLateral": [
+              -0.25,
+              0.25
+            ]
+          }
+        ],
+        "muzzle": [
+          {
+            "lifetime": 0.08,
+            "kind": "glow",
+            "radius": 0.3,
+            "color": "FF914B"
+          }
+        ],
+        "impact": [
+          {
+            "lifetime": 0.12,
+            "kind": "glow",
+            "radius": 0.8,
+            "color": "FFE0A0"
+          },
+          {
+            "lifetime": 0.3,
+            "kind": "fire",
+            "radius": 0.48
+          },
+          {
+            "jitter": 0.18,
+            "color": "A5A5A5",
+            "lifetime": [
+              0.55,
+              0.85
+            ],
+            "count": 2,
+            "radius": [
+              0.3,
+              0.5
+            ],
+            "kind": "smoke"
+          }
+        ],
+        "trail": [
+          {
+            "velocityForward": [
+              -0.8,
+              -0.35
+            ],
+            "color": "FF914B",
+            "lifetime": [
+              0.09,
+              0.14
+            ],
+            "radius": [
+              0.1,
+              0.14
+            ],
+            "kind": "fire",
+            "velocityLateral": [
+              -0.07,
+              0.07
+            ]
+          },
+          {
+            "kind": "smoke",
+            "count": 1,
+            "radius": [
+              0.22,
+              0.34
+            ],
+            "lifetime": [
+              0.65,
+              0.95
+            ],
+            "color": "B6B2A8",
+            "jitter": 0.07,
+            "velocityForward": [
+              -0.55,
+              -0.2
+            ],
+            "velocityLateral": [
+              -0.16,
+              0.16
+            ]
+          }
+        ]
+      },
+      "audio": {
+        "fireSound": "swarmer_fire",
+        "impactSound": "marines_missile_impact"
+      }
+    },
+    {
+      "id": "weapon.aa-swarmer",
+      "mount": "turret-mount",
+      "catalog": {
+        "displayName": "@gearCatalogWeaponAaSwarmerDisplayName",
+        "modelName": "@gearCatalogWeaponAaSwarmerModelName",
+        "designation": "SWR",
+        "designationTiered": false
+      },
+      "sim": {
+        "range": 50,
+        "damage": 100,
+        "accuracy": 1,
+        "cooldown": 5,
+        "penetration": 16,
+        "burstCount": 4,
+        "burstSpacing": 0.2,
+        "aoeRadius": 0,
+        "airMissile": {
+          "guided": true,
+          "retargetCloser": true,
+          "launchSpeed": 5,
+          "cruiseSpeed": 15,
+          "acceleration": 125,
+          "deceleration": 40,
+          "turnRateDegPerSec": 240,
+          "lifetime": 5,
+          "fuseRadius": 0,
+          "blastRadius": 0,
+          "blastCoreRadius": 0,
+          "friendlyFire": false
+        }
+      },
+      "render": {
+        "projectileSprite": "graphics/missiles/missile_SRM.png",
+        "projectileVisualCells": 0.7
+      },
+      "fx": {
+        "launch": [
+          {
+            "velocityForward": [
+              -1.2,
+              -0.65
+            ],
+            "kind": "smoke",
+            "offsetForward": [
+              -0.16,
+              -0.05
+            ],
+            "count": 2,
+            "lifetime": [
+              0.45,
+              0.65
+            ],
+            "color": "A9A59C",
+            "offsetLateral": [
+              -0.08,
+              0.08
+            ],
+            "radius": [
+              0.16,
+              0.24
+            ],
+            "velocityLateral": [
+              -0.25,
+              0.25
+            ]
+          }
+        ],
+        "muzzle": [
+          {
+            "lifetime": 0.08,
+            "kind": "glow",
+            "radius": 0.3,
+            "color": "FF914B"
+          }
+        ],
+        "impact": [
+          {
+            "lifetime": 0.12,
+            "kind": "glow",
+            "radius": 0.8,
+            "color": "FFE0A0"
+          },
+          {
+            "lifetime": 0.3,
+            "kind": "fire",
+            "radius": 0.48
+          },
+          {
+            "jitter": 0.18,
+            "color": "A5A5A5",
+            "lifetime": [
+              0.55,
+              0.85
+            ],
+            "count": 2,
+            "radius": [
+              0.3,
+              0.5
+            ],
+            "kind": "smoke"
+          }
+        ],
+        "trail": [
+          {
+            "velocityForward": [
+              -0.8,
+              -0.35
+            ],
+            "color": "FF914B",
+            "lifetime": [
+              0.09,
+              0.14
+            ],
+            "radius": [
+              0.1,
+              0.14
+            ],
+            "kind": "fire",
+            "velocityLateral": [
+              -0.07,
+              0.07
+            ]
+          },
+          {
+            "kind": "smoke",
+            "count": 1,
+            "radius": [
+              0.22,
+              0.34
+            ],
+            "lifetime": [
+              0.65,
+              0.95
+            ],
+            "color": "B6B2A8",
+            "jitter": 0.07,
+            "velocityForward": [
+              -0.55,
+              -0.2
+            ],
+            "velocityLateral": [
+              -0.16,
+              0.16
+            ]
+          }
+        ]
+      },
+      "audio": {
+        "fireSound": "swarmer_fire",
+        "impactSound": "marines_missile_impact"
+      }
+    },
+    {
+      "id": "weapon.aa-proximity",
+      "mount": "turret-mount",
+      "catalog": {
+        "displayName": "@gearCatalogWeaponAaProximityDisplayName",
+        "modelName": "@gearCatalogWeaponAaProximityModelName",
+        "designation": "PRX",
+        "designationTiered": false
+      },
+      "sim": {
+        "range": 50,
+        "damage": 500,
+        "accuracy": 1,
+        "cooldown": 2,
+        "penetration": 24,
+        "burstCount": 1,
+        "burstSpacing": 0,
+        "aoeRadius": 0,
+        "airMissile": {
+          "guided": false,
+          "retargetCloser": false,
+          "launchSpeed": 20,
+          "cruiseSpeed": 5,
+          "acceleration": 2,
+          "deceleration": 2,
+          "turnRateDegPerSec": 0,
+          "lifetime": 4,
+          "fuseRadius": 2,
+          "blastRadius": 7.5,
+          "blastCoreRadius": 3.75,
+          "friendlyFire": true,
+          "launchSpreadDeg": 20
+        },
+        "minRange": 10
+      },
+      "render": {
+        "projectileSprite": "graphics/missiles/phase_charge_base.png",
+        "projectileVisualCells": 0.8
+      },
+      "fx": {
+        "launch": [
+          {
+            "velocityForward": [
+              -0.8,
+              -0.3
+            ],
+            "kind": "smoke",
+            "offsetForward": [
+              -0.1,
+              0.05
+            ],
+            "count": 3,
+            "lifetime": [
+              0.35,
+              0.55
+            ],
+            "color": "AE82BE",
+            "offsetLateral": [
+              -0.1,
+              0.1
+            ],
+            "radius": [
+              0.22,
+              0.32
+            ],
+            "velocityLateral": [
+              -0.22,
+              0.22
+            ]
+          }
+        ],
+        "muzzle": [
+          {
+            "lifetime": 0.12,
+            "kind": "glow",
+            "radius": 0.48,
+            "color": "BE3CFF"
+          }
+        ],
+        "impact": [
+          {
+            "lifetime": 0.18,
+            "kind": "glow",
+            "radius": 4.5,
+            "color": "D78CFF"
+          },
+          {
+            "lifetime": 0.45,
+            "kind": "ring",
+            "radius": 4.4,
+            "color": "BE3CFF"
+          },
+          {
+            "lifetime": 0.42,
+            "kind": "explosion",
+            "radius": 2.3,
+            "color": "CA72FF"
+          },
+          {
+            "jitter": 1.5,
+            "color": "8E799C",
+            "lifetime": [
+              0.55,
+              0.95
+            ],
+            "count": 6,
+            "radius": [
+              0.7,
+              1.1
+            ],
+            "kind": "smoke"
+          }
+        ],
+        "trail": [
+          {
+            "velocityForward": 0,
+            "color": "BE3CFF",
+            "lifetime": 0.055,
+            "radius": 0.38,
+            "kind": "glow",
+            "velocityLateral": 0
+          }
+        ]
+      },
+      "audio": {
+        "fireSound": "proximity_charge_launcher_fire",
+        "impactSound": "prox_charge_explosion"
+      }
+    }
+  ]
+}

@@ -238,6 +238,14 @@ replay is bounded by the simulation's retained decal list, while an already
 stamped live accumulator can retain older pixels after source eviction.
 Persistent cell-backed terrain scars do not depend on that decal retention.
 
+Projectile particle trails advance outside the draw collector. A fixed cadence
+on each shot's simulation clock determines emissions, with positions sampled
+along its traveled path. Live and headless hosts use the same emitter. A paused
+shot emits nothing, and a resolved flight stops emitting while its existing
+particles dissipate. Motor effects originate at the projectile tail; an
+unpowered charge's authored glow stays at its center. Launch and impact audio
+remain tied to physical events, never to the number of rendered particles.
+
 ## Standing laws
 
 1. Paint order is semantic. Change `RenderLayer` order or same-layer producer order only after re-deriving the affected occlusion contract.

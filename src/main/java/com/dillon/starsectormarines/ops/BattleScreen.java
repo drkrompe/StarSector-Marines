@@ -633,6 +633,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             renderer.getGroundLights().spawnFire(burst[0], burst[1], burst[2]);
         }
         driveOrdnanceFx(sim, frameSimDt);
+        renderer.getProjectileTrailFx().tick(sim.getActiveShots(), renderer.getImpactFx());
         renderer.getImpactFx().advance(frameSimDt);
         renderer.getGroundLights().advance(frameSimDt);
         renderer.getGroundLights().syncBoltLights(sim.getActiveShots());

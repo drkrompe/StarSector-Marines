@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.air.AirLocomotion;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.GuidedMissile;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.AirMissileSpec;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +19,8 @@ public final class GroundAntiAirSystem {
     private record Round(long shooter, long target, float damage, float penetration, int arrival) {}
     private final List<Missile> missiles = new ArrayList<>();
     private static final class Missile {
-        final long shooter, target;
+        final long shooter;
+        long target;
         final WeaponDef weapon;
         final ShotEvent shot;
         final GuidedMissile flight;
@@ -84,28 +86,44 @@ public final class GroundAntiAirSystem {
             nearest = distance;
         }
         sim.world().setTargetId(id, target);
-        if (target == 0L) { state.setBurstRemaining(id, 0); return; }
-        float bearing = TurretAim.bearingTo(sim.world().x(id), sim.world().y(id),
-                sim.world().x(target), sim.world().y(target));
+        if (target == 0L && (weapon.airMissile == null || state.burstRemaining(id) == 0)) {
+            state.setBurstRemaining(id, 0); return;
+        }
+        // A committed native salvo is noninterruptible: without a new target its remaining rounds leave on the held bearing.
+        float held = (float) Math.toRadians(state.facingDegrees(id) + 90f);
+        float aimX = target == 0 ? sim.world().x(id) + (float) Math.cos(held) * weapon.range : sim.world().x(target);
+        float aimY = target == 0 ? sim.world().y(id) + (float) Math.sin(held) * weapon.range : sim.world().y(target);
+        float aimZ = target == 0 ? 4f : AirAppearance.visualAltitudeOffsetCells(sim.world().altitudeT(target));
+        float bearing = target == 0 ? state.facingDegrees(id)
+                : TurretAim.bearingTo(sim.world().x(id), sim.world().y(id), aimX, aimY);
         float facing = TurretAim.slewToward(state.facingDegrees(id), bearing, structure.mount.turnRateDegPerSec * dt);
         state.setFacingDegrees(id, facing);
         boolean burst = state.burstRemaining(id) > 0;
         state.setBurstTimer(id, Math.max(0f, state.burstTimer(id) - dt));
-        if ((burst ? state.burstTimer(id) > 0f : cooldown > 0f)
-                || Math.abs(TurretAim.shortestAngleDelta(facing, bearing)) > TurretAim.FIRE_ARC_DEG) return;
+        float clockTolerance = weapon.airMissile == null ? 0f : .0001f;
+        if ((burst ? state.burstTimer(id) > clockTolerance : cooldown > clockTolerance)
+                || (!burst || weapon.airMissile == null)
+                && Math.abs(TurretAim.shortestAngleDelta(facing, bearing)) > TurretAim.FIRE_ARC_DEG) return;
         int release = burst ? weapon.burstCount - state.burstRemaining(id) : 0;
         state.setBurstRemaining(id, burst ? state.burstRemaining(id) - 1 : weapon.burstCount - 1);
         state.setBurstTimer(id, weapon.burstSpacing);
-        if (!burst) sim.world().setCooldownTimer(id, weapon.cooldown);
+        if (weapon.airMissile != null) {
+            if (state.burstRemaining(id) == 0) sim.world().setCooldownTimer(id, weapon.cooldown);
+        } else if (!burst) sim.world().setCooldownTimer(id, weapon.cooldown);
         state.setRecoilTimer(id, 0f);
         var muzzle = TurretMountGeometry.muzzle(sim.world().x(id), sim.world().y(id), facing, structure.mount, release);
-        if (weapon.guidance != null) {
-            sim.world().mission(target).lastMissileLaunchTick = sim.getSimTickIndex();
-            var flight = new GuidedMissile(muzzle.x(), muzzle.y(), facing, weapon.roundVelocity, weapon.guidance);
+        if (weapon.guidance != null || weapon.airMissile != null) {
+            if (target != 0) sim.world().mission(target).lastMissileLaunchTick = sim.getSimTickIndex();
+            float launchFacing = facing + (weapon.airMissile != null && weapon.airMissile.launchSpreadDeg() > 0f
+                    ? weapon.airMissile.launchAngleOffset(sim.random().nextFloat()) : 0f);
+            var flight = weapon.airMissile == null
+                    ? new GuidedMissile(muzzle.x(), muzzle.y(), facing, weapon.roundVelocity, weapon.guidance)
+                    : new GuidedMissile(muzzle.x(), muzzle.y(), launchFacing, aimX, aimY, aimZ, weapon.airMissile);
             var shot = new ShotEvent(muzzle.x(), muzzle.y(), 0f, muzzle.x(), muzzle.y(), 0f,
-                    false, sim.identity().faction(id), weapon.guidance.lifetime(), structure, null, null, null,
+                    false, sim.identity().faction(id), flight.remaining, structure, null, null, null,
                     0f, false, null, id);
             shot.guidedFlight = flight;
+            shot.flightTargetId = target;
             var terrain = sim.getTopology().terrainSurface();
             boolean summit = terrain != null && terrain.isFullSummit(sim.world().cellX(id), sim.world().cellY(id));
             missiles.add(new Missile(id, target, weapon, shot, flight, summit));
@@ -146,31 +164,153 @@ public final class GroundAntiAirSystem {
         for (var it = missiles.iterator(); it.hasNext();) {
             Missile missile = it.next();
             var flight = missile.flight;
+            var spec = missile.weapon.airMissile;
+            if (spec != null && spec.guided() && spec.retargetCloser()) {
+                float nearest = Float.POSITIVE_INFINITY;
+                long selected = 0;
+                for (long candidate : sim.getAirEntityIds()) {
+                    if (!eligible(sim, missile, candidate, true)) continue;
+                    float dx = sim.world().x(candidate) - flight.x, dy = sim.world().y(candidate) - flight.y;
+                    float dz = AirAppearance.visualAltitudeOffsetCells(sim.world().altitudeT(candidate)) - flight.z;
+                    float distance = dx * dx + dy * dy + dz * dz;
+                    if (distance < nearest || distance == nearest && candidate == missile.target) {
+                        selected = candidate; nearest = distance;
+                    }
+                }
+                missile.target = selected;
+            }
+            missile.shot.flightTargetId = missile.target;
             var mission = sim.world().isAlive(missile.target) ? sim.world().mission(missile.target) : null;
             boolean tracking = sim.world().isAlive(missile.target) && mission != null && !mission.destroyed
-                    && mission.isOnMap() && AirLocomotion.of(mission.state).airborne();
+                    && mission.isOnMap() && AirLocomotion.of(mission.state).airborne()
+                    && (spec == null || eligible(sim, missile, missile.target, true));
             float tx = tracking ? sim.world().x(missile.target) : flight.x;
             float ty = tracking ? sim.world().y(missile.target) : flight.y;
             float tz = tracking ? AirAppearance.visualAltitudeOffsetCells(sim.world().altitudeT(missile.target)) : flight.z;
-            // A short lead helps intercept transverse flight; guidance still steers toward live positions.
-            float lead = tracking ? Math.min(.5f, (float) Math.hypot(tx - flight.x, ty - flight.y) / missile.weapon.roundVelocity) : 0f;
+            // Legacy guidance keeps its short lead; physical families solve a constant-velocity intercept.
             var body = tracking ? sim.world().kinematics(missile.target) : null;
+            float lead = !tracking ? 0f : spec == null
+                    ? Math.min(.5f, (float) Math.hypot(tx - flight.x, ty - flight.y) / missile.weapon.roundVelocity)
+                    : GuidedMissile.leadSeconds(tx - flight.x, ty - flight.y, tz - flight.z,
+                            body == null ? 0f : body.vx, body == null ? 0f : body.vy,
+                            spec.cruiseSpeed(), flight.remaining);
             flight.advance(BattleSimulation.TICK_DT, tracking, tx + (body == null ? 0f : body.vx * lead),
                     ty + (body == null ? 0f : body.vy * lead), tz);
-            if (tracking && flight.contacts(tx, ty, tz, sim.world().airframe(missile.target).targetRadiusCells())) {
+            if (spec == null && tracking && flight.contacts(tx, ty, tz, sim.world().airframe(missile.target).targetRadiusCells())) {
                 sim.applyAimedDamage(missile.target, missile.shooter, missile.weapon.damage, missile.weapon.penetration);
                 sim.telemetry().recordRoundHit(missile.shooter);
                 flight.remaining = 0f;
+                missile.shot.flightImpact = true;
+            }
+            if (spec != null) {
+                // Leaving the simulated battlefield ends a miss quietly, without an invented edge detonation.
+                int flightCx = (int) Math.floor(flight.x), flightCy = (int) Math.floor(flight.y);
+                resolveFamilyContact(sim, missile);
+                if (!missile.shot.flightImpact && !sim.getGrid().inBounds(flightCx, flightCy)) flight.remaining = 0f;
             }
             // Once at flight height, the round clears low structures just as the aircraft does.
             // A summit launch clears its own supporting mass only until it leaves that mass.
             int cx = (int) Math.floor(flight.x), cy = (int) Math.floor(flight.y);
             if (missile.clearingLaunchHill && !TurretAim.terrainMassAt(sim.getGrid(), sim.getTopology(), cx, cy))
                 missile.clearingLaunchHill = false;
-            if (flight.z < 1f && !missile.clearingLaunchHill && sim.getGrid().inBounds(cx, cy)
-                    && sim.getGrid().blocksStructuralLineOfSight(cx, cy)) flight.remaining = 0f;
+            if (!missile.shot.flightImpact && flight.z < 1f && !missile.clearingLaunchHill && sim.getGrid().inBounds(cx, cy)
+                    && sim.getGrid().blocksStructuralLineOfSight(cx, cy)) {
+                flight.remaining = 0f;
+                missile.shot.flightImpact = true;
+                if (spec != null && spec.blastRadius() > 0f) applyFamilyBlast(sim, missile);
+            }
             missile.shot.toX = flight.x; missile.shot.toY = flight.y; missile.shot.toZ = flight.z;
-            if (flight.remaining <= 0f) it.remove();
+            if (flight.remaining <= 0f) {
+                missile.shot.flightResolved = true;
+                missile.shot.lifetime = 0f;
+                it.remove();
+            }
         }
     }
+    private static boolean eligible(BattleSimulation sim, Missile missile, long candidate, boolean hostileOnly) {
+        if (!sim.world().isAlive(candidate)) return false;
+        var mission = sim.world().mission(candidate);
+        return mission != null && !mission.destroyed && mission.isOnMap()
+                && (missile.weapon.airMissile == null || sim.getGrid().inBounds(
+                        (int) Math.floor(sim.world().x(candidate)), (int) Math.floor(sim.world().y(candidate))))
+                && AirLocomotion.of(mission.state).airborne()
+                && (!hostileOnly || missile.shot.shooterFaction.hostileTo(sim.world().airFaction(candidate)));
+    }
+
+    private static void resolveFamilyContact(BattleSimulation sim, Missile missile) {
+        var spec = missile.weapon.airMissile;
+        var flight = missile.flight;
+        long contacted = 0;
+        float first = Float.POSITIVE_INFINITY;
+        for (long candidate : sim.getAirEntityIds()) {
+            if (!eligible(sim, missile, candidate, !spec.friendlyFire())) continue;
+            float x = sim.world().x(candidate), y = sim.world().y(candidate);
+            float z = AirAppearance.visualAltitudeOffsetCells(sim.world().altitudeT(candidate));
+            boolean hostile = missile.shot.shooterFaction.hostileTo(sim.world().airFaction(candidate));
+            float radius = sim.world().airframe(candidate).targetRadiusCells() + (hostile ? spec.fuseRadius() : 0f);
+            float fraction = flight.contactFraction(x, y, z, radius);
+            if (fraction < first) { first = fraction; contacted = candidate; }
+        }
+        if (contacted == 0) return;
+        // Stop at the first physical contact, even when a tick would otherwise cross the entire hull.
+        flight.x = flight.previousX + (flight.x - flight.previousX) * first;
+        flight.y = flight.previousY + (flight.y - flight.previousY) * first;
+        flight.z = flight.previousZ + (flight.z - flight.previousZ) * first;
+        flight.remaining = 0;
+        missile.shot.flightImpact = true;
+        if (spec.blastRadius() == 0f) {
+            sim.applyAimedDamage(contacted, missile.shooter, missile.weapon.damage, missile.weapon.penetration);
+            sim.telemetry().recordRoundHit(missile.shooter);
+            return;
+        }
+        applyFamilyBlast(sim, missile);
+    }
+
+    /** The same payload is spent once whether the charge meets an aircraft or terrain. */
+    private static void applyFamilyBlast(BattleSimulation sim, Missile missile) {
+        var spec = missile.weapon.airMissile;
+        var flight = missile.flight;
+        for (long candidate : sim.getAirEntityIds()) {
+            if (!eligible(sim, missile, candidate, !spec.friendlyFire())) continue;
+            float dx = sim.world().x(candidate) - flight.x, dy = sim.world().y(candidate) - flight.y;
+            float dz = AirAppearance.visualAltitudeOffsetCells(sim.world().altitudeT(candidate)) - flight.z;
+            float surface = Math.max(0f, (float) Math.sqrt(dx * dx + dy * dy + dz * dz)
+                    - sim.world().airframe(candidate).targetRadiusCells());
+            float damage = missile.weapon.damage * spec.damageFraction(surface);
+            if (damage <= 0) continue;
+            sim.applyAimedDamage(candidate, missile.shooter, damage, missile.weapon.penetration);
+            sim.telemetry().recordRoundHit(missile.shooter);
+        }
+        var victims = new ArrayList<BlastVictim>();
+        for (int i = 0; i < sim.liveUnitCount(); i++) gatherGroundBlast(sim, missile, sim.liveUnitAt(i), victims);
+        for (int i = 0; i < sim.bodies().bodyCount(); i++)
+            gatherGroundBlast(sim, missile, sim.bodies().bodyAt(i), victims);
+        for (var victim : victims) {
+            sim.applyAimedDamage(victim.id(), missile.shooter, victim.damage(), missile.weapon.penetration);
+            sim.telemetry().recordRoundHit(missile.shooter);
+        }
+    }
+
+    private record BlastVictim(long id, float damage) {}
+
+    private static void gatherGroundBlast(BattleSimulation sim, Missile missile, long id, List<BlastVictim> victims) {
+        if (!sim.bodies().isTargetable(id)) return;
+        var carrier = sim.bodies().carrierOf(id);
+        if (carrier != null && carrier.isAirborne(id)) return;
+        var spec = missile.weapon.airMissile;
+        var faction = carrier == null ? sim.identity().faction(id) : carrier.faction(id);
+        if (!spec.friendlyFire() && !missile.shot.shooterFaction.hostileTo(faction)) return;
+        float x = sim.world().x(id), y = sim.world().y(id);
+        int cx = (int) Math.floor(x), cy = (int) Math.floor(y);
+        if (!sim.getGrid().inBounds(cx, cy)) return;
+        var topology = sim.getTopology();
+        if (topology.getBuildingId(cx, cy) != 0 && !topology.isRoofDestroyed(cx, cy)) return;
+        var flight = missile.flight;
+        if (!sim.getGrid().hasLineOfSight((int) Math.floor(flight.x), (int) Math.floor(flight.y), cx, cy)) return;
+        float surface = AirMissileSpec.groundSurfaceDistance((float) Math.hypot(x - flight.x, y - flight.y),
+                flight.z, sim.physicalRadius(id), sim.getRoster().hitHalfHeight(id));
+        float damage = missile.weapon.damage * spec.damageFraction(surface);
+        if (damage > 0f) victims.add(new BlastVictim(id, damage));
+    }
+
 }

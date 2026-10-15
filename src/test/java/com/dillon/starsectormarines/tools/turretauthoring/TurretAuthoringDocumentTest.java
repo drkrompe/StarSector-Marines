@@ -28,6 +28,28 @@ class TurretAuthoringDocumentTest {
     @TempDir Path temporary;
 
     @Test
+    void missileEditsKeepTheirCatalogAndUneditedFlightAndMouthFields() throws Exception {
+        copyCatalogs(temporary);
+        TurretAuthoringDocument document = TurretAuthoringDocument.load(temporary);
+        var selection = document.selection("structure.aa-swarmer");
+        String flight = selection.weapon().getJSONObject("sim").getJSONObject("airMissile").toString();
+        String mouths = selection.mount().getJSONObject("render").getJSONArray("muzzles").toString();
+        String legacy = Files.readString(temporary.resolve(TurretAuthoringDocument.WEAPON_PATH));
+        selection.weapon().getJSONObject("sim").put("damage", 201);
+        String modified = document.snapshot();
+        document.restore(modified);
+        document.save();
+        var reloaded = TurretAuthoringDocument.load(temporary);
+        var saved = reloaded.selection(selection.structureId());
+        assertEquals(201, saved.weapon().getJSONObject("sim").getInt("damage"));
+        assertEquals(flight, saved.weapon().getJSONObject("sim").getJSONObject("airMissile").toString());
+        assertEquals(mouths, saved.mount().getJSONObject("render").getJSONArray("muzzles").toString());
+        assertEquals(legacy, Files.readString(temporary.resolve(TurretAuthoringDocument.WEAPON_PATH)));
+        assertEquals(temporary.resolve(TurretAuthoringDocument.MISSILE_WEAPON_PATH).toAbsolutePath(),
+                reloaded.weaponPath(selection.structureId()));
+    }
+
+    @Test
     void crossCatalogEditsValidateSaveAndReloadTogether() throws Exception {
         copyCatalogs(temporary);
         String preservedCatalogLine = Files.readAllLines(temporary.resolve(TurretAuthoringDocument.WEAPON_PATH))
@@ -168,7 +190,7 @@ class TurretAuthoringDocumentTest {
     }
 
     private static void copyCatalogs(Path root) throws Exception {
-        for (Path relative : new Path[]{TurretAuthoringDocument.WEAPON_PATH,
+        for (Path relative : new Path[]{TurretAuthoringDocument.WEAPON_PATH, TurretAuthoringDocument.MISSILE_WEAPON_PATH,
                 TurretAuthoringDocument.TURRET_PATH, TurretAuthoringDocument.LAYOUT_PATH}) {
             Path target = root.resolve(relative);
             Files.createDirectories(target.getParent());

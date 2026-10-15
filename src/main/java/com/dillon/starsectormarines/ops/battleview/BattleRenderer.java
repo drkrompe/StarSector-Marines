@@ -184,6 +184,7 @@ public class BattleRenderer {
      * emits {@code RIBBON} commands in its world-pass {@link RenderSystem}.
      */
     private final ContrailFxService contrailFx = new ContrailFxService();
+    private final ProjectileTrailFxService projectileTrailFx = new ProjectileTrailFxService();
 
     /**
      * In-flight rounds an aircraft is putting on the ground. Owns their state
@@ -356,7 +357,7 @@ public class BattleRenderer {
                         ordnanceTraceFx.collect(ctx.camera, out, ctx.alphaMult)),
                 RenderSystem.of(RenderLayer.SHOTS, (ctx, out) ->
                         beamFx.collect(ctx.camera, out, ctx.alphaMult)),
-                new ShotRenderService(sprites, impactFx),
+                new ShotRenderService(sprites),
                 RenderSystem.of(RenderLayer.IMPACT_FX, (ctx, out) -> {
                     if (!ZoomDetail.impactParticlesVisible(ctx.camera)) return;
                     out.addCustom(RenderLayer.IMPACT_FX,
@@ -520,6 +521,7 @@ public class BattleRenderer {
 
     /** Accessor for {@code BattleScreen.advance()} — tick the contrail trail lifecycle on real dt. */
     public ContrailFxService getContrailFx() { return contrailFx; }
+    public ProjectileTrailFxService getProjectileTrailFx() { return projectileTrailFx; }
     /** In-flight delivered rounds. Spawned and advanced by the host that drives the battle. */
     public OrdnanceTraceFxService getOrdnanceTraceFx() { return ordnanceTraceFx; }
 
