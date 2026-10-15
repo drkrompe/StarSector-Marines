@@ -74,6 +74,7 @@ import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
+import com.dillon.starsectormarines.battle.combat.EnvironmentWear;
 import com.dillon.starsectormarines.battle.combat.fx.Decal;
 import com.dillon.starsectormarines.battle.combat.WoundService;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
@@ -367,6 +368,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final CellTopology topology;
     /** Runtime map-modification coordinator: wall breach / roof crack / structure-to-rubble. Sequences the topology writes + navigation walkability/zone-graph writes + the roof-collapse decal sink. Owns behavior {@link NavigationService} no longer holds. */
     private final MapEditor mapEditor;
+    /** Wears the environment a direct round stopped in, through {@link #mapEditor}. */
+    private final EnvironmentWear environmentWear;
     /** Roster service: live unit registry + squad registry + spawn queue + ID counters. */
     private final UnitRosterService rosterService;
     private final AirSystem airSystem;
@@ -1074,6 +1077,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             if (!applyingInitialDamage) effects.spawnPropDamage(x, y, effect, size);
         });
         this.mapEditor.setDoodads(doodadService);
+        this.environmentWear = new EnvironmentWear(grid, topology, doodadService, mapEditor);
+        this.shots.setStrikeFilter(environmentWear::wouldWear);
         // DamageService construction is staged: the resolver needs the roster
         // (squad map + units list) and the equipment-drop service, both of
         // which we build right after. We construct the service second and
@@ -1333,6 +1338,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     @Override public com.dillon.starsectormarines.battle.grenade.FragGrenadeService fragGrenades() { return fragGrenades; }
     /** Categorization tags (street / rubble / wall / vehicle / etc.) for renderer + placement filters. Sibling to {@link #grid}; the pathfinder doesn't touch this. */
     public CellTopology getTopology()      { return topology; }
+    /** How much the battle's direct fire has worn the environment; see {@link EnvironmentWear}. */
+    public EnvironmentWear environmentWear() { return environmentWear; }
     /** Zone+portal graph layered on the {@link NavigationGrid}. Rebuilt on wall destruction so AI queries reflect the current map. */
     public ZoneGraph getZoneGraph()        { return zoneGraph; }
 
@@ -3098,6 +3105,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // so DamageService.applyDamage resolves inline through this sink rather
         // than re-queuing for a drain that already ran this tick.
         shots.tickImpacts(TICK_DT, this::applyPendingImpact);
+        // The same flight clock for a round that stopped in the environment: it wears what it hit.
+        shots.tickStrikes(TICK_DT, environmentWear::apply);
         shots.tickShots(TICK_DT);
         tickProfile.lap(TickProfile.Phase.SHOTS);
         equipmentDropSystem.tick();
