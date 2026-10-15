@@ -693,8 +693,12 @@ Do not run builds or leave generated task files there.
   starter armor) and every sheet (with starter weapons) against the starter issue, once
   attacking and once defending, at `-Pseeds=3` seeds; starter-vs-starter is the control row
   every other row is read against, because the ground favours one side. `-Pattacker=` /
-  `-Pdefender=` (`weapons:x+armor:y`) replace the ladder with one explicit matchup,
-  `-Pscenarios=open-field,trench` selects ground, `-Pparallelism=N` sets fights run side by
+  `-Pdefender=` (`weapons:x+armor:y`) replace the ladder with an explicit matchup;
+  several sides separated by `;` fight every pairing. Either half may be an uncarded
+  experiment, for trying an issue before authoring it: `kit:field-rifle@surplus,rocket-launcher*2,frag-grenade*6`
+  (every seat the primary at that grade, the listed specials on the first seats in order) and
+  `mix:cordon-shell*10,packframe*2` (armor patterns adding up to twelve); the `weapon.`,
+  `special.` and `armor.` prefixes may be left off. `-Pscenarios=open-field,trench` selects ground, `-Pparallelism=N` sets fights run side by
   side (default half the processors; 1 is the serial control). The sim seed changes every hit
   and morale roll and nothing else. A fight ends when a side is wiped out, when both stand
   with no damage for 1,200 ticks (`STALEMATE`) or at the tick limit; neither is a draw, so
@@ -704,7 +708,7 @@ Do not run builds or leave generated task files there.
   construction with a detached kit, not a campaign roster, and not balance acceptance.
   `-Pgifs=true` records each fight's first `-PgifSeeds=1` seeds as a 1920x1080 GIF under
   `gifs/<scenario>/` (linked from the Replay column of `matchups.md` and `runs.csv`); it is on
-  by default for an explicit `-Pattacker`/`-Pdefender` matchup and off for the ladder, where it
+  by default for up to four explicit `-Pattacker`/`-Pdefender` pairings and off otherwise, where it
   would write a gigabyte. A recording only reads the sim: sparse frames until the first damage,
   dense after it, shots and impacts drawn, a camera that follows the main body of the fight
   (a routed straggler is left out of the framing), capped at 360 frames. A scenario's walls have
