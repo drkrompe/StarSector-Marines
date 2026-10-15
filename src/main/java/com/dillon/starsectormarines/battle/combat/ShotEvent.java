@@ -45,6 +45,11 @@ public class ShotEvent {
     public long flightTargetId;
     /** Actual craft whose body/fuse triggered this flight, distinct from the intended guidance target. */
     public long flightContactId;
+    /**
+     * Presentation bookkeeping for a soft-launched missile: set once its motor's ignition has been
+     * drawn, so the flash is emitted once however many frames read the shot. The sim never reads it.
+     */
+    public boolean ignitionShown;
     public final boolean hit;
     public final Faction shooterFaction;
     /** Firing entity id, or {@code 0L} for anonymous/aerial legacy sources. */

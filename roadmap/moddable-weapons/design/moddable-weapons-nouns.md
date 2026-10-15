@@ -132,8 +132,8 @@ Runtime and the deterministic six-state catalog preview consume the same pose
 and seeded effect commands. The preview mounts those commands into the retained
 document canvas seam, so its sprite layers, atlas frames, tint, and blend intent
 are rendered by the same live/headless target boundary as other authored UI.
-Its storyboard derives launch count, boost curve, arc, scatter character, and
-contrail from the resolved weapon definition, so an artillery rocket battery
+Its storyboard derives launch count, boost curve, arc, soft launch, scatter
+character, and contrail from the resolved weapon definition, so an artillery rocket battery
 cannot silently degrade into a generic straight-flying turret round.
 
 Defense-post layouts load after turret structures so each placement resolves

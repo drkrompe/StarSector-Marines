@@ -24,23 +24,44 @@ public final class ProjectileTrailFxService {
     }
 
     public void tick(List<ShotEvent> shots, ImpactFx backend) {
-        sample(shots, e -> WeaponFxRuntime.spawnTrail(backend, e.shot, e.x, e.y, e.bearing));
+        sample(shots, e -> WeaponFxRuntime.spawnTrail(backend, e.shot, e.x, e.y, e.bearing),
+                e -> WeaponFxRuntime.spawnIgnition(backend, e.shot, e.x, e.y, e.bearing));
     }
 
     /** Pure positions emitted to an injected sink; old samples remain owned by the particle backend. */
     void sample(List<ShotEvent> shots, Consumer<Emission> sink) {
+        sample(shots, sink, ignored -> { });
+    }
+
+    void sample(List<ShotEvent> shots, Consumer<Emission> sink, Consumer<Emission> ignitionSink) {
         present.clear();
         for (ShotEvent shot : shots) {
             if (shot.flightResolved || shot.lifetime <= 0f
                     || shot.guidedFlight != null && shot.guidedFlight.remaining <= 0f) continue;
             ShotFx fx = ShotFx.of(shot);
-            if (!(fx.body() instanceof ShotFx.Sprite sprite)
-                    || WeaponFxRuntime.definition(shot).layers(FxSlot.TRAIL).isEmpty()) continue;
+            if (!(fx.body() instanceof ShotFx.Sprite sprite)) continue;
             present.add(shot);
             Cursor cursor = cursors.computeIfAbsent(shot, Cursor::new);
             float age = Math.max(0f, shot.lifetimeMax - shot.lifetime);
             if (age <= cursor.age + 1e-6f) continue; // A paused or repeatedly painted frame emits nothing.
             var pose = ShotRenderService.spriteFlight(shot, fx);
+            boolean softLaunch = shot.guidedFlight == null && fx.softLaunch() != null;
+            if (softLaunch) {
+                // Keep the cursor current during the coast: ignition must not backfill smoke to the tube.
+                cursor.next = Math.max(cursor.next, fx.softLaunch().seconds());
+                if (!ShotRenderService.motorLit(shot, fx)) {
+                    cursor.age = age; cursor.x = pose.x(); cursor.y = pose.y();
+                    continue;
+                }
+                if (!shot.ignitionShown) {
+                    shot.ignitionShown = true;
+                    ignitionSink.accept(new Emission(shot, pose.x(), pose.y(), pose.bearing()));
+                }
+            }
+            if (WeaponFxRuntime.definition(shot).layers(FxSlot.TRAIL).isEmpty()) {
+                cursor.age = age; cursor.x = pose.x(); cursor.y = pose.y();
+                continue;
+            }
             // Powered exhaust starts at the body tail. An unpowered charge's authored glow belongs at its center.
             float tail = shot.guidedFlight != null && !shot.guidedFlight.powered() ? 0f : sprite.visualCells() * .5f;
             float radians = (float) Math.toRadians(pose.bearing());

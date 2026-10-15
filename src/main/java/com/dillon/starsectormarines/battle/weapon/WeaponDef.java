@@ -116,6 +116,8 @@ public final class WeaponDef {
     public final boolean pointDefenseTarget;
     /** Whether an interceptable projectile accelerates through the shared boost-then-cruise motion curve. */
     public final boolean boostRamp;
+    /** A two-stage missile's unpowered coast out of the tube before its motor lights, or {@code null}. */
+    public final SoftLaunch softLaunch;
     /** Whether acquisition and firing may continue without direct line of sight. */
     public final boolean indirectFire;
     /** Accuracy multiplier for an indirect shot fired without line of sight. */
@@ -161,7 +163,8 @@ public final class WeaponDef {
                       float wallDamageRadius, float aimDuration, float flightSec,
                       float arcHeight, boolean interceptableProjectile,
                       boolean pointDefenseTarget,
-                      boolean boostRamp, boolean indirectFire, float noLosAccuracyMult,
+                      boolean boostRamp, SoftLaunch softLaunch,
+                      boolean indirectFire, float noLosAccuracyMult,
                       float noiseMagnitude,
                       LayeredWeaponFamily heldSpriteFamily,
                       Color tracerColor,
@@ -206,6 +209,7 @@ public final class WeaponDef {
         this.interceptableProjectile = interceptableProjectile;
         this.pointDefenseTarget = pointDefenseTarget;
         this.boostRamp = boostRamp;
+        this.softLaunch = softLaunch;
         this.indirectFire = indirectFire;
         this.noLosAccuracyMult = noLosAccuracyMult;
         this.noiseMagnitude = noiseMagnitude;
@@ -333,6 +337,7 @@ public final class WeaponDef {
                 sim.optBoolean("interceptableProjectile", false),
                 sim.optBoolean("pointDefenseTarget", false),
                 sim.optBoolean("boostRamp", false),
+                SoftLaunch.parse(sim.optJSONObject("softLaunch"), id),
                 sim.optBoolean("indirectFire", false),
                 (float) sim.optDouble("noLosAccuracyMult", 1.0),
                 (float) sim.optDouble("noiseMagnitude", 1.0),
@@ -424,6 +429,11 @@ public final class WeaponDef {
                 || !Float.isFinite(def.roundVelocity) || def.projectilesPerShot != 1
                 || def.interceptableProjectile || def.indirectFire || def.arcHeight != 0f || def.tracerTailCells != 0f)) {
             throw new JSONException("Weapon '" + def.id + "' air guidance requires a direct turret missile with positive velocity");
+        }
+        if (def.softLaunch != null && (!def.interceptableProjectile || !(def.roundVelocity > 0f)
+                || def.guidance != null || def.tracerTailCells != 0f)) {
+            throw new JSONException("Weapon '" + def.id
+                    + "' soft launch requires a travelling projectile with a round velocity, no air guidance and no tracer tail");
         }
         if (def.burstCount == 1 && def.burstSpacing != 0f) {
             throw new JSONException("Weapon '" + def.id
