@@ -8,4 +8,5 @@ Written: 2026-08-23
 
 | Story | State | Intent |
 |---|---|---|
+| `small-arms-wear.md` | IN REVIEW | Rounds wear the cover they stop in, by penetration against a material rating. |
 | `ballistics-live-acceptance.md` | PARKED | Validate the shipped physical-cover, friendly-fire, moving-target, and visible-flight feel in a live battle. |

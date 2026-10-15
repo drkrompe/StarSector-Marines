@@ -307,6 +307,8 @@ public class InfantryWeapons {
                         res.flightTime(), appliedDamage, penetration, moraleImpact,
                         res.friendlyHit(), res.victimPart()));
             }
+            // A round that stopped in cover or a wall wears it; drill rounds harm nothing but their target.
+            if (!drill) shots.queueStrike(res, shooter, damage, penetration);
 
             // One visible traveling body per projectile. Simultaneous
             // flechettes share the muzzle timestamp but keep independent
@@ -420,6 +422,7 @@ public class InfantryWeapons {
                         sec.penetration(), roster.identity().type(shooter).moraleImpact,
                         res.friendlyHit(), sec, res.victimPart()));
             }
+            shots.queueStrike(res, shooter, sec.damage(), sec.penetration());
             shots.postShot(ShotEvent.special(fromX, fromY, 0f,
                     res.endX(), res.endY(), res.endZ(),
                     res.hitIntended(), shooterFaction, Math.max(res.flightTime(), 0.05f),
