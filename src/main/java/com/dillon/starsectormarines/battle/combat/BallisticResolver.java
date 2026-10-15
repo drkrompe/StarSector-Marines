@@ -127,9 +127,12 @@ public final class BallisticResolver {
      * target (drives {@code ShotEvent.hit}); {@code friendlyHit} is true
      * when the recorded victim shares the shooter's faction.
      */
-    /** One accepted actor contact retained even when authored penetration lets the round continue. */
+    /**
+     * One accepted actor contact retained even when authored penetration lets the round continue.
+     * {@code part} is where on a person the round landed, or null for a body without parts.
+     */
     public record BodyHit(long victimId, float x, float y, float z, float flightTime,
-                          boolean intended, boolean friendly) { }
+                          boolean intended, boolean friendly, BodyPart part) { }
 
     public record Resolution(float endX, float endY, float endZ, float flightTime,
                               long victimId, boolean hitIntended,
@@ -141,6 +144,14 @@ public final class BallisticResolver {
         /** True when the round reached a physical contact rather than leaving the modeled segment. */
         public boolean impacts() {
             return kind != StopKind.OVERSHOOT;
+        }
+
+        /** The body part the terminal victim was struck on, or null (no victim, or a body without parts). */
+        public BodyPart victimPart() {
+            for (int i = bodyHits.size() - 1; i >= 0; i--) {
+                if (bodyHits.get(i).victimId() == victimId) return bodyHits.get(i).part();
+            }
+            return null;
         }
     }
 
@@ -361,7 +372,7 @@ public final class BallisticResolver {
                     : aimDist;
             rawLen = Math.min(maximumFlightDistance, accurateFlightDistance);
         }
-        return trace(source, target, aim.onTarget(), dirX, dirY, zSlope,
+        return trace(source, target, aim.onTarget(), aim.heightFraction(), dirX, dirY, zSlope,
                 rawLen, roundVelocity, bodyPenetrations, rng);
     }
 
@@ -439,13 +450,13 @@ public final class BallisticResolver {
         // by entity aim; at the sight plane the centered round reaches Z=0.
         float zSlope = (aim.elevationSlope() - source.z() / sightDistance)
                 / directionLength;
-        return trace(source, 0L, false, dirX, dirY, zSlope,
+        return trace(source, 0L, false, 0.5f, dirX, dirY, zSlope,
                 maximumTargetingRange * FLIGHT_RANGE_MULTIPLIER,
                 roundVelocity, bodyPenetrations, rng);
     }
 
     /** Shared physical contact walk; aim policy is fully committed before entry. */
-    private Resolution trace(Source source, long target, boolean onTarget,
+    private Resolution trace(Source source, long target, boolean onTarget, float targetHeightFraction,
                              float dirX, float dirY, float zSlope, float rawLen,
                              float roundVelocity, int bodyPenetrations, Random rng) {
         World world = roster.world();
@@ -620,17 +631,30 @@ public final class BallisticResolver {
             float coverCatchHalfHeight = e.hull ? 0f : grid.getCoverCatchHalfHeight(
                     e.victimCellX, e.victimCellY, fromDx, fromDy);
             if (!intersectsCatchBand(e.z, coverCatchHalfHeight)) coverLevel = 0;
-            float coverBlockChance = BLOCK_CHANCE_BY_LEVEL[
-                    Math.min(coverLevel, BLOCK_CHANCE_BY_LEVEL.length - 1)]
-                    * proximityScale;
             // The ground the victim stands in (a trench) covers him from every direction,
-            // more the further off the shooter is. One roll: the better of the two covers.
+            // more the further off the shooter is.
             int occupantLevel = e.hull ? 0
                     : doodads.occupantCoverAt(e.victimCellX, e.victimCellY, e.z);
-            if (occupantLevel > 0) {
-                coverBlockChance = Math.max(coverBlockChance, BLOCK_CHANCE_BY_LEVEL[
-                        Math.min(occupantLevel, BLOCK_CHANCE_BY_LEVEL.length - 1)]
-                        * occupantCoverScale(e.t * roundVelocity));
+            float occupantScale = occupantLevel > 0 ? occupantCoverScale(e.t * roundVelocity) : 0f;
+            BodyPart part = null;
+            float coverBlockChance;
+            if (!e.hull && roster.identity().type(victim).hasBodyParts()) {
+                // A person: the round lands on the part at the height it meets him, and cover
+                // hides parts. One roll against the better of the two covers for that part. The
+                // intended target's height is where the committed aim landed on him; anyone else
+                // is struck wherever the round happens to be crossing.
+                part = BodyPart.atHeight(victim == target && onTarget
+                        ? targetHeightFraction
+                        : heightFraction(e.z, roster.hitHalfHeight(victim)));
+                coverBlockChance = Math.max(
+                        CoverProfile.edge(coverLevel, part) * proximityScale,
+                        CoverProfile.occupant(occupantLevel, part) * occupantScale);
+            } else {
+                coverBlockChance = Math.max(
+                        BLOCK_CHANCE_BY_LEVEL[Math.min(coverLevel, BLOCK_CHANCE_BY_LEVEL.length - 1)]
+                                * proximityScale,
+                        BLOCK_CHANCE_BY_LEVEL[Math.min(occupantLevel, BLOCK_CHANCE_BY_LEVEL.length - 1)]
+                                * occupantScale);
             }
             if (coverBlockChance > 0f && rng.nextFloat() < coverBlockChance) {
                 return new Resolution(e.x, e.y, e.z, e.t, 0L,
@@ -640,7 +664,7 @@ public final class BallisticResolver {
             boolean isLockedTarget = victim == target;
             if (isLockedTarget) {
                 if (!onTarget) continue;
-                BodyHit hit = new BodyHit(victim, e.x, e.y, e.z, e.t, true, e.friendly);
+                BodyHit hit = new BodyHit(victim, e.x, e.y, e.z, e.t, true, e.friendly, part);
                 bodyHits.add(hit);
                 if (penetrationsRemaining-- > 0) continue;
                 return new Resolution(e.x, e.y, e.z, e.t, victim, true,
@@ -651,7 +675,7 @@ public final class BallisticResolver {
                     : HOSTILE_INCIDENTAL_HIT_CHANCE)
                     * world.incomingAccuracyMult(victim);
             if (hitChance > 0f && rng.nextFloat() < hitChance) {
-                BodyHit hit = new BodyHit(victim, e.x, e.y, e.z, e.t, false, e.friendly);
+                BodyHit hit = new BodyHit(victim, e.x, e.y, e.z, e.t, false, e.friendly, part);
                 bodyHits.add(hit);
                 if (penetrationsRemaining-- > 0) continue;
                 return new Resolution(e.x, e.y, e.z, e.t, victim,
@@ -784,6 +808,12 @@ public final class BallisticResolver {
         float dx = x1 - x0;
         float dy = y1 - y0;
         return (float) Math.sqrt(dx * dx + dy * dy);
+    }
+
+    /** Where {@code z} sits up a body of {@code halfHeight}: 0 at its feet, 1 at its top. */
+    private static float heightFraction(float z, float halfHeight) {
+        if (!(halfHeight > 0f)) return 0.5f;
+        return Math.max(0f, Math.min(0.999999f, (z / halfHeight + 1f) * 0.5f));
     }
 
     private static boolean intersectsCatchBand(float z, float catchHalfHeight) {
