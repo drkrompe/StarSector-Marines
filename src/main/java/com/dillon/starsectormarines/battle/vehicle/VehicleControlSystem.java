@@ -90,7 +90,7 @@ public final class VehicleControlSystem {
 
         float previousX = body.x, previousY = body.y, previousFacing = body.facingDegrees;
         advance(mission, body, type, s, xs, ys, dt, leg);
-        if (type == VehicleType.BREAKTHROUGH_TANK) {
+        if (type.hasTreadAndWreckArt()) {
             body.recordVisualTravel(previousX, previousY, previousFacing);
         }
     }
@@ -117,7 +117,7 @@ public final class VehicleControlSystem {
         bicycle.tickManual(throttle, steering, dt);
         if (dt == 0f) return;
         boolean blocked = applySweep(body, type, prevX, prevY, prevFacing, false);
-        if (type == VehicleType.BREAKTHROUGH_TANK) {
+        if (type.hasTreadAndWreckArt()) {
             body.recordVisualTravel(prevX, prevY, prevFacing);
         }
         VehicleControlComponent s = convoy.control(id);

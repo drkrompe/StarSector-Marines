@@ -125,6 +125,21 @@ public final class EffectsService {
         smokingWrecks.add(new SmokingWreck(engineX, engineY, 90f, .12f, 1.15f, 18f));
     }
 
+    /** Lighter carrier damage: brief roof flash and a contained rear compartment burn. */
+    public void spawnApcWreck(float x, float y, float facingDeg, float hullFrameCells) {
+        float scale = hullFrameCells / 2.4f;
+        double angle = Math.toRadians(facingDeg);
+        // Registered APC roof bearing is forward; the breached troop roof is aft.
+        float roofX = x - (float) Math.sin(angle) * .15208333f * scale;
+        float roofY = y + (float) Math.cos(angle) * .15208333f * scale;
+        float rearX = x + (float) Math.sin(angle) * .55f * scale;
+        float rearY = y - (float) Math.cos(angle) * .55f * scale;
+        spawnHeavyImpact(x, y, .72f * scale);
+        fireBurstsThisFrame.add(new float[]{rearX, rearY, .3f * scale});
+        smokingWrecks.add(new SmokingWreck(roofX, roofY, 20f, .05f, .4f * scale, 3f));
+        smokingWrecks.add(new SmokingWreck(rearX, rearY, 55f, .12f, .6f * scale, 10f));
+    }
+
     /** Emit a filled, irregular fan from the hull's current ground contact, including its centre. */
     public void spawnCrashBlastFan(float x, float y, float vx, float vy, float hullRadius) {
         float speed = (float) Math.hypot(vx, vy);

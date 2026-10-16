@@ -44,7 +44,7 @@ Its hull bearing (448,443), scale 0.835, and turret bearing (1344,447), scale
 both final bearings. Torn armor, broken tread and damaged engine grilles remain
 visible after the live effects expire; there is no painted smoke or fire.
 
-`TankTrackRender` overlays two narrow wrapped UV strips from the live hull's
+`VehicleTreadRender` overlays two narrow wrapped UV strips from the live hull's
 own tread art. In the 768-pixel hull frame, the bands run x=88..687, y=187..216
 and y=550..574; a 108-pixel repeat starts at source x=91. Fixed armor and end
 caps keep their original pixels. The chassis controller accumulates accepted
