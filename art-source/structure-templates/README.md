@@ -32,6 +32,20 @@ access to every facility and doorway, vehicle-width travel from the shed apron
 to the external road, and clear arrival berths. The suite also initializes an
 ordinary Assault simulation and checks the original campaign host. These are
 construction checks, not a battle-balance replay or live campaign capture.
+The `outpost-staff-turn-*` frames show dispatch, bunks and mess seating at
+24 pixels per cell. Dispatch combines seated terminals, a meeting nook and
+records storage; accommodation uses the complete bunk and mess kits. Wider
+support-room windows retain individual barriers and the room's floor finish.
+These fittings are shared by authored campaign compounds and packed ground
+installations, including the modern clinical kit for patient wards. Existing
+sprite damage states are reused with the furniture.
+
+The `outpost-workshop-turn-*` frames show the maintenance half at the same
+24 pixels per cell: a compact machining/repair workshop, organized parts racks,
+and the six-berth vehicle shed with a fabrication corner, coolant plant and
+repair bench. New equipment reuses the factory-machine, main-stores and colony
+kits with their existing damage states. The bay plan keeps its original berths,
+headings and service mouths; the wide entrance remains connected to the road.
 
 In ordinary missions, choose **Assault**, **Remote**, and **Reinforced** or
 **Full Strength**. The standard or extra-magazine outpost and its orientation

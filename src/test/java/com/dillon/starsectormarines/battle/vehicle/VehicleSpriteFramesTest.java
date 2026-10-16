@@ -12,14 +12,18 @@ class VehicleSpriteFramesTest {
                         new SpriteSheetFrames.Frame(830, 170, 440, 230)});
         for (VehicleType type : new VehicleType[]{VehicleType.HEAVY_APC, VehicleType.ESCORT_APC,
                 VehicleType.BREAKTHROUGH_TANK}) {
-            SpriteSheetFrames actual = type.registeredSpriteFrames(detected);
-            assertEquals(2, actual.frames.length);
+            int height = type.isApc() ? 576 : 768;
+            SpriteSheetFrames input = new SpriteSheetFrames(3072, height, detected.frames);
+            SpriteSheetFrames actual = type.registeredSpriteFrames(input);
+            assertEquals(type.frameCount, actual.frames.length);
             assertEquals(0, actual.frames[0].x);
             assertEquals(768, actual.frames[1].x);
+            assertEquals(1536, actual.frames[2].x);
+            assertEquals(2304, actual.frames[3].x);
             for (SpriteSheetFrames.Frame frame : actual.frames) {
                 assertEquals(0, frame.y);
                 assertEquals(768, frame.w);
-                assertEquals(576, frame.h);
+                assertEquals(height, frame.h);
             }
         }
         assertSame(detected, VehicleType.MILITIA_TECHNICAL.registeredSpriteFrames(detected));

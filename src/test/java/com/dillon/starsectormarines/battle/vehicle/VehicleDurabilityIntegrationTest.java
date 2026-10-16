@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.Random;
 
@@ -20,6 +22,34 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class VehicleDurabilityIntegrationTest {
+
+    @ParameterizedTest
+    @EnumSource(value = VehicleType.class, names = {"BREAKTHROUGH_TANK", "HEAVY_APC", "ESCORT_APC"})
+    void destructionFreezesBothPosesAndQueuesItsEffectsOnlyOnce(VehicleType type) {
+        try (var sim = openArena()) {
+            long tank = sim.convoy().spawn(type, Faction.ALLY,
+                    VehicleMission.deployed(12, 7));
+            var body = sim.convoy().body(tank);
+            body.teleport(12, 7, 90);
+            body.speed = 2;
+            sim.convoy().turret(tank).facingDeg = 35;
+            sim.applyDamage(tank, 10000, 10000);
+            assertEquals(VehicleState.WRECKED, sim.convoy().mission(tank).state);
+            assertEquals(0, body.speed);
+            assertEquals(90, body.facingDegrees);
+            assertEquals(35, sim.convoy().turret(tank).facingDeg);
+            assertEquals(1, sim.getHeavyImpactsThisFrame().size());
+            assertEquals(2, sim.getSmokingWrecks().size());
+            var engine = sim.getSmokingWrecks().get(1);
+            float rearOffset = type.isApc() ? .55f * type.visualLengthCells / 2.4f : 1.1f;
+            assertEquals(12 + rearOffset, engine.x, .001f);
+            assertEquals(7f, engine.y, .001f);
+            sim.applyDamage(tank, 10000, 10000);
+            assertEquals(1, sim.getHeavyImpactsThisFrame().size());
+            assertEquals(2, sim.getSmokingWrecks().size());
+            assertTrue(sim.getGrid().isWalkable(12, 7));
+        }
+    }
 
     private static BattleSimulation openArena() {
         NavigationGrid grid = new NavigationGrid(24, 14);
@@ -77,7 +107,7 @@ class VehicleDurabilityIntegrationTest {
         assertEquals(VehicleState.WRECKED, mission.state);
         assertEquals(0f, sim.convoy().structure(apc), 1e-3f);
         assertFalse(sim.convoy().isTargetable(apc));
-        assertEquals(1, sim.getSmokingWrecks().size());
+        assertEquals(2, sim.getSmokingWrecks().size());
         assertEquals(0, mission.marinesRemaining, "onboard passengers resolve once at destruction");
         assertTrue(sim.liveUnitCount() >= 1 && sim.liveUnitCount() <= 2,
                 "one or two badly wounded passengers eject");
@@ -92,7 +122,7 @@ class VehicleDurabilityIntegrationTest {
         sim.applyDamage(apc, 999f, 999f);
         assertEquals(survivors, sim.liveUnitCount());
         assertEquals(1, sim.getHeavyImpactsThisFrame().size(), "Late damage cannot duplicate the blast");
-        assertEquals(1, sim.getSmokingWrecks().size(),
+        assertEquals(2, sim.getSmokingWrecks().size(),
                 "stacked/late damage cannot repeat passenger or wreck side effects");
     }
 

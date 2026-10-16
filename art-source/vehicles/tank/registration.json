@@ -1,7 +1,9 @@
 {
-  "outputSize": [1536, 768],
+  "outputSize": [3072, 768],
   "frames": [
     {"source": "master.png", "sourceSize": [1774, 887], "sourceRect": [0, 0, 1020, 887], "scale": 0.73, "sourceCenter": [508, 451], "targetCenter": [384, 384]},
-    {"source": "turret-master.png", "sourceSize": [1774, 887], "sourceRect": [1020, 0, 754, 887], "scale": 0.7, "sourceCenter": [1498, 454], "targetCenter": [1152, 384], "sourceMuzzles": [[1182, 454]]}
+    {"source": "turret-master.png", "sourceSize": [1774, 887], "sourceRect": [1020, 0, 754, 887], "scale": 0.7, "sourceCenter": [1498, 454], "targetCenter": [1152, 384], "sourceMuzzles": [[1182, 454]]},
+    {"source": "wreck-master.png", "sourceSize": [1774, 887], "sourceRect": [0, 0, 1000, 887], "scale": 0.835, "sourceCenter": [448, 443], "targetCenter": [1920, 384]},
+    {"source": "wreck-master.png", "sourceSize": [1774, 887], "sourceRect": [1000, 0, 774, 887], "scale": 0.855, "sourceCenter": [1344, 447], "targetCenter": [2688, 384]}
   ]
 }
