@@ -60,6 +60,8 @@ public final class WarshipFacing {
     static float firepowerAt(Warship ship, float heading, float tx, float ty) {
         float total = 0f;
         for (Warship.Mount m : ship.mounts()) {
+            // A gun lost with its plating brings nothing to bear, so the hull turns what it has left.
+            if (m.knockedOut()) continue;
             float mx = Warship.mountX(ship.x, m.slot, heading);
             float my = Warship.mountY(ship.y, m.slot, heading);
             if (Warship.bears(m, heading, mx, my, tx, ty, ship.groundRangeMultiplier(tx, ty))) total += firepower(m.weapon);

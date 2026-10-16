@@ -144,6 +144,8 @@ public final class WarshipRenderSystem implements RenderSystem {
             drawEngines(out, cam, cellPx, seen, ship);
             drawHull(out, cam, cellPx, seen, ship);
             for (Warship.Mount m : ship.mounts()) {
+                // A mount lost with the plating under it is gone: the breach beneath is what shows.
+                if (m.knockedOut()) continue;
                 drawMount(out, cam, cellPx, seen, ship, m);
                 drawMuzzleFlash(out, cam, cellPx, seen, ship, m);
             }
