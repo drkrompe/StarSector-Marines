@@ -18,10 +18,12 @@ c2_core.SUN, hard, with Jangala's planet-shine from below at c2_core.PLANETSHINE
 no world light: the near (starboard) flank faces away from the sun and goes black, as the
 layout requires. Motion blur uses a 180-degree shutter.
 
-Fighters are heightfields of the installed vanilla sprites (identity references, read at
-build time, never copied), the same construction as corvus-approach/traffic_render_cards.py,
-lit by the same sun, so they sit in the hull's light and are occluded by it correctly.
-They are parented to the hull, flying the paths c2_core.fighter_pose gives in hull units.
+Fighters are the Broadsword cinematic model (broadsword-geometry, C2_BROADSWORD_BLEND),
+appended once and copied per flight, in the same render and the same sun, so the hull
+lights and occludes them correctly. They are parented to the hull, flying the paths
+c2_core.fighter_pose gives in hull units, banking into their turns, each scaled by its own
+metres_per_unit against the hull's (scale is per hull). Engine glow is added here: the
+model has none. Running lights are the hull's own geometry.json running_lights.
 
 The model is swappable (a detailing pass is in progress): C2_LEGION_BLEND or --blend. The
 contract is geometry.json's object names: 'Weapon <slot> pivot', 'Engine <i> dark throat',
@@ -43,24 +45,12 @@ BASE = Path(__file__).resolve().parent
 ROOT = BASE.parents[3]
 OUT = ROOT / "build" / "cinematic" / "c2-patrol" / "legion-seq"
 BLENDER = Path(r"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe")
-GAME = Path(os.environ.get("STARSECTOR_DIR", r"C:\Program Files (x86)\Fractal Softworks\Starsector")) / "starsector-core"
-
-FIGHTERS = {   # hull: (sprite, engine slots in .ship coordinates, x forward and y port)
-    "broadsword": ("graphics/ships/broadsword.png", [(-11, 6), (-11, -5)]),
-    "hoplon": ("graphics/ships/khopesh.png", [(-14, 7), (-14, -7)]),
-}
 
 SUN_STRENGTH = 4.5             # C1's key (render_ship_sequence.py), so the two shots agree
 SUN_COLOR = (1.0, 0.97, 0.9)
 SHINE_COLOR = (0.55, 0.75, 1.0)
 LEGION_THROAT = ((1.0, 0.62, 0.30), 2.5)      # low-tech drive idling: the patrol coasts
 FIGHTER_FLAME = ((1.0, 0.70, 0.38), 40.0)     # at full throttle
-RUNNING_LIGHTS = [  # (where, colour, blink period s, phase s)
-    ("starboard tip", (1.0, 0.12, 0.08), 1.6, 0.0),
-    ("bow", (1.0, 1.0, 1.0), 1.6, 0.8),
-    ("dome", (1.0, 1.0, 1.0), 2.4, 0.3),
-    ("starboard stern", (1.0, 0.12, 0.08), 1.6, 0.5),
-]
 
 
 def _args(argv):
@@ -122,7 +112,10 @@ def plan(opts):
                       "heading": [(1 if kind == "launch" else -1) * c for c in
                                   next(d for d in geom["flight_decks"] if d["slot"] == f[1])["launch_direction"]]}
                      for kind, group in (("launch", C.LAUNCHES), ("recover", C.RECOVERIES)) for f in group],
-        "fighter_art": {k: [str(GAME / v[0]), v[1]] for k, v in FIGHTERS.items()},
+        "broadsword_blend": str(C.BROADSWORD_BLEND),
+        "fighter_scale": float(json.loads((C.BROADSWORD_DIR / "geometry.json").read_text(encoding="utf-8"))
+                               ["metres_per_unit"]) / C.M_PER_UNIT,
+        "running_lights": geom.get("running_lights", []),
         "samples": samples, "cycles_samples": opts["samples"], "only": opts["only"], "resume": opts["resume"],
         "out": str(OUT),
     }
@@ -146,72 +139,6 @@ def plan_and_launch(argv):
 
 
 # ================================================================ Blender
-
-def fighter_mesh(bpy, np, name, sprite):
-    """A vanilla fighter sprite as a lit heightfield, bow along mesh +Y, in sprite px (= hull units).
-    traffic_render_cards.heightfield's construction (crown from the plan's distance field)."""
-    from mathutils import Vector  # noqa: F401
-    img = bpy.data.images.load(sprite, check_existing=True)
-    w, h = img.size
-    px = np.empty(w * h * 4, dtype=np.float32)
-    img.pixels.foreach_get(px)
-    px = px.reshape(h, w, 4)
-    soft = px[..., 3].copy()
-    for _ in range(2):
-        pad = np.pad(soft, 1, mode="edge")
-        soft = (pad[:-2, 1:-1] + pad[2:, 1:-1] + pad[1:-1, :-2] + pad[1:-1, 2:] + pad[1:-1, 1:-1] * 2) / 6
-    solid = soft > 0.5
-    dist = np.zeros(solid.shape, np.float32)
-    cur = solid.copy()
-    while cur.any():
-        dist += cur
-        nxt = cur.copy()
-        nxt[1:] &= cur[:-1]; nxt[:-1] &= cur[1:]; nxt[:, 1:] &= cur[:, :-1]; nxt[:, :-1] &= cur[:, 1:]
-        cur = nxt
-    lum = px[..., :3] @ np.array([0.3, 0.55, 0.15], np.float32)
-    top = min(w, h) * (0.05 + 0.14 * np.sqrt(dist / max(dist.max(), 1)) + 0.02 * lum)
-    verts, uvs, faces, index = [], [], [], {}
-
-    def vid(i, j):
-        if (i, j) not in index:
-            zs = [top[a, b] for a in (i - 1, i) for b in (j - 1, j) if 0 <= a < h and 0 <= b < w and solid[a, b]]
-            index[(i, j)] = len(verts)
-            verts.append((j - w / 2, i - h / 2, float(max(zs) if zs else 0.0)))
-            uvs.append((j / w, i / h))
-        return index[(i, j)]
-
-    for i in range(h):
-        for j in range(w):
-            if solid[i, j]:
-                faces.append((vid(i, j), vid(i, j + 1), vid(i + 1, j + 1), vid(i + 1, j)))
-    mesh = bpy.data.meshes.new(name)
-    mesh.from_pydata(verts, [], faces)
-    uv = mesh.uv_layers.new(name="UV")
-    for poly in mesh.polygons:
-        for li in poly.loop_indices:
-            uv.data[li].uv = uvs[mesh.loops[li].vertex_index]
-    obj = bpy.data.objects.new(name, mesh)
-    sm = obj.modifiers.new("round", "SMOOTH")
-    sm.factor, sm.iterations = 0.6, 3
-    so = obj.modifiers.new("slab", "SOLIDIFY")
-    so.thickness, so.offset = min(w, h) * 0.12, -1
-    mat = bpy.data.materials.new(name + " hull")
-    mat.use_nodes = True
-    nodes, links = mat.node_tree.nodes, mat.node_tree.links
-    bsdf = nodes["Principled BSDF"]
-    tex = nodes.new("ShaderNodeTexImage")
-    tex.image = img
-    tex.interpolation = "Closest" if max(w, h) < 64 else "Linear"
-    hsv = nodes.new("ShaderNodeHueSaturation")
-    hsv.inputs["Saturation"].default_value = 0.85
-    hsv.inputs["Value"].default_value = 0.9
-    links.new(tex.outputs["Color"], hsv.inputs["Color"])
-    links.new(hsv.outputs["Color"], bsdf.inputs["Base Color"])
-    bsdf.inputs["Roughness"].default_value = 0.5
-    bsdf.inputs["Metallic"].default_value = 0.35
-    mesh.materials.append(mat)
-    return obj
-
 
 def emission(bpy, name, color, strength):
     mat = bpy.data.materials.new(name)
@@ -265,59 +192,59 @@ def blender_main(argv):
             o.data.materials.clear()
             o.data.materials.append(throat)
 
-    # Running lights at the hull's extremes, measured in hull units.
-    def extreme(names, key):
-        best = None
-        for n in names:
-            o = bpy.data.objects.get(n)
-            if o is None or o.type != "MESH":
-                continue
-            mw = hull.matrix_world.inverted() @ o.matrix_world
-            for v in o.data.vertices:
-                p = mw @ v.co
-                if best is None or key(p) > key(best):
-                    best = p
-        return best
-
     bpy.context.view_layer.update()
-    allmesh = [o.name for o in bpy.data.objects if o.type == "MESH"]
-    spots = {
-        "starboard tip": extreme(["Wing starboard sponson"], lambda p: -p.y),
-        "bow": extreme(allmesh, lambda p: p.x),
-        "dome": extreme(["Bridge command dome"], lambda p: p.z),
-        "starboard stern": extreme(["Wing starboard sponson"], lambda p: -p.x - 0.3 * p.y),
-    }
+    # Running lights: the hull's own (geometry.json running_lights), each its colour, period,
+    # phase and duty. Small emissive spheres; the compositor's bloom gives them their halo.
     lights = []
-    for where, color, period, phase in RUNNING_LIGHTS:
-        p = spots.get(where)
-        if p is None:
-            continue
-        mat, _ = emission(bpy, "C2 | running light %s" % where, color, 60.0)
-        bpy.ops.mesh.primitive_uv_sphere_add(radius=0.9, location=(0, 0, 0), segments=12, ring_count=6)
+    for k, rl in enumerate(plan_["running_lights"]):
+        mat, _ = emission(bpy, "C2 | %s" % rl["name"], rl["rgb"], 60.0)
+        bpy.ops.mesh.primitive_uv_sphere_add(radius=0.9, segments=12, ring_count=6)
         lamp = bpy.context.active_object
-        lamp.name = "C2 | running light %s" % where
+        lamp.name = "C2 | %s" % rl["name"]
         lamp.data.materials.append(mat)
         lamp.parent = hull
-        lamp.location = p + Vector((0, 0, 0.6))
-        lights.append((lamp, period, phase))
+        lamp.location = rl["position"]
+        b_ = rl["blink"]
+        lights.append((lamp, b_["period_s"], b_["phase_s"], b_.get("duty", 0.18)))
 
-    # Fighters: one heightfield per flight, parented to the hull, engines as emissive bells.
+    # Fighters: the Broadsword model, appended once and copied per flight (shared meshes),
+    # parented to the hull and scaled by its own metres_per_unit against the hull's.
+    with bpy.data.libraries.load(plan_["broadsword_blend"], link=False) as (src, dst):
+        dst.collections = [c for c in src.collections if c == "BROADSWORD | geometry"]
+    proto = dst.collections[0]
+    proto_root = next(o for o in proto.objects if o.name.startswith("Broadsword root"))
+
+    def clone(obj, parent):
+        c = obj.copy()
+        scene.collection.objects.link(c)
+        c.parent = parent
+        c.matrix_parent_inverse = obj.matrix_parent_inverse.copy()
+        for ch in obj.children:
+            clone(ch, c)
+        return c
+
     flights = []
     for k, f in enumerate(plan_["fighters"]):
-        sprite, engines = plan_["fighter_art"][f["hull"]]
-        body = fighter_mesh(bpy, np, "C2 | %s %d" % (f["hull"], k), sprite)
-        scene.collection.objects.link(body)
+        body = clone(proto_root, None)
+        body.name = "C2 | Broadsword %d" % k
         body.parent = hull
+        body.matrix_parent_inverse = Matrix.Identity(4)
+        body.scale = (plan_["fighter_scale"],) * 3
         body.rotation_mode = "QUATERNION"
-        mat, node = emission(bpy, "C2 | %s %d flame" % (f["hull"], k), *FIGHTER_FLAME)
-        for ex, ey in engines:
-            bpy.ops.mesh.primitive_uv_sphere_add(radius=2.4, segments=12, ring_count=6)
-            fl = bpy.context.active_object
-            fl.name = "C2 | %s %d flame" % (f["hull"], k)
-            fl.scale = (1.0, 1.6, 0.8)
-            fl.data.materials.append(mat)
-            fl.parent = body
-            fl.location = (-ey, ex - 1.5, 2.0)       # .ship (x fwd, y port) -> mesh (x starboard, y bow)
+        mat, node = emission(bpy, "C2 | Broadsword %d flame" % k, *FIGHTER_FLAME)
+        for ch in body.children_recursive:
+            if ch.type == "MESH" and "dark throat" in ch.name:
+                ch.data = ch.data.copy()
+                ch.data.materials.clear()
+                ch.data.materials.append(mat)
+            if ch.type == "EMPTY" and "exhaust anchor" in ch.name:
+                bpy.ops.mesh.primitive_uv_sphere_add(radius=1.6, segments=12, ring_count=6)
+                fl = bpy.context.active_object
+                fl.name = "C2 | Broadsword %d flame" % k
+                fl.data.materials.append(mat)
+                fl.parent = ch
+                fl.location = (1.4, 0, 0)          # anchor +X points aft, out of the bell
+                fl.scale = (1.8, 0.8, 0.8)
         flights.append((body, node))
 
     # Camera: the cabin camera at the origin, looking out (+Y) and pitched down.
@@ -357,14 +284,14 @@ def blender_main(argv):
         if scrutiny is not None:
             scrutiny.rotation_euler.z = math.radians(s["scrutiny_deg"])
             scrutiny.keyframe_insert("rotation_euler", index=2, frame=i)
-        for lamp, period, phase in lights:
-            lamp.hide_render = ((s["t"] + phase) % period) > period * 0.18
+        for lamp, period, phase, duty in lights:
+            lamp.hide_render = ((s["t"] + phase) % period) > period * duty
             lamp.keyframe_insert("hide_render", frame=i)
         for k, (body, node) in enumerate(flights):
             f = s["fighters"][k]
             body.hide_render = f is None
             body.keyframe_insert("hide_render", frame=i)
-            for ch in body.children:
+            for ch in body.children_recursive:
                 ch.hide_render = f is None
                 ch.keyframe_insert("hide_render", frame=i)
             if f is None:
@@ -383,7 +310,13 @@ def blender_main(argv):
             else:
                 tangent = Vector(plan_["fighters"][k]["heading"])
             last_t[k] = tangent
-            q = tangent.to_track_quat("Y", "Z")
+            # Bank into the turn: roll from the heading's rate of change across the path.
+            turn = 0.0
+            if a_ is not None and b_ is not None and (here - a_).length > 0.05 and (b_ - here).length > 0.05:
+                h0, h1 = (here - a_).normalized(), (b_ - here).normalized()
+                turn = h0.cross(h1).z * plan_["fps"]          # rad/s about +Z (left turn positive)
+            bank = max(-0.9, min(0.9, -turn * 3.0))
+            q = tangent.to_track_quat("X", "Z") @ Quaternion((1, 0, 0), bank)
             if prev_q[k] is not None and prev_q[k].dot(q) < 0:
                 q.negate()
             prev_q[k] = q

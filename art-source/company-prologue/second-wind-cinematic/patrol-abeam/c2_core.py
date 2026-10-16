@@ -143,9 +143,28 @@ from pathlib import Path  # noqa: E402
 LEGION_DIR = Path(__file__).resolve().parents[2] / "legion-geometry"
 LEGION_BLEND = Path(os.environ.get("C2_LEGION_BLEND", LEGION_DIR / "legion-geometry.blend"))
 LEGION_GEOMETRY = LEGION_DIR / "geometry.json"
-M_PER_UNIT = 0.65
-LEGION_CENTRE_Y = 200.55                   # model origin, metres out from the glass
-LEGION_ORIGIN_Z = -22.82                   # model origin height (crown about 3 m below eye level)
+BROADSWORD_DIR = Path(__file__).resolve().parents[2] / "broadsword-geometry"
+BROADSWORD_BLEND = Path(os.environ.get("C2_BROADSWORD_BLEND", BROADSWORD_DIR / "broadsword-geometry.blend"))
+
+# Scale is per hull (owner, 2026-10-16): every number below that depends on the Legion's
+# size is derived from its geometry.json metres_per_unit and dimensions, read at import, so
+# a new figure is one re-render. The pass keeps its shape at any size: the starboard
+# extreme stays NEAR_FLANK_M from the glass, the crown CROWN_BELOW_EYE_M below eye level,
+# and the speed and the de-orbit rise scale with the hull so it still crosses the glass
+# on the hail's clock (abeam at PATROL_T_MID, clear of the glass by about 13.5 s).
+NEAR_FLANK_M = 105.0
+CROWN_BELOW_EYE_M = 3.0
+PLANNED_LENGTH_M = 191.7                   # the length the pass was timed for (0.65 m/unit)
+import json as _json  # noqa: E402
+
+LEGION_GEOM = _json.loads(LEGION_GEOMETRY.read_text(encoding="utf-8"))
+M_PER_UNIT = float(LEGION_GEOM["metres_per_unit"])
+_LO, _HI = LEGION_GEOM["dimensions"]["min"], LEGION_GEOM["dimensions"]["max"]
+LEGION_LENGTH_M = (_HI[0] - _LO[0]) * M_PER_UNIT
+LEGION_CENTRE_Y = NEAR_FLANK_M - _LO[1] * M_PER_UNIT       # model origin, metres out from the glass
+LEGION_ORIGIN_Z = -CROWN_BELOW_EYE_M - _HI[2] * M_PER_UNIT  # model origin height
+PATROL_SPEED = 28.0 * LEGION_LENGTH_M / PLANNED_LENGTH_M
+PATROL_DROP_ACCEL = 8.0 * LEGION_LENGTH_M / PLANNED_LENGTH_M
 
 
 def legion_origin(t):
@@ -159,7 +178,8 @@ def legion_origin(t):
 SCRUTINY_SLOT = "WS 007"
 SCRUTINY_RELEASE = (45.20 - 37.70, 45.20 - 37.70 + 1.6)   # C2 seconds: the slew back to fore
 
-# Fighters (Legion XIV Elite wings: Broadswords and Hoplons). They are parented to the hull,
+# Fighters: the Broadsword cinematic model (broadsword-geometry), each scaled by its own
+# metres_per_unit. The Legion XIV Elite also flies Hoplons; no Hoplon model exists yet. They are parented to the hull,
 # so their paths are in model units relative to it and they inherit its pass and rise.
 # Launches leave the starboard forward deck WS 013 along its launch vector and accelerate
 # away forward; recoveries come up from aft along WS 011's recovery approach and settle
@@ -170,13 +190,13 @@ LAUNCHES = [  # (hull, deck, launch point index, C2 time it starts to roll)
 ]
 LAUNCH_ACCEL = 70.0                        # units/s^2 along the launch vector, from rest
 RECOVERIES = [  # (hull, deck, launch point index, C2 time the fighter crosses the mouth)
-    ("hoplon", "WS 011", 0, 9.85),
-    ("hoplon", "WS 011", 1, 10.75),
+    ("broadsword", "WS 011", 0, 9.85),     # aft hangars recover only (their mouths face aft)
+    ("broadsword", "WS 011", 1, 10.75),
 ]
 RECOVERY_APPROACH_S = 4.4                  # seconds from first sight to the mouth
 RECOVERY_RUN_UNITS = 245.0                 # path length flown along the approach in that time
 RECOVERY_MOUTH_SPEED = 12.0                # units/s across the mouth
-RECOVERY_GLIDE = 0.10                      # height gained per unit of distance still to fly
+RECOVERY_GLIDE = 0.05                      # height gained per unit of distance still to fly
 
 
 def fighter_pose(fighter, kind, t, geom):
