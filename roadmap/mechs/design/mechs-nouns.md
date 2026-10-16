@@ -195,6 +195,15 @@ increasing an encounter's total armored threat.
   facing. A lone pod a chassis draws on its centreline (the Hound's) takes the
   whole shoulder band. A payload with no ballistic height (a blast, a strafe) is
   struck at a uniform height. The roll is never aimed.
+- **Cover by section.** Each band of a mech plan carries cover rows, and they
+  read from the ground up: cover hides a mech's legs (low cover about half,
+  medium most, high all of them), at its tallest the bottom of its torso, and
+  never its shoulders or head. A mech behind a berm is **hull-down** — its legs
+  hidden, its weapons still in the fight — the counterpart of a marine in a
+  trench. The cover's target-plane catch band, sized for a man, does not gate a
+  mech: centred on a body twice his height it would hide the torso and bare the
+  legs. Cover counted by section is counted once, so a round that reaches an
+  exposed section takes no further cover cut (`body-part-cover.md`).
 - **Section pools** divide the frame's armor capacity and the chassis structure
   across the sections by authored shares, so the totals are what frame and
   plating set; the armor rating stays per chassis. A mount the mech deployed
@@ -219,9 +228,7 @@ increasing an encounter's total armored threat.
   declines its attack goals as broken morale does, without touching the
   command's assignment; crippled and disarmed, it simply holds. One lost mount
   needs no posture: doctrine and engagement range read only the surviving
-  mounts. Cover
-  still meets a mech as one body with the flat chance until mech plans author
-  cover by section. `-Dbattle.mech.locationalDamage=false` is the whole-body
+  mounts. `-Dbattle.mech.locationalDamage=false` is the whole-body
   control. The battle keeps each mech's section record (pools, what was
   destroyed, which weapon each lost mount carried) for campaign writeback,
   where a lost mount is a lost assembly, other damaged sections are repairs,
