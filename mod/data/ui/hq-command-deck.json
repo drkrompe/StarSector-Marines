@@ -1,0 +1,199 @@
+{
+  "size": [
+    2048,
+    413
+  ],
+  "plate": "graphics/ui/hq-command-deck/deck-plate.png",
+  "figures": [
+    {
+      "id": "castle",
+      "sprite": "graphics/ui/hq-command-deck/castle.png",
+      "rect": [
+        1090.9,
+        132.0,
+        65,
+        90
+      ]
+    },
+    {
+      "id": "commander",
+      "sprite": "graphics/ui/hq-command-deck/commander.png",
+      "rect": [
+        622.3,
+        138.6,
+        141,
+        266
+      ]
+    },
+    {
+      "id": "comms-left",
+      "sprite": "graphics/ui/hq-command-deck/comms-left.png",
+      "rect": [
+        461.1,
+        95.2,
+        38,
+        72
+      ]
+    },
+    {
+      "id": "comms-right",
+      "sprite": "graphics/ui/hq-command-deck/comms-right.png",
+      "rect": [
+        573.3,
+        96.2,
+        71,
+        74
+      ]
+    },
+    {
+      "id": "quartermaster",
+      "sprite": "graphics/ui/hq-command-deck/quartermaster.png",
+      "rect": [
+        1332.3,
+        49.0,
+        77,
+        155
+      ]
+    },
+    {
+      "id": "sabine",
+      "sprite": "graphics/ui/hq-command-deck/sabine.png",
+      "rect": [
+        1361.6,
+        192.4,
+        99,
+        221
+      ]
+    }
+  ],
+  "stations": [
+    {
+      "id": "situation",
+      "label": "SITUATION_BOARD",
+      "figures": [
+        "commander"
+      ],
+      "rect": [
+        0.3002,
+        0.3174,
+        0.3384,
+        0.6804
+      ]
+    },
+    {
+      "id": "comms",
+      "label": "COMMS_INTEL",
+      "figures": [
+        "comms-left",
+        "comms-right"
+      ],
+      "rect": [
+        0.2214,
+        0.0826,
+        0.1176,
+        0.3467
+      ]
+    },
+    {
+      "id": "castle",
+      "label": "CASTLE_ADJUTANT",
+      "figures": [
+        "castle"
+      ],
+      "rect": [
+        0.529,
+        0.3015,
+        0.0392,
+        0.2533
+      ]
+    },
+    {
+      "id": "finance",
+      "label": "FINANCE_STANDING",
+      "figures": [
+        "quartermaster"
+      ],
+      "rect": [
+        0.626,
+        0.1005,
+        0.066,
+        0.4109
+      ]
+    },
+    {
+      "id": "force",
+      "label": "FORCE_STATUS",
+      "figures": [
+        "sabine"
+      ],
+      "rect": [
+        0.6611,
+        0.4475,
+        0.0557,
+        0.5525
+      ]
+    }
+  ],
+  "overlays": {
+    "plot": [
+      [
+        747.7,
+        298.2
+      ],
+      [
+        1300.3,
+        298.2
+      ],
+      [
+        1232.5,
+        228.7
+      ],
+      [
+        815.5,
+        228.7
+      ]
+    ],
+    "screens": [
+      [
+        511.8,
+        114.3
+      ],
+      [
+        640.9,
+        114.3
+      ],
+      [
+        522.8,
+        70.0
+      ],
+      [
+        649.1,
+        70.0
+      ],
+      [
+        886.1,
+        19.3
+      ],
+      [
+        1024.0,
+        19.3
+      ],
+      [
+        1161.9,
+        19.3
+      ],
+      [
+        1327.3,
+        115.4
+      ]
+    ]
+  },
+  "source": {
+    "plate": "deck-plate-v5.master.png",
+    "layout": "deck-guide-v7.layout.json",
+    "bandRows": [
+      154,
+      592
+    ]
+  }
+}
