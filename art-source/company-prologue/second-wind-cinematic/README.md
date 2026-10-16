@@ -16,7 +16,7 @@ says which of them feed the new plates.
 
 | Asset / beat | Source and review |
 |---|---|
-| Dynamic Second Wind | [Full-surface master](second-wind-full-surface/README.md): the reusable damaged ship and full-turn review. It has not yet replaced the ship in existing shots. |
+| Dynamic Second Wind | [Per-state assets](second-wind-states/README.md): derelict, patched, refit and restored, one appendable collection each at 0.65 m per unit, with anchors and turn reviews. They supersede the [full-surface master](second-wind-full-surface/README.md) (old geometry, 1.5 m per unit), which shots still read until they switch. |
 | 01 Space approach | [space-approach/](space-approach/README.md); the existing view-dependent finish still limits the camera. |
 | 02 Atmospheric entry | [entry-window/](entry-window/README.md). |
 | 03 Forest reveal and Atlas lift | [forest-reveal-realism/](forest-reveal-realism/README.md). |

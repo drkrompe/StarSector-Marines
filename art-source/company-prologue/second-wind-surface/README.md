@@ -214,8 +214,17 @@ contour rings round every crater.) The Bevel and AO radii are in render space,
 sized for hull units: a cinematic that scales the ship scales them too.
 
 Not done: missing stencils and peeled markings (the base skin has no
-markings to peel), vent-specific streak sources, and a `restored` paint-over
-channel that would hide the baked chips under new paint.
+markings to peel) and vent-specific streak sources.
+
+**State overlay** (`wear_overlay.py`, `overlay/<state>.json`): what only a
+condition state knows, chained after this wear by the per-state export
+(`../second-wind-cinematic/second-wind-states/`): the `restored` paint-over
+(one coat over the worn surface, its chips, pits and seams reading through as
+tone), scorch at scar sites by status (dark burns at open strikes, heat-tint
+rings round patched welds, none on fresh replacement plate), soot from the
+engines that ran in that state, and swatch detail plus age-scaled fade, chips
+and grime on scar and repair materials, which this layer leaves alone. It
+never adds grime, fade or chips to a skin or swatch.
 
 ## Known problems
 

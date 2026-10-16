@@ -41,4 +41,4 @@ for name, views in (('views', ['port-quarter', 'starboard-quarter', 'top', 'ster
 print('SHEETS', s)
 EOF
 done
-python review_sheet.py --renders "$FINAL"
+if [ ${#STATES[@]} -eq 4 ]; then python review_sheet.py --renders "$FINAL"; fi

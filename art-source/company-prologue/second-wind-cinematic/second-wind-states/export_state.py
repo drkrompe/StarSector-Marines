@@ -24,9 +24,11 @@ What the export does to the build, in order:
    normal, hull space), which the wear masks read so they ride the ship;
 4. parents everything to the root; each turret's trainable parts (above the
    traverse gap) to `Turret <i> pivot`, which turns about hull +Z;
-5. adds anchor empties (`Anchor engine <i>` at each bell mouth, `Anchor turret
-   <i> <gun> muzzle` at each muzzle; local +X is the effect axis, aft for a
-   drive, the line of fire for a gun), with the second-wind-vfx convention;
+5. keeps the geometry's anchors (`Engine <i> exhaust anchor` at each bell
+   mouth, `RCS <cluster> <axis> anchor` at each thruster), writes this state's
+   `running` / `working` on them, and adds `Anchor turret <i> <gun> muzzle` at
+   each muzzle; local +X is the effect axis (down the exhaust, along the line
+   of fire), the second-wind-vfx convention;
 6. chains the state overlay (second-wind-surface/wear_overlay.py, overlay/<state>.json)
    after the base wear that apply_skin.py --wear <state> already put on the skins.
 """
@@ -83,6 +85,9 @@ for ob in list(bpy.data.objects):
     if ob.type in ('CAMERA', 'LIGHT'):
         bpy.data.objects.remove(ob)
 ship = [o for o in bpy.data.objects if o.type == 'MESH' and not o.hide_render]
+# The geometry's own anchors (sw_engines `Engine <i> exhaust anchor`, sw_rcs
+# `RCS <cluster> <axis> anchor`): kept, under the root.
+geo_anchors = [o for o in bpy.data.objects if o.type == 'EMPTY']
 left_out = sorted(o.name for o in bpy.data.objects if o.type == 'MESH' and o.hide_render)
 hidden_parts = {o.name: o.get('scar_hidden') for o in bpy.data.objects if o.get('scar_hidden')}
 
@@ -178,6 +183,15 @@ for ob in ship:
         c.objects.unlink(ob)
     coll.objects.link(ob)
     ob.parent = root          # root sits at the hull origin: no inverse needed
+for ob in geo_anchors:
+    for c in list(ob.users_collection):
+        c.objects.unlink(ob)
+    anchors_coll.objects.link(ob)
+    if ob.parent is None or ob.parent.name not in coll.objects:
+        w = ob.matrix_world.copy()
+        ob.parent = root
+        ob.matrix_parent_inverse = Matrix.Identity(4)
+        ob.matrix_world = w
 bpy.context.view_layer.update()
 
 
@@ -232,25 +246,35 @@ for i, (x, y, angle, scale, heavy) in enumerate(MOUNTS, 1):
                     'trained_parts': len(trained), 'fixed_parts': len(parts) - len(trained),
                     'status': status.get(f'sp-turret-{i}'), 'present': bool(trained), 'muzzles': muzzles})
 
-# 5. Engine anchors.
+# 5. Engine and RCS anchors: the geometry's own (geometry.json engine_anchors,
+# rcs_anchors), with this state's running / working flags written onto them.
 drive = {'port': status.get('pod-port-drive'), 'starboard': status.get('pod-starboard-drive')}
 engines = []
-for i, (ex, ey, w) in enumerate(ENGINES, 1):
+for rec in geom.get('engine_anchors', []):
+    i = rec['engine']
     side = 'port' if i in PORT_ENGINES else 'starboard'
-    lip = next(iter(by_prefix(f'Engine {i} mouth lip')), None)
-    if lip:
-        lo, hi = bbox(lip)
-        mouth = Vector((lo.x, (lo.y + hi.y) / 2, (lo.z + hi.z) / 2))
-    else:
-        mouth = Vector((ex, ey, 0))
     running = drive[side] in RUNNING
-    a = empty(f'Anchor engine {i}', anchors_coll, 2.0, 'SINGLE_ARROW', root,
-              Matrix.Translation(mouth) @ frame((-1, 0, 0)).to_4x4())
+    assert running == bool(rec.get('running', running)), (i, running, rec.get('running'))
+    a = bpy.data.objects.get(rec['name'])
+    assert a is not None and a in set(coll.all_objects), rec['name']
     a['running'] = running
-    a['radius_units'] = BELL_R[w]
-    engines.append({'index': i, 'side': side, 'slot_width': w, 'radius': BELL_R[w], 'anchor': a.name,
-                    'mouth': [round(c, 3) for c in mouth], 'axis': [-1, 0, 0],
+    mouth = a.matrix_world.translation
+    w = next(wd for k, (_, _, wd) in enumerate(ENGINES, 1) if k == i)
+    engines.append({'index': i, 'side': side, 'slot_width': w, 'radius': rec['radius'], 'anchor': a.name,
+                    'mouth': [round(c, 3) for c in mouth],
+                    'axis': [round(c, 3) for c in a.matrix_world.to_3x3() @ Vector((1, 0, 0))],
                     'drive_status': drive[side], 'running': running})
+assert len(engines) == 4, 'geometry.json has no engine_anchors'
+rcs = []
+for rec in geom.get('rcs_anchors', []):
+    a = bpy.data.objects.get(rec['name'])
+    if a is None or a not in set(coll.all_objects):
+        continue
+    a['working'] = bool(rec.get('working'))
+    rcs.append({'anchor': a.name, 'cluster': rec['cluster'], 'axis': rec['axis'],
+                'at': [round(c, 3) for c in a.matrix_world.translation],
+                'exhaust_dir': rec['exhaust_dir'], 'radius_units': round(rec['radius_m'] / MPU, 3),
+                'working': bool(rec.get('working'))})
 root['state'] = STATE
 root['metres_per_unit'] = MPU
 root['engines_running'] = [e['index'] for e in engines if e['running']]
@@ -306,6 +330,8 @@ manifest = {
     'size_metres': [round((h - l) * MPU, 1) for l, h in zip(lo, hi)],
     'engines': engines,
     'engines_running': root['engines_running'][:],
+    'rcs': rcs,
+    'rcs_working': sum(r['working'] for r in rcs),
     'turrets': turrets,
     'lamps_lit': sum(l['lit'] for l in lamps),
     'lamps': lamps,
