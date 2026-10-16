@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.fixture;
 
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.ArmorClass;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
@@ -690,6 +692,17 @@ public final class BattleFixtureJson {
                 ships.put(frozen);
             }
             encoded.put("ships", ships);
+            if (!commitment.vehicleDeployments().isEmpty()) {
+                JSONArray vehicles = new JSONArray();
+                for (VehicleDeploymentSpec vehicle : commitment.vehicleDeployments()) {
+                    JSONObject frozen = new JSONObject();
+                    frozen.put("type", vehicle.type().name());
+                    putNullable(frozen, "campaignId", vehicle.campaignId());
+                    putNullable(frozen, "callsign", vehicle.callsign());
+                    vehicles.put(frozen);
+                }
+                encoded.put("vehicleDeployments", vehicles);
+            }
             powers.put(encoded);
         }
         return powers;
@@ -741,8 +754,17 @@ public final class BattleFixtureJson {
                         frozen.getString("shipName"), frozen.getBoolean("tender"), weapons,
                         frozen.has("memberId") && !frozen.isNull("memberId") ? frozen.getString("memberId") : null));
             }
+            List<VehicleDeploymentSpec> vehicles = new ArrayList<>();
+            JSONArray encodedVehicles = encoded.optJSONArray("vehicleDeployments");
+            for (int j = 0; encodedVehicles != null && j < encodedVehicles.length(); j++) {
+                JSONObject frozen = encodedVehicles.getJSONObject(j);
+                vehicles.add(new VehicleDeploymentSpec(
+                        frozen.isNull("campaignId") ? null : frozen.optString("campaignId", null),
+                        frozen.isNull("callsign") ? null : frozen.optString("callsign", null),
+                        enumValue(VehicleType.class, frozen.getString("type"), "vehicle type")));
+            }
             powers.add(new CommandPowerCommitment(
-                    encoded.getString("id"), deployments, ships));
+                    encoded.getString("id"), deployments, ships, vehicles));
         }
         return List.copyOf(powers);
     }

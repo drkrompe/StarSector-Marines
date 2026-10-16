@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.air;
 
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 /**
@@ -9,9 +10,16 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
  * that joins a squad and takes objectives. It is a vehicle with no errand: it
  * holds where it was put until it is told to go somewhere, which is the whole
  * point of it — see {@code vehicle-as-commandable-unit.md}.
+ *
+ * <p>What it sets down is the sortie's frozen company vehicle from the mech bay
+ * ({@code mech-bay-vehicles.md}). A sortie with none — a debug grant, or a mission
+ * flown without a bay — sets down the {@link #FALLBACK} hull, which belongs to nobody.
  */
 public enum VehicleSupportPayload implements AirDeliveryPayload {
     INSTANCE;
+
+    /** The hull a sortie with no frozen company vehicle sets down. */
+    public static final VehicleType FALLBACK = VehicleType.HEAVY_APC;
 
     @Override
     public int unitsPerSortie(ShuttleType carrier) {
@@ -28,8 +36,9 @@ public enum VehicleSupportPayload implements AirDeliveryPayload {
         float facing = AirBody.facingToward(
                 context.mission.lzX - context.mission.entryX,
                 context.mission.lzY - context.mission.entryY);
-        context.deployVehicle(VehicleType.HEAVY_APC,
-                cell[0] + 0.5f, cell[1] + 0.5f, facing);
+        VehicleDeploymentSpec vehicle = context.mission.vehicleDeployment != null
+                ? context.mission.vehicleDeployment : VehicleDeploymentSpec.standard(FALLBACK);
+        context.deployVehicle(vehicle, cell[0] + 0.5f, cell[1] + 0.5f, facing);
         return true;
     }
 }
