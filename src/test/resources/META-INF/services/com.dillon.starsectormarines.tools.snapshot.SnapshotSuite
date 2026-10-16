@@ -182,3 +182,5 @@ com.dillon.starsectormarines.battle.world.gen.bsp.CampaignSettlementSnapshotSuit
 com.dillon.starsectormarines.battle.world.gen.bsp.BspMapPreviewSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionPreviewSnapshotSuite
 com.dillon.starsectormarines.ops.FreightVehiclesSnapshotSuite
+
+com.dillon.starsectormarines.battle.world.gen.bsp.fill.LogisticsSnapshotSuite

@@ -96,3 +96,11 @@ adoption, and infantry connectivity on both full-size Conquest axes. The broader
 Conquest road-graph check finds a blocked cell at (208, 300) in seed 42 on the
 unchanged baseline as well; this pass does not claim to repair that separate issue.
 The review frames are production Java2D renders, not live game captures.
+
+The `logistics/review` frames come from `createSnapshots -Psnapshot=logistics-rooms`.
+They show the production battery-fort magazine/receiving suite at four rotations,
+plus civilian warehouse shells and ground stockroom/receiving fittings. All use
+`LogisticsKit` cargo assemblies with the existing main-stores and armory damage
+pairs. The fort retains its core and three-cell loading approach; warehouse racks
+use parallel bays with two-cell handling aisles. Views use 1920 by 1080 at 24
+pixels per cell through the Java2D renderer, not a live OpenGL capture.

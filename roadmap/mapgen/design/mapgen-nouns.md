@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 - shared ground command posts combine tactical plots and shaped console banks around connected working aisles.
+Updated: 2026-10-15 - magazines, receiving rooms and civilian warehouses share cargo assemblies with protected handling aisles.
 
 Earlier 2026-10-13 — reversible authored damage layers give Relief a worn checkpoint without changing its landing contract; Relief rear working courts preserve the expanded landing and assembly apron.
 
@@ -1411,6 +1411,17 @@ precedence over equipment, and small rooms retain complete electrical or repair
 stations instead of miniature machinery. These kits carry full-footprint damage
 states; when a rack or bench collapses, its supported rifles, frame and tools
 collapse with it. Debris preserves the original floor and releases obstruction.
+
+Ground logistics rooms share loaded rack, pallet and dispatch-bench assemblies.
+Military magazines add secured ammunition cabinets while civilian warehouses
+use the same cargo bays with commercial stock. Contents and retaining frames
+belong to their supporting fixture, turn with it and collapse with its wreck.
+Storage grows in parallel bays separated by handling aisles; receiving rooms
+use separated staging positions and a packing station instead of dense racking.
+Door approaches and cross-aisles are reserved before stock, including every
+cell of a wide loading entrance. A fort magazine retains its objective core,
+core approach and adjoining receiving-room route. Compact rooms use complete
+smaller storage groups rather than shrinking the furniture.
 
 Ground command posts arrange L- and U-shaped console banks around a central
 tactical plot. A circulation loop reaches every side of the plot, and door

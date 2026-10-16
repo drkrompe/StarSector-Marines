@@ -14,8 +14,6 @@ import java.util.List;
 final class FortRoomKit {
 
     /** Floor ids of the catalogue pieces the fort rooms are fitted from; every one is a single cell. */
-    static final String CRATES = "doodad.industrial-crate-stack";
-    static final String PALLETS = "doodad.industrial-pallet-stack";
     static final String GENERATOR = "doodad.industrial-generator";
     static final String TANK = "doodad.industrial-fluid-tank";
     /** The operator seat at a console station: round, so no pose of it reads wrong whichever side the bank's operator is on. */

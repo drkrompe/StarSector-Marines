@@ -394,9 +394,11 @@ final class BuildingLayouts {
         BuildingWorkGroups groups = new BuildingWorkGroups(grid, topology, doodads);
         groups.reserveCargoApproaches(bl, bt, br, bb);
         for (RoomPurpose purpose : new RoomPurpose[]{null, RoomPurpose.GENERIC, RoomPurpose.STOCKROOM}) {
-            groups.fit(bl, bt, br, bb, purpose, CompactBuildingFurnishing.single("desk"), 1);
-            if (groups.fit(bl, bt, br, bb, purpose, BuildingWorkGroups.stockedRack("cases"), 2) == 0)
-                groups.fit(bl, bt, br, bb, purpose, CompactBuildingFurnishing.pair("case", "case"), 2);
+            if (groups.fit(bl, bt, br, bb, purpose, BuildingWorkGroups.cargoDesk(false), 1) == 0)
+                groups.fit(bl, bt, br, bb, purpose, CompactBuildingFurnishing.single("desk"), 1);
+            groups.fit(bl, bt, br, bb, purpose, BuildingWorkGroups.pallets(1, "cartons"), 1);
+            if (groups.fitRackRows(bl, bt, br, bb, purpose) == 0)
+                groups.fit(bl, bt, br, bb, purpose, CompactBuildingFurnishing.pair("shelf", "shelf"), 2);
         }
     }
 
