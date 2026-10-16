@@ -54,7 +54,12 @@ public final class MechFabricationCatalog {
             vehicle(VehicleType.HEAVY_APC, "@gearFabricationLightVehicleStandardFit", 50, 40, 110, 6),
             vehicle(VehicleType.MILITIA_TECHNICAL, "@gearFabricationMediumVehicleStandardFit", 45, 35, 90, 8),
             vehicle(VehicleType.ESCORT_APC, "@gearFabricationMediumVehicleStandardFit", 75, 60, 150, 14),
-            vehicle(VehicleType.BREAKTHROUGH_TANK, "@gearFabricationHeavyVehicleStandardFit", 120, 95, 240, 28));
+            vehicle(VehicleType.BREAKTHROUGH_TANK, "@gearFabricationHeavyVehicleStandardFit", 120, 95, 240, 28),
+            // Variants cost more than the hull they improve on: plate in metals, guns in rare metals.
+            vehicle(VehicleType.UP_ARMORED_APC, "@gearFabricationMediumVehicleStandardFit", 65, 50, 170, 10),
+            vehicle(VehicleType.FIRE_SUPPORT_APC, "@gearFabricationMediumVehicleStandardFit", 60, 50, 125, 16),
+            vehicle(VehicleType.HEAVY_GUN_TANK, "@gearFabricationHeavyVehicleStandardFit", 130, 100, 255, 38),
+            vehicle(VehicleType.DOZER_BREACHER, "@gearFabricationHeavyVehicleStandardFit", 125, 110, 290, 24));
 
     private MechFabricationCatalog() {
     }

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
@@ -88,14 +89,17 @@ public final class ConvoyRenderSystem implements RenderSystem {
                             .60f, .54f, .40f, alphaMult * .13f * (1f - i / 6f));
                 }
             }
+            float[] tint = type.hullTint();
             out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
                     f.x, f.y, f.w, f.h,
                     cx, cy, drawLong, drawShort, chassisFacingDeg,
-                    1f, 1f, 1f, alphaMult);
+                    tint[0], tint[1], tint[2], alphaMult);
 
             if (type.hasAnimatedTreads() && !wrecked) VehicleTreadRender.collect(type, cache, body, cam, alphaMult, out);
 
-            if (type.turretFrame >= 0 && type.turretFrame < frames.frames.length) {
+            if (type.turretArtFromMount()) {
+                collectMountTurret(type, convoy.turret(id), body, wrecked, cam, cellPx, alphaMult, out);
+            } else if (type.turretFrame >= 0 && type.turretFrame < frames.frames.length) {
                 SpriteSheetFrames.Frame tf = frames.frames[wrecked ? type.wreckTurretFrame() : type.turretFrame];
                 float turretAspect = (float) tf.w / (float) tf.h;
                 float tDrawLong = type.turretVisualCells * cellPx;
@@ -170,5 +174,34 @@ public final class ConvoyRenderSystem implements RenderSystem {
                     convoy.structure(id), convoy.maxStructure(id),
                     convoy.armor(id), convoy.maxArmor(id), alphaMult);
         }
+    }
+
+    /**
+     * A roof turret drawn from its catalog mount's own sprite, the way an aircraft's hull
+     * turrets are: at the mount's intrinsic size, base over barrel, darkened on a wreck.
+     */
+    private void collectMountTurret(VehicleType type, GroundTurret turret, GroundBody body, boolean wrecked,
+                                    BattleCamera cam, float cellPx, float alphaMult, DrawList out) {
+        StructureDef structure = type.turretStructure();
+        if (structure == null) return;
+        ShuttleSpriteCache base = sprites.turretSprites().get(structure.id);
+        if (base == null) return;
+        ShuttleSpriteCache barrel = sprites.turretRecoilSprites().get(structure.id);
+        float facing = turret != null ? turret.facingDeg : body.facingDegrees;
+        float cRad = (float) Math.toRadians(body.facingDegrees);
+        float cc = (float) Math.cos(cRad);
+        float cs = (float) Math.sin(cRad);
+        float mountX = body.x + type.turretMountX * cc - type.turretMountY * cs;
+        float mountY = body.y + type.turretMountX * cs + type.turretMountY * cc;
+        float heightPx = structure.mount.visualCells * cellPx;
+        float shade = wrecked ? .35f : 1f;
+        float sx = cam.cellToScreenX(mountX);
+        float sy = cam.cellToScreenY(mountY);
+        if (barrel != null) {
+            out.addSprite(RenderLayer.CONVOY, barrel.sprite, sx, sy, heightPx * barrel.aspect, heightPx,
+                    facing, shade, shade, shade, alphaMult);
+        }
+        out.addSprite(RenderLayer.CONVOY, base.sprite, sx, sy, heightPx * base.aspect, heightPx,
+                facing, shade, shade, shade, alphaMult);
     }
 }

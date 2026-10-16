@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.combat;
 
+import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
@@ -626,8 +627,10 @@ public final class BallisticResolver {
         // The part the committed aim landed on, when the round is headed for a person. A prop
         // crossed in the lane short of him catches by that part; no roll is spent deciding it.
         BodyPlan targetPlan = onTarget && target != 0L && bodies.carrierOf(target) == null
-                ? roster.identity().type(target).bodyPlan() : null;
+                ? bodyPlanOf(target) : null;
         BodyPart intendedPart = targetPlan != null ? targetPlan.atHeight(targetHeightFraction) : null;
+        // A part with no cover rows of its own meets a crossed prop as its body does.
+        if (intendedPart != null && !intendedPart.hasCoverRows()) intendedPart = null;
         for (Event e : events) {
             float proximityScale = proximityCatchScale(e.t * roundVelocity);
             if (e.doodad) {
@@ -656,9 +659,15 @@ public final class BallisticResolver {
             // collapse, was spelled "is it a vehicle".
             int coverLevel = e.hull ? 0
                     : grid.getCoverAt(e.victimCellX, e.victimCellY, fromDx, fromDy);
-            float coverCatchHalfHeight = e.hull ? 0f : grid.getCoverCatchHalfHeight(
-                    e.victimCellX, e.victimCellY, fromDx, fromDy);
-            if (!intersectsCatchBand(e.z, coverCatchHalfHeight)) coverLevel = 0;
+            BodyPlan victimPlan = e.hull ? null : bodyPlanOf(victim);
+            // A body whose rows read cover from the ground up (a mech) is not gated by the catch
+            // band: that band is centred on the target plane and sized for a man, so on a body
+            // twice his height it would hide the torso and bare the legs. Its rows say what reaches.
+            if (victimPlan == null || !victimPlan.coverFromGround()) {
+                float coverCatchHalfHeight = e.hull ? 0f : grid.getCoverCatchHalfHeight(
+                        e.victimCellX, e.victimCellY, fromDx, fromDy);
+                if (!intersectsCatchBand(e.z, coverCatchHalfHeight)) coverLevel = 0;
+            }
             // The ground the victim stands in (a trench) covers him from every direction,
             // more the further off the shooter is.
             int occupantLevel = e.hull ? 0
@@ -667,7 +676,6 @@ public final class BallisticResolver {
             BodyPart part = null;
             float edgeBlockChance;
             float occupantBlockChance;
-            BodyPlan victimPlan = e.hull ? null : roster.identity().type(victim).bodyPlan();
             if (victimPlan != null) {
                 // A person: the round lands on the part at the height it meets him, and cover
                 // hides parts. One roll against the better of the two covers for that part. The
@@ -676,9 +684,12 @@ public final class BallisticResolver {
                 part = victimPlan.atHeight(victim == target && onTarget
                         ? targetHeightFraction
                         : heightFraction(e.z, roster.hitHalfHeight(victim)));
+            }
+            if (part != null && part.hasCoverRows()) {
                 edgeBlockChance = CoverProfile.edge(coverLevel, part) * proximityScale;
                 occupantBlockChance = CoverProfile.occupant(occupantLevel, part) * occupantScale;
             } else {
+                // No part, or a part without cover rows of its own: the flat whole-body chance.
                 edgeBlockChance = BLOCK_CHANCE_BY_LEVEL[Math.min(coverLevel, BLOCK_CHANCE_BY_LEVEL.length - 1)]
                         * proximityScale;
                 occupantBlockChance = BLOCK_CHANCE_BY_LEVEL[Math.min(occupantLevel, BLOCK_CHANCE_BY_LEVEL.length - 1)]
@@ -865,6 +876,16 @@ public final class BallisticResolver {
         float dx = x1 - x0;
         float dy = y1 - y0;
         return (float) Math.sqrt(dx * dx + dy * dy);
+    }
+
+    /**
+     * The parts a round landing on {@code unit} is struck on: a mech's chassis plan (its sections'
+     * height bands), otherwise its type's plan, or null for one whole-body contact.
+     */
+    private BodyPlan bodyPlanOf(long unit) {
+        World world = roster.world();
+        if (MechSections.ENABLED && world.hasMechLoadout(unit)) return world.mechLoadout(unit).variant.bodyPlan().bodyPlan();
+        return roster.identity().type(unit).bodyPlan();
     }
 
     /** Where {@code z} sits up a body of {@code halfHeight}: 0 at its feet, 1 at its top. */

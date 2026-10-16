@@ -69,6 +69,9 @@ dependencies {
     // relocate rule below so it can't collide with another mod's copy on the
     // shared classloader.
     implementation "it.unimi.dsi:fastutil-core:${fastutilVersion}"
+    // JCodec: pure-Java H.264 decoder for the arrival cinematic's video (FreeBSD/BSD-2-Clause,
+    // redistributable; measured in runtime-contract.md). Shaded into our own namespace below.
+    implementation 'org.jcodec:jcodec:0.2.5'
 
     // Lombok — same convention as the asset-pipeline module so shared style works.
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
@@ -690,6 +693,14 @@ tasks.register('createSnapshots', JavaExec) {
     // Snapshot scenes play the same worlds `sceneEvidence` does and must read the same: serial, overridable by a -Dbattle switch.
     systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
     forwardBattleSwitches(delegate)
+    // `-Dsnapshot.threads=N` (`SnapshotWorkers`; 1 is the serial control) and any other snapshot switch.
+    System.properties.each { key, value ->
+        if (key.toString().startsWith('snapshot.')) systemProperty key.toString(), value
+    }
+    // Lossless per-frame copies for a pixel comparison between two runs (`RawFrameDump`).
+    if (providers.gradleProperty('snapshotRawFrames').isPresent()) {
+        systemProperty 'snapshot.rawFrames', file(providers.gradleProperty('snapshotRawFrames').get()).absolutePath
+    }
     outputs.upToDateWhen { false }
     doFirst {
         File output = providers.gradleProperty('snapshotDir').isPresent()
@@ -893,11 +904,16 @@ shadowJar {
     // mods. Source still uses `it.unimi.dsi.fastutil.*` imports; the rewrite
     // happens at jar time on bytecode.
     relocate 'it.unimi.dsi.fastutil', 'com.dillon.starsectormarines.shaded.fastutil'
+    relocate 'org.jcodec', 'com.dillon.starsectormarines.shaded.jcodec'
 
     // Drop fastutil classes we don't actually reference. fastutil's full type-
     // specialization matrix is huge; minimize() keeps only what our bytecode
     // touches plus its transitive closure, which is typically a small fraction.
-    minimize()
+    // JCodec picks codecs and box types by name at runtime, so a reachability pass would strip
+    // classes the decoder needs; keep it whole (about 2 MB).
+    minimize {
+        exclude(dependency('org.jcodec:jcodec'))
+    }
 
     exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
     exclude 'META-INF/maven/**'

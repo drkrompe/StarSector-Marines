@@ -143,8 +143,8 @@ if c2_frames:
 # Review sheet: four views at half size (skipped unless all four exist).
 sheet = Image.new('RGB', (1920, 1080), BG)
 draw = ImageDraw.Draw(sheet)
-draw.text((28, 15), 'LEGION (XIV) BATTLECARRIER / GEOMETRY BLOCKOUT', font=font(32), fill=(39, 49, 55))
-draw.text((28, 55), 'XIV BATTLEGROUP  |  COMMAND DOME  |  FOUR FLIGHT DECKS  |  SIXTEEN TURRETS ON PIVOTS  |  TEN DRIVES',
+draw.text((28, 15), 'LEGION (XIV) BATTLECARRIER / PASS 2 DETAIL', font=font(32), fill=(39, 49, 55))
+draw.text((28, 55), 'XIV BATTLEGROUP  |  DEEP TORSO, WING ARMS  |  A FLY-THROUGH HANGAR UNDER EACH WING  |  FIFTEEN TURRETS ON PIVOTS  |  TEN DRIVES',
           font=font(19), fill=(72, 81, 88))
 panels = [('top-overlay', 'TOP OVER SPRITE / BOW LEFT - PORT BELOW'), ('three-quarter', 'STARBOARD BOW QUARTER'),
           ('starboard-side', 'STARBOARD SIDE / BOW RIGHT'), ('c2-abeam', 'C2 ABEAM: CABIN CAMERA, C2 SUN')]
@@ -159,7 +159,7 @@ draw.text((28, 1050), f'Slots, bays and engines from legion.ship; heights propos
 sheet.save(src/'legion-geometry.reference.png', optimize=True)
 
 # Before/after close-ups against the accepted blockout, when both exist.
-before = HERE/'reference-history'/'v1-blockout'
+before = HERE/'reference-history'/'v2-blockout'
 DETAILS = ['bow-detail', 'bridge-detail', 'turret-detail', 'flight-deck-detail', 'aft-deck-detail', 'flank-detail',
            'engine-detail', 'stern-detail']
 if all((before/(n+'.png')).exists() and (src/(n+'.png')).exists() for n in DETAILS):

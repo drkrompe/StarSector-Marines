@@ -70,6 +70,7 @@ public enum MechSupportPayload implements AirDeliveryPayload {
         loadout.applyFrame(deployment.frame());
         loadout.installMissileReplenisher(deployment.missileReplenisher());
         context.attachMechLoadout(mech, loadout);
+        context.tagCompanyMech(deployment.campaignId(), loadout);
         Squad squad = context.squad(context.mission.squadId);
         if (squad != null) {
             if (squad.leaderId == 0L) squad.leaderId = mech;

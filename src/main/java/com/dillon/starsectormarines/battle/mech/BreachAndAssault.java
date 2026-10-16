@@ -113,7 +113,8 @@ public final class BreachAndAssault implements Action {
             if (candidateSquad == null || candidateSquad.aliveMembers == 0
                     || type.isMech() && candidateSquad.rescuePickupMech) continue;
             if (!candidateSquad.availableToPlan(candidate, sim)) continue;
-            if (type.isMech() && sameMechVariant(member, candidate, sim)) continue;
+            if (type.isMech() && (sameMechVariant(member, candidate, sim)
+                    || !anchorsOthers(candidate, sim))) continue;
 
             float dx = sim.world().x(candidate) - memberX;
             float dy = sim.world().y(candidate) - memberY;
@@ -139,6 +140,7 @@ public final class BreachAndAssault implements Action {
         long leader = squad.autonomousLeader(sim);
         if (leader != 0L && leader != member
                 && sim.world().hasMechLoadout(leader)
+                && anchorsOthers(leader, sim)
                 && sim.squadOf(leader) == squad) {
             return leader;
         }
@@ -151,7 +153,8 @@ public final class BreachAndAssault implements Action {
             long candidate = sim.squadMemberAt(squad.id, i);
             if (candidate == member || !sim.world().isAlive(candidate)
                     || !squad.availableToPlan(candidate, sim)
-                    || !sim.world().hasMechLoadout(candidate)) continue;
+                    || !sim.world().hasMechLoadout(candidate)
+                    || !anchorsOthers(candidate, sim)) continue;
             float dx = sim.world().x(candidate) - memberX;
             float dy = sim.world().y(candidate) - memberY;
             float distanceSq = dx * dx + dy * dy;
@@ -172,6 +175,14 @@ public final class BreachAndAssault implements Action {
         if (dx * dx + dy * dy <= MAX_SUPPORT_LEAD * MAX_SUPPORT_LEAD) return null;
         return clampToSupport(sim.world().cellX(member),
                 sim.world().cellY(member), support, sim);
+    }
+
+    /**
+     * A crippled or disarmed mech is no anchor: tethering the lance's advance to it would hold
+     * the lance on a body that cannot or will not go where the lance is going.
+     */
+    private static boolean anchorsOthers(long mech, BattleView sim) {
+        return MechDamageDoctrine.postureOf(sim.world().mechLoadout(mech)).anchorsOthers();
     }
 
     private static boolean sameMechVariant(long first, long second,

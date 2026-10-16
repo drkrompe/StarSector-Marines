@@ -391,7 +391,10 @@ armor, structure, rating, and penetration presentation.
   behind it.
 - A mitigation arc is a temporary capability with a facing. It is not an argument
   for giving every actor a permanent facing, localized armor, or ablative
-  segments.
+  segments. Mechs are the deliberate exception, by their own model: a chassis
+  divides its armor capacity and structure into section pools
+  (`mechs-nouns.md`), each resolved by the same calculation with the chassis's
+  one armor rating, and only the torso's structure decides death.
 - Armor does not alter hit chance. Movement and incoming-accuracy modifiers
   remain independently authored profile traits.
 - The queued damage path remains allocation-free and deterministic.

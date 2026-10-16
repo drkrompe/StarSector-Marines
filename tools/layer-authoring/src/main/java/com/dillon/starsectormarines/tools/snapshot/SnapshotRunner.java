@@ -10,7 +10,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 /**
  * Renders selected suites and exclusively owns their filesystem output.
@@ -57,7 +59,9 @@ public final class SnapshotRunner {
             if (!suiteRoot.startsWith(root)) {
                 throw new IOException("snapshot suite escapes output root: " + suite.id());
             }
+            long renderStart = System.nanoTime();
             List<SnapshotArtifact> artifacts = suite.render(context);
+            long renderNanos = System.nanoTime() - renderStart;
             if (artifacts == null) {
                 throw new IllegalStateException("snapshot suite '" + suite.id()
                         + "' returned no artifact list");
@@ -77,12 +81,57 @@ public final class SnapshotRunner {
                 }
                 planned.add(new PlannedArtifact(output, artifact));
             }
+            long writeStart = System.nanoTime();
+            Path rawRoot = rawFrameRoot();
+            // Each artifact is its own file and its own encoder, so they are written side by side; the order of
+            // `outputs` stays the planned order whatever finishes first.
+            List<Callable<Void>> writes = new ArrayList<>(planned.size());
             for (PlannedArtifact item : planned) {
-                Path output = item.output();
-                if (output.getParent() != null) Files.createDirectories(output.getParent());
-                write(item.artifact(), output);
-                outputs.add(output);
+                writes.add(() -> {
+                    Path output = item.output();
+                    if (output.getParent() != null) Files.createDirectories(output.getParent());
+                    write(item.artifact(), output);
+                    if (rawRoot != null) {
+                        RawFrameDump.write(rawRoot.resolve(suite.id()).resolve(item.artifact().relativePath()),
+                                item.artifact().frames());
+                    }
+                    return null;
+                });
             }
+            writeAll(writes);
+            for (PlannedArtifact item : planned) outputs.add(item.output());
+            System.out.printf(Locale.ROOT, "  [%s] rendered in %.1fs, wrote %d artifact(s) in %.1fs%n",
+                    suite.id(), renderNanos / 1e9, planned.size(), (System.nanoTime() - writeStart) / 1e9);
+        }
+    }
+
+    /**
+     * Opt-in lossless copy of every artifact's frames ({@code -Dsnapshot.rawFrames=<dir>}), so two runs can be
+     * compared pixel for pixel rather than through the GIF palette. Null when not asked for.
+     */
+    private static Path rawFrameRoot() {
+        String raw = System.getProperty(RawFrameDump.PROPERTY);
+        return raw == null || raw.isBlank() ? null : Path.of(raw).toAbsolutePath().normalize();
+    }
+
+    private static void writeAll(List<Callable<Void>> writes) throws IOException {
+        if (SnapshotWorkers.threads() <= 1) {
+            for (Callable<Void> write : writes) {
+                try {
+                    write.call();
+                } catch (IOException | RuntimeException failure) {
+                    throw failure;
+                } catch (Exception failure) {
+                    throw new IllegalStateException(failure);
+                }
+            }
+            return;
+        }
+        try {
+            SnapshotWorkers.runAll(writes);
+        } catch (IllegalStateException wrapped) {
+            if (wrapped.getCause() instanceof IOException io) throw io;
+            throw wrapped;
         }
     }
 

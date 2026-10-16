@@ -2,7 +2,7 @@
 
   blender --background --factory-startup --python apply_skin.py
       [-- --blend IN.blend] [--out OUT.blend] [--fallback swatch|neutral|base]
-          [--group g[,g]] [--manifest PATH]
+          [--group g[,g]] [--manifest PATH] [--wear STATE]
 
 Opens a geometry build (default the clean one, build/geom/second-wind-geometry.blend,
 made by importing ../second-wind-geometry/build_reference.py; the geometry
@@ -32,6 +32,10 @@ Faces no part claims (`--fallback`):
   textures/swatch-<class>.png gets its flat palette colour.
 - `neutral` swaps them for flat dark grey, so part coverage reads honestly.
 - `base` leaves the build's flat base colours.
+`--wear STATE` (a wear.json row: derelict, patched, refit, restored) then
+routes every skin and swatch material through that state's wear layer
+(wear.py): abrasion, pitting, fade, grime, soot and neglect, in ship space.
+Without it the build carries the bare base skin.
 Lamps, glazing and a damage state's scar and repair materials are never
 touched. Modifiers stay live. Writes OUT (packed images) and a manifest
 (default skin-manifest.json beside the scripts for the clean build).
@@ -54,6 +58,7 @@ BLEND = HERE / Path(arg('--blend', HERE / 'build' / 'geom' / 'second-wind-geomet
 OUT = HERE / Path(arg('--out', HERE / 'build' / 'skinned.blend'))
 FALLBACK = arg('--fallback', 'swatch')
 GROUPS = P.group_arg(argv)
+WEAR = arg('--wear', 'none')  # a wear.json state (wear.py), or none for the bare base skin
 MANIFEST = HERE / Path(arg('--manifest', HERE / 'skin-manifest.json'))
 PAL = json.loads((HERE / 'palette.json').read_text())['classes']
 VAR = V.load()
@@ -290,6 +295,24 @@ for ob in bpy.context.scene.objects:
             if p.material_index in remap and p.index not in skinned_faces.get(ob.name, ()):
                 p.material_index = remap[p.material_index]
                 counts['swatch' if FALLBACK == 'swatch' else 'neutral'] += 1
+
+# Wear (wear.py): bake the hull frame on every mesh carrying a skin or swatch,
+# then route each skin/swatch material through the state's wear group.
+if WEAR != 'none':
+    import wear as W
+    worn = set()
+    for ob in bpy.context.scene.objects:
+        if ob.type != 'MESH':
+            continue
+        mats = [m for m in ob.data.materials if m is not None and (m.get('skin_part') or m.get('skin_swatch'))]
+        if not mats:
+            continue
+        W.bake_hull_frame(ob)
+        for m in mats:
+            if m.name not in worn:
+                W.insert(m, WEAR, m.get('skin_class') or m.get('skin_swatch'))
+                worn.add(m.name)
+    manifest['wear'] = {'state': WEAR, 'weights': W.STATES[WEAR], 'materials': len(worn)}
 
 total = sum(len(v) for v in skinned_faces.values())
 counts['skin'] = total

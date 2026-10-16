@@ -55,10 +55,10 @@ SCAR_STATUSES = ('open', 'patched', 'replaced', 'faded', 'gone')
 # A drive pod's life: stripped and dead, cold with its lines capped, running
 # on jury-rigged salvage, running properly.
 ENGINE_STATUSES = ('dead', 'capped', 'jury', 'running')
-AREAS = ('sw_scars_forebody', 'sw_scars_pods', 'sw_scars_aft', 'sw_scars_spine')
+AREAS = ('sw_scars_forebody', 'sw_scars_pods', 'sw_scars_aft', 'sw_scars_spine', 'sw_scars_rcs')
 
 # Nothing a strike or cut may land on or reach into.
-UNCUT = ('Turret', 'Scar', 'Grapple arm', 'Boom', 'Forearm', 'Arm ', 'Engine ',
+UNCUT = ('Turret', 'Scar', 'RCS ', 'Grapple arm', 'Boom', 'Forearm', 'Arm ', 'Engine ',
          'Shoulder', 'Grapple head', 'Grapple jaw', 'Grapple clamp', 'Grapple wrist')
 NO_STRIKE = UNCUT + ('Mast', 'Whip', 'Scanner', 'radome', 'Radome', 'viewport', 'Viewport',
                      'glazing', 'light', 'Light', 'lamp', 'Bay ', 'bay ', 'cradle', 'Cradle',
@@ -194,6 +194,7 @@ class Damage:
         self.hides = {}     # base object name -> scar id
         self.shapes = []    # (object, scar id, {vertex index: local co})
         self.overrides = [] # (object, material, scar id)
+        self.tags = []      # (object, key, value, scar id)
         self.sites = {}     # scar id -> Site or None (resolved once)
         self.record = {'state': state, 'scars': [], 'hidden': {}, 'shape_keys': [],
                        'overrides': []}
@@ -356,6 +357,11 @@ class Damage:
                 moved[vert.index] = inv @ q
         if moved:
             self.shapes.append((ob, scar_id(scar), moved))
+
+    def tag(self, ob, key, value, scar):
+        """Set a custom property on a base object (an anchor's 'running' or
+        'working' for this state). Metadata only, applied at the end."""
+        self.tags.append((ob, key, value, scar_id(scar)))
 
     def override(self, ob, mat, scar):
         """Change a base part's look for this state without touching its mesh
@@ -949,6 +955,8 @@ def finish(d):
             slot.material = mat
         ob['scar_override'] = sid
         d.record['overrides'].append(f'{ob.name}: {mat.name} ({sid})')
+    for ob, key, value, sid in d.tags:
+        ob[key] = value
     for name, sid in d.hides.items():
         ob = bpy.data.objects[name]
         ob.hide_render = True

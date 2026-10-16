@@ -41,8 +41,8 @@ HERE = Path(__file__).resolve().parent
 # 66 m overall. Everything metric reads this; nothing hard-codes metres.
 METRES_PER_UNIT = 0.65
 sys.path.insert(0, str(HERE))
-import sw_kit, sw_hull, sw_aft_deck, sw_engines, sw_bridge, sw_turrets, sw_port_module, sw_damage
-for module in (sw_kit, sw_hull, sw_aft_deck, sw_engines, sw_bridge, sw_turrets, sw_port_module, sw_damage):
+import sw_kit, sw_hull, sw_aft_deck, sw_engines, sw_bridge, sw_turrets, sw_port_module, sw_rcs, sw_damage
+for module in (sw_kit, sw_hull, sw_aft_deck, sw_engines, sw_bridge, sw_turrets, sw_port_module, sw_rcs, sw_damage):
     importlib.reload(module)
 
 parser = argparse.ArgumentParser()
@@ -79,6 +79,7 @@ sw_port_module.build(kit)
 
 sw_engines.build_nozzles(kit)
 sw_turrets.build(kit)
+sw_rcs.build(kit)
 # Scars are the last phase: everything above is the clean ship.
 damage = sw_damage.apply(kit, args.state) if args.state != 'clean' else None
 
@@ -116,7 +117,10 @@ closeups=[('bow-detail',(110,60,55),(40,0,8),70),
           ('port-flank-detail',(75,95,45),(34,24,6),52),
           ('port-aft-detail',(15,85,55),(-22,28,6),52),
           ('starboard-aft-detail',(-80,-75,60),(-24,-26,6),55),
-          ('stern-detail',(-120,40,30),(-36,6,4),62)]
+          ('stern-detail',(-120,40,30),(-36,6,4),62),
+          # C1's angle (ortho stand-in): starboard stern quarter, 30 deg above the deck.
+          ('c1-stern-quarter',(-118,-123,101),(-5,0,1),125),
+          ('drive-detail',(-110,-60,35),(-38,-28,1),30)]
 wanted=[v for v in args.views.split(',') if v]
 for spec in args.cam:
     name,pos,target,scale=spec.split(':')
@@ -164,6 +168,22 @@ if not args.no_save:
         'bay_state':{'port':'open, empty cradle','starboard':'sealed, awaits repair'},
         'mesh_authority':'All views render the same objects; generated surface art is subordinate to this geometry.'
     }
+    # Effect anchors, found by name (second-wind-pipeline.md): local +X is the
+    # exhaust direction. 'running'/'working' are this state's condition.
+    def anchor(ob):
+        p=ob.matrix_world.translation
+        e=(ob.matrix_world.to_3x3()@Vector((1,0,0))).normalized()
+        return {'name':ob.name,'position':[round(c,4) for c in p],
+                'position_m':[round(c*METRES_PER_UNIT,4) for c in p],
+                'exhaust_dir':[round(c,5) for c in e]}
+    manifest['engine_anchors']=[dict(anchor(ob),engine=int(ob['engine']),radius=round(float(ob['radius']),4),
+                                     radius_m=round(float(ob['radius'])*METRES_PER_UNIT,4),running=bool(ob.get('running',True)))
+                                for ob in sorted(bpy.data.objects,key=lambda o:o.name)
+                                if ob.name.startswith('Engine ') and ob.name.endswith(' exhaust anchor')]
+    manifest['rcs_anchors']=[dict(anchor(ob),cluster=ob['cluster'],axis=ob['axis'],
+                                  radius_m=round(float(ob['radius_m']),4),working=bool(ob.get('working',True)))
+                             for ob in sorted(bpy.data.objects,key=lambda o:o.name)
+                             if ob.name.startswith('RCS ') and ob.name.endswith(' anchor')]
     if damage:
         manifest['status']='Proposed damage-state review geometry; the committed guide remains the clean ship'
         manifest['damage']=damage

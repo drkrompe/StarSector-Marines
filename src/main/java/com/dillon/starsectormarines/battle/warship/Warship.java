@@ -1725,6 +1725,8 @@ public final class Warship {
     private boolean dangerClose;
     private float declaredThreat;
     private ShipClass shipClass = ShipClass.DEFAULT;
+    /** Whether the hull's own {@code hullSize} is a fighter's: a craft that may overlap a ship, not a ship. */
+    private boolean fighterSize;
     private float declaredThreatSeconds;
     private final List<float[]> focusPoints = new ArrayList<>();
     private final List<float[]> protectedGround = new ArrayList<>();
@@ -2053,6 +2055,22 @@ public final class Warship {
         this.duelHome = station;
     }
 
+    /** What the ship is doing in its group's hull fight: its role, target, side and current manoeuvre. */
+    private final WarshipManoeuvre manoeuvre = new WarshipManoeuvre();
+
+    /**
+     * Whether this hull is fighter-sized by its own {@code .ship} ({@code hullSize} FIGHTER): such a craft may pass over
+     * and under a ship, and hull contact ({@link WarshipSpacing}) is only between hulls of frigate size and up.
+     */
+    public boolean fighterSize() {
+        return fighterSize;
+    }
+
+    /** The ship's place in its group's hull fight ({@link WarshipTactics}); readable for a HUD and for evidence. */
+    public WarshipManoeuvre manoeuvre() {
+        return manoeuvre;
+    }
+
     /** The order this hull was added to its battle in, a stable identity for hashes; -1 until it is added. */
     private int serial = -1;
 
@@ -2293,6 +2311,7 @@ public final class Warship {
             float cy = c == null ? h / 2f : (float) c.optDouble(1);
             ship.plating = WarshipPlating.fromHull(bounds, w, h, cx, cy, toughness[1], toughness[0]);
         }
+        ship.fighterSize = "FIGHTER".equalsIgnoreCase(hull.optString("hullSize", ""));
         ship.flux.fittings(FLUX_PER_CAPACITOR * Math.max(0, loadout.fluxCapacitors()),
                 DISSIPATION_PER_VENT * Math.max(0, loadout.fluxVents()));
         if (row != null) {

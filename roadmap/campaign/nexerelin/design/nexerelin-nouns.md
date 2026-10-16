@@ -6,7 +6,7 @@ its live pass.
 
 Written: 2026-10-15
 
-Updated: 2026-10-15 — Handoff build order, the mirrored commitment and the reset option recorded.
+Updated: 2026-10-16 — The Second Wind start offered through Nexerelin's custom-start list.
 
 ## Purpose
 
@@ -148,6 +148,34 @@ seam), `architecture.md` (the external-state boundary) and
    initiating attacker and ends it with the mapped outcome. Nexerelin applies
    everything that follows, and the dialog returns to the market's refreshed
    options.
+
+## The Second Wind start under Nexerelin
+
+Nexerelin replaces vanilla new-game creation with its own flow, which never
+asks rules for `AddNewGameChoices`, so the vanilla Second Wind choice cannot
+appear there. Under Nexerelin the same start is offered as one of
+Nexerelin's **custom starts**, through the mod's
+`data/config/exerelin/customStarts.json`, which Nexerelin merges into its own
+list. Its class, `SecondWindNexStart`, is named only by that file and is
+loaded only by Nexerelin, so law 1 holds without a guard. The vanilla rules
+path is unchanged and remains the start when Nexerelin is absent.
+
+- **The same start, not a variant.** It grants what the vanilla rows grant
+  (the Cerberus, one character point, the Corvus starting point) and runs
+  the same `CerberusCompanyStart` setup, so the opening, the founding reserve
+  and the prologue are one implementation.
+- **Corvus only.** The opening assumes Jangala and the Corvus yards, so the
+  entry is disabled for Nexerelin's random sector.
+- **A free start as the player's own faction**, as vanilla's is.
+- **Difficulty is Nexerelin's.** Nexerelin's new-game panel already carries
+  an Easy-mode setting that sets the game's difficulty; the start does not
+  ask a second time.
+- **Nexerelin places the fleet; the opening has the last word.** Nexerelin
+  moves a free start's fleet to a market after the time pass. The start
+  points that placement at the opening's own yard, then re-applies the
+  opening's approach to it once play begins.
+- Nexerelin's other new-game settings, such as starting D-mods and starting
+  operatives, still apply. They are the player's own choices in that flow.
 
 ## Mismatches the design accepts
 
