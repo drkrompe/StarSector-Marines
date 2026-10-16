@@ -1,0 +1,43 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a145c2-ad02-74e2-bf79-798fde600f33",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a145c2-ad02-74e2-bf79-798fde600f33\\exec-08584c37-3f3c-497a-b732-3bdd5052ee54.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\assets\\planet-albedo-detail-v1.png",
+    "sha256": "4c4721c7c9152bcd2a08370098ffbee965f22d805038256d85aee16b1b2549ea",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\prompts\\planet-albedo-detail-v1.txt",
+  "promptSha256": "2a8f64701344b1d8d81a34ea360f50abf9405b60ceeda068bbd59221d8a8df61",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Material and colour only; not layout, ice caps or scale\n\nAsset: a high-detail regional surface albedo texture of Jangala, a lush tropical jungle ocean world, for draping over the camera-facing part of a 3D planet in Blender. Exactly 2:1 landscape canvas, highest resolution available, full bleed, flat top-down map view of a region about 100 degrees wide by 50 degrees tall around the planet's tropics, nothing else in the frame.\nContent: the bare surface as seen straight down from orbit with NO clouds, no haze, no shading, no lighting, no shadows, no specular glints, no night side, no polar ice: pure diffuse colour only, evenly lit like a cloud-free satellite albedo mosaic.\nGeography, fine satellite detail at this scale: about 35-40% land spread as many irregular islands and long broken archipelagos of every size, two or three larger ragged landmasses (one entering from the right edge, one in the lower left), chains of small islands and atolls between them, deep fjord-like inlets, river deltas. Land is dense dark-green rainforest with natural variation (deep emerald, olive, mossy green, a few brown highland ridges and muddy deltas, thin pale beaches). Open sea is deep navy-to-royal blue with subtle depth variation; bright turquoise and teal shallow shelves and reef lagoons hug every coast and island chain and fade softly into deep water. Coastlines must be natural and fractal, not blobby, not stamped, and the land must look alien: absolutely no Earth geography.\nReference 1 is material and colour only (palette of forest, shelf and deep sea); do not copy its layout, its ice caps or its scale.\nNo text, labels, grid, borders, legend, compass, vignette or watermark.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\assets\\planet-albedo-v1.png",
+      "sha256": "2feaa24e98d8f01230bd26447bbe53a9589e8046db8be1b131b0450aa2ae6add",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGB",
+      "role": "Material and colour only; not layout, ice caps or scale"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one tropical surface albedo image, using the reference only for its materials and colours."
+  ],
+  "usage": {
+    "input_tokens": 41139,
+    "cached_input_tokens": 32512,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 543,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 60.3
+}

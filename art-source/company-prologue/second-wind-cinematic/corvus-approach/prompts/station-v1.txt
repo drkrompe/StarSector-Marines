@@ -1,0 +1,13 @@
+Asset: Jangala Station, the Hegemony's huge orbital station over the jungle world Jangala, as one transparent compositing layer for a grounded, photographic science-fiction cinematic (Starsector). Portrait canvas, highest resolution.
+
+Identity (reference 1): keep the station's plan and silhouette: a tall vertical spindle of stacked, wide, flat disc decks of differing diameters (a broad upper disc, two mid discs, a broad lower-middle disc), a narrow command spire with antenna mast on top, a tapering lower section of many thin stacked rings glowing teal-cyan from within, and a small cluster of machinery at the very bottom tip. Grey-gunmetal and dull olive-yellow Hegemony industrial plating.
+
+Pose: a real, massive structure seen in three-quarter view from slightly above. The camera is high over the orbital plane looking slightly down, so every disc deck reads as a shallow ellipse with its top surface visible, and the spindle has true depth and perspective. Spindle axis vertical in frame, whole station in frame with a small margin.
+
+Detail that must read when the whole station is shown about 280 pixels tall: rows of small warm lit windows along deck rims; two or three docking arms reaching out from the mid decks with a couple of small blocky cargo ships berthed; dark folded heat-radiator panels; antenna dishes and comm masts; pipework, gantries, panel seams; Hegemony industrial weathering, scorch streaks and grime; the teal lower rings glowing as structured lit bands, not a blur.
+
+Lighting: hard yellow-white sunlight from the upper left; shadow sides fall to the lower right with deep but not crushed shadow; faint cool blue planet-shine fill from below on downward-facing surfaces. No lens flares, bloom halos or glow spilling onto the background.
+
+Look: tactile, weathered industrial metal, believable enormous scale, restrained colour, photoreal; not toy-like, low-poly, cartoon or illustrated.
+
+True transparent background (alpha), including the negative spaces between decks and arms. No planet, stars, nebula, space backdrop, other ships outside the docks, ground, shadow slab, border, frame or text; those are separate layers.

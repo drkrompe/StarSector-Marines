@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a145c4-9a04-7380-9d98-4c4e89efbfbd",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a145c4-9a04-7380-9d98-4c4e89efbfbd\\exec-10cf65d2-a779-4f6f-b678-a5eba2a2e884.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\assets\\heg-hero-v2.png",
+    "sha256": "233796ef9e1b447a433c00c0e042b7afa503fdd7bc0cd8f43639785a8ff1b607",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\prompts\\heg-hero-v2.txt",
+  "promptSha256": "1fa3bd4a43fbb9c903b88d910a19be93fb209ac88b4bd7c048ae5431552729ef",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity only: Dominator-class hull plan, broad squat silhouette, armour layout and Hegemony livery; not pose, backdrop or outlines\nImage 2: Material/style only: weathered industrial painted metal; not shape or layout\n\nAsset: a transparent perspective ship cutout for a cinematic parallax layer in a grounded, photographic science-fiction film (Starsector, Hegemony navy in the Jangala system). Long horizontal landscape canvas (about 16:9 or wider).\nImage 1 is the IDENTITY reference ONLY for the Hegemony Dominator-class cruiser: its hull plan and silhouette, layered orange armour plates, gunmetal turret mounts and engine block layout. It is a flat top-down game sprite; do NOT copy its flat pose, dark backdrop or graphic outlines. Image 2 sets realistic industrial material quality ONLY (tactile weathered painted metal); do not copy that different ship's shape.\nCreate ONE Hegemony Dominator-class heavy cruiser as a real massive spacecraft, gliding through space toward the LEFT of the canvas.\nPROPORTIONS ARE CRITICAL: the Dominator is a SHORT, SQUAT, VERY BROAD armoured wedge, almost as wide as it is long (plan roughly 5 wide by 4 long), NOT a long cylinder or a slim battleship. Its bow is a wide blunt front made of three big rounded armoured lobes side by side (a broad central lobe flanked by two large side lobes), each studded with circular turret barbettes; behind them the hull stays wide and stacked, with heavy side sponsons, and ends in a short, compact stern bristling with many small engine nozzles across the full width. Keep the sprite's broad, heavy, symmetric fortress-wedge silhouette.\nPose: dramatic three-quarter view seen from above and slightly ahead: the camera looks down onto its dorsal armour and the front-left flank, bow toward the left and slightly toward the viewer, stern receding to the right with clear foreshortening. Not a top-down view, not a side elevation.\nSurface: thick chamfered armour plates in Hegemony burnt orange and rust-brown over gunmetal grey and off-white structure, the orange arranged in bold chevron bands as on the sprite; recessed ballistic gun turrets, layered armour belts, conduits, a restrained number of large readable panel seams (not a busy mosaic of tiny tiles), believable weathering, scorch and heat staining toward the stern.\nLighting: strong, hard yellow-white sun from the UPPER LEFT, bright highlights on top and left-facing plates and DEEP, high-contrast shadows on the lower-right faces and under the overhangs, like a real object in hard space sunlight; faint cool blue planet-shine fill from below on the underside. Engines lit: the stern nozzles glow hot blue-white with a short soft glow, no long exhaust plume. A few small running lights.\nStyle: photographic concept art, cinematic gritty realism, not a toy, miniature, low-poly render or cartoon. No lens flares.\nKeep the complete ship inside the canvas with transparent padding on all sides, no crop. TRUE TRANSPARENT background including negative spaces. No stars, planet, nebula, space backdrop, other ships, ground, shadow slab, labels, border or text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Program Files (x86)\\Fractal Softworks\\Starsector\\starsector-core\\graphics\\ships\\dominator\\dominator_hegemony.png",
+      "sha256": "cee71841c3e7d1992915a1cf1766470266b205a37e706ad3a60c0a53f988b30f",
+      "dimensions": [
+        220,
+        180
+      ],
+      "mode": "RGBA",
+      "role": "Identity only: Dominator-class hull plan, broad squat silhouette, armour layout and Hegemony livery; not pose, backdrop or outlines"
+    },
+    {
+      "path": "art-source\\company-prologue\\second-wind-design-v3.reference.png",
+      "sha256": "cc7258bbc8bd08bacd304dfef26e19eacd341b8bbecffb3ca698c35b4178a728",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material/style only: weathered industrial painted metal; not shape or layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent ship cutout using the Dominator for its silhouette and the second image for material quality."
+  ],
+  "usage": {
+    "input_tokens": 42156,
+    "cached_input_tokens": 32896,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 706,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 67.6
+}

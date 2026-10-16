@@ -1,0 +1,32 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a145bd-e451-73d1-b193-700ba567e6fc",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a145bd-e451-73d1-b193-700ba567e6fc\\exec-4b82e3c8-d235-4655-9e00-ef6cc3cc8f00.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\assets\\planet-albedo-v1.png",
+    "sha256": "2feaa24e98d8f01230bd26447bbe53a9589e8046db8be1b131b0450aa2ae6add",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\prompts\\planet-albedo-v1.txt",
+  "promptSha256": "9e068a88c62a672827fde0f5ebdd167d63b6cf73bb4dbf38f5fc0aa59cb172ef",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAsset: an equirectangular (2:1, plate carree) surface albedo texture map of Jangala, a lush jungle ocean world, for wrapping onto a 3D sphere in Blender. Exactly 2:1 landscape canvas, highest resolution available, full bleed, flat orthographic map projection, nothing else in the frame.\nContent: the bare surface as seen from orbit with NO clouds, no atmosphere haze, no shading, no lighting, no shadows, no specular highlights, no night side: pure diffuse colour only, evenly lit like a satellite albedo mosaic.\nGeography: roughly 35% land as natural, irregular, fractal continents and long broken archipelagos with ragged coastlines, many island chains, inlets, peninsulas and atolls. Land is dense dark-green tropical rainforest with subtle variation (deep emerald, olive, a few muddy brown river deltas and highlands, sparse lighter savanna patches), meandering rivers. Oceans are deep navy-to-royal blue, with bright shallow turquoise and teal continental shelves and reef lagoons hugging every coast and island chain. Small pale polar sea-ice caps only at the very top and bottom edges. The landmasses must look alien: absolutely no Earth continents or recognisable Earth geography.\nProjection: equirectangular, so features stretch horizontally only near the top and bottom rows as real equirectangular maps do; no other distortion, no globe curvature, no vignette. The left and right edges must continue seamlessly into each other (wrap-around tileable horizontally).\nStyle: photoreal satellite imagery, restrained natural colour, matching a grounded photographic science-fiction cinematic. No text, labels, grid lines, borders, legends, compass, frame or watermark.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one seamless 2:1 albedo map with alien jungle continents, reef-lined oceans, and no clouds or lighting effects."
+  ],
+  "usage": {
+    "input_tokens": 35410,
+    "cached_input_tokens": 29568,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 510,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 58.5
+}

@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a145be-5518-75d0-a493-d19ab865e39b",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a145be-5518-75d0-a493-d19ab865e39b\\exec-b023a23f-88c8-404a-9c87-003ac691b1b1.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\assets\\traffic-atlas-v1.png",
+    "sha256": "3019dbd79cd8191eeb5987a459c108383ae33273c290bfc9555c44671748c6f8",
+    "dimensions": [
+      1942,
+      809
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\prompts\\traffic-atlas-v1.txt",
+  "promptSha256": "6e5419334ec165b93bc334bade96e36207fff2636536d35fd740643e84d84c54",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Hull-plan identity only (top-down Atlas sprite, bow at top); not pose, not style\nImage 2: 3D volume interpretation guide only; not viewpoint, not painted style\n\nAsset: ONE isolated spacecraft cutout for a compositing layer in a grounded, photographic science-fiction cinematic (Starsector, Corvus system, orbit of the busy Hegemony world Jangala). Long wide landscape canvas (widest available, about 2:1 or wider), highest resolution, true transparent RGBA background.\n\nImage 1 is the authoritative Starsector base-game Atlas bulk freighter sprite: hull-plan IDENTITY only (top-down, bow at top, engines at bottom). Keep its plan: a long central cargo spine flanked on both sides by racks of many stacked rectangular containers in muted mixed colours (rust red, ochre, olive, slate blue, grey), a compact armoured command section with bridge at the bow, a broad heavy engineering block with a cluster of large engine nozzles at the stern, pale blue-grey structural trim. Image 2 is a previously approved painted interpretation of the same Atlas in perspective: use it as a guide to how the top-down plan turns into a 3D volume (spine, container racks, bow, engine block) only. Do NOT copy its painted style or its low near-level viewpoint.\n\nPose: dramatic three-quarter view seen from ABOVE and slightly BEHIND the ship, the camera high above the orbital plane looking down onto it at roughly 30-40 degrees. BOW POINTS TO SCREEN RIGHT and slightly away from the viewer; the stern engine block is at the LEFT and nearest the camera, so the top of the container racks and the full length of the spine are visible receding toward the bow with real perspective foreshortening. The whole ship is long and low: length about four to five times its visible height in the frame. Entire ship fully in frame with generous transparent margin on all sides.\n\nLighting: hard direct sunlight from the UPPER LEFT (a yellow-white star off frame), crisp specular on top surfaces of the containers and spine, deep shadows falling to the lower right and in the gaps between containers, no fill except a very faint cool blue planet-shine bounce on the lowest, downward-facing surfaces. Space lighting: high contrast, black-ish shadow cores, no atmosphere haze.\n\nEngines: the stern nozzles are lit and running, a hot blue-white glow inside each nozzle with a short, restrained, slightly transparent exhaust glow just behind them; no long flame trail, no lens flare.\n\nMaterial: photoreal, tactile weathered civilian industrial hardware. Chipped and faded paint on the containers, stencil-free scuffed panels, grime streaks, dull worn steel trusses, visible scale cues (small hatch lines, tiny lit portholes on the bridge, handrails, antennae). Believable enormous scale, like a real bulk carrier. Not a toy, not low-poly, not cartoon, not glossy CG, not a painting.\n\nOnly the isolated ship on actual transparent empty background, including all gaps between containers and trusses. No stars, planet, station, other ships, sky, ground, cast-shadow slab, halo, smoke, border, text, logos or labels; those are separate layers. Clean antialiased alpha edges.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Program Files (x86)\\Fractal Softworks\\Starsector\\starsector-core\\graphics\\ships\\atlas\\atlas.png",
+      "sha256": "28217ab56e4e874c7983bc1544daab13424a2e54214e862f02d1bfa6023af08e",
+      "dimensions": [
+        200,
+        400
+      ],
+      "mode": "RGBA",
+      "role": "Hull-plan identity only (top-down Atlas sprite, bow at top); not pose, not style"
+    },
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\parallax-window\\traffic\\atlas-painted-v1.png",
+      "sha256": "0a3c196dee8cb13ef5d1e81fc9c817502751ba20fb9ffd4069cb0f69dfe54fa3",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "3D volume interpretation guide only; not viewpoint, not painted style"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent Atlas cutout using the references for hull identity and volume, with the elevated rear three-quarter view and photographic materials you specified."
+  ],
+  "usage": {
+    "input_tokens": 40643,
+    "cached_input_tokens": 32000,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 805,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 65.1
+}
