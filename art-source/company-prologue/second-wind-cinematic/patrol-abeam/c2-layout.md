@@ -233,7 +233,13 @@ things:
   model; the Dominator numbers below are its stand-in until it lands. At 0.65 m
   per hull unit the Legion is about 195 m by 200 m, close to the planned envelope.
 - **C2 runs 15.0 s** to carry hail lines 7 and 8. Accepted.
-- **The window frame across C2, C3, C4 and the entry is undecided.** See question 8.
+- **The one window is the orange-and-cream cabin** of `forest-reveal-realism/` and
+  `entry-window/`, not the grey `realism-lookdev` frame. It matches the cabin model,
+  so C2's frame is rendered from that model at C2's camera (`first-open-sky/`'s
+  `c3_cabin_guide.py` and `c3_cabin_render.py` show the method) and its painted
+  surface relit into the space, glow and cloud states. The glass measurements and
+  `guides/window-mask*` here were taken off the grey frame and must be re-derived
+  from the model before production. This settles question 8.
 - **Second Wind is being rebuilt**, so every space shot showing it is re-rendered
   when the new model lands.
 

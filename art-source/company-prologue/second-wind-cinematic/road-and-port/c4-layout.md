@@ -250,6 +250,9 @@ cranes and tower, and more futurist structure (lattice cradles, mast arrays).
 
 - **Castle is in the room, so her voice is unprocessed** in C4: no intercom
   treatment.
+- **The window is the orange-and-cream cabin** shared with C3 and the entry, rendered
+  from the cabin model at C4's camera. It replaces the grey `realism-lookdev` frame
+  named in the rig and salvage tables below.
 - **Consider showing her.** Castle at the window, looking out, gives the Nessa memory a
   face. That needs real thought about the cabin interior beyond the window frame, so
   it is a direction to design rather than an approved shot.
