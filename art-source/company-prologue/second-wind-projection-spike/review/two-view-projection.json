@@ -1,0 +1,64 @@
+{
+  "projectors": [
+    {
+      "view": "port-side",
+      "image": "generated/reskin-v1.png",
+      "fit": "iou_refined_affine",
+      "scale": [
+        1.1186783546864465,
+        1.1181717171717171
+      ],
+      "offset_px": [
+        -107.71325016857722,
+        -46.137373737373764
+      ]
+    },
+    {
+      "view": "quarter30",
+      "image": "generated/reskin-quarter30.png",
+      "fit": "iou_refined_affine",
+      "scale": [
+        1.0014214641080312,
+        1.0036036036036036
+      ],
+      "offset_px": [
+        -0.9193319118692216,
+        -1.2783783783783633
+      ]
+    }
+  ],
+  "pixel_coverage_of_visible_hull": {
+    "guide": 0.9777981726676143,
+    "quarter30": 0.8648464202534708,
+    "quarter60": 0.5934832838213797
+  },
+  "two_view_disagreement": {
+    "guide": {
+      "overlap_share_of_visible_hull": 0.7132752078972993,
+      "mean_abs_srgb_diff_0_255": 15.888321876525879,
+      "p90_abs_srgb_diff_0_255": 47.30429458618164,
+      "mean_luminance_offset_0_255 (view0 - view1)": -0.9343858978990038
+    },
+    "quarter30": {
+      "overlap_share_of_visible_hull": 0.541882807537582,
+      "mean_abs_srgb_diff_0_255": 16.125070571899414,
+      "p90_abs_srgb_diff_0_255": 48.59636688232422,
+      "mean_luminance_offset_0_255 (view0 - view1)": -1.166390885469145
+    }
+  },
+  "facing_cosine": 0.25,
+  "depth_tolerance_units": 0.35,
+  "review_views": {
+    "guide": "build_reference port-side camera",
+    "quarter30": [
+      30,
+      12,
+      150
+    ],
+    "quarter60": [
+      60,
+      24,
+      170
+    ]
+  }
+}

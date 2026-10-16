@@ -12,6 +12,7 @@ arrival cinematic. These are authoring sources; only the packed JPEGs under
 | [second-wind-geometry/](second-wind-geometry/) | The single accepted clean-hull geometry source (V3 revision), renders and coordinate contract. Older V2 reference images are under `reference-history/v2/`; its obsolete model and builders were removed. |
 | [second-wind-skins/](second-wind-skins/README.txt) | Weathering states, including the heavily damaged arrival reference. |
 | [second-wind-cinematic/](second-wind-cinematic/README.md) | Current shot order, reusable ship master, sources and earlier technique studies. |
+| [second-wind-projection-spike/](second-wind-projection-spike/README.md) | Spike: Codex CLI reskins of clean-model guides, measured drift, and projection back onto the mesh. Findings and recommendation only. |
 
 ## Packing stills
 

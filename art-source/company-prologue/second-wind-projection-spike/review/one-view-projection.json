@@ -1,0 +1,37 @@
+{
+  "projectors": [
+    {
+      "view": "port-side",
+      "image": "generated/reskin-v1.png",
+      "fit": "iou_refined_affine",
+      "scale": [
+        1.1186783546864465,
+        1.1181717171717171
+      ],
+      "offset_px": [
+        -107.71325016857722,
+        -46.137373737373764
+      ]
+    }
+  ],
+  "pixel_coverage_of_visible_hull": {
+    "guide": 0.9673035095377199,
+    "quarter30": 0.5517074498654003,
+    "quarter60": 0.27506504210053695
+  },
+  "facing_cosine": 0.25,
+  "depth_tolerance_units": 0.35,
+  "review_views": {
+    "guide": "build_reference port-side camera",
+    "quarter30": [
+      30,
+      12,
+      150
+    ],
+    "quarter60": [
+      60,
+      24,
+      170
+    ]
+  }
+}
