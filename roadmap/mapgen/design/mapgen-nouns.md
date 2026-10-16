@@ -1382,6 +1382,15 @@ its garrison can only shoot out of through the door. A window is a shared-edge
 barrier on a standable cell rather than a see-through wall cell, which is what
 lets one feature describe itself identically to movement, sight, fire and cover.
 
+Ground installations share the modern bunk, mess and clinical furniture kits
+with ships, but keep their own room programs and do not inherit ship layout
+overrides. Dispatch offices group seated desks, meeting space and records
+storage around clear circulation. Occupied support rooms can carry adjacent
+window panes along a clear facade; guard rooms and vehicle sheds retain their
+spaced defensive apertures. Every pane keeps an accessible inward approach,
+solid corner and doorway piers, and its own shared-edge barrier. A wider bay
+does not join the building's interior to the yard or change mission ownership.
+
 A stage that replaces what an earlier stage built owns everything the earlier one
 recorded, not only what it drew: decorative placements, points of interest,
 tactical nodes, and authored shared-edge identities all belong to the ground being
