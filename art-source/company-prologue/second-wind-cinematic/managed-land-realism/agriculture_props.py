@@ -14,6 +14,8 @@ PREFIX = 'AGRI | '
 # Exact Blender render border in the original 1920x1080 camera, lower-left UV.
 # Native crop is 1960x1480 at four times the original pixel density.
 RESKIN_CROP_UV = (1150/1920,1640/1920,340/1080,710/1080)
+TENDER_SPEED_M_S = 12
+TENDER_HALF_TRAVEL_M = TENDER_SPEED_M_S*(287.5-240)/12/2
 
 
 def build_agriculture_props(scene, world, ground_tree, use_reskin=True):
@@ -94,6 +96,15 @@ def build_agriculture_props(scene, world, ground_tree, use_reskin=True):
         bpy.ops.mesh.primitive_cylinder_add(vertices=24,radius=radius,depth=depth)
         return assign(bpy.context.object,name,xyz,mat,parent)
 
+    def linear_animation(data):
+        if data.animation_data and data.animation_data.action:
+            for layer in data.animation_data.action.layers:
+                for strip in layer.strips:
+                    for bag in strip.channelbags:
+                        for curve in bag.fcurves:
+                            for key in curve.keyframe_points:
+                                key.interpolation='LINEAR'
+
     # The tender is intentionally heavy and low: visible negative space below
     # the chassis, four separate lift shoes, protected tank and service gantries.
     tender_xy=(-3520,660)
@@ -125,9 +136,71 @@ def build_agriculture_props(scene, world, ground_tree, use_reskin=True):
         strap.rotation_euler.y=math.pi/2
     for x in (-9,-6,-3,0,3):
         box('tender top cooling fins',(x,0,7.6),(1.2,5,.4),steel,tender,.03)
-    for t,dx in ((240,-5),(287.5,5)):
+    for t,dx in ((240,-TENDER_HALF_TRAVEL_M),(287.5,TENDER_HALF_TRAVEL_M)):
         tender.location=(tender_xy[0]+dx,tender_xy[1],height(tender_xy[0]+dx,tender_xy[1])+5.8)
         tender.keyframe_insert(data_path='location',frame=t)
+    linear_animation(tender)
+
+    # Eight restrained downward fans start exactly at the nozzle mouths and
+    # drift aft as fine droplets. Separate nozzle-centered objects give stable
+    # blend sorting; the lower edge stays above the crop surface.
+    spray_mat=bpy.data.materials.new(PREFIX+'fine downward irrigation spray')
+    spray_mat.use_nodes=True
+    nodes,links=spray_mat.node_tree.nodes,spray_mat.node_tree.links
+    nodes.clear()
+    coords=nodes.new('ShaderNodeTexCoord')
+    split=nodes.new('ShaderNodeSeparateXYZ')
+    links.new(coords.outputs['Generated'],split.inputs[0])
+    fade=nodes.new('ShaderNodeMapRange')
+    fade.inputs['From Min'].default_value=0
+    fade.inputs['From Max'].default_value=1
+    fade.inputs['To Min'].default_value=.015
+    fade.inputs['To Max'].default_value=.22
+    links.new(split.outputs['Z'],fade.inputs['Value'])
+    turbulence=nodes.new('ShaderNodeTexNoise')
+    turbulence.noise_dimensions='4D'
+    turbulence.inputs['Scale'].default_value=5
+    turbulence.inputs['Detail'].default_value=2
+    links.new(coords.outputs['Generated'],turbulence.inputs['Vector'])
+    for t,w in ((240,0),(287.5,9.5)):
+        turbulence.inputs['W'].default_value=w
+        turbulence.inputs['W'].keyframe_insert(data_path='default_value',frame=t)
+    density=nodes.new('ShaderNodeMath')
+    density.operation='MULTIPLY'
+    links.new(fade.outputs[0],density.inputs[0])
+    links.new(turbulence.outputs['Fac'],density.inputs[1])
+    transparent=nodes.new('ShaderNodeBsdfTransparent')
+    droplets=nodes.new('ShaderNodeEmission')
+    droplets.inputs[0].default_value=(.62,.73,.66,1)
+    droplets.inputs[1].default_value=.8
+    mix=nodes.new('ShaderNodeMixShader')
+    links.new(density.outputs[0],mix.inputs[0])
+    links.new(transparent.outputs[0],mix.inputs[1])
+    links.new(droplets.outputs[0],mix.inputs[2])
+    out=nodes.new('ShaderNodeOutputMaterial')
+    links.new(mix.outputs[0],out.inputs[0])
+    spray_mat.surface_render_method='BLENDED'
+    linear_animation(spray_mat.node_tree)
+    spray_objects=[]
+    for side in (-1,1):
+        for y in (14,22,30,36):
+            vertices=[]
+            for z,radius,wake in ((-1.25,.14,0),(-2.2,1,-1.2),(-3.45,2.2,-3.4)):
+                for i in range(12):
+                    angle=i*math.tau/12
+                    vertices.append((wake+math.cos(angle)*radius,
+                                     math.sin(angle)*radius,z+1.25))
+            faces=[(j*12+i,j*12+(i+1)%12,(j+1)*12+(i+1)%12,(j+1)*12+i)
+                   for j in range(2) for i in range(12)]
+            mesh=bpy.data.meshes.new(PREFIX+'downward droplet fan')
+            mesh.from_pydata(vertices,[],faces)
+            obj=bpy.data.objects.new(mesh.name,mesh)
+            scene.collection.objects.link(obj)
+            obj.parent=tender
+            obj.location=(-3,side*y,-1.25)
+            mesh.materials.append(spray_mat)
+            obj.pass_index=63
+            spray_objects.append(obj.name)
 
     # The accepted ground is emissive plate art and cannot receive EEVEE
     # shadows. A soft, terrain-conforming translucent footprint supplies the
@@ -141,9 +214,10 @@ def build_agriculture_props(scene, world, ground_tree, use_reskin=True):
     center.operation='SUBTRACT'
     center.inputs[1].default_value=(tender_xy[0]+4,tender_xy[1]+4,0)
     links.new(uv.outputs['Object'],center.inputs[0])
-    for t,dx in ((240,-5),(287.5,5)):
+    for t,dx in ((240,-TENDER_HALF_TRAVEL_M),(287.5,TENDER_HALF_TRAVEL_M)):
         center.inputs[1].default_value[0]=tender_xy[0]+4+dx
         center.inputs[1].keyframe_insert(data_path='default_value',index=0,frame=t)
+    linear_animation(shadow_mat.node_tree)
     scale=nodes.new('ShaderNodeVectorMath')
     scale.operation='MULTIPLY'
     scale.inputs[1].default_value=(1/55,1/50,0)
@@ -177,7 +251,7 @@ def build_agriculture_props(scene, world, ground_tree, use_reskin=True):
     land.data.calc_loop_triangles()
     vertices=[]
     faces=[]
-    xmin,xmax=tender_xy[0]-40,tender_xy[0]+48
+    xmin,xmax=tender_xy[0]-TENDER_HALF_TRAVEL_M-40,tender_xy[0]+TENDER_HALF_TRAVEL_M+48
     ymin,ymax=tender_xy[1]-35,tender_xy[1]+43
     for tri in land.data.loop_triangles:
         points=[source_vertices[i] for i in tri.vertices]
@@ -265,7 +339,7 @@ def build_agriculture_props(scene, world, ground_tree, use_reskin=True):
             toward_camera=camera.matrix_world.normalized().to_3x3()@Vector((0,0,1))
             cache={}
             for obj in assembly.children_recursive:
-                if obj.type!='MESH':
+                if obj.type!='MESH' or obj.pass_index!=61:
                     continue
                 for slot in obj.material_slots:
                     base=slot.material
@@ -335,6 +409,15 @@ def build_agriculture_props(scene, world, ground_tree, use_reskin=True):
             'drone_nominal_clearance_at_root_datum_m':19,
             'clearance_measurement':'Nominal root datum values only; actual terrain-wide evaluated-mesh clearance is verified separately.',
             'hover_shadow':'Actual retained terrain triangles +.16m; static source-frame mesh, animated sourceXY radial mask matching tender displacement with +4,+4m light offset',
+            'tender_motion':{'direction_source_xyz':[1,0,0],'source_frames':[240,287.5],
+                             'speed_m_s':TENDER_SPEED_M_S,'travel_m':2*TENDER_HALF_TRAVEL_M,
+                             'interpolation':'LINEAR, constant speed; midpoint retained at263.75',
+                             'heading_note':'Existing18degree crab angle retained; transverse boom, sourceX field-row tracking.'},
+            'spray_fx':{'objects':spray_objects,'pass_index':63,
+                        'representation':'Eight open downward droplet fans from actual nozzle mouths, .625m nominal minimum ground gap; aft wake5.1m, object-attached4D noise',
+                        'material':'BLENDED transparent/emission with separate nozzle-centered origins; maximum per-surface opacity .22 times noise, lower edge .015 times noise; no opaque cards or raster modifications',
+                        'projection':'Excluded from reskin; local geometry and generated coordinates follow tender',
+                        'validation':'Review all96times at1080p for visible downward flow without white blanket; validate every spray vertex above terrain and shadow support covers radial mask along full47.5m track.'},
             'reskin_crop_original_uv':RESKIN_CROP_UV,
             'reskin_registration':'Per-assembly alpha-bounds affine from agriculture-reskin-registration.json; preserves geometry but is approximate material registration, not matched internal panels. Rear-facing and alpha0 faces retain procedural finish.',
             'reskin_applied':reskin_applied,

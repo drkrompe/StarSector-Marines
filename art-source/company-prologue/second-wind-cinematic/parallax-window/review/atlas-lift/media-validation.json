@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "scope": "Integrity and source uniqueness; browser observation retained only for matching movie hash",
+  "movie": "jangala-parallax-atlas-lift.mp4",
+  "dimensions": [
+    1920,
+    1080
+  ],
+  "fps": "24/1",
+  "decoded_frames": 96,
+  "duration_seconds": 4,
+  "source_frames": 96,
+  "unique_source_frames": 96,
+  "full_decode": "ffmpeg -xerror exit0",
+  "bytes": 1402400,
+  "sha256": "c55072c9dbdffffbfa827d1a2e4315310d10ef09185d4585287ad22b5102854c",
+  "normal_speed_browser_playback": {
+    "presented_frames": 96,
+    "dropped_frames": 0,
+    "completed_seconds": 4,
+    "observed_by": "root agent in browser; start/end screenshots checked"
+  }
+}

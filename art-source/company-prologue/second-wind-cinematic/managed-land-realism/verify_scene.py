@@ -61,8 +61,10 @@ def agriculture_audit(scene, world, land, root, times):
     """
     inverse = world.matrix_world.inverted()
     transform = inverse @ land.matrix_world
-    tree = BVHTree.FromPolygons([transform @ v.co for v in land.data.vertices],
-                               [tuple(p.vertices) for p in land.data.polygons])
+    reference=json.loads(land.get('ground_reference_geometry_json','null'))
+    terrain_vertices=[Vector(v) for v in reference['vertices']] if reference else [v.co for v in land.data.vertices]
+    terrain_polygons=reference['polygons'] if reference else [tuple(p.vertices) for p in land.data.polygons]
+    tree = BVHTree.FromPolygons([transform @ v for v in terrain_vertices],terrain_polygons)
     ship = set(root.children_recursive)
     stats, collisions, issues, projectors = {}, [], [], {}
     assemblies = [o for o in scene.objects if o.type == 'EMPTY' and o.name.startswith('AGRI | ')
@@ -137,6 +139,23 @@ def agriculture_audit(scene, world, land, root, times):
                 row = stats.setdefault(obj.name,{'minimum_clearance_m':1e9,'maximum_clearance_m':-1e9,
                     'minimum_top_clearance_m':1e9,'sample_count':0,'evaluated_times':0,
                     'thin_ground_surface':False,'terrain_crossing_samples':0})
+                row['volumetric_fx'] = obj.pass_index == 63
+                if obj.pass_index == 63:
+                    material=obj.data.materials[0]
+                    nodes=material.node_tree.nodes
+                    output=next(n for n in nodes if n.type=='OUTPUT_MATERIAL')
+                    mix=output.inputs['Surface'].links[0].from_node
+                    factor=mix.inputs[0].links[0].from_node if mix.type=='MIX_SHADER' else None
+                    sources=[s.links[0].from_node for s in factor.inputs[:2] if s.is_linked] if factor else []
+                    fades=[n for n in sources if n.type=='MAP_RANGE']
+                    noise=[n for n in sources if n.type=='TEX_NOISE']
+                    upper=max(fades[0].inputs['To Min'].default_value,fades[0].inputs['To Max'].default_value) if len(fades)==1 else 1
+                    row['maximum_shader_opacity_bound']=upper
+                    if not factor or factor.operation!='MULTIPLY' or len(noise)!=1 or upper>=.5:
+                        issues.append('Spray shader no longer satisfies transparent coverage bound: '+obj.name)
+
+                if obj.pass_index == 63 and (not assembly or 'tender' not in assembly.name):
+                    issues.append('Spray FX is not attached to moving tender: '+obj.name)
                 row['minimum_clearance_m']=min(row['minimum_clearance_m'],min(gaps))
                 row['maximum_clearance_m']=max(row['maximum_clearance_m'],max(gaps))
                 row['sample_count']+=len(gaps)
@@ -181,6 +200,7 @@ def agriculture_audit(scene, world, land, root, times):
         issues.append('Agriculture assembly AABBs overlap; inspect possible collision')
     return {'objects':stats,'projectors':projectors,'assembly_aabb_collisions':collisions,
             'errors':sorted(set(issues)), 'sample_times':len(times),
+            'terrain_clearance_reference':'Retained pre-partition terrain geometry; actual visible ownership audited separately' if reference else 'Actual terrain geometry',
             'limits':['Evaluated vertices, triangle centers and edge midpoints; not exhaustive surface proof.',
                       'Assembly AABB rejection is conservative; touching/overlapping parts inside one assembly are intentional.']}
 
@@ -226,8 +246,15 @@ def main():
     coords = bpy.data.objects["REALISM | source-world coordinates"]
     coordinate_ok = coords.parent == world and delta(coords.matrix_basis, world.matrix_basis.Identity(4)) < 1e-7
     material = bpy.data.materials["REALISM | field ground clipped at actual source river nearbank"]
-    coordinate_nodes = [n for n in material.node_tree.nodes if n.type == "TEX_COORD"]
-    coordinate_ok = coordinate_ok and bool(coordinate_nodes) and all(n.object == coords for n in coordinate_nodes)
+    reachable=set()
+    def upstream(node):
+        if node in reachable:return
+        reachable.add(node)
+        for socket in node.inputs:
+            for link in socket.links:upstream(link.from_node)
+    upstream(next(n for n in material.node_tree.nodes if n.type=='OUTPUT_MATERIAL'))
+    coordinate_nodes = [n for n in reachable if n.type == "TEX_COORD"]
+    coordinate_ok = coordinate_ok and bool(coordinate_nodes) and all(n.object == coords or (n.object and n.object.name == 'AGRI | right agricultural service compound' and material.get('surface_cutout_owner')) for n in coordinate_nodes)
     if not coordinate_ok:
         errors.append("FieldXY coordinate object is not rigidly attached to source-world frame")
     missing = [im.filepath for im in bpy.data.images if im.source == "FILE" and im.filepath and
@@ -250,6 +277,18 @@ def main():
     land_matrix = world.matrix_world.inverted() @ land.matrix_world
     land_tree = BVHTree.FromPolygons([land_matrix @ v.co for v in land.data.vertices],
                                      [tuple(p.vertices) for p in land.data.polygons])
+    # Physical slab partitions remove terrain below the compound. Coverage is
+    # therefore the union of actual terrain and the two owning slab meshes.
+    ground_vertices=[land_matrix @ v.co for v in land.data.vertices]
+    ground_polygons=[tuple(p.vertices) for p in land.data.polygons]
+    for name in ('AGRI | compound broad apron','AGRI | landing service pad'):
+        obj=bpy.data.objects.get(name)
+        if obj:
+            offset=len(ground_vertices)
+            transform=world.matrix_world.inverted() @ obj.matrix_world
+            ground_vertices.extend(transform @ v.co for v in obj.data.vertices)
+            ground_polygons.extend(tuple(offset+i for i in p.vertices) for p in obj.data.polygons)
+    covered_ground_tree=BVHTree.FromPolygons(ground_vertices,ground_polygons)
     footprint_checks = []
     for parcel in json.loads(land.get('field_footprints_json', '[]')):
         xmin, xmax, ymin, ymax = parcel['source_xy_bounds_m']
@@ -257,13 +296,13 @@ def main():
         for ix in range(21):
             for iy in range(21):
                 point = Vector((xmin + (xmax-xmin)*ix/20, ymin + (ymax-ymin)*iy/20, 5000))
-                hit, _, _, _ = land_tree.ray_cast(point, Vector((0,0,-1)), 10000)
+                hit, _, _, _ = covered_ground_tree.ray_cast(point, Vector((0,0,-1)), 10000)
                 if hit is not None:
                     hits.append(hit.z)
         footprint_checks.append({**parcel, 'sample_count':441, 'terrain_hits':len(hits),
                                   'terrain_z_range_m':[min(hits), max(hits)] if hits else None,
                                   'detail_surface_clearance_m':0,
-                                  'detail_surface_owner':land.name})
+                                  'detail_surface_owner':'Partitioned terrain/apron/landing surface union' if land.get('ground_geometry_cutout_owner') else land.name})
     if not footprint_checks or any(p['terrain_hits'] != 441 for p in footprint_checks):
         errors.append('Field detail footprint lacks continuous terrain coverage')
 
@@ -350,6 +389,76 @@ def main():
         vector = value(texture.inputs["Vector"])
         return (vector.x,vector.y)
 
+    pad_ownership = {'tested_rays':0,'failures':[],'surface_contract':None}
+    compound = bpy.data.objects.get('AGRI | right agricultural service compound')
+    if compound:
+        raw_contract = compound.get('ground_surface_partition')
+        if not raw_contract:
+            errors.append('Compound pad lacks explicit ground surface partition')
+        else:
+            pad_ownership['surface_contract'] = json.loads(raw_contract)
+        ground_objects = [land,bpy.data.objects['AGRI | compound broad apron'],
+                           bpy.data.objects['AGRI | landing service pad']]
+        for obj in ground_objects[:2]:
+            for material in obj.data.materials:
+                if material.get('surface_cutout_owner') and material.surface_render_method != 'DITHERED':
+                    errors.append('Binary ground cutout lacks depth-buffer participation: '+material.name)
+        # Test actual competing intersections along camera rays through the
+        # clear apron and landing pad, evaluating each lower-surface cutout.
+        for t in times:
+            frame(scene,t)
+            if int((t-240)*2)%24==0:
+                print('PAD_OWNERSHIP_SAMPLE',t,flush=True)
+            trees=[]
+            for obj in ground_objects:
+                tree=BVHTree.FromPolygons([obj.matrix_world @ v.co for v in obj.data.vertices],
+                                         [tuple(p.vertices) for p in obj.data.polygons])
+                trees.append((obj,tree))
+            for ix in range(15):
+                for iy in range(11):
+                    x,y=-100+ix*200/14,-72+iy*144/10
+                    # Avoid building/silo footprints: this check concerns
+                    # ground surface ownership beneath their occlusion too.
+                    landing=38<x<86 and -61<y<-13
+                    target=compound.matrix_world @ Vector((x,y,.9 if landing else .5))
+                    origin=camera.matrix_world.translation
+                    direction=(target-origin).normalized()
+                    intersections=[]
+                    for obj,tree in trees:
+                        point,_,index,distance=tree.ray_cast(origin,direction,90000)
+                        if point is None:continue
+                        polygon=obj.data.polygons[index]
+                        mat=obj.data.materials[polygon.material_index]
+                        output=next(n for n in mat.node_tree.nodes if n.type=='OUTPUT_MATERIAL')
+                        opacity=texture_uv(None,obj,index,point,output.inputs['Surface'])
+                        intersections.append({'object':obj.name,'distance':distance,'opacity':opacity})
+                    visible=sorted((r for r in intersections if r['opacity']>.5),key=lambda r:r['distance'])
+                    expected=ground_objects[2 if landing else 1].name
+                    pad_ownership['tested_rays']+=1
+                    # Each footprint must have one opaque ground owner. Two
+                    # physical surfaces separated by .5m are not sufficient
+                    # with a .06m near clip and kilometre-scale grazing depth.
+                    vertical_visible=[]
+                    vertical_origin=compound.matrix_world @ Vector((x,y,100))
+                    vertical_direction=(compound.matrix_world.to_3x3() @ Vector((0,0,-1))).normalized()
+                    for obj,tree in trees:
+                        point,_,index,distance=tree.ray_cast(vertical_origin,vertical_direction,200)
+                        if point is None:continue
+                        mat=obj.data.materials[obj.data.polygons[index].material_index]
+                        output=next(n for n in mat.node_tree.nodes if n.type=='OUTPUT_MATERIAL')
+                        opacity=texture_uv(None,obj,index,point,output.inputs['Surface'])
+                        if opacity>.5:vertical_visible.append(obj.name)
+                    # At a silhouette, an oblique camera ray can legitimately
+                    # hit exposed apron behind the landing slab at another XY.
+                    # Require one owner at the same plan footprint, and require
+                    # the camera's nearest opaque intersection to agree.
+                    if vertical_visible!=[expected] or not visible or visible[0]['object']!=expected:
+                        if len(pad_ownership['failures'])<100:
+                            pad_ownership['failures'].append({'frame':t,'compound_xy':[x,y],
+                                'expected':expected,'vertical_owners':vertical_visible,'intersections':intersections})
+        if pad_ownership['failures']:
+            errors.append('Pad rays encounter duplicate or incorrect visible ground owners')
+
     coverage = {}
     outside, cabin_holes, misses = [], [], []
     frame_reports = []
@@ -374,6 +483,12 @@ def main():
                         misses.append({"frame":t,"pixel":[px,py]})
                         break
                     obj, polygon_index = owners[index]
+                    if obj.pass_index == 63:
+                        # Fine spray has a proven .22 maximum alpha gate; the
+                        # .5 coverage decision always traverses it. Its actual
+                        # geometry/terrain clearance is measured independently.
+                        start = point + direction*.01
+                        continue
                     polygon = obj.data.polygons[polygon_index]
                     mat = obj.data.materials[polygon.material_index] if obj.data.materials else None
                     if not mat or not mat.use_nodes:
@@ -464,6 +579,7 @@ def main():
               "packed_file_images":packed,"absolute_image_paths":absolute_paths,
               "selected_assets":manifest.get("assets"),"coverage_by_material":coverage,
               "agriculture_geometry_check":agriculture_checks,
+              "compound_pad_ray_ownership":pad_ownership,
               "ground_surface_check":{"visible_competing_proxies":visible_proxies,
                                       "field_footprint_coverage":footprint_checks,
                                       "contract":"Detail shades the terrain surface directly; no offset mesh"},

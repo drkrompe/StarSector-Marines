@@ -1,24 +1,25 @@
 {
-  "scene_sha256": "d7def5684bcf50486a3e8fe1900656c5ce128c96c19d1950751d1b38fe79569b",
-  "movie_sha256": "eacfdca65031059a857dbc1b9cfc759606bba94d9d4a830cf8334ee287aea358",
+  "scene_sha256": "9c9ec437f12c9721df8c863b462ebbfc98045789b7f8964137ec05824bb49636",
+  "movie_sha256": "692e4374db2acb7320af1fb277c6fba719af55b897f20be6cb5ce6660a066f64",
   "source_frames_reviewed": [
-    1,
-    2,
-    3,
+    10,
+    11,
+    12,
+    13,
     25,
     49,
-    73,
     96
   ],
   "native_source_resolution": [
     1920,
     1080
   ],
-  "reviewers": "Primary agent plus independent shot-motion agent",
+  "reviewers": "Primary agent plus independent pad, agriculture and shot-motion agents",
   "findings": [
-    "Coarse triangular field switching present in the previous source PNGs is absent in reviewed corrected consecutive and spaced frames.",
-    "Right-side tender emerges from the window jamb, with stable geometry and a low-hover shadow cue; distant compound remains grounded.",
-    "Prop finish stays attached across reviewed poses; internal artwork registration remains approximate."
+    "The moving triangular ground patch under the compound apron is absent from final consecutive output frames 10 through 13, spanning the reported 0.427-second glitch.",
+    "The tender remains visible in the final geometry-partition renders, with its attached finish, moving ground shadow and restrained nozzle spray.",
+    "Tender source travel increases to 47.5 metres at constant speed; the eight spray fans follow its nozzle mouths and stay clear of terrain.",
+    "The Atlas travels steadily right by 50.28 pixels across the current shot. The separate preceding lift proof moves upward and slightly right."
   ],
   "browser_playback": {
     "player": "Codex in-app browser, localhost-only review page",
@@ -27,11 +28,12 @@
     "total_video_frames": 96,
     "dropped_video_frames": 0,
     "frame_callbacks": 96,
-    "observation": "Complete normal-speed encoded playback with UI screenshots at early times and endpoint; native source stills cover intermediate poses."
+    "observation": "Complete normal-speed encoded playback with UI screenshots near 0.148 seconds and at the endpoint; a magnified pad crop supplements native source-frame inspection."
   },
   "limits": [
     "Screenshot sampling and playback telemetry cannot prove absence of every transient shimmer.",
-    "Fine repeated crop rows can alias in motion; distant shoreline remains straight and woodland completion soft.",
-    "Small-prop projection proof only; no general multiangle UV registration or physical flight simulation."
+    "Spray is deliberately subtle at this distance; fine repeated crop rows can still alias, and the distant shoreline remains straight.",
+    "Small-prop projection proof only; internal art registration is approximate, and provisional velocities are composition choices rather than physical flight simulation.",
+    "The preceding Atlas lift is a continuity proof in the earlier painted scene, not its conversion to the approved naturalistic style."
   ]
 }

@@ -43,7 +43,9 @@
       "asset": "../parallax-window/traffic/atlas-painted-v1.png",
       "source_y_m": 8500,
       "canvas_width_px_midpoint": 135,
-      "independent_source_x_speed_m_s": 19,
+      "independent_source_x_speed_m_s": 300,
+      "intended_screen_travel": "approximately50px right over source240..287.5",
+      "source_velocity_is_provisional_compositing_choice": true,
       "haze_mix": 0.32,
       "identity": "Fixed-aspect distant Atlas artwork; bow right/engines left",
       "dimensions_are_compositing_choices": true
@@ -192,7 +194,42 @@
       660,
       8.0
     ],
+    "tender_nominal_lift_clearance_at_root_datum_m": 2.2,
+    "drone_nominal_clearance_at_root_datum_m": 19,
+    "clearance_measurement": "Nominal root datum values only; actual terrain-wide evaluated-mesh clearance is verified separately.",
     "hover_shadow": "Actual retained terrain triangles +.16m; static source-frame mesh, animated sourceXY radial mask matching tender displacement with +4,+4m light offset",
+    "tender_motion": {
+      "direction_source_xyz": [
+        1,
+        0,
+        0
+      ],
+      "source_frames": [
+        240,
+        287.5
+      ],
+      "speed_m_s": 12,
+      "travel_m": 47.5,
+      "interpolation": "LINEAR, constant speed; midpoint retained at263.75",
+      "heading_note": "Existing18degree crab angle retained; transverse boom, sourceX field-row tracking."
+    },
+    "spray_fx": {
+      "objects": [
+        "AGRI | downward droplet fan",
+        "AGRI | downward droplet fan.001",
+        "AGRI | downward droplet fan.002",
+        "AGRI | downward droplet fan.003",
+        "AGRI | downward droplet fan.004",
+        "AGRI | downward droplet fan.005",
+        "AGRI | downward droplet fan.006",
+        "AGRI | downward droplet fan.007"
+      ],
+      "pass_index": 63,
+      "representation": "Eight open downward droplet fans from actual nozzle mouths, .625m nominal minimum ground gap; aft wake5.1m, object-attached4D noise",
+      "material": "BLENDED transparent/emission with separate nozzle-centered origins; maximum per-surface opacity .22 times noise, lower edge .015 times noise; no opaque cards or raster modifications",
+      "projection": "Excluded from reskin; local geometry and generated coordinates follow tender",
+      "validation": "Review all96times at1080p for visible downward flow without white blanket; validate every spray vertex above terrain and shadow support covers radial mask along full47.5m track."
+    },
     "reskin_crop_original_uv": [
       0.5989583333333334,
       0.8541666666666666,
@@ -200,24 +237,33 @@
       0.6574074074074074
     ],
     "reskin_registration": "Per-assembly alpha-bounds affine from agriculture-reskin-registration.json; preserves geometry but is approximate material registration, not matched internal panels. Rear-facing and alpha0 faces retain procedural finish.",
-    "material_mapping": "Generated object-local procedural base plus optional rigid-assembly-attached perspective finish; physical BSDF",
-    "dimensions_provisional": true,
-    "historical_clearance_estimates": {
-      "tender_lowest_lift_clearance_m": 2.2,
-      "clarification": "Retained original authoring estimates, not evaluated terrain-wide measurements. Original drone estimate18.4 was conservative; modeled lowest point is3m below its22m root offset, giving19m nominal clearance above the root ground datum.",
-      "drone_clearance_m": 18.4
-    },
-    "tender_nominal_lift_clearance_at_root_datum_m": 2.2,
-    "drone_nominal_clearance_at_root_datum_m": 19,
-    "clearance_measurement": "Nominal root datum values only; actual terrain-wide evaluated-mesh clearance is verified separately.",
     "reskin_applied": true,
     "reskin_missing_behavior": "Optional art absent: complete procedural materials. Art present: registration JSON required; malformed or missing registration fails build rather than silently applying misregistered art.",
-    "retained_registration_inputs": {
-      "art_file": "assets/agriculture-reskin-v1.png",
-      "registration_file": "agriculture-reskin-registration.json",
-      "art_sha256": "b8c0f8b09935a250f64b9b55d68b977e22911d028c2473300f38e0401cf6d537",
-      "guide_sha256": "6e7a5ec3d3431dde547910178a2ccefc196e609f6bf78ee1e8c6271505afdfc0",
-      "guide_file": "guides/shot03-agriculture-tight-reskin-guide.png"
+    "material_mapping": "Generated object-local procedural base plus optional rigid-assembly-attached perspective finish; physical BSDF",
+    "dimensions_provisional": true,
+    "ground_surface_partition": {
+      "terrain_cutout": [
+        -105,
+        105,
+        -77.5,
+        77.5
+      ],
+      "apron_cutout": [
+        38,
+        86,
+        -61,
+        -13
+      ],
+      "coordinate_frame": "AGRI | right agricultural service compound",
+      "hidden_marker_meshes": [
+        "AGRI | landing H bridge",
+        "AGRI | landing H legs",
+        "AGRI | landing H legs.001",
+        "AGRI | landing pad bar",
+        "AGRI | landing pad bar.001"
+      ],
+      "landing_markers": "Material masks on landing slab; no separate marker faces",
+      "partition_method": "Exact mesh-plane bisect and removal of lower faces; source terrain shader unchanged"
     }
   },
   "environment_relief": {

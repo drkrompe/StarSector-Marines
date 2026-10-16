@@ -442,6 +442,8 @@ ground_tree = BVHTree.FromPolygons([land_source @ v.co for v in land_obj.data.ve
 sys.path.insert(0, str(HERE))
 from agriculture_props import build_agriculture_props
 agriculture = build_agriculture_props(scene, world, ground_tree)
+from compound_pad import stabilize_compound_pad
+agriculture['ground_surface_partition'] = stabilize_compound_pad(scene, world)
 
 layers = []
 def card(name, filename, source_y, transparent):
@@ -496,8 +498,12 @@ traffic = bpy.data.objects.new(mesh.name,mesh)
 scene.collection.objects.link(traffic)
 traffic.parent = world
 mesh.materials.append(traffic_mat)
+# Observer-relative motion matters: the former +X19 m/s drifted 49.9 px LEFT.
+# +X300 m/s gives a restrained ~50 px RIGHT over this four-second camera pass.
+# This source-world velocity is a shot composition choice, not Atlas performance.
+traffic_speed = 300
 for t in (240,287.5):
-    traffic.location = traffic_centre + Vector(((t-263.75)/12*19,0,0))
+    traffic.location = traffic_centre + Vector(((t-263.75)/12*traffic_speed,0,0))
     traffic.keyframe_insert(data_path='location',frame=t)
 for layer in traffic.animation_data.action.layers:
     for strip in layer.strips:
@@ -506,7 +512,9 @@ for layer in traffic.animation_data.action.layers:
                 for key in curve.keyframe_points:
                     key.interpolation='LINEAR'
 layers.append({'object':traffic.name,'asset':'../parallax-window/traffic/atlas-painted-v1.png',
-    'source_y_m':8500,'canvas_width_px_midpoint':135,'independent_source_x_speed_m_s':19,
+    'source_y_m':8500,'canvas_width_px_midpoint':135,'independent_source_x_speed_m_s':traffic_speed,
+    'intended_screen_travel':'approximately50px right over source240..287.5',
+    'source_velocity_is_provisional_compositing_choice':True,
     'haze_mix':.32,'identity':'Fixed-aspect distant Atlas artwork; bow right/engines left',
     'dimensions_are_compositing_choices':True})
 scene.camera = camera

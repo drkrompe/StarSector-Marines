@@ -76,7 +76,22 @@ its large faces can cross the terrain's different triangulation by metres. Put
 field/road artwork on the continuous terrain using source-coordinate masks, or
 use exactly matching terrain topology where a separate surface is necessary.
 Sample face interiors and actual moving contacts; UV coverage alone cannot detect
-depth conflicts. Compare consecutive rendered frames before blaming compression.
+depth conflicts. A positive geometric gap also does not prove stable rendered depth: a
+compound apron separated by about half a metre still fought the terrain with a
+0.06m near clip and kilometre-scale grazing depth. Remove the lower visible
+surface beneath the slab footprint, and beneath nested landing slabs; paint thin
+markings into the owning material. Validate one opaque owner per vertical plan
+footprint and the nearest camera-ray owner, then inspect consecutive frames.
+Preserve the accepted terrain material when possible: wrapping its existing
+transparency with another surface mix caused nearer machinery to disappear even
+though geometric rays hit that machinery first. Changing the binary cutout to
+DITHERED did not restore it. An actual mesh partition restored the original
+material behavior and machinery visibility. Freeze the original loop triangles
+before bisecting nonplanar ground, remove only the covered lower faces, and
+validate coverage against the union of terrain and slab owners. Geometric ray
+ownership alone cannot establish rendered visibility.
+An oblique ray can legitimately meet exposed ground behind a slab silhouette at
+a different plan footprint; do not mistake that ordinary occlusion for overlap. Compare consecutive rendered frames before blaming compression.
 
 In the first cabin study, world X near −12,000 produced about 3 pixels of
 projection error. Keeping the ship near the origin and moving scenery by inverse
