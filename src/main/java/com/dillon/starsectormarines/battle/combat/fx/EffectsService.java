@@ -140,6 +140,30 @@ public final class EffectsService {
         smokingWrecks.add(new SmokingWreck(rearX, rearY, 55f, .12f, .6f * scale, 10f));
     }
 
+    /** Thin-skinned pickup: a small blast, front-engine fire and brief pintle/ammo flash. */
+    public void spawnTechnicalWreck(float x, float y, float facingDeg) {
+        double angle = Math.toRadians(facingDeg);
+        float sin = (float) Math.sin(angle), cos = (float) Math.cos(angle);
+        spawnHeavyImpact(x, y, .58f);
+        float engineX = x - sin * .95f, engineY = y + cos * .95f;
+        fireBurstsThisFrame.add(new float[]{engineX, engineY, .24f});
+        smokingWrecks.add(new SmokingWreck(engineX, engineY, 35f, .05f, .48f, 7f));
+        smokingWrecks.add(new SmokingWreck(x + sin * .9875f, y - cos * .9875f,
+                12f, .12f, .22f, 2f));
+    }
+
+    /** Freight loss: modest blast, cab fire and a longer contained cargo burn; no chain explosions. */
+    public void spawnHaulerWreck(float x, float y, float facingDeg) {
+        double angle = Math.toRadians(facingDeg);
+        float sin = (float) Math.sin(angle), cos = (float) Math.cos(angle);
+        spawnHeavyImpact(x, y, 1.1f);
+        float cargoX = x + sin * .75f, cargoY = y - cos * .75f;
+        fireBurstsThisFrame.add(new float[]{cargoX, cargoY, .42f});
+        smokingWrecks.add(new SmokingWreck(x - sin * 1.55f, y + cos * 1.55f,
+                45f, .05f, .55f, 9f));
+        smokingWrecks.add(new SmokingWreck(cargoX, cargoY, 90f, .12f, .9f, 18f));
+    }
+
     /** Emit a filled, irregular fan from the hull's current ground contact, including its centre. */
     public void spawnCrashBlastFan(float x, float y, float vx, float vy, float hullRadius) {
         float speed = (float) Math.hypot(vx, vy);

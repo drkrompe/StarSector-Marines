@@ -90,7 +90,7 @@ public final class VehicleControlSystem {
 
         float previousX = body.x, previousY = body.y, previousFacing = body.facingDegrees;
         advance(mission, body, type, s, xs, ys, dt, leg);
-        if (type.hasTreadAndWreckArt()) {
+        if (type.hasAnimatedTreads()) {
             body.recordVisualTravel(previousX, previousY, previousFacing);
         }
     }
@@ -117,7 +117,7 @@ public final class VehicleControlSystem {
         bicycle.tickManual(throttle, steering, dt);
         if (dt == 0f) return;
         boolean blocked = applySweep(body, type, prevX, prevY, prevFacing, false);
-        if (type.hasTreadAndWreckArt()) {
+        if (type.hasAnimatedTreads()) {
             body.recordVisualTravel(prevX, prevY, prevFacing);
         }
         VehicleControlComponent s = convoy.control(id);
