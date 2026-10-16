@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CargoStackAPI;
@@ -74,6 +75,21 @@ public final class LoadoutCardItemPlugin extends BaseSpecialItemPlugin {
         if (contents.length() > 0) {
             tooltip.addPara(MessageFormat.format(Strings.get("loadoutCardContentsFmt"), contents),
                     pad);
+        }
+        for (String templateId : card.templateIds()) {
+            EquipmentTemplateCard template = EquipmentTemplateCatalog.require(templateId);
+            if (template.accessTier() == EquipmentAccessTier.RESTRICTED) {
+                // One issuer line is enough: a card's Restricted kit is one tradition's.
+                tooltip.addPara(MilitaryWarrants.restrictedRoute(template), pad);
+                break;
+            }
+        }
+        CampaignStateScript campaign = Global.getSector() != null ? CampaignStateScript.getInstance() : null;
+        MarketListings.Listing listing = campaign != null
+                ? MarketListings.firstFor(campaign.state(), card.id()) : null;
+        if (listing != null) {
+            // Why this shelf has it: the story beat that stocked it.
+            tooltip.addPara(Strings.get(listing.reasonKey()), Misc.getHighlightColor(), pad);
         }
         tooltip.addPara(Strings.get("loadoutCardShipBoundary"), pad);
         addCostLabel(tooltip, pad, transferHandler, stackSource);

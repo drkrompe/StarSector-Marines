@@ -1,87 +1,166 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.setup.BattleSetup;
-import com.dillon.starsectormarines.battle.world.gen.MapResult;
-import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InteriorAnchorFitStage;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Production-seed scan for the placement invariant an objective needs in order
- * to be reachable and capturable.
+ * The fitting that keeps an objective's interior anchor standable, asked of the
+ * fitting on a hand-laid grid.
  *
- * <p>It is map-wide, which is the point: a filler that authors a good anchor
- * cannot keep it good, because later stages keep stamping over the map. Only a
- * scan of finished maps proves the guarantee survived the whole pipeline.
+ * <p>That the guarantee survives the whole generation pipeline is a property of
+ * finished maps and lives in {@code InteriorAnchorFitEvidence}; what each rule of
+ * the fitting does is asked here.
  */
-public class InteriorAnchorFitTest {
+class InteriorAnchorFitTest {
 
-    private static final int LEGACY_W = 160;
-    private static final int LEGACY_H = 120;
-    private static final int SEEDS = 25;
+    private static final int SIZE = 16;
 
-    /**
-     * Mission layouts filter candidate sites on interior-anchor walkability and
-     * zone-scoped objectives resolve a room from the anchor, so an anchor that
-     * is not standable either drops the building from the objective pool or —
-     * worse — anchors an objective in no room at all.
-     */
+    /** A grid of open floor, so each case blocks only the cells it is about. */
+    private static NavigationGrid openFloor() {
+        NavigationGrid grid = new NavigationGrid(SIZE, SIZE);
+        for (int y = 0; y < SIZE; y++) {
+            for (int x = 0; x < SIZE; x++) grid.setWalkableFloor(x, y);
+        }
+        return grid;
+    }
+
+    /** A footprint 4,4..10,10 with the exterior anchor outside it at 2,2. */
+    private static PointOfInterest poi(int interiorX, int interiorY) {
+        return new PointOfInterest(PointOfInterest.Kind.DEPOT, 4, 4, 10, 10,
+                2, 2, interiorX, interiorY);
+    }
+
+    private static List<PointOfInterest> listOf(PointOfInterest poi) {
+        List<PointOfInterest> pois = new ArrayList<>();
+        pois.add(poi);
+        return pois;
+    }
+
     @Test
-    public void everyPointOfInterestWithAnOpenInteriorAnchorsInIt() {
-        forEveryProductionMap((map, label) -> {
-            for (PointOfInterest poi : map.pointsOfInterest) {
-                if (!enclosesStandableCell(map.grid, poi)) continue;
-                assertTrue(standable(map.grid, poi.interiorAnchorX, poi.interiorAnchorY),
-                        label + ": " + poi.kind + " footprint " + poi.left + "," + poi.top
-                                + ".." + poi.right + "," + poi.bottom
-                                + " encloses a standable cell but anchors its interior at ("
-                                + poi.interiorAnchorX + "," + poi.interiorAnchorY + ")");
-                assertTrue(withinFootprint(poi, poi.interiorAnchorX, poi.interiorAnchorY),
-                        label + ": " + poi.kind + " interior anchor ("
-                                + poi.interiorAnchorX + "," + poi.interiorAnchorY
-                                + ") escaped its own footprint");
-            }
-        });
+    void anAnchorThatStillStandsIsLeftAlone() {
+        PointOfInterest original = poi(7, 7);
+        List<PointOfInterest> pois = listOf(original);
+
+        InteriorAnchorFit.apply(pois, openFloor());
+
+        assertSame(original, pois.get(0), "a good anchor was rewritten");
     }
 
-    private interface MapCheck {
-        void check(MapResult map, String label);
+    @Test
+    void aBlockedAnchorMovesToTheNearestStandableCellOfItsFootprint() {
+        NavigationGrid grid = openFloor();
+        grid.setWalkable(7, 7, false);
+        List<PointOfInterest> pois = listOf(poi(7, 7));
+
+        InteriorAnchorFit.apply(pois, grid);
+
+        PointOfInterest fitted = pois.get(0);
+        int distance = Math.abs(fitted.interiorAnchorX - 7) + Math.abs(fitted.interiorAnchorY - 7);
+        assertEquals(1, distance, "the anchor did not take the nearest open cell");
+        assertTrue(grid.isWalkable(fitted.interiorAnchorX, fitted.interiorAnchorY));
+        assertEquals(2, fitted.anchorCellX, "the exterior anchor must not move");
+        assertEquals(2, fitted.anchorCellY, "the exterior anchor must not move");
     }
 
-    /** Both Conquest traversal axes plus the legacy district recipe, at their production sizes. */
-    private static void forEveryProductionMap(MapCheck check) {
-        BspCityGenerator generator = new BspCityGenerator();
-        for (TraversalAxis axis : TraversalAxis.values()) {
-            for (long seed = 0; seed < SEEDS; seed++) {
-                check.check(generator.generate(BattleSetup.CONQUEST_GRID_W,
-                        BattleSetup.CONQUEST_GRID_H, seed, axis),
-                        "conquest seed=" + seed + " axis=" + axis);
-            }
+    /** A doorway is walkable but belongs to no zone, so it is no better than a wall to an objective. */
+    @Test
+    void aDoorwayIsNotAStandableAnchor() {
+        NavigationGrid grid = openFloor();
+        grid.setDoorway(7, 7, true);
+        List<PointOfInterest> pois = listOf(poi(7, 7));
+
+        InteriorAnchorFit.apply(pois, grid);
+
+        PointOfInterest fitted = pois.get(0);
+        assertTrue(!(fitted.interiorAnchorX == 7 && fitted.interiorAnchorY == 7),
+                "the anchor stayed on a doorway");
+        assertTrue(!grid.isDoorway(fitted.interiorAnchorX, fitted.interiorAnchorY));
+    }
+
+    /** The search starts at the old anchor, so a repair stays in the chamber the filler chose. */
+    @Test
+    void aRepairedAnchorStaysNearWhereTheFillerPutIt() {
+        NavigationGrid grid = openFloor();
+        // Only a pocket at the north-west corner of the footprint and one at the
+        // south-east corner are open; the anchor sat beside the north-west one.
+        for (int y = 4; y <= 10; y++) {
+            for (int x = 4; x <= 10; x++) grid.setWalkable(x, y, false);
         }
-        for (long seed = 0; seed < SEEDS; seed++) {
-            check.check(generator.generate(LEGACY_W, LEGACY_H, seed, null),
-                    "legacy seed=" + seed);
+        grid.setWalkable(4, 4, true);
+        grid.setWalkable(10, 10, true);
+        List<PointOfInterest> pois = listOf(poi(5, 5));
+
+        InteriorAnchorFit.apply(pois, grid);
+
+        assertEquals(4, pois.get(0).interiorAnchorX);
+        assertEquals(4, pois.get(0).interiorAnchorY);
+    }
+
+    @Test
+    void aFootprintWithNoOpenInteriorFallsBackToTheExteriorAnchor() {
+        NavigationGrid grid = openFloor();
+        for (int y = 4; y <= 10; y++) {
+            for (int x = 4; x <= 10; x++) grid.setWalkable(x, y, false);
         }
+        List<PointOfInterest> pois = listOf(poi(7, 7));
+
+        InteriorAnchorFit.apply(pois, grid);
+
+        assertEquals(2, pois.get(0).interiorAnchorX);
+        assertEquals(2, pois.get(0).interiorAnchorY);
     }
 
-    private static boolean enclosesStandableCell(NavigationGrid grid, PointOfInterest poi) {
-        for (int y = poi.top; y <= poi.bottom; y++) {
-            for (int x = poi.left; x <= poi.right; x++) {
-                if (grid.inBounds(x, y) && standable(grid, x, y)) return true;
-            }
-        }
-        return false;
+    @Test
+    void aFootprintOffTheGridFallsBackAndAnOverhangIsClamped() {
+        NavigationGrid grid = openFloor();
+        PointOfInterest off = new PointOfInterest(PointOfInterest.Kind.DEPOT,
+                SIZE + 3, SIZE + 3, SIZE + 8, SIZE + 8, 1, 1, SIZE + 4, SIZE + 4);
+        // Overhangs the south-east edge; its anchor is blocked, so the fit must
+        // search only the cells that exist.
+        PointOfInterest overhang = new PointOfInterest(PointOfInterest.Kind.DEPOT,
+                SIZE - 3, SIZE - 3, SIZE + 4, SIZE + 4, 1, 1, SIZE - 2, SIZE - 2);
+        grid.setWalkable(SIZE - 2, SIZE - 2, false);
+        List<PointOfInterest> pois = new ArrayList<>(List.of(off, overhang));
+
+        InteriorAnchorFit.apply(pois, grid);
+
+        assertEquals(1, pois.get(0).interiorAnchorX, "an off-grid footprint keeps its exterior anchor");
+        assertTrue(grid.inBounds(pois.get(1).interiorAnchorX, pois.get(1).interiorAnchorY));
+        assertTrue(grid.isWalkable(pois.get(1).interiorAnchorX, pois.get(1).interiorAnchorY));
     }
 
-    private static boolean withinFootprint(PointOfInterest poi, int x, int y) {
-        return x >= poi.left && x <= poi.right && y >= poi.top && y <= poi.bottom;
+    @Test
+    void nullEntriesAreSkipped() {
+        List<PointOfInterest> pois = new ArrayList<>();
+        pois.add(null);
+        InteriorAnchorFit.apply(pois, openFloor());
+        assertEquals(1, pois.size());
     }
 
-    /** Doorways are walkable but belong to no zone, so they are no better than walls for anchoring an objective. */
-    private static boolean standable(NavigationGrid grid, int x, int y) {
-        return grid.inBounds(x, y) && grid.isWalkable(x, y) && !grid.isDoorway(x, y);
+    /** The stage is the whole-map pass: it fits what the context's finished grid says. */
+    @Test
+    void theStageFitsTheContextsPointsAgainstItsGrid() {
+        NavigationGrid grid = openFloor();
+        grid.setWalkable(7, 7, false);
+        GenContext context = new GenContext(grid, new CellTopology(SIZE, SIZE),
+                new Random(1L), SIZE, SIZE, 1L);
+        context.pois.add(poi(7, 7));
+
+        new InteriorAnchorFitStage().run(context);
+
+        PointOfInterest fitted = context.pois.get(0);
+        assertTrue(grid.isWalkable(fitted.interiorAnchorX, fitted.interiorAnchorY));
     }
 }

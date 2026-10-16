@@ -2,7 +2,7 @@
 
 Status: ACTIVE — open progression implementation and acceptance work
 Written: 2026-08-23
-Updated: 2026-10-15 — the Restricted tier and military warrants are planned as three stories.
+Updated: 2026-10-15 — Restricted tier, market listings, arc issue cards, the Hegemony auxiliary warrant and warrant obligations shipped.
 
 Read `progression-nouns.md` before changing a progression story, and
 `role-and-access.md` before changing anything about which patterns exist or how
@@ -11,18 +11,16 @@ rather than settled.
 
 | Story | Status | Dependencies / freshness |
 | --- | --- | --- |
+| `approved-kit-across-the-line.md` | Needs decision | Garnir half of the kit arc. The proposal (Kord's marines in approved kit) contradicts the shipped Cold Account model of no Hegemony infantry; options A (land a section on Kord's own orders), B (correct the texts) or C. Greyhook's half belongs to *A Small War*. |
 | `power-suit-field-acceptance.md` | In progress | Recovered/military Specter and layered Arbalest plus explicit mixed issue are available for development testing. Full live named refit/save/reload and mission balance remain. `a-small-war.md` authors the planned introduction after actual Shepherd handover; its first three chapters award both recovered roles; live mixed-squad acceptance, later chapters and the military-source gate remain open. |
-| `s1-lethality-feel-pass.md` | Ready | Verify the shipped lethality and grade pass through the TTK harness and mission evidence. Its original play-acceptance wording is stale: tuning is settled from measured output, not from a described play impression. |
+| `surplus-floor-against-powered-armor.md` | Planned | From the S1 verification: twelve surplus rifles cannot kill one powered suit, which pirates field at medium and high risk. Measured target recorded; prefer a starter penetration answer over a grade change. |
 | `s2f-combat-stim-injectors.md` | Planned | Adds finite, temporary handling utility while keeping neural/HUD interfaces out of hidden stat and knowledge bonuses. |
 | `s2g-martyr-rigs-and-carried-ieds.md` | Planned | Adds rare Pather martyr rigs and visible carried improvised charges as explicit faction equipment with ordinary collateral and casualty authority. |
 | `powered-assault-armor-roles.md` | Partially shipped | Cross-faction line/heavy side-grades and nineteen tiered doctrines are live; explicit role/provenance fields, comparison UI, and concealment remain. Defender adoption of pattern capability shipped with the integral-system work; the seeing half of the perception question shipped as the Janus sweep, and concealment stays behind its own contract. |
 | `s6-unlock-ladder-expansion.md` | Planned | Faction sources, all four consumers, reachability audit, breadth floors, Common/Advanced/Prestige gates, and Fleet Armory visibility are shipped. Richer achievement gates and live pacing acceptance remain; installation recovery coordinates with `intact-installation-recovery.md`. |
 | `integral-armor-systems.md` | In progress | Integral systems grow through authored capability, never by adding permanent capacity; power-suit base protection belongs to `power-suit-infantry.md`. Declaration, battle activation, Armory legibility, the six-pattern breach family, the shoulder micro-missile pod, the Janus sensor sweep, the authored use policy, defender adoption, and battle presentation all landed — a running system now draws the screen it holds, over the arc it protects. The slate has no unbuilt effect left: the firing brace was the last, and it ships on three line patterns. Allocation direction is `integral-system-slate.md`. |
 | `s7-grade-visual-identity.md` | Planned | Depends on shipped S1. Presentation-only grade signal. |
-| `s8-roster-legibility.md` | Ready | Requires shipped telemetry. Establishes campaign quality readout and UI-scale prerequisite. |
-| `s9-in-battle-quality-conveyance.md` | Ready | Requires shipped telemetry; coordinate its person-driven signal with S7. |
+| `s8-roster-legibility.md` | In progress | Company Roster shipped in the Barracks (sortable rows, absolute aptitude/band/grade bars with the company median). Live UI-scale verification and the feel pass remain. |
+| `s9-in-battle-quality-conveyance.md` | In progress | Squad panel mission record and top-contributor mark shipped. The live feel pass remains; the in-world marker and threshold moments stay opt-in after it. |
 | `s10-trait-mechanics.md` | Planned | Follows S8 so traits are readable before new mechanics or acquisition. |
 | `squad-medic.md` | In progress | Field Medicine specialty, channelled health/armor treatment, short-leash medic AI, planted and keep-moving modes, battle and squad-card presentation, and the `squad-medic` scene are in. The balance pass that settles the movement default, the billet choice and the specialty copy remain. |
-| `restricted-equipment-warrants.md` | Planned | The approved tier-4 suits become Restricted, acquirable only under a military warrant. Standing warrants keep every suit reachable, so the gate can close without stranding anything. Direction: `campaign-kit-arc.md`. |
-| `hegemony-auxiliary-warrant.md` | Planned | Depends on the Restricted tier. The authored procurement route after *A Small War*: military Arbalest at enrolment, XIV after the first honoured obligation period. |
-| `warrant-obligations.md` | Planned | Depends on the Restricted tier. Service and loyalty terms. Suspension stops new fitting and replacement of warranted suits; nothing learned is revoked. |

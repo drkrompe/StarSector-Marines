@@ -217,6 +217,42 @@
       "lore": "@gearCatalogWeaponsTrenchClearingLore"
     },
     {
+      "id": "weapons:checkpoint",
+      "kind": "WEAPON",
+      "tier": 2,
+      "rarity": "COMMON",
+      "provenance": "@gearCatalogWeaponsCheckpointProvenance",
+      "factionLogo": "graphics/factions/neutral_traders.png",
+      "lore": "@gearCatalogWeaponsCheckpointLore"
+    },
+    {
+      "id": "weapons:convoy-escort",
+      "kind": "WEAPON",
+      "tier": 2,
+      "rarity": "UNCOMMON",
+      "provenance": "@gearCatalogWeaponsConvoyEscortProvenance",
+      "factionLogo": "graphics/factions/neutral_traders.png",
+      "lore": "@gearCatalogWeaponsConvoyEscortLore"
+    },
+    {
+      "id": "weapons:counter-battery",
+      "kind": "WEAPON",
+      "tier": 3,
+      "rarity": "RARE",
+      "provenance": "@gearCatalogWeaponsCounterBatteryProvenance",
+      "factionLogo": "graphics/factions/hegemony.png",
+      "lore": "@gearCatalogWeaponsCounterBatteryLore"
+    },
+    {
+      "id": "weapons:builders-guard",
+      "kind": "WEAPON",
+      "tier": 3,
+      "rarity": "UNCOMMON",
+      "provenance": "@gearCatalogWeaponsBuildersGuardProvenance",
+      "factionLogo": "graphics/factions/neutral_traders.png",
+      "lore": "@gearCatalogWeaponsBuildersGuardLore"
+    },
+    {
       "id": "armor:freeport-assault",
       "kind": "ARMOR",
       "tier": 2,
@@ -224,6 +260,15 @@
       "provenance": "@gearCatalogFreeportAssaultProvenance",
       "factionLogo": "graphics/factions/neutral_traders.png",
       "lore": "@gearCatalogFreeportAssaultLore"
+    },
+    {
+      "id": "armor:hegemony-auxiliary-section",
+      "kind": "ARMOR",
+      "tier": 4,
+      "rarity": "RARE",
+      "provenance": "@gearCatalogHegemonyAuxiliarySectionProvenance",
+      "factionLogo": "graphics/factions/hegemony.png",
+      "lore": "@gearCatalogHegemonyAuxiliarySectionLore"
     },
     {
       "id": "armor:hegemony-arbalest-section",

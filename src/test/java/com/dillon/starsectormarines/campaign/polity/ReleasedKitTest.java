@@ -160,4 +160,19 @@ class ReleasedKitTest {
         for (EquipmentTemplateCard card : cards) ids.add(card.id());
         return ids;
     }
+
+    @Test
+    void restrictedKitIsNeverReleasedEvenWhenTheCompanyOwnsIt() {
+        CampaignState state = new CampaignState();
+        MarineArmory armory = new MarineArmory();
+        EquipmentTemplateCard xiv = EquipmentTemplateCatalog.armor("armor.heavy");
+        assertEquals(EquipmentAccessTier.RESTRICTED, xiv.accessTier());
+        armory.acquireEquipmentTemplate(xiv.id());
+
+        assertFalse(ReleasedKit.releasable(state, armory).contains(xiv),
+                "a military warrant authorises the company, not whoever it arms");
+        assertFalse(ReleasedKit.release(state, xiv.id()));
+        assertFalse(ReleasedKit.isReleased(state, xiv));
+        assertEquals(0, state.releasedKitCount);
+    }
 }

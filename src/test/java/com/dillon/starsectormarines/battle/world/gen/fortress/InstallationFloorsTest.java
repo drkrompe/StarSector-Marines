@@ -13,6 +13,26 @@ import java.util.Random;
 import static org.junit.jupiter.api.Assertions.*;
 
 class InstallationFloorsTest {
+    @Test void sealedCoreKeepsTheRoomFloorUnderItsEntireFootprint() {
+        var grid = new NavigationGrid(9, 9);
+        var topology = new CellTopology(9, 9);
+        var ctx = new GenContext(grid, topology, new Random(42), 9, 9, 42);
+        var room = new RoomPacker.Placed(RoomShape.rectangle(7, 7), new RoomPose(0, false),
+                1, 1, RoomPurpose.ENGINE_ROOM, List.of());
+        for (int y = 1; y < 8; y++) for (int x = 1; x < 8; x++) grid.setWalkableFloor(x, y);
+        for (int y = 3; y < 6; y++) for (int x = 3; x < 6; x++) {
+            grid.setWalkable(x, y, false);
+            grid.setSeeThrough(x, y, false);
+        }
+        InstallationFloors.dress(ctx, List.of(room));
+        for (int y = 3; y < 6; y++) for (int x = 3; x < 6; x++) {
+            assertEquals("installation.concrete-floor", topology.getSurfaceId(x, y));
+            assertFalse(grid.isWalkable(x, y));
+            assertFalse(grid.isSeeThrough(x, y));
+            assertFalse(topology.isFixture(x, y));
+        }
+    }
+
     @Test void finishFollowsRotatedConcaveFloorAndAperturesWithoutChangingNavigationOrAuthoredSurfaces() {
         for (RoomPose pose : RoomPose.all()) {
             var grid = new NavigationGrid(12, 12);

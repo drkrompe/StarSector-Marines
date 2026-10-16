@@ -56,13 +56,13 @@
     { "equipmentId": "armor.furnace-line", "accessTier": "advanced", "issueCost": {} },
     { "equipmentId": "armor.reaver", "accessTier": "advanced", "issueCost": {} },
     { "equipmentId": "armor.scout", "accessTier": "common", "issueCost": {} },
-    { "equipmentId": "armor.heavy", "accessTier": "prestige", "issueCost": {} },
+    { "equipmentId": "armor.heavy", "accessTier": "restricted", "issueCost": {} },
     { "equipmentId": "armor.specter-recovered", "accessTier": "advanced", "issueCost": {} },
     { "equipmentId": "armor.arbalest-recovered", "accessTier": "advanced", "issueCost": {} },
-    { "equipmentId": "armor.specter-heavy", "accessTier": "prestige", "issueCost": {} },
-    { "equipmentId": "armor.bulwark-heavy", "accessTier": "prestige", "issueCost": {} },
-    { "equipmentId": "armor.reliquary-heavy", "accessTier": "prestige", "issueCost": {} },
-    { "equipmentId": "armor.lions-mantle", "accessTier": "prestige", "issueCost": {} },
+    { "equipmentId": "armor.specter-heavy", "accessTier": "restricted", "issueCost": {} },
+    { "equipmentId": "armor.bulwark-heavy", "accessTier": "restricted", "issueCost": {} },
+    { "equipmentId": "armor.reliquary-heavy", "accessTier": "restricted", "issueCost": {} },
+    { "equipmentId": "armor.lions-mantle", "accessTier": "restricted", "issueCost": {} },
     { "equipmentId": "armor.foundry-breaker", "accessTier": "prestige", "issueCost": {} },
     { "equipmentId": "armor.outlaw", "accessTier": "common", "issueCost": {} },
     { "equipmentId": "armor.line", "accessTier": "advanced", "issueCost": {} },
@@ -72,7 +72,7 @@
     { "equipmentId": "armor.pathfinder", "accessTier": "advanced", "issueCost": {} },
     { "equipmentId": "armor.redoubt", "accessTier": "prestige", "issueCost": {} },
     { "equipmentId": "armor.outrider", "accessTier": "prestige", "issueCost": {} },
-    { "equipmentId": "armor.arbalest", "accessTier": "prestige", "issueCost": {} },
+    { "equipmentId": "armor.arbalest", "accessTier": "restricted", "issueCost": {} },
     { "equipmentId": "armor.vigil", "accessTier": "advanced", "issueCost": {} },
     { "equipmentId": "armor.orderly", "accessTier": "common", "issueCost": {} },
     { "equipmentId": "armor.corpsman", "accessTier": "prestige", "issueCost": {} }
@@ -96,6 +96,11 @@
       "kind": "special",
       "equipmentId": "special.scrap-rocket",
       "reason": "Workshop ammunition issued only to authored raider forces; no company acquisition is offered."
+    },
+    {
+      "kind": "special",
+      "equipmentId": "special.smoke-pot",
+      "reason": "A long-burning screen issued only by mission kit declarations (SquadSupportKit) while its economy is undecided; no company acquisition is offered."
     },
     {
       "kind": "primary",

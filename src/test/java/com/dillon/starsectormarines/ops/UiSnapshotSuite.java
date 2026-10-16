@@ -296,9 +296,33 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderCompanyHq(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
                                 CompanyHqViewModel.gettingReadyPreview())),
+                // The Hegemony auxiliary warrant's correspondence: the terms with their
+                // limits and stage-two condition, then the office's reply to each answer.
+                new SnapshotArtifact("company-hq-auxiliary-terms-wide.png",
+                        renderCompanyHq(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
+                                CompanyHqViewModel.auxiliaryWarrantPreview(AuxiliaryWarrantDesk.Page.TERMS))),
+                new SnapshotArtifact("company-hq-auxiliary-accepted-wide.png",
+                        renderCompanyHq(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
+                                CompanyHqViewModel.auxiliaryWarrantPreview(AuxiliaryWarrantDesk.Page.ACCEPTED))),
+                new SnapshotArtifact("company-hq-auxiliary-declined-wide.png",
+                        renderCompanyHq(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
+                                CompanyHqViewModel.auxiliaryWarrantPreview(AuxiliaryWarrantDesk.Page.DECLINED))),
+                // Military warrant obligations on the company record: an active warrant with
+                // its next service deadline beside a suspended one with what restores it.
+                new SnapshotArtifact("company-hq-warrants-wide.png",
+                        renderCompanyHq(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
+                                CompanyHqViewModel.warrantObligationsPreview())),
                 new SnapshotArtifact("barracks-wide.png",
                         renderBarracks(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
+                // The company roster: every marine on one comparable row, sorted by aptitude.
+                new SnapshotArtifact("barracks-roster-wide.png",
+                        renderBarracks(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
                 new SnapshotArtifact("ship-view-wide.png",
                         renderShipView(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
@@ -730,7 +754,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         leader ? "READY" : "",
                         index < 4 ? "Veteran" : "Regular",
                         index % 3 == 0 ? "Gifted" : "Steady",
-                        UnitRole.COMBATANT, leader ? ArmorClass.POWER_SUIT : ArmorClass.STANDARD));
+                        UnitRole.COMBATANT, leader ? ArmorClass.POWER_SUIT : ArmorClass.STANDARD,
+                        30 + index * 4, 12 + index * 2, index == 5 ? 3 : index % 4 == 0 ? 1 : 0,
+                        40f + index * 11f, index % 2 == 0));
             }
         }
         return members;
@@ -2186,6 +2212,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static BufferedImage renderBarracks(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height) throws Exception {
+        return renderBarracks(context, renderer, width, height, false);
+    }
+
+    private static BufferedImage renderBarracks(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, boolean companyRoster) throws Exception {
         Reactor reactor = new Reactor();
         MarineRoster roster = new MarineRoster();
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY * 3);
@@ -2194,9 +2226,21 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 .findFirst().orElseThrow();
         Map<String, MarineSoldierStatus> postBattle = new LinkedHashMap<>();
         postBattle.put(squad.memberIds().get(3), MarineSoldierStatus.WIA);
+        if (companyRoster) {
+            // A service record that varies across the company, so the SERVICE column reads.
+            List<MarineSoldier> all = roster.soldiers();
+            for (int mission = 0; mission < 6; mission++) {
+                Map<String, MarineSoldierStatus> deployed = new LinkedHashMap<>();
+                for (int i = 0; i < all.size(); i++) {
+                    if ((i + mission) % 3 != 0) deployed.put(all.get(i).id(), MarineSoldierStatus.ACTIVE);
+                }
+                roster.applySoldierOutcome(deployed, 90f + mission, 1f, null, true);
+            }
+        }
         roster.applySoldierOutcome(postBattle, 100f, 1.25f);
         BarracksViewModel viewModel = new BarracksViewModel(reactor, roster, () -> 100d, EquipmentIssueResources.UNLIMITED,
                 snapshotSquadFoundingResources(), () -> 0, id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0));
+        if (companyRoster) viewModel.command().showCompanyRoster();
         CompanyDeck ship = companyShip(List::of,
                 () -> MarineOpsContext.companyMarines(roster));
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(

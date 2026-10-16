@@ -93,7 +93,10 @@ public final class CorvusWaylineCampaign {
         CampaignStateScript.getInstance().state().corvusWayline = p;
     }
     static int settle(MissionOutcome outcome) {
-        return settle(current(), outcome);
+        CorvusWaylineProgress p = current();
+        int paid = settle(p, outcome);
+        if (paid >= 0) ArcIssueListings.afterLive(ArcIssueListings.Beat.COLD_ACCOUNT, p.complete(), null);
+        return paid;
     }
     static int settle(CorvusWaylineProgress p, MissionOutcome outcome) {
         if (p == null || outcome == null || outcome.missionSource != MissionSource.STORY

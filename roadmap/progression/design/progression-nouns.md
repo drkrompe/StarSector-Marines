@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — Cordon/surplus starting issue and both Agreus recovered-suit rewards with explicit mixed fitting.
+Updated: 2026-10-15 — a company learns cards, never suits.
 
 ## Purpose
 
@@ -190,9 +190,25 @@ legibility.
   a template outside ordinary faction channels. Its declaration identifies who
   must implement the reward; it does not certify a playable mission or a completed
   reward path, and never grants technology by itself.
-- **Equipment access tier** — a card's authored Common, Advanced, or Prestige
-  campaign band. It is independent of grade, armor role, provenance and loadout collectible rarity; acquisition channels interpret it
-  through shared company-history and reputation gates.
+- **Equipment access tier** — a card's authored Common, Advanced, Prestige or
+  Restricted campaign band. It is independent of grade, armor role, provenance and loadout collectible rarity; acquisition channels interpret the
+  first three through shared company-history and reputation gates. Restricted is
+  not a fourth threshold: no reputation or victory count reaches it.
+- **Military warrant** — a named, persistent authorisation from one tradition
+  that makes the Restricted templates it lists acquirable through that
+  tradition's own licence and patron channels, and through nothing else. It
+  teaches nothing by itself. Always written in full: the Agreus contracts'
+  *civil-security procurement warrant* is a contract term that opens no access
+  tier, and neither noun stands for the other.
+- **Warrant obligations** — what a held military warrant costs to keep: service
+  and loyalty in each obligation period. A warrant that is kept is *active*; one
+  whose period was missed or whose loyalty was broken is *suspended*; one whose
+  issuer turned hostile is *revoked*. An *honoured* period is one in which both
+  terms were kept. A *service call* is an ordinary contract the issuer sends the
+  company directly, with a deadline.
+- **Market listing** — a named card a story beat has put on sale at one named
+  market, or at every open market of one faction, until the company knows or
+  carries it. Authored stock the market channel displays, not a fifth channel.
 - **Armory** — the persistent campaign authority for collected equipment
   templates and reusable squad definitions. Materialized marine kit persists on
   the marine; the Machine Shop fits learned technology for free.
@@ -357,6 +373,23 @@ proposal to let anything else raise a band — a mission reward, a training
 facility, a battlefield promotion — is proposing a second authority, and has to
 retire this one rather than sit beside it.
 
+**Lethality is settled from measured output, not from a described play
+impression.** `TtkReportTest` and the `loadoutMatchup` ladder are the instruments.
+Their standing readings: a service pulse rifle in a Regular's hands kills an
+unarmored marine in the open in about three and a half seconds, so movement and
+target priority stay actionable; cover is the strongest single lever, roughly
+doubling time-to-kill behind light cover, nearly tripling it behind solid cover
+and multiplying it about sixfold behind hard cover, while every baseline
+engagement still resolves. The compound arc holds: an endgame Elite with a
+Masterwork weapon kills an opening Green-with-Surplus marine about thirty times
+faster than the reverse kills the endgame marine in power-suit armor. The preserved
+fauna and swarm exchanges still serve their scenes: a swarm runner carries a
+little more structure than one rifle round, which keeps the second shooter's
+choice meaningful. The bottom edge is harsher than intended. Surplus rifles
+cannot hurt powered armor at all, which pirate rosters field at medium and high
+risk; that floor is contracted as `surplus-floor-against-powered-armor.md` rather
+than retuned through the grade ladder.
+
 Rank-and-file marines are otherwise interchangeable, and the company's growth is
 what the Armory has collected and can issue rather than a per-marine ladder.
 Enlisted stripes follow the same source: a squad leader wears sergeant's stripes
@@ -429,9 +462,12 @@ only the Shock, with real weapons, opens a line held by regulars. `loadoutMatchu
 `trench-vulcans` scenario is the instrument that places a card on this ladder.
 
 **Knowing a tactic sheet is separate from being able to fill its billets.** A
-new company knows only Watchman's Kit. Learning a suit specification can teach
-its explicitly associated formations; it does not teach every faction sheet
-that could substitute that suit. Janus teaches Tri-Tachyon recon, for example,
+new company knows only Watchman's Kit. What a company learns is a card: the
+knowledge and licence to build and outfit one twelve-person section. There is no
+learning a suit. Outfitting all twelve in powered armour is beyond an ordinary
+contractor without a licence for it, so a suit reaches the company only as the
+billets of a card it knows, and learning one card never teaches another sheet that
+uses the same suit. Janus teaches Tri-Tachyon recon, for example,
 without granting Hegemony or Sindrian formations. Wayline's accepted refit teaches
 its own formation, and the alternative becomes usable when its offered technology
 has been learned. These are permanent company permissions, not another consumable
@@ -439,8 +475,17 @@ item or equipment charge. Issue requires both a learned sheet and the
 sheet's own patterns, which learning its card always provides. A role the sheet does
 not cover falls back to its line kit; fallback never establishes knowledge of a sheet.
 
+**Powered sections are a controlled technology.** The sector treats them the way a
+non-proliferation treaty treats weapons: a contractor may field a few powered
+billets inside an ordinary section, while a fully powered section needs a licence
+from a power that controls the technology. In play this is the progression ladder.
+Early cards put a handful of super soldiers in each squad of twelve rather than a
+unit that can clear a map, and a later licence or warrant raises that ceiling on
+purpose. A story that awards an all-powered card is a deliberate rung, never an
+accident of what a suit can fill.
+
 Older companies retain formations already assigned to squads or saved in profiles,
-along with learned specifications and materialized equipment. Other sheets are
+along with learned cards and materialized equipment. Other sheets are
 inferred only from their explicit acquisition requirements. Reloading never grants
 the whole sheet catalog or refits personnel automatically.
 
@@ -574,7 +619,143 @@ explicit named story source. A story-only armor template declares that owner
 through `storySource`; it cannot also enter a faction pool or starter issue.
 The declaration does not prove that the story reward is implemented. An Advanced
 or Prestige card authored only for the Common-only open market is therefore
-still stranded. This is global reachability, not universal faction availability.
+still stranded. A Restricted template's owner is a warrant rule instead: it must
+be offered by its issuing tradition's own pool, through licence or patron only.
+Any other entry, whether another faction's pool, the open market or recovery, is an
+unwarranted route and fails the audit just as a stranded card does.
+
+**Restricted equipment is approved military issue.** The six approved tier-4 power
+suits are Restricted: the Hegemony XIV battlesuit and military Arbalest, and the
+Tri-Tachyon Specter, League Bulwark, Knights Reliquary and Lion's Guard Mantle. A
+template is Restricted because it is a tradition's current military issue, not
+because it is powerful. The pirate Foundry-Breaker stays Prestige and recoverable,
+as the crude road to powered armour that nobody warrants. The tier-3 recovered
+Specter and Arbalest stay Advanced. The **issuer** of a Restricted template is the
+tradition its armour catalog entry already declares; it is never authored a
+second time.
+
+Every channel refuses Restricted kit unless the company holds a military warrant
+naming it, and even then only that tradition's licence and patron channels offer
+it. A card bundling Restricted kit is offered only by a faction that fields that
+kit itself, so an independent licence that fields a card's scout suits does not
+thereby sell Hegemony military issue. The collection safety net and victory
+milestones never grant Restricted kit. Polity release never lists it: a warrant
+authorises the company, not whoever the company arms.
+
+A tradition grants its **standing warrant** once the company is at the Prestige
+reputation band and its relationship with that faction is Cooperative, well above
+the Favorable a licence needs. The standing warrant opens every Restricted
+template the tradition builds that no earlier warrant already opened. This is the
+route that keeps every approved suit reachable, so the open routes could close
+without stranding anything. Authored warrants arrive earlier through story beats,
+and a later standing grant completes them without rewriting them.
+
+The **Hegemony auxiliary warrant** is the first authored one. After *A Small War*
+settles, its procurement introduction reaches a Hegemony procurement office, which
+sends terms of auxiliary enrolment citing HSS Resolute's Garnir after-action report
+and the company's Agreus service. The offer asks only for a Favorable relationship,
+the licence threshold, because an authored route does not wait for the standing
+rule's bar. It is correspondence answered at Company HQ, never a shop or a grant on
+arrival. The terms state what the warrant opens, the obligations it carries, and what
+it does not grant: no other tradition's Restricted kit, no release to the company's
+polity, no Hegemony command authority and no immunity from Hegemony law. Acceptance
+opens the approved Arbalest (stage one); the Hegemony Auxiliary Section is the sheet
+that fields it, the recovered Arbalest section in approved suits, offered by the
+Hegemony licence and patron channels and by no one else. The XIV shock pattern
+(stage two) follows the warrant's first honoured obligation period. Declining is a
+real answer: the terms are never offered again and every other route, the standing
+warrant included, stays open. Every step is once-only, so a replayed answer or a
+repeated honoured period grants nothing further. Lion's Guard and Knights kit is therefore not "never". It
+is "only for a company that has become one of theirs", which most companies will
+not.
+
+**A warrant is a relationship, so it keeps costing something.** Without that it
+would be the last unlock rather than the story of a mercenary company becoming
+somebody's auxiliary (`meta-progression.md` refuses Capability with no
+counter-pressure). Every warrant, standing or authored, states its terms when first
+held, and the same terms bind both:
+
+- **Service:** in each 90-day obligation period the company completes at least one
+  contract for the issuer. A service call counts, and is how the issuer makes sure
+  there is one: thirty days before a period ends without service, it sends an
+  ordinary contract from its own houses, open until the period ends.
+- **Loyalty:** the company takes no contract against the issuer, and keeps the
+  relationship at the warrant's floor. The floor is Favorable for an authored
+  warrant, the licence threshold it was offered at, and the standing rule's own
+  Cooperative for a standing one.
+
+A period with both is honoured and the next begins; the Hegemony auxiliary
+warrant's first honoured period is what opens its stage two. A period that ends
+without service, a contract taken against the issuer, or the relationship slipping
+below the floor **suspends** the warrant at once. Ninety days is the length chosen:
+shorter makes the warrant a chore that dictates the campaign, longer makes the
+obligation a formality.
+
+A suspended warrant's templates are not warranted: they cannot be acquired again,
+and no marine can be **newly fitted** with one of its suits. Marines already
+wearing one keep it, but a casualty's suit is not reissued and a recruit cannot be
+put into one. Nothing learned is revoked and no fitted suit is taken away; the
+warrant squeezes replacement, which is where a powered section feels pressure over a
+long campaign. The issuer sends a suspended company a service call at once, and one
+completed service with the relationship back at the floor restores the warrant and
+begins a fresh period.
+
+A relationship that falls to hostile **revokes** the warrant: the suspension rules
+apply permanently, and no service lifts them. An authored warrant is never
+re-offered, but the standing rule still applies, and a fresh standing grant from
+the same tradition replaces the revoked one.
+
+The fitting check lives in the one place a sheet's billets are resolved for a
+squad (`MarineRoster.previewSquadEquipment`), not in the screens, so every route to
+fitting asks it, and a refused issue says which warrant withholds it. A
+template opened by a held warrant counts only while that warrant is active.
+
+The gate refuses new acquisition and revokes nothing. A save that learned an
+approved suit through the old open routes keeps it and fits it freely: no warrant
+names it, so no obligation can withhold it. That is the compatibility promise, not
+a loophole to close later. Held warrants stand on the Company HQ record beside the
+company's employers, each naming its issuer, how many approved suits it opens and
+how it was earned, and its standing under its obligations: the next service
+deadline while active, what restores it while suspended, and revocation. A Restricted card's own
+tooltip and spec sheet name the tradition that issues it, in place of the
+reputation and victory thresholds the other tiers show.
+
+**Market listings are how a story stocks a shelf.** A card dropped into a market's
+cargo would not survive, because every open-market restock clears the cards and
+refills from the pools. So a story beat records a listing instead, and each restock
+puts listed cards on a shelf of their own before it draws the rotation. Listings
+are additional slots that never displace a rotating card, and a listed card is left
+out of the rotating draw. A listing bypasses the reputation and victory thresholds,
+because the story is the permission. It never bypasses the Restricted tier: listing
+Restricted kit needs a military warrant naming it, and a shelf never shows Restricted
+kit the company is not warranted for. A listing is withdrawn while the company knows
+or carries the card and returns if it stops doing so; nothing else expires it.
+Creating one restocks the markets at once, so the debrief's promise is on the shelf
+now. The card's tooltip names the event that stocked it. Settlement code owns
+once-only; listing the same card at the same place twice changes nothing. This is global reachability, not universal faction availability.
+
+**Arc issue cards are how the early arcs pay in ways of fighting.** Four weapon
+cards carry the kit no older card fielded, each stocked by the arc beat that
+teaches its lesson. *Checkpoint Issue* (Rampart revetments and smoke) is listed at
+the Wayline broker's market once Relief settles. It is bought beside *A Proper
+Issue*'s free choice, never offered as one of its paths. *Convoy Escort Issue*
+(rocket tubes and one Palisade pod) is listed at the route employer's market once
+Thunder Run opens the road. *Counter-Battery Issue* (two Arrestor packs and an
+anti-materiel rifle) is listed at every Hegemony open market once *A Cold Account*
+settles: Kord's nod, Advanced kit and no warrant. *Builder's Guard* (revetments and
+Palisade pods) is listed at Asharu once the Morrow's Working Passage settles. Each
+listing comes from the arc's own once-only settlement and is laid only on a won
+beat; a settlement that cannot place it logs and moves on rather than unwinding a
+payment. The cards also circulate like any other, because a card's pool weight is
+its templates' weight: Counter-Battery Issue reaches a Hegemony licence through the
+Arrestor pack, the others reach independent markets and licences. The listing is
+the guaranteed route; the pools are the fallback.
+*Trench-Clearing Issue* (service rifles, rocket tubes and grenades) is the one arc
+card handed over rather than stocked: a won *Open the Junction*, the first assault
+on a dug-in position, puts one card in fleet cargo from Wayline's militia stores,
+named in the terms before the battle and in the debrief after it. The Junction is
+won once, so the card comes once, and a company that already knows or carries it
+gets none. It is a card to learn; nobody's fitting changes.
 It lets add-ons keep faction identity while ensuring that a newly collectible
 family, grade, suit, or special item cannot be stranded by an omitted or
 permanently ineligible source.
@@ -1149,6 +1330,30 @@ distribution beside a coarse risk-derived opposition expectation, while tier
 and recommended squads describe quantity separately. The comparison is advice,
 not an invisible strength calculation or a source of battle scaling; it must
 not prevent a valid understrength fire team from attempting the work.
+
+**The company roster ranks the company without arithmetic.** The Barracks'
+Company Roster lists every marine on the books (the fallen are not) on one
+comparable row: squad, status with the return day of the wounded, aptitude, the
+band their issued armour sets, the primary and its grade, the armour, and the
+service record that also decides seniority. The three quality axes are drawn as
+**absolute** four-step bars, never scaled to the company, because a relative bar
+makes a company of Limited marines look uniformly excellent; the step holding the
+company's median aptitude is outlined so each marine also reads against the
+company. Every column sorts, quality columns best first. Captains' traits read on
+the officer dossier, and a trait with no mechanic says so rather than claiming
+one; outlook traits read as character. Retained screens assign their compact text
+faces by role (heading, body, compact) rather than one display face everywhere.
+
+**The battle squad panel says who is doing the work.** Hovering a marine's card
+in the selected-squad panel shows a running line for this mission: rounds landed
+out of rounds fired, kills, damage dealt, and what the marine is doing now. That
+status reads only state the simulation already keeps: *engaged* while the marine
+holds a target, *wounded* below full health, otherwise *holding*. There is no
+per-marine suppression state, so the panel does not invent one. The marine with
+the most kills (then most damage) carries a warm mark on their card. Nobody is
+marked until someone has landed a round, so the mark never names a marine for
+doing nothing. The record is mission telemetry read after the tick and refreshed
+while the card stays hovered; it never feeds back into the fight.
 
 Avoid stacking redundant
 battlefield overlays; start with the closest decision surface and add in-world

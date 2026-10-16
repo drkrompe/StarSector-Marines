@@ -3,10 +3,9 @@
 > The stats differ. The presentation does not. During the fight the player
 > has no idea which of their marines is the veteran.
 
-Status: READY — career evidence is shipped; coordinate with
-`s7-grade-visual-identity.md`.
+Status: IN PROGRESS — slices 1–2 shipped; the live feel pass decides slices 3–4.
 Written: 2026-08-22
-Updated: 2026-08-23 — redirected shipped dependencies and normalized references.
+Updated: 2026-10-15 — slices 1–2 shipped and folded into `progression-nouns.md` (Presentation law).
 
 ## Problem
 
@@ -27,23 +26,24 @@ To stop the two stories from each inventing a marker:
 - **S9 owns person-driven signal** — anything that comes from who the
   marine is and what they are doing right now.
 
-## Slice 1 — Squad panel readout
+## Shipped
 
-The selected-squad surface is the natural home and costs no battlefield
-noise:
+Slices 1 and 2 (the squad panel readout and the hover readout) are shipped and
+described in `progression-nouns.md`, Presentation law. Name, experience tier,
+aptitude and HP were already on the card and its tooltip. The tooltip now adds
+the mission record (rounds landed, kills, damage, status), and the top
+contributor is marked on the card. *Suppressed* was dropped from the status
+list: the simulation keeps no per-marine suppression state, and the panel does
+not invent one.
 
-- Per-marine name, experience tier, aptitude, current HP.
-- Live mission contribution from S3 telemetry: rounds landed, kills.
-- Status: engaged, suppressed, wounded.
+## Remaining — live feel pass
 
-This alone answers most of the problem and should ship first — it is the
-cheapest, least intrusive slice with the highest information gain.
+Play a live battle at 1920x1080 and 100% UI scale, and confirm that:
 
-## Slice 2 — Selection and hover readout
+- the mark and the mission line read as information rather than clutter;
+- the 170px tooltip still clears the squad panel at UI scales 1.25 and 1.5.
 
-Selecting or hovering an individual marine surfaces their profile and their
-running mission line. Consistent with how the mod already exposes
-debug/contact information on selection.
+That pass decides whether slice 3 runs at all.
 
 ## Slice 3 — Restrained in-world marker
 

@@ -68,3 +68,53 @@ Its 1920x1080 boards are retained in `review/`. This is not live OpenGL evidence
 Small direct tests cover state/physical invariants, whole-footprint attack
 deduplication, supported-layer collapse, surviving overlapping cover, transparent
 frame openings and sparse wreck coverage.
+
+## Armory and utility equipment
+
+The ground installation upgrade also adopts the existing `armory-workshop` kit
+and `ship-engineering.generator`, `control` and `switchgear`. Their 22 missing
+state sprites are built-in ImageGen edits of the retained geometry guides and
+intact references. The two exact submitted prompts are:
+
+- `art-source/tilesets/armory-workshop-damage.prompt.txt`
+- `art-source/tilesets/installation-utility-damage.prompt.txt`
+
+For each family, this directory retains the input manifest, generated guide,
+intact reference, guide cuts and registered output cuts. The original returned
+PNGs are the matching `.raw.png` files in `art-source/tilesets`; authoring JSON
+records the full-footprint crops. No manual raster painting, alpha transfer or
+background keying was used. Utility source RGB contains dark background color
+under transparent pixels; native alpha and the ordinary export preserve the
+clear gutters and wreck gaps.
+
+The armory sheet contains counters, rack bases, rifles, open rack frames,
+benches, bench tools, ready-use lockers and ammunition cabinets. Transparent
+layers keep their own state pair and collapse with their supporting base.
+The utility sheet contains generator, readout and switchgear pairs. Standing
+states retain cover; destroyed states use zero cover and height. Effects on
+powered equipment are presentation cues, with no secondary blast damage.
+
+Rebuild registration with `ComposableDamageRegistration <family> <columns>`
+(4 for `armory-workshop`, 3 for `installation-utility`), then use the retained
+cuts in the normal authoring records and run `tileset_export` for
+`armory-workshop-damage` and `installation-utility-damage`.
+`createSnapshots -Psnapshot=composable-damage` exercises real structural damage,
+layer collapse, released obstruction and rotations; `review/armory-turn-*` and
+`review/utility-turn-*` retain those production-rendered boards.
+
+## Tactical command plot
+
+`command-plot` adds the damaged and destroyed pair for `ship-bridge.plot`.
+The original three-cell square plot is shared by the ship CIC and reusable
+ground command posts. The retained one-column geometry guide and intact
+reference were edited with built-in ImageGen using the exact prompt at
+`art-source/tilesets/command-plot-damage.prompt.txt`. The returned image is kept
+as `command-plot-damage.raw.png`; registration and the normal authoring exporter
+preserve its native alpha and full footprint, with no pixel repainting.
+
+The damaged table retains its metal casing and cracked plotting screen. Its
+wreck is separate glass, trim and electronics with clear gaps, zero cover and
+zero height. Registration uses `ComposableDamageRegistration command-plot 1`;
+export uses `tileset_export` with name `command-plot-damage`.
+`review/command-turn-*` shows the actual ground fitting, including both console
+banks, through intact/damaged/destroyed states in the production renderer.

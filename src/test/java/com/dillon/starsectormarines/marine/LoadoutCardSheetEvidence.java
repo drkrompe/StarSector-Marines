@@ -309,6 +309,7 @@ class LoadoutCardSheetEvidence {
             case PRESTIGE -> "prestige: MRB rep " + EquipmentAcquisitionEligibility.requiredMrb(tier)
                     + " (licence/patron) or " + EquipmentAcquisitionEligibility.requiredRecoveryVictories(tier)
                     + " victories (recovery)";
+            case RESTRICTED -> "restricted: military warrant from its issuing tradition (issuer licence/patron only)";
         };
     }
 

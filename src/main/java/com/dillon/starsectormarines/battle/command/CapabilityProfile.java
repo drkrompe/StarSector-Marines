@@ -58,14 +58,23 @@ public final class CapabilityProfile {
     private final Map<AssaultCapability, Rating> ratings;
     private final float distanceBreachRange;
     private final float structureFireRange;
+    private final float screenSeconds;
+    private final float screenRadius;
     private final int able;
 
     private CapabilityProfile(Map<AssaultCapability, Rating> ratings, float distanceBreachRange,
                               float structureFireRange, int able) {
+        this(ratings, distanceBreachRange, structureFireRange, able, 0f, 0f);
+    }
+
+    private CapabilityProfile(Map<AssaultCapability, Rating> ratings, float distanceBreachRange,
+                              float structureFireRange, int able, float screenSeconds, float screenRadius) {
         this.ratings = ratings;
         this.distanceBreachRange = distanceBreachRange;
         this.structureFireRange = structureFireRange;
         this.able = able;
+        this.screenSeconds = screenSeconds;
+        this.screenRadius = screenRadius;
     }
 
     /**
@@ -81,6 +90,8 @@ public final class CapabilityProfile {
         float breachBest = 0f;
         float structureRange = 0f;
         float structureBest = 0f;
+        float screenSeconds = 0f;
+        float screenRadius = 0f;
         for (Armament arm : arms) {
             if (arm == null || !arm.usable()) continue;
             if (arm.delivery() == Delivery.CALLED) {
@@ -89,6 +100,8 @@ public final class CapabilityProfile {
             }
             if (arm.delivery() == Delivery.SCREEN) {
                 add(sums, AssaultCapability.SMOKE_SCREEN, 1f, arm.triggers());
+                screenSeconds = Math.max(screenSeconds, arm.coverSeconds());
+                screenRadius = Math.max(screenRadius, arm.cloudRadius());
                 continue;
             }
             float perSecond = arm.roundsPerTrigger() / arm.cycleSeconds();
@@ -138,7 +151,7 @@ public final class CapabilityProfile {
         for (Map.Entry<AssaultCapability, float[]> entry : sums.entrySet()) {
             ratings.put(entry.getKey(), new Rating(entry.getValue()[0], entry.getValue()[1]));
         }
-        return new CapabilityProfile(ratings, breachRange, structureRange, able);
+        return new CapabilityProfile(ratings, breachRange, structureRange, able, screenSeconds, screenRadius);
     }
 
     private static void add(Map<AssaultCapability, float[]> sums, AssaultCapability capability, float rate, float reserve) {
@@ -194,6 +207,16 @@ public final class CapabilityProfile {
         return distanceBreachRange;
     }
 
+    /** Seconds the longest-lasting cloud the squad can stand holds its full radius, or zero when it carries no smoke. */
+    public float screenSeconds() {
+        return screenSeconds;
+    }
+
+    /** The radius of the largest cloud the squad can stand, or zero when it carries no smoke. */
+    public float screenRadius() {
+        return screenRadius;
+    }
+
     /** The reach of the squad's best anti-structure weapon, direct or arcing, or zero when it has none. */
     public float structureFireRange() {
         return structureFireRange;
@@ -227,7 +250,9 @@ public final class CapabilityProfile {
             if (a.any() || b.any()) sum.put(capability, a.plus(b));
         }
         return new CapabilityProfile(sum, Math.max(distanceBreachRange, other.distanceBreachRange),
-                Math.max(structureFireRange, other.structureFireRange), able + other.able);
+                Math.max(structureFireRange, other.structureFireRange), able + other.able,
+                Math.max(screenSeconds, other.screenSeconds),
+                Math.max(screenRadius, other.screenRadius));
     }
 
     @Override
@@ -235,12 +260,13 @@ public final class CapabilityProfile {
         if (this == other) return true;
         if (!(other instanceof CapabilityProfile that)) return false;
         return able == that.able && distanceBreachRange == that.distanceBreachRange
-                && structureFireRange == that.structureFireRange && ratings.equals(that.ratings);
+                && structureFireRange == that.structureFireRange && screenSeconds == that.screenSeconds && screenRadius == that.screenRadius
+                && ratings.equals(that.ratings);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ratings, distanceBreachRange, structureFireRange, able);
+        return Objects.hash(ratings, distanceBreachRange, structureFireRange, able, screenSeconds, screenRadius);
     }
 
     /** One line: each capability held, with its rate. */

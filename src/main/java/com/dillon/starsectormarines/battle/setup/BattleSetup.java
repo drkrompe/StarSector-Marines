@@ -1524,7 +1524,7 @@ public final class BattleSetup {
         }
         for (int[] guard : new int[][]{{78,42},{82,75}}) {
             var post = openingDefenseNode(guard[0], guard[1], Faction.DEFENDER, map.grid);
-            spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, guard[0], guard[1], 4), Faction.DEFENDER, "Salt Knife switch watch", post, rng);
+            spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, guard[0], guard[1], 4), Faction.DEFENDER, "Berth Four switch watch", post, rng);
         }
         spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, 32, 59, 8), Faction.ALLY, "North Weir constable", null, rng);
         List<Integer> militia = new ArrayList<>();
@@ -1542,7 +1542,7 @@ public final class BattleSetup {
         sim.claimSquadCommand(technicians, CommandAuthority.MISSION_COMMAND, WaterUnderSealCommand.issuer(Faction.ALLY), "Edek's identified repair watch");
         List<EntitySpec> reserve = new ArrayList<>();
         for (int batch = 0; batch < 2; batch++) for (int[] cell : pickSpawnCluster(map.grid, 170, batch == 0 ? 88 : 94, 6)) {
-            var member = makeOpeningMilitia("Salt Knife road element " + batch + " / " + reserve.size(), Faction.DEFENDER, cell[0], cell[1], rng).role(UnitRole.PATROL);
+            var member = makeOpeningMilitia("Berth Four road element " + batch + " / " + reserve.size(), Faction.DEFENDER, cell[0], cell[1], rng).role(UnitRole.PATROL);
             if (reserve.size() < 2) WaterUnderSealIssue.recoveredAssaultRig(member, MarineArmorCatalogRegistry.require("armor.specter-recovered"));
             reserve.add(member);
         }
@@ -1582,7 +1582,7 @@ public final class BattleSetup {
         }
         for (int[] guard : new int[][]{{68,75},{86,42}}) {
             var post = openingDefenseNode(guard[0], guard[1], Faction.DEFENDER, map.grid);
-            spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, guard[0], guard[1], 4), Faction.DEFENDER, "Cask Runner store guard", post, rng);
+            spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, guard[0], guard[1], 4), Faction.DEFENDER, "Drent Haulage store guard", post, rng);
         }
         spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, 33, 59, 4), Faction.ALLY, "Low Quay constable", null, rng);
         int constables = sim.getSquads().stream().filter(squad -> squad.faction == Faction.ALLY).findFirst().orElseThrow().id;
@@ -1634,7 +1634,7 @@ public final class BattleSetup {
         }
         for (var site : LatchkeyYard.SITES) {
             var post = openingDefenseNode(site.x(), site.y(), Faction.DEFENDER, map.grid);
-            spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, site.x(), site.y(), 4), Faction.DEFENDER, "Hookhand yard guard", post, rng);
+            spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, site.x(), site.y(), 4), Faction.DEFENDER, "Prize crew yard guard", post, rng);
         }
         List<Integer> constables = new ArrayList<>();
         for (int x : new int[]{32,38}) {
@@ -1654,7 +1654,7 @@ public final class BattleSetup {
         for (int[] ingress : new int[][]{{150,76},{145,36}}) {
             List<EntitySpec> group = new ArrayList<>();
             for (int[] cell : pickSpawnCluster(map.grid,ingress[0],ingress[1],4))
-                group.add(makeOpeningMilitia("Hookhand counterattack",Faction.DEFENDER,cell[0],cell[1],rng).role(UnitRole.PATROL));
+                group.add(makeOpeningMilitia("Prize crew counterattack",Faction.DEFENDER,cell[0],cell[1],rng).role(UnitRole.PATROL));
             reserves.add(group);
         }
         sim.installYardOwners(technicians,constables,reserves);
@@ -2724,6 +2724,7 @@ public final class BattleSetup {
                 // The mission's support kit (mortar teams, forward observers) is issued by squad ordinal across the force.
                 cycleLoadouts[c] = InfantryLoadoutRolls.playerSquad(
                         a.seatsForCycle(c), rng, supportKit.mortarTeam(squadOrdinal), supportKit.observer(squadOrdinal));
+                SupportKitIssue.issueBreachKit(cycleLoadouts[c], supportKit, squadOrdinal);
                 squadOrdinal++;
             }
             mission.cycleLoadouts = cycleLoadouts;

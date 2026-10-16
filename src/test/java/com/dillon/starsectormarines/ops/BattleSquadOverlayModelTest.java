@@ -103,6 +103,14 @@ class BattleSquadOverlayModelTest {
                     instance.requireElement("battle-squad-tooltip-special").text());
             assertEquals("SUIT SYSTEM · Kestrel Sweep · READY",
                     instance.requireElement("battle-squad-tooltip-system").text());
+            assertEquals("THIS MISSION · 9/14 landed · 2 kills · 120 dmg · ENGAGED",
+                    instance.requireElement("battle-squad-tooltip-record").text());
+            var tooltip = instance.requireElement("battle-squad-tooltip").box().borderBox();
+            assertTrue(instance.requireElement("battle-squad-tooltip-record").box().borderBox()
+                    .bottom() <= tooltip.bottom(), "the mission record fits inside the tooltip");
+            assertTrue(instance.requireElement("battle-squad-member-0-1").hasClass("member-top"),
+                    "the marine with the most kills carries the mark");
+            assertFalse(instance.requireElement("battle-squad-member-0-0").hasClass("member-top"));
 
             var back = instance.requireElement("battle-squad-back").box().borderBox();
             assertTrue(document.pointerDown(back.x() + back.width() * 0.5f,
@@ -163,6 +171,19 @@ class BattleSquadOverlayModelTest {
         }
     }
 
+    @Test
+    void nobodyIsMarkedBeforeAnyoneHasLandedARound() {
+        List<BattleSquadOverlayModel.MemberState> idle = new ArrayList<>();
+        for (var member : members()) idle.add(with(member, 100f, 0, 0f, false));
+        assertEquals(0L, BattleSquadOverlayModel.topContributor(idle));
+        assertEquals("HOLDING", BattleSquadOverlayModel.status(idle.get(0)));
+        assertEquals("WOUNDED", BattleSquadOverlayModel.status(with(idle.get(0), 60f, 0, 0f, false)));
+        assertEquals("ENGAGED", BattleSquadOverlayModel.status(with(idle.get(0), 60f, 0, 0f, true)));
+        idle.set(5, with(idle.get(5), 100f, 0, 12f, false));
+        assertEquals(idle.get(5).entityId(), BattleSquadOverlayModel.topContributor(idle),
+                "damage alone marks a contributor when nobody has a kill");
+    }
+
     private static void click(UiDocument document, UiElement element) {
         var box = element.box().borderBox();
         document.pointerDown(box.x() + box.width() / 2f, box.y() + box.height() / 2f);
@@ -194,9 +215,22 @@ class BattleSquadOverlayModelTest {
                         leader ? "SMK" : null, leader ? "2 LEFT" : "",
                         leader ? "Kestrel Sweep" : null,
                         leader ? "READY" : "", "Veteran", "Gifted",
-                        UnitRole.COMBATANT, leader ? ArmorClass.POWER_SUIT : ArmorClass.STANDARD));
+                        UnitRole.COMBATANT, leader ? ArmorClass.POWER_SUIT : ArmorClass.STANDARD,
+                        leader ? 14 : 6, leader ? 9 : 2, leader ? 2 : slot == 1 ? 3 : 0,
+                        leader ? 120f : slot == 1 ? 90f : 0f, leader));
             }
         }
         return members;
+    }
+
+    private static BattleSquadOverlayModel.MemberState with(BattleSquadOverlayModel.MemberState m,
+                                                            float hp, int kills, float damage,
+                                                            boolean engaged) {
+        return new BattleSquadOverlayModel.MemberState(m.entityId(), m.fireTeamIndex(), m.leader(),
+                m.name(), hp, m.maxHp(), m.armor(), m.maxArmor(), m.armorRating(),
+                m.primaryName(), m.primaryAbbrev(), m.primaryColor(), m.specialName(),
+                m.specialAbbrev(), m.specialStatus(), m.systemName(), m.systemStatus(),
+                m.experience(), m.aptitude(), m.role(), m.armorClass(), m.roundsFired(),
+                m.roundsHit(), kills, damage, engaged);
     }
 }

@@ -146,17 +146,9 @@ final class SatchelApproach {
      */
     static boolean blinded(int[] nest, List<int[]> exposed, List<Cloud> clouds, int tick, int minLife) {
         if (exposed.isEmpty()) return false;
+        SmokePartition partition = new SmokePartition(clouds);
         for (int[] cell : exposed) {
-            boolean screened = false;
-            for (Cloud cloud : clouds) {
-                if (cloud.untilTick() > tick && cloud.untilTick() - tick >= minLife
-                        && distanceToSegment(cloud.x(), cloud.y(), nest[0] + 0.5, nest[1] + 0.5, cell[0] + 0.5, cell[1] + 0.5)
-                        <= cloud.radius()) {
-                    screened = true;
-                    break;
-                }
-            }
-            if (!screened) return false;
+            if (!partition.cuts(nest, cell, tick, minLife)) return false;
         }
         return true;
     }
@@ -183,19 +175,86 @@ final class SatchelApproach {
             int py = (int) Math.round(cell[1] + dy * t);
             points.add(new int[] {px, py});
             for (int j = i; j < exposed.size(); j++) {
-                if (distanceToSegment(px + 0.5, py + 0.5, nest[0] + 0.5, nest[1] + 0.5, exposed.get(j)[0] + 0.5, exposed.get(j)[1] + 0.5)
+                if (SmokePartition.distanceToSegment(px + 0.5, py + 0.5, nest[0] + 0.5, nest[1] + 0.5, exposed.get(j)[0] + 0.5, exposed.get(j)[1] + 0.5)
                         <= cloudRadius) covered[j] = true;
             }
         }
         return points;
     }
 
-    private static double distanceToSegment(double px, double py, double ax, double ay, double bx, double by) {
-        double dx = bx - ax;
-        double dy = by - ay;
-        double lengthSquared = dx * dx + dy * dy;
-        double t = lengthSquared == 0 ? 0 : Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / lengthSquared));
-        return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+    /** What a screen would cost the company that lays it: the other edge of the partition. */
+    enum Refusal {
+        /** It would cut the sight between a base of fire and the nest it is suppressing, un-answering that nest. */
+        BLINDS_BASE_OF_FIRE,
+        /** It would leave the sappers alone beyond it, cut from every element that could fire for them, with a suppressed nest still seeing the wall. */
+        STRANDS_SAPPERS
+    }
+
+    /** A friendly element whose fire an answered nest rests on: the nest it is suppressing, and where it fires from. */
+    record Reliance(int nest, int[] nestCell, int[] from) { }
+
+    /**
+     * One fire squad as the company holds it: the nest believed live that it was placed against (or -1), where the plan put it and
+     * where it stands now. A squad does not fire from the cell it was told to walk to, so its line to the nest is read from both.
+     */
+    record Placement(int nest, int[] nestCell, int[] planned, int[] actual) { }
+
+    /**
+     * The suppressions a screen must not cut: every placed fire squad's line to its nest, from where it was put and from where it
+     * stands, whether the nest is answered yet or not (a squad on its way to engage is still the company's fire, and a cloud laid
+     * across its line is laid before it gets there). A squad placed against no live nest relies on nothing.
+     */
+    static List<Reliance> reliances(List<Placement> placed) {
+        List<Reliance> out = new ArrayList<>();
+        for (Placement squad : placed) {
+            if (squad.nest() < 0) continue;
+            if (squad.planned() != null) out.add(new Reliance(squad.nest(), squad.nestCell(), squad.planned()));
+            if (squad.actual() != null) out.add(new Reliance(squad.nest(), squad.nestCell(), squad.actual()));
+        }
+        return out;
+    }
+
+    /**
+     * Whether a screen may be laid, weighing both edges of it (`ai-nouns.md`, "Smoke screens partition the field"). The
+     * screen blinds the nest it is laid against, but smoke blocks sight for everyone, so it is refused when it would:
+     * <ul>
+     *   <li>cut the line between a base of fire and a <em>different</em> nest it is relied on to keep suppressed, which would
+     *       open that nest again ({@link Refusal#BLINDS_BASE_OF_FIRE}); or</li>
+     *   <li>leave the place a sapper must reach cut off from every element of the base of fire, while some nest the company
+     *       is holding suppressed still reaches and sees that place ({@link Refusal#STRANDS_SAPPERS}).</li>
+     * </ul>
+     * Only cuts the proposal <em>makes</em> count: a line the standing clouds already cut is not the proposal's doing. Returns
+     * {@code null} when the screen costs nothing the company depends on.
+     *
+     * @param forNest    the nest the screen is for (its own suppression, if any, is not relied on: the screen replaces it)
+     * @param standing   the clouds already on the field
+     * @param proposed   the clouds the screen would stand, with the life they will hold
+     * @param reliances  the suppressions the company's answers rest on
+     * @param support    where the base of fire stands
+     * @param places     the places the sappers must reach
+     * @param reach      how far a nest sees a place
+     * @param minLife    the ticks the screen is wanted for; a cloud holding less is not counted as cutting anything
+     */
+    static Refusal weigh(int forNest, List<Cloud> standing, List<Cloud> proposed, List<Reliance> reliances,
+                         List<int[]> support, List<int[]> places, double reach, Sight sight, int tick, int minLife) {
+        SmokePartition before = new SmokePartition(standing);
+        SmokePartition after = before.with(proposed);
+        for (Reliance reliance : reliances) {
+            if (reliance.nest() == forNest) continue;
+            if (after.cuts(reliance.from(), reliance.nestCell(), tick, minLife)
+                    && !before.cuts(reliance.from(), reliance.nestCell(), tick, minLife)) return Refusal.BLINDS_BASE_OF_FIRE;
+        }
+        for (int[] place : places) {
+            if (!after.isolates(support, place, tick, minLife) || before.isolates(support, place, tick, minLife)) continue;
+            for (Reliance reliance : reliances) {
+                if (reliance.nest() == forNest) continue;
+                int[] nest = reliance.nestCell();
+                if (Math.hypot(place[0] - nest[0], place[1] - nest[1]) <= reach && sight.clear(place[0], place[1], nest[0], nest[1])) {
+                    return Refusal.STRANDS_SAPPERS;
+                }
+            }
+        }
+        return null;
     }
 
     /**

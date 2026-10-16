@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — Heavy defense posts include missile AA towers with validated multi-cell foundations.
+Updated: 2026-10-16 — Heavy defense posts include missile AA towers with validated multi-cell foundations; fort power halls and compact utility buildings share full-footprint power and cooling equipment.
 
 Earlier 2026-10-13 — reversible authored damage layers give Relief a worn checkpoint without changing its landing contract; Relief rear working courts preserve the expanded landing and assembly apron.
 
@@ -1401,6 +1401,45 @@ the main lane continues through the shop to the vehicle entrance. A smaller
 room uses a smaller complete work group rather than shrinking machinery or
 scattering loose props into the remaining cells. Reused equipment retains its
 registered damaged and destroyed states.
+
+Ground armories put an issue counter between the courtyard apron and the
+armourer's work area. Ready-use lockers, a weapon repair bench, ammunition
+cabinets and loaded rifle racks occupy separate runs linked by staff aisles.
+Compact generator houses put a full plant skid opposite switchgear, monitoring
+and spares, with a two-cell service aisle between them. Door approaches take
+precedence over equipment, and small rooms retain complete electrical or repair
+stations instead of miniature machinery. These kits carry full-footprint damage
+states; when a rack or bench collapses, its supported rifles, frame and tools
+collapse with it. Debris preserves the original floor and releases obstruction.
+
+Ground logistics rooms share loaded rack, pallet and dispatch-bench assemblies.
+Military magazines add secured ammunition cabinets while civilian warehouses
+use the same cargo bays with commercial stock. Contents and retaining frames
+belong to their supporting fixture, turn with it and collapse with its wreck.
+Storage grows in parallel bays separated by handling aisles; receiving rooms
+use separated staging positions and a packing station instead of dense racking.
+Door approaches and cross-aisles are reserved before stock, including every
+cell of a wide loading entrance. A fort magazine retains its objective core,
+core approach and adjoining receiving-room route. Compact rooms use complete
+smaller storage groups rather than shrinking the furniture.
+
+Fort power halls preserve the reactor core, console crew positions and a two-cell
+service cross-aisle while housing a full turbine-alternator skid and a separate
+cooling plant. The same machinery pair serves compact generator houses with a
+monitoring station across the service aisle. Complete machine rectangles follow
+room rotation and reflection; they are never replaced by clusters of miniature
+generators. Intact and damaged equipment owns solid cover across its footprint;
+low destroyed remnants release that obstruction and retain the underlying floor.
+Room finishes extend beneath sealed structure cores as well as doodad fixtures;
+physical occupancy never leaves a patch of unrelated default floor.
+
+Ground command posts arrange L- and U-shaped console banks around a central
+tactical plot. A circulation loop reaches every side of the plot, and door
+approaches join that loop without cutting through the table. Watch positions
+belong to accessible working sides of installed consoles, with a separate plot
+officer position. This room program is shared by authored and packed ground
+compounds; constrained pockets use complete shorter banks, and small rooms use
+a compact chart table. The plot and consoles retain matching damage states.
 
 A stage that replaces what an earlier stage built owns everything the earlier one
 recorded, not only what it drew: decorative placements, points of interest,

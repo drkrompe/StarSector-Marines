@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -41,6 +42,7 @@ public class OverwatchTowerStageTest {
 
     private static final long[] CONQUEST_SEEDS = { 1L, 42L, 100L, 777L };
 
+    @Tag("generated-space-evidence")
     @Test
     void conquestMapsGainCornerTowers() {
         BspCityGenerator gen = new BspCityGenerator();
@@ -73,6 +75,7 @@ public class OverwatchTowerStageTest {
      * tier — fortified towers escalate to {@code HEPHAESTUS} while neutral towers
      * stay {@code VULCAN}. (b) proves the bridge is wired even when (a) saturates.
      */
+    @Tag("generated-space-evidence")
     @Test
     void fortifiedWorldsFieldMoreAndHeavierGuns() {
         BspCityGenerator gen = new BspCityGenerator();

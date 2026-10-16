@@ -17,6 +17,15 @@ public final class PropDamage {
     public record Profile(Effect damaged, Effect destroyed) {}
     /** Adding a family requires matching full-footprint damaged/destroyed catalog entries. */
     public static final Map<String, Profile> EQUIPMENT = Map.ofEntries(
+            Map.entry("ship-bridge.plot", new Profile(Effect.SMOKE, Effect.DUST)),
+            Map.entry("armory-workshop.counter", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("armory-workshop.rack", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("armory-workshop.bench", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("armory-workshop.ready-locker", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("armory-workshop.ammo", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("ship-engineering.generator", new Profile(Effect.SMOKE, Effect.FIRE)),
+            Map.entry("ship-engineering.switchgear", new Profile(Effect.SMOKE, Effect.FIRE)),
+            Map.entry("ship-engineering.control", new Profile(Effect.SMOKE, Effect.DUST)),
             Map.entry("colony-furnishings.case", new Profile(Effect.NONE, Effect.DUST)),
             Map.entry("colony-furnishings.locker", new Profile(Effect.NONE, Effect.DUST)),
             Map.entry("colony-furnishings.desk", new Profile(Effect.SMOKE, Effect.DUST)),
@@ -26,6 +35,8 @@ public final class PropDamage {
             Map.entry("doodad.industrial-generator", new Profile(Effect.SMOKE, Effect.FIRE)),
             Map.entry("doodad.military-radar-dish", new Profile(Effect.NONE, Effect.DUST)),
             Map.entry("doodad.industrial-machine-tool", new Profile(Effect.SMOKE, Effect.DUST)),
+            Map.entry("power-plant.turbine", new Profile(Effect.SMOKE, Effect.FIRE)),
+            Map.entry("power-plant.coolant", new Profile(Effect.SMOKE, Effect.SMOKE)),
             Map.entry("factory-machines.fabricator", new Profile(Effect.SMOKE, Effect.FIRE)),
             Map.entry("factory-machines.assembly", new Profile(Effect.SMOKE, Effect.DUST)),
             Map.entry("factory-machines.coolant", new Profile(Effect.SMOKE, Effect.SMOKE)),
@@ -68,7 +79,8 @@ public final class PropDamage {
             Map.entry("sickbay-clinic.exam", new Profile(Effect.NONE, Effect.DUST)),
             Map.entry("sickbay-clinic.screen", new Profile(Effect.NONE, Effect.DUST)));
     /** Zero-cover layers and walkable seating still have visual damage states. */
-    public static final Set<String> DECORATIONS = Set.of("main-stores.frame", "main-stores.cartons",
+    public static final Set<String> DECORATIONS = Set.of("armory-workshop.rifles", "armory-workshop.rack-frame",
+            "armory-workshop.bench-tools", "main-stores.frame", "main-stores.cartons",
             "main-stores.cases", "sickbay-clinic.linen-high", "sickbay-clinic.linen-low", "mess-galley.stool");
     private static final Profile SILENT = new Profile(Effect.NONE, Effect.NONE);
     @FunctionalInterface public interface EffectSink { void accept(float x, float y, Effect effect, float footprintSize); }
@@ -208,6 +220,8 @@ public final class PropDamage {
 
     private static boolean supports(String base, String layer) {
         return switch (base) {
+            case "armory-workshop.rack" -> "armory-workshop.rifles".equals(layer) || "armory-workshop.rack-frame".equals(layer);
+            case "armory-workshop.bench" -> "armory-workshop.bench-tools".equals(layer);
             case "main-stores.rack" -> "main-stores.frame".equals(layer) || isStock(layer);
             case "main-stores.pallet" -> isStock(layer);
             case "sickbay-clinic.bed" -> "sickbay-clinic.linen-high".equals(layer) || "sickbay-clinic.linen-low".equals(layer);

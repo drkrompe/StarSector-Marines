@@ -5,6 +5,9 @@ import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
 import com.dillon.starsectormarines.battle.world.gen.fit.ConsoleBankLayout.Cell;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPose;
+import com.dillon.starsectormarines.battle.world.gen.fit.LogisticsKit;
+import com.dillon.starsectormarines.battle.world.gen.fit.LogisticsKit.Module;
+import com.dillon.starsectormarines.battle.world.gen.fit.LogisticsKit.Stock;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
@@ -13,6 +16,7 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadDef.WallSide;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /** Complete working groups: furniture, contained visual layers and protected access turn together. */
@@ -79,7 +83,7 @@ final class BuildingWorkGroups {
     /** Cargo desks keep a two-cell working apron; the tally stool is traversable. */
     static Group cargoDesk(boolean packing) {
         List<Part> parts = new ArrayList<>();
-        parts.add(new Part(packing ? "main-stores.packing" : "main-stores.tally", 0, 0, true));
+        append(parts, LogisticsKit.desk(packing), 0, 0);
         if (!packing) parts.add(new Part("mess-galley.stool", 1, 1, false));
         return new Group(3, 3, parts);
     }
@@ -140,9 +144,7 @@ final class BuildingWorkGroups {
     /** Three stock slots snap onto one rack; the retaining frame belongs above all stock. */
     static Group stockedRack(String stock) {
         List<Part> parts = new ArrayList<>();
-        parts.add(new Part("main-stores.rack", 0, 0, true));
-        for (int slot = 0; slot < 3; slot++) parts.add(new Part("main-stores." + stock, 0, slot * 2, false));
-        parts.add(new Part("main-stores.frame", 0, 0, false));
+        append(parts, LogisticsKit.rack(Stock.valueOf(stock.toUpperCase(Locale.ROOT))), 0, 0);
         return new Group(4, 8, parts);
     }
 
@@ -151,8 +153,7 @@ final class BuildingWorkGroups {
         if (modules < 1) throw new IllegalArgumentException("A pallet bank needs modules");
         List<Part> parts = new ArrayList<>();
         for (int i = 0; i < modules; i++) {
-            parts.add(new Part("main-stores.pallet", i * 2, 0, true));
-            parts.add(new Part("main-stores." + stock, i * 2, 0, false));
+            append(parts, LogisticsKit.pallet(Stock.valueOf(stock.toUpperCase(Locale.ROOT))), i * 2, 0);
         }
         return new Group(modules * 2, 4, parts);
     }
@@ -163,11 +164,28 @@ final class BuildingWorkGroups {
             throw new IllegalArgumentException("Pallet slots must use nonnegative coordinates");
         List<Part> parts = new ArrayList<>();
         for (Cell slot : slots) {
-            parts.add(new Part("main-stores.pallet", 2 + slot.x() * 2, 2 + slot.y() * 2, true));
-            parts.add(new Part("main-stores." + stock, 2 + slot.x() * 2, 2 + slot.y() * 2, false));
+            append(parts, LogisticsKit.pallet(Stock.valueOf(stock.toUpperCase(Locale.ROOT))),
+                    2 + slot.x() * 2, 2 + slot.y() * 2);
         }
         return new Group(6 + slots.stream().mapToInt(Cell::x).max().orElseThrow() * 2,
                 6 + slots.stream().mapToInt(Cell::y).max().orElseThrow() * 2, parts);
+    }
+
+    private static void append(List<Part> parts, Module module, int x, int y) {
+        parts.add(new Part(module.base(), x, y, true));
+        for (var layer : module.layers())
+            parts.add(new Part(layer.doodadId(), x + layer.x(), y + layer.y(), false));
+    }
+
+    /** Parallel stock aisles on one four-by-eight bay grid, with a compact-room fallback. */
+    int fitRackRows(int bl, int bt, int br, int bb, RoomPurpose purpose) {
+        Group rack = stockedRack("cases");
+        int placed = 0;
+        for (int y = bt + 1; y + rack.height <= bb; y += rack.height)
+            for (int x = bl + 1; x + rack.width <= br; x += rack.width)
+                if (place(rack, x, y, 0, purpose)) placed++;
+        if (placed == 0) placed = fit(bl, bt, br, bb, purpose, rack, 2, 0, 1);
+        return placed;
     }
 
     /** Fit whole groups in the named room; wall support wins, then stable authored coordinates. */

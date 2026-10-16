@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -17,8 +18,31 @@ final class FactionEquipmentMarketStockPlanner {
                           long rotation, boolean hasLicenseAccess,
                           Set<String> unavailableCardIds,
                           EquipmentAcquisitionEligibility.Progress progress) {
+        return plan(factionId, marketId, marketSize, rotation, hasLicenseAccess,
+                unavailableCardIds, progress, List.of());
+    }
+
+    /**
+     * As above, with the market's listed cards on a shelf of their own. Listings come first
+     * and are additional: they never displace a rotating slot, and a listed card is left out
+     * of the rotating draw so it never appears twice. A listing the company already knows or
+     * carries is withdrawn, and one whose Restricted kit is no longer warranted is not shown.
+     */
+    static StockPlan plan(String factionId, String marketId, int marketSize,
+                          long rotation, boolean hasLicenseAccess,
+                          Set<String> unavailableCardIds,
+                          EquipmentAcquisitionEligibility.Progress progress,
+                          List<String> listedCardIds) {
         Set<String> unavailable = new HashSet<>(unavailableCardIds != null
                 ? unavailableCardIds : Set.of());
+        List<String> listed = new ArrayList<>();
+        for (String cardId : listedCardIds != null ? listedCardIds : List.<String>of()) {
+            LoadoutCard card = LoadoutCard.parse(cardId);
+            if (card == null || unavailable.contains(card.id()) || listed.contains(card.id())) continue;
+            if (!restrictedKitWarranted(card, progress)) continue;
+            listed.add(card.id());
+        }
+        unavailable.addAll(listed);
         List<String> market = LoadoutCardPicker.pick(factionId,
                 FactionEquipmentSource.MARKET, marketSlots(marketSize),
                 seed(factionId, marketId, rotation, "market"), unavailable, progress);
@@ -30,7 +54,7 @@ final class FactionEquipmentMarketStockPlanner {
                         seed(factionId, marketId, rotation, "license"),
                         unavailable, progress)
                 : List.of();
-        return new StockPlan(market, licensed);
+        return new StockPlan(listed, market, licensed);
     }
 
     private static int marketSlots(int marketSize) {
@@ -60,14 +84,32 @@ final class FactionEquipmentMarketStockPlanner {
         return value != null ? value : "";
     }
 
-    record StockPlan(List<String> marketCardIds, List<String> licensedCardIds) {
+    private static boolean restrictedKitWarranted(LoadoutCard card,
+                                                  EquipmentAcquisitionEligibility.Progress progress) {
+        for (String templateId : card.templateIds()) {
+            if (EquipmentTemplateCatalog.require(templateId).accessTier() == EquipmentAccessTier.RESTRICTED
+                    && (progress == null || !progress.warrants(templateId))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    record StockPlan(List<String> listedCardIds, List<String> marketCardIds,
+                     List<String> licensedCardIds) {
         StockPlan {
+            listedCardIds = List.copyOf(listedCardIds);
             marketCardIds = List.copyOf(marketCardIds);
             licensedCardIds = List.copyOf(licensedCardIds);
         }
 
+        StockPlan(List<String> marketCardIds, List<String> licensedCardIds) {
+            this(List.of(), marketCardIds, licensedCardIds);
+        }
+
         List<String> allCardIds() {
-            Set<String> ordered = new LinkedHashSet<>(marketCardIds);
+            Set<String> ordered = new LinkedHashSet<>(listedCardIds);
+            ordered.addAll(marketCardIds);
             ordered.addAll(licensedCardIds);
             return List.copyOf(ordered);
         }

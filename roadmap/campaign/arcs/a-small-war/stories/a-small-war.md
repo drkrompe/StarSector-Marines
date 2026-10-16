@@ -4,7 +4,7 @@ Status: IN PROGRESS — post-Shepherd referral, first three chapters through The
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — current-map fidelity review precedes further chapters; live mixed-squad acceptance remains.
+Updated: 2026-10-15 — whole-section loadout cards; Rusk as an Eventide cadet; two Wolf (H) against two Hound (P) over Black Sluice.
 
 Read `early-operation-nouns.md`, `campaign-nouns.md`, `meta-progression.md`,
 `narrative-nouns.md`, `mission-tier-nouns.md`, `progression-nouns.md`,
@@ -113,7 +113,7 @@ Its readable terms precede acceptance of Limited Warrant:
 The player accepts an identified contract, not an unbounded oath to Rusk. Wording
 and acquired cards make the restricted access tangible. There is no revocable
 software license, equipment lockout, per-suit inventory or new fitting charge.
-Later disagreement can change offered work; already learned patterns remain learned.
+Later disagreement can change offered work; already learned cards remain learned.
 
 ## Chapter and reward schedule
 
@@ -123,10 +123,10 @@ Equipment rewards are guaranteed story cards, separate from random recovery.
 
 | Chapter | Place and tactical promise | Recommended company | Credit fee | Equipment / lasting result |
 | --- | --- | --- | ---: | --- |
-| 1. Water Under Seal | North Weir: escort a repair load and reopen the switching rooms | 2 squads, regular issue sufficient | 26,000 | Rusk's sponsorship and the warrant offer; no suit pattern |
-| 2. Limited Warrant | Low Quay bonded stores: recover the service archive and sealed calibration kit | 2 squads, regular issue sufficient | 30,000 | Recovered Specter card; the first powered assault role |
-| 3. The Yard's Owners | Latchkey: take the dispatch house, tooling hall and safe operator entrance | 3 squads; recovered Specter useful | 36,000 | Recovered Arbalest card; the existing eight-regular/four-suit section becomes available once both cards are learned |
-| 4. Terms of Protection | Latchkey and the Cinder Steps approach: defend the signed handover while technicians commission captured rig tooling | 3 squads; mixed sections recommended | 32,000 | Boarding Jack card, regardless of the chosen yard agreement; agreement ratified only on victory |
+| 1. Water Under Seal | North Weir: escort a repair load and reopen the switching rooms | 2 squads, regular issue sufficient | 26,000 | Rusk's sponsorship and the warrant offer; no powered card |
+| 2. Limited Warrant | Low Quay bonded stores: recover the service archive and sealed calibration kit | 2 squads, regular issue sufficient | 30,000 | Tri-Tachyon Specter Section card: two recovered Specter breachers in twelve |
+| 3. The Yard's Owners | Latchkey: take the dispatch house, tooling hall and safe operator entrance | 3 squads; recovered Specter useful | 36,000 | Salvage-assisted Section card: two Specter breachers and two Arbalest gunners in twelve |
+| 4. Terms of Protection | Latchkey and the Cinder Steps approach: defend the signed handover while technicians commission captured rig tooling | 3 squads; mixed sections recommended | 32,000 | A Boarding Jack section card, regardless of the chosen yard agreement; agreement ratified only on victory |
 | 5. A Small War | Black Sluice on the outer Silt Basin: seize the fuel-dispatch foothold and hand it to local holders | 3 squads plus construction; Hound optional | 44,000 | Completed local settlement, a separate recurring escort offer, and a future procurement introduction; no military suit card |
 
 Base completion fees total **168,000 credits** across the arc. House Custody can
@@ -138,7 +138,7 @@ account. Rebalance the whole ledger against a casualty-carryover run.
 ## 1 — Water Under Seal
 
 The playable first pass uses two existing Recovered Specter wearers among the
-regular Salt Knives. Replace those two fittings with the distinct Boarding Jack
+regular Berth Four collectors. Replace those two fittings with the distinct Boarding Jack
 when its pattern and layered art are validated; do not describe the interim kit
 as that unfinished pattern. The completed dossier records Rusk's sponsorship
 and opens Limited Warrant without granting equipment.
@@ -158,7 +158,7 @@ technicians travel through the ordinary convoy/escort path; they stop at contact
 2. Clear the switching rooms. Living technicians reconnect only while the actual
    work area is uncontested and protected by company troops.
 3. Bring the selected tender up to safe working range and begin one useful road
-   gun. A finite Salt Knife party approaches along the maintenance road while
+   gun. A finite Berth Four party approaches along the maintenance road while
    construction is underway. Two crude powered wearers support it; cover,
    flanking and concentrated ordinary fire must
    remain viable answers. No surprise demand for an unowned anti-tank weapon.
@@ -181,6 +181,10 @@ constables a position they can hold.”
 equipment in the bonded stores that your people could put to better use than mine.
 I can authorize its release. First we have to recover the records that make it useful.”
 
+**Voss, note to Rusk copied to the company:** “You've made the weir expensive. I
+can make other things expensive too.” It names no force and no date; it is the
+first sign that Greyhook is watching the company rather than the yard.
+
 ## 2 — Limited Warrant
 
 **Purpose:** earn a credible first suit pattern through a bounded recovery job.
@@ -190,7 +194,7 @@ physical recovery all matter.
 
 Use a compact bonded-storage compound at Low Quay's industrial edge: a shuttered
 loading court, a records office and a separate calibration cage connected by
-service galleries. Greyhook's Cask Runners are stripping cargo for transfer.
+service galleries. Greyhook's Drent Haulage crews are stripping cargo for transfer.
 There are no workers standing among enemy targets to manufacture a moral trap.
 
 Nadi Orr supplies a signed clinic shortage list and identifies medical consignments
@@ -201,7 +205,7 @@ company's equipment award.
 1. Secure the records office and confirm the restricted stock's shipping history.
 2. Escort the supplier's technician to the calibration cage and recover the
    identified kit. Disabling a wearer does not automatically produce a blueprint.
-3. A finite Runner rearguard tries to deny the loading exit. Recover the package
+3. A finite Drent Haulage rearguard tries to deny the loading exit. Recover the package
    through ordinary survivor egress while the tender and a small constable group
    cover the cleared approach. The sponsor's people cannot seize the prize alone.
 
@@ -211,10 +215,11 @@ package fails the attempt; the next commission explicitly funds replacement
 calibration material from the supplier, while the recovered records stay recorded.
 It never pays twice or pretends destroyed stock was intact.
 
-The victory delivers **Recovered Specter** technology. Its patched composite,
-worn actuators and short breach window explain why this is suitable for a small
-security contractor. Castle points to the card and ordinary Armory fitting; no
-marine changes equipment automatically.
+The victory delivers the **Tri-Tachyon Specter Section** card: ten marines in
+ordinary kit and two recovered Specter breachers. The suits' patched composite,
+worn actuators and short breach window explain why a small security contractor may
+field them. Castle points to the card and ordinary Armory fitting; no marine
+changes equipment automatically.
 
 **Rusk, signed warrant:** “The schedule names the patterns. The guarantee is mine.
 If a supplier offers you anything beyond it, you are negotiating with them.”
@@ -222,6 +227,10 @@ If a supplier offers you anything beyond it, you are negotiating with them.”
 **Castle, reward:** “We have the service files and the tools to use them. Take a
 look at the fitting before the next drop. Better protection still needs someone
 watching the flank.”
+
+**Voss's answer:** she raises the levy on the crews least able to pay. Nadi Orr's
+next shortage list, sent with the Chapter 3 offer, shows the cost in named clinic
+lines; Castle cites it rather than inferring Greyhook's books.
 
 ## 3 — The Yard's Owners
 
@@ -236,7 +245,7 @@ she is not an invulnerable escort actor or an enemy because workers resist new l
 
 1. Take dispatch and the freight gate. Constables occupy the first actual gain.
 2. Clear the tooling hall while preserving its marked calibration equipment.
-   Hookhand boarders use paired entrances and a finite reserve to contest it.
+   Voss's prize crews use paired entrances and a finite reserve to contest it.
 3. Secure the operator entrance so the maintenance party can work without passing
    through hostile positions. The full handover requires all three sites held
    together and a living technician finishing the observed inspection.
@@ -248,9 +257,10 @@ still apply. Losing the marked required tooling fails the handover; a replacemen
 inspection/refit is a disclosed new attempt, not a successful pristine-yard report.
 
 The inspection validates a locally rebuilt **Recovered Arbalest** package already
-listed in the warrant. The mission rewards its card. After both recovered roles
-are learned, Castle recommends **Salvage-assisted Section**: eight regular
-billets, two powered assault billets and two powered support billets.
+listed in the warrant, and the mission rewards the **Salvage-assisted Section**
+card that issues it: eight regular billets, two Specter breachers and two Arbalest
+support gunners. The card brings the whole section; nothing has to be learned
+first.
 
 During debrief, show the lease-arbitration order under Combine administration,
 arrears schedule, proposed new leases and Lenna's counterproposal as attributable
@@ -260,6 +270,11 @@ ledger absolves everybody, and clearing pirates has not ratified repossession.
 **Lenna, correspondence:** “You have opened the gate. Before you hand over the
 keys, read who is allowed through it tomorrow. Those benches repair the weir's
 pumps as well as Rusk's cargo gear.”
+
+**Lenna, on the company's history:** “Mara Venn says you broke a lien for Wayline
+on Jangala. Whose side is the lien on this time?” This is the arc's creditor rhyme
+(`a-small-war-arc.md`, Story spine). It accuses nobody; it makes the captain read
+the custody terms as someone who has stood on the other side of them.
 
 ## The handover decision
 
@@ -292,24 +307,42 @@ There is no simulated offscreen massacre while the player considers a menu.
 
 ## 4 — Terms of Protection
 
-**Purpose:** make the chosen responsibility a battlefield task and let the player
-use the mixed section before the finale. Revisit Latchkey with the secured
-entrance and inspection work visible, rather than erasing the previous victory.
+**Purpose:** the turn. Make the chosen responsibility a battlefield task, let the
+player use the mixed section before the finale, and show Greyhook acting against
+itself for the first time. Revisit Latchkey with the secured entrance and
+inspection work visible, rather than erasing the previous victory.
 
-House Custody brings a named custodial records carrier and a utilities crew.
-The compact brings a named joint-party carrier and the same utilities crew.
-Both use ordinary convoy movement, arrivals and vulnerable personnel. The actual
-handover happens at the dispatch house; technician work remains in the tooling hall.
-The participants and account differ, not the amount of invisible protection.
+**Voss, attributable warning before the operation:** “Pell collected his share
+from that yard. Your new agreement leaves him nothing. I've told him to leave it.
+Plan for him not listening.” Her warning discloses no exact unseen force or
+arrival tick. It establishes that what follows is Pell's choice, not her order.
+
+House Custody brings a named custodial records carrier, Rusk's estate guards and a
+utilities crew. The compact brings a named joint-party carrier, the same utilities
+crew and Lenna's fitters, who will not leave the tools while they are being
+commissioned. Both use ordinary convoy movement, arrivals and vulnerable
+personnel. The actual handover happens at the dispatch house; technician work
+remains in the tooling hall. The agreement changes the problem, not the amount of
+invisible protection:
+
+- **House Custody:** the estate guards hold the Cinder Steps lane on Rusk's terms,
+  which frees a company section and leaves the guards' post as the weak point.
+- **Yard Compact:** the fitters stay at the benches under fire, so the hall itself
+  must be held rather than merely its approaches.
 
 1. Escort the party in and occupy dispatch. No signature is inferred from proximity.
 2. Protect the hall while technicians finish commissioning the captured rig tools.
-3. Daro Pell's Salt Knives attempt to recover their levy records and destroy the
-   association's ability to refuse them. A second finite Hookhand group takes the
-   Cinder Steps service lane; public warnings come from actual reports or sightings.
+3. Daro Pell's Berth Four arrive to recover their levy records and break the
+   association's ability to refuse them. They bring a mortar team that ranges on the
+   commissioning work and two crude powered rigs: Greyhook's own rebuilt hardware,
+   the across-the-line view of the kit the company is about to wear. A second finite
+   party of prize crews takes the Cinder Steps service lane. Public warnings come
+   from actual reports or sightings.
 4. Use tender-built positions and allied holders to keep one approach covered
    while a company section moves against the other. Both duty areas fit within
    supporting distance; success must not require a larger squad-management burden.
+   Counter-battery is a real answer to the mortar; the tube must have a findable
+   position and an infantry approach.
 
 Victory requires the actual party delivered, dispatch secured, the calibration
 job finished by a living technician and the committed assaults resolved. At least
@@ -325,21 +358,26 @@ work and is delivered on either route. It is not payment for endorsing a politic
 choice or a bonus for killing powered wearers. The person explaining the reward
 may change if an actual casualty makes a particular witness unavailable.
 
-**Voss, attributable demand before the operation:** “Pell collected his share
-from that yard. Your new agreement leaves him nothing. You should plan for him
-to come and discuss it.” Her threat discloses no exact unseen force or arrival tick.
+**Rusk, in the Chapter 4 debrief:** “I have written to my family. I would rather
+not have. They will answer, and they will want to know why they had to.” He
+names no ship and no date; Castle does not guess at either.
+
+The recovered levy files carry the lead into Chapter 5: a dispatch order signed
+by Mika Drent whose load numbers match Nadi's shortage lists and identify Black
+Sluice's transfer schedule.
 
 ## 5 — A Small War
 
 **Purpose:** finish a bounded local conflict with the company visibly capable of
-holding ground. **Black Sluice**, Greyhook's fuel and dispatch pier on the outer
-Silt Basin, sustains the yard levies and transports their prizes offworld.
-Breaking this foothold matters without defeating every pirate operating in Arcadia.
+holding ground, and let it watch its own pressure split Greyhook. **Black Sluice**,
+Greyhook's fuel and dispatch pier on the outer Silt Basin, sustains the yard levies
+and moves their prizes offworld. Breaking this foothold matters without defeating
+every pirate operating in Arcadia.
 
-Chapter 4's recovered levy files include a Runner dispatch order signed by Mika
-Drent. Its load numbers match Nadi's shortage report and identify Black Sluice's
-transfer schedule. Local pilots confirm the service approach. Castle cites those
-sources when proposing the operation; he does not infer a hidden pirate base
+Chapter 4's recovered levy files include a Drent Haulage dispatch order signed by
+Mika Drent. Its load numbers match Nadi's shortage report and identify Black
+Sluice's transfer schedule. Local pilots confirm the service approach. Castle cites
+those sources when proposing the operation; he does not infer a hidden pirate base
 from the map or announce an unseen force roster.
 
 The map has a causeway customs block, a sheltered fuel-control house and the
@@ -349,38 +387,82 @@ a seizure target, not an invitation to destroy the district's usable supply.
 
 1. Seize the customs block and establish a tender-built rear position. Allied
    holders occupy the cleared building before the company advances.
-2. Take fuel control. The Cask Runners oppose the company along a known transfer
-   road while a finite Hookhand reserve covers dispatch. One visible support-gun
-   position punishes an exposed frontal approach but has an infantry flank.
-3. Capture dispatch and its surface transfer records. Reclaim any lost required
+2. Take fuel control. Drent Haulage opposes the company along a known transfer
+   road while a finite party of prize crews and Berth Four covers dispatch. One
+   visible support-gun position punishes an exposed frontal approach but has an
+   infantry flank.
+3. **The split.** When fuel control falls, Voss orders Black Sluice abandoned on an
+   open channel the company can hear. Drent Haulage takes the order: its surviving
+   crews withdraw physically along the service road and leave the map, and a
+   salvage rig lifts off from the pier. Berth Four refuses. Pell's people hold dispatch
+   out of grudge, and the prize crews split between them. The withdrawal is real
+   lost strength for Greyhook, not a scripted despawn of untouched troops, and it
+   happens only once the company has actually taken fuel control.
+4. Capture dispatch and its surface transfer records. Reclaim any lost required
    site, then escort the agreed local custody party to its actual control room.
-4. Victory requires all three sites held, the marked required fuel infrastructure
+5. Victory requires all three sites held, the marked required fuel infrastructure
    preserved, and the living custody party's completed handover. Destruction of
    that infrastructure fails the attempt; any later attempt records a disclosed
    replacement/refit under the employer-loss policy below. Untouched pirates
    elsewhere in the system do not block resolution.
 
+**The duel overhead.** When Voss orders the withdrawal, Greyhook's salvage rig,
+the Greyhook herself, tries to climb out from the pier escorted by two Hound (P)
+frigates. The pair of Wolf (H) frigates Rusk's family has lent from Citadel
+Arcadia comes in low over the basin to stop her. What follows is a short slugging
+match in atmosphere, two against two at close range over the pier: plating torn
+away, hulls crippled and driven down, while the company's fight goes on beneath.
+
+The matchup is the drama. The Wolfs are fast, shielded high-tech hunters with
+light armour; the Hounds are tough, unshielded low-tech brawlers, quicker in a
+straight line; the rig is slow and nearly unarmed. Pack tactics give the fight a
+shape: one Wolf pins the escorts while the other runs down the rig as it climbs,
+and the Hounds must choose between guarding their charge and saving themselves. A
+larger opponent was considered and rejected: a Venture's heavy armour and hull
+outlast two Wolfs' energy guns over a short visit, and its flight deck would bring
+fighters into a fight meant to stay gun against gun.
+
+- The player's fleet stays out of the sky. The company has no air role in the
+  duel and cannot order the Wolfs; they are the family's ships, not a support power.
+- The Wolfs fight the Hounds and the rig, not Black Sluice's ground garrison. They
+  answer no calls for fire and make no ground objective easier by existing. Stray
+  fire and falling wreckage are real on the ground in both directions.
+- Nothing about the duel is scripted. A Wolf can be crippled or break off; a Hound
+  can be shot down onto the basin; the rig can escape. The debrief reports what
+  actually happened, and ground victory never depends on it.
+- Two frigates, one finite visit. Rusk's letter after Chapter 4 explains their
+  arrival; they leave when the engagement ends. Their presence is a warning to the
+  Combine and to Agreus, not Hegemony protection of the district.
+- Ship-versus-ship fighting in atmosphere is new engine work. The chapter is not
+  ready to build until that capability exists.
+
 Sera Voss coordinates through transmissions from outside the battle. No invulnerable
-boss avatar or mandatory escape is needed. The confirmed result is loss of this
-surface facility and its organized levy route. The debrief does not invent her
-death, the destruction of her fleet or permanent safety for every settlement.
+boss avatar or mandatory escape is needed. Her last line on the channel tells the
+company she is alive and what she has lost: “Keep the pier. I've lost worse
+berths.” The confirmed result is loss of this surface facility and its organized
+levy route. The debrief does not invent her death, the destruction of her fleet or
+permanent safety for every settlement.
 
 The ending names the selected agreement, confirmed losses and delivered rewards.
-The company receives the fee and any earned premium, a closed story dossier and
-an introduction to a more demanding procurement contact. That contact is a lead
-for a later authored arc, not an unimplemented shop or a tier-IV unlock button.
+The company receives the fee and any earned premium and a closed story dossier.
+The once-only settlement sets `AgreusArcProgress.smallWarSettled`, which sends the
+Hegemony auxiliary warrant's offer (`progression-nouns.md`, Kit and armory). The
+warrant comes because Rusk's family, having lent the frigates, has noticed the
+company; the more demanding procurement contact is the Hegemony itself.
 
 **Castle, closing assessment:** “Rusk is asking what it would take to keep us here.
 He wasn't asking that when we arrived.” Loss-aware surrounding text acknowledges
-the actual company cost before describing the invitation.
+the actual company cost before describing the invitation. The arc ends grey on
+purpose (`a-small-war-arc.md`, Story spine): the company is now the private order
+that a state leans on, and a later arc can ask what that costs.
 
 ## Equipment specification and issue
 
 | Pattern | Authored identity / status | Role and initial protection | Capability and limit |
 | --- | --- | --- | --- |
-| Recovered Specter | Existing `armor.specter-recovered`; chapter-2 card `equipment-template:armor.specter-recovered` | Tier III POWER_SUIT ASSAULT; capacity 36, rating 8, movement x0.90 | Existing Service Predictive Breach, 1.5-second window and 18-second cooldown; below military Specter's 55 capacity / 10 rating |
-| Recovered Arbalest | Existing `armor.arbalest-recovered`; chapter-3 card `equipment-template:armor.arbalest-recovered` | Tier III POWER_SUIT SUPPORT; capacity 34, rating 9, movement x0.80 | Existing Service shoulder battery: two finite salvos, six-cell standoff and shared 1.5-second squad cadence; military carries four salvos and 50 capacity / 11 rating |
-| Boarding Jack | Proposed `armor.boarding-jack`; chapter-4 card `equipment-template:armor.boarding-jack` | Tier III POWER_SUIT ASSAULT, pirate provenance; trial capacity 40, rating 6, movement x0.82, incoming accuracy x1.04 | Surplus **Latch Assist**, using existing breacher-assist behavior: trial 2-second window, 22-second cooldown, movement x1.15, directional soak 4 over 100 degrees. No new melee damage, infinite shield or failure lottery. |
+| Recovered Specter | Existing `armor.specter-recovered`; worn in the chapter-2 card `loadout-card:sheet:armor:corporate-specter-section` | Tier III POWER_SUIT ASSAULT; capacity 36, rating 8, movement x0.90 | Existing Service Predictive Breach, 1.5-second window and 18-second cooldown; below military Specter's 55 capacity / 10 rating |
+| Recovered Arbalest | Existing `armor.arbalest-recovered`; worn in the chapter-3 card `loadout-card:sheet:armor:salvage-assisted` | Tier III POWER_SUIT SUPPORT; capacity 34, rating 9, movement x0.80 | Existing Service shoulder battery: two finite salvos, six-cell standoff and shared 1.5-second squad cadence; military carries four salvos and 50 capacity / 11 rating |
+| Boarding Jack | Proposed `armor.boarding-jack`; worn in a proposed chapter-4 section card | Tier III POWER_SUIT ASSAULT, pirate provenance; trial capacity 40, rating 6, movement x0.82, incoming accuracy x1.04 | Surplus **Latch Assist**, using existing breacher-assist behavior: trial 2-second window, 22-second cooldown, movement x1.15, directional soak 4 over 100 degrees. No new melee damage, infinite shield or failure lottery. |
 
 The Boarding Jack is a rebuilt loading/boarding frame: compact pressure helmet,
 welded mismatched plate, visible joint backing, guarded hoses and manual service
@@ -399,13 +481,18 @@ with disciplined fire and appropriate anti-armor equipment should overmatch thes
 rigs in exposed combat. Good terrain and supporting tactics can still matter;
 there is no automatic faction-versus-faction defeat modifier.
 
-The two recovered suits are ordinary Advanced early templates, a tier below their
-military patterns, offered through faction pools like any other. The Agreus rewards
-are ordinary tactic-sheet cards built around them: the Specter section (two powered
-breachers in a section of regular marines) and the Salvage-assisted section (two
-breachers and two support gunners). A new pirate suit follows the same shape: an
-ordinary template plus a light mixed sheet, with its complete pattern, template and
-presentation declaration before it can be awarded.
+**What the player learns is a card.** A loadout card is the technology: the
+knowledge and the licence to build and outfit one particular twelve-person
+section. There is no learning a suit. Outfitting all twelve marines in powered
+armour is simply not something an ordinary contractor in this sector can do
+without a licence that says so, and the company does not have one yet.
+
+The Agreus rewards are section cards built around two recovered suits a tier below
+their military patterns: the Tri-Tachyon Specter Section (two powered breachers
+among ten regular marines) and the Salvage-assisted Section (two breachers and two
+support gunners among eight). A new pirate suit follows the same shape. The
+Boarding Jack arrives inside its own light section card, and its complete pattern
+and presentation must be declared before the card can be awarded.
 
 Each award delivers its validated loadout card through ordinary cargo learning.
 Learning is explicit and permanent; fitting is an explicit free Armory transaction.
@@ -415,24 +502,21 @@ of later learning. A deliberately discarded or sold card is not regranted by
 reopening a debrief. Spec inspection and Fit Squad advice remain available without
 granting another card or silently changing named kit.
 
-**Mixed equipment belongs within a squad.** An individual marine's issued armor
-and weapons need not match their squadmates'. Class, role and pattern choices
-describe billets and their wearers, not indivisible squad equipment packages.
-The existing **Salvage-assisted Section** is one suggested arrangement: eight
-regular billets, two powered assault and two powered support. That particular
-sheet needs both suit roles, so it becomes usable after learning both chapter
-rewards. That requirement belongs to this preset; future mixed presets can use
-different roles and ratios.
+**A loadout card prescribes the whole squad.** The player chooses one weapon card
+and one armor card per squad of twelve, and each card fixes what every billet
+receives. The player never picks the mix inside a card, and a card never borrows
+kit from another. Mixed equipment therefore means a card whose billets differ.
 
-Learning still permits free fitting wherever the available sheet requests that
-equipment. The current full-suit sheets allow role fallback inside POWER_SUIT,
-so Specter alone can also supply a fully powered squad if the player chooses.
-That possibility is not a uniform-equipment requirement or a finite shell pool.
-Teach why regular scouts, riflemen and medics remain useful alongside suit wearers.
-Boarding Jack can enter the assault pool after Chapter 4, so the preview must show
-each marine's actual resolved kit. Further mixed presets or fitting controls must
-preserve that per-marine identity. Enforced gradual mechanization would require
-a separately agreed issue policy.
+**The arc's kit ceiling.** Agreus lets the player taste powered fighting, not
+wield it. Every armor card the arc awards or depends on is a section card with at
+most four powered billets in twelve, worn as recovered tier-III rebuilds.
+All-suit cards, which prescribe twelve powered billets, stay behind the Restricted
+tier and the Hegemony auxiliary warrant that this arc's ending sends. If an
+all-suit card is reachable earlier through another source, that is a gap in the shared
+acquisition gate, not a feature of this arc. Teach why regular scouts, riflemen
+and medics remain useful alongside suit wearers. Boarding Jack can enter the
+assault pool after Chapter 4, so the preview must show each marine's actual
+resolved kit.
 
 Military Specter, Arbalest and the other tier-IV suits are not rewards here.
 Their existing Prestige patron/recovery routes currently ignore Shepherd history:
@@ -441,9 +525,12 @@ progression therefore remains a release dependency. A future shared acquisition
 policy must gate *new* military POWER_SUIT awards behind a real later procurement
 milestone across every source, while preserving learned, carried and issued gear
 in existing saves. Do not disable the current routes until that later obtainable
-route exists, or claim that writing this story has installed the gate. That policy is
-planned as `restricted-equipment-warrants.md`, with `hegemony-auxiliary-warrant.md`
-as the authored procurement route this chapter's introduction leads to. Advanced
+route exists, or claim that writing this story has installed the gate. The shared gate has
+shipped as the Restricted tier with standing military warrants (`progression-nouns.md`,
+Kit and armory); the Hegemony auxiliary warrant (same section) is the authored
+procurement route this chapter's introduction leads to. Chapter 5's once-only
+settlement must set `AgreusArcProgress.smallWarSettled`: that flag is what sends
+the warrant's offer, and nothing else sets it. Advanced
 STANDARD armor and unrelated equipment retain their own access and purposes.
 
 ## Force, support and failure contract
@@ -570,12 +657,12 @@ military equipment to compensate for a harder map.
 3. Live-test Limited Warrant's readable terms, named roster/fitted boats, physical
    recovery and first card. Verify leaving the offer, retreat, replacement
    mobilization, duplicate result and save/reload, including an existing completed
-   North Weir save. Learn the cargo card, explicitly fit Tri-Tachyon Specter
-   Protection, then deploy those same named people. Detached battle and reward
+   North Weir save. Learn the cargo card, explicitly fit the Tri-Tachyon Specter
+   Section, then deploy those same named people. Detached battle and reward
    checks do not substitute for live host persistence acceptance.
 4. Live-test The Yard's Owners and its once-only Arbalest card, including losses,
-   replacement attempts and save/reload. Learn both cards and explicitly fit the
-   mixed section to surviving named marines. Detached regular, Specter and earned
+   replacement attempts and save/reload. Learn the card and explicitly fit the
+   Salvage-assisted Section to surviving named marines. Detached regular, Specter and earned
    mixed-roster replays cover inspection and fitting; live host acceptance remains.
    Preserve ordinary lift costs and the unsigned custody agreement.
 5. Build and validate Boarding Jack's data, layered visuals and existing-system
@@ -588,11 +675,16 @@ military equipment to compensate for a harder map.
    usefulness; synthetic protection numbers alone do not accept the power curve.
 7. Author the later military procurement route and implement its shared source
    gate before claiming a strict story-first progression for fresh campaigns.
-   Planned as `restricted-equipment-warrants.md` and `hegemony-auxiliary-warrant.md`.
+   The shared gate and the authored route have shipped (`progression-nouns.md`,
+   Kit and armory); the route waits on Chapter 5 setting
+   `AgreusArcProgress.smallWarSettled`.
 
 All mission, choice and reward text starts as readable correspondence with Castle's
 fact-bound operational briefing. The sample lines above are unrecorded copy, not
-ElevenLabs jobs. Portraits, location art, voice production and native 1920x1080 / 100%
+ElevenLabs jobs. New speakers (Rusk, Lenna, Voss, Edek, Nadi, Pell, Drent) ship as
+text with `voiced: false`: the ElevenLabs account is at its voice limit, so their
+casting is deferred until a slot is free. Castle and Mara lines may be recorded
+with their existing voices. Portraits, location art, voice production and native 1920x1080 / 100%
 UI-scale previews require their own authored assets and acceptance. Headless
 evidence does not establish live travel, host save/reload or campaign-overhaul
 compatibility; keep those acceptance items open until observed in the game.

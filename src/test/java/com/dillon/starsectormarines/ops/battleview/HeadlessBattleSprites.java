@@ -316,6 +316,40 @@ final class HeadlessBattleSprites extends BattleSprites {
 
     @Override public SpriteAPI warshipEngineFlameSprite() { return warshipEngineFlame; }
     @Override public SpriteAPI warshipEngineGlowSprite() { return warshipEngineGlow; }
+    /**
+     * The smoke utility sprites, off the resource roots. The base class loads them through {@code Global.getSettings().loadTexture}, a
+     * stub here, so a headless frame of a screen showed the soldiers either side of it and no smoke between them. Loaded on first
+     * use rather than in the constructor: the catalog that names the sheet is installed after the sprites are made.
+     */
+    private SpriteAPI smokeSheet;
+    private SpriteAPI smokeGrenade;
+    private boolean smokeLoaded;
+
+    private synchronized void loadSmoke() {
+        if (smokeLoaded) return;
+        smokeLoaded = true;
+        try {
+            SpecialEquipmentDef smoke = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID);
+            if (smoke.presentation().thrown() != null) smokeGrenade = spriteOrNull(smoke.presentation().thrown().spritePath());
+            if (smoke.presentation().field() != null) smokeSheet = spriteOrNull(smoke.presentation().field().sheetPath());
+        } catch (RuntimeException notInstalled) {
+            smokeSheet = null;
+            smokeGrenade = null;
+        }
+    }
+
+    @Override public SpriteAPI smokeFieldSheet() {
+        loadSmoke();
+        return smokeSheet;
+    }
+
+    @Override public SpriteAPI smokeGrenadeSprite() {
+        loadSmoke();
+        return smokeGrenade;
+    }
+
+    @Override public void ensureSmokeSprites() { }
+
     @Override public SpriteAPI engineFlameSprite() { return engineFlame; }
     @Override public SpriteAPI engineGlowSprite() { return engineGlow; }
     @Override public SpriteAPI shadowBlobSprite() { return shadowBlob; }

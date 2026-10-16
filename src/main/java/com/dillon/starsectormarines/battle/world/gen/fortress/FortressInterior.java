@@ -313,7 +313,7 @@ public final class FortressInterior {
         for (RoomPacker.Placed room : placed) {
             RoomFitting fitting = RoomFittings.forInstallation(room.purpose());
             if (fitting == null && authored) fitting = switch (room.purpose()) {
-                case KEEP_THRONE, CONTROL_ROOM -> new AisleFitting(room.purpose(), FixtureGroup.of(
+                case CONTROL_ROOM -> new AisleFitting(room.purpose(), FixtureGroup.of(
                         "doodad.military-command-console", 2, 1));
                 default -> null;
             };

@@ -1,12 +1,14 @@
 package com.dillon.starsectormarines.battle.command.trace;
 
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolAllowance;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolDeclaration;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolStock;
 import com.dillon.starsectormarines.battle.command.AssaultStyle;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.infantry.SquadSupportDeclaration;
 import com.dillon.starsectormarines.battle.infantry.SquadSupportKit;
 import com.dillon.starsectormarines.battle.mech.MechDropAllowance;
@@ -17,7 +19,9 @@ import com.dillon.starsectormarines.battle.command.compound.CompoundService.Comp
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
+import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
 import com.dillon.starsectormarines.battle.setup.DefenderRoster;
 import com.dillon.starsectormarines.battle.setup.GroundRosterRegistry;
 import com.dillon.starsectormarines.battle.setup.ShuttleArrivalPlan;
@@ -28,6 +32,7 @@ import com.dillon.starsectormarines.battle.world.gen.ConquestTrialGround.Placeme
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.testsupport.InstalledHullEngines;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.ops.OperationTier;
@@ -42,7 +47,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Locale;
@@ -67,7 +75,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * a JSON array of objects; every field but {@code id} is optional: {@code seed}, {@code placement}
  * ({@code ON_PATH}/{@code OFFSET}), {@code offset}, {@code shuttleType}, {@code shuttles}, {@code seats},
  * {@code cycles}, {@code elites}, {@code militia}, {@code patrolSize}, {@code objectiveGarrison}, {@code keepGarrison}
- * {@code risk}, and {@code airDefence} (true stamps the fort's optional anti-air yard; absent none).
+ * {@code risk}, and {@code airDefence} (true stamps the fort's optional anti-air yard; absent none). Two fields exist so a close breach is planned
+ * rather than hoped for: {@code fortFacing} ({@code LANDING} default, or {@code NORTH}/{@code EAST}/{@code WEST}) turns the main gate, so the lane
+ * squads meet another face of the works and the gate's nests are not worn down before the company commits; and {@code launcherEvery} N keeps
+ * the factory rocket launcher on every Nth squad only (0 none; absent leaves the rolls alone), because a company that all carry launchers
+ * can open a wall from range and never needs a sapper. The sapper and screener periods ({@code satchelEvery}, {@code smokeEvery} in
+ * {@code supportKit}) are honoured on this factory force as on a named company.
  * {@code -PsnapshotEveryTicks=N} renders review frames and a {@code visuals/<fixture>/review.gif}.
  *
  * <p>The phased-assault fields are additive and, when omitted, leave production defaults alone: {@code muster} (false declares the
@@ -85,6 +98,8 @@ class ConquestTrialEvidenceTest {
     private static final String PREFIX = "conquest.trial.evidence";
     /** Within this many cells of the fort's centre a marine is "at the fort" for the readings: about its belt. */
     private static final float FORT_REACH = 45f;
+    /** A cloud thrown to stand at least this long (seconds) is a pot's, not a hand grenade's. */
+    private static final float POT_SECONDS = 45f;
 
     @Test
     void playsTheTrialMatrix() throws Exception {
@@ -129,6 +144,17 @@ class ConquestTrialEvidenceTest {
         System.out.println("[conquest-trial] report " + output.resolve("summary.md").toAbsolutePath());
     }
 
+    /**
+     * The kit object of a fixture: periods for mortar teams, observers, sappers (satchel charges) and screeners (smoke pots). A
+     * {@code "base": "conquest"} names the standing mortar and observer periods (6 and 4) for the fields it does not give, so a
+     * fixture adds sappers and smoke to that kit without restating it. Absent sapper fields issue none.
+     */
+    static SquadSupportKit kitOf(JSONObject k) {
+        boolean base = "conquest".equals(k.optString("base", ""));
+        return new SquadSupportKit(k.optInt("mortarTeamEvery", base ? 6 : 0), k.optInt("observerEvery", base ? 4 : 0),
+                k.optInt("satchelEvery", 0), k.optInt("smokeEvery", 0));
+    }
+
     private static JSONArray fixtures() throws Exception {
         String custom = System.getProperty(PREFIX + ".fixture.path", "").trim();
         if (!custom.isEmpty()) return new JSONArray(Files.readString(Path.of(custom)));
@@ -171,7 +197,7 @@ class ConquestTrialEvidenceTest {
         Object kit = f.opt("supportKit");
         if (kit instanceof JSONObject k) {
             profile = profile.withDeclaredSupportKit(SquadSupportDeclaration.NONE.with(Faction.MARINE,
-                    new SquadSupportKit(k.optInt("mortarTeamEvery", 0), k.optInt("observerEvery", 0))));
+                    kitOf(k)));
         } else if ("conquest".equals(kit)) {
             profile = profile.withDeclaredSupportKit(SquadSupportDeclaration.NONE.with(Faction.MARINE,
                     new SquadSupportKit(6, 4)));
@@ -274,7 +300,8 @@ class ConquestTrialEvidenceTest {
         Placement placement = Placement.valueOf(f.optString("placement", Placement.ON_PATH.name()));
         ConquestTrialGround.Ground ground = ConquestTrialGround.generate(seed, placement,
                 f.optInt("offset", ConquestTrialGround.DEFAULT_OFFSET),
-                f.optInt("objectiveGarrison", 8), f.optInt("keepGarrison", 12), f.optBoolean("airDefence", false));
+                f.optInt("objectiveGarrison", 8), f.optInt("keepGarrison", 12), f.optBoolean("airDefence", false),
+                ConquestTrialGround.Facing.valueOf(f.optString("fortFacing", ConquestTrialGround.Facing.LANDING.name())));
         List<ShuttleAssignment> manifest = new ArrayList<>();
         ShuttleType type = ShuttleType.valueOf(f.optString("shuttleType", ShuttleType.VALKYRIE.name()));
         for (int s = 0; s < f.optInt("shuttles", 4); s++) {
@@ -293,6 +320,7 @@ class ConquestTrialEvidenceTest {
                 GroundRosterRegistry.resolve(""), roster);
         try (BattleSimulation sim = build.sim();
              CommanderEvidenceCapture capture = CommanderEvidenceCapture.open(visualRoot, id, sim)) {
+            thinLaunchers(sim, f.optInt("launcherEvery", -1));
             // The comparison control: with false the forts keep their radar but call nothing in, for this battle only.
             sim.forts().setSpotting(f.optBoolean("fortSpotting", true));
             FortOutcomes forts = new FortOutcomes();
@@ -311,6 +339,8 @@ class ConquestTrialEvidenceTest {
             int firstAtFort = -1;
             int peakAtFort = 0;
             int marineSamplesAtFort = 0;
+            Set<Long> wallCharges = new HashSet<>();
+            Set<Long> screenClouds = new HashSet<>();
             CompoundService compounds = sim.getCompoundService();
             while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                 sim.advance(BattleSimulation.TICK_DT);
@@ -321,6 +351,12 @@ class ConquestTrialEvidenceTest {
                 fireSupport.sample(sim);
                 contested.sample(sim);
                 bunkerProbe.sample(sim);
+                for (SatchelChargeService.ChargeView charge : sim.satchelCharges().activeCharges()) {
+                    if (charge.targetId() == 0L) wallCharges.add(charge.id());
+                }
+                for (SmokeFieldService.SmokeFieldView cloud : sim.smokeFields().activeFields()) {
+                    if (cloud.totalDuration() >= POT_SECONDS) screenClouds.add(cloud.id());
+                }
                 peakMarines = Math.max(peakMarines, count(sim, Faction.MARINE));
                 if (objectiveTaken < 0 && held(compounds, ground.objective())) objectiveTaken = tick;
                 if (keepTaken < 0 && held(compounds, ground.keep())) keepTaken = tick;
@@ -359,6 +395,7 @@ class ConquestTrialEvidenceTest {
                     + f.optString("airPool", "-") + "\n"
                     + String.format(Locale.ROOT, "- fort wall cells opened: %d (of which %d at the start)%n",
                             wallOpenAtEnd, wallOpenAtStart)
+                    + String.format(Locale.ROOT, "- satchel charges set on walls: %d; smoke pot clouds stood: %d%n", wallCharges.size(), screenClouds.size())
                     + String.format(Locale.ROOT, "- companies (marine trace notes): formed %d, committed %d, broken %d, "
                             + "stood down %d, dissolved %d, recruits released %d, strikes asked %d%n",
                             life[0], life[1], life[2], life[3], life[4], life[5], life[6])
@@ -384,6 +421,8 @@ class ConquestTrialEvidenceTest {
                             .put("marine", sim.airPool().callsFromForts(Faction.MARINE)))
                     .put("skyNotes", skyNotes(trace))
                     .put("bunker", bunkerProbe.json())
+                    .put("wallChargesSet", wallCharges.size())
+                    .put("potCloudsStood", screenClouds.size())
                     .put("sectionsOpened", sim.fieldMortars().sections().opened())
                     .put("sectionsExpired", sim.fieldMortars().sections().expired())
                     .put("sectionsAbandoned", sim.fieldMortars().sections().abandoned())
@@ -391,6 +430,36 @@ class ConquestTrialEvidenceTest {
                     .put("sectionSecondsHeld", Math.round(sim.fieldMortars().sections().secondsHeld()))
                     .put("sectionRounds", sim.fieldMortars().sections().roundsFired());
             return new Outcome(id, row, detail, json, trace);
+        }
+    }
+
+    /**
+     * Force composition: the factory rolls a rocket launcher into the last seat of every squad, and a company of those can open a wall
+     * from range, so the plan never needs a sapper. {@code launcherEvery} N keeps the launcher on every Nth squad of the lift only
+     * (0 on none); absent (-1) leaves the factory rolls alone. Squads are counted in lift order, as the support kit is.
+     */
+    private static void thinLaunchers(BattleSimulation sim, int every) {
+        if (every < 0) return;
+        List<ShuttleMission> missions = new ArrayList<>();
+        for (long air : sim.getAirEntityIds()) {
+            if (sim.world().airFaction(air) != Faction.MARINE) continue;
+            ShuttleMission mission = sim.world().mission(air);
+            if (mission != null && mission.cycleLoadouts != null) missions.add(mission);
+        }
+        missions.sort(Comparator.comparingInt(m -> m.manifestOrdinal));
+        int ordinal = 0;
+        for (ShuttleMission mission : missions) {
+            for (MarineLoadout[] cycle : mission.cycleLoadouts) {
+                if (cycle == null) continue;
+                boolean keep = every > 0 && ordinal % every == every - 1;
+                if (!keep) {
+                    for (int i = 0; i < cycle.length; i++) {
+                        if (SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID.equals(cycle[i].specialEquipmentId)) cycle[i] = cycle[i].withSpecial(null, 0);
+                    }
+                }
+                ordinal++;
+            }
+            mission.marineLoadout = mission.cycleLoadouts[Math.min(Math.max(mission.currentCycle, 0), mission.cycleLoadouts.length - 1)];
         }
     }
 

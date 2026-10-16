@@ -27,7 +27,7 @@ import java.util.Map;
 
 /**
  * Shared debug-render helpers for BSP/grown-road map-generation previews.
- * Moved out of {@link BspMapPreviewTest} so other preview tests (e.g. the
+ * Moved out of {@link BspMapPreviewSnapshotSuite} so other preview tests (e.g. the
  * grown-road-graph comparison) can reuse the same readable colour scheme
  * and overlay drawing without duplicating it.
  *

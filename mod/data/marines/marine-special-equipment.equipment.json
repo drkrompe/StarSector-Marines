@@ -236,6 +236,75 @@
       }
     },
     {
+      "id": "special.smoke-pot",
+      "catalog": {
+        "displayName": "@gearCatalogSpecialSmokePotDisplayName",
+        "subtitle": "@gearCatalogSpecialSmokePotSubtitle",
+        "factionLogo": "graphics/factions/persean_league.png",
+        "description": "@gearCatalogSpecialSmokePotDescription"
+      },
+      "activation": {
+        "type": "utility-smoke",
+        "throwRange": 9.0,
+        "throwDuration": 1.2,
+        "flightSeconds": 0.7,
+        "arcHeight": 1.2,
+        "cloudRadius": 3.0,
+        "cloudDuration": 150.0,
+        "thinSeconds": 30.0
+      },
+      "resource": {
+        "mode": "ammunition",
+        "startingAmmo": 2
+      },
+      "ai": {
+        "policy": "squad-smoke-screen"
+      },
+      "presentation": {
+        "armoryIcon": "graphics/ui/armory/special-smoke-grenades.png",
+        "aimSprite": null,
+        "usePose": "throw",
+        "carrierLayer": {
+          "sprite": "graphics/ui/armory/special-smoke-grenades.png",
+          "widthShoulders": 0.26,
+          "heightShoulders": 0.26,
+          "pivot": [0.5, 0.5],
+          "carried": {
+            "offsetShoulders": [-0.16, 0.02],
+            "angleDegrees": -30.0,
+            "occlusion": "over-body"
+          },
+          "using": {
+            "offsetShoulders": [0.0, 0.32],
+            "angleDegrees": 0.0,
+            "occlusion": "over-body"
+          }
+        },
+        "thrown": {
+          "sprite": "graphics/ui/armory/special-smoke-grenades.png",
+          "widthCells": 0.26,
+          "heightCells": 0.5
+        },
+        "layerClips": {
+          "variant": "smoke",
+          "using": "throwing"
+        },
+        "field": {
+          "sheet": "graphics/battle/fx/smoke-field-sheet.png",
+          "columns": 4,
+          "rows": 2,
+          "firstFrame": 0,
+          "frameCount": 6,
+          "framesPerSecond": 4.0,
+          "tint": [1.0, 1.0, 1.0]
+        },
+        "preview": {
+          "state": "using",
+          "phase": 0.6
+        }
+      }
+    },
+    {
       "id": "special.frag-grenade",
       "catalog": {
         "displayName": "@gearCatalogSpecialFragGrenadeDisplayName",

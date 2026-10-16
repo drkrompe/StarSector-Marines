@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.ship.HullClass;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullRole;
 import com.dillon.starsectormarines.battle.world.gen.ship.TestHulls;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -37,6 +38,7 @@ class ShipInteriorTest {
     private static final CompanyShip FIGHTER = new CompanyShip(
             HullClass.FIGHTER, HullRole.WARSHIP, 1, 2, 0, 0.90f);
 
+    @Tag("generated-space-evidence")
     @Test
     @DisplayName("a preview is of the deck the player would actually get")
     void whatIsPreviewedIsWhatTheShipHas() {

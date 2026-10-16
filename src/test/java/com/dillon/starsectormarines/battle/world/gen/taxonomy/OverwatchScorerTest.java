@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -28,6 +29,7 @@ public class OverwatchScorerTest {
     private static final long[] LEGACY_SEEDS = { 1L, 42L, 100L, 777L, 1234L, 9999L };
     private static final long[] CONQUEST_SEEDS = { 1L, 42L, 100L, 777L };
 
+    @Tag("generated-space-evidence")
     @Test
     void everySiteIsAGenuineCornerTower() {
         BspCityGenerator gen = new BspCityGenerator();
@@ -86,6 +88,7 @@ public class OverwatchScorerTest {
         return run;
     }
 
+    @Tag("generated-space-evidence")
     @Test
     void conquestSitesFireTowardTheAttacker() {
         BspCityGenerator gen = new BspCityGenerator();

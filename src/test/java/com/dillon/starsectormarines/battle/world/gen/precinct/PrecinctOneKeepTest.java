@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * <p>Asked of a whole generated map because the fault is about how many there
  * are, which is a property of the map and not of one filler call.
  */
+@Tag("generated-space-evidence")
 class PrecinctOneKeepTest {
 
     private static final int W = 560;

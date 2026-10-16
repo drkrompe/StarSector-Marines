@@ -957,6 +957,8 @@ public final class BattleFixtureJson {
                 JSONObject kit = new JSONObject();
                 kit.put("mortarTeamEvery", side.getValue().mortarTeamEvery());
                 kit.put("observerEvery", side.getValue().observerEvery());
+                if (side.getValue().satchelEvery() > 0) kit.put("satchelEvery", side.getValue().satchelEvery());
+                if (side.getValue().smokeEvery() > 0) kit.put("smokeEvery", side.getValue().smokeEvery());
                 sides.put(side.getKey().name(), kit);
             }
             encoded.put("declaredSupportKit", sides);
@@ -1045,7 +1047,8 @@ public final class BattleFixtureJson {
             String name = (String) names.next();
             JSONObject kit = sides.getJSONObject(name);
             declaration = declaration.with(enumValue(Faction.class, name, "faction"),
-                    new SquadSupportKit(kit.optInt("mortarTeamEvery", 0), kit.optInt("observerEvery", 0)));
+                    new SquadSupportKit(kit.optInt("mortarTeamEvery", 0), kit.optInt("observerEvery", 0),
+                            kit.optInt("satchelEvery", 0), kit.optInt("smokeEvery", 0)));
         }
         return declaration;
     }

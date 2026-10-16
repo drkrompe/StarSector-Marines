@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayDeque;
@@ -116,6 +117,7 @@ class IndustrialFacilityFloorPlanTest {
                 "compact warehouse stock uses real fitted footprints");
     }
 
+    @Tag("generated-space-evidence")
     @Test
     void representativeCitySeedsProduceLargeIndustrialFacilities() {
         BspCityGenerator generator = new BspCityGenerator();

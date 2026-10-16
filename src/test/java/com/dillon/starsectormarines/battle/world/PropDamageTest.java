@@ -135,6 +135,23 @@ class PropDamageTest {
         }
     }
 
+    @Test void armoryBasesCollapseTheirSupportedLayersInEveryPose() {
+        for (int turn=0;turn<4;turn++) for (boolean mirror : new boolean[]{false,true})
+            for (String base : List.of("armory-workshop.rack", "armory-workshop.bench")) try (Ground g=new Ground()) {
+                g.prop(base,true,turn,mirror);
+                List<String> layers = base.endsWith("rack")
+                        ? List.of("armory-workshop.rifles", "armory-workshop.rack-frame")
+                        : List.of("armory-workshop.bench-tools");
+                for (String layer : layers)
+                    g.props.addDoodad(new Doodad(3,3,TileRegistry.installed().doodad(layer),turn,mirror));
+                g.editor.damageWall(3,3,100);
+                for (Doodad d : g.props.getDoodads()) {
+                    assertTrue(d.definitionId().endsWith("-destroyed"));
+                    assertEquals(turn,d.quarterTurns); assertEquals(mirror,d.mirrored);
+                }
+            }
+    }
+
     @Test void beddingRegisteredBeforeItsBedCollapsesWithTheBase() {
         try(Ground g=new Ground()) {
             g.props.addDoodad(new Doodad(3,3,TileRegistry.installed().doodad("sickbay-clinic.linen-low"),0));

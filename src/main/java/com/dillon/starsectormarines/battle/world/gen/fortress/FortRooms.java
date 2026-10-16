@@ -2,6 +2,10 @@ package com.dillon.starsectormarines.battle.world.gen.fortress;
 
 import com.dillon.starsectormarines.battle.fort.FortAspect;
 import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
+import com.dillon.starsectormarines.battle.world.gen.fit.LogisticsKit;
+import com.dillon.starsectormarines.battle.world.gen.fit.PowerPlantKit;
+import com.dillon.starsectormarines.battle.world.gen.fit.LogisticsKit.Stock;
+import com.dillon.starsectormarines.battle.world.gen.fit.layout.LayoutOp;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.ArrayList;
@@ -83,30 +87,33 @@ final class FortRooms {
                 List.of(new int[]{0, 1}, new int[]{2, 1}), null, CONTROL_HALL_ART);
     }
 
-    /** The eight-by-six ammunition store: racks down both side walls, the core against the back wall. */
+    /** The eight-by-six magazine: a loaded rack, secured ammunition and staged cases around the protected core. */
     static FortRoom store(int x, int y, List<Doorway> doors) {
-        FortRoomKit kit = new FortRoomKit(6, false)
-                .lane(1, 3, 6, 3)
-                .run(0, 0, 0, 5, FortRoomKit.CRATES)
-                .run(7, 0, 7, 5, FortRoomKit.CRATES);
-        return new FortRoom(FortAspect.MAGAZINE, true, RoomPurpose.ARMORY, x, y, 8, 6, doors, kit.ops(),
+        List<LayoutOp> storage = List.of(
+                new LayoutOp.Lane(2, 0, 1, 6),
+                new LayoutOp.Lane(2, 3, 4, 3),
+                new LayoutOp.Lane(6, 2, 2, 2),
+                LogisticsKit.rack(Stock.CASES).at(0, 0),
+                LogisticsKit.ammunition().at(6, 0),
+                LogisticsKit.pallet(Stock.CASES).at(6, 4));
+        return new FortRoom(FortAspect.MAGAZINE, true, RoomPurpose.ARMORY, x, y, 8, 6, doors, storage,
                 List.of(), new int[]{4, 1}, null);
     }
 
     /** The loading bay in front of the store: pallets along the walls, a wide door onto the road. */
     static FortRoom loadingBay(int x, int y, List<Doorway> doors) {
-        FortRoomKit kit = new FortRoomKit(3, false)
-                .lane(2, 0, 3, 3)
-                .run(0, 0, 0, 1, FortRoomKit.PALLETS)
-                .run(7, 0, 7, 2, FortRoomKit.PALLETS)
-                .fixture(6, 2, FortRoomKit.PALLETS);
-        return new FortRoom(FortAspect.MAGAZINE, false, RoomPurpose.LOADING_BAY, x, y, 8, 3, doors, kit.ops(),
+        List<LayoutOp> receiving = List.of(
+                new LayoutOp.Lane(2, 0, 3, 3),
+                new LayoutOp.Lane(0, 2, 8, 1),
+                LogisticsKit.pallet(Stock.CASES).at(0, 0),
+                LogisticsKit.pallet(Stock.CASES).at(6, 0));
+        return new FortRoom(FortAspect.MAGAZINE, false, RoomPurpose.LOADING_BAY, x, y, 8, 3, doors, receiving,
                 List.of(), null, LOADING_BAY_ART);
     }
 
     /**
-     * The eleven-by-five generator hall. Written for a south door, the reactor stands against the north wall between fuel
-     * tanks and generator sets on the west and a generator set and a switchgear bank on the east. The roof art is authored
+     * The eleven-by-five generator hall. Written for a south door, the reactor stands against the north wall between
+     * a turbine-alternator skid on the west and a cooling skid and control bank on the east. The roof art is authored
      * for the north-door plan (the written plan turned top to bottom), and a south-door building is that art turned half a
      * revolution, so a south door gets the written plan turned side to side: the half turn of the north plan, so
      * the hall lies under its art cell for cell. Left as written it would put each turbine well a cell off
@@ -115,11 +122,8 @@ final class FortRooms {
     static FortRoom powerHall(int x, int y, boolean doorSouth, List<Doorway> doors) {
         FortRoomKit kit = new FortRoomKit(11, 5, !doorSouth, doorSouth)
                 .lane(0, 3, 11, 2)
-                .run(0, 0, 0, 2, FortRoomKit.TANK)
-                .run(1, 0, 2, 0, FortRoomKit.GENERATOR)
-                .run(1, 1, 2, 1, FortRoomKit.GENERATOR)
-                .run(7, 0, 8, 0, FortRoomKit.GENERATOR)
-                .run(7, 1, 8, 1, FortRoomKit.GENERATOR)
+                .machine(0, 0, PowerPlantKit.TURBINE)
+                .machine(7, 0, PowerPlantKit.COOLANT)
                 .bank(false, 10, 0, 10, 2)
                 .fixture(9, 0, FortRoomKit.STOOL).fixture(9, 2, FortRoomKit.STOOL);
         return new FortRoom(FortAspect.POWER, true, RoomPurpose.ENGINE_ROOM, x, y, 11, 5, doors, kit.ops(),

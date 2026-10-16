@@ -305,7 +305,8 @@ public record SpecialEquipmentDef(
                 positive(json, "flightSeconds", id),
                 positive(json, "arcHeight", id),
                 positive(json, "cloudRadius", id),
-                positive(json, "cloudDuration", id));
+                positive(json, "cloudDuration", id),
+                (float) json.optDouble("thinSeconds", 0.0));
     }
 
     private static SatchelChargeSpec parseSatchel(JSONObject activation, JSONObject resource,

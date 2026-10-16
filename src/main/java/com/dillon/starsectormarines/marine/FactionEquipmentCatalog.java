@@ -93,7 +93,11 @@ public final class FactionEquipmentCatalog {
         }
     }
 
-    /** Every card needs starter issue, eventual faction access, or a declared authored story owner. */
+    /**
+     * Every card needs starter issue, eventual faction access, a declared authored story owner,
+     * or (Restricted cards) a military warrant rule: its issuing tradition offering it through
+     * licence or patron and nothing else.
+     */
     public void validateReachability(Collection<String> starterTemplateIds) {
         Set<String> reachable = new HashSet<>(starterTemplateIds);
         EquipmentAcquisitionEligibility.Progress maximumProgress =
@@ -104,6 +108,13 @@ public final class FactionEquipmentCatalog {
             for (MutableOffer offer : pool.offers.values()) {
                 if (EquipmentTemplateCatalog.installed().storySource(offer.template.id()) != null)
                     throw new IllegalStateException("Story-only template also has faction acquisition: " + offer.template.id());
+                if (offer.template.accessTier() == EquipmentAccessTier.RESTRICTED) {
+                    validateWarrantedOffer(pool, offer);
+                    // Owned by a warrant rule: the issuer's standing warrant opens it, and
+                    // the issuer's own licence or patron then offers it.
+                    reachable.add(offer.template.id());
+                    continue;
+                }
                 boolean eventuallyEligible = offer.sourceWeights.keySet().stream()
                         .anyMatch(source -> EquipmentAcquisitionEligibility.allows(
                                 offer.template, source, maximumProgress));
@@ -124,6 +135,29 @@ public final class FactionEquipmentCatalog {
         if (!stranded.isEmpty()) {
             throw new IllegalStateException("Equipment templates have neither starter issue nor "
                     + "an eventually eligible faction acquisition source or declared story owner: " + stranded);
+        }
+    }
+
+    /**
+     * A Restricted template may be offered only by the tradition that builds it, and only
+     * through the channels a warrant opens. Any other entry would be an unwarranted route.
+     */
+    private static void validateWarrantedOffer(MutablePool pool, MutableOffer offer) {
+        String id = offer.template.id();
+        ArmorTradition issuer = MilitaryWarrants.issuerOf(offer.template);
+        if (issuer == null) {
+            throw new IllegalStateException("Restricted template has no issuing tradition, so no "
+                    + "military warrant can own it: " + id);
+        }
+        if (!issuer.key.equals(pool.factionId)) {
+            throw new IllegalStateException("Restricted template " + id + " is offered by '"
+                    + pool.factionId + "', but only its issuer '" + issuer.key + "' may offer it");
+        }
+        for (FactionEquipmentSource source : offer.sourceWeights.keySet()) {
+            if (!EquipmentAcquisitionEligibility.warrantChannel(source)) {
+                throw new IllegalStateException("Restricted template " + id + " has an unwarranted "
+                        + "source '" + source + "'; only licence and patron issue warranted equipment");
+            }
         }
     }
 

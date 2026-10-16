@@ -34,6 +34,7 @@ import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import org.json.JSONObject;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -70,6 +71,7 @@ class ConquestOnPrecinctsTest {
     @ValueSource(strings = {
             "conquest-reinforced-south-v3",
             "conquest-full-strength-west-v3"})
+    @Tag("generated-space-evidence")
     void aConquestFixtureBuildsAsPlacesAtTheConquestSize(String fixtureName)
             throws Exception {
         ConquestBattleFixture fixture = loadConquest(fixtureName);
@@ -556,6 +558,7 @@ class ConquestOnPrecinctsTest {
      * into an error rather than generating; the stock recipe stamps a fortress
      * ward whatever the profile says, and is the honest answer to both.
      */
+    @Tag("generated-space-evidence")
     @Test
     void aConquestWithNothingBehindItKeepsTheStockCrossroad() {
         assertNull(BattleSetup.conquestPlanFor(OperationTier.REINFORCED,

@@ -1,7 +1,7 @@
 # Shared structures and working yards
 
-These templates reuse the installed environment art. No new sprite generation
-is required. The durable placement model lives in `mapgen-nouns.md`.
+These templates reuse the installed environment art. Newly adopted equipment
+receives matching damage art where the original kit has none. The durable placement model lives in `mapgen-nouns.md`.
 
 | Template | Source | Shared consumers |
 | --- | --- | --- |
@@ -47,6 +47,24 @@ repair bench. New equipment reuses the factory-machine, main-stores and colony
 kits with their existing damage states. The bay plan keeps its original berths,
 headings and service mouths; the wide entrance remains connected to the road.
 
+The `outpost-service-turn-*` frames show the command post, utility building and armory at
+24 pixels per cell. The generator house has a full skid, switchgear, monitoring
+and spares across a two-cell aisle. The armory has a public issue apron, a staff
+gate, repair bench, ready-use lockers, ammunition storage and loaded rifle racks.
+Both use the shared installation fittings in campaign and ordinary missions.
+The command post uses an L bank, a U bank and the ship's three-cell tactical
+plot. Its entry cross-aisle and loop around the table remain clear, with one
+plot officer and three console watch positions. The fitting also serves packed
+ground command rooms, adapting bank length to their size and door approaches.
+It records ordinary console-bank and assembly operations, so the room-authoring
+format retains the same reusable pieces. The tactical plot now has damaged and
+destroyed variants as well; `composable-damage` includes the assembled command
+post through real structural damage at all four rotations.
+The armory and adopted engineering assets now have built-in ImageGen damage
+pairs; retained guides, exact prompts and registration are documented in
+`art-source/console-bank/damage/README.md`. A collapsed rack or bench brings down
+its supported overlays. `composable-damage` renders each state at all rotations.
+
 In ordinary missions, choose **Assault**, **Remote**, and **Reinforced** or
 **Full Strength**. The standard or extra-magazine outpost and its orientation
 come from the map seed. Single-gate citadels and missions declaring additional
@@ -78,3 +96,16 @@ adoption, and infantry connectivity on both full-size Conquest axes. The broader
 Conquest road-graph check finds a blocked cell at (208, 300) in seed 42 on the
 unchanged baseline as well; this pass does not claim to repair that separate issue.
 The review frames are production Java2D renders, not live game captures.
+
+The `logistics/review` frames come from `createSnapshots -Psnapshot=logistics-rooms`.
+They show the production battery-fort magazine/receiving suite at four rotations,
+plus civilian warehouse shells and ground stockroom/receiving fittings. All use
+`LogisticsKit` cargo assemblies with the existing main-stores and armory damage
+pairs. The fort retains its core and three-cell loading approach; warehouse racks
+use parallel bays with two-cell handling aisles. Views use 1920 by 1080 at 24
+pixels per cell through the Java2D renderer, not a live OpenGL capture.
+
+Fort review frames include the actual aspect-core structure entities. The room's
+floor finish continues under those sealed footprints, avoiding patches of legacy
+blue floor. The compact power and cooling kit is documented in
+`art-source/power-plant/README.md`.
