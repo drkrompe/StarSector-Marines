@@ -955,6 +955,68 @@ public final class Warship {
         flyRoute(new float[][]{{x + dx, y + dy}, {x + 2f * dx, y + 2f * dy}}, false);
     }
 
+    private boolean climbingOut;
+    private float climbLength;
+
+    /**
+     * Leaves the battle along {@code waypoints} and on over the map edge: a departure (no order, nothing new fired,
+     * the lift climbing toward the deck) flown as a through-route at the hull's own speed, the last leg carried on
+     * past the edge so the escape is physical ({@link #physicallyDeparted}). The hull stays a hull until it is gone:
+     * it can be hit, and its escorts keep it as their lead. The climb is drawn by how much of the way it has flown
+     * ({@link #climbSeconds}), so a slow hull is still low when it is still near.
+     */
+    public void climbOut(float[][] waypoints, float mapWidth, float mapHeight) {
+        if (departing || departed || destroyed()) return;
+        if (waypoints == null || waypoints.length == 0) throw new IllegalArgumentException("a climb-out needs a route");
+        beginDeparture();
+        float[] last = waypoints[waypoints.length - 1];
+        float[] before = waypoints.length > 1 ? waypoints[waypoints.length - 2] : new float[]{x, y};
+        float dx = last[0] - before[0];
+        float dy = last[1] - before[1];
+        float len = (float) Math.hypot(dx, dy);
+        float reach = (float) Math.hypot(mapWidth, mapHeight) + lengthCells;
+        float[][] route = new float[waypoints.length + 1][];
+        for (int i = 0; i < waypoints.length; i++) route[i] = waypoints[i].clone();
+        route[waypoints.length] = len > 1e-3f
+                ? new float[]{last[0] + dx / len * reach, last[1] + dy / len * reach}
+                : new float[]{last[0] + reach, last[1]};
+        float total = 0f;
+        float px = x;
+        float py = y;
+        for (float[] p : waypoints) {
+            total += (float) Math.hypot(p[0] - px, p[1] - py);
+            px = p[0];
+            py = p[1];
+        }
+        climbLength = Math.max(1f, total);
+        climbingOut = true;
+        flyRoute(route, false);
+    }
+
+    /** Whether the ship is leaving along a climb-out route and has not yet gone. */
+    public boolean climbingOut() {
+        return climbingOut && !departed;
+    }
+
+    /**
+     * The departure clock presentation draws the climb from: the seconds since departure began, or for a climb-out
+     * the share of its route flown, as seconds of {@link WarshipAtmosphere#CLIMB_SECONDS}.
+     */
+    public float climbSeconds() {
+        if (!climbingOut || route == null) return departingSeconds;
+        float left = 0f;
+        float px = x;
+        float py = y;
+        for (int i = routeIndex; i < route.length - 1; i++) {
+            left += (float) Math.hypot(route[i][0] - px, route[i][1] - py);
+            px = route[i][0];
+            py = route[i][1];
+        }
+        if (routeIndex >= route.length - 1) left = 0f;
+        float flown = 1f - Math.min(1f, left / climbLength);
+        return WarshipAtmosphere.CLIMB_SECONDS * flown;
+    }
+
     /** Begins leaving: no order, no director, and every burst in progress is abandoned. */
     void beginDeparture() {
         releaseHelm();
@@ -1526,6 +1588,14 @@ public final class Warship {
         // Ship against ship keeps the base game's balance, so a ship ordered to fight hulls carries its variant's
         // capacitors and vents; a ship bombarding ground keeps the hull table's rhythm its postures were tuned to.
         flux.applyFittings(order != ShipFireOrder.OFF);
+        // And its missiles carry the base game's magazines: a duel is not fought with a bottomless Sabot rack.
+        if (order != ShipFireOrder.OFF) {
+            for (Mount m : mounts) {
+                if (!m.weapon.missile() || m.ammoRemaining >= 0) continue;
+                int ammo = VanillaWeapons.ammo(m.weapon.id());
+                if (ammo > 0) m.ammoRemaining = ammo;
+            }
+        }
     }
 
     public ShipFireOrder shipFire() {

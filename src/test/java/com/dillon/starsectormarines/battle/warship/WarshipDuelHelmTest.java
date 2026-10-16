@@ -58,4 +58,22 @@ class WarshipDuelHelmTest {
         wolf.shipFire(ShipFireOrder.OFF);
         assertEquals(2250f, wolf.fluxCapacity(), 1e-3f);
     }
+
+    @Test
+    void aShipFightingHullsCarriesItsMissilesBaseGameMagazines() throws Exception {
+        Warship wolf = Warship.fit("wolf_hegemony", "wolf_hegemony_Assault", Faction.ALLY, 0f, 0f, 0f);
+        int sabot = VanillaWeapons.ammo("sabot");
+        assertTrue(sabot > 0, "the Sabot has a magazine in the weapon table");
+        for (Warship.Mount m : wolf.mounts()) {
+            if (m.weapon.id().equals("sabot")) assertEquals(-1, m.ammoRemaining(), "unlimited for ground bombardment");
+        }
+        wolf.shipFire(ShipFireOrder.ALL);
+        int racks = 0;
+        for (Warship.Mount m : wolf.mounts()) {
+            if (!m.weapon.id().equals("sabot")) continue;
+            racks++;
+            assertEquals(sabot, m.ammoRemaining());
+        }
+        assertEquals(2, racks);
+    }
 }

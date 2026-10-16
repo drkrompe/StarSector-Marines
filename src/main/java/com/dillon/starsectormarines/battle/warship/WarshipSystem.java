@@ -594,6 +594,12 @@ public final class WarshipSystem {
         if (ship.doctrineClock < DOCTRINE_PERIOD_SECONDS) return;
         float elapsed = ship.doctrineClock;
         ship.doctrineClock = 0f;
+        Warship escaped = ship.escortLead();
+        if (escaped != null && escaped.physicallyDeparted() && !ship.departing()
+                && ship.remoteOrder() == Warship.RemoteOrder.NONE) {
+            // The lead it was escorting has escaped: the escort follows it out the way it went.
+            ship.climbOut(new float[][]{{escaped.x, escaped.y}}, sim.getGrid().getWidth(), sim.getGrid().getHeight());
+        }
         if (ship.remoteOrder() == Warship.RemoteOrder.NONE) escortUpkeep(ship);
         Warship lead = WarshipEscort.liveLead(ship);
         WarshipDoctrine doctrine = ship.doctrine();

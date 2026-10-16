@@ -1,10 +1,10 @@
 # Story — Atmospheric frigate duel
 
-Status: ACTIVE — slices 1-4 built (hulls as targets for direct fire, stray rounds, falling wreckage, skins; duel helm and variant flux fittings; missiles at hulls; doctrine for duels except `AUTO`); slice 5 (the rig climbs out) next
+Status: ACTIVE — slices 1-5 built (hulls as targets for direct fire, stray rounds, falling wreckage, skins; duel helm and variant flux fittings; missiles at hulls; doctrine for duels except `AUTO`; the rig's climb-out and vanilla missile magazines); slice 6 (one finite visit) next
 
 Written: 2026-10-16
 
-Updated: 2026-10-16 — slice 4 built (pack roles, escorts interpose, ground-fire hold, withdraw) with its readings; `AUTO` left for the owner.
+Updated: 2026-10-16 — slice 5 built (climb-out, escorts follow a climbing lead, vanilla missile magazines under hull fire) with its readings; open question 3 (penetration scale between hulls) added.
 
 Read `air-nouns.md` (**Overhead ships**, **Standing laws**), `warship-behaviours.md`
 (the posture model, Classes, Decided: escort, gap G4), `ship-support.md` and
@@ -152,7 +152,7 @@ ion cannon's arcs (not modelled; the ion cannon fires as an energy projectile).
    follow an equal-size support hull (the rig), and chooses between interposing and
    saving itself by the existing withdraw rule. Re-read every shipped warship scene
    before AUTO engages hulls by default.
-5. **The rig climbs out.** A civilian hull leaving from the ground along a route to the
+5. **The rig climbs out** (built). A civilian hull leaving from the ground along a route to the
    map edge, climbing as departure does, hittable until it is gone; escaping is
    physically departing. Its escorts take it as their lead.
 6. **One finite visit, nobody's to command.** A duel ship arrives through the cloud
@@ -325,6 +325,42 @@ and ground fire `HOLD`. Loops: `pack`, `withdraw` (every Hound starts at 40% hul
   pass through each other on the way in. Hulls do not separate from friendly hulls;
   this is a presentation question for slice 8, not a mechanic here.
 
+## Slice 5 as built: what the scene reads
+
+`frigate-climb-out` (`sceneEvidence -Pscene=frigate-climb-out`; GIFs under
+`createSnapshots -Psnapshot=frigate-climb-out`) sets a Salvage Rig with two Hound (P)
+escorts at mid-map. At tick 60 the rig is sent out along a two-leg route over the east
+edge. Loops: `escape` (nobody hunting), `hunted` (two Wolf (H) from the west, under ship
+fire with the duel helm) and `held` (the control: the rig is not sent). 2400 ticks.
+
+- **The climb-out** (`Warship.climbOut`) is a departure: no order, nothing new fired.
+  It is flown as a through-route at the hull's own speed, with the last leg carried on
+  past the edge, so escaping is the whole hull carried off the map by its own
+  propulsion (`physicallyDeparted`), never the departure timeout. The hull stays a hull
+  until it is gone: it can be hit, and its escorts keep it as their lead. The climb is
+  drawn by the share of the route flown, not by the six-second departure clock, so a
+  slow hull is still low while it is still near (the shadow, haze and wake read it from
+  `climbSeconds`).
+- **Escorts.** A lead climbing out remains a live lead, so its escorts hold their ring
+  around it on the way out. An escort whose lead has escaped follows it out the way it
+  went. Any other departure of the lead ends the relation, as before.
+- **Missiles carry their vanilla magazines under hull fire.** Missiles had been
+  unlimited unless a mission called `limitOrdnanceToWeaponAmmo`. A ship whose fire
+  order allows hulls now loads each missile mount's weapon-table magazine (the Wolf's
+  two Sabot racks hold 3 each), the same gate as the flux fittings. Ground bombardment
+  keeps its tuned figures. The slice 3 and 4 readings above were taken with bottomless
+  racks. With magazines, `frigate-missiles` `sabot` fires 6 Sabots (4 live splits, 12
+  warheads on the hull, which still takes the Hound) and `frigate-doctrine` `pack`
+  fires 12 missiles and 68 rounds. The verdicts are unchanged.
+- `escape`: the rig was physically gone at tick 1100. In 2080 escort-ticks of its climb
+  the Hounds never lost it as lead, and both followed it over the edge. At half the
+  route flown the climb read 0.51.
+- `hunted`: the Wolfs reached the climbing rig, and it lost all 2000 hull while
+  climbing. It fell at tick 230, in reach of a Wolf for 41 ticks. Both Hounds were lost
+  too.
+- `held`: nobody left.
+- All 38 ship and tender scenes (145 loops) pass.
+
 ## Acceptance
 
 - Two hostile frigates fire on each other with their real hull weapons; point defence
@@ -347,3 +383,13 @@ and ground fire `HOLD`. Loops: `pack`, `withdraw` (every Hound starts at 40% hul
    (`ShipFireOrder.OFF` by default); the duel scenes and Chapter 5 set it explicitly.
 2. Should a falling capital's crash scale with hull size beyond the aircraft crash's
    cap? Slice 1 reuses the aircraft crash as it stands (radius capped at eight cells).
+3. **Damage between hulls uses the ground penetration scale.** The armour rule takes
+   penetration from the weapon's damage type at the figures tuned for ground fire
+   (kinetic 12, energy 10, high explosive 8). Against hull plate of 150 to 400, armour
+   barely matters, and kinetic beats high explosive. The base game's damage-type
+   multipliers (kinetic weak against armour and strong against shields, high explosive
+   the reverse) are not modelled between hulls. So the Sabot, an anti-shield weapon in
+   the base game, takes an unshielded Hound, and the rig dies in two seconds. Should
+   hull against hull read the vanilla multipliers (a contained change to
+   `WarshipSystem.strikeHulls` and the shield absorb)? It would change every duel
+   reading, and any shipped scene where ground batteries hit hulls.

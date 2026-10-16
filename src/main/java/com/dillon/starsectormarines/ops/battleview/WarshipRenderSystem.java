@@ -136,7 +136,7 @@ public final class WarshipRenderSystem implements RenderSystem {
             atmosphereFx.ground(out, cam, cellPx, ctx.alphaMult, ship, tint);
             // A ship in the cloud deck is seen through it.
             float seen = ctx.alphaMult * WarshipAtmosphere.hullVisibility(
-                    ship.entrySeconds(), ship.departingSeconds(), ship.departing());
+                    ship.entrySeconds(), ship.climbSeconds(), ship.departing());
             // Under the hull: the nozzles sit inside its outline and the flame trails out of it.
             drawEngines(out, cam, cellPx, seen, ship);
             drawHull(out, cam, cellPx, seen, ship);

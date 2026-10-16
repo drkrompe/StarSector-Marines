@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — a hostile hull is a target for a ship's direct-fire guns by mission order, misses fall on the ground, a lost hull falls as wreckage, a ship fighting hulls manoeuvres by its reach against theirs with its variant's capacitors and vents, missiles fly at hulls with a Sabot's warheads aimed at the split, and a pack splits on an escorted hull while its escorts interpose (`atmospheric-frigate-duel.md`, slices 1-4); a fort's anti-air yard stands Locust and Swarmer towers instead of Ridgewatch and flak; earlier: Missile AA joins ordinary heavy defense posts; all six supported carrier wings use the shared commitment flow.
+Updated: 2026-10-16 — a hostile hull is a target for a ship's direct-fire guns by mission order, misses fall on the ground, a lost hull falls as wreckage, a ship fighting hulls manoeuvres by its reach against theirs with its variant's capacitors and vents, missiles fly at hulls with a Sabot's warheads aimed at the split, a pack splits on an escorted hull while its escorts interpose, and a hull can climb out along a route with its escorts (`atmospheric-frigate-duel.md`, slices 1-5); a fort's anti-air yard stands Locust and Swarmer towers instead of Ridgewatch and flak; earlier: Missile AA joins ordinary heavy defense posts; all six supported carrier wings use the shared commitment flow.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1879,7 +1879,14 @@ is not steered by the duel helm: it holds its ring on the side the hostile hulls
 and fights from there, and it saves itself by the ordinary withdraw rule. Ground fire
 `HOLD` keeps a duelling hull off the ground entirely. Whether hostile hulls duel without
 a mission's order (`ShipFireOrder.AUTO`) is undecided; until it is, hull fire is a
-mission's explicit choice.
+mission's explicit choice. A ship whose order allows hull fire also carries its
+missiles' magazines from the weapon table, as the base game does.
+
+**A hull leaving by a climb-out is still a hull until it is gone.** It flies an
+authored route over the map edge at its own speed, climbing by how much of the way it
+has flown, and it has escaped only when propulsion has carried the whole hull off the
+map. Until then it can be hit, and its escorts keep it as their lead and follow it out
+once it has gone. Any other departure of a lead releases its escorts.
 
 **A warship's stay and its magazine can both be bounded.** Station time is counted
 down only while the ship is on its station, not while it travels to it; when it
