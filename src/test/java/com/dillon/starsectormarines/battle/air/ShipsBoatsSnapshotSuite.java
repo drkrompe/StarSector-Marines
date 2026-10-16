@@ -55,7 +55,7 @@ public final class ShipsBoatsSnapshotSuite implements SnapshotSuite {
     /** Everything a deck draws, plus the craft a deck screen has no reason to. */
     private static final EnumSet<RenderLayer> BOAT_LAYERS = EnumSet.of(
             RenderLayer.GROUND, RenderLayer.VEHICLES, RenderLayer.DOODADS,
-            RenderLayer.UNITS, RenderLayer.SHUTTLES, RenderLayer.DRONES,
+            RenderLayer.UNITS, RenderLayer.SHUTTLES, RenderLayer.AIRCRAFT_LIGHTS, RenderLayer.DRONES,
             RenderLayer.SMOKE, RenderLayer.HAZARDS);
 
     /** Black round the deck plate, so an arrow pointing off the hull has somewhere to go. */

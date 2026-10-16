@@ -20,6 +20,8 @@ public class AirBody {
 
     /** Position, cells. */
     public float x, y;
+    /** Start-of-air-tick pose for relative swept projectile contacts. */
+    public float previousX, previousY, previousAltitude;
 
     /** Velocity, cells/sec. */
     public float vx, vy;
@@ -60,7 +62,7 @@ public class AirBody {
 
     /** Snaps the body to ({@code px, py}) with zero velocity and the given facing. Use at lifecycle boundaries (touchdown, respawn). */
     public void teleport(float px, float py, float facingDeg) {
-        x = px; y = py;
+        x = previousX = px; y = previousY = py;
         vx = 0f; vy = 0f;
         ax = 0f; ay = 0f;
         facingDegrees = facingDeg;

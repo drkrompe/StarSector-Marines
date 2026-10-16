@@ -96,6 +96,30 @@ class ThrusterFxSystemTest {
     }
 
     @Test
+    void accelerationSettlesSmoothlyIntoCruiseWithoutChangingDuringPause() {
+        EntityWorld world = new EntityWorld();
+        BattleComponents c = new BattleComponents(world);
+        long id = world.createEntity();
+        EngineSlotData[] slots = mainSlots();
+        AirBody body = acceleratingForward();
+        float dt = 1f / 60f;
+        for (int i = 0; i < 120; i++) ThrusterFxSystem.advance(id, slots, body, H, world, c, dt);
+        float boost = fxOf(world, c, id).smoothed[0];
+        body.vy = H.maxSpeed(); body.ay = 0;
+        float cruiseTarget = ThrusterDemand.compute(slots, body, H)[0];
+        float first = ThrusterFxSystem.advance(id, slots, body, H, world, c, dt)[0];
+        assertTrue(first < boost && first > cruiseTarget, "release decays rather than snapping");
+        assertEquals(first, ThrusterFxSystem.advance(id, slots, body, H, world, c, 0)[0]);
+        float previous = first;
+        for (int i = 0; i < 120; i++) {
+            float next = ThrusterFxSystem.advance(id, slots, body, H, world, c, dt)[0];
+            assertTrue(next <= previous && next >= cruiseTarget);
+            previous = next;
+        }
+        assertEquals(cruiseTarget, previous, .001f);
+    }
+
+    @Test
     void noEngineSlotsDropsTheComponent() {
         EntityWorld world = new EntityWorld();
         BattleComponents c = new BattleComponents(world);

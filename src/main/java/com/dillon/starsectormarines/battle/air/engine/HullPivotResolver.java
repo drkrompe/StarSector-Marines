@@ -43,6 +43,23 @@ public final class HullPivotResolver {
     private static final Map<String, float[]> CACHE_BY_HULL =
             new ConcurrentHashMap<>();
 
+    /** Authored frame geometry; tool readers supply this without production filesystem access. */
+    public record HullGeometry(float width, float height, float centerX, float centerY) {}
+
+    @FunctionalInterface
+    public interface HullGeometrySource {
+        /** Returns authored pixel geometry, or null when unavailable. */
+        HullGeometry geometry(String hullId);
+    }
+
+    private static volatile HullGeometrySource hullGeometry;
+
+    /** Loaded game specs win; the source serves headless tools. Null restores game-only lookup. */
+    public static synchronized void useHullGeometry(HullGeometrySource source) {
+        hullGeometry = source;
+        CACHE_BY_HULL.clear();
+    }
+
     private HullPivotResolver() {}
 
     /**
@@ -51,7 +68,7 @@ public final class HullPivotResolver {
      * a null/empty id or any failure yields {@code {0, 0}} (i.e. fall back to
      * pixel-centre anchoring, the pre-CoG behaviour).
      */
-    public static float[] pivotOffset(String hullId) {
+    public static synchronized float[] pivotOffset(String hullId) {
         if (hullId == null || hullId.isEmpty()) return ZERO;
         return CACHE_BY_HULL.computeIfAbsent(
                 hullId, HullPivotResolver::doResolve);
@@ -61,16 +78,33 @@ public final class HullPivotResolver {
         String path = "data/hulls/" + hullId + ".ship";
         try {
             JSONObject spec = Global.getSettings().loadJSON(path);
-            float w = (float) spec.optDouble("width", 0.0);
-            float h = (float) spec.optDouble("height", 0.0);
             float[] c = WeaponSlotParser.parseCenter(spec);
-            if (c == null || w <= 0f || h <= 0f) return ZERO;
-            float k = AirScale.METERS_PER_PX / AirScale.METERS_PER_CELL;
-            return new float[]{ (w / 2f - c[0]) * k, (h / 2f - c[1]) * k };
+            if (c != null) {
+                float[] result = offset(new HullGeometry((float) spec.optDouble("width", 0),
+                        (float) spec.optDouble("height", 0), c[0], c[1]));
+                if (result != null) return result;
+            }
         } catch (Exception e) {
-            LOG.warn("HullPivotResolver: " + hullId + " (" + path + ") — "
-                    + e.getClass().getSimpleName() + ": " + e.getMessage());
-            return ZERO;
+            // Headless tools have no SettingsAPI; consult their pure source below.
         }
+        HullGeometrySource source = hullGeometry;
+        if (source != null) {
+            try {
+                float[] result = offset(source.geometry(hullId));
+                if (result != null) return result;
+            } catch (Exception e) {
+                LOG.warn("HullPivotResolver: " + hullId + " source — " + e.getMessage());
+            }
+        }
+        return ZERO;
+    }
+
+    private static float[] offset(HullGeometry geometry) {
+        if (geometry == null || !Float.isFinite(geometry.width()) || !Float.isFinite(geometry.height())
+                || !Float.isFinite(geometry.centerX()) || !Float.isFinite(geometry.centerY())
+                || geometry.width() <= 0 || geometry.height() <= 0) return null;
+        float k = AirScale.METERS_PER_PX / AirScale.METERS_PER_CELL;
+        return new float[]{(geometry.width()/2f-geometry.centerX())*k,
+                (geometry.height()/2f-geometry.centerY())*k};
     }
 }

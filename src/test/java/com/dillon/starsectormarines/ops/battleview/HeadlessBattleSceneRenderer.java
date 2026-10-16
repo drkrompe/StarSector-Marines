@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.air.Airframe;
+import com.dillon.starsectormarines.battle.air.engine.EngineHullLighting;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
@@ -270,6 +271,7 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
                 else if (command.customDraw() instanceof ShieldDomePass domes) drawDomes(context, viewport, domes);
                 else if (command.customDraw() instanceof NightLightingPass night) drawNightLighting(context, viewport, night);
                 else if (command.customDraw() instanceof EngineFxPass engine) drawEngineFx(context, viewport, engine);
+                else if (command.customDraw() instanceof EngineHullLightPass light) drawEngineHullLight(context, viewport, light);
                 else if (!skipUnsupportedCommands) throw new IllegalStateException("Unsupported custom draw");
             }
             case RIBBON -> drawRibbon(context, viewport.height(), command);
@@ -301,6 +303,45 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
                     batch.vertexX(quad, 3), surfaceHeight - batch.vertexY(quad, 3),
                     new Color(clamp(red), clamp(green), clamp(blue), clamp(alpha)));
         }
+    }
+
+    /** Material-clipped reflected engine light, added one nozzle at a time just like the live shader. */
+    private void drawEngineHullLight(CanvasContext context, CanvasHostViewport viewport, EngineHullLightPass pass) {
+        String path = sprites.asset(pass.hullSprite()).path();
+        BufferedImage source = HeadlessUiRenderer.sourceImage(context, path);
+        drawEngineHullLights(context, source, pass.centerX(), viewport.height()-pass.centerY(),
+                pass.widthPx(), pass.heightPx(), pass.angleDegrees(), pass.hullWidthCells(),
+                pass.hullLengthCells(), pass.pivotX(), pass.pivotY(), pass.alphaMult(), pass.lights());
+    }
+
+    static void drawEngineHullLights(CanvasContext context, BufferedImage source, float centerX, float centerY,
+                                     float widthPx, float heightPx, float angle, float widthCells, float lengthCells,
+                                     float pivotX, float pivotY, float alpha, EngineHullLighting.Light[] lights) {
+        for (EngineHullLighting.Light light : lights) {
+            BufferedImage overlay = engineHullOverlay(source, widthCells, lengthCells, pivotX, pivotY,
+                    new EngineHullLighting.Light[]{light});
+            HeadlessUiRenderer.additiveImage(context, overlay, centerX, centerY, widthPx, heightPx, angle, alpha);
+        }
+    }
+
+    /** Logical UVs are bottom-up; source rasters are top-down. Hull coverage remains unmodified. */
+    static BufferedImage engineHullOverlay(BufferedImage source, float widthCells, float lengthCells,
+                                           float pivotX, float pivotY, EngineHullLighting.Light[] lights) {
+        int width=source.getWidth(), height=source.getHeight();
+        BufferedImage result=new BufferedImage(width,height,BufferedImage.TYPE_INT_ARGB);
+        float[] rgb=new float[3];
+        for(int y=0;y<height;y++)for(int x=0;x<width;x++) {
+            int pixel=source.getRGB(x,y);
+            if((pixel>>>24)==0) continue;
+            float localX=((x+.5f)/width-.5f)*widthCells+pivotX;
+            float localY=(.5f-(y+.5f)/height)*lengthCells+pivotY;
+            EngineHullLighting.sample(lights,localX,localY,rgb);
+            int red=Math.min(255,Math.max(0,Math.round((pixel>>>16&255)*rgb[0])));
+            int green=Math.min(255,Math.max(0,Math.round((pixel>>>8&255)*rgb[1])));
+            int blue=Math.min(255,Math.max(0,Math.round((pixel&255)*rgb[2])));
+            result.setRGB(x,y,(pixel&0xff000000)|(red<<16)|(green<<8)|blue);
+        }
+        return result;
     }
 
     /**

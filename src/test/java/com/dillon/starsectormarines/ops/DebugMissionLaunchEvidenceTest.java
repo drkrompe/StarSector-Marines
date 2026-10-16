@@ -2,6 +2,15 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
+import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveProjection;
+import com.dillon.starsectormarines.battle.setup.MissileAaTestSetup;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.testsupport.HeadlessStrings;
+import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
+import com.dillon.starsectormarines.testsupport.InstalledHullEngines;
+import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import org.junit.jupiter.api.BeforeAll;
@@ -13,12 +22,99 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.*;
 
 /** Opt-in production construction and roster-overlay evidence, never ordinary unit tests. */
 @Tag("counterattack-command-evidence")
 class DebugMissionLaunchEvidenceTest {
     @BeforeAll static void catalogs() throws Exception { HeadlessArmoryPreviewRenderer.installCatalogs(Path.of("mod")); }
+    @Test void missileAaNativeLaunchLandsItsExactNamedCompanyAndStaysOpen() throws Exception {
+        InstalledHullSpecs.install();
+        InstalledHullEngines.install();
+        InstalledVanillaData.install();
+        try (var strings = new HeadlessStrings(Path.of("mod"))) {
+            var mission = DebugMissionCatalog.Scenario.MISSILE_AA.mission();
+            assertEquals(Strings.get("missileAaTestTitle"), mission.name);
+            assertFalse(mission.name.startsWith("@"));
+            assertNotEquals("missileAaTestTitle", mission.name);
+            assertNull(StoryScene.forMission(mission), "The range has no invented story illustration");
+            var context = new MarineOpsContext(null);
+            context.resetDebugPreset(mission);
+            var company = context.getDebugCompanyRoster();
+            var expected = company.lineReadySoldiers().stream().map(soldier -> soldier.id())
+                    .collect(Collectors.toSet());
+            assertEquals(12, expected.size());
+            var preset = DebugMissionCatalog.preset(mission);
+            var lift = Collections.nCopies(preset.boats(), FittedBoat.standard(preset.boat()));
+            var plan = MissionLaunch.captureScenario(context, mission, lift, FlybyRoster.EMPTY,
+                    List.of(), List.of(), null, mission.battleSeed);
+            try (var prepared = MissionLaunch.finishSimulation(context, mission, FlybyRoster.EMPTY,
+                    plan, plan.builder().get())) {
+                var sim = prepared.simulation();
+                var loaded = new HashSet<String>();
+                int boats = 0;
+                for (long air : sim.getAirEntityIds()) if (sim.world().airFaction(air) == Faction.MARINE) {
+                    boats++;
+                    var flight = sim.world().mission(air);
+                    for (var cycle : flight.cycleLoadouts) for (var seat : cycle) {
+                        assertNotNull(seat.campaignSoldierId, "Native launch replaces every anonymous factory seat");
+                        assertTrue(loaded.add(seat.campaignSoldierId), "Every company identity is loaded once");
+                    }
+                }
+                assertEquals(lift.size(), boats);
+                assertEquals(expected, loaded);
+                var landed = new HashMap<String, Long>();
+                for (int tick = 0; tick < 3300; tick++) {
+                    sim.advance(1f / 30f);
+                    assertFalse(sim.isComplete(), "Debug range must keep running after finite waves");
+                    for (int index = 0; index < sim.liveUnitCount(); index++) {
+                        long unit = sim.liveUnitAt(index);
+                        if (sim.identity().faction(unit) != Faction.MARINE || sim.turretState().isTurret(unit)) continue;
+                        String soldier = (String) sim.getEntityWorld().getObject(unit,
+                                sim.getBattleComponents().IDENTITY, BattleComponents.IDENTITY_CAMPAIGN_SOLDIER_ID);
+                        assertNotNull(soldier);
+                        assertTrue(expected.contains(soldier));
+                        Long previous = landed.putIfAbsent(soldier, unit);
+                        if (previous == null) assertTrue(sim.world().y(unit) < 35f, "Company lands at the safe apron");
+                        else assertEquals(Long.valueOf(unit), previous, "No second body for one named marine");
+                    }
+                }
+                assertEquals(expected, landed.keySet());
+                assertEquals(3300, sim.getSimTickIndex());
+                var picture = MissionObjectiveProjection.capture(sim);
+                assertEquals(3, picture.objectives().size());
+                for (var lane : MissileAaTestSetup.LANES) {
+                    var item = picture.objectives().stream()
+                            .filter(value -> value.id().equals("missile-aa-" + lane.id())).findFirst().orElseThrow();
+                    assertEquals(lane.label(), item.name());
+                    assertEquals(lane.x(), item.focus().x());
+                    assertEquals(lane.y(), item.focus().y());
+                    assertTrue(item.progressText().contains("6/6"), item.progressText());
+                    assertFalse(item.progressText().contains("missileAa"), "Readout uses localized strings");
+                    boolean batterySurvives = false;
+                    for (int index = 0; index < sim.liveUnitCount(); index++) {
+                        long unit = sim.liveUnitAt(index);
+                        if (sim.turretState().isTurret(unit)
+                                && sim.turretState().structure(unit).id.equals(lane.structureId())) {
+                            batterySurvives = sim.world().isAlive(unit);
+                            break;
+                        }
+                    }
+                    System.out.println("MISSILE_AA_NATIVE_LANE: " + lane.id() + " / " + item.progressText()
+                            + " / batterySurvives=" + batterySurvives);
+                }
+                System.out.println("MISSILE_AA_NATIVE_LAUNCH: company=" + landed.size()
+                        + ", boats=" + boats + ", ticks=" + sim.getSimTickIndex()
+                        + ", complete=" + sim.isComplete() + ", lanes=" + picture.objectives().size());
+            }
+        } finally {
+            InstalledHullEngines.uninstall();
+        }
+    }
+
     @Test void standardOperationsAndRescueUseTheirDefaultForces() {
         var catalog = DebugMissionCatalog.missions(null);
         var samples = new ArrayList<Mission>();

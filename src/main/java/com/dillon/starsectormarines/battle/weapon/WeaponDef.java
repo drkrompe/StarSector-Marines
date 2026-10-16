@@ -75,6 +75,8 @@ public final class WeaponDef {
     public final float roundVelocity;
     /** Optional air-target guidance. The AA host supplies current target state, never a promised hit. */
     public final Guidance guidance;
+    /** Optional physical aircraft-only missile family; absent preserves legacy guidance. */
+    public final AirMissileSpec airMissile;
     public record Guidance(float turnRate, float acceleration, float lifetime) {
         static Guidance parse(JSONObject value) throws JSONException {
             if (value == null) return null;
@@ -156,7 +158,7 @@ public final class WeaponDef {
                       float penetration, float contactDamage, float contactPenetration,
                       int bodyPenetrations,
                       int burstCount, float burstSpacing, int projectilesPerShot,
-                      float accuracyFalloff, float hitSpread, float roundVelocity, Guidance guidance,
+                      float accuracyFalloff, float hitSpread, float roundVelocity, Guidance guidance, AirMissileSpec airMissile,
                       float minRange, float aoeRadius, int wallDamage,
                       float wallDamageRadius, float aimDuration, float flightSec,
                       float arcHeight, boolean interceptableProjectile,
@@ -196,6 +198,7 @@ public final class WeaponDef {
         this.hitSpread = hitSpread;
         this.roundVelocity = roundVelocity;
         this.guidance = guidance;
+        this.airMissile = airMissile;
         this.minRange = minRange;
         this.aoeRadius = aoeRadius;
         this.wallDamage = wallDamage;
@@ -323,6 +326,7 @@ public final class WeaponDef {
                 (float) sim.optDouble("hitSpread", 0.0),
                 (float) sim.optDouble("roundVelocity", 0.0),
                 Guidance.parse(sim.optJSONObject("airGuidance")),
+                AirMissileSpec.parse(sim.optJSONObject("airMissile")),
                 (float) sim.optDouble("minRange", 0.0),
                 (float) sim.optDouble("aoeRadius", 0.0),
                 sim.optInt("wallDamage", 0),
@@ -415,6 +419,11 @@ public final class WeaponDef {
         if (def.burstCount < 1 || def.projectilesPerShot < 1) {
             throw new JSONException("Weapon '" + def.id
                     + "' must emit at least one burst round and one projectile per shot");
+        }
+        if (def.airMissile != null && (def.guidance != null || def.mount != MountClass.TURRET_MOUNT
+                || def.interceptableProjectile || def.indirectFire || def.projectilesPerShot != 1
+                || def.arcHeight != 0f || def.aoeRadius != 0f)) {
+            throw new JSONException("Air missiles require a direct turret round and own their blast geometry");
         }
         if (def.guidance != null && (def.mount != MountClass.TURRET_MOUNT || !(def.roundVelocity > 0f)
                 || !Float.isFinite(def.roundVelocity) || def.projectilesPerShot != 1

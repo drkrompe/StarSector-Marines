@@ -2,11 +2,8 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
-import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.weapon.SoftLaunch;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
-import com.dillon.starsectormarines.battle.weapon.fx.FxSlot;
-import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxRuntime;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
 import java.awt.Color;
@@ -26,9 +23,8 @@ import java.util.List;
  * emitted before this service by {@link BattleRenderer}, so paint order stays
  * contrails → tracer tails → hitscan tracers → bolts → sprites.
  *
- * <p>Holds only immutable refs: {@link BattleSprites} (projectile sprites resolved
- * by path — carrier-agnostic) and {@link ImpactFx} (the authored trail spawn
- * sink). Per-frame state comes via the {@link RenderContext}.
+ * <p>Holds only the immutable sprite resolver. Particle trails advance separately
+ * through {@link ProjectileTrailFxService}; collecting a frame never emits particles.
  */
 public final class ShotRenderService implements RenderSystem {
 
@@ -47,11 +43,8 @@ public final class ShotRenderService implements RenderSystem {
                           float visibleLength, float fadeIn) {}
 
     private final BattleSprites sprites;
-    private final ImpactFx impactFx;
-
-    public ShotRenderService(BattleSprites sprites, ImpactFx impactFx) {
+    public ShotRenderService(BattleSprites sprites) {
         this.sprites = sprites;
-        this.impactFx = impactFx;
     }
 
     @Override
@@ -148,7 +141,6 @@ public final class ShotRenderService implements RenderSystem {
             out.addSprite(RenderLayer.SHOTS, cache.sprite,
                     cam.cellToScreenX(flight.x()), cam.cellToScreenY(flight.y()),
                     pxW, pxH, flight.bearing(), 1f, 1f, 1f, alphaMult);
-            spawnTrail(impactFx, s, flight);
         }
     }
 
@@ -216,34 +208,6 @@ public final class ShotRenderService implements RenderSystem {
         if (fx.softLaunch() == null || s.guidedFlight != null) return true;
         float t = 1f - Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
         return fx.softLaunch().ignited(t, s.lifetimeMax);
-    }
-
-    /**
-     * Whether a projectile-sprite shot sheds its authored trail from where it is now. A host calls this once per
-     * rendered frame, so a headless review that wants the same smoke column has to call it once per simulation tick.
-     */
-    public static void spawnTrail(ImpactFx impactFx, ShotEvent s, SpriteFlight flight) {
-        ShotFx fx = ShotFx.of(s);
-        if (!motorLit(s, fx)) return;
-        if (fx.softLaunch() != null && !s.ignitionShown) {
-            s.ignitionShown = true;
-            WeaponFxRuntime.spawnIgnition(impactFx, s, flight.x(), flight.y(), flight.bearing());
-        }
-        if ((s.guidedFlight != null || flight.progress() > 0.02f && flight.progress() < 0.98f)
-                && !WeaponFxRuntime.definition(s).layers(FxSlot.TRAIL).isEmpty()) {
-            float headingRad = (float) Math.toRadians(flight.bearing());
-            float tailDx = -(float) Math.sin(headingRad) * 0.15f;
-            float tailDy = -(float) Math.cos(headingRad) * 0.15f;
-            WeaponFxRuntime.spawnTrail(
-                    impactFx, s, flight.x() + tailDx, flight.y() + tailDy, flight.bearing());
-        }
-    }
-
-    /** The trail of one active shot, if it is a sprite-bodied one; the host-facing entry for review feeds. */
-    public static void spawnTrail(ImpactFx impactFx, ShotEvent s) {
-        ShotFx fx = ShotFx.of(s);
-        if (!(fx.body() instanceof ShotFx.Sprite)) return;
-        spawnTrail(impactFx, s, spriteFlight(s, fx));
     }
 
     static BoltPose boltPose(ShotEvent shot, ShotFx.Bolt bolt) {

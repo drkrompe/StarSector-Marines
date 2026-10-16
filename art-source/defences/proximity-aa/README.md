@@ -11,5 +11,6 @@ split olive housings, purple center and side panels, dark channels and open fram
 
 See the [family documentation](../missile-aa/README.md) for references, preview
 registration and export instructions. Internal channel details are generated
-interpretations. The center pivot is provisional art placement; gameplay and
-firing origins are not authored by this pass.
+interpretations. The center pivot supplies initial runtime placement; the mount
+catalog authors a central release mouth. See
+[effects and behavior](../missile-aa/effects/README.md) for the simulation review.

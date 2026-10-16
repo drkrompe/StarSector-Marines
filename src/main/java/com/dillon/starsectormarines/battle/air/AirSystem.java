@@ -24,6 +24,8 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
 import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.battle.combat.Detonations;
+import com.dillon.starsectormarines.battle.combat.ShotEvent;
+import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.combat.EngagementService;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -48,6 +50,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Owns every airborne vehicle in the battle and drives them each tick.
@@ -69,6 +72,12 @@ import java.util.function.Function;
 public class AirSystem {
 
     private static final Logger LOG = Global.getLogger(AirSystem.class);
+    private Supplier<List<ShotEvent>> incomingMissiles = List::of;
+
+    /** The serial phase's actual active rounds, provided by the battle's ordinary shot owner. */
+    public void setIncomingMissiles(Supplier<List<ShotEvent>> source) {
+        incomingMissiles = Objects.requireNonNull(source);
+    }
 
     /** Cell radius within which an enemy defense post threatens an airborne shuttle (the AA bubble). */
     private static final float AA_THREAT_RADIUS_CELLS = 14f;
@@ -639,8 +648,8 @@ public class AirSystem {
         return false;
     }
 
-    public void tick(float dt) {
-        advanceShuttles(dt);
+    public void tick(float dt, float nowSeconds) {
+        advanceShuttles(dt, nowSeconds);
         tickAirThreat(dt);
         tickShuttleTurrets(dt);
         advanceThrusterFx(dt);
@@ -704,6 +713,7 @@ public class AirSystem {
         if (grounded) groundedShootDown(id, body, mission);
         else {
             mission.crashSeconds = 0f;
+            mission.crashImpact = null;
             mission.crashStartAltitude = world.altitudeT(id);
             AirCrashMotion.beginFall(body, rng.nextFloat());
             effects.spawnBurningSmokePlume(body.x,
@@ -790,7 +800,8 @@ public class AirSystem {
 
     private void settleGroundWreck(long id, AirBody body, boolean crashDebris) {
         if (airfield == null) return;
-        GroundWreck wreck = new GroundWreck(body.x, body.y, body.facingDegrees, world.airframe(id));
+        GroundWreck wreck = new GroundWreck(body.x, body.y, body.facingDegrees, world.airframe(id),
+                world.mission(id).crashImpact);
         airfield.addGroundWreck(wreck);
         if (crashDebris) {
             AirframeFootprint.settleCrashDebris(navigation.getGrid(), body.x, body.y,
@@ -862,8 +873,14 @@ public class AirSystem {
      * {@link AirHandling}. No parametric per-leg curve is needed; the arc is
      * what kinematic-limited steering produces.
      */
-    private void advanceShuttles(float dt) {
+    private void advanceShuttles(float dt, float nowSeconds) {
         fieldPresence.refresh(air);
+        // Capture all craft before any moves, so contact checks compare both bodies over the same tick.
+        for (long id : air) {
+            AirBody body = world.kinematics(id);
+            body.previousX = body.x; body.previousY = body.y;
+            body.previousAltitude = AirAppearance.visualAltitudeOffsetCells(world.altitudeT(id));
+        }
         for (long id : air) {
             ShuttleMission mission = world.mission(id);
             AirBody body = world.kinematics(id);
@@ -872,16 +889,22 @@ public class AirSystem {
             AirHandling flight = frame.flight();
             ShuttleType carrier = ShuttleType.fromAirframe(frame);
             if (mission.poolSortie && !mission.aborted) driveOffIfBadlyHit(id, mission, body, frame);
+            advanceCoverDuty(id, mission, body, dt);
+            if (steerMissileEvasion(id, mission, body, frame, flight, dt)) continue;
             switch (mission.state) {
                 case CRASHING: {
                     float before = mission.crashSeconds;
                     mission.crashSeconds += dt;
                     float airborneSeconds = Math.max(0f, Math.min(dt, AirCrashMotion.FALL_SECONDS - before));
                     AirCrashMotion.fall(body, airborneSeconds);
+                    mission.crashImpact = AirCrashImpact.captureContact(mission.crashImpact, body, id,
+                            before, mission.crashSeconds, nowSeconds - dt + airborneSeconds);
                     world.setAltitudeT(id, AirCrashMotion.altitude(mission.crashSeconds, mission.crashStartAltitude));
                     if ((int) (before * 5) != (int) (mission.crashSeconds * 5))
+                        // Rolling fuel bursts carry the ground fire; a smaller central
+                        // flame lets the separated hull sections remain readable.
                         effects.spawnPropDamage(body.x, body.y + AirAppearance.visualAltitudeOffsetCells(world.altitudeT(id)),
-                                PropDamage.Effect.FIRE, 3f);
+                                PropDamage.Effect.FIRE, mission.crashImpact == null ? 3f : 1.1f);
                     boolean onMap = body.x >= 1 && body.y >= 1 && body.x < navigation.getGrid().getWidth() - 1
                             && body.y < navigation.getGrid().getHeight() - 1;
                     if (before < AirCrashMotion.FALL_SECONDS && mission.crashSeconds >= AirCrashMotion.FALL_SECONDS
@@ -1424,6 +1447,8 @@ public class AirSystem {
                             // Per-cycle loadout refreshes here so SABOTAGE planters
                             // target the next charge site on each return trip.
                             mission.currentCycle++;
+                            mission.pendingMissileExit = false;
+                            mission.missileEvasion.reset();
                             mission.fieldPresenceAdmitted = false;
                             if (mission.cycleLoadouts != null && mission.currentCycle < mission.cycleLoadouts.length) {
                                 mission.marineLoadout = mission.cycleLoadouts[mission.currentCycle];
@@ -1475,9 +1500,12 @@ public class AirSystem {
                             // has landed at home, and the air entity ends
                             // because the aircraft has stopped being one, not
                             // because it has stopped existing.
-                            if (mission.pickup != null) mission.pickup.recover();
-                            handBackToField(mission, /*recovered*/ true, world.hp(id));
-                            mission.state = ShuttleState.GONE;
+                            if (frame instanceof FighterProfile) mission.pendingMissileExit = true;
+                            else {
+                                if (mission.pickup != null) mission.pickup.recover();
+                                handBackToField(mission, /*recovered*/ true, world.hp(id));
+                                mission.state = ShuttleState.GONE;
+                            }
                         }
                     }
                     break;
@@ -1487,6 +1515,72 @@ public class AirSystem {
                     break;
             }
         }
+    }
+
+    /** Completes only terminal fighter exits after their last physical segment has been swept for contacts. */
+    public void finishMissileContacts() {
+        for (long id : air) {
+            ShuttleMission mission = world.mission(id);
+            if (!mission.pendingMissileExit) continue;
+            mission.pendingMissileExit = false;
+            if (mission.destroyed || mission.state == ShuttleState.CRASHING) continue;
+            if (mission.pickup != null) mission.pickup.recover();
+            handBackToField(mission, true, world.hp(id));
+            mission.state = ShuttleState.GONE;
+        }
+        reapGoneCraft();
+    }
+
+    /** Time and terminal decisions belong to the sortie even while an evasive goal owns its steering. */
+    private void advanceCoverDuty(long id, ShuttleMission mission, AirBody body, float dt) {
+        CoverDuty duty = mission.cover;
+        if (duty == null || (mission.state != ShuttleState.ORBIT && mission.state != ShuttleState.INTERCEPT)) return;
+        duty.advanceClocks(mission.state, dt);
+        if (duty.stationSecondsLeft <= 0f || duty.spent() || mission.aborted) {
+            duty.preyId = 0L;
+            beginEgress(mission, body);
+        } else if (mission.state == ShuttleState.INTERCEPT && (duty.preyId == 0L
+                || !hostileAirborne(duty.preyId, world.airFaction(id)) || !duty.hasAirRounds()
+                || duty.interceptSecondsLeft <= 0f)) {
+            duty.preyId = 0L;
+            returnToStation(mission, body);
+        }
+    }
+
+    private boolean steerMissileEvasion(long id, ShuttleMission mission, AirBody body,
+                                         Airframe frame, AirHandling handling, float dt) {
+        boolean freeFlight = switch (mission.state) {
+            case INCOMING, ATTACK_RUN, REPOSITION, INTERCEPT, DEPARTING -> true;
+            case ORBIT -> mission.cover != null;
+            default -> false;
+        };
+        if (!(frame instanceof FighterProfile) || mission.gunship || !mission.missileEvasionEnabled
+                || mission.destroyed || !freeFlight || mission.gunshipIngress != null) {
+            mission.missileEvasion.reset();
+            return false;
+        }
+        FighterMissileEvasion.Threat nearest = null;
+        float nearestSq = Float.POSITIVE_INFINITY;
+        for (ShotEvent shot : incomingMissiles.get()) {
+            if (shot.guidedFlight == null || !shot.guidedFlight.powered() || shot.flightTargetId != id
+                    || shot.weaponDef() == null || shot.weaponDef().airMissile == null
+                    || !shot.weaponDef().airMissile.guided()
+                    || !world.airFaction(id).hostileTo(shot.shooterFaction)) continue;
+            var missile = shot.guidedFlight;
+            float horizontalSpeed = missile.speed * (float) Math.cos(missile.pitch);
+            var threat = new FighterMissileEvasion.Threat(missile.x, missile.y,
+                    (float) Math.cos(missile.heading) * horizontalSpeed,
+                    (float) Math.sin(missile.heading) * horizontalSpeed);
+            if (!FighterMissileEvasion.incoming(body.x, body.y, body.vx, body.vy, threat)) continue;
+            float dx = missile.x - body.x, dy = missile.y - body.y;
+            if (dx * dx + dy * dy < nearestSq) { nearestSq = dx * dx + dy * dy; nearest = threat; }
+        }
+        var goal = mission.missileEvasion.advance(dt, id, body, handling, nearest);
+        if (goal == null) return false;
+        AirSteeringSystem.steer(body, goal.x(), goal.y(), SteeringMode.CRUISE, handling, dt);
+        world.setAltitudeT(id, 1f);
+        world.setFlightPhase(id, world.flightPhase(id) + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
+        return true;
     }
 
     private void tickShuttleTurrets(float dt) {
@@ -1655,13 +1749,6 @@ public class AirSystem {
         AirSteeringSystem.steer(body, ahead[0], ahead[1], SteeringMode.CRUISE, flight, dt);
         world.setAltitudeT(id, 1f);
         world.setFlightPhase(id, world.flightPhase(id) + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
-        duty.stationSecondsLeft -= dt;
-        duty.restSecondsLeft = Math.max(0f, duty.restSecondsLeft - dt);
-        boolean spent = !duty.hasAirRounds() && duty.groundPassesLeft <= 0;
-        if (duty.stationSecondsLeft <= 0f || spent || mission.aborted) {
-            beginEgress(mission, body);
-            return;
-        }
         if (duty.preyId != 0L) {
             if (hostileAirborne(duty.preyId, world.airFaction(id)) && duty.hasAirRounds() && duty.readyForWork()) {
                 duty.interceptSecondsLeft = CoverDuty.INTERCEPT_SECONDS;
@@ -1695,8 +1782,6 @@ public class AirSystem {
             mission.state = ShuttleState.DEPARTING;
             return;
         }
-        duty.stationSecondsLeft -= dt;
-        duty.interceptSecondsLeft -= dt;
         boolean chasing = duty.preyId != 0L && hostileAirborne(duty.preyId, world.airFaction(id))
                 && duty.hasAirRounds() && duty.interceptSecondsLeft > 0f && !mission.aborted;
         if (!chasing) {

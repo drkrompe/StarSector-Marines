@@ -63,7 +63,8 @@ public final class WeaponRegistry {
      */
     public static final List<String> BUILTIN_CATALOGS = List.of(
             "data/marines/marine-weapons.weapon.json",
-            "data/marines/turret-weapons.weapon.json");
+            "data/marines/turret-weapons.weapon.json",
+            "data/marines/missile-aa-weapons.weapon.json");
 
     private static volatile WeaponRegistry installed;
 
