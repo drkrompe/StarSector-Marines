@@ -19,6 +19,11 @@ Review options, after a literal "--":
   --no-save        skip the .blend and geometry.json
   --cam NAME:PX,PY,PZ:TX,TY,TZ:SCALE   add an ad-hoc ortho review camera
                    (repeatable) and render it; written as NAME.png
+  --state S        clean (default), derelict or patched: sw_damage layers
+                   that damage state onto the finished clean ship. A damaged
+                   state writes to states/<S>/ unless --out is given, and by
+                   default also renders starboard-quarter and the damage
+                   close-ups; the committed guide is always the clean ship.
 Close-up cameras are rendered only when named, never by the default run.
 """
 from pathlib import Path
@@ -32,18 +37,23 @@ from mathutils import Vector
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-import sw_kit, sw_hull, sw_aft_deck, sw_engines, sw_bridge, sw_turrets, sw_port_module
-for module in (sw_kit, sw_hull, sw_aft_deck, sw_engines, sw_bridge, sw_turrets, sw_port_module):
+import sw_kit, sw_hull, sw_aft_deck, sw_engines, sw_bridge, sw_turrets, sw_port_module, sw_damage
+for module in (sw_kit, sw_hull, sw_aft_deck, sw_engines, sw_bridge, sw_turrets, sw_port_module, sw_damage):
     importlib.reload(module)
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--out', default=str(HERE))
-parser.add_argument('--views', default='port-quarter,top,port-side,stern')
+parser.add_argument('--out')
+parser.add_argument('--views')
+parser.add_argument('--state', choices=('clean','derelict','patched'), default='clean')
 parser.add_argument('--samples', type=int, default=24)
 parser.add_argument('--no-save', action='store_true')
 parser.add_argument('--cam', action='append', default=[])
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
-OUT = Path(args.out).resolve()
+DAMAGE_VIEWS = ('port-quarter,top,port-side,stern,starboard-quarter,'
+                'port-flank-detail,port-aft-detail,starboard-aft-detail,stern-detail,bridge-detail')
+OUT = Path(args.out or (HERE if args.state == 'clean' else HERE/'states'/args.state)).resolve()
+if args.views is None:
+    args.views = 'port-quarter,top,port-side,stern' if args.state == 'clean' else DAMAGE_VIEWS
 OUT.mkdir(parents=True, exist_ok=True)
 
 bpy.ops.object.select_all(action='SELECT')
@@ -64,6 +74,7 @@ sw_port_module.build(kit)
 
 sw_engines.build_nozzles(kit)
 sw_turrets.build(kit)
+damage = sw_damage.build(kit, args.state) if args.state != 'clean' else None
 
 scene=bpy.context.scene
 scene.render.engine='CYCLES'
@@ -94,7 +105,13 @@ cameras=[('port-quarter',(100,130,100),163),('top',(0,0,180),205),
 # Review close-ups: (name, position, target, orthographic scale).
 closeups=[('bow-detail',(110,60,55),(40,0,8),70),
           ('bridge-detail',(60,60,50),(12,0,14),55),
-          ('turret-detail',(70,70,60),(30,-5,12),60)]
+          ('turret-detail',(70,70,60),(30,-5,12),60),
+          # Damage review views.
+          ('starboard-quarter',(100,-130,100),(5,0,1),163),
+          ('port-flank-detail',(75,95,45),(34,24,6),52),
+          ('port-aft-detail',(15,85,55),(-22,28,6),52),
+          ('starboard-aft-detail',(-80,-75,60),(-24,-26,6),55),
+          ('stern-detail',(-120,40,30),(-36,6,4),62)]
 wanted=[v for v in args.views.split(',') if v]
 for spec in args.cam:
     name,pos,target,scale=spec.split(':')
@@ -141,4 +158,7 @@ if not args.no_save:
         'bay_state':{'port':'open, empty cradle','starboard':'sealed, awaits repair'},
         'mesh_authority':'All views render the same objects; generated surface art is subordinate to this geometry.'
     }
+    if damage:
+        manifest['status']='Proposed damage-state review geometry; the committed guide remains the clean ship'
+        manifest['damage']=damage
     (OUT/'geometry.json').write_text(json.dumps(manifest,indent=2)+'\n',encoding='utf-8')
