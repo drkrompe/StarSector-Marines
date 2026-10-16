@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — Junction trenches, Talon Two working ahead, reserve commits on a contested second site.
+Updated: 2026-10-15 — Junction lore: Varro's lien, the impounded loads and the civil authority's stance.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -867,9 +867,32 @@ resource production, open-ended reinforcement layer or free garrison sorties.
 This is a mission-scoped exception, not a lower risk setting for a large siege.
 
 **Open the Junction** begins Broken Supply Route.
+Its opponent is **Varro**, a debt-recovery outfit that bought part of what Wayline
+owed when it sold its freighters. Varro holds the junction as security for that
+paper. It tolls Wayline's drivers at the Weigh Station and has impounded three
+months of contracted loads: heavy machinery for the upcountry waterworks, and
+stores for the settlements past Rill. Jangala's civil authority treats a lien
+between two freight companies as a civil matter, and its security covers the
+port, not a cooperative's road. That is why the cooperative hires its own answer.
+It is a stance, not an absence: the state acts later in Corvus, once the evidence
+shows piracy rather than debt. Each site has a meaning:
+
+- the Weigh Station is the toll;
+- the Freight Yard holds the bond office that releases the warehouse;
+- Junction Dispatch is the route board.
+
+At Dispatch the company finds this week's Wayline schedule sheets, which no one
+outside the cooperative should have. Mara remarks on it once, as the arc's single
+unexplained hint, and Varro's trenches and reserves suggest someone is funding the
+collection. The freed loads are the cargo that Thunder Run carries out.
+
 Its western turnout, Weigh Station, Freight Yard and Junction Dispatch are the
 four required territories. Dispatch is the canonical command post. Decorative
 warehouses and the roads toward Rill and Relay Nine add no capture requirements.
+Across the road from the sites stand the bonded warehouse, its hall stocked with
+the impounded machinery and crates, and a fenced impound lot holding four of
+Wayline's haulers. They are scenery. The haulers are civilian, so nobody targets
+them, and nothing there needs taking or guarding.
 Those roads add no campaign decision. The weigh-house has a
 T-shaped service wing; offset freight rooms face the maintenance access, and
 an L-shaped depot encloses a northern loading recess. The broad central
