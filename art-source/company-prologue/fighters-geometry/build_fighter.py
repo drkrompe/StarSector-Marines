@@ -14,7 +14,9 @@ A module defines:
   SLOTS, ENGINES                          copied exactly from the .ship (checked here)
   METRES_PER_UNIT, SCALE                  its own real-world scale and how it was found
   PILOTS                                  [(x, y)] seat positions: one per crew seat
-  build(kit)                              geometry plus every slot and engine anchor
+  CLOSEUPS                                [(name, direction, target, frame_m)] pass-2 detail cameras
+  build(kit)                              geometry plus every slot and engine anchor; pass-2
+                                          detail only when kit.detail (off under --blockout)
 Everything goes into the collection "<NAME> | geometry" under the empty
 "<Name> root" at the .ship centre (custom props metres_per_unit, axes).
 Cameras, lights, the 1.8 m scale figure and the seated pilot proxies live
@@ -23,10 +25,14 @@ in "<NAME> | review rig" and are not part of the asset.
 Options after a literal "--":
   --fighter ID   module ft_<ID>.py (required)
   --out DIR      renders, .blend and geometry.json (default ./<ID>/)
-  --views a,b    top, port-side, front, three-quarter, cockpit-check, parked
+  --views a,b    top, port-side, front, three-quarter, cockpit-check, parked,
+                 and the module's CLOSEUPS ('details' names them all)
                  (default all; 'none' renders nothing)
   --samples N    Cycles samples (default 24)
   --no-save      skip the .blend and geometry.json
+  --blockout     the pass-1 build (no detail), for the before half of a
+                 before/after: --blockout --out <id>/reference-history/v1-blockout
+  --cam NAME:PX,PY,PZ:TX,TY,TZ:SCALE   an ad-hoc ortho camera (units), rendered too
 Then: python compose_fighter.py --fighter ID   (overlay, IoU, review sheet)
 """
 from pathlib import Path
@@ -47,9 +53,11 @@ GAME = Path(r'C:\Program Files (x86)\Fractal Softworks\Starsector\starsector-cor
 parser = argparse.ArgumentParser()
 parser.add_argument('--fighter', required=True)
 parser.add_argument('--out')
-parser.add_argument('--views', default='top,port-side,front,three-quarter,cockpit-check,parked')
+parser.add_argument('--views', default='top,port-side,front,three-quarter,cockpit-check,parked,details')
 parser.add_argument('--samples', type=int, default=24)
 parser.add_argument('--no-save', action='store_true')
+parser.add_argument('--blockout', action='store_true')
+parser.add_argument('--cam', action='append', default=[])
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 
 import fg_kit
@@ -103,7 +111,16 @@ layers = bpy.context.view_layer.layer_collection.children
 bpy.context.view_layer.active_layer_collection = layers[COLLECTION]
 
 kit = fg_kit.Kit(**getattr(ft, 'KIT', {}))
+kit.m = M
+kit.detail = not args.blockout
 ft.build(kit)
+for ob in list(bpy.data.objects):  # a helper's scratch solid must never reach the asset
+    if ob.name.startswith('Temporary'):
+        raise RuntimeError(f'{NAME}: scratch object left behind: {ob.name}')
+pass1 = getattr(kit, 'pass1', None)
+for ob in bpy.data.objects:  # pass-2 parts carry detail_pass, for check_clashes.py
+    if pass1 is not None and ob.name not in pass1:
+        ob['detail_pass'] = 2
 names = {o.name for o in model.objects}
 missing = [f"Weapon {s['id']} anchor" for s in ft.SLOTS if f"Weapon {s['id']} anchor" not in names]
 missing += [f'Engine {i} exhaust anchor' for i in range(1, len(ft.ENGINES)+1)
@@ -289,6 +306,23 @@ if ground:  # low port-bow view of the hull standing on its feet
     # The feet hang below the hull, and the front shares the bottom row three ways: widen both frames.
     CAMERAS['front'] = (CAMERAS['front'][0], SW*1.9, None)
     CAMERAS['three-quarter'] = (CAMERAS['three-quarter'][0], span*1.7, None)
+# Pass-2 close-ups: (name, view direction from the target, target in units, frame width in metres).
+CLOSEUPS = {}
+for name, direction, target, frame_m in getattr(ft, 'CLOSEUPS', []):
+    t = Vector(target)
+    CLOSEUPS[name] = (t+Vector(direction).normalized()*3*span, frame_m/M, t)
+for spec in args.cam:
+    name, pos, target, scale = spec.split(':')
+    t = Vector(map(float, target.split(',')))
+    CLOSEUPS[name] = (Vector(map(float, pos.split(','))), float(scale), t)
+for name, (pos, scale, t) in CLOSEUPS.items():
+    bpy.ops.object.camera_add(location=pos)
+    cam = bpy.context.object
+    cam.name = 'Camera '+name
+    cam.data.type = 'ORTHO'
+    cam.data.ortho_scale = scale
+    cam.data.clip_end = 20*span
+    cam.rotation_euler = (t-cam.location).to_track_quat('-Z', 'Y').to_euler()
 for name, (pos, scale, rot) in CAMERAS.items():
     bpy.ops.object.camera_add(location=pos)
     cam = bpy.context.object
@@ -327,7 +361,10 @@ nt.links.new(diffuse.outputs[0], mix.inputs[1])
 nt.links.new(mix.outputs[0], out.inputs[0])
 
 proxies = [o for o in rig.objects if o.name.startswith(('Pilot proxy', 'Scale figure'))]
-wanted = [v for v in args.views.split(',') if v and v != 'none']
+wanted = []
+for v in args.views.split(','):
+    wanted += list(CLOSEUPS) if v == 'details' else ([v] if v and v != 'none' else [])
+wanted += [spec.split(':')[0] for spec in args.cam if spec.split(':')[0] not in wanted]
 for name in wanted:
     cam = bpy.data.objects.get('Camera '+name)
     if cam is None:
@@ -369,7 +406,11 @@ if not args.no_save:
     bpy.ops.wm.save_as_mainfile(filepath=str(OUT/f'{args.fighter}-geometry.blend'))
     anchors = {o.name: [round(v, 3) for v in o.matrix_world.translation] for o in kit.anchors}
     manifest = {
-        'status': 'Blockout (pass 1): silhouette, sections, mass, slots and engines. No detail, damage or textures.',
+        'status': ('Blockout (pass 1): silhouette, sections, mass, slots and engines. No detail, damage or textures.'
+                   if args.blockout else
+                   'Pass 2: plausible detail (panel lines, access plates, intakes, drive, gun and canopy detail, '
+                   'sensors) on the pass-1 silhouette. No damage or textures.'),
+        'pass': 1 if args.blockout else 2,
         'hull': {'name': NAME, 'hullId': ft.HULL_ID, 'size': ship.get('hullSize'), 'style': ship.get('style'),
                  'source': {'ship': ft.SHIP, 'sprite': ft.SPRITE, 'shape_reference': ft.MASTER,
                             **getattr(ft, 'SOURCE_NOTES', {})}},
@@ -393,6 +434,10 @@ if not args.no_save:
         'anchor_convention': 'ARROWS empties; local +X points along the slot angle (0 = nose, 180 = aft)',
         'notes': getattr(ft, 'NOTES', []),
         'cameras': {n: {'position': list(p), 'orthographic_scale': s} for n, (p, s, _) in CAMERAS.items()},
+        'closeup_cameras': {n: {'position': [round(v, 3) for v in p], 'target': [round(v, 3) for v in t],
+                                'orthographic_scale': round(s, 3)} for n, (p, s, t) in CLOSEUPS.items()},
+        'object_count': {'meshes': len(meshes), 'empties': sum(1 for o in model.objects if o.type == 'EMPTY'),
+                         'pass2_detail_meshes': sum(1 for o in meshes if o.get('detail_pass') == 2)},
     }
     path = OUT/'geometry.json'
     if path.exists():

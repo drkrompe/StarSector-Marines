@@ -1,31 +1,41 @@
-FIGHTERS - CINEMATIC GEOMETRY (PASS 1: BLOCKOUT)
+FIGHTERS - CINEMATIC GEOMETRY (PASS 2: PLAUSIBLE DETAIL)
 
 Purpose
 Modelled fighters for rendering in the Jangala cinematic (C2: the
 Hegemony Legion's air wing launching from and recovering to its hangars).
 Owner brief: "Create modeled fighters we can use for rendering. aka block
-out." Each fighter is carried through ship-model-pipeline pass 1
-(.claude/skills/ship-model-pipeline): correct silhouette, sections, mass,
-slots and engines, flat-shaded chamfered sections, no detail. Pass 4
-scale is done per hull. The next step is the owner's review.
+out." Each fighter follows the ship-model-pipeline skill
+(.claude/skills/ship-model-pipeline). Pass 1 (blockout) was signed off
+for now, and its renders are kept in <id>/reference-history/v1-blockout/.
+Pass 2 adds the detail each sprite and up-res master imply, at the
+fighter's own real-world scale. Pass 3 (owner review) is next. There are
+no damage states, textures or VFX yet.
 
 The six fighters with up-res masters in art-source/aircraft/fighter-upres/:
 Talon, Wasp, Dagger, Longbow and Thunder are here; the Broadsword lives in
-../broadsword-geometry/ (built first, already at pass 2 detail) and joins
-the lineup from there. Hoplon is out of scope.
+../broadsword-geometry/ (its own package, also at pass 2, and the house
+reference for detail density) and joins the lineup from there. Hoplon is
+out of scope.
 
 Layout
 fg_kit.py           shared helpers, copied from the Broadsword kit (no other
                     hull package is imported); engine() and slot_anchor()
-                    give every fighter the same names
+                    give every fighter the same names; the pass-2 helpers
+                    (below) size everything in metres through Kit.u()
 build_fighter.py    the driver: one build per fighter (--fighter ID); checks
                     SLOTS/ENGINES against the installed .ship, required
-                    names, root, scale figure, seated-pilot fit, renders
-compose_fighter.py  top-over-sprite overlay, IoU, the review sheet
-ft_<id>.py          one module per fighter (built in parallel by one agent
-                    each; Opus subagents, as Sol 6.1 is not offered here)
+                    names, root, scale figure, seated-pilot fit, parked
+                    check, renders; --blockout builds pass 1 only
+compose_fighter.py  top-over-sprite overlay, IoU, the review sheet, and
+                    the before/after sheets against the blockout
+check_clashes.py    overlap sweep of one integrated build -> <id>/clashes.txt
+ft_<id>.py          one module per fighter: build() is pass 1, detail() is
+                    pass 2 (run unless --blockout), CLOSEUPS its detail cameras
 <id>/               <id>-geometry.blend, geometry.json, renders,
-                    top-overlay.png, <id>-geometry.reference.png
+                    top-overlay.png, <id>-geometry.reference.png,
+                    pass2-before-after.png (close-ups),
+                    pass2-before-after-views.png (standard views),
+                    clashes.txt, reference-history/v1-blockout/
 lineup.py, compose_lineup.py
                     the common-scale lineup: lineup.png, lineup-top.png,
                     lineup-three-quarter.png, lineup.json, fighters-lineup.blend
@@ -41,8 +51,11 @@ Conventions (every fighter)
 - Engines, i in .ship engineSlots order: Engine {i} mouth lip / aft-facing
   bell / dark throat (the Second Wind names), and "Engine {i} <port|
   starboard|centre> exhaust anchor" at the mouth plane, local +X aft.
+  Pass 2 adds Engine {i} centre body / stator vane {k} / collar rib {k}.
 - Weapons: "Weapon <slot id> anchor" at every .ship slot (+X along the slot
   angle), and "Weapon <slot id> muzzle" at the tip of every drawn gun.
+- Pass-2 parts carry the custom property detail_pass = 2; every pass-1
+  name, anchor and muzzle is unchanged.
 - Placing beside another hull: scale the root by this metres_per_unit /
   that hull's, read from its geometry.json. The Legion's is 0.61 (local
   main 496340563): root scales Broadsword, Wasp, Dagger 0.82; Talon 0.90;
@@ -60,24 +73,97 @@ the same size, only plausible (owner): a seated 1.8 m pilot proxy (seat
 pan 0.55 m below the deck skin, crown 0.92 m above the seat) must clear
 the glass. So the Talon is a compact interceptor with a small,
 Gnat-like canopy, smaller than the Broadsword as in the game. The crewless Wasp is scaled
-from its gun, drive cans and size.
+from its gun, drive cans and size. Pass 2 changed no scale, canopy or
+seat: every cockpit fit is as at pass 1.
 
-Fighter     m/unit  range      size (m)          canopy (m)  head clear  IoU
-Thunder     0.45    0.40-0.50  18.5 x 10.8 x 2.6  3.24x1.17   0.28 m      0.956 *
-Dagger      0.50    0.43-0.58  16.4 x 12.1 x 2.2  3.10x1.15   0.21 m      0.959
-Broadsword  0.50    0.43-0.57  15.5 x 14.1 x 3.3  3.0 x1.9    0.21 m      0.931 (pass 2)
-Longbow     0.45    0.40-0.55  15.0 x 14.4 x 2.5  2.66x1.12   0.14 m      0.951
-Talon       0.55    0.50-0.62  12.1 x 12.1 x 2.4  2.15x0.88   0.08 m      0.977
-Wasp        0.50    0.40-0.65   9.8 x  8.1 x 2.4  (drone)     -           0.909 **
-Each <id>/geometry.json has the method, cross-checks and cockpit fit.
+Fighter     m/unit  range      size (m)          canopy (m)  head clear  IoU pass 1 -> 2
+Thunder     0.45    0.40-0.50  18.5 x 10.8 x 2.6  3.24x1.17   0.28 m      0.956 -> 0.956 *
+Dagger      0.50    0.43-0.58  16.4 x 12.1 x 2.3  3.10x1.15   0.21 m      0.959 -> 0.959
+Broadsword  0.50    0.43-0.57  15.5 x 14.1 x 3.3  3.0 x1.9    0.21 m      0.927 -> 0.931 (own package)
+Longbow     0.45    0.40-0.55  15.0 x 14.4 x 2.6  2.66x1.12   0.14 m      0.951 -> 0.951
+Talon       0.55    0.50-0.62  12.1 x 12.1 x 2.5  2.15x0.88   0.08 m      0.977 -> 0.977
+Wasp        0.50    0.40-0.65   9.8 x  8.1 x 2.4  (drone)     -           0.908 -> 0.908 **
+Each <id>/geometry.json has the method, cross-checks, cockpit fit and IoU.
+Heights grew by at most 0.1 m where an antenna or blister now stands
+above the old top.
+
+Pass 2 detail (budget: hero-capable, Broadsword density, not greebles)
+Read off each up-res master at 4-8x, and from each hull's role. Every size
+is in metres at the fighter's own scale (Kit.u), so a panel line is 5 cm
+wide and 2.5-4 cm deep on all of them, and a grille slat or a bolt is the
+same real size on the 9.8 m Wasp as on the 18.5 m Thunder.
+- Panel lines are constant-depth grooves (Kit.engrave): a slab marks
+  where, an inward offset of the part's own finished surface limits how
+  deep, so lines follow chamfers and lofts without being traced.
+- Raised plates, collar ribs and canopy frames are constant-thickness
+  layers of a part's own surface inside a bounding solid (Kit.skin): a
+  canopy sill and bows hug the glass, a rib hugs the drum.
+- Seated fittings (grilles, vents, sensor windows, blisters, blade
+  antennae: Kit.grille, seated, fairing, blade) lie on the surface normal
+  under them and are bedded into it.
+- Drives: every bell gets a centre body and a ring of stator vanes on its
+  throat, and collar ribs on its drive unit ahead of the lip.
+Per fighter (each module's NOTES has the full list):
+- Talon: vulcan shroud collar, banded jacket, six-barrel cluster, breech
+  and feed housing; closed swarmer-bay door at WS 003; canopy sill, arch
+  and bow; nose strip with sensor blister, dorsal strip and vent;
+  shoulder intakes, spine grille and slots, blade antenna, wing vents.
+  The aft body's tail face used to stand inside each bell ahead of the
+  throat, so the drives read as red armour; the bell well now runs
+  through it.
+- Wasp: articulated arms and claws (below); emitter coils, lens and
+  cooling ribs; shoulder vents, flank sensor windows, tail grille and
+  lamp; blade seams and tip sensor windows; can vents and ribs.
+- Dagger: prong-tip vents and sensor blisters; a closed energy aperture
+  on the notch root (WS 001, unfitted); canopy frame; flank intakes;
+  drive-block grille, antenna and rib; torpedo store joint bands, tail
+  fins, seeker window and sway braces; fin and pod vents.
+- Longbow: prong sensor blisters, nose strip and lamp; canopy frame;
+  dorsal sensor housing, antenna, aft grille, aft-arm vents; emitter
+  collar and coils, housing window; four sabot tubes in the rack mouth
+  and hold-down latches; pod slots, lamps and ribs.
+- Thunder: lance grille, tip slot and radome seam; ion-cannon coils,
+  focus ring and bore; inner-prong bands; dual-MG jackets, brakes and
+  breech cover; gun-block vent; three launch cells in the swarmer bay;
+  canopy frame; dorsal spine with ribbed grille; flank intakes; pod
+  intakes, vents and ribs; tip-plate slots.
+
+Wasp articulation (owner ask)
+- Arm hinge: each pivot housing is the sweep bearing, capped with a
+  bright slewing ring, cap and six-bolt circle. A fifth of the way out
+  each arm is cut by a hinge seam (frame and blade) with two knuckles
+  and a bright pin across it: the joint the arm droops about. A
+  two-stage droop actuator (cylinder and rod) runs from the hub's
+  underside to the arm's, at nearly half its length.
+- Claw: cheek plates straddle each claw where it leaves the arm's
+  underside, with a knuckle pin through them, and a tendon actuator
+  runs from the arm's underside to the claw's back.
+- The claws are still the only parts on the deck: the parked check finds
+  the four soles coplanar (spread 0.000 m) at the same 6.0 degree
+  nose-down crouch, the body clears by 0.42 m as before, and the lowest
+  non-foot part is now a fore claw cheek at 0.09 m (was the fore arm
+  frame at 0.26 m).
+
+Clash check (check_clashes.py; <id>/clashes.txt)
+Every mesh is pass-1 body or pass-2 detail. Contacts inside one fitting
+(a grille's slats and well, a drive's centre body and vanes, the canopy
+frame's pieces) are counted, not listed; seated detail bedded into the
+body is listed per part; detail crossing detail across fittings and
+detail touching nothing are the findings. Final builds: no floating
+detail on any fighter, and no cross-fitting crossings except where a
+dorsal strip runs up to the canopy sill by design (the Talon's dorsal
+strip at the glass's aft end, the Longbow's nose strip at its front, with
+its lamp set on the strip). Body-on-body pairs match a blockout build of
+the same module pair for pair, except that the Talon's four bell and
+throat intersections with its aft body are gone: that is the bell-well
+fix above.
 
 For review
 - * Thunder follows graphics/ships/thunder.png, which is asymmetric (the
   owner's call): a port gun block with two prongs (ion cannon on the outer
   one) and a long lance offset to starboard, with the dual MG on its root.
   The .ship itself draws thunder2.png (symmetric booms), and master-v1 is a
-  mirrored hybrid, so the master gave sections only, not the plan. IoU
-  0.956 against thunder.png.
+  mirrored hybrid, so the master gave sections and parts only, not the plan.
 - ** Wasp: its arms are drawn as pixel stairs on the sprite; the model
   runs each edge straight through the stair midpoints instead of tracing
   them, so the arms read as blades, not pixels. The stair corners it cuts
@@ -87,9 +173,9 @@ For review
   tip grips the deck. The deck is pitched 6 degrees in the hull frame, so
   parked it crouches nose-down with its tail raised; the hull axes stay
   the flight frame. The build fits the deck plane through the claws,
-  fails if they are not on it or anything else reaches it (body 0.42 m
-  clear; parked_check in geometry.json, FEET in the module), and its
-  sheet shows it parked, the deck levelled, in place of a cockpit cutaway.
+  fails if they are not on it or anything else reaches it (parked_check
+  in geometry.json, FEET in the module), and its sheet shows it parked,
+  the deck levelled, in place of a cockpit cutaway.
 - Asymmetric hulls keep their asymmetry: the Thunder (see above), the Talon (gun nacelle to port,
   cockpit pod to starboard), the Dagger (port torpedo store) and the
   Longbow (emitter to port, missile cell to starboard).
@@ -99,10 +185,18 @@ For review
   Longbow), the visible bells and exhaust anchors sit at slot + offset.
   Each fighter's NOTES in geometry.json record its choices.
 - Heights and undersides are proposed; only the plan comes from the game.
-  Flat materials only.
+  Flat materials only (each fighter's armour, gunmetal, bright steel,
+  dark recess, glass); no emissives, as none of these hulls has a lights
+  layer (the Talon's glow files are drive glows).
 
 Rebuild (from this folder; one Blender at a time)
   "/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" --background --factory-startup --python build_fighter.py -- --fighter talon
   python compose_fighter.py --fighter talon
+  ".../blender.exe" --background talon/talon-geometry.blend --python check_clashes.py
   ".../blender.exe" --background --factory-startup --python lineup.py
   python compose_lineup.py
+Blockout before-shots for new close-up cameras:
+  ".../blender.exe" --background --factory-startup --python build_fighter.py -- --fighter talon --blockout --out talon/reference-history/v1-blockout --no-save --views details
+Options: --views (top, port-side, front, three-quarter, cockpit-check,
+parked, details or a close-up's name), --cam, --samples, --no-save,
+--blockout (see the driver's docstring).

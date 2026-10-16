@@ -1,6 +1,6 @@
 """Package arrival-cinematic shots into the mod (runtime-contract.md).
 
-python art-source/company-prologue/second-wind-cinematic/cinematic_export.py [--shot c1 ...] [--crf 25] [--check]
+python art-source/company-prologue/second-wind-cinematic/cinematic_export.py [--shot c1 ...] [--crf 25] [--check] [--timeline-only]
 
 For each shot with rendered frames this encodes the shipped video and writes the shot's
 timeline (captions, overlays, audio cues) beside it:
@@ -12,8 +12,15 @@ The video is H.264 High, CABAC, closed one-second GOPs, no B-frames, BT.709 limi
 the profile the player's pure-Java decoder is measured on (runtime-contract.md). Do not change
 it without re-measuring. Shots with no frames are skipped, so they can land one at a time.
 
+Nothing in a timeline is English. A caption names a strings.json key (hail lines are keyed from their
+catalog ids, see caption_key), and speaker labels and the lock's title and detail runs are keys too,
+so the player resolves them in the active language and pages the text itself (CaptionPager).
+`--timeline-only` rewrites just the JSON, taking the frame count from the timeline already on disk;
+it needs no frames and no ffmpeg and leaves the checked-in mp4 untouched.
+
 To add a shot, add a row to SHOTS: the folder holding its composer, the module name, and where
-the composer writes frames (build/cinematic/<output>/frames). The module provides captions(), overlays(), audio_cues() and
+the composer writes frames (build/cinematic/<output>/frames). The module provides captions() (as
+(t_in, t_out, speaker_id, catalog_line_id) over the whole take), overlays(), audio_cues() and
 duration() (or DURATION). Requires ffmpeg on PATH.
 """
 import argparse
@@ -38,16 +45,39 @@ Shot = namedtuple("Shot", "folder module output crf", defaults=(None,))
 # In play order; the player reads the same order from sequence.json.
 SHOTS = {
     "c1": Shot("corvus-approach", "compose_c1", "c1-corvus"),
+    "c2": Shot("patrol-abeam", "compose_c2", "c2-patrol"),
+    "entry": Shot("patrol-abeam", "compose_entry", "entry"),
     # C3 is film-grain heavy: crf 25 costs 1.1 MB/s there against 0.4 for C1, so it takes 28 (8 MB).
     "c3": Shot("first-open-sky", "compose_c3", "c3-first-open-sky", 28),
     "c4": Shot("road-and-port", "compose_c4", "c4-road-and-port"),
+    "c5": Shot("nessas-yard", "compose_c5", "c5-nessas-yard"),
 }
 CINEMATIC_BUILD = ROOT / "build" / "cinematic"
 
+# Labels are strings.json keys; the player resolves them.
 SPEAKERS = {
-    "approach": {"label": "JANGALA APPROACH", "color": "hegemony"},
-    "castle": {"label": "CASTLE  /  SECOND WIND", "color": "player"},
+    "approach": {"label_key": "jangalaArrivalSpeakerApproach", "color": "hegemony"},
+    "castle": {"label_key": "jangalaArrivalSpeakerCastle", "color": "player"},
 }
+STRINGS = MOD / "data" / "strings" / "strings.json"
+HAIL_CATALOG = MOD / "data" / "marines" / "jangala_arrival_hail.json"
+# Catalog lines whose words already live under another strings.json key.
+KEY_OVERRIDES = {"jangala_arrival_nessa": "openingCompanyPrologueNessaVennWeRanOreTogetherBefore"}
+
+
+def caption_key(line_id):
+    """The strings.json key of a voiced catalog line: jangala_arrival_hail_01 -> jangalaArrivalHail01."""
+    if line_id in KEY_OVERRIDES:
+        return KEY_OVERRIDES[line_id]
+    head, *rest = line_id.split("_")
+    return head + "".join(part.capitalize() for part in rest)
+
+
+def string_keys():
+    """Every marineOps key in strings.json (the file carries # comment lines)."""
+    lines = STRINGS.read_text(encoding="utf-8").splitlines()
+    text = "\n".join(l for l in lines if not l.lstrip().startswith("#"))
+    return json.loads(text)["marineOps"]
 
 
 def frames_of(directory):
@@ -78,32 +108,42 @@ def cue_dict(cue):
     return out
 
 
-def collect(shot_id, shot, frames):
+def collect(shot_id, shot, frame_count):
     sys.path.insert(0, str(HERE / shot.folder))
     module = importlib.import_module(shot.module)
     duration = module.duration() if hasattr(module, "duration") else module.DURATION
-    captions = [{"t_in": a, "t_out": b, "speaker": speaker_id(s), "text": t} for a, b, s, t in module.captions()]
+    captions = [{"t_in": a, "t_out": b, "speaker": speaker_id(s), "key": caption_key(line)}
+                for a, b, s, line in module.captions()]
     overlays = list(module.overlays())
     cues = [cue_dict(c) for c in module.audio_cues()]
-    clock = len(frames) / FPS
+    clock = frame_count / FPS
     problems = []
     if abs(clock - duration) > 1.5 / FPS:
-        problems.append("%d frames play %.3fs but the shot says %.3fs" % (len(frames), clock, duration))
+        problems.append("%d frames play %.3fs but the shot says %.3fs" % (frame_count, clock, duration))
     sounds = known_sounds()
     for c in cues:
         if c["sound"] not in sounds:
             problems.append("cue %r is not in sounds.json" % c["sound"])
         if c["t"] < 0:
             problems.append("cue %r starts before the shot" % c["sound"])
+    strings = string_keys()
+    keys = [c["key"] for c in captions]
+    for o in overlays:
+        if o.get("kind") == "lock":
+            keys += [o["title_key"]] + [d["key"] for d in o["detail"]]
+    keys += [v["label_key"] for v in SPEAKERS.values()]
+    for key in keys:
+        if key not in strings:
+            problems.append("string key %r is not in strings.json" % key)
     for c in captions:
         if c["speaker"] not in SPEAKERS:
             problems.append("caption speaker %r unknown" % c["speaker"])
         if not (0 <= c["t_in"] < c["t_out"] <= duration + 1e-3):
-            problems.append("caption %r outside the shot" % c["text"][:30])
+            problems.append("caption %r outside the shot" % c["key"])
     if problems:
         raise SystemExit("%s: %s" % (shot_id, "; ".join(problems)))
     return {"id": shot_id, "video": "cinematic/jangala-arrival/%s.mp4" % shot_id, "fps": FPS, "width": 1920,
-            "height": 1080, "frames": len(frames), "duration": round(clock, 4),
+            "height": 1080, "frames": frame_count, "duration": round(clock, 4),
             "captions": captions, "overlays": overlays, "cues": cues}
 
 
@@ -126,6 +166,8 @@ def main():
     parser.add_argument("--crf", type=int, default=None, help="override every shot's crf (default 25, or the shot's own)")
     parser.add_argument("--frames-root", type=Path, default=CINEMATIC_BUILD,
                         help="folder holding <output>/frames for each shot (default build/cinematic)")
+    parser.add_argument("--timeline-only", action="store_true",
+                        help="rewrite only the timeline JSON (frame count from the one on disk); no frames, no encode")
     parser.add_argument("--check", action="store_true", help="validate the timeline; write nothing")
     args = parser.parse_args()
     total = 0
@@ -134,13 +176,26 @@ def main():
             continue
         frames_dir = args.frames_root / shot.output / "frames"
         frames = frames_of(frames_dir)
-        if not frames:
+        if args.timeline_only:
+            existing = TIMELINE_DIR / (shot_id + ".json")
+            if not existing.is_file():
+                print("%s: no timeline on disk to take a frame count from, skipped" % shot_id)
+                continue
+            frame_count = json.loads(existing.read_text(encoding="utf-8"))["frames"]
+        else:
+            frame_count = len(frames)
+        if not frame_count:
             print("%s: no frames in %s, skipped" % (shot_id, frames_dir))
             continue
-        timeline = collect(shot_id, shot, frames)
+        timeline = collect(shot_id, shot, frame_count)
         timeline["speakers"] = SPEAKERS
         if args.check:
-            print("%s: ok, %d frames, %d captions, %d cues" % (shot_id, len(frames), len(timeline["captions"]), len(timeline["cues"])))
+            print("%s: ok, %d frames, %d captions, %d cues" % (shot_id, frame_count, len(timeline["captions"]), len(timeline["cues"])))
+            continue
+        if args.timeline_only:
+            TIMELINE_DIR.mkdir(parents=True, exist_ok=True)
+            (TIMELINE_DIR / (shot_id + ".json")).write_text(json.dumps(timeline, indent=1) + "\n", encoding="utf-8")
+            print("%s: timeline rewritten, %d captions" % (shot_id, len(timeline["captions"])))
             continue
         video = VIDEO_DIR / (shot_id + ".mp4")
         encode(frames_dir, video, args.crf or shot.crf or 25)
@@ -148,7 +203,7 @@ def main():
         (TIMELINE_DIR / (shot_id + ".json")).write_text(json.dumps(timeline, indent=1) + "\n", encoding="utf-8")
         size = video.stat().st_size
         total += size
-        print("%s: %.1fs, %d frames, %.1f MB" % (shot_id, timeline["duration"], len(frames), size / 1e6))
+        print("%s: %.1fs, %d frames, %.1f MB" % (shot_id, timeline["duration"], frame_count, size / 1e6))
     shipped = sum(p.stat().st_size for p in VIDEO_DIR.glob("*.mp4")) if VIDEO_DIR.is_dir() else 0
     print("arrival video on disk: %.1f MB" % (shipped / 1e6))
 

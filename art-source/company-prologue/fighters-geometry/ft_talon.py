@@ -1,4 +1,4 @@
-"""Talon interceptor blockout (pass 1): silhouette, sections, mass, slots and engines.
+"""Talon interceptor (pass 2: plausible detail on the pass-1 blockout).
 
 Read off talon.png (24x24, .ship centre (13, 10)) for the silhouette and
 fighter-upres/talon/master-v3.png for forms. Sprite column c covers model
@@ -15,6 +15,8 @@ The Talon is asymmetric forward and symmetric aft:
   under the pods' armoured shoulders, a steel centre spine between them that
   runs out to the tail, and thin faceted wing plates out to Y 12 / -10.
 """
+import math
+import bpy
 import fg_kit as K
 from fg_kit import prism, section, section_loft, loft_x, octagon, at
 
@@ -62,6 +64,23 @@ NOTES = [
     'The forward asymmetry is the sprite\'s: the gun nacelle is 5 px wide and longer, the cockpit pod 6 px wide '
     'and shorter, with an open slot between them. The master is not registered closely enough forward to place '
     'the pods (its cockpit pod is 3 units short), so lengths come from the sprite and forms from the master.',
+    'Pass 2 (detail read off master-v3, sized in metres at 0.55 m/unit): the vulcan gets the master\'s red '
+    'octagonal shroud collar, a banded barrel jacket and a six-barrel cluster in the muzzle ring, and a steel '
+    'breech and feed housing on the nacelle behind the collar (the master\'s grey block). The hidden swarmer bay '
+    'at WS 003 is a closed door outlined in the nacelle\'s inboard wall. The cockpit pod carries the master\'s '
+    'grey nose strip with a sensor blister, a canopy sill, windscreen arch and bow, and a grey dorsal strip with '
+    'a vent behind the glass. The armoured shoulders over the drums carry the master\'s intake grilles, the steel '
+    'spine its slots, centre grille and a blade antenna, and the wings small outboard vents. Each drive drum has '
+    'two collar ribs ahead of the lip and a centre body with stator vanes in the bell. Panel lines (5 cm wide, '
+    '2.5 cm deep) split the nose caps, shoulders, wings and underside into plates.',
+]
+
+# Pass-2 close-up cameras: (name, view direction from the target, target in units, frame width in metres).
+CLOSEUPS = [
+    ('gun-detail', (1.0, 1.1, .7), (10.6, 3.5, .5), 4.2),
+    ('cockpit-detail', (1.0, -.9, 1.3), (6.2, -3.0, 1.2), 4.0),
+    ('aft-detail', (-.35, .5, 1.5), (-3.2, 1.0, .9), 7.5),
+    ('engine-detail', (-1.0, .75, .4), (-8.4, 1.0, -.5), 7.5),
 ]
 
 GUN_Y, GUN_Z = 3.5, .35
@@ -157,3 +176,84 @@ def build(kit):
         kit.hull.append(drum)
         kit.well(drum, X_MOUTH, ey, ENGINE_Z, BELL_R)
         kit.engine(i, X_MOUTH, ey, ENGINE_Z, LIP_R, BELL_R)
+    if kit.detail:
+        detail(kit)
+
+
+def detail(kit):
+    kit.mark_detail()
+    ob = bpy.data.objects
+    gun, pod, core = ob['Hull gun nacelle'], ob['Hull cockpit pod'], ob['Hull aft body']
+    A, S, D, B = kit.armour, kit.steel, kit.dark, kit.bright
+    u = kit.u
+
+    # Vulcan: the master's red octagonal shroud collar where the barrel leaves the nacelle, a banded
+    # barrel jacket, six barrels in the muzzle ring, and a breech and feed housing behind the collar.
+    r = .98
+    loft_x(kit, 'Weapon WS 001 vulcan shroud collar',
+           [(x, octagon(GUN_Y-r, GUN_Y+r, GUN_Z-r, GUN_Z+r, r*.42)) for x in (11.35, 10.55)], A, u(.02))
+    for k, x in enumerate((11.95, 12.45), 1):
+        kit.xcyl(f'Weapon WS 001 vulcan jacket band {k}', x-u(.05), x+u(.05), GUN_Y, GUN_Z, .3, B, 16)
+    for k in range(6):
+        a = 2*math.pi*k/6
+        kit.xcyl(f'Weapon WS 001 vulcan barrel {k+1}', 12.7, 13.02, GUN_Y+u(.11)*math.cos(a),
+                 GUN_Z+u(.11)*math.sin(a), .04, D, 8, 0)
+    kit.xcyl('Weapon WS 001 vulcan spindle', 12.7, 13.03, GUN_Y, GUN_Z, .03, B, 8, 0)
+    breech = kit.seated('Weapon WS 001 vulcan breech housing', 9.3, 3.55, (1.1, .78, .26), S, 0, .04, .03)
+    kit.hull.append(breech)  # so its vent seats on it
+    kit.grille('Weapon WS 001 vulcan breech vent', 9.35, 3.55, .6, .5, 4)
+    kit.hull.remove(breech)
+    kit.seated('Weapon WS 001 vulcan feed cover', 8.2, 2.75, (.9, .26, .16), D, 0, .03, .02)
+    # WS 003 swarmers: a closed bay door in the nacelle's inboard wall, over the slot.
+    door = kit.outline(6.0, .15, 1.5, .6, .04, .4, 1.7, axis='Y')
+
+    # Cockpit pod: the master's grey nose strip with a sensor blister, the canopy frame, and the grey
+    # dorsal strip behind the glass with its vent.
+    kit.fairing('Hull cockpit pod sensor fairing', 9.55, POD_Y, .55, .26, .13, S)
+    kit.seated('Hull cockpit pod dorsal vent', 2.0, POD_Y, (.34, .12, .03), D, 0, .01, 0)
+    kit.skin(pod, 'Hull cockpit pod nose strip', kit.region(8.75, 10.4, POD_Y-.36, POD_Y+.36, .2, 5), .03, S)
+    kit.skin(pod, 'Hull cockpit pod dorsal strip', kit.region(.6, 4.45, POD_Y-.34, POD_Y+.34, .2, 5), .03, S)
+    glass = ob['Canopy glass']
+    deck = at(COCKPIT_POD, 6.5)[3]
+    kit.skin(glass, 'Canopy frame sill', kit.region(4.2, 8.45, POD_Y-1.2, POD_Y+1.2, -3, deck+u(.09)), .045, S)
+    kit.skin(glass, 'Canopy frame windscreen arch', kit.band_slab(7.55, .07), .04, S)
+    kit.skin(glass, 'Canopy frame bow', kit.band_slab(5.55, .06), .04, S)
+
+    # Armoured shoulders over the drums: the master's intake grilles; small vents on the wing plates.
+    for side, y in (('port', 4.7), ('starboard', 2-4.7)):
+        kit.grille(f'Hull {side} shoulder intake', -3.4, y, 1.35, .55, 5)
+    for side, y in (('port', 9.6), ('starboard', 2-9.6)):
+        kit.seated(f'Wing {side} plate vent', -3.8, y, (.32, .2, .03), D, 0, .01, 0)
+    # Steel spine: the master's slot, centre grille and aft slot, and a blade antenna.
+    kit.seated('Hull centre spine fore slot', .7, 1.0, (.16, .7, .03), D, 0, .01, 0)
+    kit.grille('Hull centre spine grille', -2.6, 1.0, 1.7, .9, 6)
+    kit.seated('Hull centre spine aft slot', -7.6, 1.0, (.34, .16, .03), D, 0, .01, 0)
+    kit.blade('Hull centre spine antenna', -5.6, 1.0, .32, .5, S)
+
+    # Drives: two collar ribs ahead of the lip, and a centre body with stator vanes in each bell.
+    w, top = .05, .2
+    for i, (ex, ey, _) in enumerate(ENGINES, 1):
+        side = 'port' if ey > 1 else 'starboard'
+        drum = ob[f'Engine {i} {side} drive drum']
+        for k, x in enumerate((-7.0, -7.75), 1):
+            kit.skin(drum, f'Engine {i} collar rib {k}', kit.band_slab(x, .14), .05, S)
+        kit.drive_core(i, X_MOUTH, ey, ENGINE_Z, BELL_R)
+        # The aft body's tail face stood inside the bell, ahead of the throat, so the drive read as red
+        # armour: carry the bell's well through it as well.
+        kit.well(core, X_MOUTH, ey, ENGINE_Z, BELL_R)
+        kit.engrave(drum, [kit.band_slab(-4.6, w, z0=-1.0), kit.band_slab(-6.2, w)])
+
+    # Panel lines: nose caps, shoulders and plates as the master splits them.
+    kit.engrave(gun, [kit.band_slab(10.1, w), kit.band_slab(7.9, w, z0=top), kit.band_slab(3.0, w, z0=top),
+                      *kit.lines([(7.8, 4.75), (3.1, 4.75)], w, top),
+                      *kit.lines([(2.9, 5.7), (-5.3, 5.7)], w, top), *door])
+    kit.engrave(pod, [kit.band_slab(8.85, w), kit.band_slab(3.2, w, z0=top), kit.band_slab(-.6, w, z0=top),
+                      *kit.lines([(7.3, POD_Y-1.75), (-5.3, POD_Y-1.75)], w, top),
+                      *kit.lines([(4.2, POD_Y+1.75), (-.5, POD_Y+1.75)], w, top)])
+    kit.engrave(core, [*kit.lines([(1.0, 8.6), (1.0, 7.0)], w), *kit.lines([(1.0, -6.6), (1.0, -5.0)], w),
+                       *kit.outline(-2.5, 1.0, 2.2, 1.6, w, -3, -1.0),
+                       *kit.lines([(-6.0, 3.6), (-6.0, -1.6)], w, -3, -1.0)])
+    for side in ('port', 'starboard'):
+        sgn = 1 if side == 'port' else -1
+        kit.engrave(ob[f'Wing {side} plate'], kit.lines([(-.9, 1+sgn*8.4), (-5.4, 1+sgn*10.9)], w) +
+                    kit.lines([(-2.4, 1+sgn*7.2), (-2.4, 1+sgn*10.6)], w, -.2))

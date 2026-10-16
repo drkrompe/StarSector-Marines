@@ -1,0 +1,32 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a1467c-8fc0-78a1-8beb-7dbca4fb3d96",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1467c-8fc0-78a1-8beb-7dbca4fb3d96\\exec-f5ae734c-afaf-4920-b3d6-3b0d6546fa47.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\patrol-abeam\\assets\\c2-entry-cloud-v1.png",
+    "sha256": "3a74c1cebcb82a26274a06266bf490a36fd75e65216f56a8e2b40068163f695f",
+    "dimensions": [
+      1916,
+      821
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\patrol-abeam\\prompts\\c2-entry-cloud-v1.txt",
+  "promptSha256": "1fa07c964902939a72b8288c590d6d4867c2eab1a68b14e224c4f7d9726e3c5f",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nA plate of a spacecraft descending into a cloud deck, seen from a cabin window, as a texture card for compositing. Widest landscape canvas, the whole canvas filled edge to edge.\n\nContent: the moment of plunging into bright daytime cloud. The right two thirds is dense luminous white cloud body, soft and glowing, almost blown out, with fine wisps and torn vapour streaming right to left past the window. The left third is the cloud's ragged leading edge: billowing cumulus tops and long streaming filaments breaking into thinner mist, with warm faint orange-pink heat tint still in the gaps at the far left edge. Light is soft, diffuse, overcast-bright, with a faint warm cast; gentle depth between nearer streaming vapour and the farther glowing body. Photographic, realistic, cinematic.\n\nNo window frame, no spacecraft, no ground, no horizon, no sun disc, no text, no border, no vignette.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one wide cloud texture plate using the image generation tool.\n"
+  ],
+  "usage": {
+    "input_tokens": 36538,
+    "cached_input_tokens": 30208,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 290,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 37.8
+}

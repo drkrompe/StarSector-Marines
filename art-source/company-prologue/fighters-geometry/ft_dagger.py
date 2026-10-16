@@ -16,6 +16,7 @@ Silhouette from the vanilla sprite (dagger_trp.png); forms and proportions
 read off the up-res master-v2. Where they disagree the sprite wins.
 """
 import math
+import bpy
 import fg_kit as K
 from fg_kit import prism, section
 
@@ -78,6 +79,21 @@ NOTES = [
     'bell sits on the block\'s aft face at X -15.15, 2.15 units aft of the slot, because the sprite closes '
     'the tail there; the Engine 1 centre exhaust anchor is at that mouth. No renderEngineOffsetsNativePx '
     'is listed for the Dagger.',
+    'Pass 2 (detail read off master-v2, sized in metres at 0.5 m/unit): each prong carries the master\'s slatted '
+    'vent behind its tip, a small sensor blister ahead of it and seams at its tip cap and root. The unfitted WS 001 '
+    'energy mount is a closed aperture (bright ring, dark iris) on the body\'s front face at the notch root. The '
+    'canopy has a sill, windscreen arch and bow; the body the master\'s flank intakes and plate seams. The drive '
+    'block carries the master\'s dorsal grille, a blade antenna, a collar rib ahead of the lip and a centre body '
+    'with stator vanes in its bell. The cream store gets joint bands, cruciform tail fins, a seeker window and two '
+    'sway braces to its pod; the fins and stub carry vents and seams.',
+]
+
+# Pass-2 close-up cameras: (name, view direction from the target, target in units, frame width in metres).
+CLOSEUPS = [
+    ('nose-detail', (1.0, .55, .75), (9.6, 0.0, .5), 7.6),
+    ('cockpit-detail', (.8, -.9, 1.2), (-3.2, 0.0, 2.0), 4.4),
+    ('store-detail', (.6, 1.0, .8), (7.6, 10.0, 1.2), 5.0),
+    ('engine-detail', (-1.0, .7, .5), (-13.6, 0.0, .3), 6.4),
 ]
 
 ARMOUR_CREAM = (.72, .66, .44)  # the torpedo store, sRGB ~ (240, 232, 190) under the sprite's highlight
@@ -194,3 +210,72 @@ def build(kit):
     # WS 002 in the open notch between the prongs.
     kit.slot_anchor(SLOTS[0], (2.0, 0, .1))
     kit.slot_anchor(SLOTS[1], (7.0, 0, .35))
+    if kit.detail:
+        detail(kit)
+
+
+def detail(kit):
+    kit.mark_detail()
+    ob = bpy.data.objects
+    S, D, B, G = kit.steel, kit.dark, kit.bright, kit.glass
+    u = kit.u
+    w, top = .05, .3
+    body, drive = ob['Hull cockpit body'], ob['Engine 1 drive block']
+
+    # Prongs: the master's slatted vent behind each tip, a sensor blister ahead of it, seams.
+    for side, s in (('port', 1), ('starboard', -1)):
+        prong = ob[f'Hull {side} prong']
+        kit.grille(f'Hull {side} prong tip vent', 14.6, s*4.3, .9, .5, 3)
+        kit.fairing(f'Hull {side} prong sensor fairing', 16.4, s*4.05, .55, .26, .12, S)
+        kit.engrave(prong, [kit.band_slab(15.6, w), kit.band_slab(11.4, w, z0=top),
+                            *kit.lines([(13.6, s*5.5), (1.0, s*5.5)], w, top),
+                            *kit.lines([(9.6, s*2.3), (-.6, s*2.3)], w, top)])
+
+    # WS 001 (energy, unfitted): a closed aperture on the body's front face at the notch root.
+    kit.xcyl('Weapon WS 001 aperture ring', 1.92, 2.08, 0, .1, .3, B, 20)
+    kit.xcyl('Weapon WS 001 aperture iris', 1.95, 2.12, 0, .1, .22, D, 20, 0)
+
+    # Body: canopy frame, the master's flank intakes, seams.
+    glass = ob['Canopy glass']
+    kit.skin(glass, 'Canopy frame sill', kit.region(-6.8, -.2, -1.6, 1.6, -3, DECK+u(.1)), .05, S)
+    kit.skin(glass, 'Canopy frame windscreen arch', kit.band_slab(-1.25, .08), .045, S)
+    kit.skin(glass, 'Canopy frame bow', kit.band_slab(-4.1, .07), .045, S)
+    for side, s in (('port', 1), ('starboard', -1)):
+        kit.grille(f'Hull {side} flank intake', -2.05, s*4.4, 1.3, .6, 4)
+    kit.engrave(body, [kit.band_slab(-.95, w, z0=top), *kit.lines([(-1.1, 2.4), (-7.4, 2.4)], w, top),
+                       *kit.lines([(-1.1, -2.4), (-7.4, -2.4)], w, top),
+                       *kit.outline(-3.2, 0, 2.6, 1.8, w, -3, -.8)])
+
+    # Drive block: the master's dorsal grille, a blade antenna, a collar rib, the drive core.
+    kit.grille('Engine 1 drive block dorsal grille', -10.9, 0, 1.7, 1.2, 6)
+    kit.blade('Hull dorsal antenna', -8.9, 3.0, .34, .55, S)
+    kit.skin(drive, 'Engine 1 collar rib', kit.band_slab(-13.55, .14), .05, S)
+    kit.drive_core(1, MOUTH_X, 0, ENGINE_Z, LIP_R*.82)
+    kit.engrave(drive, [kit.band_slab(-8.7, w), kit.band_slab(-12.6, w, z0=top),
+                        *kit.lines([(-8.8, 3.6), (-13.4, 3.6)], w, top), *kit.lines([(-8.8, -3.6), (-13.4, -3.6)], w, top),
+                        *kit.outline(-11.0, 0, 2.6, 2.4, w, -3, -1.0)])
+
+    # Port store: joint bands, cruciform tail fins, a seeker window and two sway braces to the pod.
+    tz, ty = .9+.5, 10.0
+    for k, x in enumerate((4.6, 8.4), 1):
+        kit.xcyl(f'Weapon WS 002 store joint band {k}', x-u(.04), x+u(.04), ty, tz, .485, D, 20, 0)
+    for k, a in enumerate((45, 135), 1):
+        c, sn = math.cos(math.radians(a)), math.sin(math.radians(a))
+        # The upper pair only: the store is half sunk in its pod, which hides the lower two.
+        fin = kit.box(f'Weapon WS 002 store tail fin {k}', (2.9, ty+c*.7, tz+sn*.7), (.7, u(.03), .6), S, u(.006))
+        fin.rotation_euler = (math.radians(a-90), 0, 0)
+    kit.xcyl('Weapon WS 002 store seeker window', 12.62, 12.76, ty, tz-.15, .08, G, 12, 0)
+    for k, x in enumerate((4.0, 9.0), 1):  # from the pod's deck to the store where it leaves the pod
+        for side, s in (('inboard', -1), ('outboard', 1)):
+            kit.rod(f'Weapon WS 002 store sway brace {k} {side}', (x, ty+s*1.4, .88), (x, ty+s*.86, 1.12), .04, S, 8)
+    pod = ob['Wing port torpedo pod']
+    kit.grille('Wing port torpedo pod vent', .4, 11.45, .7, .32, 3)
+    kit.engrave(pod, [kit.band_slab(7.4, w, z0=-.2), kit.band_slab(1.6, w, z0=-.2), *kit.outline(5.0, 10.0, 3.0, 1.2, w, -3, -.9)])
+
+    # Fins and stub: the master's slatted vents near the fin tops, seams.
+    for side, y in (('port', 13.5), ('starboard', -9.5)):
+        fin = ob[f'Wing {side} tip fin']
+        kit.grille(f'Wing {side} tip fin vent', 6.2, y, .7, .34, 3)
+        kit.engrave(fin, [kit.band_slab(3.6, w), kit.band_slab(.4, w, z0=0)])
+    kit.engrave(ob['Wing starboard stub'], kit.lines([(5.6, -6.4), (5.6, -9.3)], w, 0) +
+                kit.lines([(2.4, -6.4), (2.4, -9.3)], w, 0))

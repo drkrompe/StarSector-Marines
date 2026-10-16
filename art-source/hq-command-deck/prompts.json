@@ -153,6 +153,17 @@
       },
       "note": "A first attempt with the whole of plate v4 as style reference copied its old comms bank and board positions over the guide; a crop holding none of the moved objects carries the style without the layout.",
       "guide": "blender/deck_blockout.py renders deck-guide-v7.png; the plate registers on it at zero offset (one pixel narrow; compose.py stretches it to the guide's frame)"
+    },
+    {
+      "id": "sabine-v2",
+      "order": 2,
+      "prompt": "Full-length standing figure card of Lieutenant Sabine Hale for a layered illustration. She will be placed into the command-centre painting given as reference 2, standing at the near right corner of its glowing plotting table, close to the viewer.\n\nShe is the same person as reference 1: a woman in her early thirties, the company's field commander and a former convoy escort, short dark auburn hair tucked behind one ear, a small old scar across one eyebrow, calm alert watchful eyes, worn slate-blue and charcoal military field jacket with a compact armoured shoulder and simple lieutenant rank tabs, a small radio earpiece, dark field trousers and boots. No helmet, no weapon.\n\nPose: standing in three-quarter view turned toward the viewer's left, as if facing across a waist-high table that lies to her left (the table is not drawn), arms folded, weight on her back foot, head turned a little further left, looking across the table at someone with a calm, appraising expression. Her face is visible in three-quarter profile. Whole body in frame from the top of her head to her boots, natural adult proportions, small clearance around the figure.\n\nViewpoint matches the painting: a level camera about a metre above her head height and about five and a half metres away, so she is seen from slightly above, with no perspective lean: her vertical lines stay vertical.\n\nLighting matches reference 2: low and moody; the pale green glow of the plotting table to her left lights the left side of her face, her folded arms and jacket from below; warm downlight from ceiling lamps; amber rim light from the consoles behind her. Same matte-painted brushwork and palette as reference 2, and the same figure-card finish as reference 3.\n\nTrue transparent background, including negative spaces between arms and body; no ground, floor, cast shadow slab, furniture, border, text or other people.",
+      "references": {
+        "art-source/portraits/sabine-hale.master.png": "Identity only: face, hair, age, scar and jacket. Not pose, framing or background.",
+        "art-source/hq-command-deck/deck-plate-v5.master.png": "Lighting direction, colour and painting style only. Not layout; include none of its background.",
+        "art-source/hq-command-deck/castle-v2.master.png": "Figure-card finish only: rendering, brushwork, scale of detail and clean transparency. Not identity, pose or costume."
+      },
+      "placement": "compose.py scales the card to the sabine stand in deck-guide-v7.layout.json and cuts it with masks/sabine.occluder.png"
     }
   ],
   "liveOverlays": "Screens and the chart-table top are painted blank so SVG/live effects (readouts, blinking lamps, a live plot, motion) can be drawn over them; stations stay in fixed bands so they can later become their own layers.",

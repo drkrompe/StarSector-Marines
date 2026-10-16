@@ -6,8 +6,9 @@ camera. `c2_core.py` holds the same numbers as code: camera, sun, planet, the pa
 track and the hail timings. The guides, the blockout and any later compositor read
 them from there.
 
-Status: blockout and plan. No final art yet. One paid look test was run (see *Look
-test*).
+Status: PRODUCTION. C2 and the entry render to final frames (see *Production build*).
+The blockout sections below remain the plan of record where *Production build* does
+not override them.
 
 ## Purpose and payoff
 
@@ -221,6 +222,65 @@ things:
    The production proxy needs a modelled flank: a clean extruded side profile with
    armour belts and sponsons, built from the sprite's outline, not solidified from the
    crown.
+
+## Production build
+
+| Piece | Script | Output / source |
+|---|---|---|
+| Legion pass, fighters, mounts, running lights | `render_patrol_sequence.py` (plain Python plans from `c2_core`, then runs Blender on the same file) | `build/cinematic/c2-patrol/legion-seq/f_*.png`: Cycles, 1920x1080 RGBA, 24 fps, 180-degree motion blur, `c2_core.SUN` plus planet-shine, no world light |
+| Cabin and its light passes | `c2_cabin_render.py` (Blender) | `guides/c2-cabin-paint.png` (painting + glass alpha), `c2-cabin-sun/shine/window.png` (16-bit light), `c2-cabin.json` |
+| Jangala | `c2_planet.py` | `guides/c2-planet-guide.png` from C1's maps; plate `assets/c2-planet-v1.png` (ImageGen from that guide) |
+| C2 frames | `compose_c2.py` | `build/cinematic/c2-patrol/{frames,c2-patrol.mp4,timeline.json,contact-sheet.png}` |
+| Entry frames | `compose_entry.py` | `build/cinematic/entry/{frames,entry.mp4,timeline.json,contact-sheet.png}`; cards `assets/c2-entry-glow-v1.png`, `c2-entry-cloud-v1.png` |
+
+```bash
+"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup --python-exit-code 1 --python c2_cabin_render.py
+python c2_planet.py
+python render_patrol_sequence.py            # GPU; C1_CYCLES_CPU=1 for CPU; --resume, --only A:B
+python compose_c2.py
+python compose_entry.py
+```
+
+Production decisions that supersede the plan above:
+
+- **Camera.** C2 and the entry use the cabin model's own camera, 19.29 degrees down
+  (`c2_core.CABIN_PITCH_DEG`), not the grey frame's 18.6. The painted cabin is rendered
+  from the camera it was painted for, so nothing is re-projected. Its glass is the same
+  opening the grey frame measured (left jamb x = 157 + 0.178y, sill y = 707).
+- **Cabin relight is geometric, not painted.** The painting is the albedo; Cycles light
+  passes of the cabin model (sun, planet-shine, a window emitter) are the light. Below
+  the sill front (y 812) the model has a ledge where the painting has a wall, so direct
+  sun is taken only above it. No generations were spent on the frame.
+- **The patrol is the Legion model** at its own `geometry.json` placement, read at
+  build time, so a new pass of the hull re-renders by running the script again
+  (`C2_LEGION_BLEND` swaps the file). WS 007 tracks the camera within its arc and
+  slews to fore over 1.6 s from "Patrol has your signature"; every other mount is
+  laid fore or aft for the whole pass.
+- **Scale is per hull.** `c2_core` reads the Legion's `metres_per_unit` and dimensions
+  from its geometry.json. The starboard extreme stays 105 m from the glass and the crown
+  3 m below eye level, and the pass speed and de-orbit rise scale with the hull's length,
+  so the shot keeps its clock at any size. A new figure means re-running the render.
+- **Fighters.** These are the Broadsword cinematic model (`broadsword-geometry`), each at
+  its own `metres_per_unit`, in the same render and banking into their turns. Two
+  launch from the forward hangar WS 013 at 4.10 and 4.75 s and accelerate out ahead.
+  Two recover into the aft hangar WS 011 at 9.85 and 10.75 s, coming straight in from
+  aft along the mouth's axis. A fighter whose span does not clear the mouth with 15%
+  margin rolls just enough to thread it (`c2_core.recovery_roll`; about 34 degrees at
+  Legion 0.61 and Broadsword 0.50). The aft hangars recover only, because their mouths
+  face aft. No Hoplon model exists yet.
+- **Running lights** are the hull's own `running_lights` from geometry.json.
+- **Planet drift** is per row at the true ground rate (about 7 px/s at the horizon,
+  21 at the sill), not two translating cards.
+- **The entry ends on C3's frame 0** (C3's cabin at 9 degrees around flat entry white,
+  per the C3 hand-off). The 19.29-to-9-degree change happens under a bloom to white
+  at 2.72 s.
+- **Audio cues** (player dicts). C2: squelch open, line 7, squelch close, line 8.
+  Entry: line 9 at 0.16 s (no squelch), wind from 0.35 s. Neither adds a bed: C1's
+  cabin bed runs under the whole hail. Line 9 is placed by its own rule, 1.4 s after
+  line 8 ends. `build_hail_preview.timeline()` now gives that gap to the catalog's last
+  line, C4's Nessa memory.
+- **Packaging.** `cinematic_export.py --shot c2` / `--shot entry` writes
+  `mod/cinematic/jangala-arrival/{c2,entry}.mp4` and their timelines.
 
 ## Owner decisions (2026-10-16)
 

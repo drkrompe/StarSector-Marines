@@ -419,8 +419,15 @@ def duration():
 
 
 def captions():
-    """(t_in, t_out, speaker_id, text), paged the way C1 pages a long line (at most two
-    rows, split at sentences), each page timed from the take's own word timings."""
+    """[(t_in, t_out, speaker_id, catalog_line_id)]: the one take, first page in to last page out.
+    No text: the exporter turns the id into a strings.json key and the player pages it."""
+    pages = review_pages()
+    return [(pages[0][0], pages[-1][1], "Castle", cam.VOICE_ID)]
+
+
+def review_pages():
+    """(t_in, t_out, speaker, text) pages for the review mp4 only, paged the way C1 pages a long
+    line (at most two rows, split at sentences), each timed from the take's own word timings."""
     sys.path.insert(0, str(BASE.parent / "corvus-approach"))
     import c1_overlay as c1   # noqa: E402  (its paging and fonts are the shared caption style)
     line = next(l for l in json.loads(cam.CATALOG.read_text(encoding="utf-8"))["lines"] if l["id"] == cam.VOICE_ID)
@@ -443,7 +450,7 @@ def review_with_captions(img, t):
     """C1's caption drawing over a frame, for the review mp4 and stills only."""
     sys.path.insert(0, str(BASE.parent / "corvus-approach"))
     import c1_overlay as c1   # noqa: E402
-    caps = captions()
+    caps = review_pages()
     sched = [("Castle", caps[0][0], caps[-1][1], [(text, a, b) for a, b, _, text in caps])]
     c1.caption_schedule = lambda duration, _s=sched: _s
     frame = np.asarray(img, np.float32) / 255
@@ -529,7 +536,7 @@ def review_audio(path):
 def mux():
     n = round(DURATION * FPS)
     timeline = dict(shot="c4-road-and-port", duration=DURATION, fps=FPS, size=[W, H], frames=n,
-                    captions=[dict(t_in=a_, t_out=b_, speaker=s_, text=x_) for a_, b_, s_, x_ in captions()],
+                    captions=[dict(t_in=a_, t_out=b_, speaker=s_, text=x_) for a_, b_, s_, x_ in review_pages()],
                     overlays=overlays(), audio_cues=[dict(zip(("t", "sound", "volume", "until"), c)) for c in audio_cues()])
     (OUT / "timeline.json").write_text(json.dumps(timeline, indent=1) + "\n", encoding="utf-8")
     mix = OUT / "c4-review-audio.wav"

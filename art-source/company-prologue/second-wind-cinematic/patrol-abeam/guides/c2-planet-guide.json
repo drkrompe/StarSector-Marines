@@ -1,0 +1,15 @@
+{
+  "plate_box_frame_px": [
+    100,
+    0,
+    2140,
+    860
+  ],
+  "pitch_deg": 19.29,
+  "horizon_y_centre": 425.75,
+  "horizon_y_left": 482.25,
+  "horizon_y_right": 482.25,
+  "rate_px_s_horizon": 6.8343280120305385,
+  "rate_px_s_sill": 20.74122609465531,
+  "drift_overscan_px": 466.8482045573323
+}
