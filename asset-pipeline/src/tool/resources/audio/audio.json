@@ -781,6 +781,7 @@
     {"id": "jangala_arrival_hail_04", "source": "jangala-arrival/jangala_arrival_hail_04.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms"},
     {"id": "jangala_arrival_hail_07", "source": "jangala-arrival/jangala_arrival_hail_07.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "orbital_comms"},
     {"id": "jangala_arrival_hail_08", "source": "jangala-arrival/jangala_arrival_hail_08.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms"},
-    {"id": "jangala_arrival_hail_09", "source": "jangala-arrival/jangala_arrival_hail_09.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms"}
+    {"id": "jangala_arrival_hail_09", "source": "jangala-arrival/jangala_arrival_hail_09.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms"},
+    {"id": "jangala_arrival_nessa", "source": "jangala-arrival/jangala_arrival_nessa.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "dialogue"}
   ]
 }

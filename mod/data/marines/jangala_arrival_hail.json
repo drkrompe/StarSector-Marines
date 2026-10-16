@@ -4,7 +4,7 @@
   "voiceName": "Company Officer B - British Matriarch",
   "modelId": "eleven_v4",
   "voiceSettings": {},
-  "direction": "Jangala arrival, shots C1-C2 of storyboard-v3.md. The passengers overhear the bridge on an open cabin intercom. Jangala Approach is a Hegemony traffic controller across orbit, heavily masked by orbital_comms; Castle is on the bridge microphone, heard through the intercom (comms). Record clean; the treatment is applied by the audio pipeline.",
+  "direction": "Jangala arrival, shots C1-C2 of storyboard-v3.md. The passengers overhear the bridge on an open cabin intercom. Jangala Approach is a Hegemony traffic controller across orbit, heavily masked by orbital_comms; Castle is on the bridge microphone, heard through the intercom (comms). Record clean; the treatment is applied by the audio pipeline. Shot C4 (jangala_arrival_nessa): Castle is in the cabin with the passengers, so that line is close and unprocessed (dialogue), not intercom.",
   "voices": {
     "Jangala Approach": {
       "voiceId": "lh03wW2cCRf05ksqPizq",
@@ -67,6 +67,14 @@
       "text": "Well. Somebody knows we're here.",
       "synthesisText": "[quiet, half to herself, softly amused] Well. Somebody knows we're here.",
       "durationSeconds": 2.72
+    },
+    {
+      "id": "jangala_arrival_nessa",
+      "speaker": "Castle",
+      "processing": "dialogue",
+      "text": "Nessa Venn. We ran ore together before she settled into the yards on Jangala. Once spent three days towing my dead freighter home and swore she'd cut me loose at every buoy. Never did. She'll have opinions about this ship. Let me talk first.",
+      "synthesisText": "[warm, quiet, unhurried, a little rueful, fond of an old friend] Nessa Venn. We ran ore together before she settled into the yards on Jangala. Once spent three days towing my dead freighter home and swore she'd cut me loose at every buoy. Never did. She'll have opinions about this ship. Let me talk first.",
+      "durationSeconds": 15.84
     }
   ]
 }
