@@ -2,7 +2,7 @@
 
 Status: ACTIVE
 Written: 2026-08-23
-Updated: 2026-10-15 — folded the Restricted tier, military warrants, market listings, arc issue cards, the Hegemony auxiliary warrant and warrant obligations.
+Updated: 2026-10-15 — folded the Restricted tier, military warrants, market listings, arc issue cards, the Hegemony auxiliary warrant, warrant obligations and the Junction reward.
 
 | Story | Shipped | Commit(s) | Fold destination |
 | --- | --- | --- | --- |
@@ -34,3 +34,4 @@ Updated: 2026-10-15 — folded the Restricted tier, military warrants, market li
 | `arc-issue-cards.md` | 2026-10-15 | this commit | `progression-nouns.md` — Kit and armory gains the arc issue cards (Checkpoint, Convoy Escort, Counter-Battery, Builder's Guard), their settlement listings and pool fallback; `campaign-kit-arc.md` — the arc map's shipped wording and the matchup readings that settled each shape. |
 | `hegemony-auxiliary-warrant.md` | 2026-10-15 | this commit | `progression-nouns.md` — Kit and armory gains the authored Hegemony auxiliary warrant: offer gate, correspondence terms and limits, two stages, the Hegemony Auxiliary Section and declining; `a-small-war.md` owns its offer trigger; warrant obligations own its stage two. |
 | `warrant-obligations.md` | 2026-10-15 | this commit | `progression-nouns.md` — Kit and armory gains warrant obligations: service and loyalty terms, the 90-day period, service calls, suspension squeezing new fitting, restoration, revocation at hostile with standing regrant, the fitting-gate location and the HQ record's standing. |
+| `junction-trench-clearing-reward.md` | 2026-10-15 | this commit | `progression-nouns.md` — Kit and armory, arc issue cards: the won Junction hands over one Trench-Clearing Issue card, once, never a duplicate. |

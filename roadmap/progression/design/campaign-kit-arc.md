@@ -4,8 +4,8 @@ Status: ACTIVE — the hard Restricted tier, standing military warrants and the 
 arc issue cards have shipped (`progression-nouns.md`, Kit and armory).
 The Hegemony auxiliary warrant has shipped, waiting on *A Small War*'s Chapter 5
 to send its offer, and so have warrant obligations.
-Trench-Clearing Issue as the Junction reward and the across-the-line rosters remain
-proposals.
+Trench-Clearing Issue is the Junction reward. The across-the-line rosters remain a
+proposal.
 
 Written: 2026-10-15
 Updated: 2026-10-15 — the arc issue cards shipped, stocked by market listings.
@@ -124,7 +124,8 @@ Even after Agreus, most of the catalog stays ahead of the company:
    `progression-nouns.md` (Kit and armory).
 4. **New cards and their story stocking**: shipped; see `progression-nouns.md`
    (Kit and armory, arc issue cards) and the ladder readings below.
-5. **Trench-Clearing Issue as the Junction reward**: still a proposal.
+5. **Trench-Clearing Issue as the Junction reward**: shipped; see
+   `progression-nouns.md` (Kit and armory, arc issue cards).
 6. **Show approved kit across the line.** Kord's marines at Garnir field the approved
    kit the player will later want; Greyhook fields Foundry-Breaker-style rigs.
 

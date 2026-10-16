@@ -721,6 +721,12 @@ payment. The cards also circulate like any other, because a card's pool weight i
 its templates' weight: Counter-Battery Issue reaches a Hegemony licence through the
 Arrestor pack, the others reach independent markets and licences. The listing is
 the guaranteed route; the pools are the fallback.
+*Trench-Clearing Issue* (service rifles, rocket tubes and grenades) is the one arc
+card handed over rather than stocked: a won *Open the Junction*, the first assault
+on a dug-in position, puts one card in fleet cargo from Wayline's militia stores,
+named in the terms before the battle and in the debrief after it. The Junction is
+won once, so the card comes once, and a company that already knows or carries it
+gets none. It is a card to learn; nobody's fitting changes.
 It lets add-ons keep faction identity while ensuring that a newly collectible
 family, grade, suit, or special item cannot be stranded by an omitted or
 permanently ineligible source.
