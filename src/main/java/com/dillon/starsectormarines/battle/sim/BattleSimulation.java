@@ -3100,7 +3100,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             // corridor sortie is an internal air entity, and under
             // AirProvider.EXTERNAL the host's own ships are the air cover.
             airCoverSystem.tick(TICK_DT, this);
-            airSystem.tick(TICK_DT);
+            airSystem.tick(TICK_DT, simTickIndex * TICK_DT);
             groundAntiAir.tick(this);
             airToAir.tick(this);
             airSystem.finishMissileContacts();

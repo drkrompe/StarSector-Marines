@@ -24,6 +24,7 @@ import com.dillon.starsectormarines.battle.mech.MechGaitState;
 import com.dillon.starsectormarines.battle.sim.TurretStateService;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.turret.StructureArt;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
@@ -533,6 +534,11 @@ public final class UnitRenderService implements RenderSystem {
                     berth.airframe, berth.centerX, berth.centerY, cellPx, alphaMult);
         }
         for (GroundWreck wreck : airfield.groundWrecks()) {
+            if (wreck.crashImpact != null) {
+                HullWreckRenderer.emit(out, cam, sprites.airframeSprite(wreck.airframe), wreck.airframe,
+                        wreck.crashImpact, ctx.sim.getSimTickIndex() * BattleSimulation.TICK_DT, alphaMult);
+                continue;
+            }
             if (!view.visible(wreck.x, wreck.y, hullExtentCells(wreck.airframe))) continue;
             emitWreck(out, cam, wreck, wreck.x, wreck.y, wreck.facingDegrees,
                     wreck.airframe, wreck.cellX(), wreck.cellY(), cellPx, alphaMult);

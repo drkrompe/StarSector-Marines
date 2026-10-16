@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullPivotResolver;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
@@ -67,6 +68,11 @@ public final class ShuttleRenderSystem implements RenderSystem {
             ShuttleSpriteCache cache = sprites.airframeSprite(frame);
             if (cache == null) continue;
             AirBody body = world.kinematics(id);
+            if (mission.crashImpact != null) {
+                HullWreckRenderer.emit(out, cam, cache, frame, mission.crashImpact,
+                        ctx.sim.getSimTickIndex() * BattleSimulation.TICK_DT, alphaMult);
+                continue;
+            }
 
             // Authored render-state is a world component now (read by id); the
             // scale + altitude offset are pure derivations of altitudeT/flightPhase.

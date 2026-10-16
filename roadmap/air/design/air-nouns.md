@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — Engine burn and its reflected rear-hull light share nozzle placement and smoothed thrust demand.
+Updated: 2026-10-15 — Airborne hulls break apart at ground contact, with continuous section motion into the persistent wreck.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -545,8 +545,8 @@ and burns like anything else out there, which is the same reason the crossing
 is worth attacking at all.
 
 **The wreck stays on the ground.** What the fire leaves is the aircraft's own
-hull, charred and in three pieces, lying at the place and bearing it was
-destroyed, for the rest of the battle. The smoke that marks a fresh kill burns
+hull, charred and in three pieces, remaining where its sections settle
+for the rest of the battle. The smoke that marks a fresh kill burns
 out in half a minute, and with nothing permanent behind it a burned field looks
 exactly like a field whose aircraft happen to be away, which is precisely the
 question a raider walked over there to settle.
@@ -568,8 +568,10 @@ has no hulk sitting on its own pad to show for it.
 An aircraft lost at altitude carries its horizontal momentum while falling,
 trailing fire and smoke. A slow or hovering craft loses stability, tips toward
 one side and builds lateral speed through the fall instead of receiving an
-instant kick. A fast craft keeps its existing travel. Ground contact dissipates
-that velocity in a skid before the wreck settles. Its passengers and sortie are
+instant kick. A fast craft keeps its existing travel. The hull stays whole
+during the fall, then separates at ground contact. Its sections inherit its
+travel, spin about their own centres and skid apart with diminishing speed
+before settling. Its passengers and sortie are
 lost immediately; its guns stop firing.
 Ground impact is a separate physical event: a hull-sized explosion damages
 nearby units of either side and structures, then leaves the same charred,
@@ -579,6 +581,8 @@ Rolling fuel explosions follow the sliding hull and spread across the ground
 in a filled fan, including a hot centre. Position, size and outward motion vary
 between bursts; the fan is an irregular expanding mass, not two straight arms.
 Each released blast keeps moving independently, slowing and billowing outward.
+Short sparks and small tumbling metal chips scatter with those bursts and
+dissipate while the three main hull sections remain.
 This is the visual aftermath of the impact; it does not repeatedly apply the
 impact blast's damage.
 The physical impact breaches walls, roofs and destructible natural props before
@@ -598,15 +602,16 @@ wreckage is an external impact, not a shortcut for raiders clearing a flight lin
 
 **A hull comes apart along a V.** The nose section separates as a wedge and
 what is left splits down the spine, both tears walked so the edges are ragged
-and ragged differently for every hull on the field. The pieces shift and turn a
-little where they lie — far enough that the tears open and the wreck reads as
-three things, near enough that it still reads as one aircraft, and never far
-enough to be debris thrown across the apron. This is drawn out of the
-aircraft's own sprite rather than from wreck art, because these are the game's
-hulls and nothing may edit them; the tear follows a lattice for the same
-reason, since a lattice boundary is addressable as ordinary source rectangles
-and a curve would need per-pixel masking that is not available. See
-`HullBreakup`.
+and ragged differently for every hull on the field. Grounded kills leave a
+slightly separated, turned arrangement. Airborne kills open those same tears
+through motion, with bounded spread that preserves the aircraft's recognizable
+shape. First ground contact fixes the pose and tear pattern for the rest of
+the crash. The moving sections and permanent wreck share that same history:
+removing the destroyed aircraft never repositions, reseeds or replaces its
+pieces. Their motion follows battle time, so pausing or looking away cannot
+change where they settle. This is drawn from the current aircraft sprite,
+including upgraded art, without requiring separate wreck textures. The tear
+follows a lattice addressable as ordinary source rectangles. See `HullBreakup`.
 
 A hardstand or taxiing wreck is an obstacle, and **only** an obstacle. Nobody walks through it;
 everybody sees and shoots straight across it. A non-walkable cell is opaque

@@ -45,6 +45,8 @@ public final class ShuttleMission {
     public boolean destroyed;
     public float crashSeconds;
     public float crashStartAltitude;
+    /** First ground-contact snapshot, retained through skid and transferred to the settled wreck. */
+    public AirCrashImpact crashImpact;
     /** Mutable mission station; transport landing coordinates remain immutable. */
     public float orbitCentreX, orbitCentreY;
 

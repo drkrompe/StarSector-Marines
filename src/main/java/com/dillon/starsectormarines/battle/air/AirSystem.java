@@ -648,8 +648,8 @@ public class AirSystem {
         return false;
     }
 
-    public void tick(float dt) {
-        advanceShuttles(dt);
+    public void tick(float dt, float nowSeconds) {
+        advanceShuttles(dt, nowSeconds);
         tickAirThreat(dt);
         tickShuttleTurrets(dt);
         advanceThrusterFx(dt);
@@ -713,6 +713,7 @@ public class AirSystem {
         if (grounded) groundedShootDown(id, body, mission);
         else {
             mission.crashSeconds = 0f;
+            mission.crashImpact = null;
             mission.crashStartAltitude = world.altitudeT(id);
             AirCrashMotion.beginFall(body, rng.nextFloat());
             effects.spawnBurningSmokePlume(body.x,
@@ -799,7 +800,8 @@ public class AirSystem {
 
     private void settleGroundWreck(long id, AirBody body, boolean crashDebris) {
         if (airfield == null) return;
-        GroundWreck wreck = new GroundWreck(body.x, body.y, body.facingDegrees, world.airframe(id));
+        GroundWreck wreck = new GroundWreck(body.x, body.y, body.facingDegrees, world.airframe(id),
+                world.mission(id).crashImpact);
         airfield.addGroundWreck(wreck);
         if (crashDebris) {
             AirframeFootprint.settleCrashDebris(navigation.getGrid(), body.x, body.y,
@@ -871,7 +873,7 @@ public class AirSystem {
      * {@link AirHandling}. No parametric per-leg curve is needed; the arc is
      * what kinematic-limited steering produces.
      */
-    private void advanceShuttles(float dt) {
+    private void advanceShuttles(float dt, float nowSeconds) {
         fieldPresence.refresh(air);
         // Capture all craft before any moves, so contact checks compare both bodies over the same tick.
         for (long id : air) {
@@ -895,10 +897,14 @@ public class AirSystem {
                     mission.crashSeconds += dt;
                     float airborneSeconds = Math.max(0f, Math.min(dt, AirCrashMotion.FALL_SECONDS - before));
                     AirCrashMotion.fall(body, airborneSeconds);
+                    mission.crashImpact = AirCrashImpact.captureContact(mission.crashImpact, body, id,
+                            before, mission.crashSeconds, nowSeconds - dt + airborneSeconds);
                     world.setAltitudeT(id, AirCrashMotion.altitude(mission.crashSeconds, mission.crashStartAltitude));
                     if ((int) (before * 5) != (int) (mission.crashSeconds * 5))
+                        // Rolling fuel bursts carry the ground fire; a smaller central
+                        // flame lets the separated hull sections remain readable.
                         effects.spawnPropDamage(body.x, body.y + AirAppearance.visualAltitudeOffsetCells(world.altitudeT(id)),
-                                PropDamage.Effect.FIRE, 3f);
+                                PropDamage.Effect.FIRE, mission.crashImpact == null ? 3f : 1.1f);
                     boolean onMap = body.x >= 1 && body.y >= 1 && body.x < navigation.getGrid().getWidth() - 1
                             && body.y < navigation.getGrid().getHeight() - 1;
                     if (before < AirCrashMotion.FALL_SECONDS && mission.crashSeconds >= AirCrashMotion.FALL_SECONDS

@@ -3,7 +3,8 @@ package com.dillon.starsectormarines.battle.air;
 /** Unpowered motion: retain horizontal velocity in the air, dissipate it against the ground. */
 public final class AirCrashMotion {
     public static final float FALL_SECONDS = 1.6f;
-    private static final float SKID_DECELERATION = 8f;
+    /** Shared with the visual section motion so its centre follows the physical skid. */
+    public static final float SKID_DECELERATION = 8f;
 
     private AirCrashMotion() {}
 

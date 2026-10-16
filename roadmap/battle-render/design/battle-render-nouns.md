@@ -4,7 +4,7 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — Aircraft engine emission and localized hull reflection share the hull pose and thrust response above environmental shade.
+Updated: 2026-10-15 — Aircraft breakup renders continuous source-sprite sections from first contact through permanent wreck settlement.
 
 ## Vocabulary
 
@@ -252,6 +252,16 @@ shot emits nothing, and a resolved flight stops emitting while its existing
 particles dissipate. Motor effects originate at the projectile tail; an
 unpowered charge's authored glow stays at its center. Launch and impact audio
 remain tied to physical events, never to the number of rendered particles.
+
+Aircraft crash sections use the simulation's immutable first-contact pose and
+battle time. They start joined at that pose, then spin and skid independently
+into their permanent positions. The active crash and its surviving ground wreck
+use the same source-sprite partitions and motion; entity removal, camera entry
+and repeated draws cannot restart the animation. Sections occupy the ground
+actor layer from contact onward, and the intact airborne shadow ends at contact.
+Small sparks and chips are transient impact particles, separate from the main
+sections that remain as the wreck. Their appearance does not add damage or
+change the physical crash corridor.
 
 ## Standing laws
 
