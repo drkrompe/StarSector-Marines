@@ -79,7 +79,7 @@ the user's approximate eight-to-ten-year history; the unrelated eleven-day
 evacuation deadline remains unchanged.
 
 Sources and regeneration
-Geometry source: ../second-wind-geometry-v3/second-wind-geometry.blend
+Geometry source: ../second-wind-geometry/second-wind-geometry.blend
 Accepted surface/layout target: ../second-wind-design-v3.reference.png
 Images edited using built-in image_gen. Exact prompts live alongside each image.
 The retained post-refit study derives from the earlier arrival skin.
