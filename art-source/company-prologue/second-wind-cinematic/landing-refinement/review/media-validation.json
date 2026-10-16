@@ -1,0 +1,27 @@
+{
+  "movie": "review/jangala-landing-refined.mp4",
+  "sha256": "4479db28d5b563751aa6b691ebce3606eba06d1d8be8efd3f59b8dad955eff97",
+  "bytes": 2334630,
+  "probe": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "width": 1920,
+        "height": 1080,
+        "pix_fmt": "yuv420p",
+        "r_frame_rate": "24/1",
+        "nb_read_frames": "192"
+      }
+    ],
+    "format": {
+      "duration": "8.000000"
+    }
+  },
+  "render_manifest_sha256": "1db30c66983f42846ebf8acb43d81ea9720a84111620911907e20b26269f2854",
+  "unique_source_frames": 192,
+  "full_decode": "PASS",
+  "audio": "none",
+  "visual_review": "Playback and sampled images recorded separately in review/motion-review.json."
+}

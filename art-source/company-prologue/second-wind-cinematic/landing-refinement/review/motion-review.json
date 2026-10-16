@@ -1,0 +1,33 @@
+{
+  "movie": "jangala-landing-refined.mp4",
+  "movie_sha256": "4479db28d5b563751aa6b691ebce3606eba06d1d8be8efd3f59b8dad955eff97",
+  "scene_sha256": "b29e3d632628e0f87b74b64bc2eaff87ba704999e631da24bb3574f69ea79a1c",
+  "review_date": "2026-10-16",
+  "review_scope": "Full normal-speed browser playback with receipt; sampled browser screenshots and native 1080p start, mid-descent and contact images. This is not continuous human visual inspection of all 192 frames.",
+  "playback_receipt": {
+    "ended": true,
+    "currentTime": 8,
+    "duration": 8,
+    "playbackRate": 1,
+    "width": 1920,
+    "height": 1080,
+    "elapsedMs": 8001.4000000059605,
+    "frameCallbacks": 192,
+    "totalFrames": 192,
+    "droppedFrames": 0,
+    "error": null
+  },
+  "observations": [
+    "Actual opposite-side camera shows starboard flank and bow screen-right; the port pod remains on its physical far flank.",
+    "Forward travel is visible before the hold and vertical lowering; sampled end pose remains level and settled.",
+    "Opaque cones are absent. Short soft white-blue jets are visible below the hull during descent and absent at the end.",
+    "Weathered yard buildings and apron remain stable in the reviewed views; no exposed ground boundary strip or intersecting building was seen.",
+    "Major starboard bay, turret and engine landmarks remain attached to the moving hull in the sampled views."
+  ],
+  "limitations": [
+    "Bounded side-view textured motion study, not complete arbitrary-angle UV coverage.",
+    "Some hull and yard RGB contains baked lighting and fine fixtures represented only in the surface art; relighting/camera changes need another coverage review.",
+    "Thrusters and dust are authored procedural volumes; no heat refraction, fluid simulation, audio or game-runtime integration.",
+    "Ground and contact construction evidence is finite sampled verification, not continuous collision or structural engineering."
+  ]
+}

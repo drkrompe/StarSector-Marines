@@ -55,6 +55,15 @@ shingles instead of a heavy industrial hull. Inspect a still before rendering
 a long movement test, then verify stored UVs and physical support contacts
 through the actual descent.
 
+Changing the visible side means moving the camera around the real model. The
+asymmetric pod must remain on its physical flank. The
+[landing refinement](../../../../art-source/company-prologue/second-wind-cinematic/landing-refinement/README.md)
+adds a starboard view and complementary mesh-attached coverage. Its generated
+image enlarged the hull despite a framing constraint; an affine fitted to eleven
+structural landmarks recovered the broad registration. Record the residuals and
+remaining local differences rather than treating either the prompt or a fitted
+silhouette as exact panel correspondence.
+
 The managed-land agriculture study provides a small-prop example: one midpoint
 projector travels with each rigid assembly, and physical materials cover backward
 faces and transparent artwork gaps. Its generated assemblies moved and changed
@@ -150,3 +159,12 @@ wide shot. Avoid added camera drift that conceals contact or makes a settled hul
 appear to slide. Mesh comparisons and conservative bounding-box corridor checks
 are useful evidence, but do not claim they prove continuous collision, structural
 engineering or exhaust simulation.
+
+For landing exhaust, keep the nozzle attachment separate from any scaling
+blockout cone. A shrinking control can drive an emission/density envelope while
+the actual nozzle stays attached to the hull. The landing study uses soft 3D
+volumes with no opaque surface, short hot cores, transparent mixing and shallow
+ground dust. They fade after contact; they are authored effects, not a fluid or
+heat-refraction simulation. Review early approach, contact and shutdown from the
+actual final camera. If timing changes, evaluate movement, material animation
+and procedural noise against the same source clock.

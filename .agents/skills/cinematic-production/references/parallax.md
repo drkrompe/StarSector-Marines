@@ -171,6 +171,17 @@ Read the relevant implementation and manifest before adapting it:
   geometry, with separate distant landscape layers. Treat its material atlas as
   neutral surface art, not a complete camera projection or a seamless texture set.
 
+Reusing a port for an exterior landing means separating reusable geometry and
+materials from the earlier camera's surface finish. Resolve any inverse-flight
+root into the destination coordinate system, keep the berth contacts fixed, and
+check the full approach corridor before painting. Unchanged support transforms
+do not establish clearance from imported buildings. Keep the district at its
+original scale and leave a clear apron around the berth. Newly exposed building
+faces need physical fallback materials or a finish guided from the new camera.
+A fixed-camera projection can serve the static yard, while vehicles, moving
+clamps and the ship need their own attached mapping. That finish remains bounded
+to its reviewed camera range.
+
 Layer depths, cloud/traffic speeds, Atlas canvas width, overscan and haze in these
 studies are compositing choices, not canonical geography, hull dimensions or flight
 performance. Recompute them for the shot instead of copying literal values.
