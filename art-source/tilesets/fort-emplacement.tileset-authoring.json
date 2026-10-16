@@ -161,6 +161,74 @@
       "slot": "se"
     },
     {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-n",
+      "included": true,
+      "note": "Parapet edge piece, exterior n.",
+      "rect": [
+        203,
+        11,
+        181,
+        181
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-e",
+      "included": true,
+      "note": "Parapet edge piece, exterior e.",
+      "rect": [
+        384,
+        192,
+        181,
+        181
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-s",
+      "included": true,
+      "note": "Parapet edge piece, exterior s.",
+      "rect": [
+        203,
+        373,
+        181,
+        181
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-w",
+      "included": true,
+      "note": "Parapet edge piece, exterior w.",
+      "rect": [
+        22,
+        192,
+        181,
+        181
+      ]
+    },
+    {
       "cover": "none",
       "footprintCells": [
         1,

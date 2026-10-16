@@ -9,8 +9,7 @@ NOTE = ("Damage states of fort.emplacement. Built-in ImageGen reskin of template
         "(fort-emplacement-damage-guide.py, with the intact patch as material reference); exact prompt retained "
         "(fort-emplacement-damage.prompt.txt), raw retained unmodified, 1536x1024 RGBA. ImageGen did not hold the "
         "192px pitch, so the rects here are measured and authoritative. Blocks fort.emplacement-damaged (left patch) "
-        "and fort.emplacement-destroyed (right patch) use the intact block's wall-3x3 slots. They are swapped in by "
-        "code (EmplacementWreck), not by CoverPropDamage: concrete parapets carry no wall health. New sheet, shares no "
+        "and fort.emplacement-destroyed (right patch) use the intact block's wall-3x3 slots. The four edge cuts of each state are also doodads (doodad.fort-emplacement-damaged-<n|e|s|w> and -destroyed-<..>), the CoverPropDamage family the stamped parapets wear through; the inner-corner states are in fort-emplacement-corners. New sheet, shares no "
         "id with a shipped tileset.")
 slots = {'nw': (0, 0), 'n': (1, 0), 'ne': (2, 0), 'w': (0, 1), 'center': (1, 1), 'e': (2, 1),
          'sw': (0, 2), 's': (1, 2), 'se': (2, 2)}
@@ -20,6 +19,14 @@ for block, x0, w in patches:
     for slot, (c, r) in slots.items():
         entries.append({'id': block + '.' + slot, 'block': block, 'slot': slot, 'included': True, 'cover': 'none',
                         'footprintCells': [1, 1], 'rect': [x0 + c * w, 11 + r * 189, w, 189]})
+# The same four edge cuts of each state again as doodads (CoverPropDamage family ids).
+for state, x0, w in (('damaged', 19, 185), ('destroyed', 768, 193)):
+    for slot in ('n', 'e', 's', 'w'):
+        c, r = slots[slot]
+        entries.append({'id': 'doodad.fort-emplacement-%s-%s' % (state, slot), 'included': True,
+                        'cover': 'none' if state == 'destroyed' else 'heavy',
+                        'ballisticHalfHeight': 0.1 if state == 'destroyed' else 0.5, 'footprintCells': [1, 1],
+                        'rect': [x0 + c * w, 11 + r * 189, w, 189], 'note': 'Parapet edge piece, ' + state + '.'})
 doc = {'sheetName': 'fort-emplacement-damage', 'sheet': 'art-source/tilesets/fort-emplacement-damage.raw.png',
        'cellPx': 128, 'alphaMin': 16, 'idPrefix': 'doodad.fort-emplacement-damage', 'gridCols': 8, 'gridRows': 4,
        'note': NOTE,

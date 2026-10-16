@@ -11,8 +11,8 @@ fontpath = Path('C:/Windows/Fonts/arial.ttf')
 def font(size):
     return ImageFont.truetype(str(fontpath),size)
 
-draw.text((28,15),'SECOND WIND / GEOMETRY V3',font=font(32),fill='#273137')
-draw.text((28,55),'HEAVIER FOREBODY AND ENGINE ROOMS  |  RECESSED WAIST  |  FIXED POD AND ENGINES',font=font(19),fill='#485158')
+draw.text((28,15),'SECOND WIND / GEOMETRY V3 DETAIL',font=font(32),fill='#273137')
+draw.text((28,55),'FACETED HULL  |  AFT BRIDGE  |  NAVAL TURRETS  |  FIXED POD AND ENGINES',font=font(19),fill='#485158')
 panels=[('port-quarter',0,92,'PORT BOW QUARTER'),
         ('top',960,92,'TOP / BOW LEFT - PORT BELOW'),
         ('port-side',0,580,'PORT SIDE / INNER ENGINES OCCLUDED'),

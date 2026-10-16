@@ -693,8 +693,9 @@ Still open inside this story:
   hand-stamped buildings, Boarding Jack rigs at play scale.
 - **Boarding Jack** (art shipped, live acceptance open). The pattern and its
   section card carry trial values supported by `loadoutMatchup`. Its layered art
-  (torso, mismatched shoulders, helmet, feet, four casing paints and the Latch
-  Assist screen carrier) is exported from retained Codex ImageGen raws under
+  (torso, a hinged left boarding shield that is the Latch Assist presentation and
+  sweeps across the chest when firing, a right cargo cap, helmet, feet and five
+  paints) is exported from retained Codex ImageGen raws under
   `art-source/marine-modular-topdown/boarding-jack/` and reviewed by
   `createSnapshots -Psnapshot=boarding-jack-layers`. The pattern no longer
   declares its presentation pending, so Chapter 4 places the card in fleet cargo

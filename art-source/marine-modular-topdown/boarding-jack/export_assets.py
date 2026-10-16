@@ -14,8 +14,6 @@ mask, so every paint shares one silhouette and alpha.
   armor/boarding-jack/{body,shoulder-left,shoulder-right,head,foot}.png    rust-orange (default)
   armor/boarding-jack/paints/<palette>/...                                  hull-grey, oxide-green, soot
   armor/boarding-jack/paints/pirate/...                                     soot weathered with crude red (own raws)
-  equipment/latch-screen.png                                                Latch Assist carrier layer
-  equipment/latch-screen-pirate.png                                         the same carrier in Greyhook paint
 """
 import hashlib
 import json
@@ -29,8 +27,6 @@ REPOSITORY = HERE.parents[2]
 TEMPLATES = REPOSITORY / "art-source/templates"
 VARIANTS = REPOSITORY / "mod/graphics/battle/marine-modular-topdown/variants"
 OUTPUT = VARIANTS / "armor/boarding-jack"
-LATCH_OUTPUT = VARIANTS / "equipment/latch-screen.png"
-LATCH_PIRATE_OUTPUT = VARIANTS / "equipment/latch-screen-pirate.png"
 EXPORT_NAMES = {"torso": "body.png", "left-shoulder": "shoulder-left.png",
                 "right-shoulder": "shoulder-right.png", "head": "head.png", "foot": "foot.png"}
 PALETTES = {
@@ -141,7 +137,7 @@ def write_pirate_bases():
     geometry = json.loads((HERE / "geometry.json").read_text())
     windows = guide_module["edit_windows"](geometry)
     PIRATE.mkdir(exist_ok=True)
-    for name in [*EXPORT_NAMES, "latch-screen"]:
+    for name in EXPORT_NAMES:
         _, _, _, raw, casing = export_part(geometry, windows, name)
         recolor(raw, casing, PALETTES["soot"]).save(PIRATE / f"{name}-base.png")
 
@@ -178,14 +174,6 @@ def export():
                                                 outputs[OUTPUT / "paints" / "soot" / export_name])
             outputs[OUTPUT / "paints" / "pirate" / export_name] = pirate
             record["pirate"] = pirate_record
-    latch, latch_mask, record, _, _ = export_part(geometry, windows, "latch-screen")
-    report["parts"]["latch-screen"] = record
-    outputs[LATCH_OUTPUT] = latch
-    if (HERE / "raw" / "pirate-latch-screen.raw.png").exists():
-        # Greyhook's raiders carry their own copy of the screen; the issue keeps the rust-orange one.
-        pirate, record["pirate"] = pirate_part(geometry, windows, "latch-screen", latch,
-                                               recolor(latch, latch_mask, PALETTES["soot"]))
-        outputs[LATCH_PIRATE_OUTPUT] = pirate
     for path, image in outputs.items():
         path.parent.mkdir(parents=True, exist_ok=True)
         image.save(path, optimize=True)

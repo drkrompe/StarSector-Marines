@@ -319,12 +319,148 @@
         189
       ],
       "slot": "se"
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-n",
+      "included": true,
+      "note": "Parapet edge piece, damaged.",
+      "rect": [
+        204,
+        11,
+        185,
+        189
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-e",
+      "included": true,
+      "note": "Parapet edge piece, damaged.",
+      "rect": [
+        389,
+        200,
+        185,
+        189
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-s",
+      "included": true,
+      "note": "Parapet edge piece, damaged.",
+      "rect": [
+        204,
+        389,
+        185,
+        189
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-w",
+      "included": true,
+      "note": "Parapet edge piece, damaged.",
+      "rect": [
+        19,
+        200,
+        185,
+        189
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.1,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-destroyed-n",
+      "included": true,
+      "note": "Parapet edge piece, destroyed.",
+      "rect": [
+        961,
+        11,
+        193,
+        189
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.1,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-destroyed-e",
+      "included": true,
+      "note": "Parapet edge piece, destroyed.",
+      "rect": [
+        1154,
+        200,
+        193,
+        189
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.1,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-destroyed-s",
+      "included": true,
+      "note": "Parapet edge piece, destroyed.",
+      "rect": [
+        961,
+        389,
+        193,
+        189
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.1,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-destroyed-w",
+      "included": true,
+      "note": "Parapet edge piece, destroyed.",
+      "rect": [
+        768,
+        200,
+        193,
+        189
+      ]
     }
   ],
   "gridCols": 8,
   "gridRows": 4,
   "idPrefix": "doodad.fort-emplacement-damage",
-  "note": "Damage states of fort.emplacement. Built-in ImageGen reskin of templates/fort-emplacement-damage-guide.png (fort-emplacement-damage-guide.py, with the intact patch as material reference); exact prompt retained (fort-emplacement-damage.prompt.txt), raw retained unmodified, 1536x1024 RGBA. ImageGen did not hold the 192px pitch, so the rects here are measured and authoritative. Blocks fort.emplacement-damaged (left patch) and fort.emplacement-destroyed (right patch) use the intact block's wall-3x3 slots. They are swapped in by code (EmplacementWreck), not by CoverPropDamage: concrete parapets carry no wall health. New sheet, shares no id with a shipped tileset.",
+  "note": "Damage states of fort.emplacement. Built-in ImageGen reskin of templates/fort-emplacement-damage-guide.png (fort-emplacement-damage-guide.py, with the intact patch as material reference); exact prompt retained (fort-emplacement-damage.prompt.txt), raw retained unmodified, 1536x1024 RGBA. ImageGen did not hold the 192px pitch, so the rects here are measured and authoritative. Blocks fort.emplacement-damaged (left patch) and fort.emplacement-destroyed (right patch) use the intact block's wall-3x3 slots. The four edge cuts of each state are also doodads (doodad.fort-emplacement-damaged-<n|e|s|w> and -destroyed-<..>), the CoverPropDamage family the stamped parapets wear through; the inner-corner states are in fort-emplacement-corners. New sheet, shares no id with a shipped tileset.",
   "sheet": "art-source/tilesets/fort-emplacement-damage.raw.png",
   "sheetName": "fort-emplacement-damage"
 }

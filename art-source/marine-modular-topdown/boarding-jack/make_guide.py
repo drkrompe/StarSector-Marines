@@ -136,19 +136,15 @@ def make_guide():
 # is arithmetic rather than a measurement of the generated picture.
 # ---------------------------------------------------------------------------------------------
 
-LATCH_CANVAS = (136, 120)   # 0.34 x 0.30 shoulder widths at the emitter's 400 px per shoulder width
-
-
 def edit_windows(geometry):
     """Part -> (export canvas, crop window in export pixels, scale). Windows are fixed numbers."""
     body = tuple(geometry["export_canvas"])
     return {
         "torso": (body, (0, 0, 150, 95), 8),
-        "left-shoulder": (body, (0, 12, 56, 72), 16),
+        "left-shoulder": (body, (0, 0, 86, 72), 12),
         "right-shoulder": (body, (94, 18, 145, 66), 16),
         "head": (tuple(geometry["head_canvas"]), (0, 0, 72, 69), 14),
         "foot": (tuple(geometry["foot_canvas"]), (0, 0, 38, 52), 20),
-        "latch-screen": (LATCH_CANVAS, (0, 0, 136, 120), 8),
     }
 
 
@@ -211,13 +207,24 @@ def edit_guide(geometry, name):
         cy = sum(p[1] for p in slab) / len(slab)
         inner = [(x + (cx - x) * 0.10, y + (cy - y) * 0.10) for x, y in slab]
         if name == "left-shoulder":
+            # The boarding shield: three welded loading-frame plates, the forward lip a donor plate.
             d.polygon(P(inner), fill=casing)
-            d.polygon(P([(0.07, 0.25), (0.29, 0.22), (0.30, 0.40), (0.07, 0.42)]), fill=light_casing)  # welded doubler
+            d.polygon(P([(0.07, 0.08), (0.43, 0.055), (0.52, 0.10), (0.51, 0.165), (0.40, 0.195), (0.07, 0.21)]),
+                      fill=light_casing)                                             # forward lip plate
+            d.polygon(P([(0.07, 0.24), (0.29, 0.22), (0.30, 0.40), (0.07, 0.42)]), fill=dark_casing)  # doubler
+            line([(0.07, 0.215), (0.40, 0.20), (0.51, 0.17)], "casing", 6, -70)     # weld beads
             line([(0.07, 0.42), (0.30, 0.40)], "casing", 5, -70)
-            line([(0.20, 0.235), (0.20, 0.41)], "casing", 4, -70)
-            bolts([(0.09, 0.28), (0.27, 0.26), (0.09, 0.60), (0.27, 0.62), (0.30, 0.45)])
+            line([(0.20, 0.225), (0.20, 0.41)], "casing", 4, -70)
+            bolts([(0.09, 0.10), (0.41, 0.075), (0.49, 0.14), (0.09, 0.18), (0.09, 0.28), (0.27, 0.26),
+                   (0.09, 0.62), (0.27, 0.64)])
             d.rectangle(P([(0.08, 0.50), (0.17, 0.58)]), fill=_rgb(geometry, "service_labels"))
-            line([(0.31, 0.24), (0.32, 0.64)], "bare_steel", 10)                    # hinge strap
+            # Latch Assist: a bolted ram block on the inner face, twin rams up into the lip.
+            d.rectangle(P([(0.21, 0.46), (0.31, 0.60)]), fill=_rgb(geometry, "bare_steel", -25))
+            line([(0.235, 0.47), (0.235, 0.20)], "bare_steel", 9)
+            line([(0.285, 0.47), (0.285, 0.20)], "bare_steel", 9)
+            line([(0.30, 0.58), (0.33, 0.50), (0.33, 0.30)], "hoses", 8)
+            d.ellipse(E((0.27, 0.53), (0.006, 0.0095)), fill=_rgb(geometry, "indicator"))
+            line([(0.33, 0.27), (0.33, 0.64)], "bare_steel", 10)                    # hinge strap
         else:
             d.polygon(P(inner), fill=dark_casing)
             for y in (0.33, 0.42, 0.51):                                            # cargo-frame rails
@@ -236,26 +243,12 @@ def edit_guide(geometry, name):
         for x in (0.36, 0.64):
             d.ellipse(E((x, 0.86), (0.075, 0.065)), fill=_rgb(geometry, "bare_steel", -20))
             d.ellipse(E((x, 0.86), (0.045, 0.04)), fill=_rgb(geometry, "hoses"))
-    elif name == "foot":
+    else:  # foot
         d.polygon(P(spec["sole"]), fill=_rgb(geometry, "joint_backing"))
         d.polygon(P([(0.20, 0.08), (0.80, 0.08), (0.85, 0.36), (0.15, 0.36)]), fill=casing)   # toe plate
         d.polygon(P([(0.22, 0.42), (0.78, 0.42), (0.80, 0.62), (0.20, 0.62)]), fill=dark_casing)  # instep plate
         d.rectangle(P([(0.30, 0.74), (0.70, 0.90)]), fill=_rgb(geometry, "bare_steel"))         # heel latch
         bolts([(0.26, 0.14), (0.74, 0.14), (0.26, 0.30), (0.74, 0.30)], r=0.03)
-    else:  # latch-screen: actuator plate on the shoulder, narrow salvaged riot screen forward of it
-        steel = _rgb(geometry, "bare_steel")
-        d.polygon(P([(0.34, 0.50), (0.66, 0.50), (0.70, 0.92), (0.30, 0.92)]), fill=steel)          # actuator plate
-        d.rectangle(P([(0.40, 0.58), (0.60, 0.70)]), fill=_rgb(geometry, "joint_backing"))          # ram housing
-        line([(0.44, 0.36), (0.44, 0.60)], "bare_steel", 22, -40)                                   # twin actuator rods
-        line([(0.56, 0.36), (0.56, 0.60)], "bare_steel", 22, -40)
-        line([(0.36, 0.86), (0.36, 0.55), (0.30, 0.40)], "hoses", 14)                               # guarded hose
-        d.polygon(P([(0.06, 0.24), (0.30, 0.13), (0.70, 0.13), (0.94, 0.24), (0.92, 0.36),
-                     (0.70, 0.27), (0.30, 0.27), (0.08, 0.36)]), fill=_rgb(geometry, "joint_backing"))  # screen frame
-        d.polygon(P([(0.10, 0.25), (0.31, 0.16), (0.69, 0.16), (0.90, 0.25), (0.89, 0.31),
-                     (0.69, 0.24), (0.31, 0.24), (0.11, 0.31)]), fill=_rgb(geometry, "bare_steel", 25))  # screen face
-        d.rectangle(P([(0.44, 0.18), (0.56, 0.22)]), fill=_rgb(geometry, "service_labels"))
-        bolts([(0.38, 0.55), (0.62, 0.55), (0.36, 0.86), (0.64, 0.86)], r=0.012)
-        d.ellipse(E((0.63, 0.78), (0.016, 0.018)), fill=_rgb(geometry, "indicator"))
     return img
 
 

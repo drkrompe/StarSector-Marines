@@ -56,11 +56,6 @@ class BattleSpritesUnitSheetLoadingTest {
         assertEquals(rig + "paints/pirate/body.png", raider.body.sourcePath);
         assertEquals(rig + "paints/pirate/foot.png", raider.foot.sourcePath);
         assertEquals(rig + "paints/pirate/shoulder-left.png", raider.shoulderLeft.sourcePath);
-        assertEquals("graphics/battle/marine-modular-topdown/variants/equipment/latch-screen-pirate.png",
-                LayeredArmorFamily.BOARDING_JACK_PIRATE.repaintedCarrier(
-                        "graphics/battle/marine-modular-topdown/variants/equipment/latch-screen.png"));
-        assertNull(LayeredArmorFamily.BOARDING_JACK.repaintedCarrier(
-                "graphics/battle/marine-modular-topdown/variants/equipment/latch-screen.png"));
     }
 
     @Test
