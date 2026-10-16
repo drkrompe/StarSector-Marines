@@ -1,0 +1,9157 @@
+{
+ "views": {
+  "port-side": {
+   "coverage": {
+    "skin": 0.5352,
+    "swatch": 0.4549,
+    "other": 0.0099,
+    "ship_pixels": 538726
+   },
+   "parts_visible": [
+    "arm-boom-port",
+    "arm-forearm-out",
+    "arm-machinery-tops",
+    "arm-tops",
+    "bay-back-wall-port",
+    "bay-davit-head-port",
+    "bay-frame-port",
+    "belt-bow-port",
+    "bow-cheek-port",
+    "bow-nose-front",
+    "bow-nose-side-port",
+    "bow-port-flank",
+    "deck-edge-lip-port",
+    "fore-module-1",
+    "fore-module-2",
+    "hull-waist-port",
+    "keel-plate",
+    "pod-bands-port",
+    "pod-cowl-port",
+    "pod-cowl-top",
+    "pod-intake-cap-port",
+    "pod-lower-casing-port",
+    "pod-thrust-housing-port",
+    "spine-side-port",
+    "spine-top",
+    "sponson-cowl",
+    "sponson-cowl-fwd",
+    "sponson-cowl-tops",
+    "sponson-lower",
+    "sponson-lower-fwd",
+    "turret-1-right",
+    "turret-2-right",
+    "turret-2-top",
+    "turret-3-left",
+    "turret-3-top",
+    "turret-4-side",
+    "turret-4-top",
+    "turret-small-side",
+    "turret-small-top"
+   ],
+   "within_part_dE_4px": 4.67,
+   "seams": [
+    {
+     "parts": [
+      "spine-top",
+      "spine-side-port"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 888,
+     "step_dE": 8.98,
+     "tone_dL": 9.66
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "deck-edge-lip-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 524,
+     "step_dE": 32.2,
+     "tone_dL": 5.26
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "bay-frame-port"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 497,
+     "step_dE": 39.29,
+     "tone_dL": 29.77
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "fore-module-1"
+     ],
+     "classes": [
+      "oxide",
+      "oxide"
+     ],
+     "same_material": true,
+     "boundary_px": 460,
+     "step_dE": 8.18,
+     "tone_dL": 5.37
+    },
+    {
+     "parts": [
+      "bow-port-flank",
+      "belt-bow-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 404,
+     "step_dE": 30.5,
+     "tone_dL": 5.61
+    },
+    {
+     "parts": [
+      "pod-cowl-port",
+      "pod-cowl-top"
+     ],
+     "classes": [
+      "oxide",
+      "oxide"
+     ],
+     "same_material": true,
+     "boundary_px": 306,
+     "step_dE": 12.27,
+     "tone_dL": 0.34
+    },
+    {
+     "parts": [
+      "fore-module-1",
+      "sponson-lower"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 242,
+     "step_dE": 26.97,
+     "tone_dL": 8.06
+    },
+    {
+     "parts": [
+      "bow-port-flank",
+      "bow-nose-side-port"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 180,
+     "step_dE": 33.67,
+     "tone_dL": 22.61
+    },
+    {
+     "parts": [
+      "belt-bow-port",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "gunmetal",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 180,
+     "step_dE": 31.92,
+     "tone_dL": 30.71
+    },
+    {
+     "parts": [
+      "turret-3-top",
+      "turret-3-left"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 174,
+     "step_dE": 9.39,
+     "tone_dL": 2.22
+    },
+    {
+     "parts": [
+      "pod-cowl-port",
+      "pod-bands-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 163,
+     "step_dE": 27.08,
+     "tone_dL": 3.89
+    },
+    {
+     "parts": [
+      "arm-boom-port",
+      "arm-machinery-tops"
+     ],
+     "classes": [
+      "pale",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 125,
+     "step_dE": 12.9,
+     "tone_dL": 27.68
+    },
+    {
+     "parts": [
+      "fore-module-2",
+      "sponson-lower-fwd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 121,
+     "step_dE": 28.35,
+     "tone_dL": 3.35
+    },
+    {
+     "parts": [
+      "pod-lower-casing-port",
+      "pod-bands-port"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 120,
+     "step_dE": 6.91,
+     "tone_dL": 0.11
+    },
+    {
+     "parts": [
+      "sponson-cowl-fwd",
+      "sponson-cowl-tops"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 106,
+     "step_dE": 3.21,
+     "tone_dL": 0.54
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "bay-davit-head-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 90,
+     "step_dE": 32.61,
+     "tone_dL": 1.0
+    },
+    {
+     "parts": [
+      "sponson-lower-fwd",
+      "belt-bow-port"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 80,
+     "step_dE": 6.44,
+     "tone_dL": 1.6
+    },
+    {
+     "parts": [
+      "arm-boom-port",
+      "arm-forearm-out"
+     ],
+     "classes": [
+      "pale",
+      "pale"
+     ],
+     "same_material": true,
+     "boundary_px": 80,
+     "step_dE": 11.94,
+     "tone_dL": 7.44
+    },
+    {
+     "parts": [
+      "bow-nose-side-port",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 79,
+     "step_dE": 9.89,
+     "tone_dL": 2.88
+    },
+    {
+     "parts": [
+      "bow-port-flank",
+      "sponson-lower-fwd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 56,
+     "step_dE": 30.98,
+     "tone_dL": 5.79
+    },
+    {
+     "parts": [
+      "sponson-cowl",
+      "sponson-cowl-tops"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 50,
+     "step_dE": 3.48,
+     "tone_dL": 0.58
+    },
+    {
+     "parts": [
+      "deck-edge-lip-port",
+      "bay-davit-head-port"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 47,
+     "step_dE": 6.09,
+     "tone_dL": 2.04
+    }
+   ]
+  },
+  "port-quarter": {
+   "coverage": {
+    "skin": 0.4506,
+    "swatch": 0.5445,
+    "other": 0.0049,
+    "ship_pixels": 611862
+   },
+   "parts_visible": [
+    "arm-boom-port",
+    "arm-forearm-out",
+    "arm-machinery-tops",
+    "arm-tops",
+    "bay-back-wall-port",
+    "bay-davit-head-port",
+    "bay-floor-port",
+    "bay-frame-port",
+    "belt-bow-port",
+    "belt-bow-stbd",
+    "bow-cheek-port",
+    "bow-nose-front",
+    "bow-nose-rake",
+    "bow-nose-side-port",
+    "bow-nose-side-stbd",
+    "bow-nose-top",
+    "bow-port-flank",
+    "bow-stbd-flank",
+    "deck-edge-lip-port",
+    "deck-edge-lip-stbd",
+    "deck-fore-top",
+    "fore-module-1",
+    "fore-module-2",
+    "hull-waist-port",
+    "pod-bands-port",
+    "pod-cowl-port",
+    "pod-cowl-top",
+    "pod-cowl-top-stbd",
+    "pod-intake-cap-port",
+    "pod-intake-cap-stbd",
+    "pod-lower-casing-port",
+    "pod-thrust-housing-port",
+    "spine-side-port",
+    "spine-side-stbd",
+    "spine-top",
+    "sponson-cowl",
+    "sponson-cowl-fwd",
+    "sponson-cowl-tops",
+    "sponson-lower",
+    "sponson-lower-fwd",
+    "turret-1-right",
+    "turret-2-left",
+    "turret-2-right",
+    "turret-2-top",
+    "turret-3-left",
+    "turret-3-right",
+    "turret-3-top",
+    "turret-4-side",
+    "turret-4-top",
+    "turret-small-side",
+    "turret-small-top"
+   ],
+   "within_part_dE_4px": 5.8,
+   "seams": [
+    {
+     "parts": [
+      "spine-top",
+      "spine-side-port"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 1077,
+     "step_dE": 10.98,
+     "tone_dL": 19.09
+    },
+    {
+     "parts": [
+      "turret-4-top",
+      "turret-4-side"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 718,
+     "step_dE": 10.33,
+     "tone_dL": 7.72
+    },
+    {
+     "parts": [
+      "bow-port-flank",
+      "belt-bow-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 623,
+     "step_dE": 29.37,
+     "tone_dL": 4.27
+    },
+    {
+     "parts": [
+      "turret-small-top",
+      "turret-1-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 571,
+     "step_dE": 10.4,
+     "tone_dL": 3.22
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-side-port"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 521,
+     "step_dE": 26.89,
+     "tone_dL": 12.22
+    },
+    {
+     "parts": [
+      "turret-2-top",
+      "turret-2-left"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 515,
+     "step_dE": 10.86,
+     "tone_dL": 5.61
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "deck-edge-lip-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 498,
+     "step_dE": 31.87,
+     "tone_dL": 5.03
+    },
+    {
+     "parts": [
+      "turret-3-top",
+      "turret-3-left"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 459,
+     "step_dE": 9.98,
+     "tone_dL": 5.96
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "bow-nose-rake"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 430,
+     "step_dE": 11.95,
+     "tone_dL": 5.83
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 416,
+     "step_dE": 11.01,
+     "tone_dL": 0.97
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "bow-nose-top"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 358,
+     "step_dE": 34.24,
+     "tone_dL": 24.57
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-top"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 319,
+     "step_dE": 10.24,
+     "tone_dL": 2.12
+    },
+    {
+     "parts": [
+      "pod-cowl-port",
+      "pod-lower-casing-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 300,
+     "step_dE": 26.76,
+     "tone_dL": 3.64
+    },
+    {
+     "parts": [
+      "pod-cowl-port",
+      "pod-cowl-top"
+     ],
+     "classes": [
+      "oxide",
+      "oxide"
+     ],
+     "same_material": true,
+     "boundary_px": 273,
+     "step_dE": 11.61,
+     "tone_dL": 1.64
+    },
+    {
+     "parts": [
+      "sponson-cowl-fwd",
+      "sponson-cowl-tops"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 256,
+     "step_dE": 3.72,
+     "tone_dL": 1.8
+    },
+    {
+     "parts": [
+      "pod-thrust-housing-port",
+      "pod-bands-port"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 240,
+     "step_dE": 7.41,
+     "tone_dL": 1.68
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "bay-floor-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 237,
+     "step_dE": 30.86,
+     "tone_dL": 0.74
+    },
+    {
+     "parts": [
+      "sponson-cowl",
+      "sponson-cowl-tops"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 196,
+     "step_dE": 4.7,
+     "tone_dL": 1.81
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-3-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 189,
+     "step_dE": 33.77,
+     "tone_dL": 1.85
+    },
+    {
+     "parts": [
+      "bay-back-wall-port",
+      "bay-floor-port"
+     ],
+     "classes": [
+      "dark",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 183,
+     "step_dE": 22.73,
+     "tone_dL": 23.68
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "spine-side-port"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 164,
+     "step_dE": 36.42,
+     "tone_dL": 2.14
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-4-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 160,
+     "step_dE": 30.78,
+     "tone_dL": 3.27
+    },
+    {
+     "parts": [
+      "arm-boom-port",
+      "arm-machinery-tops"
+     ],
+     "classes": [
+      "pale",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 145,
+     "step_dE": 6.96,
+     "tone_dL": 1.62
+    },
+    {
+     "parts": [
+      "pod-lower-casing-port",
+      "pod-intake-cap-port"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 144,
+     "step_dE": 4.73,
+     "tone_dL": 4.32
+    },
+    {
+     "parts": [
+      "arm-tops",
+      "arm-boom-port"
+     ],
+     "classes": [
+      "pale",
+      "pale"
+     ],
+     "same_material": true,
+     "boundary_px": 134,
+     "step_dE": 8.55,
+     "tone_dL": 2.43
+    },
+    {
+     "parts": [
+      "belt-bow-port",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "gunmetal",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 124,
+     "step_dE": 30.08,
+     "tone_dL": 30.66
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "arm-machinery-tops"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 120,
+     "step_dE": 28.82,
+     "tone_dL": 12.6
+    },
+    {
+     "parts": [
+      "pod-cowl-top-stbd",
+      "turret-2-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 119,
+     "step_dE": 34.52,
+     "tone_dL": 2.76
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "arm-boom-port"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 114,
+     "step_dE": 36.33,
+     "tone_dL": 12.06
+    },
+    {
+     "parts": [
+      "bow-port-flank",
+      "bow-nose-rake"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 111,
+     "step_dE": 9.18,
+     "tone_dL": 6.26
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-4-side"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 110,
+     "step_dE": 28.05,
+     "tone_dL": 3.1
+    },
+    {
+     "parts": [
+      "bow-stbd-flank",
+      "bow-nose-rake"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 109,
+     "step_dE": 14.86,
+     "tone_dL": 12.13
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "arm-tops"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 107,
+     "step_dE": 30.99,
+     "tone_dL": 1.35
+    },
+    {
+     "parts": [
+      "pod-cowl-port",
+      "pod-bands-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 101,
+     "step_dE": 27.37,
+     "tone_dL": 5.19
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "bay-back-wall-port"
+     ],
+     "classes": [
+      "oxide",
+      "dark"
+     ],
+     "same_material": false,
+     "boundary_px": 89,
+     "step_dE": 35.31,
+     "tone_dL": 29.46
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "spine-top"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 85,
+     "step_dE": 34.11,
+     "tone_dL": 3.96
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "arm-forearm-out"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 81,
+     "step_dE": 35.68,
+     "tone_dL": 16.87
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "arm-tops"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 67,
+     "step_dE": 36.32,
+     "tone_dL": 15.86
+    },
+    {
+     "parts": [
+      "pod-cowl-top",
+      "turret-small-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 62,
+     "step_dE": 31.77,
+     "tone_dL": 4.88
+    },
+    {
+     "parts": [
+      "pod-cowl-port",
+      "pod-intake-cap-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 62,
+     "step_dE": 32.06,
+     "tone_dL": 7.49
+    },
+    {
+     "parts": [
+      "turret-3-top",
+      "turret-3-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 59,
+     "step_dE": 5.22,
+     "tone_dL": null
+    },
+    {
+     "parts": [
+      "belt-bow-port",
+      "belt-bow-stbd"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 57,
+     "step_dE": 6.52,
+     "tone_dL": null
+    },
+    {
+     "parts": [
+      "arm-boom-port",
+      "arm-forearm-out"
+     ],
+     "classes": [
+      "pale",
+      "pale"
+     ],
+     "same_material": true,
+     "boundary_px": 55,
+     "step_dE": 12.71,
+     "tone_dL": 7.4
+    },
+    {
+     "parts": [
+      "bow-nose-top",
+      "arm-tops"
+     ],
+     "classes": [
+      "cream",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 50,
+     "step_dE": 32.41,
+     "tone_dL": 39.63
+    },
+    {
+     "parts": [
+      "bow-nose-side-port",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 47,
+     "step_dE": 7.6,
+     "tone_dL": 2.85
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-3-left"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 46,
+     "step_dE": 31.39,
+     "tone_dL": 5.75
+    },
+    {
+     "parts": [
+      "arm-tops",
+      "arm-forearm-out"
+     ],
+     "classes": [
+      "pale",
+      "pale"
+     ],
+     "same_material": true,
+     "boundary_px": 44,
+     "step_dE": 10.18,
+     "tone_dL": 12.67
+    },
+    {
+     "parts": [
+      "bow-stbd-flank",
+      "belt-bow-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 40,
+     "step_dE": 33.77,
+     "tone_dL": 8.93
+    }
+   ]
+  },
+  "high-quarter": {
+   "coverage": {
+    "skin": 0.4008,
+    "swatch": 0.5951,
+    "other": 0.0041,
+    "ship_pixels": 692381
+   },
+   "parts_visible": [
+    "arm-boom-port",
+    "arm-forearm-out",
+    "arm-machinery-tops",
+    "arm-tops",
+    "bay-davit-head-port",
+    "bay-floor-port",
+    "bay-frame-port",
+    "belt-bow-port",
+    "belt-bow-stbd",
+    "belt-fore-stbd",
+    "bow-cheek-port",
+    "bow-nose-front",
+    "bow-nose-rake",
+    "bow-nose-side-port",
+    "bow-nose-side-stbd",
+    "bow-nose-top",
+    "bow-port-flank",
+    "bow-stbd-flank",
+    "deck-edge-lip-port",
+    "deck-edge-lip-stbd",
+    "deck-fore-top",
+    "fore-module-2",
+    "fore-module-2-stbd",
+    "hull-waist-port",
+    "pod-bands-port",
+    "pod-bands-stbd",
+    "pod-cowl-port",
+    "pod-cowl-stbd",
+    "pod-cowl-top",
+    "pod-cowl-top-stbd",
+    "pod-intake-cap-port",
+    "pod-intake-cap-stbd",
+    "pod-lower-casing-port",
+    "pod-thrust-housing-port",
+    "pod-thrust-housing-stbd",
+    "spine-side-port",
+    "spine-side-stbd",
+    "spine-top",
+    "sponson-cowl",
+    "sponson-cowl-fwd",
+    "sponson-cowl-tops",
+    "sponson-lower",
+    "sponson-lower-fwd",
+    "turret-1-right",
+    "turret-2-left",
+    "turret-2-right",
+    "turret-2-top",
+    "turret-3-left",
+    "turret-3-right",
+    "turret-3-top",
+    "turret-4-right",
+    "turret-4-side",
+    "turret-4-top",
+    "turret-small-side",
+    "turret-small-top"
+   ],
+   "within_part_dE_4px": 6.24,
+   "seams": [
+    {
+     "parts": [
+      "spine-top",
+      "spine-side-port"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 1161,
+     "step_dE": 12.02,
+     "tone_dL": 25.99
+    },
+    {
+     "parts": [
+      "turret-4-top",
+      "turret-4-side"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 707,
+     "step_dE": 9.44,
+     "tone_dL": 6.39
+    },
+    {
+     "parts": [
+      "turret-small-top",
+      "turret-1-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 635,
+     "step_dE": 9.72,
+     "tone_dL": 2.44
+    },
+    {
+     "parts": [
+      "turret-2-top",
+      "turret-2-left"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 594,
+     "step_dE": 10.15,
+     "tone_dL": 4.26
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "bow-nose-rake"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 514,
+     "step_dE": 12.56,
+     "tone_dL": 5.27
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 478,
+     "step_dE": 11.15,
+     "tone_dL": 2.14
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "bow-nose-top"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 453,
+     "step_dE": 34.08,
+     "tone_dL": 24.97
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "deck-edge-lip-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 442,
+     "step_dE": 31.34,
+     "tone_dL": 2.04
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-top"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 411,
+     "step_dE": 11.49,
+     "tone_dL": 2.81
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-4-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 395,
+     "step_dE": 31.13,
+     "tone_dL": 4.36
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-side-port"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 377,
+     "step_dE": 27.03,
+     "tone_dL": 12.05
+    },
+    {
+     "parts": [
+      "turret-3-top",
+      "turret-3-left"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 337,
+     "step_dE": 8.22,
+     "tone_dL": 7.39
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "spine-side-port"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 314,
+     "step_dE": 30.18,
+     "tone_dL": 3.51
+    },
+    {
+     "parts": [
+      "pod-cowl-port",
+      "pod-cowl-top"
+     ],
+     "classes": [
+      "oxide",
+      "oxide"
+     ],
+     "same_material": true,
+     "boundary_px": 290,
+     "step_dE": 9.15,
+     "tone_dL": 2.33
+    },
+    {
+     "parts": [
+      "spine-top",
+      "spine-side-stbd"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 265,
+     "step_dE": 12.26,
+     "tone_dL": 4.35
+    },
+    {
+     "parts": [
+      "sponson-cowl-fwd",
+      "sponson-cowl-tops"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 260,
+     "step_dE": 3.9,
+     "tone_dL": 1.89
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "arm-boom-port"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 202,
+     "step_dE": 32.15,
+     "tone_dL": 14.7
+    },
+    {
+     "parts": [
+      "pod-thrust-housing-port",
+      "pod-bands-port"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 200,
+     "step_dE": 7.39,
+     "tone_dL": 1.07
+    },
+    {
+     "parts": [
+      "sponson-cowl",
+      "sponson-cowl-tops"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 193,
+     "step_dE": 5.33,
+     "tone_dL": 2.76
+    },
+    {
+     "parts": [
+      "pod-cowl-port",
+      "pod-lower-casing-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 179,
+     "step_dE": 28.02,
+     "tone_dL": 3.99
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "bay-floor-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 156,
+     "step_dE": 28.23,
+     "tone_dL": 2.15
+    },
+    {
+     "parts": [
+      "arm-boom-port",
+      "arm-machinery-tops"
+     ],
+     "classes": [
+      "pale",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 153,
+     "step_dE": 7.38,
+     "tone_dL": 0.56
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "arm-forearm-out"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 135,
+     "step_dE": 37.95,
+     "tone_dL": 14.65
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-3-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 133,
+     "step_dE": 31.17,
+     "tone_dL": 3.58
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "spine-side-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 132,
+     "step_dE": 25.94,
+     "tone_dL": 27.65
+    },
+    {
+     "parts": [
+      "arm-tops",
+      "arm-boom-port"
+     ],
+     "classes": [
+      "pale",
+      "pale"
+     ],
+     "same_material": true,
+     "boundary_px": 122,
+     "step_dE": 8.64,
+     "tone_dL": 3.33
+    },
+    {
+     "parts": [
+      "bow-stbd-flank",
+      "bow-nose-rake"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 117,
+     "step_dE": 10.7,
+     "tone_dL": 11.05
+    },
+    {
+     "parts": [
+      "belt-bow-port",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "gunmetal",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 112,
+     "step_dE": 29.87,
+     "tone_dL": 30.52
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "arm-tops"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 112,
+     "step_dE": 32.23,
+     "tone_dL": 2.25
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "arm-machinery-tops"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 111,
+     "step_dE": 35.11,
+     "tone_dL": 1.92
+    },
+    {
+     "parts": [
+      "turret-3-top",
+      "turret-3-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 108,
+     "step_dE": 8.04,
+     "tone_dL": null
+    },
+    {
+     "parts": [
+      "bow-port-flank",
+      "bow-nose-rake"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 96,
+     "step_dE": 8.67,
+     "tone_dL": 6.84
+    },
+    {
+     "parts": [
+      "pod-cowl-top-stbd",
+      "turret-2-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 96,
+     "step_dE": 31.9,
+     "tone_dL": 1.33
+    },
+    {
+     "parts": [
+      "pod-lower-casing-port",
+      "pod-intake-cap-port"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 94,
+     "step_dE": 5.43,
+     "tone_dL": 3.38
+    },
+    {
+     "parts": [
+      "sponson-cowl-tops",
+      "arm-boom-port"
+     ],
+     "classes": [
+      "gunmetal",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 94,
+     "step_dE": 29.72,
+     "tone_dL": 27.35
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-4-side"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 86,
+     "step_dE": 32.37,
+     "tone_dL": 0.86
+    },
+    {
+     "parts": [
+      "bow-port-flank",
+      "belt-bow-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 84,
+     "step_dE": 30.0,
+     "tone_dL": 5.05
+    },
+    {
+     "parts": [
+      "bay-floor-port",
+      "bay-davit-head-port"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 82,
+     "step_dE": 4.5,
+     "tone_dL": 0.93
+    },
+    {
+     "parts": [
+      "pod-cowl-port",
+      "pod-bands-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 73,
+     "step_dE": 29.65,
+     "tone_dL": 7.15
+    },
+    {
+     "parts": [
+      "bow-nose-top",
+      "arm-tops"
+     ],
+     "classes": [
+      "cream",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 67,
+     "step_dE": 33.07,
+     "tone_dL": 29.49
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-side-stbd"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 65,
+     "step_dE": 22.82,
+     "tone_dL": null
+    },
+    {
+     "parts": [
+      "pod-cowl-port",
+      "pod-intake-cap-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 60,
+     "step_dE": 31.57,
+     "tone_dL": 7.1
+    },
+    {
+     "parts": [
+      "bow-stbd-flank",
+      "belt-bow-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 59,
+     "step_dE": 32.65,
+     "tone_dL": 8.64
+    },
+    {
+     "parts": [
+      "belt-bow-port",
+      "belt-bow-stbd"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 58,
+     "step_dE": 5.7,
+     "tone_dL": 5.11
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "spine-top"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 50,
+     "step_dE": 30.51,
+     "tone_dL": 1.29
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "arm-tops"
+     ],
+     "classes": [
+      "cream",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 43,
+     "step_dE": 63.87,
+     "tone_dL": 49.4
+    },
+    {
+     "parts": [
+      "arm-tops",
+      "arm-forearm-out"
+     ],
+     "classes": [
+      "pale",
+      "pale"
+     ],
+     "same_material": true,
+     "boundary_px": 42,
+     "step_dE": 11.03,
+     "tone_dL": 14.88
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "arm-tops"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 40,
+     "step_dE": 30.13,
+     "tone_dL": 0.38
+    },
+    {
+     "parts": [
+      "arm-boom-port",
+      "arm-forearm-out"
+     ],
+     "classes": [
+      "pale",
+      "pale"
+     ],
+     "same_material": true,
+     "boundary_px": 40,
+     "step_dE": 8.98,
+     "tone_dL": 6.82
+    }
+   ]
+  },
+  "top": {
+   "coverage": {
+    "skin": 0.3391,
+    "swatch": 0.6538,
+    "other": 0.0071,
+    "ship_pixels": 529424
+   },
+   "parts_visible": [
+    "arm-boom-port",
+    "arm-forearm-out",
+    "arm-machinery-tops",
+    "arm-tops",
+    "bay-davit-head-port",
+    "belt-bow-port",
+    "belt-bow-stbd",
+    "belt-fore-stbd",
+    "bow-cheek-port",
+    "bow-nose-front",
+    "bow-nose-rake",
+    "bow-nose-side-port",
+    "bow-nose-side-stbd",
+    "bow-nose-top",
+    "bow-port-flank",
+    "bow-stbd-flank",
+    "deck-edge-lip-port",
+    "deck-edge-lip-stbd",
+    "deck-fore-top",
+    "pod-bands-port",
+    "pod-bands-stbd",
+    "pod-cowl-port",
+    "pod-cowl-stbd",
+    "pod-cowl-top",
+    "pod-cowl-top-stbd",
+    "pod-intake-cap-port",
+    "pod-intake-cap-stbd",
+    "pod-thrust-housing-port",
+    "pod-thrust-housing-stbd",
+    "spine-side-port",
+    "spine-side-stbd",
+    "spine-top",
+    "sponson-cowl",
+    "sponson-cowl-fwd",
+    "sponson-cowl-tops",
+    "turret-1-right",
+    "turret-2-left",
+    "turret-2-right",
+    "turret-2-top",
+    "turret-3-left",
+    "turret-3-right",
+    "turret-3-top",
+    "turret-4-right",
+    "turret-4-side",
+    "turret-4-top",
+    "turret-small-side",
+    "turret-small-top"
+   ],
+   "within_part_dE_4px": 6.39,
+   "seams": [
+    {
+     "parts": [
+      "spine-top",
+      "spine-side-stbd"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 389,
+     "step_dE": 16.87,
+     "tone_dL": 25.6
+    },
+    {
+     "parts": [
+      "spine-top",
+      "spine-side-port"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 369,
+     "step_dE": 13.01,
+     "tone_dL": 26.91
+    },
+    {
+     "parts": [
+      "turret-4-top",
+      "turret-4-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 364,
+     "step_dE": 7.77,
+     "tone_dL": 0.87
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "bow-nose-top"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 323,
+     "step_dE": 34.61,
+     "tone_dL": 24.17
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "bow-nose-rake"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 310,
+     "step_dE": 11.96,
+     "tone_dL": 3.63
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-top"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 303,
+     "step_dE": 10.82,
+     "tone_dL": 1.86
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "spine-side-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 243,
+     "step_dE": 31.95,
+     "tone_dL": 12.7
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "spine-side-port"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 238,
+     "step_dE": 31.99,
+     "tone_dL": 11.87
+    },
+    {
+     "parts": [
+      "turret-4-top",
+      "turret-4-side"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 212,
+     "step_dE": 9.13,
+     "tone_dL": 1.01
+    },
+    {
+     "parts": [
+      "pod-cowl-port",
+      "pod-cowl-top"
+     ],
+     "classes": [
+      "oxide",
+      "oxide"
+     ],
+     "same_material": true,
+     "boundary_px": 197,
+     "step_dE": 5.79,
+     "tone_dL": 1.3
+    },
+    {
+     "parts": [
+      "pod-cowl-stbd",
+      "pod-cowl-top-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "oxide"
+     ],
+     "same_material": true,
+     "boundary_px": 197,
+     "step_dE": 4.07,
+     "tone_dL": 0.82
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-4-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 194,
+     "step_dE": 33.25,
+     "tone_dL": 3.59
+    },
+    {
+     "parts": [
+      "deck-edge-lip-stbd",
+      "belt-fore-stbd"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 177,
+     "step_dE": 3.5,
+     "tone_dL": null
+    },
+    {
+     "parts": [
+      "turret-small-top",
+      "turret-small-side"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 157,
+     "step_dE": 8.53,
+     "tone_dL": null
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-3-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 152,
+     "step_dE": 31.83,
+     "tone_dL": 2.16
+    },
+    {
+     "parts": [
+      "turret-3-top",
+      "turret-3-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 147,
+     "step_dE": 8.37,
+     "tone_dL": null
+    },
+    {
+     "parts": [
+      "turret-3-top",
+      "turret-3-left"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 144,
+     "step_dE": 9.54,
+     "tone_dL": null
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "arm-tops"
+     ],
+     "classes": [
+      "cream",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 138,
+     "step_dE": 40.86,
+     "tone_dL": 20.31
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-4-right"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 131,
+     "step_dE": 31.08,
+     "tone_dL": 0.93
+    },
+    {
+     "parts": [
+      "turret-2-top",
+      "turret-2-left"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 129,
+     "step_dE": 8.51,
+     "tone_dL": null
+    },
+    {
+     "parts": [
+      "sponson-cowl",
+      "sponson-cowl-tops"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 126,
+     "step_dE": 5.3,
+     "tone_dL": 4.3
+    },
+    {
+     "parts": [
+      "sponson-cowl-fwd",
+      "sponson-cowl-tops"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 118,
+     "step_dE": 4.08,
+     "tone_dL": 4.97
+    },
+    {
+     "parts": [
+      "turret-2-top",
+      "turret-2-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 108,
+     "step_dE": 8.81,
+     "tone_dL": null
+    },
+    {
+     "parts": [
+      "turret-small-top",
+      "turret-1-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 107,
+     "step_dE": 9.02,
+     "tone_dL": null
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "arm-tops"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 100,
+     "step_dE": 32.63,
+     "tone_dL": 16.55
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "arm-tops"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 96,
+     "step_dE": 29.42,
+     "tone_dL": 10.14
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-side-stbd"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 89,
+     "step_dE": 23.56,
+     "tone_dL": null
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "arm-machinery-tops"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 86,
+     "step_dE": 35.9,
+     "tone_dL": 2.64
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 68,
+     "step_dE": 14.67,
+     "tone_dL": null
+    },
+    {
+     "parts": [
+      "turret-3-top",
+      "arm-tops"
+     ],
+     "classes": [
+      "gunmetal",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 68,
+     "step_dE": 14.99,
+     "tone_dL": 12.69
+    },
+    {
+     "parts": [
+      "bow-nose-top",
+      "arm-tops"
+     ],
+     "classes": [
+      "cream",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 53,
+     "step_dE": 33.24,
+     "tone_dL": 28.41
+    },
+    {
+     "parts": [
+      "sponson-cowl-tops",
+      "arm-boom-port"
+     ],
+     "classes": [
+      "gunmetal",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 46,
+     "step_dE": 31.5,
+     "tone_dL": null
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "turret-3-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 46,
+     "step_dE": 30.28,
+     "tone_dL": 0.63
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-side-port"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 43,
+     "step_dE": 16.49,
+     "tone_dL": null
+    }
+   ]
+  },
+  "starboard-side": {
+   "coverage": {
+    "skin": 0.5219,
+    "swatch": 0.4692,
+    "other": 0.0089,
+    "ship_pixels": 528402
+   },
+   "parts_visible": [
+    "arm-tops",
+    "bay-door-stbd",
+    "belt-bow-stbd",
+    "belt-fore-stbd",
+    "bow-cheek-port",
+    "bow-nose-front",
+    "bow-nose-side-stbd",
+    "bow-nose-top",
+    "bow-stbd-flank",
+    "deck-edge-lip-stbd",
+    "fore-module-1-stbd",
+    "fore-module-2-stbd",
+    "hull-waist-stbd",
+    "keel-plate",
+    "pod-bands-stbd",
+    "pod-cowl-stbd",
+    "pod-cowl-top-stbd",
+    "pod-intake-cap-stbd",
+    "pod-lower-casing-stbd",
+    "pod-thrust-housing-stbd",
+    "spine-side-stbd",
+    "spine-top",
+    "turret-2-left",
+    "turret-2-right",
+    "turret-2-top",
+    "turret-3-right",
+    "turret-3-top",
+    "turret-4-right",
+    "turret-4-top",
+    "turret-small-top"
+   ],
+   "within_part_dE_4px": 4.81,
+   "seams": [
+    {
+     "parts": [
+      "spine-top",
+      "spine-side-stbd"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 673,
+     "step_dE": 9.45,
+     "tone_dL": 11.3
+    },
+    {
+     "parts": [
+      "pod-cowl-stbd",
+      "pod-cowl-top-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "oxide"
+     ],
+     "same_material": true,
+     "boundary_px": 306,
+     "step_dE": 13.37,
+     "tone_dL": 2.22
+    },
+    {
+     "parts": [
+      "pod-cowl-stbd",
+      "pod-bands-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 284,
+     "step_dE": 25.37,
+     "tone_dL": 0.98
+    },
+    {
+     "parts": [
+      "hull-waist-stbd",
+      "fore-module-1-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "oxide"
+     ],
+     "same_material": true,
+     "boundary_px": 226,
+     "step_dE": 8.93,
+     "tone_dL": 3.98
+    },
+    {
+     "parts": [
+      "belt-fore-stbd",
+      "fore-module-1-stbd"
+     ],
+     "classes": [
+      "gunmetal",
+      "oxide"
+     ],
+     "same_material": false,
+     "boundary_px": 217,
+     "step_dE": 34.57,
+     "tone_dL": 4.96
+    },
+    {
+     "parts": [
+      "bow-stbd-flank",
+      "bow-nose-side-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 178,
+     "step_dE": 31.24,
+     "tone_dL": 19.01
+    },
+    {
+     "parts": [
+      "belt-bow-stbd",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "gunmetal",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 166,
+     "step_dE": 35.17,
+     "tone_dL": 34.32
+    },
+    {
+     "parts": [
+      "turret-3-top",
+      "turret-3-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 143,
+     "step_dE": 12.1,
+     "tone_dL": 4.43
+    },
+    {
+     "parts": [
+      "bow-stbd-flank",
+      "belt-bow-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 142,
+     "step_dE": 33.31,
+     "tone_dL": 9.58
+    },
+    {
+     "parts": [
+      "turret-4-top",
+      "turret-4-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 134,
+     "step_dE": 8.66,
+     "tone_dL": 2.09
+    },
+    {
+     "parts": [
+      "hull-waist-stbd",
+      "belt-fore-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 130,
+     "step_dE": 32.87,
+     "tone_dL": 6.76
+    },
+    {
+     "parts": [
+      "pod-lower-casing-stbd",
+      "pod-bands-stbd"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 120,
+     "step_dE": 6.47,
+     "tone_dL": 3.94
+    },
+    {
+     "parts": [
+      "bow-nose-side-stbd",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 77,
+     "step_dE": 9.15,
+     "tone_dL": 2.7
+    },
+    {
+     "parts": [
+      "belt-fore-stbd",
+      "fore-module-2-stbd"
+     ],
+     "classes": [
+      "gunmetal",
+      "oxide"
+     ],
+     "same_material": false,
+     "boundary_px": 70,
+     "step_dE": 30.01,
+     "tone_dL": 6.41
+    },
+    {
+     "parts": [
+      "turret-3-right",
+      "turret-4-top"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 59,
+     "step_dE": 15.22,
+     "tone_dL": 1.28
+    },
+    {
+     "parts": [
+      "bow-nose-side-stbd",
+      "bow-nose-top"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 49,
+     "step_dE": 11.6,
+     "tone_dL": null
+    }
+   ]
+  },
+  "starboard-quarter": {
+   "coverage": {
+    "skin": 0.4355,
+    "swatch": 0.5597,
+    "other": 0.0047,
+    "ship_pixels": 625035
+   },
+   "parts_visible": [
+    "arm-forearm-out",
+    "arm-machinery-tops",
+    "arm-tops",
+    "bay-door-stbd",
+    "belt-bow-port",
+    "belt-bow-stbd",
+    "belt-fore-stbd",
+    "bow-cheek-port",
+    "bow-nose-front",
+    "bow-nose-rake",
+    "bow-nose-side-port",
+    "bow-nose-side-stbd",
+    "bow-nose-top",
+    "bow-port-flank",
+    "bow-stbd-flank",
+    "deck-edge-lip-stbd",
+    "deck-fore-top",
+    "fore-module-1-stbd",
+    "fore-module-2-stbd",
+    "hull-waist-stbd",
+    "pod-bands-stbd",
+    "pod-cowl-stbd",
+    "pod-cowl-top",
+    "pod-cowl-top-stbd",
+    "pod-intake-cap-port",
+    "pod-intake-cap-stbd",
+    "pod-lower-casing-stbd",
+    "pod-thrust-housing-stbd",
+    "spine-side-port",
+    "spine-side-stbd",
+    "spine-top",
+    "sponson-cowl-tops",
+    "turret-1-right",
+    "turret-2-left",
+    "turret-2-right",
+    "turret-2-top",
+    "turret-3-right",
+    "turret-3-top",
+    "turret-4-right",
+    "turret-4-side",
+    "turret-4-top",
+    "turret-small-side",
+    "turret-small-top"
+   ],
+   "within_part_dE_4px": 5.77,
+   "seams": [
+    {
+     "parts": [
+      "spine-top",
+      "spine-side-stbd"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 1082,
+     "step_dE": 12.93,
+     "tone_dL": 18.03
+    },
+    {
+     "parts": [
+      "turret-3-top",
+      "turret-3-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 670,
+     "step_dE": 8.6,
+     "tone_dL": 0.34
+    },
+    {
+     "parts": [
+      "turret-4-top",
+      "turret-4-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 648,
+     "step_dE": 9.02,
+     "tone_dL": 3.65
+    },
+    {
+     "parts": [
+      "hull-waist-stbd",
+      "deck-edge-lip-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 631,
+     "step_dE": 35.46,
+     "tone_dL": 6.85
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-side-stbd"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 623,
+     "step_dE": 23.91,
+     "tone_dL": 10.94
+    },
+    {
+     "parts": [
+      "turret-2-top",
+      "turret-2-left"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 560,
+     "step_dE": 10.07,
+     "tone_dL": 3.76
+    },
+    {
+     "parts": [
+      "turret-small-top",
+      "turret-1-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 513,
+     "step_dE": 11.24,
+     "tone_dL": 6.31
+    },
+    {
+     "parts": [
+      "bow-stbd-flank",
+      "belt-bow-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 420,
+     "step_dE": 32.44,
+     "tone_dL": 7.62
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 416,
+     "step_dE": 9.95,
+     "tone_dL": 0.84
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "bow-nose-top"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 384,
+     "step_dE": 33.93,
+     "tone_dL": 24.59
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-top"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 361,
+     "step_dE": 10.23,
+     "tone_dL": 3.65
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "bow-nose-rake"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 356,
+     "step_dE": 11.37,
+     "tone_dL": 4.47
+    },
+    {
+     "parts": [
+      "belt-fore-stbd",
+      "fore-module-1-stbd"
+     ],
+     "classes": [
+      "gunmetal",
+      "oxide"
+     ],
+     "same_material": false,
+     "boundary_px": 339,
+     "step_dE": 32.16,
+     "tone_dL": 3.82
+    },
+    {
+     "parts": [
+      "pod-cowl-stbd",
+      "pod-lower-casing-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 300,
+     "step_dE": 25.57,
+     "tone_dL": 4.74
+    },
+    {
+     "parts": [
+      "hull-waist-stbd",
+      "bay-door-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 288,
+     "step_dE": 32.61,
+     "tone_dL": 7.94
+    },
+    {
+     "parts": [
+      "pod-cowl-stbd",
+      "pod-cowl-top-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "oxide"
+     ],
+     "same_material": true,
+     "boundary_px": 273,
+     "step_dE": 12.1,
+     "tone_dL": 0.84
+    },
+    {
+     "parts": [
+      "pod-thrust-housing-stbd",
+      "pod-bands-stbd"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 240,
+     "step_dE": 6.37,
+     "tone_dL": 5.42
+    },
+    {
+     "parts": [
+      "belt-fore-stbd",
+      "fore-module-2-stbd"
+     ],
+     "classes": [
+      "gunmetal",
+      "oxide"
+     ],
+     "same_material": false,
+     "boundary_px": 195,
+     "step_dE": 30.81,
+     "tone_dL": 5.68
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "spine-side-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 160,
+     "step_dE": 36.33,
+     "tone_dL": 0.29
+    },
+    {
+     "parts": [
+      "belt-bow-port",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "gunmetal",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 157,
+     "step_dE": 30.04,
+     "tone_dL": 31.23
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-4-right"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 150,
+     "step_dE": 31.37,
+     "tone_dL": 1.6
+    },
+    {
+     "parts": [
+      "pod-lower-casing-stbd",
+      "pod-intake-cap-stbd"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 144,
+     "step_dE": 4.8,
+     "tone_dL": 4.18
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "arm-tops"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 125,
+     "step_dE": 34.22,
+     "tone_dL": 24.32
+    },
+    {
+     "parts": [
+      "bow-stbd-flank",
+      "bow-nose-rake"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 111,
+     "step_dE": 10.19,
+     "tone_dL": 0.69
+    },
+    {
+     "parts": [
+      "bow-port-flank",
+      "bow-nose-rake"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 109,
+     "step_dE": 17.1,
+     "tone_dL": 12.79
+    },
+    {
+     "parts": [
+      "pod-cowl-top",
+      "turret-small-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 109,
+     "step_dE": 36.42,
+     "tone_dL": 4.53
+    },
+    {
+     "parts": [
+      "pod-cowl-stbd",
+      "pod-bands-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 101,
+     "step_dE": 24.87,
+     "tone_dL": 0.84
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-4-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 92,
+     "step_dE": 32.47,
+     "tone_dL": 2.71
+    },
+    {
+     "parts": [
+      "belt-bow-port",
+      "belt-bow-stbd"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 88,
+     "step_dE": 7.92,
+     "tone_dL": 9.22
+    },
+    {
+     "parts": [
+      "turret-3-top",
+      "arm-tops"
+     ],
+     "classes": [
+      "gunmetal",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 88,
+     "step_dE": 19.13,
+     "tone_dL": 27.53
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "spine-top"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 79,
+     "step_dE": 29.76,
+     "tone_dL": 1.65
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "arm-tops"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 66,
+     "step_dE": 23.67,
+     "tone_dL": 5.56
+    },
+    {
+     "parts": [
+      "pod-cowl-top-stbd",
+      "turret-2-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 62,
+     "step_dE": 31.36,
+     "tone_dL": 1.61
+    },
+    {
+     "parts": [
+      "pod-cowl-stbd",
+      "pod-intake-cap-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 62,
+     "step_dE": 33.43,
+     "tone_dL": 6.01
+    },
+    {
+     "parts": [
+      "hull-waist-stbd",
+      "fore-module-1-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "oxide"
+     ],
+     "same_material": true,
+     "boundary_px": 60,
+     "step_dE": 6.86,
+     "tone_dL": 4.68
+    },
+    {
+     "parts": [
+      "arm-tops",
+      "arm-machinery-tops"
+     ],
+     "classes": [
+      "pale",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 54,
+     "step_dE": 7.48,
+     "tone_dL": 24.45
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "arm-forearm-out"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 53,
+     "step_dE": 32.84,
+     "tone_dL": 5.18
+    },
+    {
+     "parts": [
+      "bow-nose-side-stbd",
+      "bow-nose-top"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 48,
+     "step_dE": 10.31,
+     "tone_dL": 3.05
+    },
+    {
+     "parts": [
+      "bow-nose-side-stbd",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 47,
+     "step_dE": 6.41,
+     "tone_dL": 2.12
+    },
+    {
+     "parts": [
+      "bow-port-flank",
+      "belt-bow-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 40,
+     "step_dE": 32.55,
+     "tone_dL": 5.55
+    }
+   ]
+  },
+  "high-quarter-starboard": {
+   "coverage": {
+    "skin": 0.39,
+    "swatch": 0.6061,
+    "other": 0.0039,
+    "ship_pixels": 703643
+   },
+   "parts_visible": [
+    "arm-boom-port",
+    "arm-forearm-out",
+    "arm-machinery-tops",
+    "arm-tops",
+    "bay-davit-head-port",
+    "bay-door-stbd",
+    "belt-bow-port",
+    "belt-bow-stbd",
+    "belt-fore-stbd",
+    "bow-cheek-port",
+    "bow-nose-front",
+    "bow-nose-rake",
+    "bow-nose-side-port",
+    "bow-nose-side-stbd",
+    "bow-nose-top",
+    "bow-port-flank",
+    "bow-stbd-flank",
+    "deck-edge-lip-port",
+    "deck-edge-lip-stbd",
+    "deck-fore-top",
+    "fore-module-1-stbd",
+    "fore-module-2-stbd",
+    "hull-waist-stbd",
+    "pod-bands-port",
+    "pod-bands-stbd",
+    "pod-cowl-port",
+    "pod-cowl-stbd",
+    "pod-cowl-top",
+    "pod-cowl-top-stbd",
+    "pod-intake-cap-port",
+    "pod-intake-cap-stbd",
+    "pod-lower-casing-stbd",
+    "pod-thrust-housing-port",
+    "pod-thrust-housing-stbd",
+    "spine-side-port",
+    "spine-side-stbd",
+    "spine-top",
+    "sponson-cowl",
+    "sponson-cowl-fwd",
+    "sponson-cowl-tops",
+    "sponson-lower-fwd",
+    "turret-1-right",
+    "turret-2-left",
+    "turret-2-right",
+    "turret-2-top",
+    "turret-3-left",
+    "turret-3-right",
+    "turret-3-top",
+    "turret-4-right",
+    "turret-4-side",
+    "turret-4-top",
+    "turret-small-side",
+    "turret-small-top"
+   ],
+   "within_part_dE_4px": 6.19,
+   "seams": [
+    {
+     "parts": [
+      "spine-top",
+      "spine-side-stbd"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 1198,
+     "step_dE": 14.55,
+     "tone_dL": 24.6
+    },
+    {
+     "parts": [
+      "turret-3-top",
+      "turret-3-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 690,
+     "step_dE": 8.49,
+     "tone_dL": 1.83
+    },
+    {
+     "parts": [
+      "turret-2-top",
+      "turret-2-left"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 636,
+     "step_dE": 9.39,
+     "tone_dL": 2.9
+    },
+    {
+     "parts": [
+      "turret-4-top",
+      "turret-4-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 601,
+     "step_dE": 8.29,
+     "tone_dL": 3.65
+    },
+    {
+     "parts": [
+      "hull-waist-stbd",
+      "deck-edge-lip-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 591,
+     "step_dE": 35.17,
+     "tone_dL": 6.08
+    },
+    {
+     "parts": [
+      "turret-small-top",
+      "turret-1-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 590,
+     "step_dE": 10.61,
+     "tone_dL": 4.09
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-side-stbd"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 548,
+     "step_dE": 24.1,
+     "tone_dL": 10.08
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 478,
+     "step_dE": 10.09,
+     "tone_dL": 2.08
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "bow-nose-rake"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 470,
+     "step_dE": 12.97,
+     "tone_dL": 4.76
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "bow-nose-top"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 455,
+     "step_dE": 34.08,
+     "tone_dL": 24.62
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-top"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 426,
+     "step_dE": 10.27,
+     "tone_dL": 3.75
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "spine-side-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 297,
+     "step_dE": 28.95,
+     "tone_dL": 4.68
+    },
+    {
+     "parts": [
+      "pod-cowl-stbd",
+      "pod-cowl-top-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "oxide"
+     ],
+     "same_material": true,
+     "boundary_px": 290,
+     "step_dE": 9.73,
+     "tone_dL": 0.01
+    },
+    {
+     "parts": [
+      "spine-top",
+      "spine-side-port"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 252,
+     "step_dE": 9.55,
+     "tone_dL": 5.13
+    },
+    {
+     "parts": [
+      "belt-fore-stbd",
+      "fore-module-1-stbd"
+     ],
+     "classes": [
+      "gunmetal",
+      "oxide"
+     ],
+     "same_material": false,
+     "boundary_px": 210,
+     "step_dE": 33.48,
+     "tone_dL": 4.78
+    },
+    {
+     "parts": [
+      "pod-thrust-housing-stbd",
+      "pod-bands-stbd"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 200,
+     "step_dE": 7.12,
+     "tone_dL": 4.92
+    },
+    {
+     "parts": [
+      "pod-cowl-stbd",
+      "pod-lower-casing-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 179,
+     "step_dE": 27.67,
+     "tone_dL": 5.1
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-4-right"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 171,
+     "step_dE": 29.64,
+     "tone_dL": 1.09
+    },
+    {
+     "parts": [
+      "hull-waist-stbd",
+      "bay-door-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 168,
+     "step_dE": 32.45,
+     "tone_dL": 8.99
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "spine-side-port"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 152,
+     "step_dE": 24.27,
+     "tone_dL": 24.89
+    },
+    {
+     "parts": [
+      "belt-bow-port",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "gunmetal",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 126,
+     "step_dE": 29.78,
+     "tone_dL": 30.56
+    },
+    {
+     "parts": [
+      "sponson-cowl-fwd",
+      "sponson-cowl-tops"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 125,
+     "step_dE": 5.3,
+     "tone_dL": 5.67
+    },
+    {
+     "parts": [
+      "bow-port-flank",
+      "bow-nose-rake"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 117,
+     "step_dE": 11.39,
+     "tone_dL": 11.37
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "arm-forearm-out"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 108,
+     "step_dE": 33.9,
+     "tone_dL": 4.0
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-4-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 107,
+     "step_dE": 34.55,
+     "tone_dL": 2.35
+    },
+    {
+     "parts": [
+      "pod-cowl-top",
+      "turret-small-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 97,
+     "step_dE": 32.33,
+     "tone_dL": 5.46
+    },
+    {
+     "parts": [
+      "bow-stbd-flank",
+      "bow-nose-rake"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 96,
+     "step_dE": 9.89,
+     "tone_dL": 1.32
+    },
+    {
+     "parts": [
+      "pod-lower-casing-stbd",
+      "pod-intake-cap-stbd"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 94,
+     "step_dE": 5.38,
+     "tone_dL": 2.27
+    },
+    {
+     "parts": [
+      "bow-stbd-flank",
+      "belt-bow-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 84,
+     "step_dE": 31.82,
+     "tone_dL": 9.75
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "arm-tops"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 77,
+     "step_dE": 32.84,
+     "tone_dL": 13.7
+    },
+    {
+     "parts": [
+      "pod-cowl-stbd",
+      "pod-bands-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 73,
+     "step_dE": 27.51,
+     "tone_dL": 2.67
+    },
+    {
+     "parts": [
+      "turret-4-top",
+      "turret-4-side"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 72,
+     "step_dE": 8.16,
+     "tone_dL": null
+    },
+    {
+     "parts": [
+      "sponson-cowl",
+      "sponson-cowl-tops"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 71,
+     "step_dE": 7.07,
+     "tone_dL": null
+    },
+    {
+     "parts": [
+      "belt-bow-port",
+      "belt-bow-stbd"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 65,
+     "step_dE": 7.31,
+     "tone_dL": 6.26
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "arm-tops"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 63,
+     "step_dE": 27.2,
+     "tone_dL": 2.24
+    },
+    {
+     "parts": [
+      "pod-cowl-stbd",
+      "pod-intake-cap-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 60,
+     "step_dE": 32.16,
+     "tone_dL": 5.64
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "arm-tops"
+     ],
+     "classes": [
+      "cream",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 59,
+     "step_dE": 38.03,
+     "tone_dL": 23.46
+    },
+    {
+     "parts": [
+      "bow-port-flank",
+      "belt-bow-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 59,
+     "step_dE": 32.88,
+     "tone_dL": 5.4
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-side-port"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 58,
+     "step_dE": 23.75,
+     "tone_dL": null
+    },
+    {
+     "parts": [
+      "belt-fore-stbd",
+      "fore-module-2-stbd"
+     ],
+     "classes": [
+      "gunmetal",
+      "oxide"
+     ],
+     "same_material": false,
+     "boundary_px": 50,
+     "step_dE": 27.71,
+     "tone_dL": 5.4
+    },
+    {
+     "parts": [
+      "bow-nose-side-stbd",
+      "bow-nose-top"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 44,
+     "step_dE": 9.29,
+     "tone_dL": 1.27
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "spine-top"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 44,
+     "step_dE": 31.31,
+     "tone_dL": 1.88
+    },
+    {
+     "parts": [
+      "hull-waist-stbd",
+      "fore-module-1-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "oxide"
+     ],
+     "same_material": true,
+     "boundary_px": 42,
+     "step_dE": 6.2,
+     "tone_dL": 4.53
+    },
+    {
+     "parts": [
+      "turret-3-right",
+      "arm-tops"
+     ],
+     "classes": [
+      "gunmetal",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 41,
+     "step_dE": 9.76,
+     "tone_dL": 2.15
+    },
+    {
+     "parts": [
+      "pod-cowl-top-stbd",
+      "turret-2-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 40,
+     "step_dE": 33.37,
+     "tone_dL": 4.0
+    }
+   ]
+  },
+  "bow-quarter": {
+   "coverage": {
+    "skin": 0.4844,
+    "swatch": 0.5109,
+    "other": 0.0047,
+    "ship_pixels": 571834
+   },
+   "parts_visible": [
+    "arm-boom-port",
+    "arm-forearm-out",
+    "arm-machinery-tops",
+    "arm-tops",
+    "bay-davit-head-port",
+    "bay-floor-port",
+    "bay-frame-port",
+    "belt-bow-port",
+    "belt-bow-stbd",
+    "belt-fore-stbd",
+    "bow-cheek-port",
+    "bow-nose-front",
+    "bow-nose-rake",
+    "bow-nose-side-port",
+    "bow-nose-side-stbd",
+    "bow-nose-top",
+    "bow-port-flank",
+    "bow-stbd-flank",
+    "deck-edge-lip-port",
+    "deck-edge-lip-stbd",
+    "deck-fore-top",
+    "fore-module-1",
+    "fore-module-2",
+    "fore-module-2-stbd",
+    "hull-waist-port",
+    "keel-plate",
+    "pod-bands-port",
+    "pod-bands-stbd",
+    "pod-cowl-port",
+    "pod-cowl-stbd",
+    "pod-cowl-top",
+    "pod-cowl-top-stbd",
+    "pod-intake-cap-port",
+    "pod-intake-cap-stbd",
+    "pod-lower-casing-port",
+    "pod-thrust-housing-port",
+    "spine-side-port",
+    "spine-side-stbd",
+    "spine-top",
+    "sponson-cowl",
+    "sponson-cowl-fwd",
+    "sponson-cowl-tops",
+    "sponson-lower",
+    "sponson-lower-fwd",
+    "turret-1-right",
+    "turret-2-left",
+    "turret-2-top",
+    "turret-3-left",
+    "turret-3-right",
+    "turret-3-top",
+    "turret-4-side",
+    "turret-4-top",
+    "turret-small-top"
+   ],
+   "within_part_dE_4px": 5.35,
+   "seams": [
+    {
+     "parts": [
+      "bow-port-flank",
+      "belt-bow-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 716,
+     "step_dE": 30.12,
+     "tone_dL": 4.48
+    },
+    {
+     "parts": [
+      "spine-top",
+      "spine-side-port"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 662,
+     "step_dE": 11.52,
+     "tone_dL": 20.38
+    },
+    {
+     "parts": [
+      "turret-small-top",
+      "turret-1-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 653,
+     "step_dE": 9.04,
+     "tone_dL": 6.35
+    },
+    {
+     "parts": [
+      "turret-4-top",
+      "turret-4-side"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 643,
+     "step_dE": 10.72,
+     "tone_dL": 7.27
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 599,
+     "step_dE": 11.82,
+     "tone_dL": 1.95
+    },
+    {
+     "parts": [
+      "turret-2-top",
+      "turret-2-left"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 568,
+     "step_dE": 9.4,
+     "tone_dL": 6.58
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-side-port"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 536,
+     "step_dE": 27.12,
+     "tone_dL": 11.62
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "bow-nose-rake"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 501,
+     "step_dE": 12.31,
+     "tone_dL": 6.43
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "bow-nose-top"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 421,
+     "step_dE": 33.22,
+     "tone_dL": 24.17
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-top"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 399,
+     "step_dE": 9.85,
+     "tone_dL": 2.0
+    },
+    {
+     "parts": [
+      "turret-3-top",
+      "turret-3-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 280,
+     "step_dE": 10.08,
+     "tone_dL": 1.73
+    },
+    {
+     "parts": [
+      "bow-stbd-flank",
+      "belt-bow-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 243,
+     "step_dE": 31.7,
+     "tone_dL": 7.84
+    },
+    {
+     "parts": [
+      "belt-bow-port",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "gunmetal",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 225,
+     "step_dE": 31.99,
+     "tone_dL": 30.57
+    },
+    {
+     "parts": [
+      "sponson-cowl-fwd",
+      "sponson-cowl-tops"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 214,
+     "step_dE": 3.63,
+     "tone_dL": 0.97
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-side-stbd"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 204,
+     "step_dE": 21.04,
+     "tone_dL": null
+    },
+    {
+     "parts": [
+      "pod-lower-casing-port",
+      "pod-intake-cap-port"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 203,
+     "step_dE": 5.05,
+     "tone_dL": 3.1
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-4-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 175,
+     "step_dE": 34.6,
+     "tone_dL": 3.0
+    },
+    {
+     "parts": [
+      "bow-port-flank",
+      "bow-nose-rake"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 172,
+     "step_dE": 9.1,
+     "tone_dL": 6.06
+    },
+    {
+     "parts": [
+      "pod-cowl-port",
+      "pod-cowl-top"
+     ],
+     "classes": [
+      "oxide",
+      "oxide"
+     ],
+     "same_material": true,
+     "boundary_px": 171,
+     "step_dE": 12.12,
+     "tone_dL": 1.88
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-4-side"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 165,
+     "step_dE": 30.05,
+     "tone_dL": 2.37
+    },
+    {
+     "parts": [
+      "pod-cowl-port",
+      "pod-lower-casing-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 158,
+     "step_dE": 26.6,
+     "tone_dL": 3.9
+    },
+    {
+     "parts": [
+      "bow-stbd-flank",
+      "bow-nose-rake"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 151,
+     "step_dE": 9.86,
+     "tone_dL": 5.63
+    },
+    {
+     "parts": [
+      "pod-cowl-port",
+      "pod-intake-cap-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 147,
+     "step_dE": 30.95,
+     "tone_dL": 5.95
+    },
+    {
+     "parts": [
+      "sponson-cowl",
+      "sponson-cowl-tops"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 124,
+     "step_dE": 4.41,
+     "tone_dL": 1.6
+    },
+    {
+     "parts": [
+      "arm-boom-port",
+      "arm-machinery-tops"
+     ],
+     "classes": [
+      "pale",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 123,
+     "step_dE": 5.71,
+     "tone_dL": 1.53
+    },
+    {
+     "parts": [
+      "arm-tops",
+      "arm-boom-port"
+     ],
+     "classes": [
+      "pale",
+      "pale"
+     ],
+     "same_material": true,
+     "boundary_px": 117,
+     "step_dE": 7.96,
+     "tone_dL": 2.65
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "deck-edge-lip-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 110,
+     "step_dE": 31.36,
+     "tone_dL": 4.14
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "spine-side-port"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 108,
+     "step_dE": 37.22,
+     "tone_dL": 10.94
+    },
+    {
+     "parts": [
+      "belt-bow-port",
+      "belt-bow-stbd"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 106,
+     "step_dE": 7.29,
+     "tone_dL": 4.34
+    },
+    {
+     "parts": [
+      "turret-3-top",
+      "turret-3-left"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 101,
+     "step_dE": 6.89,
+     "tone_dL": null
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "arm-machinery-tops"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 91,
+     "step_dE": 28.1,
+     "tone_dL": 7.88
+    },
+    {
+     "parts": [
+      "pod-thrust-housing-port",
+      "pod-bands-port"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 77,
+     "step_dE": 8.61,
+     "tone_dL": 1.67
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "arm-boom-port"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 75,
+     "step_dE": 38.29,
+     "tone_dL": 8.24
+    },
+    {
+     "parts": [
+      "spine-top",
+      "spine-side-stbd"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 74,
+     "step_dE": 12.45,
+     "tone_dL": 5.52
+    },
+    {
+     "parts": [
+      "arm-boom-port",
+      "arm-forearm-out"
+     ],
+     "classes": [
+      "pale",
+      "pale"
+     ],
+     "same_material": true,
+     "boundary_px": 66,
+     "step_dE": 10.62,
+     "tone_dL": 6.26
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "arm-tops"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 61,
+     "step_dE": 30.13,
+     "tone_dL": 12.94
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-3-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 54,
+     "step_dE": 32.64,
+     "tone_dL": 7.65
+    },
+    {
+     "parts": [
+      "bow-nose-side-port",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 40,
+     "step_dE": 5.48,
+     "tone_dL": 4.03
+    },
+    {
+     "parts": [
+      "arm-tops",
+      "arm-forearm-out"
+     ],
+     "classes": [
+      "pale",
+      "pale"
+     ],
+     "same_material": true,
+     "boundary_px": 40,
+     "step_dE": 10.6,
+     "tone_dL": 11.68
+    }
+   ]
+  },
+  "stern": {
+   "coverage": {
+    "skin": 0.0547,
+    "swatch": 0.9373,
+    "other": 0.008,
+    "ship_pixels": 464643
+   },
+   "parts_visible": [
+    "arm-tops",
+    "keel-plate",
+    "pod-bands-port",
+    "pod-bands-stbd",
+    "pod-thrust-housing-port",
+    "pod-thrust-housing-stbd",
+    "spine-side-port",
+    "spine-side-stbd",
+    "spine-top",
+    "turret-2-right",
+    "turret-2-top",
+    "turret-3-left",
+    "turret-3-right",
+    "turret-3-top",
+    "turret-4-right",
+    "turret-4-side",
+    "turret-4-top",
+    "turret-small-side",
+    "turret-small-top"
+   ],
+   "within_part_dE_4px": 4.92,
+   "seams": [
+    {
+     "parts": [
+      "turret-2-top",
+      "turret-2-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 183,
+     "step_dE": 8.45,
+     "tone_dL": 0.0
+    },
+    {
+     "parts": [
+      "turret-small-top",
+      "turret-small-side"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 86,
+     "step_dE": 7.88,
+     "tone_dL": 0.61
+    },
+    {
+     "parts": [
+      "turret-3-top",
+      "turret-3-left"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 56,
+     "step_dE": 13.39,
+     "tone_dL": null
+    }
+   ]
+  },
+  "under-quarter": {
+   "coverage": {
+    "skin": 0.3369,
+    "swatch": 0.6587,
+    "other": 0.0044,
+    "ship_pixels": 641810
+   },
+   "parts_visible": [
+    "arm-boom-port",
+    "arm-forearm-out",
+    "arm-tops",
+    "bay-back-wall-port",
+    "bay-davit-head-port",
+    "bay-floor-port",
+    "bay-frame-port",
+    "belt-bow-port",
+    "belt-bow-stbd",
+    "belt-fore-stbd",
+    "bow-cheek-port",
+    "bow-nose-front",
+    "bow-nose-rake",
+    "bow-nose-side-port",
+    "bow-port-flank",
+    "bow-stbd-flank",
+    "deck-edge-lip-port",
+    "fore-module-1",
+    "fore-module-1-stbd",
+    "fore-module-2",
+    "fore-module-2-stbd",
+    "hull-waist-port",
+    "keel-plate",
+    "pod-bands-port",
+    "pod-bands-stbd",
+    "pod-cowl-port",
+    "pod-cowl-top",
+    "pod-intake-cap-port",
+    "pod-intake-cap-stbd",
+    "pod-lower-casing-port",
+    "pod-lower-casing-stbd",
+    "pod-thrust-housing-port",
+    "sponson-cowl",
+    "sponson-cowl-fwd",
+    "sponson-cowl-tops",
+    "sponson-lower",
+    "sponson-lower-fwd",
+    "turret-1-right",
+    "turret-3-left",
+    "turret-3-right",
+    "turret-3-top",
+    "turret-4-side",
+    "turret-4-top"
+   ],
+   "within_part_dE_4px": 5.05,
+   "seams": [
+    {
+     "parts": [
+      "bow-port-flank",
+      "belt-bow-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 524,
+     "step_dE": 30.42,
+     "tone_dL": 5.57
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 409,
+     "step_dE": 6.36,
+     "tone_dL": 4.06
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-side-port"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 402,
+     "step_dE": 21.02,
+     "tone_dL": 0.28
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "bay-frame-port"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 277,
+     "step_dE": 38.46,
+     "tone_dL": 32.67
+    },
+    {
+     "parts": [
+      "pod-cowl-port",
+      "pod-cowl-top"
+     ],
+     "classes": [
+      "oxide",
+      "oxide"
+     ],
+     "same_material": true,
+     "boundary_px": 259,
+     "step_dE": 7.66,
+     "tone_dL": null
+    },
+    {
+     "parts": [
+      "belt-bow-port",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "gunmetal",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 144,
+     "step_dE": 31.94,
+     "tone_dL": 30.82
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "fore-module-1"
+     ],
+     "classes": [
+      "oxide",
+      "oxide"
+     ],
+     "same_material": true,
+     "boundary_px": 137,
+     "step_dE": 9.14,
+     "tone_dL": 2.4
+    },
+    {
+     "parts": [
+      "pod-lower-casing-port",
+      "pod-intake-cap-port"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 114,
+     "step_dE": 5.41,
+     "tone_dL": 4.14
+    },
+    {
+     "parts": [
+      "bow-port-flank",
+      "bow-nose-rake"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 113,
+     "step_dE": 7.31,
+     "tone_dL": 3.29
+    },
+    {
+     "parts": [
+      "pod-cowl-port",
+      "pod-intake-cap-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 85,
+     "step_dE": 33.55,
+     "tone_dL": 7.65
+    },
+    {
+     "parts": [
+      "pod-cowl-port",
+      "pod-bands-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 82,
+     "step_dE": 26.67,
+     "tone_dL": 5.34
+    },
+    {
+     "parts": [
+      "bow-port-flank",
+      "bow-nose-side-port"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 53,
+     "step_dE": 33.61,
+     "tone_dL": 25.96
+    },
+    {
+     "parts": [
+      "bow-nose-side-port",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 52,
+     "step_dE": 6.7,
+     "tone_dL": 3.06
+    },
+    {
+     "parts": [
+      "arm-boom-port",
+      "arm-forearm-out"
+     ],
+     "classes": [
+      "pale",
+      "pale"
+     ],
+     "same_material": true,
+     "boundary_px": 52,
+     "step_dE": 14.01,
+     "tone_dL": 7.26
+    },
+    {
+     "parts": [
+      "belt-bow-port",
+      "belt-bow-stbd"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 50,
+     "step_dE": 6.17,
+     "tone_dL": 8.75
+    },
+    {
+     "parts": [
+      "sponson-cowl-fwd",
+      "sponson-cowl-tops"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 41,
+     "step_dE": 4.69,
+     "tone_dL": null
+    }
+   ]
+  },
+  "port-flank-detail": {
+   "coverage": {
+    "skin": 0.5793,
+    "swatch": 0.4187,
+    "other": 0.0021,
+    "ship_pixels": 1829484
+   },
+   "parts_visible": [
+    "arm-boom-port",
+    "arm-forearm-out",
+    "arm-machinery-tops",
+    "arm-tops",
+    "bay-back-wall-port",
+    "bay-davit-head-port",
+    "bay-floor-port",
+    "bay-frame-port",
+    "belt-bow-port",
+    "bow-cheek-port",
+    "bow-nose-rake",
+    "bow-nose-side-port",
+    "bow-nose-top",
+    "bow-port-flank",
+    "deck-edge-lip-port",
+    "deck-fore-top",
+    "fore-module-1",
+    "fore-module-2",
+    "hull-waist-port",
+    "sponson-cowl",
+    "sponson-cowl-fwd",
+    "sponson-cowl-tops",
+    "sponson-lower",
+    "sponson-lower-fwd",
+    "turret-3-left",
+    "turret-3-right",
+    "turret-3-top"
+   ],
+   "within_part_dE_4px": 5.18,
+   "seams": [
+    {
+     "parts": [
+      "turret-3-top",
+      "turret-3-left"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 1682,
+     "step_dE": 13.37,
+     "tone_dL": 2.62
+    },
+    {
+     "parts": [
+      "bow-port-flank",
+      "belt-bow-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 1375,
+     "step_dE": 29.73,
+     "tone_dL": 6.46
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "deck-edge-lip-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 1271,
+     "step_dE": 32.51,
+     "tone_dL": 5.73
+    },
+    {
+     "parts": [
+      "bay-back-wall-port",
+      "bay-floor-port"
+     ],
+     "classes": [
+      "dark",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 1032,
+     "step_dE": 16.99,
+     "tone_dL": 23.75
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-side-port"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 842,
+     "step_dE": 38.27,
+     "tone_dL": 23.56
+    },
+    {
+     "parts": [
+      "sponson-cowl-fwd",
+      "sponson-cowl-tops"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 812,
+     "step_dE": 4.82,
+     "tone_dL": 0.85
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "bay-back-wall-port"
+     ],
+     "classes": [
+      "oxide",
+      "dark"
+     ],
+     "same_material": false,
+     "boundary_px": 762,
+     "step_dE": 40.36,
+     "tone_dL": 28.17
+    },
+    {
+     "parts": [
+      "sponson-cowl",
+      "sponson-cowl-tops"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 691,
+     "step_dE": 5.26,
+     "tone_dL": 0.48
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "arm-machinery-tops"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 672,
+     "step_dE": 33.83,
+     "tone_dL": 13.41
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "bow-nose-rake"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 583,
+     "step_dE": 11.31,
+     "tone_dL": 7.64
+    },
+    {
+     "parts": [
+      "arm-tops",
+      "arm-boom-port"
+     ],
+     "classes": [
+      "pale",
+      "pale"
+     ],
+     "same_material": true,
+     "boundary_px": 491,
+     "step_dE": 9.84,
+     "tone_dL": 2.78
+    },
+    {
+     "parts": [
+      "arm-boom-port",
+      "arm-machinery-tops"
+     ],
+     "classes": [
+      "pale",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 463,
+     "step_dE": 11.48,
+     "tone_dL": 0.79
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "bay-floor-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 349,
+     "step_dE": 29.67,
+     "tone_dL": 2.02
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "arm-tops"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 348,
+     "step_dE": 29.85,
+     "tone_dL": 2.03
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-3-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 292,
+     "step_dE": 32.35,
+     "tone_dL": 0.4
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "bow-nose-top"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 286,
+     "step_dE": 34.74,
+     "tone_dL": 22.84
+    },
+    {
+     "parts": [
+      "fore-module-1",
+      "sponson-lower"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 250,
+     "step_dE": 31.73,
+     "tone_dL": 8.02
+    },
+    {
+     "parts": [
+      "arm-tops",
+      "arm-forearm-out"
+     ],
+     "classes": [
+      "pale",
+      "pale"
+     ],
+     "same_material": true,
+     "boundary_px": 226,
+     "step_dE": 10.52,
+     "tone_dL": 9.18
+    },
+    {
+     "parts": [
+      "arm-boom-port",
+      "arm-forearm-out"
+     ],
+     "classes": [
+      "pale",
+      "pale"
+     ],
+     "same_material": true,
+     "boundary_px": 184,
+     "step_dE": 16.98,
+     "tone_dL": 12.01
+    },
+    {
+     "parts": [
+      "bow-port-flank",
+      "bow-nose-rake"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 167,
+     "step_dE": 10.23,
+     "tone_dL": 6.7
+    },
+    {
+     "parts": [
+      "bow-nose-top",
+      "arm-tops"
+     ],
+     "classes": [
+      "cream",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 148,
+     "step_dE": 35.45,
+     "tone_dL": 35.53
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "bay-davit-head-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 141,
+     "step_dE": 30.75,
+     "tone_dL": 3.61
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-3-left"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 137,
+     "step_dE": 30.58,
+     "tone_dL": 2.69
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "arm-boom-port"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 137,
+     "step_dE": 38.22,
+     "tone_dL": 15.68
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "arm-forearm-out"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 129,
+     "step_dE": 35.82,
+     "tone_dL": 11.26
+    },
+    {
+     "parts": [
+      "fore-module-2",
+      "sponson-lower-fwd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 125,
+     "step_dE": 27.92,
+     "tone_dL": 6.85
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "fore-module-1"
+     ],
+     "classes": [
+      "oxide",
+      "oxide"
+     ],
+     "same_material": true,
+     "boundary_px": 113,
+     "step_dE": 9.88,
+     "tone_dL": 0.13
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "bay-frame-port"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 110,
+     "step_dE": 37.01,
+     "tone_dL": 35.02
+    },
+    {
+     "parts": [
+      "turret-3-top",
+      "turret-3-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 93,
+     "step_dE": 6.27,
+     "tone_dL": null
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "arm-tops"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 75,
+     "step_dE": 34.12,
+     "tone_dL": 1.47
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-top"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 53,
+     "step_dE": 15.49,
+     "tone_dL": 7.46
+    },
+    {
+     "parts": [
+      "bay-frame-port",
+      "bay-davit-head-port"
+     ],
+     "classes": [
+      "cream",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 51,
+     "step_dE": 30.8,
+     "tone_dL": 36.25
+    }
+   ]
+  },
+  "port-aft-detail": {
+   "coverage": {
+    "skin": 0.3282,
+    "swatch": 0.6704,
+    "other": 0.0015,
+    "ship_pixels": 1542005
+   },
+   "parts_visible": [
+    "bay-floor-port",
+    "bay-frame-port",
+    "deck-edge-lip-port",
+    "hull-waist-port",
+    "pod-bands-port",
+    "pod-cowl-port",
+    "pod-cowl-top",
+    "pod-intake-cap-port",
+    "pod-lower-casing-port",
+    "pod-thrust-housing-port",
+    "turret-1-right",
+    "turret-small-side",
+    "turret-small-top"
+   ],
+   "within_part_dE_4px": 5.24,
+   "seams": [
+    {
+     "parts": [
+      "turret-small-top",
+      "turret-1-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 2146,
+     "step_dE": 13.95,
+     "tone_dL": 4.1
+    },
+    {
+     "parts": [
+      "pod-cowl-port",
+      "pod-cowl-top"
+     ],
+     "classes": [
+      "oxide",
+      "oxide"
+     ],
+     "same_material": true,
+     "boundary_px": 893,
+     "step_dE": 20.45,
+     "tone_dL": 1.35
+    },
+    {
+     "parts": [
+      "pod-cowl-port",
+      "pod-lower-casing-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 875,
+     "step_dE": 24.76,
+     "tone_dL": 4.06
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "deck-edge-lip-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 569,
+     "step_dE": 29.49,
+     "tone_dL": 4.96
+    },
+    {
+     "parts": [
+      "pod-thrust-housing-port",
+      "pod-bands-port"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 419,
+     "step_dE": 6.56,
+     "tone_dL": 3.48
+    },
+    {
+     "parts": [
+      "pod-lower-casing-port",
+      "pod-intake-cap-port"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 176,
+     "step_dE": 5.92,
+     "tone_dL": 1.78
+    },
+    {
+     "parts": [
+      "turret-small-top",
+      "turret-small-side"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 163,
+     "step_dE": 11.47,
+     "tone_dL": null
+    },
+    {
+     "parts": [
+      "pod-cowl-port",
+      "pod-intake-cap-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 137,
+     "step_dE": 30.69,
+     "tone_dL": 9.81
+    },
+    {
+     "parts": [
+      "pod-cowl-top",
+      "turret-small-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 98,
+     "step_dE": 33.17,
+     "tone_dL": 0.39
+    },
+    {
+     "parts": [
+      "pod-cowl-top",
+      "turret-1-right"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 60,
+     "step_dE": 34.53,
+     "tone_dL": 2.48
+    }
+   ]
+  },
+  "bow-detail": {
+   "coverage": {
+    "skin": 0.5933,
+    "swatch": 0.4035,
+    "other": 0.0032,
+    "ship_pixels": 1613750
+   },
+   "parts_visible": [
+    "arm-boom-port",
+    "arm-forearm-out",
+    "arm-machinery-tops",
+    "arm-tops",
+    "bay-back-wall-port",
+    "bay-floor-port",
+    "bay-frame-port",
+    "belt-bow-port",
+    "belt-bow-stbd",
+    "belt-fore-stbd",
+    "bow-cheek-port",
+    "bow-nose-front",
+    "bow-nose-rake",
+    "bow-nose-side-port",
+    "bow-nose-side-stbd",
+    "bow-nose-top",
+    "bow-port-flank",
+    "bow-stbd-flank",
+    "deck-edge-lip-port",
+    "deck-edge-lip-stbd",
+    "deck-fore-top",
+    "fore-module-1",
+    "fore-module-2",
+    "fore-module-2-stbd",
+    "hull-waist-port",
+    "pod-intake-cap-stbd",
+    "spine-side-port",
+    "spine-side-stbd",
+    "spine-top",
+    "sponson-cowl",
+    "sponson-cowl-fwd",
+    "sponson-cowl-tops",
+    "sponson-lower",
+    "sponson-lower-fwd",
+    "turret-3-left",
+    "turret-3-right",
+    "turret-3-top",
+    "turret-4-side",
+    "turret-4-top"
+   ],
+   "within_part_dE_4px": 5.28,
+   "seams": [
+    {
+     "parts": [
+      "spine-top",
+      "spine-side-port"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 2229,
+     "step_dE": 11.38,
+     "tone_dL": 3.79
+    },
+    {
+     "parts": [
+      "turret-4-top",
+      "turret-4-side"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 1894,
+     "step_dE": 11.66,
+     "tone_dL": 10.16
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-side-port"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 1242,
+     "step_dE": 32.57,
+     "tone_dL": 17.38
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 1210,
+     "step_dE": 12.12,
+     "tone_dL": 0.4
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "bow-nose-rake"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 1072,
+     "step_dE": 12.34,
+     "tone_dL": 7.16
+    },
+    {
+     "parts": [
+      "turret-3-top",
+      "turret-3-left"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 893,
+     "step_dE": 12.05,
+     "tone_dL": 3.08
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "bow-nose-top"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 880,
+     "step_dE": 33.89,
+     "tone_dL": 25.63
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-top"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 780,
+     "step_dE": 12.25,
+     "tone_dL": 3.14
+    },
+    {
+     "parts": [
+      "bow-stbd-flank",
+      "belt-bow-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 577,
+     "step_dE": 30.26,
+     "tone_dL": 9.71
+    },
+    {
+     "parts": [
+      "sponson-cowl-fwd",
+      "sponson-cowl-tops"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 565,
+     "step_dE": 4.68,
+     "tone_dL": 1.0
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-side-stbd"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 486,
+     "step_dE": 21.69,
+     "tone_dL": null
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "spine-side-port"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 481,
+     "step_dE": 40.37,
+     "tone_dL": 6.43
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-4-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 454,
+     "step_dE": 28.77,
+     "tone_dL": 3.73
+    },
+    {
+     "parts": [
+      "belt-bow-port",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "gunmetal",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 449,
+     "step_dE": 33.1,
+     "tone_dL": 26.81
+    },
+    {
+     "parts": [
+      "sponson-cowl",
+      "sponson-cowl-tops"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 438,
+     "step_dE": 5.3,
+     "tone_dL": 1.15
+    },
+    {
+     "parts": [
+      "bow-port-flank",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 388,
+     "step_dE": 34.81,
+     "tone_dL": 33.07
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-4-side"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 349,
+     "step_dE": 28.23,
+     "tone_dL": 4.22
+    },
+    {
+     "parts": [
+      "arm-tops",
+      "arm-boom-port"
+     ],
+     "classes": [
+      "pale",
+      "pale"
+     ],
+     "same_material": true,
+     "boundary_px": 349,
+     "step_dE": 9.3,
+     "tone_dL": 7.42
+    },
+    {
+     "parts": [
+      "bow-port-flank",
+      "bow-nose-rake"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 322,
+     "step_dE": 10.03,
+     "tone_dL": 5.2
+    },
+    {
+     "parts": [
+      "arm-boom-port",
+      "arm-machinery-tops"
+     ],
+     "classes": [
+      "pale",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 319,
+     "step_dE": 10.72,
+     "tone_dL": 0.13
+    },
+    {
+     "parts": [
+      "bow-port-flank",
+      "belt-bow-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 306,
+     "step_dE": 27.44,
+     "tone_dL": 5.91
+    },
+    {
+     "parts": [
+      "turret-3-top",
+      "turret-3-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 302,
+     "step_dE": 10.16,
+     "tone_dL": 0.91
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "arm-machinery-tops"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 278,
+     "step_dE": 29.49,
+     "tone_dL": 10.19
+    },
+    {
+     "parts": [
+      "bow-stbd-flank",
+      "bow-nose-rake"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 258,
+     "step_dE": 10.94,
+     "tone_dL": 6.73
+    },
+    {
+     "parts": [
+      "belt-bow-port",
+      "belt-bow-stbd"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 217,
+     "step_dE": 8.73,
+     "tone_dL": 3.58
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "arm-boom-port"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 215,
+     "step_dE": 37.91,
+     "tone_dL": 9.06
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "arm-tops"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 207,
+     "step_dE": 30.99,
+     "tone_dL": 5.43
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "deck-edge-lip-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 166,
+     "step_dE": 29.58,
+     "tone_dL": 7.79
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "spine-top"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 164,
+     "step_dE": 32.78,
+     "tone_dL": 2.51
+    },
+    {
+     "parts": [
+      "arm-boom-port",
+      "arm-forearm-out"
+     ],
+     "classes": [
+      "pale",
+      "pale"
+     ],
+     "same_material": true,
+     "boundary_px": 136,
+     "step_dE": 18.42,
+     "tone_dL": 10.05
+    },
+    {
+     "parts": [
+      "arm-tops",
+      "arm-forearm-out"
+     ],
+     "classes": [
+      "pale",
+      "pale"
+     ],
+     "same_material": true,
+     "boundary_px": 129,
+     "step_dE": 8.65,
+     "tone_dL": 12.52
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "arm-tops"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 127,
+     "step_dE": 34.19,
+     "tone_dL": 20.65
+    },
+    {
+     "parts": [
+      "bow-nose-side-port",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 125,
+     "step_dE": 10.7,
+     "tone_dL": 2.09
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "bay-floor-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 124,
+     "step_dE": 30.01,
+     "tone_dL": 0.54
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-3-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 122,
+     "step_dE": 33.14,
+     "tone_dL": 4.38
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "arm-forearm-out"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 96,
+     "step_dE": 39.25,
+     "tone_dL": 20.62
+    },
+    {
+     "parts": [
+      "bow-nose-top",
+      "arm-tops"
+     ],
+     "classes": [
+      "cream",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 87,
+     "step_dE": 45.55,
+     "tone_dL": 45.62
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "bay-back-wall-port"
+     ],
+     "classes": [
+      "oxide",
+      "dark"
+     ],
+     "same_material": false,
+     "boundary_px": 83,
+     "step_dE": 38.31,
+     "tone_dL": 28.5
+    },
+    {
+     "parts": [
+      "bow-stbd-flank",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 82,
+     "step_dE": 30.31,
+     "tone_dL": 21.81
+    },
+    {
+     "parts": [
+      "bow-port-flank",
+      "bow-nose-side-port"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 61,
+     "step_dE": 40.71,
+     "tone_dL": 23.9
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-3-left"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 60,
+     "step_dE": 28.93,
+     "tone_dL": 3.43
+    },
+    {
+     "parts": [
+      "spine-top",
+      "spine-side-stbd"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 53,
+     "step_dE": 7.28,
+     "tone_dL": 6.22
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-3-right"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 43,
+     "step_dE": 32.15,
+     "tone_dL": 7.08
+    }
+   ]
+  },
+  "bridge-detail": {
+   "coverage": {
+    "skin": 0.3425,
+    "swatch": 0.6541,
+    "other": 0.0033,
+    "ship_pixels": 1869745
+   },
+   "parts_visible": [
+    "arm-boom-port",
+    "arm-forearm-out",
+    "arm-machinery-tops",
+    "arm-tops",
+    "bay-davit-head-port",
+    "bay-frame-port",
+    "bow-cheek-port",
+    "bow-nose-top",
+    "deck-edge-lip-port",
+    "deck-edge-lip-stbd",
+    "deck-fore-top",
+    "hull-waist-port",
+    "pod-cowl-top",
+    "pod-cowl-top-stbd",
+    "pod-intake-cap-stbd",
+    "spine-side-port",
+    "spine-side-stbd",
+    "spine-top",
+    "turret-1-right",
+    "turret-2-left",
+    "turret-2-top",
+    "turret-3-left",
+    "turret-3-right",
+    "turret-3-top",
+    "turret-4-side",
+    "turret-4-top",
+    "turret-small-top"
+   ],
+   "within_part_dE_4px": 5.38,
+   "seams": [
+    {
+     "parts": [
+      "spine-top",
+      "spine-side-port"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 3207,
+     "step_dE": 11.0,
+     "tone_dL": 0.09
+    },
+    {
+     "parts": [
+      "turret-3-top",
+      "turret-3-left"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 1551,
+     "step_dE": 13.17,
+     "tone_dL": 3.67
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "deck-edge-lip-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 977,
+     "step_dE": 31.63,
+     "tone_dL": 4.05
+    },
+    {
+     "parts": [
+      "turret-2-top",
+      "turret-2-left"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 623,
+     "step_dE": 11.35,
+     "tone_dL": 0.24
+    },
+    {
+     "parts": [
+      "turret-4-top",
+      "turret-4-side"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 617,
+     "step_dE": 12.7,
+     "tone_dL": 7.59
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "arm-machinery-tops"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 607,
+     "step_dE": 33.53,
+     "tone_dL": 10.31
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "spine-side-port"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 474,
+     "step_dE": 40.88,
+     "tone_dL": 17.2
+    },
+    {
+     "parts": [
+      "arm-tops",
+      "arm-boom-port"
+     ],
+     "classes": [
+      "pale",
+      "pale"
+     ],
+     "same_material": true,
+     "boundary_px": 445,
+     "step_dE": 10.04,
+     "tone_dL": 4.15
+    },
+    {
+     "parts": [
+      "arm-boom-port",
+      "arm-machinery-tops"
+     ],
+     "classes": [
+      "pale",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 425,
+     "step_dE": 11.46,
+     "tone_dL": 0.68
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-3-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 339,
+     "step_dE": 32.25,
+     "tone_dL": 1.86
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "arm-tops"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 281,
+     "step_dE": 30.99,
+     "tone_dL": 4.39
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "spine-top"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 279,
+     "step_dE": 34.08,
+     "tone_dL": 3.24
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-4-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 258,
+     "step_dE": 34.31,
+     "tone_dL": 5.25
+    },
+    {
+     "parts": [
+      "turret-3-top",
+      "turret-3-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 230,
+     "step_dE": 8.87,
+     "tone_dL": 0.03
+    },
+    {
+     "parts": [
+      "arm-tops",
+      "arm-forearm-out"
+     ],
+     "classes": [
+      "pale",
+      "pale"
+     ],
+     "same_material": true,
+     "boundary_px": 203,
+     "step_dE": 9.77,
+     "tone_dL": 9.2
+    },
+    {
+     "parts": [
+      "arm-boom-port",
+      "arm-forearm-out"
+     ],
+     "classes": [
+      "pale",
+      "pale"
+     ],
+     "same_material": true,
+     "boundary_px": 174,
+     "step_dE": 16.67,
+     "tone_dL": 11.31
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "arm-boom-port"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 162,
+     "step_dE": 38.89,
+     "tone_dL": 14.55
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-3-left"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 152,
+     "step_dE": 31.5,
+     "tone_dL": 4.1
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "arm-forearm-out"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 106,
+     "step_dE": 35.73,
+     "tone_dL": 16.03
+    },
+    {
+     "parts": [
+      "turret-small-top",
+      "turret-1-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 100,
+     "step_dE": 6.37,
+     "tone_dL": 2.72
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "bow-nose-top"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 60,
+     "step_dE": 35.32,
+     "tone_dL": 31.43
+    },
+    {
+     "parts": [
+      "bow-nose-top",
+      "arm-tops"
+     ],
+     "classes": [
+      "cream",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 54,
+     "step_dE": 34.47,
+     "tone_dL": 30.04
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "bay-davit-head-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 48,
+     "step_dE": 33.29,
+     "tone_dL": 2.6
+    },
+    {
+     "parts": [
+      "spine-top",
+      "spine-side-stbd"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 41,
+     "step_dE": 5.03,
+     "tone_dL": null
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "arm-tops"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 40,
+     "step_dE": 32.03,
+     "tone_dL": 2.94
+    }
+   ]
+  },
+  "turret-detail": {
+   "coverage": {
+    "skin": 0.5237,
+    "swatch": 0.4727,
+    "other": 0.0036,
+    "ship_pixels": 1701174
+   },
+   "parts_visible": [
+    "arm-boom-port",
+    "arm-forearm-out",
+    "arm-machinery-tops",
+    "arm-tops",
+    "bay-back-wall-port",
+    "bay-davit-head-port",
+    "bay-frame-port",
+    "belt-bow-port",
+    "belt-bow-stbd",
+    "bow-cheek-port",
+    "bow-nose-front",
+    "bow-nose-rake",
+    "bow-nose-side-port",
+    "bow-nose-top",
+    "bow-stbd-flank",
+    "deck-edge-lip-port",
+    "deck-edge-lip-stbd",
+    "deck-fore-top",
+    "hull-waist-port",
+    "pod-cowl-top-stbd",
+    "spine-side-port",
+    "spine-side-stbd",
+    "spine-top",
+    "sponson-cowl",
+    "sponson-cowl-tops",
+    "turret-3-left",
+    "turret-3-right",
+    "turret-3-top",
+    "turret-4-side",
+    "turret-4-top"
+   ],
+   "within_part_dE_4px": 5.35,
+   "seams": [
+    {
+     "parts": [
+      "spine-top",
+      "spine-side-port"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 2955,
+     "step_dE": 11.27,
+     "tone_dL": 0.79
+    },
+    {
+     "parts": [
+      "turret-4-top",
+      "turret-4-side"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 2088,
+     "step_dE": 11.63,
+     "tone_dL": 8.95
+    },
+    {
+     "parts": [
+      "turret-3-top",
+      "turret-3-left"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 1734,
+     "step_dE": 12.52,
+     "tone_dL": 3.2
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "bow-nose-rake"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 1061,
+     "step_dE": 11.92,
+     "tone_dL": 6.71
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-side-port"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 975,
+     "step_dE": 32.12,
+     "tone_dL": 18.68
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "bow-nose-top"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 861,
+     "step_dE": 34.75,
+     "tone_dL": 24.87
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-top"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 763,
+     "step_dE": 13.48,
+     "tone_dL": 2.53
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "deck-edge-lip-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 589,
+     "step_dE": 33.32,
+     "tone_dL": 7.45
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "arm-machinery-tops"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 588,
+     "step_dE": 36.3,
+     "tone_dL": 13.28
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-3-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 463,
+     "step_dE": 32.19,
+     "tone_dL": 0.62
+    },
+    {
+     "parts": [
+      "arm-tops",
+      "arm-boom-port"
+     ],
+     "classes": [
+      "pale",
+      "pale"
+     ],
+     "same_material": true,
+     "boundary_px": 417,
+     "step_dE": 10.02,
+     "tone_dL": 3.51
+    },
+    {
+     "parts": [
+      "arm-boom-port",
+      "arm-machinery-tops"
+     ],
+     "classes": [
+      "pale",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 410,
+     "step_dE": 10.77,
+     "tone_dL": 0.62
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-4-side"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 354,
+     "step_dE": 34.81,
+     "tone_dL": 9.74
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "spine-side-port"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 321,
+     "step_dE": 36.18,
+     "tone_dL": 11.87
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "arm-tops"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 298,
+     "step_dE": 31.25,
+     "tone_dL": 0.34
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "spine-top"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 264,
+     "step_dE": 34.57,
+     "tone_dL": 3.95
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "arm-boom-port"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 263,
+     "step_dE": 37.96,
+     "tone_dL": 12.43
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "cream",
+      "cream"
+     ],
+     "same_material": true,
+     "boundary_px": 254,
+     "step_dE": 13.63,
+     "tone_dL": 4.35
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-4-top"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 243,
+     "step_dE": 34.56,
+     "tone_dL": 0.21
+    },
+    {
+     "parts": [
+      "bow-stbd-flank",
+      "bow-nose-rake"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 234,
+     "step_dE": 15.29,
+     "tone_dL": 10.0
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "turret-3-left"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 201,
+     "step_dE": 34.38,
+     "tone_dL": 1.57
+    },
+    {
+     "parts": [
+      "arm-tops",
+      "arm-forearm-out"
+     ],
+     "classes": [
+      "pale",
+      "pale"
+     ],
+     "same_material": true,
+     "boundary_px": 187,
+     "step_dE": 10.17,
+     "tone_dL": 9.51
+    },
+    {
+     "parts": [
+      "belt-bow-stbd",
+      "bow-nose-front"
+     ],
+     "classes": [
+      "gunmetal",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 185,
+     "step_dE": 30.41,
+     "tone_dL": 31.8
+    },
+    {
+     "parts": [
+      "bow-nose-top",
+      "arm-tops"
+     ],
+     "classes": [
+      "cream",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 155,
+     "step_dE": 34.16,
+     "tone_dL": 31.15
+    },
+    {
+     "parts": [
+      "arm-boom-port",
+      "arm-forearm-out"
+     ],
+     "classes": [
+      "pale",
+      "pale"
+     ],
+     "same_material": true,
+     "boundary_px": 153,
+     "step_dE": 20.53,
+     "tone_dL": 13.49
+    },
+    {
+     "parts": [
+      "bow-cheek-port",
+      "arm-forearm-out"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 149,
+     "step_dE": 36.45,
+     "tone_dL": 12.67
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "bay-davit-head-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 116,
+     "step_dE": 30.35,
+     "tone_dL": 5.52
+    },
+    {
+     "parts": [
+      "bow-nose-rake",
+      "arm-tops"
+     ],
+     "classes": [
+      "cream",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 103,
+     "step_dE": 64.14,
+     "tone_dL": 60.77
+    },
+    {
+     "parts": [
+      "bay-frame-port",
+      "bay-davit-head-port"
+     ],
+     "classes": [
+      "cream",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 95,
+     "step_dE": 39.01,
+     "tone_dL": 37.09
+    },
+    {
+     "parts": [
+      "sponson-cowl",
+      "sponson-cowl-tops"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 90,
+     "step_dE": 6.07,
+     "tone_dL": 7.53
+    },
+    {
+     "parts": [
+      "turret-3-top",
+      "turret-3-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 77,
+     "step_dE": 7.18,
+     "tone_dL": null
+    },
+    {
+     "parts": [
+      "deck-fore-top",
+      "arm-tops"
+     ],
+     "classes": [
+      "oxide",
+      "pale"
+     ],
+     "same_material": false,
+     "boundary_px": 48,
+     "step_dE": 31.81,
+     "tone_dL": 1.5
+    },
+    {
+     "parts": [
+      "belt-bow-port",
+      "belt-bow-stbd"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 40,
+     "step_dE": 9.45,
+     "tone_dL": null
+    }
+   ]
+  },
+  "starboard-aft-detail": {
+   "coverage": {
+    "skin": 0.1883,
+    "swatch": 0.8101,
+    "other": 0.0016,
+    "ship_pixels": 1615655
+   },
+   "parts_visible": [
+    "bay-door-stbd",
+    "deck-edge-lip-stbd",
+    "hull-waist-stbd",
+    "pod-bands-stbd",
+    "pod-cowl-stbd",
+    "pod-cowl-top-stbd",
+    "pod-intake-cap-stbd",
+    "pod-lower-casing-stbd",
+    "pod-thrust-housing-stbd",
+    "turret-2-right",
+    "turret-2-top"
+   ],
+   "within_part_dE_4px": 5.34,
+   "seams": [
+    {
+     "parts": [
+      "pod-cowl-stbd",
+      "pod-cowl-top-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "oxide"
+     ],
+     "same_material": true,
+     "boundary_px": 797,
+     "step_dE": 20.71,
+     "tone_dL": 3.0
+    },
+    {
+     "parts": [
+      "pod-cowl-stbd",
+      "pod-lower-casing-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 740,
+     "step_dE": 24.18,
+     "tone_dL": 2.27
+    },
+    {
+     "parts": [
+      "pod-cowl-stbd",
+      "pod-bands-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 602,
+     "step_dE": 28.59,
+     "tone_dL": 1.31
+    },
+    {
+     "parts": [
+      "turret-2-top",
+      "turret-2-right"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 202,
+     "step_dE": 8.98,
+     "tone_dL": 3.5
+    },
+    {
+     "parts": [
+      "pod-lower-casing-stbd",
+      "pod-bands-stbd"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 168,
+     "step_dE": 6.21,
+     "tone_dL": 7.57
+    },
+    {
+     "parts": [
+      "pod-cowl-top-stbd",
+      "turret-2-right"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 132,
+     "step_dE": 33.7,
+     "tone_dL": 5.06
+    },
+    {
+     "parts": [
+      "pod-cowl-top-stbd",
+      "deck-edge-lip-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 69,
+     "step_dE": 24.81,
+     "tone_dL": 0.83
+    },
+    {
+     "parts": [
+      "hull-waist-stbd",
+      "pod-cowl-top-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "oxide"
+     ],
+     "same_material": true,
+     "boundary_px": 56,
+     "step_dE": 8.21,
+     "tone_dL": 3.87
+    },
+    {
+     "parts": [
+      "hull-waist-stbd",
+      "deck-edge-lip-stbd"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 56,
+     "step_dE": 31.34,
+     "tone_dL": 8.72
+    }
+   ]
+  },
+  "stern-detail": {
+   "coverage": {
+    "skin": 0.0223,
+    "swatch": 0.976,
+    "other": 0.0017,
+    "ship_pixels": 1523878
+   },
+   "parts_visible": [
+    "pod-cowl-top",
+    "pod-thrust-housing-port",
+    "turret-small-side",
+    "turret-small-top"
+   ],
+   "within_part_dE_4px": 4.08,
+   "seams": [
+    {
+     "parts": [
+      "turret-small-top",
+      "turret-small-side"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 340,
+     "step_dE": 6.53,
+     "tone_dL": 1.15
+    }
+   ]
+  },
+  "bay-detail": {
+   "coverage": {
+    "skin": 0.7525,
+    "swatch": 0.2447,
+    "other": 0.0028,
+    "ship_pixels": 1989258
+   },
+   "parts_visible": [
+    "bay-back-wall-port",
+    "bay-davit-head-port",
+    "bay-floor-port",
+    "bay-frame-port",
+    "deck-edge-lip-port",
+    "fore-module-1",
+    "hull-waist-port",
+    "pod-intake-cap-port",
+    "sponson-cowl",
+    "sponson-lower"
+   ],
+   "within_part_dE_4px": 3.61,
+   "seams": [
+    {
+     "parts": [
+      "hull-waist-port",
+      "fore-module-1"
+     ],
+     "classes": [
+      "oxide",
+      "oxide"
+     ],
+     "same_material": true,
+     "boundary_px": 3281,
+     "step_dE": 6.64,
+     "tone_dL": 8.4
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "deck-edge-lip-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 2092,
+     "step_dE": 32.19,
+     "tone_dL": 0.41
+    },
+    {
+     "parts": [
+      "bay-back-wall-port",
+      "bay-floor-port"
+     ],
+     "classes": [
+      "dark",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 1862,
+     "step_dE": 19.84,
+     "tone_dL": 26.31
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "bay-back-wall-port"
+     ],
+     "classes": [
+      "oxide",
+      "dark"
+     ],
+     "same_material": false,
+     "boundary_px": 1290,
+     "step_dE": 41.6,
+     "tone_dL": 28.65
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "bay-frame-port"
+     ],
+     "classes": [
+      "oxide",
+      "cream"
+     ],
+     "same_material": false,
+     "boundary_px": 1121,
+     "step_dE": 37.81,
+     "tone_dL": 29.67
+    },
+    {
+     "parts": [
+      "fore-module-1",
+      "sponson-lower"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 803,
+     "step_dE": 32.26,
+     "tone_dL": 8.41
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "bay-davit-head-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 275,
+     "step_dE": 34.38,
+     "tone_dL": 4.55
+    },
+    {
+     "parts": [
+      "sponson-cowl",
+      "deck-edge-lip-port"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 132,
+     "step_dE": 8.53,
+     "tone_dL": 4.18
+    },
+    {
+     "parts": [
+      "hull-waist-port",
+      "bay-floor-port"
+     ],
+     "classes": [
+      "oxide",
+      "gunmetal"
+     ],
+     "same_material": false,
+     "boundary_px": 80,
+     "step_dE": 23.89,
+     "tone_dL": 0.1
+    },
+    {
+     "parts": [
+      "deck-edge-lip-port",
+      "bay-davit-head-port"
+     ],
+     "classes": [
+      "gunmetal",
+      "gunmetal"
+     ],
+     "same_material": true,
+     "boundary_px": 66,
+     "step_dE": 7.73,
+     "tone_dL": 5.57
+    }
+   ]
+  }
+ },
+ "patched_coverage": {
+  "port-quarter": {
+   "skin": 0.4158,
+   "swatch": 0.4994,
+   "other": 0.0848,
+   "ship_pixels": 611226
+  },
+  "starboard-quarter": {
+   "skin": 0.4187,
+   "swatch": 0.5233,
+   "other": 0.058,
+   "ship_pixels": 624098
+  },
+  "port-flank-detail": {
+   "skin": 0.5466,
+   "swatch": 0.3904,
+   "other": 0.063,
+   "ship_pixels": 1829304
+  },
+  "stern-detail": {
+   "skin": 0.0239,
+   "swatch": 0.9245,
+   "other": 0.0515,
+   "ship_pixels": 1524002
+  }
+ },
+ "seams_by_pair": {
+  "spine-top / spine-side-port": {
+   "parts": [
+    "spine-top",
+    "spine-side-port"
+   ],
+   "classes": [
+    "cream",
+    "cream"
+   ],
+   "same_material": true,
+   "boundary_px": 3207,
+   "step_dE": 11.0,
+   "tone_dL": 0.09,
+   "view": "bridge-detail",
+   "within_part_dE_4px": 5.38
+  },
+  "hull-waist-port / deck-edge-lip-port": {
+   "parts": [
+    "hull-waist-port",
+    "deck-edge-lip-port"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 2092,
+   "step_dE": 32.19,
+   "tone_dL": 0.41,
+   "view": "bay-detail",
+   "within_part_dE_4px": 3.61
+  },
+  "hull-waist-port / bay-frame-port": {
+   "parts": [
+    "hull-waist-port",
+    "bay-frame-port"
+   ],
+   "classes": [
+    "oxide",
+    "cream"
+   ],
+   "same_material": false,
+   "boundary_px": 1121,
+   "step_dE": 37.81,
+   "tone_dL": 29.67,
+   "view": "bay-detail",
+   "within_part_dE_4px": 3.61
+  },
+  "hull-waist-port / fore-module-1": {
+   "parts": [
+    "hull-waist-port",
+    "fore-module-1"
+   ],
+   "classes": [
+    "oxide",
+    "oxide"
+   ],
+   "same_material": true,
+   "boundary_px": 3281,
+   "step_dE": 6.64,
+   "tone_dL": 8.4,
+   "view": "bay-detail",
+   "within_part_dE_4px": 3.61
+  },
+  "bow-port-flank / belt-bow-port": {
+   "parts": [
+    "bow-port-flank",
+    "belt-bow-port"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 1375,
+   "step_dE": 29.73,
+   "tone_dL": 6.46,
+   "view": "port-flank-detail",
+   "within_part_dE_4px": 5.18
+  },
+  "pod-cowl-port / pod-cowl-top": {
+   "parts": [
+    "pod-cowl-port",
+    "pod-cowl-top"
+   ],
+   "classes": [
+    "oxide",
+    "oxide"
+   ],
+   "same_material": true,
+   "boundary_px": 893,
+   "step_dE": 20.45,
+   "tone_dL": 1.35,
+   "view": "port-aft-detail",
+   "within_part_dE_4px": 5.24
+  },
+  "fore-module-1 / sponson-lower": {
+   "parts": [
+    "fore-module-1",
+    "sponson-lower"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 803,
+   "step_dE": 32.26,
+   "tone_dL": 8.41,
+   "view": "bay-detail",
+   "within_part_dE_4px": 3.61
+  },
+  "bow-port-flank / bow-nose-side-port": {
+   "parts": [
+    "bow-port-flank",
+    "bow-nose-side-port"
+   ],
+   "classes": [
+    "oxide",
+    "cream"
+   ],
+   "same_material": false,
+   "boundary_px": 180,
+   "step_dE": 33.67,
+   "tone_dL": 22.61,
+   "view": "port-side",
+   "within_part_dE_4px": 4.67
+  },
+  "belt-bow-port / bow-nose-front": {
+   "parts": [
+    "belt-bow-port",
+    "bow-nose-front"
+   ],
+   "classes": [
+    "gunmetal",
+    "cream"
+   ],
+   "same_material": false,
+   "boundary_px": 449,
+   "step_dE": 33.1,
+   "tone_dL": 26.81,
+   "view": "bow-detail",
+   "within_part_dE_4px": 5.28
+  },
+  "turret-3-top / turret-3-left": {
+   "parts": [
+    "turret-3-top",
+    "turret-3-left"
+   ],
+   "classes": [
+    "gunmetal",
+    "gunmetal"
+   ],
+   "same_material": true,
+   "boundary_px": 1734,
+   "step_dE": 12.52,
+   "tone_dL": 3.2,
+   "view": "turret-detail",
+   "within_part_dE_4px": 5.35
+  },
+  "pod-cowl-port / pod-bands-port": {
+   "parts": [
+    "pod-cowl-port",
+    "pod-bands-port"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 163,
+   "step_dE": 27.08,
+   "tone_dL": 3.89,
+   "view": "port-side",
+   "within_part_dE_4px": 4.67
+  },
+  "arm-boom-port / arm-machinery-tops": {
+   "parts": [
+    "arm-boom-port",
+    "arm-machinery-tops"
+   ],
+   "classes": [
+    "pale",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 463,
+   "step_dE": 11.48,
+   "tone_dL": 0.79,
+   "view": "port-flank-detail",
+   "within_part_dE_4px": 5.18
+  },
+  "fore-module-2 / sponson-lower-fwd": {
+   "parts": [
+    "fore-module-2",
+    "sponson-lower-fwd"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 125,
+   "step_dE": 27.92,
+   "tone_dL": 6.85,
+   "view": "port-flank-detail",
+   "within_part_dE_4px": 5.18
+  },
+  "pod-lower-casing-port / pod-bands-port": {
+   "parts": [
+    "pod-lower-casing-port",
+    "pod-bands-port"
+   ],
+   "classes": [
+    "gunmetal",
+    "gunmetal"
+   ],
+   "same_material": true,
+   "boundary_px": 120,
+   "step_dE": 6.91,
+   "tone_dL": 0.11,
+   "view": "port-side",
+   "within_part_dE_4px": 4.67
+  },
+  "sponson-cowl-fwd / sponson-cowl-tops": {
+   "parts": [
+    "sponson-cowl-fwd",
+    "sponson-cowl-tops"
+   ],
+   "classes": [
+    "gunmetal",
+    "gunmetal"
+   ],
+   "same_material": true,
+   "boundary_px": 812,
+   "step_dE": 4.82,
+   "tone_dL": 0.85,
+   "view": "port-flank-detail",
+   "within_part_dE_4px": 5.18
+  },
+  "hull-waist-port / bay-davit-head-port": {
+   "parts": [
+    "hull-waist-port",
+    "bay-davit-head-port"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 275,
+   "step_dE": 34.38,
+   "tone_dL": 4.55,
+   "view": "bay-detail",
+   "within_part_dE_4px": 3.61
+  },
+  "sponson-lower-fwd / belt-bow-port": {
+   "parts": [
+    "sponson-lower-fwd",
+    "belt-bow-port"
+   ],
+   "classes": [
+    "gunmetal",
+    "gunmetal"
+   ],
+   "same_material": true,
+   "boundary_px": 80,
+   "step_dE": 6.44,
+   "tone_dL": 1.6,
+   "view": "port-side",
+   "within_part_dE_4px": 4.67
+  },
+  "arm-boom-port / arm-forearm-out": {
+   "parts": [
+    "arm-boom-port",
+    "arm-forearm-out"
+   ],
+   "classes": [
+    "pale",
+    "pale"
+   ],
+   "same_material": true,
+   "boundary_px": 184,
+   "step_dE": 16.98,
+   "tone_dL": 12.01,
+   "view": "port-flank-detail",
+   "within_part_dE_4px": 5.18
+  },
+  "bow-nose-side-port / bow-nose-front": {
+   "parts": [
+    "bow-nose-side-port",
+    "bow-nose-front"
+   ],
+   "classes": [
+    "cream",
+    "cream"
+   ],
+   "same_material": true,
+   "boundary_px": 125,
+   "step_dE": 10.7,
+   "tone_dL": 2.09,
+   "view": "bow-detail",
+   "within_part_dE_4px": 5.28
+  },
+  "bow-port-flank / sponson-lower-fwd": {
+   "parts": [
+    "bow-port-flank",
+    "sponson-lower-fwd"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 56,
+   "step_dE": 30.98,
+   "tone_dL": 5.79,
+   "view": "port-side",
+   "within_part_dE_4px": 4.67
+  },
+  "sponson-cowl / sponson-cowl-tops": {
+   "parts": [
+    "sponson-cowl",
+    "sponson-cowl-tops"
+   ],
+   "classes": [
+    "gunmetal",
+    "gunmetal"
+   ],
+   "same_material": true,
+   "boundary_px": 691,
+   "step_dE": 5.26,
+   "tone_dL": 0.48,
+   "view": "port-flank-detail",
+   "within_part_dE_4px": 5.18
+  },
+  "deck-edge-lip-port / bay-davit-head-port": {
+   "parts": [
+    "deck-edge-lip-port",
+    "bay-davit-head-port"
+   ],
+   "classes": [
+    "gunmetal",
+    "gunmetal"
+   ],
+   "same_material": true,
+   "boundary_px": 66,
+   "step_dE": 7.73,
+   "tone_dL": 5.57,
+   "view": "bay-detail",
+   "within_part_dE_4px": 3.61
+  },
+  "turret-4-top / turret-4-side": {
+   "parts": [
+    "turret-4-top",
+    "turret-4-side"
+   ],
+   "classes": [
+    "gunmetal",
+    "gunmetal"
+   ],
+   "same_material": true,
+   "boundary_px": 2088,
+   "step_dE": 11.63,
+   "tone_dL": 8.95,
+   "view": "turret-detail",
+   "within_part_dE_4px": 5.35
+  },
+  "turret-small-top / turret-1-right": {
+   "parts": [
+    "turret-small-top",
+    "turret-1-right"
+   ],
+   "classes": [
+    "gunmetal",
+    "gunmetal"
+   ],
+   "same_material": true,
+   "boundary_px": 2146,
+   "step_dE": 13.95,
+   "tone_dL": 4.1,
+   "view": "port-aft-detail",
+   "within_part_dE_4px": 5.24
+  },
+  "bow-nose-rake / bow-nose-side-port": {
+   "parts": [
+    "bow-nose-rake",
+    "bow-nose-side-port"
+   ],
+   "classes": [
+    "cream",
+    "cream"
+   ],
+   "same_material": true,
+   "boundary_px": 1242,
+   "step_dE": 32.57,
+   "tone_dL": 17.38,
+   "view": "bow-detail",
+   "within_part_dE_4px": 5.28
+  },
+  "turret-2-top / turret-2-left": {
+   "parts": [
+    "turret-2-top",
+    "turret-2-left"
+   ],
+   "classes": [
+    "gunmetal",
+    "gunmetal"
+   ],
+   "same_material": true,
+   "boundary_px": 636,
+   "step_dE": 9.39,
+   "tone_dL": 2.9,
+   "view": "high-quarter-starboard",
+   "within_part_dE_4px": 6.19
+  },
+  "bow-cheek-port / bow-nose-rake": {
+   "parts": [
+    "bow-cheek-port",
+    "bow-nose-rake"
+   ],
+   "classes": [
+    "oxide",
+    "cream"
+   ],
+   "same_material": false,
+   "boundary_px": 1072,
+   "step_dE": 12.34,
+   "tone_dL": 7.16,
+   "view": "bow-detail",
+   "within_part_dE_4px": 5.28
+  },
+  "bow-nose-rake / bow-nose-front": {
+   "parts": [
+    "bow-nose-rake",
+    "bow-nose-front"
+   ],
+   "classes": [
+    "cream",
+    "cream"
+   ],
+   "same_material": true,
+   "boundary_px": 1210,
+   "step_dE": 12.12,
+   "tone_dL": 0.4,
+   "view": "bow-detail",
+   "within_part_dE_4px": 5.28
+  },
+  "bow-cheek-port / bow-nose-top": {
+   "parts": [
+    "bow-cheek-port",
+    "bow-nose-top"
+   ],
+   "classes": [
+    "oxide",
+    "cream"
+   ],
+   "same_material": false,
+   "boundary_px": 880,
+   "step_dE": 33.89,
+   "tone_dL": 25.63,
+   "view": "bow-detail",
+   "within_part_dE_4px": 5.28
+  },
+  "bow-nose-rake / bow-nose-top": {
+   "parts": [
+    "bow-nose-rake",
+    "bow-nose-top"
+   ],
+   "classes": [
+    "cream",
+    "cream"
+   ],
+   "same_material": true,
+   "boundary_px": 780,
+   "step_dE": 12.25,
+   "tone_dL": 3.14,
+   "view": "bow-detail",
+   "within_part_dE_4px": 5.28
+  },
+  "pod-cowl-port / pod-lower-casing-port": {
+   "parts": [
+    "pod-cowl-port",
+    "pod-lower-casing-port"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 875,
+   "step_dE": 24.76,
+   "tone_dL": 4.06,
+   "view": "port-aft-detail",
+   "within_part_dE_4px": 5.24
+  },
+  "pod-thrust-housing-port / pod-bands-port": {
+   "parts": [
+    "pod-thrust-housing-port",
+    "pod-bands-port"
+   ],
+   "classes": [
+    "gunmetal",
+    "gunmetal"
+   ],
+   "same_material": true,
+   "boundary_px": 419,
+   "step_dE": 6.56,
+   "tone_dL": 3.48,
+   "view": "port-aft-detail",
+   "within_part_dE_4px": 5.24
+  },
+  "hull-waist-port / bay-floor-port": {
+   "parts": [
+    "hull-waist-port",
+    "bay-floor-port"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 349,
+   "step_dE": 29.67,
+   "tone_dL": 2.02,
+   "view": "port-flank-detail",
+   "within_part_dE_4px": 5.18
+  },
+  "deck-fore-top / turret-3-top": {
+   "parts": [
+    "deck-fore-top",
+    "turret-3-top"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 463,
+   "step_dE": 32.19,
+   "tone_dL": 0.62,
+   "view": "turret-detail",
+   "within_part_dE_4px": 5.35
+  },
+  "bay-back-wall-port / bay-floor-port": {
+   "parts": [
+    "bay-back-wall-port",
+    "bay-floor-port"
+   ],
+   "classes": [
+    "dark",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 1862,
+   "step_dE": 19.84,
+   "tone_dL": 26.31,
+   "view": "bay-detail",
+   "within_part_dE_4px": 3.61
+  },
+  "deck-fore-top / spine-side-port": {
+   "parts": [
+    "deck-fore-top",
+    "spine-side-port"
+   ],
+   "classes": [
+    "oxide",
+    "cream"
+   ],
+   "same_material": false,
+   "boundary_px": 481,
+   "step_dE": 40.37,
+   "tone_dL": 6.43,
+   "view": "bow-detail",
+   "within_part_dE_4px": 5.28
+  },
+  "deck-fore-top / turret-4-top": {
+   "parts": [
+    "deck-fore-top",
+    "turret-4-top"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 454,
+   "step_dE": 28.77,
+   "tone_dL": 3.73,
+   "view": "bow-detail",
+   "within_part_dE_4px": 5.28
+  },
+  "pod-lower-casing-port / pod-intake-cap-port": {
+   "parts": [
+    "pod-lower-casing-port",
+    "pod-intake-cap-port"
+   ],
+   "classes": [
+    "gunmetal",
+    "gunmetal"
+   ],
+   "same_material": true,
+   "boundary_px": 203,
+   "step_dE": 5.05,
+   "tone_dL": 3.1,
+   "view": "bow-quarter",
+   "within_part_dE_4px": 5.35
+  },
+  "arm-tops / arm-boom-port": {
+   "parts": [
+    "arm-tops",
+    "arm-boom-port"
+   ],
+   "classes": [
+    "pale",
+    "pale"
+   ],
+   "same_material": true,
+   "boundary_px": 491,
+   "step_dE": 9.84,
+   "tone_dL": 2.78,
+   "view": "port-flank-detail",
+   "within_part_dE_4px": 5.18
+  },
+  "deck-fore-top / arm-machinery-tops": {
+   "parts": [
+    "deck-fore-top",
+    "arm-machinery-tops"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 672,
+   "step_dE": 33.83,
+   "tone_dL": 13.41,
+   "view": "port-flank-detail",
+   "within_part_dE_4px": 5.18
+  },
+  "pod-cowl-top-stbd / turret-2-top": {
+   "parts": [
+    "pod-cowl-top-stbd",
+    "turret-2-top"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 119,
+   "step_dE": 34.52,
+   "tone_dL": 2.76,
+   "view": "port-quarter",
+   "within_part_dE_4px": 5.8
+  },
+  "deck-fore-top / arm-boom-port": {
+   "parts": [
+    "deck-fore-top",
+    "arm-boom-port"
+   ],
+   "classes": [
+    "oxide",
+    "pale"
+   ],
+   "same_material": false,
+   "boundary_px": 263,
+   "step_dE": 37.96,
+   "tone_dL": 12.43,
+   "view": "turret-detail",
+   "within_part_dE_4px": 5.35
+  },
+  "bow-port-flank / bow-nose-rake": {
+   "parts": [
+    "bow-port-flank",
+    "bow-nose-rake"
+   ],
+   "classes": [
+    "oxide",
+    "cream"
+   ],
+   "same_material": false,
+   "boundary_px": 322,
+   "step_dE": 10.03,
+   "tone_dL": 5.2,
+   "view": "bow-detail",
+   "within_part_dE_4px": 5.28
+  },
+  "deck-fore-top / turret-4-side": {
+   "parts": [
+    "deck-fore-top",
+    "turret-4-side"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 354,
+   "step_dE": 34.81,
+   "tone_dL": 9.74,
+   "view": "turret-detail",
+   "within_part_dE_4px": 5.35
+  },
+  "bow-stbd-flank / bow-nose-rake": {
+   "parts": [
+    "bow-stbd-flank",
+    "bow-nose-rake"
+   ],
+   "classes": [
+    "oxide",
+    "cream"
+   ],
+   "same_material": false,
+   "boundary_px": 258,
+   "step_dE": 10.94,
+   "tone_dL": 6.73,
+   "view": "bow-detail",
+   "within_part_dE_4px": 5.28
+  },
+  "bow-cheek-port / arm-tops": {
+   "parts": [
+    "bow-cheek-port",
+    "arm-tops"
+   ],
+   "classes": [
+    "oxide",
+    "pale"
+   ],
+   "same_material": false,
+   "boundary_px": 348,
+   "step_dE": 29.85,
+   "tone_dL": 2.03,
+   "view": "port-flank-detail",
+   "within_part_dE_4px": 5.18
+  },
+  "hull-waist-port / bay-back-wall-port": {
+   "parts": [
+    "hull-waist-port",
+    "bay-back-wall-port"
+   ],
+   "classes": [
+    "oxide",
+    "dark"
+   ],
+   "same_material": false,
+   "boundary_px": 1290,
+   "step_dE": 41.6,
+   "tone_dL": 28.65,
+   "view": "bay-detail",
+   "within_part_dE_4px": 3.61
+  },
+  "deck-fore-top / spine-top": {
+   "parts": [
+    "deck-fore-top",
+    "spine-top"
+   ],
+   "classes": [
+    "oxide",
+    "cream"
+   ],
+   "same_material": false,
+   "boundary_px": 279,
+   "step_dE": 34.08,
+   "tone_dL": 3.24,
+   "view": "bridge-detail",
+   "within_part_dE_4px": 5.38
+  },
+  "bow-cheek-port / arm-forearm-out": {
+   "parts": [
+    "bow-cheek-port",
+    "arm-forearm-out"
+   ],
+   "classes": [
+    "oxide",
+    "pale"
+   ],
+   "same_material": false,
+   "boundary_px": 149,
+   "step_dE": 36.45,
+   "tone_dL": 12.67,
+   "view": "turret-detail",
+   "within_part_dE_4px": 5.35
+  },
+  "deck-fore-top / arm-tops": {
+   "parts": [
+    "deck-fore-top",
+    "arm-tops"
+   ],
+   "classes": [
+    "oxide",
+    "pale"
+   ],
+   "same_material": false,
+   "boundary_px": 127,
+   "step_dE": 34.19,
+   "tone_dL": 20.65,
+   "view": "bow-detail",
+   "within_part_dE_4px": 5.28
+  },
+  "pod-cowl-top / turret-small-top": {
+   "parts": [
+    "pod-cowl-top",
+    "turret-small-top"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 109,
+   "step_dE": 36.42,
+   "tone_dL": 4.53,
+   "view": "starboard-quarter",
+   "within_part_dE_4px": 5.77
+  },
+  "pod-cowl-port / pod-intake-cap-port": {
+   "parts": [
+    "pod-cowl-port",
+    "pod-intake-cap-port"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 147,
+   "step_dE": 30.95,
+   "tone_dL": 5.95,
+   "view": "bow-quarter",
+   "within_part_dE_4px": 5.35
+  },
+  "turret-3-top / turret-3-right": {
+   "parts": [
+    "turret-3-top",
+    "turret-3-right"
+   ],
+   "classes": [
+    "gunmetal",
+    "gunmetal"
+   ],
+   "same_material": true,
+   "boundary_px": 690,
+   "step_dE": 8.49,
+   "tone_dL": 1.83,
+   "view": "high-quarter-starboard",
+   "within_part_dE_4px": 6.19
+  },
+  "belt-bow-port / belt-bow-stbd": {
+   "parts": [
+    "belt-bow-port",
+    "belt-bow-stbd"
+   ],
+   "classes": [
+    "gunmetal",
+    "gunmetal"
+   ],
+   "same_material": true,
+   "boundary_px": 217,
+   "step_dE": 8.73,
+   "tone_dL": 3.58,
+   "view": "bow-detail",
+   "within_part_dE_4px": 5.28
+  },
+  "bow-nose-top / arm-tops": {
+   "parts": [
+    "bow-nose-top",
+    "arm-tops"
+   ],
+   "classes": [
+    "cream",
+    "pale"
+   ],
+   "same_material": false,
+   "boundary_px": 155,
+   "step_dE": 34.16,
+   "tone_dL": 31.15,
+   "view": "turret-detail",
+   "within_part_dE_4px": 5.35
+  },
+  "deck-fore-top / turret-3-left": {
+   "parts": [
+    "deck-fore-top",
+    "turret-3-left"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 201,
+   "step_dE": 34.38,
+   "tone_dL": 1.57,
+   "view": "turret-detail",
+   "within_part_dE_4px": 5.35
+  },
+  "arm-tops / arm-forearm-out": {
+   "parts": [
+    "arm-tops",
+    "arm-forearm-out"
+   ],
+   "classes": [
+    "pale",
+    "pale"
+   ],
+   "same_material": true,
+   "boundary_px": 226,
+   "step_dE": 10.52,
+   "tone_dL": 9.18,
+   "view": "port-flank-detail",
+   "within_part_dE_4px": 5.18
+  },
+  "bow-stbd-flank / belt-bow-stbd": {
+   "parts": [
+    "bow-stbd-flank",
+    "belt-bow-stbd"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 577,
+   "step_dE": 30.26,
+   "tone_dL": 9.71,
+   "view": "bow-detail",
+   "within_part_dE_4px": 5.28
+  },
+  "spine-top / spine-side-stbd": {
+   "parts": [
+    "spine-top",
+    "spine-side-stbd"
+   ],
+   "classes": [
+    "cream",
+    "cream"
+   ],
+   "same_material": true,
+   "boundary_px": 1198,
+   "step_dE": 14.55,
+   "tone_dL": 24.6,
+   "view": "high-quarter-starboard",
+   "within_part_dE_4px": 6.19
+  },
+  "deck-fore-top / spine-side-stbd": {
+   "parts": [
+    "deck-fore-top",
+    "spine-side-stbd"
+   ],
+   "classes": [
+    "oxide",
+    "cream"
+   ],
+   "same_material": false,
+   "boundary_px": 297,
+   "step_dE": 28.95,
+   "tone_dL": 4.68,
+   "view": "high-quarter-starboard",
+   "within_part_dE_4px": 6.19
+  },
+  "sponson-cowl-tops / arm-boom-port": {
+   "parts": [
+    "sponson-cowl-tops",
+    "arm-boom-port"
+   ],
+   "classes": [
+    "gunmetal",
+    "pale"
+   ],
+   "same_material": false,
+   "boundary_px": 94,
+   "step_dE": 29.72,
+   "tone_dL": 27.35,
+   "view": "high-quarter",
+   "within_part_dE_4px": 6.24
+  },
+  "bay-floor-port / bay-davit-head-port": {
+   "parts": [
+    "bay-floor-port",
+    "bay-davit-head-port"
+   ],
+   "classes": [
+    "gunmetal",
+    "gunmetal"
+   ],
+   "same_material": true,
+   "boundary_px": 82,
+   "step_dE": 4.5,
+   "tone_dL": 0.93,
+   "view": "high-quarter",
+   "within_part_dE_4px": 6.24
+  },
+  "bow-nose-rake / bow-nose-side-stbd": {
+   "parts": [
+    "bow-nose-rake",
+    "bow-nose-side-stbd"
+   ],
+   "classes": [
+    "cream",
+    "cream"
+   ],
+   "same_material": true,
+   "boundary_px": 623,
+   "step_dE": 23.91,
+   "tone_dL": 10.94,
+   "view": "starboard-quarter",
+   "within_part_dE_4px": 5.77
+  },
+  "bow-nose-rake / arm-tops": {
+   "parts": [
+    "bow-nose-rake",
+    "arm-tops"
+   ],
+   "classes": [
+    "cream",
+    "pale"
+   ],
+   "same_material": false,
+   "boundary_px": 138,
+   "step_dE": 40.86,
+   "tone_dL": 20.31,
+   "view": "top",
+   "within_part_dE_4px": 6.39
+  },
+  "turret-4-top / turret-4-right": {
+   "parts": [
+    "turret-4-top",
+    "turret-4-right"
+   ],
+   "classes": [
+    "gunmetal",
+    "gunmetal"
+   ],
+   "same_material": true,
+   "boundary_px": 648,
+   "step_dE": 9.02,
+   "tone_dL": 3.65,
+   "view": "starboard-quarter",
+   "within_part_dE_4px": 5.77
+  },
+  "pod-cowl-stbd / pod-cowl-top-stbd": {
+   "parts": [
+    "pod-cowl-stbd",
+    "pod-cowl-top-stbd"
+   ],
+   "classes": [
+    "oxide",
+    "oxide"
+   ],
+   "same_material": true,
+   "boundary_px": 797,
+   "step_dE": 20.71,
+   "tone_dL": 3.0,
+   "view": "starboard-aft-detail",
+   "within_part_dE_4px": 5.34
+  },
+  "deck-edge-lip-stbd / belt-fore-stbd": {
+   "parts": [
+    "deck-edge-lip-stbd",
+    "belt-fore-stbd"
+   ],
+   "classes": [
+    "gunmetal",
+    "gunmetal"
+   ],
+   "same_material": true,
+   "boundary_px": 177,
+   "step_dE": 3.5,
+   "tone_dL": null,
+   "view": "top",
+   "within_part_dE_4px": 6.39
+  },
+  "turret-small-top / turret-small-side": {
+   "parts": [
+    "turret-small-top",
+    "turret-small-side"
+   ],
+   "classes": [
+    "gunmetal",
+    "gunmetal"
+   ],
+   "same_material": true,
+   "boundary_px": 340,
+   "step_dE": 6.53,
+   "tone_dL": 1.15,
+   "view": "stern-detail",
+   "within_part_dE_4px": 4.08
+  },
+  "deck-fore-top / turret-4-right": {
+   "parts": [
+    "deck-fore-top",
+    "turret-4-right"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 171,
+   "step_dE": 29.64,
+   "tone_dL": 1.09,
+   "view": "high-quarter-starboard",
+   "within_part_dE_4px": 6.19
+  },
+  "turret-2-top / turret-2-right": {
+   "parts": [
+    "turret-2-top",
+    "turret-2-right"
+   ],
+   "classes": [
+    "gunmetal",
+    "gunmetal"
+   ],
+   "same_material": true,
+   "boundary_px": 202,
+   "step_dE": 8.98,
+   "tone_dL": 3.5,
+   "view": "starboard-aft-detail",
+   "within_part_dE_4px": 5.34
+  },
+  "turret-3-top / arm-tops": {
+   "parts": [
+    "turret-3-top",
+    "arm-tops"
+   ],
+   "classes": [
+    "gunmetal",
+    "pale"
+   ],
+   "same_material": false,
+   "boundary_px": 88,
+   "step_dE": 19.13,
+   "tone_dL": 27.53,
+   "view": "starboard-quarter",
+   "within_part_dE_4px": 5.77
+  },
+  "bow-cheek-port / turret-3-top": {
+   "parts": [
+    "bow-cheek-port",
+    "turret-3-top"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 46,
+   "step_dE": 30.28,
+   "tone_dL": 0.63,
+   "view": "top",
+   "within_part_dE_4px": 6.39
+  },
+  "pod-cowl-stbd / pod-bands-stbd": {
+   "parts": [
+    "pod-cowl-stbd",
+    "pod-bands-stbd"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 602,
+   "step_dE": 28.59,
+   "tone_dL": 1.31,
+   "view": "starboard-aft-detail",
+   "within_part_dE_4px": 5.34
+  },
+  "hull-waist-stbd / fore-module-1-stbd": {
+   "parts": [
+    "hull-waist-stbd",
+    "fore-module-1-stbd"
+   ],
+   "classes": [
+    "oxide",
+    "oxide"
+   ],
+   "same_material": true,
+   "boundary_px": 226,
+   "step_dE": 8.93,
+   "tone_dL": 3.98,
+   "view": "starboard-side",
+   "within_part_dE_4px": 4.81
+  },
+  "belt-fore-stbd / fore-module-1-stbd": {
+   "parts": [
+    "belt-fore-stbd",
+    "fore-module-1-stbd"
+   ],
+   "classes": [
+    "gunmetal",
+    "oxide"
+   ],
+   "same_material": false,
+   "boundary_px": 339,
+   "step_dE": 32.16,
+   "tone_dL": 3.82,
+   "view": "starboard-quarter",
+   "within_part_dE_4px": 5.77
+  },
+  "bow-stbd-flank / bow-nose-side-stbd": {
+   "parts": [
+    "bow-stbd-flank",
+    "bow-nose-side-stbd"
+   ],
+   "classes": [
+    "oxide",
+    "cream"
+   ],
+   "same_material": false,
+   "boundary_px": 178,
+   "step_dE": 31.24,
+   "tone_dL": 19.01,
+   "view": "starboard-side",
+   "within_part_dE_4px": 4.81
+  },
+  "belt-bow-stbd / bow-nose-front": {
+   "parts": [
+    "belt-bow-stbd",
+    "bow-nose-front"
+   ],
+   "classes": [
+    "gunmetal",
+    "cream"
+   ],
+   "same_material": false,
+   "boundary_px": 185,
+   "step_dE": 30.41,
+   "tone_dL": 31.8,
+   "view": "turret-detail",
+   "within_part_dE_4px": 5.35
+  },
+  "hull-waist-stbd / belt-fore-stbd": {
+   "parts": [
+    "hull-waist-stbd",
+    "belt-fore-stbd"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 130,
+   "step_dE": 32.87,
+   "tone_dL": 6.76,
+   "view": "starboard-side",
+   "within_part_dE_4px": 4.81
+  },
+  "pod-lower-casing-stbd / pod-bands-stbd": {
+   "parts": [
+    "pod-lower-casing-stbd",
+    "pod-bands-stbd"
+   ],
+   "classes": [
+    "gunmetal",
+    "gunmetal"
+   ],
+   "same_material": true,
+   "boundary_px": 168,
+   "step_dE": 6.21,
+   "tone_dL": 7.57,
+   "view": "starboard-aft-detail",
+   "within_part_dE_4px": 5.34
+  },
+  "bow-nose-side-stbd / bow-nose-front": {
+   "parts": [
+    "bow-nose-side-stbd",
+    "bow-nose-front"
+   ],
+   "classes": [
+    "cream",
+    "cream"
+   ],
+   "same_material": true,
+   "boundary_px": 77,
+   "step_dE": 9.15,
+   "tone_dL": 2.7,
+   "view": "starboard-side",
+   "within_part_dE_4px": 4.81
+  },
+  "belt-fore-stbd / fore-module-2-stbd": {
+   "parts": [
+    "belt-fore-stbd",
+    "fore-module-2-stbd"
+   ],
+   "classes": [
+    "gunmetal",
+    "oxide"
+   ],
+   "same_material": false,
+   "boundary_px": 195,
+   "step_dE": 30.81,
+   "tone_dL": 5.68,
+   "view": "starboard-quarter",
+   "within_part_dE_4px": 5.77
+  },
+  "turret-3-right / turret-4-top": {
+   "parts": [
+    "turret-3-right",
+    "turret-4-top"
+   ],
+   "classes": [
+    "gunmetal",
+    "gunmetal"
+   ],
+   "same_material": true,
+   "boundary_px": 59,
+   "step_dE": 15.22,
+   "tone_dL": 1.28,
+   "view": "starboard-side",
+   "within_part_dE_4px": 4.81
+  },
+  "bow-nose-side-stbd / bow-nose-top": {
+   "parts": [
+    "bow-nose-side-stbd",
+    "bow-nose-top"
+   ],
+   "classes": [
+    "cream",
+    "cream"
+   ],
+   "same_material": true,
+   "boundary_px": 49,
+   "step_dE": 11.6,
+   "tone_dL": null,
+   "view": "starboard-side",
+   "within_part_dE_4px": 4.81
+  },
+  "hull-waist-stbd / deck-edge-lip-stbd": {
+   "parts": [
+    "hull-waist-stbd",
+    "deck-edge-lip-stbd"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 631,
+   "step_dE": 35.46,
+   "tone_dL": 6.85,
+   "view": "starboard-quarter",
+   "within_part_dE_4px": 5.77
+  },
+  "pod-cowl-stbd / pod-lower-casing-stbd": {
+   "parts": [
+    "pod-cowl-stbd",
+    "pod-lower-casing-stbd"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 740,
+   "step_dE": 24.18,
+   "tone_dL": 2.27,
+   "view": "starboard-aft-detail",
+   "within_part_dE_4px": 5.34
+  },
+  "hull-waist-stbd / bay-door-stbd": {
+   "parts": [
+    "hull-waist-stbd",
+    "bay-door-stbd"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 288,
+   "step_dE": 32.61,
+   "tone_dL": 7.94,
+   "view": "starboard-quarter",
+   "within_part_dE_4px": 5.77
+  },
+  "pod-thrust-housing-stbd / pod-bands-stbd": {
+   "parts": [
+    "pod-thrust-housing-stbd",
+    "pod-bands-stbd"
+   ],
+   "classes": [
+    "gunmetal",
+    "gunmetal"
+   ],
+   "same_material": true,
+   "boundary_px": 240,
+   "step_dE": 6.37,
+   "tone_dL": 5.42,
+   "view": "starboard-quarter",
+   "within_part_dE_4px": 5.77
+  },
+  "pod-lower-casing-stbd / pod-intake-cap-stbd": {
+   "parts": [
+    "pod-lower-casing-stbd",
+    "pod-intake-cap-stbd"
+   ],
+   "classes": [
+    "gunmetal",
+    "gunmetal"
+   ],
+   "same_material": true,
+   "boundary_px": 144,
+   "step_dE": 4.8,
+   "tone_dL": 4.18,
+   "view": "starboard-quarter",
+   "within_part_dE_4px": 5.77
+  },
+  "pod-cowl-stbd / pod-intake-cap-stbd": {
+   "parts": [
+    "pod-cowl-stbd",
+    "pod-intake-cap-stbd"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 62,
+   "step_dE": 33.43,
+   "tone_dL": 6.01,
+   "view": "starboard-quarter",
+   "within_part_dE_4px": 5.77
+  },
+  "arm-tops / arm-machinery-tops": {
+   "parts": [
+    "arm-tops",
+    "arm-machinery-tops"
+   ],
+   "classes": [
+    "pale",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 54,
+   "step_dE": 7.48,
+   "tone_dL": 24.45,
+   "view": "starboard-quarter",
+   "within_part_dE_4px": 5.77
+  },
+  "turret-3-right / arm-tops": {
+   "parts": [
+    "turret-3-right",
+    "arm-tops"
+   ],
+   "classes": [
+    "gunmetal",
+    "pale"
+   ],
+   "same_material": false,
+   "boundary_px": 41,
+   "step_dE": 9.76,
+   "tone_dL": 2.15,
+   "view": "high-quarter-starboard",
+   "within_part_dE_4px": 6.19
+  },
+  "bay-frame-port / bay-davit-head-port": {
+   "parts": [
+    "bay-frame-port",
+    "bay-davit-head-port"
+   ],
+   "classes": [
+    "cream",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 95,
+   "step_dE": 39.01,
+   "tone_dL": 37.09,
+   "view": "turret-detail",
+   "within_part_dE_4px": 5.35
+  },
+  "pod-cowl-top / turret-1-right": {
+   "parts": [
+    "pod-cowl-top",
+    "turret-1-right"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 60,
+   "step_dE": 34.53,
+   "tone_dL": 2.48,
+   "view": "port-aft-detail",
+   "within_part_dE_4px": 5.24
+  },
+  "bow-port-flank / bow-nose-front": {
+   "parts": [
+    "bow-port-flank",
+    "bow-nose-front"
+   ],
+   "classes": [
+    "oxide",
+    "cream"
+   ],
+   "same_material": false,
+   "boundary_px": 388,
+   "step_dE": 34.81,
+   "tone_dL": 33.07,
+   "view": "bow-detail",
+   "within_part_dE_4px": 5.28
+  },
+  "bow-stbd-flank / bow-nose-front": {
+   "parts": [
+    "bow-stbd-flank",
+    "bow-nose-front"
+   ],
+   "classes": [
+    "oxide",
+    "cream"
+   ],
+   "same_material": false,
+   "boundary_px": 82,
+   "step_dE": 30.31,
+   "tone_dL": 21.81,
+   "view": "bow-detail",
+   "within_part_dE_4px": 5.28
+  },
+  "deck-fore-top / turret-3-right": {
+   "parts": [
+    "deck-fore-top",
+    "turret-3-right"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 43,
+   "step_dE": 32.15,
+   "tone_dL": 7.08,
+   "view": "bow-detail",
+   "within_part_dE_4px": 5.28
+  },
+  "pod-cowl-top-stbd / turret-2-right": {
+   "parts": [
+    "pod-cowl-top-stbd",
+    "turret-2-right"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 132,
+   "step_dE": 33.7,
+   "tone_dL": 5.06,
+   "view": "starboard-aft-detail",
+   "within_part_dE_4px": 5.34
+  },
+  "pod-cowl-top-stbd / deck-edge-lip-stbd": {
+   "parts": [
+    "pod-cowl-top-stbd",
+    "deck-edge-lip-stbd"
+   ],
+   "classes": [
+    "oxide",
+    "gunmetal"
+   ],
+   "same_material": false,
+   "boundary_px": 69,
+   "step_dE": 24.81,
+   "tone_dL": 0.83,
+   "view": "starboard-aft-detail",
+   "within_part_dE_4px": 5.34
+  },
+  "hull-waist-stbd / pod-cowl-top-stbd": {
+   "parts": [
+    "hull-waist-stbd",
+    "pod-cowl-top-stbd"
+   ],
+   "classes": [
+    "oxide",
+    "oxide"
+   ],
+   "same_material": true,
+   "boundary_px": 56,
+   "step_dE": 8.21,
+   "tone_dL": 3.87,
+   "view": "starboard-aft-detail",
+   "within_part_dE_4px": 5.34
+  },
+  "sponson-cowl / deck-edge-lip-port": {
+   "parts": [
+    "sponson-cowl",
+    "deck-edge-lip-port"
+   ],
+   "classes": [
+    "gunmetal",
+    "gunmetal"
+   ],
+   "same_material": true,
+   "boundary_px": 132,
+   "step_dE": 8.53,
+   "tone_dL": 4.18,
+   "view": "bay-detail",
+   "within_part_dE_4px": 3.61
+  }
+ },
+ "tone_spread_before_grading": {
+  "cream": {
+   "parts": 7,
+   "max_pair_dE_before": 4.43,
+   "max_pair_dE_after": 0.56,
+   "L_range_before": [
+    83.8,
+    86.9
+   ]
+  },
+  "oxide": {
+   "parts": 12,
+   "max_pair_dE_before": 11.77,
+   "max_pair_dE_after": 0.0,
+   "L_range_before": [
+    51.8,
+    56.7
+   ]
+  },
+  "gunmetal": {
+   "parts": 26,
+   "max_pair_dE_before": 15.61,
+   "max_pair_dE_after": 0.0,
+   "L_range_before": [
+    33.2,
+    48.8
+   ]
+  },
+  "dark": {
+   "parts": 8,
+   "max_pair_dE_before": 20.64,
+   "max_pair_dE_after": 0.0,
+   "L_range_before": [
+    15.4,
+    36.0
+   ]
+  },
+  "pale": {
+   "parts": 4,
+   "max_pair_dE_before": 2.59,
+   "max_pair_dE_after": 0.0,
+   "L_range_before": [
+    68.7,
+    71.3
+   ]
+  }
+ }
+}

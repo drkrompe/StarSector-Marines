@@ -1,0 +1,59 @@
+{
+ "part": "arm-tops",
+ "sheet": "arm-a",
+ "tile": 0,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.5112,
+ "raw_iou": 0.9617,
+ "best_fit": "bounds_affine",
+ "fitted_iou": 0.9665,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9617
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00282,
+    1.0068
+   ],
+   "offset_px": [
+    -0.29,
+    -1.24
+   ],
+   "iou": 0.9665
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00282,
+    1.0068
+   ],
+   "offset_px": [
+    -0.29,
+    -1.24
+   ],
+   "iou": 0.9665
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 0.99,
+  "p95_px": 2.83,
+  "max_px": 4.12
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.85,
+  "p95_px": 3.16,
+  "max_px": 4.47
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

@@ -8,6 +8,7 @@
       <img id="shipboard-barracks-service-plate" class="company-service-plate" src="graphics/ui/console/service-plate.svg" />
       <div id="barracks-room-title" class="label heading tone-edge">{i18n.openingUiShipboardBarracksBarracksPersonnelCommand}</div>
       <div id="barracks-room-copy" class="label tone-muted">{command.summary}</div>
+      <div id="barracks-heal-timer" class="label heading tone-accent">{command.healTimer}</div>
 
     </div>
 
@@ -86,18 +87,11 @@
       </div>
       <div id="barracks-formation-board" class="{command.formationClasses}">
         <div id="barracks-board-title" class="label heading board-title">{command.title}</div>
-        <div id="barracks-board-tools" class="board-tools">
-          <div id="barracks-search-label" class="label search-label">{i18n.openingUiShipboardBarracksSearch}</div>
-          <input id="barracks-search" class="roster-search" value="{command.search}" maxlength="64" oninput="{command.editSearch}" />
-          <button id="barracks-attention" class="tool-button console-action" onclick="{command.attention}">{command.attentionLabel}</button>
-          <button id="barracks-profile-filter" class="profile-filter console-action" onclick="{command.filter}">{command.filterLabel}</button>
-        </div>
         <div id="barracks-selection-tools" class="selection-tools">
           <div id="barracks-scope-count" class="label muted scope-count">{command.scopeSummary}</div>
           <button id="barracks-select-all" class="select-all console-action" onclick="{command.selectAll}">{i18n.openingUiShipboardBarracksSelectAllInView}</button>
           <button id="barracks-clear" class="clear-selection console-action" onclick="{command.clear}">{i18n.openingUiShipboardBarracksClear}</button>
         </div>
-        <div id="barracks-column-key" class="label muted column-key">{command.selectionMode}</div>
         <div id="barracks-empty" class="label muted wrap empty-message">{command.empty}</div>
         <div id="barracks-formation-list" class="formation-list">
           <div each="squad in command.squads" key="{squad.id}" id="{squad.id}" class="{squad.classes}">
@@ -201,22 +195,6 @@
           <button id="barracks-organization" class="tab-button console-action" onclick="{command.organization}">{i18n.openingUiShipboardBarracksProfiles}</button>
         </div>
         <div id="barracks-preparation-body" class="{command.preparationClasses}">
-          <div id="transfer-heading" class="label heading warm order-caption">{i18n.openingUiShipboardBarracksConsolidateSurvivors}</div>
-          <div id="transfer-summary" class="label wrap preparation-copy">{command.transferSummary}</div>
-          <div id="barracks-choose-donors-action" class="order-action-row">
-            <button id="barracks-choose-donors" class="order-button console-action" onclick="{command.chooseDonors}">{command.donorLabel}</button>
-          </div>
-          <div id="barracks-review-transfers-action" class="order-action-row">
-            <button id="barracks-review-transfers" class="order-button console-action" disabled="{command.transferDisabled}" onclick="{command.reviewTransfers}">{i18n.openingUiShipboardBarracksReviewTransfers}</button>
-          </div>
-          <div id="barracks-transfer-rows" class="{command.transferRowsClasses}">
-            <div each="row in command.transferRows" key="{row.id}" id="{row.id}" class="label wrap transfer-row">{row.text}</div>
-          </div>
-          <div id="barracks-transfer-reason" class="label wrap preparation-copy">{command.transferReason}</div>
-          <div id="barracks-transfer-actions" class="board-tools">
-            <button id="barracks-apply-transfers" class="tab-button console-action" disabled="{command.applyTransfersDisabled}" onclick="{command.applyTransfers}">{i18n.openingUiShipboardBarracksApplyTransfers}</button>
-            <button id="barracks-cancel-transfers" class="tab-button console-action" onclick="{command.cancelTransfers}">{i18n.openingUiShipboardBarracksCancelTransfers}</button>
-          </div>
           <div id="barracks-order-caption-82" class="label heading warm order-caption">{i18n.openingUiShipboardBarracksFillVacancies}</div>
           <div id="barracks-recruitment" class="label wrap recruitment">{command.recruitment}</div>
           <div id="barracks-recruit-draw" class="company-recruit-bill"><company-resource-cost each="row in command.recruitBill" key="{row.id}" row="{row}" /></div>
@@ -313,6 +291,7 @@
   .issue-stock-label { width: 0px; flex-grow: 1; height: 15px; font-family: heading; }
   #barracks-room-title { width: 326px; height: auto; white-space: normal; }
   #barracks-room-copy { width: 480px; flex-grow: 0; text-align: left; height: auto; white-space: normal; }
+  #barracks-heal-timer { width: 0px; flex-grow: 1; height: 20px; text-align: right; }
   .company-service-plate { width: 58px; height: 30px; pointer-events: none; }
   .command-board { flex-direction: row; height: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
   .command-rail { flex-direction: column; width: 294px; padding: 8px; gap: 6px; border-width: 1px; }
@@ -335,14 +314,10 @@
   .formation-board { flex-direction: column; width: 0px; flex-grow: 1; padding: 10px; gap: 7px; border-width: 1px; overflow: hidden; }
   .board-title { height: 26px; color: #dfc588; }
   .board-tools, .selection-tools, .page-tools { flex-direction: row; align-items: center; height: 40px; gap: 6px; }
-  .search-label { width: 65px; height: 20px; color: #a5b0a9; }
-  .roster-search { width: 0px; flex-grow: 1; height: 24px; padding: 3px 6px; border-width: 1px; background-color: #111814; }
   .tool-button { white-space: normal; width: 126px; height: 36px; padding: 0px 4px; text-align: center; font-family: heading; }
-  .profile-filter { width: 192px; height: 26px; padding: 0px 4px; text-align: center; }
   .scope-count { width: 0px; flex-grow: 1; height: 20px; }
   .select-all { width: 174px; height: 26px; padding: 0px 4px; text-align: center; font-family: heading; }
   .clear-selection { width: 66px; height: 26px; padding: 0px 4px; text-align: center; }
-  .column-key { height: 17px; }
   .formation-list { display: grid; height: 0px; flex-grow: 1; gap: 10px; overflow: scroll; }
   .formation { flex-direction: column; width: 260px; height: 220px; gap: 6px; padding: 8px; border-width: 2px; border-color: #586154; background-color: #202922; }
   .formation.selected { border-color: #dfc588; background-color: #383c2d; }
@@ -398,11 +373,6 @@
   .equipment-new { border-color: #cfaa69; color: #ffd464; }
   .flow-button { white-space: normal; width: 190px; height: 38px; font-family: heading; text-align: center; }
   .tab-button { width: 0px; flex-grow: 1; height: 28px; font-family: heading; text-align: center; }
-  .preparation-copy { height: auto; }
-  .transfer-rows { flex-direction: column; height: 96px; overflow: scroll; gap: 4px; }
-  .transfer-row { height: auto; }
-  .formation.donor { border-color: #9eaecc; }
-  .formation.donor .card-check { background-color: #9eaecc; color: #20261e; }
   .order-heading { height: 26px; }
   .order-body { flex-direction: column; height: 0px; flex-grow: 1; gap: 6px; overflow: scroll; }
   .order-caption { height: 19px; }

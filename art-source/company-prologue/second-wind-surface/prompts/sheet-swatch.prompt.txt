@@ -1,0 +1,16 @@
+Use case: texture map generation / material swatch sheet for a 3D model.
+INPUT 1 is a layout sheet of FOUR flat-coloured squares on a plain light grey background. Each square is one hull material of a single 3D spacecraft (a battered industrial freighter), to be painted as a flat, square-on texture sample of that material:
+top-left square: chalked cream armour paint;
+top-right square: faded oxide-orange armour paint;
+bottom-left square: gunmetal grey steel armour;
+bottom-right square: the recess and machinery material, near-black dull steel.
+INPUT 2 is the SAME ship's port side, already painted: it is the finish to match. Use its paint colours, wear density, fine chipping, grime and fastener treatment. Never copy INPUT 2's composition, view or shapes.
+
+Paint each square as a texture swatch of its material. Each square will be cut out and tiled many times across the model's small fittings, so:
+- Keep the four squares exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Each square is filled edge to edge with its material, right up to its straight edges, with nothing drawn outside it.
+- Each square is a flat, seen-square-on sample of worn industrial armour plate: a fine, even, all-over surface. Only sparse, small detail: a few thin, faint plate seams and a few small scattered fasteners, light even scuffing and fine chipping, a thin even film of grime. The detail is small and evenly distributed over the whole square, with no single dominant feature: no large rivet rows, no seam or panel line across the middle, no hatches, panels, grilles, labels, stripes or markings, nothing centred.
+- Keep each square's colour: cream stays chalked cream, oxide-orange stays faded oxide-orange, gunmetal stays mid gunmetal grey steel, the near-black square stays near-black dull steel. No colour changes, no repair patches, no different-coloured plates.
+- Weathering is light and even across each whole square. No soot, scorch marks, burns, rust streaks, impact damage, dents, holes, large stains or any concentrated area of wear.
+- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no vignette, no directional light, no gradient across a square, no bright border or chipped edge line round a square.
+- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, text, labels or borders.
+Output: one landscape 16:9 image, same composition as INPUT 1.

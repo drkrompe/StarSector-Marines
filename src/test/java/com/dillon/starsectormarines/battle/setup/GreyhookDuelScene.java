@@ -13,6 +13,8 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.warship.HullFireHold;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipDuelLedger;
+import com.dillon.starsectormarines.battle.warship.WarshipShipRules;
+import com.dillon.starsectormarines.battle.warship.WarshipSpacing;
 import com.dillon.starsectormarines.battle.world.gen.BlackSluice;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
@@ -168,7 +170,30 @@ public final class GreyhookDuelScene implements BehaviorScene {
         metrics.put("greyhookRounds", shots(List.of(greyhook)));
         metrics.put("houndRounds", shots(duel.hounds()));
         metrics.put("wolfRounds", shots(duel.wolves()));
+        var fire = t.sim.warships().shipFire();
+        metrics.put("roundsAtHulls", fire.roundsFired());
+        metrics.put("hitSharePercent", fire.roundsFired() == 0 ? 0 : Math.round(100f * fire.roundsOnHull() / fire.roundsFired()));
+        metrics.put("minFriendlyGapCells", Math.round(t.minFriendlyGap * 10f) / 10f);
+        metrics.put("friendlyOverlapTicks", t.friendlyOverlapTicks);
+        metrics.put("houndMountsLost", mountsLost(duel.hounds()));
+        metrics.put("houndChaingunBearsPercent", t.houndInReach == 0 ? -1 : Math.round(100f * t.houndBears / t.houndInReach));
+        List<Warship> wolves = duel.wolves();
+        List<Warship> targets = duel.hulls().subList(0, Math.min(3, duel.hulls().size()));
+        for (int i = 0; i < wolves.size(); i++) {
+            int[] on = t.targetTicks.getOrDefault(wolves.get(i), new int[4]);
+            int total = on[0] + on[1] + on[2] + on[3];
+            String[] names = {"Greyhook", "HoundA", "HoundB", "None"};
+            for (int k = 0; k < 4; k++) {
+                metrics.put("wolf" + (i + 1) + "On" + names[k] + "Percent", total == 0 ? 0 : Math.round(100f * on[k] / total));
+            }
+        }
         return new SceneReport(id(), loop, TICKS, verdicts, metrics);
+    }
+
+    private static int mountsLost(List<Warship> ships) {
+        int n = 0;
+        for (Warship s : ships) n += s.mountsKnockedOut();
+        return n;
     }
 
     /** 0 over the battle, 1 escaped, 2 destroyed, 3 broke off or departed. */
@@ -217,11 +242,18 @@ public final class GreyhookDuelScene implements BehaviorScene {
         final List<float[]> centroids = new ArrayList<>();
         /** The nearest the fight's centroid came to a map edge while both sides were over the basin. */
         float nearestEdge = Float.MAX_VALUE;
-        private final BattleSimulation sim;
+        final BattleSimulation sim;
         int defenderAircraft;
         private final Map<Warship, Float> lastHp = new LinkedHashMap<>();
         private final Map<Warship, Float> lastShield = new LinkedHashMap<>();
         private int lastGreyhookShots;
+        /** The least gap, in cells, between two friendly hulls' footprints over the battle; negative is overlap. */
+        float minFriendlyGap = Float.MAX_VALUE;
+        int friendlyOverlapTicks;
+        /** Per Wolf, ticks with its hull target the Greyhook, the first Hound, the second Hound, or none. */
+        final Map<Warship, int[]> targetTicks = new LinkedHashMap<>();
+        int houndInReach;
+        int houndBears;
 
         Trace(BlackSluiceDuel duel, BattleSimulation sim, int orderTick) {
             this.duel = duel;
@@ -299,6 +331,35 @@ public final class GreyhookDuelScene implements BehaviorScene {
                 }
             }
             lastGreyhookShots = shots;
+            if (duel.ordered()) {
+                List<Warship> live = new ArrayList<>();
+                for (Warship s : all) if (!s.destroyed() && !s.departed() && !s.descending() && !s.berthed() && !s.liftRunning()) live.add(s);
+                boolean overlap = false;
+                for (int i = 0; i < live.size(); i++) {
+                    for (int j = i + 1; j < live.size(); j++) {
+                        Warship a = live.get(i), b = live.get(j);
+                        if (a.faction != b.faction) continue;
+                        float g = WarshipSpacing.gap(a, b);
+                        minFriendlyGap = Math.min(minFriendlyGap, g);
+                        overlap |= g < 0f;
+                    }
+                }
+                if (overlap) friendlyOverlapTicks++;
+                List<Warship> hounds = duel.hounds();
+                for (Warship wolf : duel.wolves()) {
+                    if (wolf.destroyed() || wolf.departed() || wolf.descending()) continue;
+                    Warship tgt = wolf.hullTarget();
+                    int k = tgt == null ? 3 : tgt == greyhook ? 0 : tgt == hounds.get(0) ? 1 : 2;
+                    targetTicks.computeIfAbsent(wolf, w -> new int[4])[k]++;
+                }
+                for (Warship hound : hounds) {
+                    Warship tgt = hound.hullTarget();
+                    if (hound.destroyed() || tgt == null || tgt.destroyed()) continue;
+                    if (WarshipShipRules.strongestGunOn(hound, tgt) < 0) continue;
+                    houndInReach++;
+                    if (WarshipShipRules.strongestGunOn(hound, tgt) > 0) houndBears++;
+                }
+            }
             lastTick = tick;
             if (tick == orderTick + 1) {
                 for (Warship wolf : duel.wolves()) {

@@ -209,8 +209,8 @@ production surface at a time. Company HQ reads as the flagship bridge's
 command station, Fleet Armory owns deliberate equipment inspection and issue
 for one squad at a time, and Barracks owns squad choice, home-officer organization,
 bulk personnel command, saved profiles and replenishment between
-operations. The active Alpha pickup, `barracks-turnaround.md`, adds survivor
-consolidation and a guided preparation handoff. Shared stock displays and upgrade
+operations. The active Alpha pickup, `barracks-turnaround.md`, adds a guided
+preparation handoff. Shared stock displays and upgrade
 bills are defined in `company-view-nouns.md` (Company resource bills). `castle-officer-induction.md` adds
 Castle's portrait-led first specialty and squad assignment for founding commander
 Sabine Hale, required before a new company deploys; live acceptance remains open.

@@ -1046,7 +1046,7 @@ public class BriefingScreen implements Screen {
         if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.smallWar(mission.id)) return List.of(
                 BriefingViewModel.info("sluice-holders","Local holders","Twelve / occupy only sites the company has taken",""),
                 BriefingViewModel.info("sluice-custody","Custody party","Three / escort into fuel control; one must finish the handover",""),
-                BriefingViewModel.info("sluice-support","Company support","Working tender builds the rear position; employer heavy lift for your owned active mech lance",""),
+                BriefingViewModel.info("sluice-support","Company support","No tender on this contract; employer heavy lift for your owned active mech lance",""),
                 BriefingViewModel.info("sluice-preserve","Preserve fuel storage","Four marked tanks / no bombardment or fighter strikes",""));
         if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.termsOfProtection(mission.id)) {
             boolean custody = AgreusArcCampaign.custodyRoute(mission);
@@ -1177,7 +1177,7 @@ public class BriefingScreen implements Screen {
             props.put("deploymentStatus", failed ? "Terrain survey failed" : "Preparing deployment area...");
             props.put("deployAction", (Runnable) this::retrySurvey);
         }
-        String constructionBlocker = AgreusArcCampaign.isBattle(mission)
+        String constructionBlocker = AgreusArcCampaign.requiresConstructionTender(mission)
                 ? AgreusConstructionSupport.blocker(cachedAvailablePowers, selectedPowerIds,
                         new CampaignCommandPowerResources().availableSupplies()) : null;
         if (constructionBlocker != null && personnelOk && transportOk && commandOk) {
@@ -2359,9 +2359,12 @@ public class BriefingScreen implements Screen {
             Mission m, List<ShuttleAssignment> manifest) {
         java.util.Map<Integer, Integer> out = new java.util.HashMap<>();
         int employerPhysical = DetachmentResolver.employerPhysicalShipCount(m);
-        for (int k = 0; k < cachedAvailable.size()
-                && (employerPhysical + k) < manifest.size(); k++) {
-            out.put(k, manifest.get(employerPhysical + k).cycles);
+        // A cradled boat is not in the infantry manifest, so the manifest's
+        // player rows line up with the seated boats only.
+        int row = employerPhysical;
+        for (int k = 0; k < cachedAvailable.size() && row < manifest.size(); k++) {
+            if (cachedAvailable.get(k).machineOnly()) continue;
+            out.put(k, manifest.get(row++).cycles);
         }
         return out;
     }
@@ -2386,6 +2389,7 @@ public class BriefingScreen implements Screen {
         int fewest = Integer.MAX_VALUE;
         int most = 0;
         for (int index = 0; index < cachedAvailable.size(); index++) {
+            if (cachedAvailable.get(index).machineOnly()) continue;
             int cycles = cyclesByBoat.getOrDefault(index, 0);
             fewest = Math.min(fewest, cycles);
             most = Math.max(most, cycles);
@@ -2401,6 +2405,13 @@ public class BriefingScreen implements Screen {
         widgets.add(new LabelWidget(Fonts.ORBITRON_20, label.toString(),
                 x + THUMB + 10f, y, VALUE_COLOR));
         y -= ROW_GAP;
+
+        String cradled = LiftReadout.cradledNote(cachedAvailable);
+        if (cradled != null && y >= floor) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, cradled,
+                    x + THUMB + 10f, y, LABEL_COLOR));
+            y -= ROW_GAP;
+        }
 
         String carrier = ShipsBoatsAboard.carrier();
         if (carrier != null && y >= floor) {

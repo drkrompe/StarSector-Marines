@@ -61,7 +61,7 @@ class SmallWarSettlementTest {
         assertTrue(cost >= 0 && invitation > cost, "the company's cost is acknowledged before the invitation");
 
         var lost = MissionOutcome.builder().mission(m).victory(false).payoutEarned(0)
-                .smallWar(new SmallWarProgress.Report(true, true, false, true, false, true, true, true, 0, 4, 0, false)).build();
+                .smallWar(new SmallWarProgress.Report(true, true, false, false, true, true, true, 0, 4, 0, false)).build();
         String failed = String.join(" ", MissionDebriefConversation.smallWarLines(lost).stream().map(WaylineNarration.Line::text).toList());
         assertTrue(failed.contains("marked fuel storage was destroyed"));
         assertFalse(failed.contains("Keep the pier"));
@@ -86,7 +86,7 @@ class SmallWarSettlementTest {
         return MissionOutcome.builder().mission(m).victory(victory).payoutEarned(victory ? 44000 : 0).smallWar(report).build();
     }
     static SmallWarProgress.Report report(boolean complete, boolean custody, int withdrawn) {
-        return new SmallWarProgress.Report(true, true, true, true, complete, true, false, true, 0, 0, withdrawn, custody);
+        return new SmallWarProgress.Report(true, true, true, complete, true, false, true, 0, 0, withdrawn, custody);
     }
     static AgreusArcProgress ratified(AgreusYardAgreement route) {
         var p = afterYard();

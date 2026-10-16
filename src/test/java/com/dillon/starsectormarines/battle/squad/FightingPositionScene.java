@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.squad;
 
 import com.dillon.starsectormarines.battle.combat.BodyPart;
+import com.dillon.starsectormarines.battle.combat.BodyPlan;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.scene.BehaviorScene;
 import com.dillon.starsectormarines.battle.scene.FrameSink;
@@ -442,12 +443,12 @@ public final class FightingPositionScene implements BehaviorScene {
      * should skew toward head and arms; in the open they follow the silhouette.
      */
     private static void putPartReadings(Map<String, Number> m, int[] hits, int[] wounds) {
-        for (BodyPart part : BodyPart.values()) {
+        for (BodyPart part : BodyPlan.INFANTRY.parts()) {
             String name = part.name().charAt(0) + part.name().substring(1).toLowerCase(Locale.ROOT);
-            m.put("hits" + name, hits[part.ordinal()]);
+            m.put("hits" + name, hits[part.index()]);
         }
-        m.put("woundsLegs", wounds[BodyPart.LEGS.ordinal()]);
-        m.put("woundsArms", wounds[BodyPart.ARMS.ordinal()]);
+        m.put("woundsLegs", wounds[BodyPart.LEGS.index()]);
+        m.put("woundsArms", wounds[BodyPart.ARMS.index()]);
     }
 
     /** The under-fire traces of one loop, one per enemy line, read as a single sample. */
@@ -500,8 +501,8 @@ public final class FightingPositionScene implements BehaviorScene {
                 m.put("line" + i + "MarinesAlive", traces.get(i).alive);
                 m.put("line" + i + "DamageTaken", traces.get(i).damageTaken());
             }
-            int[] hits = new int[BodyPart.values().length];
-            int[] wounds = new int[BodyPart.values().length];
+            int[] hits = new int[BodyPlan.INFANTRY.size()];
+            int[] wounds = new int[BodyPlan.INFANTRY.size()];
             for (Trace t : traces) {
                 for (int p = 0; p < hits.length; p++) {
                     hits[p] += t.partHits[p];
@@ -559,8 +560,8 @@ public final class FightingPositionScene implements BehaviorScene {
         /** The squad's side, read once while its men are alive; the part tallies are kept by side. */
         Faction side;
         /** Battle-wide hits and wounds on the squad's side, by body part (telemetry, so every round counts). */
-        final int[] partHits = new int[BodyPart.values().length];
-        final int[] partWounds = new int[BodyPart.values().length];
+        final int[] partHits = new int[BodyPlan.INFANTRY.size()];
+        final int[] partWounds = new int[BodyPlan.INFANTRY.size()];
 
         Trace(SceneWorld world, String key, String... otherKeys) {
             this.world = world;
@@ -609,9 +610,9 @@ public final class FightingPositionScene implements BehaviorScene {
                 side = sim.getRoster().identity().faction(marines[0]);
             }
             if (side != null) {
-                for (BodyPart part : BodyPart.values()) {
-                    partHits[part.ordinal()] = telemetry.partHits(side, part);
-                    partWounds[part.ordinal()] = telemetry.partWounds(side, part);
+                for (BodyPart part : BodyPlan.INFANTRY.parts()) {
+                    partHits[part.index()] = telemetry.partHits(side, part);
+                    partWounds[part.index()] = telemetry.partWounds(side, part);
                 }
             }
             int width = world.width();

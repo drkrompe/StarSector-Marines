@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechHeat;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.power.CommandPower;
+import com.dillon.starsectormarines.ops.LiftReadout;
 import com.dillon.starsectormarines.battle.power.ReconPing;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.EmergencyResupply;
@@ -114,7 +115,15 @@ public final class SpecSheets {
                         stat("Cooldown", Strings.format("gearSeconds", oneDecimal(power.cooldownSeconds))),
                         stat("Uses per battle", power.maxCharges == 0
                                 ? Strings.get("gearUnlimited") : Integer.toString(power.maxCharges))),
-                List.of(effect, Strings.get("gearPowerActivation")));
+                powerNotes(effect, power));
+    }
+
+    private static List<String> powerNotes(String effect, CommandPower power) {
+        List<String> notes = new ArrayList<>();
+        notes.add(effect);
+        notes.add(Strings.get("gearPowerActivation"));
+        notes.addAll(LiftReadout.lines(power));
+        return List.copyOf(notes);
     }
 
     /**
@@ -307,6 +316,15 @@ public final class SpecSheets {
 
     /** One piece of mech hardware, on its own rather than as part of a chassis. */
     public static SpecSheet mechWeapon(MechWeaponComponent component) {
+        return mechWeapon(component, MechHeat.CAPACITY, MechHeat.COOLING_PER_SECOND);
+    }
+
+    /**
+     * The same hardware read against one frame's heat sink: a mech fitted with better
+     * cooling sheds a burst sooner, so a sheet opened beside that mech says so.
+     */
+    public static SpecSheet mechWeapon(MechWeaponComponent component,
+                                       float heatCapacity, float coolingPerSecond) {
         if (component == null) {
             throw new IllegalArgumentException("A mech-weapon sheet needs a component");
         }
@@ -318,8 +336,9 @@ public final class SpecSheets {
                 null,
                 ACCENT_MECH,
                 List.of(new Stat("cycle", component.cycleLabel(), Strings.format("gearSeconds", Float.toString(component.cycleSeconds())), Stat.NO_METER),
-                        stat("Heat / burst", whole(component.heatPerTrigger()) + " / 100"),
-                        stat("Cooling / burst", Strings.format("gearCoolingAlone", Float.toString(component.heatPerTrigger() / MechHeat.COOLING_PER_SECOND)))),
+                        stat("Heat / burst", whole(component.heatPerTrigger()) + " / " + whole(heatCapacity)),
+                        stat("Cooling / burst", Strings.format("gearCoolingAlone", coolingPerSecond > 0f
+                                ? oneDecimal(component.heatPerTrigger() / coolingPerSecond) : "-"))),
                 List.of(entry.description(), Strings.get("gearHeatExplanation")));
     }
 

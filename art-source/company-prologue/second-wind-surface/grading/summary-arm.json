@@ -1,0 +1,164 @@
+{
+ "parts": {
+  "arm-tops": {
+   "gunmetal": {
+    "share_as_declared": 0.877,
+    "share_in_declared_family": 1.0,
+    "swap": false,
+    "before_mean_lab": [
+     42.32,
+     0.71,
+     1.16
+    ],
+    "after_mean_lab": [
+     46.45,
+     1.05,
+     1.83
+    ],
+    "dE_to_palette_before": 4.15
+   },
+   "dark": {
+    "share_as_declared": 0.456,
+    "share_in_declared_family": 1.0,
+    "swap": false,
+    "before_mean_lab": [
+     31.69,
+     0.12,
+     -0.01
+    ],
+    "after_mean_lab": [
+     18.79,
+     0.08,
+     -0.29
+    ],
+    "dE_to_palette_before": 12.99
+   },
+   "pale": {
+    "share_as_declared": 0.865,
+    "share_in_declared_family": 0.987,
+    "swap": false,
+    "before_mean_lab": [
+     69.56,
+     0.77,
+     2.53
+    ],
+    "after_mean_lab": [
+     73.97,
+     1.05,
+     1.83
+    ],
+    "dE_to_palette_before": 4.51
+   },
+   "ramp_span_L_removed_max": 10.86,
+   "edge_band_dL_after_mean": -11.01
+  },
+  "arm-boom-port": {
+   "gunmetal": {
+    "share_as_declared": 0.868,
+    "share_in_declared_family": 0.999,
+    "swap": false,
+    "before_mean_lab": [
+     41.23,
+     0.67,
+     0.88
+    ],
+    "after_mean_lab": [
+     46.45,
+     1.05,
+     1.83
+    ],
+    "dE_to_palette_before": 4.91
+   },
+   "pale": {
+    "share_as_declared": 0.841,
+    "share_in_declared_family": 0.99,
+    "swap": false,
+    "before_mean_lab": [
+     68.74,
+     0.72,
+     2.38
+    ],
+    "after_mean_lab": [
+     73.97,
+     1.05,
+     1.83
+    ],
+    "dE_to_palette_before": 5.7
+   },
+   "ramp_span_L_removed_max": 13.22,
+   "edge_band_dL_after_mean": -5.74
+  },
+  "arm-forearm-out": {
+   "gunmetal": {
+    "share_as_declared": 0.912,
+    "share_in_declared_family": 1.0,
+    "swap": false,
+    "before_mean_lab": [
+     41.84,
+     0.65,
+     0.76
+    ],
+    "after_mean_lab": [
+     46.45,
+     1.05,
+     1.83
+    ],
+    "dE_to_palette_before": 4.69
+   },
+   "pale": {
+    "share_as_declared": 0.895,
+    "share_in_declared_family": 0.988,
+    "swap": false,
+    "before_mean_lab": [
+     70.79,
+     0.67,
+     2.24
+    ],
+    "after_mean_lab": [
+     73.97,
+     1.05,
+     1.83
+    ],
+    "dE_to_palette_before": 3.27
+   },
+   "ramp_span_L_removed_max": 1.75,
+   "edge_band_dL_after_mean": 24.98
+  },
+  "arm-machinery-tops": {
+   "gunmetal": {
+    "share_as_declared": 0.948,
+    "share_in_declared_family": 1.0,
+    "swap": false,
+    "before_mean_lab": [
+     42.54,
+     0.58,
+     0.43
+    ],
+    "after_mean_lab": [
+     46.45,
+     1.05,
+     1.83
+    ],
+    "dE_to_palette_before": 4.18
+   },
+   "pale": {
+    "share_as_declared": 0.908,
+    "share_in_declared_family": 0.986,
+    "swap": false,
+    "before_mean_lab": [
+     71.33,
+     0.67,
+     2.25
+    ],
+    "after_mean_lab": [
+     73.97,
+     1.05,
+     1.83
+    ],
+    "dE_to_palette_before": 2.7
+   },
+   "ramp_span_L_removed_max": 4.55,
+   "edge_band_dL_after_mean": -5.95
+  }
+ }
+}

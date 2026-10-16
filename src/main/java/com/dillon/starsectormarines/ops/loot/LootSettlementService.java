@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops.loot;
 
 import com.dillon.starsectormarines.marine.LoadoutCardItemPlugin;
+import com.dillon.starsectormarines.marine.MechPattern;
+import com.dillon.starsectormarines.marine.MechPatternInventory;
 import com.dillon.starsectormarines.ops.MarineOpsContext;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CargoAPI;
@@ -61,8 +63,9 @@ public final class LootSettlementService {
             return;
         }
         if (line.stack.kind == LootKind.SPECIAL) {
-            cargo.addSpecial(LoadoutCardItemPlugin.itemData(
-                    line.stack.itemId), quantity);
+            cargo.addSpecial(MechPattern.parse(line.stack.itemId) != null
+                    ? MechPatternInventory.itemData(line.stack.itemId)
+                    : LoadoutCardItemPlugin.itemData(line.stack.itemId), quantity);
             return;
         }
         switch (line.bucket) {

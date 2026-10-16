@@ -1,0 +1,99 @@
+{
+ "part": "belt-bow-port",
+ "regions": {
+  "gunmetal": {
+   "pixels": 91752,
+   "share_as_declared": 0.49,
+   "share_in_declared_family": 1.0,
+   "came_back_as": {
+    "gunmetal": 0.49,
+    "dark": 0.506
+   },
+   "swap": false,
+   "before_mean_lab": [
+    33.18,
+    0.56,
+    0.4
+   ],
+   "after_mean_lab": [
+    46.45,
+    1.05,
+    1.83
+   ],
+   "gain_L_a_b": [
+    1.33,
+    1.5,
+    1.5
+   ],
+   "dE_to_palette_before": 13.35,
+   "forced_back_to_declared": false
+  }
+ },
+ "planes": [
+  {
+   "pixels": 8217,
+   "ramp_span_L_removed": 4.62,
+   "ramp_dL_per_100px": [
+    0.67,
+    -10.92
+   ],
+   "edge_band_dL_after": null
+  },
+  {
+   "pixels": 1798,
+   "ramp_span_L_removed": 0.49,
+   "ramp_dL_per_100px": [
+    0.52,
+    -0.35
+   ],
+   "edge_band_dL_after": null
+  },
+  {
+   "pixels": 3262,
+   "ramp_span_L_removed": 5.32,
+   "ramp_dL_per_100px": [
+    -2.35,
+    -3.07
+   ],
+   "edge_band_dL_after": null
+  },
+  {
+   "pixels": 2890,
+   "ramp_span_L_removed": 6.8,
+   "ramp_dL_per_100px": [
+    1.1,
+    -34.34
+   ],
+   "edge_band_dL_after": null
+  },
+  {
+   "pixels": 7142,
+   "ramp_span_L_removed": 6.09,
+   "ramp_dL_per_100px": [
+    -2.7,
+    -3.46
+   ],
+   "edge_band_dL_after": null
+  },
+  {
+   "pixels": 30274,
+   "ramp_span_L_removed": 2.2,
+   "ramp_dL_per_100px": [
+    -0.02,
+    -2.1
+   ],
+   "edge_band_dL_after": 4.57
+  },
+  {
+   "pixels": 40698,
+   "ramp_span_L_removed": 1.8,
+   "ramp_dL_per_100px": [
+    -0.21,
+    -0.96
+   ],
+   "edge_band_dL_after": 1.09
+  }
+ ],
+ "ramp_span_L_removed_max": 6.8,
+ "edge_band_dL_after_mean": 2.83
+}

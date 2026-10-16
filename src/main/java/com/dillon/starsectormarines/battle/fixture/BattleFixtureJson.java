@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.fixture;
 
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.ArmorClass;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
@@ -24,6 +26,7 @@ import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.mech.MechFrame;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolAllowance;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolDeclaration;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
@@ -388,6 +391,7 @@ public final class BattleFixtureJson {
             if (shuttle.airframe instanceof FittedBoat boat) {
                 encoded.put("platingId", boat.plating().id());
                 encoded.put("driveId", boat.drive().id());
+                if (!boat.lift().standard()) encoded.put("liftId", boat.lift().id());
                 // Which of the company's boats this was, when it was one of
                 // theirs at all. A replay of a mission that lost a boat has to
                 // lose the same one, and the fit alone cannot say which of two
@@ -421,6 +425,8 @@ public final class BattleFixtureJson {
                                     BoatFittingSlot.PLATING),
                             BoatFitting.resolve(encoded.optString("driveId", null),
                                     BoatFittingSlot.DRIVE),
+                            BoatFitting.resolve(encoded.optString("liftId", null),
+                                    BoatFittingSlot.LIFT),
                             encoded.optString("boatId", null))
                     : type;
             shuttles.add(new ShuttleAssignment(type, frame, cycles, seats,
@@ -672,6 +678,12 @@ public final class BattleFixtureJson {
                 if (deployment.displayName() != null) {
                     mech.put("displayName", deployment.displayName());
                 }
+                JSONObject frame = new JSONObject();
+                frame.put("armorCapacity", deployment.frame().armorCapacity());
+                frame.put("moveSpeed", deployment.frame().moveSpeed());
+                frame.put("heatCapacity", deployment.frame().heatCapacity());
+                frame.put("coolingPerSecond", deployment.frame().coolingPerSecond());
+                mech.put("frame", frame);
                 deployments.put(mech);
             }
             encoded.put("mechDeployments", deployments);
@@ -690,6 +702,20 @@ public final class BattleFixtureJson {
                 ships.put(frozen);
             }
             encoded.put("ships", ships);
+            if (!commitment.vehicleDeployments().isEmpty()) {
+                JSONArray vehicles = new JSONArray();
+                for (VehicleDeploymentSpec vehicle : commitment.vehicleDeployments()) {
+                    JSONObject frozen = new JSONObject();
+                    frozen.put("type", vehicle.type().name());
+                    putNullable(frozen, "campaignId", vehicle.campaignId());
+                    putNullable(frozen, "callsign", vehicle.callsign());
+                    vehicles.put(frozen);
+                }
+                encoded.put("vehicleDeployments", vehicles);
+            }
+            if (commitment.companyCarrier() != null) {
+                encoded.put("companyCarrier", boatToJson(commitment.companyCarrier()));
+            }
             powers.put(encoded);
         }
         return powers;
@@ -718,6 +744,15 @@ public final class BattleFixtureJson {
                 MechVariant variant = MechVariant.fromId(mech.getString("variantId"));
                 String displayName = mech.has("displayName") && !mech.isNull("displayName")
                         ? mech.getString("displayName") : null;
+                MechFrame frame = null;
+                JSONObject encodedFrame = mech.optJSONObject("frame");
+                if (encodedFrame != null) {
+                    frame = new MechFrame(
+                            (float) encodedFrame.getDouble("armorCapacity"),
+                            (float) encodedFrame.getDouble("moveSpeed"),
+                            (float) encodedFrame.getDouble("heatCapacity"),
+                            (float) encodedFrame.getDouble("coolingPerSecond"));
+                }
                 deployments.add(new MechDeploymentSpec(
                         variant,
                         enumValue(MechRole.class, mech.getString("role"), "mech role"),
@@ -725,7 +760,7 @@ public final class BattleFixtureJson {
                         component(mech, "armsComponentId", variant.arms),
                         component(mech, "leftShoulderComponentId", variant.leftShoulder),
                         component(mech, "rightShoulderComponentId", variant.rightShoulder),
-                        displayName));
+                        displayName, frame));
             }
             List<ShipSupportSource> ships = new ArrayList<>();
             JSONArray encodedShips = encoded.optJSONArray("ships");
@@ -741,10 +776,40 @@ public final class BattleFixtureJson {
                         frozen.getString("shipName"), frozen.getBoolean("tender"), weapons,
                         frozen.has("memberId") && !frozen.isNull("memberId") ? frozen.getString("memberId") : null));
             }
+            List<VehicleDeploymentSpec> vehicles = new ArrayList<>();
+            JSONArray encodedVehicles = encoded.optJSONArray("vehicleDeployments");
+            for (int j = 0; encodedVehicles != null && j < encodedVehicles.length(); j++) {
+                JSONObject frozen = encodedVehicles.getJSONObject(j);
+                vehicles.add(new VehicleDeploymentSpec(
+                        frozen.isNull("campaignId") ? null : frozen.optString("campaignId", null),
+                        frozen.isNull("callsign") ? null : frozen.optString("callsign", null),
+                        enumValue(VehicleType.class, frozen.getString("type"), "vehicle type")));
+            }
+            JSONObject carrier = encoded.optJSONObject("companyCarrier");
             powers.add(new CommandPowerCommitment(
-                    encoded.getString("id"), deployments, ships));
+                    encoded.getString("id"), deployments, ships, vehicles,
+                    carrier != null ? boatFromJson(carrier) : null));
         }
         return List.copyOf(powers);
+    }
+
+    private static JSONObject boatToJson(FittedBoat boat) throws Exception {
+        JSONObject encoded = new JSONObject();
+        encoded.put("type", boat.pattern().name());
+        encoded.put("platingId", boat.plating().id());
+        encoded.put("driveId", boat.drive().id());
+        encoded.put("liftId", boat.lift().id());
+        if (boat.boatId() != null) encoded.put("boatId", boat.boatId());
+        return encoded;
+    }
+
+    private static FittedBoat boatFromJson(JSONObject encoded) throws Exception {
+        return new FittedBoat(
+                enumValue(ShuttleType.class, encoded.getString("type"), "shuttle type"),
+                BoatFitting.resolve(encoded.optString("platingId", null), BoatFittingSlot.PLATING),
+                BoatFitting.resolve(encoded.optString("driveId", null), BoatFittingSlot.DRIVE),
+                BoatFitting.resolve(encoded.optString("liftId", null), BoatFittingSlot.LIFT),
+                encoded.optString("boatId", null));
     }
 
     private static void putNullable(JSONObject object, String key, String value)

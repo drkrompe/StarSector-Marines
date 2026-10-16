@@ -1,0 +1,16 @@
+Shot: a look test for a grounded, photographic science-fiction film. Outside, ground level, late morning on the humid jungle world Jangala. A battered civilian starship has just landed in a private repair cradle at a working spaceport yard. The camera stands on the yard's perimeter walkway, about seven metres up, two hundred metres from the ship, looking at its starboard stern quarter. 16:9 landscape.
+
+Image 1 is the GEOMETRY AND LAYOUT AUTHORITY: a clay render from the real shot camera. Keep the ship's exact silhouette, size, pose and position, the cradle's contact pads and rails under it, the yellow sheltered gantry at right, the low barriers and boxes along the bottom edge, the buildings at far left and the horizon exactly where they are. Do not move, resize, re-pose or crop anything, and do not change the camera.
+Image 2 is the IDENTITY AND DAMAGE MATERIAL reference for this exact ship, Second Wind: terracotta-orange armour tiles, cream and gunmetal repair plates, cratered and torn plating, sheared armour, salvage straps. Copy its materials and the character of its damage onto the clay hull; do not copy its camera angle or its yard.
+Image 3 is MATERIAL AND STYLE REFERENCE ONLY for the film's realism and daylight; do not copy its layout.
+
+What the clay stands for:
+- The terracotta clay hull is Second Wind: an old mining escort, scarred and patched, visibly a wreck but standing level in the cradle. Heat-darkened engine bells at left, cooling.
+- The soft white spheres are vapour: steam venting from the cradle's cooling vents and from the hull near the engines; render as real steam, sunlit and translucent, drifting up and slightly right.
+- The blue-grey slab under the ship is the cradle hardstand: stained concrete, painted bay lines, heavy steel contact pads and rails.
+- The yellow frame at right is a roofed crew gantry with a small jib hoist. Five tiny figures in the open between it and the ship are yard crew in grey coveralls and biofilter masks walking toward the ship; one small figure standing alone near the ship's middle, arms folded, is the yard forewoman. People are tiny at this distance (about twenty pixels tall): no faces.
+- Far left buildings are repair halls. Beyond the yard, a dark line of jungle on the horizon.
+- The bottom boxes are a low yard barrier, a cable reel and a service cart in the foreground.
+
+Light: one sun, high (about 50 degrees), behind the camera and to the LEFT, so the stern and the starboard flank are lit from the left and the light rakes along the damaged flank; shadows fall to the right and away. Hazy humid air, gentle atmospheric perspective.
+Style: photographic, cinematic realism, natural colour, tactile weathered industrial metal, futuristic but lived-in. Not a toy, miniature, low-poly render, painting or cartoon. No text, labels, logos, borders or lens flares.

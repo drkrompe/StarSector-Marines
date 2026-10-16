@@ -138,14 +138,14 @@ class TrenchOccupantCoverTest {
         long shooter = sim.spawn(new EntitySpec("shooter", Faction.MARINE, UnitType.MARINE, TX, ROW - 20));
         BallisticResolver resolver = new BallisticResolver(grid, doodads, sim.getUnitIndex(), sim.getRoster());
         Random rng = new Random(3L);
-        int[] landed = new int[BodyPart.values().length];
+        int[] landed = new int[BodyPlan.INFANTRY.size()];
         for (int i = 0; i < SHOTS; i++) {
             BallisticResolver.Resolution res = resolver.resolve(shooter, target, 1f, 0f, VEL, MAX_RANGE, rng);
-            if (res.victimId() == target) landed[res.victimPart().ordinal()]++;
+            if (res.victimId() == target) landed[res.victimPart().index()]++;
         }
-        assertEquals(0, landed[BodyPart.LEGS.ordinal()], "the legs are below the lip");
-        assertTrue(landed[BodyPart.HEAD.ordinal()] + landed[BodyPart.ARMS.ordinal()]
-                        > landed[BodyPart.TORSO.ordinal()],
+        assertEquals(0, landed[BodyPart.LEGS.index()], "the legs are below the lip");
+        assertTrue(landed[BodyPart.HEAD.index()] + landed[BodyPart.ARMS.index()]
+                        > landed[BodyPart.TORSO.index()],
                 "head and arms take most of what lands: " + Arrays.toString(landed));
     }
 

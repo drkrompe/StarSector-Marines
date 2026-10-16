@@ -108,7 +108,8 @@ public final class EffectsService {
 
     /** A hull-sized, purely visual cook-off followed by three minutes of cooling smoke. */
     public void spawnVehicleWreck(float x, float y, float length, float width) {
-        float scale = Math.max(1f, Math.min(2.5f, (float) Math.sqrt(length * width) * .65f));
+        float size = (float) Math.sqrt(length * width);
+        float scale = Math.max(1f, Math.min(Math.max(2.5f, size * .1f), size * .65f));
         spawnHeavyImpact(x, y, scale);
         smokingWrecks.add(new SmokingWreck((int) Math.floor(x), (int) Math.floor(y),
                 180f, .05f, scale, 24f));
@@ -169,7 +170,8 @@ public final class EffectsService {
         float speed = (float) Math.hypot(vx, vy);
         if (speed < .5f) return;
         float forwardX = vx / speed, forwardY = vy / speed;
-        float scale = Math.max(1.1f, Math.min(2.5f, hullRadius * .65f));
+        // An airframe's fan tops out at 2.5; a hull wreck tens of cells long earns a fan to match.
+        float scale = Math.max(1.1f, Math.min(Math.max(2.5f, hullRadius * .2f), hullRadius * .65f));
         // A hot core follows the actual sliding hull; the other lobes fill the cone, not its outline.
         rollingBlastsThisFrame.add(new RollingBlast(x, y, scale * 1.25f, vx * .8f, vy * .8f));
         for (int lobe = 0; lobe < 4; lobe++) {

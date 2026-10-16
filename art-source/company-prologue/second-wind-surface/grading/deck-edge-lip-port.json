@@ -1,0 +1,63 @@
+{
+ "part": "deck-edge-lip-port",
+ "regions": {
+  "gunmetal": {
+   "pixels": 16248,
+   "share_as_declared": 0.931,
+   "share_in_declared_family": 0.979,
+   "came_back_as": {
+    "gunmetal": 0.931,
+    "pale": 0.041
+   },
+   "swap": false,
+   "before_mean_lab": [
+    46.53,
+    1.07,
+    1.7
+   ],
+   "after_mean_lab": [
+    46.45,
+    1.05,
+    1.83
+   ],
+   "gain_L_a_b": [
+    1.33,
+    0.801,
+    0.882
+   ],
+   "dE_to_palette_before": 0.16,
+   "forced_back_to_declared": false
+  }
+ },
+ "planes": [
+  {
+   "pixels": 4160,
+   "ramp_span_L_removed": 1.38,
+   "ramp_dL_per_100px": [
+    0.26,
+    -5.01
+   ],
+   "edge_band_dL_after": null
+  },
+  {
+   "pixels": 3504,
+   "ramp_span_L_removed": 3.75,
+   "ramp_dL_per_100px": [
+    -0.93,
+    -13.42
+   ],
+   "edge_band_dL_after": null
+  },
+  {
+   "pixels": 2576,
+   "ramp_span_L_removed": 3.59,
+   "ramp_dL_per_100px": [
+    1.79,
+    -3.5
+   ],
+   "edge_band_dL_after": null
+  }
+ ],
+ "ramp_span_L_removed_max": 3.75,
+ "edge_band_dL_after_mean": null
+}

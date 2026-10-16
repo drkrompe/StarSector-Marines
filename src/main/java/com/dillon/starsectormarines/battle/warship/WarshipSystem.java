@@ -441,6 +441,8 @@ public final class WarshipSystem {
                 }
             }
         }
+        // Hulls do not pass through one another, friend or foe.
+        WarshipSpacing.separate(ships);
         ships.removeIf(Warship::departed);
         pointDefence.ageMarks(dt);
         interceptables.clear();
@@ -949,13 +951,34 @@ public final class WarshipSystem {
         }
         if (!ship.hasStation()) return;
         ship.advanceRoute(ROUTE_PASS_RADIUS);
-        float dx = ship.stationX() - ship.x;
-        float dy = ship.stationY() - ship.y;
+        float tx = ship.stationX();
+        float ty = ship.stationY();
+        List<Warship> fleet = sim.warships().ships();
+        boolean keepsClear = keepsClear(ship);
+        if (keepsClear) {
+            // A ship fighting hulls or screening keeps its own beam of open air from every friendly hull.
+            float[] clear = WarshipSpacing.clearStation(ship, fleet, tx, ty);
+            // A station the mission or helm kept on the map stays on it once cleared.
+            float w = sim.getGrid().getWidth();
+            float h = sim.getGrid().getHeight();
+            float margin = 0.5f * ship.lengthCells;
+            if (tx >= margin && tx <= w - margin) clear[0] = Math.max(margin, Math.min(w - margin, clear[0]));
+            if (ty >= margin && ty <= h - margin) clear[1] = Math.max(margin, Math.min(h - margin, clear[1]));
+            tx = clear[0];
+            ty = clear[1];
+        }
+        float dx = tx - ship.x;
+        float dy = ty - ship.y;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
         float speed = ship.isPassingThrough() ? ship.maxSpeed
                 : Math.min(ship.maxSpeed, (float) Math.sqrt(2f * ship.deceleration * dist));
         float wantX = dist > 0f ? dx / dist * speed : 0f;
         float wantY = dist > 0f ? dy / dist * speed : 0f;
+        if (keepsClear) {
+            float[] bent = WarshipSpacing.avoid(ship, fleet, wantX, wantY);
+            wantX = bent[0];
+            wantY = bent[1];
+        }
         float ax = wantX - ship.velocityX;
         float ay = wantY - ship.velocityY;
         float change = (float) Math.sqrt(ax * ax + ay * ay);
@@ -971,8 +994,8 @@ public final class WarshipSystem {
         float stepX = ship.velocityX * dt;
         float stepY = ship.velocityY * dt;
         if (dist <= (float) Math.sqrt(stepX * stepX + stepY * stepY) && speed < allowed * 2f) {
-            ship.x = ship.stationX();
-            ship.y = ship.stationY();
+            ship.x = tx;
+            ship.y = ty;
             ship.velocityX = 0f;
             ship.velocityY = 0f;
         } else {
@@ -980,6 +1003,15 @@ public final class WarshipSystem {
             ship.y += stepY;
         }
         enforceLowHoverClearance(sim, ship, beforeX, beforeY);
+    }
+
+    /**
+     * Whether a ship's helm keeps clear of friendly hulls: one fighting a hull with its duel helm, or escorting. A
+     * ship on a mission station, a route or a pass is placed where the mission wants it.
+     */
+    private static boolean keepsClear(Warship ship) {
+        if (ship.piloted() || ship.isPassingThrough() || ship.lowPass() != null || ship.lowHovering()) return false;
+        return (ship.hullTarget() != null && ship.duelHelm()) || WarshipEscort.liveLead(ship) != null;
     }
 
     private static void enforceLowHoverClearance(BattleSimulation sim, Warship ship, float x, float y) {
@@ -1197,25 +1229,27 @@ public final class WarshipSystem {
             float before = wreck.seconds();
             WarshipWreck.Step step = wreck.advance(dt);
             Warship ship = wreck.ship;
-            float radius = 0.5f * Math.max(ship.lengthCells, ship.widthCells);
+            float tally = wreck.crushRadius() + GROUND_TALLY_MARGIN_CELLS;
             switch (step) {
                 case FALLING -> {
                     if ((int) (before / WRECK_FIRE_PERIOD_SECONDS) != (int) (wreck.seconds() / WRECK_FIRE_PERIOD_SECONDS)) {
-                        sim.spawnFallingWreckFire(ship.x, ship.y, Math.max(2f, radius * 0.6f));
+                        float drawn = 0.5f * Math.max(ship.lengthCells, ship.widthCells) * wreck.bodyScale();
+                        sim.spawnFallingWreckFire(ship.x, ship.y, Math.max(2f, drawn * 0.6f));
                     }
                 }
                 case STRUCK -> {
                     ledger.struck(ship, ship.x, ship.y);
                     if (onMap(sim, ship.x, ship.y)) {
-                        Map<Long, Float> under = groundNear(sim, ship.x, ship.y, WRECK_TALLY_RADIUS_CELLS);
-                        sim.crashWreck(wreck.key, ship.x, ship.y, ship.faction, radius, ship.velocityX, ship.velocityY);
+                        Map<Long, Float> under = groundNear(sim, ship.x, ship.y, tally);
+                        sim.crashHullWreck(wreck.key, ship.x, ship.y, ship.faction, wreck.crushRadius(), wreck.skidRadius(),
+                                ship.velocityX, ship.velocityY);
                         tallyGround(sim, under, WarshipDuelLedger.Cause.WRECKAGE);
                         cue(WarshipSoundCue.Kind.IMPACT, ARRIVAL_SETTLE_SOUND, ship.x, ship.y);
                     }
                 }
                 case SKIDDING, CAME_TO_REST -> {
                     if (onMap(sim, ship.x, ship.y)) {
-                        Map<Long, Float> under = groundNear(sim, ship.x, ship.y, WRECK_TALLY_RADIUS_CELLS);
+                        Map<Long, Float> under = groundNear(sim, ship.x, ship.y, tally);
                         sim.skidWreck(wreck.key, ship.x, ship.y, step == WarshipWreck.Step.CAME_TO_REST);
                         tallyGround(sim, under, WarshipDuelLedger.Cause.WRECKAGE);
                     }
@@ -1290,13 +1324,6 @@ public final class WarshipSystem {
 
     /** Cells beyond a blast's own radius within which the duel ledger looks for whom it hurt. */
     private static final float GROUND_TALLY_MARGIN_CELLS = 1.5f;
-
-    /**
-     * How far from a wreck the duel ledger looks for whom its strike or skid hurt. The crash machinery's own crush is
-     * wider than the hull (up to eight cells) and its skid sweeps the ground covered since the last tick, so this
-     * is a generous bound; only units whose hit points actually fell across the call are counted.
-     */
-    private static final float WRECK_TALLY_RADIUS_CELLS = 10f;
 
     /** The live ground units within {@code radius} of {@code (x, y)}, with their hit points, for the duel ledger. */
     private static Map<Long, Float> groundNear(BattleSimulation sim, float x, float y, float radius) {

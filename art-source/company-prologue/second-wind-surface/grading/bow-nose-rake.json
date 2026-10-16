@@ -1,0 +1,72 @@
+{
+ "part": "bow-nose-rake",
+ "regions": {
+  "cream": {
+   "pixels": 88165,
+   "share_as_declared": 0.955,
+   "share_in_declared_family": 0.955,
+   "came_back_as": {
+    "cream": 0.955,
+    "gunmetal": 0.033
+   },
+   "swap": false,
+   "before_mean_lab": [
+    85.83,
+    1.61,
+    11.85
+   ],
+   "after_mean_lab": [
+    77.97,
+    1.64,
+    11.4
+   ],
+   "gain_L_a_b": [
+    1.33,
+    1.017,
+    0.962
+   ],
+   "dE_to_palette_before": 7.92,
+   "forced_back_to_declared": false
+  },
+  "oxide": {
+   "pixels": 45759,
+   "share_as_declared": 0.941,
+   "share_in_declared_family": 0.941,
+   "came_back_as": {
+    "oxide": 0.941,
+    "gunmetal": 0.05
+   },
+   "swap": false,
+   "before_mean_lab": [
+    53.41,
+    29.6,
+    38.26
+   ],
+   "after_mean_lab": [
+    51.17,
+    18.92,
+    27.77
+   ],
+   "gain_L_a_b": [
+    1.33,
+    0.639,
+    0.726
+   ],
+   "dE_to_palette_before": 15.12,
+   "forced_back_to_declared": false
+  }
+ },
+ "planes": [
+  {
+   "pixels": 138402,
+   "ramp_span_L_removed": 0.67,
+   "ramp_dL_per_100px": [
+    0.01,
+    -0.22
+   ],
+   "edge_band_dL_after": -15.11
+  }
+ ],
+ "ramp_span_L_removed_max": 0.67,
+ "edge_band_dL_after_mean": -15.11
+}

@@ -321,7 +321,7 @@ about 5 seconds.
 |---|---|
 | Space plate (`space-approach/`) | C1's planet layer. Regenerate wider, at plate resolution; add the station, battlegroup and traffic layers. |
 | Forest reveal (`forest-reveal-realism/`, approved realism still) | C3, nearly as is. Split into depth layers. |
-| Cabin window frame (`realism-lookdev/`) | Fixed foreground for C2, C3, C4 and the entry transition. One frame throughout. |
+| Cabin window frame: the orange-and-cream cabin of `forest-reveal-realism/` and `entry-window/` (owner's choice, 2026-10-16) | Fixed foreground for C2, C3, C4 and the entry transition. One frame throughout: one cabin model and one palette, rendered from each shot's own camera, so a change of tilt is a re-render rather than a repaint. The grey `realism-lookdev/` window is retired as a frame; its landscape still remains a style reference. |
 | Damaged ship (`second-wind-full-surface/`) | Cut-out renders for C1 (space) and C5 (in the cradle). |
 | Fields and port blockouts (`managed-land-realism/`, `port-refinement/`) | Layout guides only, for C4's panorama under the geometry-first ImageGen workflow. The current renders read as greybox and are not used as final art. |
 | Landing scenes (`landing-wreck-pass/`, `landing-refinement/`) | C5's framing and cradle reference. The descent motion is retired. |

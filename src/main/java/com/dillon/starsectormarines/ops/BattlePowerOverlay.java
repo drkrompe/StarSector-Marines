@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.campaign.CampaignCommodityPresentation;
 import com.dillon.starsectormarines.ui.retained.UiAlign;
@@ -16,6 +17,7 @@ import com.fs.starfarer.api.ui.PositionAPI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 import java.util.function.Supplier;
 
 /** Host bridge for the compact MLX-authored command-power tray. */
@@ -26,6 +28,11 @@ final class BattlePowerOverlay {
             "data/ui/components/battle/battle-power-overlay.mlx";
     static final float DECK_HEIGHT = 64f;
     static final float TARGETING_HEIGHT = 88f;
+    /** Added above the targeting strip while Mech Support's bay picker is open. */
+    static final float PICKER_HEIGHT = 61f;
+    private static final float CHIP_WIDTH = 128f;
+    private static final float CHIP_GAP = 4f;
+    private static final float PICKER_PADDING = 16f;
     private static final float RESOURCE_WIDTH = 96f;
     private static final float CARD_WIDTH = 146f;
     private static final float GAP = 5f;
@@ -37,6 +44,7 @@ final class BattlePowerOverlay {
             path -> Global.getSettings().loadText(path), List.of(COMPONENT_PATH));
     private final BattlePowerOverlayModel model;
     private final Supplier<String> targetingPowerId;
+    private final Supplier<List<MechSupport.PickerRow>> pickerRows;
 
     private PositionAPI position;
     private UiViewport viewport;
@@ -49,16 +57,27 @@ final class BattlePowerOverlay {
 
     BattlePowerOverlay(Consumer<String> targetingToggle,
                        Supplier<String> targetingPowerId) {
-        model = new BattlePowerOverlayModel(reactor, targetingToggle,
+        this(targetingToggle, targetingPowerId, List::of, index -> { });
+    }
+
+    /**
+     * @param pickerRows the armed Mech Support's bay manifest against its pick (empty otherwise)
+     * @param pickToggle toggles one manifest entry in that pick
+     */
+    BattlePowerOverlay(Consumer<String> targetingToggle,
+                       Supplier<String> targetingPowerId,
+                       Supplier<List<MechSupport.PickerRow>> pickerRows,
+                       IntConsumer pickToggle) {
+        model = new BattlePowerOverlayModel(reactor, targetingToggle, pickToggle,
                 CampaignCommodityPresentation.INSTANCE);
         this.targetingPowerId = targetingPowerId;
+        this.pickerRows = pickerRows;
     }
 
     void attach(PositionAPI nextPosition, BattleSimulation sim) {
         position = nextPosition;
-        presentation = model.update(sim == null ? null : sim.getCommandPowerService(),
-                targetingPowerId.get(), sim != null && sim.orbitalBarrageLock() != null);
-        viewport = viewport(nextPosition, presentation.powerCount(), presentation.targeting());
+        presentation = project(sim);
+        viewport = viewport(nextPosition, presentation);
         if (document == null) installDocument();
         else document.layout(viewport.documentWidth(), viewport.documentHeight());
         input = new StarsectorUiInputAdapter(document, viewport);
@@ -70,7 +89,7 @@ final class BattlePowerOverlay {
         UiDocument built;
         try {
             for (String id : List.of("battle-power-overlay", "battle-power-targeting",
-                    "battle-power-targeting-label", "battle-power-deck",
+                    "battle-power-targeting-label", "battle-power-picker", "battle-power-deck",
                     "battle-power-resources", "battle-power-cp",
                     "battle-power-cp-fill", "battle-power-supplies",
                     "battle-power-supplies-icon",
@@ -91,18 +110,23 @@ final class BattlePowerOverlay {
     }
 
     void update(float realDt, BattleSimulation sim) {
-        BattlePowerOverlayModel.Presentation next = model.update(
-                sim == null ? null : sim.getCommandPowerService(), targetingPowerId.get(),
-                sim != null && sim.orbitalBarrageLock() != null);
+        BattlePowerOverlayModel.Presentation next = project(sim);
         if (markupInstance != null) markupInstance.flush();
         if ((next.powerCount() != presentation.powerCount()
-                || next.targeting() != presentation.targeting()) && position != null) {
-            viewport = viewport(position, next.powerCount(), next.targeting());
+                || next.targeting() != presentation.targeting()
+                || next.pickerChips() != presentation.pickerChips()) && position != null) {
+            viewport = viewport(position, next);
             document.layout(viewport.documentWidth(), viewport.documentHeight());
             input = new StarsectorUiInputAdapter(document, viewport);
         }
         presentation = next;
         if (document != null) document.advance(realDt);
+    }
+
+    private BattlePowerOverlayModel.Presentation project(BattleSimulation sim) {
+        return model.update(sim == null ? null : sim.getCommandPowerService(),
+                targetingPowerId.get(), sim != null && sim.orbitalBarrageLock() != null,
+                sim == null ? List.of() : pickerRows.get());
     }
 
     void render(float alphaMult) {
@@ -143,6 +167,22 @@ final class BattlePowerOverlay {
                 + count * CARD_WIDTH + (count - 1) * GAP;
     }
 
+    /** Width of a bay picker holding {@code chips} chips (zero when there is none). */
+    static float pickerWidth(int chips) {
+        if (chips <= 0) return 0f;
+        return PICKER_PADDING + chips * CHIP_WIDTH + (chips - 1) * CHIP_GAP;
+    }
+
+    static float documentWidth(BattlePowerOverlayModel.Presentation presentation) {
+        return Math.max(documentWidth(presentation.powerCount()),
+                pickerWidth(presentation.pickerChips()));
+    }
+
+    static float documentHeight(BattlePowerOverlayModel.Presentation presentation) {
+        if (!presentation.targeting()) return DECK_HEIGHT;
+        return presentation.picking() ? TARGETING_HEIGHT + PICKER_HEIGHT : TARGETING_HEIGHT;
+    }
+
     /** CSS has no item-alignment property yet; keep the CP fill left-anchored. */
     static void wireLayout(MarkupInstance instance) {
         instance.requireElement("battle-power-cp-fill")
@@ -150,11 +190,14 @@ final class BattlePowerOverlay {
     }
 
     static UiViewport viewport(PositionAPI position, int powerCount, boolean targeting) {
+        return viewport(position, new BattlePowerOverlayModel.Presentation(true, powerCount, targeting));
+    }
+
+    static UiViewport viewport(PositionAPI position, BattlePowerOverlayModel.Presentation presentation) {
         UiViewport host = MarineOpsUiViewport.from(position);
         float scale = host.documentScale();
-        float width = documentWidth(powerCount) * scale;
-        float documentHeight = targeting ? TARGETING_HEIGHT : DECK_HEIGHT;
-        float height = documentHeight * scale;
+        float width = documentWidth(presentation) * scale;
+        float height = documentHeight(presentation) * scale;
         return new UiViewport(position.getX() + (position.getWidth() - width) * 0.5f,
                 position.getY() + BOTTOM_INSET, width, height, scale);
     }

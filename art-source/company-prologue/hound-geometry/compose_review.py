@@ -22,6 +22,9 @@ BG = (222, 223, 223)
 parser = argparse.ArgumentParser()
 parser.add_argument('--dir', default=str(HERE))
 parser.add_argument('--sprite', default=str(GAME_SPRITE))
+parser.add_argument('--before', default='reference-history/v2-detail',
+                    help='snapshot folder (relative to this one) for the before/after sheet')
+parser.add_argument('--compare', default='pass3-before-after.png')
 args = parser.parse_args()
 src = Path(args.dir)
 manifest = json.loads((src/'geometry.json').read_text(encoding='utf-8'))
@@ -86,14 +89,18 @@ manifest['silhouette'] = {'iou': round(float(iou), 4), 'sprite_uncovered': round
                                     f'top camera frame at {k:.2f} px per unit'}
 (src/'geometry.json').write_text(json.dumps(manifest, indent=2)+'\n', encoding='utf-8')
 
-# Review sheet: four views at half size.
+print(f'IoU {iou:.4f}  uncovered {missing:.3%}  outside {extra:.3%}')
+
+# Review sheet: four views at half size (skipped unless all four exist).
 sheet = Image.new('RGB', (1920, 1080), BG)
 draw = ImageDraw.Draw(sheet)
-draw.text((28, 15), 'HOUND (A) / GEOMETRY BLOCKOUT', font=font(32), fill=(39, 49, 55))
-draw.text((28, 55), 'HEGEMONY AUXILIARY COMBAT FREIGHTER  |  BRIDGE CAPSULE  |  GUN FORK  |  TWO DRIVE PODS',
+draw.text((28, 15), 'HOUND (A) / GEOMETRY PASS 2 - PLAUSIBLE DETAIL', font=font(32), fill=(39, 49, 55))
+draw.text((28, 55), 'HEGEMONY AUXILIARY COMBAT FREIGHTER  |  CAGED BRIDGE CAPSULE  |  GUN FORK  |  NAVAL TURRET  |  TWO DRIVE PODS',
           font=font(19), fill=(72, 81, 88))
 panels = [('top-overlay', 'TOP OVER SPRITE / BOW LEFT - PORT BELOW'), ('three-quarter', 'PORT BOW QUARTER'),
           ('port-side', 'PORT SIDE / BOW LEFT'), ('front', 'BOW')]
+if not all((src/(n+'.png')).exists() for n, _ in panels):
+    raise SystemExit('review sheet skipped: not every standard view was rendered')
 for (name, label), (x, y) in zip(panels, [(0, 92), (960, 92), (0, 580), (960, 580)]):
     im = Image.open(src/(name+'.png')).convert('RGB').resize((960, 540), Image.LANCZOS).crop((0, 50, 960, 490))
     sheet.paste(im, (x, y))
@@ -101,4 +108,24 @@ for (name, label), (x, y) in zip(panels, [(0, 92), (960, 92), (0, 580), (960, 58
 draw.text((28, 1050), f'Slots and engines from hound.ship; heights proposed. Silhouette IoU {iou:.3f}. Geometry review only.',
           font=font(17), fill=(72, 81, 88))
 sheet.save(src/'hound-geometry.reference.png', optimize=True)
-print(f'IoU {iou:.4f}  uncovered {missing:.3%}  outside {extra:.3%}')
+
+# Before/after close-ups against a reference-history snapshot, for every
+# close-up both sides have.
+before = HERE/args.before
+DETAILS = ['bow-detail', 'bridge-detail', 'fork-detail', 'turret-detail', 'engine-detail', 'stern-detail',
+           'wheelhouse-detail', 'underside-aft']
+pairs = [n for n in DETAILS if (before/(n+'.png')).exists() and (src/(n+'.png')).exists()]
+if pairs:
+    cmp = Image.new('RGB', (1920, 1080), BG)
+    d = ImageDraw.Draw(cmp)
+    rows = (len(pairs)+1)//2
+    ch = min(270, (1080-40)//rows-28)
+    cw = round(ch*16/9)
+    for i, n in enumerate(pairs):
+        x, y = (i % 2)*960, 40+(i//2)*(ch+28)
+        for j, folder in enumerate((before, src)):
+            im = Image.open(folder/(n+'.png')).convert('RGB').resize((cw, ch), Image.LANCZOS)
+            cmp.paste(im, (x+j*cw, y))
+        d.text((x+8, y+ch+3), f'{n.upper()}   before | after', font=font(18), fill=(39, 49, 55))
+    d.text((12, 8), f'HOUND (A) / BEFORE ({before.name}) | AFTER - same cameras', font=font(24), fill=(39, 49, 55))
+    cmp.save(src/args.compare, optimize=True)

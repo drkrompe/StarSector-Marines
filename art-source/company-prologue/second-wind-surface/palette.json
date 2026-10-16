@@ -1,0 +1,111 @@
+{
+ "source": "reference/finish-reference.png registered by its own fit (iou_refined_affine, IoU 0.994)",
+ "space": "CIELAB D65",
+ "classes": {
+  "cream": {
+   "pixels": 24126,
+   "mean": [
+    77.97,
+    1.64,
+    11.4
+   ],
+   "std": [
+    12.78,
+    1.49,
+    2.52
+   ],
+   "L_p10_p50_p90": [
+    61.44,
+    79.52,
+    91.31
+   ],
+   "mean_srgb": [
+    204.7,
+    191.0,
+    171.8
+   ]
+  },
+  "oxide": {
+   "pixels": 102585,
+   "mean": [
+    51.17,
+    18.92,
+    27.77
+   ],
+   "std": [
+    11.05,
+    6.26,
+    9.03
+   ],
+   "L_p10_p50_p90": [
+    35.01,
+    53.42,
+    62.57
+   ],
+   "mean_srgb": [
+    165.4,
+    108.6,
+    75.3
+   ]
+  },
+  "gunmetal": {
+   "pixels": 184780,
+   "mean": [
+    46.45,
+    1.05,
+    1.83
+   ],
+   "std": [
+    10.72,
+    1.76,
+    3.38
+   ],
+   "L_p10_p50_p90": [
+    31.49,
+    48.61,
+    57.28
+   ],
+   "mean_srgb": [
+    113.3,
+    109.4,
+    107.0
+   ]
+  },
+  "dark": {
+   "pixels": 57306,
+   "mean": [
+    18.79,
+    0.08,
+    -0.29
+   ],
+   "std": [
+    6.22,
+    0.62,
+    1.0
+   ],
+   "L_p10_p50_p90": [
+    12.64,
+    17.94,
+    27.63
+   ],
+   "mean_srgb": [
+    45.6,
+    45.7,
+    46.1
+   ]
+  },
+  "pale": {
+   "derived": "not on the finish reference (the grapple arm is its only material): cream lightness, gunmetal chroma and spread",
+   "mean": [
+    73.97,
+    1.05,
+    1.83
+   ],
+   "std": [
+    10.224,
+    1.76,
+    3.38
+   ]
+  }
+ }
+}

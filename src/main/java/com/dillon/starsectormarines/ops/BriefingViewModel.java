@@ -390,6 +390,7 @@ final class BriefingViewModel {
                     : "The company needs at least one boat aboard its host ship to deploy.";
         } else {
             ShuttleType type = boats.get(0).pattern();
+            List<FittedBoat> seated = DetachmentResolver.seatedBoats(boats);
             List<ShuttleAssignment> manifest = DetachmentResolver.buildShuttleManifestForPersonnel(
                     mission, boats, selectedPersonnel);
             List<ShuttleAssignment> player = manifest.subList(
@@ -397,12 +398,17 @@ final class BriefingViewModel {
             int trips = player.stream().mapToInt(assignment -> assignment.cycles).sum();
             title = type.displayName();
             image = type.spritePath;
-            capacity = boats.size() + " available  ·  "
+            capacity = seated.size() + " available  ·  "
                     + mission.marineArrivalPolicy.seatsPerSortie(type) + " seats / boat trip";
             schedule = trips + (trips == 1 ? " boat trip planned" : " boat trips planned");
-            note = player.size() + " of " + boats.size() + " available boats assigned. "
+            note = player.size() + " of " + seated.size() + " available boats assigned. "
                     + "Each trip is one boat landing; boats return and repeat as needed. "
                     + "Employer trips are listed separately.";
+            String cradled = LiftReadout.cradledNote(boats);
+            if (cradled != null) {
+                note = note + " " + cradled;
+                if (seated.isEmpty()) tone = "tone-danger";
+            }
         }
         String origin = local ? "Local support" : debug ? "DEBUG override"
                 : carrier == null ? "Company ship" : "Aboard " + carrier;

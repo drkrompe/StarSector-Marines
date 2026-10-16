@@ -4,7 +4,8 @@ Status: ACTIVE — fleet-sourced availability, pre-battle commitment, and simula
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — Air Strike: a side's regenerating bomber/fighter pool, directed by comms operators (a pool request, not a card with charges).
+Updated: 2026-10-16 — Mech Support is an armor drop: a pick from the frozen bay manifest per call, paced by cooldown, bounded by mission lift.
+Earlier 2026-10-14 — Air Strike: a side's regenerating bomber/fighter pool, directed by comms operators (a pool request, not a card with charges).
 Earlier 2026-10-14 — Close Air Support: a committed Mudskipper is the source of a called gunship that circles overhead of targeted ground (law 9 gives it no campaign bridge).
 Earlier 2026-10-13 — Ship on Station delivers its own writeback bridge (law 9); the compact battle tray identifies its campaign-backed sources.
 Supplies pool with the base-game commodity icon resolved from the live spec.
@@ -76,11 +77,20 @@ commitment.
 - **Recon Ping** projects a temporary circular vision source through the
   existing fog seam. Sensor/survey fittings and the Apogee are player sources;
   an employer may offer the same capability.
-- **Mech Support** calls a shootable heavy transport that physically unloads a
-  mech lance through the ordinary air-delivery and landed-roster paths.
+- **Mech Support** calls the company's armor down from its ship's bay: arming
+  the card opens a picker over the frozen bay manifest (mechs and vehicles), the
+  player picks which machines come down on this call, and shootable carriers
+  unload only those through the ordinary air-delivery and landed-roster paths.
+  A cooldown paces the calls instead of charges; the mission's lift budget bounds
+  what reaches the ground, and an entry it cannot lift is disabled with the
+  reason (`mechs-nouns.md`, armor drop). The pick travels with the activation
+  request, and the simulation revalidates it before anything is spent.
   Valkyries and ground-support fittings are production sources. The production
   power remains Bulwark-only; mixed specialist lances are explicitly debug
-  iteration support. A **commander-called mech drop** is the same delivery paid from a mission allowance instead
+  iteration support. Sources decide who may call; lift decides who flies: a
+  committed cradled company boat that lifts the call flies it in place of the
+  synthetic Valkyrie when a fleet ship is the source, while employer and story
+  lift stay synthetic. Armour Support flies the same way (`air-nouns.md`, Lift). A **commander-called mech drop** is the same delivery paid from a mission allowance instead
   of command points: see `mechs-nouns.md` and `reinforcement-nouns.md`; it is not a command power and the player's
   power is unchanged.
 - **Emergency Resupply** calls a vulnerable utility shuttle that leaves a
@@ -108,7 +118,7 @@ commitment.
 4. A deck can slot only available powers and must satisfy its budget at selection and again at launch. Unknown, stale, or over-budget selections never enter the battle roster.
 5. The battle's power roster is frozen at launch and contains no campaign fleet objects. Battle code must not rescan or mutate the campaign fleet to discover a power.
 6. UI targeting never spends or resolves a power directly. The simulation owns target validation, payment, cooldown/charge updates, and effect resolution in one activation lifecycle.
-7. Current in-battle pacing is command points plus per-power cooldowns and charges. Current campaign consumption is supplies paid at activation where a power declares it; slotting itself is not a second resource charge.
+7. Current in-battle pacing is command points plus per-power cooldowns and charges; a power that paces itself by what it still holds (Mech Support: machines aboard) reports that count in place of charges. Current campaign consumption is supplies paid at activation where a power declares it; slotting itself is not a second resource charge.
 8. A fleet capability must pass the projection lens: it either becomes a plausible ground-op ability or materially scales one. Hull-survival flavor alone is not sufficient.
 9. Committed physical support and its possible risk are distinct from the power abstraction. Crew loss, CR attrition, asset retirement, air-defense contesting, and catastrophic loss require their own delivered battlefield/campaign bridge; they are not implied by selecting a card today. Ship on Station is the delivered bridge for its own risk: hull damage and CR attrition (a destroyed ship returns crippled) are written to the committed member through settlement (`ship-support.md`); other powers still have none.
 

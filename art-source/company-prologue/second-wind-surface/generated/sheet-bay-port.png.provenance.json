@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a14641-b38d-7382-85d1-4936c23245bf",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a14641-b38d-7382-85d1-4936c23245bf\\exec-6e5d32a4-49df-4478-a500-5f47bb3b78b7.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-surface\\generated\\sheet-bay-port.png",
+    "sha256": "15464d8592342a600a6fd592e799b605cce65ff05107bcecea678660284def66",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-surface\\prompts\\sheet-bay-port.prompt.txt",
+  "promptSha256": "00f87fdd779d08782017e428f473b05a1a6824007e4fa69ca728056d29c837e2",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: layout authority: the four shapes, their outlines, positions and colours\nImage 2: INPUT 2: material/finish only, never layout\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of single faces of one 3D spacecraft (a battered industrial freighter) around its open side boat bay, each seen square-on and drawn alone as a flat-coloured shape on a plain light grey background:\ntop-left: the bay's interior back wall, a wide dark charcoal machinery bulkhead seen straight through the bay opening;\ntop-right: the frame round the bay opening: thin chalky cream coaming bars along the top and bottom and thin cream jambs at the sides, forming a hollow rectangle, with a dark gunmetal structural buttress pillar standing at each end (the middle of the rectangle is empty background and must stay plain grey; the four tiny black squares at the frame corners stay black);\nbottom-left: the bay's level deck floor plate, top face, dark gunmetal steel deck;\nbottom-right: the gunmetal davit head box above the bay, side face (a stepped block with a raked top).\nINPUT 2 is the SAME ship's port side, already painted: it is the finish to match. Use its paint colours, wear density, chipping, grime, seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four faces in INPUT 1 as that worn industrial hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole in a shape stays plain background grey.\n- Each shape is a flat steel surface. Add painted surface detail inside its outline only: plate seams and welded joints, rows of fasteners and rivets, flush access panels and service hatches, scuffed and lightly chipped paint, a thin even film of grime. The back wall may carry flush conduit runs, stencil-free panel grids and recessed fastener rows; the floor may carry flat tread plate and flush tie-down rails. Nothing may stand out from the surface or cross the outline.\n- Keep each shape's colour: the back wall stays dark charcoal machinery grey, the cream frame bars stay chalky cream armour paint, the buttresses, floor and davit head stay dark gunmetal steel. Do not repaint any shape another colour, and do not add white, orange or different-coloured patches or repair plates.\n- Weathering is light and even across each whole shape. No soot, scorch marks, burns, rust streaks, impact damage, dents, holes, large stains, hazard stripes, text or any single concentrated area of wear: those are added separately later.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\second-wind-surface\\guide\\sheet-bay-port-guide.png",
+      "sha256": "9d21e3c3e8945a73a7e4bd0949e6cd48f0437aff769ca32fbb9c36cdce05e87f",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: layout authority: the four shapes, their outlines, positions and colours"
+    },
+    {
+      "path": "art-source\\company-prologue\\second-wind-surface\\reference\\finish-reference.png",
+      "sha256": "cee363a918c8013b9aee282642caca6d825349e8b09adedcd5ad74f0926f76d7",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: material/finish only, never layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to apply the worn finish while preserving the four shapes and their layout."
+  ],
+  "usage": {
+    "input_tokens": 86447,
+    "cached_input_tokens": 65920,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 807,
+    "reasoning_output_tokens": 15
+  },
+  "elapsedSeconds": 56.0
+}
