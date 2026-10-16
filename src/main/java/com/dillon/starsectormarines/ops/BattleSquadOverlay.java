@@ -91,7 +91,8 @@ final class BattleSquadOverlay {
                 "battle-squad-fireteams", "battle-squad-tooltip",
                 "battle-squad-tooltip-title", "battle-squad-tooltip-team",
                 "battle-squad-tooltip-primary", "battle-squad-tooltip-special",
-                "battle-squad-tooltip-system", "battle-squad-tooltip-profile")) {
+                "battle-squad-tooltip-system", "battle-squad-tooltip-profile",
+                "battle-squad-tooltip-record")) {
             instance.requireElement(id);
         }
     }

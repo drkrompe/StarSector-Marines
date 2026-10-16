@@ -1332,6 +1332,17 @@ the officer dossier, and a trait with no mechanic says so rather than claiming
 one; outlook traits read as character. Retained screens assign their compact text
 faces by role (heading, body, compact) rather than one display face everywhere.
 
+**The battle squad panel says who is doing the work.** Hovering a marine's card
+in the selected-squad panel shows a running line for this mission: rounds landed
+out of rounds fired, kills, damage dealt, and what the marine is doing now. That
+status reads only state the simulation already keeps: *engaged* while the marine
+holds a target, *wounded* below full health, otherwise *holding*. There is no
+per-marine suppression state, so the panel does not invent one. The marine with
+the most kills (then most damage) carries a warm mark on their card. Nobody is
+marked until someone has landed a round, so the mark never names a marine for
+doing nothing. The record is mission telemetry read after the tick and refreshed
+while the card stays hovered; it never feeds back into the fight.
+
 Avoid stacking redundant
 battlefield overlays; start with the closest decision surface and add in-world
 signal only when it materially improves play.
