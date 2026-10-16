@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.mech;
 /** Battle-owned shared thermal reservoir. Control handback never resets it. */
 public final class MechHeat {
     public static final float CAPACITY = 100f;
-    public static final float COOLING_PER_SECOND = 8f;
+    public static final float COOLING_PER_SECOND = 6f;
     public static final float WARNING = 75f;
     private float heat;
     private boolean venting;

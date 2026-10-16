@@ -714,7 +714,9 @@ A new chassis requires a distinct information or combat doctrine and a real
 capability it gives up; hardware variety alone does not earn another variant.
 
 General salvage acquisition, engine cores, ammunition modules, wider recipe unlock progression,
-and chassis recovery still belong to future progression and economy authority.
+and chassis recovery still belong to future progression and economy authority;
+`heavy-equipment-progression.md` sets their direction (learned patterns, built
+assemblies, lift classes).
 The current Mech Lab owns a bounded workshop catalog: registered weapon and chassis
 patterns, typed capacity checks, finite component stores, and atomic player-cargo
 fabrication. It does not imply that future salvage or markets should bypass those
@@ -748,9 +750,11 @@ simulation uses; it does not choose stats or doctrine.
 
 ## Thermal reservoir and weapon mechanisms
 
-The battle loadout owns a 100-unit heat reservoir cooling at 8 units/second.
-These are sealed baseline internals for all chassis in this first playable slice;
-engine, armor-package, and alternate cooler/loader fittings remain future work.
+The battle loadout owns a 100-unit heat reservoir cooling at 6 units/second.
+These are the stock-frame internals for all chassis, enemy and employer mechs
+included; engine, armor-package, and alternate cooler/loader fittings that buy
+back the stock frame's cut armor capacity, speed and cooling remain future work
+(`heavy-equipment-progression.md`).
 Heat is battle state, not a campaign repair cost, and requires no save migration.
 
 A weapon component owns its mechanical trigger-to-trigger period and its heat

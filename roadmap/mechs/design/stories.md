@@ -6,13 +6,14 @@ cleanup remain.
 
 Written: 2026-08-23
 
-Updated: 2026-10-02 — added the Alpha campaign-callsign slice to the open board.
+Updated: 2026-10-16 — stock frame shipped; mech pattern cards added (`heavy-equipment-progression.md`).
 
 Read `mechs-nouns.md` before changing the live story.
 
 | Story | State | Scope |
 | --- | --- | --- |
-| `mech-internal-systems.md` | Proposed | Develop burst heat, engine and armor budgets, and loader/cooling tradeoffs after the text-only Wayward fitting introduction. |
+| `mech-pattern-cards.md` | Planned | Learned fabrication patterns replace the starter-pattern gate; pattern cards arrive through every existing equipment source. First step of `heavy-equipment-progression.md`. |
+| `mech-internal-systems.md` | Proposed | Stock frame shipped (armor capacity, speed and cooling cut for all mechs). Next: engine, plating and cooler/loader internals, engine budget, tier-scaled footprints, per-loadout heat. |
 | `mech-battle-doctrine-overrides.md` | In progress | Layer a lance-wide Form on Lead / Free Reign order beneath mission authority and above each deployed mech's battle-local Brawler, Frontline Support, Long-Range Support, or Balanced override. |
 | `s1-specialist-striders.md` | Active manual tuning | Validate and tune the shipped Bulwark/Hound/Sirocco identities, formations, production encounters, and debug delivery feel without weakening their stated tradeoffs. |
 | `mech-lab-data-authored-dolls.md` | Proposed | Move maintenance facing, physical anchors, equipment docks, footprints, compatibility, and capacity into a validated asset catalog shared by mechs and future vehicles. |
