@@ -357,6 +357,9 @@ public final class UnitShadowRenderSystem implements RenderSystem {
         for (long id : airIds) {
             ShuttleMission mission = world.mission(id);
             if (mission == null || !mission.isOnMap()) continue;
+            // After contact the hull is separate, grounded sections. An intact
+            // aircraft silhouette would leave a ghost underneath their skid.
+            if (mission.crashImpact != null) continue;
             AirBody body = world.kinematics(id);
             if (body == null) continue;
 

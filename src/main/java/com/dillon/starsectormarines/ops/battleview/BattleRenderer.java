@@ -122,6 +122,7 @@ public class BattleRenderer {
 
     private final BattleSprites sprites;
     private final NightLightingRenderSystem nightLighting;
+    private final ShuttleRenderSystem aircraft;
     private RenderContext rc;
 
     /**
@@ -184,6 +185,7 @@ public class BattleRenderer {
      * emits {@code RIBBON} commands in its world-pass {@link RenderSystem}.
      */
     private final ContrailFxService contrailFx = new ContrailFxService();
+    private final ProjectileTrailFxService projectileTrailFx = new ProjectileTrailFxService();
 
     /**
      * In-flight rounds an aircraft is putting on the ground. Owns their state
@@ -272,6 +274,7 @@ public class BattleRenderer {
         // join via RenderSystem.of(...) emitting a Custom (the FBO/own-GL escape hatch).
         DoodadRenderSystem doodads = new DoodadRenderSystem(sprites);
         this.nightLighting = new NightLightingRenderSystem(sprites);
+        this.aircraft = new ShuttleRenderSystem(sprites);
         this.worldSystems = List.of(
                 new GroundRenderSystem(sprites, groundMesh, groundAtlas),
                 // Zone debug overlay paints on top of ground tiles, under decals.
@@ -337,7 +340,7 @@ public class BattleRenderer {
                             if (DEBUG_RENDER_DOCKING_PATHS) renderConvoyDockingPathsDebug(convoyIds, convoy, ctx.alphaMult);
                             renderSelectedVehicleDebug(convoy, ctx.alphaMult);
                         })),
-                new ShuttleRenderSystem(sprites),
+                aircraft,
                 new ShipLightingRenderSystem(),
                 nightLighting,
                 new WarshipRenderSystem(sprites),
@@ -356,7 +359,7 @@ public class BattleRenderer {
                         ordnanceTraceFx.collect(ctx.camera, out, ctx.alphaMult)),
                 RenderSystem.of(RenderLayer.SHOTS, (ctx, out) ->
                         beamFx.collect(ctx.camera, out, ctx.alphaMult)),
-                new ShotRenderService(sprites, impactFx),
+                new ShotRenderService(sprites),
                 RenderSystem.of(RenderLayer.IMPACT_FX, (ctx, out) -> {
                     if (!ZoomDetail.impactParticlesVisible(ctx.camera)) return;
                     out.addCustom(RenderLayer.IMPACT_FX,
@@ -520,6 +523,7 @@ public class BattleRenderer {
 
     /** Accessor for {@code BattleScreen.advance()} — tick the contrail trail lifecycle on real dt. */
     public ContrailFxService getContrailFx() { return contrailFx; }
+    public ProjectileTrailFxService getProjectileTrailFx() { return projectileTrailFx; }
     /** In-flight delivered rounds. Spawned and advanced by the host that drives the battle. */
     public OrdnanceTraceFxService getOrdnanceTraceFx() { return ordnanceTraceFx; }
 
@@ -529,8 +533,11 @@ public class BattleRenderer {
     /** Accessor for the host's combat-event presentation pass. */
     public GroundLightService getGroundLights() { return groundLights; }
 
-    /** Releases the screen-resolution night lighting targets. */
-    public void disposeNightLighting() { nightLighting.dispose(); }
+    /** Releases night lighting targets and the aircraft's reflected-light shader. */
+    public void disposeLighting() {
+        nightLighting.dispose();
+        aircraft.disposeLighting();
+    }
 
     /** Accessor for {@code BattleScreen.detach()} — release FBO resources. */
     public DecalAccumulator getDecalAccumulator() { return decalAccumulator; }

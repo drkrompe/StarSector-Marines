@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
 import com.dillon.starsectormarines.campaign.start.SecondhandWingsCampaign;
 import com.dillon.starsectormarines.marine.ArmorTradition;
 import com.dillon.starsectormarines.marine.FirstRefit;
@@ -162,6 +163,7 @@ final class CompanyHqViewModel {
         props.put("wingsClasses", SecondhandWingsCampaign.available(rosterScript == null ? null : rosterScript.roster())
                 ? "hq-wings console-action" : "hidden");
         props.put("auxiliary", AuxiliaryWarrantDesk.hidden());
+        props.put("handover", AgreusHandoverDesk.hidden());
         props.put("shipAction", openShipTransfer);
         props.put("shipLabel", shipLabel());
         props.put("shipViewAction", openShipView);
@@ -317,6 +319,13 @@ final class CompanyHqViewModel {
         return new CompanyHqViewModel(props);
     }
 
+    /** {@link #preview()} with the Latchkey custody agreements open at {@code page}. */
+    static CompanyHqViewModel agreusHandoverPreview(AgreusHandoverDesk.Page page, AgreusYardAgreement signed) {
+        Map<String, Object> props = preview().props();
+        props.put("handover", AgreusHandoverDesk.preview(page, signed));
+        return new CompanyHqViewModel(props);
+    }
+
     /**
      * The client standing panel with the company's military warrants in view: one active with
      * its next service deadline, one suspended with what restores it.
@@ -339,6 +348,7 @@ final class CompanyHqViewModel {
         props.put("firstRefitClasses", "hidden");
         props.put("wingsClasses", "hidden");
         props.put("auxiliary", AuxiliaryWarrantDesk.hidden());
+        props.put("handover", AgreusHandoverDesk.hidden());
         props.put("purpose", Strings.get("openingCompanyHqFlagshipBridgeCommandNetwork"));
         props.put("shipAction", (Runnable) () -> { });
         props.put("shipLabel", Strings.get("openingCompanyHqValkyrieChangeShip"));

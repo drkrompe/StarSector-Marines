@@ -86,7 +86,7 @@ public final class ShieldFort {
      */
     public static final List<int[]> NESTS;
 
-    /** Which towers (indices of {@link #NESTS}) stand a Ridgewatch missile battery when the fort carries the anti-air aspect: the two farthest from the main gate. */
+    /** Which towers (indices of {@link #NESTS}) stand a Locust missile battery when the fort carries the anti-air aspect: the two farthest from the main gate. */
     private static final int[] AIR_BASTIONS = {0, 1};
 
     /** How far from a tower's centre, toward its face, its missile battery's middle stands. */
@@ -96,7 +96,7 @@ public final class ShieldFort {
     public static final int[] GENERATOR = {OX + CENTRE, OY + CENTRE};
 
     /** The optional anti-air yard: open ground south-east of the keep, between the east and south gates' lanes. */
-    public static final AirDefenceYard AIR_DEFENCE = new AirDefenceYard(OX + 36, OY + 33, 0, -1);
+    public static final AirDefenceYard AIR_DEFENCE = new AirDefenceYard(OX + 34, OY + 33, 0, -1);
 
     /**
      * The rooms: the generator hall (its plant around the reactor) and the control room's suite, an operations hall of
@@ -320,7 +320,7 @@ public final class ShieldFort {
         @Override public List<int[]> airBatteries() { return AIR_BATTERIES; }
     };
 
-    /** The Ridgewatch batteries' middles: in the pocket behind the nest of each of the {@link #AIR_BASTIONS}. */
+    /** The Locust batteries' middles: in the pocket behind the nest of each of the {@link #AIR_BASTIONS}. */
     private static final List<int[]> AIR_BATTERIES = airBatteries();
 
     private static List<int[]> airBatteries() {

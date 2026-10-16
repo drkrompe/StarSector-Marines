@@ -59,7 +59,7 @@ public record GroundBattleConfig(
     public static final EnumSet<RenderLayer> DEFAULT_SCENE_LAYERS =
             EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS, RenderLayer.ROOFS, RenderLayer.UNITS,
                     RenderLayer.OBJECTIVES, RenderLayer.COMPOUND,
-                    RenderLayer.VEHICLES, RenderLayer.CONVOY, RenderLayer.SHUTTLES,
+                    RenderLayer.VEHICLES, RenderLayer.CONVOY, RenderLayer.SHUTTLES, RenderLayer.AIRCRAFT_LIGHTS,
                     RenderLayer.FOG, RenderLayer.SHOTS, RenderLayer.IMPACT_FX);
 
     /**

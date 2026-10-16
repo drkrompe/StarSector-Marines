@@ -34,4 +34,22 @@ class CoverDutyTest {
         duty.airRoundsLeft = 0;
         assertFalse(duty.hasAirRounds());
     }
+    @Test void coverClocksAreIndependentOfWhichGoalOwnsSteering() {
+        CoverDuty duty = new CoverDuty(0, 0);
+        duty.stationSecondsLeft = 2;
+        duty.restSecondsLeft = .2f;
+        duty.interceptSecondsLeft = 1;
+        duty.advanceClocks(ShuttleState.ORBIT, .5f);
+        assertEquals(1.5f, duty.stationSecondsLeft);
+        assertEquals(0f, duty.restSecondsLeft);
+        assertEquals(1f, duty.interceptSecondsLeft);
+        duty.advanceClocks(ShuttleState.INTERCEPT, .5f);
+        assertEquals(1f, duty.stationSecondsLeft);
+        assertEquals(.5f, duty.interceptSecondsLeft);
+        duty.advanceClocks(ShuttleState.DEPARTING, .5f);
+        assertEquals(1f, duty.stationSecondsLeft, "egress never spends another station tick");
+        duty.airRoundsLeft = 0; duty.groundPassesLeft = 0;
+        assertTrue(duty.spent());
+    }
+
 }

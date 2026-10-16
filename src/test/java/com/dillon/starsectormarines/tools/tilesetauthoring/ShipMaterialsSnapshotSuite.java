@@ -152,7 +152,7 @@ public final class ShipMaterialsSnapshotSuite implements SnapshotSuite {
                     "ship-materials-hangar-occupied-"+scale+"px.png",
                     drain.renderHostPass(scene.pass(ShipDeckBattleScene.DeckView.over(hangar, 2, scale),
                             EnumSet.of(RenderLayer.GROUND, RenderLayer.VEHICLES, RenderLayer.DOODADS,
-                                    RenderLayer.UNITS, RenderLayer.SHUTTLES)),
+                                    RenderLayer.UNITS, RenderLayer.SHUTTLES, RenderLayer.AIRCRAFT_LIGHTS)),
                             (hangar.width()+4)*scale, (hangar.depth()+4)*scale)));
             DeckGraph.Compartment range = generator.getLastDeckGraph().compartments().stream()
                     .filter(c -> c.purpose() == RoomPurpose.FIRING_RANGE).findFirst().orElseThrow();

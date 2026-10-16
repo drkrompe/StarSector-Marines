@@ -39,6 +39,11 @@ public final class SquadEquipmentDoctrines {
     public static final String SALVAGE_ASSISTED_ARMOR = "armor:salvage-assisted";
     public static final String CORPORATE_SPECTER_SECTION_ARMOR = "armor:corporate-specter-section";
     public static final String HEGEMONY_ARBALEST_SECTION_ARMOR = "armor:hegemony-arbalest-section";
+    /**
+     * Two pirate Boarding Jacks among ten raiders. Story-only (its suit's template names
+     * {@code a-small-war} as owner) and not awardable until the suit's presentation ships.
+     */
+    public static final String BOARDING_JACK_SECTION_ARMOR = "armor:boarding-jack-section";
     /** Stage one of the Hegemony auxiliary warrant: the recovered section, in approved Arbalests. */
     public static final String HEGEMONY_AUXILIARY_SECTION_ARMOR = "armor:hegemony-auxiliary-section";
     public static final String HEGEMONY_SHOCK_ARMOR = "armor:hegemony-shock";
@@ -341,6 +346,12 @@ public final class SquadEquipmentDoctrines {
             new SquadArmorPlan(CORPORATE_SPECTER_SECTION_ARMOR, "@loadoutCorporateSpecterSectionName",
                     "@loadoutCorporateSpecterSectionDescription",
                     ArmorTradition.TRITACHYON, SquadRoleMix.BALANCED, ArmorClass.STANDARD,
+                    List.of(ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.STANDARD,
+                            ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.POWER_SUIT,
+                            ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.POWER_SUIT, ArmorClass.STANDARD)),
+            new SquadArmorPlan(BOARDING_JACK_SECTION_ARMOR, "@loadoutBoardingJackSectionName",
+                    "@loadoutBoardingJackSectionDescription",
+                    ArmorTradition.PIRATES, SquadRoleMix.BALANCED, ArmorClass.STANDARD,
                     List.of(ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.STANDARD,
                             ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.POWER_SUIT,
                             ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.POWER_SUIT, ArmorClass.STANDARD)),

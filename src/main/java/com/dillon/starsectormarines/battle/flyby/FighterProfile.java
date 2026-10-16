@@ -4,10 +4,13 @@ import com.dillon.starsectormarines.battle.air.AirHandling;
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.AirOrdnance;
 import com.dillon.starsectormarines.battle.air.engine.HullKinematicsResolver;
+import com.dillon.starsectormarines.battle.air.engine.EngineVisualOffsets;
+import com.dillon.starsectormarines.battle.air.engine.EngineVisualOffsets.Offset;
 
 import java.awt.Color;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The fighters that exist: which hull each one is, how much killing it takes on
@@ -15,9 +18,9 @@ import java.util.List;
  * itself and is not authored here. An {@link Airframe}, so a berth can hold one
  * and a sortie can fly one.
  *
- * <p>All sprite paths resolve against the vanilla install — Starsector's resource
- * loader walks core + enabled mods, so {@code "graphics/ships/wasp_ftr.png"} from
- * a mod jar pulls the core file. No redistribution required.
+ * <p>Battle artwork is shipped by the mod on native-aspect canvases. Hull ids
+ * still resolve the vanilla geometry, center of gravity, hardpoints and handling;
+ * changing the texture does not change any physical aircraft dimensions.
  *
  * <p>This is a roster and nothing more. How a fighter flies comes from its hull's
  * own maneuver spec, and how it delivers comes from its {@link AirOrdnance}
@@ -30,19 +33,20 @@ import java.util.List;
 public enum FighterProfile implements Airframe {
 
     /** Talon — light autocannon, fast and twitchy. */
-    TALON("graphics/ships/talon/talon.png", "talon", 30f, 1,
+    TALON("graphics/battle/aircraft/talon.png", "talon", 30f, 1,
             new Color(0xFF, 0xE0, 0x70)),
 
     /** Wasp — small drone with a pulse laser. */
-    WASP("graphics/ships/wasp_ftr.png", "wasp", 25f, 1,
-            new Color(0x88, 0xFF, 0xFF)),
+    WASP("graphics/battle/aircraft/wasp.png", "wasp", 25f, 1,
+            new Color(0x88, 0xFF, 0xFF), new EngineVisualOffsets(Map.of(
+                    0, new Offset(2f, -1.25f), 1, new Offset(-2f, -1.25f)))),
 
     /** Broadsword — heavy fighter, dual chaingun. The strafe of choice. */
-    BROADSWORD("graphics/ships/broadsword.png", "broadsword", 45f, 2,
+    BROADSWORD("graphics/battle/aircraft/broadsword.png", "broadsword", 45f, 2,
             new Color(0xFF, 0xE0, 0x70)),
 
     /** Thunder — interceptor with twin ion bolts. */
-    THUNDER("graphics/ships/thunder.png", "thunder", 35f, 2,
+    THUNDER("graphics/battle/aircraft/thunder.png", "thunder", 35f, 2,
             new Color(0x70, 0xC8, 0xFF)),
 
     /**
@@ -50,15 +54,17 @@ public enum FighterProfile implements Airframe {
      * neither a gun that hits where the nose points nor a bomb that falls
      * behind, but a pod of powered rounds released from well outside gun range.
      */
-    LONGBOW("graphics/ships/longbow_intg.png", "longbow", 38f, 1,
-            new Color(0xC0, 0xE8, 0xFF)),
+    LONGBOW("graphics/battle/aircraft/longbow.png", "longbow", 38f, 1,
+            new Color(0xC0, 0xE8, 0xFF), new EngineVisualOffsets(Map.of(
+                    0, new Offset(-2.5f, .5f), 1, new Offset(3f, .5f)))),
 
     /** Dagger — Tri-Tachyon torpedo bomber; a stick of bombs that flattens walls and chews into clusters. */
-    DAGGER("graphics/ships/dagger_trp.png", "dagger", 40f, 1,
+    DAGGER("graphics/battle/aircraft/dagger.png", "dagger", 40f, 1,
             new Color(0xFF, 0xB0, 0x60));
 
-    /** Vanilla sprite path. Lazy-loaded once by the render tier. */
+    /** Mod battle sprite path. Lazy-loaded once by the render tier. */
     public final String spritePath;
+    private final EngineVisualOffsets engineVisualOffsets;
     /**
      * Vanilla hull id — keys
      * {@link com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver}
@@ -117,6 +123,12 @@ public enum FighterProfile implements Airframe {
 
     FighterProfile(String spritePath, String hullId, float parkedHp,
                    int mounts, Color tracerColor) {
+        this(spritePath, hullId, parkedHp, mounts, tracerColor, EngineVisualOffsets.NONE);
+    }
+
+    FighterProfile(String spritePath, String hullId, float parkedHp,
+                   int mounts, Color tracerColor, EngineVisualOffsets engineVisualOffsets) {
+        this.engineVisualOffsets = engineVisualOffsets;
         this.spritePath = spritePath;
         this.hullId = hullId;
         this.parkedHp = parkedHp;
@@ -127,6 +139,8 @@ public enum FighterProfile implements Airframe {
     // ---- Airframe: what standing on a berth needs -----------------------------
 
     @Override public String spritePath() { return spritePath; }
+
+    @Override public EngineVisualOffsets engineVisualOffsets() { return engineVisualOffsets; }
 
     /**
      * A fighter's own hull is what sizes it — unlike a transport, which may

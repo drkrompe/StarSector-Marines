@@ -66,6 +66,11 @@ class LoadoutCardSheetEvidence {
         for (LoadoutCard card : LoadoutCards.all()) {
             (card.kind() == LoadoutCard.Kind.WEAPON ? weapons : sheets).add(card);
         }
+        // Story-only and art-pending sheets never circulate, but a design pass still has to see them.
+        for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
+            LoadoutCard card = new LoadoutCard(LoadoutCard.Kind.SHEET, plan.id());
+            if (!sheets.contains(card) && (card.storyReserved() || !card.presentationDeclared())) sheets.add(card);
+        }
 
         md.append("## Weapon loadouts: summary\n\n| Card | Tier | FIRE rating | Eff. DPS | vs bare | vs line | vs suit | Range min/avg/max | Specials |\n")
                 .append("|---|---|---|---|---|---|---|---|---|\n");
@@ -314,7 +319,10 @@ class LoadoutCardSheetEvidence {
     }
 
     private static String tier(LoadoutCard card) {
-        return card.accessTier().name().toLowerCase(Locale.ROOT);
+        String tier = card.accessTier().name().toLowerCase(Locale.ROOT);
+        if (card.storyReserved()) tier += " (story)";
+        if (!card.presentationDeclared()) tier += " (art pending, not awardable)";
+        return tier;
     }
 
     private static String special(SquadWeaponIssue issue) {

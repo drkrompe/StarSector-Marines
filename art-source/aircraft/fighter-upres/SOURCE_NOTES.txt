@@ -1,0 +1,45 @@
+Aircraft ImageGen up-res masters and runtime export
+
+Generated with the built-in image_gen tool from the six existing FighterProfile
+sprites in the installed Starsector core. Native dimensions, authored pivots,
+source paths, selected masters and exact prompt files are in manifest.json.
+
+The approved masters feed the six FighterProfile battle textures under
+mod/graphics/battle/aircraft. The generated masters remain unchanged here.
+pack.ps1 exports lossless RGBA PNGs at eight times the native frame dimensions
+(144-344 pixels per side, about 482 KiB combined; budget 1 MiB). The large masters,
+previous iterations, prompts and review sheets do not ship.
+
+The exporter registers the meaningful painted hull bounds to the original
+painted hull bounds, using the retained alpha >= 32 measurements in manifest.json.
+The bounds are registration landmarks, not a transparency threshold: the full
+RGBA image is resampled through that two-axis transform into the original frame.
+Faint stray pixels do not determine the transform. Talon and Longbow require
+aspect correction; Dagger also needs its painted width restored to the native
+frame. Output aspect always matches the original hull, including its margins.
+Native hull identity still determines physical size, pivot, weapons and handling.
+
+Talon v3 restores its offset gun and cockpit; Longbow v2 restores the unequal
+forward launchers; Dagger v2 restores the forked nose and unequal ordnance.
+Wasp v2 reduces the rear perspective of its engine openings. Earlier versions
+are retained with their prompts for comparison. The exporter corrects master canvas padding and
+proportions before runtime use; ImageGen detail
+reconstruction is not an exact geometric upscale of the native pixel mask.
+After frame registration, Wasp and Longbow's painted nozzles differ from the
+original engine locations. FighterProfile supplies render-only nozzle offsets
+for these two appearances, in native pixels (+X right, +Y nose), in original
+engine order: Wasp [(2,-1.25),(-2,-1.25)], Longbow [(-2.5,0.5),(3,0.5)].
+The engine physics, demand ordering, plume direction, size and style remain native.
+
+render-review.ps1 lays out original and selected draft at the same display size
+per pair. All source pixels and alpha are unchanged; the sheet merely draws
+whole images and labels. Panel display sizes are for art review, not relative
+gameplay scale. Re-run it with PowerShell; StarsectorCore can select the source
+installation. review.png is the resulting 1920x1080 comparison.
+
+runtime-review.png is the production renderer's common-scale six-aircraft and
+three-turret lineup at 60 px/cell, from createSnapshots -Psnapshot=missile-aa-scale.
+It uses the compact shipped textures, native hull geometry and engine slots.
+
+parked-review.png is the same production lineup at normal ground appearance,
+from parked-reference.png in that suite; the grounded engines emit no plume.

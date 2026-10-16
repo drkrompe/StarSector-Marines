@@ -1651,9 +1651,9 @@ public final class BattleSetup {
         sim.getSquad(technicians).originalSize = 2;
         sim.claimSquadCommand(technicians,CommandAuthority.MISSION_COMMAND,YardOwnersCommand.issuer(Faction.ALLY),"Living supplier inspection party");
         List<List<EntitySpec>> reserves = new ArrayList<>();
-        for (int[] ingress : new int[][]{{150,76},{145,36}}) {
+        for (var ingress : LatchkeyYard.RESERVE_INGRESS) {
             List<EntitySpec> group = new ArrayList<>();
-            for (int[] cell : pickSpawnCluster(map.grid,ingress[0],ingress[1],4))
+            for (int[] cell : pickSpawnCluster(map.grid,ingress.x(),ingress.y(),4))
                 group.add(makeOpeningMilitia("Prize crew counterattack",Faction.DEFENDER,cell[0],cell[1],rng).role(UnitRole.PATROL));
             reserves.add(group);
         }

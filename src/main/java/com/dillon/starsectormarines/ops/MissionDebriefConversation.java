@@ -108,8 +108,10 @@ final class MissionDebriefConversation {
                 yardLine("issue","CASTLE","Learn the Arbalest card from fleet cargo. Once both recovered patterns are learned, fit Salvage-assisted Section in the Armory: eight regular marines, two Specter breachers and two Arbalest support wearers. Their names and lift seats stay the same; no equipment has changed automatically."),
                 yardLine("order","COMBINE REGISTRY / LEASE-ARBITRATION ORDER","Rusk's secured claim remains recognized under Combine administration. The yard's arrears are enforceable. Inspection grants neither repossession nor collection authority to this company."),
                 yardLine("leases","HOUSE RUSK / ARREARS AND PROPOSED LEASES","The outstanding debt remains on the yard account. House Custody would place tool access under Rusk's office, with new workshop leases and debt deductions. These are proposed terms, not a signed instruction."),
-                yardLine("counterproposal","LENNA SAYE / YARD ASSOCIATION","You have opened the gate. Before you hand over the keys, read who is allowed through it tomorrow. Our Yard Compact keeps inspected common-service access under a repayment schedule; Rusk appoints security and the association operates the shops. Those benches repair the weir's pumps too."),
-                yardLine("cost","CASTLE",cost + " Read both proposals before any further commitment. Custody remains unsigned; the next commission is not available yet."));
+                yardLine("counterproposal","LATCHKEY YARD ASSOCIATION / YARD COMPACT","Counterproposal: inspected common-service access continues under a signed repayment schedule. Rusk appoints security; the association operates the shops and keeps auditable service allocation. The debt stands."),
+                AgreusArcCampaign.LENNA_GATE,
+                AgreusArcCampaign.LENNA_LIEN,
+                yardLine("cost","CASTLE",cost + " Both written agreements are at Company HQ. Read them, ask me to compare them, or leave them for now; nothing is committed until you sign one. The next commission waits on that signature."));
     }
     private static WaylineNarration.Line yardLine(String beat,String speaker,String text) {
         return new WaylineNarration.Line("yard-debrief-"+beat,"story_agreus_yard_owners","debrief.yard_owners."+beat,text,12f,10,15f,List.of(),

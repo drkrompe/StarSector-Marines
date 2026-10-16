@@ -62,27 +62,29 @@ class FortAirDefenceStageTest {
     }
 
     @Test
-    void theYardIsAConsoleTwoMissileBatteriesAndTwoFlakPositionsAtEveryTurn() {
+    void theYardIsAConsoleTwoLocustBatteriesAndTwoSwarmerTowersAtEveryTurn() {
         for (FortPlan plan : new FortPlan[]{BatteryFort.PLAN, ShieldFort.PLAN}) {
             for (int turn = 0; turn < 4; turn++) {
                 GenContext ctx = field();
                 CompoundLayout.Placement at = plan.layout().at(60, 40, turn);
                 FortStage.stamp(ctx, plan, at, 3, true);
                 Set<String> structures = new HashSet<>();
-                int flak = 0;
+                int swarmers = 0, locusts = 0;
                 for (DefensePost post : ctx.defensePosts) {
                     if (post.fort == null || post.fort.aspect() != FortAspect.AIR_DEFENCE) continue;
                     assertEquals(3, post.fort.fortId());
                     String id = post.turrets.get(0).structureId;
                     structures.add(id);
-                    if (id.equals(TurretCatalogRegistry.ANTI_AIR_STRUCTURE_ID)) flak++;
+                    if (id.equals(TurretCatalogRegistry.AA_SWARMER_STRUCTURE_ID)) swarmers++;
+                    if (id.equals(TurretCatalogRegistry.AA_LOCUST_STRUCTURE_ID)) locusts++;
                     assertTrue(plan.isWorks(localX(at, post.anchorX, post.anchorY), localY(at, post.anchorX, post.anchorY)),
                             plan.kind() + " turn " + turn + ": " + id + " stands inside the works");
                 }
                 assertEquals(Set.of(TurretCatalogRegistry.FORT_AIR_CONTROL_STRUCTURE_ID,
-                        TurretCatalogRegistry.RIDGE_AA_STRUCTURE_ID, TurretCatalogRegistry.ANTI_AIR_STRUCTURE_ID), structures);
-                assertEquals(2, flak);
-                assertEquals(5, yardPosts(ctx), "console, two Ridgewatch batteries, two flak");
+                        TurretCatalogRegistry.AA_LOCUST_STRUCTURE_ID, TurretCatalogRegistry.AA_SWARMER_STRUCTURE_ID), structures);
+                assertEquals(2, swarmers);
+                assertEquals(2, locusts);
+                assertEquals(5, yardPosts(ctx), "console, two Locust batteries, two Swarmer towers");
             }
         }
     }
@@ -107,6 +109,20 @@ class FortAirDefenceStageTest {
                 boolean overlaps = lane[0] < f[0] + f[2] + 1 && lane[0] + lane[2] > f[0] - 1
                         && lane[1] < f[1] + f[3] + 1 && lane[1] + lane[3] > f[1] - 1;
                 assertFalse(overlaps, plan.kind() + " yard clear of the lanes");
+            }
+            for (int[] tower : yard.closeInCells()) {
+                for (int x = tower[0] - 1; x <= tower[0] + 1; x++) {
+                    for (int y = tower[1] - 1; y <= tower[1] + 1; y++) {
+                        assertTrue(plan.isWorks(x, y) && !plan.isWall(x, y), plan.kind() + " tower cell " + x + "," + y + " is open floor");
+                        for (FortAspect aspect : plan.aspects()) {
+                            int[] b = plan.floor(aspect);
+                            assertFalse(x >= b[0] && x < b[0] + b[2] && y >= b[1] && y < b[1] + b[3], plan.kind() + " tower clear of " + aspect);
+                        }
+                        for (int[] lane : plan.lanes()) {
+                            assertFalse(x >= lane[0] && x < lane[0] + lane[2] && y >= lane[1] && y < lane[1] + lane[3], plan.kind() + " tower clear of the lanes");
+                        }
+                    }
+                }
             }
             int[] c = plan.centrepiece();
             assertTrue(Math.abs(c[0] - yard.centreX()) > 5 || Math.abs(c[1] - yard.centreY()) > 5,

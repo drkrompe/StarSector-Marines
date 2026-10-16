@@ -340,7 +340,7 @@ public final class ShipCommandUiSnapshotSuite implements SnapshotSuite {
                             EnumSet.of(RenderLayer.GROUND, RenderLayer.VEHICLES, RenderLayer.DOODADS, RenderLayer.HIGHLIGHTS,
                                     RenderLayer.UNIT_SHADOWS, RenderLayer.UNITS, RenderLayer.ROOFS,
                                     RenderLayer.DRONES, RenderLayer.OBJECTIVES, RenderLayer.CONVOY,
-                                    RenderLayer.SHUTTLES, RenderLayer.NIGHT_LIGHTING));
+                                    RenderLayer.SHUTTLES, RenderLayer.AIRCRAFT_LIGHTS, RenderLayer.NIGHT_LIGHTING));
                 }
                 @Override public void draw(CanvasHostViewport viewport, float alpha) {
                     throw new IllegalStateException("Headless evidence only");

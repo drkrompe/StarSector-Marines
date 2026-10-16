@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.turret;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
@@ -17,8 +18,12 @@ class DefensePostLayoutRegistryTest {
     @Test
     void builtinsCoverEveryShippedLayoutAndStructureComposition() {
         DefensePostLayoutRegistry registry = DefensePostLayoutRegistry.requireInstalled();
-        assertEquals(9, registry.size());
-        assertEquals(5, registry.layoutsFor(DefensePostKind.LARGE).size());
+        assertEquals(12, registry.size());
+        assertEquals(8, registry.layoutsFor(DefensePostKind.LARGE).size());
+        for (String family : List.of("locust", "swarmer", "proximity")) {
+            assertLayout(registry.require(DefensePostKind.LARGE, "aa-" + family),
+                    25, "structure.aa-" + family);
+        }
         assertLayout(registry.require(DefensePostKind.LIGHT, "default"),
                 5, "structure.turret-vulcan");
         assertLayout(registry.require(DefensePostKind.MEDIUM, "default"),
@@ -64,6 +69,38 @@ class DefensePostLayoutRegistryTest {
         }
         parsed.validateCompleteness();
         assertEquals(DefensePostLayoutRegistry.requireInstalled().size(), parsed.size());
+    }
+
+    @Test
+    void multiCellMountRequiresItsWholePadAndCannotOverlapAnotherMount() throws Exception {
+        TurretCatalogRegistry turrets = TurretCatalogRegistry.installed();
+        JSONObject root = new JSONObject(Files.readString(Path.of("mod",
+                DefensePostLayoutRegistry.BUILTIN_CATALOGS.get(0))));
+        JSONObject tower = null;
+        for (int i = 0; i < root.getJSONArray("layouts").length(); i++) {
+            JSONObject candidate = root.getJSONArray("layouts").getJSONObject(i);
+            if (candidate.getString("variant").equals("aa-locust")) tower = candidate;
+        }
+        assertNotNull(tower);
+        JSONObject missingPad = new JSONObject(tower.toString());
+        // The shifted turret still has a legal center but its footprint reaches the ring.
+        missingPad.getJSONArray("turrets").getJSONObject(0)
+                .put("offset", new JSONArray("[1,0]"));
+        assertThrows(JSONException.class, () -> DefensePostLayoutDef.parse(missingPad, turrets));
+
+        JSONObject overlap = new JSONObject(tower.toString());
+        overlap.getJSONArray("turrets").put(new JSONObject(
+                "{'offset':[1,0], 'structure':'structure.turret-vulcan'}"));
+        assertThrows(JSONException.class, () -> DefensePostLayoutDef.parse(overlap, turrets));
+
+        JSONObject missingCorner = new JSONObject(tower.toString());
+        JSONArray retained = new JSONArray();
+        JSONArray cells = missingCorner.getJSONArray("cells");
+        for (int i = 0; i < cells.length(); i++) {
+            if (i != 6) retained.put(cells.getJSONObject(i)); // the pad's northwest corner
+        }
+        missingCorner.put("cells", retained);
+        assertThrows(JSONException.class, () -> DefensePostLayoutDef.parse(missingCorner, turrets));
     }
 
     private static void assertLayout(DefensePostLayoutDef layout, int cells,

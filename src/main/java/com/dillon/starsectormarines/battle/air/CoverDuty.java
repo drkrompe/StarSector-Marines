@@ -87,6 +87,19 @@ public final class CoverDuty {
         return Math.max(RING_FLOOR_CELLS, turn * RING_TURN_MARGIN);
     }
 
+    /** Phase clocks advance before choosing normal or evasive steering, once per tick. */
+    public void advanceClocks(ShuttleState phase, float dt) {
+        if (phase == ShuttleState.ORBIT) {
+            stationSecondsLeft -= dt;
+            restSecondsLeft = Math.max(0f, restSecondsLeft - dt);
+        } else if (phase == ShuttleState.INTERCEPT) {
+            stationSecondsLeft -= dt;
+            interceptSecondsLeft -= dt;
+        }
+    }
+
+    public boolean spent() { return !hasAirRounds() && groundPassesLeft <= 0; }
+
     /** Whether the fighter is free to take new work: not resting and not out of the means to do any. */
     public boolean readyForWork() {
         return restSecondsLeft <= 0f && stationSecondsLeft > 0f;

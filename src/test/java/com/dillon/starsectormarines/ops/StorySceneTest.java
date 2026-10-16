@@ -15,10 +15,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class StorySceneTest {
     static Mission campaign(DebugMissionCatalog.Scenario scenario) {
-        if (scenario == DebugMissionCatalog.Scenario.LAST_LIFT || scenario == DebugMissionCatalog.Scenario.CREW_RECOVERY)
+        if (scenario == DebugMissionCatalog.Scenario.LAST_LIFT || scenario == DebugMissionCatalog.Scenario.CREW_RECOVERY || scenario == DebugMissionCatalog.Scenario.MISSILE_AA)
             return scenario.mission();
         String route = BrokenSupplyRouteProgress.PREFIX;
         String id = switch (scenario) {
+            case MISSILE_AA -> throw new IllegalArgumentException("Range has no campaign chapter");
             case RELIEF -> OpeningOperationKind.RELIEF.missionId;
             case COUNTERATTACK -> OpeningOperationKind.COUNTERATTACK.missionId;
             case JUNCTION -> route + "1_0_2";
@@ -46,7 +47,7 @@ class StorySceneTest {
         return Mission.builder(scenario.mission()).id(id).source(source).build();
     }
 
-    @ParameterizedTest @EnumSource(DebugMissionCatalog.Scenario.class)
+    @ParameterizedTest @EnumSource(value = DebugMissionCatalog.Scenario.class, names = "MISSILE_AA", mode = EnumSource.Mode.EXCLUDE)
     void authoredArtAgreesAcrossDebugBriefingAndBothResultStates(DebugMissionCatalog.Scenario scenario) {
         var mission = campaign(scenario);
         var scene = StoryScene.forMission(mission);

@@ -342,7 +342,7 @@ class WaylineNarrationTest {
             String id = WaylineNarration.storyMissionId(scenario.mission());
             boolean silent = switch (scenario) {
                 case MILITIA_RELIEF, DEPOT_CLEARANCE, CREW_RECOVERY, ROUTE_SECURITY, VETERANS_JOB,
-                     SILENT_COLONY, DUST_LEDGER, BLIND_WATCH -> true;
+                     SILENT_COLONY, DUST_LEDGER, BLIND_WATCH, MISSILE_AA -> true;
                 default -> false;
             };
             if (silent) {

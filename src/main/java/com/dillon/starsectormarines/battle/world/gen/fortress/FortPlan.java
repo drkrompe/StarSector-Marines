@@ -100,7 +100,7 @@ public interface FortPlan {
     }
 
     /**
-     * The middles of the three-by-three Ridgewatch missile batteries a fort carrying the anti-air aspect stands out on its
+     * The middles of the three-by-three Locust missile batteries a fort carrying the anti-air aspect stands out on its
      * bastions, in the footprint frame (empty for a kind with no yard). Spread across the works so the airspace they
      * cover is as wide as the fort; the yard ({@link #airDefence()}) holds only the console that commands them.
      */

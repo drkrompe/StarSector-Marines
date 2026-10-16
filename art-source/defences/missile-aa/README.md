@@ -1,8 +1,8 @@
 # Ground missile AA art family
 
-First art passes for Locust, Swarmer and Proximity Charge ground turrets on the
-shared raised tower. These are art-review assets; runtime weapon definitions,
-world footprint, firing origins and destruction states remain unauthored.
+Approved Locust, Swarmer and Proximity Charge ground turrets share a raised
+three-cell tower. Runtime catalogs retain distinct weapon, mount and structure
+identities; dedicated destruction art remains unauthored.
 
 | Head | Art approach | Master | Exact built-in ImageGen prompt |
 | --- | --- | --- | --- |
@@ -39,9 +39,9 @@ the 768-square nearest-neighbor source enlargements used for ImageGen.
 `registration.json` owns preview placement in 512-canvas coordinates. The
 tower uses its established bearing at (256, 242). Both new heads currently use
 the provisional full-frame center (256, 256), with scale 1. These placements
-give a useful family comparison, but are not authored mechanical yaw axes or
-runtime firing origins. Review registration and traverse clearance when the
-weapons are integrated; do not infer a pivot from arbitrary alpha bounds.
+give the initial runtime registration as well as the family comparison.
+The mount catalog separately owns firing origins; do not infer a pivot or
+launch point from arbitrary alpha bounds.
 Locust keeps the circular-floor pivot from its existing export metadata.
 
 ## Generation and provenance
@@ -66,3 +66,26 @@ retained `.wpn` specifications only normalize trailing whitespace and line
 endings. Each vanilla weapon declares one turret image and an alternative
 hardpoint image, not two composited layers. The tower is separately authored
 project art.
+
+## Runtime packaging
+
+Run `./art-source/defences/missile-aa/pack.ps1` from the repository root to
+produce the four shipped 512 x 512 RGBA sprites under `mod/graphics/structures`.
+It copies exact source pixel samples into a transparent canvas at a fixed draw
+offset: tower `(0,14)`, Locust `(-1,8)`, Swarmer and Proximity `(0,0)`.
+The tower's `(256,242)` pivot is thereby centered. Locust's half-pixel metadata
+pivot `(256.5,248.5)` is registered to the nearest raster pixel with a residual
+of half a pixel; integer translation avoids filtering its approved artwork.
+Packaging refuses to clip any nontransparent source pixel. Sources, layer size,
+colors and alpha remain unchanged. The full frame renders at three world cells,
+matching the stationary base rather than fitting independently to visible bounds.
+
+The mount catalog separately authors release mouths in `[lateral, forward]`
+world cells. Swarmer uses its four tube tips; Locust cycles the twelve visible
+holes in the painted curved face. Proximity has one central outlet. These are mechanical launch locations,
+not inferred alpha-bound centers. The three new platforms provisionally share
+Ridgewatch's durability and footprint; these values are an integration baseline,
+not mission-balance acceptance.
+
+See [effects and sound](effects/README.md) for the live simulation review,
+sound-file provenance and behavior adaptation notes.

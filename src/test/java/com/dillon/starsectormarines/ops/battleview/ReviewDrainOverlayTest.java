@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.air.Airframe;
+import com.dillon.starsectormarines.battle.flyby.FighterProfile;
+import com.dillon.starsectormarines.battle.world.model.NightLighting;
+import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -25,9 +28,10 @@ import java.nio.file.Path;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -73,15 +77,21 @@ class ReviewDrainOverlayTest {
     private static final class OverlayPass implements BattleSceneHostPass, HeadlessBattleSceneRenderer.ReviewOverlayPass {
         private final BattleSimulation sim;
         private final DrawList overlay;
+        private final EnumSet<RenderLayer> layers;
 
         OverlayPass(BattleSimulation sim, DrawList overlay) {
+            this(sim, overlay, EnumSet.of(RenderLayer.SHOTS));
+        }
+
+        OverlayPass(BattleSimulation sim, DrawList overlay, EnumSet<RenderLayer> layers) {
             this.sim = sim;
             this.overlay = overlay;
+            this.layers = layers;
         }
 
         @Override
         public BattleSceneFrame prepare(CanvasHostViewport viewport, float alphaMult) {
-            return new BattleSceneFrame(context(sim), EnumSet.of(RenderLayer.SHOTS));
+            return new BattleSceneFrame(context(sim), layers);
         }
 
         @Override
@@ -142,7 +152,8 @@ class ReviewDrainOverlayTest {
     void anAircraftsEnginePlumesAreANamedPassTheReviewDrainCanRecognise() {
         BattleSimulation sim = openSim();
         long craft = sim.spawnShuttle(ShuttleType.AEROSHUTTLE, Faction.MARINE, 20f, 10f, 2f, 2f, 2f, 2f, 0f);
-        sim.world().mission(craft).state = ShuttleState.LOADING;
+        sim.world().mission(craft).state = ShuttleState.INCOMING;
+        sim.world().setAltitudeT(craft, 1f);
         sim.world().kinematics(craft).teleport(20f, 10f, 0f);
         SpriteAPI token = (SpriteAPI) Proxy.newProxyInstance(
                 SpriteAPI.class.getClassLoader(), new Class<?>[]{SpriteAPI.class},
@@ -163,13 +174,101 @@ class ReviewDrainOverlayTest {
 
         new ShuttleRenderSystem(sprites).collect(context(sim), out);
 
-        int plumes = 0;
-        for (int i = 0; i < out.count(RenderLayer.SHUTTLES); i++) {
-            DrawCommand command = out.buffer(RenderLayer.SHUTTLES)[i];
-            if (command.kind() != DrawCommand.Kind.CUSTOM) continue;
-            assertInstanceOf(EngineFxPass.class, command.customDraw());
-            plumes++;
+        assertEquals(1, enginePasses(out, RenderLayer.AIRCRAFT_LIGHTS));
+        assertEquals(1, hullLightPasses(out));
+        assertEquals(0, enginePasses(out, RenderLayer.SHUTTLES), "No duplicate engine draw beneath the night shade");
+        assertTrue(RenderLayer.NIGHT_LIGHTING.ordinal() < RenderLayer.AIRCRAFT_LIGHTS.ordinal());
+        assertTrue(RenderLayer.DECK_LIGHTING.ordinal() < RenderLayer.AIRCRAFT_LIGHTS.ordinal());
+
+        var mission = sim.world().mission(craft);
+        for (ShuttleState state : List.of(ShuttleState.LOADING, ShuttleState.PENDING, ShuttleState.GONE)) {
+            mission.state = state;
+            DrawList suppressed = new DrawList();
+            new ShuttleRenderSystem(sprites).collect(context(sim), suppressed);
+            assertEquals(0, enginePasses(suppressed, RenderLayer.AIRCRAFT_LIGHTS), state.name());
+            assertEquals(0, hullLightPasses(suppressed), state.name());
         }
-        assertEquals(1, plumes);
+        mission.state = ShuttleState.INCOMING;
+        mission.destroyed = true;
+        DrawList destroyed = new DrawList();
+        new ShuttleRenderSystem(sprites).collect(context(sim), destroyed);
+        assertEquals(0, enginePasses(destroyed, RenderLayer.AIRCRAFT_LIGHTS));
+        assertEquals(0, hullLightPasses(destroyed));
+        sim.close();
+    }
+
+    private static int hullLightPasses(DrawList out) {
+        int count = 0;
+        for (int i = 0; i < out.count(RenderLayer.AIRCRAFT_LIGHTS); i++) {
+            DrawCommand command = out.buffer(RenderLayer.AIRCRAFT_LIGHTS)[i];
+            if (command.customDraw() instanceof EngineHullLightPass light) {
+                count++;
+                DrawCommand hull = out.buffer(RenderLayer.SHUTTLES)[0];
+                assertEquals(hull.sprite(), light.hullSprite());
+                assertEquals(hull.centerX(), light.centerX());
+                assertEquals(hull.centerY(), light.centerY());
+                assertEquals(hull.width(), light.widthPx());
+                assertEquals(hull.height(), light.heightPx());
+                assertEquals(hull.angleDegrees(), light.angleDegrees());
+            }
+        }
+        return count;
+    }
+
+    private static int enginePasses(DrawList out, RenderLayer layer) {
+        int count = 0;
+        for (int i = 0; i < out.count(layer); i++) {
+            DrawCommand command = out.buffer(layer)[i];
+            if (command.kind() == DrawCommand.Kind.CUSTOM && command.customDraw() instanceof EngineFxPass) count++;
+        }
+        return count;
+    }
+
+    @Test
+    void nightDarkensTheHullWithoutDimmingItsExteriorEngineEmission() {
+        InstalledHullSpecs.install();
+        try (BattleSimulation sim = openSim()) {
+            for (int y = 0; y < H; y++) for (int x = 0; x < W; x++)
+                sim.getTopology().setGroundKind(x, y, CellTopology.GroundKind.STONE);
+            long craft = sim.spawnSortie(FighterProfile.TALON, Faction.MARINE,
+                    20, 10, 20, 10, 20, 10, 0);
+            sim.world().mission(craft).state = ShuttleState.INCOMING;
+            sim.world().kinematics(craft).teleport(20, 10, 0);
+            sim.world().setAltitudeT(craft, 1);
+            BufferedImage coverage = aircraftFrame(sim, false, false, false);
+            BufferedImage dayHull = aircraftFrame(sim, false, false, true);
+            BufferedImage dayLit = aircraftFrame(sim, false, true, true);
+            BufferedImage nightHull = aircraftFrame(sim, true, false, true);
+            BufferedImage nightLit = aircraftFrame(sim, true, true, true);
+            int darkenedHullPixels = 0, emissionPixels = 0;
+            for (int y = 0; y < PIXELS_H; y++) for (int x = 0; x < PIXELS_W; x++) {
+                int hull = dayHull.getRGB(x, y);
+                if ((coverage.getRGB(x, y) >>> 24) > 100 && rgbSum(nightHull.getRGB(x, y)) < rgbSum(hull) - 20)
+                    darkenedHullPixels++;
+                if ((coverage.getRGB(x, y) >>> 24) != 0) continue; // Compare the plume outside the hull, where additive clipping cannot differ.
+                int dayContribution = rgbSum(dayLit.getRGB(x, y)) - rgbSum(hull);
+                int nightContribution = rgbSum(nightLit.getRGB(x, y)) - rgbSum(nightHull.getRGB(x, y));
+                if (dayContribution > 6) {
+                    emissionPixels++;
+                    assertEquals(dayContribution, nightContribution, 4, "Night must not shade the engine contribution");
+                }
+            }
+            assertTrue(darkenedHullPixels > 5, "The ordinary aircraft hull still receives night shade");
+            assertTrue(emissionPixels > 2, "The shared review drain must actually draw the new engine masks");
+        }
+    }
+
+    private static int rgbSum(int pixel) {
+        return (pixel >>> 16 & 255) + (pixel >>> 8 & 255) + (pixel & 255);
+    }
+
+    private static BufferedImage aircraftFrame(BattleSimulation sim, boolean night, boolean lights, boolean backing) {
+        sim.getTopology().setNightLighting(night ? new NightLighting(.8f, List.of(), Set.of()) : null);
+        EnumSet<RenderLayer> layers = EnumSet.of(RenderLayer.SHUTTLES, RenderLayer.NIGHT_LIGHTING);
+        if (lights) layers.add(RenderLayer.AIRCRAFT_LIGHTS);
+        DrawList overlay = new DrawList();
+        // An opaque backing enters before the hull and night shade, matching a real battle framebuffer.
+        if (backing) overlay.addSolidRect(RenderLayer.SHUTTLES, 0, 0, PIXELS_W, PIXELS_H, 0, 0, 0, 1);
+        return ui.renderHostPass(new OverlayPass(sim, overlay, layers), PIXELS_W, PIXELS_H);
     }
 }

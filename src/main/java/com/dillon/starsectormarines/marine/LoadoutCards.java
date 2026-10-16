@@ -10,7 +10,7 @@ public final class LoadoutCards {
 
     /**
      * Weapon loadouts and tactic sheets that add something a fresh company lacks and are
-     * not reserved to a story. Starter issue (Dockside Issue, Watchman's Kit) is never a card.
+     * not reserved to a story, and whose presentation is declared. Starter issue (Dockside Issue, Watchman's Kit) is never a card.
      */
     public static List<LoadoutCard> all() {
         MarineArmory starter = new MarineArmory();
@@ -25,6 +25,7 @@ public final class LoadoutCards {
             cards.add(new LoadoutCard(LoadoutCard.Kind.SHEET, plan.id()));
         }
         cards.removeIf(card -> card.templateIds().isEmpty() || card.storyReserved()
+                || !card.presentationDeclared()
                 || LoadoutCardLearning.status(starter, card.id())
                 == LoadoutCardLearning.Result.ALREADY_KNOWN);
         return List.copyOf(cards);

@@ -5,35 +5,45 @@ import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.Airframe;
+import com.dillon.starsectormarines.battle.air.engine.EngineHullLighting;
+import com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullPivotResolver;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
 /**
- * Emits the {@link RenderLayer#SHUTTLES} layer — aircraft (shuttles) and their
- * mounted turrets, above the ground/unit/roof stack so they pierce the fog-roof.
+ * Emits aircraft and mounted turrets into {@link RenderLayer#SHUTTLES}, above
+ * the ground/unit/roof stack, and engine masks into {@link RenderLayer#AIRCRAFT_LIGHTS}.
  *
- * <p>Each shuttle emits, in submission (= paint) order: a {@code CUSTOM} engine-FX
- * pass (own-GL, drawn under the hull), a {@code SPRITE} hull (whole rotated
- * sprite), then per mounted turret an optional recoil-displaced barrel
+ * <p>Each shuttle emits a {@code SPRITE} hull (whole rotated sprite),
+ * then per mounted turret an optional recoil-displaced barrel
  * {@code SPRITE} and the base {@code SPRITE}. Faithful port of the former inline
  * {@code BattleRenderer.renderShuttles}/{@code renderShuttleEngines}/
  * {@code renderShuttleTurrets}; whole-texture sprites use the non-batched
  * {@code SPRITE} command (which resets sprite angle after each draw, so the old
  * end-of-pass {@code setAngle(0)} reset loop is gone).
  *
- * <p>Engine FX manages its own GL bracket, so it rides the drain's {@code CUSTOM}
- * escape hatch rather than the textured-quad bracket.
+ * <p>Reflected engine light and exhaust masks paint once, above environmental
+ * shade. The reflection samples the hull's paint and alpha in a small patch
+ * beside each nozzle; the rest of the hull retains its night tint.
+ * Both passes retain this collector's admission,
+ * camera culling and exact hull pose. Engine FX manages its own GL bracket, so it
+ * rides the drain's {@code CUSTOM} escape hatch rather than the textured-quad bracket.
  */
 public final class ShuttleRenderSystem implements RenderSystem {
 
     private final BattleSprites sprites;
+    private final EngineHullLightShader hullLightShader = new EngineHullLightShader();
 
     public ShuttleRenderSystem(BattleSprites sprites) {
         this.sprites = sprites;
     }
+
+    /** Releases the lazy shader when the presentation host detaches. */
+    public void disposeLighting() { hullLightShader.dispose(); }
 
     @Override
     public RenderLayer layer() {
@@ -58,6 +68,11 @@ public final class ShuttleRenderSystem implements RenderSystem {
             ShuttleSpriteCache cache = sprites.airframeSprite(frame);
             if (cache == null) continue;
             AirBody body = world.kinematics(id);
+            if (mission.crashImpact != null) {
+                HullWreckRenderer.emit(out, cam, cache, frame, mission.crashImpact,
+                        ctx.sim.getSimTickIndex() * BattleSimulation.TICK_DT, alphaMult);
+                continue;
+            }
 
             // Authored render-state is a world component now (read by id); the
             // scale + altitude offset are pure derivations of altitudeT/flightPhase.
@@ -76,13 +91,6 @@ public final class ShuttleRenderSystem implements RenderSystem {
             if (!view.visible(body.x, body.y, spanCells * 1.5f)) continue;
             float engineFxIntensity = AirAppearance.thrusterPlume(mission.state, altitudeT);
             float[] thrusterGlow = ctx.sim.getThrusterGlow(id);
-
-            // Engine FX (own GL) under the hull. The per-slot demand (smoothed
-            // each sim tick by AirSystem's ThrusterFxSystem) blooms the thrusters
-            // actually pushing / turning the hull and ramps instead of snapping.
-            out.addCustom(RenderLayer.SHUTTLES, new EngineFxPass(frame, body.x, body.y,
-                    body.facingDegrees, scaleMult, altOffset, engineFxIntensity, alphaMult, cam,
-                    sprites.engineGlowSprite(), sprites.engineFlameSprite(), thrusterGlow));
 
             // Hull. Length is derived from the hull's sprite pixel extent via
             // the one global pixel-density factor (HullFootprintResolver), not a
@@ -105,9 +113,27 @@ public final class ShuttleRenderSystem implements RenderSystem {
             float pvy = pivot[1] * scaleMult;
             float cx = cam.cellToScreenX(body.x + (pvx * pc - pvy * psn));
             float cy = cam.cellToScreenY(body.y + (pvx * psn + pvy * pc) + altOffset);
+            // Falling hulls retain their paint; the shared impact/wreck branch
+            // above applies the charred tint only once they touch the ground.
             out.addSprite(RenderLayer.SHUTTLES, cache.sprite,
                     cx, cy, pxW, pxH, body.facingDegrees,
-                    mission.destroyed ? .35f : 1f, mission.destroyed ? .25f : 1f, mission.destroyed ? .2f : 1f, alphaMult);
+                    1f, 1f, 1f, alphaMult);
+
+            // The same corrected nozzles and smoothed demand drive the reflected
+            // light and free exhaust. Reuse the exact hull pose above, including
+            // its pivot and altitude zoom, rather than inferring it from texture size.
+            if (!mission.destroyed && engineFxIntensity > 0f) {
+                EngineHullLighting.Light[] lights = EngineHullLighting.lights(
+                        frame.engineVisualOffsets().applyTo(EngineSlotResolver.resolve(frame)),
+                        hullLenCells, engineFxIntensity, thrusterGlow);
+                if (lights.length > 0) out.addCustom(RenderLayer.AIRCRAFT_LIGHTS,
+                        new EngineHullLightPass(cache.sprite, cx, cy, pxW, pxH, body.facingDegrees,
+                                hullLenCells * cache.aspect, hullLenCells, pivot[0], pivot[1],
+                                alphaMult, lights, hullLightShader));
+                out.addCustom(RenderLayer.AIRCRAFT_LIGHTS, new EngineFxPass(frame, body.x, body.y,
+                        body.facingDegrees, scaleMult, altOffset, engineFxIntensity, alphaMult, cam,
+                        sprites.engineGlowSprite(), sprites.engineFlameSprite(), thrusterGlow));
+            }
 
             emitTurrets(out, cam, cellPx, alphaMult, body, scaleMult, altOffset,
                     ctx.sim.getAirTurretMounts(id));

@@ -64,7 +64,7 @@ public final class BattleReviewFrameRenderer {
             RenderLayer.GROUND, RenderLayer.DECALS, RenderLayer.VEHICLES, RenderLayer.DOODADS,
             RenderLayer.UNITS, RenderLayer.HAZARDS, RenderLayer.SMOKE,
             RenderLayer.DRONES, RenderLayer.OBJECTIVES, RenderLayer.COMPOUND,
-            RenderLayer.CONVOY, RenderLayer.SHUTTLES, RenderLayer.NIGHT_LIGHTING);
+            RenderLayer.CONVOY, RenderLayer.SHUTTLES, RenderLayer.NIGHT_LIGHTING, RenderLayer.AIRCRAFT_LIGHTS);
 
     private final HeadlessUiRenderer renderer;
     private final int width;

@@ -165,7 +165,10 @@ class TurretCatalogRegistryTest {
         for (StructureDef structure : TurretCatalogRegistry.installed().structures()) {
             if (structure.id.equals("structure.fortress-battery-placeholder")
                     || structure.id.equals("structure.shield-generator") || structure.isFortAspectCore()
-                    || structure.id.equals(TurretCatalogRegistry.RIDGE_AA_STRUCTURE_ID)) {
+                    || structure.id.equals(TurretCatalogRegistry.RIDGE_AA_STRUCTURE_ID)
+                    || structure.id.equals("structure.aa-locust")
+                    || structure.id.equals("structure.aa-swarmer")
+                    || structure.id.equals("structure.aa-proximity")) {
                 assertEquals(3, structure.footprintCellsX);
                 assertEquals(3, structure.footprintCellsY);
             } else {
