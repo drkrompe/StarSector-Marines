@@ -2,7 +2,7 @@
 
 Status: ACTIVE
 Written: 2026-10-16
-Updated: 2026-10-16 — switched from in-game layered playback to pre-rendered video played by a player the mod ships (owner's call).
+Updated: 2026-10-16 — timelines carry strings.json keys, never English; the player pages the text.
 
 The arrival (C1, C2, entry transition, C3, C4, C5) ships as pre-rendered video played by
 a video player bundled in the mod. Starsector cannot play video itself, so the mod carries
@@ -23,8 +23,10 @@ Each shot folder delivers:
 - **No baked text.** Captions, speaker tags and the C1 planet lock are drawn by the player
   at runtime in the game's fonts and the `ui-overlay.md` style, so they stay sharp,
   translatable and switchable. A shot provides them as data:
-  - `captions()`: `(t_in, t_out, speaker_id, text)` from the dialogue catalog and the
-    real clip lengths, the way `c1_overlay.py` times them;
+  - `captions()`: `(t_in, t_out, speaker_id, catalog_line_id)`, one entry per voiced take, over the
+    whole take (its first word in to its tail out), from the real clip lengths. **No text and no
+    paging.** The exporter turns the catalog id into a `strings.json` key (below) and the player
+    pages whatever the active language says;
   - `overlays()`: anything else drawn over the picture, such as C1's planet lock, given
     as the planet's screen centre and radius over time.
 - **Audio as cues, not a mix.** `audio_cues()` returns `(t, sound_id, volume)` (and
@@ -72,14 +74,35 @@ Escape or a click skips; the receipt (`sm_jangala_arrival_played`) is written wh
 Captions and the lock are drawn live in the game's bitmap fonts (`Fonts.ORBITRON_*`,
 `INSIGNIA_LARGE`).
 
+## Text is keys (localisation)
+
+Every string the player draws comes from `mod/data/strings/strings.json` (`marineOps`), resolved
+through `Strings.get` in the language active when the arrival plays:
+
+- **Captions** name a key per take: `{"t_in", "t_out", "speaker", "key"}`. The key is the catalog
+  line's id in camelCase (`jangala_arrival_hail_01` -> `jangalaArrivalHail01`), except the Nessa line,
+  which keeps `openingCompanyPrologueNessaVennWeRanOreTogetherBefore`
+  (`cinematic_export.caption_key`). A catalog line's `text` and its string must be identical;
+  `ArrivalCinematicStringsTest` fails the build if they drift, or a timeline names a key that
+  does not exist. Add the string when you add a line to the catalog.
+- **Speaker labels** are `speakers.<id>.label_key`; the lock's `title_key` and each `detail` run's
+  `key` are keys too. Colours stay data.
+- **Paging** is the player's (`CaptionPager`): sentence by sentence into pages of at most two
+  balanced rows within the caption width, cut at commas and then by width when a sentence is too
+  long, with the pages sharing the take's time in proportion to their length. Do not pre-split text
+  or time pages in a composer.
+- `cinematic_export.py --timeline-only --shot <id>` rewrites just the JSON (frame count taken from
+  the timeline on disk), for a text or timing change that needs no re-encode.
+
 ## Adding a shot (C2-C5)
 
 1. Render clean frames to `build/cinematic/<shot>/frames/%05d.png`, 1920x1080, 24 fps, no baked text.
 2. Your composer module provides `duration()` (or `DURATION`), `captions()` as
-   `(t_in, t_out, speaker_id, text)` with speaker ids `approach` or `castle`, `overlays()` and
+   `(t_in, t_out, speaker_id, catalog_line_id)` (one per take, ids from
+   `mod/data/marines/jangala_arrival_hail.json`) with speaker ids `approach` or `castle`, `overlays()` and
    `audio_cues()`. All times are seconds from the shot's own first frame.
    - `overlays()` returns dicts; only `{"kind": "lock", ...}` exists today (see `compose_c1.overlays()`
-     for the shape: `t_in`, `t_out`, `title`, `detail`, and a `track` of `[t, x, y, r]` in source pixels).
+     for the shape: `t_in`, `t_out`, `title_key`, `detail` (runs of `{key, color}`), and a `track` of `[t, x, y, r]` in source pixels).
      Unknown kinds are ignored, so a new overlay kind needs a player change.
    - `audio_cues()` returns dicts `{"t", "sound", "volume"}`; a bed adds `until` (may run past the shot
      into the next) plus `fade_in` / `fade_out`. `sound` must be in `mod/data/config/sounds.json`

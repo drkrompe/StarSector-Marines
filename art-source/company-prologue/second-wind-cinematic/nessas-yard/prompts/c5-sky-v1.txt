@@ -1,0 +1,10 @@
+Shot plate: the SKY AND FAR HORIZON layer for a grounded, photographic science-fiction film. Late morning on the humid jungle world Jangala, seen from ground level at a spaceport repair yard, looking out over flat yard ground toward the far edge of the port. 16:9, the widest landscape canvas.
+
+Image 1 is the LAYOUT AUTHORITY: a clay render from the real shot camera. Keep the horizon exactly where it is (a little below the middle of the frame) and keep the camera level. The green blobs mark a distant jungle tree line; continue that tree line across the WHOLE width of the horizon, with low, softly rolling forested hills rising behind it on the left and centre, very far away (two to four kilometres), blue-green with heavy humid haze.
+Image 2 is MATERIAL AND STYLE REFERENCE ONLY for the film's sky, haze and daylight. Do not copy its ship, yard, people or layout.
+
+Sky: humid tropical late-morning sky, deep soft blue overhead fading to a pale hazy band at the horizon, with towering bright sunlit cumulus building above the hills on the right and scattered smaller cumulus elsewhere. The sun is high, behind the viewer and to the left, so the clouds are lit from the front-left.
+Below the horizon line, only flat, hazy, featureless pale grey yard ground receding into the distance (it will be covered by another layer).
+
+This layer contains ONLY sky, clouds, hills and the far tree line: no ships, no buildings, no towers, no cranes, no aircraft, no people, no steam, no birds.
+Style: photographic, natural colour, real atmosphere, cinematic. Not a painting, not a cartoon. No text, labels, borders or lens flares.

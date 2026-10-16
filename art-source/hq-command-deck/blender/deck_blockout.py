@@ -20,9 +20,9 @@ Coordinates in this file are deck metres: x right, y up, z ahead of the camera. 
 become Blender's (X, Y, Z) = (x, z, y) in one place, `V`.
 
 Writes beside the script's folder:
-  deck-guide-v6.png          grey guide for ImageGen: the room and its seated watch, no named figures
-  deck-guide-v6-people.png   the same with stand-ins at their stands, for proportions
-  deck-guide-v6.layout.json  camera, room, props and projected markers
+  deck-guide-v7.png          grey guide for ImageGen: the room and its seated watch, no named figures
+  deck-guide-v7-people.png   the same with stand-ins at their stands, for proportions
+  deck-guide-v7.layout.json  camera, room, props and projected markers
   masks/<stand>.occluder.png with `-- --masks`: what stands in front of each person
 """
 import json
@@ -48,9 +48,10 @@ TABLE = (-1.9, 1.9, 5.8, 8.2)                   # x0, x1, z0, z1 of the plotting
 PEOPLE = {
     "castle": (0.9, 8.45, 1.68, 0.0),
     "commander": (-2.4, 6.9, 1.82, 0.0),
-    "comms-left": (-5.62, 11.45, 1.30, TIER["height"]),
-    "comms-right": (-3.92, 11.45, 1.30, TIER["height"]),
+    "comms-left": (-6.35, 11.45, 1.30, TIER["height"]),
+    "comms-right": (-4.75, 11.45, 1.30, TIER["height"]),
     "quartermaster": (4.2, 11.95, 1.80, TIER["height"]),
+    "sabine": (2.4, 5.4, 1.72, 0.0),
 }
 
 
@@ -556,11 +557,11 @@ def foreground_consoles():
 
 
 def plotting_board():
-    """A free-standing glass plotting board, the kind written on from behind."""
-    for side in (-1, 1):
-        xc, zc = side * 4.6, 10.0
+    """Free-standing glass plotting boards, the kind written on from behind. The west one stands
+    by the tier steps rather than mirroring the east: further out it hid the comms watch."""
+    for xc, zc, turn in ((-2.2, 9.9, 0.35), (4.6, 10.0, -0.5)):
         parts = made(_plotting_board, xc, zc)
-        spin(parts, (xc, 0.0, zc), -side * 0.5)
+        spin(parts, (xc, 0.0, zc), turn)
 
 
 def _plotting_board(xc, zc):
@@ -573,9 +574,10 @@ def _plotting_board(xc, zc):
 
 
 def comms_bank():
-    """Back-left on the tier: the comms watch, two operators. Its back is the bulkhead."""
+    """Back-left on the tier: the comms watch, two operators. Its back is the bulkhead. Kept
+    left of the commander's stand so neither operator sits behind his head in the frame."""
     b = ROOM["back"]
-    for j, xc in enumerate((-5.62, -3.92)):
+    for j, xc in enumerate((-6.35, -4.75)):
         watch_bank(f"comms bank {j}", xc, b - 0.95, seats=1, rack=2.3)
 
 
@@ -729,7 +731,7 @@ def layout():
     doc = {"size": [W, H], "units": "metres; x right, y up, z ahead of the camera",
            "camera": CAM, "projection": "u = cx + focal*x/z, v = cy - focal*(y - height)/z",
            "room": ROOM, "tier": TIER, "table": TABLE, "props": props, "markers": markers, "people": people}
-    (OUT / "deck-guide-v6.layout.json").write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
+    (OUT / "deck-guide-v7.layout.json").write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
     for k, v in people.items():
         print(k, "height px", round(v["feetPx"][1] - v["headPx"][1]))
 
@@ -761,7 +763,7 @@ def main():
         people.hide_render = True
         occluder_masks()
         return
-    for hidden, name in ((True, "deck-guide-v6.png"), (False, "deck-guide-v6-people.png")):
+    for hidden, name in ((True, "deck-guide-v7.png"), (False, "deck-guide-v7-people.png")):
         people.hide_render = hidden
         sc.render.filepath = str(OUT / name)
         bpy.ops.render.render(write_still=True)

@@ -1,0 +1,5 @@
+A plate of atmospheric-entry plasma seen through a spacecraft cabin window, as a texture card for compositing. Widest landscape canvas, the whole canvas filled edge to edge.
+
+Content: the glowing shock layer that wraps a ship's hull during re-entry, photographed from inside, flowing from right to left. Long horizontal hot filaments and torn ribbons of ionised air streaming right to left, slightly converging toward the left; bright yellow-white cores fading through deep orange into dark red-brown streaks; denser and hotter toward the right side and the bottom, thinner, cooler and more broken toward the left and the top; a faint dark sky barely visible through the thinnest gaps at the upper left. Motion-streaked like a long exposure, but with sharp filament detail. Realistic, cinematic, photographic, not cartoonish.
+
+No window frame, no spacecraft parts, no planet surface, no sparks or debris, no text, no border, no vignette.

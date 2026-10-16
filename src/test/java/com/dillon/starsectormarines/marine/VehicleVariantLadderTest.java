@@ -12,7 +12,6 @@ import java.util.Objects;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Each line's fixed variants: their cards, tiers, art gate, bills and trade-offs. */
@@ -48,27 +47,12 @@ class VehicleVariantLadderTest {
     }
 
     @Test
-    void aVariantWhoseArtIsPendingIsNeverOffered() {
-        assertTrue(VehicleType.UP_ARMORED_APC.presentationDeclared());
-        assertTrue(VehicleType.FIRE_SUPPORT_APC.presentationDeclared());
-        assertFalse(VehicleType.HEAVY_GUN_TANK.presentationDeclared());
-        assertFalse(VehicleType.DOZER_BREACHER.presentationDeclared());
+    void everyVariantIsDrawnAndOfferedAsACard() {
         for (VehicleType type : VARIANTS) {
-            assertEquals(type.presentationDeclared(), MechPattern.offerable().contains(MechPattern.of(type)),
-                    type.name());
+            assertTrue(type.presentationDeclared(), type.name());
+            assertTrue(MechPattern.offerable().contains(MechPattern.of(type)), type.name());
+            assertNotNull(MechPatternCardItemPlugin.itemData(MechPattern.of(type).id()), type.name());
         }
-        assertThrows(IllegalArgumentException.class,
-                () -> MechPatternCardItemPlugin.itemData(MechPattern.of(VehicleType.HEAVY_GUN_TANK).id()));
-        assertNotNull(MechPatternCardItemPlugin.itemData(MechPattern.of(VehicleType.UP_ARMORED_APC).id()));
-    }
-
-    @Test
-    void noChannelDrawsAPendingVariant() {
-        List<String> drawn = MechPatternPicker.pick("tritachyon", FactionEquipmentSource.PATRON, 200, 3L,
-                null, new EquipmentAcquisitionEligibility.Progress(15, 20));
-        assertFalse(drawn.contains(MechPattern.of(VehicleType.DOZER_BREACHER).id()));
-        assertFalse(drawn.contains(MechPattern.of(VehicleType.HEAVY_GUN_TANK).id()));
-        assertTrue(drawn.contains(MechPattern.of(VehicleType.FIRE_SUPPORT_APC).id()));
     }
 
     @Test

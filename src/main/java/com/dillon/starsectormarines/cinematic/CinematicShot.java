@@ -20,20 +20,28 @@ public record CinematicShot(String id, String video, int fps, int width, int hei
                             Map<String, Speaker> speakers, List<Caption> captions, List<LockOverlay> locks,
                             List<Cue> cues) {
 
-    /** Colours are named, not numeric, so the player picks them from the game's own palette. */
-    public record Speaker(String label, String color) { }
+    /**
+     * Colours are named, not numeric, so the player picks them from the game's own palette. The label
+     * is a {@code strings.json} key, resolved in the active language when it is drawn.
+     */
+    public record Speaker(String labelKey, String color) { }
 
-    public record Caption(double in, double out, String speaker, String text) { }
+    /**
+     * One voiced take: its window, its speaker id and the {@code strings.json} key of its words. The
+     * text is paged at runtime ({@link CaptionPager}), so a translation pages itself.
+     */
+    public record Caption(double in, double out, String speaker, String key) { }
 
     public record Cue(double t, String sound, float volume, double until, float fadeIn, float fadeOut) {
         public boolean looped() { return !Double.isNaN(until); }
     }
 
-    public record Detail(String text, String color) { }
+    /** One coloured run of the lock's second line; {@code key} is a {@code strings.json} key. */
+    public record Detail(String key, String color) { }
 
     /** A sensor lock on something in the picture, tracked by its centre and radius in source pixels. */
     public record LockOverlay(double in, double out, double closeSeconds, double outSeconds, double arcDegrees,
-                              double leader, String title, List<Detail> detail, double[][] track) { }
+                              double leader, String titleKey, List<Detail> detail, double[][] track) { }
 
     public static CinematicShot parse(JSONObject json) throws JSONException {
         Map<String, Speaker> speakers = new LinkedHashMap<>();
@@ -41,13 +49,13 @@ public record CinematicShot(String id, String video, int fps, int width, int hei
         if (speakerJson != null)
             for (String key : keys(speakerJson)) {
                 JSONObject s = speakerJson.getJSONObject(key);
-                speakers.put(key, new Speaker(s.getString("label"), s.optString("color", "player")));
+                speakers.put(key, new Speaker(s.getString("label_key"), s.optString("color", "player")));
             }
         List<Caption> captions = new ArrayList<>();
         JSONArray captionJson = json.optJSONArray("captions");
         for (int i = 0; captionJson != null && i < captionJson.length(); i++) {
             JSONObject c = captionJson.getJSONObject(i);
-            captions.add(new Caption(c.getDouble("t_in"), c.getDouble("t_out"), c.getString("speaker"), c.getString("text")));
+            captions.add(new Caption(c.getDouble("t_in"), c.getDouble("t_out"), c.getString("speaker"), c.getString("key")));
         }
         List<LockOverlay> locks = new ArrayList<>();
         JSONArray overlayJson = json.optJSONArray("overlays");
@@ -57,7 +65,7 @@ public record CinematicShot(String id, String video, int fps, int width, int hei
             List<Detail> detail = new ArrayList<>();
             JSONArray detailJson = o.optJSONArray("detail");
             for (int d = 0; detailJson != null && d < detailJson.length(); d++)
-                detail.add(new Detail(detailJson.getJSONObject(d).getString("text"),
+                detail.add(new Detail(detailJson.getJSONObject(d).getString("key"),
                         detailJson.getJSONObject(d).optString("color", "player")));
             JSONArray trackJson = o.getJSONArray("track");
             double[][] track = new double[trackJson.length()][4];
@@ -66,7 +74,7 @@ public record CinematicShot(String id, String video, int fps, int width, int hei
             Arrays.sort(track, Comparator.comparingDouble(p -> p[0]));
             locks.add(new LockOverlay(o.getDouble("t_in"), o.getDouble("t_out"), o.optDouble("close_seconds", 0.7),
                     o.optDouble("out_seconds", 0.9), o.optDouble("arc_degrees", 16), o.optDouble("leader", 46),
-                    o.optString("title", ""), detail, track));
+                    o.optString("title_key", ""), detail, track));
         }
         List<Cue> cues = new ArrayList<>();
         JSONArray cueJson = json.optJSONArray("cues");

@@ -1,0 +1,63 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a146d0-29e9-7f10-b542-d14cb08e3c58",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a146d0-29e9-7f10-b542-d14cb08e3c58\\exec-043a01fc-4ea9-4bf7-9197-6f06ca2993f2.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\tank-dozer\\blade-wreck-raw.png",
+    "sha256": "c171da6a8ee1e9279b37b71506763c2db404f417f01a827302568e1dd2e4e16b",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\tank-dozer\\prompt-wreck.txt",
+  "promptSha256": "b7c9e216053be08c1539db68314e614edc748c24a9aab5b6dde1c770187ed803",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Edit target and geometry authority: render only the flat grey damaged blade, arms and rams; keep the wreck pixels and all positions unchanged\nImage 2: Identity reference for the same blade before destruction (materials, parts); not layout\nImage 3: Damage and scorch style reference only; not layout\n\nEdit the first reference image (the edit target). It is a strict top-down orthographic sprite of a destroyed, burned-out tracked tank wreck on a transparent background, nose pointing LEFT. In front of the nose a damaged dozer blade, its two push arms and its hydraulic rams are blocked in as flat grey placeholder shapes.\n\nRender ONLY those grey placeholder shapes as the wrecked steel bulldozer blade assembly of this same tank, seen exactly from directly above, in the same painted, gritty top-down game-sprite style, lighting and resolution as the wreck:\n- the moldboard is knocked askew, buckled and dented, with a torn, jagged rip where the notch is in its lower half and curled torn steel at the rip edges; the upper wing end plate is missing;\n- the leading-edge strip is the cutting edge: bare scratched steel, now chipped and gouged;\n- paint is the same faded khaki / olive-grey as the hull but heavily scorched and blistered, with soot, burned-through black areas and rust, matching the burned wreck panels; a few scraped bright-metal scratches;\n- the upper push arm is bent at the kink; the upper hydraulic ram is snapped, leaving a cylinder stub at the hull and a broken, bent chrome rod hanging off the blade; the lower arm and ram are intact but scorched and dirty.\n\nKeep the exact silhouette, position and size of every grey shape; do not extend beyond them. Keep every pixel of the tank wreck itself exactly unchanged. Same top-down camera, no perspective. No smoke, no fire, no flames, no glow.\nTrue transparent background everywhere outside the wreck and blade, including the gaps between the arms and between the blade and the hull. No ground, no shadow slab, no border, no text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\tank-dozer\\guide-wreck.png",
+      "sha256": "10dc1f928a7a291fdd77abe0ec6dd7b623bebc2ee14eae7a842d7b089d73fb26",
+      "dimensions": [
+        1536,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Edit target and geometry authority: render only the flat grey damaged blade, arms and rams; keep the wreck pixels and all positions unchanged"
+    },
+    {
+      "path": "art-source\\vehicles\\tank-dozer\\blade-live-raw.png",
+      "sha256": "ae86a93b1520b8aeea4a8c138d027aa2f784eddac5b171c73b64b6f55baa4d5a",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Identity reference for the same blade before destruction (materials, parts); not layout"
+    },
+    {
+      "path": "art-source\\vehicles\\tank\\wreck-master.png",
+      "sha256": "5c7a8ef58442b67a5f7643af2d82a72832c37e5fc5e98da8a8b414c270291dd9",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Damage and scorch style reference only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image generation to render the grey blade assembly, preserving the wreck and the guide’s geometry."
+  ],
+  "usage": {
+    "input_tokens": 50783,
+    "cached_input_tokens": 37248,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 477,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 59.9
+}

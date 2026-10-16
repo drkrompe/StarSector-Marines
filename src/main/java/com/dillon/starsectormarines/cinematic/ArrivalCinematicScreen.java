@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.cinematic.CinematicSequence.Scheduled;
 import com.dillon.starsectormarines.cinematic.CinematicShot.Detail;
 import com.dillon.starsectormarines.cinematic.CinematicShot.LockOverlay;
 import com.dillon.starsectormarines.cinematic.CinematicShot.Speaker;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.MarineOpsContext;
 import com.dillon.starsectormarines.ops.Screen;
 import com.dillon.starsectormarines.render2d.GlStateBracket;
@@ -77,6 +78,8 @@ public final class ArrivalCinematicScreen implements Screen {
     private final CinematicSequence sequence;
     private final VideoReader videos;
     private final ShotDecoder[] decoders;
+    /** Caption width in the caption font's own units: 960 source pixels at the 1.5x the text is drawn. */
+    private static final double CAPTION_WIDTH = 640;
     private final CaptionTrack[] captionTracks;
     private final LockTrack[][] lockTracks;
     private final List<SoundAPI> heard = new ArrayList<>();
@@ -109,7 +112,7 @@ public final class ArrivalCinematicScreen implements Screen {
         lockTracks = new LockTrack[sequence.size()][];
         for (int i = 0; i < sequence.size(); i++) {
             var s = sequence.shot(i);
-            captionTracks[i] = new CaptionTrack(s.captions());
+            captionTracks[i] = new CaptionTrack(s.captions(), Strings::get, Fonts.INSIGNIA_LARGE::measureWidth, CAPTION_WIDTH);
             lockTracks[i] = s.locks().stream().map(LockTrack::new).toArray(LockTrack[]::new);
         }
     }
@@ -336,7 +339,7 @@ public final class ArrivalCinematicScreen implements Screen {
         field(centre, top - 66 * s, 1020 * s, 140 * s, 36 * s, 0.42f * (float) state.fieldAlpha() * l.alpha());
         if (state.tagSpeaker() != null) {
             Speaker speaker = sequence.shot(shot).speakers().get(state.tagSpeaker());
-            String label = speaker == null ? state.tagSpeaker().toUpperCase() : speaker.label();
+            String label = speaker == null ? state.tagSpeaker().toUpperCase() : Strings.get(speaker.labelKey());
             Color color = speaker == null ? PLAYER : color(speaker.color());
             BitmapFont font = Fonts.ORBITRON_12_BOLD;
             float sc = 1.15f * s;
@@ -345,9 +348,8 @@ public final class ArrivalCinematicScreen implements Screen {
         BitmapFont font = Fonts.INSIGNIA_LARGE;
         float sc = 1.5f * s;
         for (Page page : state.pages()) {
-            List<String> rows = font.wrapLines(page.text(), 960 * s / sc);
             float rowY = top - 30 * s;
-            for (String row : rows) {
+            for (String row : page.rows()) {
                 text(font, row, centre - font.measureWidth(row) * sc / 2f, rowY, sc, TEXT, (float) page.alpha() * l.alpha());
                 rowY -= 44 * s;
             }
@@ -377,8 +379,8 @@ public final class ArrivalCinematicScreen implements Screen {
             }
             BitmapFont nameFont = Fonts.ORBITRON_24_BOLD, detailFont = Fonts.ORBITRON_12_BOLD;
             float nameScale = 1.25f * s, detailScale = 1.15f * s;
-            double nameW = nameFont.measureWidth(lock.title()) * 1.25, detailW = 0;
-            for (Detail d : lock.detail()) detailW += detailFont.measureWidth(d.text()) * 1.15;
+            double nameW = nameFont.measureWidth(Strings.get(lock.titleKey())) * 1.25, detailW = 0;
+            for (Detail d : lock.detail()) detailW += detailFont.measureWidth(Strings.get(d.key())) * 1.15;
             double width = Math.max(nameW, detailW);
             double ax = cx + rr * Math.cos(Math.toRadians(45)), ay = cy + rr * Math.sin(Math.toRadians(45));
             double ex = ax + lock.leader(), ey = ay + lock.leader();
@@ -396,12 +398,12 @@ public final class ArrivalCinematicScreen implements Screen {
             float textAlpha = (float) st.textAlpha() * l.alpha();
             if (textAlpha <= 0) continue;
             double tx = ex + 2 - st.slide();
-            text(nameFont, lock.title(), l.sx(tx), l.sy(ey + 4), nameScale, PLAYER, textAlpha);
+            text(nameFont, Strings.get(lock.titleKey()), l.sx(tx), l.sy(ey + 4), nameScale, PLAYER, textAlpha);
             float detailX = l.sx(tx);
             float detailY = l.sy(ey + 4 + nameFont.getLineHeight() * 1.25 + 2);
             for (Detail d : lock.detail()) {
-                text(detailFont, d.text(), detailX, detailY, detailScale, color(d.color()), 0.9f * textAlpha);
-                detailX += detailFont.measureWidth(d.text()) * detailScale;
+                text(detailFont, Strings.get(d.key()), detailX, detailY, detailScale, color(d.color()), 0.9f * textAlpha);
+                detailX += detailFont.measureWidth(Strings.get(d.key())) * detailScale;
             }
         }
     }

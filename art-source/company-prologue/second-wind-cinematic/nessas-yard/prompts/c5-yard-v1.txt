@@ -1,0 +1,18 @@
+Shot plate: the YARD layer for a grounded, photographic science-fiction film. Outside, ground level, late morning on the humid jungle world Jangala, at a private repair cradle in a working spaceport yard. The camera stands on the yard's perimeter walkway, about four metres up. 16:9, the widest landscape canvas.
+
+Image 1 is the GEOMETRY AND LAYOUT AUTHORITY: a clay render from the real shot camera. Keep every shape exactly where it is and its exact size: the low concrete barriers and the box shapes along the bottom edge, the large blue-grey slab, the dark steel cradle pads and rails standing on it, the yellow roofed gantry with its jib arm at right, the long repair hall, the control tower and the low buildings behind, and the horizon. Do not move, resize, add or remove anything, and do not change the camera.
+Image 2 is MATERIAL AND STYLE REFERENCE ONLY (an earlier look test of this shot). Copy its realism, light and colour of the yard and buildings. Do NOT copy its ship, its people, its steam, or its wet ground.
+Image 3 is MATERIAL REFERENCE ONLY for this port's concrete, slate and teal-painted surfaces.
+
+What the clay stands for:
+- The large blue-grey slab is the cradle hardstand: heavy, dry, sun-bleached concrete slabs with expansion joints, oil and scorch stains, faded yellow painted bay lines. The dark steel blocks on it are the cradle's contact pads, clamp slides and the low rails between them: massive, scuffed, oily steel.
+- A large ship is about to stand in this cradle, but the ship is a SEPARATE LAYER: do NOT paint any ship or hull. The cradle stands empty. Paint the area between and around the pads as ground in deep, soft shade, as if a big hull overhead were shading it (the slightly darker zone in the clay).
+- The lighter grey ground in the foreground is the yard apron: dry, stained, patched concrete.
+- The yellow frame at right is a sheltered crew gantry: a small roofed steel shelter with a yellow-painted frame, a corrugated roof, a mesh back screen, a few equipment lockers and gas bottles under it, and a slim jib hoist on a mast at its left end with a steel cable hanging straight down from the jib head to an empty hook at about head height.
+- The long building behind is a weathered repair hall with warm cream cladding, a sawtooth roof and big roller doors; the square tower is the yard's control tower with a dark glazed cab; the low buildings at right are offices and stores. Faded teal tanks or service units may appear by the walls.
+- The bottom boxes are, from left: a low yellow-and-grey concrete yard barrier row, and at bottom right a heavy cable reel and a battered service cart.
+
+Light: one sun, high (about 50 degrees), behind the camera and to the LEFT. Shadows fall to the right and away. Hazy humid air: the hall and tower are slightly paled by distance. Ground is DRY: no puddles, no wet sheen, no reflections.
+The sky above the buildings: plain, flat, very pale blue (it will be replaced by another layer); no clouds, no hills, no trees.
+NO people, NO vehicles moving, NO steam or smoke, NO ships or aircraft. No text, numbers, logos or labels anywhere.
+Style: photographic, cinematic realism, natural colour, tactile weathered industrial materials, futuristic but lived-in. Not a toy, miniature, painting or cartoon. No borders or lens flares.

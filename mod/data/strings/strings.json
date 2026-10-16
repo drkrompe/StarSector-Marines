@@ -3248,6 +3248,21 @@
 		"nexInvasionMissionName": "Invasion — {0}",
 		"nexInvasionRequirements": "Company detachment and lift",
 		"nexInvasionFlavor": "The company lands to take {0} from its garrison. The whole garrison stands against you: win the ground and the world changes hands. Retreat or lose and it stays with its owner.",
-		"nexInvasionNotApplied": "The invasion's result could not be handed to Nexerelin. The market is unchanged; the company's losses stand."
+		"nexInvasionNotApplied": "The invasion's result could not be handed to Nexerelin. The market is unchanged; the company's losses stand.",
+
+		# Arrival cinematic (cinematic_export.py timelines name these keys). Hail lines are keyed from their catalog
+		# ids in jangala_arrival_hail.json and must match its text; the Nessa line is openingCompanyPrologueNessaVenn...
+		"jangalaArrivalSpeakerApproach": "JANGALA APPROACH",
+		"jangalaArrivalSpeakerCastle": "CASTLE  /  SECOND WIND",
+		"jangalaArrivalLockTitle": "JANGALA",
+		"jangalaArrivalLockDetailSystem": "CORVUS  /  ",
+		"jangalaArrivalLockDetailFaction": "HEGEMONY",
+		"jangalaArrivalHail01": "Cerberus on the inbound lane, this is Jangala Approach. Your transponder reads a decommissioned mining escort. State your business in Corvus.",
+		"jangalaArrivalHail02": "Jangala Approach, this is Second Wind. Civilian. Crew and families aboard, nothing for sale. We're expected at Greywater Down, private cradle Kilo Nine.",
+		"jangalaArrivalHail03": "Corvus is under Hegemony customs. Declare any AI cores, harvested organs, recreational drugs or heavy armaments.",
+		"jangalaArrivalHail04": "Nothing to declare, Approach. Ore dust and tired people.",
+		"jangalaArrivalHail07": "Second Wind, you're cleared to Greywater Down on civilian corridor four. Keep your mounts cold and stay in the corridor. Patrol has your signature.",
+		"jangalaArrivalHail08": "Corridor four, mounts cold. Thank you, Approach.",
+		"jangalaArrivalHail09": "Well. Somebody knows we're here."
 	}
 }
