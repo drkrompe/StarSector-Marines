@@ -194,6 +194,16 @@ final class WarshipFlux {
         return flux <= 0f || flux + cost < capacity();
     }
 
+    /**
+     * Whether a salvo costing {@code cost} may be started by a ship pressing a target that has lost its shield: past
+     * the soft limit and while venting, as long as the salvo itself does not reach capacity. Only an overload stops it.
+     */
+    boolean canPress(float cost) {
+        if (!enabled) return true;
+        if (state == State.OVERLOADED) return false;
+        return flux <= 0f || flux + cost < capacity();
+    }
+
     /** Whether point defence may shoot; only an overload silences it. */
     boolean canDefend() {
         return !overloaded();

@@ -58,10 +58,21 @@ public final class Warship {
         int ammoRemaining = UNLIMITED;
         /** Whether the plating cell under this mount's slot has been holed through, taking the mount with it. */
         boolean knockedOut;
+        /** When a silenced mount comes back into action, in battle seconds; NaN while it is not being repaired. */
+        float repairAt = Float.NaN;
+        /** When this mount was last brought back into action, in battle seconds; NaN if never. */
+        float repairedAt = Float.NaN;
+        /** Whether the mount is gone for good: its section was holed again after its repair. */
+        boolean lost;
 
-        /** Whether this mount was lost with the plating under it: it fires at nothing for the rest of the battle. */
+        /** Whether this mount is out of action: silenced by a breach under it, or lost for good. */
         public boolean knockedOut() {
             return knockedOut;
+        }
+
+        /** Whether this mount is gone for good rather than silenced and under repair. */
+        public boolean lost() {
+            return lost;
         }
 
         /** Rounds left in this mount's own magazine, or {@code -1} when it is unlimited. */
@@ -965,25 +976,64 @@ public final class Warship {
     }
 
     /**
-     * Knocks out every mount whose slot cell has been breached, abandoning whatever it was doing; returns how many
-     * went. A mount knocked out stays out: there is no repair in a ground battle.
+     * Silences every mount whose slot cell has been breached, abandoning whatever it was doing; returns how many
+     * went. The first breach silences a mount for its repair time; a repaired mount whose holed plate is hit again is
+     * lost for the rest of the battle.
      */
-    public int knockOutBreachedMounts() {
+    public int knockOutBreachedMounts(float now) {
         if (plating == null) return 0;
-        int lost = 0;
+        int out = 0;
         for (Mount m : mounts) {
             if (m.knockedOut) continue;
             int cell = slotCell(m.slot);
             if (cell < 0 || !plating.breached(cell % plating.cols, cell / plating.cols)) continue;
+            if (!Float.isNaN(m.repairedAt)) {
+                // A mount already repaired over a holed plate is lost only once that plate is hit again.
+                if (plating.lastHitAt(cell % plating.cols, cell / plating.cols) <= m.repairedAt) continue;
+                m.lost = true;
+            } else {
+                m.repairAt = now + MOUNT_REPAIR_SECONDS * WarshipScale.HULL_TEMPO;
+            }
             m.knockedOut = true;
             m.burstRemaining = 0;
             m.aimed = false;
-            lost++;
+            out++;
         }
-        return lost;
+        return out;
     }
 
-    /** Mounts lost with their plating. */
+    /**
+     * Brings a silenced mount back once its repair is done, and loses a repaired one for good when the holed plate
+     * under it is hit again (D2 in {@code warship-tactics.md}).
+     */
+    void tickMountRepairs(float now) {
+        if (plating == null) return;
+        for (Mount m : mounts) {
+            if (m.lost) continue;
+            if (m.knockedOut && !Float.isNaN(m.repairAt) && now >= m.repairAt) {
+                m.knockedOut = false;
+                m.repairAt = Float.NaN;
+                m.repairedAt = now;
+            } else if (!m.knockedOut && !Float.isNaN(m.repairedAt)) {
+                int cell = slotCell(m.slot);
+                if (cell >= 0 && plating.breached(cell % plating.cols, cell / plating.cols)
+                        && plating.lastHitAt(cell % plating.cols, cell / plating.cols) > m.repairedAt) {
+                    m.knockedOut = true;
+                    m.lost = true;
+                    m.burstRemaining = 0;
+                    m.aimed = false;
+                }
+            }
+        }
+    }
+
+    /**
+     * The base game's time to bring a disabled weapon back, in seconds, before the hull-fight tempo: a mount silenced
+     * by the first breach under it is out this long times {@link WarshipScale#HULL_TEMPO}.
+     */
+    static final float MOUNT_REPAIR_SECONDS = 10f;
+
+    /** Mounts out of action: silenced under repair, or lost with their plating. */
     public int mountsKnockedOut() {
         int n = 0;
         for (Mount m : mounts) if (m.knockedOut) n++;

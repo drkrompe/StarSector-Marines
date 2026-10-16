@@ -107,9 +107,10 @@ increasing an encounter's total armored threat.
   at everything — and costs more than the hull it improves on. A faction weights up
   the variant it is known for (Hegemony the up-armored APC, the Lion's Guard the
   fire-support APC, Tri-Tachyon the heavy-gun tank, the Luddic Path the dozer).
-  Every variant now has its own hull and turret art and is offered. The dozer's
-  blade is presentation only for now: it does not yet breach anything, so in play
-  the dozer is the line's toughest, slowest, cannonless hull.
+  Every variant now has its own hull and turret art and is offered. The dozer
+  trades the cannon and speed for the line's heaviest plate and a blade that
+  pushes through barricades and ordinary walls, opening a route other vehicles
+  can follow (`convoy-nouns.md`, the dozer's blade).
   **A variant whose hull or turret art is missing is not offerable**, exactly as a
   loadout card whose presentation is pending is not: it keeps its stats, pattern and
   bill, but no channel draws it and no card for it can become cargo

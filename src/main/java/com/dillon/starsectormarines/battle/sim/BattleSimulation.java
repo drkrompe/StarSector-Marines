@@ -142,6 +142,7 @@ import com.dillon.starsectormarines.ops.FieldPresencePolicy;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.combat.fx.RollingBlast;
 import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
+import com.dillon.starsectormarines.battle.vehicle.DozerBlade;
 import com.dillon.starsectormarines.battle.vehicle.GroundSystem;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -1296,6 +1297,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world,
                 turretFire, rng, this::spawn, this, effects, transport);
         rosterService.convoy().setDestructionSink(groundSystem::destroyVehicle);
+        groundSystem.setBlade(new DozerBlade(navigation, mapEditor, doodadService));
         rosterService.airTargets().setDestructionSink(airSystem::destroyAircraft);
         mapEditor.setRoofCollapseSink((x, y) -> {
             if (applyingInitialDamage) return;

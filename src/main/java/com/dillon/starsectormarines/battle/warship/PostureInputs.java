@@ -14,7 +14,17 @@ package com.dillon.starsectormarines.battle.warship;
  * @param stance          what the mission wants done about the objective
  */
 public record PostureInputs(float hullFraction, float fluxFraction, boolean overloaded, boolean shieldDown,
-                            float airScore, String airDescription, int ownAir, MissionStance stance) {
+                            float airScore, String airDescription, int ownAir, MissionStance stance,
+                            float foeHullFraction) {
+
+    /** A snapshot with no hull engaged: {@link #foeHullFraction} is {@link #NO_FOE}. */
+    public PostureInputs(float hullFraction, float fluxFraction, boolean overloaded, boolean shieldDown,
+                         float airScore, String airDescription, int ownAir, MissionStance stance) {
+        this(hullFraction, fluxFraction, overloaded, shieldDown, airScore, airDescription, ownAir, stance, NO_FOE);
+    }
+
+    /** {@link #foeHullFraction} for a ship with no hull it is fighting. */
+    public static final float NO_FOE = -1f;
 
     /** A calm, healthy ship with nothing about it and no job: the doctrine's resting snapshot. */
     public static PostureInputs calm() {

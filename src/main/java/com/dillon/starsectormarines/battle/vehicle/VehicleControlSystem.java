@@ -51,6 +51,8 @@ public final class VehicleControlSystem {
     private final NavigationService navigation;
     private final boolean progressiveRecovery;
     private final int recoveryExpansionsPerTick;
+    /** The dozer blade, or {@code null} where no map editor is wired (bare control tests). */
+    private DozerBlade blade;
 
     public VehicleControlSystem(ConvoyService convoy, NavigationService navigation) {
         this(convoy, navigation, Boolean.parseBoolean(System.getProperty(
@@ -64,6 +66,14 @@ public final class VehicleControlSystem {
         this.navigation = navigation;
         this.progressiveRecovery = progressiveRecovery;
         this.recoveryExpansionsPerTick = Math.max(1, recoveryExpansionsPerTick);
+    }
+
+    /** Gives bladed hulls their blade. Without one a dozer drives as the cannonless tank it looks like. */
+    public void setBlade(DozerBlade blade) { this.blade = blade; }
+
+    /** The grid a hull's own planning reads: the blade's breach view for a bladed hull, else the live grid. */
+    NavigationGrid planningGrid(VehicleType type) {
+        return blade != null && type.hasBlade() ? blade.planningGrid() : navigation.getGrid();
     }
 
     /**
@@ -116,7 +126,8 @@ public final class VehicleControlSystem {
         float prevX = body.x, prevY = body.y, prevFacing = body.facingDegrees;
         bicycle.tickManual(throttle, steering, dt);
         if (dt == 0f) return;
-        boolean blocked = applySweep(body, type, prevX, prevY, prevFacing, false);
+        boolean pushing = throttle > 0f && bladeWorks(body, type, convoy.control(id), dt);
+        boolean blocked = applySweep(body, type, prevX, prevY, prevFacing, false) && !pushing;
         if (type.hasAnimatedTreads()) {
             body.recordVisualTravel(prevX, prevY, prevFacing);
         }
@@ -272,7 +283,7 @@ public final class VehicleControlSystem {
         s.sinceReplan += dt;
         if (needsReplan(body, s)) {
             Pose pose = new Pose(body.x, body.y, body.facingDegrees);
-            s.trajectory = LocalTrajectoryPlanner.plan(pose, s.corridor, type, navigation.getGrid());
+            s.trajectory = LocalTrajectoryPlanner.plan(pose, s.corridor, type, planningGrid(type));
             s.trajProgress = 0f;
             s.sinceReplan = 0f;
             s.trajCarrotAtEnd = false;
@@ -392,13 +403,16 @@ public final class VehicleControlSystem {
             targetSpeed = -targetSpeed * 0.5f;
         }
 
+        // A blade bearing on a wall is working, not stuck: pushing it down is this tick's progress.
+        boolean pushing = targetSpeed > 0f && bladeWorks(body, type, s, dt);
+        if (pushing) s.timeSinceProgress = 0f;
         body.tick(carrot.x, carrot.y, targetSpeed, dt);
         // Only delivery entry/exit tails may cross the map bounds; their
         // on-map terrain and edges still receive the same physical sweep.
         boolean deliveryTail = leg != VehicleLeg.MOVE_ORDER && (!VehicleFootprint.isPoseWithinGrid(
                 prevX, prevY, prevFacing, type.visualLengthCells, type.visualWidthCells, navigation.getGrid())
                 || !navigation.getGrid().inBounds((int) Math.floor(carrot.x), (int) Math.floor(carrot.y)));
-        wallStuckRecovery(body, type, s, prevX, prevY, prevFacing, dt, deliveryTail);
+        wallStuckRecovery(body, type, s, prevX, prevY, prevFacing, dt, deliveryTail, pushing);
         if (s.trajectory != null) s.trajProgress += (float) Math.hypot(body.x - prevX, body.y - prevY);
 
     }
@@ -427,7 +441,7 @@ public final class VehicleControlSystem {
      * long before the body reaches the edge).
      */
     private boolean onGridRouteRemains(GroundBody body, VehicleType type, VehicleControlComponent s) {
-        NavigationGrid grid = navigation.getGrid();
+        NavigationGrid grid = planningGrid(type);
         if (!VehicleFootprint.isPoseWithinGrid(body.x, body.y, body.facingDegrees,
                 type.visualLengthCells, type.visualWidthCells, grid)) return false;
         return !LocalTrajectoryPlanner.isPlanningIntoOffMapTail(
@@ -445,13 +459,18 @@ public final class VehicleControlSystem {
      * coarse-corridor fallback (where the planner found no forward plan).
      */
     private void wallStuckRecovery(GroundBody body, VehicleType type, VehicleControlComponent s,
-                                   float prevX, float prevY, float prevFacing, float dt, boolean allowOffMap) {
+                                   float prevX, float prevY, float prevFacing, float dt, boolean allowOffMap,
+                                   boolean pushing) {
 
         // (Net-progress tracking that resets recoveryAttempts now lives at the top
         // of advance(), so it runs every tick — including the open-space orbit
         // where this wall-contact path never fires.)
 
         if (applySweep(body, type, prevX, prevY, prevFacing, allowOffMap)) {
+            if (pushing) {
+                s.wallStuckTime = 0f;
+                return;
+            }
             if (s.wallStuckTime == 0f) {
                 s.stuckOriginX = prevX;
                 s.stuckOriginY = prevY;
@@ -559,7 +578,7 @@ public final class VehicleControlSystem {
         float[] xs = s.routeXs;
         float[] ys = s.routeYs;
         if (xs == null || ys == null) return false;
-        NavigationGrid grid = fields != null ? fields.grid() : navigation.getGrid();
+        NavigationGrid grid = fields != null ? fields.grid() : planningGrid(type);
 
         int goalIdx = VehicleController.lastOnGridIndex(xs, ys, grid);
         if (goalIdx < 1) return false;
@@ -845,6 +864,10 @@ public final class VehicleControlSystem {
             // The RS endpoint was physically reached; no unchecked final snap.
             if (!departing) s.arrived = true;
         }
+    }
+
+    private boolean bladeWorks(GroundBody body, VehicleType type, VehicleControlComponent s, float dt) {
+        return blade != null && type.hasBlade() && blade.push(body, type, s, dt);
     }
 
     private boolean applySweep(GroundBody body, VehicleType type, float x, float y, float facing,

@@ -403,6 +403,7 @@ public final class WarshipSystem {
             // A ship fighting hulls spends on the hull fight's clock (D1).
             float fightDt = ship.hullTarget() != null ? dt / WarshipScale.HULL_TEMPO : dt;
             ship.tickMissileGate(fightDt);
+            ship.tickMountRepairs(clock);
             doctrine(dt, sim, ship);
             shipFire.chooseTarget(ship, ships);
             duelHelm(sim, ship, tactics, clock);
@@ -700,7 +701,7 @@ public final class WarshipSystem {
         if (ship.pinnedPosture() == null && doctrine != null) {
             PostureInputs inputs = new PostureInputs(ship.hullFraction(), ship.fluxFraction(), ship.overloaded(),
                     ship.hasShield() && !ship.shieldUp(), picture.score(), picture.describe(),
-                    picture.ownAir(), ship.stance());
+                    picture.ownAir(), ship.stance(), foeHull(ship));
             WarshipDoctrine.Decision decision = doctrine.assess(inputs, elapsed);
             ship.setPosture(decision.posture(), decision.reason());
         }
@@ -1212,7 +1213,7 @@ public final class WarshipSystem {
             if (damageType == null) ship.takeHit(cell, det.damage, det.penetration, clock);
             else ship.takeHit(cell, det.damage * armourMultiplier(damageType), 1f, clock);
             // A gun stands on the plate it was bolted to: a slot holed through takes its mount with it.
-            if (ship.plating() != null && ship.plating().breachCount() != breachesBefore) ship.knockOutBreachedMounts();
+            if (ship.plating() != null && ship.plating().breachCount() != breachesBefore) ship.knockOutBreachedMounts(clock);
             if (Float.isNaN(strikeX) && cell >= 0) {
                 strikeX = ship.cellX(cell);
                 strikeY = ship.cellY(cell);
@@ -1594,6 +1595,12 @@ public final class WarshipSystem {
                 sim.spawnHeavyImpact(strike.aimX, strike.aimY, strike.visualCells, strike.weapon.explosionColor());
             }
         }
+    }
+
+    /** The hull share left to the hull {@code ship} is fighting, or {@link PostureInputs#NO_FOE}. */
+    private static float foeHull(Warship ship) {
+        Warship foe = ship.hullTarget();
+        return foe == null || foe.destroyed() ? PostureInputs.NO_FOE : Math.max(0f, foe.hullFraction());
     }
 
     private void tickMount(float dt, BattleSimulation sim, Warship ship, Warship.Mount m) {

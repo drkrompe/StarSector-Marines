@@ -33,7 +33,9 @@ CARDS = {
 FOCAL, CY = 1050.0, 170.0
 
 
-def place(plate, card, stand, matte, bottom_m):
+def layer(card, stand, matte, bottom_m, size):
+    """The card as it stands in the frame: a frame-sized premultiplied RGBA array, already
+    cut by the stand's matte, and its placed box (x, y, w, h). `pack.py` packs this."""
     a = np.asarray(card.getchannel("A")).astype(float) / 255
     ys, xs = np.nonzero(a > 0.9)
     top, bottom = ys.min(), ys.max()
@@ -50,15 +52,19 @@ def place(plate, card, stand, matte, bottom_m):
     small = np.stack([np.asarray(Image.fromarray((rgba[..., i] * 255).astype(np.uint8)).resize((w, h), Image.LANCZOS))
                       for i in range(4)], -1).astype(float) / 255
     ox, oy = round(feet[0] - sole_x * scale), round(feet[1] - bottom * scale)
-    base = np.asarray(plate.convert("RGB")).astype(float) / 255
-    cover = 1 - np.asarray(matte.convert("L")).astype(float) / 255
+    frame = np.zeros((size[1], size[0], 4))
     x0, y0 = max(ox, 0), max(oy, 0)
-    x1, y1 = min(ox + w, base.shape[1]), min(oy + h, base.shape[0])
-    src = small[y0 - oy:y1 - oy, x0 - ox:x1 - ox]
-    keep = cover[y0:y1, x0:x1, None]
-    region = base[y0:y1, x0:x1]
-    base[y0:y1, x0:x1] = region * (1 - src[..., 3:] * keep) + src[..., :3] * keep
-    return Image.fromarray((base * 255).round().astype(np.uint8)), (ox, oy, w, h), scale
+    x1, y1 = min(ox + w, size[0]), min(oy + h, size[1])
+    frame[y0:y1, x0:x1] = small[y0 - oy:y1 - oy, x0 - ox:x1 - ox]
+    frame *= 1 - np.asarray(matte.convert("L")).astype(float)[..., None] / 255
+    return frame, (ox, oy, w, h), scale
+
+
+def place(plate, card, stand, matte, bottom_m):
+    frame, box, scale = layer(card, stand, matte, bottom_m, plate.size)
+    base = np.asarray(plate.convert("RGB")).astype(float) / 255
+    base = base * (1 - frame[..., 3:]) + frame[..., :3]
+    return Image.fromarray((base * 255).round().astype(np.uint8)), box, scale
 
 
 def main(names):

@@ -50,6 +50,7 @@ SHOTS = {
     # C3 is film-grain heavy: crf 25 costs 1.1 MB/s there against 0.4 for C1, so it takes 28 (8 MB).
     "c3": Shot("first-open-sky", "compose_c3", "c3-first-open-sky", 28),
     "c4": Shot("road-and-port", "compose_c4", "c4-road-and-port"),
+    "c5": Shot("nessas-yard", "compose_c5", "c5-nessas-yard"),
 }
 CINEMATIC_BUILD = ROOT / "build" / "cinematic"
 

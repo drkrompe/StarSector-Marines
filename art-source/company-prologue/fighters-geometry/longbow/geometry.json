@@ -1,5 +1,6 @@
 {
-  "status": "Blockout (pass 1): silhouette, sections, mass, slots and engines. No detail, damage or textures.",
+  "status": "Pass 2: plausible detail (panel lines, access plates, intakes, drive, gun and canopy detail, sensors) on the pass-1 silhouette. No damage or textures.",
+  "pass": 2,
   "hull": {
     "name": "Longbow",
     "hullId": "longbow",
@@ -48,7 +49,7 @@
     "size_m": [
       15.0,
       14.4,
-      2.5
+      2.6
     ],
     "canopy": {
       "length_m": 2.66,
@@ -80,17 +81,17 @@
     "min": [
       -13.0,
       -16.0,
-      -2.1
+      -2.21
     ],
     "max": [
       20.4,
       16.0,
-      3.5
+      3.52
     ],
     "size": [
       33.4,
       32.0,
-      5.6
+      5.73
     ]
   },
   "root": {
@@ -213,7 +214,8 @@
     "WS 002 (sabot_fighter, HIDDEN) anchors exactly at (9, -11) inside the starboard rack; its muzzle is on the rack's open front face (13.1, -11).",
     "Engine slots (-13, 9) and (-13, -8) straddle the even-width sprite's centre line; the drive pods are modelled symmetric on the sprite's pods at Y +-9 (8 units wide = slot width).",
     "The visible bells sit at the master's painted nozzles, slot + renderEngineOffsetsNativePx = (-12.5, 11.5) and (-12.5, -11), outboard in each pod and recessed 0.5 into its aft face (-13); exhaust anchors are at those bells.",
-    "The master's long pointed nose and outboard pods are not followed: the sprite ends the fuselage at X 13 between two forward sensor prongs and centres its pods on Y +-9."
+    "The master's long pointed nose and outboard pods are not followed: the sprite ends the fuselage at X 13 between two forward sensor prongs and centres its pods on Y +-9.",
+    "Pass 2 (detail read off master-v2, sized in metres at 0.45 m/unit): the forward prongs carry sensor blisters and the nose the master's dark centre strip and lamp; the canopy dome a sill, windscreen arch and bow. Behind it are the master's square dorsal sensor housing, a blade antenna and the slatted aft grille between the aft arms; the aft arms carry the master's small vents. The port emitter gets coil bands and a collar where it leaves the housing, and the housing the master's window. The starboard rack shows four sabot tubes (bright rims, dark bores) in its open mouth, with hold-down latches on top. Each pod has the master's top slot, a lamp, two collar ribs and a centre body with stator vanes. Panel lines split fuselage, arms, housing and plates."
   ],
   "cameras": {
     "top": {
@@ -249,10 +251,82 @@
       "orthographic_scale": 50.75
     }
   },
+  "closeup_cameras": {
+    "nose-detail": {
+      "position": [
+        87.846,
+        44.548,
+        60.597
+      ],
+      "target": [
+        13.6,
+        0.0,
+        1.2
+      ],
+      "orthographic_scale": 13.333
+    },
+    "cockpit-detail": {
+      "position": [
+        57.263,
+        -59.829,
+        74.395
+      ],
+      "target": [
+        9.4,
+        0.0,
+        2.6
+      ],
+      "orthographic_scale": 9.333
+    },
+    "emitter-detail": {
+      "position": [
+        83.062,
+        79.062,
+        44.35
+      ],
+      "target": [
+        15.6,
+        11.6,
+        0.5
+      ],
+      "orthographic_scale": 12.0
+    },
+    "rack-detail": {
+      "position": [
+        81.397,
+        -80.197,
+        38.359
+      ],
+      "target": [
+        12.2,
+        -11.0,
+        0.3
+      ],
+      "orthographic_scale": 10.667
+    },
+    "engine-detail": {
+      "position": [
+        -90.192,
+        68.094,
+        38.996
+      ],
+      "target": [
+        -12.2,
+        9.6,
+        0.0
+      ],
+      "orthographic_scale": 12.444
+    }
+  },
+  "object_count": {
+    "meshes": 100,
+    "empties": 7,
+    "pass2_detail_meshes": 72
+  },
   "silhouette": {
-    "iou": 0.9514,
-    "sprite_uncovered": 0.0119,
-    "model_outside_sprite": 0.0386,
+    "iou": 0.9506,
+    "sprite_uncovered": 0.0118,
+    "model_outside_sprite": 0.0395,
     "sprite": "longbow_intg.png",
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 28.36 px per unit"
   }

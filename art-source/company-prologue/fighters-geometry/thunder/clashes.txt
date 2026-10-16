@@ -1,0 +1,128 @@
+THUNDER | geometry: 125 meshes, 102 pass-2 detail
+detail meeting detail within one fitting: 74 pairs (counted, not listed)
+detail crossing detail across fittings: 0 pairs
+floating detail (touches nothing): 0
+body crossing body (pass 1): 28 pairs
+    Canopy glass | Hull central fuselage
+    Engine 1 aft-facing bell | Engine 1 dark throat
+    Engine 1 aft-facing bell | Engine 1 mouth lip
+    Engine 1 mouth lip | Engine 1 port pod
+    Engine 1 port pod | Hull delta wing
+    Engine 2 aft-facing bell | Engine 2 dark throat
+    Engine 2 aft-facing bell | Engine 2 mouth lip
+    Engine 2 mouth lip | Engine 2 starboard pod
+    Engine 2 starboard pod | Hull delta wing
+    Hull central fuselage | Hull delta wing
+    Hull central fuselage | Hull missile bay recess
+    Hull central fuselage | Hull port gun block
+    Hull central fuselage | Hull starboard lance
+    Hull delta wing | Hull port gun block
+    Hull delta wing | Hull port inner prong
+    Hull delta wing | Hull starboard gun housing
+    Hull delta wing | Hull starboard lance
+    Hull delta wing | Weapon port gun shroud
+    Hull delta wing | Wing port tip plate
+    Hull delta wing | Wing starboard tip plate
+    Hull port gun block | Hull port inner prong
+    Hull port gun block | Weapon port gun shroud
+    Hull port inner prong | Hull port inner prong tip
+    Hull starboard gun housing | Hull starboard lance
+    Hull starboard gun housing | Weapon starboard gun barrel inner
+    Hull starboard gun housing | Weapon starboard gun barrel outer
+    Hull starboard lance | Weapon starboard gun barrel inner
+    Weapon port gun barrel | Weapon port gun shroud
+detail bedded into body (part: body parts it meets):
+    Canopy frame bow: Canopy glass, Hull central fuselage
+    Canopy frame sill: Canopy glass, Hull central fuselage
+    Canopy frame windscreen arch: Canopy glass, Hull central fuselage
+    Engine 1 centre body: Engine 1 dark throat
+    Engine 1 collar rib 1: Engine 1 port pod
+    Engine 1 collar rib 2: Engine 1 port pod
+    Engine 1 pod aft vent slat 1: Engine 1 port pod
+    Engine 1 pod aft vent slat 2: Engine 1 port pod
+    Engine 1 pod aft vent slat 3: Engine 1 port pod
+    Engine 1 pod aft vent well: Engine 1 port pod
+    Engine 1 pod intake grille slat 1: Engine 1 port pod
+    Engine 1 pod intake grille slat 2: Engine 1 port pod
+    Engine 1 pod intake grille slat 3: Engine 1 port pod
+    Engine 1 pod intake grille slat 4: Engine 1 port pod
+    Engine 1 pod intake grille well: Engine 1 port pod, Hull delta wing
+    Engine 1 stator vane 1: Engine 1 aft-facing bell, Engine 1 dark throat
+    Engine 1 stator vane 2: Engine 1 aft-facing bell, Engine 1 dark throat
+    Engine 1 stator vane 3: Engine 1 aft-facing bell, Engine 1 dark throat
+    Engine 1 stator vane 4: Engine 1 aft-facing bell, Engine 1 dark throat
+    Engine 1 stator vane 5: Engine 1 aft-facing bell, Engine 1 dark throat
+    Engine 1 stator vane 6: Engine 1 aft-facing bell, Engine 1 dark throat
+    Engine 1 stator vane 7: Engine 1 aft-facing bell, Engine 1 dark throat
+    Engine 1 stator vane 8: Engine 1 aft-facing bell, Engine 1 dark throat
+    Engine 2 centre body: Engine 2 dark throat
+    Engine 2 collar rib 1: Engine 2 starboard pod
+    Engine 2 collar rib 2: Engine 2 starboard pod
+    Engine 2 pod aft vent slat 1: Engine 2 starboard pod
+    Engine 2 pod aft vent slat 2: Engine 2 starboard pod
+    Engine 2 pod aft vent slat 3: Engine 2 starboard pod
+    Engine 2 pod aft vent well: Engine 2 starboard pod
+    Engine 2 pod intake grille slat 1: Engine 2 starboard pod
+    Engine 2 pod intake grille slat 2: Engine 2 starboard pod
+    Engine 2 pod intake grille slat 3: Engine 2 starboard pod
+    Engine 2 pod intake grille slat 4: Engine 2 starboard pod
+    Engine 2 pod intake grille well: Engine 2 starboard pod, Hull delta wing
+    Engine 2 stator vane 1: Engine 2 aft-facing bell, Engine 2 dark throat
+    Engine 2 stator vane 2: Engine 2 aft-facing bell, Engine 2 dark throat
+    Engine 2 stator vane 3: Engine 2 aft-facing bell, Engine 2 dark throat
+    Engine 2 stator vane 4: Engine 2 aft-facing bell, Engine 2 dark throat
+    Engine 2 stator vane 5: Engine 2 aft-facing bell, Engine 2 dark throat
+    Engine 2 stator vane 6: Engine 2 aft-facing bell, Engine 2 dark throat
+    Engine 2 stator vane 7: Engine 2 aft-facing bell, Engine 2 dark throat
+    Engine 2 stator vane 8: Engine 2 aft-facing bell, Engine 2 dark throat
+    Hull dorsal spine: Hull central fuselage
+    Hull lance dorsal grille slat 1: Hull starboard lance
+    Hull lance dorsal grille slat 2: Hull starboard lance
+    Hull lance dorsal grille slat 3: Hull starboard lance
+    Hull lance dorsal grille slat 4: Hull starboard lance
+    Hull lance dorsal grille slat 5: Hull starboard lance
+    Hull lance dorsal grille slat 6: Hull starboard lance
+    Hull lance dorsal grille slat 7: Hull starboard lance
+    Hull lance dorsal grille slat 8: Hull starboard lance
+    Hull lance dorsal grille slat 9: Hull starboard lance
+    Hull lance dorsal grille well: Hull starboard lance
+    Hull lance tip slot: Hull starboard lance
+    Hull port flank intake slat 1: Hull delta wing
+    Hull port flank intake slat 2: Hull delta wing
+    Hull port flank intake slat 3: Hull delta wing
+    Hull port flank intake slat 4: Hull delta wing
+    Hull port flank intake well: Engine 1 port pod, Hull delta wing
+    Hull port gun block vent slat 1: Hull port gun block
+    Hull port gun block vent slat 2: Hull port gun block
+    Hull port gun block vent slat 3: Hull port gun block
+    Hull port gun block vent slat 4: Hull port gun block
+    Hull port gun block vent slat 5: Hull port gun block
+    Hull port gun block vent slat 6: Hull port gun block
+    Hull port gun block vent well: Hull port gun block
+    Hull port inner prong band 1: Hull port inner prong
+    Hull port inner prong band 2: Hull port inner prong
+    Hull port inner prong cap: Hull port inner prong tip
+    Hull starboard flank intake slat 1: Hull delta wing
+    Hull starboard flank intake slat 2: Hull delta wing
+    Hull starboard flank intake slat 3: Hull delta wing
+    Hull starboard flank intake slat 4: Hull delta wing
+    Hull starboard flank intake well: Engine 2 starboard pod, Hull delta wing
+    Weapon WS 003 launch cell 1: Hull missile bay recess
+    Weapon WS 003 launch cell 1 hatch: Hull missile bay recess
+    Weapon WS 003 launch cell 2: Hull missile bay recess
+    Weapon WS 003 launch cell 2 hatch: Hull missile bay recess
+    Weapon WS 003 launch cell 3: Hull missile bay recess
+    Weapon WS 003 launch cell 3 hatch: Hull missile bay recess
+    Weapon port gun bore: Weapon port gun barrel
+    Weapon port gun coil 1: Weapon port gun shroud
+    Weapon port gun coil 2: Weapon port gun shroud
+    Weapon port gun focus ring: Weapon port gun barrel
+    Weapon starboard gun brake inner: Hull starboard lance, Weapon starboard gun barrel inner
+    Weapon starboard gun brake outer: Weapon starboard gun barrel outer
+    Weapon starboard gun breech cover: Hull starboard gun housing, Hull starboard lance
+    Weapon starboard gun jacket inner: Hull starboard gun housing, Hull starboard lance, Weapon starboard gun barrel inner
+    Weapon starboard gun jacket outer: Hull starboard gun housing, Weapon starboard gun barrel outer
+    Wing port tip plate slot 1: Hull delta wing, Wing port tip plate
+    Wing port tip plate slot 2: Hull delta wing, Wing port tip plate
+    Wing starboard tip plate slot 1: Hull delta wing, Wing starboard tip plate
+    Wing starboard tip plate slot 2: Hull delta wing, Wing starboard tip plate

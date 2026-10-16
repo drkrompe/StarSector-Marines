@@ -1,0 +1,11 @@
+Asset: a sprite sheet of a walk cycle for a grounded, photographic science-fiction film. These figures will be composited very small into a daylight shot of a spaceport repair yard on the humid jungle world Jangala, so they must read clearly as a silhouette.
+
+Layout: a wide landscape sheet with TWO ROWS of EIGHT frames, evenly spaced in equal cells, one complete figure per cell, nothing touching or overlapping a neighbouring cell. Every figure in a row is exactly the same height and stands on the same baseline. The eight frames of each row are one complete, smoothly looping walk cycle at an ordinary unhurried pace: right foot contact, down, passing, up, left foot contact, down, passing, up. Only the limbs and a slight body bob change between frames; the person, clothing, proportions and lighting are identical in every frame.
+
+Row 1: a yard worker in a loose, worn mid-grey one-piece coverall with reflective strips at the shins, heavy work boots, gloves, a close-fitting grey cap, and a compact biofilter respirator mask covering the nose and mouth, with a small filter canister on each side. Empty hands, arms swinging naturally.
+Row 2: a second, slightly broader yard worker in the same kind of grey coverall, darker and more stained, with a short dark utility vest over it, the same respirator mask, carrying a small hard tool case in the hand nearer the viewer; the other arm swings.
+
+View: exact side profile, both walking toward the LEFT of the image, seen at eye level, no perspective tilt. Light: one high sun from behind the viewer and to the left, so the side facing the viewer is lit, with soft shade on the far side and under the arms. Realistic adult proportions (about 1.8 m, roughly seven and a half heads tall).
+
+Style: photographic, natural colour, real fabric and gear, like a cut-out from a film still. Not cartoon, not anime, not a game sprite, not pixel art, no outlines.
+Background: true transparent background (alpha), including the gaps between legs and arms. No ground, no cast shadow, no floor line, no frame borders, no grid lines, no numbers, no text.

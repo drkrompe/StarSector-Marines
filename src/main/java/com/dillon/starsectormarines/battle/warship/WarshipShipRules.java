@@ -150,11 +150,16 @@ public final class WarshipShipRules {
         float toTarget = WarshipFacing.bearing(ship.x, ship.y, tx, ty);
         for (Warship.Mount m : ship.mounts()) {
             if (!gunAtHull(m.weapon) || m.knockedOut()) continue;
-            // Laid from the mount, not the hull's centre: a hardpoint set off the centreline misses by its offset.
+            // Laid from the mount (a hardpoint from its sight point), not the hull's centre: one set off the centreline
+        // misses by its offset.
             float h = WarshipFacing.wrap(toTarget - m.slot.angleDegrees());
             for (int k = 0; k < 2; k++) {
                 float mx = Warship.mountX(ship.x, m.slot, h);
                 float my = Warship.mountY(ship.y, m.slot, h);
+                if (m.slot.hardpoint()) {
+                    mx = sight(ship.x, mx);
+                    my = sight(ship.y, my);
+                }
                 h = WarshipFacing.wrap(WarshipFacing.bearing(mx, my, tx, ty) - m.slot.angleDegrees());
             }
             candidates.add(h);
@@ -259,19 +264,43 @@ public final class WarshipShipRules {
     }
 
     private static boolean bearsAt(Warship ship, Warship.Mount m, float heading, float tx, float ty) {
+        return bearsFrom(ship, m, heading, tx, ty);
+    }
+
+    /** Whether {@code m} bears on {@code (tx, ty)} at {@code heading}, laid from its sight point (see {@link #sight}). */
+    private static boolean bearsFrom(Warship ship, Warship.Mount m, float heading, float tx, float ty) {
         float mx = Warship.mountX(ship.x, m.slot, heading);
         float my = Warship.mountY(ship.y, m.slot, heading);
+        if (m.slot.hardpoint()) {
+            mx = sight(ship.x, mx);
+            my = sight(ship.y, my);
+        }
         return Warship.bears(m, heading, mx, my, tx, ty, UNBOUNDED_REACH);
     }
+
+    /**
+     * One coordinate of the point a hardpoint sights and measures its reach from: its mount pulled in toward the
+     * hull's origin by {@link WarshipScale#HULL_REACH_SHARE}. A hull is drawn {@code 1 / HULL_REACH_SHARE} times larger
+     * against its guns' reach than in the base game, so a hardpoint out toward a beam would see a target its nose is
+     * laid on that many times further off its own line than the base game's toe-in allows for, and with a few degrees
+     * of arc never bear: an Eagle laid its nose on and fired one of three hardpoints, its heavy needlers silent for the
+     * whole duel. Pulled in, the base game's angles and reach come back at the same share of reach. Turrets traverse
+     * and are measured from the mount; the round always flies from the muzzle.
+     */
+    static float sight(float origin, float mount) {
+        return HARDPOINT_SIGHT ? origin + (mount - origin) * WarshipScale.HULL_REACH_SHARE : mount;
+    }
+
+    /** {@code -Dbattle.warship.hardpointSight=false} is the control: hardpoints sight from the mount itself. */
+    static final boolean HARDPOINT_SIGHT =
+            !"false".equalsIgnoreCase(System.getProperty("battle.warship.hardpointSight"));
 
     static float firepowerAt(Warship ship, float heading, float tx, float ty) {
         float total = 0f;
         for (Warship.Mount m : ship.mounts()) {
             // A gun lost with its plating brings nothing to bear, so the hull turns what it has left.
             if (!gunAtHull(m.weapon) || m.knockedOut()) continue;
-            float mx = Warship.mountX(ship.x, m.slot, heading);
-            float my = Warship.mountY(ship.y, m.slot, heading);
-            if (Warship.bears(m, heading, mx, my, tx, ty, UNBOUNDED_REACH)) total += firepower(m.weapon);
+            if (bearsFrom(ship, m, heading, tx, ty)) total += firepower(m.weapon);
         }
         return total;
     }

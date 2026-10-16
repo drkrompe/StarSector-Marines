@@ -6,7 +6,10 @@ The top render's alpha is the model silhouette. The vanilla sprite is laid
 into the same frame through the top camera's projection (nose left, port
 below) and the two masks are compared pixel for pixel. Writes
 top-overlay.png, keeps the transparent render as top-alpha.png, records
-the IoU in geometry.json and composes <id>-geometry.reference.png.
+the IoU in geometry.json and composes <id>-geometry.reference.png. When
+<id>/reference-history/v1-blockout/ holds the blockout's renders from the
+same cameras, it also writes pass2-before-after.png (close-ups) and
+pass2-before-after-views.png (the four standard views).
 """
 from pathlib import Path
 import argparse
@@ -28,6 +31,7 @@ src = Path(args.dir or HERE/args.fighter)
 manifest = json.loads((src/'geometry.json').read_text(encoding='utf-8'))
 font = lambda s: ImageFont.truetype('C:/Windows/Fonts/arial.ttf', s)
 name = manifest['hull']['name']
+STAGE = 'PASS 2 DETAIL' if manifest.get('pass') == 2 else 'BLOCKOUT'
 cam = manifest['cameras']['top']
 cx, cy = cam['position'][:2]
 scale = cam['orthographic_scale']
@@ -67,7 +71,7 @@ diff[sprite_mask & ~model_mask] = (220, 30, 30, 170)
 diff[model_mask & ~sprite_mask] = (20, 190, 220, 170)
 over = Image.alpha_composite(over, Image.fromarray(diff))
 d = ImageDraw.Draw(over)
-d.text((28, 20), f'{name.upper()} BLOCKOUT / TOP OVER {sprite_path.name} (50%)', font=font(30), fill=INK)
+d.text((28, 20), f'{name.upper()} {STAGE} / TOP OVER {sprite_path.name} (50%)', font=font(30), fill=INK)
 d.text((28, 60), f'Silhouette IoU {iou:.3f}   red: sprite not covered ({missing:.1%})   '
                  f'cyan: model outside sprite ({extra:.1%})   nose left, port below', font=font(20), fill=SOFT)
 over.convert('RGB').save(src/'top-overlay.png')
@@ -87,7 +91,7 @@ draw = ImageDraw.Draw(sheet)
 m = manifest['metres_per_unit']
 sz = manifest['scale']['size_m']
 rng = manifest['scale'].get('range')
-draw.text((28, 15), f'{name.upper()} / CINEMATIC GEOMETRY - BLOCKOUT', font=font(32), fill=INK)
+draw.text((28, 15), f'{name.upper()} / CINEMATIC GEOMETRY - {STAGE}', font=font(32), fill=INK)
 draw.text((28, 55), f"{manifest['scale'].get('summary', '')}  |  {sz[0]} x {sz[1]} x {sz[2]} m AT {m} m/UNIT"
                     + (f' (RANGE {rng[0]}-{rng[1]})' if rng else ''), font=font(19), fill=SOFT)
 def panel(n, label, x, y, w, h):
@@ -120,3 +124,69 @@ shape = (f"plan from {Path(source['plan_reference']).name}, sections from {maste
 draw.text((28, 1050), f"Slots and engines from {source['ship']}; {shape}; heights proposed. "
                       f'Silhouette IoU {iou:.3f}.', font=font(17), fill=SOFT)
 sheet.save(src/f'{args.fighter}-geometry.reference.png', optimize=True)
+
+# Before/after against the accepted blockout, from the same cameras.
+before = src/'reference-history'/'v1-blockout'
+closeups = [n for n in manifest.get('closeup_cameras', {})
+            if (before/(n+'.png')).exists() and (src/(n+'.png')).exists()]
+
+
+def square(path, size):
+    im = Image.open(path).convert('RGB')
+    s = min(im.width, im.height)
+    im = im.crop(((im.width-s)//2, (im.height-s)//2, (im.width+s)//2, (im.height+s)//2))
+    return im.resize((size, size), Image.LANCZOS)
+
+
+if before.resolve() != src.resolve() and closeups:
+    rows = (len(closeups)+1)//2
+    cell = min(480, (1080-56-rows*30)//rows)
+    cmp = Image.new('RGB', (1920, 1080), BG)
+    d = ImageDraw.Draw(cmp)
+    for i, n in enumerate(closeups):
+        x, y = (i % 2)*960+(480-cell), 56+(i//2)*(cell+30)
+        for j, folder in enumerate((before, src)):
+            cmp.paste(square(folder/(n+'.png'), cell), (x+j*cell, y))
+        d.text((x+6, y+cell+4), f'{n.upper()}   blockout | pass 2', font=font(18), fill=INK)
+    d.text((12, 12), f'{name.upper()} / PASS 2 DETAILING - BEFORE | AFTER (same cameras, '
+                     f'{manifest["metres_per_unit"]} m/unit)', font=font(24), fill=INK)
+    cmp.save(src/'pass2-before-after.png', optimize=True)
+views = [n for n in ('three-quarter', 'port-side', 'front', 'top-overlay')
+         if (before/(n+'.png')).exists() and (src/(n+'.png')).exists()]
+
+
+def content_box(images):
+    """The box holding everything drawn in any of the images (pixels unlike the corner), padded."""
+    box = None
+    for im in images:
+        a = np.asarray(im).astype(int)
+        mask = (np.abs(a-a[0, 0]).sum(axis=2) > 24)
+        mask[:110] = False  # the overlay's caption
+        ys, xs = np.nonzero(mask)
+        if len(xs):
+            b = (xs.min(), ys.min(), xs.max(), ys.max())
+            box = b if box is None else (min(box[0], b[0]), min(box[1], b[1]), max(box[2], b[2]), max(box[3], b[3]))
+    W, H = images[0].size
+    x0, y0, x1, y1 = box or (0, 0, W, H)
+    px, py = (x1-x0)*.04+8, (y1-y0)*.06+8
+    return (max(0, int(x0-px)), max(0, int(y0-py)), min(W, int(x1+px)), min(H, int(y1+py)))
+
+
+if before.resolve() != src.resolve() and views:
+    cmp = Image.new('RGB', (1920, 1080), BG)
+    d = ImageDraw.Draw(cmp)
+    row = (1080-60)//len(views)
+    for i, n in enumerate(views):
+        pair = [Image.open(folder/(n+'.png')).convert('RGB') for folder in (before, src)]
+        box = content_box(pair)
+        if n == 'top-overlay':  # below the overlay's own caption
+            box = (box[0], max(box[1], 96), box[2], box[3])
+        for j, im in enumerate(pair):
+            im = im.crop(box)
+            k = min(950/im.width, (row-28)/im.height)
+            im = im.resize((round(im.width*k), round(im.height*k)), Image.LANCZOS)
+            x, y = j*960+(950-im.width)//2+5, 56+i*row
+            cmp.paste(im, (x, y))
+        d.text((8, 56+i*row+row-26), f'{n.upper()}   blockout | pass 2', font=font(18), fill=INK)
+    d.text((12, 12), f'{name.upper()} / PASS 2 - STANDARD VIEWS BEFORE | AFTER (same cameras)', font=font(24), fill=INK)
+    cmp.save(src/'pass2-before-after-views.png', optimize=True)

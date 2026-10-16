@@ -1,0 +1,63 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a14678-3f0c-7f01-a3ec-dd1713a0df90",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a14678-3f0c-7f01-a3ec-dd1713a0df90\\exec-b8e5feea-d33d-48c6-a8e4-1ea3d3e751f0.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\nessas-yard\\assets\\c5-yard-v1.png",
+    "sha256": "b33d333a92008157c64821918bd3ec518c28a85c6af1b6da5e1d78e170c29173",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\nessas-yard\\prompts\\c5-yard-v1.txt",
+  "promptSha256": "8636a5e81d8ead4c49eea368f92c45dab9b7f8fe9643204381e85661bf41792a",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and layout authority: every shape, size and position\nImage 2: Material and style reference only; no ship, people, steam or wet ground\nImage 3: Material reference only: concrete, slate, teal\n\nShot plate: the YARD layer for a grounded, photographic science-fiction film. Outside, ground level, late morning on the humid jungle world Jangala, at a private repair cradle in a working spaceport yard. The camera stands on the yard's perimeter walkway, about four metres up. 16:9, the widest landscape canvas.\n\nImage 1 is the GEOMETRY AND LAYOUT AUTHORITY: a clay render from the real shot camera. Keep every shape exactly where it is and its exact size: the low concrete barriers and the box shapes along the bottom edge, the large blue-grey slab, the dark steel cradle pads and rails standing on it, the yellow roofed gantry with its jib arm at right, the long repair hall, the control tower and the low buildings behind, and the horizon. Do not move, resize, add or remove anything, and do not change the camera.\nImage 2 is MATERIAL AND STYLE REFERENCE ONLY (an earlier look test of this shot). Copy its realism, light and colour of the yard and buildings. Do NOT copy its ship, its people, its steam, or its wet ground.\nImage 3 is MATERIAL REFERENCE ONLY for this port's concrete, slate and teal-painted surfaces.\n\nWhat the clay stands for:\n- The large blue-grey slab is the cradle hardstand: heavy, dry, sun-bleached concrete slabs with expansion joints, oil and scorch stains, faded yellow painted bay lines. The dark steel blocks on it are the cradle's contact pads, clamp slides and the low rails between them: massive, scuffed, oily steel.\n- A large ship is about to stand in this cradle, but the ship is a SEPARATE LAYER: do NOT paint any ship or hull. The cradle stands empty. Paint the area between and around the pads as ground in deep, soft shade, as if a big hull overhead were shading it (the slightly darker zone in the clay).\n- The lighter grey ground in the foreground is the yard apron: dry, stained, patched concrete.\n- The yellow frame at right is a sheltered crew gantry: a small roofed steel shelter with a yellow-painted frame, a corrugated roof, a mesh back screen, a few equipment lockers and gas bottles under it, and a slim jib hoist on a mast at its left end with a steel cable hanging straight down from the jib head to an empty hook at about head height.\n- The long building behind is a weathered repair hall with warm cream cladding, a sawtooth roof and big roller doors; the square tower is the yard's control tower with a dark glazed cab; the low buildings at right are offices and stores. Faded teal tanks or service units may appear by the walls.\n- The bottom boxes are, from left: a low yellow-and-grey concrete yard barrier row, and at bottom right a heavy cable reel and a battered service cart.\n\nLight: one sun, high (about 50 degrees), behind the camera and to the LEFT. Shadows fall to the right and away. Hazy humid air: the hall and tower are slightly paled by distance. Ground is DRY: no puddles, no wet sheen, no reflections.\nThe sky above the buildings: plain, flat, very pale blue (it will be replaced by another layer); no clouds, no hills, no trees.\nNO people, NO vehicles moving, NO steam or smoke, NO ships or aircraft. No text, numbers, logos or labels anywhere.\nStyle: photographic, cinematic realism, natural colour, tactile weathered industrial materials, futuristic but lived-in. Not a toy, miniature, painting or cartoon. No borders or lens flares.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\nessas-yard\\guides\\c5-plate-guide.png",
+      "sha256": "0fc0502ac8353669c21ab340a31a95577399f4f4b7ba069959e271c2abcee66f",
+      "dimensions": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "role": "Geometry and layout authority: every shape, size and position"
+    },
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\nessas-yard\\review\\c5-looktest-1080.png",
+      "sha256": "1cc5ce0013e2af214b8ad75bf1395e7528f7b39e091a89672a149d5f37850b2d",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Material and style reference only; no ship, people, steam or wet ground"
+    },
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\port-refinement\\assets\\secondary-materials-v1.png",
+      "sha256": "a592f10b428c1a63024f969f4cbd54f1a53c2ff02b05b4bb48867918d0c48f5f",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Material reference only: concrete, slate, teal"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the first reference for exact layout and the others for materials and realism."
+  ],
+  "usage": {
+    "input_tokens": 53106,
+    "cached_input_tokens": 38272,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 980,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 84.2
+}

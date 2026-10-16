@@ -193,7 +193,7 @@ internals vocabulary without the doll.
 | Armor drop selection (shipped; `mechs-nouns.md`, armor drop) | Pick which bay spaces come down per call; cooldown between calls; lift caps armor per mission. |
 | Vehicle variant ladder (shipped; `mechs-nouns.md`) | Fixed vehicle variants per line, each a pattern card; faction variants; no vehicle fitting. |
 | Tank variant art (shipped; `convoy-nouns.md`) | Art for the heavy-gun tank and dozer breacher; both offered. |
-| `dozer-breach.md` | The dozer's blade clears ground other vehicles can follow. |
+| Dozer breach (shipped; `convoy-nouns.md`) | The dozer's blade clears ground other vehicles can follow. |
 
 Order: pattern cards first (they license existing weapons and chassis at once),
 then internals, then lift; vehicles in the bay and the drop choice follow lift.
