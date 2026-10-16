@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a146cd-4c48-7b30-928a-ce1fb6ba2903",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a146cd-4c48-7b30-928a-ce1fb6ba2903\\exec-12123161-1f36-4ac4-93a5-9552f37801f0.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\hq-command-deck\\comms-left-v2.master.png",
+    "sha256": "d334532a4bfb1de5864eaa3a8a81e08c5d1cb67837db72f8448188b90ebc2aa9",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\hq-command-deck\\comms-left.brief.txt",
+  "promptSha256": "d4590063c7f8ecd8cbfa8aba2c76d2f10fa8e3db72f7f1746511a76f80bac0d0",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Lighting direction, colour and painting style only. Not layout; include none of its background.\nImage 2: Figure-card finish only: rendering, brushwork, scale of detail and clean transparency. Not identity, pose or costume.\n\nSeated figure card of a comms officer for a layered illustration. She will be placed into the command-centre painting given as reference 1, sitting at a console on the raised rear tier at the back of the room, her back to the viewer.\n\nA young woman in her twenties, dark hair in a tight braid, olive shipboard work shirt with the sleeves rolled, a headset with a boom microphone. She sits upright on an unseen swivel chair, facing away from the viewer toward her console (not drawn), and has just turned her head and shoulders to her left to look back over her shoulder into the room, one hand pressing the headset to her ear, mid-sentence. We see her back, her left shoulder and her face in profile turned over that shoulder. Her other hand rests on the console edge in front of her. Her legs go forward under the console and are mostly hidden by her own body; show only what would be visible from behind.\n\nViewpoint matches the painting: a level camera at standing head height about eleven metres away, so she is seen from very slightly above, with no perspective lean.\n\nLighting matches reference 1: low and moody, warm amber glow from console screens and the pale green plotting table, pools of warm downlight from ceiling lamps, edges falling into shadow. Same matte-painted brushwork and palette as reference 1, and the same figure-card finish as reference 2. Her console's screens light her front and the far side of her face from beyond her; a warm rim along her shoulder and braid.\n\nDo not draw the chair, console or desk. True transparent background, including negative spaces between limbs and body; no ground, floor, cast shadow slab, furniture, border, text or other people.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\hq-command-deck\\deck-plate-v4.master.png",
+      "sha256": "1e27e8f97265457a33f59acbc9ff993fa79dc4c5a48628ebba6aada6d5f50aab",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "mode": "RGB",
+      "role": "Lighting direction, colour and painting style only. Not layout; include none of its background."
+    },
+    {
+      "path": "art-source\\hq-command-deck\\castle-v2.master.png",
+      "sha256": "65d0083f394a1a8521282540e9ad20effc87c3d991ad68616c0e184a20ef5525",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Figure-card finish only: rendering, brushwork, scale of detail and clean transparency. Not identity, pose or costume."
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent figure card, using the references only for the lighting and painted finish you specified."
+  ],
+  "usage": {
+    "input_tokens": 43690,
+    "cached_input_tokens": 25728,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 559,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 91.8
+}

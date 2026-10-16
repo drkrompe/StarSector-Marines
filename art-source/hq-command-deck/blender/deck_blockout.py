@@ -42,13 +42,14 @@ ROOM = {"halfWidth": 8.0, "near": 2.0, "back": 13.0, "ceiling": 4.4}
 TIER = {"front": 10.5, "height": 0.45}          # the raised rear tier, full width
 TABLE = (-1.9, 1.9, 5.8, 8.2)                   # x0, x1, z0, z1 of the plotting table
 
-# Feet (x, z), height above their own floor, and that floor. Seated figures are
+# Feet (x, z), height above their own floor, and that floor. A seated stand is the chair's
+# centre; seated figures are
 # measured to the top of the head.
 PEOPLE = {
     "castle": (0.9, 8.45, 1.68, 0.0),
-    "commander": (-2.65, 6.9, 1.82, 0.0),
-    "comms-left": (-5.62, 12.0, 1.30, TIER["height"]),
-    "comms-right": (-3.92, 12.0, 1.30, TIER["height"]),
+    "commander": (-2.4, 6.9, 1.82, 0.0),
+    "comms-left": (-5.62, 11.45, 1.30, TIER["height"]),
+    "comms-right": (-3.92, 11.45, 1.30, TIER["height"]),
     "quartermaster": (4.2, 11.95, 1.80, TIER["height"]),
 }
 
