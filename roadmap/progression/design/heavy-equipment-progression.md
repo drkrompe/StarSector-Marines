@@ -1,9 +1,10 @@
 # Heavy equipment progression
 
-Status: DRAFT — the stock-frame baseline has shipped; pattern learning,
+Status: DRAFT — the stock-frame baseline and learned mech patterns have shipped;
 internal fittings, heavy lift and the vehicle bay are planned direction.
 
 Written: 2026-10-16
+Updated: 2026-10-16 — weight classes set the ladder; vehicles share the mech bay; drops become a per-call choice bounded by lift.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -28,7 +29,11 @@ Read `mechs-nouns.md` (chassis, sockets, Mech Lab, heat), `convoy-nouns.md`
 3. **A fit must fit.** The player chooses what goes on each individual machine,
    bounded by socket footprint and by the frame's engine budget. Better equipment
    is larger or heavier, so the best of everything never fits on one frame.
-4. **A machine has to be lifted.** Every payload has a lift class, every carrier
+4. **Weight class is the ladder.** Hound is the light mech, Sirocco the medium,
+   Bulwark the heavy (MechWarrior's classes). A company starts with the light
+   chassis and its two starter weapons only, and earns medium and heavy patterns
+   through Advanced and Prestige access. Vehicles follow the same classes.
+5. **A machine has to be lifted.** Every payload has a lift class, every carrier
    a lift rating. Heavier machines need better lift, and lift is itself an
    upgrade the company earns.
 
@@ -57,9 +62,14 @@ Read `mechs-nouns.md` (chassis, sockets, Mech Lab, heat), `convoy-nouns.md`
 - **Lift rating.** What a carrier can take. A boat's rating comes from its
   pattern plus a lift fitting; a Valkyrie or a ship with Ground Support carries
   Heavy.
-- **Vehicle bay.** The company's roster of owned vehicles, the counterpart of the
-  mech bay, with its own active lance. A vehicle is not a mech and never uses a
-  mech chassis, socket or heat model.
+- **Weight class.** Light, Medium or Heavy; the access tier a chassis or vehicle
+  pattern carries (Common, Advanced, Prestige) and the lift class it asks for.
+- **Bay space.** One gantry in the mech bay. The company ship carries four, and
+  each holds a mech or a vehicle. A vehicle sharing the bay is still not a mech:
+  it never uses a mech chassis, socket or heat model.
+- **Drop choice.** Calling armor picks which bay spaces come down on this call,
+  instead of dropping a whole lance. A cooldown spaces the calls; lift bounds the
+  total per mission.
 
 ## Laws
 
@@ -125,13 +135,14 @@ late step.
 
 | Story | Owns |
 | --- | --- |
-| `mech-pattern-cards.md` | Learned patterns replace the starter-pattern gate; pattern cards through every existing source. |
+| Mech patterns (shipped; `mechs-nouns.md`) | Learned patterns replace the starter-pattern gate; pattern cards through every existing source. |
 | `mech-internal-systems.md` | Engine, plating and cooler/loader internals; engine budget; tier-scaled footprints; per-loadout heat. |
 | `heavy-lift-fittings.md` | Lift class and rating; the boat lift slot; heavy drops flown by real company carriers. |
-| `player-vehicle-bay.md` | Owned vehicles, vehicle patterns and fabrication; Armour Support drops the active vehicle. |
+| `mech-bay-vehicles.md` | Vehicle patterns; a bay space holds a mech or a vehicle; losses write back. |
+| `armor-drop-selection.md` | Pick which bay spaces come down per call; cooldown between calls; lift caps armor per mission. |
 
-Order: pattern cards first (they can license existing weapons and chassis at
-once), then internals, then lift, then the vehicle bay, which needs lift.
+Order: pattern cards first (they license existing weapons and chassis at once),
+then internals, then lift; vehicles in the bay and the drop choice follow lift.
 
 ## Open questions
 
@@ -139,5 +150,8 @@ once), then internals, then lift, then the vehicle bay, which needs lift.
   the recommendation: it is legible in the lab and needs no new movement rule.
 - Does a lift cradle displace seats on the same sortie, or make the boat a
   machine-only sortie? Machine-only is simpler and keeps deboarding single-kind.
+- Is the per-mission lift cap a budget spent across calls, or a per-call cap with
+  the cooldown doing the rest? The draft (`armor-drop-selection.md`) uses a
+  mission budget, so better boats mean more armor on the ground, not faster.
 - Vehicle fitting (turret swaps) is out of scope until a vehicle doll exists;
   `mech-lab-data-authored-dolls.md` is the shared seam.

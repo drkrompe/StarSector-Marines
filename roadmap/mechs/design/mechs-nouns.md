@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — a commander may call a mech lance from a mission-declared allowance; the Sirocco cannon is the distance breacher of an assault plan.
+Updated: 2026-10-16 — learned mech patterns gate fabrication; stock-frame internals.
 
 ## Purpose
 
@@ -87,6 +87,21 @@ increasing an encounter's total armored threat.
   an unfinished machine drawn as a generic mech and one that arrives with a
   working gun. It is not a mech and never becomes one — a finished machine comes
   off the stocks and an ordinary chassis stands where it stood.
+- A **mech pattern** is the company's permanent right to fabricate one chassis or
+  weapon component (`MechPattern`). Patterns gate fabrication; owned assemblies
+  are separate, finite and losable, so losing every assembly keeps the pattern and
+  a pattern never puts a free assembly in stores. A new company knows the Hound,
+  nose chaingun and SRM-5; a pre-pattern save that had an unrestricted workshop
+  knows every pattern. Weight class is the access ladder: Hound (light) Common,
+  Sirocco (medium) Advanced, Bulwark (heavy) Prestige; weapons carry their own
+  authored tier. A **mech pattern card** is the cargo item that teaches one
+  pattern; learning writes only to the mech bay and is consumed only when it
+  teaches something new. Cards arrive through the same market, licence, patron and
+  recovery channels and access gates as loadout cards (`progression-nouns.md`),
+  as their own scarce stack: one market slot on large or military markets, an
+  occasional patron award in place of a loadout card, at most one per high-risk
+  salvage; faction issue weights the draw. Known or carried patterns are never
+  offered, and unlearned items with no stock are absent from the Mech Lab catalog.
 - **Mech component inventory** is finite fleet stock. Installed weapon assemblies
   and subsystems count
   against owned quantity; a refit transaction returns the target mech's

@@ -11,6 +11,8 @@ final class FactionEquipmentMarketStockPlanner {
 
     private static final int MAX_MARKET_SLOTS = 4;
     private static final int MAX_LICENSE_SLOTS = 2;
+    /** Smallest civilian market that carries a mech pattern shelf; military markets always do. */
+    static final int MIN_MECH_PATTERN_MARKET_SIZE = 5;
 
     private FactionEquipmentMarketStockPlanner() {}
 
@@ -55,6 +57,32 @@ final class FactionEquipmentMarketStockPlanner {
                         unavailable, progress)
                 : List.of();
         return new StockPlan(listed, market, licensed);
+    }
+
+    /**
+     * The one mech pattern card slot of an open market, beside its loadout cards and on the
+     * same monthly rotation. Only a market of size {@link #MIN_MECH_PATTERN_MARKET_SIZE} or
+     * more, or one hosting a military base or high command, carries the slot. It draws through
+     * the licence channel when the company holds a licence there (falling back to the ordinary
+     * market channel when the faction licenses nothing), so its tier gate is the one a loadout card on that shelf meets.
+     */
+    static List<String> mechPattern(String factionId, String marketId, int marketSize,
+                                    boolean militaryMarket, long rotation,
+                                    boolean hasLicenseAccess, Set<String> unavailablePatternIds,
+                                    EquipmentAcquisitionEligibility.Progress progress) {
+        if (!carriesMechPattern(marketSize, militaryMarket)) return List.of();
+        long seed = seed(factionId, marketId, rotation, "mech-pattern");
+        List<String> licensed = hasLicenseAccess
+                ? MechPatternPicker.pick(factionId, FactionEquipmentSource.LICENSE, 1, seed,
+                        unavailablePatternIds, progress)
+                : List.of();
+        return !licensed.isEmpty() ? licensed
+                : MechPatternPicker.pick(factionId, FactionEquipmentSource.MARKET, 1, seed,
+                        unavailablePatternIds, progress);
+    }
+
+    static boolean carriesMechPattern(int marketSize, boolean militaryMarket) {
+        return militaryMarket || marketSize >= MIN_MECH_PATTERN_MARKET_SIZE;
     }
 
     private static int marketSlots(int marketSize) {
