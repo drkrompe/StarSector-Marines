@@ -78,17 +78,23 @@ apart, and a fitting choice (where the plating goes) matters.
      The full order is a roll: across 16 seeded plays every death is a torso
      kill and every crippled Hound stands, but pod-then-legs happens 10 times
      and the whole sequence 5.
-   - Time-to-kill against the whole-body control (scene sweep): with a rocket
-     tube, median 20.6s against 19.5s, but spread 4.5–55.6s against 15–21s;
-     rifles only, median 42.9s against 47.4s. In `commanderEvidence`
-     (conquest-trial offset/on-path, Corvus Dust Ledger and Blind Watch) no
-     marine mech was worn down to a kill, so those runs give no time-to-kill;
-     the Corvus Hound ended both chapters alive with structure whole in both arms.
-   - **Open for slice 3:** structure a small section cannot hold goes straight
-     into torso structure, skipping torso armor. That is the model as written,
-     and it is what makes a heavy rocket swingy (a 162-damage round erases a
-     small section and puts about 100 into the torso). Whether spill should meet
-     torso armor first is a balance decision to take with the cover rows.
+   - **Spill meets torso armor** (owner, 2026-10-16). What a section cannot
+     hold, and a hit through a destroyed section, meets the torso's armor
+     before its structure. It used to go straight to torso structure, which let
+     one heavy rocket on a small section put about 100 into the torso unarmored.
+   - Time-to-kill against the whole-body control (scene sweep, after the spill
+     change): rifles only, median 47.7s against 47.4s; with one rocket tube,
+     median 20.1s against 19.5s but spread 8–75s against 15–21s. The spread is
+     the model rather than the spill: three rockets on the smaller torso pool
+     kill quickly, rockets that land on limbs leave a long, crippled fight.
+   - `commanderEvidence`: in conquest-trial no marine mech was worn down to a
+     kill. In Corvus the Hound survived Dust Ledger and Blind Watch whole in both
+     arms; in A Cold Account (which now builds, see `ColdAccountLayout`) it lost
+     its nose gun at tick 783 and its legs at 1065 and died to a torso kill at
+     1200, 587 ticks after its first damage. The whole-body control of that
+     chapter stops on one of the chapter's own mission checks (batteries ready
+     before the company cleared), so it has no reading to compare.
+
 3. **Cover rows, presentation and AI.** Mech cover by section, destroyed-mount
    visuals, and doctrine that accounts for a crippled or disarmed mech (fall
    back, become a turret, withdraw).

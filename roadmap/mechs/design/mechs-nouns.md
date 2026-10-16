@@ -199,9 +199,9 @@ increasing an encounter's total armored threat.
   across the sections by authored shares, so the totals are what frame and
   plating set; the armor rating stays per chassis. A mount the mech deployed
   without has no section and its share is the torso's. Each section is resolved
-  by the shared durability calculation; structure a section cannot hold spills
-  into the torso's structure, and a hit on a section already at zero goes
-  through to the torso. The chassis health and armor columns carry the
+  by the shared durability calculation; what a section cannot hold carries on
+  into the torso, which meets it with its own armor before its structure, and
+  a hit on a section already at zero goes through the hole to the torso's plate. The chassis health and armor columns carry the
   sections' totals, so whole-chassis readers see one body.
 - **Section loss** is a capability before it is the machine. Legs at zero
   **cripple** the mech: no walking speed, autonomous or manual, while it still

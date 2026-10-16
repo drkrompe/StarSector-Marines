@@ -35,17 +35,18 @@ SLOTS = [
 ]
 ENGINES = [(-9, 6, 8), (-9, -4, 8)]  # exactly as in talon.ship (x, y, width)
 
-METRES_PER_UNIT = 0.75
+METRES_PER_UNIT = 0.55
 SCALE = {
     'summary': 'LOW_TECH single-seat interceptor, crew 1; offset vulcan nacelle to port, cockpit pod to starboard, twin drive drums',
-    'method': ('Sized from the cockpit: the canopy is 3.9 x 1.6 units on the sprite\'s cyan patch (2 px wide, X 4.4-8.3); '
-               'a single-seat canopy of 2.6-3.5 m by 0.9-1.3 m gives 0.67-0.81 m/unit, and 0.75 seats a 1.8 m pilot '
-               'with about a quarter metre over the helmet. Cross-checked against the 22-unit length and span '
-               '(16.5 m, between an F-16 and an F-15) and the vulcan barrel.'),
-    'range': [0.68, 0.85],
-    'cross_checks_m': {'length': 16.5, 'span': 16.5, 'canopy_length': 2.9, 'canopy_width_at_sill': 1.2,
-                       'exposed_gun_barrel': 1.4, 'drive_drum_width': 3.75,
-                       'real_aircraft': 'F-16 15.1 m, MiG-29 17.4 m, F-15 19.4 m long'},
+    'method': ('Sized to sit below the Broadsword, as the game draws it, with a cockpit that still works. The '
+               'canopy is 3.9 x 1.6 units on the sprite\'s cyan patch. At 0.55 m/unit that is a 2.15 x 0.88 m '
+               'bubble, small like a Folland Gnat\'s, and a seated 1.8 m pilot clears it by 0.08 m (0.04 m at '
+               'the 0.50 floor of the range, where the helmet is nearly at the glass). The 22-unit length and span come out at 12.1 m, a compact '
+               'interceptor between a Gnat and an F-5.'),
+    'range': [0.50, 0.62],
+    'cross_checks_m': {'length': 12.1, 'span': 12.1, 'canopy_length': 2.15, 'canopy_width_at_sill': 0.88,
+                       'exposed_gun_barrel': 1.0, 'drive_drum_width': 2.75,
+                       'real_aircraft': 'Folland Gnat 9.0 m, F-5E 14.5 m, F-16 15.1 m long'},
 }
 PILOTS = [(6.4, -3.0)]
 NOTES = [

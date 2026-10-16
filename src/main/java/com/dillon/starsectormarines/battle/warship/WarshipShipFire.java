@@ -411,10 +411,12 @@ public final class WarshipShipFire {
         }
         fireRound(system, ship, m, target, aim);
         e.roundsLeft--;
-        e.timer = MissilePacing.roundDelay(w, w.burstDelaySeconds());
+        // Between hulls a gun cycles on the hull fight's clock (D1): the burst gap and the cooldown run long by it.
+        e.timer = MissilePacing.roundDelay(w, w.burstDelaySeconds()) * WarshipScale.HULL_TEMPO;
         if (e.roundsLeft <= 0) {
             engagements.remove(m);
-            m.cooldown = Math.max(w.cooldownSeconds(), w.beam() ? WarshipPointDefence.MIN_ENGAGEMENT_SECONDS : 0.05f);
+            m.cooldown = WarshipScale.HULL_TEMPO * Math.max(w.cooldownSeconds(),
+                    w.beam() ? WarshipPointDefence.MIN_ENGAGEMENT_SECONDS : 0.05f);
         }
         return true;
     }
