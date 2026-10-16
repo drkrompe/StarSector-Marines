@@ -62,27 +62,29 @@ class FortAirDefenceStageTest {
     }
 
     @Test
-    void theYardIsAConsoleTwoMissileBatteriesAndTwoFlakPositionsAtEveryTurn() {
+    void theYardIsAConsoleTwoLocustBatteriesAndTwoSwarmerTowersAtEveryTurn() {
         for (FortPlan plan : new FortPlan[]{BatteryFort.PLAN, ShieldFort.PLAN}) {
             for (int turn = 0; turn < 4; turn++) {
                 GenContext ctx = field();
                 CompoundLayout.Placement at = plan.layout().at(60, 40, turn);
                 FortStage.stamp(ctx, plan, at, 3, true);
                 Set<String> structures = new HashSet<>();
-                int flak = 0;
+                int swarmers = 0, locusts = 0;
                 for (DefensePost post : ctx.defensePosts) {
                     if (post.fort == null || post.fort.aspect() != FortAspect.AIR_DEFENCE) continue;
                     assertEquals(3, post.fort.fortId());
                     String id = post.turrets.get(0).structureId;
                     structures.add(id);
-                    if (id.equals(TurretCatalogRegistry.ANTI_AIR_STRUCTURE_ID)) flak++;
+                    if (id.equals(TurretCatalogRegistry.AA_SWARMER_STRUCTURE_ID)) swarmers++;
+                    if (id.equals(TurretCatalogRegistry.AA_LOCUST_STRUCTURE_ID)) locusts++;
                     assertTrue(plan.isWorks(localX(at, post.anchorX, post.anchorY), localY(at, post.anchorX, post.anchorY)),
                             plan.kind() + " turn " + turn + ": " + id + " stands inside the works");
                 }
                 assertEquals(Set.of(TurretCatalogRegistry.FORT_AIR_CONTROL_STRUCTURE_ID,
-                        TurretCatalogRegistry.RIDGE_AA_STRUCTURE_ID, TurretCatalogRegistry.ANTI_AIR_STRUCTURE_ID), structures);
-                assertEquals(2, flak);
-                assertEquals(5, yardPosts(ctx), "console, two Ridgewatch batteries, two flak");
+                        TurretCatalogRegistry.AA_LOCUST_STRUCTURE_ID, TurretCatalogRegistry.AA_SWARMER_STRUCTURE_ID), structures);
+                assertEquals(2, swarmers);
+                assertEquals(2, locusts);
+                assertEquals(5, yardPosts(ctx), "console, two Locust batteries, two Swarmer towers");
             }
         }
     }

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.fortress;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -111,10 +112,12 @@ class BastionSitesTest {
         }
     }
     @Test
-    void theMissileBatteriesStandInTheBastionsClearOfWallAndNestAndEachOther() {
+    void theMissileMountsStandInTheBastionsClearOfWallAndNestAndEachOther() {
         for (FortPlan plan : PLANS) {
-            List<int[]> batteries = plan.airBatteries();
-            assertEquals(2, batteries.size(), plan.kind() + " stands two Ridgewatch batteries");
+            List<int[]> batteries = new ArrayList<>(plan.airBatteries());
+            assertEquals(2, plan.airBatteries().size(), plan.kind() + " stands two Locust batteries");
+            assertEquals(2, plan.airTowers().size(), plan.kind() + " stands two Swarmer towers");
+            batteries.addAll(plan.airTowers());
             Set<Long> taken = new HashSet<>();
             for (int[] nest : plan.nests()) taken.add(((long) nest[0] << 32) | nest[1]);
             for (int[] b : batteries) {
@@ -134,6 +137,9 @@ class BastionSitesTest {
             List<int[]> batteries = plan.airBatteries();
             double apart = Math.hypot(batteries.get(0)[0] - batteries.get(1)[0], batteries.get(0)[1] - batteries.get(1)[1]);
             assertTrue(apart >= 30, plan.kind() + " batteries stand " + apart + " cells apart");
+            List<int[]> towers = plan.airTowers();
+            double towersApart = Math.hypot(towers.get(0)[0] - towers.get(1)[0], towers.get(0)[1] - towers.get(1)[1]);
+            assertTrue(towersApart >= 30, plan.kind() + " towers stand " + towersApart + " cells apart");
             AirDefenceYard yard = plan.airDefence();
             assertNotNull(yard);
             for (int[] b : batteries) {

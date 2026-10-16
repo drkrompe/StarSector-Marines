@@ -127,6 +127,21 @@ public record LoadoutCard(Kind kind, String definitionId) {
         return false;
     }
 
+    /**
+     * Whether every armor pattern the card carries has its presentation declared. A card
+     * whose pattern still awaits art is defined, inspectable and learnable by explicit test
+     * controls, but it is not awardable: no cargo payload can be made for it.
+     */
+    public boolean presentationDeclared() {
+        if (kind != Kind.SHEET) return true;
+        MarineArmorCatalogRegistry catalog = MarineArmorCatalogRegistry.installed();
+        for (String pattern : ArmorSheetBundles.patternsFor(definitionId)) {
+            MarineArmorCatalogDef def = catalog != null ? catalog.get(pattern) : null;
+            if (def != null && !def.presentationDeclared()) return false;
+        }
+        return true;
+    }
+
     private static void add(Set<String> ids, String templateId) {
         if (EquipmentTemplateCatalog.contains(templateId)) ids.add(templateId);
     }

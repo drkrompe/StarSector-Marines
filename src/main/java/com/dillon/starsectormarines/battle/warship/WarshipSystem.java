@@ -54,6 +54,15 @@ public final class WarshipSystem {
     private final Random random = new Random(20261011L);
     private final WarshipPointDefence pointDefence = new WarshipPointDefence();
     private final WarshipAirFire airFire = new WarshipAirFire(shells, pointDefence);
+    private final WarshipShipFire shipFire = new WarshipShipFire(shells, pointDefence);
+    private final List<WarshipWreck> wrecks = new ArrayList<>();
+    private final List<WarshipWreck> wrecksView = Collections.unmodifiableList(wrecks);
+    private final Set<Warship> wrecked = Collections.newSetFromMap(new IdentityHashMap<>());
+    private int nextSerial;
+    /** Wreck keys for the crash machinery: far below every aircraft id, which are positive. */
+    private static final long WRECK_KEY_BASE = Long.MIN_VALUE / 2;
+    /** How often a falling hull sheds a burning piece onto its own track, in seconds. */
+    private static final float WRECK_FIRE_PERIOD_SECONDS = 0.2f;
 
     /** A round this heavy lands as a heavy blast; lighter ones are only a detonation. */
     private static final float HEAVY_IMPACT_DAMAGE = 100f;
@@ -163,6 +172,7 @@ public final class WarshipSystem {
     public void add(Warship ship) {
         // Doctrine passes are staggered by add order, so a fleet does not all look at once.
         ship.doctrineClock = DOCTRINE_PERIOD_SECONDS - 0.1f * (ships.size() % 10);
+        if (ship.serial() < 0) ship.serial(nextSerial++);
         ships.add(ship);
         if (ship.supportSource() != null && !called.contains(ship)) called.add(ship);
     }
@@ -254,6 +264,16 @@ public final class WarshipSystem {
     }
 
     /** The ships' fire at aircraft, for evidence. */
+    /** Ship-versus-ship fire, for evidence. */
+    public WarshipShipFire shipFire() {
+        return shipFire;
+    }
+
+    /** Hulls taken to nothing this battle, falling, skidding or down, in the order they were lost. */
+    public List<WarshipWreck> wrecks() {
+        return wrecksView;
+    }
+
     public WarshipAirFire airFire() {
         return airFire;
     }
@@ -312,9 +332,13 @@ public final class WarshipSystem {
         landStrikes(dt, sim);
         splits.removeIf(s -> s.advance(dt));
         airFire.advance(sim, ships);
+        for (Warship ship : ships) if (ship.destroyed() && wrecked.add(ship)) startWreck(sim, ship);
         ships.removeIf(Warship::destroyed);
+        tickWrecks(dt, sim);
         for (Warship ship : ships) {
             doctrine(dt, sim, ship);
+            shipFire.chooseTarget(ship, ships);
+            duelHelm(sim, ship);
             float entryBefore = ship.entrySeconds();
             ship.addEntrySeconds(dt);
             entryCues(ship, entryBefore);
@@ -333,7 +357,8 @@ public final class WarshipSystem {
                     if (!airFire.tickMount(dt, sim, ship, mount, ordnance)) {
                         pointDefence.tickMount(dt, sim, ship, mount, shells, strikes);
                     }
-                } else if (!airFire.tickMount(dt, sim, ship, mount, false)) {
+                } else if (!airFire.tickMount(dt, sim, ship, mount, false)
+                        && !shipFire.tickMount(dt, this, ship, mount, ships)) {
                     tickMount(dt, sim, ship, mount);
                 }
             }
@@ -903,6 +928,13 @@ public final class WarshipSystem {
     private static void chooseHeading(Warship ship) {
         List<Warship.Held> held = ship.held();
         boolean bring = !held.isEmpty() && held.get(0).area.bringGunsToBear();
+        Warship hull = ship.hullTarget();
+        if (hull != null && !bring) {
+            // Fighting a hull: the nose goes where the anti-ship guns bear on it, re-chosen as it moves.
+            float[] aim = WarshipShipRules.aimPoint(ship, hull);
+            ship.desiredHeading = WarshipShipRules.bestHeading(ship, aim[0], aim[1]);
+            return;
+        }
         if (bring && (!ship.headingChosen() || Math.hypot(ship.x - ship.headingChosenAtX,
                         ship.y - ship.headingChosenAtY) > REHEADING_DISTANCE)) {
             int k = held.size();
@@ -930,6 +962,15 @@ public final class WarshipSystem {
      * battle on the next tick, so it stops firing at once.
      */
     public void onDetonation(PendingDetonation det, BattleSimulation sim) {
+        strikeHulls(det);
+    }
+
+    /**
+     * Lands {@code det} on every hostile hull its blast reaches, shield first and then the armour rule, and says
+     * whether it reached any (a shield's absorption counts). A hull it takes to nothing falls on the next tick.
+     */
+    boolean strikeHulls(PendingDetonation det) {
+        boolean reached = false;
         for (Warship ship : ships) {
             if (ship.destroyed() || !ship.faction.hostileTo(det.shooterFaction)) continue;
             float gap = ship.distanceTo(det.endpointX, det.endpointY);
@@ -939,16 +980,94 @@ public final class WarshipSystem {
                 ship.shieldModel().noteThreat();
             }
             if (gap > det.aoeRadius) continue;
+            reached = true;
             if (ship.shieldCovers(det.endpointX, det.endpointY)) {
                 // The shield takes the hit as flux; the hull takes nothing.
                 ship.shieldModel().absorb(det.damage, ship.fluxPool());
                 continue;
             }
             ship.takeDamage(det.damage, det.penetration);
-            if (ship.destroyed()) {
-                sim.spawnHeavyImpact(ship.x, ship.y, Math.max(6f, ship.lengthCells * 0.5f));
+        }
+        return reached;
+    }
+
+    /** Plays a weapon's fire sound for a ship-versus-ship round, thinned as every other gun's is. */
+    void fireCue(Warship.Mount m, VanillaWeapon w, float x, float y) {
+        if (cueAllowed(m, FIRE_CUE_GAP_SECONDS)) cue(WarshipSoundCue.Kind.FIRE, w.fireSoundId(), x, y);
+    }
+
+    /**
+     * A hull has been taken to nothing: it bursts where it is (the heavy blast it has always made, drawn on the
+     * ground beneath it) and starts to fall. Its guns, shield and point defence are gone with it.
+     */
+    private void startWreck(BattleSimulation sim, Warship ship) {
+        sim.spawnHeavyImpact(ship.x, ship.y, Math.max(6f, ship.lengthCells * 0.5f));
+        wrecks.add(new WarshipWreck(ship, WRECK_KEY_BASE - ship.serial()));
+    }
+
+    /** Falls, strikes and skids every wreck; the strike and the skid are the aircraft crash's, at the hull's size. */
+    private void tickWrecks(float dt, BattleSimulation sim) {
+        for (WarshipWreck wreck : wrecks) {
+            float before = wreck.seconds();
+            WarshipWreck.Step step = wreck.advance(dt);
+            Warship ship = wreck.ship;
+            float radius = 0.5f * Math.max(ship.lengthCells, ship.widthCells);
+            switch (step) {
+                case FALLING -> {
+                    if ((int) (before / WRECK_FIRE_PERIOD_SECONDS) != (int) (wreck.seconds() / WRECK_FIRE_PERIOD_SECONDS)) {
+                        sim.spawnFallingWreckFire(ship.x, ship.y, Math.max(2f, radius * 0.6f));
+                    }
+                }
+                case STRUCK -> {
+                    if (onMap(sim, ship.x, ship.y)) {
+                        sim.crashWreck(wreck.key, ship.x, ship.y, ship.faction, radius, ship.velocityX, ship.velocityY);
+                        cue(WarshipSoundCue.Kind.IMPACT, ARRIVAL_SETTLE_SOUND, ship.x, ship.y);
+                    }
+                }
+                case SKIDDING, CAME_TO_REST -> {
+                    if (onMap(sim, ship.x, ship.y)) {
+                        sim.skidWreck(wreck.key, ship.x, ship.y, step == WarshipWreck.Step.CAME_TO_REST);
+                    }
+                }
+                default -> { }
             }
         }
+    }
+
+    /**
+     * Flies a ship fighting a hull: its station moves to the range its guns want ({@link WarshipDuelHelm}), sliding
+     * round the target if it holds off. The mission's station is kept and given back when the fight ends (no hull
+     * to fight, the order withdrawn) or the ship is taken over (piloted, departing, on a route or a low pass).
+     */
+    private static void duelHelm(BattleSimulation sim, Warship ship) {
+        Warship target = ship.hullTarget();
+        boolean free = !ship.piloted() && !ship.departing() && !ship.isPassingThrough() && ship.lowPass() == null
+                && ship.remoteOrder() == Warship.RemoteOrder.NONE;
+        if (target == null || !ship.duelHelm() || !free) {
+            float[] home = ship.duelHome();
+            if (home != null) {
+                ship.duelHome(null);
+                if (free && !Float.isNaN(home[0])) ship.stationTo(home[0], home[1]);
+            }
+            return;
+        }
+        if (!ship.manoeuvring()) {
+            ship.duelHome(ship.hasStation() ? new float[]{ship.stationX(), ship.stationY()}
+                    : new float[]{Float.NaN, Float.NaN});
+        }
+        float mine = WarshipDuelHelm.reach(ship);
+        float theirs = WarshipDuelHelm.reach(target);
+        float range = WarshipDuelHelm.preferredRange(mine, theirs);
+        // Which way round it slides is the hull's own, by its serial, so a pair does not mirror each other.
+        float slide = WarshipDuelHelm.holdsOff(mine, theirs)
+                ? (ship.serial() % 2 == 0 ? 1f : -1f) * WarshipDuelHelm.SLIDE_LEAD_DEGREES : 0f;
+        float[] at = WarshipDuelHelm.station(ship.x, ship.y, target.centerX(), target.centerY(), range, slide,
+                0.5f * ship.lengthCells, sim.getGrid().getWidth(), sim.getGrid().getHeight());
+        ship.stationTo(at[0], at[1]);
+    }
+
+    private static boolean onMap(BattleSimulation sim, float x, float y) {
+        return x >= 1f && y >= 1f && x < sim.getGrid().getWidth() - 1 && y < sim.getGrid().getHeight() - 1;
     }
 
     /** Whether a round of this strength landing at {@code (px, py)} would hurt the hull and comes from inside the shield's arc. */
@@ -1027,7 +1146,13 @@ public final class WarshipSystem {
             PendingDetonation landing = shell.landing();
             if (landing == null) continue;
             if (shell.hullOnly()) {
-                onDetonation(landing, sim);
+                boolean struck = strikeHulls(landing);
+                if (shell.hullTarget() != null) shipFire.noteLanding(struck);
+                if (!struck && shell.straysOnMiss()) {
+                    // It passed the hull it was fired at: it carries on and comes down on the ground.
+                    shells.add(shell.carryOn());
+                    continue;
+                }
             } else {
                 sim.detonateNow(landing);
             }

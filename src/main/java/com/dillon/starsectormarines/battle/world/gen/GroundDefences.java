@@ -26,7 +26,7 @@ import java.util.Map;
  *                         {@link #shieldGenerator} so scenes and debug can still stand a structure on its own
  * @param siting           where the declared forts stand relative to the battle; see {@link FortSitingPolicy}
  * @param airDefended     how many of the declared forts of each kind carry the optional anti-air aspect (a sandbagged
- *                        yard with a plotting console, a guided battery and flak positions; see {@code forts.md}); the
+ *                        yard with a plotting console, Locust batteries and Swarmer towers on the bastions; see {@code forts.md}); the
  *                        first that many forts of the kind placed, never more than the kind's declared count. Absent or
  *                        zero is none, so a legacy declaration reads as a fort with no anti-air
  */

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
+import com.dillon.starsectormarines.campaign.AgreusDistrictEscortProgress;
 
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
@@ -126,6 +127,7 @@ public final class MissionSelectScreen implements Screen {
             putShepherd(props, ShepherdRecoveryCampaign.current());
         }
         if (AgreusArcCampaign.isContact(selectedClient)) putAgreus(props);
+        if (DistrictEscortCampaign.isContact(selectedClient)) putDistrictEscort(props, DistrictEscortCampaign.current());
         if (OpeningBroker.isContact(selectedClient) && script != null && WaylineArc.stage(script.roster()) == WaylineArc.Stage.COMPLETE) {
             if (CorvusWaylineCampaign.atSite(context.planet))
                 putCorvus(props, route, selectedMission);
@@ -178,6 +180,19 @@ public final class MissionSelectScreen implements Screen {
                 : p != null && p.completed() ? Strings.get("missionSelectNORTHWEIRRESTOREDLIMITEDWARRANTAVAILABLEReviewThe")
                 : Strings.format("missionSelectAgreusProgress", accessReason == null || accessReason.isBlank()
                         ? "" : Strings.format("missionSelectAccessSuffix", accessReason)));
+    }
+    /** The issuing office's dossier; only its letterhead differs between the two agreements. */
+    static void putDistrictEscort(Map<String, Object> props, AgreusDistrictEscortProgress p) {
+        if (p == null) return;
+        var letterhead = DistrictEscortCampaign.Letterhead.of(p.agreement());
+        props.put("missionSummary", Strings.get("missionSelectDistrictEscortTitle"));
+        props.put("brokerClasses", "broker-dossier console-readout");
+        props.put("brokerPortrait", OpeningBroker.CREST);
+        props.put("brokerName", letterhead.signatory);
+        props.put("brokerRole", letterhead.sender);
+        props.put("brokerIntroduction", letterhead == DistrictEscortCampaign.Letterhead.RUSK_OFFICE
+                ? Strings.get("missionSelectDistrictEscortRuskIntro") : Strings.get("missionSelectDistrictEscortLennaIntro"));
+        props.put("brokerProgress", Strings.format("missionSelectDistrictEscortProgress", p.jobsCompleted(), p.paid()));
     }
     static void putAgreusReferral(Map<String, Object> props) {
         var d = AgreusArcCampaign.destination();
@@ -396,6 +411,12 @@ public final class MissionSelectScreen implements Screen {
     }
 
     private static List<DetailRow> detailRows(Mission mission) {
+        if (DistrictEscortCampaign.isBattle(mission)) return List.of(
+                detailRow("force", Strings.get("missionSelectCompany"), Strings.get("missionSelectDistrictEscortForce")),
+                detailRow("support", Strings.get("missionSelectHandoverParty"), Strings.get("missionSelectDistrictEscortSupport")),
+                detailRow("claim", Strings.get("missionSelectFreightLane"), Strings.get("missionSelectDistrictEscortClaim")),
+                detailRow("terms", Strings.get("missionSelectRecurringTerms"), Strings.get("missionSelectDistrictEscortTerms")),
+                detailRow("payout", Strings.get("missionSelectVictoryFee"), Strings.get("missionSelectDistrictEscortPayout")));
         if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.yardOwners(mission.id)) return List.of(
                 detailRow("force",Strings.get("missionSelectCompany"),Strings.get("missionSelect3FullSquadsRecommendedMinimum2With4")),
                 detailRow("support",Strings.get("missionSelectInspectionParty"),Strings.get("missionSelectOwnedTender8Constables2TechniciansOptionalOwned")),

@@ -59,6 +59,7 @@
     { "equipmentId": "armor.heavy", "accessTier": "restricted", "issueCost": {} },
     { "equipmentId": "armor.specter-recovered", "accessTier": "advanced", "issueCost": {} },
     { "equipmentId": "armor.arbalest-recovered", "accessTier": "advanced", "issueCost": {} },
+    { "equipmentId": "armor.boarding-jack", "accessTier": "advanced", "issueCost": {}, "storySource": "a-small-war" },
     { "equipmentId": "armor.specter-heavy", "accessTier": "restricted", "issueCost": {} },
     { "equipmentId": "armor.bulwark-heavy", "accessTier": "restricted", "issueCost": {} },
     { "equipmentId": "armor.reliquary-heavy", "accessTier": "restricted", "issueCost": {} },

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -868,8 +869,10 @@ public class MarineOpsContext {
                                            Client client) {
         if (AgreusArcCampaign.atSite(planet) && client.patronHouseId == -1L
                 && Factions.INDEPENDENT.equals(client.factionId)) {
-            out.add(new Client(client.factionId, AgreusArcCampaign.NAME, OpeningBroker.CREST,
-                    client.repLevel, client.locked, client.lockReason, -1L, AgreusArcCampaign.CONTACT_ID));
+            boolean lenna = DistrictEscortCampaign.lennaContact();
+            out.add(new Client(client.factionId, lenna ? DistrictEscortCampaign.LENNA_NAME : AgreusArcCampaign.NAME, OpeningBroker.CREST,
+                    client.repLevel, client.locked, client.lockReason, -1L,
+                    lenna ? AgreusYardAgreement.LENNA_ASSOCIATION : AgreusArcCampaign.CONTACT_ID));
             return;
         }
         boolean referral = client.patronHouseId == -1L && Factions.INDEPENDENT.equals(client.factionId)

@@ -8,11 +8,10 @@ import java.util.List;
 /**
  * The control room of a fort's optional anti-air aspect, as authored geometry in the fort's own local frame: a small
  * hardened command room (seven by five) in the open ground of the works holding the plotting console between two banks
- * of seated plotters, with a single door and the two flak positions that are the aspect's close-in defence standing
- * either side of it outside.
+ * of seated plotters, with a single door.
  *
- * <p>The room is the aspect's <em>control point</em>, not its launchers. The Ridgewatch missile batteries stand out on the
- * fort's bastions ({@link FortPlan#airBatteries()}), so the controlled airspace is as wide as the works and no single
+ * <p>The room is the aspect's <em>control point</em>, not its launchers. The Locust batteries and Swarmer towers stand out on the
+ * fort's bastions ({@link FortPlan#airBatteries()}, {@link FortPlan#airTowers()}), so the controlled airspace is as wide as the works and no single
  * strike silences both; wrecking the console still silences them, losing power still slows them, and holding the room
  * still turns every mount to the holder. Whoever holds the floor inside it holds the console. Each kind of fort chooses
  * where its room stands, on ground its layout left free; see {@code forts.md}.
@@ -28,8 +27,6 @@ public record AirDefenceYard(int centreX, int centreY, int gapDx, int gapDy) {
     public static final int HALF_WIDTH = 3;
     /** Half the depth of the floor. */
     public static final int HALF_DEPTH = 2;
-    /** How far from the door the flak positions stand either side, and how far out from the wall. */
-    public static final int FLAK_OFFSET = 2;
 
     /** How many plotters the garrison keeps at the console's banks. */
     public static final int CREW = 2;
@@ -54,12 +51,6 @@ public record AirDefenceYard(int centreX, int centreY, int gapDx, int gapDy) {
     /** The middle of the three-by-three plotting console, against the wall opposite the door. */
     public int[] consoleCentre() {
         return room().coreCentre();
-    }
-
-    /** The cells of the close-in flak positions, one either side of the door and just outside the wall. */
-    public List<int[]> flakCells() {
-        int row = centreY + gapDy * (HALF_DEPTH + 2);
-        return List.of(new int[]{centreX - FLAK_OFFSET, row}, new int[]{centreX + FLAK_OFFSET, row});
     }
 
     /** The door as its middle cell, in the wall ring. */

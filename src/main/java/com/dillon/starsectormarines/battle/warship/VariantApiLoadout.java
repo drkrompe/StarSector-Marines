@@ -32,6 +32,14 @@ public final class VariantApiLoadout implements WarshipLoadout {
         return hullId;
     }
 
+    @Override public int fluxCapacitors() {
+        return variant.getNumFluxCapacitors();
+    }
+
+    @Override public int fluxVents() {
+        return variant.getNumFluxVents();
+    }
+
     @Override public String weaponInSlot(String slotId) {
         if (variant.getFittedWeaponSlots().contains(slotId)) {
             String id = variant.getWeaponId(slotId);
