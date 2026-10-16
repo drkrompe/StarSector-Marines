@@ -200,6 +200,9 @@ class FortRoomsTest {
             for (LayoutOp op : room.ops()) {
                 if (op instanceof LayoutOp.Fixture f) {
                     assertNotNull(registry.doodad(f.doodadId()), room.aspect() + " names " + f.doodadId());
+                } else if (op instanceof LayoutOp.Assembly a) {
+                    assertNotNull(registry.doodad(a.baseId()));
+                    for (var layer : a.layers()) assertNotNull(registry.doodad(layer.doodadId()));
                 }
             }
         }
@@ -209,6 +212,11 @@ class FortRoomsTest {
         List<int[]> cells = new ArrayList<>();
         for (LayoutOp op : room.ops()) {
             if (op instanceof LayoutOp.Fixture f) cells.add(new int[]{f.x(), f.y()});
+            if (op instanceof LayoutOp.Assembly a) {
+                var def = TileRegistry.installed().doodad(a.baseId());
+                for (int y = 0; y < def.footprintCellsY; y++)
+                    for (int x = 0; x < def.footprintCellsX; x++) cells.add(new int[]{a.x() + x, a.y() + y});
+            }
             if (op instanceof LayoutOp.ConsoleBank bank) {
                 for (ConsoleBankLayout.Cell c : bank.cells()) cells.add(new int[]{c.x(), c.y()});
             }

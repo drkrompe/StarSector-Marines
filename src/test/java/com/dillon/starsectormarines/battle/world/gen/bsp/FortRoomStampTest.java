@@ -61,6 +61,7 @@ class FortRoomStampTest {
         int count = 0;
         for (LayoutOp op : room.ops()) {
             if (op instanceof LayoutOp.Fixture) count++;
+            if (op instanceof LayoutOp.Assembly a) count += 1 + a.layers().size();
             if (op instanceof LayoutOp.ConsoleBank bank) count += bank.cells().size();
         }
         return count;
