@@ -53,21 +53,27 @@ The .ship slots are integers about a centre line that falls between two
 pixel columns (11/-10, 7/-6, engines 6/-5). The model and its anchors are
 symmetric at the mean (10.5, 6.5, 5.5); geometry.json lists both.
 
-Scale: 0.65 m per unit (published, not solved)
-A fighter has no deck program to solve against (one crew, no cargo), and
-the game draws fighter and carrier sprites at one pixel scale, so the
-Broadsword takes its carrier's scale. legion-geometry/geometry.json
-publishes 0.65 m per unit (the Second Wind figure), which is used here.
-METRES_PER_UNIT in build_broadsword.py and metres_per_unit in
+Scale: 0.50 m per unit (range 0.43-0.57), her own
+Every hull gets its own real-world scale from what it physically holds
+(owner policy). A fighter has no deck program, so the Broadsword is
+scaled by her cockpit: one pilot under a canopy 6.1 units long, against
+real single-seat canopies of 2.6-3.5 m (0.43-0.57 m per unit); 3.05 m
+gives 0.50. METRES_PER_UNIT in build_broadsword.py and metres_per_unit in
 geometry.json are the one number.
-At 0.65 she is 20.1 m long, 18.3 m across the blades and 4.2 m keel to
-canopy: the size of a large twin-engine heavy fighter (19-22 m). The
-single-seat canopy is 3.9 x 2.5 m and each exhaust bell is 2.3 m across.
-A 3 m canopy would put the floor at about 0.50 m per unit; a fighter
-modelled at its own scale would no longer fit its own deck.
-Deck fit: her 18.3 m span clears the Legion's forward flight-deck mouth
-(23.4 x 7.8 m) but not the aft mouth's 14.3 m width; that deck is open
-above, so aft launches and recoveries go over the top.
+At 0.50 she is 15.5 m long, 14.1 m across the blades and 3.3 m keel to
+canopy (an F-16 is 15.1 m, an F/A-18 17.1 m). A seated 1.8 m pilot (seat
+pan 0.55 m below the deck skin, crown 0.92 m above the seat) clears the
+glass by 0.21 m. Each exhaust bell is 1.8 m across. The canopy is broad,
+1.9 m at the sill against 0.9-1.3 m on real aircraft: the sprite's wide
+glazed hood, not a reason for a tighter scale.
+Beside a hull at another scale, scale the root by 0.50 / that hull's
+metres_per_unit: 0.77 beside the Legion (0.65). Her span then clears the
+Legion's forward hangar mouth (23.4 m) easily, but the aft mouth (14.3 m
+wide, 7.8 m high) by only 0.2 m. The hangars are under the wing arms and
+fighters leave only through the mouths, so an aft launch must fly
+straight out.
+The battle-map landed-ship convention (landed-ships-true-scale.md) is a
+different number.
 
 Silhouette
 Top view over broadsword.png: IoU 0.931 at pass 2 (sprite uncovered 3.6%,
