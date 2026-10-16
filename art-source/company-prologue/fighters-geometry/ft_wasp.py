@@ -37,7 +37,7 @@ NOZZLES = [(x+oy, y-ox) for (x, y, _), (ox, oy) in zip(ENGINES, NOZZLE_OFFSETS)]
 
 METRES_PER_UNIT = 0.5
 SCALE = {
-    'summary': 'Crewless interceptor drone: one PD emitter, two drive cans, four swept arms',
+    'summary': 'Crewless interceptor drone: one PD emitter, two drive cans, four drooping arms it lands on',
     'method': ('No crew (ship_data min/max crew 0), so no cockpit sets the scale. Sized from its parts: '
                'each 4-unit engine slot is a drive can about 2.8 units across with a 1.6-unit bell, which at '
                '0.5 m/unit is a 1.4 m can around a 0.8 m nozzle, the class of small turbofan a 9-10 m '
@@ -76,6 +76,10 @@ NOTES = [
     'Arm edges run straight through the midpoints of the sprite\'s pixel stairs rather than tracing them (owner: '
     'the traced stairs read as pixelated wings). The stair corners the line cuts and leaves account for most of '
     'the drop in silhouette IoU from 0.951 to 0.909; on arms one to three pixels wide they are a large share.',
+    'Landing stance (owner): the drone has no gear and stands on its four arm tips. Each arm droops from its pivot '
+    'and thins to 40 per cent of its depth at the tip, where a foot pad sits underneath; plan positions are '
+    'unchanged. All four soles are on one plane (Z -2.2), so it sits level, and the drive cans clear the deck by '
+    '0.33 m (see parked_check). The aft arms are shorter, so they droop more steeply than the fore arms.',
 ]
 
 # --- Spine: (x, half width, keel z, deck z, top chamfer, keel chamfer). ---
@@ -113,6 +117,20 @@ CORNER_CHAMFER = .3
 PIVOTS = {'fore': (1.5, 4.45), 'aft': (-3.5, 4.4)}
 PIVOT_R = .75
 
+# Landing stance: each arm droops from its pivot and thins toward the tip,
+# where a foot pad underneath is what the drone stands on (it has no gear).
+# Only height changes, so the plan and the sprite match are untouched. All
+# four feet end on one plane, so the drone sits level; the shorter aft arms
+# simply droop more steeply than the fore arms.
+ARM_TIPS = {'fore': (9.0, 7.5), 'aft': (-10.0, 7.75)}  # tip mid-points; the axis runs pivot -> tip
+DROOP = 1.4        # units the frame's underside drops from pivot to tip
+TIP_TAPER = .6     # share of arm depth lost by the tip
+FOOT_Z = -2.2      # foot soles: 0.65 units (0.33 m) below the drive cans' keels
+FOOT_R, FOOT_T = .45, .6
+FOOT_AT = .92      # foot centre, as a share of the pivot -> tip distance
+FEET = [f'Wing {side} {part} foot pad' for side in ('port', 'starboard') for part in ('fore', 'aft')]
+LEG_PARTS = ['Wing ']  # the arms carry the feet; body clearance is measured without them
+
 POD_CY = 2.6
 POD = [  # drive can: (x, half width, keel z, deck z, top chamfer, keel chamfer)
     (-1.8, 1.05, -1.2, .75, .45, .45),
@@ -139,6 +157,17 @@ def chamfer(plan, c):
     return out
 
 
+def droop(ob, part, s):
+    """Bend an arm part down and thin it along its pivot -> tip axis (linear, so faces stay flat blades)."""
+    (rx, ry), (tx, ty) = PIVOTS[part], ARM_TIPS[part]
+    ry, ty = s*ry, s*ty
+    dx, dy = tx-rx, ty-ry
+    for v in ob.data.vertices:
+        t = min(max(((v.co.x-rx)*dx+(v.co.y-ry)*dy)/(dx*dx+dy*dy), 0), 1.05)
+        v.co.z = FRAME_Z[0]+(v.co.z-FRAME_Z[0])*(1-TIP_TAPER*t)-DROOP*t
+    ob.data.update()
+
+
 def build(kit):
     spine = section_loft(kit, 'Hull spine', SPINE, kit.armour, bevel=.04)
     hub = prism(kit, 'Hull hub', HUB_PLAN, section(HUB_Z[0], HUB_Z[1], .35, .35), kit.steel, bevel=.04)
@@ -151,9 +180,15 @@ def build(kit):
                       section(FRAME_Z[0], FRAME_Z[1], .18, .15), kit.steel, bevel=.03)
             b = prism(kit, f'Wing {side} {part} arm blade', flip(blade), section(BLADE_Z[0], BLADE_Z[1], .15, .22),
                       kit.armour, bevel=.04)
+            droop(f, part, s)
+            droop(b, part, s)
             kit.hull += [f, b]
             px, py = PIVOTS[part]
             kit.cylinder(f'Wing {side} {part} pivot housing', (px, s*py, .1), PIVOT_R, 1.6, kit.steel, 'Z', 20, .06)
+            tx, ty = ARM_TIPS[part]
+            fx, fy = px+(tx-px)*FOOT_AT, py+(ty-py)*FOOT_AT
+            kit.cylinder(f'Wing {side} {part} foot pad', (fx, s*fy, FOOT_Z+FOOT_T/2), FOOT_R, FOOT_T, kit.steel,
+                         'Z', 16, .05)
 
     for i, ((ex, ey, w), (nx, ny)) in enumerate(zip(ENGINES, NOZZLES), 1):
         side = 'port' if ey > 0 else 'starboard'
