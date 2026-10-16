@@ -4,7 +4,7 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — shoulder-pod firing follows committed launches; observed grounded surfaces admit night lighting without revealing ground.
+Updated: 2026-10-15 — Aircraft breakup renders continuous source-sprite sections from first contact through permanent wreck settlement.
 
 ## Vocabulary
 
@@ -88,6 +88,13 @@ Updated: 2026-10-13 — shoulder-pod firing follows committed launches; observed
   and oriented heads that remain visible when unpowered; interior strips retain
   their separate fixture identity. Appearance never changes the authored light pool.
   Ship-compartment lighting is separate.
+- **Aircraft engine light** is the nozzle and exhaust's own emissive alpha mask,
+  drawn once after environmental shade. It follows the admitted aircraft's pose,
+  appearance offsets and smoothed thrust demand. Its localized reflection uses
+  the hull's own painted colour and alpha, so adjoining plating catches light
+  while gaps stay transparent and the rest of the hull retains night shading.
+  Both effects share the exact hull pose and the same per-engine burn response;
+  engine emission does not light the ground or grant observation through fog.
 
 ## Ownership and flow
 
@@ -237,6 +244,26 @@ rotation and frame. Battle-review captures include that layer. This source
 replay is bounded by the simulation's retained decal list, while an already
 stamped live accumulator can retain older pixels after source eviction.
 Persistent cell-backed terrain scars do not depend on that decal retention.
+
+Projectile particle trails advance outside the draw collector. A fixed cadence
+on each shot's simulation clock determines emissions, with positions sampled
+along its traveled path. Live and headless hosts use the same emitter. A paused
+shot emits nothing, and a resolved flight stops emitting while its existing
+particles dissipate. Motor effects originate at the projectile tail; an
+unpowered charge's authored glow stays at its center. Launch and impact audio
+remain tied to physical events, never to the number of rendered particles.
+
+Aircraft crash sections use the simulation's immutable first-contact pose and
+battle time. They start joined at that pose, then spin and skid independently
+into their permanent positions. Hull colors remain unchanged throughout the
+airborne fall; the charred tint begins at ground contact. The active crash and
+its surviving ground wreck
+use the same source-sprite partitions and motion; entity removal, camera entry
+and repeated draws cannot restart the animation. Sections occupy the ground
+actor layer from contact onward, and the intact airborne shadow ends at contact.
+Small sparks and chips are transient impact particles, separate from the main
+sections that remain as the wreck. Their appearance does not add damage or
+change the physical crash corridor.
 
 ## Standing laws
 

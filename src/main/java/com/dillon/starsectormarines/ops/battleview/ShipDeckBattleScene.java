@@ -116,7 +116,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      */
     public static final EnumSet<RenderLayer> DECK_LAYERS = EnumSet.of(
             RenderLayer.GROUND, RenderLayer.VEHICLES,
-            RenderLayer.DOODADS, RenderLayer.UNITS, RenderLayer.SHUTTLES, RenderLayer.DECK_LIGHTING);
+            RenderLayer.DOODADS, RenderLayer.UNITS, RenderLayer.SHUTTLES, RenderLayer.AIRCRAFT_LIGHTS, RenderLayer.DECK_LIGHTING);
 
     /**
      * Most a single {@link #advanceTo} will actually run, however far the clock
@@ -1105,7 +1105,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     public void close() {
         if (renderer != null) {
             renderer.getGroundParallax().dispose();
-            renderer.disposeNightLighting();
+            renderer.disposeLighting();
         }
         simulation.close();
     }

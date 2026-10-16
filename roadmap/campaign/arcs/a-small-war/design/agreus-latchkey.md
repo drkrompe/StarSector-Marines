@@ -99,7 +99,9 @@ Syrinx. Its patrol power is real. Greyhook survives through concealed transfers,
 false documentation, coerced local access and short opportunistic raids among
 industrial traffic and salvage; it does not openly control the system or rely on
 an unexplained absence of Hegemony fleets. The authored local conflict grants no
-Hegemony endorsement, unlimited response force or free naval supremacy.
+Hegemony endorsement, unlimited response force or free naval supremacy. The one
+Hegemony hulls that appear, Chapter 5's pair of lent frigates, fight their own
+finite engagement and are never the company's to command.
 
 Vanilla `data/campaign/starmap.json` places Corvus at `(400, -9400)` and Arcadia
 at `(-2500, -11900)`. At 2,000 hyperspace units per light-year, their anchor
@@ -129,11 +131,33 @@ and rights under an authored district concession and lease agreement. Those asse
 confer bargaining strength and responsibilities. They do not make it owner of every resident or spokesman for
 all Independents.
 
-**Baronet Elian Rusk** holds a personal title recognized as a local courtesy in
-the authored concession community. Addressing
-him as baronet is local courtesy and political history, not a new universal house
-rank, a faction commission or evidence of sector nobility. The authored title must
-not silently promote the house in the living world's political model.
+**Baronet Elian Rusk** is the last of a cadet branch of an Eventide house. The
+Hegemony's aristocracy still recognises the baronetcy; nobody on Agreus owes it
+anything. The branch lost favour two generations ago and put what money it kept
+into freight and secured lending. Rusk bought into the Latchkey concession with
+the remainder and trades on the name to keep the Combine's lease office answering
+his letters. The title is real, its standing on Eventide is thin, and on an
+Independent world it is a liability as often as an asset: Lenna and Voss both use
+it against him. It confers no Hegemony commission, no authority over Agreus and no
+ordinary claim on Hegemony forces, and the living world's political model does not
+promote House Rusk because of it.
+
+**Why no authority steps in.** The Ko Combine administers Agreus under its
+corporate charter and treats Latchkey as a tenant's lease dispute beneath its
+notice: it will let the arbitration award it already made be enforced, and nothing
+more. The Hegemony has no jurisdiction on an Independent world. It watches anyway,
+because its navy consigns hulks to Agreus for scrapping and Citadel Arcadia sits
+beside Syrinx. That gap is the space the company is hired into.
+
+**The family's check.** An Eventide house cannot let a cadet's public failure
+stand on a neighbouring world, and the Hegemony welcomes any occasion to show an
+Independent colony what it can put overhead at short notice. When Pell's raid in
+Chapter 4 shows that Rusk cannot hold his own lease, he writes home. The answer
+arrives for Chapter 5 as a pair of Wolf (H) frigates, lent from Citadel Arcadia
+through family patronage rather than ordered out by the navy. Sending two over a
+cadet's embarrassment is itself the message. It is a favour with a price: the
+family now has an interest in how Latchkey ends, and it notices the company that
+fought beneath its ships. `a-small-war.md` owns the engagement.
 
 Rusk can fund a limited series of contracts, release a small depot of restricted
 security equipment and mobilize quay constables and estate guards. His guards
@@ -161,7 +185,7 @@ that distinction before accepting an enforcement commitment.
 
 ## Elian Rusk: manner, strengths and flaws
 
-Rusk inherited the concession interest young and learned the business by handling
+Rusk inherited a famous name and very little else young, and learned the business by handling
 freight failures and insurance arguments. He is comfortable reading a repair
 estimate and uncomfortable admitting that the people repairing it have political
 claims of their own. His clothes are good, repeatedly mended and poorly suited
@@ -177,6 +201,8 @@ His observable flaw is treating a signed instrument as evidence that consent
 continues. He offers accommodations inside his plan before asking whether his
 plan should change. Lenna can catch him calling workers' independent shops
 “our capacity,” and he can correct the phrase without correcting the assumption.
+He signs with the title only when he needs a door opened, and he is ashamed of
+how often that is.
 
 He is capable of paying what he owes, accepting specific operational limits and
 putting his own funds at risk. He is also capable of asking mercenaries to enforce
@@ -221,7 +247,7 @@ the equipment authorities, not this setting's biographies.
 
 **Greyhook** is a coalition of free captains, boarders and ground outfits organized
 around Captain Sera Voss's ability to assign prizes, settle shares and obtain
-repairs. It takes its name from the salvage tender Voss commanded before she
+repairs. It takes its name from the salvage rig Voss commanded before she
 turned to coercion; the hull is long sold, and the name stayed with the people. It is a local flotilla with fragile agreements, not all pirates speaking
 with one voice. Its wealth rests on stolen cargo, ransom, forced levies and access
 to workshops whose owners cannot always refuse it.

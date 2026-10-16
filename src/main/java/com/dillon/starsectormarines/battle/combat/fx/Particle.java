@@ -29,6 +29,9 @@ public final class Particle {
     public SpriteAPI sprite;
     /** Render rotation in degrees, applied at draw time. Randomized at spawn for sprites where rotation invariance reads better. */
     public float angleDeg;
+    /** Width/height ratio; one preserves existing square particles. */
+    public float aspectRatio = 1f;
+    public float angularVelocityDegPerSec;
     /** Flipbook frame index of the first frame this particle plays. */
     public int firstFrame;
     /** Frame count for the flipbook. 0 = render the whole sprite (no slicing). */

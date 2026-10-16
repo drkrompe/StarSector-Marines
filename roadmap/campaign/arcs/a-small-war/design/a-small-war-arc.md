@@ -4,11 +4,12 @@ Status: ACTIVE — sponsored paramilitary direction; the first three chapters ar
 
 Written: 2026-10-13
 
-Updated: 2026-10-15 — story spine: the creditor rhyme with Junction, Voss's escalation, the Chapter 4 turn and the coalition break.
+Updated: 2026-10-15 — Rusk as an Eventide cadet; the kit ceiling; two Wolfs against two Hounds over Black Sluice.
 
 ## Premise, place and cast
 
-Baronet Elian Rusk hires the company to restore the mod-authored Latchkey
+Baronet Elian Rusk, last of a fallen cadet branch of an Eventide house, hires the
+company to restore the mod-authored Latchkey
 District on existing Agreus, the cold airless industrial moon in Arcadia.
 His local concession sits beneath Ko Combine administration. Sera Voss's
 Greyhook flotilla coerces cargo and yard access; Lenna Saye represents the
@@ -27,8 +28,9 @@ when shipped.
 
 ## Story spine
 
-The arc asks what the company becomes when it is paid to keep order where the
-state will not. It is deliberately grey: nobody here is the villain the captain
+The arc asks what the company becomes when it is paid to keep order where no
+authority will: the Ko Combine treats the yard as a tenant's dispute, and the
+Hegemony next door has no jurisdiction on an Independent world. It is deliberately grey: nobody here is the villain the captain
 was hired to find, and the answer carries into later work.
 
 **The creditor rhyme.** The campaign opens on Jangala with the company breaking
@@ -59,15 +61,39 @@ shapes the problem, not the difficulty: under House Custody, Rusk's estate guard
 hold one approach on his terms; under the Yard Compact, Lenna's fitters refuse to
 leave the tools and need cover where they work.
 
+Pell's raid is also Rusk's humiliation: a baronet who cannot hold his own lease.
+He writes to his family on Eventide, and the remaining fighting is the time it
+takes them to answer.
+
 **Chapter 5 breaks the coalition.** Mid-battle, Voss orders Black Sluice abandoned
 by radio. Drent Haulage takes the order and pulls out along the service road; Berth
 Four refuses and holds out of grudge. The company watches its own pressure split
 Greyhook. Voss survives and says so in one line; nothing pretends her fleet is gone.
 
+**The family answers overhead.** As Greyhook's salvage rig tries to climb out from
+the pier, escorted by two Hound (P) frigates, the pair of Wolf (H) frigates Rusk's
+family has lent from Citadel Arcadia comes in low over the basin. Two against two,
+they slug it out in atmosphere at close range while the ground fight continues
+beneath them: fast, shielded hunters working as a pack against tough, unshielded
+brawlers defending a ship that cannot defend itself. The player's fleet stays out
+of the sky; the Wolfs are the family's ships, not the company's support. A pair,
+not one, is the point: it checks two audiences at once, the Eventide house saving
+face over a cadet's failure and the Hegemony showing an Independent colony what it
+can put overhead at short notice.
+
 **The ending opens the next question.** Rusk asks what it would take to keep the
-company on Agreus, and the Hegemony auxiliary warrant follows. The company that
-began by standing between a creditor and a cooperative is now the private order
-that a state leans on. That is the hook a later arc can pull.
+company on Agreus. The Hegemony auxiliary warrant follows because the family that
+lent the frigates has noticed the company beneath them. The company that began by
+standing between a creditor and a cooperative has made itself useful to the junta
+next door. That is the hook a later arc can pull.
+
+**Kit stays a taste.** A loadout card prescribes all twelve billets of a squad;
+the player learns and picks the card, never a suit and never the mix. Building and
+outfitting a whole powered section is beyond anybody without a licence for it. Every armor card this arc awards is a
+section of regular marines with at most four powered billets, worn in recovered,
+tier-III rebuilds. The player tastes powered fighting without wielding it, under
+the sector's non-proliferation rule (`progression-nouns.md`). All-suit
+cards and military patterns belong to the Hegemony auxiliary warrant and later.
 
 **Voices stay text for now.** Rusk, Lenna, Voss, Edek, Nadi, Pell and Drent are new
 speakers. The ElevenLabs account is at its voice limit, so their radio and
@@ -85,17 +111,18 @@ Missing or incompatible Agreus access pauses the work without replacing a world.
 | Chapter | Place and objective | Fee and lasting result | Delivery state |
 |---|---|---|---|
 | Water Under Seal | North Weir: escort repair cargo, reopen switching rooms, build a road gun and complete handover | 26,000 credits; sponsorship and Limited Warrant offer, no suit pattern | Implemented; live transition and settlement acceptance remain |
-| Limited Warrant | Low Quay: recover service archive and calibration kit under readable procurement terms | 30,000 credits and Recovered Specter cargo card | Implemented; live learning/fitting and save acceptance remain |
-| The Yard's Owners | Latchkey: secure dispatch, tooling hall and operator entrance for inspection | 36,000 credits and Recovered Arbalest cargo card | Implemented; live inspection, mixed fitting and save acceptance remain |
-| Terms of Protection | Latchkey/Cinder Steps: deliver the signed custody party and hold the commissioning work against Berth Four's raid | Planned 32,000 credits and Boarding Jack card on either agreement | Planned; Boarding Jack remains proposed |
+| Limited Warrant | Low Quay: recover service archive and calibration kit under readable procurement terms | 30,000 credits and the Tri-Tachyon Specter Section card (two suits in twelve) | Implemented; live learning/fitting and save acceptance remain |
+| The Yard's Owners | Latchkey: secure dispatch, tooling hall and operator entrance for inspection | 36,000 credits and the Salvage-assisted Section card (four suits in twelve) | Implemented; live inspection, mixed fitting and save acceptance remain |
+| Terms of Protection | Latchkey/Cinder Steps: deliver the signed custody party and hold the commissioning work against Berth Four's raid | Planned 32,000 credits and a Boarding Jack section card on either agreement | Planned; Boarding Jack remains proposed |
 | A Small War | Black Sluice: seize fuel-dispatch sites while Greyhook splits, and hand them to local holders | Planned 44,000 credits, completed settlement and the Hegemony auxiliary warrant offer | Planned |
 
 Recommendations are two squads for the first two chapters, then three with
 construction support. Planned fees and equipment are design targets, not
 accepted encounter balance. North Weir opens the warrant offer; Limited Warrant
-victory awards Specter and opens The Yard's Owners. Its protected inspection awards
-Arbalest. Explicit learning of both cards exposes the mixed section; Armory fitting
-remains a separate player action. Inspection signs no yard agreement and opens no
+victory awards the Specter section card and opens The Yard's Owners. Its protected
+inspection awards the Salvage-assisted Section card. Each card is learned
+explicitly and brings its whole section; Armory fitting remains a separate player
+action. Inspection signs no yard agreement and opens no
 fourth chapter.
 
 ## Planned agreement and continuation

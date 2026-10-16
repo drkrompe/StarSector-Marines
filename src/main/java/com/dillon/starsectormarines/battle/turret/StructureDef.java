@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.turret;
 
 import com.dillon.starsectormarines.battle.fort.FortAspect;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.fort.FortBuildingArt;
 import com.dillon.starsectormarines.battle.fort.FortGatehouseArt;
 import com.dillon.starsectormarines.battle.shield.DomeSpec;
@@ -155,7 +156,7 @@ public final class StructureDef {
         if (mount.weapon.guidance != null && role != TurretRole.AA)
             throw new JSONException("Air-guided weapon requires an AA structure: " + id);
         return new StructureDef(
-                id, TurretMountDef.requireText(catalog, "displayName"),
+                id, Strings.resolve(TurretMountDef.requireText(catalog, "displayName")),
                 maxStructure, armorCapacity, armorRating, radius, hitHalfHeight,
                 footprintCellsX, footprintCellsY, forceScore, mountId, mount,
                 batteryLoadoutId, fireControlRadius, dome, art,

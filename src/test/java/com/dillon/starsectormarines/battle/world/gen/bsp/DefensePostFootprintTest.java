@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostLayoutRegistry;
+import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -61,6 +62,46 @@ public class DefensePostFootprintTest {
         NavigationGrid g = new NavigationGrid(W, H);
         for (int y = 0; y < H; y++) for (int x = 0; x < W; x++) g.setWalkableFloor(x, y);
         return g;
+    }
+
+    @Test
+    public void campaignPlacementCanSelectEachMissileTowerAndReservesItsWholeBase() {
+        var registry = DefensePostLayoutRegistry.requireInstalled();
+        var layouts = registry.layoutsFor(DefensePostKind.LARGE);
+        for (String family : List.of("locust", "swarmer", "proximity")) {
+            var layout = registry.require(DefensePostKind.LARGE, "aa-" + family);
+            int pick = layouts.indexOf(layout);
+            Random selection = new Random(1) {
+                @Override public int nextInt(int bound) {
+                    assertEquals(layouts.size(), bound, "only the layout choice needs a draw at this seed");
+                    return pick;
+                }
+            };
+            NavigationGrid grid = openGrid();
+            CellTopology topology = new CellTopology(W, H);
+            for (int y = 0; y < H; y++) for (int x = 0; x < W; x++)
+                topology.setGroundKind(x, y, GroundKind.DIRT);
+            List<DefensePost> posts = new ArrayList<>();
+            assertEquals(1, DefensePostStamper.stampInto(grid, topology, (x, y) -> true,
+                    null, new ArrayList<>(), new ArrayList<>(), posts, selection,
+                    DefensePostKind.LARGE, 1, List.of(new int[]{CX, CY}), 2, 2, W - 3, H - 3));
+            DefensePost post = posts.get(0);
+            assertEquals(layout.id, post.layoutId);
+            assertEquals(1, post.turrets.size());
+            assertEquals("structure.aa-" + family, post.turrets.get(0).structureId);
+            var structure = post.turrets.get(0).structure();
+            for (int y = 0; y < H; y++) for (int x = 0; x < W; x++) {
+                boolean inPost = Math.abs(x - CX) <= 2 && Math.abs(y - CY) <= 2;
+                assertEquals(!inPost, grid.isWalkable(x, y), family + " footprint " + x + "," + y);
+                if (StructureFootprint.contains(structure, CX, CY, x, y)) {
+                    if (x != CX || y != CY) {
+                        assertTrue(grid.isSeeThrough(x, y), "foundation must not obstruct fire beyond the anchor");
+                    }
+                    assertTrue(topology.isFixture(x, y));
+                    assertFalse(topology.isWall(x, y));
+                }
+            }
+        }
     }
 
     private static Set<String> stampedNonWalkable(DefensePostKind tier, DefensePostShape shape) {

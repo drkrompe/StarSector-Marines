@@ -39,6 +39,12 @@ public class ShotEvent {
     public float toZ;
     /** Optional simulation-owned curved flight; presentation never steers it. */
     public GuidedMissile guidedFlight;
+    /** Physical flight ending; a flameout does not create impact effects or audio. */
+    public boolean flightResolved, flightImpact;
+    /** Current physical flight guidance target, published for observed behavior evidence. */
+    public long flightTargetId;
+    /** Actual craft whose body/fuse triggered this flight, distinct from the intended guidance target. */
+    public long flightContactId;
     /**
      * Presentation bookkeeping for a soft-launched missile: set once its motor's ignition has been
      * drawn, so the flash is emitted once however many frames read the shot. The sim never reads it.
@@ -264,7 +270,8 @@ public class ShotEvent {
 
     /** Whether expiry represents a physical impact rather than free-flight overshoot. */
     public boolean impacts() {
-        return stopKind != BallisticResolver.StopKind.OVERSHOOT;
+        return guidedFlight != null ? flightResolved && flightImpact
+                : stopKind != BallisticResolver.StopKind.OVERSHOOT;
     }
 
 }
