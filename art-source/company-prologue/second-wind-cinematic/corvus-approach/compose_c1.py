@@ -134,7 +134,12 @@ def frame_image(t, duration):
             a = a * el.alpha(t)
         region = canvas[by0:by1, bx0:bx1]
         canvas[by0:by1, bx0:bx1] = region + rgb * a if el.additive else region * (1 - a) + rgb * a
-    return c1_overlay.apply(Image.fromarray((np.clip(canvas, 0, 1) * 255).astype(np.uint8)), t, duration)
+    return Image.fromarray((np.clip(canvas, 0, 1) * 255).astype(np.uint8))
+
+
+def review_image(t, duration):
+    """The clean frame with the runtime overlay drawn on, to preview what the player will show."""
+    return c1_overlay.apply(frame_image(t, duration), t, duration)
 
 
 def init(stand_ins):
@@ -147,6 +152,73 @@ def render(index, duration):
     return index
 
 
+# ---------------------------------------------------------------- runtime data (runtime-contract.md)
+
+DURATION = None
+SPEAKER_IDS = {hail.APPROACH: "approach", "Castle": "castle"}
+OVERLAY_SAMPLE_HZ = 8     # planet-lock track samples per second; the player interpolates
+
+
+def duration():
+    global DURATION
+    if DURATION is None:
+        DURATION = c1_duration()
+    return DURATION
+
+
+def captions():
+    """[(t_in, t_out, speaker_id, catalog_line_id)]: one entry per hail line that starts in C1, over
+    the whole take (first page in to last page out). No text: the exporter turns the id into a
+    strings.json key and the player pages whatever that language says."""
+    out = []
+    starting = [line for line, start, *_ in c1_overlay.hail_lines() if start < duration()]
+    for line, (speaker, _key_up, _release, pages) in zip(starting, c1_overlay.caption_schedule(duration())):
+        out.append((round(pages[0][1], 3), round(pages[-1][2], 3), SPEAKER_IDS[speaker], line["id"]))
+    return out
+
+
+def overlays():
+    """The planet lock as data: the globe's screen centre and radius (source pixels) over time."""
+    global SCENE
+    if SCENE is None:
+        SCENE = build_scene(duration())
+    t_lock, t_out = c1_overlay.planet_lock_times()
+    t_end = min(duration(), t_out + c1_overlay.OUT_SECONDS)
+    steps = max(1, math.ceil((t_end - t_lock) * OVERLAY_SAMPLE_HZ))
+    track = []
+    for i in range(steps + 1):
+        t = t_lock + (t_end - t_lock) * i / steps
+        cx, cy, r = c1_overlay.planet_screen(t, duration())
+        track.append([round(t, 3), round(cx, 2), round(cy, 2), round(r, 2)])
+    return [{
+        "kind": "lock", "t_in": round(t_lock, 3), "t_out": round(t_out, 3),
+        "close_seconds": c1_overlay.LOCK_SECONDS, "out_seconds": c1_overlay.OUT_SECONDS,
+        "arc_degrees": c1_overlay.ARC_DEG, "leader": c1_overlay.LEADER,
+        "title_key": "jangalaArrivalLockTitle",
+        "detail": [{"key": "jangalaArrivalLockDetailSystem", "color": "player"},
+                   {"key": "jangalaArrivalLockDetailFaction", "color": "hegemony"}],
+        "track": track,
+    }]
+
+
+def audio_cues():
+    """[{t, sound, volume, [until, fade_in, fade_out]}] in shot time (hail time is shot time).
+    The cabin bed is C1's and carries on under the hail's later lines in C2 to `until`."""
+    lines = json.loads(hail.CATALOG.read_text(encoding="utf-8"))["lines"]
+    starts, squelch, total = hail.timeline(lines)
+    cues = [{"t": 0.0, "sound": "jangala_cabin_bed", "volume": 1.0, "until": round(total - hail.TAIL + 0.5, 3),
+             "fade_in": 1.0, "fade_out": 1.5}]
+    # Lines 7-9 start after C1 ends (hail time is C1 time, so they fall past `duration()`): they
+    # belong to C2's own cues, in C2 time.
+    for kind, t in squelch:
+        if t < duration():
+            cues.append({"t": round(t, 3), "sound": "jangala_squelch_" + kind, "volume": 1.0})
+    for line, start in zip(lines, starts):
+        if start < duration():
+            cues.append({"t": round(start, 3), "sound": line["id"], "volume": 1.0})
+    return sorted(cues, key=lambda c: (c["t"], c["sound"]))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--stills", action="store_true", help="only the review stills")
@@ -157,7 +229,7 @@ def main():
     frames = round(duration * FPS)
     (BASE / "review").mkdir(exist_ok=True)
     for name, t in (("entrance", 2.5), ("settle", 7.0), ("mid", duration / 2), ("end", duration - 1 / FPS)):
-        frame_image(t, duration).save(BASE / "review" / (name + ".png"))
+        review_image(t, duration).save(BASE / "review" / (name + ".png"))
     print("C1 %.2fs, %d frames; stills in review/" % (duration, frames))
     if args.stills:
         return
@@ -170,9 +242,18 @@ def main():
                 print("frame", done, flush=True)
     hail.main()
     audio = ROOT / "build" / "audio-previews" / "jangala-hail" / "cabin.mp3"
+    # The shipped video is cut from the clean frames by cinematic_export.py; the review movie
+    # shows what the player will draw over them.
+    review = OUT / "review-frames"
+    review.mkdir(exist_ok=True)
+    for old in review.glob("*.png"):
+        old.unlink()
+    for i in range(frames):
+        c1_overlay.apply(Image.open(OUT / "frames" / ("%05d.png" % i)).convert("RGB"), i / FPS, duration).save(
+            review / ("%05d.png" % i))
     movie = OUT / "c1-corvus.mp4"
     subprocess.run(["ffmpeg", "-hide_banner", "-v", "error", "-y", "-framerate", str(FPS),
-                    "-i", str(OUT / "frames" / "%05d.png"), "-i", str(audio),
+                    "-i", str(review / "%05d.png"), "-i", str(audio),
                     "-filter_complex", "[1:a]atrim=0:%.3f,afade=t=out:st=%.3f:d=0.6[a]" % (duration, duration - 0.6),
                     "-map", "0:v", "-map", "[a]", "-c:v", "libx264", "-crf", "18", "-pix_fmt", "yuv420p",
                     "-c:a", "aac", "-b:a", "160k", "-shortest", str(movie)], check=True)

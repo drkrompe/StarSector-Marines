@@ -380,13 +380,20 @@ public final class DamageResolver {
     }
 
     /**
-     * What a section at zero costs a mech that still stands ({@code mech-locational-damage.md}):
+     * What a section at zero costs a mech that still stands ({@code mechs-nouns.md}):
      * a mount loses its weapon, the head its sensors. Crippled legs need nothing written here:
      * the sections say so, and movement reads it through {@code MechSectionModifier}.
      */
     private void applySectionLoss(long targetId, MechLoadoutComponent mech, MechSection section) {
         if (section.mount() != null) {
             mech.destroyMount(section.mount());
+            // The engagement range was the deployed mounts' longest reach. Doctrine and target
+            // acquisition read it, so it has to follow the surviving mounts or a mech that lost
+            // its long-range rack would keep perching and acquiring at that rack's band.
+            roster.world().setAttackRange(targetId, mech.maxWeaponRange());
+            // The appearance's mount selectors were authored at spawn; re-author them so the
+            // lost weapon's layer drops off the drawn chassis.
+            roster.world().refreshMechMountAppearance(targetId, mech);
         } else if (section == MechSection.HEAD) {
             VisionService vision = roster.vision();
             vision.setVisionRange(targetId, vision.visionRange(targetId) * MechSections.SENSOR_LOSS_VISION);

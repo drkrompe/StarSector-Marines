@@ -10,7 +10,7 @@ It imports no other hull package. Coordinates are hull-local, +X nose,
 import math
 import bmesh
 import bpy
-from mathutils import Vector
+from mathutils import Matrix, Vector
 
 
 def material(name, color, metallic=0.0, roughness=.65, emission=None, strength=2.0):
@@ -39,6 +39,7 @@ class Kit:
         self.dark = material('Recess and machinery', (.025, .027, .03), .4, .6)
         self.glass = material('Canopy glass', glass, .0, .08)
         self.detail = False
+        self.m = 1.0    # metres per unit: the driver sets the fighter's own
         self.hull = []  # objects the downward ray-cast seats parts on
         self.anchors = []
 
@@ -151,6 +152,190 @@ class Kit:
         ob = self.cylinder(name, p+n*.03, r, .12, self.bright, 'Z', 8, 0)
         ob.rotation_euler = n.to_track_quat('Z', 'Y').to_euler()
         return ob
+
+    # --- Pass 2: plausible detail. ---
+    # Positions stay in hull units; sizes are given in metres and go through
+    # u(), so a panel line or a grille slat is the same real size on every
+    # fighter whatever its metres_per_unit. Engraving and skin layers work
+    # from offsets of a part's own finished surface, so they follow chamfers
+    # and lofts without tracing them: a panel line is a constant-depth
+    # groove and a skin plate a constant-thickness layer wherever the slab
+    # that bounds it lands on the part.
+
+    def u(self, metres):
+        return metres/self.m
+
+    def mark_detail(self):
+        """Called first thing in a module's detail(): everything built from here on is pass-2 detail
+        (the driver tags it, and check_clashes.py reads the tag)."""
+        self.pass1 = {o.name for o in bpy.data.objects}
+
+    def offset_copy(self, ob, d, name, mat=None):
+        """A copy of ob's finished surface moved d units along its normals (negative: shrunk)."""
+        bpy.context.view_layer.update()
+        dg = bpy.context.evaluated_depsgraph_get()
+        me = bpy.data.meshes.new_from_object(ob.evaluated_get(dg))
+        bm = bmesh.new()
+        bm.from_mesh(me)
+        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
+        bm.normal_update()
+        moves = [(v, v.normal*d*min(v.calc_shell_factor(), 2.0)) for v in bm.verts]
+        for v, m in moves:
+            v.co += m
+        bm.to_mesh(me)
+        bm.free()
+        me.materials.clear()
+        me.materials.append(mat or self.dark)
+        for poly in me.polygons:
+            poly.material_index = 0
+        me.name = name
+        out = bpy.data.objects.new(name, me)
+        bpy.context.collection.objects.link(out)
+        out.matrix_world = ob.matrix_world.copy()
+        return out
+
+    def slab(self, name, pts, z0, z1, mat=None, axis='Z'):
+        """A prism over a convex polygon pts, extruded z0..z1 along axis
+        ('Z': pts in XY; 'Y': pts in XZ; 'X': pts in YZ)."""
+        pts = ccw(list(pts))
+        n = len(pts)
+        place = {'Z': lambda a, b, c: (a, b, c), 'Y': lambda a, b, c: (a, c, b), 'X': lambda a, b, c: (c, a, b)}[axis]
+        verts = [place(a, b, z) for z in (z0, z1) for a, b in pts]
+        faces = [tuple(reversed(range(n))), tuple(range(n, 2*n))]
+        faces += [(i, (i+1) % n, n+(i+1) % n, n+i) for i in range(n)]
+        return self.mesh(name, verts, faces, mat or self.dark, 0)
+
+    def line_slab(self, p0, p1, w_m, z0=-60, z1=60, axis='Z'):
+        """A slab w_m wide along the straight line p0 -> p1, in the plan of `axis`."""
+        (ax, ay), (bx, by) = p0, p1
+        L = math.hypot(bx-ax, by-ay)
+        h = self.u(w_m)/2
+        nx, ny = -(by-ay)/L*h, (bx-ax)/L*h
+        return self.slab('Temporary line', [(ax+nx, ay+ny), (ax-nx, ay-ny), (bx-nx, by-ny), (bx+nx, by+ny)],
+                         z0, z1, axis=axis)
+
+    def lines(self, pts, w_m, z0=-60, z1=60, closed=False, axis='Z'):
+        """Line slabs along a polyline, each run on by half a width so the corners meet."""
+        pairs = list(zip(pts, pts[1:])) + ([(pts[-1], pts[0])] if closed else [])
+        out = []
+        for (ax, ay), (bx, by) in pairs:
+            e = self.u(w_m)/2/math.hypot(bx-ax, by-ay)
+            out.append(self.line_slab((ax-(bx-ax)*e, ay-(by-ay)*e), (bx+(bx-ax)*e, by+(by-ay)*e), w_m, z0, z1, axis))
+        return out
+
+    def outline(self, cx, cy, L_m, W_m, w_m=.04, z0=-60, z1=60, axis='Z', corner_m=None):
+        """A rectangular hatch outline with cut corners, centred on (cx, cy) in the plan of `axis`."""
+        L, W = self.u(L_m)/2, self.u(W_m)/2
+        c = self.u(corner_m) if corner_m is not None else min(L, W)*.3
+        pts = [(cx+L-c, cy+W), (cx-L+c, cy+W), (cx-L, cy+W-c), (cx-L, cy-W+c), (cx-L+c, cy-W),
+               (cx+L-c, cy-W), (cx+L, cy-W+c), (cx+L, cy+W-c)]
+        return self.lines(pts, w_m, z0, z1, closed=True, axis=axis)
+
+    def band_slab(self, x, w_m, y0=-60, y1=60, z0=-60, z1=60):
+        """An axis-aligned slab w_m long in X at station x: a ring groove or a collar rib."""
+        h = self.u(w_m)/2
+        return self.slab('Temporary band', [(x-h, y0), (x+h, y0), (x+h, y1), (x-h, y1)], z0, z1)
+
+    def region(self, x0, x1, y0, y1, z0=-60, z1=60):
+        return self.slab('Temporary region', [(x0, y0), (x1, y0), (x1, y1), (x0, y1)], z0, z1)
+
+    def engrave(self, target, slabs, depth_m=.03):
+        """Panel lines: cut every slab's footprint depth_m into target's skin and no deeper.
+        The groove walls and floor take the slabs' dark material."""
+        slabs = list(slabs) if isinstance(slabs, (list, tuple)) else [slabs]
+        if not slabs:
+            return target
+        bake(target)
+        cutter = slabs[0]
+        for s in slabs[1:]:
+            boolean(cutter, s, 'UNION')
+        boolean(cutter, self.offset_copy(target, -self.u(depth_m), 'Temporary core'))
+        boolean(target, cutter)
+        return target
+
+    def skin(self, target, name, region, t_m, mat, chamfer=True):
+        """A layer t_m thick over target's surface wherever the region solid covers it: a raised
+        armour plate, a collar rib round a drum, a canopy frame round the glass."""
+        shell = self.offset_copy(target, self.u(t_m), name, mat)
+        boolean(shell, region, 'INTERSECT')
+        boolean(shell, self.offset_copy(target, -self.u(.002), 'Temporary inner'))
+        if chamfer:
+            b = shell.modifiers.new('Plate edge chamfer', 'BEVEL')
+            b.width, b.segments, b.limit_method = min(self.u(t_m)*.35, .04), 1, 'ANGLE'
+        return shell
+
+    def frame_at(self, x, y, yaw_deg=0.0, lift=0.0):
+        """World matrix on the hull under (x, y): +Z along the surface normal, +X toward yaw (0 = nose)."""
+        hit = self.surface(x, y)
+        if hit is None:
+            raise RuntimeError(f'nothing to seat on at ({x}, {y})')
+        p, n = hit
+        a = math.radians(yaw_deg)
+        xa = Vector((math.cos(a), math.sin(a), 0))
+        xa = (xa-n*xa.dot(n)).normalized()
+        rot = Matrix((xa, n.cross(xa), n)).transposed().to_4x4()
+        return Matrix.Translation(p+n*lift) @ rot
+
+    def seated(self, name, x, y, dims_m, mat, yaw_deg=0.0, sink_m=.01, bevel_m=.01):
+        """A box laid on the hull at (x, y), tilted to the surface and bedded sink_m into it."""
+        L, W, T = (self.u(v) for v in dims_m)
+        ob = self.box(name, (0, 0, 0), (L, W, T), mat, self.u(bevel_m) if bevel_m else 0)
+        ob.matrix_world = self.frame_at(x, y, yaw_deg, T/2-self.u(sink_m))
+        return ob
+
+    def grille(self, name, x, y, L_m, W_m, slats, yaw_deg=0.0, slat_mat=None):
+        """A dark grille well with slats across it, laid on the hull: intakes and vents."""
+        well = self.seated(f'{name} well', x, y, (L_m, W_m, .04), self.dark, yaw_deg, .025, .008)
+        pitch = L_m/(slats+.5)
+        a = math.radians(yaw_deg)
+        for k in range(slats):
+            off = self.u(-L_m/2+pitch*(k+.75))
+            self.seated(f'{name} slat {k+1}', x+math.cos(a)*off, y+math.sin(a)*off,
+                        (pitch*.42, W_m*.84, .06), slat_mat or self.steel, yaw_deg, .015, .006)
+        return well
+
+    def fairing(self, name, x, y, L_m, W_m, H_m, mat, yaw_deg=0.0, nose=.35, tail=.3):
+        """A faceted blister (sensor or antenna fairing) laid on the hull, long axis toward yaw."""
+        L, W, H = self.u(L_m), self.u(W_m), self.u(H_m)
+        sink = self.u(.04)
+        rows = [(L/2, .3, .35), (L/2-L*nose, 1, 1), (-L/2+L*tail, 1, 1), (-L/2, .45, .5)]
+        st = [(px, octagon(-W/2*k, W/2*k, -sink, H*h, min(W/2*k, H*h)*.55, 0)) for px, k, h in rows]
+        ob = loft_x(self, name, st, mat, self.u(.01))
+        ob.matrix_world = self.frame_at(x, y, yaw_deg)
+        return ob
+
+    def blade(self, name, x, y, H_m, L_m, mat, yaw_deg=0.0, t_m=.03, sweep=.5):
+        """A swept blade antenna standing on the hull."""
+        H, L, t, sink = self.u(H_m), self.u(L_m), self.u(t_m), self.u(.03)
+        plan = [(-L/2, -sink), (L/2, -sink), (L/2-L*sweep*.4, H), (L/2-L*sweep*.4-L*.35, H)]
+        ob = self.slab(name, plan, -t/2, t/2, mat, axis='Y')
+        ob.matrix_world = self.frame_at(x, y, yaw_deg)
+        return ob
+
+    def xcyl(self, name, x0, x1, y, z, r_m, mat, sides=16, bevel_m=.008):
+        """A cylinder along X from x0 to x1, radius in metres."""
+        return self.cylinder(name, ((x0+x1)/2, y, z), self.u(r_m), abs(x1-x0), mat, 'X', sides, self.u(bevel_m))
+
+    def rod(self, name, p0, p1, r_m, mat, sides=10):
+        """A round rod between two points: struts, actuators, hinge pins."""
+        a, b = Vector(p0), Vector(p1)
+        ob = self.cylinder(name, (0, 0, 0), self.u(r_m), (b-a).length, mat, 'Z', sides, 0)
+        ob.matrix_world = Matrix.Translation((a+b)/2) @ (b-a).to_track_quat('Z', 'Y').to_matrix().to_4x4()
+        return ob
+
+    def drive_core(self, i, x_mouth, y, z, bell_r, depth=1.2, vanes=8):
+        """Inside the bell: a centre body on the throat and a ring of stator vanes round it."""
+        r = bell_r*.62
+        xt = x_mouth+depth-.08
+        st = [(xt, octagon(y-r*.42, y+r*.42, z-r*.42, z+r*.42, r*.12)),
+              (xt-depth*.45, octagon(y-r*.3, y+r*.3, z-r*.3, z+r*.3, r*.09)),
+              (xt-depth*.7, octagon(y-r*.06, y+r*.06, z-r*.06, z+r*.06, r*.02))]
+        loft_x(self, f'Engine {i} centre body', st, self.steel, .02)
+        for k in range(vanes):
+            a = 2*math.pi*(k+.5)/vanes
+            p0 = (xt-.04, y+math.cos(a)*r*.38, z+math.sin(a)*r*.38)
+            p1 = (xt-.04, y+math.cos(a)*r*1.02, z+math.sin(a)*r*1.02)
+            self.rod(f'Engine {i} stator vane {k+1}', p0, p1, .035, self.steel, 4)
 
 
 # --- Planform prisms: one keel chamfer, one wall, one shoulder chamfer. ---
@@ -293,6 +478,20 @@ def _cone(kit, name, x0, x1, r0, r1, cy, z, mat, n=24):
         a, b = ring*n, ((ring+1) % 4)*n
         faces += [(a+k, a+(k+1) % n, b+(k+1) % n, b+k) for k in range(n)]
     return kit.mesh(name, verts, faces, mat, 0)
+
+
+def bake(ob):
+    """Apply every modifier, so a later cut or offset sees the finished (chamfered) surface."""
+    bpy.context.view_layer.update()
+    dg = bpy.context.evaluated_depsgraph_get()
+    me = bpy.data.meshes.new_from_object(ob.evaluated_get(dg))
+    old = ob.data
+    ob.modifiers.clear()
+    ob.data = me
+    me.name = ob.name
+    if old.users == 0:
+        bpy.data.meshes.remove(old)
+    return ob
 
 
 def boolean(target, cutter, op='DIFFERENCE', keep=False):

@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a146cd-4d50-7dd3-8473-e302cd2026e6",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a146cd-4d50-7dd3-8473-e302cd2026e6\\exec-e4291ec6-2f4c-4594-ab36-610607f32692.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\hq-command-deck\\comms-right-v2.master.png",
+    "sha256": "f85f892f830adfc96706b3ec84deb19834957aa3518f095140ba61fa0cd8a818",
+    "dimensions": [
+      1278,
+      1230
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\hq-command-deck\\comms-right.brief.txt",
+  "promptSha256": "2f7e22cfc574c845336e9d870bd1cde21b7549c7f2863b2cfdb720516d3855c4",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Lighting direction, colour and painting style only. Not layout; include none of its background.\nImage 2: Figure-card finish only: rendering, brushwork, scale of detail and clean transparency. Not identity, pose or costume.\n\nSeated figure card of a comms officer for a layered illustration. He will be placed into the command-centre painting given as reference 1, sitting at a console on the raised rear tier at the back of the room, his back to the viewer.\n\nAn older man in his fifties, thinning grey hair, heavyset shoulders, faded olive shirtsleeves with braces, a headset hung around his neck. He sits on an unseen swivel chair facing away from the viewer toward his console (not drawn), hunched forward a little with both forearms on the console edge, head turned slightly to his right toward a colleague, the edge of his face and a grey moustache just visible. His legs go forward under the console and are mostly hidden by his own body; show only what would be visible from behind.\n\nViewpoint matches the painting: a level camera at standing head height about eleven metres away, so he is seen from very slightly above, with no perspective lean.\n\nLighting matches reference 1: low and moody, warm amber glow from console screens and the pale green plotting table, pools of warm downlight from ceiling lamps, edges falling into shadow. Same matte-painted brushwork and palette as reference 1, and the same figure-card finish as reference 2. His console's screens light the far side of his face and his forearms from beyond him; a warm rim along his shoulders.\n\nDo not draw the chair, console or desk. True transparent background, including negative spaces between limbs and body; no ground, floor, cast shadow slab, furniture, border, text or other people.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\hq-command-deck\\deck-plate-v4.master.png",
+      "sha256": "1e27e8f97265457a33f59acbc9ff993fa79dc4c5a48628ebba6aada6d5f50aab",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "mode": "RGB",
+      "role": "Lighting direction, colour and painting style only. Not layout; include none of its background."
+    },
+    {
+      "path": "art-source\\hq-command-deck\\castle-v2.master.png",
+      "sha256": "65d0083f394a1a8521282540e9ad20effc87c3d991ad68616c0e184a20ef5525",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Figure-card finish only: rendering, brushwork, scale of detail and clean transparency. Not identity, pose or costume."
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent figure card with the pose, lighting, and painted finish you described."
+  ],
+  "usage": {
+    "input_tokens": 65229,
+    "cached_input_tokens": 47104,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 579,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 98.7
+}

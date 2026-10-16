@@ -1,5 +1,6 @@
 {
-  "status": "Blockout (pass 1): silhouette, sections, mass, slots and engines. No detail, damage or textures.",
+  "status": "Pass 2: plausible detail (panel lines, access plates, intakes, drive, gun and canopy detail, sensors) on the pass-1 silhouette. No damage or textures.",
+  "pass": 2,
   "hull": {
     "name": "Thunder",
     "hullId": "thunder",
@@ -72,18 +73,18 @@
   "dimensions": {
     "min": [
       -12.0,
-      -12.0,
+      -12.04,
       -2.32
     ],
     "max": [
       29.2,
-      12.0,
-      3.4
+      12.04,
+      3.43
     ],
     "size": [
       41.2,
-      24.0,
-      5.72
+      24.09,
+      5.75
     ]
   },
   "root": {
@@ -221,7 +222,8 @@
   "notes": [
     "Asymmetric forward of X 12, as thunder.png draws it: a port gun block with two prongs, and a starboard lance offset to Y -2.5. Aft of that the engine slots straddle the centre line, so the bells sit at +-6.5 (the slot mean). Anchors keep the exact .ship XY.",
     "All three slots are HIDDEN. The ion cannon is the outer port prong (muzzle at WS 001, Y 6); the inner prong at Y 2 is drawn hull, not a weapon. The light dual MG is the short twin barrel on the starboard root of the lance (WS 002). The swarmer launcher is the dark bay on the fuselage nose at WS 003, with no visible gun.",
-    "master-v1 is mirrored and does not match this plan; see source.sprite_choice."
+    "master-v1 is mirrored and does not match this plan; see source.sprite_choice.",
+    "Pass 2 (detail read off master-v1's parts, which survive its mirrored plan, sized in metres at 0.45 m/unit): the lance carries the master's long slatted dorsal grille, a slot near its tip and a radome seam. The ion cannon (outer prong) gets coil bands, a focus ring and a dark bore; the inner prong bands and a cap; the dual MG perforated barrel jackets, muzzle brakes and a breech cover on its housing; the gun block a capacitor vent. The swarmer bay at WS 003 shows three launch cells in its recess. The canopy has a sill and two bows; behind it runs the master's dark dorsal spine with a ribbed grille, flanked by the master's intakes on the delta. Each engine pod has a forward intake grille, an aft vent, two collar ribs and a centre body with stator vanes; the tip plates the master's two slots on their outer faces. Panel lines split lance, block, fuselage, delta and pods."
   ],
   "cameras": {
     "top": {
@@ -257,10 +259,82 @@
       "orthographic_scale": 62.35
     }
   },
+  "closeup_cameras": {
+    "nose-detail": {
+      "position": [
+        110.032,
+        -70.846,
+        69.346
+      ],
+      "target": [
+        24.6,
+        -2.5,
+        1.0
+      ],
+      "orthographic_scale": 13.333
+    },
+    "gun-detail": {
+      "position": [
+        131.312,
+        39.539,
+        55.556
+      ],
+      "target": [
+        21.2,
+        1.0,
+        0.5
+      ],
+      "orthographic_scale": 14.667
+    },
+    "cockpit-detail": {
+      "position": [
+        65.004,
+        -73.505,
+        90.605
+      ],
+      "target": [
+        6.2,
+        0.0,
+        2.4
+      ],
+      "orthographic_scale": 10.667
+    },
+    "aft-detail": {
+      "position": [
+        -33.266,
+        51.649,
+        116.081
+      ],
+      "target": [
+        -0.5,
+        2.5,
+        1.4
+      ],
+      "orthographic_scale": 15.556
+    },
+    "engine-detail": {
+      "position": [
+        -109.195,
+        75.056,
+        48.697
+      ],
+      "target": [
+        -11.4,
+        6.6,
+        -0.2
+      ],
+      "orthographic_scale": 13.333
+    }
+  },
+  "object_count": {
+    "meshes": 125,
+    "empties": 8,
+    "pass2_detail_meshes": 102
+  },
   "silhouette": {
-    "iou": 0.9559,
-    "sprite_uncovered": 0.0212,
-    "model_outside_sprite": 0.024,
+    "iou": 0.9556,
+    "sprite_uncovered": 0.0207,
+    "model_outside_sprite": 0.0249,
     "sprite": "thunder.png",
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 37.09 px per unit"
   }

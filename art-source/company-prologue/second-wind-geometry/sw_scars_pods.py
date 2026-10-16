@@ -14,6 +14,7 @@ salvaged pump; the port pod was left dead with its feed lines blind-flanged
 reinstalls the machinery as built and lights both pods.
 """
 import math
+import bpy
 import random
 from mathutils import Vector
 from sw_damage import Scar, ENGINE_STATUSES, Geo, basis, TAU
@@ -148,36 +149,63 @@ def jury_feed(d, scar, s):
         clips.obox((a+b)/2, t, Z.cross(t).normalized(), Z, .15, .32, .3)
 
 
+def pod_engines(s):
+    return [(i, x, y, w) for i, (x, y, w) in enumerate(ENGINES, 1) if y*s > 0]
+
+
+def anchors(d, scar, s, running):
+    """Tag each engine's exhaust anchor running or not for this state."""
+    for i, *_ in pod_engines(s):
+        ob = bpy.data.objects.get(f'Engine {i} exhaust anchor')
+        if ob is not None:
+            d.tag(ob, 'running', running, scar)
+
+
 def throats(d, scar, s):
-    """Both engines of a pod firing: light inside each throat, heat on the bell."""
-    glow = d.part(scar, 'throat glow', d.glow, 0)
-    for i, (x, y, w) in enumerate(ENGINES, 1):
-        if y*s <= 0:
-            continue
-        # The throat ring's aft face closes the bore at x+2.45: light it there.
-        glow.disc((x+2.4, y, 0), X, BELL_R[w]*.62, .05, 32)
+    """Both engines of a pod firing: the named dark throat glows (the part the
+    cinematic registers its glow on) and the bell takes heat."""
+    for i, *_ in pod_engines(s):
+        throat = d.find(f'Engine {i} dark throat', None)
+        if throat:
+            d.override(throat, d.glow, scar)
         bell = d.find(f'Engine {i} aft-facing bell', None)
         if bell:
             d.override(bell, d.heat, scar)
+    anchors(d, scar, s, True)
+
+
+def cold(d, scar, s):
+    """A pod shut down after it last ran: soot-scorched bells, no glow."""
+    soot = d.m('Scar cold scorched bell', (.022,.02,.019), .35, .8)
+    for i, *_ in pod_engines(s):
+        bell = d.find(f'Engine {i} aft-facing bell', None)
+        if bell:
+            d.override(bell, soot, scar)
+    anchors(d, scar, s, False)
 
 
 def kind_drive(d, scar, status):
     """A drive pod's life (ENGINE_STATUSES).
     params: side (1 port, -1 starboard), stubs ('cut' or None) when dead.
-    dead:    coil lifted out, empty cradle; feed lines cut or left.
+    dead:    coil lifted out, empty cradle; feed lines cut or left. Cold,
+             bells soot-scorched.
     capped:  cold, empty cradle, cut feed lines blind-flanged, its warning
-             lights dark. Nozzles stay open.
+             lights dark, bells soot-scorched from the last time it ran.
+             Nozzles stay open.
     jury:    salvaged coil tied down on the cradle, jury propellant feed,
              throats lit.
     running: the pod as built (the strip rows reinstate its machinery),
-             throats lit."""
+             throats lit.
+    Every status tags 'Engine {i} exhaust anchor' running True/False."""
     s = scar.params['side']
     if status == 'dead':
         cradle(d, scar, s, scar.params.get('stubs'))
+        cold(d, scar, s)
     elif status == 'capped':
         cradle(d, scar, s, 'flanged')
         for ob in d.named('Drive warning light', s):
             d.override(ob, d.dead, scar)
+        cold(d, scar, s)
     elif status == 'jury':
         coil(d, scar, s)
         jury_feed(d, scar, s)

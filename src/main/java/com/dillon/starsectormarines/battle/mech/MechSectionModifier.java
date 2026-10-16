@@ -13,7 +13,7 @@ import java.util.Set;
  * Crippled legs, as a unit modifier: a mech whose legs are at zero has no walking speed, on the
  * autonomous route and under direct control alike. It can still pivot its hips and turn its
  * torso; those are turn rates, not speed. Written only by the damage path, through
- * {@link MechSections}. See {@code mech-locational-damage.md}.
+ * {@link MechSections}. See {@code mechs-nouns.md}.
  */
 public final class MechSectionModifier implements UnitModifier {
 

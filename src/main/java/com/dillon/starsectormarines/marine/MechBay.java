@@ -233,7 +233,7 @@ public final class MechBay implements Serializable {
     }
 
     /**
-     * Battle damage writeback for the company's own mechs ({@code mech-locational-damage.md},
+     * Battle damage writeback for the company's own mechs ({@code mechs-nouns.md},
      * After the battle). A destroyed torso loses the chassis: it leaves its gantry and every
      * part fitted to it leaves stores with it. Otherwise a destroyed mount loses its weapon
      * assembly from stores and the mount comes back empty, the pattern kept; every damaged
