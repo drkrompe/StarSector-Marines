@@ -28,11 +28,11 @@ Blockouts at each fighter's own scale, sized from the cockpit.
 | Asset | Package | 1 | 2 | 3 | 4 scale | 6 texture | Next |
 |---|---|---|---|---|---|---|---|
 | Broadsword | `broadsword-geometry/` | done | done | review | done, 0.50 m/u (15.5 m) | — | Owner review |
-| Talon | `fighters-geometry/talon/` | done | — | review | done, 0.55 m/u (12.1 m) | — | Owner review |
-| Wasp (drone) | `fighters-geometry/wasp/` | done | — | review | done, 0.50 m/u (9.5 m) | — | Owner review |
+| Talon | `fighters-geometry/talon/` | done | — | review (round 1: rescaled below the Broadsword, smaller canopy) | done, 0.55 m/u (12.1 m) | — | Owner review of round 1 |
+| Wasp (drone) | `fighters-geometry/wasp/` | done | — | review (round 1: straight arm edges, not pixel stairs) | done, 0.50 m/u (9.5 m) | — | Owner review of round 1 |
 | Dagger | `fighters-geometry/dagger/` | done | — | review | done, 0.50 m/u (16.4 m) | — | Owner review |
 | Longbow | `fighters-geometry/longbow/` | done | — | review | done, 0.45 m/u (15.0 m) | — | Owner review |
-| Thunder | `fighters-geometry/thunder/` | done (follows the asymmetric sprite) | — | review | done, 0.45 m/u (18.5 m) | — | Owner review |
+| Thunder | `fighters-geometry/thunder/` | done | — | review (round 1: follows the asymmetric sprite) | done, 0.45 m/u (18.5 m) | — | Owner review of round 1 |
 
 The common-scale lineup is `fighters-geometry/lineup.png`. Hoplon is out of
 scope unless the owner asks for it.
