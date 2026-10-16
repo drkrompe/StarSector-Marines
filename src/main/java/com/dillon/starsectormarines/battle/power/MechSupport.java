@@ -234,31 +234,41 @@ public final class MechSupport extends AirDeliveryPower {
                         BattleControl battle, List<Integer> selection) {
         int[] lz = landingZoneNear(cellX, cellY, battle);
         if (lz == null) return;
-        List<Integer> picks = picks(selection, battle);
-        if (picks.isEmpty()) return;
-        List<LiftBudget.Carrier> allocation =
-                budget.allocate(load(picks), companyAvailable(battle));
-        if (allocation == null) return;
-
-        Map<LiftBudget.Carrier, List<ArmorLoad>> sorties = new LinkedHashMap<>();
-        for (int i = 0; i < picks.size(); i++) {
-            sorties.computeIfAbsent(allocation.get(i), carrier -> new ArrayList<>())
-                    .add(manifest.get(picks.get(i)).load());
-        }
+        Map<LiftBudget.Carrier, List<ArmorLoad>> sorties =
+                commitCall(picks(selection, battle), companyAvailable(battle));
         for (Map.Entry<LiftBudget.Carrier, List<ArmorLoad>> sortie : sorties.entrySet()) {
             LiftBudget.Carrier carrier = sortie.getKey();
             ShuttleMission mission = launch(carrier.frame(), lz, ArmorDropPayload.INSTANCE, battle);
             loadArmor(mission, sortie.getValue(), carrier.company());
         }
+    }
+
+    /**
+     * Commits a call of {@code picks}: spends their lift, marks them called, and returns what
+     * each carrier flies, in allocation order. Empty, with nothing spent, when there is no
+     * pick, a pick has already been called, or lift cannot carry all of it.
+     */
+    Map<LiftBudget.Carrier, List<ArmorLoad>> commitCall(List<Integer> picks,
+                                                        boolean companyAvailable) {
+        if (picks.isEmpty()) return Map.of();
+        for (int pick : picks) if (called[pick]) return Map.of();
+        List<LiftBudget.Carrier> allocation = budget.allocate(load(picks), companyAvailable);
+        if (allocation == null) return Map.of();
+        Map<LiftBudget.Carrier, List<ArmorLoad>> sorties = new LinkedHashMap<>();
+        for (int i = 0; i < picks.size(); i++) {
+            sorties.computeIfAbsent(allocation.get(i), carrier -> new ArrayList<>())
+                    .add(manifest.get(picks.get(i)).load());
+        }
         budget.spend(allocation);
         for (int pick : picks) called[pick] = true;
+        return sorties;
     }
 
     /**
      * Puts {@code loads} aboard. A cradled company boat carries one machine and nobody else,
      * so it flies a trip per machine; the synthetic carrier unloads them all at once.
      */
-    private static void loadArmor(ShuttleMission mission, List<ArmorLoad> loads, boolean cradled) {
+    static void loadArmor(ShuttleMission mission, List<ArmorLoad> loads, boolean cradled) {
         mission.armorDrop = loads.toArray(new ArmorLoad[0]);
         List<MechDeploymentSpec> mechs = new ArrayList<>();
         for (ArmorLoad load : loads) {

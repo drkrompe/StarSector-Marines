@@ -1,0 +1,180 @@
+{
+ "parts": {
+  "deck-fore-top": {
+   "oxide": {
+    "share_as_declared": 0.943,
+    "share_in_declared_family": 0.943,
+    "swap": false,
+    "before_mean_lab": [
+     54.72,
+     24.21,
+     33.59
+    ],
+    "after_mean_lab": [
+     51.17,
+     18.92,
+     27.77
+    ],
+    "dE_to_palette_before": 8.63
+   },
+   "ramp_span_L_removed_max": 0.8,
+   "edge_band_dL_after_mean": -3.7
+  },
+  "spine-top": {
+   "cream": {
+    "share_as_declared": 0.944,
+    "share_in_declared_family": 0.944,
+    "swap": false,
+    "before_mean_lab": [
+     83.88,
+     1.17,
+     15.2
+    ],
+    "after_mean_lab": [
+     77.97,
+     1.64,
+     11.4
+    ],
+    "dE_to_palette_before": 7.34
+   },
+   "oxide": {
+    "share_as_declared": 0.859,
+    "share_in_declared_family": 0.859,
+    "swap": false,
+    "before_mean_lab": [
+     51.77,
+     21.48,
+     29.9
+    ],
+    "after_mean_lab": [
+     51.17,
+     18.92,
+     27.77
+    ],
+    "dE_to_palette_before": 3.39
+   },
+   "gunmetal": {
+    "share_as_declared": 0.921,
+    "share_in_declared_family": 0.999,
+    "swap": false,
+    "before_mean_lab": [
+     46.67,
+     0.37,
+     0.57
+    ],
+    "after_mean_lab": [
+     46.45,
+     1.05,
+     1.83
+    ],
+    "dE_to_palette_before": 1.72
+   },
+   "dark": {
+    "share_as_declared": 0.968,
+    "share_in_declared_family": 0.998,
+    "swap": false,
+    "before_mean_lab": [
+     25.19,
+     0.03,
+     0.13
+    ],
+    "after_mean_lab": [
+     18.79,
+     0.08,
+     -0.29
+    ],
+    "dE_to_palette_before": 6.69
+   },
+   "ramp_span_L_removed_max": 11.44,
+   "edge_band_dL_after_mean": 3.14
+  },
+  "spine-side-port": {
+   "cream": {
+    "share_as_declared": 0.957,
+    "share_in_declared_family": 0.957,
+    "swap": false,
+    "before_mean_lab": [
+     84.78,
+     1.14,
+     15.39
+    ],
+    "after_mean_lab": [
+     77.97,
+     1.64,
+     11.4
+    ],
+    "dE_to_palette_before": 8.21
+   },
+   "oxide": {
+    "share_as_declared": 0.982,
+    "share_in_declared_family": 0.982,
+    "swap": false,
+    "before_mean_lab": [
+     55.27,
+     25.6,
+     36.03
+    ],
+    "after_mean_lab": [
+     51.17,
+     18.92,
+     27.77
+    ],
+    "dE_to_palette_before": 11.45
+   },
+   "gunmetal": {
+    "share_as_declared": 0.955,
+    "share_in_declared_family": 1.0,
+    "swap": false,
+    "before_mean_lab": [
+     48.79,
+     0.33,
+     0.27
+    ],
+    "after_mean_lab": [
+     46.45,
+     1.05,
+     1.83
+    ],
+    "dE_to_palette_before": 2.27
+   },
+   "dark": {
+    "share_as_declared": 0.942,
+    "share_in_declared_family": 0.999,
+    "swap": false,
+    "before_mean_lab": [
+     27.74,
+     -0.04,
+     -0.04
+    ],
+    "after_mean_lab": [
+     18.79,
+     0.08,
+     -0.29
+    ],
+    "dE_to_palette_before": 8.77
+   },
+   "ramp_span_L_removed_max": 4.83,
+   "edge_band_dL_after_mean": -10.14
+  },
+  "keel-plate": {
+   "gunmetal": {
+    "share_as_declared": 0.97,
+    "share_in_declared_family": 0.999,
+    "swap": false,
+    "before_mean_lab": [
+     47.36,
+     0.31,
+     0.21
+    ],
+    "after_mean_lab": [
+     46.45,
+     1.05,
+     1.83
+    ],
+    "dE_to_palette_before": 2.0
+   },
+   "ramp_span_L_removed_max": 0.97,
+   "edge_band_dL_after_mean": -0.59
+  }
+ }
+}

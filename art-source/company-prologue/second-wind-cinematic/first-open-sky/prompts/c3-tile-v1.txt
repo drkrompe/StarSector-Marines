@@ -1,0 +1,9 @@
+Use case: resolution pass and local cleanup of one tile of an approved photographic landscape plate, for a grounded science-fiction cinematic. Output the same wide landscape canvas as image 1 (2048x768 or the nearest wide size), same framing, no crop, no border.
+
+Image 1 is the EXACT EDIT TARGET and layout authority: an aerial view of tropical rainforest hills and a river on the planet Jangala, seen from an aircraft about 400 m up, mid-morning. It is an upscale of a finished, approved painting, so it is soft. Redraw it at full photographic resolution with crisp natural detail: individual tree crowns, branch gaps, leaf texture, shadows between crowns, river ripples and bank vegetation. Every ridge line, crown position, hill silhouette, river bank, field edge and the skyline stays exactly where it is in image 1, to the pixel; do not move, add or delete any hill, ridge, river bend, large tree or field. Keep the same colours, haze, aerial perspective and light: sun out of frame to the upper left, crowns lit on their upper-left faces, shadows falling to the right; distant ridges paler and bluer.
+
+The flat mid-grey patches in image 1 are holes where morning valley mist was removed. Paint each grey patch as whatever lies beneath and around it: continuous forest canopy matching the neighbouring crowns, or river water where it lies on the river. No mist, fog, cloud or white haze inside the patches; the result must show clear canopy there, consistent with its surroundings, with no visible patch outline.
+
+Image 2 is the same tile before the mist was removed: reference for colour and light only. Do not copy its mist.
+
+Photographic realism, natural lens, no painterly brush texture, no oversharpening halos, no HDR look, no tilt-shift. No aircraft, ships, birds, buildings, roads, text, logos, watermark or border. Leave the sky above the skyline exactly as in image 1.

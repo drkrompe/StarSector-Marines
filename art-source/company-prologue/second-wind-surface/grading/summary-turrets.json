@@ -1,0 +1,148 @@
+{
+ "parts": {
+  "turret-small-top": {
+   "gunmetal": {
+    "share_as_declared": 0.797,
+    "share_in_declared_family": 1.0,
+    "swap": false,
+    "before_mean_lab": [
+     38.78,
+     0.26,
+     0.67
+    ],
+    "after_mean_lab": [
+     46.45,
+     1.05,
+     1.83
+    ],
+    "dE_to_palette_before": 7.8
+   },
+   "dark": {
+    "share_as_declared": 0.99,
+    "share_in_declared_family": 1.0,
+    "swap": false,
+    "before_mean_lab": [
+     15.58,
+     -0.06,
+     0.55
+    ],
+    "after_mean_lab": [
+     18.79,
+     0.08,
+     -0.29
+    ],
+    "dE_to_palette_before": 2.76
+   },
+   "ramp_span_L_removed_max": 13.47,
+   "edge_band_dL_after_mean": -2.45
+  },
+  "turret-4-top": {
+   "gunmetal": {
+    "share_as_declared": 0.767,
+    "share_in_declared_family": 1.0,
+    "swap": false,
+    "before_mean_lab": [
+     38.36,
+     0.22,
+     0.52
+    ],
+    "after_mean_lab": [
+     46.45,
+     1.05,
+     1.83
+    ],
+    "dE_to_palette_before": 8.23
+   },
+   "dark": {
+    "share_as_declared": 1.0,
+    "share_in_declared_family": 1.0,
+    "swap": false,
+    "before_mean_lab": [
+     15.38,
+     0.14,
+     0.88
+    ],
+    "after_mean_lab": [
+     18.79,
+     0.08,
+     -0.29
+    ],
+    "dE_to_palette_before": 3.96
+   },
+   "ramp_span_L_removed_max": 19.95,
+   "edge_band_dL_after_mean": -0.37
+  },
+  "turret-small-side": {
+   "gunmetal": {
+    "share_as_declared": 0.916,
+    "share_in_declared_family": 1.0,
+    "swap": false,
+    "before_mean_lab": [
+     41.45,
+     0.36,
+     0.71
+    ],
+    "after_mean_lab": [
+     46.45,
+     1.05,
+     1.83
+    ],
+    "dE_to_palette_before": 5.19
+   },
+   "dark": {
+    "share_as_declared": 0.927,
+    "share_in_declared_family": 1.0,
+    "swap": false,
+    "before_mean_lab": [
+     18.51,
+     0.19,
+     0.78
+    ],
+    "after_mean_lab": [
+     18.79,
+     0.08,
+     -0.29
+    ],
+    "dE_to_palette_before": 1.08
+   },
+   "ramp_span_L_removed_max": 21.1,
+   "edge_band_dL_after_mean": 0.03
+  },
+  "turret-4-side": {
+   "gunmetal": {
+    "share_as_declared": 0.885,
+    "share_in_declared_family": 1.0,
+    "swap": false,
+    "before_mean_lab": [
+     41.3,
+     0.34,
+     0.6
+    ],
+    "after_mean_lab": [
+     46.45,
+     1.05,
+     1.83
+    ],
+    "dE_to_palette_before": 5.54
+   },
+   "dark": {
+    "share_as_declared": 0.94,
+    "share_in_declared_family": 1.0,
+    "swap": false,
+    "before_mean_lab": [
+     16.29,
+     0.16,
+     0.55
+    ],
+    "after_mean_lab": [
+     18.79,
+     0.08,
+     -0.29
+    ],
+    "dE_to_palette_before": 1.36
+   },
+   "ramp_span_L_removed_max": 27.53,
+   "edge_band_dL_after_mean": 3.18
+  }
+ }
+}

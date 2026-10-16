@@ -1,0 +1,45 @@
+{
+ "part": "bow-nose-side-port",
+ "regions": {
+  "cream": {
+   "pixels": 74047,
+   "share_as_declared": 0.966,
+   "share_in_declared_family": 0.966,
+   "came_back_as": {
+    "cream": 0.966,
+    "gunmetal": 0.026
+   },
+   "swap": false,
+   "before_mean_lab": [
+    86.52,
+    1.56,
+    11.84
+   ],
+   "after_mean_lab": [
+    77.97,
+    1.64,
+    11.4
+   ],
+   "gain_L_a_b": [
+    1.33,
+    1.053,
+    0.963
+   ],
+   "dE_to_palette_before": 8.56,
+   "forced_back_to_declared": false
+  }
+ },
+ "planes": [
+  {
+   "pixels": 76627,
+   "ramp_span_L_removed": 0.31,
+   "ramp_dL_per_100px": [
+    0.13,
+    -0.02
+   ],
+   "edge_band_dL_after": -6.92
+  }
+ ],
+ "ramp_span_L_removed_max": 0.31,
+ "edge_band_dL_after_mean": -6.92
+}

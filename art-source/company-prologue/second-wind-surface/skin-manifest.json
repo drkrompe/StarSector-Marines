@@ -1,170 +1,1197 @@
 {
  "blend_in": "second-wind-geometry.blend",
- "fallback": "neutral",
+ "fallback": "swatch",
+ "uv_layer": "skin",
  "parts": {
   "hull-waist-port": {
+   "group": "port",
    "source_texture": "textures/hull-waist-port.png",
-   "uv_layer": "skin:hull-waist-port",
+   "mirror_u": false,
    "objects": {
     "Main hull - level datum Z0": 6
    },
-   "texels_per_unit_stored": 24.5
+   "texels_per_unit_stored": 24.5,
+   "variation_unit_offset": [
+    -0.796,
+    -0.851,
+    -0.31
+   ]
   },
   "bow-port-flank": {
+   "group": "port",
    "source_texture": "textures/bow-port-flank.png",
-   "uv_layer": "skin:bow-port-flank",
+   "mirror_u": false,
    "objects": {
     "Forebody armour module.002": 5
    },
-   "texels_per_unit_stored": 26.0
+   "texels_per_unit_stored": 26.0,
+   "variation_unit_offset": [
+    0.169,
+    -0.357,
+    -0.812
+   ]
   },
   "fore-module-1": {
+   "group": "port",
    "source_texture": "textures/fore-module-1.png",
-   "uv_layer": "skin:fore-module-1",
+   "mirror_u": false,
    "objects": {
     "Forebody armour module": 4
    },
-   "texels_per_unit_stored": 33.7
+   "texels_per_unit_stored": 33.7,
+   "variation_unit_offset": [
+    0.953,
+    0.388,
+    -0.545
+   ]
   },
   "fore-module-2": {
+   "group": "port",
    "source_texture": "textures/fore-module-2.png",
-   "uv_layer": "skin:fore-module-2",
+   "mirror_u": false,
    "objects": {
     "Forebody armour module.001": 3
    },
-   "texels_per_unit_stored": 33.7
+   "texels_per_unit_stored": 33.7,
+   "variation_unit_offset": [
+    0.545,
+    0.318,
+    -0.859
+   ]
   },
   "pod-cowl-port": {
+   "group": "port",
    "source_texture": "textures/pod-cowl-port.png",
-   "uv_layer": "skin:pod-cowl-port",
+   "mirror_u": false,
    "objects": {
     "Main hull - level datum Z0": 4
    },
-   "texels_per_unit_stored": 45.2
+   "texels_per_unit_stored": 45.2,
+   "variation_unit_offset": [
+    0.239,
+    0.098,
+    0.961
+   ]
   },
   "pod-lower-casing-port": {
+   "group": "port",
    "source_texture": "textures/pod-lower-casing-port.png",
-   "uv_layer": "skin:pod-lower-casing-port",
+   "mirror_u": false,
    "objects": {
     "Drive lower casing": 4
    },
-   "texels_per_unit_stored": 52.7
+   "texels_per_unit_stored": 52.7,
+   "variation_unit_offset": [
+    -0.114,
+    0.537,
+    0.922
+   ]
   },
   "pod-intake-cap-port": {
+   "group": "port",
    "source_texture": "textures/pod-intake-cap-port.png",
-   "uv_layer": "skin:pod-intake-cap-port",
+   "mirror_u": false,
    "objects": {
     "Drive intake cap": 7
    },
-   "texels_per_unit_stored": 29.5
+   "texels_per_unit_stored": 29.5,
+   "variation_unit_offset": [
+    -0.522,
+    0.757,
+    -0.631
+   ]
   },
   "pod-thrust-housing-port": {
+   "group": "port",
    "source_texture": "textures/pod-thrust-housing-port.png",
-   "uv_layer": "skin:pod-thrust-housing-port",
+   "mirror_u": false,
    "objects": {
     "Thrust housing": 7
    },
-   "texels_per_unit_stored": 30.1
+   "texels_per_unit_stored": 30.1,
+   "variation_unit_offset": [
+    0.906,
+    -0.992,
+    0.788
+   ]
   },
   "sponson-lower": {
+   "group": "port",
    "source_texture": "textures/sponson-lower.png",
-   "uv_layer": "skin:sponson-lower",
+   "mirror_u": false,
    "objects": {
     "Grapple sponson aft lower body": 3
    },
-   "texels_per_unit_stored": 56.6
+   "texels_per_unit_stored": 56.6,
+   "variation_unit_offset": [
+    0.725,
+    -0.969,
+    -0.482
+   ]
   },
   "sponson-lower-fwd": {
+   "group": "port",
    "source_texture": "textures/sponson-lower.png",
-   "uv_layer": "skin:sponson-lower-fwd",
+   "mirror_u": false,
    "objects": {
     "Grapple sponson forward lower body": 3
    },
-   "texels_per_unit_stored": 56.6
+   "texels_per_unit_stored": 56.6,
+   "variation_unit_offset": [
+    -0.671,
+    0.231,
+    0.686
+   ]
   },
   "sponson-cowl": {
+   "group": "port",
    "source_texture": "textures/sponson-cowl.png",
-   "uv_layer": "skin:sponson-cowl",
+   "mirror_u": false,
    "objects": {
     "Grapple sponson aft cowl": 3
    },
-   "texels_per_unit_stored": 68.9
+   "texels_per_unit_stored": 68.9,
+   "variation_unit_offset": [
+    -0.404,
+    0.671,
+    -0.929
+   ]
   },
   "sponson-cowl-fwd": {
+   "group": "port",
    "source_texture": "textures/sponson-cowl.png",
-   "uv_layer": "skin:sponson-cowl-fwd",
+   "mirror_u": false,
    "objects": {
     "Grapple sponson forward cowl": 3
    },
-   "texels_per_unit_stored": 68.9
+   "texels_per_unit_stored": 68.9,
+   "variation_unit_offset": [
+    0.969,
+    -0.741,
+    -0.655
+   ]
   },
   "pod-bands-port": {
+   "group": "port",
    "source_texture": "textures/pod-bands-port.png",
-   "uv_layer": "skin:pod-bands-port",
+   "mirror_u": false,
    "objects": {
     "Drive reinforcing band": 10,
     "Drive reinforcing band.001": 10
    },
-   "texels_per_unit_stored": 20.0
+   "texels_per_unit_stored": 20.0,
+   "variation_unit_offset": [
+    -0.302,
+    -0.788,
+    -0.78
+   ]
   },
   "belt-bow-port": {
+   "group": "port",
    "source_texture": "textures/belt-bow-port.png",
-   "uv_layer": "skin:belt-bow-port",
+   "mirror_u": false,
    "objects": {
     "Forebody armour belt plate.002": 5
    },
-   "texels_per_unit_stored": 24.3
+   "texels_per_unit_stored": 24.3,
+   "variation_unit_offset": [
+    0.38,
+    0.443,
+    -0.647
+   ]
   },
   "pod-cowl-top": {
+   "group": "port",
    "source_texture": "textures/pod-cowl-top.png",
-   "uv_layer": "skin:pod-cowl-top",
+   "mirror_u": false,
    "objects": {
     "Main hull - level datum Z0": 8
    },
-   "texels_per_unit_stored": 31.5
+   "texels_per_unit_stored": 31.5,
+   "variation_unit_offset": [
+    0.929,
+    -0.294,
+    0.843
+   ]
   },
   "sponson-cowl-tops": {
+   "group": "port",
    "source_texture": "textures/sponson-cowl-tops.png",
-   "uv_layer": "skin:sponson-cowl-tops",
+   "mirror_u": false,
    "objects": {
     "Grapple sponson aft cowl": 7,
     "Grapple sponson forward cowl": 7
    },
-   "texels_per_unit_stored": 22.6
+   "texels_per_unit_stored": 22.6,
+   "variation_unit_offset": [
+    0.616,
+    -0.827,
+    0.114
+   ]
   },
   "bow-cheek-port": {
+   "group": "port",
    "source_texture": "textures/bow-cheek-port.png",
-   "uv_layer": "skin:bow-cheek-port",
+   "mirror_u": false,
    "objects": {
     "Forebody armour module.002": 2
    },
-   "texels_per_unit_stored": 18.6
+   "texels_per_unit_stored": 18.6,
+   "variation_unit_offset": [
+    0.043,
+    -0.412,
+    -0.788
+   ]
   },
   "deck-edge-lip-port": {
+   "group": "port",
    "source_texture": "textures/deck-edge-lip-port.png",
-   "uv_layer": "skin:deck-edge-lip-port",
+   "mirror_u": false,
    "objects": {
     "Deck edge lip": 13
    },
-   "texels_per_unit_stored": 17.1
+   "texels_per_unit_stored": 17.1,
+   "variation_unit_offset": [
+    -0.584,
+    -0.89,
+    0.71
+   ]
+  },
+  "hull-waist-stbd": {
+   "group": "starboard",
+   "source_texture": "textures/hull-waist-port.png",
+   "mirror_u": true,
+   "objects": {
+    "Main hull - level datum Z0": 6
+   },
+   "texels_per_unit_stored": 24.5,
+   "variation_unit_offset": [
+    0.608,
+    -0.553,
+    1.0
+   ]
+  },
+  "bow-stbd-flank": {
+   "group": "starboard",
+   "source_texture": "textures/bow-stbd-flank.png",
+   "mirror_u": false,
+   "objects": {
+    "Forebody armour module.002": 4
+   },
+   "texels_per_unit_stored": 33.7,
+   "variation_unit_offset": [
+    0.969,
+    -0.145,
+    -0.404
+   ]
+  },
+  "pod-cowl-stbd": {
+   "group": "starboard",
+   "source_texture": "textures/pod-cowl-port.png",
+   "mirror_u": true,
+   "objects": {
+    "Main hull - level datum Z0": 4
+   },
+   "texels_per_unit_stored": 45.2,
+   "variation_unit_offset": [
+    -0.435,
+    -0.788,
+    0.192
+   ]
+  },
+  "pod-lower-casing-stbd": {
+   "group": "starboard",
+   "source_texture": "textures/pod-lower-casing-port.png",
+   "mirror_u": true,
+   "objects": {
+    "Drive lower casing.001": 4
+   },
+   "texels_per_unit_stored": 52.7,
+   "variation_unit_offset": [
+    -0.725,
+    0.773,
+    0.114
+   ]
+  },
+  "pod-intake-cap-stbd": {
+   "group": "starboard",
+   "source_texture": "textures/pod-intake-cap-port.png",
+   "mirror_u": true,
+   "objects": {
+    "Drive intake cap.001": 7
+   },
+   "texels_per_unit_stored": 29.5,
+   "variation_unit_offset": [
+    -0.2,
+    -0.6,
+    -0.702
+   ]
+  },
+  "pod-thrust-housing-stbd": {
+   "group": "starboard",
+   "source_texture": "textures/pod-thrust-housing-port.png",
+   "mirror_u": true,
+   "objects": {
+    "Thrust housing.001": 7
+   },
+   "texels_per_unit_stored": 30.1,
+   "variation_unit_offset": [
+    -0.553,
+    -0.38,
+    -0.373
+   ]
+  },
+  "pod-bands-stbd": {
+   "group": "starboard",
+   "source_texture": "textures/pod-bands-port.png",
+   "mirror_u": true,
+   "objects": {
+    "Drive reinforcing band.002": 10,
+    "Drive reinforcing band.003": 10
+   },
+   "texels_per_unit_stored": 20.0,
+   "variation_unit_offset": [
+    0.655,
+    -0.012,
+    -0.459
+   ]
+  },
+  "belt-bow-stbd": {
+   "group": "starboard",
+   "source_texture": "textures/belt-bow-stbd.png",
+   "mirror_u": false,
+   "objects": {
+    "Forebody armour belt plate.002": 4
+   },
+   "texels_per_unit_stored": 38.0,
+   "variation_unit_offset": [
+    -0.804,
+    -0.851,
+    -0.757
+   ]
+  },
+  "pod-cowl-top-stbd": {
+   "group": "starboard",
+   "source_texture": "textures/pod-cowl-top.png",
+   "mirror_u": true,
+   "objects": {
+    "Main hull - level datum Z0": 8
+   },
+   "texels_per_unit_stored": 31.5,
+   "variation_unit_offset": [
+    -0.122,
+    0.686,
+    -0.678
+   ]
+  },
+  "deck-edge-lip-stbd": {
+   "group": "starboard",
+   "source_texture": "textures/deck-edge-lip-port.png",
+   "mirror_u": true,
+   "objects": {
+    "Deck edge lip": 13
+   },
+   "texels_per_unit_stored": 17.1,
+   "variation_unit_offset": [
+    0.788,
+    0.725,
+    -0.631
+   ]
+  },
+  "bay-door-stbd": {
+   "group": "starboard",
+   "source_texture": "textures/bay-door-stbd.png",
+   "mirror_u": false,
+   "objects": {
+    "Starboard bay sealed sectional door": 1
+   },
+   "texels_per_unit_stored": 35.7,
+   "variation_unit_offset": [
+    -0.396,
+    0.694,
+    -0.655
+   ]
+  },
+  "belt-fore-stbd": {
+   "group": "starboard",
+   "source_texture": "textures/belt-fore-stbd.png",
+   "mirror_u": false,
+   "objects": {
+    "Forebody armour belt plate": 3,
+    "Forebody armour belt plate.001": 3
+   },
+   "texels_per_unit_stored": 38.9,
+   "variation_unit_offset": [
+    0.043,
+    0.765,
+    -0.6
+   ]
+  },
+  "fore-module-1-stbd": {
+   "group": "starboard",
+   "source_texture": "textures/fore-module-1.png",
+   "mirror_u": true,
+   "objects": {
+    "Forebody armour module": 4
+   },
+   "texels_per_unit_stored": 33.7,
+   "variation_unit_offset": [
+    0.043,
+    0.78,
+    -0.514
+   ]
+  },
+  "fore-module-2-stbd": {
+   "group": "starboard",
+   "source_texture": "textures/fore-module-2.png",
+   "mirror_u": true,
+   "objects": {
+    "Forebody armour module.001": 3
+   },
+   "texels_per_unit_stored": 33.7,
+   "variation_unit_offset": [
+    0.914,
+    -0.608,
+    -0.757
+   ]
+  },
+  "bow-nose-rake": {
+   "group": "bow",
+   "source_texture": "textures/bow-nose-rake.png",
+   "mirror_u": false,
+   "objects": {
+    "Armoured nose block": 1,
+    "Forebody armour module.002": 1
+   },
+   "texels_per_unit_stored": 20.5,
+   "variation_unit_offset": [
+    0.537,
+    -0.278,
+    0.325
+   ]
+  },
+  "bow-nose-side-port": {
+   "group": "bow",
+   "source_texture": "textures/bow-nose-side-port.png",
+   "mirror_u": false,
+   "objects": {
+    "Armoured nose block": 1
+   },
+   "texels_per_unit_stored": 24.1,
+   "variation_unit_offset": [
+    -0.788,
+    -0.647,
+    0.114
+   ]
+  },
+  "bow-nose-side-stbd": {
+   "group": "bow",
+   "source_texture": "textures/bow-nose-side-port.png",
+   "mirror_u": true,
+   "objects": {
+    "Armoured nose block": 1
+   },
+   "texels_per_unit_stored": 24.1,
+   "variation_unit_offset": [
+    -0.294,
+    0.804,
+    -0.608
+   ]
+  },
+  "bow-nose-front": {
+   "group": "bow",
+   "source_texture": "textures/bow-nose-front.png",
+   "mirror_u": false,
+   "objects": {
+    "Armoured nose block": 3
+   },
+   "texels_per_unit_stored": 49.0,
+   "variation_unit_offset": [
+    -0.365,
+    0.757,
+    0.757
+   ]
+  },
+  "bow-nose-top": {
+   "group": "bow",
+   "source_texture": "textures/bow-nose-top.png",
+   "mirror_u": false,
+   "objects": {
+    "Armoured nose block": 1
+   },
+   "texels_per_unit_stored": 49.0,
+   "variation_unit_offset": [
+    -0.624,
+    0.153,
+    -0.38
+   ]
+  },
+  "deck-fore-top": {
+   "group": "decks",
+   "source_texture": "textures/deck-fore-top.png",
+   "mirror_u": false,
+   "objects": {
+    "Main hull - level datum Z0": 1
+   },
+   "texels_per_unit_stored": 15.0,
+   "variation_unit_offset": [
+    -0.325,
+    0.294,
+    0.2
+   ]
+  },
+  "spine-top": {
+   "group": "decks",
+   "source_texture": "textures/spine-top.png",
+   "mirror_u": false,
+   "objects": {
+    "Command deck armoured roof": 4,
+    "Command deck visor brow": 1,
+    "Command deck housing": 3,
+    "Spine waist housing": 3,
+    "Spine roof walkway": 1,
+    "Spine aft cap": 3,
+    "Spine trunk segment": 3,
+    "Spine trunk segment.001": 3,
+    "Spine trunk segment.002": 3,
+    "Spine trunk nose": 3,
+    "Spine dark core": 3
+   },
+   "texels_per_unit_stored": 23.1,
+   "variation_unit_offset": [
+    0.224,
+    0.624,
+    -0.914
+   ]
+  },
+  "spine-side-port": {
+   "group": "decks",
+   "source_texture": "textures/spine-side-port.png",
+   "mirror_u": false,
+   "objects": {
+    "Command deck housing": 2,
+    "Command deck lower bulkhead": 3,
+    "Command deck visor brow": 3,
+    "Spine waist housing": 2,
+    "Spine aft cap": 2,
+    "Spine dark core": 3,
+    "Spine trunk segment": 2,
+    "Spine trunk segment.001": 2,
+    "Spine trunk segment.002": 2
+   },
+   "texels_per_unit_stored": 23.5,
+   "variation_unit_offset": [
+    -0.239,
+    -0.906,
+    0.514
+   ]
+  },
+  "spine-side-stbd": {
+   "group": "decks",
+   "source_texture": "textures/spine-side-port.png",
+   "mirror_u": true,
+   "objects": {
+    "Command deck housing": 2,
+    "Command deck lower bulkhead": 3,
+    "Command deck visor brow": 3,
+    "Spine waist housing": 2,
+    "Spine aft cap": 2,
+    "Spine dark core": 3,
+    "Spine trunk segment": 2,
+    "Spine trunk segment.001": 2,
+    "Spine trunk segment.002": 2
+   },
+   "texels_per_unit_stored": 23.5,
+   "variation_unit_offset": [
+    -0.545,
+    0.616,
+    0.741
+   ]
+  },
+  "keel-plate": {
+   "group": "decks",
+   "source_texture": "textures/keel-plate.png",
+   "mirror_u": false,
+   "objects": {
+    "Keel plate": 1
+   },
+   "texels_per_unit_stored": 11.6,
+   "variation_unit_offset": [
+    0.529,
+    0.694,
+    -0.161
+   ]
+  },
+  "turret-small-top": {
+   "group": "turrets",
+   "source_texture": "textures/turret-small-top.png",
+   "mirror_u": false,
+   "objects": {
+    "Turret 1 gun house": 2,
+    "Turret 1 rear bustle": 1,
+    "Turret 1 roof hatch": 1,
+    "Turret 1 optics blister": 1,
+    "Turret 1 mantlet drum": 8,
+    "Turret 1 mantlet face": 1,
+    "Turret 1 gun recoil sleeve": 5,
+    "Turret 1 gun breech band": 5,
+    "Turret 1 gun barrel chase": 5,
+    "Turret 1 gun barrel tube": 5,
+    "Turret 1 gun muzzle brake": 1,
+    "Turret 1 armoured collar": 1,
+    "Turret 1 barbette foot": 1
+   },
+   "texels_per_unit_stored": 55.0,
+   "variation_unit_offset": [
+    0.773,
+    -0.922,
+    0.004
+   ]
+  },
+  "turret-small-side": {
+   "group": "turrets",
+   "source_texture": "textures/turret-small-side.png",
+   "mirror_u": false,
+   "objects": {
+    "Turret 1 gun house": 1,
+    "Turret 1 rear bustle": 1,
+    "Turret 1 armoured collar": 4,
+    "Turret 1 traverse gap": 8,
+    "Turret 1 mantlet drum": 1,
+    "Turret 1 mantlet face": 1,
+    "Turret 1 gun recoil sleeve": 6,
+    "Turret 1 gun breech band": 6,
+    "Turret 1 gun barrel chase": 6,
+    "Turret 1 gun barrel tube": 6,
+    "Turret 1 gun muzzle brake": 1
+   },
+   "texels_per_unit_stored": 56.0,
+   "variation_unit_offset": [
+    -0.098,
+    -0.969,
+    -0.075
+   ]
+  },
+  "turret-1-right": {
+   "group": "turrets",
+   "source_texture": "textures/turret-small-side.png",
+   "mirror_u": true,
+   "objects": {
+    "Turret 1 gun house": 1,
+    "Turret 1 rear bustle": 1,
+    "Turret 1 armoured collar": 4,
+    "Turret 1 traverse gap": 8,
+    "Turret 1 mantlet drum": 1,
+    "Turret 1 mantlet face": 1,
+    "Turret 1 gun recoil sleeve": 5,
+    "Turret 1 gun breech band": 5,
+    "Turret 1 gun barrel chase": 5,
+    "Turret 1 gun barrel tube": 5,
+    "Turret 1 gun muzzle brake": 1
+   },
+   "texels_per_unit_stored": 56.0,
+   "variation_unit_offset": [
+    -0.184,
+    0.545,
+    0.992
+   ]
+  },
+  "turret-2-top": {
+   "group": "turrets",
+   "source_texture": "textures/turret-small-top.png",
+   "mirror_u": false,
+   "objects": {
+    "Turret 2 gun house": 2,
+    "Turret 2 rear bustle": 1,
+    "Turret 2 roof hatch": 1,
+    "Turret 2 optics blister": 1,
+    "Turret 2 mantlet drum": 8,
+    "Turret 2 mantlet face": 1,
+    "Turret 2 gun recoil sleeve": 5,
+    "Turret 2 gun breech band": 5,
+    "Turret 2 gun barrel chase": 5,
+    "Turret 2 gun barrel tube": 5,
+    "Turret 2 gun muzzle brake": 1,
+    "Turret 2 armoured collar": 1,
+    "Turret 2 barbette foot": 1
+   },
+   "texels_per_unit_stored": 55.0,
+   "variation_unit_offset": [
+    0.592,
+    -0.741,
+    -0.678
+   ]
+  },
+  "turret-2-left": {
+   "group": "turrets",
+   "source_texture": "textures/turret-small-side.png",
+   "mirror_u": false,
+   "objects": {
+    "Turret 2 gun house": 1,
+    "Turret 2 rear bustle": 1,
+    "Turret 2 armoured collar": 4,
+    "Turret 2 traverse gap": 8,
+    "Turret 2 mantlet drum": 1,
+    "Turret 2 mantlet face": 1,
+    "Turret 2 gun recoil sleeve": 6,
+    "Turret 2 gun breech band": 6,
+    "Turret 2 gun barrel chase": 6,
+    "Turret 2 gun barrel tube": 6,
+    "Turret 2 gun muzzle brake": 1
+   },
+   "texels_per_unit_stored": 56.0,
+   "variation_unit_offset": [
+    -0.937,
+    -0.89,
+    -0.961
+   ]
+  },
+  "turret-2-right": {
+   "group": "turrets",
+   "source_texture": "textures/turret-small-side.png",
+   "mirror_u": true,
+   "objects": {
+    "Turret 2 gun house": 1,
+    "Turret 2 rear bustle": 1,
+    "Turret 2 armoured collar": 4,
+    "Turret 2 traverse gap": 8,
+    "Turret 2 mantlet drum": 1,
+    "Turret 2 mantlet face": 1,
+    "Turret 2 gun recoil sleeve": 5,
+    "Turret 2 gun breech band": 5,
+    "Turret 2 gun barrel chase": 5,
+    "Turret 2 gun barrel tube": 5,
+    "Turret 2 gun muzzle brake": 1
+   },
+   "texels_per_unit_stored": 56.0,
+   "variation_unit_offset": [
+    -0.145,
+    0.09,
+    -0.043
+   ]
+  },
+  "turret-3-top": {
+   "group": "turrets",
+   "source_texture": "textures/turret-small-top.png",
+   "mirror_u": false,
+   "objects": {
+    "Turret 3 gun house": 2,
+    "Turret 3 rear bustle": 1,
+    "Turret 3 roof hatch": 1,
+    "Turret 3 optics blister": 1,
+    "Turret 3 mantlet drum": 8,
+    "Turret 3 mantlet face": 1,
+    "Turret 3 gun recoil sleeve": 6,
+    "Turret 3 gun breech band": 6,
+    "Turret 3 gun barrel chase": 6,
+    "Turret 3 gun barrel tube": 6,
+    "Turret 3 gun muzzle brake": 1,
+    "Turret 3 armoured collar": 1,
+    "Turret 3 barbette foot": 1
+   },
+   "texels_per_unit_stored": 55.0,
+   "variation_unit_offset": [
+    -0.969,
+    0.624,
+    0.835
+   ]
+  },
+  "turret-3-left": {
+   "group": "turrets",
+   "source_texture": "textures/turret-small-side.png",
+   "mirror_u": false,
+   "objects": {
+    "Turret 3 gun house": 1,
+    "Turret 3 rear bustle": 1,
+    "Turret 3 armoured collar": 4,
+    "Turret 3 traverse gap": 8,
+    "Turret 3 mantlet drum": 1,
+    "Turret 3 mantlet face": 1,
+    "Turret 3 gun recoil sleeve": 5,
+    "Turret 3 gun breech band": 5,
+    "Turret 3 gun barrel chase": 5,
+    "Turret 3 gun barrel tube": 5,
+    "Turret 3 gun muzzle brake": 1
+   },
+   "texels_per_unit_stored": 56.0,
+   "variation_unit_offset": [
+    0.522,
+    0.42,
+    0.718
+   ]
+  },
+  "turret-3-right": {
+   "group": "turrets",
+   "source_texture": "textures/turret-small-side.png",
+   "mirror_u": true,
+   "objects": {
+    "Turret 3 gun house": 1,
+    "Turret 3 rear bustle": 1,
+    "Turret 3 armoured collar": 4,
+    "Turret 3 traverse gap": 8,
+    "Turret 3 mantlet drum": 1,
+    "Turret 3 mantlet face": 1,
+    "Turret 3 gun recoil sleeve": 5,
+    "Turret 3 gun breech band": 5,
+    "Turret 3 gun barrel chase": 5,
+    "Turret 3 gun barrel tube": 5,
+    "Turret 3 gun muzzle brake": 1
+   },
+   "texels_per_unit_stored": 56.0,
+   "variation_unit_offset": [
+    -0.286,
+    0.529,
+    -0.725
+   ]
+  },
+  "turret-4-top": {
+   "group": "turrets",
+   "source_texture": "textures/turret-4-top.png",
+   "mirror_u": false,
+   "objects": {
+    "Turret 4 gun house": 2,
+    "Turret 4 rear bustle": 1,
+    "Turret 4 roof hatch": 1,
+    "Turret 4 optics blister": 1,
+    "Turret 4 starboard optics blister": 1,
+    "Turret 4 rangefinder arm": 1,
+    "Turret 4 mantlet drum": 8,
+    "Turret 4 mantlet face": 1,
+    "Turret 4 armoured collar": 1,
+    "Turret 4 barbette foot": 1,
+    "Turret 4 port gun recoil sleeve": 6,
+    "Turret 4 starboard gun recoil sleeve": 5,
+    "Turret 4 port gun breech band": 6,
+    "Turret 4 starboard gun breech band": 5,
+    "Turret 4 port gun barrel chase": 6,
+    "Turret 4 starboard gun barrel chase": 5,
+    "Turret 4 port gun barrel tube": 6,
+    "Turret 4 starboard gun barrel tube": 5,
+    "Turret 4 port gun muzzle brake": 1,
+    "Turret 4 starboard gun muzzle brake": 1
+   },
+   "texels_per_unit_stored": 37.5,
+   "variation_unit_offset": [
+    0.882,
+    -0.38,
+    -0.969
+   ]
+  },
+  "turret-4-side": {
+   "group": "turrets",
+   "source_texture": "textures/turret-4-side.png",
+   "mirror_u": false,
+   "objects": {
+    "Turret 4 gun house": 1,
+    "Turret 4 rear bustle": 1,
+    "Turret 4 armoured collar": 4,
+    "Turret 4 barbette foot": 4,
+    "Turret 4 traverse gap": 8,
+    "Turret 4 mantlet drum": 1,
+    "Turret 4 mantlet face": 1,
+    "Turret 4 port gun recoil sleeve": 5,
+    "Turret 4 port gun breech band": 5,
+    "Turret 4 port gun barrel chase": 5,
+    "Turret 4 port gun barrel tube": 5,
+    "Turret 4 port gun muzzle brake": 1
+   },
+   "texels_per_unit_stored": 38.1,
+   "variation_unit_offset": [
+    -0.686,
+    0.906,
+    0.286
+   ]
+  },
+  "turret-4-right": {
+   "group": "turrets",
+   "source_texture": "textures/turret-4-side.png",
+   "mirror_u": true,
+   "objects": {
+    "Turret 4 gun house": 1,
+    "Turret 4 rear bustle": 1,
+    "Turret 4 armoured collar": 4,
+    "Turret 4 barbette foot": 4,
+    "Turret 4 traverse gap": 8,
+    "Turret 4 mantlet drum": 1,
+    "Turret 4 mantlet face": 1,
+    "Turret 4 starboard gun recoil sleeve": 6,
+    "Turret 4 starboard gun breech band": 6,
+    "Turret 4 starboard gun barrel chase": 6,
+    "Turret 4 starboard gun barrel tube": 6,
+    "Turret 4 starboard gun muzzle brake": 1
+   },
+   "texels_per_unit_stored": 38.1,
+   "variation_unit_offset": [
+    0.639,
+    0.459,
+    0.741
+   ]
+  },
+  "arm-tops": {
+   "group": "arm",
+   "source_texture": "textures/arm-tops.png",
+   "mirror_u": false,
+   "objects": {
+    "Grapple arm boom": 1,
+    "Grapple arm forearm": 1,
+    "Arm elbow knuckle": 1,
+    "Arm shoulder pedestal": 1,
+    "Boom luff ram": 1,
+    "Grapple wrist yoke": 1,
+    "Grapple head body": 1,
+    "Grapple jaw.001": 1
+   },
+   "texels_per_unit_stored": 27.7,
+   "variation_unit_offset": [
+    -0.741,
+    0.325,
+    -0.459
+   ]
+  },
+  "arm-boom-port": {
+   "group": "arm",
+   "source_texture": "textures/arm-boom-port.png",
+   "mirror_u": false,
+   "objects": {
+    "Grapple arm boom": 1,
+    "Boom luff ram": 1,
+    "Arm shoulder pedestal": 1,
+    "Arm elbow knuckle": 1,
+    "Arm slew gear casing": 1,
+    "Grapple winch drum": 2
+   },
+   "texels_per_unit_stored": 37.1,
+   "variation_unit_offset": [
+    0.318,
+    -0.067,
+    0.035
+   ]
+  },
+  "arm-forearm-out": {
+   "group": "arm",
+   "source_texture": "textures/arm-forearm-out.png",
+   "mirror_u": false,
+   "objects": {
+    "Grapple arm forearm": 1,
+    "Arm elbow knuckle": 1,
+    "Grapple wrist yoke": 1
+   },
+   "texels_per_unit_stored": 79.0,
+   "variation_unit_offset": [
+    0.969,
+    0.263,
+    0.639
+   ]
+  },
+  "arm-machinery-tops": {
+   "group": "arm",
+   "source_texture": "textures/arm-machinery-tops.png",
+   "mirror_u": false,
+   "objects": {
+    "Arm slew gear casing": 1,
+    "Grapple winch drum": 2
+   },
+   "texels_per_unit_stored": 52.6,
+   "variation_unit_offset": [
+    0.671,
+    0.537,
+    0.522
+   ]
+  },
+  "bay-back-wall-port": {
+   "group": "bay",
+   "source_texture": "textures/bay-back-wall-port.png",
+   "mirror_u": false,
+   "objects": {
+    "Port bay interior": 1
+   },
+   "texels_per_unit_stored": 35.7,
+   "variation_unit_offset": [
+    0.914,
+    0.812,
+    0.678
+   ]
+  },
+  "bay-frame-port": {
+   "group": "bay",
+   "source_texture": "textures/bay-frame-port.png",
+   "mirror_u": false,
+   "objects": {
+    "Bay coaming": 1,
+    "Bay coaming.001": 1,
+    "Bay jamb": 1,
+    "Bay jamb.001": 1,
+    "Bay structural buttress.002": 1,
+    "Bay structural buttress.003": 1
+   },
+   "texels_per_unit_stored": 28.0,
+   "variation_unit_offset": [
+    0.812,
+    0.663,
+    0.749
+   ]
+  },
+  "bay-floor-port": {
+   "group": "bay",
+   "source_texture": "textures/bay-floor-port.png",
+   "mirror_u": false,
+   "objects": {
+    "Bay level floor": 1
+   },
+   "texels_per_unit_stored": 34.1,
+   "variation_unit_offset": [
+    -0.137,
+    0.569,
+    -0.122
+   ]
+  },
+  "bay-davit-head-port": {
+   "group": "bay",
+   "source_texture": "textures/bay-davit-head-port.png",
+   "mirror_u": false,
+   "objects": {
+    "Bay davit head": 4
+   },
+   "texels_per_unit_stored": 137.9,
+   "variation_unit_offset": [
+    0.859,
+    0.153,
+    -0.404
+   ]
   }
  },
+ "swatches": {
+  "cream": true,
+  "oxide": true,
+  "gunmetal": true,
+  "dark": true,
+  "pale": true
+ },
+ "face_counts": {
+  "skin": 815,
+  "swatch": 9062,
+  "neutral": 0
+ },
  "skinned_objects": {
-  "Deck edge lip": 13,
+  "Arm elbow knuckle": 3,
+  "Arm shoulder pedestal": 2,
+  "Arm slew gear casing": 2,
+  "Armoured nose block": 7,
+  "Bay coaming": 1,
+  "Bay coaming.001": 1,
+  "Bay davit head": 4,
+  "Bay jamb": 1,
+  "Bay jamb.001": 1,
+  "Bay level floor": 1,
+  "Bay structural buttress.002": 1,
+  "Bay structural buttress.003": 1,
+  "Boom luff ram": 2,
+  "Command deck armoured roof": 4,
+  "Command deck housing": 7,
+  "Command deck lower bulkhead": 6,
+  "Command deck visor brow": 7,
+  "Deck edge lip": 26,
   "Drive intake cap": 7,
+  "Drive intake cap.001": 7,
   "Drive lower casing": 4,
+  "Drive lower casing.001": 4,
   "Drive reinforcing band": 10,
   "Drive reinforcing band.001": 10,
-  "Forebody armour belt plate.002": 5,
-  "Forebody armour module": 4,
-  "Forebody armour module.001": 3,
-  "Forebody armour module.002": 7,
+  "Drive reinforcing band.002": 10,
+  "Drive reinforcing band.003": 10,
+  "Forebody armour belt plate": 3,
+  "Forebody armour belt plate.001": 3,
+  "Forebody armour belt plate.002": 9,
+  "Forebody armour module": 8,
+  "Forebody armour module.001": 6,
+  "Forebody armour module.002": 12,
+  "Grapple arm boom": 2,
+  "Grapple arm forearm": 2,
+  "Grapple head body": 1,
+  "Grapple jaw.001": 1,
   "Grapple sponson aft cowl": 10,
   "Grapple sponson aft lower body": 3,
   "Grapple sponson forward cowl": 10,
   "Grapple sponson forward lower body": 3,
-  "Main hull - level datum Z0": 18,
-  "Thrust housing": 7
+  "Grapple winch drum": 4,
+  "Grapple wrist yoke": 2,
+  "Keel plate": 1,
+  "Main hull - level datum Z0": 37,
+  "Port bay interior": 1,
+  "Spine aft cap": 7,
+  "Spine dark core": 9,
+  "Spine roof walkway": 1,
+  "Spine trunk nose": 3,
+  "Spine trunk segment": 7,
+  "Spine trunk segment.001": 7,
+  "Spine trunk segment.002": 7,
+  "Spine waist housing": 7,
+  "Starboard bay sealed sectional door": 1,
+  "Thrust housing": 7,
+  "Thrust housing.001": 7,
+  "Turret 1 armoured collar": 9,
+  "Turret 1 barbette foot": 1,
+  "Turret 1 gun barrel chase": 16,
+  "Turret 1 gun barrel tube": 16,
+  "Turret 1 gun breech band": 16,
+  "Turret 1 gun house": 4,
+  "Turret 1 gun muzzle brake": 3,
+  "Turret 1 gun recoil sleeve": 16,
+  "Turret 1 mantlet drum": 10,
+  "Turret 1 mantlet face": 3,
+  "Turret 1 optics blister": 1,
+  "Turret 1 rear bustle": 3,
+  "Turret 1 roof hatch": 1,
+  "Turret 1 traverse gap": 16,
+  "Turret 2 armoured collar": 9,
+  "Turret 2 barbette foot": 1,
+  "Turret 2 gun barrel chase": 16,
+  "Turret 2 gun barrel tube": 16,
+  "Turret 2 gun breech band": 16,
+  "Turret 2 gun house": 4,
+  "Turret 2 gun muzzle brake": 3,
+  "Turret 2 gun recoil sleeve": 16,
+  "Turret 2 mantlet drum": 10,
+  "Turret 2 mantlet face": 3,
+  "Turret 2 optics blister": 1,
+  "Turret 2 rear bustle": 3,
+  "Turret 2 roof hatch": 1,
+  "Turret 2 traverse gap": 16,
+  "Turret 3 armoured collar": 9,
+  "Turret 3 barbette foot": 1,
+  "Turret 3 gun barrel chase": 16,
+  "Turret 3 gun barrel tube": 16,
+  "Turret 3 gun breech band": 16,
+  "Turret 3 gun house": 4,
+  "Turret 3 gun muzzle brake": 3,
+  "Turret 3 gun recoil sleeve": 16,
+  "Turret 3 mantlet drum": 10,
+  "Turret 3 mantlet face": 3,
+  "Turret 3 optics blister": 1,
+  "Turret 3 rear bustle": 3,
+  "Turret 3 roof hatch": 1,
+  "Turret 3 traverse gap": 16,
+  "Turret 4 armoured collar": 9,
+  "Turret 4 barbette foot": 9,
+  "Turret 4 gun house": 4,
+  "Turret 4 mantlet drum": 10,
+  "Turret 4 mantlet face": 3,
+  "Turret 4 optics blister": 1,
+  "Turret 4 port gun barrel chase": 11,
+  "Turret 4 port gun barrel tube": 11,
+  "Turret 4 port gun breech band": 11,
+  "Turret 4 port gun muzzle brake": 2,
+  "Turret 4 port gun recoil sleeve": 11,
+  "Turret 4 rangefinder arm": 1,
+  "Turret 4 rear bustle": 3,
+  "Turret 4 roof hatch": 1,
+  "Turret 4 starboard gun barrel chase": 11,
+  "Turret 4 starboard gun barrel tube": 11,
+  "Turret 4 starboard gun breech band": 11,
+  "Turret 4 starboard gun muzzle brake": 2,
+  "Turret 4 starboard gun recoil sleeve": 11,
+  "Turret 4 starboard optics blister": 1,
+  "Turret 4 traverse gap": 16
  },
- "skinned_face_count": 114
+ "skinned_face_count": 815
 }
