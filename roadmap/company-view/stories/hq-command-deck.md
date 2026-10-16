@@ -1,8 +1,8 @@
 # HQ command deck
 
-Status: IN PROGRESS — deck plate approved (v2); figure cards next, layout not implemented
+Status: IN PROGRESS — banner, caption and station hotspots shipped on HQ; edge-case evidence and the alert plate remain
 Written: 2026-10-16
-Updated: 2026-10-16 — the banner is layered (deck plate plus figure cards) with live overlays.
+Updated: 2026-10-16 — plate v5 with six figures (Sabine added) packed and wired; stations live.
 
 Read `company-view-nouns.md` (Company HQ) first.
 
@@ -18,10 +18,14 @@ where things live without becoming the only way to reach them.
 ## Scope and laws
 
 - **Painted layers, not a live scene.** The art lives in `art-source/hq-command-deck/`
-  (`prompts.json`, masters, briefs, provenance). It is an empty **deck plate**
-  (`deck-plate-v2.master.png`, approved) plus one transparent **figure card** per
-  person (Castle, the comms pair, the commander, the quartermaster), composited at
-  authored positions. Layers let a station highlight its own figure, let an alert
+  (`prompts.json`, masters, briefs, provenance). A Blender blockout
+  (`blender/deck_blockout.py`) is the layout authority; the **deck plate**
+  (`deck-plate-v5.master.png`, approved) is painted over its guide, and one
+  transparent **figure card** per person (Castle, the comms pair, the commander,
+  the quartermaster, Sabine Hale) is cut by its stand's occluder matte.
+  `pack.py` writes the shipped band, figure sprites and
+  `mod/data/ui/hq-command-deck.json`; a repaint registered on the same guide needs
+  only a re-run. Layers let a station highlight its own figure, let an alert
   relight the deck alone, and let one figure be redone without repainting the scene.
   The generic deck is the company's home whatever its flagship; per-hull plates are
   out of scope.
@@ -71,17 +75,15 @@ Proposed:
   the sidebar and news column each come out about 100px taller and only the
   obligations column gets shorter (about 200px). It normally holds a handful of
   clocks.
-- **Caption strip:** the bottom 72px of the banner, over a dark gradient scrim
-  (`background-image` linear gradient). Left: `ratingHeader` / rating / score.
+- **Caption strip:** the bottom 72px of the banner, over a flat dark scrim. The
+  packed band is chosen so the plotting table's near rim sits above it. Left: `ratingHeader` / rating / score.
   Right: Castle's name plate and the daily `assessment` text. The plate's
   lower-right is painted quiet for this.
-- **Crop:** the master is 3:1 and the banner is about 5:1, so the centre band is
-  shown and the painted ceiling and deck are cut. The retained `<img>` has no
-  cover-crop today; either the pack step writes the 5:1 band at a fixed size and the
-  banner keeps that aspect, or `UiElement` gains a bounded `object-fit: cover`.
-  Decide when implementing; a banner that stretches is not acceptable.
-- **Other resolutions** keep the same banner aspect and let the board below absorb
-  the difference.
+- **Crop (decided):** the pack writes a ~5:1 band of the 3:1 master, and the banner
+  is a canvas that **cover-fits** it: the document never scales up, so the banner's
+  aspect varies with resolution, and a box wider than the band loses ceiling and
+  deck while a narrower one loses the side banks. Stations are positioned in code
+  from the same fit, so they stay over their people.
 
 ## Stations
 
@@ -97,7 +99,13 @@ panel when used.
 | Chart table, commander | SITUATION BOARD | Focuses the first obligation; with no obligations, pulses the board heading. |
 | Castle | CASTLE // ADJUTANT | Pulses the assessment caption; where the opening guide is active, focuses its next control. |
 | Quartermaster's ledger | FINANCE & STANDING | Scrolls the sidebar to finance and pulses it. |
-| Hatch and roster board | FORCE STATUS | Scrolls the sidebar to force status and pulses it; the existing Barracks route stays on that panel. |
+| Sabine Hale | FORCE STATUS | Scrolls the sidebar to force status and pulses it; the existing Barracks route stays on that panel. |
+
+The theme dresses every button and is the cascade's final layer, so stations are
+cleared with inline style and their hover/focus outline is drawn by the banner
+canvas (corner brackets, the station's people lit additively). A report arriving
+lights the comms pair the same way; the plotting table carries a radar sweep with
+one contact per received report.
 
 ## Alert state
 
@@ -130,5 +138,11 @@ and panel pulses; snapshot evidence; optional alert plate.
 
 - Before the company has a ship, HQ shows the founding flow. Does it keep this deck
   (a borrowed office) or a different dockside plate?
-- Should the commander figure follow the founding commander (Sabine Hale) rather
-  than the player? The draft keeps the player's faceless stand-in.
+- Sabine stands on deck as herself (FORCE STATUS); the commander stays the
+  player's faceless stand-in.
+
+## Remaining
+
+- Acceptance 4: render long assessment, no employers, no obligations and overdue
+  states; check keyboard traversal reaches all five stations.
+- Optional alert plate.

@@ -78,6 +78,35 @@ public final class VehicleFootprint {
 
     private static final double EPS = 1e-7;
 
+    /**
+     * Visits each in-bounds cell an oriented rectangle overlaps with positive area, once. Boundary contact does
+     * not count, the same rule {@link #isPoseFeasible} uses, so a cell this visits is exactly a cell that would
+     * block the rectangle if it were solid.
+     *
+     * @param forwardOffset how far ahead of {@code (x, y)} along the facing the rectangle's centre sits, cells
+     */
+    public static void forEachOverlappedCell(float x, float y, float facingDeg, float forwardOffset,
+                                             float lengthCells, float widthCells,
+                                             NavigationGrid grid, CellConsumer consumer) {
+        if (!finite(x, y, facingDeg, lengthCells, widthCells)) return;
+        double rad = Math.toRadians(facingDeg), fx = -Math.sin(rad), fy = Math.cos(rad);
+        double sx = fy, sy = -fx;
+        double cx = x + fx * forwardOffset, cy = y + fy * forwardOffset;
+        double halfL = lengthCells * .5d, halfW = widthCells * .5d;
+        double ex = Math.abs(fx) * halfL + Math.abs(sx) * halfW;
+        double ey = Math.abs(fy) * halfL + Math.abs(sy) * halfW;
+        int minX = Math.max(0, (int) Math.floor(cx - ex));
+        int minY = Math.max(0, (int) Math.floor(cy - ey));
+        int maxX = Math.min(grid.getWidth() - 1, (int) Math.floor(cx + ex));
+        int maxY = Math.min(grid.getHeight() - 1, (int) Math.floor(cy + ey));
+        for (int gy = minY; gy <= maxY; gy++) {
+            for (int gx = minX; gx <= maxX; gx++) {
+                if (overlaps(gx + .5d - cx, gy + .5d - cy, .5d, .5d,
+                        fx, fy, sx, sy, halfL, halfW, ex, ey)) consumer.accept(gx, gy);
+            }
+        }
+    }
+
     private static boolean finite(float x, float y, float facing, float length, float width) {
         return Float.isFinite(x) && Float.isFinite(y) && Float.isFinite(facing)
                 && Float.isFinite(length) && Float.isFinite(width) && length > 0f && width > 0f;

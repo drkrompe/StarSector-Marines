@@ -1,0 +1,88 @@
+DAGGER | geometry: 80 meshes, 64 pass-2 detail
+detail meeting detail within one fitting: 40 pairs (counted, not listed)
+detail crossing detail across fittings: 0 pairs
+floating detail (touches nothing): 0
+body crossing body (pass 1): 18 pairs
+    Canopy glass | Hull cockpit body
+    Engine 1 aft-facing bell | Engine 1 dark throat
+    Engine 1 aft-facing bell | Engine 1 mouth lip
+    Engine 1 drive block | Engine 1 mouth lip
+    Engine 1 drive block | Hull cockpit body
+    Hull cockpit body | Hull port prong
+    Hull cockpit body | Hull starboard prong
+    Hull cockpit body | Wing port pylon
+    Hull cockpit body | Wing starboard stub
+    Hull port prong | Wing port pylon
+    Hull starboard prong | Wing starboard stub
+    Weapon WS 002 port torpedo seeker | Weapon WS 002 port torpedo store
+    Weapon WS 002 port torpedo seeker | Wing port torpedo pod
+    Weapon WS 002 port torpedo store | Wing port torpedo pod
+    Wing port pylon | Wing port torpedo pod
+    Wing port strut | Wing port tip fin
+    Wing port strut | Wing port torpedo pod
+    Wing starboard stub | Wing starboard tip fin
+detail bedded into body (part: body parts it meets):
+    Canopy frame bow: Canopy glass, Hull cockpit body
+    Canopy frame sill: Canopy glass, Hull cockpit body
+    Canopy frame windscreen arch: Canopy glass, Hull cockpit body
+    Engine 1 centre body: Engine 1 dark throat
+    Engine 1 collar rib: Engine 1 drive block
+    Engine 1 drive block dorsal grille slat 1: Engine 1 drive block
+    Engine 1 drive block dorsal grille slat 2: Engine 1 drive block
+    Engine 1 drive block dorsal grille slat 3: Engine 1 drive block
+    Engine 1 drive block dorsal grille slat 4: Engine 1 drive block
+    Engine 1 drive block dorsal grille slat 5: Engine 1 drive block
+    Engine 1 drive block dorsal grille slat 6: Engine 1 drive block
+    Engine 1 drive block dorsal grille well: Engine 1 drive block
+    Engine 1 stator vane 1: Engine 1 aft-facing bell, Engine 1 dark throat
+    Engine 1 stator vane 2: Engine 1 aft-facing bell, Engine 1 dark throat
+    Engine 1 stator vane 3: Engine 1 aft-facing bell, Engine 1 dark throat
+    Engine 1 stator vane 4: Engine 1 aft-facing bell, Engine 1 dark throat
+    Engine 1 stator vane 5: Engine 1 aft-facing bell, Engine 1 dark throat
+    Engine 1 stator vane 6: Engine 1 aft-facing bell, Engine 1 dark throat
+    Engine 1 stator vane 7: Engine 1 aft-facing bell, Engine 1 dark throat
+    Engine 1 stator vane 8: Engine 1 aft-facing bell, Engine 1 dark throat
+    Hull dorsal antenna: Engine 1 drive block
+    Hull port flank intake slat 1: Hull cockpit body
+    Hull port flank intake slat 2: Hull cockpit body
+    Hull port flank intake slat 3: Hull cockpit body
+    Hull port flank intake slat 4: Hull cockpit body
+    Hull port flank intake well: Hull cockpit body
+    Hull port prong sensor fairing: Hull port prong
+    Hull port prong tip vent slat 1: Hull port prong
+    Hull port prong tip vent slat 2: Hull port prong
+    Hull port prong tip vent slat 3: Hull port prong
+    Hull port prong tip vent well: Hull port prong
+    Hull starboard flank intake slat 1: Hull cockpit body
+    Hull starboard flank intake slat 2: Hull cockpit body
+    Hull starboard flank intake slat 3: Hull cockpit body
+    Hull starboard flank intake slat 4: Hull cockpit body
+    Hull starboard flank intake well: Hull cockpit body
+    Hull starboard prong sensor fairing: Hull starboard prong
+    Hull starboard prong tip vent slat 1: Hull starboard prong
+    Hull starboard prong tip vent slat 2: Hull starboard prong
+    Hull starboard prong tip vent slat 3: Hull starboard prong
+    Hull starboard prong tip vent well: Hull starboard prong
+    Weapon WS 001 aperture iris: Hull cockpit body
+    Weapon WS 001 aperture ring: Hull cockpit body
+    Weapon WS 002 store joint band 1: Weapon WS 002 port torpedo store, Wing port torpedo pod
+    Weapon WS 002 store joint band 2: Weapon WS 002 port torpedo store, Wing port torpedo pod
+    Weapon WS 002 store seeker window: Weapon WS 002 port torpedo seeker
+    Weapon WS 002 store sway brace 1 inboard: Weapon WS 002 port torpedo store, Wing port torpedo pod
+    Weapon WS 002 store sway brace 1 outboard: Weapon WS 002 port torpedo store, Wing port torpedo pod
+    Weapon WS 002 store sway brace 2 inboard: Weapon WS 002 port torpedo store, Wing port torpedo pod
+    Weapon WS 002 store sway brace 2 outboard: Weapon WS 002 port torpedo store, Wing port torpedo pod
+    Weapon WS 002 store tail fin 1: Weapon WS 002 port torpedo store
+    Weapon WS 002 store tail fin 2: Weapon WS 002 port torpedo store
+    Wing port tip fin vent slat 1: Wing port tip fin
+    Wing port tip fin vent slat 2: Wing port tip fin
+    Wing port tip fin vent slat 3: Wing port tip fin
+    Wing port tip fin vent well: Wing port tip fin
+    Wing port torpedo pod vent slat 1: Wing port torpedo pod
+    Wing port torpedo pod vent slat 2: Wing port torpedo pod
+    Wing port torpedo pod vent slat 3: Wing port torpedo pod
+    Wing port torpedo pod vent well: Wing port torpedo pod
+    Wing starboard tip fin vent slat 1: Wing starboard tip fin
+    Wing starboard tip fin vent slat 2: Wing starboard tip fin
+    Wing starboard tip fin vent slat 3: Wing starboard tip fin
+    Wing starboard tip fin vent well: Wing starboard tip fin

@@ -1,0 +1,32 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a1466e-4e49-7261-a7c2-204dbc12855e",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1466e-4e49-7261-a7c2-204dbc12855e\\exec-6f064907-e78e-452a-9694-edf5a3b81c76.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\nessas-yard\\assets\\c5-nessa-crate-v1.png",
+    "sha256": "cd9b6bd0a3102e5e56f51b0fde55bd1379412922ae4dd5c293a931d829137829",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\nessas-yard\\prompts\\c5-nessa-crate-v1.txt",
+  "promptSha256": "91703c030bea47b6c81fe106f138fc5b443cd440c27566a84441e39941c7ffae",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAsset: two separate cut-out cards for a grounded, photographic science-fiction film, composited small into a daylight shot of a spaceport repair yard on the humid jungle world Jangala. Two subjects on one landscape sheet, well apart, nothing touching.\n\nLeft half: the yard's owner, a woman in her fifties, standing still with her arms folded, two nearly identical frames side by side for a slow idle: in the first her weight is on her left leg, in the second on her right leg, otherwise the same person, pose, clothing and light. She is seen from BEHIND and to her left, a three-quarter back view, looking away from the viewer toward the upper right of the image (toward a landed ship and her approaching crew). She wears a long, weathered ochre-brown canvas work coat over dark work trousers and boots, no hat, short grey hair, and a compact dark biofilter respirator mask whose strap shows across the back of her head. Her folded arms show as elbows held out at her sides. Her silhouette must differ clearly from grey-coveralled yard crew: the long coat is the cue. Realistic adult proportions, about 1.72 m tall.\n\nRight half: one rugged steel parts crate, about 1.4 m on a side, dull green-grey paint, scuffed edges and a stencilled panel with no readable text, hanging from a four-leg chain sling that meets at a single lifting ring above it, with about one metre of steel hoist cable rising straight up from the ring to the top edge of its cell. Seen at eye level, slightly from the left, one face toward the viewer.\n\nLight: one high sun from behind the viewer and to the left; soft shade on the far sides. Style: photographic, natural colour, like cut-outs from a film still. Not cartoon, not illustration, no outlines.\nBackground: true transparent background (alpha), including all gaps. No ground, no cast shadow, no borders, no text, no labels.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one transparent landscape sheet with the two idle poses on the left and the suspended crate on the right."
+  ],
+  "usage": {
+    "input_tokens": 37313,
+    "cached_input_tokens": 30464,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 654,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 65.7
+}

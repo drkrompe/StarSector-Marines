@@ -1,0 +1,63 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a146ef-6f1a-7ac1-902e-fd22b015ad3d",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a146ef-6f1a-7ac1-902e-fd22b015ad3d\\exec-3d0e6d70-3848-4feb-a242-85e1f9bc43d7.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\hq-command-deck\\sabine-v2.master.png",
+    "sha256": "bac871adc3c43f134b2434d40b57120aa4f469e2681694f71a13f1f13588785b",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\hq-command-deck\\sabine.brief.txt",
+  "promptSha256": "7995ad8b4ec7777a2de4b2059155424d4421de52ba08d05f7b4e61dec5aa04c1",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity only: face, hair, age, scar and jacket. Not pose, framing or background.\nImage 2: Lighting direction, colour and painting style only. Not layout; include none of its background.\nImage 3: Figure-card finish only: rendering, brushwork, scale of detail and clean transparency. Not identity, pose or costume.\n\nFull-length standing figure card of Lieutenant Sabine Hale for a layered illustration. She will be placed into the command-centre painting given as reference 2, standing at the near right corner of its glowing plotting table, close to the viewer.\n\nShe is the same person as reference 1: a woman in her early thirties, the company's field commander and a former convoy escort, short dark auburn hair tucked behind one ear, a small old scar across one eyebrow, calm alert watchful eyes, worn slate-blue and charcoal military field jacket with a compact armoured shoulder and simple lieutenant rank tabs, a small radio earpiece, dark field trousers and boots. No helmet, no weapon.\n\nPose: standing in three-quarter view turned toward the viewer's left, as if facing across a waist-high table that lies to her left (the table is not drawn), arms folded, weight on her back foot, head turned a little further left, looking across the table at someone with a calm, appraising expression. Her face is visible in three-quarter profile. Whole body in frame from the top of her head to her boots, natural adult proportions, small clearance around the figure.\n\nViewpoint matches the painting: a level camera about a metre above her head height and about five and a half metres away, so she is seen from slightly above, with no perspective lean: her vertical lines stay vertical.\n\nLighting matches reference 2: low and moody; the pale green glow of the plotting table to her left lights the left side of her face, her folded arms and jacket from below; warm downlight from ceiling lamps; amber rim light from the consoles behind her. Same matte-painted brushwork and palette as reference 2, and the same figure-card finish as reference 3.\n\nTrue transparent background, including negative spaces between arms and body; no ground, floor, cast shadow slab, furniture, border, text or other people.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\portraits\\sabine-hale.master.png",
+      "sha256": "008daeb37fe8bd34c80fa135130bfe7e1525edc485a5b0933f31cc42a5947dea",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Identity only: face, hair, age, scar and jacket. Not pose, framing or background."
+    },
+    {
+      "path": "art-source\\hq-command-deck\\deck-plate-v5.master.png",
+      "sha256": "e742cdab5058cbf568d99407f609613245bb339dd50852a5987fc3ff51e69fdb",
+      "dimensions": [
+        2171,
+        724
+      ],
+      "mode": "RGB",
+      "role": "Lighting direction, colour and painting style only. Not layout; include none of its background."
+    },
+    {
+      "path": "art-source\\hq-command-deck\\castle-v2.master.png",
+      "sha256": "65d0083f394a1a8521282540e9ad20effc87c3d991ad68616c0e184a20ef5525",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Figure-card finish only: rendering, brushwork, scale of detail and clean transparency. Not identity, pose or costume."
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent figure card using the references for identity, lighting, and finish as specified."
+  ],
+  "usage": {
+    "input_tokens": 47849,
+    "cached_input_tokens": 25728,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 650,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 125.0
+}

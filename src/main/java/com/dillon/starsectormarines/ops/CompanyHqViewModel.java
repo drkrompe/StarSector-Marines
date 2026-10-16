@@ -58,8 +58,13 @@ final class CompanyHqViewModel {
         this.props = Map.copyOf(props);
     }
 
+    /** The page's props; the command-deck stations are inert until the screen's terminal binds them. */
     Map<String, Object> props() {
-        return new LinkedHashMap<>(props);
+        Map<String, Object> out = new LinkedHashMap<>(props);
+        for (String station : List.of("deckSituation", "deckComms", "deckCastle", "deckFinance", "deckForce")) {
+            out.putIfAbsent(station, (Runnable) () -> { });
+        }
+        return out;
     }
 
     static CompanyHqViewModel current(

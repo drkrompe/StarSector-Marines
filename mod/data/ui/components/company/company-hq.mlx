@@ -1,19 +1,6 @@
-<template props="auxiliary,handover,firstRefitClasses,wingsClasses,debugAction,debugClasses,openingGuide,newsDesk,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,shipAction,shipLabel,shipViewAction,shipView">
+<template props="auxiliary,handover,firstRefitClasses,wingsClasses,debugAction,debugClasses,deckSituation,deckComms,deckCastle,deckFinance,deckForce,openingGuide,newsDesk,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,shipAction,shipLabel,shipViewAction,shipView">
   <div id="company-hq-root" class="company-hq-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{purpose}" />
-
-    <div id="company-hq-assessment" class="panel assessment-panel console-header">
-      <div id="company-hq-rating" class="rating-block console-readout">
-        <div id="company-hq-rating-header" class="label heading tone-edge">{ratingHeader}</div>
-        <div id="company-hq-rating-value" class="label rating-value tone-accent">{rating}</div>
-        <div id="company-hq-rating-score" class="label tone-muted">{ratingScore}</div>
-      </div>
-      <div id="company-hq-adjutant" class="adjutant-block">
-        <div id="company-hq-assessment-header" class="label heading tone-edge">{assessmentHeader}</div>
-        <div id="company-hq-assessment-copy" class="label assessment-copy">{assessment}</div>
-      </div>
-      <button id="company-hq-debug" class="{debugClasses}" onclick="{debugAction}">{i18n.openingUiCompanyHqDebugMissions}</button>
-    </div>
 
     <button id="company-hq-first-refit" class="{firstRefitClasses}" onclick="{barracksAction}">{i18n.openingUiCompanyHqAProperIssueChooseOneFreeWayline}</button>
     <button id="company-hq-wings" class="{wingsClasses}" onclick="{boatsAction}">{i18n.openingUiCompanyHqSecondhandWingsCastleHasALeadOn}</button>
@@ -75,6 +62,36 @@
       </div>
 
       <div id="company-hq-board" class="panel console-section company-hq-board">
+        <div id="company-hq-deck" class="command-deck">
+          <canvas id="company-hq-deck-canvas" class="deck-canvas" width="1486" height="300" />
+          <button id="company-hq-station-situation" class="deck-station" style="background-color: transparent; background-image: none; border-width: 0px; opacity: 1;" onclick="{deckSituation}">
+            <div id="company-hq-station-situation-label" class="label heading deck-station-label">{i18n.openingUiCompanyHqStationSituation}</div>
+          </button>
+          <button id="company-hq-station-comms" class="deck-station" style="background-color: transparent; background-image: none; border-width: 0px; opacity: 1;" onclick="{deckComms}">
+            <div id="company-hq-station-comms-label" class="label heading deck-station-label">{i18n.openingUiCompanyHqStationComms}</div>
+          </button>
+          <button id="company-hq-station-castle" class="deck-station" style="background-color: transparent; background-image: none; border-width: 0px; opacity: 1;" onclick="{deckCastle}">
+            <div id="company-hq-station-castle-label" class="label heading deck-station-label">{i18n.openingUiCompanyHqStationCastle}</div>
+          </button>
+          <button id="company-hq-station-finance" class="deck-station" style="background-color: transparent; background-image: none; border-width: 0px; opacity: 1;" onclick="{deckFinance}">
+            <div id="company-hq-station-finance-label" class="label heading deck-station-label">{i18n.openingUiCompanyHqStationFinance}</div>
+          </button>
+          <button id="company-hq-station-force" class="deck-station" style="background-color: transparent; background-image: none; border-width: 0px; opacity: 1;" onclick="{deckForce}">
+            <div id="company-hq-station-force-label" class="label heading deck-station-label">{i18n.openingUiCompanyHqStationForce}</div>
+          </button>
+          <div id="company-hq-deck-caption" class="deck-caption">
+            <div id="company-hq-rating" class="rating-block">
+              <div id="company-hq-rating-header" class="label heading tone-edge">{ratingHeader}</div>
+              <div id="company-hq-rating-value" class="label rating-value tone-accent">{rating}</div>
+              <div id="company-hq-rating-score" class="label tone-muted">{ratingScore}</div>
+            </div>
+            <div id="company-hq-adjutant" class="adjutant-block">
+              <div id="company-hq-assessment-header" class="label heading tone-edge">{assessmentHeader}</div>
+              <div id="company-hq-assessment-copy" class="label assessment-copy">{assessment}</div>
+            </div>
+            <button id="company-hq-debug" class="{debugClasses}" onclick="{debugAction}">{i18n.openingUiCompanyHqDebugMissions}</button>
+          </div>
+        </div>
         <div id="company-hq-board-heading" class="board-heading console-header">
           <div id="company-hq-board-title" class="label heading tone-edge">{boardHeader}</div>
           <div id="company-hq-board-intro" class="label tone-muted">{boardIntro}</div>
@@ -118,7 +135,6 @@
           </div>
 
           <div id="company-hq-news" class="board-column news-column">
-            <canvas id="company-hq-network-canvas" class="network-canvas" width="1180" height="300" />
             <div id="company-hq-source-windows" class="source-windows">
               <div each="channel in newsDesk.sources" key="{channel.id}" id="{channel.id}" class="source-window console-readout">
                 <div id="{channel.headerId}" class="source-heading">
@@ -260,11 +276,19 @@
   .company-hq-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }
-  .assessment-panel { flex-direction: row; height: 94px; padding: 8px 12px; gap: 14px; border-width: 2px; }
-  .rating-block { flex-direction: column; width: 216px; padding: 7px 9px; gap: 3px; border-width: 2px; }
+  .command-deck { height: 300px; flex-grow: 0; overflow: hidden; border-width: 1px; border-color: #3a3424; background-color: #0b0c0a; }
+  .deck-canvas { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; pointer-events: none; }
+  .deck-caption { position: absolute; left: 0px; top: 228px; width: 100%; height: 72px; flex-direction: row; align-items: center; padding: 6px 14px; gap: 18px; background-color: #07090ad0; border-width: 0px; pointer-events: none; }
+  .deck-caption .hq-debug { pointer-events: auto; }
+  .rating-block { flex-direction: column; width: 200px; gap: 3px; }
   .rating-value { height: 25px; font-family: title; }
-  .adjutant-block { flex-direction: column; flex-grow: 1; padding: 7px 9px; gap: 6px; }
+  .adjutant-block { flex-direction: column; width: 0px; flex-grow: 1; gap: 4px; }
   .assessment-copy { font-family: body; height: auto; white-space: normal; }
+  #company-hq-deck .deck-station { position: absolute; flex-direction: column; align-items: flex-start; padding: 8px; }
+  #company-hq-deck .deck-station-label { height: 18px; width: auto; padding: 1px 6px; background-color: #07090ad8; color: #e6d28c; opacity: 0; }
+  #company-hq-deck .deck-station:hover .deck-station-label { opacity: 1; }
+  #company-hq-deck .deck-station:focus-visible .deck-station-label { opacity: 1; }
+  .deck-pulse { border-color: #e6d28c; background-color: #2c2a1c; }
   .company-hq-main { flex-direction: row; flex-grow: 1; gap: 8px; overflow: hidden; }
   .company-hq-sidebar { flex-direction: column; width: 406px; gap: 10px; overflow: scroll; }
   .sidebar-section { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; }
@@ -367,7 +391,6 @@
   .source-empty-hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; }
   .focus-story { flex-direction: row; height: 42px; gap: 12px; }
   .rundown-header { flex-direction: row; height: 20px; gap: 12px; }
-  .network-canvas { width: 100%; height: 300px; pointer-events: none; }
   .source-teasers .teaser-kicker { height: 0px; }
   .dossier-heading { flex-direction: row; height: 62px; gap: 12px; }
   .dossier-crest { width: 56px; height: 56px; pointer-events: none; }
