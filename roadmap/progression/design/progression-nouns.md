@@ -385,10 +385,11 @@ Masterwork weapon kills an opening Green-with-Surplus marine about thirty times
 faster than the reverse kills the endgame marine in power-suit armor. The preserved
 fauna and swarm exchanges still serve their scenes: a swarm runner carries a
 little more structure than one rifle round, which keeps the second shooter's
-choice meaningful. The bottom edge is harsher than intended. Surplus rifles
-cannot hurt powered armor at all, which pirate rosters field at medium and high
-risk; that floor is contracted as `surplus-floor-against-powered-armor.md` rather
-than retuned through the grade ladder.
+choice meaningful. The bottom edge is deliberately harsh. Surplus rifles cannot hurt powered armor
+at all, and pirate rosters field it at medium and high risk. That wall is left
+standing on purpose: a company still on starter issue that late in the campaign
+has not kept up, and the answer is better kit from the Armory, not a stronger
+starter card or a briefing warning.
 
 Rank-and-file marines are otherwise interchangeable, and the company's growth is
 what the Armory has collected and can issue rather than a per-marine ladder.
