@@ -171,7 +171,7 @@
       "included": true,
       "note": "Parapet edge piece, exterior n.",
       "rect": [
-        203,
+        205,
         11,
         181,
         181
@@ -188,9 +188,9 @@
       "included": true,
       "note": "Parapet edge piece, exterior e.",
       "rect": [
-        384,
-        192,
-        181,
+        397,
+        224,
+        168,
         181
       ]
     },
@@ -205,7 +205,7 @@
       "included": true,
       "note": "Parapet edge piece, exterior s.",
       "rect": [
-        203,
+        205,
         373,
         181,
         181
@@ -223,8 +223,8 @@
       "note": "Parapet edge piece, exterior w.",
       "rect": [
         22,
-        192,
-        181,
+        224,
+        169,
         181
       ]
     },

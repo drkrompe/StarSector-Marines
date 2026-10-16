@@ -1096,7 +1096,7 @@ public final class FortStage implements GenStage {
                 if (Math.max(Math.abs(dx), Math.abs(dy)) == reach) {
                     // The pad's rim is the concrete collar hugging the body: edges and inner corners, wearable cover
                     // like any other prop. The ground under it is the paving's.
-                    Doodad parapet = TileManifest.emplacementTightParapet(x, y, Integer.signum(dx), Integer.signum(dy));
+                    Doodad parapet = TileManifest.emplacementTightParapet(x, y, dx, dy, reach - 1);
                     if (parapet != null) ctx.doodads.add(parapet);
                 }
             }

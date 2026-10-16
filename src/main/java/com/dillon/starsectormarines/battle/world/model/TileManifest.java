@@ -185,6 +185,18 @@ public final class TileManifest {
      * damaged -> destroyed by their own hits like any other cover prop.
      */
     public static Doodad emplacementTightParapet(int cellX, int cellY, int relX, int relY) {
+        return emplacementTightParapet(cellX, cellY, relX, relY, 0);
+    }
+
+    /**
+     * As {@link #emplacementTightParapet(int, int, int, int)} for a body {@code bodyHalf} cells either side of its
+     * centre (0 for one cell, 1 for three by three), with {@code (relX, relY)} the ring cell's offset from the body's
+     * centre. An axis on which the cell lies within the body's span is not an exposure: every ring cell along a body
+     * edge wears that edge's piece, and only the four cells diagonal to the body's corners wear inner corners.
+     */
+    public static Doodad emplacementTightParapet(int cellX, int cellY, int relX, int relY, int bodyHalf) {
+        relX = Math.abs(relX) > bodyHalf ? Integer.signum(relX) : 0;
+        relY = Math.abs(relY) > bodyHalf ? Integer.signum(relY) : 0;
         TileRegistry registry = TileRegistry.installed();
         if (registry == null) return null;
         String shape;

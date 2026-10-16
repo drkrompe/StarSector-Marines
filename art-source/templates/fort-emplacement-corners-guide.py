@@ -3,7 +3,7 @@
 Canvas 1536x1024, 192px frames, a contiguous 4x3 block at the top-left (x 0-767, y 0-575): columns are the corner of the
 cell the parapet notch sits in (nw, ne, sw, se), rows are intact, damaged, destroyed. A tight collar hugs its turret
 body, so at a diagonal ring cell the edge pieces on either side meet at the body's corner; this piece is that meeting:
-a small square of parapet in the one cell corner nearest the body (11% outer batter, 24% top face, 8% inner batter,
+a small square of parapet in the one cell corner nearest the body (14% outer batter, 29% top face, 11% inner batter, 54% in all, matching the measured depth of the cut edge pieces,
 as in fort-emplacement-guide.py, mitred on the diagonal), everything else flat platform concrete. The notch's two
 open sides run on into the neighbouring edge pieces' parapets at the same profile and tone. Light is from the
 north-west. Damaged marks chips and cracks on the notch and a little scorch on the platform; destroyed breaks the notch
@@ -15,9 +15,9 @@ from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[2]
 S = 192
-OUTER = round(S * 0.11)
-TOP = round(S * 0.24)
-INNER = round(S * 0.08)
+OUTER = round(S * 0.14)
+TOP = round(S * 0.29)
+INNER = round(S * 0.11)
 DEPTH = OUTER + TOP + INNER
 PLATFORM = (150, 150, 146, 255)
 TOPFACE = (186, 186, 180, 255)

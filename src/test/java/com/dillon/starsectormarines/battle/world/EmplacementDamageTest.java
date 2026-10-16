@@ -81,6 +81,25 @@ class EmplacementDamageTest {
             assertEquals("doodad.fort-emplacement-inner-nw", TileManifest.emplacementTightParapet(0, 0, 1, -1).definitionId());
             assertNull(TileManifest.emplacementTightParapet(0, 0, 0, 0));
             assertNotNull(TileManifest.emplacementTightParapet(0, 0, 1, 0));
+            // A three-by-three body (half-extent 1): the 5x5 ring is three edge pieces per side and four corners.
+            String[][] ring = new String[5][5];
+            for (int dx = -2; dx <= 2; dx++) {
+                for (int dy = -2; dy <= 2; dy++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != 2) continue;
+                    ring[dx + 2][dy + 2] = TileManifest.emplacementTightParapet(0, 0, dx, dy, 1).definitionId()
+                            .substring(TileManifest.EMPLACEMENT_PIECE_PREFIX.length());
+                }
+            }
+            for (int along = -1; along <= 1; along++) {
+                assertEquals("s", ring[along + 2][4], "north side");
+                assertEquals("n", ring[along + 2][0], "south side");
+                assertEquals("e", ring[0][along + 2], "west side");
+                assertEquals("w", ring[4][along + 2], "east side");
+            }
+            assertEquals("inner-se", ring[0][4]);
+            assertEquals("inner-sw", ring[4][4]);
+            assertEquals("inner-ne", ring[0][0]);
+            assertEquals("inner-nw", ring[4][0]);
         } finally {
             TileRegistry.install(previous);
         }

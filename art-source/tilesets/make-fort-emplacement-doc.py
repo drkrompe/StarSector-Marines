@@ -20,11 +20,14 @@ for slot, (c, r) in slots.items():
     entries.append({'id': 'fort.emplacement.' + slot, 'block': 'fort.emplacement', 'slot': slot, 'included': True,
                     'cover': 'none', 'footprintCells': [1, 1], 'rect': [22 + c * 181, 11 + r * 181, 181, 181]})
 # The same four edge cuts again as doodads (CoverPropDamage family ids), which is what the stamper places.
+# Cut windows slid along the band (away from the model's drawn slab-joint lines at raw x=195/394, y=213/425) and
+# trimmed across the e/w pieces so no joint falls inside; the band's depth stays about half the cell on every side.
+EDGE_RECTS = {'n': (205, 11, 181, 181), 's': (205, 373, 181, 181),
+              'w': (22, 224, 169, 181), 'e': (397, 224, 168, 181)}
 for slot in ('n', 'e', 's', 'w'):
-    c, r = slots[slot]
     entries.append({'id': 'doodad.fort-emplacement-' + slot, 'included': True, 'cover': 'heavy',
                     'ballisticHalfHeight': 0.5, 'footprintCells': [1, 1],
-                    'rect': [22 + c * 181, 11 + r * 181, 181, 181], 'note': 'Parapet edge piece, exterior ' + slot + '.'})
+                    'rect': list(EDGE_RECTS[slot]), 'note': 'Parapet edge piece, exterior ' + slot + '.'})
 for i, (x, note) in enumerate(((770, 'Plain slab with hairline cracks.'),
                                (985, 'Four tie-down plates and a central drain.'),
                                (1200, 'Worn square bearing recess.'))):
