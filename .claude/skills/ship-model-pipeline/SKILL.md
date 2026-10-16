@@ -100,6 +100,19 @@ hull's role and tech level), and from what the campaign needs the ship to be.
   own scratch copy and writes only its own module. The integrating session
   reviews and merges. CLAUDE.md asks for Sol 6.1 subagents; if the harness
   doesn't offer it, use Opus and say so.
+- Before fanning out, give the driver the close-up cameras (bow, bridge,
+  turret, engine, stern) and render them from the accepted blockout into
+  `reference-history/`, so every agent and the before/after sheet share
+  the same cameras. Give each agent one shared brief: lore, sprite paths,
+  pixel-to-model mapping, the IoU budget (no more than -0.002 per module),
+  the names to keep, and "report a path, don't write the package".
+- Read the lights layer (`<hull>_lights.png`) as well as the sprite. It
+  places every lamp, viewport and heat glow; put emissives only there.
+- Agents can't see each other's parts. After integrating, run a
+  cross-module BVH overlap sweep (the Hound's `check_clashes.py`). Most hits
+  are deliberate embedding (struts and lines sunk into the hull), but look
+  for fittings that only cross each other, such as a pipe through a chute.
+  The Hound's first integration had two of those.
 
 **Exit check:**
 - close-up cameras (bow, bridge, turret, stern) and the four standard views at

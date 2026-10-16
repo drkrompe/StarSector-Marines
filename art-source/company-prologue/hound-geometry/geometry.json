@@ -44,18 +44,18 @@
   "dimensions": {
     "min": [
       -26.0,
-      -30.0,
-      -7.1
+      -30.01,
+      -7.43
     ],
     "max": [
       43.1,
-      30.0,
-      10.1
+      30.01,
+      13.48
     ],
     "size": [
       69.1,
-      60.0,
-      17.2
+      60.02,
+      20.91
     ]
   },
   "weapon_slots": [
@@ -82,7 +82,7 @@
       "location": [
         -4,
         4,
-        8.75
+        9.8
       ],
       "angle": 145,
       "arc": 290,
@@ -199,9 +199,9 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9405,
-    "sprite_uncovered": 0.0208,
-    "model_outside_sprite": 0.0411,
+    "iou": 0.9416,
+    "sprite_uncovered": 0.0167,
+    "model_outside_sprite": 0.0443,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 15.36 px per unit"
   }
 }
