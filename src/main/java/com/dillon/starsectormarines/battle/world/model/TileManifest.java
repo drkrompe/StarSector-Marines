@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.model;
 
+import com.dillon.starsectormarines.battle.world.tiles.DoodadCover;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
@@ -166,6 +168,46 @@ public final class TileManifest {
     public static TileFrame turretBowOut(int relX, int relY) {
         return ringCell("road.revetment", relX, relY,
                 TURRET_BOW_COL_ORIGIN, TURRET_BOW_ROW_ORIGIN);
+    }
+
+    /** The prepared concrete gun-emplacement block: raised parapet round a flat platform. */
+    public static final String EMPLACEMENT_BLOCK = "fort.emplacement";
+    private static final String EMPLACEMENT_PLATFORM_PREFIX = "doodad.fort-emplacement-platform-";
+    private static final int EMPLACEMENT_PLATFORMS = 3;
+
+    /**
+     * One parapet cell of a concrete emplacement, as a doodad of the given cover level, chosen by where the cell sits relative to
+     * the emplacement's centre ({@code relX, relY} in {@code [-1, +1]}, {@code relY > 0} north). The exterior-facing
+     * edge or corner lands on the outward side. Presentation only: the caller owns the cell's topology.
+     *
+     * @return the doodad, or {@code null} when the catalog carries no emplacement block (or the cell is the centre),
+     *         in which case the caller keeps its older art
+     */
+    public static Doodad emplacementParapet(int cellX, int cellY, int relX, int relY, int cover) {
+        GridBlockDef block = block(EMPLACEMENT_BLOCK);
+        if (block == null) return null;
+        int[] cell = block.resolve(relY > 0, relY < 0, relX > 0, relX < 0);
+        if (cell == null) return null;
+        return new Doodad(cellX, cellY, new TileFrame(cell[0], cell[1]), block.sheetPath, cover,
+                DoodadCover.fromLevel(cover).defaultBallisticHalfHeight(), 1, 1, null, block.cellPx);
+    }
+
+    /**
+     * A flat gun-platform cell for the inside of an emplacement, one of the sheet's slab variants picked by {@code
+     * variantHash}; the plain slab dominates so a pad is not a quilt. {@code null} when the catalog has none.
+     */
+    public static Doodad emplacementPlatform(int cellX, int cellY, int variantHash) {
+        GridBlockDef block = block(EMPLACEMENT_BLOCK);
+        TileRegistry registry = TileRegistry.installed();
+        if (block == null || registry == null) return null;
+        int pick = Math.floorMod(variantHash, 8);
+        if (pick >= 8 - EMPLACEMENT_PLATFORMS) {
+            DoodadDef def = registry.doodad(EMPLACEMENT_PLATFORM_PREFIX + (pick - (8 - EMPLACEMENT_PLATFORMS)));
+            if (def != null) return new Doodad(cellX, cellY, def);
+        }
+        // The block's own centre cell is the plain slab.
+        return new Doodad(cellX, cellY, new TileFrame(block.originCol + 1, block.originRow + 1), block.sheetPath,
+                Doodad.COVER_NONE, 0f, 1, 1, null, block.cellPx);
     }
 
     /**
