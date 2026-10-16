@@ -955,6 +955,33 @@ def finish(d):
         ob.hide_viewport = True
         ob['scar_hidden'] = sid
     d.record['hidden'] = dict(sorted(d.hides.items()))
+    d.record['sites'] = site_record(d)
+
+
+def site_record(d):
+    """Every resolved scar site as points on the clean ship, keyed by scar id
+    (cluster strikes `<id>.<k>` fold into their id): position, surface normal
+    and, where the kind knows one, a radius. Sites are cast on the clean ship,
+    so a scar's sites are the same in every state; wear masks and the
+    cross-state review read them. Record only; changes no geometry."""
+    r3 = lambda v: [round(c, 3) for c in v]
+    out = {}
+    for key, val in d.sites.items():
+        sid = key.split('.')[0]
+        items = val if isinstance(val, list) else [val]
+        for it in items:
+            if it is None:
+                continue
+            if isinstance(it, Site):
+                pt = {'p': r3(it.p), 'n': r3(it.n)}
+            elif len(it) == 5 and isinstance(it[1], Site):   # cluster strike
+                pt = {'p': r3(it[1].p), 'n': r3(it[1].n), 'r': round(it[2], 3)}
+            else:                                              # gouge station
+                pt = {'p': r3(it[0]), 'n': r3(it[1]), 'r': round(it[2], 3)}
+            pts = out.setdefault(sid, [])
+            if pt not in pts:
+                pts.append(pt)
+    return dict(sorted(out.items()))
 
 
 def apply_cuts(d):
