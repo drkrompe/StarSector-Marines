@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class WaterUnderSealProjectionTest {
     private static WaterUnderSealSequence sequence() {
-        var reserve = IntStream.range(0,12).mapToObj(i -> new EntitySpec("Salt Knife " + i, Faction.DEFENDER, UnitType.MILITIA, 170, 90)).toList();
+        var reserve = IntStream.range(0,12).mapToObj(i -> new EntitySpec("Berth Four " + i, Faction.DEFENDER, UnitType.MILITIA, 170, 90)).toList();
         return new WaterUnderSealSequence(3, 1, List.of(1,2), reserve, new StoryBeatLog());
     }
     private static void work(WaterUnderSealSequence sequence, float dt) {

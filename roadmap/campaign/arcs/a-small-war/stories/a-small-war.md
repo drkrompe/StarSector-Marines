@@ -4,7 +4,7 @@ Status: IN PROGRESS — post-Shepherd referral, first three chapters through The
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — current-map fidelity review precedes further chapters; live mixed-squad acceptance remains.
+Updated: 2026-10-15 — story pass: Voss's escalation, the Chapter 4 turn, Greyhook's split in Chapter 5, grounded outfit names, text-only new speakers.
 
 Read `early-operation-nouns.md`, `campaign-nouns.md`, `meta-progression.md`,
 `narrative-nouns.md`, `mission-tier-nouns.md`, `progression-nouns.md`,
@@ -138,7 +138,7 @@ account. Rebalance the whole ledger against a casualty-carryover run.
 ## 1 — Water Under Seal
 
 The playable first pass uses two existing Recovered Specter wearers among the
-regular Salt Knives. Replace those two fittings with the distinct Boarding Jack
+regular Berth Four collectors. Replace those two fittings with the distinct Boarding Jack
 when its pattern and layered art are validated; do not describe the interim kit
 as that unfinished pattern. The completed dossier records Rusk's sponsorship
 and opens Limited Warrant without granting equipment.
@@ -158,7 +158,7 @@ technicians travel through the ordinary convoy/escort path; they stop at contact
 2. Clear the switching rooms. Living technicians reconnect only while the actual
    work area is uncontested and protected by company troops.
 3. Bring the selected tender up to safe working range and begin one useful road
-   gun. A finite Salt Knife party approaches along the maintenance road while
+   gun. A finite Berth Four party approaches along the maintenance road while
    construction is underway. Two crude powered wearers support it; cover,
    flanking and concentrated ordinary fire must
    remain viable answers. No surprise demand for an unowned anti-tank weapon.
@@ -181,6 +181,10 @@ constables a position they can hold.”
 equipment in the bonded stores that your people could put to better use than mine.
 I can authorize its release. First we have to recover the records that make it useful.”
 
+**Voss, note to Rusk copied to the company:** “You've made the weir expensive. I
+can make other things expensive too.” It names no force and no date; it is the
+first sign that Greyhook is watching the company rather than the yard.
+
 ## 2 — Limited Warrant
 
 **Purpose:** earn a credible first suit pattern through a bounded recovery job.
@@ -190,7 +194,7 @@ physical recovery all matter.
 
 Use a compact bonded-storage compound at Low Quay's industrial edge: a shuttered
 loading court, a records office and a separate calibration cage connected by
-service galleries. Greyhook's Cask Runners are stripping cargo for transfer.
+service galleries. Greyhook's Drent Haulage crews are stripping cargo for transfer.
 There are no workers standing among enemy targets to manufacture a moral trap.
 
 Nadi Orr supplies a signed clinic shortage list and identifies medical consignments
@@ -201,7 +205,7 @@ company's equipment award.
 1. Secure the records office and confirm the restricted stock's shipping history.
 2. Escort the supplier's technician to the calibration cage and recover the
    identified kit. Disabling a wearer does not automatically produce a blueprint.
-3. A finite Runner rearguard tries to deny the loading exit. Recover the package
+3. A finite Drent Haulage rearguard tries to deny the loading exit. Recover the package
    through ordinary survivor egress while the tender and a small constable group
    cover the cleared approach. The sponsor's people cannot seize the prize alone.
 
@@ -223,6 +227,10 @@ If a supplier offers you anything beyond it, you are negotiating with them.”
 look at the fitting before the next drop. Better protection still needs someone
 watching the flank.”
 
+**Voss's answer:** she raises the levy on the crews least able to pay. Nadi Orr's
+next shortage list, sent with the Chapter 3 offer, shows the cost in named clinic
+lines; Castle cites it rather than inferring Greyhook's books.
+
 ## 3 — The Yard's Owners
 
 **Purpose:** use the new assault capability and reveal the conflict that force
@@ -236,7 +244,7 @@ she is not an invulnerable escort actor or an enemy because workers resist new l
 
 1. Take dispatch and the freight gate. Constables occupy the first actual gain.
 2. Clear the tooling hall while preserving its marked calibration equipment.
-   Hookhand boarders use paired entrances and a finite reserve to contest it.
+   Voss's prize crews use paired entrances and a finite reserve to contest it.
 3. Secure the operator entrance so the maintenance party can work without passing
    through hostile positions. The full handover requires all three sites held
    together and a living technician finishing the observed inspection.
@@ -260,6 +268,11 @@ ledger absolves everybody, and clearing pirates has not ratified repossession.
 **Lenna, correspondence:** “You have opened the gate. Before you hand over the
 keys, read who is allowed through it tomorrow. Those benches repair the weir's
 pumps as well as Rusk's cargo gear.”
+
+**Lenna, on the company's history:** “Mara Venn says you broke a lien for Wayline
+on Jangala. Whose side is the lien on this time?” This is the arc's creditor rhyme
+(`a-small-war-arc.md`, Story spine). It accuses nobody; it makes the captain read
+the custody terms as someone who has stood on the other side of them.
 
 ## The handover decision
 
@@ -292,24 +305,42 @@ There is no simulated offscreen massacre while the player considers a menu.
 
 ## 4 — Terms of Protection
 
-**Purpose:** make the chosen responsibility a battlefield task and let the player
-use the mixed section before the finale. Revisit Latchkey with the secured
-entrance and inspection work visible, rather than erasing the previous victory.
+**Purpose:** the turn. Make the chosen responsibility a battlefield task, let the
+player use the mixed section before the finale, and show Greyhook acting against
+itself for the first time. Revisit Latchkey with the secured entrance and
+inspection work visible, rather than erasing the previous victory.
 
-House Custody brings a named custodial records carrier and a utilities crew.
-The compact brings a named joint-party carrier and the same utilities crew.
-Both use ordinary convoy movement, arrivals and vulnerable personnel. The actual
-handover happens at the dispatch house; technician work remains in the tooling hall.
-The participants and account differ, not the amount of invisible protection.
+**Voss, attributable warning before the operation:** “Pell collected his share
+from that yard. Your new agreement leaves him nothing. I've told him to leave it.
+Plan for him not listening.” Her warning discloses no exact unseen force or
+arrival tick. It establishes that what follows is Pell's choice, not her order.
+
+House Custody brings a named custodial records carrier, Rusk's estate guards and a
+utilities crew. The compact brings a named joint-party carrier, the same utilities
+crew and Lenna's fitters, who will not leave the tools while they are being
+commissioned. Both use ordinary convoy movement, arrivals and vulnerable
+personnel. The actual handover happens at the dispatch house; technician work
+remains in the tooling hall. The agreement changes the problem, not the amount of
+invisible protection:
+
+- **House Custody:** the estate guards hold the Cinder Steps lane on Rusk's terms,
+  which frees a company section and leaves the guards' post as the weak point.
+- **Yard Compact:** the fitters stay at the benches under fire, so the hall itself
+  must be held rather than merely its approaches.
 
 1. Escort the party in and occupy dispatch. No signature is inferred from proximity.
 2. Protect the hall while technicians finish commissioning the captured rig tools.
-3. Daro Pell's Salt Knives attempt to recover their levy records and destroy the
-   association's ability to refuse them. A second finite Hookhand group takes the
-   Cinder Steps service lane; public warnings come from actual reports or sightings.
+3. Daro Pell's Berth Four arrive to recover their levy records and break the
+   association's ability to refuse them. They bring a mortar team that ranges on the
+   commissioning work and two crude powered rigs: Greyhook's own rebuilt hardware,
+   the across-the-line view of the kit the company is about to wear. A second finite
+   party of prize crews takes the Cinder Steps service lane. Public warnings come
+   from actual reports or sightings.
 4. Use tender-built positions and allied holders to keep one approach covered
    while a company section moves against the other. Both duty areas fit within
    supporting distance; success must not require a larger squad-management burden.
+   Counter-battery is a real answer to the mortar; the tube must have a findable
+   position and an infantry approach.
 
 Victory requires the actual party delivered, dispatch secured, the calibration
 job finished by a living technician and the committed assaults resolved. At least
@@ -325,21 +356,22 @@ work and is delivered on either route. It is not payment for endorsing a politic
 choice or a bonus for killing powered wearers. The person explaining the reward
 may change if an actual casualty makes a particular witness unavailable.
 
-**Voss, attributable demand before the operation:** “Pell collected his share
-from that yard. Your new agreement leaves him nothing. You should plan for him
-to come and discuss it.” Her threat discloses no exact unseen force or arrival tick.
+The recovered levy files carry the lead into Chapter 5: a dispatch order signed
+by Mika Drent whose load numbers match Nadi's shortage lists and identify Black
+Sluice's transfer schedule.
 
 ## 5 — A Small War
 
 **Purpose:** finish a bounded local conflict with the company visibly capable of
-holding ground. **Black Sluice**, Greyhook's fuel and dispatch pier on the outer
-Silt Basin, sustains the yard levies and transports their prizes offworld.
-Breaking this foothold matters without defeating every pirate operating in Arcadia.
+holding ground, and let it watch its own pressure split Greyhook. **Black Sluice**,
+Greyhook's fuel and dispatch pier on the outer Silt Basin, sustains the yard levies
+and moves their prizes offworld. Breaking this foothold matters without defeating
+every pirate operating in Arcadia.
 
-Chapter 4's recovered levy files include a Runner dispatch order signed by Mika
-Drent. Its load numbers match Nadi's shortage report and identify Black Sluice's
-transfer schedule. Local pilots confirm the service approach. Castle cites those
-sources when proposing the operation; he does not infer a hidden pirate base
+Chapter 4's recovered levy files include a Drent Haulage dispatch order signed by
+Mika Drent. Its load numbers match Nadi's shortage report and identify Black
+Sluice's transfer schedule. Local pilots confirm the service approach. Castle cites
+those sources when proposing the operation; he does not infer a hidden pirate base
 from the map or announce an unseen force roster.
 
 The map has a causeway customs block, a sheltered fuel-control house and the
@@ -349,30 +381,43 @@ a seizure target, not an invitation to destroy the district's usable supply.
 
 1. Seize the customs block and establish a tender-built rear position. Allied
    holders occupy the cleared building before the company advances.
-2. Take fuel control. The Cask Runners oppose the company along a known transfer
-   road while a finite Hookhand reserve covers dispatch. One visible support-gun
-   position punishes an exposed frontal approach but has an infantry flank.
-3. Capture dispatch and its surface transfer records. Reclaim any lost required
+2. Take fuel control. Drent Haulage opposes the company along a known transfer
+   road while a finite party of prize crews and Berth Four covers dispatch. One
+   visible support-gun position punishes an exposed frontal approach but has an
+   infantry flank.
+3. **The split.** When fuel control falls, Voss orders Black Sluice abandoned on an
+   open channel the company can hear. Drent Haulage takes the order: its surviving
+   crews withdraw physically along the service road and leave the map, and a
+   tender lifts off from the pier. Berth Four refuses. Pell's people hold dispatch
+   out of grudge, and the prize crews split between them. The withdrawal is real
+   lost strength for Greyhook, not a scripted despawn of untouched troops, and it
+   happens only once the company has actually taken fuel control.
+4. Capture dispatch and its surface transfer records. Reclaim any lost required
    site, then escort the agreed local custody party to its actual control room.
-4. Victory requires all three sites held, the marked required fuel infrastructure
+5. Victory requires all three sites held, the marked required fuel infrastructure
    preserved, and the living custody party's completed handover. Destruction of
    that infrastructure fails the attempt; any later attempt records a disclosed
    replacement/refit under the employer-loss policy below. Untouched pirates
    elsewhere in the system do not block resolution.
 
 Sera Voss coordinates through transmissions from outside the battle. No invulnerable
-boss avatar or mandatory escape is needed. The confirmed result is loss of this
-surface facility and its organized levy route. The debrief does not invent her
-death, the destruction of her fleet or permanent safety for every settlement.
+boss avatar or mandatory escape is needed. Her last line on the channel tells the
+company she is alive and what she has lost: “Keep the pier. I've lost worse
+berths.” The confirmed result is loss of this surface facility and its organized
+levy route. The debrief does not invent her death, the destruction of her fleet or
+permanent safety for every settlement.
 
 The ending names the selected agreement, confirmed losses and delivered rewards.
-The company receives the fee and any earned premium, a closed story dossier and
-an introduction to a more demanding procurement contact. That contact is a lead
-for a later authored arc, not an unimplemented shop or a tier-IV unlock button.
+The company receives the fee and any earned premium and a closed story dossier.
+The once-only settlement sets `AgreusArcProgress.smallWarSettled`, which sends the
+Hegemony auxiliary warrant's offer (`progression-nouns.md`, Kit and armory): the
+more demanding procurement contact is the Hegemony itself.
 
 **Castle, closing assessment:** “Rusk is asking what it would take to keep us here.
 He wasn't asking that when we arrived.” Loss-aware surrounding text acknowledges
-the actual company cost before describing the invitation.
+the actual company cost before describing the invitation. The arc ends grey on
+purpose (`a-small-war-arc.md`, Story spine): the company is now the private order
+that a state leans on, and a later arc can ask what that costs.
 
 ## Equipment specification and issue
 
@@ -597,7 +642,10 @@ military equipment to compensate for a harder map.
 
 All mission, choice and reward text starts as readable correspondence with Castle's
 fact-bound operational briefing. The sample lines above are unrecorded copy, not
-ElevenLabs jobs. Portraits, location art, voice production and native 1920x1080 / 100%
+ElevenLabs jobs. New speakers (Rusk, Lenna, Voss, Edek, Nadi, Pell, Drent) ship as
+text with `voiced: false`: the ElevenLabs account is at its voice limit, so their
+casting is deferred until a slot is free. Castle and Mara lines may be recorded
+with their existing voices. Portraits, location art, voice production and native 1920x1080 / 100%
 UI-scale previews require their own authored assets and acceptance. Headless
 evidence does not establish live travel, host save/reload or campaign-overhaul
 compatibility; keep those acceptance items open until observed in the game.

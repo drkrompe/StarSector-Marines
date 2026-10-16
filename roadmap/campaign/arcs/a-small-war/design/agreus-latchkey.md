@@ -4,7 +4,7 @@ Status: DRAFT — original local setting direction on an existing vanilla world 
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — relocated the local conflict to canonical Agreus in Arcadia.
+Updated: 2026-10-15 — grounded Greyhook's outfit names; Voss's coalition frays as the arc's climax.
 
 ## Scope and provenance
 
@@ -221,7 +221,8 @@ the equipment authorities, not this setting's biographies.
 
 **Greyhook** is a coalition of free captains, boarders and ground outfits organized
 around Captain Sera Voss's ability to assign prizes, settle shares and obtain
-repairs. It is a local flotilla with fragile agreements, not all pirates speaking
+repairs. It takes its name from the salvage tender Voss commanded before she
+turned to coercion; the hull is long sold, and the name stayed with the people. It is a local flotilla with fragile agreements, not all pirates speaking
 with one voice. Its wealth rests on stolen cargo, ransom, forced levies and access
 to workshops whose owners cannot always refuse it.
 
@@ -230,18 +231,19 @@ coerces crews and punishes resistance through selective destruction. Its people
 also buy meals, support dependents and honor some internal bargains. Those facts
 explain how it persists; they do not turn its victims into mistaken oppressors.
 
-**The Hookhands**, Voss's veteran boarding cadre, secure prizes and decisive rooms.
+**The prize crews**, Voss's veteran boarders, secure prizes and decisive rooms.
 They work in paired entries behind short suppressive bursts, use cutters and
 close-range weapons, and preserve an exit. Dull charcoal pressure gear, pale hook
 marks and repaired rigid plates distinguish them from a military uniform.
 
-**The Salt Knives**, led by yard boss **Daro Pell**, collect levies and intimidate
-loading crews. They mass rifle fire from prepared corners and rush a shaken line.
+**Berth Four**, led by yard boss **Daro Pell**, collect levies and intimidate
+loading crews. They take their name from the quay berth where most of them once
+worked as stevedores, which is why they know every loading crew by face. They mass rifle fire from prepared corners and rush a shaken line.
 Orange salvage webbing and mismatched work coats identify their dockside origin.
 Their territorial grudges can make them hold ground Voss would prefer to abandon.
 
-**The Cask Runners**, a tender and smuggling outfit under **Mika Drent**, move fuel,
-prizes and replacement parts. They favor service roads, false cargo documentation
+**Drent Haulage**, a registered tender company under **Mika Drent**, moves fuel,
+prizes and replacement parts. The registration is real and the manifests are not. They favor service roads, false cargo documentation
 and delaying ambushes while stores move. Blue cargo stencils survive under scraped
 registration paint. They retreat from an unprofitable stand rather than serving
 as an endless supply of sacrificial reinforcements.
