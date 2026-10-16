@@ -27,7 +27,7 @@ import java.util.Set;
  *
  * <p>The issuer of a Restricted template is the tradition that builds it, read from the
  * armour catalog rather than authored a second time. A warrant is permanent once granted;
- * what it costs to keep belongs to {@code warrant-obligations.md}.
+ * what it costs to keep is its obligations (same section), kept by {@code WarrantObligationSystem}.
  */
 public final class MilitaryWarrants {
 
@@ -146,11 +146,34 @@ public final class MilitaryWarrants {
 
     /** Every template some held warrant opens. A template the catalog has dropped is skipped. */
     public static Set<String> warrantedTemplateIds(CampaignState state) {
+        return templateIds(state, false);
+    }
+
+    /**
+     * Every template a suspended or revoked warrant opens ({@code progression-nouns.md}, Kit and
+     * armory). These are not warranted for acquisition, and no marine may be newly fitted with
+     * one; marines already wearing one keep it. A suit learned before the Restricted tier, which
+     * no warrant names, is never withheld.
+     */
+    public static Set<String> withheldTemplateIds(CampaignState state) {
+        return templateIds(state, true);
+    }
+
+    /** {@link #withheldTemplateIds} in the running campaign; empty outside one. */
+    public static Set<String> liveWithheldTemplateIds() {
+        CampaignStateScript script = Global.getSector() != null ? CampaignStateScript.getInstance() : null;
+        return script != null ? withheldTemplateIds(script.state()) : Set.of();
+    }
+
+    private static Set<String> templateIds(CampaignState state, boolean withheld) {
         Set<String> ids = new LinkedHashSet<>();
         if (state == null || state.equipmentTemplateRegistry == null) return ids;
+        Set<String> withheldIssuers = state.warrantObligations().withheldIssuers();
         for (int i = 0; i < state.militaryWarrantCount; i++) {
             String id = state.equipmentTemplateRegistry.get(state.militaryWarrantTemplateId[i]);
-            if (id != null && EquipmentTemplateCatalog.contains(id)) ids.add(id);
+            if (id == null || !EquipmentTemplateCatalog.contains(id)) continue;
+            String issuer = state.factionRegistry.get(state.militaryWarrantIssuerId[i]);
+            if (withheldIssuers.contains(issuer) == withheld) ids.add(id);
         }
         return ids;
     }

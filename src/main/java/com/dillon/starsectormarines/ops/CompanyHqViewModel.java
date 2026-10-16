@@ -8,6 +8,8 @@ import com.dillon.starsectormarines.marine.MilitaryWarrants;
 import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CampaignState;
+import com.dillon.starsectormarines.campaign.WarrantObligationLedger;
+import com.dillon.starsectormarines.campaign.systems.WarrantObligationSystem;
 import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ChainState;
@@ -26,6 +28,7 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.event.PlayerEventTarget;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
+import com.fs.starfarer.api.campaign.RepLevel;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.FactionAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
@@ -115,8 +118,9 @@ final class CompanyHqViewModel {
         CampaignStateScript script = CampaignStateScript.getInstance();
         List<EmployerRow> employerRows = new ArrayList<>(employerRows(standing.employers,
                 script == null ? null : script.state()));
-        employerRows.addAll(warrantRows(
-                MilitaryWarrants.held(script == null ? null : script.state()),
+        CampaignState warrantState = script == null ? null : script.state();
+        employerRows.addAll(warrantRows(MilitaryWarrants.held(warrantState),
+                warrantState == null ? null : warrantState.warrantObligations(), day,
                 CompanyHqViewModel::factionCrest));
         props.put("employers", List.copyOf(employerRows));
         props.put("employerEmpty", employerRows.isEmpty()
@@ -313,6 +317,19 @@ final class CompanyHqViewModel {
         return new CompanyHqViewModel(props);
     }
 
+    /**
+     * The client standing panel with the company's military warrants in view: one active with
+     * its next service deadline, one suspended with what restores it.
+     */
+    static CompanyHqViewModel warrantObligationsPreview() {
+        Map<String, Object> props = preview().props();
+        @SuppressWarnings("unchecked")
+        List<EmployerRow> employers = (List<EmployerRow>) props.get("employers");
+        props.put("employers", List.of(employers.get(0), employers.get(employers.size() - 2),
+                employers.get(employers.size() - 1)));
+        return new CompanyHqViewModel(props);
+    }
+
     /** Rich deterministic fixture used by the retained UI evidence suite. */
     static CompanyHqViewModel preview() {
         Map<String, Object> props = new LinkedHashMap<>();
@@ -357,7 +374,8 @@ final class CompanyHqViewModel {
                 new EmployerRow("preview-employer-1", "", Strings.get("openingCompanyHqKazeronCompact"), "+42", Strings.get("openingCompanyHqCompletedFailed"), "graphics/factions/crest_persean_league.png"),
                 new EmployerRow("preview-employer-2", "", Strings.get("openingCompanyHqSindrianDiktat"), "+18", Strings.get("openingCompanyHqCompletedFailed2"), "graphics/factions/crest_sindrian_diktat.png"),
                 new EmployerRow("preview-employer-3", "tone-danger", Strings.get("openingCompanyHqHouseUmbra"), "-6", Strings.get("openingCompanyHqCompletedFailed3"), ""),
-                new EmployerRow("preview-warrant-hegemony", "tone-good", Strings.format("companyHqWarrantName", ArmorTradition.HEGEMONY.displayName()), "", Strings.format("companyHqWarrantRecord", 2, Strings.get("companyHqWarrantEarnedStanding")), "graphics/factions/crest_hegemony.png")));
+                new EmployerRow("preview-warrant-hegemony", "tone-good warrant-score", Strings.format("companyHqWarrantName", ArmorTradition.HEGEMONY.displayName()), Strings.get("companyHqWarrantActive"), Strings.format("companyHqWarrantDeadlineFmt", 2, 34), "graphics/factions/crest_hegemony.png"),
+                new EmployerRow("preview-warrant-tritachyon", "tone-danger warrant-score", Strings.format("companyHqWarrantName", ArmorTradition.TRITACHYON.displayName()), Strings.get("companyHqWarrantSuspended"), Strings.format("companyHqWarrantRestoreFmt", RepLevel.COOPERATIVE.getDisplayName()), "graphics/factions/crest_tritachyon.png")));
         props.put("employerEmpty", "");
         props.put("obligations", List.of(
                 new ObligationPost("preview-obligation-1", "post-card danger-surface", Strings.get("openingCompanyHqDueInDay"), Strings.get("openingCompanyHqGarrisonDefense"), Strings.get("openingCompanyHqSindriaHouseKardosFailsIfMissed"), Strings.get("openingCompanyHqRespond"), false, () -> { }),
@@ -465,20 +483,48 @@ final class CompanyHqViewModel {
     /**
      * The company's military warrants, one row per issuing tradition beside its employers:
      * a warrant is a standing relationship with that tradition, and the row says what it
-     * opens and how it was earned ({@code progression-nouns.md}).
+     * opens, how it was earned, and where it stands under its obligations: the next service
+     * deadline while active, what restores it while suspended ({@code progression-nouns.md}).
      */
     static List<EmployerRow> warrantRows(List<MilitaryWarrants.Held> held,
+                                         WarrantObligationLedger obligations, int day,
                                          Function<String, String> crest) {
         List<EmployerRow> rows = new ArrayList<>();
         for (MilitaryWarrants.Held warrant : held) {
             String earned = Strings.get(warrant.reason() == MilitaryWarrants.Reason.STORY
                     ? "companyHqWarrantEarnedStory" : "companyHqWarrantEarnedStanding");
+            String record = Strings.format("companyHqWarrantRecord", warrant.templateIds().size(), earned);
+            WarrantObligationLedger.Term term = obligations == null ? null
+                    : obligations.term(warrant.issuer().key);
+            WarrantObligationLedger.Status status = term == null
+                    ? WarrantObligationLedger.Status.ACTIVE : term.status();
+            String tone = "tone-good warrant-score";
+            String standing = Strings.get("companyHqWarrantActive");
+            switch (status) {
+                case ACTIVE -> {
+                    if (term != null) {
+                        int due = term.serviceCallId() >= 0 && !term.serviceDone()
+                                ? term.serviceCallDeadline() : WarrantObligationSystem.periodEnd(term);
+                        record = Strings.format("companyHqWarrantDeadlineFmt",
+                                warrant.templateIds().size(), Math.max(0, due - day));
+                    }
+                }
+                case SUSPENDED -> {
+                    tone = "tone-danger warrant-score";
+                    standing = Strings.get("companyHqWarrantSuspended");
+                    record = Strings.format("companyHqWarrantRestoreFmt",
+                            WarrantObligationSystem.floor(warrant.reason()).getDisplayName());
+                }
+                case REVOKED -> {
+                    tone = "tone-danger warrant-score";
+                    standing = Strings.get("companyHqWarrantRevoked");
+                    record = Strings.get("companyHqWarrantRevokedFmt");
+                }
+            }
             String resolved = crest.apply(warrant.issuer().key);
-            rows.add(new EmployerRow("hq-warrant-" + warrant.issuer().key, "tone-good",
+            rows.add(new EmployerRow("hq-warrant-" + warrant.issuer().key, tone,
                     Strings.format("companyHqWarrantName", warrant.issuer().displayName()),
-                    "",
-                    Strings.format("companyHqWarrantRecord", warrant.templateIds().size(), earned),
-                    resolved == null ? "" : resolved));
+                    standing, record, resolved == null ? "" : resolved));
         }
         return List.copyOf(rows);
     }

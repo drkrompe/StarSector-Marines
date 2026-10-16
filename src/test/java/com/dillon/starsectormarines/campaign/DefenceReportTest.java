@@ -52,13 +52,37 @@ class DefenceReportTest {
     void aRaidThatTurnedBackReportsNoLosses() throws Exception {
         try (HeadlessStrings ignored = new HeadlessStrings(Path.of("mod"))) {
             Facts facts = new Facts(7L, 30, PLACE, false, Outcome.HELD, null,
-                    List.of("Second Section"), List.of(), List.of(), 0, 0, 12, 12, 18f, 0f, 0);
+                    List.of("Second Section"), List.of(), List.of(), 0, 0, 12, 12, 18f, 0f, 0,
+                    RaidShape.RAID);
 
             String account = DefenceReport.compose(facts, Strings::get);
 
             assertTrue(account.contains("turned back on day 30"), account);
             assertFalse(account.contains("Killed"), account);
             assertFalse(account.contains("still under arms"), account);
+        }
+    }
+
+    @Test
+    void theOpeningNamesTheKindOfRaid() throws Exception {
+        try (HeadlessStrings ignored = new HeadlessStrings(Path.of("mod"))) {
+            Place hegemony = new Place("Jangala", "Corvus", Climate.HEAT, "Hegemony");
+            Facts punitive = new Facts(9L, 214, hegemony, true, Outcome.HELD, null,
+                    List.of(), List.of(), List.of(), 0, 0, 12, 12, 0f, 0f, 0,
+                    RaidShape.PUNITIVE_EXPEDITION);
+            Facts fleet = new Facts(9L, 214, hegemony, false, Outcome.HELD, null,
+                    List.of(), List.of(), List.of(), 0, 0, 12, 12, 0f, 0f, 0,
+                    RaidShape.FLEET_GROUP);
+            Facts unknown = new Facts(9L, 214, PLACE, true, Outcome.HELD, null,
+                    List.of(), List.of(), List.of(), 0, 0, 12, 12, 0f, 0f, 0,
+                    RaidShape.UNKNOWN);
+
+            assertTrue(DefenceReport.compose(punitive, Strings::get).startsWith(
+                    "A Hegemony punitive expedition came down on Jangala in Corvus on day 214."));
+            assertTrue(DefenceReport.compose(fleet, Strings::get).startsWith(
+                    "A Hegemony raiding fleet bound for Jangala in Corvus turned back on day 214"));
+            assertTrue(DefenceReport.compose(unknown, Strings::get).startsWith(
+                    "Pirate raiders came down on Jangala"));
         }
     }
 
@@ -96,6 +120,6 @@ class DefenceReportTest {
     private static Facts landed(long eventKey) {
         return new Facts(eventKey, 214, PLACE, true, Outcome.HELD_WITH_LOSSES, "Captain Vey",
                 List.of("Second Section"), List.of("Hale"), List.of("Orsk"), 2, 0, 12, 10,
-                18f, 40f, 0);
+                18f, 40f, 0, RaidShape.RAID);
     }
 }

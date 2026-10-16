@@ -254,6 +254,7 @@
   .employer-row { flex-direction: row; align-items: center; height: 40px; padding: 6px; gap: 8px; border-width: 0px; border-color: #263b51; }
   .employer-name { width: 100%; flex-grow: 0; height: auto; white-space: normal; }
   .employer-score { width: 38px; text-align: left; }
+  .warrant-score { width: 70px; }
   .employer-record { width: 100%; text-align: left; flex-grow: 0; height: auto; white-space: normal; }
   .company-hq-board { flex-direction: column; flex-grow: 1; padding: 9px; gap: 9px; border-width: 2px; overflow: hidden; }
   .board-heading { flex-direction: column; height: 38px; padding: 7px 9px; gap: 5px; border-width: 2px; }

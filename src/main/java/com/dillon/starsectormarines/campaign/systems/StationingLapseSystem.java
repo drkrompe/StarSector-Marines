@@ -222,7 +222,11 @@ public final class StationingLapseSystem implements CampaignSystem {
                 ? Global.getSector().getEconomy().getMarket(marketId) : null;
         FactionAPI attacker = attackerFactionId != null
                 ? Global.getSector().getFaction(attackerFactionId) : null;
-        String attackerName = attacker != null ? attacker.getDisplayName() : null;
+        // The adjective form ("Pirate", "Hegemony") reads as "Pirate raiders"; the display
+        // name would give "Pirates raiders".
+        String attackerName = attacker == null ? null
+                : attacker.getEntityNamePrefix() != null && !attacker.getEntityNamePrefix().isBlank()
+                ? attacker.getEntityNamePrefix() : attacker.getDisplayName();
         if (market == null) {
             return new DefenceReport.Place(null, null, DefenceReport.Climate.UNKNOWN,
                     attackerName);

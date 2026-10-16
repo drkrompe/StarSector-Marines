@@ -91,6 +91,7 @@ public final class ContractTableCompactor {
         state.contractDefenseAttackerStrength[to] = state.contractDefenseAttackerStrength[from];
         state.contractResponseDeadlineTick[to] = state.contractResponseDeadlineTick[from];
         state.contractStrandedUntilTick[to] = state.contractStrandedUntilTick[from];
+        state.contractDefenseRaidShape[to] = state.contractDefenseRaidShape[from];
         state.contractStrandedIntervals[to] = state.contractStrandedIntervals[from];
         state.contractMarketOwnerFactionId[to] = state.contractMarketOwnerFactionId[from];
         state.contractNoticeAckKey[to] = state.contractNoticeAckKey[from];

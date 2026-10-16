@@ -35,6 +35,8 @@ public final class PropDamage {
             Map.entry("doodad.industrial-generator", new Profile(Effect.SMOKE, Effect.FIRE)),
             Map.entry("doodad.military-radar-dish", new Profile(Effect.NONE, Effect.DUST)),
             Map.entry("doodad.industrial-machine-tool", new Profile(Effect.SMOKE, Effect.DUST)),
+            Map.entry("power-plant.turbine", new Profile(Effect.SMOKE, Effect.FIRE)),
+            Map.entry("power-plant.coolant", new Profile(Effect.SMOKE, Effect.SMOKE)),
             Map.entry("factory-machines.fabricator", new Profile(Effect.SMOKE, Effect.FIRE)),
             Map.entry("factory-machines.assembly", new Profile(Effect.SMOKE, Effect.DUST)),
             Map.entry("factory-machines.coolant", new Profile(Effect.SMOKE, Effect.SMOKE)),

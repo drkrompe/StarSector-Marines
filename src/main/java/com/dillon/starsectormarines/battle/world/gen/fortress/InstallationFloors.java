@@ -36,8 +36,9 @@ public final class InstallationFloors {
     }
 
     private static void coat(GenContext ctx, int x, int y, String material) {
-        if (!ctx.grid.inBounds(x, y) || ctx.topology.isWall(x, y) || ctx.topology.isWater(x, y)
-                || (!ctx.grid.isWalkable(x, y) && !ctx.topology.isFixture(x, y))) return;
+        if (!ctx.grid.inBounds(x, y) || ctx.topology.isWall(x, y) || ctx.topology.isWater(x, y)) return;
+        // The room owns its floor even beneath a sealed structure. Fort cores block
+        // navigation without being doodad fixtures; they still need the room's underlay.
         // Keep specifically authored floor finishes. This replaces the shared legacy default only.
         if (ctx.topology.getSurface(x, y) == 0)
             ctx.topology.setSurface(x, y, ctx.topology.surfaceIndex(material));

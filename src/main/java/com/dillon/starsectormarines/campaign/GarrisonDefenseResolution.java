@@ -90,5 +90,6 @@ public final class GarrisonDefenseResolution {
         state.contractDefenseAttackerHouseId[row] = -1L;
         state.contractDefenseAttackerFactionId[row] = -1;
         state.contractDefenseAttackerStrength[row] = 0f;
+        state.contractDefenseRaidShape[row] = RaidShape.UNKNOWN.toByte();
     }
 }

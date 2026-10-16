@@ -192,7 +192,7 @@ public final class AbsentDefenceResolution {
         DefenceReport.Facts facts = new DefenceReport.Facts(payload.eventKey, happened,
                 place, landed, outcome, captain != null ? captain.name() : null,
                 squadNames, killed, missing, wounded, unnamedLost, seatsStood, seatsLiving,
-                stationed, payload.attackerStrength, goneToGround);
+                stationed, payload.attackerStrength, goneToGround, payload.raidShape);
         state.addChronicleGarrisonDefence(payload.eventKey, payload.marketId,
                 payload.attackerFactionId, outcome, seatsStood, seatsLiving,
                 DefenceReport.compose(facts, Strings::get), happened, Math.max(happened, day));

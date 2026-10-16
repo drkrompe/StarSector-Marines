@@ -3,7 +3,7 @@
 Status: ACTIVE — the hard Restricted tier, standing military warrants and the four
 arc issue cards have shipped (`progression-nouns.md`, Kit and armory).
 The Hegemony auxiliary warrant has shipped, waiting on *A Small War*'s Chapter 5
-to send its offer; `warrant-obligations.md` remains planned.
+to send its offer, and so have warrant obligations.
 Trench-Clearing Issue as the Junction reward and the across-the-line rosters remain
 proposals.
 
@@ -120,7 +120,8 @@ Even after Agreus, most of the catalog stays ahead of the company:
 1. **Restricted tier and military warrants**: shipped; see `progression-nouns.md`.
 2. **The first authored warrant**: shipped; see `progression-nouns.md`. Its offer
    arrives once *A Small War*'s Chapter 5 settles (`a-small-war.md`).
-3. **The counter-pressure**: `warrant-obligations.md`.
+3. **The counter-pressure**: shipped as warrant obligations; see
+   `progression-nouns.md` (Kit and armory).
 4. **New cards and their story stocking**: shipped; see `progression-nouns.md`
    (Kit and armory, arc issue cards) and the ladder readings below.
 5. **Trench-Clearing Issue as the Junction reward**: still a proposal.

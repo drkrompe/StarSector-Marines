@@ -27,6 +27,7 @@ import com.dillon.starsectormarines.campaign.systems.NamedStationingRepairSystem
 import com.dillon.starsectormarines.campaign.systems.PatronEquipmentRewardSystem;
 import com.dillon.starsectormarines.campaign.systems.StandingWarrantSystem;
 import com.dillon.starsectormarines.campaign.systems.AuxiliaryWarrantOfferSystem;
+import com.dillon.starsectormarines.campaign.systems.WarrantObligationSystem;
 import com.dillon.starsectormarines.campaign.systems.PolityRosterSystem;
 import com.dillon.starsectormarines.campaign.systems.RelationshipInteractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtractionSystem;
@@ -110,6 +111,7 @@ public class CampaignStateScript implements EveryFrameScript {
                 // Before patron rewards, so a warrant earned today can be issued against today.
                 new StandingWarrantSystem(),
                 new AuxiliaryWarrantOfferSystem(),
+                new WarrantObligationSystem(),
                 new PatronEquipmentRewardSystem(),
                 new CivilWarParticipationSystem(),
                 new CivilWarPlayerConsequenceSystem(),

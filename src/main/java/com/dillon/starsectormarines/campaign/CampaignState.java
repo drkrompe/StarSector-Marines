@@ -38,6 +38,15 @@ public final class CampaignState implements Serializable {
     public ShepherdRecoveryProgress shepherdRecovery;
     /** Null in older saves; the first Agreus launch freezes its authored attempt. */
     public AgreusArcProgress agreusArc;
+    /** What each held military warrant costs to keep; null in older saves, created on first read. */
+    public WarrantObligationLedger warrantObligations;
+
+    /** The warrant obligations ledger, created on first read so an old save starts with no terms. */
+    public WarrantObligationLedger warrantObligations() {
+        if (warrantObligations == null) warrantObligations = new WarrantObligationLedger();
+        return warrantObligations;
+    }
+
     /** The Hegemony auxiliary warrant offer; null in older saves, created on first read. */
     public AuxiliaryWarrantProgress hegemonyAuxiliary;
 
@@ -391,6 +400,8 @@ public final class CampaignState implements Serializable {
      * producers (rival strike, internal flip) leave it 0.
      */
     public float[] contractDefenseAttackerStrength = new float[INITIAL_CAPACITY];
+    /** {@link RaidShape} of the vanilla raid a pending defence was armed from. */
+    public byte[]  contractDefenseRaidShape = new byte[INITIAL_CAPACITY];
     /**
      * Day by which the player must answer the currently pending Garrison defense or
      * Cadre incident; -1 when no response is outstanding. Armed by
@@ -1294,6 +1305,7 @@ public final class CampaignState implements Serializable {
         contractDefenseAttackerHouseId[i] = -1L;
         contractDefenseAttackerFactionId[i] = -1;
         contractDefenseAttackerStrength[i] = 0f;
+        contractDefenseRaidShape[i] = RaidShape.UNKNOWN.toByte();
         contractResponseDeadlineTick[i] = -1;
         contractStrandedUntilTick[i] = -1;
         contractStrandedIntervals[i] = 0;
@@ -2395,6 +2407,7 @@ public final class CampaignState implements Serializable {
         contractDefenseAttackerFactionId = Arrays.copyOf(contractDefenseAttackerFactionId, n);
         Arrays.fill(contractDefenseAttackerFactionId, oldLength, n, -1);
         contractDefenseAttackerStrength = Arrays.copyOf(contractDefenseAttackerStrength, n);
+        contractDefenseRaidShape = Arrays.copyOf(contractDefenseRaidShape, n);
         contractResponseDeadlineTick = Arrays.copyOf(contractResponseDeadlineTick, n);
         Arrays.fill(contractResponseDeadlineTick, oldLength, n, -1);
         contractStrandedUntilTick = Arrays.copyOf(contractStrandedUntilTick, n);
