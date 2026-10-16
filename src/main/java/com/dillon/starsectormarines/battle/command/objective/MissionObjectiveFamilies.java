@@ -171,6 +171,9 @@ public final class MissionObjectiveFamilies {
             markers.add(new Marker("yard-site-"+i,site.name(),site.x(),site.y(),p.held(i) ? "HELD / KEEP CLEAR" : "SECURE / COMPANY REQUIRED",p.held(i) ? State.COMPLETE : state));
         }
         markers.add(new Marker("yard-tools","Calibration machine / preserve",LatchkeyYard.TOOL_X,LatchkeyYard.TOOL_Y,"REQUIRED TOOLING",state));
+        // Lenna's machine labels: whose work the benches do. Information only; nothing to capture or protect.
+        for (var bench : LatchkeyYard.WORKPLACES)
+            markers.add(new Marker("yard-"+bench.id(),bench.label(),bench.x(),bench.y(),"ASSOCIATION LABEL",state));
         boolean inspecting = p.phase() == YardOwnersProgress.Phase.INSPECTION;
         int site = Math.min(2,p.phase().ordinal());
         return new Item("yard-owners","Latchkey Yard",state,p.phase().name(),"Secure dispatch > Tooling hall > Operator entrance > Inspect",sequence.displayName(),

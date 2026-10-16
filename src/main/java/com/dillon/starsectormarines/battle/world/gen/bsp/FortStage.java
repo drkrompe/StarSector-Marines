@@ -729,6 +729,7 @@ public final class FortStage implements GenStage {
             }
         }
         paveGates(ctx, plan, at);
+        if (air) stampAirMounts(ctx, plan, at, fortId);
         dressInterior(ctx, plan, at, lane, air);
         garrisonRooms(ctx, specs, at);
         stampBelt(ctx, plan, at, fortId, ground);
@@ -1032,7 +1033,7 @@ public final class FortStage implements GenStage {
 
     /**
      * The optional anti-air aspect: its small hardened control room (shelled like every fort room), the plotting console
-     * against the room's back wall, the guided batteries on the bastions and the close-in flak either side of the door,
+     * against the room's back wall, the Locust batteries on the bastions and the close-in Swarmer towers either side of the door,
      * every one tagged to the fort's {@link FortAspect#AIR_DEFENCE} so the simulation assembles the aspect from what was
      * stamped.
      *
@@ -1050,13 +1051,22 @@ public final class FortStage implements GenStage {
             emitStructure(ctx, plan.coreStructureId(FortAspect.AIR_DEFENCE), at.cell(yard.consoleCentre()[0], yard.consoleCentre()[1]), tag);
             FortRoomFurnisher.furnish(ctx, placed.get(0), yard.room());
         });
-        for (int[] battery : plan.airBatteries()) {
-            emitStructure(ctx, TurretCatalogRegistry.RIDGE_AA_STRUCTURE_ID, at.cell(battery[0], battery[1]), tag);
-        }
-        for (int[] flak : yard.flakCells()) {
-            emitStructure(ctx, TurretCatalogRegistry.ANTI_AIR_STRUCTURE_ID, at.cell(flak[0], flak[1]), tag);
-        }
         return placed;
+    }
+
+    /**
+     * The anti-air aspect's missile mounts on the bastions. They are stood after the yard has been dressed, because a
+     * sealed footprint is not walkable and {@code InstallationGround.dress} leaves such cells as they were: mounts
+     * stamped earlier stood on a hard-edged square of undressed ground in the middle of the bastion's floor.
+     */
+    private static void stampAirMounts(GenContext ctx, FortPlan plan, CompoundLayout.Placement at, int fortId) {
+        FortTag tag = new FortTag(fortId, FortAspect.AIR_DEFENCE, at.x(), at.y(), at.pose().quarterTurns());
+        for (int[] battery : plan.airBatteries()) {
+            emitStructure(ctx, TurretCatalogRegistry.AA_LOCUST_STRUCTURE_ID, at.cell(battery[0], battery[1]), tag);
+        }
+        for (int[] tower : plan.airTowers()) {
+            emitStructure(ctx, TurretCatalogRegistry.AA_SWARMER_STRUCTURE_ID, at.cell(tower[0], tower[1]), tag);
+        }
     }
 
     private static void emitStructure(GenContext ctx, String structureId, int[] centre, FortTag tag) {

@@ -914,6 +914,42 @@
           "weaponId": "weapon.micro-missile"
         }
       }
+    },
+    {
+      "id": "armor.boarding-jack",
+      "catalog": {
+        "displayName": "@gearCatalogArmorBoardingJackDisplayName",
+        "role": "assault",
+        "armorClass": "power-suit",
+        "tradition": "pirates",
+        "description": "@gearCatalogArmorBoardingJackDescription",
+        "tier": 3,
+        "iconPath": "graphics/ui/armory/armor-tier-3-combat.png",
+        "presentationPending": "Grounded layered art (torso, helmet, feet, shoulders, handheld weapon, material masks) is not produced yet; see art-source/marine-modular-topdown/boarding-jack/README.md. Until it ships, no card carrying this pattern may be awarded."
+      },
+      "battle": {
+        "appearanceFamily": "BOARDING_JACK",
+        "armorCapacity": 40.0,
+        "armorRating": 6.0,
+        "moveSpeedMult": 0.82,
+        "incomingAccuracyMult": 1.04,
+        "integralSystem": {
+          "id": "system.latch-assist",
+          "grade": "surplus",
+          "displayName": "@gearCatalogSystemLatchAssistDisplayName",
+          "description": "@gearCatalogSystemLatchAssistDescription",
+          "effect": "breacher-assist",
+          "policy": "exposed-under-fire",
+          "incomingPressureThreshold": 2.0,
+          "maxCoverLevel": 1,
+          "resource": "cooldown",
+          "durationSeconds": 2.0,
+          "cooldownSeconds": 22.0,
+          "moveSpeedMult": 1.15,
+          "screenSoak": 4.0,
+          "shieldedArcDegrees": 100.0
+        }
+      }
     }
   ]
 }

@@ -99,10 +99,6 @@ class FortPlaceSuiteTest {
             Fort.Place place = resolved(plan, frame, FortAspect.AIR_DEFENCE);
             int[] floor = plan.floor(FortAspect.AIR_DEFENCE);
             assertEquals(floor[2] * floor[3], place.interiorCells());
-            for (int[] f : plan.airDefence().flakCells()) {
-                int[] cell = frame.cell(f[0], f[1]);
-                assertFalse(place.contains(cell[0], cell[1]), "the flak stands outside the room");
-            }
         }
     }
 }

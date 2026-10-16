@@ -1580,7 +1580,7 @@ public final class BattleSetup {
                 mission.cycleLoadouts[cycle] = InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle), rng);
             mission.marineLoadout = mission.cycleLoadouts[0];
         }
-        for (int[] guard : new int[][]{{68,75},{86,42}}) {
+        for (int[] guard : LowQuay.GUARD_POSTS) {
             var post = openingDefenseNode(guard[0], guard[1], Faction.DEFENDER, map.grid);
             spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, guard[0], guard[1], 4), Faction.DEFENDER, "Drent Haulage store guard", post, rng);
         }
@@ -1651,9 +1651,9 @@ public final class BattleSetup {
         sim.getSquad(technicians).originalSize = 2;
         sim.claimSquadCommand(technicians,CommandAuthority.MISSION_COMMAND,YardOwnersCommand.issuer(Faction.ALLY),"Living supplier inspection party");
         List<List<EntitySpec>> reserves = new ArrayList<>();
-        for (int[] ingress : new int[][]{{150,76},{145,36}}) {
+        for (var ingress : LatchkeyYard.RESERVE_INGRESS) {
             List<EntitySpec> group = new ArrayList<>();
-            for (int[] cell : pickSpawnCluster(map.grid,ingress[0],ingress[1],4))
+            for (int[] cell : pickSpawnCluster(map.grid,ingress.x(),ingress.y(),4))
                 group.add(makeOpeningMilitia("Prize crew counterattack",Faction.DEFENDER,cell[0],cell[1],rng).role(UnitRole.PATROL));
             reserves.add(group);
         }

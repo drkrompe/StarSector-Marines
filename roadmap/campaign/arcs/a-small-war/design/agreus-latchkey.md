@@ -4,7 +4,7 @@ Status: DRAFT — original local setting direction on an existing vanilla world 
 
 Written: 2026-10-13
 
-Updated: 2026-10-15 — grounded Greyhook's outfit names; Voss's coalition frays as the arc's climax.
+Updated: 2026-10-16 — Latchkey Yard, Low Quay and North Weir ground described as connected compounds: galleries, locks, routes and a two-circuit reclamation plant.
 
 ## Scope and provenance
 
@@ -60,11 +60,84 @@ freight offices, a clinic, boarding rooms and a lease-arbitration office. House
 Rusk maintains administrative rooms above a working customs shed. The baronet
 has an office overlooking overdue cargo rather than a palace overlooking subjects.
 
+Low Quay's **bonded stores**, at the quarter's industrial edge, are one walled
+compound. A secure freight gate in its western wall is the only way between the
+company's apron and the single loading lane that runs east to the load court.
+North of the lane stand the gatehouse over the gate, the records archive and the
+bonded warehouse with its rack aisles; south of it lie the hold where Drent
+Haulage stages diverted cargo and the calibration shop with its cage. Occupied
+rooms are reached through enclosed service galleries whose pressure vestibules
+open on the lane at one place, **the crossing**: the supplier's technician walks
+in across it, the calibration carrier drives out over it, and Greyhook's finite
+rearguard comes to it from the north freight gate down the north gallery. In
+Limited Warrant the rearguard's objective is that crossing rather than the gate
+mouth; while the technician is walking in, a second company squad holds it, and
+the technician waits whenever the company knows of enemies there. The protected
+calibration work counts the whole shop with its cage. Vestibules and galleries
+sell the pressure hull; nothing counts oxygen.
+
+The **diverted clinic consignments** are identifiable cargo — insulated totes and
+medical stock matching Nadi Orr's list, in the hold, on the dock apron and beside
+Drent's truck in the transfer yard. They are evidence of the seizures, not an
+objective: Limited Warrant neither moves, returns nor pays for them, and any
+return to their named recipients needs its own implemented outcome.
+
 **Latchkey Yard** stands along the elevated freight route beyond the habitat
 quarter. It repairs small commercial hulls and manufactures replacement assemblies
 from recovered stock. A workers' association operates its leased machinery and
 shared service spaces. Rusk holds a secured district claim under the Combine's
 administration; the crews have the knowledge that makes possession valuable.
+
+### The yard on the ground
+
+Latchkey is one walled working yard, not a scatter of workshops on open concrete.
+The boat apron lies west of the wall. A **freight gate** opens from it onto a
+freight road that runs past the **dispatch house** (gate office, dispatch floor,
+records room) and round to the tooling hall's north doors. The marked **handover
+bay** at the dispatch house's yard door is where a custody party stops and signs.
+The yard's courts stay open: assembly ground inside the gate, lay-down stock and an
+inbound truck at the edges, lanes wide enough for boats' passengers, constables and
+an employer-lifted mech to move as formations.
+
+The **tooling hall** is the yard's middle: machine bays either side of a working
+nave, a tool crib, and a walled **calibration room** at its east end where the
+marked calibration machine stands on a painted plinth. The hall has exactly **two
+ways in**: its north **freight doors** off the yard, and the south door of the
+**service gallery**, a covered sealed corridor from the **operator entrance**.
+The operator entrance stands in the south wall on the service road: an outer and
+an inner pressure door with the suit room and pressurisation plant beside the lock,
+then the shift lobby. Pressure doors, the sealed gallery and the heat main sell the
+airless moon; nobody counts oxygen.
+
+East of the wall, the **Cinder Steps** terraces drop away in broken lines of
+furnace scrap and cold furnace housings. Their **service lane** crosses them to
+the yard's **Cinder Steps gate** and sends a spur north to the homes. The homes and
+the **district heating service** stand on their own street north of the wall; the
+heat main runs between them and the yard. They are lived-in frontage with no
+capture duty and are never a battlefield objective.
+
+The benches show whose work stops if the hall is lost. Lenna's machine labels name
+the association lathe that turns North Weir's pump impellers, the heating-service
+bench rebuilding the Steps' circulators, and the shared inspection bench where Low
+Quay's clinic sterilizer parts are checked. They are attributable labels on ordinary
+props with ordinary damage; the calibration machine is the only one the inspection
+requires.
+
+**The choice the ground makes.** The company takes dispatch and the gate in the
+open, the hall through its freight doors or by the operator entrance and gallery,
+and the entrance from outside or from the hall behind it. When dispatch first
+falls, Voss commits her finite counterattack in two groups: one down the Cinder
+Steps lane for the hall's freight doors, the other along the south road for the
+operator entrance and the gallery behind it. Because the hall has only those two
+doors, a company that has gathered at one end to escort the inspection finds the
+other door open; holding both approaches and getting a living technician to the
+calibration room are competing uses of the same squads.
+
+**Returning in Terms of Protection.** The fourth chapter revisits this map rather
+than a new one. The handover bay at dispatch is its signing point; the Cinder Steps
+lane and gate are the approach the estate guards hold under House Custody and the
+second prize-crew party takes. The secured entrance and the inspection work stay
+visible on that visit. Nothing in the third chapter depends on that visit.
 
 **The Cinder Steps** are old furnace terraces between yard and reclamation plant.
 Workers occupy sealed galleries and pressure habitats beside processing sheds,
@@ -72,8 +145,17 @@ active district heating and buried service routes. Households remain woven throu
 industry; an enemy compound can sit beside somebody's livelihood.
 
 **North Weir** controls coolant diversion and power distribution to the basin.
-Maintenance roads connect protected switching rooms, enclosed channels and pumping
-housings. Losing it interrupts work, heat and essential services. Its importance
+It is a closed-circuit reclamation plant with two circuits: intake pump groups
+on one side and settling tanks with heat exchangers on the other, joined by a
+covered conduit that service crossings pass over. Each circuit answers to its own
+sealed switching room, so reopening one room restores one visible part of the
+works rather than an abstract half of a timer. Repair loads come in from the
+western service apron and dock in a screened bay at the conduit's head, between
+the isolation switch house and a crew shelter; both are entered through pressure
+vestibules, which is how the airless setting reads without any survival
+bookkeeping. The maintenance road enters past a checkpoint, with a service track
+along the outfall line as a second approach for anyone holding the road.
+Losing the weir interrupts work, heat and essential services. Its importance
 comes from the people and machinery it serves, not an unexplained strategic label.
 
 **Black Sluice** is the basin complex's outer fuel and dispatch apron. Protected

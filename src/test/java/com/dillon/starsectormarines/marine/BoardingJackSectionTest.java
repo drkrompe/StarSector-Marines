@@ -1,0 +1,83 @@
+package com.dillon.starsectormarines.marine;
+
+import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+/**
+ * The pirate Boarding Jack is a tier-III assault suit a rung below military issue, worn in a
+ * light section card that only its story may hand out, and only once its art exists.
+ */
+class BoardingJackSectionTest {
+
+    private static final String SUIT = "armor.boarding-jack";
+    private static final LoadoutCard CARD = new LoadoutCard(LoadoutCard.Kind.SHEET,
+            SquadEquipmentDoctrines.BOARDING_JACK_SECTION_ARMOR);
+
+    @Test
+    void theSuitSitsInTheRecoveredRungWithItsOwnTrade() {
+        MarineArmorCatalogDef jack = MarineArmorCatalogRegistry.require(SUIT);
+        MarineArmorCatalogDef specter = MarineArmorCatalogRegistry.require("armor.specter-recovered");
+        MarineArmorCatalogDef foundry = MarineArmorCatalogRegistry.require("armor.foundry-breaker");
+        assertEquals(ArmorClass.POWER_SUIT, jack.armorClass());
+        assertEquals(ArmorRole.ASSAULT, jack.role());
+        assertEquals(ArmorTradition.PIRATES, jack.tradition());
+        assertEquals(3, jack.tier());
+        // A larger raw reserve than the recovered Specter, bought with resistance and handling.
+        assertTrue(jack.armorCapacity() > specter.armorCapacity());
+        assertTrue(jack.armorRating() < specter.armorRating());
+        assertTrue(jack.moveSpeedMult() < specter.moveSpeedMult());
+        assertTrue(jack.incomingAccuracyMult() > specter.incomingAccuracyMult());
+        // Still far below the tier-IV crude rig it must not be mistaken for.
+        assertTrue(jack.armorCapacity() < foundry.armorCapacity() / 2f);
+        assertNotEquals(foundry.appearanceFamily(), jack.appearanceFamily());
+        assertEquals(LayeredArmorFamily.BOARDING_JACK, jack.appearanceFamily());
+    }
+
+    @Test
+    void latchAssistIsTheExistingBreacherAssistAndNothingMore() {
+        IntegralSystemDef latch = MarineArmorCatalogRegistry.require(SUIT).integralSystem();
+        IntegralSystemDef breach = MarineArmorCatalogRegistry.require("armor.foundry-breaker").integralSystem();
+        assertEquals(breach.effect(), latch.effect());
+        assertEquals(2.0f, latch.durationSeconds(), 1e-6f);
+        assertEquals(22.0f, latch.cooldownSeconds(), 1e-6f);
+        assertEquals(1.15f, latch.breacherAssist().moveSpeedMult(), 1e-6f);
+        assertEquals(4.0f, latch.breacherAssist().screenSoak(), 1e-6f);
+        assertEquals(100.0f, latch.breacherAssist().shieldedArcDegrees(), 1e-6f);
+    }
+
+    @Test
+    void theSectionIsLightAndCarriesEveryPatternItWears() {
+        MarineArmory armory = new MarineArmory();
+        LoadoutCardLearning.learn(armory, CARD.id());
+        SquadArmorPlan plan = SquadEquipmentDoctrines.armorPlanById(CARD.sheetId());
+        List<String> issued = armory.issue(plan).issueIds();
+        assertEquals(MarineSquad.CAPACITY, issued.size());
+        assertEquals(2, issued.stream().filter(SUIT::equals).count());
+        assertTrue(issued.stream().filter(id -> MarineArmorCatalogRegistry.require(id).armorClass()
+                == ArmorClass.POWER_SUIT).count() <= 4, "the arc's kit ceiling is four powered billets");
+    }
+
+    @Test
+    void onlyItsStoryCanReachItAndNotBeforeItsArtShips() {
+        String template = EquipmentTemplateCatalog.armorId(SUIT);
+        assertEquals("a-small-war", EquipmentTemplateCatalog.installed().storySource(template));
+        assertFalse(FactionEquipmentCatalog.installed().entries().stream()
+                .flatMap(pool -> pool.offers().stream())
+                .anyMatch(offer -> offer.templateId().equals(template)));
+        assertTrue(CARD.storyReserved());
+        assertFalse(CARD.presentationDeclared());
+        assertFalse(LoadoutCards.all().contains(CARD));
+        assertThrows(IllegalArgumentException.class, () -> LoadoutCardItemPlugin.itemData(CARD.id()));
+        // The recovered Specter section next to it stays an ordinary, awardable card.
+        assertTrue(new LoadoutCard(LoadoutCard.Kind.SHEET,
+                SquadEquipmentDoctrines.CORPORATE_SPECTER_SECTION_ARMOR).presentationDeclared());
+    }
+}

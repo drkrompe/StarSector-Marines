@@ -15,10 +15,11 @@ public final class YardOwnersCommand implements AutonomousMissionCommand<YardOwn
         final List<Integer> constables;
         final boolean dispatchVisited, entranceVisited;
         final boolean companyCover;
-        public Frame(CommandFrame base, Phase phase, int x, int y, int technician, boolean companyCover, List<Integer> constables, boolean dispatchVisited, boolean entranceVisited) {
+        final List<Integer> reserves;
+        public Frame(CommandFrame base, Phase phase, int x, int y, int technician, boolean companyCover, List<Integer> constables, boolean dispatchVisited, boolean entranceVisited, List<Integer> reserves) {
             super(base.tick(), base.perspective(), base.squads(), base.influence(), base.topology(), base.assignments());
             this.phase = phase; this.x = x; this.y = y; this.technician = technician; this.companyCover = companyCover; this.constables = List.copyOf(constables);
-            this.dispatchVisited = dispatchVisited; this.entranceVisited = entranceVisited;
+            this.dispatchVisited = dispatchVisited; this.entranceVisited = entranceVisited; this.reserves = List.copyOf(reserves);
         }
     }
     public static CommandFrameDisclosure<Frame> disclosure(YardOwnersSequence sequence) {
@@ -26,8 +27,9 @@ public final class YardOwnersCommand implements AutonomousMissionCommand<YardOwn
             var base = CommandFrame.freeze(view, faction, topology, assignments);
             var phase = sequence.progress().phase();
             var site = LatchkeyYard.SITES.get(phase.ordinal() < 3 ? phase.ordinal() : 1);
-            int x = faction == Faction.DEFENDER ? 94 : site.x();
-            int y = faction == Faction.DEFENDER ? 65 : site.y();
+            var hall = LatchkeyYard.SITES.get(1);
+            int x = faction == Faction.DEFENDER ? hall.x() : site.x();
+            int y = faction == Faction.DEFENDER ? hall.y() : site.y();
             boolean covered = false;
             if (faction == Faction.ALLY) {
                 var company = CommandFrame.freeze(view, Faction.MARINE, topology, assignments);
@@ -36,7 +38,7 @@ public final class YardOwnersCommand implements AutonomousMissionCommand<YardOwn
                 covered = !alarm && company.squads().stream().anyMatch(s -> s.aliveMembers() > 0
                         && Math.hypot(s.centroidX() - x, s.centroidY() - y) < 20);
             }
-            return new Frame(base, sequence.progress().phase(), x, y, sequence.technicianSquadId(), covered, sequence.constableSquadIds(), sequence.progress().visited(0), sequence.progress().visited(2));
+            return new Frame(base, sequence.progress().phase(), x, y, sequence.technicianSquadId(), covered, sequence.constableSquadIds(), sequence.progress().visited(0), sequence.progress().visited(2), sequence.reserveSquadIds());
         };
     }
     private final Faction faction;
@@ -75,7 +77,10 @@ public final class YardOwnersCommand implements AutonomousMissionCommand<YardOwn
                     x = Math.round(squad.centroidX()); y = Math.round(squad.centroidY());
                 } else { x = LatchkeyYard.SITES.get(1).x(); y = LatchkeyYard.SITES.get(1).y(); advance = true; radius = 2; }
             } else {
-                var site = LatchkeyYard.SITES.get(squad.squadId() % 2 == 0 ? 1 : 2);
+                // Each committed group goes for the place its ingress serves: the Cinder Steps group for the
+                // hall's freight doors, the south-road group for the operator entrance and the gallery behind it.
+                int group = frame.reserves.indexOf(squad.squadId());
+                var site = LatchkeyYard.SITES.get(group >= 0 ? 1 + group % 2 : squad.squadId() % 2 == 0 ? 1 : 2);
                 x = site.x(); y = site.y();
             }
             int best = Integer.MAX_VALUE, bx = Math.round(squad.centroidX()), by = Math.round(squad.centroidY());
