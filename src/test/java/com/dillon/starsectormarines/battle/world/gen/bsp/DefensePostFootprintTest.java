@@ -184,7 +184,7 @@ public class DefensePostFootprintTest {
                 null, CX, CY, new Random(1));
         assertEquals(8, doodads.size());
         assertTrue(doodads.stream().noneMatch(d -> TileManifest.DOODAD_SHEET.equals(d.sheetPath)));
-        assertEquals(8, doodads.stream().map(d -> d.tile.col + "," + d.tile.row).distinct().count());
+        assertEquals(8, doodads.stream().map(d -> d.sheetPath + "|" + d.tile.col + "," + d.tile.row).distinct().count());
     }
 
     @Test
