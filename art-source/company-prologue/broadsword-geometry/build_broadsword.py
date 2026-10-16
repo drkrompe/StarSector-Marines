@@ -63,7 +63,7 @@ ROOT = 'Broadsword root'
 # fighter size. The canopy is broad (1.95 m at the sill against 0.9-1.3 m
 # on real aircraft): read as the sprite's wide glazed hood, not a tighter
 # scale. To sit her beside a hull at another scale, scale the root by
-# METRES_PER_UNIT / that hull's (0.50 / 0.65 = 0.77 for the Legion).
+# METRES_PER_UNIT / that hull's (0.50 / 0.61 = 0.82 for the Legion).
 METRES_PER_UNIT = 0.50
 SCALE_RANGE = (0.43, 0.57)
 PILOT_SEAT_X = 6.3  # seat back; legs run forward under the glass
@@ -292,9 +292,10 @@ if not args.no_save:
                                'person 1.8 m in units': round(1.8/m, 2),
                                'seated 1.8 m pilot head clearance under the canopy': round(pilot_clearance(), 2)},
             'range': list(SCALE_RANGE),
-            'beside_the_legion': 'scale the root by %.2f (0.50 / 0.65); her %.1f m span then clears the Legion forward '
-                                 'hangar mouth (23.4 m) and the aft mouth (14.3 m wide, 7.8 m high) by only '
-                                 '0.2 m: fighters leave the under-wing hangars through the mouths' % (m/.65, size[1]*m),
+            'beside_the_legion': 'scale the root by %.2f (0.50 / the Legion 0.61, legion-geometry at 496340563); '
+                                 'her %.1f m span is about %.0f Legion units, inside its hangar tunnels (being widened '
+                                 'to about 40 forward and 46 aft for the Hoplon); fighters leave through the mouths '
+                                 'under the wing arms' % (m/.61, size[1]*m, size[1]*m/.61),
             'not_this': 'landed-ships-true-scale.md (battle-map readability) is a different, smaller number',
         },
         'sprite': {'size': [30, 33], 'center': [15, 13],

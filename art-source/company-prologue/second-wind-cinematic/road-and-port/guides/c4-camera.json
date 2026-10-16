@@ -5,18 +5,18 @@
   24
  ],
  "plate_scale": 2,
- "duration_s": 20.0,
+ "duration_s": 18.375,
  "altitude_m": 220.0,
  "speed_m_s": 62.0,
  "hfov_deg": 50.0,
  "focal_px": 2058.7,
  "lens_mm_36": 38.6,
  "horizon_y": 180.0,
- "sill_y": 712.0,
- "sill_ground_m": 851,
+ "sill_y": 860.0,
+ "sill_ground_m": 666,
  "camera_x": [
-  0.0,
-  1240.0
+  296.0,
+  1435.25
  ],
  "sun_toward": [
   -0.61,
@@ -34,14 +34,14 @@
    "d_rep": 8000.0,
    "haze": 0.55,
    "rate_px_s": 16.0,
-   "travel_px": 319.1,
+   "travel_px": 293.2,
    "plate": [
-    4864,
+    4816,
     2160
    ],
    "x_range_m": [
-    -4104,
-    5344
+    -3808,
+    5539
    ],
    "screen_y_band": [
     187.5,
@@ -58,14 +58,14 @@
    "d_rep": 2500.0,
    "haze": 0.3,
    "rate_px_s": 51.1,
-   "travel_px": 1021.1,
+   "travel_px": 938.2,
    "plate": [
-    6272,
+    6112,
     2160
    ],
    "x_range_m": [
-    -1282,
-    2522
+    -986,
+    2718
    ],
    "screen_y_band": [
     299.2,
@@ -82,14 +82,14 @@
    "d_rep": 1350.0,
    "haze": 0.16,
    "rate_px_s": 94.5,
-   "travel_px": 1891.0,
+   "travel_px": 1737.3,
    "plate": [
-    8016,
+    7712,
     2160
    ],
    "x_range_m": [
-    -692,
-    1932
+    -396,
+    2128
    ],
    "screen_y_band": [
     446.4,
@@ -106,18 +106,42 @@
    "d_rep": 950.0,
    "haze": 0.08,
    "rate_px_s": 134.4,
-   "travel_px": 2687.2,
+   "travel_px": 2468.8,
    "plate": [
-    9600,
+    9168,
     2160
    ],
    "x_range_m": [
-    -487,
-    1727
+    -191,
+    1923
    ],
    "screen_y_band": [
     591.7,
     719.2
+   ]
+  },
+  {
+   "id": "L4f-fore",
+   "name": "Foreground fields under the sill",
+   "y_band": [
+    640.0,
+    840.0
+   ],
+   "d_rep": 730.0,
+   "haze": 0.05,
+   "rate_px_s": 174.9,
+   "travel_px": 3212.9,
+   "plate": [
+    10656,
+    2160
+   ],
+   "x_range_m": [
+    -78,
+    1810
+   ],
+   "screen_y_band": [
+    719.2,
+    887.7
    ]
   },
   {

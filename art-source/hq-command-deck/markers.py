@@ -67,6 +67,11 @@ FLOOR_CONTACTS = {
 
 # Where each figure stands, in world metres relative to the table (x right of the
 # table's centre line, z behind its front face). Chosen, not measured.
+# The painting's props do not share one scale: at the monitor's scale a real-height
+# person reads as a giant. Figures are drawn at this fraction of their real height,
+# chosen by eye against the desk and table. It applies to every figure alike.
+FIGURE_SCALE = 0.70
+
 FIGURE_STANDS = {
     "castle": {"x": 0.45, "z_from_back": 0.15, "height_m": 1.68,
                "note": "At the far edge of the table, right of centre, facing the viewer."},
@@ -227,11 +232,13 @@ def main():
     for fid, spec in FIGURE_STANDS.items():
         z = back_z + spec["z_from_back"] if "z_from_back" in spec else front_z + spec["z"]
         feet = anchor(f"{fid}-feet", "figure-stand", [spec["x"], 0.0, z], spec["note"])
-        head = cam.project(feet + [0.0, spec["height_m"], 0.0])
-        anchor(f"{fid}-head", "figure-head", feet + [0.0, spec["height_m"], 0.0])
+        drawn = spec["height_m"] * FIGURE_SCALE
+        head = cam.project(feet + [0.0, drawn, 0.0])
+        anchor(f"{fid}-head", "figure-head", feet + [0.0, drawn, 0.0])
         fx, fy = cam.project(feet)
         figures.append({"id": fid, "feetPx": r1((fx, fy)), "headPx": r1(head),
-                        "heightPx": round(fy - head[1], 1), "heightM": spec["height_m"]})
+                        "heightPx": round(fy - head[1], 1), "heightM": spec["height_m"],
+                        "figureScale": FIGURE_SCALE})
 
     table_w = float(np.linalg.norm(quad_world[3] - quad_world[2]))
     table_d = float(back_z - front_z)

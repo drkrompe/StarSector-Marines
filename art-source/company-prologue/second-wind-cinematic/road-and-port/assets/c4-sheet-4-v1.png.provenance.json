@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a1467e-ce83-7bf1-90fb-ce3524ea41cc",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1467e-ce83-7bf1-90fb-ce3524ea41cc\\exec-6abbaeb1-6d84-47dd-bbf0-00dcf696ff45.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\road-and-port\\assets\\c4-sheet-4-v1.png",
+    "sha256": "16fb4f3d5f50e8440b354796325d0d2c7d0e8a5819c45124e172f34ab24a1702",
+    "dimensions": [
+      1886,
+      834
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\road-and-port\\prompts\\c4-sheet-4-v1.txt",
+  "promptSha256": "68a109c5d7a7fe1f61aff33ef09671c80c2aae55d570988514ca951379163e07",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: clay sheet of separate panoramic strips on black; keep every strip, bar and form in place\nImage 2: Material/style only: an approved painted sheet from the same shot; match its light, colour, texture and level of detail; not layout\n\nGrounded, photographic science-fiction film. These are background plates for one continuous sideways travelling shot out of a ship's side window, about 220 metres above a flat tropical river plain on the planet Jangala, late morning. The plates are painted as long panoramic bands that slide past at different speeds, so every band must be seamless left to right, with nothing that leans or converges.\n\nImage 1 is the GEOMETRY AND LAYOUT AUTHORITY: a sheet of clay massing renders. It is NOT one picture. It holds separate long horizontal panoramic strips stacked on a black background, divided by solid black bars. Repaint each strip on its own, in place:\n- Keep the black bars, the black margin and every strip's top and bottom edge exactly where they are, pure black, untouched. Do not join, merge or blend strips across the bars. Do not add borders.\n- Inside each strip keep every form exactly where it is, at exactly that size and that perspective: the horizon of each strip, field edges, the road, verges, tree crowns, buildings, fences and roofs. Do not move, add or remove large forms, do not change the camera, do not widen, crop, stretch or compress. Repaint every clay surface as the real thing it stands for, with real texture.\n- Where a strip shows flat pale blue-grey sky above its land, keep that sky perfectly flat and plain, the same pale blue-grey, with no clouds, haze gradient, birds or distant land in it: it is a matte that gets cut away. Tree crowns and roofs against it keep crisp, clean edges.\n- Land is laid out in long strips running left to right: crop rows, furrows, verges, ditches and hedges all run horizontally across the strip and never turn toward the viewer, converge, or cross.\n- No moving things: no vehicles on any road or field, no aircraft, no people, no animals, no smoke or dust plumes. Those are separate layers.\n\nLight: one sun, high (about 50 degrees) and BEHIND the viewer to the LEFT. Everything is front-lit from the upper left; shadows fall to the right and slightly away. Humid tropical late-morning daylight, soft but sunny. Atmospheric perspective as in the clay: the haze already in each strip is correct for its distance, keep its overall brightness and contrast.\nScale: seen from a few hundred metres up and far away. Trucks would be tiny, people invisible, buildings modest. Real-world aerial-photograph detail: futuristic but lived-in agricultural and industrial colony world.\nStyle: photographic, cinematic realism, natural colour. Not a toy, miniature, tilt-shift, low-poly render, painting, map or cartoon. No text, labels, logos, borders, window frame, lens flare or vignette.\n\nThis sheet, top to bottom:\n\nStrip 1 (about 1 km away): the edge of a Hegemony-built spaceport behind a perimeter fence. At the far left a block of dense native jungle. Along the bottom a pale grass verge and the edge of rough pasture. A tall chain-link perimeter fence on posts runs the whole width with slim floodlight masts. Behind it weathered concrete: a freight gate (a heavy painted yellow steel gate frame) with a short queue of three parked freight trailers waiting on the gate spur, a long low corrugated-steel freight shed with a pitched roof, more low prefabricated sheds. Industrial, stained, lived-in, slightly futuristic.\n\nStrip 2 (about 1.1-1.7 km away): long crop strips running the full width, an irrigation canal glinting along the top part, a ragged belt of tall tropical trees along the top edge. On the right a farmstead yard on packed earth: three white steel grain silos, a barn with a metal roof, a small house.\n\nStrip 3 (same band, further along): the same farmstead and crop strips at the left, then a block of dense native jungle, then the freight terminal of the spaceport: a perimeter fence, a big weathered concrete truck apron with a few parked trailers, long sawtooth-roofed freight warehouses, rows of stacked shipping containers in faded rust-red, grey and blue, light masts. A ragged belt of tall trees along the top.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\road-and-port\\guides\\sheets\\c4-sheet-4-guide.png",
+      "sha256": "52c5d4adaebff8ea5411fcce7618c1ba96bb4d0a9ce00aca3c91a276c8579dd7",
+      "dimensions": [
+        1886,
+        834
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: clay sheet of separate panoramic strips on black; keep every strip, bar and form in place"
+    },
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\road-and-port\\assets\\c4-sheet-3-v1.png",
+      "sha256": "7c3c5d345301e83001a4f7484937c67d0ca22917fecc7bcf9f512adf016f74c7",
+      "dimensions": [
+        1886,
+        834
+      ],
+      "mode": "RGB",
+      "role": "Material/style only: an approved painted sheet from the same shot; match its light, colour, texture and level of detail; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image, using Image 1 for the exact strip layout and Image 2 for materials, light, colour and detail."
+  ],
+  "usage": {
+    "input_tokens": 46022,
+    "cached_input_tokens": 28416,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1083,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 77.3
+}
