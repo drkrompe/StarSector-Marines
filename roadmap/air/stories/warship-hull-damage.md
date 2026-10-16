@@ -1,6 +1,6 @@
 # Story — Warship hull damage: plating, sections and the core
 
-Status: ACTIVE — slices 1 (plating and hit place), 2 (visible damage) and 3 (degraded mounts; fires drawn) built; breaking up and crippling open
+Status: ACTIVE — slices 1 (plating and hit place), 2 (visible damage, interior fill) and 3 (degraded mounts; fires drawn) built; breaking up and crippling open
 
 Written: 2026-10-16
 
@@ -120,12 +120,18 @@ The hull is drawn the way `HullWreckRenderer` draws a broken aircraft: as rows o
 the game's own hull sprite on the plating lattice, never by editing art.
 
 - **Intact cells** draw normally, as long runs (an undamaged hull is still one quad).
-- **Stripped plate** darkens and takes a scorch: the base game's own burn and crack decals, laid deterministically
+- **Stripped plate** shades gently (a battered hull still reads as the ship, never a black silhouette) and takes a scorch: the base game's own burn and crack decals, laid deterministically
   by cell, multiplied over the plating, more of them the more plate is gone.
-- **Breached plate band cells** are cut away: the plate run is not drawn there, and the same source rectangle is
-  drawn beneath at a charred, structural tint, inset a little, so the eye reads torn plating over exposed frames.
-- **Breached core cells** are cut through: nothing is drawn, the ground shows through a crater in the ship, edged by
-  the dark frames of the cells around it.
+- **Breached cells show the ship's insides, not the ground.** Plate band cells draw torn frames, ribs and decks;
+  core cells draw gutted compartments, twisted conduit and scorched bulkheads. Both come from seamless interior
+  sheets the mod ships (`mod/graphics/warship-damage/`, sources and Codex ImageGen prompts under
+  `art-source/warship-hull-damage/`), tinted to the builder's metal (warm low tech, cool high tech). Cells are
+  grouped into hunks of three by three that share one hashed window and quarter turn of the sheet, so structure
+  carries across cells and neighbouring hunks are different pieces. A breached cell on the hull's outline draws its
+  own piece of the hull sprite burnt and holed instead, so the silhouette stays the ship's.
+- **The rim of a breach is torn plate**, not a cell boundary: a strip of ragged lip from a keyed edge sheet is laid
+  along every side where a breach meets standing hull, its plate over the standing cell and its lip reaching in.
+- Holes to the ground are left to the hull breaking apart (slice 4); a holed but whole ship never shows grass.
 - **A fresh breach glows**: the cells around a new breach glow molten orange and fade over a few seconds, and the
   breach throws a short burst of debris and sparks. Breached sections burn (slice 3).
 - The whole-hull charcoal tint is retired in favour of the cells; the shadow is the hull's own sprite as before
@@ -136,8 +142,8 @@ the game's own hull sprite on the plating lattice, never by editing art.
 - A falling and fallen wreck keeps its cut, burnt darker.
 
 Built (slices 2 and 3), read in `hull-broadside`'s close GIF: the struck side darkens and scorches over the first twenty
-seconds, gives way as a dark gash of exposed frames, and the waist is cut through to the ground by the end, with
-breaches glowing as they open and burning after. A mount whose slot cell is breached is knocked
+seconds, then gives way to torn frames edged with ragged plate, and by the end the waist is a gutted wreck of
+compartments with the ship's outline intact, breaches glowing as they open and burning after. A mount whose slot cell is breached is knocked
 out for the rest of the battle and no longer drawn; the heading choosers (ground fire's and ship fire's) count only
 the guns a hull has left, so a capital that has lost its broadside battery swings to bring what remains to bear. In
 the scene both Onslaughts lose their engaged battery and turn bow-on, and the bow then takes the punishment. Fires

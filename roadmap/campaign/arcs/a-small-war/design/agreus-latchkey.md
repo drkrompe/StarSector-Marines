@@ -4,7 +4,7 @@ Status: DRAFT — original local setting direction on an existing vanilla world 
 
 Written: 2026-10-13
 
-Updated: 2026-10-16 — the Terms of Protection visit (constables' post, rig tooling, terrace mortar pit); connected compounds; who posts the district escort work; Black Sluice's causeway, galleries, fuel control, tank farm and service road.
+Updated: 2026-10-16 — Black Sluice's docking compound for the landed Venture and Hounds. Earlier: the Terms of Protection visit (constables' post, rig tooling, terrace mortar pit); connected compounds; who posts the district escort work; Black Sluice's causeway, galleries, fuel control, tank farm and service road.
 
 ## Scope and provenance
 
@@ -178,8 +178,14 @@ comes out behind the fuel-control house, out of the road gun's sight. The custom
 stands at the causeway's landward end beside a working bay where a tender can
 set down a rear position. The sheltered fuel-control house stands at the seaward
 end, with the marked tank farm behind it and a support-gun position on the road
-in front of it. Dispatch occupies the pier beyond. A separate service road leaves
-the apron to the east: the way Greyhook's crews come and go, and the way out.
+in front of it. Dispatch occupies the pier beyond. Past the pier is the walled
+docking compound where Greyhook's ships sit landed at their true size beside
+the people working them (`landed-ships-true-scale.md`): a sunken cradle for the
+Venture with a Hound berth either side of it, gantry arms out to the hulls, fuel
+and cargo lines along the aisles, sealed galleries along its north and south
+walls, and pressure vestibules through its landward wall. A separate service
+road runs east to a vehicle pressure lock under the compound wall: the way
+Greyhook's crews come and go, and the way out.
 
 Open yards are airless and cold. Exterior workers and combatants use appropriate
 pressure protection; occupied interiors have life support. Tactical art, equipment

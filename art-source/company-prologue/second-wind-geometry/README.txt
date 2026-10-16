@@ -7,38 +7,50 @@ The surfaced damaged cinematic master is a separate derivative under
 ../second-wind-cinematic/second-wind-full-surface/.
 
 Purpose
-Restore heavier industrial hull volumes and layered construction while retaining
-V2's corrected forward port pod and engine layout. This is an editable blockout, not
+A gritty industrial reading of the vanilla Cerberus sprite: planform, engine
+pods, spine and the port-side fitting are measured off it. This is an editable blockout, not
 a production game mesh or an assertion of canonical Cerberus interior geometry.
 All four views render the SAME mesh objects; only the active camera changes.
 
 Coordinates and decisions
 +X = bow; +Y = port; +Z = dorsal. Hull and bay deck datum are level.
-The forward port appendage is proposed as a low horizontal service/airlock pod,
-long axis parallel to X. Its center is (37,33,1), dimensions (19,8,6).
-Its function and height are art interpretation; the game sprite does not supply
-those facts. The pod is not a mast and there is no mirrored starboard pod.
+The sprite's one asymmetric fitting, on the port bow flank (about x 28..48,
+y 24..34), is read as a boarding/cargo grapple: a grey machinery sponson with
+winch and work lights hung on the flank, and a two-segment arm folded flat
+along the citadel edge with its grapple head parked by the nose block; a small
+davit stands over the port bay. Its function is art interpretation; the sprite
+supplies only the shape. There is no starboard counterpart.
 
 Four aft-facing engine centers retain vanilla warhound.ship (hullId cerberus)
 XY locations: (-41,31), (-39,24), (-39,-24), (-41,-31).
 All four are at proposed Z=0. Outer pair is larger and slightly farther aft.
-Vanilla engine-slot widths 12:8 supply the 3:2 relative size; solid nozzle radii
-are 0.31 * slot width to leave space between collars. Effect widths are not
+Vanilla engine-slot widths 12:8 supply the 3:2 relative size of the nozzle
+mouths (radii 3.9 and 2.6). Effect widths are not
 treated as literal solid nozzle diameters. No metre scale is claimed.
 Four weapon mount XY locations also follow that vanilla hull specification.
 
 V3 shell construction (detail passes, 2026-10-16)
-The hull is a union of flat-shaded prism blocks rather than one smooth loft:
-vertical walls, flat deck plateaus, and chines of constant width. The
-forebody planform is measured off the vanilla Cerberus sprite (widest +-32
-over x 30..40) and then cut by flat armour planes into a faceted shield: a
-glacis falling to a raked nose, raked cheek faces at the bow shoulders,
-sloped citadel shoulders and a raked chin. The two aft arms are separate
-engine nacelles, wider than the waist and taller than the main deck, each
-faceted, belted at the nozzle line and joined to the centre body by a low
-neck; the stern notch between them holds an open machinery frame. The
-earlier smooth and inflated experiments looked organic and were rejected;
-no Gaussian or spline swelling is used. The port pod, four engines and bay
+The hull is assembled from flat-shaded blocks, not one smooth loft. Sections
+are one keel chamfer, one vertical wall and one shoulder chamfer; a stack of
+chamfers read as a rounded pebble in side view and was removed. The forebody
+planform is measured off the sprite (widest +-31.5 over x 30..40, closing in
+three large flats to a +-8 nose) and is split into separate armour sections
+with dark seam gaps, with hard horizontal strata in side view: steel keel
+plate, lower wall, steel belt plates, upper wall, an overhanging deck-edge
+lip and the citadel deck plate. Flat armour planes keep the bow angled: a
+glacis falling to a raked nose with a cream nose block, raked cheeks and a
+raked chin.
+
+Engine pods
+Each aft mound is a whole drive unit bolted to the ship, not hull with
+nozzles poking out of it: an intake cap, an armoured cowl over a steel lower
+casing (carrying the turret platform), reinforcing bands around a recessed
+heat-sink section with fins, and a two-bay thrust housing whose aft faces
+are the exhausts, with the bells sunk into them. Every section is separated
+by a seam over a dark core. A low pylon with coolant and fuel lines ties each
+pod to the centre body; the stern notch between them holds an open machinery
+frame. Smooth and inflated experiments looked organic and were rejected; no
+Gaussian or spline swelling is used. The four engine centres and the bay
 thresholds retain their V2 coordinates.
 
 Command deck
@@ -70,9 +82,9 @@ repaired, and no runtime art or gameplay is changed by this source reference.
 Files
 second-wind-geometry.blend: saved editable Blender 5.2 scene, cameras and objects.
 build_reference.py: deterministic scene and camera construction; runs in Blender.
-  sw_hull.py, sw_engines.py, sw_bridge.py, sw_turrets.py: one module per detail area, so
+  sw_hull.py, sw_engines.py, sw_bridge.py, sw_turrets.py, sw_port_module.py: one module per area, so
   separate passes do not edit the same file; sw_kit.py holds shared materials
-  and primitives. Engines and the pod stay locked in build_reference.py.
+  and primitives; sw_port_module.py builds the port grapple.
 geometry.json: coordinates and provenance for the proposed layout.
 port-quarter.png, top.png, port-side.png, stern.png: direct Blender guide renders.
 compose_guide.py: Pillow composition of those untouched renders into a guide.

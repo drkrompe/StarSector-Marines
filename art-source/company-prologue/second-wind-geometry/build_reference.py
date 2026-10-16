@@ -8,7 +8,7 @@ depth are proposed art geometry, not canonical game dimensions.
 Detail lives in one module per area so separate passes do not collide:
 sw_hull (forebody shell, bow facets, bays, armor), sw_engines (aft engine pods
 and stern), sw_bridge (dorsal casings, command deck, spine), sw_turrets; sw_kit holds the
-shared materials and primitives. Engines and the port pod are locked here.
+shared materials and primitives; sw_port_module builds the port grapple.
 
 Review options, after a literal "--":
   --out DIR        write renders, .blend and geometry.json to DIR instead
@@ -32,8 +32,8 @@ from mathutils import Vector
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-import sw_kit, sw_hull, sw_engines, sw_bridge, sw_turrets
-for module in (sw_kit, sw_hull, sw_engines, sw_bridge, sw_turrets):
+import sw_kit, sw_hull, sw_engines, sw_bridge, sw_turrets, sw_port_module
+for module in (sw_kit, sw_hull, sw_engines, sw_bridge, sw_turrets, sw_port_module):
     importlib.reload(module)
 
 parser = argparse.ArgumentParser()
@@ -58,37 +58,9 @@ sw_hull.build_bays(kit)
 sw_hull.build_details(kit)
 sw_engines.build_details(kit)
 sw_bridge.build(kit)
+sw_port_module.build(kit)
 
-# A proposed service/airlock pod, not a standing mast: long axis +X,
-# centered below the top of the pressure hull and physically on PORT only.
-kit.box('Port service pod neck', (37,28,1), (12,8,4), kit.steel, .6)
-kit.box('PORT SERVICE POD - fixed low horizontal body', (37,33,1), (19,8,6), kit.podmat, 2)
-kit.cylinder('Pod outward access hatch', (37,37.1,1), 2.2, .4, kit.steel, 'Y')
-kit.box('Pod dorsal inspection plate', (37,33,4.1), (10,4,.25), kit.cream, .3)
-
-# Vanilla warhound.ship / Cerberus engineSlots: exact XY and width ratios.
-# Four fixed nozzles, two lateral pairs, all at Z=0 and pointed aft (-X).
-engines = [(-41,31,12),(-39,24,8),(-39,-24,8),(-41,-31,12)]
-for i,(x,y,width) in enumerate(engines,1):
-    # Engine-slot width describes a 2D effect, not a solid nozzle diameter.
-    # Preserve the 3:2 ratio while leaving clearance between solid collars.
-    radius = width*.31
-    kit.cylinder(f'Engine {i} body', (x+6,y,0), radius, 8, kit.steel, 'X')
-    # A genuine open nozzle mesh: large aft mouth and narrower dark throat.
-    ev=[]
-    for ex,rr in ((x-2,radius),(x+2,radius*.66)):
-        ev += [(ex,y+rr*math.cos(t*math.tau/48),rr*math.sin(t*math.tau/48)) for t in range(48)]
-    ef=[(t,(t+1)%48,48+(t+1)%48,48+t) for t in range(48)]
-    em=bpy.data.meshes.new(f'Engine {i} nozzle mesh')
-    em.from_pydata(ev,[],ef)
-    em.update()
-    eo=bpy.data.objects.new(f'Engine {i} aft-facing nozzle',em)
-    bpy.context.collection.objects.link(eo)
-    eo.data.materials.append(kit.dark)
-    kit.cylinder(f'Engine {i} dark throat', (x+1.95,y,0), radius*.66,.1,kit.dark,'X')
-    bpy.ops.mesh.primitive_torus_add(major_radius=radius,minor_radius=.25,major_segments=48,minor_segments=10,location=(x-2,y,0),rotation=(0,math.pi/2,0))
-    kit.finish(bpy.context.object,f'Engine {i} mouth rim',kit.steel)
-
+sw_engines.build_nozzles(kit)
 sw_turrets.build(kit)
 
 scene=bpy.context.scene
@@ -158,11 +130,11 @@ if not args.no_save:
         'status':'Proposed geometry reference; no scene art or gameplay changes',
         'axes':{'+X':'bow','+Y':'port','+Z':'dorsal'},
         'units':'Vanilla hull-space units; no canonical metre scale asserted',
-        'revision':'V3 detail: sprite-measured faceted bow, separate engine nacelles, spine command deck, naval turrets',
-        'thickness_profile':{'method':'Upper Z uses plateaus and linear chamfer transitions between stations; lower hull has uniform 1.25 depth multiplier for level keel', 'stations':sw_hull.THICKNESS_STATIONS, 'deck_datum':0, 'attachments':'Engine and port-pod coordinates unchanged from V2'},
+        'revision':'V3 detail: segmented sprite-measured hull, whole engine pods, spine command deck, port grapple, naval turrets',
+        'thickness_profile':{'method':'Flat deck plateaus (x0, x1, deck z) over single-chamfer sections; level keel', 'stations':sw_hull.THICKNESS_STATIONS, 'deck_datum':0, 'attachments':'Engine centres unchanged from V2'},
         'engine_source':'starsector-core/data/hulls/warhound.ship engineSlots',
-        'engines':[{'location':[x,y,0],'width':w,'exhaust_direction':[-1,0,0]} for x,y,w in engines],
-        'pod':{'center':[37,33,1],'dimensions':[19,8,6],'long_axis':'+X','function':'Proposed service/airlock pod; not canonical lore'},
+        'engines':[{'location':[x,y,0],'width':w,'exhaust_direction':[-1,0,0]} for x,y,w in sw_engines.ENGINES],
+        'port_fitting':{'extent_x':[28.5,48],'extent_y':[24,34.3],'function':'Proposed boarding/cargo grapple sponson and folded arm, read from the sprite; not canonical lore'},
         'cameras':[{'name':name,'position':list(pos),'orthographic_scale':scale} for name,pos,scale in cameras],
         'bay_state':{'port':'open, empty cradle','starboard':'sealed, awaits repair'},
         'mesh_authority':'All views render the same objects; generated surface art is subordinate to this geometry.'

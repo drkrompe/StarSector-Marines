@@ -36,8 +36,9 @@ public final class SmallWarForces {
                     166, 56, "dispatch house", Commitment.AT_START, -1, SplitSide.HOLDS),
             new Group("prize-crew-gate", "Prize crew, dispatch gate", Outfit.PRIZE_CREW, 4,
                     155, 60, "dispatch gate", Commitment.AT_START, -1, SplitSide.WITHDRAWS),
+            // The pier crew stand watch at the Venture's stern gantry in the docking compound, beside the prize ship.
             new Group("prize-crew-pier", "Prize crew, pier", Outfit.PRIZE_CREW, 4,
-                    184, 52, "pier berth", Commitment.AT_START, -1, SplitSide.HOLDS),
+                    205, 65, "Venture's stern gantry", Commitment.AT_START, -1, SplitSide.HOLDS),
             new Group("drent-reserve", "Drent Haulage transfer reserve", Outfit.DRENT_HAULAGE, 4,
                     BlackSluice.SERVICE_INGRESS_X, BlackSluice.SERVICE_INGRESS_Y, "service-road gate",
                     Commitment.CUSTOMS_FALLS, 1, SplitSide.WITHDRAWS),
