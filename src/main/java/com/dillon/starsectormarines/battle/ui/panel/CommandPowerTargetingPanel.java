@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.ui.panel;
 
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.CommandPowerService;
+import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
 import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -15,6 +16,8 @@ import com.dillon.starsectormarines.ui.Fonts;
 import com.fs.starfarer.api.input.InputEventAPI;
 
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL11.GL_ALL_ATTRIB_BITS;
@@ -41,6 +44,11 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  * World-facing half of command-power interaction. The MLX tray owns cards;
  * this panel owns the snapped map placement, target validity, cancellation,
  * and the next map click without spending resources directly.
+ *
+ * <p>A power whose call carries a pick (Mech Support's bay manifest) also owns that pick
+ * here while it is armed: it starts as the power's default and the tray's picker chips
+ * toggle entries in it. The map click sends it with the request, and target validity is
+ * judged against it, so an empty or unliftable pick keeps the card armed and spends nothing.
  */
 public final class CommandPowerTargetingPanel implements HudPanel {
 
@@ -50,6 +58,8 @@ public final class CommandPowerTargetingPanel implements HudPanel {
     private final BattleUiContext ctx;
     private static final BitmapFont FONT = Fonts.ORBITRON_12_BOLD;
     private String targetingPowerId;
+    /** The armed power's pick, or {@code null} for a power that carries none. */
+    private List<Integer> selection;
     private int mouseX;
     private int mouseY;
 
@@ -62,7 +72,49 @@ public final class CommandPowerTargetingPanel implements HudPanel {
     }
 
     public void cancel() {
+        disarm();
+    }
+
+    /** The armed power's pick in manifest order, or {@code null} when it carries none. */
+    public List<Integer> selection() {
+        return selection == null ? null : Collections.unmodifiableList(selection);
+    }
+
+    /** The armed Mech Support's manifest against the current pick; empty for any other power. */
+    public List<MechSupport.PickerRow> pickerRows() {
+        MechSupport power = armedMechSupport();
+        if (power == null || selection == null) return List.of();
+        return power.picker(ctx.getSim(), selection);
+    }
+
+    /**
+     * Toggles manifest entry {@code index} in the pick. A picked entry can always be dropped;
+     * an unpicked one joins only when it is aboard and lift allows it beside the rest.
+     */
+    public void togglePick(int index) {
+        if (selection == null) return;
+        for (MechSupport.PickerRow row : pickerRows()) {
+            if (row.entry().index() != index) continue;
+            if (row.selected()) {
+                selection.remove(Integer.valueOf(index));
+            } else if (row.callable()) {
+                selection.add(index);
+                Collections.sort(selection);
+            }
+            return;
+        }
+    }
+
+    private MechSupport armedMechSupport() {
+        BattleSimulation sim = ctx.getSim();
+        if (sim == null || targetingPowerId == null) return null;
+        CommandPower power = sim.getCommandPowerService().getPower(targetingPowerId);
+        return power instanceof MechSupport mech ? mech : null;
+    }
+
+    private void disarm() {
         targetingPowerId = null;
+        selection = null;
     }
 
     /** Arms a ready power, or cancels it when its selected card is clicked again. */
@@ -70,12 +122,15 @@ public final class CommandPowerTargetingPanel implements HudPanel {
         BattleSimulation sim = ctx.getSim();
         if (sim == null || powerId == null) return;
         if (powerId.equals(targetingPowerId)) {
-            targetingPowerId = null;
+            disarm();
             return;
         }
         CommandPowerService service = sim.getCommandPowerService();
         CommandPower power = service.getPower(powerId);
-        if (service.canActivate(power)) targetingPowerId = powerId;
+        if (!service.canActivate(power)) return;
+        targetingPowerId = powerId;
+        selection = power instanceof MechSupport mech
+                ? new ArrayList<>(mech.defaultSelection(sim)) : null;
     }
 
     @Override
@@ -88,7 +143,7 @@ public final class CommandPowerTargetingPanel implements HudPanel {
         if (targetingPowerId == null) return;
         BattleSimulation sim = ctx.getSim();
         if (sim == null || sim.getCommandPowerService().getPower(targetingPowerId) == null) {
-            targetingPowerId = null;
+            disarm();
         }
     }
 
@@ -107,7 +162,7 @@ public final class CommandPowerTargetingPanel implements HudPanel {
 
         float centerX = camera.cellToScreenX(cellX + 0.5f);
         float centerY = camera.cellToScreenY(cellY + 0.5f);
-        boolean valid = power.canTarget(cellX, cellY, sim);
+        boolean valid = power.canTarget(cellX, cellY, sim, selection);
         boolean shipGrade = OrbitalBarrage.ID.equals(power.id);
         if (shipGrade) paintDomes(sim, camera, alphaMult);
         ShieldDomeService.DomeView cover = shipGrade
@@ -273,7 +328,7 @@ public final class CommandPowerTargetingPanel implements HudPanel {
                 continue;
             }
             if (event.isRMBDownEvent()) {
-                targetingPowerId = null;
+                disarm();
                 event.consume();
                 continue;
             }
@@ -284,9 +339,10 @@ public final class CommandPowerTargetingPanel implements HudPanel {
             int cellY = (int) Math.floor(camera.screenToCellY(event.getY()));
             if (!inBounds(camera, cellX, cellY)) continue;
             CommandPower power = service.getPower(targetingPowerId);
-            if (power != null && power.canTarget(cellX, cellY, sim)) {
-                service.requestActivation(targetingPowerId, cellX, cellY);
-                targetingPowerId = null;
+            if (power != null && power.canTarget(cellX, cellY, sim, selection)) {
+                service.requestActivation(targetingPowerId, cellX, cellY,
+                        selection == null ? null : List.copyOf(selection));
+                disarm();
             }
             // Invalid targets deliberately remain armed, but still claim the click.
             event.consume();

@@ -1,11 +1,11 @@
 # Heavy equipment progression
 
 Status: DRAFT — the stock-frame baseline, learned mech patterns, vehicles in the
-mech bay and heavy lift have shipped; internal fittings and the drop choice are
+mech bay, heavy lift and the drop choice have shipped; internal fittings are
 planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-16 — weight classes set the ladder; vehicles share the mech bay; drops become a per-call choice bounded by lift.
+Updated: 2026-10-16 — the drop choice shipped: a per-call pick from the bay, a cooldown, and a mission lift budget.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -140,7 +140,7 @@ late step.
 | `mech-internal-systems.md` | Engine, plating and cooler/loader internals; engine budget; tier-scaled footprints; per-loadout heat. |
 | Heavy lift (shipped; `air-nouns.md`, Lift) | Lift class and rating; the boat lift slot; drops flown by real company carriers. |
 | Vehicles in the bay (shipped; `mechs-nouns.md`) | Vehicle patterns; a bay space holds a mech or a vehicle; losses write back. |
-| `armor-drop-selection.md` | Pick which bay spaces come down per call; cooldown between calls; lift caps armor per mission. |
+| Armor drop selection (shipped; `mechs-nouns.md`, armor drop) | Pick which bay spaces come down per call; cooldown between calls; lift caps armor per mission. |
 
 Order: pattern cards first (they license existing weapons and chassis at once),
 then internals, then lift; vehicles in the bay and the drop choice follow lift.
@@ -149,8 +149,5 @@ then internals, then lift; vehicles in the bay and the drop choice follow lift.
 
 - Should an over-budget fit be refused, or allowed at a speed penalty? Refusal is
   the recommendation: it is legible in the lab and needs no new movement rule.
-- Is the per-mission lift cap a budget spent across calls, or a per-call cap with
-  the cooldown doing the rest? The draft (`armor-drop-selection.md`) uses a
-  mission budget, so better boats mean more armor on the ground, not faster.
 - Vehicle fitting (turret swaps) is out of scope until a vehicle doll exists;
   `mech-lab-data-authored-dolls.md` is the shared seam.
