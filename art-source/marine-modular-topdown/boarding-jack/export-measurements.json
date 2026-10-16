@@ -56,7 +56,32 @@
           0.8271
         ]
       },
-      "casing_pixels": 606
+      "casing_pixels": 606,
+      "pirate": {
+        "raw_sha256": "6328f80a1eb871123e5a00e3890c3007a9d726c9b693ee8756f62b9e7391c6f7",
+        "raw_size": [
+          1576,
+          998
+        ],
+        "fit": {
+          "raw_box_on_guide": [
+            356,
+            104,
+            843,
+            688
+          ],
+          "guide_box": [
+            372,
+            152,
+            828,
+            707
+          ],
+          "scale": [
+            0.9363,
+            0.9503
+          ]
+        }
+      }
     },
     "left-shoulder": {
       "raw_sha256": "8e44f697ada7377948f961881e8982f135a8160f6a2d3fdacd501573553611a6",
@@ -96,7 +121,32 @@
           0.9917
         ]
       },
-      "casing_pixels": 1321
+      "casing_pixels": 1321,
+      "pirate": {
+        "raw_sha256": "b1980224d6ceb63c0b2eb315207457690ea2fa7b55411b55f01a231d90f919e9",
+        "raw_size": [
+          1211,
+          1299
+        ],
+        "fit": {
+          "raw_box_on_guide": [
+            71,
+            63,
+            823,
+            907
+          ],
+          "guide_box": [
+            72,
+            66,
+            817,
+            903
+          ],
+          "scale": [
+            0.9907,
+            0.9917
+          ]
+        }
+      }
     },
     "right-shoulder": {
       "raw_sha256": "dd01a112c7514b1540009012ce547f93f5f391e998ad9ce8f0dd6d2f147136b3",
@@ -136,7 +186,32 @@
           0.9902
         ]
       },
-      "casing_pixels": 551
+      "casing_pixels": 551,
+      "pirate": {
+        "raw_sha256": "343ba919303137a5f931942d38b0f7d4259fb4c54f1c5cf939b4bf385b996fcc",
+        "raw_size": [
+          1293,
+          1216
+        ],
+        "fit": {
+          "raw_box_on_guide": [
+            61,
+            42,
+            753,
+            694
+          ],
+          "guide_box": [
+            80,
+            76,
+            729,
+            685
+          ],
+          "scale": [
+            0.9379,
+            0.934
+          ]
+        }
+      }
     },
     "head": {
       "raw_sha256": "45e1035afc178079e07d163d9f89fd8e52693eb38157924fbc62a1fcc0170581",
@@ -176,7 +251,32 @@
           1.0323
         ]
       },
-      "casing_pixels": 1307
+      "casing_pixels": 1307,
+      "pirate": {
+        "raw_sha256": "f317d7397c296d08fc403b07d35bba20287d54ffa6a19691266c30ba4c9ce91c",
+        "raw_size": [
+          1281,
+          1227
+        ],
+        "fit": {
+          "raw_box_on_guide": [
+            87,
+            70,
+            918,
+            924
+          ],
+          "guide_box": [
+            100,
+            96,
+            908,
+            928
+          ],
+          "scale": [
+            0.9723,
+            0.9742
+          ]
+        }
+      }
     },
     "foot": {
       "raw_sha256": "304785c4337c5c53b3f0ee966a55289bd9acfdae75304923dd39483c6496a338",
@@ -216,7 +316,32 @@
           1.0011
         ]
       },
-      "casing_pixels": 456
+      "casing_pixels": 456,
+      "pirate": {
+        "raw_sha256": "ce133a17c10c31bfaa9547d272fd5da42234895fdac5616256c7b303efff26fd",
+        "raw_size": [
+          1072,
+          1467
+        ],
+        "fit": {
+          "raw_box_on_guide": [
+            74,
+            62,
+            681,
+            974
+          ],
+          "guide_box": [
+            76,
+            62,
+            685,
+            978
+          ],
+          "scale": [
+            1.0033,
+            1.0044
+          ]
+        }
+      }
     },
     "latch-screen": {
       "raw_sha256": "cf2eb5c7d52ce16e52234faec02fd7a42a39a3a8c9dd05135ee33e27dc868183",
@@ -256,7 +381,32 @@
           0.9857
         ]
       },
-      "casing_pixels": 1111
+      "casing_pixels": 1111,
+      "pirate": {
+        "raw_sha256": "87e8c6815f5887fa2c54ec4d8efb07c867e7822b8b122c2723eebcdb4bbbf44d",
+        "raw_size": [
+          1335,
+          1178
+        ],
+        "fit": {
+          "raw_box_on_guide": [
+            19,
+            74,
+            1069,
+            902
+          ],
+          "guide_box": [
+            65,
+            124,
+            1023,
+            884
+          ],
+          "scale": [
+            0.9124,
+            0.9179
+          ]
+        }
+      }
     }
   }
 }

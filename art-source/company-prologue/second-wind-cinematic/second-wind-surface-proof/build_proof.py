@@ -14,7 +14,7 @@ scene.frame_set(744)
 root=bpy.data.objects['SECOND WIND | flight root']
 ship=list(root.children_recursive)
 meshes=[o for o in ship if o.type=='MESH']
-with bpy.data.libraries.load(str(BASE/'second-wind-geometry-v3/second-wind-geometry.blend'),link=False) as (available,loaded):
+with bpy.data.libraries.load(str(BASE/'second-wind-geometry/second-wind-geometry.blend'),link=False) as (available,loaded):
     canonical_names=tuple(available.objects); loaded.objects=list(canonical_names)
 canonical_materials={name:[m.name for m in obj.data.materials if m] for name,obj in zip(canonical_names,loaded.objects) if obj and obj.type=='MESH'}
 for imported in loaded.objects:

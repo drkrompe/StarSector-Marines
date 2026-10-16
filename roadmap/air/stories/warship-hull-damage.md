@@ -1,6 +1,6 @@
 # Story — Warship hull damage: plating, sections and the core
 
-Status: ACTIVE — slice 1 (plating and hit place) built; slice 2 (visible damage) in progress
+Status: ACTIVE — slices 1 (plating and hit place), 2 (visible damage) and 3 (degraded mounts; fires drawn) built; breaking up and crippling open
 
 Written: 2026-10-16
 
@@ -130,6 +130,25 @@ the game's own hull sprite on the plating lattice, never by editing art.
   breach throws a short burst of debris and sparks. Breached sections burn (slice 3).
 - The whole-hull charcoal tint is retired in favour of the cells; the shadow is the hull's own sprite as before
   (a holed shadow is a candidate later).
+- A round's blast, its impact sound and a beam's end are drawn where it met the hull (or its shield bubble, on the
+  side it came from), not at the hull's middle it was aimed at. Before this every hit on a hull burst over its
+  centre, which hid whatever the plating did.
+- A falling and fallen wreck keeps its cut, burnt darker.
+
+Built (slices 2 and 3), read in `hull-broadside`'s close GIF: the struck side darkens and scorches over the first twenty
+seconds, gives way as a dark gash of exposed frames, and the waist is cut through to the ground by the end, with
+breaches glowing as they open and burning after. A mount whose slot cell is breached is knocked
+out for the rest of the battle and no longer drawn; the heading choosers (ground fire's and ship fire's) count only
+the guns a hull has left, so a capital that has lost its broadside battery swings to bring what remains to bear. In
+the scene both Onslaughts lose their engaged battery and turn bow-on, and the bow then takes the punishment. Fires
+are drawn (a flickering glow on open breaches); smoke columns are not. The base game's decals are faint once a
+GIF palette has had them.
+
+Readings (`hull-broadside`, both Onslaughts the same, shields held down): plate soaks for the first twenty seconds,
+the struck side gives way at about 19 s, the core is entered at 28-33 s, 19 of the two hulls' mounts are lost, and
+the first hull falls at tick 1018 against 1685 for the flat-armour control. A stripped, holed capital dies faster
+than one whose armour never wears; that is the model working, and `SECTION_BREACH_SHARE` and mount loss are the
+levers if the duel feel wants it slower.
 
 Every frame is a pure function of the ship's plating state and the animation clock, so a review frame and the game
 draw the same thing.

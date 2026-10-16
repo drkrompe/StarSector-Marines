@@ -143,7 +143,7 @@ at playback speed; engine glow cannot substitute for travel.
 
 | Source | Authority |
 |---|---|
-| [V3 geometry guide](../../../../art-source/company-prologue/second-wind-geometry-v3/README.txt), its `second-wind-geometry.blend`, `build_reference.py` and `geometry.json` | Accepted structure and component placement. Render new views from this mesh. |
+| [V3 geometry guide](../../../../art-source/company-prologue/second-wind-geometry/README.txt), its `second-wind-geometry.blend`, `build_reference.py` and `geometry.json` | Accepted structure and component placement. Render new views from this mesh. |
 | [Heavy arrival skin](../../../../art-source/company-prologue/second-wind-skins/arrival-heavy.reference.png) and [skin notes](../../../../art-source/company-prologue/second-wind-skins/README.txt) | Arrival damage/material direction after 8–10 years of small asteroid impacts and emergency recovery. |
 | [Arrival animatic](../../../../art-source/company-prologue/second-wind-cinematic/animatic/README.md) and [layered approach](../../../../art-source/company-prologue/second-wind-cinematic/layered-next-scenes/README.md) | Derived viewport/landing hardware, cameras, support mechanics and provisional scale. Source maps and saved scenes own exact timing. |
 

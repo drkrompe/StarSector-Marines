@@ -89,7 +89,7 @@ for frame in (624, 648, 720, 744, 751, 768, 774, 780):
     report["frames"].append(entry)
 
 # Compare actual source vertices in ship-local coordinates with retained V3 mesh.
-baseline_path = HERE.parent.parent / "second-wind-geometry-v3" / "second-wind-geometry.blend"
+baseline_path = HERE.parent.parent / "second-wind-geometry" / "second-wind-geometry.blend"
 engine_prefixes = tuple(f"Engine {i} " for i in range(1,5))
 engine_objects = [o for o in scene.objects if o.type == "MESH" and o.name.startswith(engine_prefixes)]
 with bpy.data.libraries.load(str(baseline_path), link=False) as (available, loaded):

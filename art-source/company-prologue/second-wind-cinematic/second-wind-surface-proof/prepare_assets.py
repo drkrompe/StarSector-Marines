@@ -21,7 +21,7 @@ for folder in ('assets','prompts','guides'):
  'assets/arrival-material-atlas-v1.png':'Generated neutral four-material albedo atlas,1254x1254 native. Four627square lossless crops;9 provisional metres per repeat.',
  '../../second-wind-skins/arrival-heavy.reference.png':'External source material/damage direction only; accepted actual V3 mesh owns identity.'},
  'external_reference_sha256':{'arrival-heavy.reference.png':sha(OUT.parent.parent/'second-wind-skins/arrival-heavy.reference.png'),
- 'second-wind-geometry-v3.blend':sha(OUT.parent.parent/'second-wind-geometry-v3/second-wind-geometry.blend')},
+ 'second-wind-geometry-v3.blend':sha(OUT.parent.parent/'second-wind-geometry/second-wind-geometry.blend')},
  'generation':'OpenAI built-in ImageGen. Exact prompt files retained in prompts; generated native images preserved without rescaling.',
  'side_registration':'Identity normalized camera UV:1920x1080 guide ->1672x941 master. No arbitrary bounds fitting; individual generated details not asserted registered.',
  'limits':'Partly baked side RGB lighting remains. Neutral box atlas covers other faces. Bounded side proof, not a complete multiangle textured ship.'},indent=2))

@@ -699,8 +699,9 @@ Still open inside this story:
   `createSnapshots -Psnapshot=boarding-jack-layers`. The pattern no longer
   declares its presentation pending, so Chapter 4 places the card in fleet cargo
   on settlement, and an entitlement recorded by a save from before the art
-  shipped is delivered once on the next load. Greyhook's enemy rigs now draw
-  their own family. Still to observe: the rigs and the card in the live game.
+  shipped is delivered once on the next load. Greyhook's enemy rigs draw the
+  same rig in Greyhook's own paint (soot, battle-worn, crude red markings); the
+  company's issue stays rust-orange. Still to observe: the rigs and the card in the live game.
 - **The duel overhead** is built and installed in Chapter 5 (`air-nouns.md`,
   Overhead ships; `warship-behaviours.md`, Decided: ship against ship). The
   ground referee never reads it; a duel-off control wins the same seed. It is

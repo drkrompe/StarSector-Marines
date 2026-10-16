@@ -60,26 +60,47 @@ def cylinder(name, loc, radius, depth, mat, axis='Z', vertices=32):
 
 # Planform follows Cerberus's wide forebody, narrow waist, two aft sponsons
 # and central stern notch. The port shoulder pod is a SEPARATE low solid.
-corners = [(57,0),(53,16),(43,25),(28,28),(3,22),(1,35),
+corners = [(57,8),(53,18),(43,25),(28,28),(3,22),(1,35),
            (-30,36),(-36,31),(-29,10),(-27,0),(-29,-10),
-           (-37,-30),(-30,-35),(2,-34),(3,-22),(30,-28),(47,-20)]
-# Rounded planform, sampled once in world space, shared by every view.
+           (-37,-30),(-30,-35),(2,-34),(3,-22),(30,-28),(47,-20),(57,-8)]
+# Broad manufactured flats with short rounded corner transitions. Avoid the
+# continuous spline shoulders that made the previous guide feel organic.
 outline=[]
 for i in range(len(corners)):
-    p0,p1,p2,p3=[Vector(corners[j % len(corners)]) for j in (i-1,i,i+1,i+2)]
-    for k in range(6):
-        t=k/6
-        p=.5*((2*p1)+(-p0+p2)*t+(2*p0-5*p1+4*p2-p3)*t*t+(-p0+3*p1-3*p2+p3)*t*t*t)
+    p0,p1,p2=[Vector(corners[j % len(corners)]) for j in (i-1,i,i+1)]
+    a=p1+(p0-p1)*.14
+    b=p1+(p2-p1)*.14
+    for k in range(5):
+        t=k/4
+        p=(1-t)**2*a+2*(1-t)*t*p1+t*t*b
         outline.append(tuple(p))
-rings = [(-8,.72),(-7,.85),(-4.5,.96),(0,1.0),
-         (4,.96),(7,.87),(9,.70),(9.7,.52)]
-verts = [(x*s,y*s,z) for z,s in rings for x,y in outline]
+rings = [(-8,.78),(-6,.93),(-3,1.0),(3,1.0),
+         (6,.94),(8,.86),(9.2,.72),(9.7,.52)]
+THICKNESS_STATIONS=[(-40,1.15),(-29,1.50),(-6,1.50),(3,1.10),
+                    (18,1.10),(26,1.50),(40,1.50),(52,1.15),(60,1.05)]
+def thickness_at(x):
+    # Plateaus and straight chamfer transitions, not inflated smooth lobes.
+    for (x0,s0),(x1,s1) in zip(THICKNESS_STATIONS,THICKNESS_STATIONS[1:]):
+        if x<=x1:
+            t=max(0,min(1,(x-x0)/(x1-x0)))
+            return s0+(s1-s0)*t
+    return THICKNESS_STATIONS[-1][1]
+
+def shell_z(x,z):
+    return z*(1.25 if z<0 else thickness_at(x))
+
+verts = [(x*s,y*s,shell_z(x*s,z)) for z,s in rings for x,y in outline]
 n = len(outline)
-faces = [tuple(reversed(range(n)))]
+bottom_center=len(verts)
+verts.append((10,0,shell_z(10,-8)))
+top_center=len(verts)
+verts.append((10,0,9.7*thickness_at(10)))
+faces = [(bottom_center,(i+1)%n,i) for i in range(n)]
 for r in range(len(rings)-1):
     for i in range(n):
         faces.append((r*n+i,r*n+(i+1)%n,(r+1)*n+(i+1)%n,(r+1)*n+i))
-faces.append(tuple((len(rings)-1)*n+i for i in range(n)))
+last=(len(rings)-1)*n
+faces += [(top_center,last+i,last+(i+1)%n) for i in range(n)]
 mesh = bpy.data.meshes.new('Cerberus shaped pressure hull')
 mesh.from_pydata(verts, [], faces)
 mesh.update()
@@ -118,12 +139,81 @@ b.width = .3
 b.segments = 3
 hull.modifiers.new('Hull normals', 'WEIGHTED_NORMAL')
 
-# Armor strips and spine are attached in hull space, identical in every view.
-box('Central dorsal spine', (5,0,9.4), (70,10,3), cream, 1.1)
-for x in range(-24,45,9):
-    box('Spine service panel', (x,0,11), (7.5,8,.3), steel if x in (-6,12) else cream, .2)
-for y in (-29,29):
-    box('Aft pod armor cap', (-19,y,6), (27,9,2), orange, 1)
+# Build actual layered geometry, not only a weathered pattern on a flat shell.
+bpy.context.view_layer.update()
+def hull_surface(x,y):
+    hit,p,normal,index=hull.evaluated_get(bpy.context.evaluated_depsgraph_get()).ray_cast(Vector((x,y,100)),Vector((0,0,-1)))
+    return (p,normal) if hit else None
+
+def armor_patch(name,x0,x1,y0,y1,mat,offset=.22):
+    y0,y1=sorted((y0,y1))
+    pv=[]
+    count=5
+    for i in range(count):
+        for j in range(count):
+            x=x0+(x1-x0)*i/(count-1)
+            y=y0+(y1-y0)*j/(count-1)
+            hit=hull_surface(x,y)
+            if hit is None:
+                return
+            p,normal=hit
+            pv.append(tuple(p+normal*offset))
+    pf=[]
+    for i in range(count-1):
+        for j in range(count-1):
+            a=i*count+j
+            pf.append((a,a+count,a+count+1,a+1))
+    me=bpy.data.meshes.new(name)
+    me.from_pydata(pv,[],pf)
+    me.update()
+    ob=bpy.data.objects.new(name,me)
+    bpy.context.collection.objects.link(ob)
+    ob.data.materials.append(mat)
+    for poly in me.polygons:
+        poly.use_smooth=True
+    sol=ob.modifiers.new('Armor plate thickness','SOLIDIFY')
+    sol.thickness=.45
+    sol.offset=1
+    return ob
+
+for x in (23,32,41):
+    for y in (-23,-14,5,14):
+        armor_patch('Forebody replaceable armor',x,x+8,y,y+8,cream if (x+y)%3 else orange)
+for x in (-28,-19,-10):
+    for y in (-30,-21,13,22):
+        armor_patch('Engine room armored shoulder',x,x+8,y,y+8,cream if x==-19 else orange)
+for x in (29,40):
+    armor_patch('Forebody reinforcing band',x,x+1.1,-24,24,steel,.7)
+for x in (-24,-13):
+    for side in (-1,1):
+        armor_patch('Engine room reinforcing band',x,x+1.1,side*13,side*32,steel,.7)
+
+# A stepped service spine: massive fore/aft cases, lower exposed machinery
+# amidships. Its changing height follows the hull, not a flat plank.
+for name,x,length,z in [('Fore pressure casing',34,18,15),('Aft machinery casing',-18,20,15)]:
+    box(name,(x,0,z),(length,11,4),cream,1.5)
+    for px in (x-5,x,x+5):
+        box('Casing access cover',(px,0,z+2.1),(4.1,8,.5),cream,.25)
+box('Recessed central service bed',(10,0,11.7),(22,10,1.5),dark,.5)
+for y in (-3,0,3):
+    cylinder('Exposed longitudinal service trunk',(10,y,13),.9,19,steel,'X')
+for x in (3,11,19):
+    box('Service trunk support hoop',(x,0,13.6),(1.1,10,1.2),cream,.3)
+for x,y in ((30,21),(30,-21),(-22,25),(-22,-25)):
+    hit=hull_surface(x,y)
+    if hit:
+        p,normal=hit
+        obj=box('Shoulder louver vent',tuple(p+normal*.6),(6,4,1),dark,.25)
+        obj.rotation_euler=normal.to_track_quat('Z','Y').to_euler()
+        for dx in (-2,-1,0,1,2):
+            slat=box('Vent louver',(x+dx,y,p.z+1.25),(.3,3.6,.25),steel,.05)
+for side in (-1,1):
+    # Keep these reinforcements clear of the existing bay aperture and pod.
+    for x in (1,27):
+        box('Bay structural buttress',(x,side*23,-.5),(2,3.5,14),steel,.5)
+    for x in (-28,-18,-8):
+        box('Aft flank access housing',(x,side*35.4,0),(6,2.4,6),cream,.7)
+    cylinder('Protected waist service line',(14,side*23,6.6),.7,21,steel,'X')
 
 # A proposed service/airlock pod, not a standing mast: long axis +X,
 # centered below the top of the pressure hull and physically on PORT only.
@@ -190,7 +280,7 @@ for name,loc,energy,size in [('Key',(60,70,120),240000,90),('Fill',(-40,-60,70),
     obj.rotation_euler=(-obj.location).to_track_quat('-Z','Y').to_euler()
 
 # Each camera observes the SAME objects. No per-view geometry transforms.
-cameras=[('port-quarter',(100,130,100),151),('top',(0,0,180),205),
+cameras=[('port-quarter',(100,130,100),163),('top',(0,0,180),205),
          ('port-side',(0,180,0),132),('stern',(-180,0,0),112)]
 for name,pos,scale in cameras:
     bpy.ops.object.camera_add(location=pos)
@@ -215,6 +305,8 @@ manifest={
     'status':'Proposed geometry reference; no scene art or gameplay changes',
     'axes':{'+X':'bow','+Y':'port','+Z':'dorsal'},
     'units':'Vanilla hull-space units; no canonical metre scale asserted',
+    'revision':'V3: heavier forebody and engine rooms; recessed waist; layered armor and service machinery',
+    'thickness_profile':{'method':'Upper Z uses plateaus and linear chamfer transitions between stations; lower hull has uniform 1.25 depth multiplier for level keel', 'stations':THICKNESS_STATIONS, 'deck_datum':0, 'attachments':'Engine and port-pod coordinates unchanged from V2'},
     'engine_source':'starsector-core/data/hulls/warhound.ship engineSlots',
     'engines':[{'location':[x,y,0],'width':w,'exhaust_direction':[-1,0,0]} for x,y,w in engines],
     'pod':{'center':[37,33,1],'dimensions':[19,8,6],'long_axis':'+X','function':'Proposed service/airlock pod; not canonical lore'},

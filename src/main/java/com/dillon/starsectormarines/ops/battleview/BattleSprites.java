@@ -791,6 +791,9 @@ public class BattleSprites {
         loadLayeredFamily(LayeredArmorFamily.BOARDING_JACK, "boarding-jack",
                 loadLayeredSprite(MODULAR_ROOT + "armor/boarding-jack/foot.png"),
                 rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamily(LayeredArmorFamily.BOARDING_JACK_PIRATE, "boarding-jack/paints/pirate",
+                loadLayeredSprite(MODULAR_ROOT + "armor/boarding-jack/paints/pirate/foot.png"),
+                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
         loadLayeredFamily(LayeredArmorFamily.BULWARK_HEAVY, "bulwark-heavy", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
         loadLayeredFamily(LayeredArmorFamily.RELIQUARY_HEAVY, "reliquary-heavy", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
         loadLayeredFamily(LayeredArmorFamily.LIONS_MANTLE, "lions-mantle", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
@@ -988,7 +991,10 @@ public class BattleSprites {
             assets.registerSpecialEquipment(entry.getKey(), entry.getValue());
         }
         for (Map.Entry<String, LayeredSpriteCache> entry : integralSystemLayers.entrySet()) {
-            assets.registerIntegralSystem(entry.getKey(), entry.getValue());
+            LayeredSpriteCache carrier = entry.getValue();
+            String repainted = familyId.repaintedCarrier(carrier.sourcePath);
+            LayeredSpriteCache own = repainted != null ? loadLayeredSprite(repainted) : null;
+            assets.registerIntegralSystem(entry.getKey(), own != null ? own : carrier);
         }
         layeredUnitSprites.put(familyId, assets);
     }

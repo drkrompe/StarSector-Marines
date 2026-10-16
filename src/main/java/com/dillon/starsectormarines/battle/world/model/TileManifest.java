@@ -188,6 +188,7 @@ public final class TileManifest {
         return new Doodad(cellX, cellY, new TileFrame(cell[0], cell[1]), block.sheetPath, cover,
                 DoodadCover.fromLevel(cover).defaultBallisticHalfHeight(), 1, 1, null, block.cellPx);
     }
+/**     * The tight placement of the emplacement block: the piece whose parapet faces the turret. A ring cell at     * {@code (relX, relY)} from the centre of the body takes the opposite slot (the north-west cell wears {@code se}),     * so the parapets hug the body instead of walling a platform gap round it. The ring is the cells immediately     * around the body, whatever its size; one helper serves defence posts and fort pads alike.     */    public static Doodad emplacementTightParapet(int cellX, int cellY, int relX, int relY, int cover) {        return emplacementParapet(cellX, cellY, -relX, -relY, cover);    }
 
     /**
      * One cell of a 3x3 ring block, chosen by where the cell sits relative to

@@ -85,7 +85,7 @@ public final class WarshipShipRules {
         Warship.Mount best = null;
         float power = 0f;
         for (Warship.Mount m : ship.mounts()) {
-            if (!gunAtHull(m.weapon)) continue;
+            if (!gunAtHull(m.weapon) || m.knockedOut()) continue;
             float p = firepower(m.weapon);
             if (p > power) {
                 power = p;
@@ -134,7 +134,7 @@ public final class WarshipShipRules {
         for (int i = 0; i < coarse; i++) candidates.add(-180f + i * HEADING_STEP_DEGREES);
         float toTarget = WarshipFacing.bearing(ship.x, ship.y, tx, ty);
         for (Warship.Mount m : ship.mounts()) {
-            if (gunAtHull(m.weapon)) candidates.add(WarshipFacing.wrap(toTarget - m.slot.angleDegrees()));
+            if (gunAtHull(m.weapon) && !m.knockedOut()) candidates.add(WarshipFacing.wrap(toTarget - m.slot.angleDegrees()));
         }
         // A heading's firepower is what still bears a little either side of it, so a heavy hull that settles a degree
         // or two off its order, or a target that drifts, does not take a gun off the target: the broadside rule below
@@ -184,7 +184,8 @@ public final class WarshipShipRules {
     static float firepowerAt(Warship ship, float heading, float tx, float ty) {
         float total = 0f;
         for (Warship.Mount m : ship.mounts()) {
-            if (!gunAtHull(m.weapon)) continue;
+            // A gun lost with its plating brings nothing to bear, so the hull turns what it has left.
+            if (!gunAtHull(m.weapon) || m.knockedOut()) continue;
             float mx = Warship.mountX(ship.x, m.slot, heading);
             float my = Warship.mountY(ship.y, m.slot, heading);
             if (Warship.bears(m, heading, mx, my, tx, ty, UNBOUNDED_REACH)) total += firepower(m.weapon);
