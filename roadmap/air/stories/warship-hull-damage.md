@@ -1,6 +1,6 @@
 # Story — Warship hull damage: plating, sections and the core
 
-Status: ACTIVE — slices 1 and 2 in progress
+Status: ACTIVE — slice 1 (plating and hit place) built; slice 2 (visible damage) in progress
 
 Written: 2026-10-16
 
@@ -72,17 +72,22 @@ line from the muzzle (or, for a blast with no source such as a bomb or a battery
 where it landed). That cell is where the shield is asked (a front shield now covers only rounds from inside its
 arc, which is what the arc meant), where the plate is read and stripped, and where the damage is attributed.
 
-**The armour rule reads the local plate.** A hit's effective armour is the hull rating times the weighted plate
-left around the cell it entered (the base game's 21-cell block, read only over cells that carry plate, so a
-fresh edge reads exactly the rating), never below the base game's 5% floor. The hull loses what the armour rule
-lets through, exactly as today; what it stopped is taken off the plate around the cell. **On a fresh hull every
-number is unchanged**, which is the point of this choice (see Decided, 1): the change is that the plate wears, so
-the side under fire grows weaker and the far side does not. The glance threshold stays against the hull's
-rating, so ground fire that could not touch a hull still cannot once its plate is gone.
+**The armour rule reads the local plate, and the plate soaks first.** A hit's effective armour is the hull
+rating times the weighted plate left around the cell it entered (the base game's 21-cell block, read only over
+cells that carry plate, so a fresh edge reads exactly the rating), never below the base game's 5% floor. What the
+armour rule lets through is the base game's armour damage: it is dealt over the block by weight, each plated cell
+soaks its share out of the plate it has left, and only what the plate cannot soak reaches the hull. So a fresh
+side shrugs off the first rounds, and once it is stripped nearly every round reaches the hull whole: the side
+under fire dies and the far side does not (see Decided, 1). The glance threshold stays against the hull's rating,
+so ground fire that could not touch a hull still cannot once its plate is gone.
 
 **A breach is a cell holed through.** A cell whose plate is gone (or which never had any) and whose structure has
 been spent is **breached**: a round's line passes through it to the next live cell. So a battered side craters
-inward, the next rounds reach the core, and the core, having no plate, takes them nearly whole. Damage the hull
+inward, the next rounds reach the core, and the core, having no plate, takes them nearly whole. **An outer section
+gives way as one**: none of its cells is holed until the hull has lost a quarter of its hit points through that
+section, so a stripped side first takes its punishment on the frames behind the plate and then opens. A core cell
+is holed only from an open neighbour, so the core is opened from the breach inward and never under standing plate.
+(Without that gate a concentrated broadside drilled a tunnel to the core within seconds and on through the far side.) Damage the hull
 takes is spread over the struck cell's block in proportion to the same weights; the hull's hit points stay the one
 authority for when the ship dies, so a ship can be lost with whole sections still standing.
 
@@ -143,16 +148,17 @@ draw the same thing.
 
 ## Decided (in this story, with the reason)
 
-1. **The plate wears; it does not first soak.** The base game lets a fresh plate absorb a hit and passes only the
-   overflow to the hull. Here the hull takes what the existing armour rule lets through and the plate loses what
-   it stopped. Reason: on a fresh hull every number is unchanged, so no existing duel, battery or air-strike
-   reading moves at first contact, and the change is only that a side under fire weakens. The base game's soak
-   would make early hits do nothing to the hull and change every shipped scene's reading at once, while another
-   session is tuning capital duels. Revisit as an owner question once the duel feel has settled.
+1. **The plate soaks first, as the base game's does.** Two rules were measured on `hull-broadside` (two
+   Onslaughts, the same fight each time). With the plate merely wearing (the hull taking what the flat rule let
+   through from the first round, the plate losing the same), the first hull fell at tick 985; with the base game's
+   soak at 1295; with the flat armour control at 1685. The soak is both the owner's description and the closer to
+   today's pace, and every shipped warship scene keeps its verdicts under it. Kept as a control:
+   `-Dbattle.warship.plateSoak=false`. That a stripped capital still dies about a quarter sooner than one whose
+   armour never wears is the intended effect, and a tuning question for the duel-feel work.
 2. **The shield is asked where the round meets the hull.** Not a balance change: it is what the arc always
    meant.
-3. **A control switch**: `-Dbattle.warship.platingGrid=false` restores the flat armour, centre landing and the
-   whole-hull tint, for same-build comparison.
+3. **Control switches**: `-Dbattle.warship.platingGrid=false` restores the flat armour, centre landing, the old
+   shield question and the whole-hull tint; `-Dbattle.warship.plateSoak=false` keeps the grid with the wearing rule.
 
 ## Slices
 
