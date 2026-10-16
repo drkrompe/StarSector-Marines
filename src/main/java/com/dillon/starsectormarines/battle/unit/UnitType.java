@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.unit;
 
+import com.dillon.starsectormarines.battle.combat.BodyPlan;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 
 import com.dillon.starsectormarines.battle.turret.MapTurret;
@@ -300,16 +301,22 @@ public enum UnitType {
     public boolean isGroundVehicle() { return this == GROUND_VEHICLE; }
 
     /**
-     * Whether a round landing on this archetype lands on a body part — a head, arms, torso or
-     * legs — and so meets cover part by part. People do; machines, structures and creatures are one
-     * whole-body contact and keep the flat cover chance. See {@code body-part-cover.md}.
+     * The parts a round landing on this archetype is struck on, or null for one whole-body
+     * contact. People have the {@linkplain BodyPlan#INFANTRY infantry plan} — head, arms, torso,
+     * legs — and meet cover part by part; machines, structures and creatures have none and keep
+     * the flat cover chance. See {@code body-part-cover.md}.
      */
-    public boolean hasBodyParts() {
+    public BodyPlan bodyPlan() {
         return switch (this) {
             case MARINE, MARINE_BLUE, MARINE_RED, MILITIA,
-                 CIVILIAN, ENGINEER, TECHNICIAN, SCIENTIST -> true;
-            default -> false;
+                 CIVILIAN, ENGINEER, TECHNICIAN, SCIENTIST -> BodyPlan.INFANTRY;
+            default -> null;
         };
+    }
+
+    /** Whether this archetype is struck on body parts at all: {@link #bodyPlan()} is not null. */
+    public boolean hasBodyParts() {
+        return bodyPlan() != null;
     }
 
     /**

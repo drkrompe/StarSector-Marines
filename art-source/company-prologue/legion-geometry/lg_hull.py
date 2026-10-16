@@ -1,5 +1,5 @@
-"""Central hull: the fore and aft body, the dorsal and tail spines, the bone
-white command dome and the orange armour belts and bow blades.
+"""Central hull: the fore and aft body, the dorsal and tail spines and the
+orange armour belts and bow blades. The command dome is lg_bridge.
 
 Planforms are measured off legion_xiv.png (300x308, .ship centre 150,149):
 pixel column c, row r covers X 158-r..159-r, Y 149-c..150-c. Port halves are
@@ -12,11 +12,10 @@ Read off the sprite:
   decks to the sponson's tail (X -88, Y 138);
 - the inner belt is a collar round the dome's head (X 80) that runs aft and
   outboard past the machinery bays to the engine block (X -110, Y 73);
-- the white dome (X 4-66, Y +-22) is the command dome over the spine;
 - aft of X -40 the body drops to a lower machinery bed either side of the
   tail spine, which ends in the spike at X -137.
 """
-from lg_kit import facet_normal, loft_x, mirror_y, octagon, plane_cut, prism, section, strip_plan, ccw
+from lg_kit import facet_normal, mirror_y, plane_cut, prism, section, strip_plan, ccw
 
 KEEL, DECK = -20.0, 10.0
 
@@ -51,10 +50,6 @@ INNER_BELT = [(80, -2), (70, 8), (60, 16), (48, 23), (36, 22), (24, 17), (12, 20
               (-30, 43), (-48, 51), (-66, 57), (-84, 65), (-100, 71), (-108, 73)]
 BELT = [(0, DECK-3), (0, 13.5), (2.0, 15.0)]
 
-# Command dome: (x, half-width, crown z) stations, nose to tail.
-DOME = [(67, 1.5, 19.0), (64, 8, 24.5), (58, 14, 28.0), (48, 19, 30.0), (36, 21.5, 30.5),
-        (24, 20, 29.5), (12, 15, 27.5), (5, 11, 25.0), (2, 6, 21.0)]
-DOME_BASE = 12.0
 
 
 def bow_facets(kit, ob, name):
@@ -84,7 +79,3 @@ def build(kit):
         outer = prism(kit, f'Armour {side} outer belt', ccw(strip_plan(flipy(OUTER_BELT), 8.0)), BELT, kit.orange)
         inner = prism(kit, f'Armour {side} inner belt', ccw(strip_plan(flipy(INNER_BELT), 7.0)), BELT, kit.orange)
         kit.hull += [blade, outer, inner]
-
-    stations = [(x, octagon(-w, w, DOME_BASE, z, ct=w*.5, cb=min(1.0, w*.2))) for x, w, z in DOME]
-    dome = loft_x(kit, 'Bridge command dome', stations, kit.bone)
-    kit.hull.append(dome)
