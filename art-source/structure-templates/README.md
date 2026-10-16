@@ -40,6 +40,13 @@ These fittings are shared by authored campaign compounds and packed ground
 installations, including the modern clinical kit for patient wards. Existing
 sprite damage states are reused with the furniture.
 
+The `outpost-workshop-turn-*` frames show the maintenance half at the same
+24 pixels per cell: a compact machining/repair workshop, organized parts racks,
+and the six-berth vehicle shed with a fabrication corner, coolant plant and
+repair bench. New equipment reuses the factory-machine, main-stores and colony
+kits with their existing damage states. The bay plan keeps its original berths,
+headings and service mouths; the wide entrance remains connected to the road.
+
 In ordinary missions, choose **Assault**, **Remote**, and **Reinforced** or
 **Full Strength**. The standard or extra-magazine outpost and its orientation
 come from the map seed. Single-gate citadels and missions declaring additional
