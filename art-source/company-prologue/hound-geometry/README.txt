@@ -1,4 +1,4 @@
-HOUND (A) - CINEMATIC GEOMETRY (PASS 2: PLAUSIBLE DETAIL)
+HOUND (A) - CINEMATIC GEOMETRY (PASS 3: OWNER REVIEW ROUND 1)
 
 Purpose
 An editable Blender model of the vanilla Hound (A), a second cinematic ship
@@ -124,9 +124,45 @@ Integration found two cross-module clashes the agents could not see (the
 feed chute through the coolant loop, a yoke foot on its flange), now fixed;
 check_clashes.py lists every cross-module overlap for the next round.
 
+Pass 3, review round 1 (owner: "needs work on the 'bridge box' ... windows /
+bridgify", and "a modeled hatch on the back underside ... given it's a small
+freighter")
+- The bridge is the deckhouse forward of the turret (hd_wheelhouse, new
+  module; the deckhouse solid stays 'Hull shielded hold deckhouse' in
+  hd_hull because WS 001's feed chute ray-casts against it). Its forward
+  face is now a window wall, vertical to the sill and leaning back 20
+  degrees above it. A raked window band with heavy mullions, a header and a
+  sill sits under an overhanging visor brow; the starboard end stays armour
+  round an armoured feed port where WS 001's belt chute leaves the hold.
+  Window bands wrap both side walls forward, two small ports flank the aft
+  door. The roof carries a rail (gap at the aft ladder), a lattice sensor
+  mast with yard, nav lamps, radome and whip, a searchlight and a dish. The
+  aft hatch is now a person-height door (1.4 x 2.0 m) with a step; a tread
+  walkway runs from it round the port side behind a deck-edge rail. The
+  side vents moved aft to make room for the windows.
+  The forward capsule keeps its 'Bridge ...' object names (names are
+  identifiers); read it as the forward flight-control and observation
+  capsule, the deckhouse as the bridge proper.
+- Aft ventral cargo ramp (hd_hull 'Hull aft ventral ramp ...'): an opening
+  under the stern between the skids, 7.4 x 8.3 m, into a lit well up to the
+  lower hold, framed with hazard bars and four jamb lights. The ramp (7.0 x
+  7.9 m, treads inside, stiffeners outside, a toe plate, hinge barrel and
+  two actuators) is hinged on the opening's forward edge and lowers its aft
+  end, so loads come in from astern between the skid legs. All ramp parts
+  are parented to the empty 'Hull aft ventral ramp hinge': animate its
+  local Y rotation, negative to open. Its custom property
+  ground_contact_deg (6.5) is the angle at which the toe meets the ground
+  under the landing pads. The actuators swing rigidly with the ramp; a rig
+  can split them into cylinder and rod later. The keel plates, keel beam,
+  keel frame and dark underlay were cut back round the opening.
+- Scale check: build_hound.py --figure adds a 1.8 m mannequin (2.05 units)
+  on the bridge walkway for review renders; --ramp-open DEG lowers the ramp.
+  Neither is saved in the committed .blend.
+- IoU unchanged at 0.942: nothing new leaves the existing plan outline.
+
 Silhouette check
 compose_review.py lays the sprite into the top camera frame and compares
-its alpha with the render's alpha. Pass 2: IoU 0.942 (pass 1: 0.940);
+its alpha with the render's alpha. Pass 3: IoU 0.942 (pass 2: 0.942, pass 1: 0.940);
 1.7% of the sprite is uncovered and the model adds 4.4% outside it. Most of
 the excess is the WS 001 gun, which the hull sprite does not draw, and the
 capsule cage's proud rings. top-overlay.png shows the sprite at 50% over the render:
@@ -140,12 +176,15 @@ Stable object names (for later damage, surfacing and VFX layers)
   Engine <i> <side> exhaust anchor   empty at the engine slot, +X pointing aft
   Weapon <slot id> ...        mount geometry
   Weapon <slot id> anchor     empty at the slot, +X along the slot angle
+  Wheelhouse ...              bridge glazing, brow, rails, mast, walkway
+  Hull aft ventral ramp hinge empty; animate local Y (negative opens)
 The hull parts the turret seats on are found by downward ray-cast
 (hd_kit.Kit.surface). Booleans use the MANIFOLD solver.
 
 Files
 build_hound.py: builds the scene, cameras and renders; runs in Blender.
-  hd_hull.py, hd_engines.py, hd_bridge.py, hd_fork.py, hd_mounts.py: one
+  hd_hull.py, hd_wheelhouse.py, hd_engines.py, hd_bridge.py, hd_fork.py,
+  hd_mounts.py: one
   module per area. hd_kit.py: materials and primitives.
 compose_review.py: top overlay, IoU, review sheet and the pass-2
   before/after sheet (Python + Pillow + numpy).
@@ -156,6 +195,11 @@ top.png, top-overlay.png, port-side.png, front.png, three-quarter.png,
   stern.png: 1920x1080 review renders. Every view renders the same objects.
 bow-, bridge-, fork-, turret-, engine-, stern-detail.png: close-ups.
 pass2-before-after.png: the close-ups against reference-history/v1-blockout.
+pass3-before-after.png: the close-ups, the bridge close-up and the
+  underside view against reference-history/v2-detail (the pass-2 state).
+wheelhouse-detail.png, underside-aft.png: the bridge and the closed ramp.
+wheelhouse-figure.png, underside-aft-open.png: the bridge with a 1.8 m
+  scale figure, and the ramp lowered 25 degrees.
 top-alpha.png: the transparent top render the IoU is measured from.
 hound-geometry.reference.png: 1920x1080 review sheet.
 

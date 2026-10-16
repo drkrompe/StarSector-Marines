@@ -1,0 +1,761 @@
+{
+ "hull-waist-stbd": {
+  "what": "main hull starboard waist wall around the sealed bay",
+  "sheet": "flank",
+  "tile": 0,
+  "skin_from": "hull-waist-port",
+  "members": [
+   {
+    "object": "Main hull - level datum Z0",
+    "seed": [
+     8,
+     -23.2,
+     7
+    ],
+    "faces": [
+     2,
+     3,
+     4,
+     11,
+     12,
+     13
+    ]
+   }
+  ],
+  "face_count": 6,
+  "area_units2": 319.61,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   27.5,
+   18.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    13.75,
+    1.5
+   ],
+   "ortho_width": 37.2093023255814
+  },
+  "native_texels_per_unit": 21.3
+ },
+ "bow-stbd-flank": {
+  "what": "bow shield module, starboard flank and lower rake (the centreline front face belongs to the port part)",
+  "sheet": "starboard-flank",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Forebody armour module.002",
+    "seed": [
+     52,
+     -20,
+     2
+    ],
+    "faces": [
+     1,
+     2,
+     5,
+     6
+    ]
+   }
+  ],
+  "face_count": 4,
+  "area_units2": 254.01,
+  "view_dir": [
+   0.7071067811865476,
+   -0.7071067811865476,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   18.9,
+   13.1
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    25.19774556159973,
+    -0.9500000476837158
+   ],
+   "ortho_width": 27.080103162031147
+  },
+  "native_texels_per_unit": 29.3
+ },
+ "pod-cowl-stbd": {
+  "what": "starboard pod armoured cowl, starboard face",
+  "sheet": "pod",
+  "tile": 0,
+  "skin_from": "pod-cowl-port",
+  "members": [
+   {
+    "object": "Main hull - level datum Z0",
+    "seed": [
+     -10,
+     -38.5,
+     9
+    ],
+    "faces": [
+     232,
+     233,
+     242,
+     243
+    ]
+   }
+  ],
+  "face_count": 4,
+  "area_units2": 146.48,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   14.0,
+   9.75
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -10.0,
+    7.875
+   ],
+   "ortho_width": 20.155038759689923
+  },
+  "native_texels_per_unit": 39.4
+ },
+ "pod-lower-casing-stbd": {
+  "what": "starboard pod steel lower casing",
+  "sheet": "pod",
+  "tile": 1,
+  "skin_from": "pod-lower-casing-port",
+  "members": [
+   {
+    "object": "Drive lower casing.001",
+    "seed": [
+     -10,
+     -38,
+     -2
+    ],
+    "faces": [
+     6,
+     7,
+     14,
+     15
+    ]
+   }
+  ],
+  "face_count": 4,
+  "area_units2": 127.13,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   14.0,
+   8.36
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -10.0,
+    -1.582411766052246
+   ],
+   "ortho_width": 17.29162447828347
+  },
+  "native_texels_per_unit": 45.9
+ },
+ "pod-intake-cap-stbd": {
+  "what": "starboard pod intake cap",
+  "sheet": "pod",
+  "tile": 2,
+  "skin_from": "pod-intake-cap-port",
+  "members": [
+   {
+    "object": "Drive intake cap.001",
+    "seed": [
+     0,
+     -36.5,
+     3
+    ],
+    "faces": [
+     6,
+     7,
+     8,
+     9,
+     20,
+     21,
+     22
+    ]
+   }
+  ],
+  "face_count": 7,
+  "area_units2": 84.39,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   5.6,
+   14.95
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.3999999761581421,
+    3.2905795574188232
+   ],
+   "ortho_width": 30.89430560129249
+  },
+  "native_texels_per_unit": 25.7
+ },
+ "pod-thrust-housing-stbd": {
+  "what": "starboard pod thrust housing",
+  "sheet": "pod",
+  "tile": 3,
+  "skin_from": "pod-thrust-housing-port",
+  "members": [
+   {
+    "object": "Thrust housing.001",
+    "seed": [
+     -30,
+     -38,
+     2
+    ],
+    "faces": [
+     6,
+     7,
+     8,
+     9,
+     20,
+     21,
+     22
+    ]
+   }
+  ],
+  "face_count": 7,
+  "area_units2": 93.2,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   5.8,
+   14.68
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -30.500000953674316,
+    1.8575668334960938
+   ],
+   "ortho_width": 30.344381012041744
+  },
+  "native_texels_per_unit": 26.2
+ },
+ "pod-bands-stbd": {
+  "what": "starboard pod barrel bands",
+  "sheet": "fittings",
+  "tile": 2,
+  "skin_from": "pod-bands-port",
+  "members": [
+   {
+    "object": "Drive reinforcing band.002",
+    "seed": [
+     -17.8,
+     -39,
+     4
+    ],
+    "faces": [
+     6,
+     7,
+     8,
+     20,
+     21,
+     22,
+     23,
+     34,
+     35,
+     36
+    ]
+   },
+   {
+    "object": "Drive reinforcing band.003",
+    "seed": [
+     -26.2,
+     -39,
+     4
+    ],
+    "faces": [
+     6,
+     7,
+     8,
+     20,
+     21,
+     22,
+     23,
+     34,
+     35,
+     36
+    ]
+   }
+  ],
+  "face_count": 20,
+  "area_units2": 78.3,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   10.0,
+   22.1
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -22.0,
+    4.509768486022949
+   ],
+   "ortho_width": 45.69471492323765
+  },
+  "native_texels_per_unit": 17.4
+ },
+ "belt-bow-stbd": {
+  "what": "steel belt plate on the bow module, starboard side (front face belongs to the port part)",
+  "sheet": "starboard-flank",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Forebody armour belt plate.002",
+    "seed": [
+     50,
+     -24,
+     -1
+    ],
+    "faces": [
+     6,
+     7,
+     11,
+     12
+    ]
+   }
+  ],
+  "face_count": 4,
+  "area_units2": 128.64,
+  "view_dir": [
+   0.7071067811865476,
+   -0.7071067811865476,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.5,
+  "extent_units": [
+   20.65,
+   5.4
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    24.987327814102173,
+    -0.8999999761581421
+   ],
+   "ortho_width": 24.015613489372786
+  },
+  "native_texels_per_unit": 33.1
+ },
+ "pod-cowl-top-stbd": {
+  "what": "starboard pod cowl top and turret seat",
+  "sheet": "tops",
+  "tile": 0,
+  "skin_from": "pod-cowl-top",
+  "members": [
+   {
+    "object": "Main hull - level datum Z0",
+    "seed": [
+     -12,
+     -33,
+     16
+    ],
+    "faces": [
+     235,
+     236,
+     237,
+     244,
+     245,
+     246,
+     247,
+     248
+    ]
+   }
+  ],
+  "face_count": 8,
+  "area_units2": 217.99,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   18.38,
+   14.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    28.43958282470703,
+    -10.0
+   ],
+   "ortho_width": 28.940568475452192
+  },
+  "native_texels_per_unit": 27.4
+ },
+ "deck-edge-lip-stbd": {
+  "what": "overhanging deck-edge lip, starboard run",
+  "sheet": "tops",
+  "tile": 3,
+  "skin_from": "deck-edge-lip-port",
+  "members": [
+   {
+    "object": "Deck edge lip",
+    "seed": [
+     20,
+     -28.5,
+     10
+    ],
+    "faces": [
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     20,
+     21,
+     22,
+     23,
+     24,
+     25
+    ]
+   },
+   {
+    "object": "Deck edge lip",
+    "seed": [
+     32,
+     -32,
+     10
+    ],
+    "faces": [
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     20,
+     21,
+     22,
+     23,
+     24,
+     25
+    ]
+   },
+   {
+    "object": "Deck edge lip",
+    "seed": [
+     42,
+     -30,
+     10
+    ],
+    "faces": [
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     20,
+     21,
+     22,
+     23,
+     24,
+     25
+    ]
+   }
+  ],
+  "face_count": 13,
+  "area_units2": 82.67,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.5,
+  "extent_units": [
+   45.75,
+   1.6
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    23.874999344348907,
+    10.0
+   ],
+   "ortho_width": 53.197675943374634
+  },
+  "native_texels_per_unit": 14.9
+ },
+ "bay-door-stbd": {
+  "what": "starboard bay sealed sectional door, outer face",
+  "sheet": "starboard-flank",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Starboard bay sealed sectional door",
+    "seed": [
+     14,
+     -23.4,
+     0
+    ],
+    "faces": [
+     3
+    ]
+   }
+  ],
+  "face_count": 1,
+  "area_units2": 187.0,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   22.0,
+   8.5
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    14.0,
+    -0.40000009536743164
+   ],
+   "ortho_width": 25.58139534883721
+  },
+  "native_texels_per_unit": 31.0
+ },
+ "belt-fore-stbd": {
+  "what": "both forebody belt plates, starboard face, in one tile",
+  "sheet": "starboard-flank",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Forebody armour belt plate",
+    "seed": [
+     32,
+     -32.7,
+     -1
+    ],
+    "faces": [
+     4,
+     5,
+     8
+    ]
+   },
+   {
+    "object": "Forebody armour belt plate.001",
+    "seed": [
+     42,
+     -32.7,
+     -1
+    ],
+    "faces": [
+     4,
+     5,
+     7
+    ]
+   }
+  ],
+  "face_count": 6,
+  "area_units2": 108.52,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   20.15,
+   5.4
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    36.675002098083496,
+    -0.8999999761581421
+   ],
+   "ortho_width": 23.430227678875593
+  },
+  "native_texels_per_unit": 33.9
+ },
+ "fore-module-1-stbd": {
+  "what": "aft forebody armour module, starboard face",
+  "sheet": "flank",
+  "tile": 2,
+  "skin_from": "fore-module-1",
+  "members": [
+   {
+    "object": "Forebody armour module",
+    "seed": [
+     32,
+     -31.5,
+     2
+    ],
+    "faces": [
+     1,
+     2,
+     5,
+     6
+    ]
+   }
+  ],
+  "face_count": 4,
+  "area_units2": 153.61,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   10.55,
+   13.1
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    31.874999046325684,
+    -0.9500000476837158
+   ],
+   "ortho_width": 27.080103162031147
+  },
+  "native_texels_per_unit": 29.3
+ },
+ "fore-module-2-stbd": {
+  "what": "forward forebody armour module, starboard face",
+  "sheet": "flank",
+  "tile": 3,
+  "skin_from": "fore-module-2",
+  "members": [
+   {
+    "object": "Forebody armour module.001",
+    "seed": [
+     42,
+     -31.5,
+     2
+    ],
+    "faces": [
+     1,
+     5,
+     6
+    ]
+   }
+  ],
+  "face_count": 3,
+  "area_units2": 117.64,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   8.7,
+   13.1
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    42.400001525878906,
+    -0.9500000476837158
+   ],
+   "ortho_width": 27.080103162031147
+  },
+  "native_texels_per_unit": 29.3
+ }
+}

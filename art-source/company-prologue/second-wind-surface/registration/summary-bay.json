@@ -1,0 +1,42 @@
+{
+ "bay-back-wall-port": {
+  "raw_iou": 0.9847,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9986,
+  "scale": [
+   1.0041,
+   1.00651
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "bay-frame-port": {
+  "raw_iou": 0.9523,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9718,
+  "scale": [
+   1.00383,
+   1.00463
+  ],
+  "boundary_p95_px": 2.0
+ },
+ "bay-floor-port": {
+  "raw_iou": 0.9914,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9988,
+  "scale": [
+   1.0041,
+   1.00587
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "bay-davit-head-port": {
+  "raw_iou": 0.995,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9972,
+  "scale": [
+   1.00165,
+   1.0078
+  ],
+  "boundary_p95_px": 1.0
+ }
+}

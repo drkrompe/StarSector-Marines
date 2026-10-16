@@ -195,22 +195,6 @@
           <button id="barracks-organization" class="tab-button console-action" onclick="{command.organization}">{i18n.openingUiShipboardBarracksProfiles}</button>
         </div>
         <div id="barracks-preparation-body" class="{command.preparationClasses}">
-          <div id="transfer-heading" class="label heading warm order-caption">{i18n.openingUiShipboardBarracksConsolidateSurvivors}</div>
-          <div id="transfer-summary" class="label wrap preparation-copy">{command.transferSummary}</div>
-          <div id="barracks-choose-donors-action" class="order-action-row">
-            <button id="barracks-choose-donors" class="order-button console-action" onclick="{command.chooseDonors}">{command.donorLabel}</button>
-          </div>
-          <div id="barracks-review-transfers-action" class="order-action-row">
-            <button id="barracks-review-transfers" class="order-button console-action" disabled="{command.transferDisabled}" onclick="{command.reviewTransfers}">{i18n.openingUiShipboardBarracksReviewTransfers}</button>
-          </div>
-          <div id="barracks-transfer-rows" class="{command.transferRowsClasses}">
-            <div each="row in command.transferRows" key="{row.id}" id="{row.id}" class="label wrap transfer-row">{row.text}</div>
-          </div>
-          <div id="barracks-transfer-reason" class="label wrap preparation-copy">{command.transferReason}</div>
-          <div id="barracks-transfer-actions" class="board-tools">
-            <button id="barracks-apply-transfers" class="tab-button console-action" disabled="{command.applyTransfersDisabled}" onclick="{command.applyTransfers}">{i18n.openingUiShipboardBarracksApplyTransfers}</button>
-            <button id="barracks-cancel-transfers" class="tab-button console-action" onclick="{command.cancelTransfers}">{i18n.openingUiShipboardBarracksCancelTransfers}</button>
-          </div>
           <div id="barracks-order-caption-82" class="label heading warm order-caption">{i18n.openingUiShipboardBarracksFillVacancies}</div>
           <div id="barracks-recruitment" class="label wrap recruitment">{command.recruitment}</div>
           <div id="barracks-recruit-draw" class="company-recruit-bill"><company-resource-cost each="row in command.recruitBill" key="{row.id}" row="{row}" /></div>
@@ -389,11 +373,6 @@
   .equipment-new { border-color: #cfaa69; color: #ffd464; }
   .flow-button { white-space: normal; width: 190px; height: 38px; font-family: heading; text-align: center; }
   .tab-button { width: 0px; flex-grow: 1; height: 28px; font-family: heading; text-align: center; }
-  .preparation-copy { height: auto; }
-  .transfer-rows { flex-direction: column; height: 96px; overflow: scroll; gap: 4px; }
-  .transfer-row { height: auto; }
-  .formation.donor { border-color: #9eaecc; }
-  .formation.donor .card-check { background-color: #9eaecc; color: #20261e; }
   .order-heading { height: 26px; }
   .order-body { flex-direction: column; height: 0px; flex-grow: 1; gap: 6px; overflow: scroll; }
   .order-caption { height: 19px; }

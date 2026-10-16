@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.fixture;
 
+import com.dillon.starsectormarines.battle.air.FittedBoat;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -10,6 +12,9 @@ import com.dillon.starsectormarines.battle.power.MarineInsertion;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
 import com.dillon.starsectormarines.battle.power.ReconPing;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.marine.BoatFitting;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -68,5 +73,23 @@ class CommandPowerCommitmentTest {
         assertEquals(deployments, restored.deployments());
         assertNotSame(original, restored);
         assertEquals(original.maxCharges, restored.maxCharges);
+    }
+
+    @Test
+    void aMixedBayManifestAndItsCarrierCrossTheLaunchBoundary() {
+        FittedBoat cradle = new FittedBoat(ShuttleType.BUFFALO, BoatFitting.STANDARD_PLATING,
+                BoatFitting.STANDARD_DRIVE, BoatFitting.LIFT_CRADLE, "buffalo-1");
+        List<VehicleDeploymentSpec> vehicles =
+                List.of(new VehicleDeploymentSpec("v-1", "Mule", VehicleType.HEAVY_APC));
+        MechSupport original = MechSupport.configured(
+                List.of(MechDeploymentSpec.standard(MechVariant.HOUND)), vehicles, cradle, true);
+
+        MechSupport restored = assertInstanceOf(MechSupport.class,
+                CommandPowerCommitment.capture(original).toPower());
+
+        assertEquals(original.deployments(), restored.deployments());
+        assertEquals(vehicles, restored.vehicles());
+        assertEquals(cradle, restored.companyCarrier());
+        assertEquals(2, restored.manifest().size());
     }
 }

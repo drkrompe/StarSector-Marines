@@ -1,0 +1,67 @@
+{
+ "cream": {
+  "parts": 7,
+  "max_pair_dE_before": 4.43,
+  "max_pair_dE_after": 0.56,
+  "L_range_before": [
+   83.8,
+   86.9
+  ],
+  "L_range_after": [
+   78.0,
+   78.0
+  ]
+ },
+ "oxide": {
+  "parts": 12,
+  "max_pair_dE_before": 11.77,
+  "max_pair_dE_after": 0.0,
+  "L_range_before": [
+   51.8,
+   56.7
+  ],
+  "L_range_after": [
+   51.2,
+   51.2
+  ]
+ },
+ "gunmetal": {
+  "parts": 26,
+  "max_pair_dE_before": 15.61,
+  "max_pair_dE_after": 0.0,
+  "L_range_before": [
+   33.2,
+   48.8
+  ],
+  "L_range_after": [
+   46.5,
+   46.5
+  ]
+ },
+ "dark": {
+  "parts": 8,
+  "max_pair_dE_before": 20.64,
+  "max_pair_dE_after": 0.0,
+  "L_range_before": [
+   15.4,
+   36.0
+  ],
+  "L_range_after": [
+   18.8,
+   18.8
+  ]
+ },
+ "pale": {
+  "parts": 4,
+  "max_pair_dE_before": 2.59,
+  "max_pair_dE_after": 0.0,
+  "L_range_before": [
+   68.7,
+   71.3
+  ],
+  "L_range_after": [
+   74.0,
+   74.0
+  ]
+ }
+}

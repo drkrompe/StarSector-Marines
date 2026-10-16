@@ -102,7 +102,7 @@ class PowerCatalogTest {
 
         assertEquals(1, powers.size());
         assertEquals(MechSupport.ID, powers.get(0).id);
-        assertEquals(2, powers.get(0).maxCharges,
-                "five owned mechs should freeze as two physical support sorties");
+        assertEquals(5, powers.get(0).availableCalls(),
+                "five owned mechs freeze into the manifest, all aboard");
     }
 }

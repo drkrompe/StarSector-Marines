@@ -1,0 +1,9 @@
+Use case: photographic repaint of one transparent ship cutout, for a grounded science-fiction cinematic (Starsector). Wide landscape canvas the same shape as image 1, with genuine RGBA transparent background.
+
+Image 1 is the EXACT SILHOUETTE, POSE, SCALE AND LAYOUT AUTHORITY: a grey render of an Atlas civilian container freighter, a 300-metre industrial lifter, seen from slightly below and to the side, bow to the right, engines at the left. Fill in this exact silhouette; do not move, rotate, resize or re-pose the ship and do not change its outline. Keep every structural element where it is: the stacked cargo container modules in their grid, the central longitudinal service spine with its pipes, the heavy engine cluster and nozzles at the left, the rounded armoured bow and bridge at the right with its small antennas.
+
+Image 2 is IDENTITY AND LIVERY REFERENCE ONLY (an earlier painted version of the same ship): muted rust-red, olive, ochre and blue-grey container colours, worn grey steel structure. Do not copy its painterly brush style.
+
+Render it as a real, enormous, weathered industrial ship photographed in daylight over a tropical planet: worn steel, dirt streaks, faded container paint, fine panel seams at a believable scale for a very large object. Light: bright mid-morning sun from the upper left and slightly behind the camera; the top and upper-left edges are lit, the long flank facing us is in partial soft shade from the sky, the underside darker in blue-grey shade. At most a faint warm glow in the engine nozzles; no exhaust plumes.
+
+Only the isolated ship on actual transparent empty background, including the gaps between structures: no sky, clouds, haze, terrain, cast shadow, other ships, text, labels, logo, watermark or border. No CGI gloss, no toy look, no painterly brushwork, no cartoon linework, no rim glow.

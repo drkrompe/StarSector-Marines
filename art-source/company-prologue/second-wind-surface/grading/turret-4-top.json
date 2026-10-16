@@ -1,0 +1,134 @@
+{
+ "part": "turret-4-top",
+ "regions": {
+  "gunmetal": {
+   "pixels": 116628,
+   "share_as_declared": 0.767,
+   "share_in_declared_family": 1.0,
+   "came_back_as": {
+    "gunmetal": 0.767,
+    "dark": 0.225
+   },
+   "swap": false,
+   "before_mean_lab": [
+    38.36,
+    0.22,
+    0.52
+   ],
+   "after_mean_lab": [
+    46.45,
+    1.05,
+    1.83
+   ],
+   "gain_L_a_b": [
+    1.192,
+    1.5,
+    1.5
+   ],
+   "dE_to_palette_before": 8.23,
+   "forced_back_to_declared": false
+  },
+  "dark": {
+   "pixels": 1333,
+   "share_as_declared": 1.0,
+   "share_in_declared_family": 1.0,
+   "came_back_as": {
+    "dark": 1.0
+   },
+   "swap": false,
+   "before_mean_lab": [
+    15.38,
+    0.14,
+    0.88
+   ],
+   "after_mean_lab": [
+    18.79,
+    0.08,
+    -0.29
+   ],
+   "gain_L_a_b": [
+    1.219,
+    0.966,
+    1.011
+   ],
+   "dE_to_palette_before": 3.96,
+   "forced_back_to_declared": false
+  }
+ },
+ "planes": [
+  {
+   "pixels": 4669,
+   "ramp_span_L_removed": 1.59,
+   "ramp_dL_per_100px": [
+    -0.4,
+    -0.09
+   ],
+   "edge_band_dL_after": null
+  },
+  {
+   "pixels": 1650,
+   "ramp_span_L_removed": 17.55,
+   "ramp_dL_per_100px": [
+    142.07,
+    2.9
+   ],
+   "edge_band_dL_after": null
+  },
+  {
+   "pixels": 5136,
+   "ramp_span_L_removed": 4.74,
+   "ramp_dL_per_100px": [
+    -1.02,
+    -0.98
+   ],
+   "edge_band_dL_after": null
+  },
+  {
+   "pixels": 1927,
+   "ramp_span_L_removed": 5.66,
+   "ramp_dL_per_100px": [
+    -6.91,
+    -1.06
+   ],
+   "edge_band_dL_after": null
+  },
+  {
+   "pixels": 93647,
+   "ramp_span_L_removed": 5.03,
+   "ramp_dL_per_100px": [
+    -0.08,
+    -1.48
+   ],
+   "edge_band_dL_after": -0.37
+  },
+  {
+   "pixels": 1553,
+   "ramp_span_L_removed": 19.95,
+   "ramp_dL_per_100px": [
+    -22.42,
+    3.76
+   ],
+   "edge_band_dL_after": null
+  },
+  {
+   "pixels": 3129,
+   "ramp_span_L_removed": 9.76,
+   "ramp_dL_per_100px": [
+    1.67,
+    -4.48
+   ],
+   "edge_band_dL_after": null
+  },
+  {
+   "pixels": 4669,
+   "ramp_span_L_removed": 4.02,
+   "ramp_dL_per_100px": [
+    -0.72,
+    -1.35
+   ],
+   "edge_band_dL_after": null
+  }
+ ],
+ "ramp_span_L_removed_max": 19.95,
+ "edge_band_dL_after_mean": -0.37
+}
