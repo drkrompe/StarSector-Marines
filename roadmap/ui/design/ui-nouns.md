@@ -283,8 +283,7 @@ catalog or gameplay authority. Player-facing visual reviews use 1920x1080 at
 100% scale; live viewport fitting still honors the host and user settings.
 
 Company preparation groups personnel actions in Barracks before organization
-administration. A transfer review separates receiving and donor selections and
-keeps projected strength visible before its commit. The company officer's optional
+administration. The company officer's optional
 first-use guide is a bounded, replayable callout beside the relevant screen control,
 with Castle's portrait, speaker name and current roster context beside the lesson.
 A gold outline draws attention to the next real action. The callout moves clear
