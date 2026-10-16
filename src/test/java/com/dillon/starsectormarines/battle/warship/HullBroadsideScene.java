@@ -61,7 +61,8 @@ public final class HullBroadsideScene implements BehaviorScene {
     private static final String VARIANT = "onslaught_Standard";
     private static final int BROADSIDE_TICKS = 3600;
     private static final int SHIELD_TICKS = 900;
-    private static final int FRAME_EVERY = 10;
+    // Two 1920x1080 views of a two-minute exchange: a frame every ten ticks ran the snapshot heap out.
+    private static final int FRAME_EVERY = 20;
     /** Hull facing that points the nose east, toward +x (along is {@code (-sin, cos)}). */
     private static final float EAST = 270f;
     private static final float WEST = 90f;

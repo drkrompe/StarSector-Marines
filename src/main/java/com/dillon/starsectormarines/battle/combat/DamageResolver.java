@@ -316,9 +316,14 @@ public final class DamageResolver {
         boolean known = roster.identity().has(targetId);
         Faction struck = known ? roster.identity().faction(targetId) : null;
         if (struck != null) telemetry.recordPartHit(struck, part);
-        if (died || !part.wounds() || durability.structureDamage() <= 0f) return;
-        roster.wounds().wound(targetId, part);
-        if (struck != null) telemetry.recordWound(struck, part);
+        if (died || durability.structureDamage() <= 0f) return;
+        switch (part.consequence) {
+            case LIMB_WOUND -> {
+                roster.wounds().wound(targetId, part);
+                if (struck != null) telemetry.recordWound(struck, part);
+            }
+            case NONE -> { }
+        }
     }
 
     /**

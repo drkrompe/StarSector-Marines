@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.power;
 
-import com.dillon.starsectormarines.battle.air.MechSupportPayload;
+import com.dillon.starsectormarines.battle.air.ArmorDropPayload;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechRole;
@@ -17,7 +17,6 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -54,7 +53,8 @@ public class MechSupportTest {
 
         assertEquals(4f + 0.5f * BattleSimulation.TICK_DT,
                 sim.getCommandPowerService().getCommandPoints(), 0.001f);
-        assertEquals(1, sim.getCommandPowerService().getChargesRemaining(power.id));
+        assertEquals(1, sim.getCommandPowerService().getChargesRemaining(power.id),
+                "the Bulwark is still aboard");
         assertEquals(0, sim.getAirEntityIds().length);
     }
 
@@ -72,7 +72,7 @@ public class MechSupportTest {
         assertEquals(1, sim.getAirEntityIds().length, "the physical carrier arrives first");
         long shuttleId = sim.getAirEntityIds()[0];
         ShuttleMission mission = sim.world().mission(shuttleId);
-        assertSame(MechSupportPayload.INSTANCE, mission.payload);
+        assertSame(ArmorDropPayload.INSTANCE, mission.payload);
         assertEquals(1, mission.marinesRemaining);
         assertEquals(0.5f * BattleSimulation.TICK_DT,
                 sim.getCommandPowerService().getCommandPoints(), 0.001f);
@@ -103,27 +103,15 @@ public class MechSupportTest {
     }
 
     @Test
-    public void configuredSupportPartitionsVariantsIntoFourMechLances() {
+    public void theDefaultCallBringsUpToALanceAndLeavesTheRestAboard() {
         MechSupport power = new MechSupport(List.of(
                 MechVariant.HOUND, MechVariant.SIROCCO, MechVariant.BULWARK,
                 MechVariant.HOUND, MechVariant.SIROCCO));
 
-        assertEquals(2, power.maxCharges);
-        assertEquals(List.of(MechVariant.HOUND, MechVariant.SIROCCO,
-                MechVariant.BULWARK, MechVariant.HOUND),
-                power.lanceForRemainingCharges(1));
-        assertEquals(List.of(MechVariant.SIROCCO),
-                power.lanceForRemainingCharges(0));
-    }
-
-    @Test
-    public void finalSortieBeyondFormerDebugCeilingCarriesRemainder() {
-        MechSupport power = new MechSupport(
-                Collections.nCopies(101, MechVariant.HOUND));
-
-        assertEquals(26, power.maxCharges);
-        assertEquals(List.of(MechVariant.HOUND),
-                power.lanceForRemainingCharges(0));
+        assertEquals(0, power.maxCharges, "a cooldown paces the calls, not charges");
+        assertEquals(MechSupport.CALL_COOLDOWN_SECONDS, power.cooldownSeconds, 0f);
+        assertEquals(5, power.availableCalls());
+        assertEquals(List.of(0, 1, 2, 3), power.defaultSelection(null));
     }
 
     @Test

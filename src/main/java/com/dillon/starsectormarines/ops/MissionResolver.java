@@ -410,6 +410,7 @@ public final class MissionResolver {
                 .boatsLost(boatsLost)
                 .marinesLostAboard(marinesLostAboard)
                 .shipsCalled(ShipSupportResult.allOf(sim.warships().called()))
+                .vehiclesLost(sim.convoy().lostCompanyVehicleIds())
                 .survivingSoldierIds(survivingSoldierIds)
                 .fallenSoldierIds(fallenSoldierIds)
                 .deployedFireteamIds(deployedFireteamIds)
@@ -528,6 +529,7 @@ public final class MissionResolver {
         ShipSupportSettlement.settle(outcome.shipsCalled);
 
         MarineRoster roster = applyPersonnelOutcome(outcome);
+        if (roster != null) roster.mechBay().loseVehicles(outcome.vehiclesLost);
         if (outcome.contractId != -1L) {
             applyContractBridge(outcome, roster);
             CampaignStateScript campaign = CampaignStateScript.getInstance();
@@ -677,15 +679,14 @@ public final class MissionResolver {
         MarineRosterScript personnelScript = MarineRosterScript.getInstance();
         if (personnelScript == null) return null;
         MarineRoster roster = personnelScript.roster();
-        float wiaDays = switch (outcome.risk) {
-            case LOW -> 7f;
-            case MEDIUM -> 12f;
-            case HIGH -> 18f;
-        };
+        // Wounds heal over one day of ship time whatever the risk; stamped from the
+        // precise clock so a marine hurt late in a day still gets the whole day.
+        float wiaDays = MarineRoster.WIA_RECOVERY_DAYS;
+        float day = Global.getSector() != null ? CampaignClock.dayFloat() : 0f;
         roster.applySoldierOutcome(
-                resolvePersonnelOutcomes(outcome), currentDayInt(), wiaDays,
+                resolvePersonnelOutcomes(outcome), day, wiaDays,
                 outcome.soldierTelemetry, outcome.victory);
-        applyRecoverySpecialties(roster, outcome, currentDayInt(), wiaDays);
+        applyRecoverySpecialties(roster, outcome, day, wiaDays);
         if (outcome.victory) {
             Set<String> acquiredOrCarried =
                     EquipmentTemplateCardInventory.playerUnavailableTemplateIds();

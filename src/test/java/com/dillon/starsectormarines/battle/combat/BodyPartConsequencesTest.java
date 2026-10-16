@@ -30,7 +30,7 @@ class BodyPartConsequencesTest {
     void theMultipliersAverageToOneOnAnUncoveredBody() {
         float mean = 0f;
         float shares = 0f;
-        for (BodyPart part : BodyPart.values()) {
+        for (BodyPart part : BodyPlan.INFANTRY.parts()) {
             mean += part.share * part.damageMultiplier;
             shares += part.share;
         }

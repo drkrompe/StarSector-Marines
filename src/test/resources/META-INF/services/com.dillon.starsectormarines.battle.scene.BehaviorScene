@@ -63,6 +63,8 @@ com.dillon.starsectormarines.battle.fort.ShieldFortScene
 com.dillon.starsectormarines.battle.air.RidgeAirDefenceScene
 com.dillon.starsectormarines.battle.command.AssaultMusterScene
 com.dillon.starsectormarines.battle.power.MechDropScene
+com.dillon.starsectormarines.battle.power.HeavyLiftScene
+com.dillon.starsectormarines.battle.power.ArmorDropScene
 com.dillon.starsectormarines.battle.squad.FightingPositionScene
 com.dillon.starsectormarines.battle.airsupport.AirStrikeScene
 com.dillon.starsectormarines.battle.airsupport.FighterCoverScene
@@ -75,3 +77,5 @@ com.dillon.starsectormarines.battle.air.MissileAaEffectsScene
 com.dillon.starsectormarines.battle.air.MissileAaFightersScene
 com.dillon.starsectormarines.battle.smoke.SmokeScreenScene
 com.dillon.starsectormarines.battle.setup.GreyhookDuelScene
+com.dillon.starsectormarines.battle.warship.HullDurabilityScene
+com.dillon.starsectormarines.battle.warship.WarshipTacticsScene

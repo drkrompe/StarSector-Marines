@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
+import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.retained.CanvasBlend;
@@ -34,6 +35,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
+import java.util.function.Function;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
@@ -82,11 +84,14 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private final Supplier<List<Gantry>> berths;
     private final IntSupplier workSite;
     private final DoubleSupplier elapsedSeconds;
+    /** Pads holding a mech or a vehicle; the doll draws mechs only, so this can exceed the lance. */
+    private IntSupplier occupiedGantries;
     private final Supplier<MechWeaponComponent> candidateWeapon;
     private List<VacantGantryTarget> vacantGantryTargets = List.of();
     private List<SocketDropTarget> lastSocketTargets = List.of();
     private DragPreview dragPreview;
     private SocketId hoveredSocket;
+    private Function<SocketId, MechInternal> installedInternals = socket -> null;
 
     public void previewWeaponDrag(MechWeaponComponent component, SocketId source,
                                   SocketId target, boolean valid) {
@@ -94,6 +99,15 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     public void clearWeaponDragPreview() { dragPreview = null; }
+
+    /**
+     * What each internal socket of the selected machine holds. The frozen deployment
+     * carries the frame's values, not which parts produced them, so the lab supplies the
+     * names its wells show; without a source the wells show only their socket type.
+     */
+    public void installedInternals(Function<SocketId, MechInternal> source) {
+        installedInternals = source != null ? source : socket -> null;
+    }
 
     private record DragPreview(MechWeaponComponent component, SocketId source,
                                SocketId target, boolean valid) { }
@@ -210,7 +224,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
         drawTechnicianFx(context, sceneCamera, host[0],
                 workingPoses(aboard, workSite.getAsInt()), time,
                 weldingTorch.get(), weldingSparks.get());
-        drawVacantGantryActions(context, sceneCamera, host[0], standing, lance.size());
+        drawVacantGantryActions(context, sceneCamera, host[0], standing,
+                Math.max(lance.size(), occupiedGantries != null ? occupiedGantries.getAsInt() : 0));
         if (selected != null && fittingOverlaysVisible.getAsBoolean()) {
             drawSocketOverlays(context, MechFittingLayout.forVariant(selectedVariant),
                     selected, selectedSocket.get(), projection, candidateWeapon.get(),
@@ -218,6 +233,12 @@ public final class MechLabDollCanvas implements CanvasProducer {
         } else {
             lastSocketTargets = List.of();
         }
+    }
+
+    /** Pads past the mech lance that hold a vehicle are not vacant; the host says how many are taken. */
+    public MechLabDollCanvas withOccupiedGantries(IntSupplier occupied) {
+        this.occupiedGantries = occupied;
+        return this;
     }
 
     /** Records hover over the physical vacant-pad actions drawn during the last frame. */
@@ -403,9 +424,11 @@ public final class MechLabDollCanvas implements CanvasProducer {
             boolean rejected = draggingHere && !dragPreview.valid();
             boolean compatible = draggingHere ? dragPreview.valid()
                     : active != null && isSocketCompatible(socket, active);
+            MechInternal internal = installedInternals.apply(socket.id());
             MechSocketConsole.draw(c, target, socket, component,
-                    draggingHere ? active : null, deployment != null ? deployment.missileReplenisher() : null,
-                    assets.get(), selected,
+                    draggingHere ? active : null,
+                    deployment != null && internal == null ? deployment.missileReplenisher() : null,
+                    internal, assets.get(), selected,
                     hoveredSocket == socket.id(), compatible, rejected, draggingHere,
                     elapsedSeconds.getAsDouble());
         }

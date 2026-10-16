@@ -76,7 +76,13 @@ Purpose: the correct silhouette, sections, mass and slots. No fine detail.
 - an orthographic top view overlaid on the sprite, with silhouette IoU
   reported (aim for at least 0.93);
 - side, front, stern and three-quarter renders at 1920x1080;
-- slots match the `.ship` file exactly.
+- slots match the `.ship` file exactly;
+- when the hull is built for a particular shot, its camera and light as
+  well: the driver imports that shot's shared model (the Legion's
+  `c2_core`) and renders the shot camera under the shot's sun with no studio
+  fill, with the frame extent measured against the layout's target. Export
+  what the shot will register to (bay mouths, launch points and directions,
+  turret pivots) in `geometry.json` from the start.
 
 ## Pass 2: plausible detailing
 
@@ -100,6 +106,19 @@ hull's role and tech level), and from what the campaign needs the ship to be.
   own scratch copy and writes only its own module. The integrating session
   reviews and merges. CLAUDE.md asks for Sol 6.1 subagents; if the harness
   doesn't offer it, use Opus and say so.
+- Before fanning out, give the driver the close-up cameras (bow, bridge,
+  turret, engine, stern) and render them from the accepted blockout into
+  `reference-history/`, so every agent and the before/after sheet share
+  the same cameras. Give each agent one shared brief: lore, sprite paths,
+  pixel-to-model mapping, the IoU budget (no more than -0.002 per module),
+  the names to keep, and "report a path, don't write the package".
+- Read the lights layer (`<hull>_lights.png`) as well as the sprite. It
+  places every lamp, viewport and heat glow; put emissives only there.
+- Agents can't see each other's parts. After integrating, run a
+  cross-module BVH overlap sweep (the Hound's `check_clashes.py`). Most hits
+  are deliberate embedding (struts and lines sunk into the hull), but look
+  for fittings that only cross each other, such as a pipe through a chute.
+  The Hound's first integration had two of those.
 
 **Exit check:**
 - close-up cameras (bow, bridge, turret, stern) and the four standard views at
@@ -124,6 +143,21 @@ owner has to point them out:
 Keep a `reference-history/` snapshot of the accepted blockout, so a later pass
 can be compared against it.
 
+Snapshot the reviewed state too (the Hound's `reference-history/v2-detail/`)
+before each round. A round that adds a camera renders that camera's "before"
+from the committed tree with `--cam`, because the committed driver doesn't
+have it yet.
+
+When feedback adds something that moves (a ramp, door, hatch or crane),
+build it closed. Parent its parts to one named empty at the pivot
+(`Hull aft ventral ramp hinge`) and store the open axis and sign, plus any
+contact angle, as custom properties on that empty. Add a driver flag that
+poses it for review renders. Put a 1.8 m scale figure behind a flag as well
+(`--figure`), so a person is placed against doors, windows and rails in a
+review render and never saved in the `.blend`. Feedback quoting a size in
+units ("a 2.8-unit person") may come from another hull's scale. Convert it
+through this hull's `metres_per_unit` and say so.
+
 ## Pass 4: real-world scale
 
 Each hull gets exactly one `metres_per_unit` value, published in
@@ -136,17 +170,46 @@ Wind method in `second-wind-pipeline.md`, Scale):
 1. Take the deck area the mod's own deck program
    (`DeckSizing.programFor` with the `RoomRecipe` shapes; one cell is a
    metre) requires for the hull's class, minimum and maximum crew, and
-   cargo. Add about 25% for circulation, and multiply by about 3.2 m of
-   deck height.
+   cargo. The role comes from the designation (`HullRole.fromDesignation`:
+   "Civilian Transport" is `LINER`). Sum `RoomRecipe.area()`, multiply by
+   the program's own circulation factor (`DeckSizing.CIRCULATION`, 1.40;
+   this is what reproduces the Second Wind's 0.64), and multiply by about
+   3.2 m of deck height. `DeckProgramProbe.java` beside this skill prints
+   all of it with no game process (usage in its Javadoc: class, designation,
+   min crew, max crew, cargo, run against compiled `build/classes`). The
+   class argument is the `HullClass` name (`CAPITAL`, not ship_data's
+   `CAPITAL_SHIP`).
 2. Measure the model's main pressure-hull volume in Blender
    (`bmesh.calc_volume` on the main hull object, in cubic units). Take about
-   55% of it as usable.
+   55% of it as usable. Where the hull is several objects, sum the
+   habitable ones by name, and measure their union, not the sum of their
+   volumes: overlapping sections double-count (the Legion's driver
+   integrates vertical ray intervals per column). Count drive pods' outer casings, as the Second
+   Wind's unioned hull did, but not their dark cores or overlapping bands.
+   Report the pods-excluded solution as the top of the range. Have the
+   driver re-measure this on every build and record the solved value
+   beside the published one (the Hound's `scale_record`), so a geometry
+   change that moves the answer is visible.
 3. Solve `usable_units³ × s³ = required m³` for `s`, the scale in metres per
    unit. Cross-check it against a fitting with a known real size (the boat
    bay against `RoomRecipe.BOAT_BAY`/`SHUTTLE_BAY`, hatch heights, a 1.8 m
    person).
 
-Report the plausible range. Note that the battle-map landed-ship convention
+Report the plausible range. 55% usable is a freighter's share. A heavily
+armoured warship (armour rating in the thousands, many barbettes and their
+magazines) plausibly has less, about 35-45%; report the usable share the
+published scale implies beside the 55% solve, rather than quietly changing
+either.
+
+**Every hull gets its own real-life scale (owner, 2026-10-16).** Never borrow
+another hull's `metres_per_unit` to keep sprite proportions: vanilla sprites
+are not drawn to one scale, and a military carrier is meant to be massive
+beside a small freighter. Shots that put hulls together derive each length
+from that hull's own `geometry.json` and re-solve their framing when a figure
+changes. Fighters follow the same rule, sized from their cockpit (one or two
+seated 1.8 m figures with canopy clearance), weapons and engines, and
+sanity-checked against real aircraft of 12-22 m. Note that the battle-map
+landed-ship convention
 (`landed-ships-true-scale.md`) is about readability on the tactical map and
 is a different number.
 

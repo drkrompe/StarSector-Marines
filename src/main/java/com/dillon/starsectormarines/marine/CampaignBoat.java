@@ -27,6 +27,8 @@ public final class CampaignBoat implements Serializable {
     private final ShuttleType pattern;
     private String platingId;
     private String driveId;
+    /** Null on saves from before the lift slot: reads as the standard hold. */
+    private String liftId;
     private float repairUntilDay;
 
     /** Zero on legacy saves. Recovery is read from campaign time, not screen visits. */
@@ -55,6 +57,14 @@ public final class CampaignBoat implements Serializable {
         this.pattern = pattern;
         this.platingId = BoatFitting.resolve(platingId, BoatFittingSlot.PLATING).id();
         this.driveId = BoatFitting.resolve(driveId, BoatFittingSlot.DRIVE).id();
+        this.liftId = BoatFitting.STANDARD_LIFT.id();
+    }
+
+    public CampaignBoat(String id, String displayName, ShuttleType pattern,
+                        String platingId, String driveId, String liftId) {
+        this(id, displayName, pattern, platingId, driveId);
+        BoatFitting lift = BoatFitting.resolve(liftId, BoatFittingSlot.LIFT);
+        this.liftId = lift.supports(pattern) ? lift.id() : BoatFitting.STANDARD_LIFT.id();
     }
 
     public String id() { return id; }
@@ -71,9 +81,21 @@ public final class CampaignBoat implements Serializable {
         return BoatFitting.resolve(driveId, BoatFittingSlot.DRIVE);
     }
 
+    /**
+     * The hold. A boat saved before the lift slot existed has no id here and
+     * reads as the standard hold, which is what it was built with.
+     */
+    public BoatFitting lift() {
+        return BoatFitting.resolve(liftId, BoatFittingSlot.LIFT);
+    }
+
     /** What is installed in one slot. Never null — an empty slot is the standard fit. */
     public BoatFitting fittingIn(BoatFittingSlot slot) {
-        return slot == BoatFittingSlot.DRIVE ? drive() : plating();
+        return switch (slot) {
+            case DRIVE -> drive();
+            case LIFT -> lift();
+            case PLATING -> plating();
+        };
     }
 
     /**
@@ -84,7 +106,7 @@ public final class CampaignBoat implements Serializable {
      * what it was flying as, and the campaign works out afterwards whose it was.
      */
     public FittedBoat freezeForDeployment() {
-        return new FittedBoat(pattern, plating(), drive(), id);
+        return new FittedBoat(pattern, plating(), drive(), lift(), id);
     }
 
     /**
@@ -94,7 +116,10 @@ public final class CampaignBoat implements Serializable {
      */
     void install(BoatFitting fitting) {
         if (fitting == null) return;
-        if (fitting.slot() == BoatFittingSlot.DRIVE) driveId = fitting.id();
-        else platingId = fitting.id();
+        switch (fitting.slot()) {
+            case DRIVE -> driveId = fitting.id();
+            case LIFT -> liftId = fitting.id();
+            case PLATING -> platingId = fitting.id();
+        }
     }
 }
