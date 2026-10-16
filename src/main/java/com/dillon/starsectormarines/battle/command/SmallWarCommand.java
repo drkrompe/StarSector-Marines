@@ -24,14 +24,14 @@ public final class SmallWarCommand implements AutonomousMissionCommand<SmallWarC
         final int custody;
         final List<Integer> holders;
         final boolean[] visited;
-        final boolean companyCover, split;
+        final boolean companyCover, split, formingUp;
         final Map<Integer, Group> groups;
         final Set<Integer> withdrawing;
         public Frame(CommandFrame base, Phase phase, int custody, List<Integer> holders, boolean[] visited, boolean companyCover,
-                     boolean split, Map<Integer, Group> groups, Set<Integer> withdrawing) {
+                     boolean split, boolean formingUp, Map<Integer, Group> groups, Set<Integer> withdrawing) {
             super(base.tick(), base.perspective(), base.squads(), base.influence(), base.topology(), base.assignments());
             this.phase = phase; this.custody = custody; this.holders = List.copyOf(holders); this.visited = visited.clone();
-            this.companyCover = companyCover; this.split = split; this.groups = Map.copyOf(groups); this.withdrawing = Set.copyOf(withdrawing);
+            this.companyCover = companyCover; this.split = split; this.formingUp = formingUp; this.groups = Map.copyOf(groups); this.withdrawing = Set.copyOf(withdrawing);
         }
     }
 
@@ -53,7 +53,7 @@ public final class SmallWarCommand implements AutonomousMissionCommand<SmallWarC
             // Defenders know their own outfits and Voss's order; other perspectives get neither.
             boolean own = faction == Faction.DEFENDER;
             return new Frame(base, p.phase(), sequence.custodySquadId(), sequence.holderSquadIds(), visited, covered,
-                    own && p.split(), own ? sequence.squadGroups() : Map.of(), own ? sequence.withdrawingSquads() : Set.of());
+                    own && p.split(), faction == Faction.MARINE && sequence.formingUp(), own ? sequence.squadGroups() : Map.of(), own ? sequence.withdrawingSquads() : Set.of());
         };
     }
 
@@ -66,6 +66,11 @@ public final class SmallWarCommand implements AutonomousMissionCommand<SmallWarC
 
     public CommandPlan<String> plan(Frame frame) {
         var proposals = new ArrayList<CommandProposal>(); int count = 0;
+        // The company's living squads in a fixed order, so the handover can post one on each site.
+        var companySquads = new ArrayList<Integer>();
+        if (faction == Faction.MARINE)
+            for (var squad : frame.squads()) if (squad.aliveMembers() > 0) companySquads.add(squad.squadId());
+        companySquads.sort(null);
         for (var squad : frame.squads()) {
             if (squad.aliveMembers() <= 0) continue;
             var old = squad.directive();
@@ -76,7 +81,9 @@ public final class SmallWarCommand implements AutonomousMissionCommand<SmallWarC
             boolean advance = false, withdraw = false;
             int cx = Math.round(squad.centroidX()), cy = Math.round(squad.centroidY());
             if (faction == Faction.MARINE) {
-                int[] target = companyTarget(frame.phase, squad.squadId(), cx, frame.tick());
+                // Before the push on fuel control the company forms up at the staging ground while its lift is still landing.
+                int[] target = frame.formingUp ? new int[]{BlackSluice.STAGING_X + 4, BlackSluice.STAGING_Y + 6}
+                        : companyTarget(frame.phase, squad.squadId(), companySquads.indexOf(squad.squadId()), cx, frame.tick());
                 x = target[0]; y = target[1]; radius = 3; advance = true;
             } else if (faction == Faction.ALLY) {
                 if (squad.squadId() == frame.custody) {
@@ -123,16 +130,18 @@ public final class SmallWarCommand implements AutonomousMissionCommand<SmallWarC
      * mouth goes through the gallery, which comes out behind the house, instead of up the exposed
      * causeway under the gun. Inside a site the squads sweep it rather than stand on its centre:
      * each takes one of five points and the points rotate every {@link #SWEEP_TICKS}, so a holdout
-     * in a side room is found rather than left contesting the site indefinitely.
+     * in a side room is found rather than left contesting the site indefinitely. Through the handover
+     * the squads, by {@code rank} among the company's living squads, stand on fuel control, dispatch
+     * and customs in turn, so all three stay occupied even when the holders have been killed.
      */
-    static int[] companyTarget(Phase phase, int squadId, int centroidX, long tick) {
+    static int[] companyTarget(Phase phase, int squadId, int rank, int centroidX, long tick) {
         return switch (phase) {
             case CUSTOMS -> { var s = BlackSluice.SITES.get(SmallWarProgress.CUSTOMS); yield new int[]{s.x() + (squadId % 2 == 0 ? -2 : 2), s.y()}; }
             case FUEL_CONTROL -> centroidX < BlackSluice.NORTH_GALLERY_EXIT_X - 3
                     ? new int[]{BlackSluice.NORTH_GALLERY_EXIT_X, BlackSluice.NORTH_GALLERY_EXIT_Y}
                     : sweep(SmallWarProgress.FUEL_CONTROL, squadId, tick);
             case DISPATCH -> sweep(SmallWarProgress.DISPATCH, squadId, tick);
-            default -> squadId % 2 == 0 ? site(SmallWarProgress.FUEL_CONTROL) : site(SmallWarProgress.DISPATCH);
+            default -> site(new int[]{SmallWarProgress.FUEL_CONTROL, SmallWarProgress.DISPATCH, SmallWarProgress.CUSTOMS}[Math.floorMod(rank, 3)]);
         };
     }
     static final int SWEEP_TICKS = 600;

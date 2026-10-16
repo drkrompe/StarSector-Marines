@@ -148,7 +148,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
             var phase = sequence.progress().phase();
             frames.add(frame(context, fixture.id() + "-arrival.png", sim, false));
             int maxTicks = fixture.control() == Control.ABSENT ? 5400 : Integer.getInteger("battle.blackSluice.maxTicks", 27000);
-            boolean injected = false, splitSeen = false;
+            boolean injected = false, splitSeen = false, formUpOver = false;
             int splitTick = -1, gunShots = 0;
             while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                 if (fixture.control() == Control.RETREAT && sequence.progress().visited(SmallWarProgress.CUSTOMS)) {
@@ -164,6 +164,10 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                     injected = true; report.append("  diagnostic: killed the whole custody party at HANDOVER\n");
                 }
                 sim.advance(BattleSimulation.TICK_DT);
+                if (!formUpOver && sequence.progress().visited(SmallWarProgress.CUSTOMS) && !sequence.formingUp()) {
+                    formUpOver = true;
+                    report.append("  form-up at the staging ground over, pushing on tick=").append(sim.getSimTickIndex()).append('\n');
+                }
                 for (int i = 0; i < sim.liveUnitCount(); i++) {
                     long id = sim.liveUnitAt(i);
                     if (sim.identity().faction(id) != Faction.MARINE || sim.identity().type(id) != UnitType.MARINE) continue;

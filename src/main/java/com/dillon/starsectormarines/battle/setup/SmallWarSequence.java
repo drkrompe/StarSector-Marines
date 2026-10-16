@@ -50,7 +50,11 @@ public final class SmallWarSequence implements Objective {
     /** The story beat raised when Voss orders Black Sluice abandoned. */
     public static final String VOSS_ABANDON_BEAT = "small_war.voss_abandon";
     private SmallWarDuel duel;
-    private boolean initialized;
+    private boolean initialized, liftDown;
+    /** Seconds since customs first fell; drives the bounded form-up before the push on fuel control. */
+    private float sinceCustoms = -1;
+    /** The longest the company waits at the staging ground for the rest of its lift before pushing on regardless. */
+    public static final float FORM_UP_LIMIT_SECONDS = 120;
 
     public SmallWarSequence(int custody, List<Integer> holders, Map<Integer, Group> startingSquads,
                             Map<Group, List<EntitySpec>> reserves, long supportGun, boolean houseCustody, StoryBeatLog log) {
@@ -72,6 +76,15 @@ public final class SmallWarSequence implements Objective {
     }
     public SmallWarDuel duel() { return duel; }
     public SmallWarProgress progress() { return progress; }
+    /**
+     * Whether the company forms up at the staging ground south of customs instead of pushing on: customs has
+     * fallen, fuel control has not yet, and the company's lift is still bringing people in, for at most
+     * {@link #FORM_UP_LIMIT_SECONDS}. A command choice, not an objective: nothing waits on it.
+     */
+    public boolean formingUp() {
+        return progress.phase() == Phase.FUEL_CONTROL && !progress.visited(SmallWarProgress.FUEL_CONTROL)
+                && !liftDown && sinceCustoms >= 0 && sinceCustoms < FORM_UP_LIMIT_SECONDS;
+    }
     public int custodySquadId() { return custody; }
     public List<Integer> holderSquadIds() { return holders; }
     public long supportGunId() { return supportGun; }
@@ -109,6 +122,8 @@ public final class SmallWarSequence implements Objective {
         if (sim.isComplete() || progress.terminal()) return;
         if (!initialized) { initialized = true; emit(sim, "mobilization"); }
         Phase before = progress.phase();
+        liftDown = companyLiftDown(sim);
+        if (sinceCustoms >= 0) sinceCustoms += BattleSimulation.TICK_DT;
         int company = 0, friendly = 0, contested = 0;
         boolean custodyInRoom = false;
         for (int i = 0; i < sim.liveUnitCount(); i++) {
@@ -127,7 +142,10 @@ public final class SmallWarSequence implements Objective {
         }
         boolean split = progress.advance(BattleSimulation.TICK_DT, companyInPlay(sim), infrastructureIntact(sim),
                 sim.squadMemberCount(custody) > 0, custodyInRoom, company, friendly, contested);
-        if (progress.visited(SmallWarProgress.CUSTOMS)) release(sim, Commitment.CUSTOMS_FALLS);
+        if (progress.visited(SmallWarProgress.CUSTOMS)) {
+            if (sinceCustoms < 0) sinceCustoms = 0;
+            release(sim, Commitment.CUSTOMS_FALLS);
+        }
         if (split) split(sim);
         observeExits(sim);
         if (duel != null && progress.split()) duel.advance(sim);
@@ -173,6 +191,17 @@ public final class SmallWarSequence implements Objective {
             sim.takeOffTheField(leaving[0]);
             log.emitOnce(sim.getSimTickIndex(), "small_war.withdrawn_" + leaving[0], StoryBeatLog.Audience.OBSERVER_ONLY);
         }
+    }
+
+    /** Every company boat has flown its last sortie and set down everyone aboard it. */
+    private static boolean companyLiftDown(BattleSimulation sim) {
+        for (long air : sim.getAirEntityIds()) {
+            if (sim.world().airFaction(air) != Faction.MARINE) continue;
+            var flight = sim.world().mission(air);
+            if (flight == null || flight.cycleLoadouts == null) continue;
+            if (flight.currentCycle + 1 < flight.totalCycles || flight.marinesRemaining > 0) return false;
+        }
+        return true;
     }
 
     /** Every marked tank still stands, intact or damaged; a destroyed tank is lost infrastructure. */
