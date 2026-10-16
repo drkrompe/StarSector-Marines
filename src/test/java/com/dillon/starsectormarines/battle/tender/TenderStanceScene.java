@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.scene.Verdict;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.warship.MissionStance;
+import com.dillon.starsectormarines.battle.warship.WarshipScale;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 
@@ -82,7 +83,10 @@ public final class TenderStanceScene implements BehaviorScene {
         SceneWorld world = builder.build();
         BattleSimulation sim = world.sim();
         sim.random().setSeed(20261012L);
-        Tender tender = Tender.fit(Faction.MARINE, defend ? 24f : 14f, 40f, -90f);
+        // Bow east: held back by the growth of the Shepherd's half-length (46 px of a 92 px hull) over a presence of
+        // four, so its bow stands where the scene was laid.
+        float back = (WarshipScale.HULL_PRESENCE - 4f) * WarshipScale.cells(46f);
+        Tender tender = Tender.fit(Faction.MARINE, (defend ? 24f : 14f) - back, 40f, -90f);
         if (!loop.equals("hold-control")) {
             tender.ship().stance(defend ? MissionStance.DEFEND : MissionStance.ATTACK);
         }

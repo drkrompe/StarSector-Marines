@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.tender;
 
 import com.dillon.starsectormarines.battle.drone.DroneAnchor;
 import com.dillon.starsectormarines.battle.drone.DroneHash;
+import com.dillon.starsectormarines.battle.drone.EscortFormation;
 import com.dillon.starsectormarines.battle.drone.SortieFlight;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -66,6 +67,15 @@ final class TenderFlight {
     static final float REACH_CELLS = 30f;
     /** How far from the hull the escort will stray, in cells. */
     static final float LEASH_CELLS = 24f;
+
+    /**
+     * How much farther out the reach and the leash sit round a hull longer than the escort ring's reference hull: they
+     * are measured from where the ring clears the hull ({@link EscortFormation}), so a bigger hull does not shrink
+     * the ground its screen covers.
+     */
+    static float beyondReference(float hullHalfLength) {
+        return Math.max(0f, hullHalfLength - EscortFormation.REFERENCE_HALF_LENGTH);
+    }
     /** Ticks between scans of the roster for the nearest threat. */
     static final int SCAN_TICKS = 6;
     /** A defence drone below this share of its hit points limps home. */
@@ -257,14 +267,15 @@ final class TenderFlight {
      * Looks, a few times a second, for the hostile nearest the hull inside its
      * reach. That one is the escort's focus and its presence draws the ring in.
      */
-    void scan(BattleSimulation sim, Faction side, float ax, float ay) {
+    void scan(BattleSimulation sim, Faction side, float ax, float ay, float hullHalfLength) {
         if (scanCountdown-- > 0) return;
         scanCountdown = SCAN_TICKS - 1;
         UnitRosterService roster = sim.getRoster();
         World world = sim.world();
         long[] dense = roster.denseArray();
         long best = 0L;
-        float bestD2 = REACH_CELLS * REACH_CELLS;
+        float reach = REACH_CELLS + beyondReference(hullHalfLength);
+        float bestD2 = reach * reach;
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             long u = dense[i];
             if (!side.hostileTo(roster.identity().faction(u))) continue;

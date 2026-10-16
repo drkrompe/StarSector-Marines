@@ -33,19 +33,21 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * A Venture and two Hound (P) landed at true scale in the production Black Sluice docking compound, with Greyhook's
- * own crews standing beside them, and the same three hulls lifting out of their berths into flight scale
+ * A Venture and two Hound (P) landed at true scale on the production Black Sluice southern pads, below the ridge
+ * from the ground fight, and the same three hulls flying their lift runs into flight scale
  * ({@code landed-ships-true-scale.md}). Art and scale evidence at 1920x1080 / 100%: the chapter is built without
  * its duel and the three hulls are placed here, so the hull shown does not depend on which ship the duel flies. Not
- * a played mission; the ground fight is left running only for the few seconds of the lift.
+ * a played mission; the ground fight is left running only for the half-minute of the lift.
  */
 public final class LandedShipsSnapshotSuite implements SnapshotSuite {
 
-    /** Ticks between liftoff frames: a frame every second and a half, through the six-second lift and a little past. */
-    private static final int LIFT_FRAME_EVERY = 45, LIFT_FRAMES = 6;
+    /** Ticks between liftoff frames (two seconds), and the most frames the strip takes before the lift must be through. */
+    private static final int LIFT_FRAME_EVERY = 60, LIFT_FRAMES = 24;
+    /** Where the lift runs turn toward: west over the rock massif, the way Black Sluice's rig climbs out. */
+    private static final float TURN_X = 126f, TURN_Y = 20f;
 
     public String id() { return "landed-ships"; }
-    public String label() { return "Landed ships: Venture and Hounds at true scale in the Black Sluice dock, and their lift"; }
+    public String label() { return "Landed ships: Venture and Hounds at true scale on the Black Sluice pads, and their lift run"; }
 
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         DiskRegistries.installMapGeneration(context.projectRoot()); HeadlessSvgAssets.install(context.modRoot());
@@ -73,36 +75,47 @@ public final class LandedShipsSnapshotSuite implements SnapshotSuite {
                     .box(cradle.left(), cradle.bottom(), cradle.right(), cradle.top(), "VENTURE CRADLE", ReviewStyle.OBJECTIVE);
             for (var berth : BlackSluice.HOUND_BERTHS)
                 marks.box(berth.left(), berth.bottom(), berth.right(), berth.top(), "HOUND BERTH", ReviewStyle.OBJECTIVE);
-            marks.arrow(190, 56, 206, 56, "PRESSURE VESTIBULE", ReviewStyle.APPROACH)
-                    .label(205, 69, "PRIZE CREW AT THE STERN GANTRY", ReviewStyle.NOTE);
-            frames.add(frame(context, "landed-dock-annotated.png", sim, 172, 64, 192,
-                    "LANDED SHIPS / BLACK SLUICE DOCKING COMPOUND / " + scale + " / observer annotations", marks.build()));
-            frames.add(frame(context, "landed-dock.png", sim, 172, 64, 192,
-                    "LANDED SHIPS / BLACK SLUICE DOCKING COMPOUND / " + scale, ReviewAnnotations.builder().build()));
-            frames.add(frame(context, "landed-venture-stern-crew.png", sim, 214, 62, 56,
-                    "LANDED SHIPS / VENTURE STERN AND HANGAR, PRIZE CREW ON THE GANTRY APRON / 56 cells across", ReviewAnnotations.builder().build()));
-            frames.add(frame(context, "landed-venture-whole.png", sim, 232, 64, 104,
+            marks.arrow(283, 100, 283, 74, "BERTH ROAD FROM THE GATE", ReviewStyle.APPROACH)
+                    .label(150, 84, "RIDGE: NO WAY THROUGH", ReviewStyle.NOTE)
+                    .label(60, 40, "ROCK MASSIF", ReviewStyle.NOTE);
+            frames.add(frame(context, "landed-dock-annotated.png", sim, 196, 44, 192,
+                    "LANDED SHIPS / BLACK SLUICE SOUTHERN BERTHS / " + scale + " / observer annotations", marks.build()));
+            frames.add(frame(context, "landed-dock.png", sim, 196, 44, 192,
+                    "LANDED SHIPS / BLACK SLUICE SOUTHERN BERTHS / " + scale, ReviewAnnotations.builder().build()));
+            frames.add(frame(context, "landed-venture-stern-crew.png", sim, 222, 36, 56,
+                    "LANDED SHIPS / VENTURE STERN, CONCRETE PAD, SCORCH AND TIE-DOWNS / 56 cells across", ReviewAnnotations.builder().build()));
+            frames.add(frame(context, "landed-venture-whole.png", sim, 196, 34, 104,
                     "LANDED SHIPS / VENTURE IN HER CRADLE, BERTHS EITHER SIDE / 104 cells across", ReviewAnnotations.builder().build()));
-            frames.add(frame(context, "landed-hound-berth.png", sim, 228, 106, 44,
-                    "LANDED SHIPS / NORTH HOUND BERTH, GANTRY ARM AND FUEL LINE / 44 cells across", ReviewAnnotations.builder().build()));
+            frames.add(frame(context, "landed-hound-berth.png", sim, 142, 34, 44,
+                    "LANDED SHIPS / WEST HOUND BERTH, GANTRY ARMS AND KERB / 44 cells across", ReviewAnnotations.builder().build()));
 
-            // The lift: every hull leaves its berth at once and eases to flight scale where it stands.
-            for (Warship ship : ships) ship.lift();
-            float previous = Float.POSITIVE_INFINITY;
+            // The lift: every hull flies its lift run at once, ahead off the pad and round toward the west, its body
+            // easing to flight scale with the share of the run it has flown rather than where it sits.
+            for (Warship ship : ships) ship.lift(TURN_X, TURN_Y);
+            float startX = venture.x, startY = venture.y, berthBody = venture.bodyScale(), previousBody = berthBody;
+            float previousProgress = 0f;
             var strip = new ArrayList<BufferedImage>();
             for (int frame = 0; frame <= LIFT_FRAMES; frame++) {
-                float body = venture.bodyScale();
-                assertTrue(body <= previous + 1e-6f, "the body only eases toward flight scale");
-                previous = body;
-                String caption = String.format(Locale.ROOT, "LANDED SHIPS / LIFT / %.1fs / body %.2fx flight scale (Venture %.1f cells)",
-                        frame * LIFT_FRAME_EVERY / 30f, body, venture.lengthCells * body);
-                var image = new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 232, 64, 132).withUnitShadows()
+                float body = venture.bodyScale(), progress = venture.liftProgress();
+                assertTrue(progress >= previousProgress, "the lift only goes forward");
+                assertTrue((body - previousBody) * (1f - berthBody) >= -1e-6f, "the body only eases toward flight scale");
+                previousBody = body;
+                previousProgress = progress;
+                float moved = (float) Math.hypot(venture.x - startX, venture.y - startY);
+                String caption = String.format(Locale.ROOT,
+                        "LANDED SHIPS / LIFT RUN / %.0fs / %.0f%% of the run / body %.2fx flight scale / %.0f cells off the pad",
+                        frame * LIFT_FRAME_EVERY / 30f, progress * 100f, body, moved);
+                var image = new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 176, 40, 200).withUnitShadows()
                         .withImpactEffects().render(sim, caption, ReviewAnnotations.builder().build());
                 frames.add(new SnapshotArtifact(String.format(Locale.ROOT, "landed-lift-%02d.png", frame), image));
                 strip.add(image);
-                for (int t = 0; t < LIFT_FRAME_EVERY && frame < LIFT_FRAMES; t++) sim.advance(BattleSimulation.TICK_DT);
+                if (progress >= 1f) break;
+                for (int t = 0; t < LIFT_FRAME_EVERY; t++) sim.advance(BattleSimulation.TICK_DT);
             }
+            assertEquals(1f, venture.liftProgress(), 0f, "the lift run is through inside the strip");
             assertEquals(1f, venture.bodyScale(), 1e-5f, "a lifted hull is at flight scale");
+            float travelled = (float) Math.hypot(venture.x - startX, venture.y - startY);
+            assertTrue(travelled > 0.5f * venture.lengthCells, "the scale change was carried by travel: " + travelled + " cells");
             frames.add(SnapshotArtifact.animation("landed-lift.gif", strip, 400));
         }
         return frames;

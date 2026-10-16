@@ -40,7 +40,7 @@ public final class TenderBuildScene implements BehaviorScene {
     private static final int WIDTH = 140;
     private static final int HEIGHT = 80;
     private static final int TICKS = 2400;
-    private static final float START_X = 14f;
+    private static final float START_X = 28f;
     private static final float START_Y = 40f;
     private static final float SITE_X = 60.5f;
     private static final float SITE_Y = 40.5f;
@@ -187,8 +187,12 @@ public final class TenderBuildScene implements BehaviorScene {
                 verdicts.add(Verdict.of("drones-hurt-the-raid-before-the-turret-exists",
                         t.firstRaiderHurt >= 0 && (t.completeTick < 0 || t.firstRaiderHurt < t.completeTick),
                         "first raider hurt at tick " + t.firstRaiderHurt + ", turret at tick " + t.completeTick));
-                verdicts.add(Verdict.of("a-contested-site-is-not-worked", t.contestedTicks > 0 && t.workedWhileContested == 0,
-                        t.contestedTicks + " contested ticks, " + t.workedWhileContested + " of them advanced the build"));
+                // Conditional on a contest: a screen that stops the patrol short of the site leaves nothing to stand
+                // down for. The overrun loop, whose assault always reaches the site, asserts the same without the escape.
+                verdicts.add(Verdict.of("a-contested-site-is-not-worked", t.workedWhileContested == 0,
+                        t.contestedTicks == 0 ? "the screen kept the raid off the site: no contested tick to work"
+                                : t.contestedTicks + " contested ticks, " + t.workedWhileContested
+                                + " of them advanced the build"));
                 verdicts.add(Verdict.of("the-screen-clears-the-raid", t.raidersAlive() == 0,
                         t.raidersAlive() + " of " + PATROL + " raiders alive, " + tender.defendersLost()
                                 + " defence drones lost"));
@@ -198,6 +202,8 @@ public final class TenderBuildScene implements BehaviorScene {
                         "last contested tick " + t.lastContested + ", turret at tick " + t.completeTick));
             }
             case "overrun" -> {
+                verdicts.add(Verdict.of("a-contested-site-is-not-worked", t.contestedTicks > 0 && t.workedWhileContested == 0,
+                        t.contestedTicks + " contested ticks, " + t.workedWhileContested + " of them advanced the build"));
                 verdicts.add(Verdict.of("an-assault-overruns-the-screen", tender.defendersLost() == tender.defenceComplement(),
                         tender.defendersLost() + " of " + tender.defenceComplement() + " defence drones lost against "
                                 + ASSAULT + " raiders, " + t.raidersAlive() + " still alive"));

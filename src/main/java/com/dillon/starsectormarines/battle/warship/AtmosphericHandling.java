@@ -11,7 +11,8 @@ package com.dillon.starsectormarines.battle.warship;
  *   <li><b>Top speed and turn rate</b> are compressed toward the reference battleship's ({@link #REFERENCE_SPEED},
  *   {@link #REFERENCE_TURN}): a hull no faster than the reference keeps its table figure, and a faster one keeps
  *   only the square root of how much faster it is. The ladder survives (a frigate still outruns and outturns a
- *   cruiser) but a frigate is two to three times a battleship's pace rather than six.</li>
+ *   cruiser) but a frigate is two to three times a battleship's pace rather than six. Every hull then keeps only
+ *   {@link #SPEED_SHARE} of that speed and {@link #TURN_SHARE} of that turn: a giant barely moving.</li>
  *   <li><b>Acceleration, braking and turn acceleration</b> are the table's, but never faster than coming to the
  *   new top speed (or turn rate) in {@link #SPOOL_SECONDS} ({@link #TURN_SPOOL_SECONDS}): every hull carries its
  *   way, takes seconds to gather it and seconds to shed it, and settles into a turn rather than pivoting.</li>
@@ -27,10 +28,20 @@ public final class AtmosphericHandling {
     public static final float REFERENCE_SPEED = 25f;
     /** The battleship's table turn rate, degrees per second, that faster hulls are compressed toward. */
     public static final float REFERENCE_TURN = 4f;
+    /**
+     * The share of the compressed top speed a hull keeps in atmosphere. A body drawn at a giant's size has to move
+     * like one: a frigate takes the better part of ten seconds to cover its own length and a capital most of a
+     * minute, so a heavy ship's position changes over many seconds rather than across a frame.
+     */
+    public static final float SPEED_SHARE =
+            Float.parseFloat(System.getProperty("battle.warship.atmosphericSpeedShare", "0.5"));
+    /** The share of the compressed turn rate a hull keeps in atmosphere. */
+    public static final float TURN_SHARE =
+            Float.parseFloat(System.getProperty("battle.warship.atmosphericTurnShare", "0.6"));
     /** No hull comes to its top speed, or stops from it, in less than this. */
-    public static final float SPOOL_SECONDS = 4f;
+    public static final float SPOOL_SECONDS = 6f;
     /** No hull comes to its turn rate, or out of it, in less than this. */
-    public static final float TURN_SPOOL_SECONDS = 2.5f;
+    public static final float TURN_SPOOL_SECONDS = 4f;
 
     /** One hull's handling in atmosphere, in table units. */
     public record Figures(float maxSpeed, float accel, float decel, float turnRate, float turnAccel) {}
@@ -43,8 +54,8 @@ public final class AtmosphericHandling {
     /** The atmospheric figures for a hull whose table row gives these. */
     public static Figures of(float maxSpeed, float accel, float decel, float turnRate, float turnAccel) {
         if (!ENABLED) return new Figures(maxSpeed, accel, decel, turnRate, turnAccel);
-        float speed = compress(maxSpeed, REFERENCE_SPEED);
-        float turn = compress(turnRate, REFERENCE_TURN);
+        float speed = compress(maxSpeed, REFERENCE_SPEED) * SPEED_SHARE;
+        float turn = compress(turnRate, REFERENCE_TURN) * TURN_SHARE;
         return new Figures(speed,
                 Math.min(accel, speed / SPOOL_SECONDS),
                 Math.min(decel, speed / SPOOL_SECONDS),
