@@ -4,7 +4,7 @@ Status: IN PROGRESS — post-Shepherd referral, first three chapters through The
 
 Written: 2026-10-13
 
-Updated: 2026-10-15 — rewards are whole-section loadout cards, not learned suits; Rusk as an Eventide cadet; the Chapter 5 frigate duel.
+Updated: 2026-10-15 — whole-section loadout cards; Rusk as an Eventide cadet; two Wolf (H) against two Hound (P) over Black Sluice.
 
 Read `early-operation-nouns.md`, `campaign-nouns.md`, `meta-progression.md`,
 `narrative-nouns.md`, `mission-tier-nouns.md`, `progression-nouns.md`,
@@ -394,7 +394,7 @@ a seizure target, not an invitation to destroy the district's usable supply.
 3. **The split.** When fuel control falls, Voss orders Black Sluice abandoned on an
    open channel the company can hear. Drent Haulage takes the order: its surviving
    crews withdraw physically along the service road and leave the map, and a
-   tender lifts off from the pier. Berth Four refuses. Pell's people hold dispatch
+   salvage rig lifts off from the pier. Berth Four refuses. Pell's people hold dispatch
    out of grudge, and the prize crews split between them. The withdrawal is real
    lost strength for Greyhook, not a scripted despawn of untouched troops, and it
    happens only once the company has actually taken fuel control.
@@ -406,24 +406,32 @@ a seizure target, not an invitation to destroy the district's usable supply.
    replacement/refit under the employer-loss policy below. Untouched pirates
    elsewhere in the system do not block resolution.
 
-**The duel overhead.** When Voss orders the withdrawal, her salvage tender, the
-Greyhook herself, tries to climb out from the pier with a Hound-class sister
-frigate as escort. The frigate Rusk's family has lent, a Wolf (H) from Citadel
-Arcadia, comes in low over the basin to stop her. What follows is a short slugging
-match in atmosphere: two frigates trading fire at close range over the pier,
-plating torn away, a hull that can be crippled and driven down, while the
-company's fight goes on beneath.
+**The duel overhead.** When Voss orders the withdrawal, Greyhook's salvage rig,
+the Greyhook herself, tries to climb out from the pier escorted by two Hound (P)
+frigates. The pair of Wolf (H) frigates Rusk's family has lent from Citadel
+Arcadia comes in low over the basin to stop her. What follows is a short slugging
+match in atmosphere, two against two at close range over the pier: plating torn
+away, hulls crippled and driven down, while the company's fight goes on beneath.
+
+The matchup is the drama. The Wolfs are fast, shielded high-tech hunters with
+light armour; the Hounds are tough, unshielded low-tech brawlers, quicker in a
+straight line; the rig is slow and nearly unarmed. Pack tactics give the fight a
+shape: one Wolf pins the escorts while the other runs down the rig as it climbs,
+and the Hounds must choose between guarding their charge and saving themselves. A
+larger opponent was considered and rejected: a Venture's heavy armour and hull
+outlast two Wolfs' energy guns over a short visit, and its flight deck would bring
+fighters into a fight meant to stay gun against gun.
 
 - The player's fleet stays out of the sky. The company has no air role in the
-  duel and cannot order the Wolf; it is the family's ship, not a support power.
-- The Wolf fights the Hound and the tender, not Black Sluice's ground garrison. It
-  answers no calls for fire and makes no ground objective easier by existing. Stray
+  duel and cannot order the Wolfs; they are the family's ships, not a support power.
+- The Wolfs fight the Hounds and the rig, not Black Sluice's ground garrison. They
+  answer no calls for fire and make no ground objective easier by existing. Stray
   fire and falling wreckage are real on the ground in both directions.
-- Nothing about the duel is scripted. The Wolf can be damaged and break off; the
-  Hound can be shot down onto the basin; the tender can escape. The debrief reports
-  what actually happened, and ground victory never depends on it.
-- One frigate, one finite visit. Rusk's letter after Chapter 4 explains its
-  arrival; it leaves when its engagement ends. Its presence is a warning to the
+- Nothing about the duel is scripted. A Wolf can be crippled or break off; a Hound
+  can be shot down onto the basin; the rig can escape. The debrief reports what
+  actually happened, and ground victory never depends on it.
+- Two frigates, one finite visit. Rusk's letter after Chapter 4 explains their
+  arrival; they leave when the engagement ends. Their presence is a warning to the
   Combine and to Agreus, not Hegemony protection of the district.
 - Ship-versus-ship fighting in atmosphere is new engine work. The chapter is not
   ready to build until that capability exists.
@@ -439,7 +447,7 @@ The ending names the selected agreement, confirmed losses and delivered rewards.
 The company receives the fee and any earned premium and a closed story dossier.
 The once-only settlement sets `AgreusArcProgress.smallWarSettled`, which sends the
 Hegemony auxiliary warrant's offer (`progression-nouns.md`, Kit and armory). The
-warrant comes because Rusk's family, having lent the frigate, has noticed the
+warrant comes because Rusk's family, having lent the frigates, has noticed the
 company; the more demanding procurement contact is the Hegemony itself.
 
 **Castle, closing assessment:** “Rusk is asking what it would take to keep us here.

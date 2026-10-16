@@ -4,7 +4,7 @@ Status: ACTIVE — sponsored paramilitary direction; the first three chapters ar
 
 Written: 2026-10-13
 
-Updated: 2026-10-15 — Rusk as an Eventide cadet; the kit ceiling; the Chapter 5 frigate duel and why the warrant follows.
+Updated: 2026-10-15 — Rusk as an Eventide cadet; the kit ceiling; two Wolfs against two Hounds over Black Sluice.
 
 ## Premise, place and cast
 
@@ -70,18 +70,20 @@ by radio. Drent Haulage takes the order and pulls out along the service road; Be
 Four refuses and holds out of grudge. The company watches its own pressure split
 Greyhook. Voss survives and says so in one line; nothing pretends her fleet is gone.
 
-**The family answers overhead.** As Greyhook's tender tries to climb out from the
-pier under a Hound-class escort, the frigate Rusk's family has lent, a Wolf (H) from
-Citadel Arcadia, comes in low over the basin. Two frigates slug it out in
-atmosphere at close range while the ground fight continues beneath them. The
-player's fleet stays out of the sky; the Wolf is the family's ship, not the
-company's support. It is a check on two audiences: the Eventide house saving face
-over a cadet's failure, and the Hegemony showing an Independent colony what it can
-put overhead at short notice.
+**The family answers overhead.** As Greyhook's salvage rig tries to climb out from
+the pier, escorted by two Hound (P) frigates, the pair of Wolf (H) frigates Rusk's
+family has lent from Citadel Arcadia comes in low over the basin. Two against two,
+they slug it out in atmosphere at close range while the ground fight continues
+beneath them: fast, shielded hunters working as a pack against tough, unshielded
+brawlers defending a ship that cannot defend itself. The player's fleet stays out
+of the sky; the Wolfs are the family's ships, not the company's support. A pair,
+not one, is the point: it checks two audiences at once, the Eventide house saving
+face over a cadet's failure and the Hegemony showing an Independent colony what it
+can put overhead at short notice.
 
 **The ending opens the next question.** Rusk asks what it would take to keep the
 company on Agreus. The Hegemony auxiliary warrant follows because the family that
-lent the frigate has noticed the company beneath it. The company that began by
+lent the frigates has noticed the company beneath them. The company that began by
 standing between a creditor and a cooperative has made itself useful to the junta
 next door. That is the hook a later arc can pull.
 
@@ -89,7 +91,8 @@ next door. That is the hook a later arc can pull.
 the player learns and picks the card, never a suit and never the mix. Building and
 outfitting a whole powered section is beyond anybody without a licence for it. Every armor card this arc awards is a
 section of regular marines with at most four powered billets, worn in recovered,
-tier-III rebuilds. The player tastes powered fighting without wielding it. All-suit
+tier-III rebuilds. The player tastes powered fighting without wielding it, under
+the sector's non-proliferation rule (`progression-nouns.md`). All-suit
 cards and military patterns belong to the Hegemony auxiliary warrant and later.
 
 **Voices stay text for now.** Rusk, Lenna, Voss, Edek, Nadi, Pell and Drent are new

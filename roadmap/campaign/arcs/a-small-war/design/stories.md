@@ -10,4 +10,4 @@ Read `a-small-war-arc.md`, `agreus-latchkey.md` and `early-operation-nouns.md` f
 
 | Story | Status | Outcome |
 | --- | --- | --- |
-| `a-small-war.md` | IN PROGRESS | Referral and first three chapters connect actual Shepherd handover to both recovered-suit cards. Map/encounter fidelity for the three playable chapters, live transition, mixed-suit/save acceptance, Chapters 4–5, Boarding Jack, yard agreement and later military-source gating remain. Chapter 5 depends on an atmospheric frigate duel (Wolf (H) against a Hound-class escort and the Greyhook tender) that the engine cannot yet fight. |
+| `a-small-war.md` | IN PROGRESS | Referral and first three chapters connect actual Shepherd handover to both recovered-suit cards. Map/encounter fidelity for the three playable chapters, live transition, mixed-suit/save acceptance, Chapters 4–5, Boarding Jack, yard agreement and later military-source gating remain. Chapter 5 depends on an atmospheric frigate duel (two Wolf (H) against two Hound (P) escorting the Greyhook salvage rig) that the engine cannot yet fight. |

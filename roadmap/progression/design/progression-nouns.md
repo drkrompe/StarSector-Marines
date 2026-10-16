@@ -475,6 +475,15 @@ item or equipment charge. Issue requires both a learned sheet and the
 sheet's own patterns, which learning its card always provides. A role the sheet does
 not cover falls back to its line kit; fallback never establishes knowledge of a sheet.
 
+**Powered sections are a controlled technology.** The sector treats them the way a
+non-proliferation treaty treats weapons: a contractor may field a few powered
+billets inside an ordinary section, while a fully powered section needs a licence
+from a power that controls the technology. In play this is the progression ladder.
+Early cards put a handful of super soldiers in each squad of twelve rather than a
+unit that can clear a map, and a later licence or warrant raises that ceiling on
+purpose. A story that awards an all-powered card is a deliberate rung, never an
+accident of what a suit can fill.
+
 Older companies retain formations already assigned to squads or saved in profiles,
 along with learned cards and materialized equipment. Other sheets are
 inferred only from their explicit acquisition requirements. Reloading never grants

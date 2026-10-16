@@ -100,8 +100,8 @@ false documentation, coerced local access and short opportunistic raids among
 industrial traffic and salvage; it does not openly control the system or rely on
 an unexplained absence of Hegemony fleets. The authored local conflict grants no
 Hegemony endorsement, unlimited response force or free naval supremacy. The one
-Hegemony hull that appears, Chapter 5's lent frigate, fights its own finite
-engagement and is never the company's to command.
+Hegemony hulls that appear, Chapter 5's pair of lent frigates, fight their own
+finite engagement and are never the company's to command.
 
 Vanilla `data/campaign/starmap.json` places Corvus at `(400, -9400)` and Arcadia
 at `(-2500, -11900)`. At 2,000 hyperspace units per light-year, their anchor
@@ -153,10 +153,11 @@ beside Syrinx. That gap is the space the company is hired into.
 stand on a neighbouring world, and the Hegemony welcomes any occasion to show an
 Independent colony what it can put overhead at short notice. When Pell's raid in
 Chapter 4 shows that Rusk cannot hold his own lease, he writes home. The answer
-arrives for Chapter 5 as one Wolf (H) frigate, lent from Citadel Arcadia through
-family patronage rather than ordered out by the navy. It is a favour with a price:
-the family now has an interest in how Latchkey ends, and it notices the company
-that fought beneath its ship. `a-small-war.md` owns the engagement.
+arrives for Chapter 5 as a pair of Wolf (H) frigates, lent from Citadel Arcadia
+through family patronage rather than ordered out by the navy. Sending two over a
+cadet's embarrassment is itself the message. It is a favour with a price: the
+family now has an interest in how Latchkey ends, and it notices the company that
+fought beneath its ships. `a-small-war.md` owns the engagement.
 
 Rusk can fund a limited series of contracts, release a small depot of restricted
 security equipment and mobilize quay constables and estate guards. His guards
@@ -246,7 +247,7 @@ the equipment authorities, not this setting's biographies.
 
 **Greyhook** is a coalition of free captains, boarders and ground outfits organized
 around Captain Sera Voss's ability to assign prizes, settle shares and obtain
-repairs. It takes its name from the salvage tender Voss commanded before she
+repairs. It takes its name from the salvage rig Voss commanded before she
 turned to coercion; the hull is long sold, and the name stayed with the people. It is a local flotilla with fragile agreements, not all pirates speaking
 with one voice. Its wealth rests on stolen cargo, ransom, forced levies and access
 to workshops whose owners cannot always refuse it.
