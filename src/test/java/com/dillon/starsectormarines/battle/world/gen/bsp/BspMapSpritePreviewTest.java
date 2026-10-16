@@ -23,6 +23,7 @@ import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleMapRenderer;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import javax.imageio.ImageIO;
@@ -66,8 +67,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * {@code build/map-previews/sprite-civic-headquarters.png}. The authored
  * shared-edge firing windows receive their own close production-path crop at
  * {@code build/map-previews/sprite-forward-bunker-window.png}. Re-run via
- * {@code gradlew :test --tests "*BspMapSpritePreviewTest*"}.
+ * {@code gradlew generatedSpaceEvidence --tests "*BspMapSpritePreviewTest*"}.
+ * It asserts nothing but that the game install is present, so it is a preview
+ * writer rather than a test and is excluded from {@code :test}.
  */
+@Tag("generated-space-evidence")
 public class BspMapSpritePreviewTest {
 
     private static final int GRID_W = 80;

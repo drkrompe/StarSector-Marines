@@ -1,28 +1,30 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
-import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
-import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.LandingArea;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
-import com.dillon.starsectormarines.battle.world.gen.bsp.stage.ConquestLandingAreaStage;
-import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Invariants for the terminal, RNG-free Conquest paired-arrival stage. */
-class ConquestLandingAreaStageTest {
+/**
+ * Evidence, not a test: invariants of the terminal, RNG-free Conquest paired-arrival
+ * stage on whole generated maps. Fourteen full generations cost ~45 s inside
+ * {@code :test}; the stage itself is pinned on open ground by
+ * {@code ConquestLandingAreaStageTest}. Run with {@code gradlew.bat generatedSpaceEvidence}.
+ */
+@Tag("generated-space-evidence")
+class ConquestLandingAreaEvidence {
 
     private static final long[] SEEDS = {0L, 1L, 42L, 777L, 9999L};
 
@@ -75,29 +77,6 @@ class ConquestLandingAreaStageTest {
     void legacyRecipePublishesNoConquestArrivalAreas() {
         MapResult map = new BspCityGenerator().generate(80, 80, 42L);
         assertTrue(map.landingAreas.isEmpty());
-    }
-
-    @Test
-    void stageDoesNotConsumeTheGenerationRandomStream() {
-        int width = 80;
-        int height = 40;
-        NavigationGrid grid = new NavigationGrid(width, height);
-        CellTopology topology = new CellTopology(width, height);
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) grid.setWalkableFloor(x, y);
-        }
-        long randomSeed = 778899L;
-        Random actual = new Random(randomSeed);
-        Random expected = new Random(randomSeed);
-        GenContext context = new GenContext(
-                grid, topology, actual, width, height, 12L);
-        context.put(BspKeys.AXIS, TraversalAxis.SOUTH_TO_NORTH);
-        context.put(BspKeys.BIOME_MAP, new BiomeMap(
-                width, height, TraversalAxis.SOUTH_TO_NORTH, new Random(12L)));
-
-        new ConquestLandingAreaStage().run(context);
-
-        assertEquals(expected.nextLong(), actual.nextLong());
     }
 
     private static void assertBerth(MapResult map, LandingPad berth,
