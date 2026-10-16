@@ -16,6 +16,7 @@ Review options, after a literal "--":
                    stern, plus the close-ups bow-detail, bridge-detail,
                    turret-detail)
   --samples N      Cycles samples (default 24)
+  --res WxH        render size (default 960x440, the guide panels)
   --no-save        skip the .blend and geometry.json
   --cam NAME:PX,PY,PZ:TX,TY,TZ:SCALE   add an ad-hoc ortho review camera
                    (repeatable) and render it; written as NAME.png
@@ -44,6 +45,7 @@ for module in (sw_kit, sw_hull, sw_aft_deck, sw_engines, sw_bridge, sw_turrets, 
 parser = argparse.ArgumentParser()
 parser.add_argument('--out')
 parser.add_argument('--views')
+parser.add_argument('--res', default='960x440')
 parser.add_argument('--state', choices=('clean','derelict','patched'), default='clean')
 parser.add_argument('--samples', type=int, default=24)
 parser.add_argument('--no-save', action='store_true')
@@ -80,8 +82,7 @@ scene=bpy.context.scene
 scene.render.engine='CYCLES'
 scene.cycles.samples=args.samples
 scene.cycles.use_denoising=True
-scene.render.resolution_x=960
-scene.render.resolution_y=440
+scene.render.resolution_x,scene.render.resolution_y=map(int,args.res.split('x'))
 scene.render.resolution_percentage=100
 scene.render.image_settings.file_format='PNG'
 scene.world.color=(.7,.7,.7)

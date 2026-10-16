@@ -1,0 +1,83 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a145c9-e6eb-7280-a8d8-59969044fb38",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a145c9-e6eb-7280-a8d8-59969044fb38\\exec-dc687251-fbb5-4f56-8b48-cd990c557884.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\assets\\heg-flotilla-far-v2.png",
+    "sha256": "6eae56b1f9b0892a4356109d3679b39a26aa718c81baefd7047cf0aa915fbbc7",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\prompts\\heg-flotilla-far-v2.txt",
+  "promptSha256": "da3233e6eb6bc6a67c411dd82e2d337159b897d30226c00bd4b316b86a236dcf",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority: exact silhouette, pose, heading, placement and scale of every hull; fill in, do not move\nImage 2: Identity only: Eagle-class hull plan and Hegemony livery; not pose\nImage 3: Identity only: Enforcer-class hull plan and livery; not pose\nImage 4: Identity only: Lasher-class hull plan; not pose or paint\nImage 5: Material and paint quality only; not shape, pose or size\n\nUse case: sketch-to-render. Asset: a transparent compositing layer of a distant Hegemony escort squadron for a grounded, photographic science-fiction cinematic (Starsector, the policed Jangala system).\nImage 1 is the AUTHORITY for exact silhouette, pose, heading, placement and scale: eight small grey blockout hulls on transparency in a loose wedge, rendered through the shot's camera. Fill them in; do not move, rotate, resize, add or remove any ship. Output the SAME canvas framing and aspect as Image 1, with every hull at the same position and size, and all the empty transparent space (including the whole left half) kept empty.\n- The three arrowhead hulls are Eagle-class cruisers; Image 2 identifies their hull plan and Hegemony livery ONLY.\n- The three blocky mid-size hulls are Enforcer-class destroyers; Image 3 identifies their hull plan and livery ONLY.\n- The two smallest hulls are Lasher-class frigates; Image 4 identifies their hull plan ONLY (paint them in Hegemony livery).\n- Image 5 sets material and paint quality ONLY (photoreal weathered Hegemony burnt-orange and rust-brown armour over gunmetal and off-white structure); do not copy its shape, pose or size.\nEvery bow points to the lower left exactly as the blockouts do (the Eagle's point is its bow); sterns face upper right, engines on the far side.\nRender each as a real warship seen from very far away, from above and slightly ahead: simple readable armour masses and orange livery bands, no busy noise. Lighting: hard yellow-white sun from the UPPER LEFT, shadow sides lower right, faint cool blue fill from below. Tiny blue-white engine glows at the far (upper-right) sterns and a few pinpoint running lights. Noticeable distance haze: lower contrast and slightly softer, bluish-grey atmospheric softening, hazier than a nearer capital group, but each silhouette still reads.\nStyle: photographic, cinematic gritty realism; not a toy, low-poly render, game sprite or cartoon. No lens flares.\nTRUE TRANSPARENT background everywhere around and between the ships, including negative spaces. No stars, planet, nebula, space backdrop, engine trails, extra ships, labels, border or text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\guides\\flotilla-far.png",
+      "sha256": "64230ebcac32430ae2a2694802203ef68b1324e2ee5c89988db218bcb4fe540d",
+      "dimensions": [
+        1728,
+        972
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority: exact silhouette, pose, heading, placement and scale of every hull; fill in, do not move"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Fractal Softworks\\Starsector\\starsector-core\\graphics\\ships\\eagle\\eagle_hegemony.png",
+      "sha256": "05456e92e9144f826b532e8f48a92a5a6840167ff527ceeca79897431a9895fd",
+      "dimensions": [
+        168,
+        218
+      ],
+      "mode": "RGBA",
+      "role": "Identity only: Eagle-class hull plan and Hegemony livery; not pose"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Fractal Softworks\\Starsector\\starsector-core\\graphics\\ships\\enforcer\\enforcer_hegemony.png",
+      "sha256": "3bd5dcb1ae15fd69c454df6fd29d985ca91c14348f146e710dc49ac244dda18e",
+      "dimensions": [
+        136,
+        136
+      ],
+      "mode": "RGBA",
+      "role": "Identity only: Enforcer-class hull plan and livery; not pose"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Fractal Softworks\\Starsector\\starsector-core\\graphics\\ships\\lasher\\lasher_base.png",
+      "sha256": "b79bb7c13ba4c836844fb44cdfa479868ead7e453e54c270523bba515b91775a",
+      "dimensions": [
+        68,
+        96
+      ],
+      "mode": "RGBA",
+      "role": "Identity only: Lasher-class hull plan; not pose or paint"
+    },
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\assets\\heg-hero-v1.png",
+      "sha256": "6731da723e514289d30080062153099d877623d433bb3f31c17afb7ee0f673eb",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGBA",
+      "role": "Material and paint quality only; not shape, pose or size"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render the eight ships, preserving the guide’s framing, placements, and transparent empty space.\n"
+  ],
+  "usage": {
+    "input_tokens": 113929,
+    "cached_input_tokens": 93952,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1050,
+    "reasoning_output_tokens": 27
+  },
+  "elapsedSeconds": 63.1
+}

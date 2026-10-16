@@ -1,0 +1,43 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a145c2-ad27-76c2-b649-3542fb945f99",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a145c2-ad27-76c2-b649-3542fb945f99\\exec-1b0e5543-4b80-4bd9-a500-fd35d8dd02a8.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\assets\\planet-clouds-detail-v1.png",
+    "sha256": "5d7e56e50240478d2eff49745366ff1152b39bf8d8350d00974c61b3b2089bf4",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\prompts\\planet-clouds-detail-v1.txt",
+  "promptSha256": "61fded7b7e8e5283de2a5f8e858c0837bd67a44a4b48e11ed7e794476d1e8292",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Cloud texture and style only; not layout or coverage\n\nAsset: a high-detail regional cloud cover map for the jungle ocean world Jangala, used as the alpha and density of a cloud layer draped over the camera-facing part of a 3D planet in Blender. Exactly 2:1 landscape canvas, highest resolution available, full bleed, flat top-down view of a region about 100 degrees wide by 50 degrees tall, nothing else in the frame.\nContent: white and light-grey clouds on PURE BLACK. Black (#000000) means clear sky and must be completely black: no land, no ocean, no colour, no texture in the gaps. Brightness encodes density: thick towers near white, thin wisps and veils dark grey. Greyscale only, flat and unlit: no shading direction, no shadows.\nWeather on a stormy tropical world, with satellite-photo detail: one large mature cyclone with tight spiral bands and a small clear eye, its eye centred at about 62% of the width from the left and 20% of the height from the top, its arms spanning roughly a fifth of the image width. One long frontal cloud band trailing from the cyclone and sweeping in a broad curve down to the lower left, a second thinner frontal band crossing the lower right. Scattered popcorn cumulus and small convective clusters over the rest, some streaky cirrus, and generous clear black gaps so that roughly 35% of the image is cloud.\nReference 1 is cloud texture and style only (how storm bands and cumulus fields look); do not copy its layout or coverage.\nNo text, grid, borders, legend, vignette or watermark.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\assets\\planet-clouds-v1.png",
+      "sha256": "c75862dc4e312abd4f8696d53cb8c977c0e70f294a5e7de75a5830f03e5eefcc",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGB",
+      "role": "Cloud texture and style only; not layout or coverage"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one cloud-density map with the requested storm placement and clear black gaps."
+  ],
+  "usage": {
+    "input_tokens": 40977,
+    "cached_input_tokens": 26624,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 461,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 45.9
+}

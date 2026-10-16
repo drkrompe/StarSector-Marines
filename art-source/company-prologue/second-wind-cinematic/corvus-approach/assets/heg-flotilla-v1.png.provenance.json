@@ -1,0 +1,73 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a145be-396f-7db0-a90e-7ac31e8ad596",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a145be-396f-7db0-a90e-7ac31e8ad596\\exec-7c7186f4-4e44-4586-bf4d-aa2ba490511d.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\assets\\heg-flotilla-v1.png",
+    "sha256": "8eee037564a96223032ad7217e278c2ad46d777cc694803c76e2475234c0880d",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\prompts\\heg-flotilla-v1.txt",
+  "promptSha256": "d75ff1dc63eabc03d63a3670e265e6d0fde9285d52a5dba25350aa86f1e9e382",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity only: Onslaught-class flagship hull plan, proportions and Hegemony livery; not pose or backdrop\nImage 2: Identity only: Dominator-class cruiser hull plan and livery; not pose\nImage 3: Identity only: Eagle-class cruiser hull plan and livery; not pose\nImage 4: Identity only: Enforcer-class destroyer hull plan and livery; not pose\n\nAsset: a transparent compositing layer for a grounded, photographic science-fiction cinematic (Starsector, the Hegemony's policed Jangala system). Widest, longest landscape canvas available (very wide strip, roughly 3:1 or wider).\nContent: ONE distant Hegemony battlegroup of 11 warships holding a loose, staggered parade formation in orbit, all seen from far away and from HIGH ABOVE the orbital plane, looking slightly down at their dorsal decks in a shallow three-quarter perspective (not a flat top-down view). Every bow points the same way, toward the lower left of the canvas, as if the group is slowly patrolling toward an inbound shipping lane; sterns face upper right.\nShip identity (references are identity ONLY: hull plan, proportions, livery; never copy their flat top-down pose or their dark backdrop):\n- Image 1 = Onslaught-class battleship: exactly one, the flagship, largest hull, near the middle of the group, broad blunt arrowhead with the twin swept side armour wings.\n- Image 2 = Dominator-class cruiser: three of them, wide heavy wedge with three-lobed bow.\n- Image 3 = Eagle-class cruiser: two, slimmer pointed arrowhead with a central orange spine.\n- Image 4 = Enforcer-class destroyer: five small blocky escorts screening the flanks and front.\nAll in Hegemony livery: burnt orange and rust-brown armour plating with gunmetal grey and off-white structure, dense armour-plate texture, weathered industrial metal.\nScale and spacing: ships are SMALL in the canvas with generous empty space between them; the flagship about 9% of the canvas width, cruisers about 5%, escorts about 2.5%. Spread across the whole strip with slight depth staggering (farther ships a touch smaller and softer). No ship touches the canvas edge.\nLighting: hard yellow-white sunlight from the UPPER LEFT on every hull, shadow sides falling to the lower right, faint cool blue fill from below. Tiny warm blue-white engine glows at each stern, a few pinpoint red/white running lights. Slight distance softening and atmospheric haze on the hulls as befits ships thousands of kilometres away, but silhouettes stay readable. Photographic realism, real built machinery, not toys, not low-poly, not cartoon, not glowing outlines.\nBackground: TRUE TRANSPARENT background everywhere around and between the ships, including all negative space. No stars, no planet, no nebula, no space backdrop, no engine-trail streaks, no lens flares, no text, labels, border or frame. Each ship is a cleanly cut-out opaque object on transparency.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Program Files (x86)\\Fractal Softworks\\Starsector\\starsector-core\\graphics\\ships\\onslaught\\onslaught_hegemony.png",
+      "sha256": "0748d477e97991310354ae03cdc1c0292d9c6efacd8d6b3151dd8c9fd05eb633",
+      "dimensions": [
+        288,
+        384
+      ],
+      "mode": "RGBA",
+      "role": "Identity only: Onslaught-class flagship hull plan, proportions and Hegemony livery; not pose or backdrop"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Fractal Softworks\\Starsector\\starsector-core\\graphics\\ships\\dominator\\dominator_hegemony.png",
+      "sha256": "cee71841c3e7d1992915a1cf1766470266b205a37e706ad3a60c0a53f988b30f",
+      "dimensions": [
+        220,
+        180
+      ],
+      "mode": "RGBA",
+      "role": "Identity only: Dominator-class cruiser hull plan and livery; not pose"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Fractal Softworks\\Starsector\\starsector-core\\graphics\\ships\\eagle\\eagle_hegemony.png",
+      "sha256": "05456e92e9144f826b532e8f48a92a5a6840167ff527ceeca79897431a9895fd",
+      "dimensions": [
+        168,
+        218
+      ],
+      "mode": "RGBA",
+      "role": "Identity only: Eagle-class cruiser hull plan and livery; not pose"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Fractal Softworks\\Starsector\\starsector-core\\graphics\\ships\\enforcer\\enforcer_hegemony.png",
+      "sha256": "3bd5dcb1ae15fd69c454df6fd29d985ca91c14348f146e710dc49ac244dda18e",
+      "dimensions": [
+        136,
+        136
+      ],
+      "mode": "RGBA",
+      "role": "Identity only: Enforcer-class destroyer hull plan and livery; not pose"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent fleet layer using the references for ship identity and livery."
+  ],
+  "usage": {
+    "input_tokens": 76110,
+    "cached_input_tokens": 63104,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 717,
+    "reasoning_output_tokens": 19
+  },
+  "elapsedSeconds": 47.5
+}

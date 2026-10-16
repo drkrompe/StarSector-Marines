@@ -51,7 +51,7 @@ BASINS = [
     # around the grapple sponson and the port bow cheek above it.
     ('Port sponson cowl strike', (33,62,7.6), (33,30,7.4), 2.2, 1.0, 1.25, 8, 'plate'),
     ('Port bow cheek strike', (45,42,40), (45,21,13), 3.0, 1.3, 1.3, 9, 'backing'),
-    ('Port bow flank strike', (60,44,3), (51,21,3), 2.2, 1.0, 1.2, 7, 'plate'),
+    ('Port bow flank strike', (60,44,3), (51,21,3), 2.2, 1.0, 1.2, 7, 'backing'),
     # Continuity scar 2: the scarred port aft shoulder over the dead pod.
     ('Port aft shoulder strike', (-12,58,32), (-12,36.5,13.5), 3.6, 1.6, 1.2, 10, 'plates'),
     ('Port pod lower casing strike', (-9,62,-2), (-9,37,-2.5), 2.0, .9, 1.3, 6, None),
@@ -217,21 +217,21 @@ class Geo:
         ring = [c+(u*math.cos(TAU*(k+.5)/sides)+v*math.sin(TAU*(k+.5)/sides))*r for k in range(sides)]
         self.loft([[p-axis*depth/2 for p in ring], [p+axis*depth/2 for p in ring]])
 
-    def bead(self, a, b, n, size=.17):
-        """Stitched weld bead from a to b: a chain of faceted lumps."""
+    def bead(self, a, b, n, size=.12):
+        """Fillet weld from a to b: a low triangular ridge with a slight ripple."""
         a, b, n = V(a), V(b), V(n)
         length = (b-a).length
         if length < .05:
             return
         t = (b-a)/length
         side = n.cross(t).normalized()
-        count = max(1, round(length/.34))
-        for k in range(count):
-            c = a+t*(length*(k+.5)/count)
-            s = size*(.85+.3*((k*7) % 5)/4)
-            half = length/count*.62
-            self.add([c-t*half, c+side*s, c+n*s*.75, c-side*s, c-n*s*.4, c+t*half],
-                     [(0,1,2),(0,2,3),(0,3,4),(0,4,1),(5,2,1),(5,3,2),(5,4,3),(5,1,4)])
+        count = max(2, round(length/.3))
+        rings = []
+        for k in range(count+1):
+            c = a+t*(length*k/count)
+            h = size*.7*(1+.12*((k*5) % 3-1))
+            rings.append([c+side*size, c+n*h, c-side*size, c-n*size*.3])
+        self.loft(rings)
 
     def bounds(self):
         xs, ys, zs = zip(*self.v)
@@ -436,7 +436,7 @@ class Damage:
                 continue
             r = rng.uniform(*radii)
             res = self.basin(f'{cluster} {len(done)}', origin, target, r, r*rng.uniform(.55,.8),
-                             rng.uniform(1,1.4), 3 if r > .55 else 0, 6)
+                             rng.uniform(1,1.4), 0, 6)
             if res:
                 done.append((res, r))
         self.strikes[cluster] = done
@@ -457,7 +457,7 @@ class Damage:
         self.sites = {}
         for name, o, t, r, d, el, sh, repair in BASINS:
             # Repair crews dress a crushed lip flat before a plate goes on.
-            if self.patched and repair in ('plate', 'plates'):
+            if self.patched and repair:
                 sh = 0
             self.sites[name] = self.basin(name, o, t, r, d, el, sh)
             self.record['basins'].append({'name': name, 'radius': r, 'depth': d,
@@ -673,10 +673,12 @@ class Damage:
         for name, *_, repair in BASINS:
             site = self.sites.get(name)
             if site and repair == 'plate':
-                self.salvage_plate(name, site, 1.45)
-            elif site and repair == 'plates':
                 self.salvage_plate(name, site, 1.25)
-                self.salvage_plate(name+' overlap', site, 1.0, shift=(.9,-.7), tilt=.12)
+            elif site and repair == 'plates':
+                # A big crater on a curved shoulder takes four smaller sheets
+                # lapped over each other, not one slab that cannot follow it.
+                for i, (su, sv) in enumerate(((-1,-1),(1,-1),(-1,1),(1,1))):
+                    self.salvage_plate(f'{name} tile {i}', site, .66, tile=(su, sv, i))
             elif site and repair == 'backing':
                 self.crater_backing(name, site)
         for cluster, every in PRESSURE_PATCHED:
@@ -702,53 +704,53 @@ class Damage:
         self.drive_coil()
         self.cables()
 
-    def plate_poly(self, rng, p, n, u, v, a, b, sides=6, lift=.12, crown=.3):
-        ring = []
-        for k in range(sides):
-            ang = TAU*(k+rng.uniform(-.18,.18))/sides
-            q = p+u*math.cos(ang)*a*rng.uniform(.9,1.1)+v*math.sin(ang)*b*rng.uniform(.9,1.1)
-            ring.append(self.snap(q, n, lift))
-        top_c = p+n*(crown+lift)
-        return ring, top_c
-
-    def emit_plate(self, name, ring, centre, n, mat, thick=.26, bolts=False):
-        geo = self.g(name, mat, .05)
+    def emit_plate(self, name, ring, n, mat, thick=.12, bolts=False):
+        """A flat plate on a ring of points, welded or bolted round its edge."""
         k = len(ring)
-        top = [q+n*thick for q in ring]+[centre+n*thick]
-        bot = ring+[centre]
-        verts = bot+top
-        faces = [(k, (i+1) % k, i) for i in range(k)]
-        faces += [(k+1+k, k+1+i, k+1+(i+1) % k) for i in range(k)]
-        faces += [(i, (i+1) % k, k+1+(i+1) % k, k+1+i) for i in range(k)]
-        geo.add(verts, faces)
-        beads = self.g('Weld bead', self.weld, .01)
+        verts = ring+[q+n*thick for q in ring]
+        faces = [tuple(reversed(range(k))), tuple(range(k, 2*k))]
+        faces += [(i, (i+1) % k, k+(i+1) % k, k+i) for i in range(k)]
+        self.g(name, mat, .03).add(verts, faces)
+        centre = sum(ring, Vector())/k
         if bolts:
-            studs = self.g('Patch bolt head', self.kit.steel, .01)
+            studs = self.g('Patch bolt head', self.kit.steel, .005)
+        else:
+            beads = self.g('Weld bead', self.weld, .01)
         for i in range(k):
             a, b = ring[i], ring[(i+1) % k]
             if bolts:
-                for t in (.25,.5,.75):
-                    q = a.lerp(b, t).lerp(centre, .14)+n*(thick+.05)
-                    studs.disc(q, n, .14, .14, 6)
+                for t in (.2,.4,.6,.8):
+                    studs.disc(a.lerp(b, t).lerp(centre, .1)+n*(thick+.02), n, .08, .07, 6)
             else:
-                beads.bead(a, b, n)
+                beads.bead(a, b, n, .1)
 
-    def salvage_plate(self, name, site, scale, shift=(0,0), tilt=0):
+    def salvage_plate(self, name, site, scale, tile=None):
         p, n, u, v, _ = site
         rng = random.Random(name)
         r = next(r for nm,_,_,r,*_ in BASINS if name.startswith(nm))
         el = next(e for nm,_,_,_,_,e,*_ in BASINS if name.startswith(nm))
-        # Square-cut stock, laid skew to the hull's own plate lines.
-        turn = rng.uniform(-.45,.45)+tilt
+        # Cut stock squared to the hull's own lines, only slightly off true.
+        turn = rng.uniform(-.07,.07)
         uu, vv = u*math.cos(turn)+v*math.sin(turn), v*math.cos(turn)-u*math.sin(turn)
-        q = p+u*shift[0]+v*shift[1]
-        mat = self.salvage[sum(map(ord, name)) % len(self.salvage)]
-        self.grid_plate('Welded salvage plate', q, n, uu, vv, r*scale*el*1.05, r*scale, mat,
-                        rng.uniform(.18,.4), .12+(.2 if 'overlap' in name else 0),
-                        only={site[4].name, self.kit.hull.name})
+        a, b = r*scale*el, r*scale
+        q, lift = p, .07
+        if tile:
+            su, sv, i = tile
+            q = p+u*su*a*.82+v*sv*b*.82
+            lift = .07+.13*i  # each later sheet laps over the earlier ones
+        mat = self.salvage[sum(map(ord, name.split(' tile')[0])) % len(self.salvage)]
+        self.grid_plate('Welded salvage plate', q, n, uu, vv, a, b, mat, .14, lift, only=self.skin)
         self.record['repairs'].append(f'salvage plate over {name}')
 
-    def grid_plate(self, name, p, n, u, v, a, b, mat, cut, lift, thick=.26, k=3, only=None):
+    @property
+    def skin(self):
+        keep = ('hull', 'armor', 'armour', 'plate', 'cowl', 'casing', 'module', 'cap', 'body',
+                'Sponson', 'sponson', 'housing', 'Spine', 'block', 'belt', 'lip', 'shield')
+        drop = ('Damage', 'lamp', 'light', 'hatch', 'Hatch', 'vent', 'louvre', 'louver', 'strap',
+                'hood', 'Intake mouth', 'manifold', 'frame', 'skin')
+        return {n for n in self.original if any(k in n for k in keep) and not any(d in n for d in drop)}
+
+    def grid_plate(self, name, p, n, u, v, a, b, mat, cut, lift, thick=.12, k=3, only=None):
         """A cut sheet brake-bent over a crater onto the original skin line.
 
         The plate folds only along lines across its curving direction, so it
@@ -762,12 +764,15 @@ class Damage:
             hs = []
             for i in range(k+1):
                 s = 2*i/k-1
-                got = [height(p+axis*s*half+across*t*other) for t in (-1,-.5,0,.5,1)]
+                got = [height(p+axis*s*half+across*t*other) for t in (-1,-.67,-.33,0,.33,.67,1)]
                 got = [h for h in got if h is not None]
                 hs.append(max(got) if got else None)
-            known = [h for h in hs if h is not None]
-            base = max(known) if known else 0
-            return [base if h is None else h for h in hs]
+            # A station off the part takes its nearest measured neighbour.
+            for i in range(len(hs)):
+                if hs[i] is None:
+                    near = sorted((abs(i-j), h) for j, h in enumerate(hs) if h is not None)
+                    hs[i] = near[0][1] if near else 0
+            return hs
         hu, hv = profile(u, v, a, b), profile(v, u, b, a)
         # Bend along whichever direction the skin actually curves.
         if max(hv)-min(hv) > max(hu)-min(hu):
@@ -791,50 +796,52 @@ class Damage:
         rim = [r[0] for r in rows]+[r[1] for r in reversed(rows)]
         beads = self.g('Weld bead', self.weld, .01)
         for q0, q1 in zip(rim, rim[1:]+rim[:1]):
-            beads.bead(q0, q1, n)
+            beads.bead(q0-n*lift, q1-n*lift, n, .1)
 
     def crater_backing(self, name, site):
         p, n, u, v, _ = site
         r, d = next((r,d) for nm,_,_,r,d,*_ in BASINS if nm == name)
-        rng = random.Random(name+' backing')
+        # Emergency backing welded into the crater floor, then flat straps
+        # spanning the crater from sound skin to sound skin.
         q = p-n*(d*.5)
-        ring = [q+u*math.cos(TAU*(k+rng.uniform(-.15,.15))/6)*r*.72+v*math.sin(TAU*(k+rng.uniform(-.15,.15))/6)*r*.62 for k in range(6)]
-        self.emit_plate('Emergency crater backing', ring, q, n, self.salvage[1], .18)
-        straps = self.g('Splint strap', self.kit.steel, .03)
-        beads = self.g('Weld bead', self.weld, .01)
-        for off in (-.45,.45):
-            a = self.snap(p+v*off*r-u*r*1.75, n, .12)
-            b = self.snap(p+v*off*r+u*r*1.75, n, .12)
-            mid = (a+b)/2+n*(r*.32)
-            for e0, e1 in ((a, mid), (mid, b)):
-                straps.bar(e0, e1, n, .55, .2)
-            for e in (a, b):
-                beads.bead(e-v*.3, e+v*.3, n)
-        self.record['repairs'].append(f'emergency backing and splints in {name}')
+        ring = [q+u*sx*r*.6+v*sy*r*.5 for sx,sy in ((-1,-1),(1,-1),(1,1),(-1,1))]
+        self.emit_plate('Emergency crater backing', ring, n, self.salvage[1], .1)
+        straps = self.g('Splint strap', self.kit.steel, .02)
+        bolts = self.g('Patch bolt head', self.kit.steel, .005)
+        for off in (-.4, .05, .5):
+            a = self.snap(p+v*off*r-u*r*1.25, n, .04, True)
+            b = self.snap(p+v*off*r+u*r*1.25, n, .04, True)
+            if a is None or b is None or abs((a-p).dot(n)-(b-p).dot(n)) > .5:
+                continue  # no sound skin to bolt to on one side
+            straps.bar(a+n*.06, b+n*.06, n, .38, .12)
+            for e, sgn in ((a, 1), (b, -1)):
+                bolts.disc(e+(b-a).normalized()*sgn*.25+n*.14, n, .08, .06, 6)
+        self.record['repairs'].append(f'emergency backing and straps in {name}')
 
     def pressure_patch(self, name, site, r):
         p, n, u, v, _ = site
-        half = r*1.5+.3
-        ring = [self.snap(p+u*sx*half+v*sy*half, n, .08) for sx,sy in ((-1,-1),(1,-1),(1,1),(-1,1))]
-        self.emit_plate('Bolted pressure patch', ring, p+n*(.08+r*.15), n,
-                        self.salvage[sum(map(ord, name)) % 3], .16, bolts=True)
+        half = r*1.4+.25
+        ring = [self.snap(p+u*sx*half+v*sy*half, n, .03) for sx,sy in ((-1,-1),(1,-1),(1,1),(-1,1))]
+        self.emit_plate('Bolted pressure patch', ring, n, self.salvage[sum(map(ord, name)) % 3], .09, bolts=True)
         self.record['repairs'].append(f'pressure patch over {name}')
 
     def weld_gouge(self, stations):
         beads = self.g('Weld bead', self.weld, .01)
-        filler = self.g('Gouge filler bar', self.salvage[1], .03)
         for (p0,n0,_,_), (p1,n1,_,_) in zip(stations, stations[1:]):
-            filler.bar(p0-n0*.1, p1-n1*.1, n0, .5, .3)
-            beads.bead(p0+n0*.08, p1+n1*.08, n0, .2)
-        self.record['repairs'].append('gouge filled and welded')
+            beads.bead(p0-n0*.12, p1-n1*.12, n0, .16)
+        self.record['repairs'].append('gouge run full of weld')
 
     def splint_gouge(self, stations):
-        straps = self.g('Splint strap', self.kit.steel, .03)
+        straps = self.g('Splint strap', self.kit.steel, .02)
+        bolts = self.g('Patch bolt head', self.kit.steel, .005)
+        track = (stations[-1][0]-stations[0][0]).normalized()
         for p, n, w, _ in stations[2:-1:2]:
-            track = (stations[-1][0]-stations[0][0]).normalized()
             side = n.cross(track).normalized()
-            straps.bar(self.snap(p+side*1.4, n, .14), self.snap(p-side*1.4, n, .14), n, .5, .22)
-        self.record['repairs'].append('gouge splinted')
+            a, b = self.snap(p+side*1.2, n, .1), self.snap(p-side*1.2, n, .1)
+            straps.bar(a, b, n, .36, .1)
+            for e in (a, b):
+                bolts.disc(e+(p-e).normalized()*.2+n*.07, n, .08, .06, 6)
+        self.record['repairs'].append('gouge strapped')
 
     def replacement_plate(self, name, centre):
         ob = self.find(name, centre)
@@ -843,13 +850,13 @@ class Damage:
         xs = [c[0] for c in ob.bound_box]
         ys = [c[1] for c in ob.bound_box]
         x0, x1, y0, y1 = min(xs)+.35, max(xs)-.7, min(ys)+.3, max(ys)-.2
-        plate = armor_patch(self.kit, 'Replacement salvage deck plate', x0, x1, y0, y1, self.salvage[0], .5)
+        plate = armor_patch(self.kit, 'Replacement salvage deck plate', x0, x1, y0, y1, self.salvage[0], .24)
         if plate:
-            plate.modifiers[0].thickness = .3
+            plate.modifiers[0].thickness = .36
         beads = self.g('Weld bead', self.weld, .01)
         for a, b in (((x0,y0),(x1,y0)),((x1,y0),(x1,y1)),((x1,y1),(x0,y1)),((x0,y1),(x0,y0))):
             hz = max(self.kit.surface(*a)[0].z, self.kit.surface(*b)[0].z)
-            beads.bead(V((*a,hz+.55)), V((*b,hz+.55)), V((0,0,1)))
+            beads.bead(V((*a,hz+.26)), V((*b,hz+.26)), V((0,0,1)), .1)
         self.record['repairs'].append(f'replacement salvage plate where {name} was torn away')
 
     def splint_plate(self, name, centre):
@@ -860,22 +867,19 @@ class Damage:
         vs = [mw @ vv.co for vv in ob.data.vertices]
         x0, x1 = min(q.x for q in vs), max(q.x for q in vs)
         y0, y1 = min(q.y for q in vs), max(q.y for q in vs)
-        top = max(q.z for q in vs)+.45+.25
-        straps = self.g('Splint strap', self.kit.steel, .03)
-        feet = self.g('Splint foot', self.kit.steel, .03)
-        beads = self.g('Weld bead', self.weld, .01)
-        bolts = self.g('Patch bolt head', self.kit.steel, .01)
-        for f in (.22,.55,.85):
+        thick = ob.modifiers[0].thickness if ob.modifiers else .45
+        straps = self.g('Splint strap', self.kit.steel, .02)
+        bolts = self.g('Patch bolt head', self.kit.steel, .005)
+        up = V((0,0,1))
+        for f in (.25,.6):
             y = y0+(y1-y0)*f
-            a, b = V((x0-.7,y,top)), V((x1+.7,y,top))
-            straps.bar(a, b, V((0,0,1)), .6, .22)
-            for e in (a, b):
-                gz = self.ground(e.x, e.y)
-                feet.obox(V((e.x,e.y,(gz+top)/2)), V((1,0,0)), V((0,1,0)), V((0,0,1)), .35, .35, (top-gz)/2+.05)
-                beads.bead(V((e.x-.4,e.y-.42,gz+.05)), V((e.x+.4,e.y-.42,gz+.05)), V((0,0,1)))
-            for t in (.3,.7):
-                bolts.disc(a.lerp(b,t)+V((0,0,.14)), (0,0,1), .13, .12, 6)
-        self.record['repairs'].append(f'splints across buckled {name}')
+            # Rests on the fold's crest and is bolted down at each edge.
+            crest = max(q.z for q in vs if abs(q.y-y) < (y1-y0)/4+.01)+thick
+            a, b = V((x0+.25,y,crest+.07)), V((x1-.25,y,crest+.07))
+            straps.bar(a, b, up, .42, .12)
+            for e, sgn in ((a, 1), (b, -1)):
+                bolts.disc(e+(b-a).normalized()*sgn*.25+up*.08, up, .08, .06, 6)
+        self.record['repairs'].append(f'straps bolted across buckled {name}')
 
     def shore_rib(self):
         x, y, z0, z1, stations = RIB
@@ -886,13 +890,13 @@ class Damage:
         beads = self.g('Weld bead', self.weld, .01)
         def cargo_rail(a, b, face):
             a, b = V(a), V(b)
-            rail.bar(a, b, face, .85, .4)
+            rail.bar(a, b, face, .7, .3)
             L = (b-a).length
             ax = (b-a)/L
             side = face.cross(ax).normalized()
             for k in range(int(L/.9)):
                 c = a+ax*(.45+k*.9)+face*.2
-                slots.obox(c, ax, side, face, .22, .14, .03)
+                slots.obox(c, ax, side, face, .16, .09, .02)
         # A sister rail standing straight across the bow, clamped to the coamings.
         face = V((-1,0,0))
         xs = x-bow-.85
@@ -910,20 +914,15 @@ class Damage:
 
     def sleeve_burst(self):
         x, y, z, gap = BURST
-        sleeve = self.g('Split clamp sleeve', self.salvage[1], .04)
-        bolts = self.g('Patch bolt head', self.kit.steel, .01)
-        sleeve.disc((x,y,z), (1,0,0), 1.0, gap+1.2, 10)
-        for dx in (-(gap+1.2)/2, (gap+1.2)/2):
-            sleeve.disc((x+dx,y,z), (1,0,0), 1.25, .3, 10)
-        for dx in (-.8, .8):
-            bolts.obox(V((x+dx,y,z+1.1)), V((1,0,0)), V((0,1,0)), V((0,0,1)), .3, .5, .12)
-        beads = self.g('Weld bead', self.weld, .01)
-        for dx in (-(gap+1.8)/2, (gap+1.8)/2):
-            for k in range(8):
-                a0, a1 = TAU*k/8, TAU*(k+1)/8
-                p0 = V((x+dx, y+.75*math.cos(a0), z+.75*math.sin(a0)))
-                p1 = V((x+dx, y+.75*math.cos(a1), z+.75*math.sin(a1)))
-                beads.bead(p0, p1, V((0, math.cos(a0), math.sin(a0))), .14)
+        sleeve = self.g('Split clamp sleeve', self.salvage[1], .03)
+        bolts = self.g('Patch bolt head', self.kit.steel, .005)
+        L = gap+1.0
+        sleeve.disc((x,y,z), (1,0,0), .84, L, 12)
+        for dx in (-L/2+.12, L/2-.12):
+            sleeve.disc((x+dx,y,z), (1,0,0), .93, .2, 12)
+        # Split-line lugs along the top, bolted through.
+        for dx in (-.9, 0, .9):
+            bolts.obox(V((x+dx,y,z+.9)), V((1,0,0)), V((0,1,0)), V((0,0,1)), .18, .22, .1)
         self.record['repairs'].append('split clamp sleeve over the burst service line')
 
     def jury_mast(self):
@@ -940,20 +939,20 @@ class Damage:
         self.record['repairs'].append('jury whip antenna lashed to the mast stub')
 
     def cap_port_pod(self):
-        plates = self.g('Engine blanking plate', self.blank, .05)
-        backs = self.g('Blanking strongback', self.kit.steel, .04)
-        bolts = self.g('Patch bolt head', self.kit.steel, .01)
+        plates = self.g('Engine blanking plate', self.blank, .03)
+        backs = self.g('Blanking strongback', self.kit.steel, .03)
+        bolts = self.g('Patch bolt head', self.kit.steel, .005)
         for x, y, w in ENGINES[:2]:
             face = bell_face(x)
             R = CAN_FACE_R[w]*math.cos(math.pi/12)
-            xc = face-1.05
-            plates.disc((xc,y,0), (1,0,0), R-.05, .45, 12)
-            for k in range(12):
-                a = TAU*(k+.5)/12
-                bolts.disc((xc-.28, y+(R-.55)*math.cos(a), (R-.55)*math.sin(a)), (1,0,0), .16, .14, 6)
-            backs.obox(V((xc-.45,y,0)), V((1,0,0)), V((0,1,0)), V((0,0,1)), .22, R-.3, .32)
-            backs.obox(V((xc-.45,y,0)), V((1,0,0)), V((0,1,0)), V((0,0,1)), .22, .32, R-.3)
-            backs.obox(V((xc-.8,y,0)), V((1,0,0)), V((0,1,0)), V((0,0,1)), .2, .45, .45)
+            xc = face-.95
+            plates.disc((xc,y,0), (1,0,0), R-.1, .3, 12)
+            for k in range(16):
+                a = TAU*(k+.5)/16
+                bolts.disc((xc-.18, y+(R-.45)*math.cos(a), (R-.45)*math.sin(a)), (1,0,0), .1, .08, 6)
+            # One flat strongback across the blank, with a lifting lug.
+            backs.obox(V((xc-.26,y,0)), V((1,0,0)), V((0,1,0)), V((0,0,1)), .1, R-.7, .28)
+            backs.obox(V((xc-.42,y,0)), V((1,0,0)), V((0,1,0)), V((0,0,1)), .08, .22, .3)
         for ob in self.named('Drive warning light', 1):
             ob.data.materials[0] = self.dead
         self.record['port_pod'] = 'dead, stripped, both nozzles blanked'
@@ -962,31 +961,33 @@ class Damage:
         x, y = -30.0, -31.0
         deck = self.snap(V((x,y,9.8)), V((0,0,1)))
         zc = deck.z+2.35
-        core = self.g('Salvaged drive coil casing', self.salvage[0], .05)
+        core = self.g('Salvaged drive coil casing', self.salvage[0], .04)
         wind = self.g('Salvaged drive coil winding', self.copper, .02)
-        flange = self.g('Drive coil clamp ring', self.kit.steel, .04)
-        saddle = self.g('Drive coil saddle', self.salvage[1], .05)
-        bolts = self.g('Patch bolt head', self.kit.steel, .01)
+        caps = self.g('Drive coil end cap', self.kit.steel, .03)
+        saddle = self.g('Drive coil saddle', self.salvage[1], .04)
+        bolts = self.g('Patch bolt head', self.kit.steel, .005)
         beads = self.g('Weld bead', self.weld, .01)
-        core.disc((x,y,zc), (0,1,0), 1.35, 9.2, 12)
-        for dy in (-3.2,-1.05,1.05,3.2):
-            wind.disc((x,y+dy,zc), (0,1,0), 2.0, 1.45, 16)
-        for dy in (-4.2,-2.15,0,2.15,4.2):
-            flange.disc((x,y+dy,zc), (0,1,0), 2.25, .32, 12)
-        for dy in (-3.6,3.6):
-            saddle.obox(V((x,y+dy,(deck.z+zc)/2-.3)), V((1,0,0)), V((0,1,0)), V((0,0,1)), 1.9, .45, (zc-deck.z)/2-.3)
-            saddle.obox(V((x,y+dy,deck.z+.12)), V((1,0,0)), V((0,1,0)), V((0,0,1)), 2.2, .9, .12)
-            for dx in (-1.6,1.6):
-                bolts.disc((x+dx,y+dy-.55,deck.z+.3), (0,0,1), .16, .2, 6)
-                bolts.disc((x+dx,y+dy+.55,deck.z+.3), (0,0,1), .16, .2, 6)
-            beads.bead(V((x-2.2,y+dy-.95,deck.z+.06)), V((x+2.2,y+dy-.95,deck.z+.06)), V((0,0,1)))
+        # A cased coil: copper shows only in the cooling windows between
+        # casing sections, recessed below the casing line.
+        wind.disc((x,y,zc), (0,1,0), 1.72, 8.0, 16)
+        for y0, y1 in ((-4,-2.3),(-1.5,-.4),(.4,1.5),(2.3,4)):
+            core.disc((x,y+(y0+y1)/2,zc), (0,1,0), 1.9, y1-y0, 16)
+        for dy in (-4.15, 4.15):
+            caps.disc((x,y+dy,zc), (0,1,0), 2.0, .3, 16)
+        for dy in (-3.15, 3.15):
+            caps.disc((x,y+dy,zc), (0,1,0), 1.97, .26, 16)  # clamp band over the casing
+            saddle.obox(V((x,y+dy,(deck.z+zc)/2-.4)), V((1,0,0)), V((0,1,0)), V((0,0,1)), 1.5, .22, (zc-deck.z)/2-.4)
+            saddle.obox(V((x,y+dy,deck.z+.07)), V((1,0,0)), V((0,1,0)), V((0,0,1)), 1.8, .5, .07)
+            for dx in (-1.45,1.45):
+                bolts.disc((x+dx,y+dy,deck.z+.17), (0,0,1), .1, .08, 6)
+            beads.bead(V((x-1.8,y+dy-.52,deck.z)), V((x+1.8,y+dy-.52,deck.z)), V((0,0,1)), .08)
         # Terminal box on the outboard end and heavy leads down into both cans.
-        core.obox(V((x,y-5.1,zc)), V((1,0,0)), V((0,1,0)), V((0,0,1)), .9, .5, .9)
+        caps.obox(V((x,y-4.75,zc)), V((1,0,0)), V((0,1,0)), V((0,0,1)), .7, .32, .7)
         leads = self.g('Drive coil lead', self.cable, .01)
         for _, ey, w in ENGINES[2:]:
             top = V((x-.3, ey, zc-1.2))
             can = V((-33.6, ey, CAN_FACE_R[w]*.75))
-            leads.tube([V((x, y-5.4, zc-.3)), V((x-1.6, y-5.4, zc-1.6)), V((-32.6, ey-.6*(1 if ey < -27 else -1), 8.4)), can], .2, 6)
+            leads.tube([V((x, y-5.05, zc-.3)), V((x-1.6, y-5.2, zc-1.6)), V((-32.6, ey-.6*(1 if ey < -27 else -1), 8.4)), can], .15, 8)
         self.record['drive_coil'] = 'salvaged drive coil on saddles bolted to the starboard housing deck, leads into both starboard cans'
         for i in (3, 4):
             for tag, mat in (('dark throat', self.glow), ('aft-facing bell', self.heat)):
