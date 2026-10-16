@@ -33,12 +33,12 @@
     {
       "id": "castle",
       "order": 2,
-      "status": "draft; generate after the deck plate is approved",
+      "status": "generated (castle.master.png); awaiting approval",
       "references": {
         "art-source/portraits/castle/castle-master.png": "Identity only: face, hair, age and jacket. Not pose, framing or background.",
-        "art-source/hq-command-deck/deck-plate.master.png": "Lighting and painting style only; not layout."
+        "art-source/hq-command-deck/deck-plate-v2.master.png": "Lighting direction, colour and painting style only. Not layout, and do not include any of its background."
       },
-      "prompt": "Full-length standing figure card of Castle for a layered illustration: a woman in her early fifties, the same person as the identity reference, warm pale olive skin, dark brown hair with silver at the temples in a short practical bun, worn charcoal-olive high-collared duty jacket, small earpiece with a short boom microphone. She stands facing the viewer in a relaxed three-quarter stance holding a battered data slate in one hand, restrained knowing half-smile. Her lower legs may be hidden behind a waist-high table, so make the body read clearly from the waist up. Lighting matches the style reference: warm amber key light from below and in front, soft cool blue-grey fill from behind. Same painted style. True transparent background, including negative spaces; no ground, shadow slab, border, text or other people."
+      "prompt": "Full-length standing figure card of Castle for a layered illustration, to be placed into the operations-deck painting given as the style reference. She is the same person as the identity reference: a woman in her early fifties, warm pale olive skin, lived-in face with fine expression lines, steady grey-green eyes, dark brown hair with silver at the temples tied back in a short practical bun, worn charcoal-olive high-collared duty jacket over a faded undershirt, dark work trousers and boots, small earpiece with a short boom microphone. Pose: standing upright, relaxed, body in three-quarter view turned slightly toward the viewer's left, face toward the viewer with a restrained knowing half-smile, holding a battered data slate low in one hand. Whole body in frame from top of head to boots, natural adult proportions, small clearance around the figure. Viewpoint matches the deck painting: seen from a camera slightly above her head height, tilted down about 15 degrees, at a few metres' distance. Lighting matches the style reference: warm amber key light from below and in front (a glowing chart table she stands behind), soft cool blue-grey rim light from a viewport behind her. Same matte-painted style and brushwork. True transparent background, including negative spaces; no ground, floor, cast shadow slab, table, border, text or other people."
     },
     {
       "id": "comms-pair",
@@ -66,5 +66,6 @@
       "prompt": "Edit the supplied empty operations-deck illustration. Keep the composition, every station and every object exactly where they are, and keep it free of people. Change only the lighting: the warm work lights dim, a red-amber alert lamp washes the ceiling and back wall, console screens shift to urgent amber. No text, numbers, logos, HUD or holograms. Same painted style and palette."
     }
   ],
-  "liveOverlays": "Screens and the chart-table top are painted blank so SVG/live effects (readouts, blinking lamps, a live plot, motion) can be drawn over them; stations stay in fixed bands so they can later become their own layers."
+  "liveOverlays": "Screens and the chart-table top are painted blank so SVG/live effects (readouts, blinking lamps, a live plot, motion) can be drawn over them; stations stay in fixed bands so they can later become their own layers.",
+  "markers": "markers.py derives a camera model and named anchors from the approved plate: deck-plate-v2.markers.json / .markers.svg / .markers-review.png."
 }
