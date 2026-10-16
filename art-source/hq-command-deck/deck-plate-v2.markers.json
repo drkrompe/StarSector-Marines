@@ -23,20 +23,20 @@
       -1.0
     ],
     "positionM": [
-      0.71,
-      4.56,
-      -9.06
+      0.6,
+      3.84,
+      -7.63
     ],
     "assumptions": {
-      "tableHeightM": 0.95,
+      "tableHeightM": 0.8,
       "tableAspect": 1.8
     },
     "uncertainty": "Painting, not render. Horizon/VP within ~15 px. Focal length rests on the table aspect and scale on the table height; absolute distances are the weakest values, ratios near the table the strongest."
   },
   "chartTable": {
-    "widthM": 4.37,
-    "depthM": 2.2,
-    "heightM": 0.95,
+    "widthM": 3.68,
+    "depthM": 1.85,
+    "heightM": 0.8,
     "topQuadPx": [
       [
         753.2,
@@ -89,27 +89,27 @@
     {
       "id": "castle",
       "feetPx": [
-        1101.4,
-        402.8
+        1120.9,
+        413.9
       ],
       "headPx": [
-        1101.4,
-        228.5
+        1120.9,
+        202.1
       ],
-      "heightPx": 174.2,
+      "heightPx": 211.8,
       "heightM": 1.68
     },
     {
       "id": "commander",
       "feetPx": [
-        899.4,
-        570.2
+        883.1,
+        576.4
       ],
       "headPx": [
-        899.4,
-        314.6
+        883.1,
+        269.9
       ],
-      "heightPx": 255.6,
+      "heightPx": 306.5,
       "heightM": 1.82
     }
   ],
@@ -122,11 +122,11 @@
         319.0
       ],
       "world": [
-        -2.29,
-        0.95,
-        2.35
+        -1.93,
+        0.8,
+        1.98
       ],
-      "pxPerMetre": 107.8,
+      "pxPerMetre": 128.0,
       "up": [
         0.0,
         -1.0
@@ -140,11 +140,11 @@
         319.0
       ],
       "world": [
-        2.08,
-        0.95,
-        2.35
+        1.75,
+        0.8,
+        1.98
       ],
-      "pxPerMetre": 107.8,
+      "pxPerMetre": 128.0,
       "up": [
         0.0,
         -1.0
@@ -158,11 +158,11 @@
         412.0
       ],
       "world": [
-        2.21,
-        0.95,
-        0.15
+        1.86,
+        0.8,
+        0.13
       ],
-      "pxPerMetre": 133.6,
+      "pxPerMetre": 158.6,
       "up": [
         0.0,
         -1.0
@@ -176,11 +176,11 @@
         412.0
       ],
       "world": [
-        -2.16,
-        0.95,
-        0.15
+        -1.82,
+        0.8,
+        0.13
       ],
-      "pxPerMetre": 133.6,
+      "pxPerMetre": 158.6,
       "up": [
         0.0,
         -1.0
@@ -194,11 +194,11 @@
         360.5
       ],
       "world": [
-        -0.04,
-        0.95,
-        1.25
+        -0.03,
+        0.8,
+        1.05
       ],
-      "pxPerMetre": 119.3,
+      "pxPerMetre": 141.7,
       "up": [
         0.0,
         -1.0
@@ -213,11 +213,11 @@
         521.0
       ],
       "world": [
-        -6.08,
+        -5.12,
         0.0,
-        0.43
+        0.36
       ],
-      "pxPerMetre": 129.6,
+      "pxPerMetre": 154.0,
       "up": [
         0.0,
         -1.0
@@ -231,11 +231,11 @@
         445.0
       ],
       "world": [
-        -5.26,
+        -4.43,
         0.0,
-        1.83
+        1.54
       ],
-      "pxPerMetre": 113.0,
+      "pxPerMetre": 134.2,
       "up": [
         0.0,
         -1.0
@@ -249,11 +249,11 @@
         448.0
       ],
       "world": [
-        5.32,
+        4.48,
         0.0,
-        1.77
+        1.49
       ],
-      "pxPerMetre": 113.6,
+      "pxPerMetre": 134.9,
       "up": [
         0.0,
         -1.0
@@ -267,11 +267,11 @@
         440.0
       ],
       "world": [
-        8.11,
+        6.83,
         0.0,
-        1.94
+        1.63
       ],
-      "pxPerMetre": 111.9,
+      "pxPerMetre": 132.9,
       "up": [
         0.0,
         -1.0
@@ -281,34 +281,34 @@
       "id": "castle-feet",
       "kind": "figure-stand",
       "px": [
-        1101.4,
-        402.8
+        1120.9,
+        413.9
       ],
       "world": [
         0.95,
         0.0,
-        2.8
+        2.13
       ],
-      "pxPerMetre": 103.7,
+      "pxPerMetre": 126.1,
       "up": [
         0.0,
         -1.0
       ],
-      "note": "Behind the far side of the table, right of centre, facing the viewer."
+      "note": "At the far edge of the table, right of centre, facing the viewer."
     },
     {
       "id": "castle-head",
       "kind": "figure-head",
       "px": [
-        1101.4,
-        228.5
+        1120.9,
+        202.1
       ],
       "world": [
         0.95,
         1.68,
-        2.8
+        2.13
       ],
-      "pxPerMetre": 103.7,
+      "pxPerMetre": 126.1,
       "up": [
         0.0,
         -1.0
@@ -318,15 +318,15 @@
       "id": "commander-feet",
       "kind": "figure-stand",
       "px": [
-        899.4,
-        570.2
+        883.1,
+        576.4
       ],
       "world": [
         -0.55,
         0.0,
-        -0.3
+        -0.32
       ],
-      "pxPerMetre": 140.4,
+      "pxPerMetre": 168.4,
       "up": [
         0.0,
         -1.0
@@ -337,15 +337,15 @@
       "id": "commander-head",
       "kind": "figure-head",
       "px": [
-        899.4,
-        314.6
+        883.1,
+        269.9
       ],
       "world": [
         -0.55,
         1.82,
-        -0.3
+        -0.32
       ],
-      "pxPerMetre": 140.4,
+      "pxPerMetre": 168.4,
       "up": [
         0.0,
         -1.0

@@ -2,8 +2,8 @@
   <line id="horizon" x1="0" y1="-70.1" x2="2172" y2="-70.1" stroke="#ff0" />
   <polygon id="table-top" fill="none" stroke="#0ff" points="753.2,319.0 1224.3,319.0 1277.2,412.0 693.4,412.0" />
   <polygon id="table-occluder" fill="none" stroke="#f33" points="765.0,307.0 1217.0,307.0 1292.0,425.0 1277.0,552.0 675.0,552.0 660.0,425.0" />
-  <line id="castle-stand" x1="1101.4" y1="402.8" x2="1101.4" y2="228.5" stroke="#f0f" />
-  <line id="commander-stand" x1="899.4" y1="570.2" x2="899.4" y2="314.6" stroke="#f0f" />
+  <line id="castle-stand" x1="1120.9" y1="413.9" x2="1120.9" y2="202.1" stroke="#f0f" />
+  <line id="commander-stand" x1="883.1" y1="576.4" x2="883.1" y2="269.9" stroke="#f0f" />
   <rect id="screen-1" x="36" y="244" width="73" height="55" fill="none" stroke="#f80" />
   <rect id="screen-2" x="140" y="226" width="33" height="37" fill="none" stroke="#f80" />
   <rect id="screen-3" x="148" y="276" width="29" height="25" fill="none" stroke="#f80" />
@@ -20,8 +20,8 @@
   <circle id="comms-chair-right" class="floor-contact" cx="402.0" cy="445.0" r="5" fill="#f0f" />
   <circle id="ledger-desk-front" class="floor-contact" cx="1600.0" cy="448.0" r="5" fill="#f0f" />
   <circle id="hatch-threshold" class="floor-contact" cx="1905.0" cy="440.0" r="5" fill="#f0f" />
-  <circle id="castle-feet" class="figure-stand" cx="1101.4" cy="402.8" r="5" fill="#f0f" />
-  <circle id="castle-head" class="figure-head" cx="1101.4" cy="228.5" r="5" fill="#f0f" />
-  <circle id="commander-feet" class="figure-stand" cx="899.4" cy="570.2" r="5" fill="#f0f" />
-  <circle id="commander-head" class="figure-head" cx="899.4" cy="314.6" r="5" fill="#f0f" />
+  <circle id="castle-feet" class="figure-stand" cx="1120.9" cy="413.9" r="5" fill="#f0f" />
+  <circle id="castle-head" class="figure-head" cx="1120.9" cy="202.1" r="5" fill="#f0f" />
+  <circle id="commander-feet" class="figure-stand" cx="883.1" cy="576.4" r="5" fill="#f0f" />
+  <circle id="commander-head" class="figure-head" cx="883.1" cy="269.9" r="5" fill="#f0f" />
 </svg>
