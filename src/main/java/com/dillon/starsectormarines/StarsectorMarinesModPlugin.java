@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.ops.AgreusArcCampaign;
 import com.dillon.starsectormarines.ops.CompanyManagementGuide;
 import com.dillon.starsectormarines.campaign.start.CompanyProloguePresenter;
+import com.dillon.starsectormarines.cinematic.ArrivalCinematicPresenter;
 import com.dillon.starsectormarines.battle.audio.CompanyOfficer;
 import com.dillon.starsectormarines.battle.audio.OperationRadio;
 
@@ -159,6 +160,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         ensureFactionEquipmentMarketStock();
         ensurePlayerEventPresenter();
         CompanyProloguePresenter.install();
+        ArrivalCinematicPresenter.install();
         ensureCompanyViewAbility();
         ensureCivilianRescueIntel();
         ensureDefectorAsylumIntel();
