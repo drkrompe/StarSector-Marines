@@ -88,6 +88,15 @@ structural landmarks recovered the broad registration. Record the residuals and
 remaining local differences rather than treating either the prompt or a fitted
 silhouette as exact panel correspondence.
 
+The [Codex projection spike](../../../../art-source/company-prologue/second-wind-projection-spike/README.md)
+drives `codex exec` image generation headlessly and measures every result. One
+reskin came back uniformly scaled 1.12x and a second not at all, so measure each
+image; once that global fit is removed, interior features sat within 2 px. Decide
+coverage per pixel against the guide's depth map, not per face. Separate views
+agree on paint layout but each invents its own chips and rivets, so blended
+overlaps soften. Prefer projection for camera-held hero faces and generated
+tileable swatches for the rest.
+
 The managed-land agriculture study provides a small-prop example: one midpoint
 projector travels with each rigid assembly, and physical materials cover backward
 faces and transparent artwork gaps. Its generated assemblies moved and changed

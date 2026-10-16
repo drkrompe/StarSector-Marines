@@ -1,0 +1,13 @@
+Asset: Jangala Station, the Hegemony's huge orbital station over the jungle world Jangala, as one transparent compositing layer for a grounded, photographic science-fiction cinematic (Starsector). Portrait canvas, highest resolution.
+
+Identity (reference 1): keep the station's plan and silhouette: a tall vertical spindle of stacked, wide, flat disc decks of differing diameters (a broad upper disc, two mid discs, a broad lower-middle disc), a narrow command spire with antenna mast on top, a tapering lower section of many thin stacked rings glowing teal-cyan from within, and a small cluster of machinery at the very bottom tip. Grey-gunmetal and dull olive-yellow Hegemony industrial plating.
+
+Pose: a real, massive structure seen in three-quarter view from slightly above. The camera is high over the orbital plane looking slightly down, so every disc deck reads as a shallow ellipse with its top surface visible, and the spindle has true depth and perspective. Spindle axis vertical in frame. The whole station, including the top antenna and the bottom tip, sits inside the canvas with a clear empty margin of at least 6% on every side; nothing touches or is cut by the canvas edge.
+
+Detail that must read when the whole station is shown about 280 pixels tall: rows of small warm lit windows along deck rims; two or three docking arms reaching out from the mid decks with a couple of small blocky cargo ships berthed; clearly visible long dark heat-radiator fins projecting from the lower-middle disc and from the spire base; antenna dishes and comm masts; pipework, gantries, panel seams; Hegemony industrial weathering, scorch streaks and grime; the teal lower rings glowing as structured lit bands, not a blur.
+
+Lighting: a single hard, strongly directional yellow-white sun from the upper left, as in vacuum: the left and top-left faces of every deck and the spire are brightly lit, the right-hand third of each disc rim and the undersides of the decks fall into clear deep shadow on the lower right (dark but still readable), and each deck casts a hard shadow onto the deck below it. No even studio or frontal lighting; faint cool blue planet-shine fill from below on downward-facing surfaces. No lens flares, bloom halos or glow spilling onto the background.
+
+Look: tactile, weathered industrial metal, believable enormous scale, restrained colour, photoreal; not toy-like, low-poly, cartoon or illustrated.
+
+True transparent background (alpha), including the negative spaces between decks and arms. No planet, stars, nebula, space backdrop, other ships outside the docks, ground, shadow slab, border, frame or text; those are separate layers.

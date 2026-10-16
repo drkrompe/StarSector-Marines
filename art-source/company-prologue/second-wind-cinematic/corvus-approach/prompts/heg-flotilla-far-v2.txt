@@ -1,0 +1,10 @@
+Use case: sketch-to-render. Asset: a transparent compositing layer of a distant Hegemony escort squadron for a grounded, photographic science-fiction cinematic (Starsector, the policed Jangala system).
+Image 1 is the AUTHORITY for exact silhouette, pose, heading, placement and scale: eight small grey blockout hulls on transparency in a loose wedge, rendered through the shot's camera. Fill them in; do not move, rotate, resize, add or remove any ship. Output the SAME canvas framing and aspect as Image 1, with every hull at the same position and size, and all the empty transparent space (including the whole left half) kept empty.
+- The three arrowhead hulls are Eagle-class cruisers; Image 2 identifies their hull plan and Hegemony livery ONLY.
+- The three blocky mid-size hulls are Enforcer-class destroyers; Image 3 identifies their hull plan and livery ONLY.
+- The two smallest hulls are Lasher-class frigates; Image 4 identifies their hull plan ONLY (paint them in Hegemony livery).
+- Image 5 sets material and paint quality ONLY (photoreal weathered Hegemony burnt-orange and rust-brown armour over gunmetal and off-white structure); do not copy its shape, pose or size.
+Every bow points to the lower left exactly as the blockouts do (the Eagle's point is its bow); sterns face upper right, engines on the far side.
+Render each as a real warship seen from very far away, from above and slightly ahead: simple readable armour masses and orange livery bands, no busy noise. Lighting: hard yellow-white sun from the UPPER LEFT, shadow sides lower right, faint cool blue fill from below. Tiny blue-white engine glows at the far (upper-right) sterns and a few pinpoint running lights. Noticeable distance haze: lower contrast and slightly softer, bluish-grey atmospheric softening, hazier than a nearer capital group, but each silhouette still reads.
+Style: photographic, cinematic gritty realism; not a toy, low-poly render, game sprite or cartoon. No lens flares.
+TRUE TRANSPARENT background everywhere around and between the ships, including negative spaces. No stars, planet, nebula, space backdrop, engine trails, extra ships, labels, border or text.

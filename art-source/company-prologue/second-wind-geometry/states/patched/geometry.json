@@ -1,0 +1,403 @@
+{
+  "status": "Proposed damage-state review geometry; the committed guide remains the clean ship",
+  "axes": {
+    "+X": "bow",
+    "+Y": "port",
+    "+Z": "dorsal"
+  },
+  "units": "Vanilla hull-space units; no canonical metre scale asserted",
+  "revision": "V3 detail: segmented sprite-measured hull, whole engine pods, spine command deck, port grapple, naval turrets",
+  "thickness_profile": {
+    "method": "Flat deck plateaus (x0, x1, deck z) over single-chamfer sections; level keel",
+    "stations": [
+      [
+        -36,
+        -32,
+        8
+      ],
+      [
+        -32,
+        -1,
+        14.5
+      ],
+      [
+        0,
+        18,
+        10.5
+      ],
+      [
+        18,
+        50,
+        14.5
+      ],
+      [
+        47.6,
+        57,
+        14.5
+      ],
+      [
+        49,
+        59.6,
+        12.4
+      ]
+    ],
+    "deck_datum": 0,
+    "attachments": "Engine centres unchanged from V2"
+  },
+  "engine_source": "starsector-core/data/hulls/warhound.ship engineSlots",
+  "engines": [
+    {
+      "location": [
+        -41,
+        31,
+        0
+      ],
+      "width": 12,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "location": [
+        -39,
+        24,
+        0
+      ],
+      "width": 8,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "location": [
+        -39,
+        -24,
+        0
+      ],
+      "width": 8,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "location": [
+        -41,
+        -31,
+        0
+      ],
+      "width": 12,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ]
+    }
+  ],
+  "port_fitting": {
+    "extent_x": [
+      28.5,
+      48
+    ],
+    "extent_y": [
+      24,
+      34.3
+    ],
+    "function": "Proposed boarding/cargo grapple sponson and folded arm, read from the sprite; not canonical lore"
+  },
+  "cameras": [
+    {
+      "name": "port-quarter",
+      "position": [
+        100,
+        130,
+        100
+      ],
+      "orthographic_scale": 163
+    },
+    {
+      "name": "top",
+      "position": [
+        0,
+        0,
+        180
+      ],
+      "orthographic_scale": 205
+    },
+    {
+      "name": "port-side",
+      "position": [
+        0,
+        180,
+        0
+      ],
+      "orthographic_scale": 132
+    },
+    {
+      "name": "stern",
+      "position": [
+        -180,
+        0,
+        0
+      ],
+      "orthographic_scale": 130
+    }
+  ],
+  "bay_state": {
+    "port": "open, empty cradle",
+    "starboard": "sealed, awaits repair"
+  },
+  "mesh_authority": "All views render the same objects; generated surface art is subordinate to this geometry.",
+  "damage": {
+    "state": "patched",
+    "basins": [
+      {
+        "name": "Port sponson cowl strike",
+        "radius": 2.2,
+        "depth": 1.0,
+        "repair": "plate"
+      },
+      {
+        "name": "Port bow cheek strike",
+        "radius": 3.0,
+        "depth": 1.3,
+        "repair": "backing"
+      },
+      {
+        "name": "Port bow flank strike",
+        "radius": 2.2,
+        "depth": 1.0,
+        "repair": "backing"
+      },
+      {
+        "name": "Port aft shoulder strike",
+        "radius": 3.6,
+        "depth": 1.6,
+        "repair": "plates"
+      },
+      {
+        "name": "Port pod lower casing strike",
+        "radius": 2.0,
+        "depth": 0.9,
+        "repair": null
+      },
+      {
+        "name": "Port intake cap strike",
+        "radius": 1.8,
+        "depth": 0.8,
+        "repair": "backing"
+      },
+      {
+        "name": "Starboard forebody deck strike",
+        "radius": 2.8,
+        "depth": 1.2,
+        "repair": "plate"
+      },
+      {
+        "name": "Forward deck strike",
+        "radius": 2.2,
+        "depth": 1.0,
+        "repair": "plate"
+      },
+      {
+        "name": "Spine housing strike",
+        "radius": 1.6,
+        "depth": 0.7,
+        "repair": "plate"
+      },
+      {
+        "name": "Starboard cowl strike",
+        "radius": 2.1,
+        "depth": 0.9,
+        "repair": "plate"
+      },
+      {
+        "name": "Starboard cowl flank strike",
+        "radius": 2.4,
+        "depth": 1.1,
+        "repair": "backing"
+      },
+      {
+        "name": "Starboard intake strike",
+        "radius": 2.0,
+        "depth": 0.9,
+        "repair": "plate"
+      },
+      {
+        "name": "Bow glacis strike",
+        "radius": 2.2,
+        "depth": 1.0,
+        "repair": "plate"
+      },
+      {
+        "name": "Aft deck strike",
+        "radius": 1.6,
+        "depth": 0.8,
+        "repair": null
+      },
+      {
+        "name": "Aft deck starboard strike",
+        "radius": 1.5,
+        "depth": 0.7,
+        "repair": "plate"
+      },
+      {
+        "name": "Starboard flank strike",
+        "radius": 2.9,
+        "depth": 1.2,
+        "repair": "backing"
+      },
+      {
+        "name": "Port outer engine can strike",
+        "radius": 2.4,
+        "depth": 1.4,
+        "repair": null
+      }
+    ],
+    "strikes": 62,
+    "spalls": [
+      "Starboard flank module tear",
+      "Port citadel wall spall",
+      "Starboard bow cheek spall",
+      "Starboard intake cap spall",
+      "Starboard belt plate tear",
+      "Starboard lower casing tear",
+      "Port nose block spall"
+    ],
+    "gouges": [
+      "Starboard deck gouge",
+      "Port cowl gouge",
+      "Port glacis gouge",
+      "Starboard belt gouge"
+    ],
+    "missing_plates": [
+      {
+        "object": "Forebody replaceable armor",
+        "centre": [
+          32.5,
+          16.75
+        ],
+        "repair": "salvage"
+      },
+      {
+        "object": "Forebody replaceable armor",
+        "centre": [
+          32.5,
+          -10.25
+        ],
+        "repair": null
+      },
+      {
+        "object": "Drive casing armour plate",
+        "centre": [
+          -11.85,
+          28.6
+        ],
+        "repair": null
+      },
+      {
+        "object": "Forebody replaceable armor",
+        "centre": [
+          24.5,
+          16.75
+        ],
+        "repair": "salvage"
+      },
+      {
+        "object": "Drive casing armour plate",
+        "centre": [
+          -7.7,
+          -29.45
+        ],
+        "repair": null
+      },
+      {
+        "object": "Aft deck armour plate",
+        "centre": [
+          -23.65,
+          -9.2
+        ],
+        "repair": "salvage"
+      }
+    ],
+    "buckled_plates": [
+      {
+        "object": "Forebody replaceable armor",
+        "centre": [
+          24.5,
+          10.25
+        ]
+      },
+      {
+        "object": "Drive casing armour plate",
+        "centre": [
+          -11.85,
+          -28.6
+        ]
+      },
+      {
+        "object": "Forebody replaceable armor",
+        "centre": [
+          24.5,
+          -10.25
+        ]
+      }
+    ],
+    "repairs": [
+      "salvage plate over Port sponson cowl strike",
+      "emergency backing and straps in Port bow cheek strike",
+      "emergency backing and straps in Port bow flank strike",
+      "salvage plate over Port aft shoulder strike tile 0",
+      "salvage plate over Port aft shoulder strike tile 1",
+      "salvage plate over Port aft shoulder strike tile 2",
+      "salvage plate over Port aft shoulder strike tile 3",
+      "emergency backing and straps in Port intake cap strike",
+      "salvage plate over Starboard forebody deck strike",
+      "salvage plate over Forward deck strike",
+      "salvage plate over Spine housing strike",
+      "salvage plate over Starboard cowl strike",
+      "emergency backing and straps in Starboard cowl flank strike",
+      "salvage plate over Starboard intake strike",
+      "salvage plate over Bow glacis strike",
+      "salvage plate over Aft deck starboard strike",
+      "emergency backing and straps in Starboard flank strike",
+      "pressure patch over Spine cluster 0",
+      "pressure patch over Spine cluster 2",
+      "pressure patch over Spine cluster 4",
+      "pressure patch over Port bow deck cluster 0",
+      "pressure patch over Port bow deck cluster 3",
+      "pressure patch over Starboard bow deck cluster 0",
+      "pressure patch over Starboard bow deck cluster 3",
+      "pressure patch over Starboard bow deck cluster 6",
+      "pressure patch over Port forward flank cluster 0",
+      "pressure patch over Port forward flank cluster 3",
+      "pressure patch over Port forward flank cluster 6",
+      "gouge run full of weld",
+      "gouge strapped",
+      "replacement salvage plate where Forebody replaceable armor was torn away",
+      "replacement salvage plate where Forebody replaceable armor was torn away",
+      "replacement salvage plate where Aft deck armour plate was torn away",
+      "straps bolted across buckled Forebody replaceable armor",
+      "straps bolted across buckled Drive casing armour plate",
+      "bowed bay frame shored with cargo rail",
+      "split clamp sleeve over the burst service line",
+      "jury whip antenna lashed to the mast stub",
+      "external cable runs from the drive coil to the engine-room hatch"
+    ],
+    "smashed_can": "Engine 1 (port outer)",
+    "bent_fins": "port fin bank top-outboard, starboard bottom-outboard",
+    "scorched": "port and starboard waist service lines, port waist trunks and hoops; port line burst",
+    "bowed_rib": "port bay forward frame jamb, bowed aft into the opening",
+    "sheared_mast": "sensor mast sheared above the pedestal; scanner bar fallen, one whip lost, one bent",
+    "stripped": "turbopumps and drive drums off both housing decks; port can feed pipes and casing access panels",
+    "port_pod": "dead, stripped, both nozzles blanked",
+    "drive_coil": "salvaged drive coil on saddles bolted to the starboard housing deck, leads into both starboard cans",
+    "starboard_pod": "running on the salvaged drive coil; throats lit",
+    "cut_objects": 107
+  }
+}

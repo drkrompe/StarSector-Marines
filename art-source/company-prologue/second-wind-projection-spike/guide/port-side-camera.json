@@ -1,0 +1,41 @@
+{
+  "camera": "Camera port-side",
+  "source": "build_reference.py port-side camera, unchanged",
+  "matrix_world": [
+    [
+      -0.999614417552948,
+      -0.00015416440146509558,
+      -0.027766672894358635,
+      0.0
+    ],
+    [
+      -0.027767101302742958,
+      0.005551120266318321,
+      0.9995989799499512,
+      180.0
+    ],
+    [
+      3.356300481982544e-08,
+      0.9999845623970032,
+      -0.005553260911256075,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 132.0,
+  "resolution": [
+    1920,
+    1080
+  ],
+  "background_srgb": [
+    0.84,
+    0.84,
+    0.84
+  ],
+  "lighting": "No lamps; uniform white world, strength 1.6, Standard view transform"
+}

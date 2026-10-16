@@ -1,0 +1,24 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a145ba-f7b8-7ed2-8095-713fa81a7353",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a145ba-f7b8-7ed2-8095-713fa81a7353\\exec-6bce657d-2cc7-49db-bd02-383735c89f45.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\assets\\star-sky-v1.png",
+    "sha256": "abb831720e2b55798b8b2aa0d7e8f1fdbe897ae503f62d79ef47b4e90e42c554",
+    "dimensions": [
+      1916,
+      821
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\prompts\\star-sky-v1.txt",
+  "promptSha256": "a269f56120ef854e9f1e368e43e1ab1ca26ac6aac1099057d0eca46c07a5e31b",
+  "promptAsSent": null,
+  "adopted": true,
+  "references": [],
+  "agentMessages": [],
+  "usage": null,
+  "elapsedSeconds": 0.0
+}

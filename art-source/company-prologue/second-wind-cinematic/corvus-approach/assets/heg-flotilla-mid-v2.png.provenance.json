@@ -1,0 +1,73 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a145c9-e7c1-7702-b5d2-4b7e0dbb54c0",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a145c9-e7c1-7702-b5d2-4b7e0dbb54c0\\exec-e22185f8-0e27-4060-af1d-43b88d9dc317.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\assets\\heg-flotilla-mid-v2.png",
+    "sha256": "172ac125fb1ae8628d1191cc38dc0f3e1c1d6201f3a18c27e3bcc10d4cd4b250",
+    "dimensions": [
+      1672,
+      940
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\prompts\\heg-flotilla-mid-v2.txt",
+  "promptSha256": "dd5e108733d07e203c5f3c2436bb1bbe4d62e1fb0439fead5464b6a96eba2f59",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority: exact silhouette, pose, heading, placement and scale of every hull; fill in, do not move\nImage 2: Identity only: Onslaught-class hull plan and Hegemony livery; not pose\nImage 3: Identity only: Dominator-class hull plan and livery; not pose\nImage 4: Material and paint quality only; not shape, pose or size\n\nUse case: sketch-to-render. Asset: a transparent compositing layer of a distant Hegemony capital group for a grounded, photographic science-fiction cinematic (Starsector, the policed Jangala system).\nImage 1 is the AUTHORITY for exact silhouette, pose, heading, placement and scale: three grey blockout hulls on transparency, rendered through the shot's camera. Fill them in; do not move, rotate, resize, add or remove any ship. Output the SAME canvas framing and aspect as Image 1, with every hull at the same position and size, and all the empty transparent space kept empty.\n- The large central hull is an Onslaught-class battleship; Image 2 identifies its hull plan, armour wings and Hegemony livery ONLY.\n- The two smaller hulls above and below it are Dominator-class cruisers; Image 3 identifies their hull plan and livery ONLY.\n- Image 4 sets material and paint quality ONLY (photoreal weathered Hegemony burnt-orange and rust-brown armour over gunmetal and off-white structure); do not copy its shape, pose or size.\nAll three bows point to the lower left exactly as the blockouts do (the forked prongs of the Onslaught are its bow); sterns face upper right, so their engines are on the far side.\nRender each as a real massive warship seen from far away, from above and slightly ahead: layered chamfered armour plates, turret barbettes, recesses and fine seams, readable at small size without busy noise. Lighting: hard yellow-white sun from the UPPER LEFT, shadow sides falling lower right, faint cool blue fill from below. Small blue-white engine glows peeking from the far (upper-right) sterns, a few pinpoint red and white running lights. Slight distance haze softening the contrast, as befits ships thousands of kilometres away; silhouettes stay crisp.\nStyle: photographic, cinematic gritty realism; not a toy, low-poly render, game sprite or cartoon. No lens flares.\nTRUE TRANSPARENT background everywhere around and between the ships, including negative spaces. No stars, planet, nebula, space backdrop, engine trails, extra ships, labels, border or text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\guides\\flotilla-mid.png",
+      "sha256": "e483c18aad661d47e74efe072c07048b405cdb030ff05a12c98044f9632be030",
+      "dimensions": [
+        1728,
+        972
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority: exact silhouette, pose, heading, placement and scale of every hull; fill in, do not move"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Fractal Softworks\\Starsector\\starsector-core\\graphics\\ships\\onslaught\\onslaught_hegemony.png",
+      "sha256": "0748d477e97991310354ae03cdc1c0292d9c6efacd8d6b3151dd8c9fd05eb633",
+      "dimensions": [
+        288,
+        384
+      ],
+      "mode": "RGBA",
+      "role": "Identity only: Onslaught-class hull plan and Hegemony livery; not pose"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Fractal Softworks\\Starsector\\starsector-core\\graphics\\ships\\dominator\\dominator_hegemony.png",
+      "sha256": "cee71841c3e7d1992915a1cf1766470266b205a37e706ad3a60c0a53f988b30f",
+      "dimensions": [
+        220,
+        180
+      ],
+      "mode": "RGBA",
+      "role": "Identity only: Dominator-class hull plan and livery; not pose"
+    },
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\assets\\heg-hero-v1.png",
+      "sha256": "6731da723e514289d30080062153099d877623d433bb3f31c17afb7ee0f673eb",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGBA",
+      "role": "Material and paint quality only; not shape, pose or size"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render the three hulls, preserving Image 1’s geometry, framing, and transparent space."
+  ],
+  "usage": {
+    "input_tokens": 86832,
+    "cached_input_tokens": 66048,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 899,
+    "reasoning_output_tokens": 33
+  },
+  "elapsedSeconds": 64.3
+}

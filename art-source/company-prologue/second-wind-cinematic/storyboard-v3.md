@@ -4,7 +4,7 @@ Status: DRAFT. Image-first replacement for `storyboard-v2.txt`, which it superse
 
 Written: 2026-10-16
 
-Updated: 2026-10-16 — hail revised after audition: customs beat, Greywater Down, lines 5–6 cut, static lowered.
+Updated: 2026-10-16 — hail locked; C1 rebuilt as painted ImageGen layers, a 3D planet and Second Wind's entrance.
 
 ## What changed from v2
 
@@ -73,7 +73,22 @@ The arrival runs about 90 seconds, most of it the space section that carries the
 at Jangala, and it can be skipped. Starts that use a fallback port never see it.
 Timings are targets until the voice takes are measured.
 
-### C1 — CORVUS (about 35 s, set by the hail)
+### C1 — CORVUS (about 38 s, set by the hail)
+
+**Built as** `corvus-approach/` (`c1-layout.md` holds the shared camera, sun
+and layer table). The owner's direction for this shot:
+
+- **Painted with Codex ImageGen**, layer by layer: a star sky, a distant
+  Hegemony flotilla, a hero Hegemony warship, Jangala Station, and hero
+  freighter traffic in interesting perspectives. Vanilla sprites are identity
+  references only, never the picture.
+- **The planet is a 3D sphere**: ImageGen albedo and cloud maps on a Blender
+  sphere with an atmosphere rim, rendered as a layer.
+- **Second Wind makes an entrance.** It comes into frame from off-screen bottom
+  left, close and large, seen from astern with its engine bells toward camera,
+  then recedes toward Jangala under the hail. Its card is a render of the
+  damaged master, so it keeps one viewing angle while it travels away along
+  roughly the camera's line of sight.
 
 **Picture.** Jangala fills the right two thirds of the frame, with seas, canopy
 and a storm system. Jangala Station sits in orbit at mid-depth. A Hegemony
@@ -173,6 +188,8 @@ pixels.
 Castle reports the meeting with Nessa.
 
 ## C1–C2: Hegemony traffic-control hail
+
+**Locked 2026-10-16** after the owner's second audition. Change it only by owner request.
 
 A new voiced exchange. **Jangala Approach** is a new voice: a Hegemony traffic
 controller, brisk and procedural, neither hostile nor friendly. Castle is
