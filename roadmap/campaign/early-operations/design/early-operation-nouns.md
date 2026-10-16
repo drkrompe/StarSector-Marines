@@ -1021,7 +1021,7 @@ and chassis clearance keep freight on the road.
 Cross streets still admit the raider reserve. Quiet dark carriageways, dirt
 loading lots and gravel inspection yards distinguish exterior surfaces from the
 repeated industrial building interiors using the existing terrain palette.
-One twin-cannon heavy tank leads two
+One single-cannon heavy tank leads two
 reinforced employer APCs and up to three unarmed industrial container haulers. Their distinct silhouettes separate fire support
 from the slower, longer freight column. Two boats deliver eight militia;
 the company's named troops arrive in their own fitted boats.

@@ -203,7 +203,7 @@ class GroundVehicleTurretSystemTest {
     }
 
     @Test
-    void tankPairUsesSeparateMuzzlesAndStopsWhenItsFiniteMagazineIsEmpty() {
+    void tankBurstUsesSingleCenteredMuzzleAndStopsWhenItsFiniteMagazineIsEmpty() {
         Fixture f = new Fixture(VehicleType.BREAKTHROUGH_TANK);
         f.grid.setWalkable(20, 45, false);
         f.turret.ammo = 2;
@@ -215,7 +215,9 @@ class GroundVehicleTurretSystemTest {
         assertEquals(2, f.detonations.size(), "each shell has one shared blast, not a cosmetic duplicate");
         var first = f.shots.getActiveShots().get(0);
         var second = f.shots.getActiveShots().get(1);
-        assertEquals(2 * f.mount.mount.muzzleLateralOffsetCells, second.fromX - first.fromX, .001f);
+        assertEquals(f.mountX(), first.fromX, .001f);
+        assertEquals(first.fromX, second.fromX, .001f);
+        assertEquals(first.fromY, second.fromY, .001f);
         assertEquals(f.mountY() + f.mount.mount.muzzleOffsetCells, first.fromY, .001f);
         assertTrue(f.weapon.contactDamage > f.weapon.damage);
         assertTrue(f.weapon.contactPenetration > f.weapon.penetration);

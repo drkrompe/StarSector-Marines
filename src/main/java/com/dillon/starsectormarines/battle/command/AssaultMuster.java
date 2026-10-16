@@ -241,7 +241,21 @@ final class AssaultMuster {
     private final Map<Integer, FortFrame> placedFrames = new HashMap<>();
     /** What the side's air can do for the plan this pulse, and the strikes the plans have asked for in it. */
     private AirSupportFacts air = AirSupportFacts.NONE;
+    /** The clouds of smoke standing on the field this pulse. */
+    private List<SmokeCloudFact> smoke = List.of();
+
+    /** Sets the clouds standing this pulse, before the plan is asked for. */
+    void smoke(List<SmokeCloudFact> clouds) {
+        smoke = List.copyOf(clouds);
+    }
     private final List<StrikeRequest> strikeRequests = new ArrayList<>();
+    /** What each fort's company did with its held close breachers, kept past the company for evidence. */
+    private final Map<Integer, FortAssault.SatchelRecord> satchelRecords = new TreeMap<>();
+
+    /** The satchel records by fort, for evidence; the plan never reads them. */
+    Map<Integer, FortAssault.SatchelRecord> satchelRecords() {
+        return satchelRecords;
+    }
 
     /** The commander's report of what the air said to a strike the plan asked for. */
     void strikeAnswered(int fortId, int nest, boolean calling, int tick) {
@@ -832,6 +846,7 @@ final class AssaultMuster {
                         : defenceOf(objective, company.members, byId, new int[] {lead.anchorX(), lead.anchorY()});
                 if (defence != null) {
                     company.execution = new FortAssault.Execution(works, belief, defence, tick);
+                    satchelRecords.put(company.fortId, company.execution.satchelRecord());
                     notes.add("company for fort " + company.fortId + " takes the " + defence.variant() + ": "
                             + defence.liveCovering() + " nests believed to cover it"
                             + (defence.staffed() ? "" : "; it cannot staff it (" + String.join("; ", defence.staffing().describeGaps()) + ")"));
@@ -839,6 +854,8 @@ final class AssaultMuster {
             }
             if (company.execution != null) {
                 company.execution.skyNeed(air.skyNeed());
+                company.execution.strikes(new FortAssault.Strikes(air, true, clock));
+                company.execution.clouds(smoke, tick);
                 Map<Integer, Order> planned = company.execution.run(tick, perspective, objective, company.members, byId,
                         topology, notes);
                 if (planned == null) {
