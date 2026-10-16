@@ -36,6 +36,14 @@ moving mechanisms that affect occlusion belong in geometry. Local crater damage
 can deform sacrificial armor while retaining pressure backing. Major structural
 changes require an updated model, not a painted illusion that fails on rotation.
 
+Uniform small pockmarks alone can read as ordinary wear. A heavily damaged
+arrival needs a few legible impact basins with crushed lips, missing outer plates
+and emergency backing. If the user authorizes modeled damage, record the exact
+local skin regions changed while keeping bay, engine, turret and support identity.
+Check intact geometry outside those regions instead of requiring every old vertex
+to remain unchanged. Localized guided surface art can finish the damaged meshes
+without replacing the rest of the hull's accepted materials.
+
 The [Second Wind surface proof](../../../../art-source/company-prologue/second-wind-cinematic/second-wind-surface-proof/README.md)
 extends this to the actual hull: physical armor and repair details, neutral
 material tiles, and guide-camera UVs stored on near-side mesh faces. It is a

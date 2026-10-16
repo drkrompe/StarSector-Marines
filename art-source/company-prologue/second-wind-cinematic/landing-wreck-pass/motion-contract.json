@@ -1,0 +1,988 @@
+{
+  "passed": true,
+  "checks": {
+    "four_contact_pairs": true,
+    "monotone_COM_descent": true,
+    "no_sampled_shoe_pad_penetration": true,
+    "settled_contact_and_footprints": true,
+    "exact_original_contact_pose": true,
+    "no_post_contact_slide": true,
+    "nozzle_attachment_all_192_poses": true,
+    "camera_unchanged": true,
+    "exhaust_zero_after_settle": true
+  },
+  "source_blend_sha256": "b29e3d632628e0f87b74b64bc2eaff87ba704999e631da24bb3574f69ea79a1c",
+  "module_sha256": "073b8d21316af2e63cebc9100d7a21251621de59389d681157eb5e97439116e6",
+  "design": {
+    "root": "SECOND WIND | flight root",
+    "source_clock_knots": [
+      [
+        0,
+        580
+      ],
+      [
+        2,
+        624
+      ],
+      [
+        2.5,
+        648
+      ],
+      [
+        6.5,
+        744
+      ],
+      [
+        8,
+        774
+      ]
+    ],
+    "rotation_degrees": {
+      "roll_peak": 3,
+      "roll_peak_frame": 664,
+      "pitch_peak": 1.25,
+      "pitch_peak_frame": 670,
+      "level_frame": 732
+    },
+    "horizontal_knots": [
+      [
+        580,
+        -33.494808197021484
+      ],
+      [
+        594,
+        -23.781313819885252
+      ],
+      [
+        606,
+        -12.058130950927733
+      ],
+      [
+        617,
+        -2.344636573791504
+      ],
+      [
+        624,
+        0.0
+      ],
+      [
+        774,
+        0.0
+      ]
+    ],
+    "altitude_knots": [
+      [
+        580,
+        34.187416076660156
+      ],
+      [
+        608,
+        33.4
+      ],
+      [
+        624,
+        32
+      ],
+      [
+        648,
+        31.5
+      ],
+      [
+        672,
+        27.2
+      ],
+      [
+        690,
+        25.6
+      ],
+      [
+        708,
+        24.4
+      ],
+      [
+        726,
+        22.6
+      ],
+      [
+        744,
+        21.0
+      ],
+      [
+        774,
+        21.0
+      ]
+    ],
+    "nozzles": [
+      {
+        "nozzle": 0,
+        "mouth": "PROPOSAL lift mouth",
+        "root_local_mouth": [
+          33.0,
+          18.0,
+          -11.0
+        ],
+        "starboard": false,
+        "forward": true,
+        "envelope_keys": [
+          [
+            580,
+            0.84
+          ],
+          [
+            624,
+            0.92
+          ],
+          [
+            648,
+            0.94
+          ],
+          [
+            664,
+            0.752
+          ],
+          [
+            678,
+            1.1600000000000001
+          ],
+          [
+            690,
+            0.98
+          ],
+          [
+            708,
+            0.9
+          ],
+          [
+            732,
+            0.76
+          ],
+          [
+            744,
+            0.48
+          ],
+          [
+            750,
+            0.15
+          ],
+          [
+            758,
+            0
+          ],
+          [
+            774,
+            0
+          ]
+        ]
+      },
+      {
+        "nozzle": 1,
+        "mouth": "PROPOSAL lift mouth.001",
+        "root_local_mouth": [
+          33.0,
+          -18.0,
+          -11.0
+        ],
+        "starboard": true,
+        "forward": true,
+        "envelope_keys": [
+          [
+            580,
+            0.84
+          ],
+          [
+            624,
+            0.92
+          ],
+          [
+            648,
+            0.68
+          ],
+          [
+            664,
+            0.544
+          ],
+          [
+            678,
+            1.67
+          ],
+          [
+            690,
+            1.13
+          ],
+          [
+            708,
+            0.9
+          ],
+          [
+            732,
+            0.76
+          ],
+          [
+            744,
+            0.48
+          ],
+          [
+            750,
+            0.15
+          ],
+          [
+            758,
+            0
+          ],
+          [
+            774,
+            0
+          ]
+        ]
+      },
+      {
+        "nozzle": 2,
+        "mouth": "PROPOSAL lift mouth.002",
+        "root_local_mouth": [
+          -17.0,
+          19.0,
+          -11.0
+        ],
+        "starboard": false,
+        "forward": false,
+        "envelope_keys": [
+          [
+            580,
+            0.84
+          ],
+          [
+            624,
+            0.92
+          ],
+          [
+            648,
+            0.94
+          ],
+          [
+            664,
+            0.752
+          ],
+          [
+            681,
+            1.04
+          ],
+          [
+            693,
+            0.98
+          ],
+          [
+            708,
+            0.9
+          ],
+          [
+            732,
+            0.76
+          ],
+          [
+            744,
+            0.48
+          ],
+          [
+            750,
+            0.15
+          ],
+          [
+            758,
+            0
+          ],
+          [
+            774,
+            0
+          ]
+        ]
+      },
+      {
+        "nozzle": 3,
+        "mouth": "PROPOSAL lift mouth.003",
+        "root_local_mouth": [
+          -17.0,
+          -19.0,
+          -11.0
+        ],
+        "starboard": true,
+        "forward": false,
+        "envelope_keys": [
+          [
+            580,
+            0.84
+          ],
+          [
+            624,
+            0.92
+          ],
+          [
+            648,
+            0.68
+          ],
+          [
+            664,
+            0.544
+          ],
+          [
+            681,
+            1.55
+          ],
+          [
+            693,
+            1.13
+          ],
+          [
+            708,
+            0.9
+          ],
+          [
+            732,
+            0.76
+          ],
+          [
+            744,
+            0.48
+          ],
+          [
+            750,
+            0.15
+          ],
+          [
+            758,
+            0
+          ],
+          [
+            774,
+            0
+          ]
+        ]
+      }
+    ],
+    "contact_frame": 744,
+    "exhaust_off_frame": 758
+  },
+  "sampled_output_poses": 192,
+  "minimum_shoe_pad_vertical_gap_m": 0.0,
+  "minimum_precontact_shoe_pad_vertical_gap_m": 0.009326934814453125,
+  "maximum_nozzle_attachment_error_m": 0,
+  "maximum_settled_matrix_error": 0,
+  "trajectory_samples": [
+    {
+      "output_frame": 0,
+      "source_frame": 580.0,
+      "position": [
+        -33.494808197021484,
+        0.0,
+        34.187416076660156
+      ],
+      "rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "gap_m": 13.187416076660156,
+          "footprint_inside": false
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "gap_m": 13.187416076660156,
+          "footprint_inside": false
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "gap_m": 13.187416076660156,
+          "footprint_inside": false
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "gap_m": 13.187416076660156,
+          "footprint_inside": false
+        }
+      ]
+    },
+    {
+      "output_frame": 12,
+      "source_frame": 591.0,
+      "position": [
+        -26.08051872253418,
+        0.0,
+        33.91596603393555
+      ],
+      "rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "gap_m": 12.915966033935547,
+          "footprint_inside": false
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "gap_m": 12.915966033935547,
+          "footprint_inside": false
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "gap_m": 12.915966033935547,
+          "footprint_inside": false
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "gap_m": 12.915966033935547,
+          "footprint_inside": false
+        }
+      ]
+    },
+    {
+      "output_frame": 24,
+      "source_frame": 602.0,
+      "position": [
+        -16.025339126586914,
+        0.0,
+        33.62222671508789
+      ],
+      "rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "gap_m": 12.62222671508789,
+          "footprint_inside": false
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "gap_m": 12.62222671508789,
+          "footprint_inside": false
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "gap_m": 12.62222671508789,
+          "footprint_inside": false
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "gap_m": 12.62222671508789,
+          "footprint_inside": false
+        }
+      ]
+    },
+    {
+      "output_frame": 36,
+      "source_frame": 613.0,
+      "position": [
+        -5.191883563995361,
+        0.0,
+        33.0108528137207
+      ],
+      "rotation_degrees": [
+        0.18225000432451635,
+        0.001101931210791551,
+        0.0
+      ],
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "gap_m": 11.954610824584961,
+          "footprint_inside": false
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "gap_m": 12.050037384033203,
+          "footprint_inside": false
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "gap_m": 11.953023910522461,
+          "footprint_inside": false
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "gap_m": 12.048450469970703,
+          "footprint_inside": false
+        }
+      ]
+    },
+    {
+      "output_frame": 48,
+      "source_frame": 624.0,
+      "position": [
+        0.0,
+        0.0,
+        32.0
+      ],
+      "rotation_degrees": [
+        0.7777777598948585,
+        0.13838206050326488,
+        0.0
+      ],
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "gap_m": 10.827935218811035,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "gap_m": 11.235162734985352,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "gap_m": 10.628678321838379,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "gap_m": 11.035907745361328,
+          "footprint_inside": true
+        }
+      ]
+    },
+    {
+      "output_frame": 60,
+      "source_frame": 648.0,
+      "position": [
+        0.0,
+        0.0,
+        31.5
+      ],
+      "rotation_degrees": [
+        2.4737777638324934,
+        0.8468982070783297,
+        0.0
+      ],
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "gap_m": 10.168023109436035,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "gap_m": 11.462745666503906,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "gap_m": 8.94862174987793,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "gap_m": 10.243345260620117,
+          "footprint_inside": true
+        }
+      ]
+    },
+    {
+      "output_frame": 72,
+      "source_frame": 660.0,
+      "position": [
+        0.0,
+        0.0,
+        29.594497680664062
+      ],
+      "rotation_degrees": [
+        2.9617777045569795,
+        1.1513387348494273,
+        0.0
+      ],
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "gap_m": 8.270498275756836,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "gap_m": 9.82027816772461,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "gap_m": 6.612800598144531,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "gap_m": 8.162580490112305,
+          "footprint_inside": true
+        }
+      ]
+    },
+    {
+      "output_frame": 84,
+      "source_frame": 672.0,
+      "position": [
+        0.0,
+        0.0,
+        27.200000762939453
+      ],
+      "rotation_degrees": [
+        2.878453878994467,
+        1.2461817811688722,
+        0.0
+      ],
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "gap_m": 5.948728561401367,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "gap_m": 7.454893112182617,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "gap_m": 4.154497146606445,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "gap_m": 5.660661697387695,
+          "footprint_inside": true
+        }
+      ]
+    },
+    {
+      "output_frame": 96,
+      "source_frame": 684.0,
+      "position": [
+        0.0,
+        0.0,
+        26.059555053710938
+      ],
+      "rotation_degrees": [
+        2.340512662275905,
+        1.0875767845132425,
+        0.0
+      ],
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "gap_m": 4.88895320892334,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "gap_m": 6.1138811111450195,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "gap_m": 3.3230485916137695,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "gap_m": 4.547976493835449,
+          "footprint_inside": true
+        }
+      ]
+    },
+    {
+      "output_frame": 108,
+      "source_frame": 696.0,
+      "position": [
+        0.0,
+        0.0,
+        25.192380905151367
+      ],
+      "rotation_degrees": [
+        1.568160954068093,
+        0.774898461633728,
+        0.0
+      ],
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "gap_m": 4.097634315490723,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "gap_m": 4.918544769287109,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "gap_m": 2.981895923614502,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "gap_m": 3.802804946899414,
+          "footprint_inside": true
+        }
+      ]
+    },
+    {
+      "output_frame": 120,
+      "source_frame": 708.0,
+      "position": [
+        0.0,
+        0.0,
+        24.399999618530273
+      ],
+      "rotation_degrees": [
+        0.7777777598948585,
+        0.416904421612544,
+        0.0
+      ],
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "gap_m": 3.367441177368164,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "gap_m": 3.7746620178222656,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "gap_m": 2.7671475410461426,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "gap_m": 3.174367904663086,
+          "footprint_inside": true
+        }
+      ]
+    },
+    {
+      "output_frame": 132,
+      "source_frame": 720.0,
+      "position": [
+        0.0,
+        0.0,
+        23.210979461669922
+      ],
+      "rotation_degrees": [
+        0.18574171175406057,
+        0.12235239359382508,
+        0.0
+      ],
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "gap_m": 2.2142529487609863,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "gap_m": 2.3115062713623047,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "gap_m": 2.0380783081054688,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "gap_m": 2.135331630706787,
+          "footprint_inside": true
+        }
+      ]
+    },
+    {
+      "output_frame": 144,
+      "source_frame": 732.0,
+      "position": [
+        0.0,
+        0.0,
+        21.9342041015625
+      ],
+      "rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "gap_m": 0.9342041015625,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "gap_m": 0.9342041015625,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "gap_m": 0.9342041015625,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "gap_m": 0.9342041015625,
+          "footprint_inside": true
+        }
+      ]
+    },
+    {
+      "output_frame": 156,
+      "source_frame": 744.0,
+      "position": [
+        0.0,
+        0.0,
+        21.0
+      ],
+      "rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "gap_m": 0.0,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "gap_m": 0.0,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "gap_m": 0.0,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "gap_m": 0.0,
+          "footprint_inside": true
+        }
+      ]
+    },
+    {
+      "output_frame": 168,
+      "source_frame": 754.0,
+      "position": [
+        0.0,
+        0.0,
+        21.0
+      ],
+      "rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "gap_m": 0.0,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "gap_m": 0.0,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "gap_m": 0.0,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "gap_m": 0.0,
+          "footprint_inside": true
+        }
+      ]
+    },
+    {
+      "output_frame": 180,
+      "source_frame": 764.0,
+      "position": [
+        0.0,
+        0.0,
+        21.0
+      ],
+      "rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "gap_m": 0.0,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "gap_m": 0.0,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "gap_m": 0.0,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "gap_m": 0.0,
+          "footprint_inside": true
+        }
+      ]
+    },
+    {
+      "output_frame": 191,
+      "source_frame": 773.1666666666666,
+      "position": [
+        0.0,
+        0.0,
+        21.0
+      ],
+      "rotation_degrees": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "gap_m": 0.0,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "gap_m": 0.0,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "gap_m": 0.0,
+          "footprint_inside": true
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "gap_m": 0.0,
+          "footprint_inside": true
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Authored motion/visual force response; not a rigid-body, atmospheric-flight or structural-load simulation.",
+    "Finite shoe/pad geometry and nozzle attachment checks; full swept-hull/environment collision and rendered motion review remain integration work.",
+    "One visible bank and correction, no camera shake or random noise. Source-clock retime retained."
+  ]
+}

@@ -1,0 +1,455 @@
+{
+  "status": "Physical local impact basins; exterior skin tessellated and indented continuously, sealed backing retained.",
+  "zones": [
+    {
+      "name": "aft broad spall",
+      "root_local_center_xz": [
+        -24,
+        4.6
+      ],
+      "radius_xz": [
+        7.4,
+        4.3
+      ],
+      "boundary_xz": [
+        [
+          -17.651270079101746,
+          4.6
+        ],
+        [
+          -16.929322767349948,
+          6.095421487809442
+        ],
+        [
+          -18.57343651133336,
+          7.24591052894205
+        ],
+        [
+          -19.846041544788207,
+          8.780801150934558
+        ],
+        [
+          -22.680778914054425,
+          8.947459542074556
+        ],
+        [
+          -25.281408623262585,
+          8.822849532841209
+        ],
+        [
+          -28.181792384202165,
+          8.808814941542405
+        ],
+        [
+          -29.223267000081993,
+          7.146786226652678
+        ],
+        [
+          -31.659875420340484,
+          6.220034675692213
+        ],
+        [
+          -31.141615405634816,
+          4.6000000000000005
+        ],
+        [
+          -31.2758756632749,
+          3.061179820336233
+        ],
+        [
+          -30.462183736127194,
+          1.4491366547011078
+        ],
+        [
+          -28.026201066639146,
+          0.5477818002297141
+        ],
+        [
+          -25.315201463431222,
+          0.26578702170594326
+        ],
+        [
+          -22.602205269965722,
+          -0.006396988108609669
+        ],
+        [
+          -20.900113082548636,
+          1.4800817504596573
+        ],
+        [
+          -18.517468529317167,
+          1.9268003269781708
+        ],
+        [
+          -16.315684897579136,
+          2.974796423998002
+        ]
+      ],
+      "backing_offset_above_retained_shell": 0.035,
+      "torn_edge_lift_range": [
+        0.22,
+        0.62
+      ]
+    },
+    {
+      "name": "aft upper impact",
+      "root_local_center_xz": [
+        -9,
+        9.1
+      ],
+      "radius_xz": [
+        4.4,
+        2.8
+      ],
+      "boundary_xz": [
+        [
+          -4.770770236390244,
+          9.1
+        ],
+        [
+          -5.020606611792495,
+          10.02169683692753
+        ],
+        [
+          -6.185944851817358,
+          10.602628041697097
+        ],
+        [
+          -6.762778500522556,
+          11.565897194014774
+        ],
+        [
+          -8.353626903208605,
+          11.43275890433284
+        ],
+        [
+          -9.672209630568128,
+          11.526002890699159
+        ],
+        [
+          -11.002758421223323,
+          11.307468671446964
+        ],
+        [
+          -12.526379294099375,
+          10.98298954140817
+        ],
+        [
+          -12.557118690410785,
+          9.923890660130045
+        ],
+        [
+          -12.687148814123484,
+          9.1
+        ],
+        [
+          -12.549354465949818,
+          8.277907669521925
+        ],
+        [
+          -12.010611886184773,
+          7.492416066980998
+        ],
+        [
+          -11.178725501462058,
+          6.6985779227320155
+        ],
+        [
+          -9.858298136042698,
+          6.002404154249541
+        ],
+        [
+          -8.342010641352314,
+          6.725318035417832
+        ],
+        [
+          -6.716635640517085,
+          6.583243492753212
+        ],
+        [
+          -5.345249367905261,
+          7.148463695268235
+        ],
+        [
+          -5.0493719360228235,
+          8.184965713308106
+        ]
+      ],
+      "backing_offset_above_retained_shell": 0.035,
+      "torn_edge_lift_range": [
+        0.22,
+        0.62
+      ]
+    },
+    {
+      "name": "fore impact basin",
+      "root_local_center_xz": [
+        43,
+        4.5
+      ],
+      "radius_xz": [
+        6.7,
+        4.6
+      ],
+      "boundary_xz": [
+        [
+          49.40065837059947,
+          4.5
+        ],
+        [
+          49.63936108676988,
+          6.15911001889491
+        ],
+        [
+          47.82206564332522,
+          7.27798359895573
+        ],
+        [
+          46.22606835960295,
+          8.336341166358864
+        ],
+        [
+          44.00253895783526,
+          8.403601856587485
+        ],
+        [
+          41.70926692147731,
+          9.525747879722807
+        ],
+        [
+          39.686210018333014,
+          8.44065701847102
+        ],
+        [
+          37.24547322766566,
+          7.815172827525586
+        ],
+        [
+          36.37891584573921,
+          6.154542796018462
+        ],
+        [
+          36.58444352673872,
+          4.500000000000001
+        ],
+        [
+          37.385762513539916,
+          3.0970581294633326
+        ],
+        [
+          38.68366619228031,
+          2.013367628650777
+        ],
+        [
+          39.42999468285905,
+          0.25465959315461006
+        ],
+        [
+          41.94263133161911,
+          0.3829068289760036
+        ],
+        [
+          44.124915309236364,
+          0.11989940109604369
+        ],
+        [
+          46.3876722432168,
+          0.4714844708425723
+        ],
+        [
+          48.7302589104834,
+          1.198807845320903
+        ],
+        [
+          49.99131899981787,
+          2.752939214135834
+        ]
+      ],
+      "backing_offset_above_retained_shell": 0.035,
+      "torn_edge_lift_range": [
+        0.22,
+        0.62
+      ]
+    },
+    {
+      "name": "fore lower scar",
+      "root_local_center_xz": [
+        34,
+        -4.1
+      ],
+      "radius_xz": [
+        4.4,
+        2.4
+      ],
+      "boundary_xz": [
+        [
+          37.722818877255584,
+          -4.1
+        ],
+        [
+          37.93477168775311,
+          -3.3188328511042617
+        ],
+        [
+          37.650586489848585,
+          -2.429160485156704
+        ],
+        [
+          36.40113349085567,
+          -1.8315171625905973
+        ],
+        [
+          34.70889518617472,
+          -1.9070848828906168
+        ],
+        [
+          33.12899914516285,
+          -1.4056229202312234
+        ],
+        [
+          31.59144222112716,
+          -1.8245030294692701
+        ],
+        [
+          30.93684285728016,
+          -2.698021438894034
+        ],
+        [
+          29.66995164706602,
+          -3.2403588835992556
+        ],
+        [
+          30.29687111854534,
+          -4.1
+        ],
+        [
+          30.33524376171334,
+          -4.827561192678757
+        ],
+        [
+          31.181857329288462,
+          -5.389837713963092
+        ],
+        [
+          32.01493428356874,
+          -5.975400733030205
+        ],
+        [
+          33.17257032205491,
+          -6.65959284884115
+        ],
+        [
+          34.68080721420323,
+          -6.2060270417683645
+        ],
+        [
+          36.47201948525704,
+          -6.435452734053893
+        ],
+        [
+          36.86904800755605,
+          -5.413136613620107
+        ],
+        [
+          38.74152281195716,
+          -5.041330819261775
+        ]
+      ],
+      "backing_offset_above_retained_shell": 0.035,
+      "torn_edge_lift_range": [
+        0.22,
+        0.62
+      ]
+    }
+  ],
+  "modified_meshes": [
+    {
+      "mesh": "Armor captive fasteners | combined mesh",
+      "removed_sacrificial_faces": 239
+    },
+    {
+      "mesh": "Physical armor | ARRIVAL | backing",
+      "removed_sacrificial_faces": 50
+    },
+    {
+      "mesh": "Physical armor | ARRIVAL | backing",
+      "buckled_surviving_sacrificial_vertices": 53,
+      "max_root_local_buckle": 0.6
+    },
+    {
+      "mesh": "Physical armor | ARRIVAL | cream",
+      "removed_sacrificial_faces": 50
+    },
+    {
+      "mesh": "Physical armor | ARRIVAL | cream",
+      "buckled_surviving_sacrificial_vertices": 116,
+      "max_root_local_buckle": 0.6
+    },
+    {
+      "mesh": "Physical armor | ARRIVAL | gunmetal",
+      "removed_sacrificial_faces": 44
+    },
+    {
+      "mesh": "Physical armor | ARRIVAL | gunmetal",
+      "buckled_surviving_sacrificial_vertices": 12,
+      "max_root_local_buckle": 0.6
+    },
+    {
+      "mesh": "Physical armor | ARRIVAL | oxide",
+      "removed_sacrificial_faces": 154
+    },
+    {
+      "mesh": "Physical armor | ARRIVAL | oxide",
+      "buckled_surviving_sacrificial_vertices": 201,
+      "max_root_local_buckle": 0.6
+    }
+  ],
+  "localized_exterior_skin_modifications": [
+    {
+      "mesh": "Engine room armored shoulder.004",
+      "operation": "Locally tessellated closed exterior skin and depressed starboardimpact vertices inward +Y; no deleted pressure faces.",
+      "original_vertex_count": 25,
+      "final_vertex_count": 70,
+      "displaced_vertices": 6,
+      "max_root_local_inward_depth": 0.32640153924939286
+    },
+    {
+      "mesh": "Engine room armored shoulder.008",
+      "operation": "Locally tessellated closed exterior skin and depressed starboardimpact vertices inward +Y; no deleted pressure faces.",
+      "original_vertex_count": 25,
+      "final_vertex_count": 225,
+      "displaced_vertices": 72,
+      "max_root_local_inward_depth": 0.9482616008412365
+    },
+    {
+      "mesh": "Forebody replaceable armor.004",
+      "operation": "Locally tessellated closed exterior skin and depressed starboardimpact vertices inward +Y; no deleted pressure faces.",
+      "original_vertex_count": 25,
+      "final_vertex_count": 110,
+      "displaced_vertices": 32,
+      "max_root_local_inward_depth": 1.2944560350996552
+    },
+    {
+      "mesh": "Main hull - level datum Z0",
+      "operation": "Locally tessellated closed exterior skin and depressed starboardimpact vertices inward +Y; no deleted pressure faces.",
+      "original_vertex_count": 759,
+      "final_vertex_count": 2194,
+      "displaced_vertices": 642,
+      "max_root_local_inward_depth": 1.7804151794809546
+    }
+  ],
+  "backing_material_source": "ARRIVAL | backing",
+  "deformation_contract": {
+    "coordinate_space": "original flight-root local",
+    "affected_side": "Y<0 only",
+    "inward_direction": "+Y",
+    "maximum_inward_displacement": 1.8,
+    "deformation_ellipse_scale": 0.95,
+    "deformation_profile": "1.8*(1-r*r)**1.35 for r<1; r uses zone radius*.95; X and Z retained",
+    "topology": "Subdivide edges longer than .9 local units,5cuts,on starboard faces whose centers lie within zone ellipse expanded1.3. Original UVs interpolated by BMesh; no pressure faces deleted."
+  },
+  "added_mesh_objects": 16,
+  "added_vertices": 768,
+  "preserved": "Overall accepted silhouette, bay apertures, engines, turrets, support/shoe/clamp contacts and all animation unchanged. Added geometry rigidly parented to original flight root.",
+  "limits": "Localized broken outer armor and continuous depressed exterior skin; sealed backing follows actual concavity. No open pressure-hull penetration or structurally simulated impacts claimed. Existing UV finish remains on retained geometry."
+}

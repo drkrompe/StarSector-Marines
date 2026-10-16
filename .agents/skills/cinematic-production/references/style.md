@@ -66,6 +66,15 @@ without inviting a new ship design. Retain the exact submitted prompt.
 
 ## Jangala continuity
 
+Match a new shot against the actual preceding renders, not just the strongest
+style master. The landing yard's detailed photographic finish created an
+unwanted quality jump from the simpler port approach. Keep the physical docks
+on that port's material palette, texture density and broad surface treatment;
+the hero ship may retain greater detail. Compare the cut at playback speed.
+Do not disguise a mismatch by blurring the whole shot or raising every other
+environment's detail without direction. Distant landscape plates can keep their
+accepted finish while nearby industrial surfaces use the established atlas.
+
 The surface yard is an authored location, distinct from orbital Jangala Station.
 Read the storyboard's retained lore sources before adding geography or exposure
 claims; its chosen river, city layout and weather break are visual authorship.
