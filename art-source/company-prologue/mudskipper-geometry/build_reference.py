@@ -2,11 +2,16 @@
 
 Run: blender --background --factory-startup --python build_reference.py
 Optional, after a literal "--":
-  --views a,b    render only these cameras (top, port-side, bow, port-quarter,
-                 stern-quarter); default all
+  --out DIR      write renders (and the .blend/geometry.json unless
+                 --no-save) to DIR instead of renders/ and this folder
+  --views a,b    render only these cameras; default the five standard views
+                 (top, port-side, bow, port-quarter, stern-quarter). Close-ups
+                 render only when named: bow-detail, bridge-detail,
+                 turret-detail, waist-detail, stern-detail, engine-detail
   --samples N    Cycles samples (default 32)
   --no-save      skip the .blend and geometry.json
-Then: python compose_review.py   (sprite overlay, silhouette IoU, review sheet)
+  --cam NAME:PX,PY,PZ:TX,TY,TZ:SCALE   add an ad-hoc ortho camera (repeatable)
+Then: python compose_review.py [--renders DIR]  (sprite overlay, IoU, sheet)
 
 Coordinates are hull-local, +X bow, +Y port, +Z dorsal; one unit is one
 pixel of the vanilla sprite about the .ship centre. XY of the planform,
@@ -24,22 +29,27 @@ from mathutils import Vector
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-import ms_kit, ms_hull, ms_engines, ms_turrets
-for module in (ms_kit, ms_hull, ms_engines, ms_turrets):
+import ms_kit, ms_hull, ms_bridge, ms_deck, ms_engines, ms_turrets
+for module in (ms_kit, ms_hull, ms_bridge, ms_deck, ms_engines, ms_turrets):
     importlib.reload(module)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--views', default='top,port-side,bow,port-quarter,stern-quarter')
 parser.add_argument('--samples', type=int, default=32)
 parser.add_argument('--no-save', action='store_true')
+parser.add_argument('--out')
+parser.add_argument('--cam', action='append', default=[])
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
-RENDERS = HERE/'renders'
-RENDERS.mkdir(exist_ok=True)
+RENDERS = Path(args.out).resolve() if args.out else HERE/'renders'
+SAVE_DIR = Path(args.out).resolve() if args.out else HERE
+RENDERS.mkdir(parents=True, exist_ok=True)
 
 bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
 kit = ms_kit.Kit()
 ms_hull.build(kit)
+ms_bridge.build(kit)
+ms_deck.build(kit)
 ms_engines.build(kit)
 ms_turrets.build(kit)
 
@@ -73,7 +83,17 @@ CAMERAS = [('top', (TOP_CENTRE[0],TOP_CENTRE[1],100), None, TOP_SCALE),
            ('port-side', (3,150,1), (3,0,1), 100),
            ('bow', (150,0,1), (3,0,1), 100),
            ('port-quarter', (95,110,75), (3,0,0), 118),
-           ('stern-quarter', (-100,85,60), (-3,0,0), 118)]
+           ('stern-quarter', (-100,85,60), (-3,0,0), 118),
+           # Close-ups, rendered only when named in --views.
+           ('bow-detail', (90,55,45), (32,0,4), 54),
+           ('bridge-detail', (70,40,48), (32,0,9), 44),
+           ('turret-detail', (12,42,38), (-9,0,10), 32),
+           ('waist-detail', (20,95,30), (8,20,0), 42),
+           ('stern-detail', (-95,60,40), (-28,0,2), 60),
+           ('engine-detail', (-60,-75,55), (-26,-12,2), 64)]
+for spec in args.cam:
+    n, p, t, sc = spec.split(':')
+    CAMERAS.append((n, tuple(map(float, p.split(','))), tuple(map(float, t.split(','))), float(sc)))
 for name, pos, target, scale in CAMERAS:
     bpy.ops.object.camera_add(location=pos)
     cam = bpy.context.object
@@ -93,7 +113,7 @@ scene.render.film_transparent = False
 if not args.no_save:
     scene.camera = bpy.data.objects['Camera port-quarter']
     bpy.context.preferences.filepaths.save_version = 0
-    bpy.ops.wm.save_as_mainfile(filepath=str(HERE/'mudskipper-geometry.blend'))
+    bpy.ops.wm.save_as_mainfile(filepath=str(SAVE_DIR/'mudskipper-geometry.blend'))
     bpy.context.view_layer.update()
     lo = Vector((1e9,)*3); hi = Vector((-1e9,)*3)
     for ob in bpy.data.objects:
@@ -130,4 +150,4 @@ if not args.no_save:
         'top_view_mapping': {'pixels_per_unit':1920/TOP_SCALE,'centre':list(TOP_CENTRE),'bow':'left','port':'down'},
         'mesh_authority': 'All views render the same objects; later surface art is subordinate to this geometry.'
     }
-    (HERE/'geometry.json').write_text(json.dumps(manifest, indent=2)+'\n', encoding='utf-8')
+    (SAVE_DIR/'geometry.json').write_text(json.dumps(manifest, indent=2)+'\n', encoding='utf-8')

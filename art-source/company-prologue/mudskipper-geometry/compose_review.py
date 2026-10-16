@@ -8,11 +8,16 @@ bow left, port down, hull point (3, 0) at the image centre. A sprite pixel
 32,39 from bottom-left), so the sprite is turned 90 degrees and scaled 16x.
 """
 from pathlib import Path
+import argparse
 import json
 from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
 
 HERE = Path(__file__).resolve().parent
-R = HERE/'renders'
+ap = argparse.ArgumentParser()
+ap.add_argument('--renders', help='render folder (default renders/); a scratch folder gets only the overlay')
+args = ap.parse_args()
+R = Path(args.renders).resolve() if args.renders else HERE/'renders'
+PACKAGE = R == HERE/'renders'
 SPRITE = Path(r'C:/Program Files (x86)/Fractal Softworks/Starsector/starsector-core/graphics/ships/mudskipper/mudskipper.png')
 PPU, CX, CY, W, H = 16, 3, 0, 1920, 1080
 BG = (189, 193, 198)
@@ -51,10 +56,13 @@ d = ImageDraw.Draw(over)
 for mask, colour in ((sprite_mask, (255, 0, 200, 255)), (model_mask, (0, 220, 255, 255))):
     edge = ImageChops.subtract(mask.filter(ImageFilter.MaxFilter(3)), mask)
     over.paste(Image.new('RGBA', (W, H), colour), (0, 0), edge)
-d.text((30, 24), 'MUDSKIPPER BLOCKOUT / TOP, BOW LEFT, PORT DOWN, SPRITE 50% OVER MODEL', font=font(28), fill=(30, 36, 40))
+d.text((30, 24), 'MUDSKIPPER / TOP, BOW LEFT, PORT DOWN, SPRITE 50% OVER MODEL', font=font(28), fill=(30, 36, 40))
 d.text((30, 62), f'Silhouette IoU {iou:.3f} at 16 px/unit   magenta = sprite edge   cyan = model edge', font=font(22), fill=(30, 36, 40))
 over.convert('RGB').save(R/'top-sprite-overlay.png')
 
+print(json.dumps(stats))
+if not PACKAGE:
+    raise SystemExit
 # Review sheet: four views at half size.
 sheet = Image.new('RGB', (W, H), (222, 223, 223))
 sd = ImageDraw.Draw(sheet)
@@ -70,4 +78,3 @@ if gj.exists():
     manifest = json.loads(gj.read_text(encoding='utf-8'))
     manifest['silhouette'] = stats
     gj.write_text(json.dumps(manifest, indent=2)+'\n', encoding='utf-8')
-print(json.dumps(stats))
