@@ -35,11 +35,26 @@ class BoatDeckViewModelTest {
         BoatDeckViewModel model = new BoatDeckViewModel(
                 new Reactor(), boats, TestResources.stocked(200), "Second Wind");
         model.selectBoatAction(0).run();
-        for (BoatFittingSlot slot : BoatFittingSlot.values()) {
+        for (BoatFittingSlot slot : List.of(BoatFittingSlot.PLATING, BoatFittingSlot.DRIVE)) {
             model.selectSlotAction(slot).run();
             assertEquals(1, model.catalogRows().get().size());
             assertTrue(model.selectedSlotCopy().get().contains("no plating or drive upgrade path"));
         }
+    }
+
+    @Test
+    void aBusClassBoatOffersTheLiftSlotAndItsCradles() {
+        BoatDeck boats = new BoatDeck();
+        boats.reconcile("freighter", ShuttleType.BUFFALO, 1);
+        BoatDeckViewModel model = new BoatDeckViewModel(
+                new Reactor(), boats, TestResources.stocked(200), "Buffalo");
+        model.selectBoatAction(0).run();
+
+        List<BoatDeckViewModel.SlotRow> rack = model.slotRows().get();
+        assertEquals(3, rack.size());
+        assertEquals(BoatFitting.STANDARD_LIFT.displayName(), rack.get(2).fitting());
+        model.selectSlotAction(BoatFittingSlot.LIFT).run();
+        assertEquals(3, model.catalogRows().get().size());
     }
 
     private static final float EPSILON = 0.01f;

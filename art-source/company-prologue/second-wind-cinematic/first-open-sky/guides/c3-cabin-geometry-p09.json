@@ -1,0 +1,17 @@
+{
+  "source": "../parallax-window/jangala-parallax-atlas-lift.blend (opened read-only, never saved)",
+  "source_camera": "02 REVEAL / near glass",
+  "source_pitch_deg": -19.29,
+  "c3_pitch_deg": -9.0,
+  "lens_mm": 26.0,
+  "sensor_mm": 36.0,
+  "focal_px_at_1920": 1386.7,
+  "horizon_y_px": 320.4,
+  "eye_location_m": [
+    72.7039,
+    30.0627,
+    4.92
+  ],
+  "frame": 144,
+  "depth_encoding": "16-bit RGB PNG, value/65535 * 4 = camera distance in blend units; the ship root is scaled 1.5, so real metres = that / 1.5 (glass rim ~1.2 m, ledge front ~1.1 m); background = 4 (beyond the glass)"
+}

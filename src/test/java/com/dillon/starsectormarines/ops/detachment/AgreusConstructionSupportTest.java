@@ -29,6 +29,16 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.*;
 
 class AgreusConstructionSupportTest {
+    @Test void aSmallWarHasNoTenderCallWhileTheOtherChaptersKeepTheirs() {
+        var smallWar=Mission.builder().id(AgreusArcProgress.SMALL_WAR_PREFIX+1).source(MissionSource.STORY).type(MissionType.ASSAULT).build();
+        var yard=Mission.builder().id(AgreusArcProgress.YARD_PREFIX+1).source(MissionSource.STORY).type(MissionType.ASSAULT).build();
+        var tender=member("shepherd","owned-tender",Map.of());
+        assertFalse(AgreusArcCampaign.requiresConstructionTender(smallWar));
+        assertTrue(AgreusArcCampaign.requiresConstructionTender(yard));
+        assertTrue(PowerCatalog.resolve(List.of(tender),smallWar,List.of()).isEmpty(),"no Ship on Station for A Small War");
+        assertEquals(Set.of(MechSupport.ID),PowerCatalog.resolve(List.of(tender),smallWar,List.of(MechDeploymentSpec.standard(MechVariant.HOUND)))
+                .stream().map(power -> power.id).collect(Collectors.toSet()));
+    }
     @Test void yardOffersOnlyOwnedConfiguredMechsBesideTheTenderAndNeverBombardment() {
         var mission=Mission.builder().id(AgreusArcProgress.YARD_PREFIX+1).source(MissionSource.STORY).type(MissionType.ASSAULT).build();
         var tender=member("shepherd","owned-tender",Map.of());

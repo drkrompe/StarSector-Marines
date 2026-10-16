@@ -23,6 +23,12 @@ public final class CampaignMech implements Serializable {
     private String armsComponentId;
     private String leftShoulderComponentId;
     private String rightShoulderComponentId;
+    // Absent in saves from before internals: null resolves to the stock part, so an existing
+    // mech migrates onto the stock frame without a rewrite. The cooler's stock is empty.
+    private String engineId;
+    private String platingId;
+    private String heatSinkId;
+    private String coolerId;
 
     public CampaignMech(String id, String displayName, MechVariant variant,
                         MechRole role, String missileReplenisherId) {
@@ -120,9 +126,37 @@ public final class CampaignMech implements Serializable {
         };
     }
 
+    /** The installed part in {@code role}: the stock part when none was ever fitted. */
+    public MechInternal internal(MechInternal.Role role) {
+        String installed = switch (role) {
+            case ENGINE -> engineId;
+            case PLATING -> platingId;
+            case HEAT_SINK -> heatSinkId;
+            case COOLER -> coolerId;
+        };
+        MechInternal internal = MechInternal.findById(installed);
+        return internal != null && internal.role == role ? internal : role.stock();
+    }
+
+    /** The engine budget and frame values of what is installed now. */
+    public MechFrameBudget.Fit fit() {
+        return MechFrameBudget.Fit.of(this);
+    }
+
     public MechDeploymentSpec freezeForDeployment() {
         return new MechDeploymentSpec(variant, role(), missileReplenisher(),
-                arms(), leftShoulder(), rightShoulder(), displayName);
+                arms(), leftShoulder(), rightShoulder(), displayName, fit().frame());
+    }
+
+    /** A null cooler empties the utility socket; every other role always holds a part. */
+    void installInternal(MechInternal.Role role, MechInternal internal) {
+        String internalId = internal != null ? internal.id : null;
+        switch (role) {
+            case ENGINE -> engineId = internalId;
+            case PLATING -> platingId = internalId;
+            case HEAT_SINK -> heatSinkId = internalId;
+            case COOLER -> coolerId = internalId;
+        }
     }
 
     void installMissileReplenisher(String componentId) {

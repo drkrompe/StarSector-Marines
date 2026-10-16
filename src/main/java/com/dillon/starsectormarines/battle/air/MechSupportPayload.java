@@ -52,14 +52,15 @@ public enum MechSupportPayload implements AirDeliveryPayload {
         EntitySpec spec = new EntitySpec(name, context.faction,
                 UnitType.HEAVY_MECH, point.cellX(), point.cellY())
                 .atPosition(point.x(), point.y())
-                .mechVariant(variant)
                 .role(context.mission.rescuePickupMechTransport
                         ? UnitRole.GARRISON : UnitRole.COMBATANT)
                 .squad(context.mission.squadId);
+        deployment.applyTo(spec);
         long mech = context.spawn(spec);
         MechLoadoutComponent loadout = new MechLoadoutComponent(variant,
                 deployment.arms(), deployment.leftShoulder(),
                 deployment.rightShoulder(), deployment.role());
+        loadout.applyFrame(deployment.frame());
         loadout.installMissileReplenisher(deployment.missileReplenisher());
         context.attachMechLoadout(mech, loadout);
         Squad squad = context.squad(context.mission.squadId);

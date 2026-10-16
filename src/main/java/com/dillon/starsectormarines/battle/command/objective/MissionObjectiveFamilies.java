@@ -198,27 +198,19 @@ public final class MissionObjectiveFamilies {
             markers.add(new Marker("sluice-site-" + i, site.name(), site.x(), site.y(),
                     p.held(i) ? "HELD / KEEP CLEAR" : "SECURE / COMPANY REQUIRED", p.held(i) ? State.COMPLETE : state));
         }
-        markers.add(new Marker("sluice-rear", "Rear position / build here", sequence.buildX(), sequence.buildY(),
-                p.rearPositionBuilt() ? "COMMISSIONED" : "BUILD HERE", p.rearPositionBuilt() ? State.COMPLETE : state, List.of(), 8));
         for (int i = 0; i < BlackSluice.TANKS.size(); i++)
             markers.add(new Marker("sluice-tank-" + i, "Marked fuel tank / preserve", BlackSluice.TANKS.get(i)[0], BlackSluice.TANKS.get(i)[1], "REQUIRED FUEL INFRASTRUCTURE", state));
-        boolean build = phase == SmallWarProgress.Phase.REAR_POSITION;
-        var order = sequence.tender() == null ? null : sequence.tender().current();
-        boolean building = build && order != null && Math.hypot(order.siteX() - sequence.buildX(), order.siteY() - sequence.buildY()) < 12;
         boolean handover = phase == SmallWarProgress.Phase.HANDOVER;
         int site = switch (phase) { case FUEL_CONTROL -> 1; case DISPATCH -> 2; default -> 0; };
-        String focus = build ? "sluice-rear" : handover || p.terminal() ? "sluice-site-1" : "sluice-site-" + site;
-        String blocker = p.terminal() ? "" : build && !sequence.tenderAvailable() ? "Call the selected owned tender using Ship on Station."
-                : build && !building ? "Select the tender, choose a turret, and place it in the marked rear bay south of customs."
-                : building && order.contested() ? "Clear known hostiles near the rear position and protect the builders."
+        String focus = handover || p.terminal() ? "sluice-site-1" : "sluice-site-" + site;
+        String blocker = p.terminal() ? ""
                 : handover && !p.safeHandover() ? "Keep all three sites clear and occupied, company infantry in fuel control, and the living custody party inside it."
                 : handover ? "" : "Company infantry must hold the marked site uncontested. Preserve the marked fuel tanks.";
-        return new Item("small-war", "Black Sluice", state, phase.name(), "Customs > Rear position > Fuel control > Dispatch > Handover",
+        return new Item("small-war", "Black Sluice", state, phase.name(), "Customs > Fuel control > Dispatch > Handover",
                 sequence.displayName(), handover ? timed("Protected handover", p.handover(), SmallWarProgress.HANDOVER_SECONDS)
-                        : building ? "Construction / " + Math.round(100 * order.fraction()) + "%"
-                        : build ? "Build the rear position" : timed("Secure site", p.capture(site), SmallWarProgress.CAPTURE_SECONDS),
-                p.terminal() ? -1 : handover ? p.handover() / SmallWarProgress.HANDOVER_SECONDS : building ? order.fraction()
-                        : build ? -1 : p.capture(site) / SmallWarProgress.CAPTURE_SECONDS,
+                        : timed("Secure site", p.capture(site), SmallWarProgress.CAPTURE_SECONDS),
+                p.terminal() ? -1 : handover ? p.handover() / SmallWarProgress.HANDOVER_SECONDS
+                        : p.capture(site) / SmallWarProgress.CAPTURE_SECONDS,
                 blocker, markers, focus);
     }
     public static Item termsOfProtection(TermsOfProtectionSequence sequence) {

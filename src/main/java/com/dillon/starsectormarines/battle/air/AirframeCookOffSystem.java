@@ -148,6 +148,24 @@ public final class AirframeCookOffSystem {
         effects.spawnCrashBlastFan(x, y, vx, vy, hullRadius);
     }
 
+    /**
+     * A warship's wreck striking at true landed scale. An aircraft's crash is capped (eight cells of crush, six of
+     * skid) because an airframe is drawn small; a hull is drawn at its true size on the ground, so its crush is
+     * {@code crushRadius} and its skid {@code skidRadius} as given, with no cap, and the wreck, smoke and blast fan
+     * are sized to it.
+     */
+    public void crashHull(long key, float x, float y, Faction faction, float crushRadius, float skidRadius,
+                          float vx, float vy) {
+        if (!burned.add(key)) return;
+        float radius = Math.max(BLAST_RADIUS_CELLS, crushRadius);
+        float sweep = Math.max(1.5f, skidRadius);
+        CrashContact crash = new CrashContact(new CrashSweep(x, y, sweep), new LongOpenHashSet(), sweep, faction);
+        crashes.put(key, crash);
+        effects.spawnVehicleWreck(x, y, radius * 2f, sweep * 2f);
+        crush(x, y, radius, 900f, 600, crash);
+        effects.spawnCrashBlastFan(x, y, vx, vy, radius);
+    }
+
     /** Sweep the actual grounded hull, including the tick that first touches down. */
     public void skid(long airframe, float x, float y, boolean stopped) {
         CrashContact crash = crashes.get(airframe);

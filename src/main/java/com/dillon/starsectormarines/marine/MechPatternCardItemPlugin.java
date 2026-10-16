@@ -64,11 +64,13 @@ public final class MechPatternCardItemPlugin extends BaseSpecialItemPlugin {
         String unlockKey = switch (kind) {
             case CHASSIS -> "mechPatternCardChassisUnlockFmt";
             case WEAPON -> "mechPatternCardWeaponUnlockFmt";
+            case INTERNAL -> "mechPatternCardInternalUnlockFmt";
             case VEHICLE -> "mechPatternCardVehicleUnlockFmt";
         };
         String kindKey = switch (kind) {
             case CHASSIS -> "mechPatternCardKindChassis";
             case WEAPON -> "mechPatternCardKindWeapon";
+            case INTERNAL -> "mechPatternCardKindInternal";
             case VEHICLE -> "mechPatternCardKindVehicle";
         };
         tooltip.addPara(MessageFormat.format(Strings.get(unlockKey),

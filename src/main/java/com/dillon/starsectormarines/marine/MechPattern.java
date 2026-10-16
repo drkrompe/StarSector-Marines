@@ -12,13 +12,13 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * The permanent right to fabricate one mech chassis, weapon component or vehicle. A company that
+ * The permanent right to fabricate one mech chassis, weapon component, internal or vehicle. A company that
  * knows a pattern may build as many assemblies as it can pay for; the assemblies are finite
  * and losable, the pattern is neither. The id is the cargo payload of a mech pattern card.
  */
 public record MechPattern(Kind kind, String definitionId) {
 
-    public enum Kind { CHASSIS, WEAPON, VEHICLE }
+    public enum Kind { CHASSIS, WEAPON, INTERNAL, VEHICLE }
 
     public enum WeightClass { LIGHT, MEDIUM, HEAVY }
 
@@ -60,11 +60,17 @@ public record MechPattern(Kind kind, String definitionId) {
         VEHICLE_TIERS.put(VehicleType.BREAKTHROUGH_TANK, EquipmentAccessTier.PRESTIGE);
     }
 
-    /** What a new company knows: the Hound and the two weapons Wayward teaches. */
+    /**
+     * What a new company knows: the Hound, the two weapons Wayward teaches, and the stock
+     * frame's internals every chassis is built with.
+     */
     public static final List<MechPattern> STARTER = List.of(
             of(MechVariant.HOUND),
             of(MechWeaponComponent.NOSE_CHAINGUN),
-            of(MechWeaponComponent.SRM_5));
+            of(MechWeaponComponent.SRM_5),
+            of(MechInternal.INDUSTRIAL_ENGINE),
+            of(MechInternal.FACTORY_PLATING),
+            of(MechInternal.FACTORY_HEAT_SINK));
 
     public static MechPattern of(MechVariant variant) {
         return new MechPattern(Kind.CHASSIS, variant.id);
@@ -72,6 +78,10 @@ public record MechPattern(Kind kind, String definitionId) {
 
     public static MechPattern of(MechWeaponComponent component) {
         return new MechPattern(Kind.WEAPON, component.id);
+    }
+
+    public static MechPattern of(MechInternal internal) {
+        return new MechPattern(Kind.INTERNAL, internal.id);
     }
 
     public static MechPattern of(VehicleType type) {
@@ -82,6 +92,7 @@ public record MechPattern(Kind kind, String definitionId) {
         return PREFIX + switch (kind) {
             case CHASSIS -> "chassis:";
             case WEAPON -> "weapon:";
+            case INTERNAL -> "internal:";
             case VEHICLE -> "vehicle:";
         } + definitionId;
     }
@@ -94,6 +105,10 @@ public record MechPattern(Kind kind, String definitionId) {
         return kind == Kind.WEAPON ? MechWeaponComponent.findById(definitionId) : null;
     }
 
+    public MechInternal internal() {
+        return kind == Kind.INTERNAL ? MechInternal.findById(definitionId) : null;
+    }
+
     public VehicleType vehicleType() {
         return kind == Kind.VEHICLE ? safeVehicle(definitionId) : null;
     }
@@ -102,11 +117,12 @@ public record MechPattern(Kind kind, String definitionId) {
         return switch (kind) {
             case CHASSIS -> CHASSIS_TIERS.get(variant());
             case WEAPON -> WEAPON_TIERS.get(component());
+            case INTERNAL -> internal().tier;
             case VEHICLE -> VEHICLE_TIERS.get(vehicleType());
         };
     }
 
-    /** Chassis or vehicle weight class; null for a weapon pattern. */
+    /** Chassis or vehicle weight class; null for a weapon or internal pattern. */
     public WeightClass weightClass() {
         if (kind == Kind.VEHICLE) return weightClass(vehicleType());
         if (kind != Kind.CHASSIS) return null;
@@ -136,6 +152,7 @@ public record MechPattern(Kind kind, String definitionId) {
         return switch (kind) {
             case CHASSIS -> variant().displayName();
             case WEAPON -> component().displayName();
+            case INTERNAL -> internal().displayName();
             case VEHICLE -> CampaignVehicle.typeName(vehicleType());
         };
     }
@@ -156,6 +173,10 @@ public record MechPattern(Kind kind, String definitionId) {
             VehicleType type = safeVehicle(rest.substring("vehicle:".length()));
             return type != null && VEHICLE_TIERS.containsKey(type) ? of(type) : null;
         }
+        if (rest.startsWith("internal:")) {
+            MechInternal internal = MechInternal.findById(rest.substring("internal:".length()));
+            return internal != null ? of(internal) : null;
+        }
         return null;
     }
 
@@ -164,6 +185,7 @@ public record MechPattern(Kind kind, String definitionId) {
         List<MechPattern> patterns = new ArrayList<>();
         for (MechVariant variant : CHASSIS_TIERS.keySet()) patterns.add(of(variant));
         for (MechWeaponComponent component : WEAPON_TIERS.keySet()) patterns.add(of(component));
+        for (MechInternal internal : MechInternal.values()) patterns.add(of(internal));
         for (VehicleType type : VEHICLE_TIERS.keySet()) patterns.add(of(type));
         return Collections.unmodifiableList(patterns);
     }

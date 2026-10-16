@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.air.LiftClass;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
@@ -221,4 +222,17 @@ public enum VehicleType {
      * {@link GroundBody}.
      */
     public abstract GroundBody createBody();
+
+    /**
+     * What this vehicle asks of the aircraft that drops it, or {@code null}
+     * for one that is never air-delivered (the convoy's hauler).
+     */
+    public LiftClass liftClass() {
+        return switch (this) {
+            case HEAVY_APC -> LiftClass.LIGHT;
+            case ESCORT_APC, MILITIA_TECHNICAL -> LiftClass.MEDIUM;
+            case BREAKTHROUGH_TANK -> LiftClass.HEAVY;
+            case CARGO_CARRIER -> null;
+        };
+    }
 }

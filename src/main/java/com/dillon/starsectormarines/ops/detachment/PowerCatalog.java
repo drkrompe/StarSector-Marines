@@ -135,7 +135,8 @@ public final class PowerCatalog {
     private static List<CommandPower> resolveSourced(List<FleetMemberAPI> committedShips, Mission m,
                                                      List<MechDeploymentSpec> configuredMechs) {
         if (AgreusArcCampaign.isBattle(m)) {
-            var tenders = AgreusConstructionSupport.sources(committedShips);
+            // A Small War has no construction step, so it offers no tender call.
+            var tenders = AgreusArcCampaign.requiresConstructionTender(m) ? AgreusConstructionSupport.sources(committedShips) : List.<ShipSupportSource>of();
             List<CommandPower> powers = new ArrayList<>();
             if (!tenders.isEmpty()) powers.add(new ShipOnStation(tenders));
             if ((AgreusArcProgress.yardOwners(m.id) || AgreusArcProgress.termsOfProtection(m.id) || AgreusArcProgress.smallWar(m.id)) && configuredMechs != null && !configuredMechs.isEmpty())

@@ -43,4 +43,35 @@ class MechHeatTest {
         assertFalse(whole.permits(Float.NaN, false));
         assertThrows(IllegalArgumentException.class, () -> whole.advance(Float.NaN));
     }
+
+    @Test void thresholdsScaleWithCapacityAsFractionsOfStock() {
+        MechHeat heat = new MechHeat(140f, 8f);
+        assertEquals(140f, heat.capacity());
+        assertEquals(8f, heat.coolingPerSecond());
+        heat.commit(100f);
+        assertFalse(heat.aiCooling(), "100 is below the 105 latch");
+        assertFalse(heat.permits(26.1f, true), "AI refuses above 126");
+        assertTrue(heat.permits(26f, true));
+        heat.commit(6f);
+        assertTrue(heat.aiCooling(), "latch at 0.75 of capacity (105)");
+        assertFalse(heat.permits(1f, true), "latched");
+        assertTrue(heat.permits(26f, false));
+        heat.commit(27f);
+        assertTrue(heat.venting(), "venting at 133");
+        assertFalse(heat.permits(0f, false));
+        heat.advance((133f - 77f) / 8f);
+        assertFalse(heat.venting(), "releases at 0.55 of capacity (77)");
+        heat.advance((77f - 56f) / 8f);
+        assertFalse(heat.aiCooling(), "releases at 0.40 of capacity (56)");
+        assertFalse(heat.permits(141f, false), "ceiling is capacity");
+    }
+
+    @Test void stockCapacityKeepsStockThresholds() {
+        MechHeat heat = new MechHeat();
+        assertEquals(MechHeat.CAPACITY, heat.capacity());
+        assertEquals(MechHeat.COOLING_PER_SECOND, heat.coolingPerSecond());
+        heat.commit(10f);
+        assertFalse(heat.permits(0f, false) && heat.permits(95f, false));
+        assertThrows(IllegalStateException.class, () -> heat.configure(120f, 6f));
+    }
 }

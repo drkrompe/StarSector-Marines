@@ -9,6 +9,11 @@ package com.dillon.starsectormarines.battle.warship;
  * ({@code AirframeCookOffSystem}), so the wreck hurts and marks whatever it lands on, whichever side that is. Once
  * at rest it stays where it lies for the rest of the battle.
  *
+ * <p>A falling hull is coming down to the ground, so its body comes back to true landed scale as it falls
+ * ({@link #bodyScale}, {@link LandedScale#fallFactor}): the lift run read backwards, keyed to the fall. It strikes,
+ * skids and lies at that size, and the crush it does is the size it is drawn ({@link #crushRadius},
+ * {@link #skidRadius}).
+ *
  * <p>The motion is closed-form from the moment of the burst and every choice in it is a hash of the hull's serial,
  * so a wreck falls the same way on every play. The simulation reads only where it strikes and skids; how high it
  * is drawn ({@link #lift}) is presentation.
@@ -41,12 +46,18 @@ public final class WarshipWreck {
     private float struckAt = -1f;
     private float burstX;
     private float burstY;
+    /** The body factor the hull was drawn at when it burst. */
+    private final float burstBody;
+    /** True landed scale against this hull's flight size ({@link LandedScale#berthFactor()}). */
+    private final float groundBody;
 
     WarshipWreck(Warship ship, long key) {
         this.ship = ship;
         this.key = key;
         this.burstX = ship.x;
         this.burstY = ship.y;
+        this.burstBody = ship.bodyScale();
+        this.groundBody = LandedScale.berthFactor();
         this.vx = ship.velocityX;
         this.vy = ship.velocityY;
         long seed = WarshipAirRules.roundSeed(ship.hullId, ship.serial(), key, ship.faction.ordinal());
@@ -74,6 +85,25 @@ public final class WarshipWreck {
         if (phase != Phase.FALLING) return 0f;
         float t = Math.min(1f, seconds / FALL_SECONDS);
         return 1f - t * t;
+    }
+
+    /**
+     * The factor the wreck's body is drawn at against the hull's flight size: its size at the burst easing to true
+     * landed scale by the strike, and true scale on the ground from then on.
+     */
+    public float bodyScale() {
+        if (phase != Phase.FALLING) return groundBody;
+        return LandedScale.fallFactor(burstBody, groundBody, seconds / FALL_SECONDS);
+    }
+
+    /** The radius the wreck crushes when it strikes: half the larger of its drawn length and beam on the ground. */
+    public float crushRadius() {
+        return 0.5f * Math.max(ship.lengthCells, ship.widthCells) * groundBody;
+    }
+
+    /** The radius it sweeps as it skids: half its drawn beam on the ground. */
+    public float skidRadius() {
+        return 0.5f * Math.min(ship.lengthCells, ship.widthCells) * groundBody;
     }
 
     /** Where the hull burst. */

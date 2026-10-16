@@ -1,0 +1,207 @@
+{
+  "status": "Blockout: silhouette, sections, mass and slots. No fine detail, damage or textures.",
+  "hull": {
+    "name": "Hound (A)",
+    "skinHullId": "hound_hegemony",
+    "baseHullId": "hound",
+    "size": "FRIGATE",
+    "style": "LOW_TECH",
+    "tech": "Hegemony",
+    "designation": "Combat Freighter (Hegemony auxiliary list)",
+    "source": {
+      "ship": "data/hulls/hound.ship",
+      "skin": "data/hulls/skins/hound_hegemony.skin",
+      "sprite": "graphics/ships/hound/hound_hegemony.png",
+      "ship_data": "data/hulls/ship_data.csv (row id hound)"
+    },
+    "built_in_mods": [
+      "rugged",
+      "shielded_holds",
+      "armoredweapons"
+    ],
+    "built_in_weapons": [],
+    "ship_system": "flarelauncher (via hidden SYSTEM slot WS 003)",
+    "shield": "NONE"
+  },
+  "provenance": "verified against the installed hound.ship",
+  "axes": {
+    "+X": "bow",
+    "+Y": "port",
+    "+Z": "dorsal"
+  },
+  "units": "One sprite pixel per unit about the .ship centre; no metre scale asserted",
+  "sprite": {
+    "size": [
+      62,
+      72
+    ],
+    "center": [
+      31,
+      27
+    ],
+    "pixel_to_model": "col c, row r covers X 44-r..45-r, Y 30-c..31-c"
+  },
+  "dimensions": {
+    "min": [
+      -26.0,
+      -30.0,
+      -7.1
+    ],
+    "max": [
+      43.1,
+      30.0,
+      10.1
+    ],
+    "size": [
+      69.1,
+      60.0,
+      17.2
+    ]
+  },
+  "weapon_slots": [
+    {
+      "id": "WS 001",
+      "mount": "HARDPOINT",
+      "size": "MEDIUM",
+      "type": "BALLISTIC",
+      "location": [
+        35,
+        -6,
+        0.4
+      ],
+      "angle": 0,
+      "arc": 5,
+      "objects": "Weapon WS 001 ...",
+      "anchor": "Weapon WS 001 anchor"
+    },
+    {
+      "id": "WS 002",
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "location": [
+        -4,
+        4,
+        8.75
+      ],
+      "angle": 145,
+      "arc": 290,
+      "objects": "Weapon WS 002 ...",
+      "anchor": "Weapon WS 002 anchor"
+    },
+    {
+      "id": "WS 003",
+      "mount": "HIDDEN",
+      "size": "SMALL",
+      "type": "SYSTEM",
+      "location": [
+        -19,
+        0,
+        -0.5
+      ],
+      "angle": 180,
+      "arc": 90,
+      "objects": "Weapon WS 003 ...",
+      "anchor": "Weapon WS 003 anchor"
+    }
+  ],
+  "engines": [
+    {
+      "index": 1,
+      "objects": "Engine 1 ...",
+      "anchor": "Engine 1 port exhaust anchor",
+      "location": [
+        -25,
+        22,
+        0
+      ],
+      "width": 16,
+      "length": 80,
+      "style": "LOW_TECH",
+      "contrailSize": 64,
+      "angle": 180,
+      "bell_radius": 5.2
+    },
+    {
+      "index": 2,
+      "objects": "Engine 2 ...",
+      "anchor": "Engine 2 starboard exhaust anchor",
+      "location": [
+        -25,
+        -22,
+        0
+      ],
+      "width": 16,
+      "length": 80,
+      "style": "LOW_TECH",
+      "contrailSize": 64,
+      "angle": 180,
+      "bell_radius": 5.2
+    }
+  ],
+  "object_names": {
+    "Hull ...": "cargo body, shielded-hold deckhouse, engine spar, stern skids",
+    "Fork ...": "starboard bow gun fork around WS 001",
+    "Bridge ...": "port bow bridge capsule and crash cage",
+    "Engine <i> <side> ...": "drive pod sections, engine can and bell",
+    "Weapon <slot id> ...": "mount geometry; anchors point along the slot angle"
+  },
+  "cameras": [
+    {
+      "name": "top",
+      "position": [
+        9,
+        0,
+        120
+      ],
+      "orthographic_scale": 125,
+      "rotation": "bow left, port below"
+    },
+    {
+      "name": "port-side",
+      "position": [
+        9,
+        150,
+        0.5
+      ],
+      "orthographic_scale": 92,
+      "rotation": "looks at [9.0, 0.0, 0.5]"
+    },
+    {
+      "name": "front",
+      "position": [
+        150,
+        0,
+        0.5
+      ],
+      "orthographic_scale": 82,
+      "rotation": "looks at [9.0, 0.0, 0.5]"
+    },
+    {
+      "name": "three-quarter",
+      "position": [
+        95,
+        110,
+        70
+      ],
+      "orthographic_scale": 112,
+      "rotation": "looks at [9.0, 0.0, 0.5]"
+    },
+    {
+      "name": "stern",
+      "position": [
+        -150,
+        0,
+        0.5
+      ],
+      "orthographic_scale": 82,
+      "rotation": "looks at [9.0, 0.0, 0.5]"
+    }
+  ],
+  "silhouette": {
+    "iou": 0.9405,
+    "sprite_uncovered": 0.0208,
+    "model_outside_sprite": 0.0411,
+    "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 15.36 px per unit"
+  }
+}
