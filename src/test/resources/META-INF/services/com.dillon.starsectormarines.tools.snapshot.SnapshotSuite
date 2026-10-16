@@ -184,3 +184,5 @@ com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionPreviewSnap
 com.dillon.starsectormarines.ops.FreightVehiclesSnapshotSuite
 
 com.dillon.starsectormarines.battle.world.gen.bsp.fill.LogisticsSnapshotSuite
+
+com.dillon.starsectormarines.battle.world.gen.bsp.fill.PowerHallSnapshotSuite

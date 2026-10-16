@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 - magazines, receiving rooms and civilian warehouses share cargo assemblies with protected handling aisles.
+Updated: 2026-10-15 - fort power halls and compact utility buildings share full-footprint power and cooling equipment.
 
 Earlier 2026-10-13 — reversible authored damage layers give Relief a worn checkpoint without changing its landing contract; Relief rear working courts preserve the expanded landing and assembly apron.
 
@@ -1422,6 +1422,16 @@ Door approaches and cross-aisles are reserved before stock, including every
 cell of a wide loading entrance. A fort magazine retains its objective core,
 core approach and adjoining receiving-room route. Compact rooms use complete
 smaller storage groups rather than shrinking the furniture.
+
+Fort power halls preserve the reactor core, console crew positions and a two-cell
+service cross-aisle while housing a full turbine-alternator skid and a separate
+cooling plant. The same machinery pair serves compact generator houses with a
+monitoring station across the service aisle. Complete machine rectangles follow
+room rotation and reflection; they are never replaced by clusters of miniature
+generators. Intact and damaged equipment owns solid cover across its footprint;
+low destroyed remnants release that obstruction and retain the underlying floor.
+Room finishes extend beneath sealed structure cores as well as doodad fixtures;
+physical occupancy never leaves a patch of unrelated default floor.
 
 Ground command posts arrange L- and U-shaped console banks around a central
 tactical plot. A circulation loop reaches every side of the plot, and door

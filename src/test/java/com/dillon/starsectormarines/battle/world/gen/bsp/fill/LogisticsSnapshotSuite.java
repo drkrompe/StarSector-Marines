@@ -73,8 +73,8 @@ public final class LogisticsSnapshotSuite implements SnapshotSuite {
             }
             int[] core = fort.plan().coreCentre(FortAspect.MAGAZINE);
             int[] centre = at.cell(core[0],core[1]+5);
-            out.add(new SnapshotArtifact("magazine-turn-"+turn+".png", caption(
-                    renderer.renderView(map(ctx),42,centre[0],centre[1],80,45,24),
+            out.add(new SnapshotArtifact("magazine-turn-"+turn+".png",
+                    FortInteriorReview.render(context,ctx,centre[0],centre[1],80,
                     "BATTERY FORT / LOADED MAGAZINE AND RECEIVING / "+at.pose().quarterTurns()*90+" DEGREES")));
         }
         GenContext ctx=field(80,45);

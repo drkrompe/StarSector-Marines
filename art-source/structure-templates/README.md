@@ -104,3 +104,8 @@ plus civilian warehouse shells and ground stockroom/receiving fittings. All use
 pairs. The fort retains its core and three-cell loading approach; warehouse racks
 use parallel bays with two-cell handling aisles. Views use 1920 by 1080 at 24
 pixels per cell through the Java2D renderer, not a live OpenGL capture.
+
+Fort review frames include the actual aspect-core structure entities. The room's
+floor finish continues under those sealed footprints, avoiding patches of legacy
+blue floor. The compact power and cooling kit is documented in
+`art-source/power-plant/README.md`.

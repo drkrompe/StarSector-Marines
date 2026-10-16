@@ -39,7 +39,7 @@ public final class ComposableDamageSnapshotSuite implements SnapshotSuite {
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         DiskRegistries.installMapGeneration(context.projectRoot());
         List<SnapshotArtifact> images = new ArrayList<>();
-        for (String family : List.of("consoles", "storage", "clinic", "factory", "armory", "utility", "command")) for (int turn=0;turn<4;turn++)
+        for (String family : List.of("consoles", "storage", "clinic", "factory", "armory", "utility", "command", "power-plant")) for (int turn=0;turn<4;turn++)
             images.add(new SnapshotArtifact(family+"-turn-"+turn+".png",board(context,family,turn)));
         return images;
     }
@@ -50,7 +50,12 @@ public final class ComposableDamageSnapshotSuite implements SnapshotSuite {
         text(g,family.toUpperCase()+" / INTACT, DAMAGED, DESTROYED",35,65,30);
         text(g,"Actual structural damage / rotation "+(turn*90)+" degrees / original floors remain",35,105,20);
         for(int state=0;state<3;state++)try(Fixture f=new Fixture()) {
-            if(family.equals("command")) {
+            if(family.equals("power-plant")) {
+                f.place("power-plant.turbine",3,11,0,turn);
+                f.place("power-plant.coolant",10,11,0,turn);
+                f.place("ship-engineering.switchgear",3,5,0,turn);
+                f.place("ship-engineering.control",10,5,0,turn);
+            } else if(family.equals("command")) {
                 f.commandPost(turn);
             } else if(family.equals("consoles")) {
                 for(int shape=0;shape<3;shape++)for(var p:ConsoleBankLayout.resolve(ConsoleBankSnapshotSuite.stroke(shape),shape==2,shape!=2)) {
@@ -105,7 +110,7 @@ public final class ComposableDamageSnapshotSuite implements SnapshotSuite {
                     throw new IllegalStateException("Missed state: "+d.definitionId());
                 if(state==2)for(int y=d.cellY;y<d.cellY+d.footprintCellsY;y++)for(int x=d.cellX;x<d.cellX+d.footprintCellsX;x++)
                     if(!f.grid.isWalkable(x,y)||f.grid.blocksStructuralLineOfSight(x,y)||f.topology.isFixture(x,y))throw new IllegalStateException("Wreck blocks floor or sight");
-                if(state<2 && d.definitionId().startsWith("factory-machines.") && !d.definitionId().startsWith("factory-machines.conveyor"))
+                if(state<2 && (d.definitionId().startsWith("factory-machines.") || d.definitionId().startsWith("power-plant.")) && !d.definitionId().startsWith("factory-machines.conveyor"))
                     for(int y=d.cellY;y<d.cellY+d.footprintCellsY;y++)for(int x=d.cellX;x<d.cellX+d.footprintCellsX;x++)
                         if(f.grid.isWalkable(x,y)||f.grid.isSeeThrough(x,y))throw new IllegalStateException("Standing machine lost obstruction");
             }
@@ -154,7 +159,7 @@ public final class ComposableDamageSnapshotSuite implements SnapshotSuite {
             RoomPose pose=new RoomPose(turn,false);int[] a=pose.map(x,y,20,20),b=pose.map(x+w-1,y+h-1,20,20);
             Doodad d=new Doodad(Math.min(a[0],b[0]),Math.min(a[1],b[1]),def,(turn+facing)%4);
             if(d.cover>0)for(int py=d.cellY;py<d.cellY+d.footprintCellsY;py++)for(int px=d.cellX;px<d.cellX+d.footprintCellsX;px++) {
-                grid.setWalkable(px,py,false);grid.setSeeThrough(px,py,!id.startsWith("factory-machines.") || id.startsWith("factory-machines.conveyor"));topology.setFixture(px,py,true);
+                grid.setWalkable(px,py,false);grid.setSeeThrough(px,py,!(id.startsWith("factory-machines.") || id.startsWith("power-plant.")) || id.startsWith("factory-machines.conveyor"));topology.setFixture(px,py,true);
             }
             props.addDoodad(d);
         }

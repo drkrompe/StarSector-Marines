@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.fortress;
 
 import com.dillon.starsectormarines.battle.world.gen.fit.ConsoleBankLayout.Cell;
+import com.dillon.starsectormarines.battle.world.gen.fit.PowerPlantKit;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.LayoutOp;
 
 import java.util.ArrayList;
@@ -13,9 +14,6 @@ import java.util.List;
  */
 final class FortRoomKit {
 
-    /** Floor ids of the catalogue pieces the fort rooms are fitted from; every one is a single cell. */
-    static final String GENERATOR = "doodad.industrial-generator";
-    static final String TANK = "doodad.industrial-fluid-tank";
     /** The operator seat at a console station: round, so no pose of it reads wrong whichever side the bank's operator is on. */
     static final String STOOL = "fort-fittings.seat";
 
@@ -60,6 +58,13 @@ final class FortRoomKit {
     /** Circulation: a rectangle kept clear of furniture. */
     FortRoomKit lane(int x, int y, int spanX, int spanY) {
         ops.add(new LayoutOp.Lane(mirroredAcross ? width - x - spanX : x, mirrored ? height - y - spanY : y, spanX, spanY));
+        return this;
+    }
+
+    /** Reflect the complete skid rectangle, preserving its size beside the fixed reactor core. */
+    FortRoomKit machine(int x, int y, PowerPlantKit.Machine machine) {
+        ops.add(machine.at(mirroredAcross ? width - x - machine.width() : x,
+                mirrored ? height - y - machine.height() : y));
         return this;
     }
 
