@@ -59,7 +59,7 @@ fighters of 12-22 m as the sanity check. The crewless Wasp is scaled
 from its gun, drive cans and size.
 
 Fighter     m/unit  range      size (m)          canopy (m)  head clear  IoU
-Thunder     0.45    0.40-0.50  18.6 x 10.9 x 2.6  3.24x1.17   0.28 m      0.890 *
+Thunder     0.45    0.40-0.50  18.5 x 10.8 x 2.6  3.24x1.17   0.28 m      0.956 *
 Talon       0.75    0.68-0.85  16.5 x 16.5 x 3.3  2.93x1.20   0.25 m      0.977
 Dagger      0.50    0.43-0.58  16.4 x 12.1 x 2.2  3.10x1.15   0.21 m      0.959
 Broadsword  0.50    0.43-0.57  15.5 x 14.1 x 3.3  3.0 x1.9    0.21 m      0.931 (pass 2)
@@ -74,14 +74,13 @@ For review
   the low end of the Talon's range (0.68) and the high end of the
   Broadsword's (0.57) would restore the game's order; that is the owner's
   call.
-- * Thunder: the .ship draws graphics/ships/thunder2.png (symmetric gun
-  booms), while the up-res master and the mod's runtime texture follow
-  thunder.png (an offset lance and port prongs). The master is a hybrid
-  (a centred lance plus symmetric booms) and the model follows it. IoU is
-  0.890 against thunder2.png (the recorded one) and 0.778 against
-  thunder.png. Reaching 0.93 means dropping the lance (thunder2) or
-  modelling thunder.png's asymmetry; the owner chooses.
-- Asymmetric hulls keep their asymmetry: the Talon (gun nacelle to port,
+- * Thunder follows graphics/ships/thunder.png, which is asymmetric (the
+  owner's call): a port gun block with two prongs (ion cannon on the outer
+  one) and a long lance offset to starboard, with the dual MG on its root.
+  The .ship itself draws thunder2.png (symmetric booms), and master-v1 is a
+  mirrored hybrid, so the master gave sections only, not the plan. IoU
+  0.956 against thunder.png.
+- Asymmetric hulls keep their asymmetry: the Thunder (see above), the Talon (gun nacelle to port,
   cockpit pod to starboard), the Dagger (port torpedo store) and the
   Longbow (emitter to port, missile cell to starboard).
 - Integer slots that straddle an even-width sprite's centre line are
@@ -95,6 +94,5 @@ For review
 Rebuild (from this folder; one Blender at a time)
   "/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" --background --factory-startup --python build_fighter.py -- --fighter talon
   python compose_fighter.py --fighter talon
-  (thunder: python compose_fighter.py --fighter thunder --sprite "<install>/graphics/ships/thunder2.png")
   ".../blender.exe" --background --factory-startup --python lineup.py
   python compose_lineup.py
