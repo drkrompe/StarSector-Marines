@@ -1,10 +1,10 @@
 # Mech locational damage
 
-Status: IN PROGRESS — slices 1 (body plan), 2 (mech plan, section pools,
-paper-doll) and 3 (cover rows, presentation, doctrine) shipped; slice 4
-(campaign consequences) is next.
+Status: IN PROGRESS — all four slices shipped (body plan; mech plan, section
+pools and paper-doll; cover rows, presentation and doctrine; campaign
+consequences). Next: fold into `mechs-nouns.md` and delete this story.
 Written: 2026-10-16
-Updated: 2026-10-16 — slice 3 shipped; its standing model is in `mechs-nouns.md` and `body-part-cover.md`.
+Updated: 2026-10-16 — slices 3 and 4 shipped; standing model in `mechs-nouns.md` and `body-part-cover.md`.
 
 Models: `mechs-nouns.md`, `combat-durability-nouns.md`, `body-part-cover.md`
 (marine body parts, cover per part, wounds). Prior art for sectioned machines:
@@ -79,17 +79,22 @@ apart, and a fitting choice (where the plating goes) matters.
      The full order is a roll: across 16 seeded plays every death is a torso
      kill and every crippled Hound stands, but pod-then-legs happens 10 times
      and the whole sequence 5.
-   - Time-to-kill against the whole-body control (scene sweep): with a rocket
-     tube, median 20.6s against 19.5s, but spread 4.5–55.6s against 15–21s;
-     rifles only, median 42.9s against 47.4s. In `commanderEvidence`
-     (conquest-trial offset/on-path, Corvus Dust Ledger and Blind Watch) no
-     marine mech was worn down to a kill, so those runs give no time-to-kill;
-     the Corvus Hound ended both chapters alive with structure whole in both arms.
-   - **Open for slice 3:** structure a small section cannot hold goes straight
-     into torso structure, skipping torso armor. That is the model as written,
-     and it is what makes a heavy rocket swingy (a 162-damage round erases a
-     small section and puts about 100 into the torso). Whether spill should meet
-     torso armor first is a balance decision to take with the cover rows.
+   - **Spill meets torso armor** (owner, 2026-10-16). What a section cannot
+     hold, and a hit through a destroyed section, meets the torso's armor
+     before its structure. It used to go straight to torso structure, which let
+     one heavy rocket on a small section put about 100 into the torso unarmored.
+   - Time-to-kill against the whole-body control (scene sweep, after the spill
+     change): rifles only, median 47.7s against 47.4s; with one rocket tube,
+     median 20.1s against 19.5s but spread 8–75s against 15–21s. The spread is
+     the model rather than the spill: three rockets on the smaller torso pool
+     kill quickly, rockets that land on limbs leave a long, crippled fight.
+   - `commanderEvidence`: in conquest-trial no marine mech was worn down to a
+     kill. In Corvus the Hound survived Dust Ledger and Blind Watch whole in both
+     arms; in A Cold Account (which now builds, see `ColdAccountLayout`) it lost
+     its nose gun at tick 783 and its legs at 1065 and died to a torso kill at
+     1200, 587 ticks after its first damage. The whole-body control of that
+     chapter stops on one of the chapter's own mission checks (batteries ready
+     before the company cleared), so it has no reading to compare.
 3. **Cover rows, presentation and AI** (shipped 2026-10-16). Model folded into
    `mechs-nouns.md` (cover by section, section loss) and `body-part-cover.md`.
    Mech bands carry cover rows read from the ground up, so cover hides legs
@@ -106,11 +111,15 @@ apart, and a fitting choice (where the plating goes) matters.
    - Scene `mech-locational-damage` adds `every-armed-crippled-hound-fires`:
      across 16 plays every Hound crippled with a weapon left fired afterwards
      (10 of 10; one more had lost both weapons first and stood silent).
-   - **Still open:** structure a small section cannot hold spills into torso
-     structure past torso armor, which keeps a heavy rocket swingy (rockets
-     median time-to-kill 20.6s). Not changed here; it is a balance decision.
-4. **Campaign consequences**: what a damaged or destroyed section costs after
-   the battle, as decided below.
+4. **Campaign consequences** (shipped 2026-10-16). Model folded into
+   `mechs-nouns.md` (After the battle, repair, readiness). The frozen
+   deployment carries the campaign id; `CompanyMechLedger` freezes owned mechs'
+   section records into the mission outcome and `MechBay.settleBattleDamage`
+   applies them. The Mech Lab shows section damage, the repair bill and days,
+   and orders the repair through `MechWorkshop`. Tuning to revisit with play:
+   full-wear clocks of 3/4/5 days (Hound/Sirocco/Bulwark), structure weighted
+   0.75 against armor. Not yet seen live: a save/reload with a damaged mech and
+   a real battle's writeback in the debrief.
 
 ## Decisions
 

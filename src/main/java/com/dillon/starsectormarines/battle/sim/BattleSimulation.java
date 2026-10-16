@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.mech.CompanyMechLedger;
 import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
 import com.dillon.starsectormarines.battle.setup.ColdStartSequence;
@@ -1498,6 +1499,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
     /** The convoy-vehicle data owner — by-id reads of the {@code GROUND_IDENTITY} / {@code GROUND_KINEMATICS} / {@code GROUND_TURRET} / {@code VEHICLE_MISSION} columns for the render / picking / debug passes. Service-direct, not via {@link #world()} ({@code World} is deprecated for migrated state). */
     public ConvoyService convoy() { return rosterService.convoy(); }
+
+    /** The company's own mechs on this field, whose section damage writes back after it. */
+    public CompanyMechLedger companyMechs() { return rosterService.companyMechs(); }
     /** Who is riding in what — the data owner for {@code RIDING}, and the gate a pass consults to skip a passenger. */
     public VehicleTransportService transport() { return transport; }
     public VehicleRepulsionSystem vehicleRepulsion() { return vehicleRepulsion; }

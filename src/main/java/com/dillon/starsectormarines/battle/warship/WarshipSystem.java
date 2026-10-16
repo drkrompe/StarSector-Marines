@@ -400,7 +400,9 @@ public final class WarshipSystem {
         shipFire.held(hullFireHeld(sim));
         tactics.plan(clock, ships, shipFire.held(), hullAirspace(sim.getGrid().getWidth(), sim.getGrid().getHeight()));
         for (Warship ship : ships) {
-            ship.tickMissileGate(dt);
+            // A ship fighting hulls spends on the hull fight's clock (D1).
+            float fightDt = ship.hullTarget() != null ? dt / WarshipScale.HULL_TEMPO : dt;
+            ship.tickMissileGate(fightDt);
             doctrine(dt, sim, ship);
             shipFire.chooseTarget(ship, ships);
             duelHelm(sim, ship, tactics, clock);
@@ -420,8 +422,8 @@ public final class WarshipSystem {
             if (ship.departed()) ledger.gone(ship, clock, ship.physicallyDeparted());
             departureCues(ship, departingBefore);
             direct(dt, sim, ship);
-            tickShield(dt, sim, ship);
-            ship.fluxPool().update(dt);
+            tickShield(fightDt, sim, ship);
+            ship.fluxPool().update(fightDt);
             if (!lowPass(dt, sim, ship)) moveHull(dt, sim, ship);
             turnHull(dt, ship);
             for (Warship.Mount mount : ship.mounts()) {

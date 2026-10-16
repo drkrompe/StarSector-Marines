@@ -4,7 +4,7 @@ Status: IN PROGRESS — slices 0–3 built and unit-tested; the owner's live pas
 
 Written: 2026-10-15
 
-Updated: 2026-10-15 — Slices 1–3 built; live pass checklist added.
+Updated: 2026-10-16 — Live pass checklist adds the Second Wind custom start.
 
 Read `nexerelin-nouns.md` in full first. Also read `meta-progression.md` (the
 company and the polity), `architecture.md` (external-state boundary),
@@ -251,6 +251,12 @@ Install Nexerelin 0.12.2d with LazyLib and MagicLib, then:
 8. Save, reload and re-enter the market after each outcome: no repeated
    settlement and no orphaned intel.
 9. A station market goes straight to Nexerelin's own Invade.
+10. New game under Nexerelin (Corvus sector): Custom start lists "Commander
+    of the Second Wind" (disabled for a random sector). Choosing it and
+    finishing the background step starts aboard Second Wind with 500 credits,
+    a short flight out from Jangala's yard with the course laid in, and the
+    prologue and company-founding intel intact. Without Nexerelin the vanilla
+    new-game choice is unchanged.
 
 ## Acceptance
 

@@ -68,6 +68,11 @@ public final class CampaignMechSquad implements Serializable {
         return true;
     }
 
+    /** The mech leaves its gantry; the gantry stands empty. */
+    boolean remove(CampaignMech mech) {
+        return mechs.remove(mech);
+    }
+
     /** The vehicle leaves its gantry; the gantry stands empty. */
     boolean remove(CampaignVehicle vehicle) {
         return vehicles.remove(vehicle);

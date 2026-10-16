@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.CompanyResources.Row;
 import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechSection;
+import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
@@ -40,6 +42,7 @@ import java.util.Comparator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.DoubleSupplier;
 
 /** Spatial doll projection and command surface for the campaign-authoritative {@link MechBay}. */
 public final class MechLabViewModel {
@@ -49,7 +52,10 @@ public final class MechLabViewModel {
     private final FabricationResources resources;
     private final MechWorkshop workshop;
     private final Runnable bayChanged;
+    private final DoubleSupplier campaignDay;
     private final MutableSignal<Integer> revision;
+    /** The campaign day the room last read; repair clocks and readiness are measured against it. */
+    private final MutableSignal<Float> day;
     private final MutableSignal<Integer> dismissedLesson;
     private final MutableSignal<String> selectedSquadId;
     private final MutableSignal<String> selectedMechId;
@@ -102,6 +108,7 @@ public final class MechLabViewModel {
     private final ComputedSignal<String> slotRackClasses;
     private final ComputedSignal<String> overviewRailClasses;
     private final ComputedSignal<String> garageTitle;
+    private final ComputedSignal<Repair> repair;
 
     private int physicalGantries = CampaignMechSquad.CAPACITY;
 
@@ -121,11 +128,19 @@ public final class MechLabViewModel {
 
     public MechLabViewModel(Reactor reactor, MechBay bay,
                             FabricationResources resources, Runnable bayChanged) {
+        this(reactor, bay, resources, bayChanged, CampaignClock::dayFloat);
+    }
+
+    /** @param campaignDay the campaign day source; repair clocks and readiness are read against it */
+    public MechLabViewModel(Reactor reactor, MechBay bay, FabricationResources resources,
+                            Runnable bayChanged, DoubleSupplier campaignDay) {
         if (reactor == null) throw new IllegalArgumentException("reactor is required");
         if (bay == null) throw new IllegalArgumentException("mech bay is required");
-        if (resources == null || bayChanged == null) {
-            throw new IllegalArgumentException("fabrication resources and change callback are required");
+        if (resources == null || bayChanged == null || campaignDay == null) {
+            throw new IllegalArgumentException(
+                    "fabrication resources, change callback and campaign day are required");
         }
+        this.campaignDay = campaignDay;
         this.reactor = reactor;
         this.bay = bay;
         this.resources = resources;
@@ -133,6 +148,7 @@ public final class MechLabViewModel {
         this.bayChanged = bayChanged;
         CampaignMechSquad initialSquad = bay.activeSquad();
         revision = reactor.signal(0);
+        day = reactor.signal(currentDay());
         dismissedLesson = reactor.signal(0);
         selectedSquadId = reactor.signal(initialSquad != null ? initialSquad.id() : null);
         selectedMechId = reactor.signal(null);
@@ -260,6 +276,7 @@ public final class MechLabViewModel {
                 ? "overview-rail hidden" : "overview-rail");
         garageTitle = reactor.computed(() -> fittingFocused.get()
                 ? activeGantryLabel.get() : Strings.get("openingMechLabActiveLanceAllGantries"));
+        repair = reactor.computed(this::buildRepair);
     }
 
     public void resumeCampaignLesson() {
@@ -413,6 +430,13 @@ public final class MechLabViewModel {
         props.put("platingClasses", platingClasses);
         props.put("selectPlating", selectPlatingAction());
     }
+
+    /** Battle-damage repair bindings, shared by the screen and its evidence. */
+    public void putRepairProps(Map<String, Object> props) {
+        props.put("repair", repair);
+    }
+
+    public Signal<Repair> repair() { return repair; }
 
     /** The selected mech's current fit, or null without one. */
     public MechFrameBudget.Fit selectedFit() {
@@ -606,7 +630,22 @@ public final class MechLabViewModel {
         callSignDraft.set("");
         fittingFocused.set(false);
         assetPickerOpen.set(false);
+        day.set(currentDay());
         revision.update(value -> value + 1);
+    }
+
+    /**
+     * Re-reads the campaign day: a repair clock runs on campaign time, so gantry readiness
+     * follows it without the room having to be re-entered. Cheap when the day has not moved.
+     */
+    public void refreshTime() {
+        float now = currentDay();
+        if (now != day.get()) day.set(now);
+    }
+
+    private float currentDay() {
+        double now = campaignDay.getAsDouble();
+        return Double.isFinite(now) ? (float) now : 0f;
     }
 
     private String buildLabSummary() {
@@ -646,7 +685,9 @@ public final class MechLabViewModel {
                     base + ":action",
                     mech.id().equals(selected) ? "mech-row selected" : "mech-row",
                     mech.displayName(), mech.variant().displayName() + "  ·  " + roleLabel(mech.role()),
-                    mech.missileReplenisher().displayName(), () -> selectMech(mech.id())));
+                    mech.missileReplenisher().displayName(), readinessText(mech),
+                    readinessClasses(mech, "label heading mech-card-action"),
+                    () -> selectMech(mech.id())));
         }
         String selectedVehicle = selectedVehicleId.get();
         for (CampaignVehicle vehicle : squad.vehicles()) {
@@ -655,7 +696,8 @@ public final class MechLabViewModel {
                     base + ":action",
                     vehicle.id().equals(selectedVehicle) ? "mech-row selected" : "mech-row",
                     vehicle.displayName(), vehicleIdentity(vehicle.type()),
-                    vehicleArmament(vehicle.type()), () -> selectVehicle(vehicle.id())));
+                    vehicleArmament(vehicle.type()), Strings.get("openingUiMechLabOpenGantry"),
+                    "label heading mech-card-action", () -> selectVehicle(vehicle.id())));
         }
         return List.copyOf(rows);
     }
@@ -671,14 +713,18 @@ public final class MechLabViewModel {
             String base = "overview-gantry:" + index;
             int gantry = index;
             rows.add(new GantryRow(base, base + ":station", base + ":name",
-                    base + ":detail", occupied ? "overview-gantry occupied"
-                            : "overview-gantry vacant",
+                    base + ":detail", mech != null && heldBack(mech)
+                            ? "overview-gantry occupied held-back"
+                            : occupied ? "overview-gantry occupied" : "overview-gantry vacant",
                     String.format(Locale.ROOT, Strings.get("openingMechLabGantryD"), index + 1),
                     mech != null ? mech.displayName() : vehicle != null ? vehicle.displayName()
                             : Strings.get("openingMechLabVacant2"),
-                    mech != null ? mech.variant().displayName() + "  ·  " + roleLabel(mech.role())
+                    mech != null && heldBack(mech) ? readinessText(mech)
+                            : mech != null ? mech.variant().displayName() + "  ·  " + roleLabel(mech.role())
                             : vehicle != null ? vehicleIdentity(vehicle.type())
                             : Strings.get("openingMechLabPressOnPadToFabricate"),
+                    mech != null ? readinessClasses(mech, "label overview-detail")
+                            : "label tone-muted overview-detail",
                     !occupied, () -> selectGantry(gantry)));
         }
         return List.copyOf(rows);
@@ -1236,6 +1282,87 @@ public final class MechLabViewModel {
     }
 
     public Signal<List<Row>> materialStock() { return materialStock; }
+
+    /** The selected mech's battle damage, its repair clock and the order, or a hidden card. */
+    private Repair buildRepair() {
+        revision.get();
+        float now = day.get();
+        CampaignMech mech = selectedMech();
+        CampaignMech.Readiness readiness = mech != null ? mech.readiness(now) : CampaignMech.Readiness.READY;
+        if (readiness == CampaignMech.Readiness.READY) {
+            return new Repair("mech-repair-card surface-dark hidden", "", "", "", "",
+                    "mech-repair-order hidden", "", List.of(), () -> { });
+        }
+        String status = readinessText(mech);
+        String statusClasses = readinessClasses(mech, "label heading mech-repair-status");
+        if (readiness == CampaignMech.Readiness.UNDER_REPAIR) {
+            return new Repair("mech-repair-card surface-dark", "height: 30px;", status, statusClasses,
+                    "", "mech-repair-order hidden", "", List.of(), () -> { });
+        }
+        MechWorkshop.RepairQuote quote = workshop.repairQuote(mech.id());
+        List<Row> materials = quote != null ? materialRows("mech-repair", quote.bill()) : List.of();
+        return new Repair("mech-repair-card surface-dark",
+                "height: " + (144 + materials.size() * 36) + "px;", status, statusClasses,
+                sectionWear(mech), "mech-repair-order",
+                quote != null ? Strings.format("mechLabRepairOrder", quote.days()) : "",
+                materials, this::repairSelected);
+    }
+
+    /** Compact per-section wear: each damaged section and how much of it is gone. */
+    private static String sectionWear(CampaignMech mech) {
+        if (mech.damage() == null) return "";
+        StringBuilder text = new StringBuilder();
+        for (Map.Entry<MechSection, Float> entry : mech.damage().wearBySection().entrySet()) {
+            if (text.length() > 0) text.append("  ·  ");
+            text.append(Strings.format("mechLabRepairSection",
+                    Strings.get("mechLabSection" + entry.getKey().name()),
+                    String.valueOf(Math.max(1, Math.round(entry.getValue() * 100f)))));
+        }
+        return text.toString();
+    }
+
+    private boolean heldBack(CampaignMech mech) {
+        return mech.readiness(day.get()) != CampaignMech.Readiness.READY;
+    }
+
+    /** Why a mech is off the armor-drop manifest, or the gantry prompt when it is not. */
+    private String readinessText(CampaignMech mech) {
+        float now = day.get();
+        return switch (mech.readiness(now)) {
+            case DAMAGED -> Strings.get("mechLabReadinessDamaged");
+            case UNDER_REPAIR -> Strings.format("mechLabReadinessUnderRepair", tenths(mech.repairDaysRemaining(now)));
+            case READY -> Strings.get("openingUiMechLabOpenGantry");
+        };
+    }
+
+    private String readinessClasses(CampaignMech mech, String base) {
+        return switch (mech.readiness(day.get())) {
+            case DAMAGED -> base + " tone-danger";
+            case UNDER_REPAIR -> base + " tone-accent";
+            case READY -> base;
+        };
+    }
+
+    /** Days rounded up to the tenth, so a clock never reads 0.0 while it still holds a mech. */
+    private static double tenths(float days) {
+        return Math.ceil(days * 10d) / 10d;
+    }
+
+    /** Orders the selected mech's repair: the whole bill is spent, or nothing changes. */
+    public void repairSelected() {
+        CampaignMech mech = selectedMech();
+        if (mech == null) return;
+        float now = day.get();
+        MechWorkshop.Result result = workshop.repair(mech.id(), now);
+        feedbackText.set(switch (result.status()) {
+            case REPAIR_STARTED -> Strings.format("mechLabRepairStarted", mech.displayName(),
+                    tenths(mech.repairDaysRemaining(now)));
+            case INSUFFICIENT_MATERIALS -> Strings.get("mechLabRepairShort");
+            case NOT_DAMAGED -> Strings.format("mechLabRepairNotDamaged", mech.displayName());
+            default -> Strings.get("mechLabRepairBlocked");
+        });
+        finishWeaponCommand(result);
+    }
 
     private List<Row> buildMaterialStock() {
         revision.get();
@@ -1893,24 +2020,40 @@ public final class MechLabViewModel {
     public record MechRow(String id, String nameId, String chassisId, String subsystemId,
                           String actionId,
                           String classes, String name, String chassis, String subsystem,
+                          String status, String statusClasses,
                           Runnable select) implements MarkupPropertySource {
         @Override public Object markupProperty(String p) { return switch (p) {
             case "id" -> id; case "nameId" -> nameId; case "chassisId" -> chassisId;
             case "subsystemId" -> subsystemId; case "actionId" -> actionId;
             case "classes" -> classes; case "name" -> name;
-            case "chassis" -> chassis; case "subsystem" -> subsystem; case "select" -> select;
+            case "chassis" -> chassis; case "subsystem" -> subsystem;
+            case "status" -> status; case "statusClasses" -> statusClasses; case "select" -> select;
             default -> throw unknown("mech", p); }; }
     }
 
     public record GantryRow(String id, String stationId, String nameId, String detailId,
                             String classes, String station, String name, String detail,
+                            String detailClasses,
                             boolean disabled, Runnable select) implements MarkupPropertySource {
         @Override public Object markupProperty(String p) { return switch (p) {
             case "id" -> id; case "stationId" -> stationId; case "nameId" -> nameId;
             case "detailId" -> detailId; case "classes" -> classes;
             case "station" -> station; case "name" -> name; case "detail" -> detail;
+            case "detailClasses" -> detailClasses;
             case "disabled" -> disabled; case "select" -> select;
             default -> throw unknown("mech-gantry", p); }; }
+    }
+
+    /** The selected mech's damage card: readiness, section wear and the repair order. */
+    public record Repair(String classes, String style, String status, String statusClasses,
+                         String sections, String orderClasses, String order, List<Row> materials,
+                         Runnable action) implements MarkupPropertySource {
+        @Override public Object markupProperty(String p) { return switch (p) {
+            case "classes" -> classes; case "style" -> style; case "status" -> status;
+            case "statusClasses" -> statusClasses; case "sections" -> sections;
+            case "orderClasses" -> orderClasses; case "order" -> order;
+            case "materials" -> materials; case "action" -> action;
+            default -> throw unknown("mech-repair", p); }; }
     }
 
     public enum CategoryFilter {
