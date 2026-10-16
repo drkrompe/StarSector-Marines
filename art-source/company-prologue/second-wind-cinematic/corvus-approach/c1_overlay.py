@@ -5,7 +5,7 @@ frame. Two pieces:
 
 - **Planet ID.** A sensor lock on Jangala: four short arcs close on the limb as
   Approach names itself, and a leader runs from the lower-right arc to a label
-  (JANGALA / CORVUS · HEGEMONY). It tracks the planet layer through the push
+  (JANGALA, then CORVUS / HEGEMONY). It tracks the planet layer through the push
   and truck, and leaves as Approach keys down after line 1.
 - **Captions.** Every hail line in C1, with a speaker tag, timed from
   `build_hail_preview.timeline()` and the catalog. Long lines are paged into chunks of
@@ -112,12 +112,12 @@ LEADER = 46.0          # diagonal run from the lower-right arc out to the label 
 
 @lru_cache(maxsize=None)
 def _label_patches():
-    name_f, detail_f = ui.font(34, "SemiBold"), ui.font(15, "SemiBold")
+    name_f, detail_f = ui.font(30, "SemiBold", display=True), ui.font(14, "Medium", display=True)
     name = "JANGALA"
     nw = int(ui.text_width(name, name_f, 4)) + 8
     a = Image.new("RGBA", (nw, 46), (0, 0, 0, 0))
     ui.draw_text(ImageDraw.Draw(a), (4, 2), name, name_f, ui.UI_CYAN + (255,), 4)
-    parts_ = [("CORVUS  ·  ", ui.UI_CYAN), ("HEGEMONY", ui.HEGEMONY)]
+    parts_ = [("CORVUS  /  ", ui.UI_CYAN), ("HEGEMONY", ui.HEGEMONY)]
     dw = int(sum(ui.text_width(s, detail_f, 1.5) for s, _ in parts_)) + 8
     b = Image.new("RGBA", (dw, 24), (0, 0, 0, 0))
     d, x = ImageDraw.Draw(b), 4.0
@@ -175,7 +175,7 @@ TAIL = 0.45                # a line stays up this long after its take ends, for 
 BRIDGE = 1.8               # gaps shorter than this keep the caption field up
 SPEAKERS = {
     hail.APPROACH: ("JANGALA APPROACH", ui.HEGEMONY),
-    "Castle": ("CASTLE  ·  SECOND WIND", ui.UI_CYAN),
+    "Castle": ("CASTLE  /  SECOND WIND", ui.UI_CYAN),
 }
 
 
@@ -261,7 +261,7 @@ def _caption_patch(text):
 @lru_cache(maxsize=None)
 def _tag_patch(speaker):
     label, color = SPEAKERS.get(speaker, (speaker.upper(), ui.UI_CYAN))
-    f = ui.font(16, "SemiBold")
+    f = ui.font(15, "SemiBold", display=True)
     tw = ui.text_width(label, f, 3)
     img = Image.new("RGBA", (int(tw) + 60, 28), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)

@@ -4,8 +4,11 @@ Colours are Starsector's own UI values (read from the install's `player.faction`
 `hegemony.faction`, never copied): the player's base UI cyan for the company, Hegemony
 orange for Approach, the game's standard text grey-white for dialogue.
 
-Fonts: the first that exists of `ui_fonts/*.ttf` (drop an OFL face such as Orbitron
-there to override), Windows' Bahnschrift, Segoe UI, then Pillow's bundled default.
+Fonts come in two roles. Display text (the planet name, speaker tags) uses the first
+`ui_fonts/*.ttf`: Orbitron, the open face behind Starsector's headings (SIL OFL 1.1,
+`ui_fonts/OFL.txt`). Caption text stays in a plain face, Windows' Bahnschrift or Segoe
+UI, because Orbitron is a display face and tires the eye at sentence length. Pillow's
+bundled default is the last resort.
 Nothing here ships: the frames are an animatic, and runtime captions are drawn by the
 game with its own bitmap fonts (ui-overlay.md).
 """
@@ -26,19 +29,20 @@ SHADOW = (0, 4, 8)
 _SYSTEM = [Path(r"C:\Windows\Fonts\bahnschrift.ttf"), Path(r"C:\Windows\Fonts\segoeui.ttf")]
 
 
-def font_path():
+def font_path(display=False):
     local = sorted((HERE / "ui_fonts").glob("*.ttf")) if (HERE / "ui_fonts").is_dir() else []
-    for p in local + _SYSTEM:
+    for p in (local if display else []) + _SYSTEM:
         if p.exists():
             return p
     return None
 
 
 @lru_cache(maxsize=None)
-def font(size, weight="Regular"):
+def font(size, weight="Regular", display=False):
     """A TrueType face at a pixel size. `weight` names a variable-font instance where the
-    face has them (Bahnschrift: 'SemiBold', 'SemiLight Condensed', ...)."""
-    path = font_path()
+    face has them (Bahnschrift: 'SemiBold', 'SemiLight Condensed', ...); `display` picks
+    the heading face rather than the caption face."""
+    path = font_path(display)
     if path is None:
         return ImageFont.load_default(size)
     f = ImageFont.truetype(str(path), size)

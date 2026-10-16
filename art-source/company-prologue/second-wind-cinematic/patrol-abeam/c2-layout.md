@@ -222,6 +222,21 @@ things:
    armour belts and sponsons, built from the sprite's outline, not solidified from the
    crown.
 
+## Owner decisions (2026-10-16)
+
+- **The patrol is a Hegemony Legion (XIV livery), not the Dominator.** It is a
+  battlecarrier, so fighters launching and recovering around its flight decks are
+  part of the pass. Fighters are small beside the hull and fly as sprite cards; the
+  hull itself is a real 3D model built through the ship pipeline (the "Ship detail
+  refinement" session's Legion blockout). It carries named deck and launch-bay
+  openings for the fighter cards and a keyable turret. C2's render waits on that
+  model; the Dominator numbers below are its stand-in until it lands. At 0.65 m
+  per hull unit the Legion is about 195 m by 200 m, close to the planned envelope.
+- **C2 runs 15.0 s** to carry hail lines 7 and 8. Accepted.
+- **The window frame across C2, C3, C4 and the entry is undecided.** See question 8.
+- **Second Wind is being rebuilt**, so every space shot showing it is re-rendered
+  when the new model lands.
+
 ## Open questions for the owner
 
 1. **C2 runs 15.0 s, not about 12.** The hail sets it: line 7 starts at 38.16 and line 8
