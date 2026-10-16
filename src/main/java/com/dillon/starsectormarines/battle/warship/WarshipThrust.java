@@ -8,8 +8,9 @@ package com.dillon.starsectormarines.battle.warship;
  * station at a mass-limited speed, accelerating, cruising and braking onto it.
  * The engines are presentation, so this reads that motion back rather than
  * asking the simulation for a throttle it does not have: a stopped ship idles at
- * a low glow, one that is picking up speed burns its aft nozzles hard, one
- * holding speed burns steadily, and one braking onto its station dims.
+ * a low glow, one that is picking up speed or coming about works its nozzles
+ * harder, one holding speed barely glows above its hover, and one braking onto
+ * its station dims.
  *
  * <p>The level is a continuous function of speed and of the gap between the
  * speed the ship is flying and the speed its next tick wants, so a flame swells
@@ -20,14 +21,25 @@ package com.dillon.starsectormarines.battle.warship;
  */
 public final class WarshipThrust {
 
-    /** A hovering ship's glow: the nozzles are lit but nothing is being asked of them. */
-    public static final float IDLE_LEVEL = 0.3f;
-    /** The level at top speed with nothing left to gain. */
-    public static final float CRUISE_LEVEL = 0.7f;
+    /**
+     * A hovering ship's glow: the nozzles are holding the hull up and nothing more is being asked of them. Low,
+     * because a ship of the line over a battle spends most of its time here, and a torch at rest reads as a ship
+     * burning to stand still.
+     */
+    public static final float IDLE_LEVEL = 0.15f;
+    /** The level at top speed with nothing left to gain: a cruising ship barely glows above its hover. */
+    public static final float CRUISE_LEVEL = 0.25f;
     /** The level at the hardest braking: retro thrust is not the aft nozzles' work. */
-    public static final float BRAKE_LEVEL = 0.1f;
+    public static final float BRAKE_LEVEL = 0.08f;
     /** What an aft nozzle keeps when the ship is pushed sideways to its axis. */
     public static final float OFF_AXIS_SHARE = 0.5f;
+    /**
+     * The master level of a hull coming about at its full turn rate. A heavy ship wearing round is working its
+     * engines, so it flares; a modest flare, below a ship gathering way from a standstill.
+     */
+    public static final float TURN_LEVEL = 0.6f;
+    /** How much more the nozzles on the outside of a turn burn than the ones on its inside, at full turn rate. */
+    public static final float TURN_DIFFERENTIAL = 0.6f;
     /** Seconds of the ship's own acceleration the speed gap is judged against. */
     private static final float GAP_SECONDS = 0.5f;
     /** Below this thrust fraction braking is mild enough that every nozzle dims alike. */
@@ -39,7 +51,13 @@ public final class WarshipThrust {
      * and the world direction the ship is being pushed, if any. {@code pushX/pushY}
      * are zero when there is no preferred direction, and every nozzle then burns alike.
      */
-    public record Demand(float level, float pushX, float pushY) {}
+    public record Demand(float level, float pushX, float pushY, float turn) {
+
+        /** A demand with no turn in it. */
+        public Demand(float level, float pushX, float pushY) {
+            this(level, pushX, pushY, 0f);
+        }
+    }
 
     private WarshipThrust() {}
 
@@ -87,6 +105,19 @@ public final class WarshipThrust {
         return OFF_AXIS_SHARE + (1f - OFF_AXIS_SHARE) * Math.max(0f, alignment);
     }
 
+    /**
+     * The share of the master level a nozzle burns for the hull's turn: a nozzle pushes the ship along its flame's
+     * opposite, so one on the side the turn swings away from works harder and one on the other side eases off.
+     * {@code acrossShare} is the nozzle's offset across the hull as a share of half its beam, positive to
+     * {@code +x} in the hull frame (starboard of a nose along {@code +y}); a counter-clockwise turn is driven by the
+     * {@code +x} nozzles. With no turn every nozzle burns alike.
+     */
+    public static float turnShare(float turn, float acrossShare) {
+        float across = Math.max(-1f, Math.min(1f, acrossShare));
+        float t = Math.max(-1f, Math.min(1f, turn));
+        return Math.max(0f, 1f + TURN_DIFFERENTIAL * t * across);
+    }
+
     /** Reads the engines' state off {@code ship}'s motion this tick. */
     public static Demand of(Warship ship) {
         float vx = ship.velocityX;
@@ -113,12 +144,15 @@ public final class WarshipThrust {
                     && speed > MOVING_SPEED_FRACTION * 5f * top && speed >= 0.9f * desired;
         }
         float thrust = thrustFraction(speed, desired, ship.acceleration, brakingOnCurve);
-        float level = level(speed / top, thrust);
+        float turn = Math.max(-1f, Math.min(1f,
+                ship.turnVelocity / Math.max(1e-4f, ship.maxTurnDegPerSec)));
+        // Coming about works the engines whatever the translation is doing.
+        float level = Math.max(level(speed / top, thrust), TURN_LEVEL * Math.abs(turn));
         boolean nearlyStopped = speed < MOVING_SPEED_FRACTION * top && thrust <= 0f;
         if (thrust < DIRECTIONAL_MIN || nearlyStopped) {
-            return new Demand(level, 0f, 0f);
+            return new Demand(level, 0f, 0f, turn);
         }
-        if (thrust > 0f) return new Demand(level, toStationX, toStationY);
-        return new Demand(level, vx / Math.max(speed, 1e-4f), vy / Math.max(speed, 1e-4f));
+        if (thrust > 0f) return new Demand(level, toStationX, toStationY, turn);
+        return new Demand(level, vx / Math.max(speed, 1e-4f), vy / Math.max(speed, 1e-4f), turn);
     }
 }

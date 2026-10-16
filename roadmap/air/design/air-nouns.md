@@ -1798,12 +1798,21 @@ nothing to the player. This is presentation only and changes nothing it can fire
 
 **A warship burns the engines its hull lists and casts a shadow from high up.**
 Each nozzle the hull spec places (position, flame direction, length, width and
-engine style, in the same hull frame as its gun slots) burns in the game's own
-engine colour for that style, and how hard it burns is read back off the motion
-the simulation gave the ship: a low glow hovering, long and bright while it
-accelerates (aft nozzles hardest when pushed ahead, side nozzles when pushed
-across), steady at cruise, dimmed while braking onto a station. Nothing about
-this feeds the simulation. The ship's shadow is its own hull sprite laid on the
+engine style, in the same hull frame as its gun slots) burns in a muted,
+heat-whitened take on the game's engine colour for that style, and how hard it
+burns is read back off the motion the simulation gave the ship: a low glow
+holding the hull up, barely more at cruise, a modest flare while it accelerates
+or comes about (aft nozzles hardest when pushed ahead, side nozzles when pushed
+across, the nozzles on the outside of a turn harder than those inside it),
+dimmed while braking onto a station. **In atmosphere the exhaust is hot air, not
+a torch (standing, owner, 2026-10-16):** a flame is the nozzle's authored length
+at the shared density, never grown by the hull's presence, capped at about a
+third of the hull's own length, with a faint haze of worked air astern of it, so
+a cruising ship of the line trails a few cells of glow rather than a burn longer
+than itself. Only the climb out through the cloud deck and a low pass's wake are
+louder, and even those are a hull or two of hot air astern; the plasma streak of
+a re-entry is the air burning, not exhaust. Nothing about this feeds the
+simulation. The ship's shadow is its own hull sprite laid on the
 ground down-sun by the sun's reach at a presentational hover height, higher than
 an aircraft's, through the same shadow layer, sun and tint every craft uses. Like
 an aircraft's, that height is a drawing choice and not a physical altitude.
