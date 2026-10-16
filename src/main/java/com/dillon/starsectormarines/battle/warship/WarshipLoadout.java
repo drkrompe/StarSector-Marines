@@ -14,4 +14,14 @@ public interface WarshipLoadout {
 
     /** The weapon id fitted in {@code slotId}, or {@code null} when it is empty. */
     String weaponInSlot(String slotId);
+
+    /** Flux capacitors the variant fits; each adds {@link Warship#FLUX_PER_CAPACITOR} to the hull's capacity. */
+    default int fluxCapacitors() {
+        return 0;
+    }
+
+    /** Flux vents the variant fits; each adds {@link Warship#DISSIPATION_PER_VENT} to the hull's dissipation. */
+    default int fluxVents() {
+        return 0;
+    }
 }

@@ -83,6 +83,13 @@ public final class WarshipShell implements Interceptable {
     private BeamPayload beam;
     private boolean beamTaken;
     private boolean hullOnly;
+    /** A direct-fire round between hulls (a bolt or a slug): no point defence engages it, as in the base game. */
+    private boolean directFire;
+    /** The hull this round was fired at, or {@code null} when it was not fired at a hull. */
+    private Warship hullTarget;
+    /** Where this round comes down if it reaches no hull: carried on beyond the hull it missed. */
+    private float strayX = Float.NaN;
+    private float strayY = Float.NaN;
 
     WarshipShell(VanillaWeapon weapon, Faction faction, Warship shooter, float fromX, float fromY, float toX,
                  float toY, MissilePath path, float blastCells, float damage, float penetration,
@@ -131,6 +138,58 @@ public final class WarshipShell implements Interceptable {
         return hullOnly;
     }
 
+    /**
+     * Makes this a ship's round at a hostile hull: it lands on hulls only, as a ground battery's does, and if its
+     * blast reaches none it carries on and comes down at {@code (strayX, strayY)} as an ordinary detonation. A
+     * direct-fire round between hulls is not a point-defence target.
+     */
+    WarshipShell atHull(Warship target, float strayX, float strayY, boolean directFire) {
+        this.hullOnly = true;
+        this.hullTarget = target;
+        this.strayX = strayX;
+        this.strayY = strayY;
+        this.directFire = directFire;
+        return this;
+    }
+
+    /** Marks this round as direct fire, which point defence does not engage. */
+    WarshipShell directFire() {
+        this.directFire = true;
+        return this;
+    }
+
+    /** The hull this round was fired at, or {@code null}. */
+    public Warship hullTarget() {
+        return hullTarget;
+    }
+
+    /** Whether this round carries on to the ground when it misses every hull. */
+    boolean straysOnMiss() {
+        return !Float.isNaN(strayX);
+    }
+
+    float strayX() {
+        return strayX;
+    }
+
+    /**
+     * The same round carrying on past the hull it missed: from where it passed the hull to where it comes down, at
+     * its own speed, with its own damage, penetration and blast, landing on the ground as an ordinary detonation.
+     * Direct fire stays direct fire.
+     */
+    WarshipShell carryOn() {
+        float speed = Math.max(1f, WarshipScale.cells(weapon.projectileSpeedPx()));
+        MissilePath leg = MissilePath.straight(toX, toY, strayX, strayY, speed);
+        WarshipShell next = new WarshipShell(weapon, faction, shooter, toX, toY, strayX, strayY, leg, blastCells,
+                damage, penetration, damageRadius, null, null, hitpoints, null, 0f);
+        next.directFire = directFire;
+        return next;
+    }
+
+    float strayY() {
+        return strayY;
+    }
+
     /** Whether this missile ends in a beam rather than a landing. */
     public boolean hasBeam() {
         return beam != null;
@@ -164,7 +223,7 @@ public final class WarshipShell implements Interceptable {
     /** Point defence can stop a standoff missile on its way out and while it paints, but not once its beam is loose. */
     @Override
     public boolean canBeIntercepted() {
-        return phase() != BeamPhase.FIRE;
+        return !directFire && phase() != BeamPhase.FIRE;
     }
 
     /** The beam's detonation on the tick the beam is released, once; {@code null} before then and after. */

@@ -4060,7 +4060,7 @@
       "id": "warrant_mobilization",
       "missionId": "story_agreus_limited_warrant",
       "event": "limited_warrant.mobilization",
-      "text": "Our return point is the western apron. Clear the marked work area and keep the supplier covered. The checklist shows what still needs recovering.",
+      "text": "Our return point is the western apron, back through the compound gate. Clear the marked work area and keep the supplier covered. The clinic-marked loads in there match Nadi Orr's list; they are not ours to move.",
       "durationSeconds": 10,
       "priority": 12,
       "expiresSeconds": 35,

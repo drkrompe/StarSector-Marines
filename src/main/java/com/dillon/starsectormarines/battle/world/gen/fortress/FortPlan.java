@@ -109,6 +109,15 @@ public interface FortPlan {
     }
 
     /**
+     * The middles of the three-by-three Swarmer missile towers a fort carrying the anti-air aspect stands on the bastions
+     * its Locust batteries do not hold, in the footprint frame (empty for a kind with no yard). With the batteries they put
+     * anti-air at every corner of the works.
+     */
+    default List<int[]> airTowers() {
+        return List.of();
+    }
+
+    /**
      * Every room of every aspect's suite, in the order the layout stamps its buildings. An aspect is housed in a suite and
      * not a point: its main room carries the core and the roof art, and an ante-room or two stand in front of it.
      */

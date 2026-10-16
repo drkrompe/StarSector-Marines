@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — Terms of Protection: frozen signed route, separate handover facts, Berth Four mortar and rigs, deferred Boarding Jack entitlement.
+Updated: 2026-10-16 — Terms of Protection (frozen signed route, handover facts, Berth Four, deferred Boarding Jack entitlement); District Escort.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -243,7 +243,8 @@ the approach and one supplier technician authenticates the calibration work.
 Company infantry must secure the records office, protect eight uninterrupted
 seconds of work there and in the separate calibration cage, then escort the
 physical, vulnerable calibration carrier to the western apron. The cage also
-requires the living technician. A finite Drent Haulage rearguard contests the exit;
+requires the living technician. A finite Drent Haulage rearguard contests the lane
+crossing every route out passes;
 killing every raider is not the victory condition. Return requires the archive,
 kit and surviving company presence. Loss of the load, or the technician before
 kit recovery, fails the attempt.
@@ -336,8 +337,32 @@ cargo once, at settlement or at a later game load, only after that presentation 
 declared. A card already held consumes it; sale or discard never renews it. The
 debrief records Rusk's account, the witnesses to the handover and the lead on Mika
 Drent's dispatch order that opens Chapter 5. Voss's warning and Rusk's family
-correspondence are text only. Chapter 5, the escort job and their acceptance belong
-to `a-small-war.md`.
+correspondence are text only. Chapter 5 and its acceptance belong to
+`a-small-war.md`.
+
+**District Escort** is the arc's recurring job. It is offered only once *A Small
+War* has settled (Chapter 5) under a ratified agreement, and only by that route's
+escort contact: Rusk's office under House Custody, or Lenna Saye's association
+under the compact, who then replaces Rusk as the Agreus contact. The two offices
+differ in letterhead, voice and the handover party's title; support, terms and fee
+are identical. Each posting is a finite two-squad escort on the Low Quay freight
+lane: the company links up with a fresh consignment and its two-person handover
+party at the loading lane, then covers both to the western apron, where four
+constables hold. Two raider pickets sit on the lane, and one finite raider group
+commits when the company comes down, through the north freight gate to the lane's
+crossing. The company screens either side of the lane rather than on it, and the
+party walks behind its load. Delivery needs the carrier, a living party
+member and company infantry together at the apron under cover; enemy casualties
+never stand in for it, and an absent company cannot win through the constables.
+Losing the load or both of the party, or withdrawing, ends the attempt unpaid.
+Every posting carries a new job and attempt identity, a new consignment and new
+people; the route is part of the identity, so an attempt under one agreement can
+never settle the other. The active attempt's own receipt settles once for 24,000
+credits. The job writes only its own ledger: it awards no named equipment, replays
+no ratification, pays no premium, and grants no house promotion, MRB tier,
+stationing contract or faction commission. The map reuses Low Quay through its
+public generator and solves the carrier's clearance route at setup, so the
+district's own layout may change without changing the job.
 
 A **story arc** is a finite sequence of authored operations for a named contact,
 with a problem, a resolution, and a visible completed record. A **chapter** is

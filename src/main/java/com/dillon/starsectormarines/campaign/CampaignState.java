@@ -38,6 +38,8 @@ public final class CampaignState implements Serializable {
     public ShepherdRecoveryProgress shepherdRecovery;
     /** Null in older saves; the first Agreus launch freezes its authored attempt. */
     public AgreusArcProgress agreusArc;
+    /** Null until the first District Escort launch after *A Small War*; separate from the arc's receipts. */
+    public AgreusDistrictEscortProgress agreusDistrictEscort;
     /** What each held military warrant costs to keep; null in older saves, created on first read. */
     public WarrantObligationLedger warrantObligations;
 
