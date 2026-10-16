@@ -37,7 +37,8 @@ public final class WarshipDuelHelm {
     /** Open air, in cells, a duelling ship keeps between its hull and its target's at the least. */
     static final float CLEARANCE_CELLS = 6f;
     /** The farthest a duelling ship stands from its target, in the two hulls' mean lengths, centre to centre. */
-    static final float STANDOFF_LENGTHS = 2.5f;
+    static final float STANDOFF_LENGTHS =
+            Float.parseFloat(System.getProperty("battle.warship.standoffLengths", "3"));
     /** Bearings round the target a bow ship weighs for its station. */
     static final int BOW_BEARINGS = 24;
     /** How much flying the whole range round to a quiet quarter costs against the target's full battery bearing. */

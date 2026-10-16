@@ -1685,7 +1685,7 @@ for one mission:
 - **The standoff law.** A duelling ship's range comes from its guns and both hulls'
   size, by one rule for every hull: a ship that outranges its target holds off between
   the two reaches, one that does not closes well inside its own, and neither stands off
-  farther than two and a half of the two hulls' mean length, nor nearer than the two hulls
+  farther than three of the two hulls' mean length, nor nearer than the two hulls
   and a clearance. Range advantage matters (the outranged ship has to close under fire)
   but nobody holds off untouchable across the map: a ship's guns reach only a few of its
   lengths, and the law will not let it stand farther off than that.
