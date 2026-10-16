@@ -1,0 +1,8 @@
+armory-workshop.counter	mod/graphics/tilesets/armory-workshop.png	0	0	128	64	2	1	med	0.65
+armory-workshop.rack	mod/graphics/tilesets/armory-workshop.png	128	0	192	64	3	1	heavy	1.1
+armory-workshop.rifles	mod/graphics/tilesets/armory-workshop.png	320	0	192	64	3	1	none	0
+armory-workshop.rack-frame	mod/graphics/tilesets/armory-workshop.png	512	0	192	64	3	1	none	0
+armory-workshop.bench	mod/graphics/tilesets/armory-workshop.png	704	0	192	128	3	2	med	0.65
+armory-workshop.bench-tools	mod/graphics/tilesets/armory-workshop.png	0	128	192	128	3	2	none	0
+armory-workshop.ready-locker	mod/graphics/tilesets/armory-workshop.png	192	128	192	128	3	2	heavy	1.1
+armory-workshop.ammo	mod/graphics/tilesets/armory-workshop.png	384	128	128	128	2	2	heavy	1.1

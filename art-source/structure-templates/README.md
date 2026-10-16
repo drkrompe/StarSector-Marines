@@ -1,7 +1,7 @@
 # Shared structures and working yards
 
-These templates reuse the installed environment art. No new sprite generation
-is required. The durable placement model lives in `mapgen-nouns.md`.
+These templates reuse the installed environment art. Newly adopted equipment
+receives matching damage art where the original kit has none. The durable placement model lives in `mapgen-nouns.md`.
 
 | Template | Source | Shared consumers |
 | --- | --- | --- |
@@ -46,6 +46,16 @@ and the six-berth vehicle shed with a fabrication corner, coolant plant and
 repair bench. New equipment reuses the factory-machine, main-stores and colony
 kits with their existing damage states. The bay plan keeps its original berths,
 headings and service mouths; the wide entrance remains connected to the road.
+
+The `outpost-service-turn-*` frames show the utility building and armory at
+24 pixels per cell. The generator house has a full skid, switchgear, monitoring
+and spares across a two-cell aisle. The armory has a public issue apron, a staff
+gate, repair bench, ready-use lockers, ammunition storage and loaded rifle racks.
+Both use the shared installation fittings in campaign and ordinary missions.
+The armory and adopted engineering assets now have built-in ImageGen damage
+pairs; retained guides, exact prompts and registration are documented in
+`art-source/console-bank/damage/README.md`. A collapsed rack or bench brings down
+its supported overlays. `composable-damage` renders each state at all rotations.
 
 In ordinary missions, choose **Assault**, **Remote**, and **Reinforced** or
 **Full Strength**. The standard or extra-magazine outpost and its orientation
