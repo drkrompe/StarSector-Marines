@@ -57,9 +57,10 @@ class VehicleSupportCatalogTest {
         List<CommandPower> powers = PowerCatalog.resolve(List.of(), mission,
                 List.of(WaylineHound.deployment()), BAY);
 
-        assertEquals(2, powers.size());
-        assertInstanceOf(MechSupport.class, powers.get(0));
-        assertEquals(BAY, ((VehicleSupport) powers.get(1)).deployments());
+        assertEquals(1, powers.size(), "one bay, one picker: Armour Support folds into it");
+        MechSupport drop = assertInstanceOf(MechSupport.class, powers.get(0));
+        assertEquals(BAY, drop.vehicles());
+        assertEquals(1 + BAY.size(), drop.manifest().size());
     }
 
     private static Mission generated() {

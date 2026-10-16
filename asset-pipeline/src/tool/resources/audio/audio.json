@@ -786,6 +786,10 @@
     // (make_arrival_sounds.py writes the sources).
     {"id": "jangala_cabin_bed", "source": "jangala-arrival/cabin_bed.wav", "kind": "ui", "out": "story/jangala-arrival"},
     {"id": "jangala_squelch_open", "source": "jangala-arrival/squelch_open.wav", "kind": "ui", "out": "story/jangala-arrival"},
-    {"id": "jangala_squelch_close", "source": "jangala-arrival/squelch_close.wav", "kind": "ui", "out": "story/jangala-arrival"}
+    {"id": "jangala_squelch_close", "source": "jangala-arrival/squelch_close.wav", "kind": "ui", "out": "story/jangala-arrival"},
+    // Arrival cinematic ambience, cued by the shot composers (runtime-contract.md). Sources
+    // are built by first-open-sky/c3_audio.py: a seamless cabin-bed loop and one exterior wind pass.
+    {"id": "jangala_arrival_cabin_bed", "source": "jangala-arrival/jangala_arrival_cabin_bed.flac", "kind": "ui", "out": "story/jangala-arrival"},
+    {"id": "jangala_arrival_wind", "source": "jangala-arrival/jangala_arrival_wind.flac", "kind": "ui", "out": "story/jangala-arrival"}
   ]
 }

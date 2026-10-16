@@ -116,6 +116,15 @@ public enum MechVariant {
         return max;
     }
 
+    /** How this chassis is taken apart: its height bands and section pools. */
+    public MechBodyPlan bodyPlan() {
+        return switch (this) {
+            case HOUND -> MechBodyPlan.HOUND;
+            case BULWARK -> MechBodyPlan.BULWARK;
+            case SIROCCO -> MechBodyPlan.SIROCCO;
+        };
+    }
+
     /**
      * What this chassis asks of the aircraft that drops it: the weight class
      * seen from the air. Separate from {@link #relativeMass}, which is inertia.

@@ -1,277 +1,251 @@
-"""C3 FIRST OPEN SKY blockout animatic (storyboard-v3.md, c3-layout.md).
+"""C3 FIRST OPEN SKY: final frames (storyboard-v3.md, c3-layout.md, runtime-contract.md).
 
-python compose_c3.py            # review stills only (review/*.png, 1920x1080)
-python compose_c3.py --movie    # also every frame and first-open-sky/build/c3-blockout.mp4
+python compose_c3.py            # review stills and contact sheet only (review/, 1920x1080)
+python compose_c3.py --movie    # also every frame and the review mp4
 
-Run c3_cabin_guide.py, c3_cabin_render.py (Blender) and c3_bands.py first. Every layer
-only translates and scales. Rates come from c3_core.py's camera and distances. The
-plates are the salvaged 1672x941 masters upscaled to the frame, so this is a motion and
-layout check, not plate-resolution art: see c3-layout.md, "Plate resolution".
+Writes build/cinematic/c3-first-open-sky/frames/%05d.png (1920x1080, 24 fps, sRGB, no
+text) and c3-first-open-sky.mp4 beside them, with the audio cues mixed in for review.
+The player takes captions(), overlays() and audio_cues() from here (runtime-contract.md).
+
+Build order: c3_bands.py, c3_plates.py prep/check/assemble, c3_layers.py, then this.
+Every layer only translates and scales; rates come from c3_core.py's camera and
+distances. The window opens in the entry's last cloud: frame 0 is the aperture filled
+with flat soft white, which burns off and slides aft over the first 1.6 s.
 """
 import argparse
+import json
 import math
+import os
 import subprocess
 import sys
+from concurrent.futures import ProcessPoolExecutor
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter
 
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent))
-from c3_core import (BASE, CABIN_DEPTH_M, CIN, DURATION, F_PX, FPS, GROUND_SPEED, H, HORIZON_Y, LAYERS,  # noqa: E402
-                     MASTER, PLATE_SCALE, PLATE_X0, PLATE_Y0, SINK_RATE, W, lean_scale, rise_px, smooth,
-                     truck_px)
+from c3_core import (BASE, CABIN_DEPTH_M, CIN, DURATION, F_PX, FPS, GROUND_SPEED, H, HORIZON_Y, LAYERS, ROOT,  # noqa: E402
+                     SINK_RATE, W, PLATE_X0, PLATE_Y0, lean_scale, rise_px, smooth, truck_px)
 
-G = BASE / "guides"
-EXTRACT = CIN / "forest-reveal-realism" / "assets"
-OUT = BASE / "build"
+LAYER_DIR = BASE / "build" / "layers"
+AUDIO_SRC = ROOT / "asset-pipeline" / "src" / "tool" / "resources" / "audio" / "jangala-arrival"
+OUT = ROOT / "build" / "cinematic" / "c3-first-open-sky"
+SHOT = "c3-first-open-sky"
+
+# The entry ends inside cloud; C3 picks up on this flat white in the aperture (the
+# hand-off agreed in the shared notes, c3-handoff.md), then burns it off.
+ENTRY_WHITE = np.array([244, 246, 248], np.float32) / 255
+BURN = 1.6
 DEBUG = False
 
 
-def arr(img):
-    return np.asarray(img, np.float32) / 255.0
+# ---------------------------------------------------------------- runtime contract
+
+def duration():
+    return DURATION
+
+
+def captions():
+    """No dialogue: the shot lets the company, and the player, look."""
+    return []
+
+
+def overlays():
+    return []
+
+
+def audio_cues():
+    """(t, sound_id, volume[, until]). Built by :asset-pipeline:processAudio from
+    audio.json; sources from c3_audio.py. The bed loops for the whole shot; the wind
+    is one pass whose buffeting eases with the world shake."""
+    return [
+        (0.0, "jangala_arrival_cabin_bed", 0.55, DURATION),
+        (0.0, "jangala_arrival_wind", 0.80),
+    ]
+
+
+# ---------------------------------------------------------------- sources
+
+def arr(im):
+    return np.asarray(im, np.float32) / 255.0
 
 
 def img(a):
     return Image.fromarray((np.clip(a, 0, 1) * 255).astype(np.uint8))
 
 
-def shift(a, dx, dy):
-    out = np.zeros_like(a)
-    h, w = a.shape[:2]
-    ys0, ys1 = max(0, dy), min(h, h + dy)
-    xs0, xs1 = max(0, dx), min(w, w + dx)
-    out[ys0:ys1, xs0:xs1] = a[ys0 - dy:ys1 - dy, xs0 - dx:xs1 - dx]
-    return out
+class Layer:
+    def __init__(self, name, im, x, y, vx=0.0, vy=0.0, scale=1.0, alpha=None, path=None, world=True):
+        self.name, self.im, self.x, self.y, self.vx, self.vy = name, im, x, y, vx, vy
+        self.scale, self.alpha, self.path, self.world = scale, alpha, path, world
 
 
-# ---------------------------------------------------------------- layer sources
-
-def band_layers():
-    """The approved master cut into bands; behind a nearer band, the salvaged
-    extraction's completed content continues (registered by c3_bands.py)."""
-    import json
-    reg = json.loads((G / "c3-bands.json").read_text(encoding="utf-8"))["registration_px"]
-    master = arr(Image.open(MASTER).convert("RGB"))
-    mask = {n: arr(Image.open(G / ("c3-band-%s.png" % n)).convert("L")) > 0.5
-            for n in ("mountains", "far", "mid", "near")}
-    ex = {}
-    for n in ("far", "mid", "near"):
-        e = arr(Image.open(EXTRACT / ("%s-realism-v1.png" % n)).convert("RGBA"))
-        ex[n] = shift(e, reg[n]["dx"], reg[n]["dy"])
-    out = {}
-
-    def soft(m, r=1.0):
-        return arr(img(m.astype(np.float32)).filter(ImageFilter.GaussianBlur(r)))
-
-    # Mountains: master range, extended 14 px under the ridge crests it sits behind
-    # (the revealed sliver is a Codex fill; here it is the crest pixels, see inpaint guide).
-    m = mask["mountains"]
-    grow = np.zeros_like(m)
-    for k in range(1, 15):
-        grow[k:] |= m[:-k]
-    a = soft(m | (grow & (ex["far"][..., 3] > 0.5)))
-    out["mountains"] = np.dstack([master, a])
-    # Far ridges: master where shown, far extraction where continued behind mid/near;
-    # the range is cut away so it can ride its own, slower layer.
-    rgb = np.where(mask["far"][..., None], master, ex["far"][..., :3])
-    # Everything of the far extraction above the range's foot belongs to the range: its
-    # skyline is registered only to a pixel or two, and a sliver left on the faster far
-    # layer reads as a second skyline sliding through the sky.
-    rows = np.arange(m.shape[0])[:, None]
-    foot = np.where(m.any(0), m.shape[0] - 1 - np.argmax(m[::-1], axis=0), 0)[None, :]
-    a = ex["far"][..., 3] * (1 - soft(m)) * (rows > foot)
-    out["far"] = np.dstack([rgb, a])
-    for n in ("mid", "near"):
-        rgb = np.where(mask[n][..., None], master, ex[n][..., :3])
-        out[n] = np.dstack([rgb, ex[n][..., 3]])
-    return out
+def baked(name, meta):
+    """A baked layer at frame scale: anything stored larger is reduced once, with a
+    proper filter, so per-frame placement never minifies (no shimmer in motion)."""
+    im = Image.open(LAYER_DIR / (name + ".png")).convert("RGBA")
+    s = meta[name]["scale"]
+    if s < 1.0:
+        im = im.resize((round(im.width * s), round(im.height * s)), Image.LANCZOS)
+        s = 1.0
+    return im, s
 
 
-def mist_card(band_rgba, seed):
-    """Soft mist wisps from the master's own mist in that band: a translucent card that
-    can drift against the ridges it lies between."""
-    rgb, a = band_rgba[..., :3], band_rgba[..., 3]
-    lum = rgb @ np.array([0.299, 0.587, 0.114], np.float32)
-    sat = rgb.max(-1) - rgb.min(-1)
-    water = (((rgb[..., 2] - rgb[..., 0]) - 0.04) * 25).clip(0, 1)   # the river reflects sky: blue leads red
-    water = (arr(img(water).filter(ImageFilter.MaxFilter(9)).filter(ImageFilter.GaussianBlur(6))) * 2).clip(0, 1)
-    m = ((lum - 0.55) * 4).clip(0, 1) * ((0.2 - sat) * 8).clip(0, 1) * (a > 0.5) * (1 - water.clip(0, 1))
-    m = arr(img(m).filter(ImageFilter.GaussianBlur(6)))
-    m = (m * 1.6).clip(0, 0.55)
-    col = np.ones_like(rgb) * np.array([0.90, 0.93, 0.95], np.float32)
-    return np.dstack([col, m])
-
-
-def sky_layer():
-    return arr(Image.open(CIN / "managed-land-realism" / "assets" / "sky-realism-v1.png").convert("RGBA"))
-
-
-def atlas_card(length_px):
-    """Identity stand-in: the earlier painted side view (bow right). Haze for ~2.2 km."""
-    im = Image.open(CIN / "parallax-window" / "traffic" / "atlas-painted-v1.png").convert("RGBA")
-    im = im.crop(im.getchannel("A").getbbox())
-    im = im.resize((round(length_px), round(length_px * im.height / im.width)), Image.LANCZOS)
-    a = arr(im)
-    haze = np.array([0.70, 0.80, 0.90], np.float32)
-    a[..., :3] = a[..., :3] * 0.82 + haze * 0.18
-    return a
-
-
-def cabin_layer():
-    """The approved painted cabin re-viewed from C3's camera (c3_cabin_render.py). The
-    band the projector never saw (above y=213) comes from the Codex completion
-    assets/c3-cabin-top-v1.png when present, else from the greybox guide.
-
-    The completion is registered to 1 px below y=213 but drew a deeper window head than
-    the geometry: its glass starts at y~169 where the cabin's is at 77. Its band is
-    therefore re-registered vertically: at the window head it is lifted by that
-    measured error, easing to no lift at y=213, so the rim lands on the true aperture
-    and the jamb paint joins the projected paint without a seam. The jambs between
-    take a vertical stretch (bolts there read slightly tall); a v2 brief with the rim
-    drawn into the guide is the clean fix (c3-layout.md, open question 3)."""
-    cab = arr(Image.open(G / "c3-cabin-projected-p09.png").convert("RGBA"))
-    un = arr(Image.open(G / "c3-cabin-unpainted-p09.png").convert("L"))
-    seam = int(np.argmin(un[:, W // 2] > 0.5))                 # first painted row (213)
-    head = int(np.argmax(cab[:, W // 2, 3] < 0.5))              # geometric aperture top (77)
-    done = BASE / "assets" / "c3-cabin-top-v1.png"
-    if done.exists():
-        gen = arr(Image.open(done).convert("RGB").resize((W, H), Image.LANCZOS))
-        glass = np.abs(gen - np.array([149, 168, 182], np.float32) / 255).sum(-1) < 30 / 255
-        gen_head = int(np.argmax(glass[:, W // 2]))
-        lift = gen_head - head
-        yy = np.arange(seam, dtype=np.float32)
-        src = yy + lift * np.clip((seam - yy) / max(1, seam - head), 0, 1)
-        top = gen.copy()
-        top[:seam] = gen[np.clip(np.round(src).astype(int), 0, H - 1)]
-    else:
-        top = arr(Image.open(G / "c3-cabin-geometry-p09.png").convert("RGB")) * np.array([1.25, 1.05, 0.85], np.float32)
-    yy = np.arange(H, dtype=np.float32)[:, None]
-    w = ((seam + 6 - yy) / 12).clip(0, 1) * np.ones((1, W), np.float32)
-    w = np.maximum(w, un)
-    rgb = cab[..., :3] * (1 - w[..., None]) + top * w[..., None]
-    return np.dstack([rgb, cab[..., 3]])
-
-
-def bird_frame(phase, span):
-    """One small dark flier, wings at a flap phase (0..1). A procedural sheet frame."""
-    k = 4                                            # drawn at 4x, then reduced
-    s = int(span * k * 1.4 + 8)
+def bird_frame(phase, span, glide):
+    """One small dark flier at a point of its flap cycle (phase 0..1), or gliding.
+    A wing is two segments, shoulder-wrist and wrist-tip; the hand lags the arm, so the
+    downstroke reads as a stroke and not as a hinge. Drawn at 6x and reduced."""
+    k = 6
+    s = int(span * k * 1.5 + 12)
     im = Image.new("RGBA", (s, s), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    c, sp = s / 2, span * k
-    lift = math.sin(phase * 2 * math.pi) * sp * 0.35
-    col = (24, 27, 26, 255)
-    d.line([(c - sp / 2, c - lift), (c, c + sp * 0.05), (c + sp / 2, c - lift)], fill=col, width=max(2, round(sp / 7)))
-    return arr(im.resize((max(1, s // k), max(1, s // k)), Image.LANCZOS))
-
-
-# ---------------------------------------------------------------- scene
-
-class Layer:
-    def __init__(self, name, rgba, scale, x, y, vx=0.0, vy=0.0, additive=False, alpha=None, path=None,
-                 world=True):
-        self.name, self.rgba, self.scale, self.x, self.y = name, rgba, scale, x, y
-        self.vx, self.vy, self.additive, self.alpha, self.path, self.world = vx, vy, additive, alpha, path, world
+    c, half = s / 2, span * k / 2
+    if glide:
+        arm, hand = 0.18, 0.10                                    # held a little up
+    else:
+        arm = 0.55 * math.sin(2 * math.pi * phase)
+        hand = 0.75 * math.sin(2 * math.pi * (phase - 0.09))
+    col = (36, 40, 42, 255)
+    w = max(2, round(span * k / 8))
+    for side in (-1, 1):
+        wx, wy = c + side * half * 0.48 * math.cos(arm), c - half * 0.48 * math.sin(arm)
+        tx, ty = wx + side * half * 0.52 * math.cos(hand), wy - half * 0.52 * math.sin(hand)
+        d.line([(c, c), (wx, wy), (tx, ty)], fill=col, width=w, joint="curve")
+    d.ellipse([c - w * 1.1, c - w * 0.7, c + w * 1.1, c + w * 0.8], fill=col)
+    return im.resize((max(1, s // k), max(1, s // k)), Image.LANCZOS)
 
 
 def build():
-    L = []
+    meta = json.loads((LAYER_DIR / "layers.json").read_text(encoding="utf-8"))
     D = {n: d for n, d, _ in LAYERS}
-    bands = band_layers()
-    sky = sky_layer()
-    # Sky rides the horizon layer (40 km) with the range. Its pale base sits on the
-    # horizon. The plate's upper clouds are really ~5 km away; c3-layout.md plans them as
-    # a cumulus row on the far layer, which this blockout does not split out yet.
+    L = []
+    sky = Image.open(CIN / "managed-land-realism" / "assets" / "sky-realism-v1.png").convert("RGBA")
     sky_scale = 1.25
-    sky_y = HORIZON_Y + 90 - sky.shape[0] * sky_scale
-    L.append(Layer("sky", sky, sky_scale, -60, sky_y, vx=-truck_px(D["horizon"]) / DURATION))
-    for n, d in (("mountains", D["horizon"]), ("far", D["far"])):
-        L.append(Layer(n, bands[n], PLATE_SCALE, PLATE_X0, PLATE_Y0,
-                       vx=-truck_px(d) / DURATION, vy=-rise_px(d) / DURATION))
-    # high mist: between the far ridges (~4.5 km), carried 1 m/s aft by the breeze
-    mh = mist_card(bands["far"], 1)
-    L.append(Layer("mist-high", mh, PLATE_SCALE, PLATE_X0, PLATE_Y0 + 6,
-                   vx=(-truck_px(4500) - F_PX * 1.0 * DURATION / 4500) / DURATION, vy=-rise_px(4500) / DURATION))
-    L.append(Layer("mid", bands["mid"], PLATE_SCALE, PLATE_X0, PLATE_Y0,
-                   vx=-truck_px(D["mid"]) / DURATION, vy=-rise_px(D["mid"]) / DURATION))
-    # Atlas: 300 m hull at 2.2 km (190 px), bow right, climbing out at 60 m/s and 8 m/s up.
-    atlas_d = 2200.0
-    atlas = atlas_card(F_PX * 300 / atlas_d)
-    own = F_PX * 60.0 / atlas_d
-    L.append(Layer("atlas", atlas, 1.0, 520, 205, vx=-F_PX * GROUND_SPEED / atlas_d + own,
-                   vy=-F_PX * (8.0 + SINK_RATE) / atlas_d))
-    ml = mist_card(bands["mid"], 2)
-    L.append(Layer("mist-low", ml, PLATE_SCALE, PLATE_X0, PLATE_Y0 + 4,
-                   vx=(-truck_px(1700) - F_PX * 1.0 * DURATION / 1700) / DURATION, vy=-rise_px(1700) / DURATION))
-    L.append(Layer("near", bands["near"], PLATE_SCALE, PLATE_X0, PLATE_Y0,
-                   vx=-truck_px(D["near"]) / DURATION, vy=-rise_px(D["near"]) / DURATION))
-    # Flock: eleven 3 m fliers ~700 m out at about our altitude, so they cross the bright
-    # low sky; flying aft at 8 m/s, they pass the ship and enter from behind the right jamb.
-    flock_d = 700.0
-    span = F_PX * 3.0 / flock_d * 1.4          # 5.9 px true; drawn 1.4x so a wingbeat reads at 1080p
+    sky = sky.resize((round(sky.width * sky_scale), round(sky.height * sky_scale)), Image.LANCZOS)
+    L.append(Layer("sky", sky, -60, HORIZON_Y + 90 - sky.height, vx=-truck_px(D["horizon"]) / DURATION))
+
+    def plate(name, dist, extra_vx=0.0, dy=0.0):
+        im, s = baked(name, meta)
+        L.append(Layer(name, im, PLATE_X0, PLATE_Y0 + dy, scale=s,
+                       vx=-truck_px(dist) / DURATION + extra_vx, vy=-rise_px(dist) / DURATION))
+
+    breeze = 1.0                                                  # m/s from the bow
+    plate("range", D["horizon"])
+    plate("far", D["far"])
+    plate("mist-high", 4500.0, extra_vx=-F_PX * breeze / 4500.0)
+    plate("mid", D["mid"])
+    # Atlas: 300 m hull at 2.2 km (189 px), bow right, climbing out at 60 m/s and 8 m/s.
+    atlas, s = baked("atlas", meta)
+    ad = 2200.0
+    L.append(Layer("atlas", atlas, 520, 205, scale=s, vx=-F_PX * GROUND_SPEED / ad + F_PX * 60.0 / ad,
+                   vy=-F_PX * (8.0 + SINK_RATE) / ad))
+    plate("mist-low", 1700.0, extra_vx=-F_PX * breeze / 1700.0)
+    plate("near", D["near"])
+    # Flock: eleven 3 m fliers ~700 m out at about our altitude, against the bright low
+    # sky; flying aft at 8 m/s they pass the ship and enter from behind the right jamb.
+    fd = 700.0
+    span = F_PX * 3.0 / fd * 1.4          # 5.9 px true; drawn 1.4x so a wingbeat reads at 1080p
     rng = np.random.default_rng(11)
-    birds = [(rng.uniform(-70, 70), rng.uniform(-14, 14), rng.uniform(0, 1), rng.uniform(0.8, 1.15)) for _ in range(11)]
-    vx_f = (-F_PX * GROUND_SPEED - F_PX * 8.0) / flock_d
-    for i, (bx, by, ph, sz) in enumerate(birds):
-        def frames(t, ph=ph, sz=sz):
-            return bird_frame((t * 3.2 + ph) % 1.0, span * sz)
-        L.append(Layer("bird%d" % i, None, 1.0, 1900 + bx - vx_f * 2.5, 255 + by, vx=vx_f, vy=-0.8, path=frames))
-    # The entry's last cloud: the transition ends inside a thinning cloud, which slides
-    # aft at ~800 m depth and burns off over the first 1.6 s (c3-layout.md, "Pickup").
-    cloud = arr(Image.open(CIN / "managed-land-realism" / "assets" / "clouds-realism-v1.png").convert("RGBA"))
-    L.append(Layer("entry-cloud", cloud, 2.4, -1250, -560, vx=-F_PX * GROUND_SPEED / 800.0,
-                   alpha=lambda t: 1 - smooth(t / 1.6)))
-    L.append(Layer("cabin", cabin_layer(), 1.0, 0, 0, world=False))
-    return L
+    vx_f = (-F_PX * GROUND_SPEED - F_PX * 8.0) / fd
+    for i in range(11):
+        bx, by = rng.uniform(-70, 70), rng.uniform(-14, 14)
+        ph, sz, rate = rng.uniform(0, 1), rng.uniform(0.8, 1.15), rng.uniform(2.9, 3.5)
+        glide_at = rng.uniform(0, 3)                              # each bird glides now and then
+
+        def frames(t, ph=ph, sz=sz, rate=rate, g0=glide_at):
+            glide = ((t + g0) % 2.6) > 2.0
+            return bird_frame((t * rate + ph) % 1.0, span * sz, glide)
+
+        def bob(t, ph=ph):
+            return 1.2 * math.sin(2 * math.pi * (t * 0.7 + ph))
+
+        L.append(Layer("bird%d" % i, None, 1900 + bx - vx_f * 2.5, 255 + by, vx=vx_f, vy=-0.8, path=(frames, bob)))
+    cabin, _ = baked("cabin", meta)
+    L.append(Layer("cabin", cabin, 0, 0, world=False))
+    # density of the entry's last cloud, sliding aft at ~800 m (c3-layout.md, Pickup)
+    cloud = Image.open(CIN / "managed-land-realism" / "assets" / "clouds-realism-v1.png").convert("RGBA")
+    cloud = cloud.filter(ImageFilter.GaussianBlur(5))             # out of focus, 0.8 km off
+    return L, cloud
 
 
 SCENE = None
 
 
+def scene():
+    global SCENE
+    if SCENE is None:
+        SCENE = build()
+    return SCENE
+
+
 def jitter(t):
-    """Cabin vibration easing: a few px of world shake decaying over the first 3 s."""
+    """The airframe's last buffeting from the entry: world shake decaying over ~3 s."""
     amp = 2.4 * math.exp(-t / 0.9)
     return amp * math.sin(t * 37.0) + 0.6 * amp * math.sin(t * 23.0 + 1.3), amp * 0.7 * math.sin(t * 29.0 + 0.4)
 
 
+def place(canvas, im, x, y, s, alpha=1.0, tint=None):
+    w, h = im.size
+    bx0, by0 = max(0, math.floor(x)), max(0, math.floor(y))
+    bx1, by1 = min(W, math.ceil(x + w * s)), min(H, math.ceil(y + h * s))
+    if bx1 <= bx0 or by1 <= by0:
+        return
+    tile = im.transform((bx1 - bx0, by1 - by0), Image.AFFINE, (1 / s, 0, (bx0 - x) / s, 0, 1 / s, (by0 - y) / s),
+                        resample=Image.BICUBIC, fillcolor=(0, 0, 0, 0))
+    a = arr(tile)
+    rgb, al = a[..., :3], a[..., 3:4] * alpha
+    if tint is not None:
+        rgb = rgb * 0.45 + np.array(tint, np.float32) * 0.55
+    reg = canvas[by0:by1, bx0:bx1]
+    canvas[by0:by1, bx0:bx1] = reg * (1 - al) + rgb * al
+
+
+def burn_off(canvas, cloud, t, jx, jy):
+    """The entry's cloud over the world: flat white at t = 0, thinning from its
+    thinnest parts first as it slides aft, gone at BURN."""
+    if t >= BURN:
+        return
+    u = smooth(t / BURN)
+    s = 2.4
+    x, y = -1250 - F_PX * GROUND_SPEED / 800.0 * t + jx, -560 + jy
+    tile = cloud.transform((W, H), Image.AFFINE, (1 / s, 0, -x / s, 0, 1 / s, -y / s),
+                           resample=Image.BILINEAR, fillcolor=(0, 0, 0, 0))
+    c = arr(tile)
+    dens = c[..., 3] * (0.55 + 0.45 * (c[..., :3] @ np.array([0.3, 0.6, 0.1], np.float32)))
+    # A gentle slope: thin cloud fades while thick cloud still stands, so the world
+    # comes through the cloud rather than through holes cut in it.
+    a = np.clip((0.4 + 0.6 * dens + 1.0 - 2.4 * u) * 1.3, 0, 1)[..., None]
+    col = ENTRY_WHITE * (1 - u) + (c[..., :3] * c[..., 3:4] + ENTRY_WHITE * (1 - c[..., 3:4])) * u
+    canvas[:] = canvas * (1 - a) + col * a
+
+
 def frame(t):
-    global SCENE
-    if SCENE is None:
-        SCENE = build()
+    layers, cloud = scene()
     canvas = np.zeros((H, W, 3), np.float32)
     jx, jy = jitter(t)
-    for L in SCENE:
-        src = L.path(t) if L.path is not None else L.rgba
-        h, w = src.shape[:2]
-        if L.world:
-            x, y, s = L.x + L.vx * t + jx, L.y + L.vy * t + jy, L.scale
-            # the lean moves the eye 5 cm toward km-distant layers: scale 1.00004, kept for honesty
-        else:
+    for L in layers:
+        if L.name == "cabin":
+            burn_off(canvas, cloud, t, jx, jy)
             s = L.scale * lean_scale(t, CABIN_DEPTH_M)
-            x = W / 2 + (L.x - W / 2) * s / L.scale
-            y = H / 2 + (L.y - H / 2) * s / L.scale
-        bx0, by0 = max(0, math.floor(x)), max(0, math.floor(y))
-        bx1, by1 = min(W, math.ceil(x + w * s)), min(H, math.ceil(y + h * s))
-        if bx1 <= bx0 or by1 <= by0:
+            place(canvas, L.im, W / 2 - W / 2 * s, H / 2 - H / 2 * s, s)
             continue
-        tile = img(src).transform((bx1 - bx0, by1 - by0), Image.AFFINE,
-                                  (1 / s, 0, (bx0 - x) / s, 0, 1 / s, (by0 - y) / s),
-                                  resample=Image.BICUBIC, fillcolor=(0, 0, 0, 0))
-        a = arr(tile)
-        rgb, al = a[..., :3], a[..., 3:4]
-        if L.alpha is not None:
-            al = al * L.alpha(t)
-        if DEBUG and L.name in TINT:
-            rgb = rgb * 0.45 + np.array(TINT[L.name], np.float32) * 0.55
-        reg = canvas[by0:by1, bx0:bx1]
-        canvas[by0:by1, bx0:bx1] = reg * (1 - al) + rgb * al
+        if L.path is not None:
+            draw, bob = L.path
+            im = draw(t)
+            place(canvas, im, L.x + L.vx * t + jx, L.y + L.vy * t + bob(t) + jy, 1.0)
+            continue
+        # the lean moves the eye 5 cm toward km-distant layers: scale 1.00004, ignored
+        tint = TINT.get(L.name) if DEBUG else None
+        place(canvas, L.im, L.x + L.vx * t + jx, L.y + L.vy * t + jy, L.scale, tint=tint)
     return img(canvas)
 
 
-TINT = {"sky": (0.35, 0.6, 1.0), "mountains": (0.6, 0.45, 1.0), "far": (1.0, 0.8, 0.25),
+TINT = {"sky": (0.35, 0.6, 1.0), "range": (0.6, 0.45, 1.0), "far": (1.0, 0.8, 0.25),
         "mist-high": (1, 1, 1), "mid": (0.25, 0.85, 0.45), "atlas": (1.0, 0.3, 0.9),
         "mist-low": (1, 1, 1), "near": (1.0, 0.35, 0.25)}
 
+
+# ---------------------------------------------------------------- review
 
 def label(im, text):
     d = ImageDraw.Draw(im)
@@ -280,20 +254,49 @@ def label(im, text):
     return im
 
 
-_D = {n: d for n, d, _ in LAYERS}
-
-
-def _slid(t):
-    u = t / DURATION
-    return "near %d px, mid %d, far %d, horizon %d" % tuple(round(truck_px(_D[n]) * u) for n in ("near", "mid", "far", "horizon"))
-
-
 STILLS = [
-    ("01-pickup", 0.0, "t=0.0s  pickup from the entry tail: its last cloud burning off and sliding aft, world shake still in it"),
-    ("02-settle", 4.0, "t=4.0s  vibration gone; slid so far: " + _slid(4.0)),
-    ("03-lean", 8.0, "t=8.0s  lean nearly complete: cabin x1.04, the frame widens on the sky; Atlas climbing right, flock in from the right"),
-    ("04-out", DURATION - 1 / FPS, "t=12.0s  out; slid: " + _slid(DURATION) + "; the cut to C4 continues the leftward flow"),
+    ("01-pickup", 0.0, "t=0.0s  pickup: the aperture full of the entry's flat white"),
+    ("02-burn", 0.8, "t=0.8s  the cloud burning off, thinnest parts first, sliding aft"),
+    ("03-settle", 4.0, "t=4.0s  vibration gone"),
+    ("04-lean", 8.0, "t=8.0s  lean nearly complete: cabin x1.04; Atlas climbing right, flock in from the right"),
+    ("05-out", DURATION - 1 / FPS, "t=12.0s  out"),
 ]
+
+
+def contact_sheet(path):
+    sheet = Image.new("RGB", (W, H))
+    d = ImageDraw.Draw(sheet)
+    n = 16
+    for i in range(n):
+        t = min(DURATION - 1 / FPS, i * DURATION / (n - 1))
+        th = frame(t).resize((W // 4, H // 4), Image.LANCZOS)
+        x, y = (i % 4) * W // 4, (i // 4) * H // 4
+        sheet.paste(th, (x, y))
+        d.rectangle([x, y, x + 64, y + 18], fill=(0, 0, 0))
+        d.text((x + 4, y + 4), "%.2fs" % t, fill=(255, 255, 255))
+    sheet.save(path)
+
+
+def render(i):
+    frame(i / FPS).save(OUT / "frames" / ("%05d.png" % i))
+    return i
+
+
+def review_audio(path):
+    cues = audio_cues()
+    inputs, graph, labels = [], [], []
+    for k, cue in enumerate(cues):
+        t, sid, vol = cue[:3]
+        loop = len(cue) > 3
+        if loop:
+            inputs += ["-stream_loop", "-1"]
+        inputs += ["-i", str(AUDIO_SRC / (sid + ".flac"))]
+        graph.append("[%d:a]aformat=sample_rates=44100:channel_layouts=stereo,volume=%.2f,adelay=%d:all=1%s[a%d]"
+                     % (k, vol, round(t * 1000), ",atrim=0:%.3f" % cue[3] if loop else "", k))
+        labels.append("[a%d]" % k)
+    graph.append("%samix=inputs=%d:normalize=0:duration=longest,atrim=0:%.3f[m]" % ("".join(labels), len(cues), DURATION))
+    subprocess.run(["ffmpeg", "-hide_banner", "-v", "error", "-y", *inputs, "-filter_complex", ";".join(graph),
+                    "-map", "[m]", "-c:a", "pcm_s16le", str(path)], check=True)
 
 
 def main():
@@ -303,28 +306,37 @@ def main():
     args = ap.parse_args()
     rev = BASE / "review"
     rev.mkdir(exist_ok=True)
+    for old in rev.glob("c3-0*.png"):
+        old.unlink()
     for name, t, text in STILLS:
-        label(frame(t), "C3 blockout  " + text).save(rev / ("c3-%s.png" % name))
+        label(frame(t), "C3  " + text).save(rev / ("c3-%s.png" % name))
     DEBUG = True
     label(frame(6.0), "C3 band check t=6.0s  sky / range / far / mid / near / Atlas tinted; mist white; cabin untinted").save(
-        rev / "c3-05-bands.png")
+        rev / "c3-06-bands.png")
     DEBUG = False
-    # a parallax proof: t=0 and t=12 differenced, so rates read as smear length
-    a, b = arr(frame(0.0)), arr(frame(DURATION - 1 / FPS))
-    proof = np.dstack([a.mean(-1), b.mean(-1), b.mean(-1)])
-    label(img(proof), "C3 parallax proof, t=0 vs t=12: red channel t0, cyan t12 (a dark body shows cyan where it was, red where it is). Offset grows with nearness; the cabin moves only by the lean").save(
-        rev / "c3-06-parallax-proof.png")
-    print("stills in", rev)
+    contact_sheet(rev / "c3-07-contact-sheet.png")
+    print("stills and contact sheet in", rev)
     if not args.movie:
         return
     fr = OUT / "frames"
     fr.mkdir(parents=True, exist_ok=True)
+    for old in fr.glob("*.png"):
+        old.unlink()
     n = round(DURATION * FPS)
-    for i in range(n):
-        frame(i / FPS).save(fr / ("%04d.png" % i))
-    subprocess.run(["ffmpeg", "-hide_banner", "-v", "error", "-y", "-framerate", str(FPS), "-i", str(fr / "%04d.png"),
-                    "-c:v", "libx264", "-crf", "18", "-pix_fmt", "yuv420p", str(OUT / "c3-blockout.mp4")], check=True)
-    print("wrote", OUT / "c3-blockout.mp4")
+    with ProcessPoolExecutor(max(1, (os.cpu_count() or 2) // 2)) as pool:
+        for i in pool.map(render, range(n), chunksize=6):
+            if i % 48 == 0:
+                print("frame", i, flush=True)
+    wav = OUT / "c3-review-audio.wav"
+    review_audio(wav)
+    movie = OUT / (SHOT + ".mp4")
+    subprocess.run(["ffmpeg", "-hide_banner", "-v", "error", "-y", "-framerate", str(FPS), "-i", str(fr / "%05d.png"),
+                    "-i", str(wav), "-map", "0:v", "-map", "1:a", "-c:v", "libx264", "-crf", "16", "-pix_fmt", "yuv420p",
+                    "-c:a", "aac", "-b:a", "160k", "-shortest", str(movie)], check=True)
+    (OUT / "timeline.json").write_text(json.dumps({
+        "shot": SHOT, "duration": duration(), "fps": FPS, "frames": n,
+        "captions": captions(), "overlays": overlays(), "audio_cues": audio_cues()}, indent=1), encoding="utf-8")
+    print("wrote", movie)
 
 
 if __name__ == "__main__":

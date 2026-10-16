@@ -1,0 +1,236 @@
+{
+ "bay-back-wall-port": {
+  "what": "port boat bay back wall, seen straight through the opening",
+  "sheet": "bay-port",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Port bay interior",
+    "seed": [
+     14,
+     15.6,
+     -0.5
+    ],
+    "faces": [
+     1
+    ]
+   }
+  ],
+  "face_count": 1,
+  "area_units2": 189.2,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   22.0,
+   8.6
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -14.0,
+    -0.5
+   ],
+   "ortho_width": 25.58139534883721
+  },
+  "native_texels_per_unit": 31.0
+ },
+ "bay-frame-port": {
+  "what": "cream coaming and jambs round the port bay opening, with the gunmetal buttresses either side",
+  "sheet": "bay-port",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Bay coaming",
+    "seed": [
+     14,
+     24.5,
+     -5.5
+    ],
+    "faces": [
+     1
+    ]
+   },
+   {
+    "object": "Bay coaming.001",
+    "seed": [
+     14,
+     24.5,
+     4.6
+    ],
+    "faces": [
+     1
+    ]
+   },
+   {
+    "object": "Bay jamb",
+    "seed": [
+     2,
+     24.5,
+     -0.5
+    ],
+    "faces": [
+     1
+    ]
+   },
+   {
+    "object": "Bay jamb.001",
+    "seed": [
+     26,
+     24.5,
+     -0.5
+    ],
+    "faces": [
+     1
+    ]
+   },
+   {
+    "object": "Bay structural buttress.002",
+    "seed": [
+     1,
+     24.8,
+     0
+    ],
+    "faces": [
+     1
+    ]
+   },
+   {
+    "object": "Bay structural buttress.003",
+    "seed": [
+     27,
+     24.8,
+     0
+    ],
+    "faces": [
+     1
+    ]
+   }
+  ],
+  "face_count": 6,
+  "area_units2": 130.0,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   28.0,
+   14.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -14.0,
+    -0.5
+   ],
+   "ortho_width": 32.55813953488372
+  },
+  "native_texels_per_unit": 24.4
+ },
+ "bay-floor-port": {
+  "what": "port bay deck plate, top face",
+  "sheet": "bay-port",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Bay level floor",
+    "seed": [
+     14,
+     20,
+     -4.8
+    ],
+    "faces": [
+     5
+    ]
+   }
+  ],
+  "face_count": 1,
+  "area_units2": 230.0,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   23.0,
+   10.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    14.0,
+    20.0
+   ],
+   "ortho_width": 26.74418604651163
+  },
+  "native_texels_per_unit": 29.7
+ },
+ "bay-davit-head-port": {
+  "what": "davit head over the port bay, port face",
+  "sheet": "bay-port",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Bay davit head",
+    "seed": [
+     17,
+     29.2,
+     9.3
+    ],
+    "faces": [
+     3,
+     4,
+     5,
+     10
+    ]
+   }
+  ],
+  "face_count": 4,
+  "area_units2": 15.03,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   4.4,
+   3.2
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -17.09999942779541,
+    9.299999713897705
+   ],
+   "ortho_width": 6.614986685819404
+  },
+  "native_texels_per_unit": 120.1
+ }
+}

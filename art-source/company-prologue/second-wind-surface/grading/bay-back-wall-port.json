@@ -1,0 +1,45 @@
+{
+ "part": "bay-back-wall-port",
+ "regions": {
+  "dark": {
+   "pixels": 236340,
+   "share_as_declared": 0.143,
+   "share_in_declared_family": 1.0,
+   "came_back_as": {
+    "gunmetal": 0.851,
+    "dark": 0.143
+   },
+   "swap": false,
+   "before_mean_lab": [
+    36.02,
+    0.28,
+    0.74
+   ],
+   "after_mean_lab": [
+    18.79,
+    0.08,
+    -0.29
+   ],
+   "gain_L_a_b": [
+    0.997,
+    0.6,
+    0.6
+   ],
+   "dE_to_palette_before": 17.26,
+   "forced_back_to_declared": false
+  }
+ },
+ "planes": [
+  {
+   "pixels": 240688,
+   "ramp_span_L_removed": 2.63,
+   "ramp_dL_per_100px": [
+    -0.22,
+    -0.29
+   ],
+   "edge_band_dL_after": 2.45
+  }
+ ],
+ "ramp_span_L_removed_max": 2.63,
+ "edge_band_dL_after_mean": 2.45
+}

@@ -120,6 +120,11 @@ public final class ShuttleMission {
      * bay-less grant, which sets down the payload's standard hull.
      */
     public VehicleDeploymentSpec vehicleDeployment;
+    /**
+     * Frozen bay machines a picked armor drop carries, mechs and vehicles in the order they
+     * leave ({@link ArmorDropPayload}). Null for every other sortie.
+     */
+    public ArmorLoad[] armorDrop;
     /** Ordered rescue-perimeter points patrolled by a delivered pickup mech. */
     public int[] rescuePatrolCells;
     /** Fixed perimeter anchor assigned to the militia squad when it deboards. */

@@ -51,32 +51,15 @@ class BarracksTurnaroundTest {
         assertFalse(roster.firstRefit().complete());
     }
 
-    @Test void distinctSelectionsCancelAndCommitThroughTheRoster() {
+    @Test void anEquipmentVisitPreservesSelection() {
         var roster = new MarineRoster();
-        var recipient = roster.createSquad();
-        var donor = roster.createSquad();
-        for (int i = 0; i < 6; i++) {
-            roster.recruitToSquad(recipient.id()); roster.recruitToSquad(donor.id());
-        }
+        var squad = roster.createSquad();
+        roster.recruitToSquad(squad.id(), 6);
         var model = new BarracksViewModel(new Reactor(), roster, () -> 0d).command();
-        model.toggle(recipient.id());
-        action(model, "chooseDonors");
-        model.toggle(recipient.id());
-        assertTrue(model.donors().isEmpty(), "Recipients cannot accidentally become donors");
-        model.toggle(donor.id());
-        model.reviewTransfers();
-        action(model, "cancelTransfers");
-        model.applyTransfers();
-        assertEquals(6, roster.readyCount(recipient));
-        action(model, "chooseDonors");
-        model.toggle(donor.id());
-        model.reviewTransfers();
-        model.applyTransfers();
-        assertEquals(12, roster.readyCount(recipient));
-        assertEquals(0, roster.readyCount(donor));
+        model.toggle(squad.id());
         model.leave();
         model.showOverview();
-        assertTrue(model.selected().contains(recipient.id()), "An equipment visit preserves selection");
+        assertTrue(model.selected().contains(squad.id()), "An equipment visit preserves selection");
     }
 
     @Test void guideFollowsSuccessfulOrdersAndNeverRequiresWastefulActions() throws Exception {
@@ -88,24 +71,12 @@ class BarracksTurnaroundTest {
             for (String id : recipient.memberIds().subList(0, 4)) {
                 roster.applySoldierOutcome(Map.of(id, MarineSoldierStatus.KIA), 0f, 0f);
             }
-            var donor = roster.createSquad();
-            roster.recruitToSquad(donor.id(), 2);
             var model = new BarracksViewModel(new Reactor(), roster, () -> 0d).command();
             model.toggle(recipient.id());
-            assertEquals("barracks-choose-donors", model.guideTargetId());
-            model.applyTransfers();
-            assertEquals("barracks-choose-donors", model.guideTargetId(), "An unreviewed order cannot advance the guide");
-            action(model, "chooseDonors");
-            model.toggle(donor.id());
-            assertEquals("barracks-review-transfers", model.guideTargetId());
-            model.reviewTransfers();
-            assertEquals("barracks-apply-transfers", model.guideTargetId());
-            model.applyTransfers();
-            assertEquals(10, roster.readyCount(recipient));
             assertEquals("barracks-reinforce", model.guideTargetId());
             model.reinforceSelected();
             assertEquals("barracks-reinforce", model.guideTargetId(), "No available personnel means no false success");
-            roster.recruitToSquad(roster.reserveSquad().id(), 2);
+            roster.recruitToSquad(roster.reserveSquad().id(), 4);
             model.reinforceSelected();
             assertEquals(12, roster.readyCount(recipient));
             assertEquals("barracks-issue", model.guideTargetId());
