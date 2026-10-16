@@ -5,11 +5,13 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.LatchkeyYard;
+import com.dillon.starsectormarines.battle.world.gen.LowQuay;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
+import com.dillon.starsectormarines.ops.battleview.ReviewAnnotation;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
 import com.dillon.starsectormarines.ops.battleview.ReviewStyle;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
@@ -54,14 +56,22 @@ public final class AgreusMapsSnapshotSuite implements SnapshotSuite {
                             .arrow(150, 102, 118, 102, "FLANK TRACK", ReviewStyle.ROUTE).build());
         }
         try (var sim = BattleSetup.createLimitedWarrant(15302, lift, profile, false)) {
-            add(context, frames, sim, "02-low-quay", "LIMITED WARRANT / LOW QUAY / seed 15302", 81, 59,
+            add(context, frames, sim, "02-low-quay", "LIMITED WARRANT / LOW QUAY / seed 15302", 82, 58,
                     ReviewAnnotations.builder()
                             .box(14, 44, 36, 84, "LIFT / RETURN CALIBRATION LOAD", ReviewStyle.LANDING)
-                            .box(63, 68, 75, 78, "1 / AUTHENTICATE RECORDS", ReviewStyle.OBJECTIVE)
-                            .box(81, 35, 93, 45, "2 / TECHNICIAN CALIBRATION", ReviewStyle.OBJECTIVE)
-                            .box(86, 53, 102, 63, "3 / RECOVER CARRIER", ReviewStyle.KEEP)
-                            .arrow(85, 58, 38, 58, "ESCORT BACK TO APRON", ReviewStyle.APPROACH)
-                            .arrow(135, 94, 111, 76, "FINITE REARGUARD", ReviewStyle.ROUTE).build());
+                            .label(44, 66, "SECURE GATE", ReviewStyle.NOTE)
+                            .box(66, 68, 80, 84, "1 / ARCHIVE: AUTHENTICATE RECORDS", ReviewStyle.OBJECTIVE)
+                            .box(86, 26, 108, 50, "2 / CALIBRATION SHOP + CAGE", ReviewStyle.OBJECTIVE)
+                            .box(104, 54, 120, 64, "3 / LOAD COURT", ReviewStyle.KEEP)
+                            .box(80, 68, 104, 88, "BONDED WAREHOUSE", ReviewStyle.NOTE)
+                            .box(44, 36, 61, 50, "DIVERTED CLINIC CONSIGNMENTS", ReviewStyle.NOTE)
+                            .label(64, 47, "GALLERY", ReviewStyle.NOTE)
+                            .label(63, 92, "GALLERY", ReviewStyle.NOTE)
+                            .label(LowQuay.CROSS_X + 4, LowQuay.CROSS_Y, "CROSSING", ReviewStyle.APPROACH)
+                            .arrow(104, 59, 40, 59, "CARRIER LANE TO APRON", ReviewStyle.APPROACH)
+                            .polyline(List.of(new ReviewAnnotation.Point(73, 106), new ReviewAnnotation.Point(73, 94),
+                                    new ReviewAnnotation.Point(64, 94), new ReviewAnnotation.Point(64, 66)),
+                                    "FINITE REARGUARD VIA NORTH GALLERY", ReviewStyle.ROUTE).build());
         }
         try (var sim = BattleSetup.createYardOwners(15303, lift, profile)) {
             var dispatch = LatchkeyYard.SITES.get(0); var hall = LatchkeyYard.SITES.get(1); var entrance = LatchkeyYard.SITES.get(2);
