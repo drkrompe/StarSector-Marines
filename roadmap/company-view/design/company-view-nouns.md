@@ -100,8 +100,11 @@ shared mapping instead of assigning paths independently in each screen.
   that frame never reaches back into it. `air-nouns.md` owns the pattern and the
   frozen frame.
 - **Fitting** — installed work in one of a boat's **slots**: plating, which is
-  hull, and drive, which is speed and acceleration. Each slot has a standard
-  fitting every boat is built with and upgrade tiers for compatible airframes.
+  hull; drive, which is speed and acceleration; and lift, the hold, where a
+  cradle trades every seat for a machine lift rating (`air-nouns.md`, Lift).
+  Each slot has a standard fitting every boat is built with and upgrade tiers
+  for compatible airframes; a boat saved before a slot existed reads as standard
+  there. Only bus-class boats offer the lift slot at all.
 - **Boat workshop** — the atomic cargo-backed authority that installs a fitting
   and builds a boat into an empty berth. It shares the fleet's hold with the
   Mech Lab rather than owning a second one.

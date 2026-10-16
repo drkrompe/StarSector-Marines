@@ -10,7 +10,6 @@ import com.dillon.starsectormarines.marine.BoatDeck;
 import com.dillon.starsectormarines.marine.BoatFabricationCatalog;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatFittingSlot;
-import com.dillon.starsectormarines.battle.air.LiftRating;
 import com.dillon.starsectormarines.marine.BoatWorkshop;
 import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.FabricationCost;
@@ -381,7 +380,7 @@ public final class BoatDeckViewModel {
                                 BoatFitting::speedFactor)),
                 fitted.machineOnly()
                         ? meter("seats", Strings.get("openingBoatDeckSeats"),
-                                Strings.format("boatDeckMachineOnly", liftName(fitted.liftRating())),
+                                Strings.format("boatDeckMachineOnly", LiftReadout.ratingName(fitted.liftRating())),
                                 0f, pattern.capacity)
                         : meter("seats", Strings.get("openingBoatDeckSeats"), Strings.format("openingBoatDeckSeats2", pattern.capacity),
                                 pattern.capacity, pattern.capacity),
@@ -606,7 +605,7 @@ public final class BoatDeckViewModel {
             return Strings.format("openingBoatDeckHull2", factor(fitting.hullFactor()));
         }
         if (fitting.slot() == BoatFittingSlot.LIFT) {
-            return Strings.format("boatDeckLiftEffect", liftName(fitting.liftRating()));
+            return Strings.format("boatDeckLiftEffect", LiftReadout.ratingName(fitting.liftRating()));
         }
         return Strings.format("openingBoatDeckSpeedAccel", factor(fitting.speedFactor()), factor(fitting.accelFactor()));
     }
@@ -642,10 +641,7 @@ public final class BoatDeckViewModel {
         return false;
     }
 
-    /** A lift rating as the deck and the briefing name it. */
-    public static String liftName(LiftRating rating) {
-        return Strings.get("liftRating" + (rating == null ? LiftRating.NONE : rating).name());
-    }
+
 
     private static String berthLabel(int index) {
         return String.format(Locale.ROOT, Strings.get("openingBoatDeckBerthD"), index + 1);
