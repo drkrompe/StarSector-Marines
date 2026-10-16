@@ -23,7 +23,7 @@ in "<NAME> | review rig" and are not part of the asset.
 Options after a literal "--":
   --fighter ID   module ft_<ID>.py (required)
   --out DIR      renders, .blend and geometry.json (default ./<ID>/)
-  --views a,b    top, port-side, front, three-quarter, cockpit-check
+  --views a,b    top, port-side, front, three-quarter, cockpit-check, parked
                  (default all; 'none' renders nothing)
   --samples N    Cycles samples (default 24)
   --no-save      skip the .blend and geometry.json
@@ -47,7 +47,7 @@ GAME = Path(r'C:\Program Files (x86)\Fractal Softworks\Starsector\starsector-cor
 parser = argparse.ArgumentParser()
 parser.add_argument('--fighter', required=True)
 parser.add_argument('--out')
-parser.add_argument('--views', default='top,port-side,front,three-quarter,cockpit-check')
+parser.add_argument('--views', default='top,port-side,front,three-quarter,cockpit-check,parked')
 parser.add_argument('--samples', type=int, default=24)
 parser.add_argument('--no-save', action='store_true')
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
@@ -192,6 +192,40 @@ for k, (px, py) in enumerate(getattr(ft, 'PILOTS', []), 1):
 fig_x = hi.x+1.2/M
 proxy_box('Scale figure 1.8 m', (fig_x, 0, lo.z+.9/M), (.5/M, .3/M, 1.8/M))
 
+
+def lowest_z(ob):
+    ev = ob.evaluated_get(dg)
+    me = ev.to_mesh()
+    z = min((ev.matrix_world @ v.co).z for v in me.vertices)
+    ev.to_mesh_clear()
+    return z
+
+
+# Parked ground check, for a hull that stands on named feet (FEET): every
+# foot must reach one plane, and nothing else may touch it.
+ground = None
+feet = getattr(ft, 'FEET', [])
+if feet:
+    by_name = {o.name: o for o in meshes}
+    absent = [n for n in feet if n not in by_name]
+    if absent:
+        raise RuntimeError(f'{NAME}: FEET names missing {absent}')
+    foot_z = {n: lowest_z(by_name[n]) for n in feet}
+    plane = min(foot_z.values())
+    others = sorted((lowest_z(o), o.name) for o in meshes if o.name not in feet)
+    legs = tuple(getattr(ft, 'LEG_PARTS', ()))  # parts that carry the feet (arms, struts)
+    body = [(z, n) for z, n in others if not (legs and n.startswith(legs))] or others
+    ground = {'feet': feet, 'ground_z_units': round(plane, 3),
+              'foot_level_spread_m': round((max(foot_z.values())-plane)*M, 3),
+              'lowest_other_part': others[0][1], 'deck_clearance_m': round((others[0][0]-plane)*M, 3),
+              'lowest_body_part': body[0][1], 'body_clearance_m': round((body[0][0]-plane)*M, 3)}
+    if ground['foot_level_spread_m'] > .01 or ground['deck_clearance_m'] <= 0:
+        raise RuntimeError(f'{NAME}: parked check failed {ground}')
+    bpy.ops.mesh.primitive_plane_add(size=8*max(SW, SH), location=(0, 0, plane))
+    deck = bpy.context.object
+    deck.name = 'Parked deck plane'
+    deck.data.materials.append(fg_kit.material('Deck grey', (.42, .43, .44), 0, .8))
+
 scene.render.engine = 'CYCLES'
 scene.cycles.samples = args.samples
 scene.cycles.use_denoising = True
@@ -219,7 +253,7 @@ for name, d, energy in [('Key', Vector((.8, 1, 1.3)), 18000), ('Fill', Vector((-
 # Cameras framed on the sprite's own extent.
 sx0, sx1 = -CY, SH-CY       # X range of the sprite frame
 sy0, sy1 = CX-SW, CX        # Y range
-mid = Vector(((sx0+sx1)/2, (sy0+sy1)/2, 0))
+mid = Vector(((sx0+sx1)/2, (sy0+sy1)/2, (lo.z+hi.z)/2 if ground else 0))
 ASPECT = 16/9
 top_scale = max(SH, SW*ASPECT)*1.12
 CAMERAS = {
@@ -228,6 +262,11 @@ CAMERAS = {
     'front': (mid+Vector((4*span, 0, 0)), SW*1.3, None),
     'three-quarter': (mid+Vector((2.6*span, 2.9*span, 2.0*span)), span*1.45, None),
 }
+if ground:  # low port-bow view of the hull standing on its feet
+    CAMERAS['parked'] = (mid+Vector((2.4*span, 3.4*span, .55*span)), span*2.0, None)  # sheet panel is 560x430
+    # The feet hang below the hull, and the front shares the bottom row three ways: widen both frames.
+    CAMERAS['front'] = (CAMERAS['front'][0], SW*1.9, None)
+    CAMERAS['three-quarter'] = (CAMERAS['three-quarter'][0], span*1.7, None)
 for name, (pos, scale, rot) in CAMERAS.items():
     bpy.ops.object.camera_add(location=pos)
     cam = bpy.context.object
@@ -275,6 +314,8 @@ for name in wanted:
     scene.render.film_transparent = name == 'top'
     for o in proxies:  # the top view is the silhouette: nothing but the model
         o.hide_render = (name != 'cockpit-check') if o.name.startswith('Pilot') else (name != 'port-side')
+    if ground:
+        deck.hide_render = name != 'parked'
     for ob in meshes:  # cutaway: see the seated pilot through hull and canopy
         if name == 'cockpit-check':
             ob['_mats'] = [s.material.name if s.material else '' for s in ob.material_slots]
@@ -288,6 +329,8 @@ for name in wanted:
     bpy.ops.render.render(write_still=True)
 for o in proxies:
     o.hide_render = False
+if ground:
+    deck.hide_render = True
 for ob in meshes:
     if '_mats' in ob:
         for s, mn in zip(ob.material_slots, ob['_mats']):
@@ -310,6 +353,7 @@ if not args.no_save:
         'units': 'One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres',
         'metres_per_unit': M,
         'scale': dict(ft.SCALE, size_m=[round(v*M, 1) for v in size], canopy=canopy, cockpit_fit=fit),
+        **({'parked_check': ground} if ground else {}),
         'sprite': {'size': [SW, SH], 'center': [CX, CY],
                    'pixel_to_model': f'col c, row r (from top) covers X {SH-CY-1}-r..{SH-CY}-r, Y {CX-1}-c..{CX}-c'},
         'dimensions': {'min': [round(v, 2) for v in lo], 'max': [round(v, 2) for v in hi],
@@ -332,4 +376,4 @@ if not args.no_save:
             manifest['silhouette'] = old['silhouette']
     path.write_text(json.dumps(manifest, indent=2)+'\n', encoding='utf-8')
     print('FIGHTER', NAME, 'size units', [round(v, 2) for v in size], 'metres', manifest['scale']['size_m'],
-          'canopy', canopy, 'fit', fit)
+          'canopy', canopy, 'fit', fit, 'parked', ground)

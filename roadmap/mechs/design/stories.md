@@ -13,7 +13,6 @@ Read `mechs-nouns.md` before changing the live story.
 | Story | State | Scope |
 | --- | --- | --- |
 | `tank-variant-art.md` | Planned — art gate | Hull and turret art for the heavy-gun tank and dozer breacher, and the dozer's breaching, so both become offerable. |
-| `mech-locational-damage.md` | In progress — slices 1 (body plan) and 2 (mech plan, section pools, paper-doll) shipped; slice 3 (cover rows, presentation, AI) next | Mechs take damage by section (legs, torso, arm and shoulder mounts, head) through a body plan generalised from marine body parts; mounts can be shot off, legs crippled; torso kills. Campaign consequences decided (slice 4). |
 | `mech-battle-doctrine-overrides.md` | In progress | Layer a lance-wide Form on Lead / Free Reign order beneath mission authority and above each deployed mech's battle-local Brawler, Frontline Support, Long-Range Support, or Balanced override. |
 | `s1-specialist-striders.md` | Active manual tuning | Validate and tune the shipped Bulwark/Hound/Sirocco identities, formations, production encounters, and debug delivery feel without weakening their stated tradeoffs. |
 | `mech-lab-data-authored-dolls.md` | Proposed | Move maintenance facing, physical anchors, equipment docks, footprints, compatibility, and capacity into a validated asset catalog shared by mechs and future vehicles. |

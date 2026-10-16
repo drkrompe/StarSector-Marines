@@ -23,7 +23,7 @@ import java.util.Map;
 
 /**
  * A Hound taken apart: <b>does a mech under rifle and rocket fire lose a capability before it loses
- * the machine?</b> The acceptance scene of {@code mech-locational-damage.md}.
+ * the machine?</b> The acceptance scene for mech locational damage ({@code mechs-nouns.md}, Section loss).
  *
  * <p>One Hound with its stock loadout (nose chaingun, one centred SRM pod) under an attack-move
  * across open ground at a ten-strong hostile rifle squad holding the far side, one seat of which
@@ -256,6 +256,13 @@ public final class MechLocationalDamageScene implements BehaviorScene {
             return String.format(Locale.ROOT, "%.0f+%.0f", sections.armor(section), sections.structure(section));
         }
 
+        /** Whether the nose gun or the pod was still fitted when the legs went. */
+        boolean armedWhenCrippled() {
+            boolean gunGone = armsLostTick >= 0 && armsLostTick <= legsLostTick;
+            boolean podGone = podLostTick >= 0 && podLostTick <= legsLostTick;
+            return legsLostTick >= 0 && !(gunGone && podGone);
+        }
+
         boolean fullStory() {
             return podLostTick >= 0 && legsLostTick > podLostTick && deathTick > legsLostTick
                     && shotsAfterCrippled > 0 && torsoAtZeroOnDeath;
@@ -331,6 +338,8 @@ public final class MechLocationalDamageScene implements BehaviorScene {
         int podFirst = 0;
         int podBeforeLegs = 0;
         int firedCrippled = 0;
+        int crippledArmed = 0;
+        int armedFiredCrippled = 0;
         int fullStory = 0;
         int ticks = 0;
         Map<String, Number> m = new LinkedHashMap<>();
@@ -343,6 +352,10 @@ public final class MechLocationalDamageScene implements BehaviorScene {
                 crippled++;
                 if (t.crippledDrift < CRIPPLED_DRIFT_BAR) crippledStood++;
                 if (t.shotsAfterCrippled > 0) firedCrippled++;
+                if (t.armedWhenCrippled()) {
+                    crippledArmed++;
+                    if (t.shotsAfterCrippled > 0) armedFiredCrippled++;
+                }
             }
             lostMountRounds += t.shotsFromLostMounts;
             if (t.podLostTick >= 0 && (t.podLostTick <= firstLoss(t))) podFirst++;
@@ -362,6 +375,7 @@ public final class MechLocationalDamageScene implements BehaviorScene {
         m.put("crippled", crippled);
         m.put("crippledStood", crippledStood);
         m.put("firedWhileCrippled", firedCrippled);
+        m.put("crippledWithAWeaponLeft", crippledArmed);
         m.put("podAmongFirstLosses", podFirst);
         m.put("podBeforeLegs", podBeforeLegs);
         m.put("fullStoryInOrder", fullStory);
@@ -376,6 +390,12 @@ public final class MechLocationalDamageScene implements BehaviorScene {
                         + CRIPPLED_DRIFT_BAR + " cells afterwards"));
         verdicts.add(Verdict.of("lost-mounts-silent", lostMountRounds == 0,
                 lostMountRounds + " rounds from destroyed mounts across the sweep (wanted none)"));
+        // The turret promise: a crippled Hound fights on from where it fell. Wanted on every play
+        // that crippled one with a weapon still fitted; one disarmed first has nothing to fire.
+        verdicts.add(Verdict.of("every-armed-crippled-hound-fires",
+                crippledArmed > 0 && armedFiredCrippled == crippledArmed,
+                armedFiredCrippled + " of " + crippledArmed + " Hounds crippled with a weapon left fired after the"
+                        + " legs went (" + (crippled - crippledArmed) + " more were disarmed first)"));
         return new SceneReport(id(), SWEEP_LOOP, ticks, verdicts, m);
     }
 

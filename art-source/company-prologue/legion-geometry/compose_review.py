@@ -143,8 +143,8 @@ if c2_frames:
 # Review sheet: four views at half size (skipped unless all four exist).
 sheet = Image.new('RGB', (1920, 1080), BG)
 draw = ImageDraw.Draw(sheet)
-draw.text((28, 15), 'LEGION (XIV) BATTLECARRIER / GEOMETRY BLOCKOUT', font=font(32), fill=(39, 49, 55))
-draw.text((28, 55), 'XIV BATTLEGROUP  |  DEEP TORSO, WING ARMS  |  FOUR UNDER-WING HANGARS  |  FIFTEEN TURRETS ON PIVOTS  |  TEN DRIVES',
+draw.text((28, 15), 'LEGION (XIV) BATTLECARRIER / PASS 2 DETAIL', font=font(32), fill=(39, 49, 55))
+draw.text((28, 55), 'XIV BATTLEGROUP  |  DEEP TORSO, WING ARMS  |  A FLY-THROUGH HANGAR UNDER EACH WING  |  FIFTEEN TURRETS ON PIVOTS  |  TEN DRIVES',
           font=font(19), fill=(72, 81, 88))
 panels = [('top-overlay', 'TOP OVER SPRITE / BOW LEFT - PORT BELOW'), ('three-quarter', 'STARBOARD BOW QUARTER'),
           ('starboard-side', 'STARBOARD SIDE / BOW RIGHT'), ('c2-abeam', 'C2 ABEAM: CABIN CAMERA, C2 SUN')]

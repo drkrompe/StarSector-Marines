@@ -45,41 +45,45 @@ Conventions (every fighter)
   angle), and "Weapon <slot id> muzzle" at the tip of every drawn gun.
 - Placing beside another hull: scale the root by this metres_per_unit /
   that hull's, read from its geometry.json. The Legion's is 0.61 (local
-  main 496340563): root scales Broadsword, Wasp, Dagger 0.82; Talon 1.23;
-  Longbow, Thunder 0.74. The widest span here (Talon, 16.5 m) is about 27
+  main 496340563): root scales Broadsword, Wasp, Dagger 0.82; Talon 0.90;
+  Longbow, Thunder 0.74. The widest span here (Longbow, 14.4 m) is about 24
   Legion units, inside its hangar tunnels (being widened to about 40
   forward and 46 aft for the Hoplon).
 
 Scale: each hull its own (owner policy)
-Every crewed fighter is scaled from its cockpit: the canopy against real
-single-seat canopies (2.6-3.5 m long, 0.9-1.3 m at the sill), a seated
-1.8 m pilot proxy (seat pan 0.55 m below the deck skin, crown 0.92 m
-above the seat) that must clear the glass, guns and drives, with real
-fighters of 12-22 m as the sanity check. The crewless Wasp is scaled
+Every crewed fighter is scaled from its cockpit, guns and drives, with
+real fighters of 9-22 m as the sanity check. Canopies need not all be
+the same size, only plausible (owner): a seated 1.8 m pilot proxy (seat
+pan 0.55 m below the deck skin, crown 0.92 m above the seat) must clear
+the glass. So the Talon is a compact interceptor with a small,
+Gnat-like canopy, smaller than the Broadsword as in the game. The crewless Wasp is scaled
 from its gun, drive cans and size.
 
 Fighter     m/unit  range      size (m)          canopy (m)  head clear  IoU
 Thunder     0.45    0.40-0.50  18.5 x 10.8 x 2.6  3.24x1.17   0.28 m      0.956 *
-Talon       0.75    0.68-0.85  16.5 x 16.5 x 3.3  2.93x1.20   0.25 m      0.977
 Dagger      0.50    0.43-0.58  16.4 x 12.1 x 2.2  3.10x1.15   0.21 m      0.959
 Broadsword  0.50    0.43-0.57  15.5 x 14.1 x 3.3  3.0 x1.9    0.21 m      0.931 (pass 2)
 Longbow     0.45    0.40-0.55  15.0 x 14.4 x 2.5  2.66x1.12   0.14 m      0.951
-Wasp        0.50    0.40-0.65   9.5 x  8.0 x 1.5  (drone)     -           0.951
+Talon       0.55    0.50-0.62  12.1 x 12.1 x 2.4  2.15x0.88   0.08 m      0.977
+Wasp        0.50    0.40-0.65   9.5 x  8.0 x 1.9  (drone)     -           0.909 **
 Each <id>/geometry.json has the method, cross-checks and cockpit fit.
 
 For review
-- Relative sizes follow the cockpits, not the game. In Starsector the
-  Talon is a light interceptor drawn smaller than the Broadsword; scaled by
-  its own large canopy patch it comes out 16.5 m, a metre longer. Choosing
-  the low end of the Talon's range (0.68) and the high end of the
-  Broadsword's (0.57) would restore the game's order; that is the owner's
-  call.
 - * Thunder follows graphics/ships/thunder.png, which is asymmetric (the
   owner's call): a port gun block with two prongs (ion cannon on the outer
   one) and a long lance offset to starboard, with the dual MG on its root.
   The .ship itself draws thunder2.png (symmetric booms), and master-v1 is a
   mirrored hybrid, so the master gave sections only, not the plan. IoU
   0.956 against thunder.png.
+- ** Wasp: its arms are drawn as pixel stairs on the sprite; the model
+  runs each edge straight through the stair midpoints instead of tracing
+  them, so the arms read as blades, not pixels. The stair corners it cuts
+  and leaves cost the IoU (0.951 traced), putting it below the 0.93 aim;
+  on arms one to three pixels wide they are a large share. It has no
+  landing gear: its arms droop and taper to foot pads at the tips, all on
+  one plane, and it sits level with the drive cans 0.33 m off the deck.
+  The build checks that (parked_check in geometry.json, FEET in the
+  module) and its sheet shows it parked in place of a cockpit cutaway.
 - Asymmetric hulls keep their asymmetry: the Thunder (see above), the Talon (gun nacelle to port,
   cockpit pod to starboard), the Dagger (port torpedo store) and the
   Longbow (emitter to port, missile cell to starboard).

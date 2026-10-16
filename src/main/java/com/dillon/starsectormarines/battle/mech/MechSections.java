@@ -10,15 +10,16 @@ import com.dillon.starsectormarines.battle.combat.DurabilityModel;
  * armor rating stays the chassis's own.
  *
  * <p>Each hit is resolved on its section by {@link DurabilityModel}, exactly as a whole body is.
- * Structure a non-torso section cannot hold spills into the torso: a hit on a section already at
- * zero goes through the hole to the torso's structure. The torso at zero is the only death
+ * What a non-torso section cannot hold carries on into the torso, which meets it with its own
+ * armor before its structure: a hit on a section already at zero goes through the hole to the
+ * torso's plate. The torso at zero is the only death
  * ({@link #torsoDestroyed()}); legs at zero cripple the chassis, a mount at zero loses its weapon,
  * and the head at zero loses the sensors.
  *
  * <p>Written only on the serialized damage path. Read by the presentation (the section
  * paper-doll) and, after the battle, by campaign writeback ({@link #report()}), which turns a
  * lost mount into a lost assembly, other damaged sections into repairs, and a destroyed torso into
- * a lost chassis. See {@code mech-locational-damage.md}.
+ * a lost chassis. See {@code mechs-nouns.md}.
  */
 public final class MechSections {
 
@@ -158,31 +159,65 @@ public final class MechSections {
     }
 
     /**
-     * Resolves one hit on {@code section}: the section's own armor, then its structure, then any
-     * structure it cannot hold into the torso. Allocation-free; {@code scratch} and {@code out}
+     * Resolves one hit on {@code section}: the section's own armor, then its structure, then what
+     * it cannot hold into the torso's armor and structure. Allocation-free; {@code scratch} and {@code out}
      * are the caller's.
      */
     public void resolve(MechSection section, float damage, float penetration, float mitigationSoak,
                         float armorRating, DurabilityModel.Resolution scratch, Hit out) {
         int i = section.ordinal();
         float torsoBefore = structure[TORSO];
-        float sectionBefore = i == TORSO ? 0f : structure[i];
-        // A non-torso section resolves against its own structure with the torso's behind it, so
-        // the model's own clamp is what limits the spill: nothing passes a destroyed torso.
-        float reservoir = sectionBefore + torsoBefore;
-        DurabilityModel.resolveInto(damage, penetration, mitigationSoak,
-                armor[i], armorRating, reservoir, scratch);
-        float structureDamage = scratch.structureDamage();
-        float onSection = i == TORSO ? 0f : Math.min(structureDamage, sectionBefore);
-        float spill = structureDamage - onSection;
-        armor[i] = Math.max(0f, armor[i] - scratch.armorDamage());
-        if (i != TORSO) structure[i] = sectionBefore - onSection;
-        structure[TORSO] = Math.max(0f, torsoBefore - spill);
-        boolean sectionNowDestroyed = i != TORSO && sectionBefore > 0f && structure[i] <= 0f;
+        if (i == TORSO) {
+            DurabilityModel.resolveInto(damage, penetration, mitigationSoak,
+                    armor[TORSO], armorRating, torsoBefore, scratch);
+            armor[TORSO] = Math.max(0f, armor[TORSO] - scratch.armorDamage());
+            structure[TORSO] = Math.max(0f, torsoBefore - scratch.structureDamage());
+            boolean torsoNowDestroyed = torsoBefore > 0f && structure[TORSO] <= 0f;
+            if (torsoNowDestroyed) destroyed[TORSO] = true;
+            out.set(section, scratch.armorDamage(), 0f, scratch.structureDamage(), scratch.mitigatedDamage(),
+                    false, torsoNowDestroyed);
+            return;
+        }
+        // The struck section first, against its own armor and structure; whatever of the payload
+        // it cannot hold goes on into the torso, which meets it with its own armor before its
+        // structure. A screen is spent once, on the section.
+        float sectionArmorBefore = armor[i];
+        float sectionBefore = structure[i];
+        float mitigated = Math.min(damage, mitigationSoak);
+        float afterSoak = damage - mitigated;
+        float sectionArmorDamage = 0f;
+        float onSection = 0f;
+        float overflow;
+        if (sectionBefore <= 0f) {
+            overflow = afterSoak;   // a hole: straight through to the torso
+        } else {
+            DurabilityModel.resolveInto(damage, penetration, mitigationSoak,
+                    sectionArmorBefore, armorRating, sectionBefore, scratch);
+            sectionArmorDamage = scratch.armorDamage();
+            onSection = scratch.structureDamage();
+            overflow = 0f;
+            if (onSection >= sectionBefore) {
+                float toBreak = sectionArmorBefore > 0f
+                        ? sectionArmorBefore / DurabilityModel.armorEfficiency(penetration, armorRating) : 0f;
+                overflow = Math.max(0f, afterSoak - toBreak - sectionBefore);
+            }
+        }
+        armor[i] = Math.max(0f, sectionArmorBefore - sectionArmorDamage);
+        structure[i] = sectionBefore - onSection;
+        float torsoArmorDamage = 0f;
+        float spill = 0f;
+        if (overflow > 0f && torsoBefore > 0f) {
+            DurabilityModel.resolveInto(overflow, penetration, 0f, armor[TORSO], armorRating, torsoBefore, scratch);
+            torsoArmorDamage = scratch.armorDamage();
+            spill = scratch.structureDamage();
+            armor[TORSO] = Math.max(0f, armor[TORSO] - torsoArmorDamage);
+            structure[TORSO] = Math.max(0f, torsoBefore - spill);
+        }
+        boolean sectionNowDestroyed = sectionBefore > 0f && structure[i] <= 0f;
         if (sectionNowDestroyed) destroyed[i] = true;
         boolean torsoNowDestroyed = torsoBefore > 0f && structure[TORSO] <= 0f;
         if (torsoNowDestroyed) destroyed[TORSO] = true;
-        out.set(section, scratch.armorDamage(), onSection, spill, scratch.mitigatedDamage(),
+        out.set(section, sectionArmorDamage + torsoArmorDamage, onSection, spill, mitigated,
                 sectionNowDestroyed, torsoNowDestroyed);
     }
 
