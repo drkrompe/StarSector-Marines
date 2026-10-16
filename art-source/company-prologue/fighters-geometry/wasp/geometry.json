@@ -41,26 +41,32 @@
       "F-16 length (crewed reference)": 15.0
     },
     "size_m": [
-      9.5,
-      8.0,
-      1.9
+      9.8,
+      8.1,
+      2.4
     ],
     "canopy": null,
     "cockpit_fit": []
   },
   "parked_check": {
     "feet": [
-      "Wing port fore foot pad",
-      "Wing port aft foot pad",
-      "Wing starboard fore foot pad",
-      "Wing starboard aft foot pad"
+      "Wing port fore claw",
+      "Wing port aft claw",
+      "Wing starboard fore claw",
+      "Wing starboard aft claw"
     ],
-    "ground_z_units": -2.2,
+    "deck_plane_units": {
+      "z0": -2.199,
+      "dz_dx": 0.1052,
+      "dz_dy": -0.0
+    },
+    "stance_pitch_deg_nose_down": 6.01,
+    "stance_roll_deg": -0.0,
     "foot_level_spread_m": 0.0,
-    "lowest_other_part": "Wing port fore arm frame",
-    "deck_clearance_m": 0.185,
-    "lowest_body_part": "Engine 1 port drive can",
-    "body_clearance_m": 0.325
+    "lowest_other_part": "Wing starboard fore arm frame",
+    "deck_clearance_m": 0.261,
+    "lowest_body_part": "Hull spine",
+    "body_clearance_m": 0.421
   },
   "sprite": {
     "size": [
@@ -75,19 +81,19 @@
   },
   "dimensions": {
     "min": [
-      -10.0,
-      -8.0,
-      -2.2
+      -10.29,
+      -8.06,
+      -3.23
     ],
     "max": [
-      9.0,
-      8.0,
+      9.27,
+      8.06,
       1.51
     ],
     "size": [
-      19.0,
-      16.0,
-      3.71
+      19.56,
+      16.12,
+      4.74
     ]
   },
   "root": {
@@ -207,14 +213,14 @@
     "WS 002 (fragbomb, HIDDEN, aft) anchors at (-7, 0) in the gap between the drive cans, where the sprite is empty; no visible launcher is modelled.",
     "The master was registered on its gun tip, so its arm tips read about one unit inboard of the sprite's; the arms follow the sprite.",
     "Arm edges run straight through the midpoints of the sprite's pixel stairs rather than tracing them (owner: the traced stairs read as pixelated wings). The stair corners the line cuts and leaves account for most of the drop in silhouette IoU from 0.951 to 0.909; on arms one to three pixels wide they are a large share.",
-    "Landing stance (owner): the drone has no gear and stands on its four arm tips. Each arm droops from its pivot and thins to 40 per cent of its depth at the tip, where a foot pad sits underneath; plan positions are unchanged. All four soles are on one plane (Z -2.2), so it sits level, and the drive cans clear the deck by 0.33 m (see parked_check). The aft arms are shorter, so they droop more steeply than the fore arms."
+    "Landing stance (owner): the drone has no gear and stands on a hooked claw under each arm tip. Each arm droops from its pivot and thins to 40 per cent of its depth at the tip; plan positions are unchanged. The deck is pitched 6 degrees in the hull frame (Z -2.2 under the centre, rising toward the nose), so parked it crouches nose-down with the tail raised, while the hull axes stay the flight frame. The fore arms barely droop and carry short claws; the aft arms droop steeply onto long ones. parked_check records the fitted deck and clearances."
   ],
   "cameras": {
     "top": {
       "position": [
         -0.5,
         0.0,
-        83.65421295166016
+        83.1389389038086
       ],
       "orthographic_scale": 35.84
     },
@@ -222,15 +228,15 @@
       "position": [
         -0.5,
         84.0,
-        -0.3457871675491333
+        -0.861060619354248
       ],
-      "orthographic_scale": 26.75
+      "orthographic_scale": 27.44502353668213
     },
     "front": {
       "position": [
         83.5,
         0.0,
-        -0.3457871675491333
+        -0.861060619354248
       ],
       "orthographic_scale": 34.199999999999996
     },
@@ -238,7 +244,7 @@
       "position": [
         54.099998474121094,
         60.900001525878906,
-        41.654212951660156
+        41.138938903808594
       ],
       "orthographic_scale": 35.699999999999996
     },
@@ -246,15 +252,15 @@
       "position": [
         49.900001525878906,
         71.4000015258789,
-        11.20421314239502
+        10.688940048217773
       ],
       "orthographic_scale": 42.0
     }
   },
   "silhouette": {
-    "iou": 0.9098,
-    "sprite_uncovered": 0.0453,
-    "model_outside_sprite": 0.0494,
+    "iou": 0.9082,
+    "sprite_uncovered": 0.0445,
+    "model_outside_sprite": 0.0521,
     "sprite": "wasp_ftr.png",
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 53.57 px per unit"
   }

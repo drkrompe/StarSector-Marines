@@ -38,7 +38,7 @@ import re
 import sys
 import bmesh
 import bpy
-from mathutils import Vector
+from mathutils import Matrix, Vector
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -193,16 +193,19 @@ fig_x = hi.x+1.2/M
 proxy_box('Scale figure 1.8 m', (fig_x, 0, lo.z+.9/M), (.5/M, .3/M, 1.8/M))
 
 
-def lowest_z(ob):
+def world_verts(ob):
     ev = ob.evaluated_get(dg)
     me = ev.to_mesh()
-    z = min((ev.matrix_world @ v.co).z for v in me.vertices)
+    pts = [ev.matrix_world @ v.co for v in me.vertices]
     ev.to_mesh_clear()
-    return z
+    return pts
 
 
-# Parked ground check, for a hull that stands on named feet (FEET): every
-# foot must reach one plane, and nothing else may touch it.
+# Parked ground check, for a hull that stands on named feet (FEET). The
+# deck is the plane through the feet's soles, fitted in the hull frame, so
+# a hull may crouch pitched or rolled on it: the soles must all lie on it,
+# and nothing else may reach it. The parked view turns the hull so the deck
+# lies flat; the hull's own axes stay the flight frame.
 ground = None
 feet = getattr(ft, 'FEET', [])
 if feet:
@@ -210,20 +213,39 @@ if feet:
     absent = [n for n in feet if n not in by_name]
     if absent:
         raise RuntimeError(f'{NAME}: FEET names missing {absent}')
-    foot_z = {n: lowest_z(by_name[n]) for n in feet}
-    plane = min(foot_z.values())
-    others = sorted((lowest_z(o), o.name) for o in meshes if o.name not in feet)
+    soles = []
+    for n in feet:
+        pts = world_verts(by_name[n])
+        zmin = min(p.z for p in pts)
+        low = [p for p in pts if p.z < zmin+.02]
+        soles.append(sum(low, Vector())/len(low))
+    # z = a + b x + c y through the soles (least squares)
+    A = [[1, p.x, p.y] for p in soles]
+    ata = [[sum(r[i]*r[j] for r in A) for j in range(3)] for i in range(3)]
+    atz = [sum(r[i]*p.z for r, p in zip(A, soles)) for i in range(3)]
+    a0, b0, c0 = Matrix(ata).inverted() @ Vector(atz)
+    norm = math.sqrt(1+b0*b0+c0*c0)
+
+    def height(p):
+        return (p.z-a0-b0*p.x-c0*p.y)/norm
+
+    resid = [height(p) for p in soles]
+    others = sorted((min(height(p) for p in world_verts(o)), o.name) for o in meshes if o.name not in feet)
     legs = tuple(getattr(ft, 'LEG_PARTS', ()))  # parts that carry the feet (arms, struts)
-    body = [(z, n) for z, n in others if not (legs and n.startswith(legs))] or others
-    ground = {'feet': feet, 'ground_z_units': round(plane, 3),
-              'foot_level_spread_m': round((max(foot_z.values())-plane)*M, 3),
-              'lowest_other_part': others[0][1], 'deck_clearance_m': round((others[0][0]-plane)*M, 3),
-              'lowest_body_part': body[0][1], 'body_clearance_m': round((body[0][0]-plane)*M, 3)}
+    body = [(h, n) for h, n in others if not (legs and n.startswith(legs))] or others
+    ground = {'feet': feet, 'deck_plane_units': {'z0': round(a0, 3), 'dz_dx': round(b0, 4), 'dz_dy': round(c0, 4)},
+              'stance_pitch_deg_nose_down': round(math.degrees(math.atan(b0)), 2),
+              'stance_roll_deg': round(math.degrees(math.atan(c0)), 2),
+              'foot_level_spread_m': round((max(resid)-min(resid))*M, 3),
+              'lowest_other_part': others[0][1], 'deck_clearance_m': round(others[0][0]*M, 3),
+              'lowest_body_part': body[0][1], 'body_clearance_m': round(body[0][0]*M, 3)}
     if ground['foot_level_spread_m'] > .01 or ground['deck_clearance_m'] <= 0:
         raise RuntimeError(f'{NAME}: parked check failed {ground}')
-    bpy.ops.mesh.primitive_plane_add(size=8*max(SW, SH), location=(0, 0, plane))
+    bpy.ops.mesh.primitive_plane_add(size=60*max(SW, SH), location=(0, 0, a0))
     deck = bpy.context.object
     deck.name = 'Parked deck plane'
+    deck.rotation_euler = (math.atan(c0), -math.atan(b0), 0)  # its normal along (-b, -c, 1)
+    deck.parent = root
     deck.data.materials.append(fg_kit.material('Deck grey', (.42, .43, .44), 0, .8))
 
 scene.render.engine = 'CYCLES'
@@ -316,6 +338,8 @@ for name in wanted:
         o.hide_render = (name != 'cockpit-check') if o.name.startswith('Pilot') else (name != 'port-side')
     if ground:
         deck.hide_render = name != 'parked'
+        root.rotation_euler = (-math.atan(c0), math.atan(b0), 0) if name == 'parked' else (0, 0, 0)
+        bpy.context.view_layer.update()
     for ob in meshes:  # cutaway: see the seated pilot through hull and canopy
         if name == 'cockpit-check':
             ob['_mats'] = [s.material.name if s.material else '' for s in ob.material_slots]
@@ -331,6 +355,7 @@ for o in proxies:
     o.hide_render = False
 if ground:
     deck.hide_render = True
+    root.rotation_euler = (0, 0, 0)
 for ob in meshes:
     if '_mats' in ob:
         for s, mn in zip(ob.material_slots, ob['_mats']):
