@@ -2,7 +2,8 @@
 
     python compose_c4.py            # review stills in review/ (1920x1080) and a contact sheet
     python compose_c4.py --frames   # every frame to build/cinematic/c4-road-and-port/frames,
-                                    # timeline.json, and the review mp4 with the voice
+                                    # timeline.json, and the review mp4s with the cues mixed
+    python compose_c4.py --mux      # timeline.json and the mp4s again from existing frames
 
 Back to front: five registered painted plates (c4_sheets.py) slide at their c4_camera.py
 rates; the moving cards (c4_cards.py) ride the layer they belong to, placed from the same
@@ -401,8 +402,12 @@ def frame_image(t):
 # ------------------------------------------------------------------ contract data
 
 def audio_cues():
-    """(t, sound_id, volume): Castle's Nessa memory, in the cabin, unprocessed (dialogue)."""
-    return [(cam.VOICE_IN, VOICE_SOUND, 1.0)]
+    """(t, sound_id, volume[, until]): the shared cabin bed from C3 (first-open-sky/c3_audio.py)
+    under the whole shot, but about 12 dB under her speech (C3's 0.55 sat level with it), so
+    the cut reads as the room settling as she starts; Castle's Nessa memory, in the cabin,
+    unprocessed (dialogue)."""
+    return [(0.0, "jangala_arrival_cabin_bed", 0.25, DURATION),
+            (cam.VOICE_IN, VOICE_SOUND, 1.0)]
 
 
 def overlays():
@@ -472,7 +477,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--frames", action="store_true")
     ap.add_argument("--jobs", type=int, default=8)
+    ap.add_argument("--mux", action="store_true", help="rebuild timeline.json and the mp4s from existing frames")
     a = ap.parse_args()
+    if a.mux:
+        mux()
+        return
     (BASE / "review").mkdir(exist_ok=True)
     n = round(DURATION * FPS)
     print("C4 %.3f s, %d frames; voice at %.2f s" % (DURATION, n, cam.VOICE_IN))
@@ -494,16 +503,42 @@ def main():
             if done % 48 == 0:
                 print("frame", done, flush=True)
         list(pool.imap_unordered(review_frame, range(n), chunksize=6))
+    mux()
+
+
+def review_audio(path):
+    """The cues mixed for review: processed sounds where processAudio has built them, else the
+    source (the bed has no processing)."""
+    built = ROOT / "mod" / "sounds" / "story" / "jangala-arrival"
+    src = ROOT / "asset-pipeline" / "src" / "tool" / "resources" / "audio" / "jangala-arrival"
+    inputs, graph, labels = [], [], []
+    for k, cue in enumerate(audio_cues()):
+        t, sid, vol = cue[:3]
+        loop = len(cue) > 3
+        f = built / (sid + ".ogg")
+        f = f if f.exists() else src / (sid + ".flac")
+        inputs += (["-stream_loop", "-1"] if loop else []) + ["-i", str(f)]
+        graph.append("[%d:a]aformat=sample_rates=44100:channel_layouts=stereo,volume=%.2f,adelay=%d:all=1%s[a%d]"
+                     % (k, vol, round(t * 1000), ",atrim=0:%.3f" % cue[3] if loop else "", k))
+        labels.append("[a%d]" % k)
+    graph.append("%samix=inputs=%d:normalize=0:duration=longest,atrim=0:%.3f[m]" % ("".join(labels), len(labels), DURATION))
+    subprocess.run(["ffmpeg", "-hide_banner", "-v", "error", "-y", *inputs, "-filter_complex", ";".join(graph),
+                    "-map", "[m]", "-c:a", "pcm_s16le", str(path)], check=True)
+
+
+def mux():
+    n = round(DURATION * FPS)
     timeline = dict(shot="c4-road-and-port", duration=DURATION, fps=FPS, size=[W, H], frames=n,
                     captions=[dict(t_in=a_, t_out=b_, speaker=s_, text=x_) for a_, b_, s_, x_ in captions()],
-                    overlays=overlays(), audio_cues=[dict(t=t_, sound=s_, volume=v_) for t_, s_, v_ in audio_cues()])
+                    overlays=overlays(), audio_cues=[dict(zip(("t", "sound", "volume", "until"), c)) for c in audio_cues()])
     (OUT / "timeline.json").write_text(json.dumps(timeline, indent=1) + "\n", encoding="utf-8")
-    voice = ROOT / "mod" / "sounds" / "story" / "jangala-arrival" / (VOICE_SOUND + ".ogg")
+    mix = OUT / "c4-review-audio.wav"
+    review_audio(mix)
     for src, name in (("frames/%05d.png", "c4-road-and-port.mp4"), ("review-frames/%05d.jpg", "c4-road-and-port-captioned.mp4")):
         subprocess.run(["ffmpeg", "-hide_banner", "-v", "error", "-y", "-framerate", str(FPS), "-i", str(OUT / src),
-                        "-i", str(voice), "-filter_complex", "[1:a]adelay=%d|%d,apad[a]" % (cam.VOICE_IN * 1000, cam.VOICE_IN * 1000),
-                        "-map", "0:v", "-map", "[a]", "-t", "%.3f" % DURATION, "-c:v", "libx264", "-pix_fmt", "yuv420p",
-                        "-crf", "16", "-preset", "slow", "-c:a", "aac", "-b:a", "192k", str(OUT / name)], check=True)
+                        "-i", str(mix), "-map", "0:v", "-map", "1:a", "-t", "%.3f" % DURATION, "-c:v", "libx264",
+                        "-pix_fmt", "yuv420p", "-crf", "16", "-preset", "slow", "-c:a", "aac", "-b:a", "192k",
+                        str(OUT / name)], check=True)
     print("wrote", OUT)
 
 

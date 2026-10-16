@@ -1,8 +1,9 @@
 # Story — Warship tactics: fleet manoeuvres, spacing and a fight worth watching
 
-Status: ACTIVE — slice 1 (spacing and hull contact) built; slice 2 (group roles and manoeuvres) in progress
+Status: ACTIVE — slices 1 (spacing and soft hull contact) and 2 (group roles and manoeuvres) built; slice 3 (durability calibration) in progress
 
 Written: 2026-10-16
+Updated: 2026-10-16 — soft contact, group manoeuvres built and measured
 
 Read `air-nouns.md` (**Overhead ships**) and `warship-behaviours.md` (all Decided sections, especially ship against
 ship, ships of the line and round two) first. Vocabulary (warship, mount, duel helm, standoff law, bow and broadside
@@ -185,26 +186,49 @@ Once a second, per side: the hunters are those fighting hulls with their duel he
 
 ### Spacing and contact (slice 1)
 
-- **Hulls do not pass through each other.** Today they do: a hull has no contact with another hull at all. The rule
-  is physical and applies to every pair of hulls over the battle, friend or foe: where two footprints overlap they are
-  pushed apart along the line between them, the lighter (by hull mass) moving more, and their closing speed along
-  that line is taken out. No damage is dealt: ramming is not modelled (open question).
-- **Friendly hulls keep their distance.** A ship fighting hulls or escorting keeps the screen line's gap (four cells)
-  from every friendly hull: its station is moved clear of a friend's position and station, and its course is bent away
-  from a friend it would close inside that gap within ten seconds. This is what stops two hunters flying into the same
-  air even before the group layer gives them different work. An escort's screen is a formation already spaced by its
-  geometry, so within it the helm refuses only an actual touch.
-- **A hull its mission holds does not yield.** Built, contact moves only hulls their own helm is flying (fighting a
-  hull, escorting, leaving, piloted, passing low); a hull on a mission station, route or order gives no way, and two
-  such hulls laid over each other are left where the mission put them. Several evidence scenes stage a capital beside
-  another as a point-defence picket or a fixed target, and they keep measuring what they were written for.
+- **Warships do not overlap; fighters may.** Contact applies to every pair of hulls frigate-sized and up, friend or
+  foe, measured on their real footprints (the hull rectangle at flight presence, at each hull's own heading, by
+  separating axes, not a circle). Fighters, bombers, drones and boats (vanilla `hullSize` FIGHTER) take no part and
+  fly over a capital freely; falling wrecks, hulls in the cloud deck, on a berth or in a low hover are out of contact.
+- **Contact is soft.** Where two footprints overlap, each is given a separating acceleration along the line between
+  their centres, growing with the depth of the overlap (capped), plus a damping of the speed they are still closing
+  at; the parting speed never exceeds half the slower yielding hull's top speed. Way is shared by area, the smaller
+  hull giving more. Momentum is respected: the hulls slide apart over seconds, no hard stop and no teleport. Only an
+  overlap deeper than a quarter of the narrower beam is also corrected in position, as a backstop. No damage is dealt:
+  ramming is not modelled (open question).
+- **Avoidance is the behaviour, contact the backstop.** A ship fighting hulls, escorting or leaving bends its course
+  away from any hull, friend or foe, that it would close inside the screen line's gap (four cells), looking ahead as
+  far as the closest approach or its own station, whichever is sooner, and never less than twice the time the hull
+  takes to reach its top speed, so a heavy ship starts giving way in time. A ship flying a manoeuvre turns its bow
+  onto the clear course instead of crabbing sideways. Its station is moved clear of a friend's position and station.
+  Within a formation (an escort's screen) the gap kept is two cells, and an escort carries its charge's way as well as
+  closing on its slot, so it holds its place instead of trailing into the charge's side.
+- **A hull its mission holds at rest does not yield.** Contact moves hulls their own helm is flying (fighting a hull,
+  escorting, leaving, piloted, passing low) and any hull under way at more than a quarter of its top speed. A hull at
+  rest on a mission station gives no way, and two such hulls a mission has laid over each other are left there:
+  several evidence scenes stage a capital beside another as a picket or a fixed target.
 
-Measured with slice 1 (`warship-tactics`, `greyhook-duel`; `-Dbattle.warship.hullContact=false` is the control): the
-least friendly gap over Black Sluice went from -29 to -37 cells (12 to 116 seconds of two friends inside each other)
-to -0.5 to 0.0 (at most two ticks of touching); the pack against the escorted Dominator from -14.7 cells and 4,355
-ticks of overlap to a least gap of 7 cells; the line of battle's hostile hulls from 45.6 cells deep inside each other to
-touching. `frigate-climb-out` was re-laid: at flight presence six its Hounds were staged inside the rig and on a map too
-short to hold them abreast it.
+Measured with slices 1 and 2 (`warship-tactics`, `greyhook-duel`; `-Dbattle.warship.hullContact=false` and
+`-Dbattle.warship.tactics=false` are the controls). Over Black Sluice, across the five duel seeds:
+
+| | before | slices 1 and 2 |
+| --- | --- | --- |
+| least friendly gap (cells) | -29 to -37 | +2.9 to +4.8 |
+| ticks with two friends overlapping | 372 to 3,485 | 0 |
+| fight, first hit to end (s) | 51 to 181 | 155 to 169 |
+| losses (Hounds / Wolfs) | 1-2 / 0-2 | 1 / 1 on every seed |
+| damage to the Greyhook's side / to the Wolfs | 4,100-24,334 / 1,800-20,410 | 9,862-12,446 / 7,835-12,427 |
+| Wolf targets | both on one hull for long stretches | one Wolf pins the Hounds (38-62% on each), the other flanks to the Greyhook (59-63%) |
+
+The pack against the escorted Dominator holds different hulls on every escorted tick; manoeuvres last 20 to 57 seconds
+on average and each hunter's range to its target opens by a quarter or more and closes again. The line of battle keeps
+its second in the lead's wake. `fighter-over-capital` is the exemption's control: a Broadsword lies over the Onslaught
+for a hundred-odd ticks while a Wolf on the same course goes round it. The Greyhook's fighting withdrawal circuit is
+a manoeuvre of the same kind, owned by its mission rather than by the group.
+
+`frigate-climb-out` was re-laid: at flight presence six its Hounds were staged inside the rig and on a map too short
+to hold them abreast it. A hull on its lift run obstructs (its escorts keep clear of it) but does not yield: a Hound
+circling over the berthed Greyhook was found inside her when her lift ended.
 
 ## Slices
 

@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a14644-8a5b-78a0-87e9-e34676ebc0a6",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a14644-8a5b-78a0-87e9-e34676ebc0a6\\exec-988fe835-e4d0-4dc4-aa20-287eeb88d596.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-surface\\generated\\sheet-starboard-flank.png",
+    "sha256": "33657c2df42d3aa65d66f869832461d471daa9b33f18560d6ee93ebd0402bdd2",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-surface\\prompts\\sheet-starboard-flank.prompt.txt",
+  "promptSha256": "be6022a6dede001d3d72e97b8958183912578abbaf475ec031b2e133f75b005a",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: layout authority: the four shapes, their exact outlines, positions and sizes, and their flat colours\nImage 2: INPUT 2: material/finish only, never layout\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of single armour faces of one 3D spacecraft (a battered industrial freighter), each face seen square-on and drawn alone as a flat-coloured shape on a plain light grey background:\ntop-left: a dark gunmetal steel sealed sectional cargo-bay door, outer face, seen from the side (a wide rectangle; it is a roll-up door of horizontal steel sections);\ntop-right: two dark gunmetal steel armour belt plates side by side, starboard face (two separate shapes with a gap between them);\nbottom-left: the bow shield armour module's oxide-orange starboard flank and its lower raked edge;\nbottom-right: the dark gunmetal steel armour belt plate on the bow module, starboard face (a long low band).\nINPUT 2 is the SAME ship's port side, already painted (these four faces are on the opposite, starboard side): it is the finish to match. Use its paint colours, wear density, chipping, grime, seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four faces in INPUT 1 as that worn industrial hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole in a shape stays plain background grey.\n- Each shape is a flat steel armour surface. Add painted surface detail inside its outline only: plate seams and welded joints (on the door: the horizontal joints between its sections), rows of fasteners and rivets, flush access panels, scuffed and lightly chipped paint, a thin even film of grime. Nothing may stand out from the surface or cross the outline.\n- Keep each shape's colour: oxide-orange shapes stay faded oxide-orange armour paint, gunmetal shapes stay dark gunmetal steel. Do not repaint any shape another colour, and do not add cream, white or different-coloured patches or repair plates.\n- Weathering is light and even across each whole shape. No soot, scorch marks, burns, rust streaks, impact damage, dents, holes, large stains or any single concentrated area of wear: those are added separately later.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\second-wind-surface\\guide\\sheet-starboard-flank-guide.png",
+      "sha256": "09da116bf1a8d4527b65894a93aa1d9954a6e66f8026bab43ee4887e3ebd72b4",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: layout authority: the four shapes, their exact outlines, positions and sizes, and their flat colours"
+    },
+    {
+      "path": "art-source\\company-prologue\\second-wind-surface\\reference\\finish-reference.png",
+      "sha256": "cee363a918c8013b9aee282642caca6d825349e8b09adedcd5ad74f0926f76d7",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: material/finish only, never layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to apply the reference finish while preserving the layout and outlines in Image 1."
+  ],
+  "usage": {
+    "input_tokens": 70983,
+    "cached_input_tokens": 57728,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 812,
+    "reasoning_output_tokens": 19
+  },
+  "elapsedSeconds": 62.9
+}

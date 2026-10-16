@@ -231,7 +231,8 @@ python compose_c4.py --frames           # build/cinematic/c4-road-and-port/: fra
 
 `compose_c4.py` also provides the runtime contract's data: `captions()` (three pages in
 C1's paging, speaker `Castle`, drawn as "CASTLE / SECOND WIND"), `overlays()` (none)
-and `audio_cues()` (`jangala_arrival_nessa` at 1.0 s, volume 1). `--frames` writes them
+and `audio_cues()` (C3's `jangala_arrival_cabin_bed` at 0.25 for the whole shot, and
+`jangala_arrival_nessa` at 1.0 s, volume 1). `--frames` (or `--mux`) writes them
 to `timeline.json`, a clean `c4-road-and-port.mp4` with the voice, and a
 `-captioned.mp4` that draws C1's captions for review only.
 
@@ -296,8 +297,9 @@ cranes and tower, and more futurist structure (lattice cradles, mast arrays).
 2. **Hauler liveries.** Painted as mixed owner liveries (white, blue-grey, rust-red,
    sand) with one shared orange cab stripe, reading Wayline as a cooperative. Owner
    to confirm.
-3. **Cabin bed.** `audio.json` has no cabin rumble or ventilation yet, so the only cue
-   is the voice. A bed shared by C3, C4 and the entry belongs to the audio pass.
+3. **Bed level at the C3 cut.** C4 reuses C3's cabin bed at 0.25 (C3 plays it at
+   0.55), about 12 dB under Castle. A cue has one volume, so the bed steps down at the
+   cut; a fade in the player would smooth it if the step reads as a seam.
 4. **Showing Castle.** The owner's direction to design later (see above).
 5. **Proposal for `storyboard-v3.md`.** C4's *Motion* line says "pan". It is
    built as a truck (true parallax with rigid layers). Wording such as "one

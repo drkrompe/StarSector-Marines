@@ -55,6 +55,7 @@ public final class WarshipSystem {
     private final WarshipPointDefence pointDefence = new WarshipPointDefence();
     private final WarshipAirFire airFire = new WarshipAirFire(shells, pointDefence);
     private final WarshipShipFire shipFire = new WarshipShipFire(shells, pointDefence);
+    private final WarshipTactics tactics = new WarshipTactics();
     private final List<WarshipWreck> wrecks = new ArrayList<>();
     private final List<WarshipWreck> wrecksView = Collections.unmodifiableList(wrecks);
     private final Set<Warship> wrecked = Collections.newSetFromMap(new IdentityHashMap<>());
@@ -397,11 +398,12 @@ public final class WarshipSystem {
         ships.removeIf(Warship::destroyed);
         tickWrecks(dt, sim);
         shipFire.held(hullFireHeld(sim));
+        tactics.plan(clock, ships, shipFire.held(), hullAirspace(sim.getGrid().getWidth(), sim.getGrid().getHeight()));
         for (Warship ship : ships) {
             ship.tickMissileGate(dt);
             doctrine(dt, sim, ship);
             shipFire.chooseTarget(ship, ships);
-            duelHelm(sim, ship);
+            duelHelm(sim, ship, tactics, clock);
             float entryBefore = ship.entrySeconds();
             ship.addEntrySeconds(dt);
             ship.addLiftSeconds(dt, 0.5f * sim.getGrid().getWidth(), 0.5f * sim.getGrid().getHeight());
@@ -442,7 +444,7 @@ public final class WarshipSystem {
             }
         }
         // Hulls do not pass through one another, friend or foe.
-        WarshipSpacing.separate(ships);
+        WarshipSpacing.separate(ships, dt);
         ships.removeIf(Warship::departed);
         pointDefence.ageMarks(dt);
         interceptables.clear();
@@ -970,12 +972,42 @@ public final class WarshipSystem {
         float dx = tx - ship.x;
         float dy = ty - ship.y;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
+        boolean flying = keepsClear && ship.manoeuvre().kind() != null
+                && ship.manoeuvre().role() != WarshipManoeuvre.Role.NONE;
+        float top = flying ? ship.maxSpeed * ship.manoeuvre().speedShare : ship.maxSpeed;
         float speed = ship.isPassingThrough() ? ship.maxSpeed
-                : Math.min(ship.maxSpeed, (float) Math.sqrt(2f * ship.deceleration * dist));
+                : Math.min(top, (float) Math.sqrt(2f * ship.deceleration * dist));
         float wantX = dist > 0f ? dx / dist * speed : 0f;
         float wantY = dist > 0f ? dy / dist * speed : 0f;
+        Warship charge = keepsClear ? WarshipEscort.liveLead(ship) : null;
+        if (charge != null && !charge.isPassingThrough()) {
+            // A screen's station moves with its charge: the escort keeps its charge's way on as well as closing on
+            // its place, so it holds the place instead of trailing it into the charge's side.
+            wantX += charge.velocityX;
+            wantY += charge.velocityY;
+            float s = (float) Math.hypot(wantX, wantY);
+            if (s > top && s > 0f) {
+                wantX *= top / s;
+                wantY *= top / s;
+            }
+        }
         if (keepsClear) {
-            float[] bent = WarshipSpacing.avoid(ship, fleet, wantX, wantY);
+            if (flying) {
+                // A ship flying a manoeuvre travels along its nose, as a ship does.
+                float[] held = WarshipTactics.alongNose(ship, wantX, wantY);
+                wantX = held[0];
+                wantY = held[1];
+            }
+            // Keeping clear of another hull is the one thing that may move a ship off its nose.
+            // Looking no further ahead than the station: a course that stops short of a hull is not closing on it.
+            float wantSpeed = (float) Math.hypot(wantX, wantY);
+            float horizon = wantSpeed > 1e-3f ? dist / wantSpeed : 0f;
+            float[] bent = WarshipSpacing.avoid(ship, fleet, wantX, wantY, horizon);
+            if (flying && !Float.isNaN(ship.manoeuvre().heading)
+                    && (bent[0] != wantX || bent[1] != wantY) && Math.hypot(bent[0], bent[1]) > 0.2f * ship.maxSpeed) {
+                // and the helm turns the bow onto the clear course rather than crabbing along it.
+                ship.manoeuvre().heading = WarshipFacing.bearing(0f, 0f, bent[0], bent[1]);
+            }
             wantX = bent[0];
             wantY = bent[1];
         }
@@ -1006,12 +1038,16 @@ public final class WarshipSystem {
     }
 
     /**
-     * Whether a ship's helm keeps clear of friendly hulls: one fighting a hull with its duel helm, or escorting. A
+     * Whether a ship's helm keeps clear of other hulls: one fighting a hull with its duel helm, escorting, or leaving. A
      * ship on a mission station, a route or a pass is placed where the mission wants it.
      */
     private static boolean keepsClear(Warship ship) {
-        if (ship.piloted() || ship.isPassingThrough() || ship.lowPass() != null || ship.lowHovering()) return false;
-        return (ship.hullTarget() != null && ship.duelHelm()) || WarshipEscort.liveLead(ship) != null;
+        if (ship.fighterSize() || ship.piloted() || ship.isPassingThrough() || ship.lowPass() != null
+                || ship.lowHovering()) {
+            return false;
+        }
+        return (ship.hullTarget() != null && ship.duelHelm()) || WarshipEscort.liveLead(ship) != null
+                || ship.departing();
     }
 
     private static void enforceLowHoverClearance(BattleSimulation sim, Warship ship, float x, float y) {
@@ -1075,7 +1111,12 @@ public final class WarshipSystem {
         boolean bring = !held.isEmpty() && held.get(0).area.bringGunsToBear();
         Warship hull = ship.hullTarget();
         if (hull != null && !bring) {
-            // Fighting a hull: the nose goes where the anti-ship guns bear on it, re-chosen as it moves.
+            // Fighting a hull: the manoeuvre's course where it sets one, else the heading that brings the guns to bear.
+            float course = ship.manoeuvre().heading;
+            if (!Float.isNaN(course)) {
+                ship.desiredHeading = course;
+                return;
+            }
             float[] aim = WarshipShipRules.aimPoint(ship, hull);
             ship.desiredHeading = WarshipShipRules.bestHeading(ship, aim[0], aim[1]);
             return;
@@ -1264,7 +1305,9 @@ public final class WarshipSystem {
      * ({@link WarshipDuelHelm}). The mission's station is kept and given back when the fight ends (no hull
      * to fight, the order withdrawn) or the ship is taken over (piloted, departing, on a route or a low pass).
      */
-    private static void duelHelm(BattleSimulation sim, Warship ship) {
+    private static void duelHelm(BattleSimulation sim, Warship ship, WarshipTactics tactics, float now) {
+        ship.manoeuvre().heading = Float.NaN;
+        ship.manoeuvre().speedShare = 1f;
         Warship target = ship.hullTarget();
         Warship lead = WarshipEscort.liveLead(ship);
         boolean free = !ship.piloted() && !ship.departing() && !ship.isPassingThrough() && ship.lowPass() == null
@@ -1291,7 +1334,10 @@ public final class WarshipSystem {
             ship.duelHome(ship.hasStation() ? new float[]{ship.stationX(), ship.stationY()}
                     : new float[]{Float.NaN, Float.NaN});
         }
-        float[] at = duelStation(sim, ship, target, null);
+        // A hunter flies its group's manoeuvre; a ship with none flies the single-ship duel station.
+        float[] at = tactics.fly(ship, target, now,
+                sim.warships().hullAirspace(sim.getGrid().getWidth(), sim.getGrid().getHeight()), sim.warships().ships());
+        if (at == null) at = duelStation(sim, ship, target, null);
         ship.stationTo(at[0], at[1]);
     }
 
@@ -1308,6 +1354,11 @@ public final class WarshipSystem {
                         WarshipEscort.noseBearingDegrees(target), range, ship.serial() % 2 == 0,
                         0.5f * ship.lengthCells, airspace);
         if (lead == null) return at;
+        if (WarshipTactics.ENABLED) {
+            // A screen interposes: in line between its charge and what it is fighting.
+            float[] p = WarshipTactics.interpose(ship, lead, target, WarshipEscort.escortsOf(lead, sim.warships().ships()));
+            return airspace.settle(p[0], p[1], WarshipDuelHelm.EDGE_MARGIN_CELLS + 0.5f * ship.lengthCells);
+        }
         float[] held = WarshipDuelHelm.leashed(at, lead.centerX(), lead.centerY(), 0.5f * lead.lengthCells + mine * WarshipDuelHelm.ESCORT_LEASH_REACH_SHARE);
         return airspace.settle(held[0], held[1], WarshipDuelHelm.EDGE_MARGIN_CELLS + 0.5f * ship.lengthCells);
     }

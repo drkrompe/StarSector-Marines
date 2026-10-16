@@ -1,0 +1,42 @@
+{
+ "turret-small-top": {
+  "raw_iou": 0.985,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9934,
+  "scale": [
+   1.00333,
+   1.002
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "turret-4-top": {
+  "raw_iou": 0.9691,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9848,
+  "scale": [
+   1.00205,
+   1.0
+  ],
+  "boundary_p95_px": 2.0
+ },
+ "turret-small-side": {
+  "raw_iou": 0.9682,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9799,
+  "scale": [
+   1.00255,
+   1.02712
+  ],
+  "boundary_p95_px": 2.0
+ },
+ "turret-4-side": {
+  "raw_iou": 0.9585,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9777,
+  "scale": [
+   1.00383,
+   1.03125
+  ],
+  "boundary_p95_px": 2.0
+ }
+}

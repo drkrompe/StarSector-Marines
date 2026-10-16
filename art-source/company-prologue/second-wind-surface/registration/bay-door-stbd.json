@@ -1,0 +1,59 @@
+{
+ "part": "bay-door-stbd",
+ "sheet": "starboard-flank",
+ "tile": 0,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9981,
+ "raw_iou": 0.9911,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9972,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9911
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00255,
+    1.0099
+   ],
+   "offset_px": [
+    -0.16,
+    -4.04
+   ],
+   "iou": 0.9965
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00155,
+    1.0099
+   ],
+   "offset_px": [
+    -0.16,
+    -3.54
+   ],
+   "iou": 0.9972
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 0.97,
+  "p95_px": 3.0,
+  "max_px": 3.0
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.31,
+  "p95_px": 1.0,
+  "max_px": 1.0
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

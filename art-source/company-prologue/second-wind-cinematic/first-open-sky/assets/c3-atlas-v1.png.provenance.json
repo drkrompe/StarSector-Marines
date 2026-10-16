@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a1466d-708e-7690-a11c-5d44bca895cc",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1466d-708e-7690-a11c-5d44bca895cc\\exec-d2f4893f-434a-421d-8fc8-115764454303.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\first-open-sky\\assets\\c3-atlas-v1.png",
+    "sha256": "cf9bcdc87849ea0c529cc54433dd87ac469c9fce233c3001bbfb38de59e2b85e",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\first-open-sky\\prompts\\c3-atlas-v1.txt",
+  "promptSha256": "3da460a05129ec25e226e7950473530354f5a2c17a5cd429f294a06c8e73bc35",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Exact silhouette, pose, scale and layout authority; fill this silhouette, never move it\nImage 2: Identity and livery reference only; not its painterly style\n\nUse case: photographic repaint of one transparent ship cutout, for a grounded science-fiction cinematic (Starsector). Wide landscape canvas the same shape as image 1, with genuine RGBA transparent background.\n\nImage 1 is the EXACT SILHOUETTE, POSE, SCALE AND LAYOUT AUTHORITY: a grey render of an Atlas civilian container freighter, a 300-metre industrial lifter, seen from slightly below and to the side, bow to the right, engines at the left. Fill in this exact silhouette; do not move, rotate, resize or re-pose the ship and do not change its outline. Keep every structural element where it is: the stacked cargo container modules in their grid, the central longitudinal service spine with its pipes, the heavy engine cluster and nozzles at the left, the rounded armoured bow and bridge at the right with its small antennas.\n\nImage 2 is IDENTITY AND LIVERY REFERENCE ONLY (an earlier painted version of the same ship): muted rust-red, olive, ochre and blue-grey container colours, worn grey steel structure. Do not copy its painterly brush style.\n\nRender it as a real, enormous, weathered industrial ship photographed in daylight over a tropical planet: worn steel, dirt streaks, faded container paint, fine panel seams at a believable scale for a very large object. Light: bright mid-morning sun from the upper left and slightly behind the camera; the top and upper-left edges are lit, the long flank facing us is in partial soft shade from the sky, the underside darker in blue-grey shade. At most a faint warm glow in the engine nozzles; no exhaust plumes.\n\nOnly the isolated ship on actual transparent empty background, including the gaps between structures: no sky, clouds, haze, terrain, cast shadow, other ships, text, labels, logo, watermark or border. No CGI gloss, no toy look, no painterly brushwork, no cartoon linework, no rim glow.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\first-open-sky\\guides\\c3-atlas-guide-flat.png",
+      "sha256": "cb674d3e386b66bdecea22338d0b54f7235c44bdc34bdbd2bb17c5470caad8ae",
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Exact silhouette, pose, scale and layout authority; fill this silhouette, never move it"
+    },
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\parallax-window\\traffic\\atlas-painted-v1.png",
+      "sha256": "0a3c196dee8cb13ef5d1e81fc9c817502751ba20fb9ffd4069cb0f69dfe54fa3",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Identity and livery reference only; not its painterly style"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to create one photographic repaint, preserving Image 1’s placement and silhouette with a transparent background.\n"
+  ],
+  "usage": {
+    "input_tokens": 45416,
+    "cached_input_tokens": 25728,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 498,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 63.1
+}

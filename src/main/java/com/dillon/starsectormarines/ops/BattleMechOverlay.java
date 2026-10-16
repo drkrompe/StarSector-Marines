@@ -39,6 +39,8 @@ final class BattleMechOverlay {
     private UiDocument document;
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
+    private BattleMechSectionPlate sectionPlate;
+    private UiViewport sectionViewport;
     private BattleMechOverlayModel.Presentation presentation =
             new BattleMechOverlayModel.Presentation(false);
 
@@ -56,6 +58,9 @@ final class BattleMechOverlay {
         if (document == null) installDocument();
         else document.layout(viewport.documentWidth(), viewport.documentHeight());
         input = new StarsectorUiInputAdapter(document, viewport);
+        if (sectionPlate == null) sectionPlate = new BattleMechSectionPlate();
+        sectionViewport = BattleMechSectionPlate.above(viewport);
+        updateSections(sim);
     }
 
     private void installDocument() {
@@ -98,18 +103,34 @@ final class BattleMechOverlay {
     void update(float realDt, BattleSimulation sim) {
         simulation = sim;
         presentation = updateModel(sim);
+        updateSections(sim);
         if (markupInstance != null) markupInstance.flush();
         if (document != null) document.advance(realDt);
+        if (sectionPlate != null && sectionPlate.visible()) sectionPlate.document().advance(realDt);
+    }
+
+    /** The selected mech's section paper-doll, shown above the panel while the panel is. */
+    private void updateSections(BattleSimulation sim) {
+        if (sectionPlate == null) return;
+        long id = selection.getSelectedUnitEntityId();
+        sectionPlate.update(presentation.visible() && sim != null && id != 0L
+                ? sim.world().mechLoadout(id) : null);
     }
 
     void render(float alphaMult) {
         if (presentation.visible() && document != null && viewport != null) {
             document.render(viewport, alphaMult);
+            if (sectionPlate != null) sectionPlate.render(sectionViewport, alphaMult);
         }
     }
 
     BattleHudSurface surface() {
         return presentation.visible() && document != null && viewport != null ? new BattleHudSurface(document, viewport) : null;
+    }
+
+    /** The section paper-doll's placement while it shows, for the host's occupied-space reckoning. */
+    BattleHudSurface sectionSurface() {
+        return presentation.visible() && sectionPlate != null ? sectionPlate.surface(sectionViewport) : null;
     }
 
     void processInput(List<InputEventAPI> events) {
@@ -184,6 +205,8 @@ final class BattleMechOverlay {
     }
 
     boolean blocksWorldPointer(float x, float y) {
-        return presentation.visible() && insidePanel(x, y);
+        return presentation.visible() && (insidePanel(x, y) || sectionPlate != null && sectionPlate.visible() && sectionViewport != null
+                && x >= sectionViewport.screenX() && x < sectionViewport.screenX() + sectionViewport.width()
+                && y >= sectionViewport.screenY() && y < sectionViewport.screenY() + sectionViewport.height());
     }
 }

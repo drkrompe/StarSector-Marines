@@ -328,6 +328,7 @@ class ConquestTrialEvidenceTest {
             FireSupportProbe fireSupport = new FireSupportProbe();
             ContestedAirProbe contested = new ContestedAirProbe(fortCentre[0], fortCentre[1], FORT_REACH);
             BunkerProbe bunkerProbe = new BunkerProbe();
+            MechTimeToKillProbe mechs = new MechTimeToKillProbe();
             int wallOpenAtStart = openedWallCells(sim, ground);
             FightingPositionIndex startPositions = sim.fightingPositions();
             assertTrue(startPositions.runCount() > 0, "the trial fort stands a belt of fighting positions");
@@ -351,6 +352,7 @@ class ConquestTrialEvidenceTest {
                 fireSupport.sample(sim);
                 contested.sample(sim);
                 bunkerProbe.sample(sim);
+                mechs.sample(sim);
                 for (SatchelChargeService.ChargeView charge : sim.satchelCharges().activeCharges()) {
                     if (charge.targetId() == 0L) wallCharges.add(charge.id());
                 }
@@ -399,7 +401,7 @@ class ConquestTrialEvidenceTest {
                     + String.format(Locale.ROOT, "- companies (marine trace notes): formed %d, committed %d, broken %d, "
                             + "stood down %d, dissolved %d, recruits released %d, strikes asked %d%n",
                             life[0], life[1], life[2], life[3], life[4], life[5], life[6])
-                    + forts.describe(sim) + fireSupport.describe(sim) + contested.describe(sim) + ConquestCommandBalanceTest.fortOrders(trace)
+                    + mechs.describe() + forts.describe(sim) + fireSupport.describe(sim) + contested.describe(sim) + ConquestCommandBalanceTest.fortOrders(trace)
                     + positionUse.describe();
             JSONObject json = new JSONObject().put("fixture", f).put("winner", winner).put("ticks", ticks)
                     .put("objectiveTakenTick", objectiveTaken).put("keepTakenTick", keepTaken)
@@ -421,6 +423,7 @@ class ConquestTrialEvidenceTest {
                             .put("marine", sim.airPool().callsFromForts(Faction.MARINE)))
                     .put("skyNotes", skyNotes(trace))
                     .put("bunker", bunkerProbe.json())
+                    .put("mechs", mechs.json())
                     .put("wallChargesSet", wallCharges.size())
                     .put("potCloudsStood", screenClouds.size())
                     .put("sectionsOpened", sim.fieldMortars().sections().opened())

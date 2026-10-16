@@ -1,0 +1,345 @@
+{
+ "arm-tops": {
+  "what": "grapple arm from above: boom and forearm tops (pale), pivots, ram, wrist and head (gunmetal)",
+  "sheet": "arm-a",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Grapple arm boom",
+    "seed": [
+     40.0,
+     18.5,
+     17.9
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Grapple arm forearm",
+    "seed": [
+     49.0,
+     12.6,
+     15.5
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Arm elbow knuckle",
+    "seed": [
+     47.4,
+     16.6,
+     17.6
+    ],
+    "faces": [
+     6
+    ]
+   },
+   {
+    "object": "Arm shoulder pedestal",
+    "seed": [
+     32.5,
+     20.4,
+     16.7
+    ],
+    "faces": [
+     6
+    ]
+   },
+   {
+    "object": "Boom luff ram",
+    "seed": [
+     37.1,
+     21.9,
+     17.0
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Grapple wrist yoke",
+    "seed": [
+     50.4,
+     9.2,
+     14.5
+    ],
+    "faces": [
+     6
+    ]
+   },
+   {
+    "object": "Grapple head body",
+    "seed": [
+     52.4,
+     9.0,
+     14.4
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Grapple jaw.001",
+    "seed": [
+     54.7,
+     9.0,
+     14.1
+    ],
+    "faces": [
+     5
+    ]
+   }
+  ],
+  "face_count": 8,
+  "area_units2": 109.8,
+  "view_dir": [
+   0.08961992129272171,
+   -0.01991553806504927,
+   0.9957769032524635
+  ],
+  "screen_up": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "cone_cos": 0.9,
+  "extent_units": [
+   25.53,
+   15.9
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    41.34867972135544,
+    15.826861573383212
+   ],
+   "ortho_width": 32.87801553882677
+  },
+  "native_texels_per_unit": 24.2
+ },
+ "arm-boom-port": {
+  "what": "grapple arm from port: boom outboard side, ram, pivots, slew gear casing and winch drum",
+  "sheet": "arm-a",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Grapple arm boom",
+    "seed": [
+     40.4,
+     20.2,
+     16.6
+    ],
+    "faces": [
+     3
+    ]
+   },
+   {
+    "object": "Boom luff ram",
+    "seed": [
+     37.2,
+     22.2,
+     16.6
+    ],
+    "faces": [
+     3
+    ]
+   },
+   {
+    "object": "Arm shoulder pedestal",
+    "seed": [
+     33.3,
+     22.4,
+     15.4
+    ],
+    "faces": [
+     0
+    ]
+   },
+   {
+    "object": "Arm elbow knuckle",
+    "seed": [
+     48.1,
+     18.4,
+     16.1
+    ],
+    "faces": [
+     0
+    ]
+   },
+   {
+    "object": "Arm slew gear casing",
+    "seed": [
+     31.6,
+     26.7,
+     13.4
+    ],
+    "faces": [
+     1
+    ]
+   },
+   {
+    "object": "Grapple winch drum",
+    "seed": [
+     41.6,
+     29.3,
+     14.1
+    ],
+    "faces": [
+     0,
+     12
+    ]
+   }
+  ],
+  "face_count": 7,
+  "area_units2": 68.12,
+  "view_dir": [
+   0.24957608068848222,
+   0.968355193071311,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.9,
+  "extent_units": [
+   21.12,
+   6.8
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -32.26676678657532,
+    14.798583030700684
+   ],
+   "ortho_width": 24.55264967541362
+  },
+  "native_texels_per_unit": 32.3
+ },
+ "arm-forearm-out": {
+  "what": "forearm outboard/forward side with the elbow and wrist facets",
+  "sheet": "arm-a",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Grapple arm forearm",
+    "seed": [
+     50.3,
+     13.5,
+     14.4
+    ],
+    "faces": [
+     3
+    ]
+   },
+   {
+    "object": "Arm elbow knuckle",
+    "seed": [
+     49.2,
+     17.3,
+     16.1
+    ],
+    "faces": [
+     1
+    ]
+   },
+   {
+    "object": "Grapple wrist yoke",
+    "seed": [
+     51.8,
+     9.8,
+     13.2
+    ],
+    "faces": [
+     1
+    ]
+   }
+  ],
+  "face_count": 3,
+  "area_units2": 19.06,
+  "view_dir": [
+   0.9257054315077323,
+   0.37824523007842825,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.9,
+  "extent_units": [
+   9.4,
+   5.59
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -6.450719356536865,
+    14.757487297058105
+   ],
+   "ortho_width": 11.545276888273175
+  },
+  "native_texels_per_unit": 68.8
+ },
+ "arm-machinery-tops": {
+  "what": "slew gear casing top (gunmetal) and winch drum crown (pale), from above",
+  "sheet": "arm-a",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Arm slew gear casing",
+    "seed": [
+     31.6,
+     24.4,
+     15.4
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Grapple winch drum",
+    "seed": [
+     41.6,
+     27.4,
+     16.0
+    ],
+    "faces": [
+     8,
+     9
+    ]
+   }
+  ],
+  "face_count": 3,
+  "area_units2": 31.93,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "cone_cos": 0.9,
+  "extent_units": [
+   14.9,
+   6.3
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    36.749999046325684,
+    25.25
+   ],
+   "ortho_width": 17.325576516084894
+  },
+  "native_texels_per_unit": 45.8
+ }
+}
