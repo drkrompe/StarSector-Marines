@@ -591,7 +591,10 @@ retains the same existing cross-domain behavior as an autonomous hull.
   It never edits the battlefield: no walkability write, no line-of-sight
   write, no clearance invalidation. A combat outcome must not be able to
   reshape the map's connectivity, because nothing validates the map a
-  mid-battle closure leaves behind.
+  mid-battle closure leaves behind. A living dozer blade is the one vehicle
+  that edits terrain, and only in the opening direction, through the map
+  editor's destruction path: like every destruction op it can only make the
+  map more permissive, so the ordinary opened-cell flush is all it needs.
 - A vehicle is a unit with a hull. It reads its durability the way every other
   combat actor does — the shared ownership-coded gauge over its chassis, armor
   row over structure row — for as long as it is alive. A wreck drops the gauge;
@@ -650,6 +653,33 @@ center. In place of the cannon turret it carries the APC's twin roof MG at the A
 own registration, sitting on the empty turret ring. Both keep authored wreck
 frames; the dozer's blade buckles and tears with its hull
 (`art-source/vehicles/tank-heavy-gun/`, `art-source/vehicles/tank-dozer/`).
+
+The dozer's **blade** opens ground (`DozerBlade`). A blocking cell is
+*pushable* when its structure is spent through the ordinary wall channel — a
+wall cell or a sandbag, fence or crate barricade — and is above zero and at most
+the blade's threshold of 100. Ordinary city and gated-housing walls fall to it;
+fortified and fortress walls (150 and up) stand until fire has worn them under
+the threshold. Natural obstructions, registered equipment and entity-owned
+fixtures are never pushed. Low crash debris under the hull is graded flat. The
+blade bears on a strip just past the nose, across the hull's width, and spends
+80 structure a second on every pushable cell in it at once, through the same
+destruction path a breaching charge uses: a pushed wall becomes rubble, a
+pushed barricade its destroyed art, and the cell is ordinary walkable ground for
+every vehicle and unit afterwards. Bearing on pushable ground is progress, so
+the wall-contact and stall recovery leave a pushing hull alone; bearing on a
+fortified wall is not, and recovery treats it as any other wall.
+
+Route proof for a bladed hull reads a **breach view**: a routing copy of the
+grid with every pushable cell open. Its move-order proof and rolling local
+planner both use it, so ground the dozer can open is reachable for the dozer and
+for nobody else, while its physical sweep still reads the live grid — which is
+what holds the hull against a wall until the blade has pushed it down. A troop
+carrier ordered across an intact wall is refused; ordered again after the dozer
+is through, its ordinary proof finds the gap. Wall cells cost a route dearly, so
+the dozer breaches only where going round is dearer. The convoy's dispatched
+delivery proof is unchanged; the blade reaches player-ordered and directly
+driven hulls. Acceptance is the `dozer-breach` scene: the dozer opens a gap a
+troop APC drives through, against a control where the APC alone is refused.
 
 An industrial freight hauler has no passenger or turret payload; its long chassis
 and slower handling distinguish cargo from the armed escort. Reinforced story

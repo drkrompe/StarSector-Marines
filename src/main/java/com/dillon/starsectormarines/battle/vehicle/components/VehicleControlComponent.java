@@ -79,6 +79,8 @@ public final class VehicleControlComponent {
 
     /** Sim-seconds the vehicle has been continuously blocked by walls. Drives the reverse recovery. */
     public float wallStuckTime;
+    /** Blade push not yet spent as whole structure points; only a bladed hull accrues it. */
+    public float bladeCarry;
     /** Position where the vehicle first got stuck; {@link #wallStuckTime} only resets once it moves meaningfully away. */
     public float stuckOriginX, stuckOriginY;
 

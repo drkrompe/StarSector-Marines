@@ -114,6 +114,7 @@ public enum VehicleType {
      * the cannons, the heaviest plate of the line and the slowest drive. Its sheet carries the
      * breakthrough hull drawn at this longer frame's scale with the blade ahead of the nose, and
      * the APC's twin-MG frames at their own 1.42-cell registration (art-source/vehicles/tank-dozer).
+     * The blade is real: it pushes through barricades and ordinary walls in its path ({@link DozerBlade}).
      */
     DOZER_BREACHER("graphics/battle/vehicles/army-tank-dozer.png", 0, 4, -90f,
             0, 4.6f, 3.9f, 2.4f, .9f, 3.0f, .8f, 3.0f,
@@ -158,6 +159,12 @@ public enum VehicleType {
     public boolean isTank() {
         return this == BREAKTHROUGH_TANK || this == HEAVY_GUN_TANK || this == DOZER_BREACHER;
     }
+
+    /**
+     * Whether this hull carries a dozer blade that opens ground ahead of it ({@link DozerBlade}). Only the dozer
+     * breacher does; its route proof and its rolling planner read the blade's breach view instead of the live grid.
+     */
+    public boolean hasBlade() { return this == DOZER_BREACHER; }
 
     /** Only exposed tire/track tops scroll; covered technical/hauler wheels stay hidden. */
     public boolean hasAnimatedTreads() { return isApc() || isTank(); }
