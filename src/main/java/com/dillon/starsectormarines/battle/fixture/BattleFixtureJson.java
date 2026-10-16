@@ -693,6 +693,9 @@ public final class BattleFixtureJson {
                 ships.put(frozen);
             }
             encoded.put("ships", ships);
+            if (commitment.companyCarrier() != null) {
+                encoded.put("companyCarrier", boatToJson(commitment.companyCarrier()));
+            }
             powers.put(encoded);
         }
         return powers;
@@ -744,10 +747,31 @@ public final class BattleFixtureJson {
                         frozen.getString("shipName"), frozen.getBoolean("tender"), weapons,
                         frozen.has("memberId") && !frozen.isNull("memberId") ? frozen.getString("memberId") : null));
             }
+            JSONObject carrier = encoded.optJSONObject("companyCarrier");
             powers.add(new CommandPowerCommitment(
-                    encoded.getString("id"), deployments, ships));
+                    encoded.getString("id"), deployments, ships,
+                    carrier != null ? boatFromJson(carrier) : null));
         }
         return List.copyOf(powers);
+    }
+
+    private static JSONObject boatToJson(FittedBoat boat) throws Exception {
+        JSONObject encoded = new JSONObject();
+        encoded.put("type", boat.pattern().name());
+        encoded.put("platingId", boat.plating().id());
+        encoded.put("driveId", boat.drive().id());
+        encoded.put("liftId", boat.lift().id());
+        if (boat.boatId() != null) encoded.put("boatId", boat.boatId());
+        return encoded;
+    }
+
+    private static FittedBoat boatFromJson(JSONObject encoded) throws Exception {
+        return new FittedBoat(
+                enumValue(ShuttleType.class, encoded.getString("type"), "shuttle type"),
+                BoatFitting.resolve(encoded.optString("platingId", null), BoatFittingSlot.PLATING),
+                BoatFitting.resolve(encoded.optString("driveId", null), BoatFittingSlot.DRIVE),
+                BoatFitting.resolve(encoded.optString("liftId", null), BoatFittingSlot.LIFT),
+                encoded.optString("boatId", null));
     }
 
     private static void putNullable(JSONObject object, String key, String value)

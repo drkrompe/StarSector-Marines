@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.air.AirLoss;
 import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
 import com.dillon.starsectormarines.battle.power.MechDropService;
@@ -67,6 +68,9 @@ import java.util.Random;
  */
 public interface BattleView {
     default SurvivorPickupSystem survivorPickup() { return null; }
+
+    /** Every aircraft shot down so far, with what it was flying as. */
+    default List<AirLoss> getAirLosses() { return List.of(); }
 
     /** Committed ground forces whose authored arrival is still pending. */
     default int pendingGroundArrivals(Faction faction) { return 0; }
