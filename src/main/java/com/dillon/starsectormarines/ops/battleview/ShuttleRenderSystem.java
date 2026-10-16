@@ -113,9 +113,11 @@ public final class ShuttleRenderSystem implements RenderSystem {
             float pvy = pivot[1] * scaleMult;
             float cx = cam.cellToScreenX(body.x + (pvx * pc - pvy * psn));
             float cy = cam.cellToScreenY(body.y + (pvx * psn + pvy * pc) + altOffset);
+            // Falling hulls retain their paint; the shared impact/wreck branch
+            // above applies the charred tint only once they touch the ground.
             out.addSprite(RenderLayer.SHUTTLES, cache.sprite,
                     cx, cy, pxW, pxH, body.facingDegrees,
-                    mission.destroyed ? .35f : 1f, mission.destroyed ? .25f : 1f, mission.destroyed ? .2f : 1f, alphaMult);
+                    1f, 1f, 1f, alphaMult);
 
             // The same corrected nozzles and smoothed demand drive the reflected
             // light and free exhaust. Reuse the exact hull pose above, including

@@ -255,7 +255,9 @@ remain tied to physical events, never to the number of rendered particles.
 
 Aircraft crash sections use the simulation's immutable first-contact pose and
 battle time. They start joined at that pose, then spin and skid independently
-into their permanent positions. The active crash and its surviving ground wreck
+into their permanent positions. Hull colors remain unchanged throughout the
+airborne fall; the charred tint begins at ground contact. The active crash and
+its surviving ground wreck
 use the same source-sprite partitions and motion; entity removal, camera entry
 and repeated draws cannot restart the animation. Sections occupy the ground
 actor layer from contact onward, and the intact airborne shadow ends at contact.

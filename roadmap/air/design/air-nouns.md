@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — Airborne hulls break apart at ground contact, with continuous section motion into the persistent wreck.
+Updated: 2026-10-15 — Falling aircraft retain their hull colors until ground contact starts charring and breakup.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -569,8 +569,10 @@ An aircraft lost at altitude carries its horizontal momentum while falling,
 trailing fire and smoke. A slow or hovering craft loses stability, tips toward
 one side and builds lateral speed through the fall instead of receiving an
 instant kick. A fast craft keeps its existing travel. The hull stays whole
-during the fall, then separates at ground contact. Its sections inherit its
-travel, spin about their own centres and skid apart with diminishing speed
+and retains its original colors during the fall, then chars and separates at
+ground contact. Fighters and utility craft such as the Mudskipper share this
+same crash appearance. The sections inherit the hull's travel, spin about
+their own centres and skid apart with diminishing speed
 before settling. Its passengers and sortie are
 lost immediately; its guns stop firing.
 Ground impact is a separate physical event: a hull-sized explosion damages
