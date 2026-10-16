@@ -191,7 +191,8 @@ internals vocabulary without the doll.
 | Heavy lift (shipped; `air-nouns.md`, Lift) | Lift class and rating; the boat lift slot; drops flown by real company carriers. |
 | Vehicles in the bay (shipped; `mechs-nouns.md`) | Vehicle patterns; a bay space holds a mech or a vehicle; losses write back. |
 | `armor-drop-selection.md` | Pick which bay spaces come down per call; cooldown between calls; lift caps armor per mission. |
-| `vehicle-variant-ladder.md` | Fixed vehicle variants per line, each a pattern card; faction variants; no vehicle fitting. |
+| Vehicle variant ladder (shipped; `mechs-nouns.md`) | Fixed vehicle variants per line, each a pattern card; faction variants; no vehicle fitting. |
+| `tank-variant-art.md` | Art for the heavy-gun tank and dozer breacher, and the dozer's breaching. |
 
 Order: pattern cards first (they license existing weapons and chassis at once),
 then internals, then lift; vehicles in the bay and the drop choice follow lift.
