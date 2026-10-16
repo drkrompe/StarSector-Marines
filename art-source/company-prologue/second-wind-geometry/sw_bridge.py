@@ -1,12 +1,15 @@
-"""Aft command bridge on the engine-room plateau, and the fore pressure casing.
+"""Central command spine: a low armoured housing on the dorsal centreline.
 
-A squat armoured tug/freighter bridge stands aft on the dorsal centreline
-(x -25..-4), looking forward along the spine over the waist machinery: a
-chamfered machinery casing grounded on the hull, a wheelhouse with a raked,
-wraparound viewport band set back behind mullions under a heavy visor brow,
-short bridge wings, an aft sensor mast, and risers tying it into the waist
-service trunks. Wings stay inside |y| < 8.5, well inboard of turrets 1 and 2
-(-11,+/-20). The forebody keeps only its plain pressure casing.
+The Cerberus sprite carries a long cream capsule between the forward and aft
+turret pairs (x about -5..33, |y| <= 8), its fore half banded dark. Here it
+is one segmented, chamfered housing standing a few units proud of the decks
+it bridges: a banded forward trunk over the forebody, and the waist housing
+whose forward end carries the command deck, a low armoured superstructure
+with recessed viewport slits under a visor brow, looking forward over the
+trunk. Raised access trunks, roof hatches and a small sensor fit stand along
+it. The waist service trunks run exposed along the housing flanks. The aft
+centre deck is plain deck with one low hatch. Nothing exceeds z ~21 except
+the short sensor mast; everything stays inboard of the four barbettes.
 """
 import math
 import sw_kit
@@ -17,6 +20,16 @@ def plan(x0, x1, hw, cf, ca=.6):
     """Eight-sided deck plan: chamfered fore corners cf, aft corners ca. CCW from above."""
     return [(x0+ca,-hw),(x1-cf,-hw),(x1,-hw+cf),(x1,hw-cf),
             (x1-cf,hw),(x0+ca,hw),(x0,hw-ca),(x0,-hw+ca)]
+
+
+def capsule(x0, x1, hw, fore, aft):
+    """Twelve-sided plan whose ends are two flat facets each: a faceted
+    stand-in for the sprite's rounded capsule ends. fore/aft are end depths."""
+    end = lambda d: [(d,1),(d*.38,.7),(0,.3)]
+    port = [(x1-d,hw*k) for d,k in end(fore)]
+    aft_ = [(x0+d,hw*k) for d,k in end(aft)]
+    return ([(x,-y) for x,y in reversed(aft_)] + [(x,-y) for x,y in port] +
+            list(reversed(port)) + aft_)
 
 
 def loft(kit, name, rings, mat, bevel=0, sink=.9):
@@ -46,6 +59,55 @@ def along(poly, i, t, out=0):
     return ax+dx*t+nx*out, ay+dy*t+ny*out, math.atan2(dy,dx), length
 
 
+def ground(kit, x0, x1, hw, sink=1.0):
+    """Lowest and highest hull Z under a footprint: the skirt reaches below the
+    lowest deck it spans, so a housing bridging a deck step never floats."""
+    zs=[]
+    for i in range(7):
+        for j in range(5):
+            hit=kit.surface(x0+(x1-x0)*i/6, -hw+2*hw*j/4)
+            if hit:
+                zs.append(hit[0].z)
+    return (min(zs)-sink, max(zs)) if zs else (WAIST_DECK-sink, WAIST_DECK)
+
+
+def section(kit, name, x0, x1, base, prof, fore, aft, mat, bevel=.2):
+    """Capsule segment from a section profile [(z, half-width, end inset)].
+    Only a capsule end (fore/aft depth > 0) rakes back with height; a joint
+    between segments stays a vertical face across the dark band."""
+    rings=[(base,capsule(x0,x1,prof[0][1],fore or .3,aft or .3))]
+    for z,hw,e in prof:
+        a,f=(e if aft else 0),(e if fore else 0)
+        rings.append((z,capsule(x0+a,x1-f,hw,max(fore-f,.4) if fore else .3,max(aft-a,.4) if aft else .3)))
+    return loft(kit,name,rings,mat,bevel)
+
+
+def extrude(kit, name, x0, x1, sec, mat, bevel=.05):
+    """Prism along X from a (y, z) section, counter-clockwise seen from the bow."""
+    n=len(sec)
+    verts=[(x0,y,z) for y,z in sec]+[(x1,y,z) for y,z in sec]
+    faces=[tuple(reversed(range(n))),tuple(range(n,2*n))]
+    faces+=[(i,(i+1)%n,n+(i+1)%n,n+i) for i in range(n)]
+    return kit.mesh(name,verts,faces,mat,bevel=bevel)
+
+
+def cupola(kit, name, x, y, r, rise, lid=True, floor=None):
+    """Raised access trunk: octagonal coaming seated on whatever deck is below,
+    a chamfered collar and a hinged hatch lid with a dark seal ring."""
+    zs=[h[0].z for h in (kit.surface(x+r*math.cos(a*math.pi/4),y+r*math.sin(a*math.pi/4)) for a in range(8)) if h]
+    lo,hi=(min(zs),max(zs)) if zs else (WAIST_DECK,WAIST_DECK)
+    if floor is not None:
+        lo,hi=floor-.4,floor
+    top=hi+rise
+    kit.cylinder(name+' coaming',(x,y,(lo-.6+top)/2),r,top-lo+.6,kit.cream,'Z',8,.12)
+    kit.cylinder(name+' collar',(x,y,top+.15),r*.86,.3,kit.steel,'Z',8,.06)
+    if lid:
+        kit.cylinder(name+' seal ring',(x,y,top+.33),r*.7,.08,kit.dark,'Z',16,0)
+        kit.cylinder(name+' hatch lid',(x,y,top+.45),r*.62,.25,kit.steel,'Z',16,.06)
+        kit.box(name+' hinge',(x-r*.62,y,top+.45),(.35,r*.7,.3),kit.dark,.05)
+    return top
+
+
 def build(kit):
     red=sw_kit.material('Port running light',(.6,.05,.03),emission=(1,.08,.04))
     green=sw_kit.material('Starboard running light',(.05,.5,.15),emission=(.1,1,.3))
@@ -54,101 +116,122 @@ def build(kit):
     # Darker smoked glazing than kit.glass, which reads pale at ship scale.
     glass=sw_kit.material('Bridge smoked viewport glazing',(.02,.03,.04),.3,.1,emission=(.012,.03,.04))
 
-    # Fore pressure casing: the plain forebody blockout, no bridge features.
-    x,length,z=34,18,15
-    kit.box('Fore pressure casing',(x,0,z),(length,11,4),kit.cream,1.5)
-    for px in (x-5,x,x+5):
-        kit.box('Casing access cover',(px,0,z+2.1),(4.1,8,.5),kit.cream,.25)
+    # --- Spine housing. A dark core runs the whole length; cream armour
+    # segments sit over it with gaps, so the dark bands of the sprite are
+    # real recesses between plates. Waist housing aft, banded trunk fore.
+    X0,X1=-5.5,31.8
+    base,_=ground(kit,X0,X1,7.5)
+    section(kit,'Spine dark core',X0+.4,X1-.4,base,[(15.1,6.5,0),(16.2,5.4,.9),(16.7,3.9,1.6)],2.6,2.2,kit.dark,.1)
+    waist=[(15.6,8.0,0),(16.9,6.9,1.0),(17.5,5.4,1.8)]
+    trunk=[(15.5,6.9,0),(16.7,5.9,.9),(17.2,4.4,1.6)]
+    segs=[('Spine aft cap',-5.5,-.9,waist,0,2.8),('Spine waist housing',-.3,7.4,waist,0,0),
+          ('Command deck housing',8.0,18.2,waist,1.6,0),
+          ('Spine trunk segment',19.1,21.7,trunk,0,0),('Spine trunk segment',22.5,25.1,trunk,0,0),
+          ('Spine trunk segment',25.9,28.3,trunk,0,0),('Spine trunk nose',29.1,31.8,trunk,2.6,0)]
+    # The fore trunk is gunmetal like the sprite's dark banded fore half;
+    # the waist housing and the command deck are the cream capsule.
+    for name,x0,x1,prof,fore,aft in segs:
+        section(kit,name,x0,x1,base,prof,fore,aft,kit.steel if 'trunk' in name else kit.cream)
+    # Oxide shoulder strakes on the waist housing chamfer, the sprite's
+    # orange flank stripes: plates laid on the facet, proud of it.
+    (ya,za),(yb,zb)=(waist[0][1],waist[0][0]),(waist[1][1],waist[1][0])
+    on=lambda t,o: (ya+(yb-ya)*t+o*.76, za+(zb-za)*t+o*.65)
+    strake=[on(.18,-.05),on(.18,.22),on(.82,.22),on(.82,-.05)]
+    for x0,x1 in ((-.1,7.2),(8.2,17.4)):
+        for s in (1,-1):
+            sec=[(y*s,z) for y,z in strake]
+            if s<0:
+                sec.reverse()
+            extrude(kit,'Spine shoulder strake',x0,x1,sec,kit.orange)
+    # Roof of the waist housing: a central walkway between two louvred
+    # ventilation slots, the ladder-like dark rails of the sprite.
+    for s in (1,-1):
+        kit.box('Spine roof vent slot',(2.6,s*3.9,17.45),(9.4,1.0,.4),kit.dark,.05)
+        for k in range(9):
+            kit.box('Roof vent louvre',(-1.4+k,s*3.9,17.55),(.25,.9,.2),kit.steel,.03)
+    kit.box('Spine roof walkway',(2.6,0,17.6),(9.6,4.4,.25),kit.cream,.08)
+    # Forward trunk: a low raised spine over the forebody, its plates carrying
+    # bolted access covers; the nose holds a forward sensor blister.
+    for x in (20.4,23.8,27.1):
+        kit.box('Trunk access cover',(x,0,17.3),(1.9,5.4,.3),kit.cream,.1)
+        kit.box('Trunk cover hasp',(x-.9,0,17.45),(.3,1.4,.15),kit.dark,.03)
+    kit.box('Trunk nose sensor housing',(29.6,0,17.4),(2.2,2.6,.6),kit.steel,.15)
+    kit.box('Trunk nose sensor window',(30.75,0,17.4),(.1,1.8,.35),glass,0)
 
-    # Aft machinery casing: the bridge plinth, chamfered, with a forward glacis
-    # falling toward the waist and a short stern face over the hull notch.
-    casing=[(None,plan(-24.6,-3.6,5.6,2.4,1.4)),(15.2,plan(-24.4,-4.9,5.6,2.4,1.4)),
-            (16.6,plan(-24.0,-7.4,5.1,2.0,1.2)),(17.2,plan(-23.6,-8.6,4.6,1.7,1.0))]
-    loft(kit,'Aft machinery casing',casing,kit.cream,.3)
-    loft(kit,'Casing deck-edge strake',[(16.2,plan(-24.6,-6.3,5.5,2.3,1.5)),(16.9,plan(-24.4,-6.9,5.35,2.2,1.4))],kit.orange,.12)
-    # Engine-room ventilation louvres on the stern face of the casing.
-    for y in (-2.6,2.6):
-        kit.box('Casing stern vent',(-24.5,y,14.6),(.6,3.2,2.2),kit.dark,.15)
-        for dz in (-.6,0,.6):
-            kit.box('Stern vent louvre',(-24.85,y,14.6+dz),(.35,3.0,.22),kit.steel,.04).rotation_euler[1]=-.4
-    for y in (-3.6,3.6):
-        kit.box('Casing deck access cover',(-21.8,y,17.3),(2,1.6,.3),kit.cream,.1)
-
-    # Spine tie: the waist service trunks elbow up a sloped steel saddle at
-    # their aft ends and plunge into the casing's glacis.
-    loft(kit,'Bridge spine tie saddle',[(None,plan(-6.5,1.2,4.6,.4,1.2)),(13.4,plan(-6.5,.4,4.3,.4,1)),
-         (14.8,plan(-6.5,-3.2,3.9,.4,.6))],kit.steel,.25)
-    rise=math.atan2(2.6,6)
-    for y in (-3,0,3):
-        kit.cylinder('Trunk riser into casing',(-2.3,y,14.3),.8,6.6,kit.steel,'X',16,.1).rotation_euler[1]=math.pi/2+rise
-        kit.cylinder('Riser entry collar',(-5.0,y,15.5),1.05,.6,kit.dark,'X',16,.08).rotation_euler[1]=math.pi/2+rise
-    for y in (-4.5,4.5):
-        loft(kit,'Spine tie buttress rib',[(None,plan(-6.5,.2,.45,.1,.1)),(16.2,plan(-6.5,-5.4,.4,.1,.1))],kit.cream,.1)
-
-    # Wheelhouse: raked lower bulkhead, recessed glazing band, overhanging
-    # visor brow, then a chamfered armoured roof.
-    loft(kit,'Bridge lower bulkhead',[(16.9,plan(-21.4,-9.8,4.7,1.9)),(19.0,plan(-21.4,-8.3,5.0,2.1))],kit.cream,.2)
-    loft(kit,'Viewport sill ledge',[(18.85,plan(-21.5,-8.0,5.1,2.2)),(19.1,plan(-21.5,-8.05,5.05,2.2))],kit.steel,.06)
-    glass_plan=plan(-21.0,-8.6,4.6,2.05)
-    loft(kit,'Bridge viewport band',[(19.0,glass_plan),(21.1,plan(-21.0,-8.0,4.6,2.1))],glass)
-    loft(kit,'Bridge visor brow',[(21.0,plan(-21.5,-6.7,5.15,2.45)),(21.95,plan(-21.5,-7.1,5.15,2.35))],kit.orange,.15)
-    loft(kit,'Bridge armoured roof',[(21.9,plan(-21.4,-7.4,5.0,2.25)),(22.8,plan(-20.5,-9.2,4.2,1.8))],kit.cream,.2)
-
-    # Heavy armoured mullions split the forward facets into slits; the side
-    # ports are half-closed behind shutter louvres.
+    # --- Command deck: a low armoured superstructure on the forward end of
+    # the waist housing, looking forward over the trunk and the forward
+    # turrets. Raked lower bulkhead, recessed slit glazing behind mullions,
+    # an overhanging visor brow and a chamfered roof; top at z ~21.
+    lo,hi,gt,top=17.3,18.5,19.55,20.65
+    loft(kit,'Command deck lower bulkhead',[(lo,plan(8.6,17.6,5.0,1.9,1.0)),(hi,plan(8.6,18.3,5.2,2.1,1.0))],kit.cream,.2)
+    loft(kit,'Viewport sill ledge',[(hi-.15,plan(8.5,18.5,5.3,2.2,1.0)),(hi+.1,plan(8.5,18.45,5.25,2.2,1.0))],kit.steel,.06)
+    glass_plan=plan(9.0,17.9,4.8,2.0,.8)
+    loft(kit,'Command deck viewport slits',[(hi,glass_plan),(gt,plan(9.0,18.15,4.8,2.05,.8))],glass)
+    loft(kit,'Command deck visor brow',[(gt-.1,plan(8.5,18.85,5.35,2.4,1.0)),(gt+.55,plan(8.5,18.55,5.35,2.35,1.0))],kit.orange,.15)
+    loft(kit,'Command deck armoured roof',[(gt+.5,plan(8.6,18.45,5.2,2.25,1.0)),(top,plan(9.4,17.0,4.3,1.8,.8))],kit.cream,.2)
+    # Heavy mullions split the forward facets into slits; the side and aft
+    # and aft ports are narrower slits between posts.
     for edge,count in ((1,2),(2,3),(3,2)):
         for k in range(count+1):
             if edge!=2 and k==0:
                 continue
             x,y,ang,_=along(glass_plan,edge,k/count,.3)
-            kit.box('Viewport armoured mullion',(x+.15,y,20.05),(.65,.6,2.2),kit.steel,.08).rotation_euler[2]=ang
+            kit.box('Viewport armoured mullion',(x+.1,y,(hi+gt)/2),(.6,.55,gt-hi+.15),kit.steel,.08).rotation_euler[2]=ang
     for edge in (0,4):
-        x,y,ang,length=along(glass_plan,edge,.4,.3)
-        for z in (19.45,20.05,20.65):
-            kit.box('Side shutter louvre',(x,y,z),(length*.62,.35,.3),kit.steel,.05).rotation_euler=(.4 if edge==4 else -.4,0,ang)
+        for t in (.3,.75):
+            x,y,ang,length=along(glass_plan,edge,t,.3)
+            kit.box('Side viewport mullion',(x,y,(hi+gt)/2),(.5,.5,gt-hi+.15),kit.steel,.06).rotation_euler[2]=ang
+    kit.box('Aft slit shutter',(8.75,0,(hi+gt)/2),(.35,5.6,.35),kit.steel,.05)
+    for s,light in ((1,red),(-1,green)):
+        kit.box('Command deck running light',(15.6,s*5.4,gt+.25),(.6,.3,.3),light,.06)
+    # Roof sensor fit: a short pylon with scanner bar aft, a low radome and a
+    # comms dish forward of it, and whips. The mast stays a few units tall.
+    z,mx=top,10.8
+    kit.box('Mast pedestal',(mx,0,z+.3),(1.8,1.8,.6),kit.steel,.2)
+    kit.mesh('Mast pylon',[(mx-.6,-.55,z+.6),(mx+.6,-.55,z+.6),(mx+.6,.55,z+.6),(mx-.6,.55,z+.6),
+                            (mx-.25,-.3,z+2.4),(mx+.25,-.3,z+2.4),(mx+.25,.3,z+2.4),(mx-.25,.3,z+2.4)],
+             [(3,2,1,0),(4,5,6,7),(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7)],kit.steel,bevel=.08)
+    kit.box('Mast crosstree',(mx,0,z+1.8),(.35,4.4,.3),kit.steel,.05)
+    kit.cylinder('Scanner turntable',(mx,0,z+2.5),.4,.25,kit.steel,'Z',16,.04)
+    kit.box('Search radar scanner bar',(mx,0,z+2.8),(.55,3.8,.4),kit.dark,.08)
+    kit.box('Masthead light',(mx,0,z+3.15),(.3,.3,.3),white,.06)
+    for s,light in ((1,red),(-1,green)):
+        kit.box('Crosstree signal light',(mx,s*2.2,z+2.05),(.3,.3,.25),light,.04)
+        kit.cylinder('Whip antenna',(mx-.9,s*3.0,z+1.2),.06,2.6,kit.steel,'Z',8,0)
+    kit.cylinder('Fire-control radome base',(14.6,0,z+.2),1.15,.4,kit.steel,'Z',8,.06)
+    kit.mesh('Fire-control radome',[(14.6+1.0*math.cos(a*math.pi/4),1.0*math.sin(a*math.pi/4),z+.4) for a in range(8)]+
+             [(14.6+.55*math.cos(a*math.pi/4),.55*math.sin(a*math.pi/4),z+1.2) for a in range(8)],
+             [tuple(reversed(range(8))),tuple(range(8,16))]+[(a,(a+1)%8,8+(a+1)%8,8+a) for a in range(8)],kit.cream,bevel=.06)
+    kit.cylinder('Roof comms dish pedestal',(12.7,-2.6,z+.25),.3,.5,kit.steel,'Z',12,.04)
+    kit.cylinder('Roof comms dish',(12.7,-2.6,z+.7),.85,.2,kit.steel,'Z',24,.06).rotation_euler=(.6,0,-.7)
+    kit.cylinder('Roof beacon',(12.7,2.6,z+.2),.25,.4,amber,'Z',12,.04)
+    # Aft door from the command deck onto the spine walkway.
+    kit.box('Command deck aft door frame',(8.4,0,18.2),(.3,2.2,1.9),kit.steel,.1)
+    kit.box('Command deck aft door',(8.3,0,18.15),(.25,1.6,1.6),kit.dark,.08)
 
-    # Bridge wings: one armoured lookout deck through the wheelhouse, far
-    # inboard of the turret 1/2 barbettes.
-    loft(kit,'Bridge wing deck',[(18.8,plan(-18.4,-14.1,8.0,.6,.4)),(19.4,plan(-18.4,-13.6,8.0,.8,.4))],kit.cream,.15)
-    loft(kit,'Bridge wing visor',[(21.0,plan(-18.4,-13.1,8.1,1.0,.4)),(21.85,plan(-18.4,-13.4,8.1,.9,.4))],kit.orange,.12)
-    for side,light in ((1,red),(-1,green)):
-        kit.box('Wing lookout glazing',(-16.2,side*7.8,20.2),(3.6,.3,1.6),glass,0)
-        kit.box('Wing forward glazing',(-14.05,side*6.6,20.2),(.3,2.6,1.6),glass,0)
-        kit.box('Wing corner post',(-14.0,side*7.85,20.2),(.6,.6,1.7),kit.steel,.08)
-        kit.box('Wing aft bulkhead',(-18.1,side*6.5,20.2),(.6,3.0,1.7),kit.cream,.08)
-        # Triangular gusset under the wing, from the casing shoulder to the wing tip.
-        gv=[(-18.0,side*4.6,16.9),(-14.6,side*4.6,16.9),(-14.6,side*7.7,18.85),(-18.0,side*7.7,18.85),
-            (-18.0,side*4.6,18.85),(-14.6,side*4.6,18.85)]
-        gf=[(0,1,2,3),(3,2,5,4),(0,4,5,1),(0,3,4),(1,5,2)]
-        kit.mesh('Wing support gusset',gv,gf if side>0 else [f[::-1] for f in gf],kit.steel)
-        kit.box('Wing running light',(-13.7,side*7.9,22.05),(.6,.5,.35),light,.08)
+    # --- Access points along the spine: roof hatches on the waist housing,
+    # raised access trunks at the sprite's four dark rings (two either side
+    # of the forward trunk, two flanking the housing's aft cap), and a
+    # cupola on the aft cap.
+    for x in (-.6+1.9,5.9):
+        kit.cylinder('Spine roof hatch',(x,0,17.75),.95,.2,kit.steel,'Z',16,.05)
+        kit.cylinder('Spine roof hatch seal',(x,0,17.68),1.15,.08,kit.dark,'Z',16,0)
+    cupola(kit,'Aft cap access cupola',-3.2,0,1.3,.9,floor=waist[-1][0])
+    for s in (1,-1):
+        cupola(kit,'Forward access trunk',20.6,s*12.8,1.5,.7)
+        cupola(kit,'Aft access trunk',-3.8,s*12.6,1.7,.8)
+    # Aft centre deck: plain deck now, with one low round access hatch
+    # over the engine room where the sprite shows a ring behind the spine.
+    cupola(kit,'Engine room access hatch',-9.6,0,2.3,.35)
 
-    # Stern-facing hatch with its frame, reached across the casing top.
-    kit.box('Bridge aft hatch frame',(-21.55,0,19.3),(.3,2.4,3.0),kit.steel,.15)
-    kit.box('Bridge aft hatch',(-21.7,0,19.3),(.25,1.7,2.4),kit.dark,.12)
-    kit.box('Hatch landing grating',(-22.7,0,17.35),(1.8,3,.25),kit.steel,.05)
-
-    # Sensor and comms mast: a stout pylon aft on the roof with a crosstree,
-    # scanner bar, whip antennas and a beacon. Squat, not a tower.
-    z,mx=22.8,-18.2
-    kit.box('Mast pedestal',(mx,0,z+.4),(2.6,2.4,1.0),kit.steel,.25)
-    kit.mesh('Mast pylon',[(mx-.9,-.75,z+.8),(mx+.9,-.75,z+.8),(mx+.9,.75,z+.8),(mx-.9,.75,z+.8),
-                            (mx-.3,-.4,z+4.2),(mx+.3,-.4,z+4.2),(mx+.3,.4,z+4.2),(mx-.3,.4,z+4.2)],
-             [(3,2,1,0),(4,5,6,7),(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7)],kit.steel,bevel=.1)
-    kit.box('Mast crosstree',(mx,0,z+3.0),(.5,6.6,.35),kit.steel,.06)
-    kit.cylinder('Scanner turntable',(mx,0,z+4.35),.55,.3,kit.steel,'Z',16,.05)
-    kit.box('Search radar scanner bar',(mx,0,z+4.7),(.7,5.0,.5),kit.dark,.1)
-    kit.box('Masthead light',(mx,0,z+5.2),(.4,.4,.4),white,.08)
-    for side,light in ((1,red),(-1,green)):
-        kit.box('Crosstree signal light',(mx,side*3.3,z+3.35),(.35,.35,.3),light,.05)
-        kit.cylinder('Whip antenna',(mx-1.6,side*3.7,z+2.0),.07,4,kit.steel,'Z',8,0)
-    kit.cylinder('Roof comms dish pedestal',(-11.6,-2.5,z+.3),.35,.7,kit.steel,'Z',12,.05)
-    dish=kit.cylinder('Roof comms dish',(-11.6,-2.5,z+.9),1.1,.25,kit.steel,'Z',24,.08)
-    dish.rotation_euler=(.6,0,-.7)
-    kit.cylinder('Roof beacon',(-11.6,2.2,z+.2),.3,.4,amber,'Z',12,.05)
-    # The waist service spine: exposed trunks in a recessed bed amidships.
-    kit.box('Recessed central service bed',(9,0,WAIST_DECK+.55),(20,10,1.5),kit.dark,.5)
-    for y in (-3,0,3):
-        kit.cylinder('Exposed longitudinal service trunk',(9,y,WAIST_DECK+1.8),.9,19,kit.steel,'X')
-    for x in (2,9,16):
-        kit.box('Service trunk support hoop',(x,0,WAIST_DECK+2.4),(1.1,10,1.2),kit.cream,.3)
+    # --- Waist service trunks: still exposed, now run along the housing
+    # flanks in the recessed waist, clamped to the spine wall by hoops and
+    # entering the forebody and engine-room bulkheads through dark collars.
+    for s in (1,-1):
+        for y in (9.3,10.9):
+            kit.cylinder('Exposed waist service trunk',(8.2,s*y,WAIST_DECK+1.0),.7,17.8,kit.steel,'X',16)
+            for x in (-.4,15.7):
+                kit.cylinder('Trunk bulkhead collar',(x,s*y,WAIST_DECK+1.0),.95,.6,kit.dark,'X',16,.06)
+        for x in (2.5,8.0,13.5):
+            kit.box('Trunk clamp hoop',(x,s*10.0,WAIST_DECK+1.3),(.9,3.0,1.0),kit.cream,.25)
+            kit.box('Hoop wall bracket',(x,s*8.4,WAIST_DECK+2.2),(.9,.8,2.0),kit.steel,.1)

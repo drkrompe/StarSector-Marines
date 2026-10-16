@@ -6,7 +6,7 @@
     "+Z": "dorsal"
   },
   "units": "Vanilla hull-space units; no canonical metre scale asserted",
-  "revision": "V3 detail: faceted plateau hull with stern notch, aft armoured bridge, naval turrets; recessed waist and service machinery retained",
+  "revision": "V3 detail: sprite-measured faceted bow, separate engine nacelles, spine command deck, naval turrets",
   "thickness_profile": {
     "method": "Upper Z uses plateaus and linear chamfer transitions between stations; lower hull has uniform 1.25 depth multiplier for level keel",
     "stations": [
@@ -32,12 +32,12 @@
       ],
       [
         50,
-        58,
+        57,
         10.5
       ],
       [
         44,
-        63.5,
+        59,
         14.5
       ]
     ],

@@ -119,7 +119,7 @@ cameras=[('port-quarter',(100,130,100),163),('top',(0,0,180),205),
          ('port-side',(0,180,0),132),('stern',(-180,0,0),130)]
 # Review close-ups: (name, position, target, orthographic scale).
 closeups=[('bow-detail',(110,60,55),(40,0,8),70),
-          ('bridge-detail',(95,45,45),(38,0,14),42),
+          ('bridge-detail',(60,60,50),(12,0,14),55),
           ('turret-detail',(70,70,60),(30,-5,12),60)]
 wanted=[v for v in args.views.split(',') if v]
 for spec in args.cam:
@@ -158,7 +158,7 @@ if not args.no_save:
         'status':'Proposed geometry reference; no scene art or gameplay changes',
         'axes':{'+X':'bow','+Y':'port','+Z':'dorsal'},
         'units':'Vanilla hull-space units; no canonical metre scale asserted',
-        'revision':'V3 detail: faceted plateau hull with stern notch, aft armoured bridge, naval turrets; recessed waist and service machinery retained',
+        'revision':'V3 detail: sprite-measured faceted bow, separate engine nacelles, spine command deck, naval turrets',
         'thickness_profile':{'method':'Upper Z uses plateaus and linear chamfer transitions between stations; lower hull has uniform 1.25 depth multiplier for level keel', 'stations':sw_hull.THICKNESS_STATIONS, 'deck_datum':0, 'attachments':'Engine and port-pod coordinates unchanged from V2'},
         'engine_source':'starsector-core/data/hulls/warhound.ship engineSlots',
         'engines':[{'location':[x,y,0],'width':w,'exhaust_direction':[-1,0,0]} for x,y,w in engines],
