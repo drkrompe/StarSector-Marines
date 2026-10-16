@@ -618,7 +618,13 @@ every collectible card must be starter-owned, appear in at least one faction
 pool through a channel that can eventually admit its access tier, or reserve an
 explicit named story source. A story-only armor template declares that owner
 through `storySource`; it cannot also enter a faction pool or starter issue.
-The declaration does not prove that the story reward is implemented. An Advanced
+The declaration does not prove that the story reward is implemented.
+**A card is not awardable until its presentation is declared.** A pattern may be
+authored, inspected and calibrated before its art exists; it then states why in
+`presentationPending`. No cargo payload can be made for a card carrying such a
+pattern, and the ordinary card list omits it, so neither a story award nor any
+other channel can hand out a suit that would deploy wearing nobody's art (or,
+worse, another suit's). Explicit development learning still reaches it. An Advanced
 or Prestige card authored only for the Common-only open market is therefore
 still stranded. A Restricted template's owner is a warrant rule instead: it must
 be offered by its issuing tradition's own pool, through licence or patron only.
@@ -778,6 +784,11 @@ Learning both recovered roles exposes Salvage-assisted Section, with eight regul
 two powered assault and two powered support billets. Explicit fitting preserves
 the named squad and ordinary lift seats. Development test controls remain available. Neither A Cold Account completion nor the grounded
 Shepherd's repair automatically learns either pattern.
+The pirate Boarding Jack is the third recovered-rung assault suit, worn by two
+assault billets in the Boarding Jack Section card. Its template is story-only
+(`storySource` names *A Small War*), so no market, patron, licence, recovery or
+milestone route can reach it, and no card carrying it is awarded until its
+presentation is declared.
 Existing military patterns retain their acquisition channels and prior ownership.
 The pattern owns its explicit armor class and the deployed armor capacity, rating, movement modifier, and
 incoming-accuracy tradeoff; `combat-durability-nouns.md` owns how battle damage

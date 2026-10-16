@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.world.gen.LatchkeyYard;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -59,16 +60,25 @@ public final class AgreusMapsSnapshotSuite implements SnapshotSuite {
                             .arrow(135, 94, 111, 76, "FINITE REARGUARD", ReviewStyle.ROUTE).build());
         }
         try (var sim = BattleSetup.createYardOwners(15303, lift, profile)) {
-            add(context, frames, sim, "03-latchkey-yard", "THE YARD'S OWNERS / LATCHKEY / seed 15303", 82, 58,
-                    ReviewAnnotations.builder()
-                            .box(14, 44, 36, 84, "COMPANY LIFT", ReviewStyle.LANDING)
-                            .box(51, 65, 63, 75, "1 / DISPATCH + FREIGHT GATE", ReviewStyle.OBJECTIVE)
-                            .box(85, 61, 103, 79, "2 / TOOLING + INSPECTION", ReviewStyle.KEEP)
-                            .box(81, 35, 93, 45, "3 / OPERATOR ENTRANCE", ReviewStyle.OBJECTIVE)
-                            .label(98, 59, "PRESERVE CALIBRATION MACHINE", ReviewStyle.KEEP)
-                            .label(140, 119, "SEPARATE FRONTAGE / NO CAPTURE DUTY", ReviewStyle.NOTE)
-                            .arrow(39, 69, 49, 69, "TAKE / HAND OFF", ReviewStyle.APPROACH)
-                            .arrow(148, 74, 119, 69, "FINITE COUNTERATTACK", ReviewStyle.ROUTE).build());
+            var dispatch = LatchkeyYard.SITES.get(0); var hall = LatchkeyYard.SITES.get(1); var entrance = LatchkeyYard.SITES.get(2);
+            var marks = ReviewAnnotations.builder()
+                    .box(14, 44, 36, 84, "COMPANY LIFT", ReviewStyle.LANDING)
+                    .box(dispatch.left(), dispatch.bottom(), dispatch.right(), dispatch.top(), "1 / DISPATCH + FREIGHT GATE", ReviewStyle.OBJECTIVE)
+                    .box(hall.left(), hall.bottom(), hall.right(), hall.top(), "2 / TOOLING HALL + INSPECTION", ReviewStyle.KEEP)
+                    .box(entrance.left(), entrance.bottom(), entrance.right(), entrance.top(), "3 / OPERATOR ENTRANCE + LOCK", ReviewStyle.OBJECTIVE)
+                    .label(LatchkeyYard.TOOL_X, LatchkeyYard.TOOL_Y - 4, "PRESERVE CALIBRATION MACHINE", ReviewStyle.KEEP)
+                    .label(LatchkeyYard.HANDOVER.x(), LatchkeyYard.HANDOVER.y() - 4, "HANDOVER BAY", ReviewStyle.NOTE)
+                    .label(LatchkeyYard.HALL_FREIGHT_DOORS.x(), LatchkeyYard.HALL_FREIGHT_DOORS.y() + 3, "FREIGHT DOORS", ReviewStyle.NOTE)
+                    .label(LatchkeyYard.HALL_GALLERY_DOOR.x() + 9, 46, "SERVICE GALLERY", ReviewStyle.NOTE)
+                    .label(104, 124, "HOMES + DISTRICT HEATING / NO CAPTURE DUTY", ReviewStyle.NOTE)
+                    .label(152, 92, "CINDER STEPS", ReviewStyle.NOTE)
+                    .arrow(38, 56, 52, 56, "FREIGHT GATE", ReviewStyle.APPROACH)
+                    .arrow(LatchkeyYard.CINDER_LANE.x(), LatchkeyYard.CINDER_LANE.y(), LatchkeyYard.CINDER_GATE.x() + 2, LatchkeyYard.CINDER_GATE.y(), "COUNTERATTACK / CINDER LANE", ReviewStyle.ROUTE)
+                    .arrow(LatchkeyYard.SOUTH_ROAD.x(), LatchkeyYard.SOUTH_ROAD.y(), LatchkeyYard.VESTIBULE.x() + 10, LatchkeyYard.SOUTH_ROAD.y(), "COUNTERATTACK / SOUTH ROAD", ReviewStyle.ROUTE);
+            // Short forms of Lenna's machine labels; the battle markers carry the full attribution.
+            marks.label(79, 77, "WEIR PUMP LATHE", ReviewStyle.NOTE).label(107, 77, "HEATING BENCH", ReviewStyle.NOTE)
+                    .label(91, 63, "CLINIC PARTS BENCH", ReviewStyle.NOTE);
+            add(context, frames, sim, "03-latchkey-yard", "THE YARD'S OWNERS / LATCHKEY / seed 15303", 93, 64, marks.build());
         }
         return frames;
     }
