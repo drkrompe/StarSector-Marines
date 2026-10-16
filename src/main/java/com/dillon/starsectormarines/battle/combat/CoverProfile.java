@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.combat;
 
 /**
- * What cover hides of a person, per {@link BodyPart}, from a shooter at full distance. A round that
+ * What cover hides of a body, per {@link BodyPart}, from a shooter at full distance. A round that
  * lands on a hidden part has stopped in the cover; one that lands on an exposed part has beaten it,
  * so a body-part hit takes no further damage cut for the cover it got past.
  *
@@ -16,77 +16,63 @@ package com.dillon.starsectormarines.battle.combat;
  * chance and damage cut took off together (level 3 hid about 70% of fire, level 2 half, level 1 a
  * quarter). What changes is which part of the man that leaves exposed. See
  * {@code body-part-cover.md}.
+ *
+ * <p>The columns themselves belong to the parts, so each {@link BodyPlan} authors its own: a
+ * plan's parts carry what each level of each kind of cover hides of them. The expected
+ * interceptions read a plan; the one-argument forms read {@link BodyPlan#INFANTRY}.
  */
 public final class CoverProfile {
-
-    /** Edge cover by level, indexed [level][part ordinal]: head, arms, torso, legs. */
-    private static final float[][] EDGE = {
-        {0f, 0f, 0f, 0f},
-        {0f, 0.10f, 0.10f, 0.60f},
-        {0f, 0.30f, 0.40f, 0.90f},
-        {0.20f, 0.60f, 0.70f, 1.00f},
-    };
-
-    /** Occupant cover (a trench) by level: the legs and torso are below the lip, the head barely. */
-    private static final float[][] OCCUPANT = {
-        {0f, 0f, 0f, 0f},
-        {0f, 0f, 0.30f, 0.80f},
-        {0.10f, 0.30f, 0.70f, 1.00f},
-        {0.20f, 0.50f, 0.90f, 1.00f},
-    };
-
-    /**
-     * Crossed cover (a crate in the lane) by level. Low: it catches rounds headed for the legs and
-     * torso and lets head shots pass. Each row's expected interception equals the flat
-     * {@link BallisticResolver#BLOCK_CHANCE_BY_LEVEL} chance it replaces for part-bound rounds, so a
-     * lane prop stops as many rounds as before, only different ones.
-     */
-    private static final float[][] CROSSED = {
-        {0f, 0f, 0f, 0f},
-        {0f, 0f, 0.04f, 0.45f},
-        {0f, 0.05f, 0.20f, 0.70f},
-        {0.05f, 0.20f, 0.40f, 0.85f},
-    };
 
     private CoverProfile() {}
 
     /** Fraction of {@code part} edge cover of {@code level} hides at full distance. */
     public static float edge(int level, BodyPart part) {
-        return EDGE[clampLevel(level)][part.ordinal()];
+        return part.edgeCover(level);
     }
 
     /** Fraction of {@code part} the ground of occupant-cover {@code level} hides at full distance. */
     public static float occupant(int level, BodyPart part) {
-        return OCCUPANT[clampLevel(level)][part.ordinal()];
+        return part.occupantCover(level);
     }
 
     /** Fraction of the rounds headed for {@code part} a prop of {@code level} crossed in the lane catches at full distance. */
     public static float crossed(int level, BodyPart part) {
-        return CROSSED[clampLevel(level)][part.ordinal()];
+        return part.crossedCover(level);
     }
 
     /** Share of all part-bound rounds a prop of {@code level} crossed in the lane would catch. */
     public static float expectedCrossedInterception(int level) {
+        return expectedCrossedInterception(BodyPlan.INFANTRY, level);
+    }
+
+    /** {@link #expectedCrossedInterception(int)} for the body {@code plan} describes. */
+    public static float expectedCrossedInterception(BodyPlan plan, int level) {
         float sum = 0f;
-        for (BodyPart part : BodyPart.values()) sum += part.share * crossed(level, part);
+        for (BodyPart part : plan.parts()) sum += part.share * crossed(level, part);
         return sum;
     }
 
     /** Share of all hits on an uncovered person that edge cover of {@code level} would stop. */
     public static float expectedEdgeInterception(int level) {
+        return expectedEdgeInterception(BodyPlan.INFANTRY, level);
+    }
+
+    /** {@link #expectedEdgeInterception(int)} for the body {@code plan} describes. */
+    public static float expectedEdgeInterception(BodyPlan plan, int level) {
         float sum = 0f;
-        for (BodyPart part : BodyPart.values()) sum += part.share * edge(level, part);
+        for (BodyPart part : plan.parts()) sum += part.share * edge(level, part);
         return sum;
     }
 
     /** Share of all hits on an uncovered person that occupant cover of {@code level} would stop. */
     public static float expectedOccupantInterception(int level) {
-        float sum = 0f;
-        for (BodyPart part : BodyPart.values()) sum += part.share * occupant(level, part);
-        return sum;
+        return expectedOccupantInterception(BodyPlan.INFANTRY, level);
     }
 
-    private static int clampLevel(int level) {
-        return Math.max(0, Math.min(level, EDGE.length - 1));
+    /** {@link #expectedOccupantInterception(int)} for the body {@code plan} describes. */
+    public static float expectedOccupantInterception(BodyPlan plan, int level) {
+        float sum = 0f;
+        for (BodyPart part : plan.parts()) sum += part.share * occupant(level, part);
+        return sum;
     }
 }

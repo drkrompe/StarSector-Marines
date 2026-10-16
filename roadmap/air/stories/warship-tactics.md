@@ -1,6 +1,6 @@
 # Story — Warship tactics: fleet manoeuvres, spacing and a fight worth watching
 
-Status: ACTIVE — design written; slice 1 (spacing and hull contact) in progress
+Status: ACTIVE — slice 1 (spacing and hull contact) built; slice 2 (group roles and manoeuvres) in progress
 
 Written: 2026-10-16
 
@@ -189,10 +189,22 @@ Once a second, per side: the hunters are those fighting hulls with their duel he
   is physical and applies to every pair of hulls over the battle, friend or foe: where two footprints overlap they are
   pushed apart along the line between them, the lighter (by hull mass) moving more, and their closing speed along
   that line is taken out. No damage is dealt: ramming is not modelled (open question).
-- **Friendly hulls keep their distance.** A ship's helm keeps a clearance of its own beam from every friendly hull: its
-  station is moved clear of a friend's, and its course is bent away from a friend it would close inside that
-  clearance. This is what stops two hunters flying into the same air even before the group layer gives them different
-  work.
+- **Friendly hulls keep their distance.** A ship fighting hulls or escorting keeps the screen line's gap (four cells)
+  from every friendly hull: its station is moved clear of a friend's position and station, and its course is bent away
+  from a friend it would close inside that gap within ten seconds. This is what stops two hunters flying into the same
+  air even before the group layer gives them different work. An escort's screen is a formation already spaced by its
+  geometry, so within it the helm refuses only an actual touch.
+- **A hull its mission holds does not yield.** Built, contact moves only hulls their own helm is flying (fighting a
+  hull, escorting, leaving, piloted, passing low); a hull on a mission station, route or order gives no way, and two
+  such hulls laid over each other are left where the mission put them. Several evidence scenes stage a capital beside
+  another as a point-defence picket or a fixed target, and they keep measuring what they were written for.
+
+Measured with slice 1 (`warship-tactics`, `greyhook-duel`; `-Dbattle.warship.hullContact=false` is the control): the
+least friendly gap over Black Sluice went from -29 to -37 cells (12 to 116 seconds of two friends inside each other)
+to -0.5 to 0.0 (at most two ticks of touching); the pack against the escorted Dominator from -14.7 cells and 4,355
+ticks of overlap to a least gap of 7 cells; the line of battle's hostile hulls from 45.6 cells deep inside each other to
+touching. `frigate-climb-out` was re-laid: at flight presence six its Hounds were staged inside the rig and on a map too
+short to hold them abreast it.
 
 ## Slices
 

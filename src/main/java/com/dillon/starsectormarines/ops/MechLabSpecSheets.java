@@ -3,13 +3,17 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.ops.battleview.MechReplenisherArt;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
 import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Supplier;
 
 /**
@@ -32,6 +36,16 @@ final class MechLabSpecSheets {
 
     static void bindCatalogRows(SpecSheetBinder binder, MarkupInstance markup,
                                 List<MechLabViewModel.CatalogRow> rows) {
+        bindCatalogRows(binder, markup, rows, null);
+    }
+
+    /**
+     * With a view model, a weapon's heat lines read against the selected mech's own heat
+     * sink and cooling at the moment the sheet opens rather than the stock frame's.
+     */
+    static void bindCatalogRows(SpecSheetBinder binder, MarkupInstance markup,
+                                List<MechLabViewModel.CatalogRow> rows,
+                                MechLabViewModel viewModel) {
         if (binder == null) return;
         for (MechLabViewModel.CatalogRow row : rows) {
             UiElement name = markup.requireElement(row.nameId());
@@ -39,11 +53,64 @@ final class MechLabSpecSheets {
             if (row.chassisPreview() != null) {
                 binder.bind(name, SpecSheets.mech(row.chassisPreview()));
             } else if (row.weaponPreview() != null) {
-                binder.bind(name, SpecSheets.mechWeapon(row.weaponPreview()));
+                MechWeaponComponent weapon = row.weaponPreview();
+                if (viewModel == null) binder.bind(name, SpecSheets.mechWeapon(weapon));
+                else binder.bind(name, () -> SpecSheets.mechWeapon(weapon,
+                        viewModel.selectedHeatCapacity(), viewModel.selectedCoolingPerSecond()));
             } else if (row.replenisherPreview() != null) {
                 binder.bind(name, replenisherSheet(row.replenisherPreview()));
+            } else if (row.internalPreview() != null) {
+                binder.bind(name, internalSheet(row.internalPreview()));
             }
         }
+    }
+
+    /** One internal's own numbers; what it does to a particular frame is the catalog row's. */
+    static SpecSheet internalSheet(MechInternal internal) {
+        List<SpecSheet.Stat> stats = new ArrayList<>();
+        stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecMass"), internal.role == MechInternal.Role.PLATING
+                ? Strings.format("openingMechLabSpecPlatingMass", number(internal.mass))
+                : number(internal.mass)));
+        switch (internal.role) {
+            case ENGINE -> {
+                stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecOutput"),
+                        Strings.format("openingMechLabSpecOutputFactor", number(internal.outputFactor))));
+                stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecSpeed"),
+                        Strings.format("openingMechLabSpecBand", Math.round(internal.speedFraction * 100f))));
+                if (internal.cooling != 0f) stats.add(SpecSheet.Stat.of(
+                        Strings.get("openingMechLabSpecCooling"), signed(internal.cooling)));
+            }
+            case PLATING -> stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecArmor"),
+                    Strings.format("openingMechLabSpecBand", Math.round(internal.armorFraction * 100f))));
+            case HEAT_SINK -> {
+                stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecHeat"), number(internal.heatCapacity)));
+                stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecCooling"), number(internal.cooling)));
+            }
+            case COOLER -> stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecCooling"),
+                    signed(internal.cooling)));
+        }
+        String role = switch (internal.role) {
+            case ENGINE -> Strings.get("openingMechLabRoleEngine");
+            case PLATING -> Strings.get("openingMechLabRolePlating");
+            case HEAT_SINK -> Strings.get("openingMechLabRoleHeatSink");
+            case COOLER -> Strings.get("openingMechLabRoleCooler");
+        };
+        String copy = switch (internal.role) {
+            case ENGINE -> Strings.get("openingMechLabEngineCopy");
+            case PLATING -> Strings.get("openingMechLabPlatingCopy");
+            case HEAT_SINK -> Strings.get("openingMechLabHeatSinkCopy");
+            case COOLER -> Strings.get("openingMechLabUtilityCopy");
+        };
+        return new SpecSheet(internal.displayName(), role, null, "item", List.copyOf(stats), List.of(copy));
+    }
+
+    private static String number(float value) {
+        if (Math.abs(value - Math.round(value)) < 0.001f) return Integer.toString(Math.round(value));
+        return String.format(Locale.ROOT, "%.2f", value).replaceAll("0+$", "");
+    }
+
+    private static String signed(float value) {
+        return (value > 0f ? "+" : "") + number(value);
     }
 
     static void bindActions(SpecSheetBinder binder, MarkupInstance markup,
@@ -111,7 +178,8 @@ final class MechLabSpecSheets {
     /** The first row this binds, for headless evidence. */
     static String firstSpecSheetAnchorId(List<MechLabViewModel.CatalogRow> rows) {
         for (MechLabViewModel.CatalogRow row : rows) {
-            if (row.chassisPreview() != null || row.weaponPreview() != null) {
+            if (row.chassisPreview() != null || row.weaponPreview() != null
+                    || row.internalPreview() != null) {
                 return row.nameId();
             }
         }
