@@ -542,8 +542,7 @@ def audio_cues():
 def _decoded(sid):
     """A cue's source master as stereo float at 44.1 kHz, found through audio.json."""
     text = (AUDIO.parent / "audio.json").read_text(encoding="utf-8")
-    text = "
-".join(line.split("//")[0] if line.lstrip().startswith("//") else line for line in text.splitlines())
+    text = "\n".join(line.split("//")[0] if line.lstrip().startswith("//") else line for line in text.splitlines())
     src = {c["id"]: c["source"] for c in json.loads(text)["clips"]}[sid]
     out = CACHE / ("audio-%s.wav" % sid)
     if not out.exists():
@@ -567,12 +566,12 @@ def mix_cues(path):
         if until is not None:
             x = x[: int((until - t) * 44100)].copy()
         x = x.copy()
-        for n, ramp in ((int(fade_in * 44100), np.linspace(0, 1, max(1, int(fade_in * 44100)))),):
-            if n:
-                x[:n] *= ramp[: len(x[:n]), None]
-        n = min(len(x), int(fade_out * 44100))
-        if n:
-            x[len(x) - n:] *= np.linspace(1, 0, n)[:, None]
+        k = min(len(x), int(fade_in * 44100))
+        if k:
+            x[:k] *= np.linspace(0, 1, k)[:, None]
+        k = min(len(x), int(fade_out * 44100))
+        if k:
+            x[len(x) - k:] *= np.linspace(1, 0, k)[:, None]
         e = min(n, a + len(x))
         mix[a:e] += x[: e - a] * vol
     mix /= max(1.0, np.abs(mix).max() / 0.9)

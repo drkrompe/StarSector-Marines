@@ -2,7 +2,7 @@
 
 Status: ACTIVE (final frames delivered)
 Written: 2026-10-16
-Updated: 2026-10-16 — rebuilt at the shared 0.65 m per hull unit; final plates, cards, hull render, sheets and yard sound.
+Updated: 2026-10-16 — surfaced patched hull with wear and drive detail; packaged as mod/cinematic/jangala-arrival/c5.mp4.
 
 Shot C5 of `storyboard-v3.md`: 8 seconds at 1920x1080 and 24 fps, outside the window for
 the first time since C1, delivered per `runtime-contract.md`. `build_c5_guides.py` owns the
@@ -79,9 +79,12 @@ shadow under the push.
 that folder's README) from the C5 camera at 3840x2160. The model has no root object, so the
 script parents everything to a new empty; it is scaled so its X extent is `SW_LENGTH_M`
 (exactly `metres_per_unit` for this model), centred where the shrunk landing hull stands,
-with its keel on the cradle's pad tops. Everything in the near set that can stand in front
+with the hull's underside on the cradle's pad tops (the ventral RCS pod hangs below and is
+left out of that seat). The engine and RCS parts are shade-smoothed (sharp above 35°), since
+the model is flat-shaded and the bells read as faceted at this range. Everything in the near set that can stand in front
 of it (`guides/c5-occluders.glb`) holds it out. All four engines are cold in the yard, so no
-throat glows; bell interiors and throats take a sooty matte finish. Swap contract as C1:
+throat glows; bell liners and throats take a sooty matte finish (seen nearly head-on, the
+glossy liner caught the open sky and read as a blue lens). Swap contract as C1:
 `SHIP_BLEND`, `SHIP_ROOT` (None for a rootless model), `THROAT_PATTERN`.
 
 ## Moving elements

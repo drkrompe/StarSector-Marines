@@ -48,21 +48,26 @@ SHIP_ROOT = None
 # In the yard after landing all four are cold, so no throat glows (a regex here would light them).
 THROAT_PATTERN = None
 THROAT_EMISSION = ((1.0, 0.32, 0.08), 0.6)
-# Cold, heat-darkened bells: their interiors and throats take a sooty matte finish. The
-# surfaced model's recess material mirrors the sky from inside a bell seen nearly head-on.
-SOOT_PATTERN = r"^Engine \d (aft-facing bell|dark throat|aft-facing nozzle)$"
+# Cold bells take a sooty matte finish inside: seen nearly head-on from the stern quarter the
+# liner and throat catch the open sky and read as a blue lens.
+SOOT_PATTERN = r"^Engine \d (aft-facing bell|dark throat)$"
 SOOT_RGB = (0.025, 0.023, 0.022)
-# The engine parts are modelled round but flat-shaded, which reads as facets at this range:
+# The engine and RCS parts are modelled round but flat-shaded, which reads as facets at this range:
 # shade them smooth, keeping edges sharper than this angle (rims, lips) crisp.
-SMOOTH_PATTERN = r"^Engine \d "
+SMOOTH_PATTERN = r"^(Engine \d |RCS )"
 SMOOTH_SHARP_DEG = 35.0
+# Parts that hang below the hull and must not set its seat on the pads (the ventral RCS pod).
+KEEL_IGNORE = r"^RCS "
+# The drive bell liner is glossy metal that mirrors the sky from inside a bell seen head-on.
+# Cold, sooted, minutes after landing: dull it for C5.
+LINER_MATERIAL, LINER_ROUGHNESS, LINER_METALLIC = "Drive bell liner", 0.78, 0.45
 LANDING_PAD_TOP_M = 5.0       # the landing cradle's contact pads, before the shrink
 GROUND_RGB = (0.30, 0.30, 0.29)
 
 
 def _args(argv):
     opts = {"samples": 96, "blend": str(SHIP_BLEND), "root": SHIP_ROOT or "", "throats": THROAT_PATTERN or "",
-            "scale": 1.0, "plan": None}
+            "scale": 1.0, "plan": None, "pick": ""}
     i = 0
     while i < len(argv):
         k = argv[i].lstrip("-").replace("-", "_")
@@ -144,6 +149,7 @@ def blender_main(argv):
     lo = Vector([min(p[i] for p in pts) for i in range(3)])
     hi = Vector([max(p[i] for p in pts) for i in range(3)])
     s = plan["length_m"] / (hi.x - lo.x)
+    lo.z = min((o.matrix_world @ v.co).z for o in meshes if not re.search(KEEL_IGNORE, o.name) for v in o.data.vertices)
     tlo, thi = Vector(plan["hull_box"]["lo"]), Vector(plan["hull_box"]["hi"])
     # centred where the landing hull stands, keel down on the cradle's pad tops
     seat = Vector(((tlo.x + thi.x) / 2, (tlo.y + thi.y) / 2, plan["pad_top"]))
@@ -177,6 +183,14 @@ def blender_main(argv):
     sb.inputs["Base Color"].default_value = (*SOOT_RGB, 1)
     sb.inputs["Roughness"].default_value = 0.95
     sb.inputs["Metallic"].default_value = 0.0
+    liner = bpy.data.materials.get(LINER_MATERIAL)
+    if liner is not None and liner.node_tree:
+        for n in liner.node_tree.nodes:
+            if n.type == "BSDF_PRINCIPLED":
+                if not n.inputs["Roughness"].is_linked:
+                    n.inputs["Roughness"].default_value = LINER_ROUGHNESS
+                if not n.inputs["Metallic"].is_linked:
+                    n.inputs["Metallic"].default_value = LINER_METALLIC
     for o in meshes:
         if re.search(SOOT_PATTERN, o.name):
             o.data.materials.clear()
@@ -248,6 +262,19 @@ def blender_main(argv):
     scene.view_settings.view_transform = view["transform"]
     scene.view_settings.exposure = view["exposure"]
     scene.view_settings.gamma = view["gamma"]
+    if plan.get("pick"):
+        # debug: name what the camera sees at plate pixels "x,y;x,y" (3840x2160), then stop
+        bpy.context.view_layer.update()
+        dg = bpy.context.evaluated_depsgraph_get()
+        fw, fh = cam_d["plate"]
+        f = cam.data.lens / cam.data.sensor_width * fw
+        rot = cam.matrix_world.to_3x3()
+        for xy in plan["pick"].split(";"):
+            x, y = (float(v) for v in xy.split(","))
+            d = rot @ Vector(((x - fw / 2) / f, -(y - fh / 2) / f, -1.0)).normalized()
+            hit, loc, _, _, ob, _ = scene.ray_cast(dg, cam.matrix_world.translation, d)
+            print("PICK", xy, ob.name if hit else None, [m.name for m in ob.data.materials] if hit else None)
+        return
     scene.render.filepath = plan["out"]
     bpy.ops.render.render(write_still=True)
     print("wrote", plan["out"])
