@@ -31,15 +31,15 @@ class SmallWarLedgerTest {
         var p = ratified(AgreusYardAgreement.HOUSE_CUSTODY); String id = p.nextMissionId();
         assertEquals(-1, win(p, id), "an unlaunched attempt cannot settle");
         assertTrue(p.begin(id, "agreus", "Agreus"));
-        assertEquals(-1, p.settleSmallWar(id, "asharu", true, 44000, true, true, true, true, true, true, false, 0, 0, 0));
-        assertEquals(-1, p.settleSmallWar(id, "agreus", true, 88000, true, true, true, true, true, true, false, 0, 0, 0));
-        assertEquals(-1, p.settleSmallWar(id, "agreus", true, 44000, true, true, true, true, true, true, true, 0, 0, 0),
+        assertEquals(-1, p.settleSmallWar(id, "asharu", true, 44000, true, true, true, true, true, false, 0, 0, 0));
+        assertEquals(-1, p.settleSmallWar(id, "agreus", true, 88000, true, true, true, true, true, false, 0, 0, 0));
+        assertEquals(-1, p.settleSmallWar(id, "agreus", true, 44000, true, true, true, true, true, true, 0, 0, 0),
                 "a victory claim with destroyed fuel infrastructure contradicts itself");
-        assertEquals(-1, p.settleSmallWar(id, "agreus", true, 44000, true, true, true, true, true, true, false, 3, 0, 0));
-        assertEquals(-1, p.settleSmallWar(id, "agreus", true, 44000, true, true, false, true, true, true, false, 0, 0, 0));
-        assertEquals(-1, p.settleSmallWar(AgreusArcProgress.YARD_PREFIX + 2, "agreus", true, 44000, true, true, true, true, true, true, false, 0, 0, 0));
+        assertEquals(-1, p.settleSmallWar(id, "agreus", true, 44000, true, true, true, true, true, false, 3, 0, 0));
+        assertEquals(-1, p.settleSmallWar(id, "agreus", true, 44000, true, true, false, true, true, false, 0, 0, 0));
+        assertEquals(-1, p.settleSmallWar(AgreusArcProgress.YARD_PREFIX + 2, "agreus", true, 44000, true, true, true, true, true, false, 0, 0, 0));
         assertFalse(p.smallWarSettled(), "refused receipts write nothing");
-        assertEquals(56000, p.settleSmallWar(id, "agreus", true, 44000, true, true, true, true, true, true, false, 1, 2, 7));
+        assertEquals(56000, p.settleSmallWar(id, "agreus", true, 44000, true, true, true, true, true, false, 1, 2, 7));
         assertTrue(p.smallWarSettled());
         assertEquals(12000, p.smallWarPremiumPaid());
         assertEquals(7, p.greyhookWithdrawn());
@@ -59,8 +59,8 @@ class SmallWarLedgerTest {
     @Test void defeatRecordsLossesAndOpensADisclosedReplacementAcrossReload() throws Exception {
         var p = ratified(AgreusYardAgreement.HOUSE_CUSTODY); String first = p.nextMissionId();
         assertTrue(p.begin(first, "agreus", "Agreus"));
-        assertEquals(-1, p.settleSmallWar(first, "agreus", false, 44000, true, true, false, true, false, true, true, 0, 0, 0));
-        assertEquals(0, p.settleSmallWar(first, "agreus", false, 0, true, true, false, true, false, true, true, 1, 4, 3));
+        assertEquals(-1, p.settleSmallWar(first, "agreus", false, 44000, true, true, false, false, true, true, 0, 0, 0));
+        assertEquals(0, p.settleSmallWar(first, "agreus", false, 0, true, true, false, false, true, true, 1, 4, 3));
         assertFalse(p.smallWarSettled());
         assertEquals(0, p.smallWarPremiumPaid());
         assertEquals(12000, p.custodyPremiumDue(), "the premium waits for an actual victory");
@@ -98,6 +98,6 @@ class SmallWarLedgerTest {
     }
 
     private static int win(AgreusArcProgress p, String id) {
-        return p.settleSmallWar(id, "agreus", true, 44000, true, true, true, true, true, true, false, 0, 0, 0);
+        return p.settleSmallWar(id, "agreus", true, 44000, true, true, true, true, true, false, 0, 0, 0);
     }
 }

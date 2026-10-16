@@ -47,8 +47,8 @@ public final class BlackSluice {
     /** Bottom row of the northern band, where the ground fight is: everything north of the ridge. */
     public static final int BAND_BOTTOM = 104;
     public static final int LANDING_X = 24, LANDING_Y = 163;
-    /** The marked tender-build rear position south of customs. */
-    public static final int BUILD_X = 54, BUILD_Y = 152;
+    /** Plain staging ground south of customs: an open bay off the apron, nothing to build. */
+    public static final int STAGING_X = 54, STAGING_Y = 152;
     /** One visible support gun on the causeway shoulder in front of fuel control. */
     public static final int GUN_X = 121, GUN_Y = 164;
     public static final String TANK_ID = "doodad.industrial-fluid-tank";
@@ -72,7 +72,7 @@ public final class BlackSluice {
     public record Place(String id, String label, int x, int y) { }
     public static final List<Place> PLACES = List.of(
             new Place("apron", "Western landing apron", LANDING_X, LANDING_Y),
-            new Place("rear", "Rear position / tender build bay", BUILD_X, BUILD_Y),
+            new Place("staging", "Staging ground south of customs", STAGING_X, STAGING_Y),
             new Place("north-gallery", "North service gallery", NORTH_GALLERY_EXIT_X, NORTH_GALLERY_EXIT_Y),
             new Place("south-gallery", "South service gallery", SOUTH_GALLERY_EXIT_X, SOUTH_GALLERY_EXIT_Y),
             new Place("gun", "Support-gun position", GUN_X - 2, GUN_Y),
@@ -118,7 +118,7 @@ public final class BlackSluice {
         c.put(BspKeys.MARKET_PROFILE, profile == null ? TargetProfile.NEUTRAL : profile);
         new GenRecipe("Black Sluice fuel and dispatch apron", List.of(BlackSluice::grounds, BlackSluice::terrain,
                 BlackSluice::basin, BlackSluice::dock, BlackSluice::berths, BlackSluice::facilities, new FinalizeStage(),
-                new OutdoorLandscapeStage(LANDING_X, LANDING_Y, BUILD_X, BUILD_Y, 58, 173, 123, 174, 166, 160,
+                new OutdoorLandscapeStage(LANDING_X, LANDING_Y, STAGING_X, STAGING_Y, 58, 173, 123, 174, 166, 160,
                         SERVICE_INGRESS_X, SERVICE_INGRESS_Y, PIER_INGRESS_X, PIER_INGRESS_Y, GATE_X, GATE_Y, 283, 110))).run(c);
         var map = new MapResult(c.grid, c.topology, LANDING_X, LANDING_Y, PIER_INGRESS_X, PIER_INGRESS_Y,
                 c.pois, c.doodads, new TacticalMap(List.of()), c.get(BspKeys.BUILDINGS), List.of(), null, c.landingPads);

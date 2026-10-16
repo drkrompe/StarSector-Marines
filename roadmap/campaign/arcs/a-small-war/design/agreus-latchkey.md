@@ -175,8 +175,7 @@ walled settling beds of silt, so anyone on it is in the open; sealed service
 galleries run through the bed field to the north and south, entered through
 pressure vestibules, and are how people cross under cover; the north gallery
 comes out behind the fuel-control house, out of the road gun's sight. The customs block
-stands at the causeway's landward end beside a working bay where a tender can
-set down a rear position. The sheltered fuel-control house stands at the seaward
+stands at the causeway's landward end beside an open staging bay. The sheltered fuel-control house stands at the seaward
 end, with the marked tank farm behind it and a support-gun position on the road
 in front of it. Dispatch occupies the pier beyond. Past the pier is the walled
 berth yard: warehouses either side of a concourse, fuel mains along it, sealed
@@ -186,8 +185,9 @@ service road runs east to a vehicle pressure lock under the yard wall: the way
 Greyhook's crews come and go, and the way out.
 
 Dispatch's berths are not on the fight's ground. South of the band a broken ridge
-runs the width of the basin, and a rock massif fills the south-west; neither has
-a way through. Below them is the **pad field** where Greyhook's ships sit landed
+runs the width of the basin, and the basin's own rim closes the south-west:
+lobes and spurs of different heights cut back by gullies, broken outcrops on the
+flats below, scree fanning from their toes. Neither has a way through. Below them is the **pad field** where Greyhook's ships sit landed
 at their true size (`landed-ships-true-scale.md`): a concrete cradle for the
 Venture with a Hound berth either side, kerbs, painted borders, tie-downs, floor
 drains, deck hatches and engine-wash scorch, gantry arms out to the hulls, a pad

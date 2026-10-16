@@ -1046,7 +1046,7 @@ public class BriefingScreen implements Screen {
         if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.smallWar(mission.id)) return List.of(
                 BriefingViewModel.info("sluice-holders","Local holders","Twelve / occupy only sites the company has taken",""),
                 BriefingViewModel.info("sluice-custody","Custody party","Three / escort into fuel control; one must finish the handover",""),
-                BriefingViewModel.info("sluice-support","Company support","Working tender builds the rear position; employer heavy lift for your owned active mech lance",""),
+                BriefingViewModel.info("sluice-support","Company support","No tender on this contract; employer heavy lift for your owned active mech lance",""),
                 BriefingViewModel.info("sluice-preserve","Preserve fuel storage","Four marked tanks / no bombardment or fighter strikes",""));
         if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.termsOfProtection(mission.id)) {
             boolean custody = AgreusArcCampaign.custodyRoute(mission);
@@ -1177,7 +1177,7 @@ public class BriefingScreen implements Screen {
             props.put("deploymentStatus", failed ? "Terrain survey failed" : "Preparing deployment area...");
             props.put("deployAction", (Runnable) this::retrySurvey);
         }
-        String constructionBlocker = AgreusArcCampaign.isBattle(mission)
+        String constructionBlocker = AgreusArcCampaign.requiresConstructionTender(mission)
                 ? AgreusConstructionSupport.blocker(cachedAvailablePowers, selectedPowerIds,
                         new CampaignCommandPowerResources().availableSupplies()) : null;
         if (constructionBlocker != null && personnelOk && transportOk && commandOk) {

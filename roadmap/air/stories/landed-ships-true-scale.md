@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-10-16
 
-Updated: 2026-10-16 — round 2 on owner review: concrete pads instead of grating, a motion-carried lift run instead of an in-place shrink, and the berths moved to a southern pad field below a ridge, reached only through the berth gate.
+Updated: 2026-10-16 — round 3 on owner review: wrecks fall back to true scale, the basin rim reads as country, and A Small War drops its tender.
 
 Read `air-nouns.md` (**Overhead ships**, the low-hover paragraph), `tender-ship.md`
 (**Vulnerability**), `warship-behaviours.md` and `a-small-war-arc.md` (Chapter 5)
@@ -131,8 +131,10 @@ and splits in two:
 - east of dispatch, the walled **berth yard** (warehouses either side of a
   concourse, fuel mains, sealed galleries, pressure vestibules) ends in the
   **berth gate**, a pressure lock through its east wall;
-- a broken, knolled **ridge** runs the width of the map below the band and a **rock
-  massif** fills the south-west; a retaining wall carries the yard's east wall down
+- a broken, knolled **ridge** runs the width of the map below the band and the
+  **basin rim** closes the south-west: massed off the map edges, its toe a line of
+  lobes and spurs of different heights cut by gullies, outcrops and broken ribs on
+  the flats below, scree fanning from the toes and regolith drifts on the floor; a retaining wall carries the yard's east wall down
   onto the ridge, so the only way south is the gate and the **berth road** down the
   east side;
 - the **pad field** below holds the **Venture cradle** and **two Hound berths**,
@@ -155,11 +157,28 @@ now holds the **berth gate**, eight cells inside the yard's east lock; it still
 holds after Voss's order, so a company that clears the band walks the yard to it.
 
 **The duel.** The ships fight over the southern ground (`BlackSluice.AIRSPACE_TOP`,
-every row below 88). The rig climbs out west over the massif and the Hounds lift
+every row below 88). The rig climbs out west over the basin rim and the Hounds lift
 toward the same first waypoint; the Wolfs enter east of the pads at the tuned
 seventy-seven cells. The ships-of-the-line pass owns the duel's tuning and is
 adding a mission airspace clamp (`HullAirspace`) that Black Sluice will set to
 that rectangle.
+
+**Round 3 (owner review).** *Wrecks:* a hull shot down kept its flight size all the
+way to the ground. It now eases back to true landed scale as it falls, the lift run
+read backwards and keyed to the fall (`LandedScale.fallFactor`), and strikes, skids
+and lies at that size; the hull-damage cuts are drawn at the same size. Its crush is
+half the larger of its landed length and beam, its skid sweep half the beam, and its
+impact, skid, crater and debris are sized from those. The aircraft crash's caps
+(eight cells of crush, six of skid) stay for aircraft, where they match a drawn
+airframe; a warship wreck is uncapped, because a Venture lies some fifty cells long.
+At `WarshipScale.HULL_PRESENCE` 6 flight and landed size differ by about 3%, so the
+fall's change of size is slight; the strike's footprint is the substantive change.
+*Terrain:* the south-west rim is laid as eroded country rather than placed masses
+(see the map above); the ridge and the gate-only seal are unchanged. *Tender:* A
+Small War no longer has a tender or a rear-position build. The sequence is customs,
+fuel control (the split), dispatch, handover; customs falling hands the holders
+their first building with no construction gate, the offer no longer requires an
+owned tender, and the old build bay south of customs is plain staging ground.
 
 ## Acceptance
 

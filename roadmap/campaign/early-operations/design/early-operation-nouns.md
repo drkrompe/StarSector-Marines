@@ -344,9 +344,10 @@ correspondence are text only. Chapter 5 and its acceptance belong to
 ground fight never depends on the frigate duel overhead: the duel, when it exists,
 is told when Voss gives her order and reports what happened, and nothing it does
 is read by the ground referee. Three full squads are recommended, with the same
-two-squad minimum, fitted lift, owned tender and optional employer heavy lift for
-an owned mech. The company takes the causeway customs block and builds a real
-tender-built rear position beside it; then fuel control, then dispatch. Each site
+two-squad minimum and fitted lift, no tender (the chapter has no construction
+step) and optional employer heavy lift for an owned mech. The company takes the
+causeway customs block, which its holders occupy at once; then fuel control, then
+dispatch. Each site
 is held only by uncontested company infantry and can be lost again, so a lost site
 must be reclaimed. Twelve holders take only sites the company has actually held.
 Victory requires all three held together, the marked tank farm standing and a

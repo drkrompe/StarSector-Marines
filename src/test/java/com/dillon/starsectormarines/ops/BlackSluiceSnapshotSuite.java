@@ -5,18 +5,14 @@ import com.dillon.starsectormarines.marine.BoatFittingSlot;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
-import com.dillon.starsectormarines.battle.control.ShipCommandService;
-import com.dillon.starsectormarines.battle.power.ShipOnStation;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.setup.BlackSluiceDuel;
 import com.dillon.starsectormarines.battle.setup.SmallWarForces;
 import com.dillon.starsectormarines.battle.setup.SmallWarSequence;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.story.SmallWarProgress;
-import com.dillon.starsectormarines.battle.tender.BuildOption;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
-import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.world.gen.BlackSluice;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
@@ -57,10 +53,9 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Opt-in Black Sluice playback: a named regular company with fitted boats and an owned tender
- * through the production factory and command. The suite plays the player's part only where a
- * player must act (calling the tender and placing the rear position); diagnostic losses and the
- * withdrawal are labelled controls. Terminal receipts feed the campaign ledger without a live
+ * Opt-in Black Sluice playback: a named regular company with fitted boats through the production
+ * factory and command, with no tender and no construction step; the suite issues no player orders.
+ * Diagnostic losses and the withdrawal are labelled controls. Terminal receipts feed the campaign ledger without a live
  * sector. The production duel overhead is installed in every fixture but one: {@code ordinary-15305-no-duel}
  * is the same battle with an empty sky, and both must end the same way on the ground. The duel is
  * recorded as {@code ordinary-15305-duel.gif} from Voss's order on.
@@ -126,13 +121,11 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
         var deployment = CampaignMarineDeployment.freezeSelection(roster, selected, 36);
         var boats = List.of(boat("sluice-boat-one"), boat("sluice-boat-two"));
         var manifest = DetachmentResolver.buildShuttleManifestForPersonnel(mission, boats, deployment.size());
-        var source = new ShipSupportSource("shepherd", "Morrow", true, Map.of(), "sluice-morrow-member");
         boolean custody = fixture.route() == AgreusYardAgreement.HOUSE_CUSTODY;
         report.append("\n").append(fixture).append(" mission=").append(mission.id).append('\n');
         try (var sim = BattleSetup.createSmallWar(fixture.seed(), manifest,
                 new TargetProfile(0, 0, 0, 0, "pirates", Set.of(), SurfacePalette.ROCK, SettlementLink.ROAD), custody, fixture.duel())) {
             deployment.applyToAuthoredPlayerLift(sim);
-            sim.setCommandPowers(List.of(new ShipOnStation(List.of(source))));
             var sequence = sim.getSmallWar();
             if (fixture.duel()) assertInstanceOf(BlackSluiceDuel.class, sequence.duel(), "Production Chapter 5 installs the duel overhead");
             else assertNull(sequence.duel(), "The no-duel control leaves the sky empty");
@@ -140,7 +133,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
             boolean recordDuel = fixture.duel() && fixture.id().equals("ordinary-15305");
             var duelFrames = new ArrayList<BufferedImage>();
             int duelOverTick = -1, dockContactTick = -1;
-            assertTrue(sim.tenders().tenders().isEmpty(), "The factory must not manufacture a tender");
+            assertTrue(sim.tenders().tenders().isEmpty(), "A Small War has no tender");
             var scheduled = new HashSet<String>(); int aircraft = 0;
             for (long air : sim.getAirEntityIds()) if (sim.world().airFaction(air) == Faction.MARINE) {
                 assertSame(boats.get(aircraft++), sim.world().airframe(air));
@@ -155,22 +148,9 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
             var phase = sequence.progress().phase();
             frames.add(frame(context, fixture.id() + "-arrival.png", sim, false));
             int maxTicks = fixture.control() == Control.ABSENT ? 5400 : Integer.getInteger("battle.blackSluice.maxTicks", 27000);
-            boolean requestedShip = false, requestedBuild = false, injected = false, splitSeen = false, buildAccepted = false;
-            int splitTick = -1, gunShots = 0, rearShots = 0;
+            boolean injected = false, splitSeen = false;
+            int splitTick = -1, gunShots = 0;
             while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
-                if (phase == SmallWarProgress.Phase.REAR_POSITION) {
-                    if (!requestedShip && sim.playerSeesCell(sequence.buildX(), sequence.buildY())) {
-                        sim.getCommandPowerService().requestActivation(ShipOnStation.ID, sequence.buildX(), sequence.buildY());
-                        requestedShip = true;
-                        report.append("  requested normal Ship on Station tick=").append(sim.getSimTickIndex()).append('\n');
-                    }
-                    if (!requestedBuild && sequence.tender() != null) {
-                        assertSame(source, sequence.tender().ship().supportSource());
-                        sim.shipCommands().requestBuild(sequence.tender(), BuildOption.VULCAN_TURRET, sequence.buildX(), sequence.buildY());
-                        requestedBuild = true;
-                        report.append("  requested actual rear-position gun tick=").append(sim.getSimTickIndex()).append('\n');
-                    }
-                }
                 if (fixture.control() == Control.RETREAT && sequence.progress().visited(SmallWarProgress.CUSTOMS)) {
                     assertTrue(sim.retreat()); report.append("  explicit company withdrawal after customs tick=").append(sim.getSimTickIndex()).append('\n'); break;
                 }
@@ -184,10 +164,6 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                     injected = true; report.append("  diagnostic: killed the whole custody party at HANDOVER\n");
                 }
                 sim.advance(BattleSimulation.TICK_DT);
-                if (!buildAccepted && requestedBuild && sequence.tender() != null
-                        && sim.shipCommands().notice(sequence.tender().ship()) == ShipCommandService.Notice.LAID) {
-                    buildAccepted = true; report.append("  rear-position build accepted by the ordinary ship command service\n");
-                }
                 for (int i = 0; i < sim.liveUnitCount(); i++) {
                     long id = sim.liveUnitAt(i);
                     if (sim.identity().faction(id) != Faction.MARINE || sim.identity().type(id) != UnitType.MARINE) continue;
@@ -196,7 +172,6 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                 }
                 for (var shot : sim.getShotsThisFrame()) {
                     if (shot.shooterId == sequence.supportGunId()) gunShots++;
-                    if (sequence.rearTurretIds().contains(shot.shooterId)) rearShots++;
                 }
                 if (!splitSeen && sequence.progress().split()) {
                     splitSeen = true; splitTick = sim.getSimTickIndex();
@@ -253,7 +228,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                     String status = "  tick=" + sim.getSimTickIndex() + " phase=" + phase + " landed=" + landed.size()
                             + " marinesAlive=" + marines + " greyhookAlive=" + greyhook
                             + " held=" + sequence.progress().held(0) + "/" + sequence.progress().held(1) + "/" + sequence.progress().held(2)
-                            + " gunShots=" + gunShots + " rearShots=" + rearShots;
+                            + " gunShots=" + gunShots;
                     if (OBSERVE) {
                         var where = new StringBuilder();
                         for (int i = 0; i < sim.liveUnitCount(); i++) {
@@ -270,7 +245,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
             var result = sequence.report(sim);
             report.append("  receipt=").append(result).append(" winner=").append(sim.getWinner()).append(" landed=").append(landed.size())
                     .append(" gunShots=").append(gunShots).append(" gunAlive=").append(sim.world().isAlive(sequence.supportGunId()))
-                    .append(" rearShots=").append(rearShots).append(" fuelIntact=").append(SmallWarSequence.infrastructureIntact(sim)).append('\n');
+                    .append(" fuelIntact=").append(SmallWarSequence.infrastructureIntact(sim)).append('\n');
             report.append("  greyhook=").append(sequence.forceReport(sim)).append('\n');
             for (var squad : sim.getSquads()) if (sim.squadMemberCount(squad.id) > 0)
                 report.append("  squad=").append(squad.id).append(" side=").append(squad.faction).append(" n=").append(sim.squadMemberCount(squad.id))
@@ -343,8 +318,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                 var site = BlackSluice.SITES.get(i);
                 marks.box(site.left(), site.bottom(), site.right(), site.top(), labels[i], i == 1 ? ReviewStyle.KEEP : ReviewStyle.OBJECTIVE);
             }
-            marks.box(48, 148, 60, 157, "REAR POSITION / TENDER BUILD", ReviewStyle.KEEP)
-                    .box(140, 182, 157, 195, "PRESERVE MARKED FUEL TANKS", ReviewStyle.KEEP)
+            marks.box(140, 182, 157, 195, "PRESERVE MARKED FUEL TANKS", ReviewStyle.KEEP)
                     .label(BlackSluice.GUN_X, BlackSluice.GUN_Y - 3, "SUPPORT GUN", ReviewStyle.ROUTE)
                     .arrow(66, 164, 106, 164, "EXPOSED CAUSEWAY", ReviewStyle.ROUTE)
                     .arrow(66, 188, 118, 188, "NORTH SERVICE GALLERY", ReviewStyle.APPROACH)
@@ -379,7 +353,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
             frames.add(new SnapshotArtifact("black-sluice-detail-basin-edge.png", new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 72, 44, 144)
                     .withUnitShadows().render(sim, "BLACK SLUICE / SOUTH-WEST BASIN EDGE, SPURS, GULLIES AND SCREE / 144 cells across")));
             frames.add(new SnapshotArtifact("black-sluice-detail-customs.png", new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 70, 164, 88)
-                    .render(sim, "BLACK SLUICE / CUSTOMS, REAR BAY AND GALLERY MOUTHS / 88 cells across")));
+                    .render(sim, "BLACK SLUICE / CUSTOMS, STAGING BAY AND GALLERY MOUTHS / 88 cells across")));
         }
     }
 

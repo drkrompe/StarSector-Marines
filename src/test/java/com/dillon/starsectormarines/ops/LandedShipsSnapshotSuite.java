@@ -42,7 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public final class LandedShipsSnapshotSuite implements SnapshotSuite {
 
     /** Ticks between liftoff frames (two seconds), and the most frames the strip takes before the lift must be through. */
-    private static final int LIFT_FRAME_EVERY = 60, LIFT_FRAMES = 24;
+    private static final int LIFT_FRAME_EVERY = 60, LIFT_FRAMES = 32;
     /** Where the lift runs turn toward: west over the rock massif, the way Black Sluice's rig climbs out. */
     private static final float TURN_X = 126f, TURN_Y = 20f;
 

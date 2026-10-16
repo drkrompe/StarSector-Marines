@@ -117,8 +117,8 @@ Missing or incompatible Agreus access pauses the work without replacing a world.
 | Terms of Protection | Latchkey/Cinder Steps: deliver the signed custody party and hold the commissioning work against Berth Four's raid | Planned 32,000 credits and a Boarding Jack section card on either agreement | Planned; Boarding Jack remains proposed |
 | A Small War | Black Sluice: seize fuel-dispatch sites while Greyhook splits, and hand them to local holders | Planned 44,000 credits, completed settlement and the Hegemony auxiliary warrant offer | Planned |
 
-Recommendations are two squads for the first two chapters, then three with
-construction support. Planned fees and equipment are design targets, not
+Recommendations are two squads for the first two chapters, then three, with
+construction support in Chapters 3 and 4; Chapter 5 has no tender. Planned fees and equipment are design targets, not
 accepted encounter balance. North Weir opens the warrant offer; Limited Warrant
 victory awards the Specter section card and opens The Yard's Owners. Its protected
 inspection awards the Salvage-assisted Section card. Each card is learned

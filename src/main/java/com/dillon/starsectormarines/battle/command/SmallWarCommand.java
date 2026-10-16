@@ -78,14 +78,6 @@ public final class SmallWarCommand implements AutonomousMissionCommand<SmallWarC
             if (faction == Faction.MARINE) {
                 int[] target = companyTarget(frame.phase, squad.squadId(), cx, frame.tick());
                 x = target[0]; y = target[1]; radius = 3; advance = true;
-                if (frame.phase == Phase.REAR_POSITION && frame.influence() != null) {
-                    var threat = WorkingPassageCommand.constructionThreat(frame.influence().contacts(), BlackSluice.BUILD_X, BlackSluice.BUILD_Y);
-                    if (threat != null) {
-                        var point = WorkingPassageCommand.screenPoint(BlackSluice.BUILD_X, BlackSluice.BUILD_Y, threat,
-                                squad.squadId() % 2 == 0 ? 1 : -1, old.assignment());
-                        x = point[0]; y = point[1];
-                    }
-                }
             } else if (faction == Faction.ALLY) {
                 if (squad.squadId() == frame.custody) {
                     var room = BlackSluice.SITES.get(SmallWarProgress.FUEL_CONTROL);
@@ -136,7 +128,6 @@ public final class SmallWarCommand implements AutonomousMissionCommand<SmallWarC
     static int[] companyTarget(Phase phase, int squadId, int centroidX, long tick) {
         return switch (phase) {
             case CUSTOMS -> { var s = BlackSluice.SITES.get(SmallWarProgress.CUSTOMS); yield new int[]{s.x() + (squadId % 2 == 0 ? -2 : 2), s.y()}; }
-            case REAR_POSITION -> new int[]{BlackSluice.BUILD_X + 4, BlackSluice.BUILD_Y + 6};
             case FUEL_CONTROL -> centroidX < BlackSluice.NORTH_GALLERY_EXIT_X - 3
                     ? new int[]{BlackSluice.NORTH_GALLERY_EXIT_X, BlackSluice.NORTH_GALLERY_EXIT_Y}
                     : sweep(SmallWarProgress.FUEL_CONTROL, squadId, tick);
