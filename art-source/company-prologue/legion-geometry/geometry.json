@@ -52,10 +52,10 @@
     "+Z": "dorsal"
   },
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
-  "metres_per_unit": 0.65,
+  "metres_per_unit": 0.61,
   "scale": {
-    "method": "deck program (DeckProgramProbe CAPITAL \"Battlecarrier\" 700 1500 300 -> CARRIER): 30827 m2 rooms x1.40 circulation x3.2 m deck height = required m3; solved against the usable share of the pressure hull, measured as the union of its solids on every build",
-    "required_m3": 138105,
+    "method": "warship pass 4: deck program (DeckProgramProbe CAPITAL \"Battlecarrier\" 700 1500 300 -> CARRIER) less its notional HANGAR rooms: 28667 m2 x1.40 circulation x3.2 m = required habitable m3; solved against the habitable share of the pressure hull (union of its solids, measured on every build); fighter hangar volume checked in model units, since fighters share the carrier pixel scale",
+    "required_habitable_m3": 128428,
     "pressure_hull": [
       "Hull fore body",
       "Hull aft body",
@@ -70,36 +70,76 @@
       "Flight deck WS 012 hangar",
       "Flight deck WS 013 hangar"
     ],
-    "pressure_hull_units3": 1722294,
+    "pressure_hull_units3": 1721734,
     "machinery_units3": 43133,
-    "usable_fraction": 0.55,
-    "solved_metres_per_unit": 0.526,
-    "range": {
-      "cramped_65pct_usable": 0.498,
-      "roomy_45pct_usable": 0.563,
-      "engine_block_crewed_too": 0.522
+    "usable_fraction": 0.33,
+    "non_habitable_budget": {
+      "fighter hangars, launch bays, fighter ordnance": 0.245,
+      "belt and deck armour (rating 1650, about 1.5 m over the envelope)": 0.15,
+      "reactors, flux plant, drive machinery": 0.12,
+      "fifteen barbettes, gun and missile magazines": 0.05,
+      "fuel (300), supplies and water tanks, structure, trunks": 0.1
     },
-    "published_vs_solved": 1.235,
+    "habitable_share_from_budget": 0.335,
+    "fighter_stowage_units3": {
+      "legion_xiv_Elite": 421718,
+      "legion_Strike": 381888
+    },
+    "fighter_stowage_share_of_hull": 0.245,
+    "solved_metres_per_unit": 0.609,
+    "range": {
+      "35pct_habitable": 0.597,
+      "30pct_habitable": 0.629,
+      "budget_share": 0.606,
+      "freighter_55pct_for_comparison": 0.514
+    },
+    "published_vs_solved": 1.001,
     "size_m": [
-      191.7,
-      191.1,
-      49.0
+      179.9,
+      179.3,
+      46.0
     ],
+    "hull_volume_m3": 390801,
+    "real_world": {
+      "Nimitz": "333 m, about 5,000 crew aboard, 76.8 m flight-deck beam",
+      "fleet and light carriers": "200-260 m",
+      "this hull": "183 m long and 179 m wide, 391k m3 enclosed for 700-1500 crew",
+      "per crew at max crew m3": 261
+    },
     "cross_checks_m": {
-      "forward flight deck mouth w x h": [
-        23.4,
-        7.8
+      "forward hangar mouth w x h": [
+        22.0,
+        7.3
       ],
-      "aft flight deck mouth w x h": [
-        14.3,
-        7.8
+      "aft hangar mouth w x h": [
+        13.4,
+        7.3
       ],
-      "hull keel to crown": 49.0,
-      "person 1.8 m in units": 2.77,
+      "fighters (length x span) m": {
+        "broadsword": [
+          20.1,
+          18.3
+        ],
+        "hoplon": [
+          22.0,
+          23.2
+        ],
+        "piranha": [
+          20.7,
+          18.3
+        ]
+      },
+      "hull keel to crown": 46.0,
+      "person 1.8 m in units": 2.95,
+      "door 2.1 m / rail 1.1 m / hatch 2 m in units": [
+        3.4,
+        1.8,
+        3.3
+      ],
       "C2 targets: hatch 2 m / small dome 8 m / engine bell 26 m in units": [
-        3.1,
-        12.3,
-        40.0
+        3.3,
+        13.1,
+        42.6
       ]
     },
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
@@ -154,22 +194,22 @@
         [
           -27,
           103,
-          -20.5
+          -24.556
         ],
         [
           -35,
           91,
-          -20.5
+          -22.44
         ],
         [
           -44,
           105,
-          -20.5
+          -24.908
         ],
         [
           -51,
           92,
-          -20.5
+          -22.616
         ]
       ],
       "launch_point_anchors": [
@@ -183,7 +223,7 @@
         "centre": [
           -64.0,
           99.0,
-          -15.0
+          -18.35
         ],
         "normal": [
           -1,
@@ -210,6 +250,11 @@
           -60,
           -16
         ]
+      },
+      "anhedral": {
+        "angle_deg": 10.0,
+        "root_abs_y": 80.0,
+        "note": "the hangar floor and roof slope down outboard with the arm; heights given at the point"
       }
     },
     {
@@ -233,22 +278,22 @@
         [
           -35,
           -90,
-          -20.5
+          -22.263
         ],
         [
           -26,
           -102,
-          -20.5
+          -24.379
         ],
         [
           -50,
           -92,
-          -20.5
+          -22.616
         ],
         [
           -40,
           -104,
-          -20.5
+          -24.732
         ]
       ],
       "launch_point_anchors": [
@@ -262,7 +307,7 @@
         "centre": [
           -64.0,
           -99.0,
-          -15.0
+          -18.35
         ],
         "normal": [
           -1,
@@ -289,6 +334,11 @@
           -60,
           -16
         ]
+      },
+      "anhedral": {
+        "angle_deg": 10.0,
+        "root_abs_y": 80.0,
+        "note": "the hangar floor and roof slope down outboard with the arm; heights given at the point"
       }
     },
     {
@@ -312,22 +362,22 @@
         [
           47,
           104,
-          -20.5
+          -24.732
         ],
         [
           59,
           92,
-          -20.5
+          -22.616
         ],
         [
           63,
           105,
-          -20.5
+          -24.908
         ],
         [
           72,
           90,
-          -20.5
+          -22.263
         ]
       ],
       "launch_point_anchors": [
@@ -341,7 +391,7 @@
         "centre": [
           88.0,
           104.0,
-          -15.0
+          -19.232
         ],
         "normal": [
           0.83,
@@ -368,6 +418,11 @@
           46,
           80
         ]
+      },
+      "anhedral": {
+        "angle_deg": 10.0,
+        "root_abs_y": 80.0,
+        "note": "the hangar floor and roof slope down outboard with the arm; heights given at the point"
       }
     },
     {
@@ -391,22 +446,22 @@
         [
           59,
           -92,
-          -20.5
+          -22.616
         ],
         [
           48,
           -104,
-          -20.5
+          -24.732
         ],
         [
           72,
           -90,
-          -20.5
+          -22.263
         ],
         [
           64,
           -105,
-          -20.5
+          -24.908
         ]
       ],
       "launch_point_anchors": [
@@ -420,7 +475,7 @@
         "centre": [
           88.0,
           -104.0,
-          -15.0
+          -19.232
         ],
         "normal": [
           0.83,
@@ -447,6 +502,11 @@
           46,
           80
         ]
+      },
+      "anhedral": {
+        "angle_deg": 10.0,
+        "root_abs_y": 80.0,
+        "note": "the hangar floor and roof slope down outboard with the arm; heights given at the point"
       }
     }
   ],
@@ -499,7 +559,7 @@
       "location": [
         13,
         107,
-        7.59
+        3.83
       ],
       "mount": "TURRET",
       "ring_radius": 9.5,
@@ -518,7 +578,7 @@
       "location": [
         13,
         -107,
-        7.59
+        3.83
       ],
       "mount": "TURRET",
       "ring_radius": 9.5,
@@ -594,7 +654,7 @@
       "location": [
         -58,
         130,
-        10.21
+        1.98
       ],
       "mount": "TURRET",
       "ring_radius": 5.5,
@@ -613,7 +673,7 @@
       "location": [
         -58,
         -130,
-        10.21
+        1.98
       ],
       "mount": "TURRET",
       "ring_radius": 5.5,
@@ -632,7 +692,7 @@
       "location": [
         -8,
         118,
-        5.21
+        -0.91
       ],
       "mount": "TURRET",
       "ring_radius": 5.5,
@@ -651,7 +711,7 @@
       "location": [
         -8,
         -118,
-        5.21
+        -0.91
       ],
       "mount": "TURRET",
       "ring_radius": 5.5,
@@ -670,7 +730,7 @@
       "location": [
         36,
         91,
-        9.5
+        7.0
       ],
       "mount": "TURRET",
       "ring_radius": 5.5,
@@ -689,7 +749,7 @@
       "location": [
         36,
         -91,
-        9.5
+        7.0
       ],
       "mount": "TURRET",
       "ring_radius": 5.5,
@@ -985,7 +1045,7 @@
       "position": [
         73.5,
         121.2,
-        17.97
+        10.74
       ],
       "colour": "red",
       "rgb": [
@@ -1005,7 +1065,7 @@
       "position": [
         73.5,
         -121.2,
-        17.97
+        10.74
       ],
       "colour": "red",
       "rgb": [
@@ -1045,7 +1105,7 @@
       "position": [
         -69.0,
         144.5,
-        3.88
+        -7.49
       ],
       "colour": "red",
       "rgb": [
@@ -1065,7 +1125,7 @@
       "position": [
         64.8,
         122.0,
-        6.17
+        -1.06
       ],
       "colour": "red",
       "rgb": [
@@ -1085,7 +1145,7 @@
       "position": [
         46.0,
         126.5,
-        3.55
+        -4.65
       ],
       "colour": "white",
       "rgb": [
@@ -1105,7 +1165,7 @@
       "position": [
         20.0,
         135.5,
-        4.04
+        -5.75
       ],
       "colour": "white",
       "rgb": [
@@ -1125,7 +1185,7 @@
       "position": [
         -20.0,
         136.5,
-        4.2
+        -5.76
       ],
       "colour": "white",
       "rgb": [
@@ -1145,7 +1205,7 @@
       "position": [
         -45.0,
         139.5,
-        4.2
+        -6.29
       ],
       "colour": "white",
       "rgb": [
@@ -1163,9 +1223,9 @@
     {
       "name": "Light port flank 1",
       "position": [
-        40.06,
-        100.19,
-        4.0
+        40.05,
+        100.1,
+        4.08
       ],
       "colour": "white",
       "rgb": [
@@ -1203,8 +1263,8 @@
     {
       "name": "Light port flank 3",
       "position": [
-        -24.94,
-        118.06,
+        -25.0,
+        80.2,
         4.0
       ],
       "colour": "white",
@@ -1223,8 +1283,8 @@
     {
       "name": "Light port flank 4",
       "position": [
-        -47.93,
-        125.58,
+        -48.01,
+        13.89,
         4.0
       ],
       "colour": "white",
@@ -1243,8 +1303,8 @@
     {
       "name": "Light port flank tail 1",
       "position": [
-        -69.92,
-        134.67,
+        -70.01,
+        13.05,
         4.0
       ],
       "colour": "red",
@@ -1285,7 +1345,7 @@
       "position": [
         -69.0,
         -144.5,
-        3.88
+        -7.49
       ],
       "colour": "red",
       "rgb": [
@@ -1305,7 +1365,7 @@
       "position": [
         64.8,
         -122.0,
-        6.17
+        -1.06
       ],
       "colour": "red",
       "rgb": [
@@ -1325,7 +1385,7 @@
       "position": [
         46.0,
         -126.5,
-        3.55
+        -4.65
       ],
       "colour": "white",
       "rgb": [
@@ -1345,7 +1405,7 @@
       "position": [
         20.0,
         -135.5,
-        4.04
+        -5.75
       ],
       "colour": "white",
       "rgb": [
@@ -1365,7 +1425,7 @@
       "position": [
         -20.0,
         -136.5,
-        4.2
+        -5.76
       ],
       "colour": "white",
       "rgb": [
@@ -1385,7 +1445,7 @@
       "position": [
         -45.0,
         -139.5,
-        4.2
+        -6.29
       ],
       "colour": "white",
       "rgb": [
@@ -1403,9 +1463,9 @@
     {
       "name": "Light starboard flank 1",
       "position": [
-        40.06,
-        -100.19,
-        4.0
+        40.05,
+        -100.1,
+        4.08
       ],
       "colour": "white",
       "rgb": [
@@ -1443,8 +1503,8 @@
     {
       "name": "Light starboard flank 3",
       "position": [
-        -24.94,
-        -118.06,
+        -25.0,
+        -80.2,
         4.0
       ],
       "colour": "white",
@@ -1463,8 +1523,8 @@
     {
       "name": "Light starboard flank 4",
       "position": [
-        -47.93,
-        -125.58,
+        -48.01,
+        -13.89,
         4.0
       ],
       "colour": "white",
@@ -1483,8 +1543,8 @@
     {
       "name": "Light starboard flank tail 1",
       "position": [
-        -69.92,
-        -134.67,
+        -70.01,
+        -13.05,
         4.0
       ],
       "colour": "red",
@@ -1535,31 +1595,31 @@
   "c2": {
     "layout": "second-wind-cinematic/patrol-abeam/c2-layout.md",
     "note": "Model axes are C2 world axes: the patrol flies bow first along +X with starboard toward the cabin.",
-    "patrol_centre_y_m": 200.55,
-    "model_origin_z_m": -23.44,
+    "patrol_centre_y_m": 194.67,
+    "model_origin_z_m": -22.18,
     "cameras": {
       "c2-entry": {
         "time_s": 3.0,
         "position_units": [
-          215.38,
-          -308.54,
-          36.06
+          229.51,
+          -319.13,
+          36.36
         ]
       },
       "c2-abeam": {
         "time_s": 8.0,
         "position_units": [
           -0.0,
-          -308.54,
-          36.06
+          -319.13,
+          36.36
         ]
       },
       "c2-exit": {
         "time_s": 11.4,
         "position_units": [
-          -146.46,
-          -308.54,
-          16.12
+          -156.07,
+          -319.13,
+          15.11
         ]
       }
     },
@@ -1646,39 +1706,39 @@
     "c2-entry": {
       "bbox_px": [
         0,
-        96,
-        693,
-        513
+        97,
+        639,
+        525
       ],
       "size_px": [
-        694,
-        418
+        640,
+        429
       ],
       "touches_frame_edge": true
     },
     "c2-abeam": {
       "bbox_px": [
-        191,
-        96,
-        1716,
-        522
+        228,
+        97,
+        1689,
+        546
       ],
       "size_px": [
-        1526,
-        427
+        1462,
+        450
       ],
       "touches_frame_edge": false
     },
     "c2-exit": {
       "bbox_px": [
-        999,
+        1041,
         0,
         1919,
-        405
+        388
       ],
       "size_px": [
-        921,
-        406
+        879,
+        389
       ],
       "touches_frame_edge": true
     }

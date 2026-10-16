@@ -18,7 +18,7 @@ yet the vertical edges lean under 20 px across the whole height.
 
 So the model is a level pinhole whose optical-centre row is the horizon. Focal length
 comes from assuming the chart table's top is a 1.8:1 rectangle, scale from assuming it
-is 0.95 m high. Up is straight up in every pixel. Absolute distances are the
+is 0.8 m high. Up is straight up in every pixel. Absolute distances are the
 weakest numbers; overlays and figure placement depend only on the ratios.
 """
 import json
@@ -36,7 +36,7 @@ STEM = "deck-plate-v2"
 # --- Measured on the plate (pixels in the 2172x724 master) -------------------------
 DEPTH_VP = (1077.0, -70.1)       # Hough fit of receding deck seams; table sides give (1064, -78)
 TABLE_ASPECT = 1.8               # assumed width:depth of the plotting surface; fixes focal length
-TABLE_HEIGHT_M = 0.95            # assumed: a standing chart table
+TABLE_HEIGHT_M = 0.80            # assumed; 0.95 made the painted people read small beside the props
 TABLE_FRONT_BASE_Y = 549.0       # front face meets the deck
 TABLE_FRONT_RIM_Y = 420.0        # top of the front rim
 TABLE_CENTRE_X = 980.0           # centre of the front face
@@ -60,8 +60,8 @@ FLOOR_CONTACTS = {
 # Where each figure stands, in world metres relative to the table (x right of the
 # table's centre line, z behind its front face). Chosen, not measured.
 FIGURE_STANDS = {
-    "castle": {"x": 0.95, "z_from_back": 0.45, "height_m": 1.68,
-               "note": "Behind the far side of the table, right of centre, facing the viewer."},
+    "castle": {"x": 0.95, "z_from_back": 0.15, "height_m": 1.68,
+               "note": "At the far edge of the table, right of centre, facing the viewer."},
     "commander": {"x": -0.55, "z": -0.45, "height_m": 1.82,
                   "note": "Front of the table, left of centre, seen from behind."},
 }

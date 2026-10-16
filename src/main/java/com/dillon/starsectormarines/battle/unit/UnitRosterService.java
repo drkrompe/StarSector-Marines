@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.unit;
 
+import com.dillon.starsectormarines.battle.mech.MechSectionModifier;
 import com.dillon.starsectormarines.battle.air.AirTargetService;
 import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
@@ -275,6 +276,7 @@ public final class UnitRosterService {
         unitModifiers.register(new TacticalCoverModifier(this));
         unitModifiers.register(WoundModifier.legs(woundService));
         unitModifiers.register(WoundModifier.arms(woundService));
+        unitModifiers.register(new MechSectionModifier(this));
     }
 
     /** Bind the damage service after construction — used by the sim ctor to break

@@ -57,7 +57,10 @@ public final class MechLocomotionSystem {
                 // cell-index values this phase (units only ever sit on centers).
                 int rowCellX = (int) Math.floor(posX[row]);
                 int rowCellY = (int) Math.floor(posY[row]);
-                if (hasMovement && pathIdx[row] < Paths.cellCount((int[]) paths[row])) {
+                // Crippled legs cannot walk the route, so the hips answer the fight instead of it:
+                // the chassis pivots onto its target like one with no route at all.
+                if (hasMovement && pathIdx[row] < Paths.cellCount((int[]) paths[row])
+                        && !MechSectionModifier.crippled(roster.world(), id)) {
                     MovementService movement = roster.movement();
                     if (movement.continuousRoute(id) != null) {
                         int next = movement.nextWaypointIndex(id);
