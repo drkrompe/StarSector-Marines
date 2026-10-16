@@ -2,7 +2,10 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.marine.FirstRefit;
+import com.dillon.starsectormarines.marine.HegemonyAuxiliaryWarrant;
+import com.dillon.starsectormarines.campaign.AuxiliaryWarrantProgress;
 import com.dillon.starsectormarines.campaign.CampaignClock;
+import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.CompanyClocks;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.event.PlayerEventPresenter;
@@ -44,6 +47,11 @@ public final class CompanyHqScreen implements Screen {
      */
     private final MutableSignal<CompanyHqViewModel.ShipView> shipView =
             reactor.signal(CompanyHqViewModel.shipViewReady());
+
+    /** Held across rebuilds so an open letter stays open when the campaign hour turns over. */
+    private final AuxiliaryWarrantDesk auxiliary = new AuxiliaryWarrantDesk(reactor,
+            CompanyHqScreen::auxiliaryStage, CompanyHqScreen::acceptAuxiliary, CompanyHqScreen::declineAuxiliary,
+            () -> projectedCampaignHour = Integer.MIN_VALUE);
 
     private MarineOpsContext context;
     private Runnable dismissDialog;
@@ -95,6 +103,7 @@ public final class CompanyHqScreen implements Screen {
         props.put("debugAction", (Runnable) () -> { if (DevConfig.DEBUG_CLIENT) context.goTo(ScreenId.DEBUG_MISSIONS); });
         props.put("debugClasses", DevConfig.DEBUG_CLIENT ? "hq-debug console-action" : "hq-debug-hidden");
         newsDesk.put(props);
+        auxiliary.put(props);
         MarkupInstance candidate = markup.reloadAndBuild(
                 reactor, ROOT_COMPONENT, props);
         UiDocument built;
@@ -143,6 +152,21 @@ public final class CompanyHqScreen implements Screen {
             PlayerEventPresenter.requestDeployment(entry.notice);
             onClose();
         };
+    }
+
+    private static AuxiliaryWarrantProgress.Stage auxiliaryStage() {
+        CampaignStateScript script = CampaignStateScript.getInstance();
+        return script == null ? AuxiliaryWarrantProgress.Stage.NONE : script.state().auxiliaryWarrant().stage();
+    }
+
+    private static boolean acceptAuxiliary() {
+        CampaignStateScript script = CampaignStateScript.getInstance();
+        return script != null && HegemonyAuxiliaryWarrant.accept(script.state(), CampaignClock.day());
+    }
+
+    private static boolean declineAuxiliary() {
+        CampaignStateScript script = CampaignStateScript.getInstance();
+        return script != null && HegemonyAuxiliaryWarrant.decline(script.state(), CampaignClock.day());
     }
 
     private void onOpeningCourse() {

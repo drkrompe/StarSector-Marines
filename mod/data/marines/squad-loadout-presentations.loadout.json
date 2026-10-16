@@ -262,6 +262,15 @@
       "lore": "@gearCatalogFreeportAssaultLore"
     },
     {
+      "id": "armor:hegemony-auxiliary-section",
+      "kind": "ARMOR",
+      "tier": 4,
+      "rarity": "RARE",
+      "provenance": "@gearCatalogHegemonyAuxiliarySectionProvenance",
+      "factionLogo": "graphics/factions/hegemony.png",
+      "lore": "@gearCatalogHegemonyAuxiliarySectionLore"
+    },
+    {
       "id": "armor:hegemony-arbalest-section",
       "kind": "ARMOR",
       "tier": 3,

@@ -21,6 +21,13 @@ public final class AgreusArcProgress implements Serializable {
     public static final String ARBALEST_CARD = "loadout-card:sheet:armor:salvage-assisted";
     private int yardAttempt, yardTechniciansLost, yardConstablesLost, toolingLost;
     private boolean yardCompleted;
+    /**
+     * Whether *A Small War* (Chapter 5, Black Sluice) has settled. Its settlement carries the
+     * procurement introduction that opens the Hegemony auxiliary warrant offer. Nothing sets
+     * this until Chapter 5 ships; its settlement is the one writer.
+     */
+    private boolean smallWarSettled;
+    public boolean smallWarSettled() { return smallWarSettled; }
     public boolean yardCompleted() { return yardCompleted; }
     public int yardTechniciansLost() { return yardTechniciansLost; }
     public int yardConstablesLost() { return yardConstablesLost; }

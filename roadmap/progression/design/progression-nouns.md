@@ -612,9 +612,25 @@ reputation band and its relationship with that faction is Cooperative, well abov
 the Favorable a licence needs. The standing warrant opens every Restricted
 template the tradition builds that no earlier warrant already opened. This is the
 route that keeps every approved suit reachable, so the open routes could close
-without stranding anything. Authored warrants (`hegemony-auxiliary-warrant.md`)
-arrive earlier through story beats, and a later standing grant completes them
-without rewriting them. Lion's Guard and Knights kit is therefore not "never". It
+without stranding anything. Authored warrants arrive earlier through story beats,
+and a later standing grant completes them without rewriting them.
+
+The **Hegemony auxiliary warrant** is the first authored one. After *A Small War*
+settles, its procurement introduction reaches a Hegemony procurement office, which
+sends terms of auxiliary enrolment citing HSS Resolute's Garnir after-action report
+and the company's Agreus service. The offer asks only for a Favorable relationship,
+the licence threshold, because an authored route does not wait for the standing
+rule's bar. It is correspondence answered at Company HQ, never a shop or a grant on
+arrival. The terms state what the warrant opens, the obligations it carries, and what
+it does not grant: no other tradition's Restricted kit, no release to the company's
+polity, no Hegemony command authority and no immunity from Hegemony law. Acceptance
+opens the approved Arbalest (stage one); the Hegemony Auxiliary Section is the sheet
+that fields it, the recovered Arbalest section in approved suits, offered by the
+Hegemony licence and patron channels and by no one else. The XIV shock pattern
+(stage two) follows the warrant's first honoured obligation period. Declining is a
+real answer: the terms are never offered again and every other route, the standing
+warrant included, stays open. Every step is once-only, so a replayed answer or a
+repeated honoured period grants nothing further. Lion's Guard and Knights kit is therefore not "never". It
 is "only for a company that has become one of theirs", which most companies will
 not. A warrant is permanent once granted; what it costs to keep is
 `warrant-obligations.md`.
