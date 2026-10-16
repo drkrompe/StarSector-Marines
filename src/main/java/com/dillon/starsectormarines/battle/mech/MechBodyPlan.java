@@ -18,10 +18,28 @@ import com.dillon.starsectormarines.battle.combat.BodyPlan;
  *
  * <p>The pool shares sum to one, so the sections together hold exactly the armor and structure
  * the stock frame and plating set. A mount the chassis was deployed without has no pool: its
- * share folds into the torso. The sections carry no cover rows yet, so cover still meets a mech
- * as one body with the flat chance and damage cut (slice 3 of {@code mech-locational-damage.md}).
+ * share folds into the torso.
+ *
+ * <p><b>Cover by band.</b> Each band carries cover rows, read from the ground up
+ * ({@link BodyPlan#coverFromGround}): cover a man would crouch behind reaches a mech's legs and,
+ * at its tallest, the bottom of its torso, and never its shoulders or head. A mech behind a berm
+ * is hull-down — its legs hidden, its weapons still showing — the counterpart of a marine in a
+ * trench. The rows are shared by every chassis because cover is as tall as it is whoever stands
+ * behind it; the band shares already say how much of each chassis that height is.
  */
 public final class MechBodyPlan {
+
+    // Cover rows by level 0..3 (none, low, medium, high), read from the ground up. Low cover — a
+    // crate line, a sandbag wall — reaches about half a mech's legs; a berm or a parapet most of
+    // them; a full wall all of them and the bottom of the torso. Nothing hides a shoulder or head.
+    // Declared before the chassis below, whose constructors read them.
+    static final float[] LEGS_EDGE = {0f, 0.55f, 0.90f, 1.00f};
+    static final float[] LEGS_OCCUPANT = {0f, 0.55f, 0.90f, 1.00f};
+    static final float[] LEGS_CROSSED = {0f, 0.40f, 0.65f, 0.80f};
+    static final float[] TORSO_EDGE = {0f, 0f, 0.10f, 0.35f};
+    static final float[] TORSO_OCCUPANT = {0f, 0f, 0.10f, 0.35f};
+    static final float[] TORSO_CROSSED = {0f, 0f, 0.05f, 0.15f};
+    static final float[] EXPOSED = {0f, 0f, 0f, 0f};
 
     /** Light assault: long legs, a nose chaingun on the centreline, one centred pod. */
     public static final MechBodyPlan HOUND = new MechBodyPlan("hound",
@@ -74,13 +92,17 @@ public final class MechBodyPlan {
             throw new IllegalArgumentException(id + ": arm share must be a fraction");
         }
         this.id = id;
-        this.head = new BodyPart("HEAD", 0, headBand, 1f, BodyPart.Consequence.SENSOR_LOSS);
-        this.shoulders = new BodyPart("SHOULDERS", 1, shoulderBand, 1f, BodyPart.Consequence.MOUNT_LOSS);
-        this.torso = new BodyPart("TORSO", 2, torsoBand, 1f, BodyPart.Consequence.NONE);
-        this.legs = new BodyPart("LEGS", 3, legsBand, 1f, BodyPart.Consequence.CRIPPLE);
+        this.head = new BodyPart("HEAD", 0, headBand, 1f, BodyPart.Consequence.SENSOR_LOSS,
+                EXPOSED, EXPOSED, EXPOSED);
+        this.shoulders = new BodyPart("SHOULDERS", 1, shoulderBand, 1f, BodyPart.Consequence.MOUNT_LOSS,
+                EXPOSED, EXPOSED, EXPOSED);
+        this.torso = new BodyPart("TORSO", 2, torsoBand, 1f, BodyPart.Consequence.NONE,
+                TORSO_EDGE, TORSO_OCCUPANT, TORSO_CROSSED);
+        this.legs = new BodyPart("LEGS", 3, legsBand, 1f, BodyPart.Consequence.CRIPPLE,
+                LEGS_EDGE, LEGS_OCCUPANT, LEGS_CROSSED);
         this.bodyPlan = new BodyPlan("mech-" + id,
                 new BodyPart[] {head, shoulders, torso, legs},
-                new BodyPart[] {legs, torso, shoulders, head});
+                new BodyPart[] {legs, torso, shoulders, head}, true);
         this.armShare = armShare;
         this.poolShares = poolShares.clone();
         this.centresLonePod = centresLonePod;
@@ -131,6 +153,26 @@ public final class MechBodyPlan {
             return armRoll < armShare && fitted[MechSection.ARMS.ordinal()] ? MechSection.ARMS : MechSection.TORSO;
         }
         throw new IllegalArgumentException(id + ": " + band + " is not one of this plan's bands");
+    }
+
+    /** The legs band: the one cover hides first. */
+    public BodyPart legsBand() {
+        return legs;
+    }
+
+    /** The torso band. */
+    public BodyPart torsoBand() {
+        return torso;
+    }
+
+    /** The shoulder band. */
+    public BodyPart shoulderBand() {
+        return shoulders;
+    }
+
+    /** The head band. */
+    public BodyPart headBand() {
+        return head;
     }
 
     /** Whether {@code part} is one of this plan's bands. */

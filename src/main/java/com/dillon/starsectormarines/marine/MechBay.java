@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.battle.mech.CompanyMechLedger;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
@@ -12,6 +14,7 @@ import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.campaign.CampaignClock;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -227,6 +230,77 @@ public final class MechBay implements Serializable {
             }
         }
         return lost;
+    }
+
+    /**
+     * Battle damage writeback for the company's own mechs ({@code mech-locational-damage.md},
+     * After the battle). A destroyed torso loses the chassis: it leaves its gantry and every
+     * part fitted to it leaves stores with it. Otherwise a destroyed mount loses its weapon
+     * assembly from stores and the mount comes back empty, the pattern kept; every damaged
+     * section is recorded for repair, and the mech stays out of drops until it is repaired.
+     *
+     * <p>Idempotent: a replayed result finds the chassis gone, the mount already empty and the
+     * same damage recorded, so nothing is struck twice. Unknown ids are ignored.
+     */
+    public Settlement settleBattleDamage(Collection<CompanyMechLedger.Damage> damage) {
+        if (damage == null || damage.isEmpty()) return Settlement.NONE;
+        int chassisLost = 0;
+        int assembliesLost = 0;
+        int damaged = 0;
+        for (CompanyMechLedger.Damage entry : damage) {
+            if (entry == null) continue;
+            CampaignMech mech = mechById(entry.campaignId());
+            if (mech == null) continue;
+            if (entry.chassisLost()) {
+                if (loseChassis(mech)) chassisLost++;
+                continue;
+            }
+            MechSections.Report report = entry.report();
+            if (report == null) continue;
+            for (MechMountSlot slot : MechMountSlot.values()) {
+                MechWeaponComponent lost = report.lostMounts()[slot.ordinal()];
+                if (lost == null || mech.weaponAt(slot) != lost) continue;
+                mech.installWeapon(slot, null);
+                strike(ownedWeapons, lost.id);
+                assembliesLost++;
+            }
+            MechDamage taken = MechDamage.of(report);
+            if (taken != null) {
+                mech.recordDamage(taken);
+                damaged++;
+            }
+        }
+        return new Settlement(chassisLost, assembliesLost, damaged);
+    }
+
+    /** The chassis and everything fitted to it leave the bay; its gantry stands empty. */
+    private boolean loseChassis(CampaignMech mech) {
+        for (CampaignMechSquad squad : squads) {
+            if (squad.mechById(mech.id()) != mech || !squad.remove(mech)) continue;
+            for (MechMountSlot slot : MechMountSlot.values()) {
+                MechWeaponComponent component = mech.weaponAt(slot);
+                if (component != null) strike(ownedWeapons, component.id);
+            }
+            for (MechInternal.Role role : MechInternal.Role.values()) {
+                MechInternal internal = mech.internal(role);
+                if (internal != null) strike(ownedInternals, internal.id);
+            }
+            strike(ownedReplenishers, mech.missileReplenisherId());
+            return true;
+        }
+        return false;
+    }
+
+    private static void strike(Map<String, Integer> owned, String id) {
+        Integer count = owned.get(id);
+        if (count == null) return;
+        if (count <= 1) owned.remove(id);
+        else owned.put(id, count - 1);
+    }
+
+    /** What one battle's writeback did to the bay. */
+    public record Settlement(int chassisLost, int assembliesLost, int mechsDamaged) {
+        public static final Settlement NONE = new Settlement(0, 0, 0);
     }
 
     private static String vehicleId(int serial) {
@@ -502,15 +576,42 @@ public final class MechBay implements Serializable {
         return true;
     }
 
-    /** Frozen values for the active squad; campaign objects stay in the roster. */
+    /**
+     * Frozen values for the active squad's mechs that can deploy now; campaign objects stay in
+     * the roster. A damaged mech or one under repair stays in its gantry ({@link #heldBack}).
+     */
     public List<MechDeploymentSpec> activeDeployment() {
+        return activeDeployment(CampaignClock.dayFloat());
+    }
+
+    public List<MechDeploymentSpec> activeDeployment(float day) {
         CampaignMechSquad squad = activeSquad();
         if (squad == null) return List.of();
         List<MechDeploymentSpec> deployment = new ArrayList<>();
         for (CampaignMech mech : squad.mechs()) {
-            deployment.add(mech.freezeForDeployment());
+            if (mech.readiness(day) == CampaignMech.Readiness.READY) {
+                deployment.add(mech.freezeForDeployment());
+            }
         }
         return Collections.unmodifiableList(deployment);
+    }
+
+    /** The active squad's mechs left out of the drop manifest on {@code day}, and why. */
+    public List<HeldBack> heldBack(float day) {
+        CampaignMechSquad squad = activeSquad();
+        if (squad == null) return List.of();
+        List<HeldBack> held = new ArrayList<>();
+        for (CampaignMech mech : squad.mechs()) {
+            CampaignMech.Readiness readiness = mech.readiness(day);
+            if (readiness != CampaignMech.Readiness.READY) {
+                held.add(new HeldBack(mech, readiness, mech.repairDaysRemaining(day)));
+            }
+        }
+        return Collections.unmodifiableList(held);
+    }
+
+    /** A mech the drop manifest leaves out: awaiting a repair order, or under one. */
+    public record HeldBack(CampaignMech mech, CampaignMech.Readiness reason, float daysRemaining) {
     }
 
     /** Frozen vehicles on the active squad's gantries, in gantry order. */

@@ -95,11 +95,11 @@ crossed, by level) and its consequence. The four parts above are the infantry
 plan, which every kind of person has. Band order and part order are separate,
 so a later plan can stack sections without reshuffling its tables.
 
-**Only people have parts today.** Mechs, vehicles, emplacements, aircraft and
-creatures have no plan, remain one whole-body contact and keep the flat model:
-vehicles and aircraft take no terrain cover, and the rest keep the flat catch
-and damage cut by level. A mech plan of sections is `mech-locational-damage.md`;
-it is a second plan through the same seam, not a second hit system.
+**People and mechs have parts.** A mech's plan is its sections' height bands
+(`mech-locational-damage.md`), a second plan through the same seam, not a
+second hit system. Vehicles, emplacements, aircraft and creatures have no plan,
+remain one whole-body contact and keep the flat model: vehicles and aircraft
+take no terrain cover, and the rest keep the flat catch and damage cut by level.
 
 ## Shipped and open
 
@@ -117,9 +117,9 @@ it is a second plan through the same seam, not a second hit system.
   presentation on the body, and AI reading wounds.
 - **Mech plans** (shipped). A mech chassis has a body plan too: four height
   bands (legs, torso, shoulders, head) whose parts are its sections' bands
-  (`mechs-nouns.md`). They carry no cover rows yet, so cover meets a mech with
-  the flat whole-body chance and damage cut and their multiplier is one; the
-  height still decides the section. Cover by section is the next step there.
+  (`mechs-nouns.md`), with a multiplier of one. Their cover rows read from the
+  ground up (the plan's `coverFromGround`): cover hides a mech's legs first and
+  never its shoulders or head, and the man-sized catch band is not consulted.
 - **Area exposure.** A blast asks which parts it can reach rather than rolling
   a hit: a shell bursting outside a trench reaches only what shows above it, a
   grenade landing in the trench reaches everything. That retires the last use of

@@ -1,9 +1,10 @@
 # Mech locational damage
 
-Status: IN PROGRESS — slices 1 (body plan) and 2 (mech plan, section pools,
-paper-doll) shipped; slice 3 (cover rows, presentation, AI) is next.
+Status: IN PROGRESS — all four slices shipped (body plan; mech plan, section
+pools and paper-doll; cover rows, presentation and doctrine; campaign
+consequences). Next: fold into `mechs-nouns.md` and delete this story.
 Written: 2026-10-16
-Updated: 2026-10-16 — slice 2 shipped; its standing model is in `mechs-nouns.md`.
+Updated: 2026-10-16 — slices 3 and 4 shipped; standing model in `mechs-nouns.md` and `body-part-cover.md`.
 
 Models: `mechs-nouns.md`, `combat-durability-nouns.md`, `body-part-cover.md`
 (marine body parts, cover per part, wounds). Prior art for sectioned machines:
@@ -94,12 +95,33 @@ apart, and a fitting choice (where the plating goes) matters.
      1200, 587 ticks after its first damage. The whole-body control of that
      chapter stops on one of the chapter's own mission checks (batteries ready
      before the company cleared), so it has no reading to compare.
-
-3. **Cover rows, presentation and AI.** Mech cover by section, destroyed-mount
-   visuals, and doctrine that accounts for a crippled or disarmed mech (fall
-   back, become a turret, withdraw).
-4. **Campaign consequences**: what a damaged or destroyed section costs after
-   the battle, as decided below.
+3. **Cover rows, presentation and AI** (shipped 2026-10-16). Model folded into
+   `mechs-nouns.md` (cover by section, section loss) and `body-part-cover.md`.
+   Mech bands carry cover rows read from the ground up, so cover hides legs
+   first and never shoulders or head; the man-sized catch band no longer gates
+   a mech. A lost mount drops its layer, a lost section bursts and smoulders, a
+   crippled mech smokes at the legs. A crippled mech is a turret under any order
+   and anchors nobody; a disarmed one declines attack and breaks contact; the
+   engagement range follows the surviving mounts.
+   - Scene `mech-hull-down` (`sceneEvidence`, `createSnapshots`): four seeds a
+     side against ten rifles, open ground against a level-1 windowed parapet
+     (masonry, because rifle fire wears sandbags away mid-window). Legs took
+     1.85 damage a second behind it against 3.29 in the open (18% of all
+     damage against 24%); torso and weapons stayed close to their open rates.
+   - Scene `mech-locational-damage` adds `every-armed-crippled-hound-fires`:
+     across 16 plays every Hound crippled with a weapon left fired afterwards
+     (10 of 10; two more had lost both weapons first and stood silent). With
+     slices 3 and 4 together the sweep's median time-to-kill read 25.1s with a
+     rocket tube and 51.1s rifles only, as a reading.
+4. **Campaign consequences** (shipped 2026-10-16). Model folded into
+   `mechs-nouns.md` (After the battle, repair, readiness). The frozen
+   deployment carries the campaign id; `CompanyMechLedger` freezes owned mechs'
+   section records into the mission outcome and `MechBay.settleBattleDamage`
+   applies them. The Mech Lab shows section damage, the repair bill and days,
+   and orders the repair through `MechWorkshop`. Tuning to revisit with play:
+   full-wear clocks of 3/4/5 days (Hound/Sirocco/Bulwark), structure weighted
+   0.75 against armor. Not yet seen live: a save/reload with a damaged mech and
+   a real battle's writeback in the debrief.
 
 ## Decisions
 

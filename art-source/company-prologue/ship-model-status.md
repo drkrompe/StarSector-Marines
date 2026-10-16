@@ -18,8 +18,8 @@ Legend: **done** = merged to main; **review** = merged, waiting on the owner;
 |---|---|---|---|---|---|---|---|---|---|
 | Second Wind (Cerberus) | `second-wind-geometry/`, `-surface/`, `-vfx/` | done | done | done | done, 0.65 m/u (66 m) | done: derelict, patched, refit, restored (65-row scar table) | done on clean and patched; wip on derelict, refit, restored | VFX kit wip; per-state exports wip | Main-drive detail and RCS thrusters (wip, damage-states session), then the exports rebuild on top. The Jangala C1 render currently uses a build output of the skinned patched state. |
 | Hound (A) | `hound-geometry/` | done | done | review (round 1: glazed bridge, aft cargo ramp) | done, 0.88 m/u (61 m) | — | — | — | Owner review of round 1 |
-| Mudskipper | `mudskipper-geometry/` | done | done | review (round 1: waist junction broken up) | done, 0.85 m/u | — | — | — | Owner review of round 1 |
-| Legion (XIV) battlecarrier | `legion-geometry/` | done (reworked after first review) | wip: engines, turrets, bridge and fittings done; hull and wings next | — | done, 0.61 m/u (180 m long, 46 m deep) | not needed (damage-free patrol) | — | Flight-deck, launch-point and engine anchors exported for C2 | Hull and wing detail, including one fly-through hangar under each wing; then owner review |
+| Mudskipper | `mudskipper-geometry/` | done | done | review (round 1: waist junction broken up; IoU 0.943) | done, 0.85 m/u (67 m) | — | — | — | Owner review of round 1 |
+| Legion (XIV) battlecarrier | `legion-geometry/` | done (reworked after first review) | wip: engines, turrets, bridge, fittings and hull done (IoU 0.974); wings next | — | done, 0.61 m/u (180 m long, 46 m deep) | not needed (damage-free patrol) | — | Flight-deck, launch-point and engine anchors exported for C2 | Wing detail: one fly-through hangar under each wing arm (arms angle down 10°); then owner review |
 
 ## Fighters
 
