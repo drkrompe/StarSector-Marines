@@ -1611,26 +1611,48 @@ public final class Warship {
         return airFire;
     }
 
-    private ShipFireOrder shipFire = ShipFireOrder.OFF;
+    private ShipFireOrder shipFire = ShipFireOrder.AUTO;
     /** The hostile hull this ship is fighting, as last chosen by {@link WarshipShipFire}; {@code null} when none. */
     private Warship hullTarget;
+    private boolean duelFooting;
 
-    /** Whether the ship's weapons may fire on hostile hulls; see {@link ShipFireOrder}. */
+    /**
+     * Whether the ship's weapons may fire on hostile hulls; see {@link ShipFireOrder}. {@code AUTO} is the default.
+     * {@code ALL} puts the ship on its duel footing at once, {@code OFF} takes it off; under {@code AUTO} the ship
+     * takes it the first time it turns on a hull.
+     */
     public void shipFire(ShipFireOrder order) {
         if (order == null) throw new IllegalArgumentException("a ship-fire order is needed");
         this.shipFire = order;
-        if (order == ShipFireOrder.OFF) hullTarget = null;
-        // Ship against ship keeps the base game's balance, so a ship ordered to fight hulls carries its variant's
-        // capacitors and vents; a ship bombarding ground keeps the hull table's rhythm its postures were tuned to.
-        flux.applyFittings(order != ShipFireOrder.OFF);
-        // And its missiles carry the base game's magazines: a duel is not fought with a bottomless Sabot rack.
-        if (order != ShipFireOrder.OFF) {
-            for (Mount m : mounts) {
-                if (!m.weapon.missile() || m.ammoRemaining >= 0) continue;
-                int ammo = VanillaWeapons.ammo(m.weapon.id());
-                if (ammo > 0) m.ammoRemaining = ammo;
-            }
+        if (order == ShipFireOrder.OFF) {
+            hullTarget = null;
+            duelFooting = false;
+            flux.applyFittings(false);
+        } else if (order == ShipFireOrder.ALL) {
+            duelFooting();
         }
+    }
+
+    /**
+     * Puts the ship on the base game's footing for a fight between hulls, once: ship against ship keeps the base
+     * game's balance, so it carries its variant's capacitors and vents (a ship that has only bombarded keeps the hull
+     * table's rhythm its postures were tuned to), and its missiles carry the base game's magazines, since a duel is
+     * not fought with a bottomless Sabot rack.
+     */
+    void duelFooting() {
+        if (duelFooting) return;
+        duelFooting = true;
+        flux.applyFittings(true);
+        for (Mount m : mounts) {
+            if (!m.weapon.missile() || m.ammoRemaining >= 0) continue;
+            int ammo = VanillaWeapons.ammo(m.weapon.id());
+            if (ammo > 0) m.ammoRemaining = ammo;
+        }
+    }
+
+    /** Whether the ship is on its duel footing ({@link #duelFooting()}). */
+    public boolean onDuelFooting() {
+        return duelFooting;
     }
 
     public ShipFireOrder shipFire() {

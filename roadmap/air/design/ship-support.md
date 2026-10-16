@@ -3,7 +3,7 @@
 Status: ACTIVE
 
 Written: 2026-10-13
-Updated: 2026-10-14 — slice 6 built: the hostile ship is the largest eligible hull of a free defending fleet in the target system; slices 1-6 are built.
+Updated: 2026-10-16 — the company's and the defending world's called ships now fight each other by default; slices 1-6 are built.
 
 Read `air-nouns.md` (**Overhead ships**, **Tenders**), `warship-behaviours.md` and
 `command-powers-nouns.md` first. This doc says how a ship gets over a battle in
@@ -205,10 +205,10 @@ older scenes that place a ship directly.
 **Evidence.** `hostile-ship-support` (low-defence, high-defence, both-ships, strike) and unit
 tests for source selection and the trigger. In the high-defence loop a company that wins its
 control fight is wiped out once the ship is on station: a capital over a keep is the moment the
-battle turns, as designed. With the company's own ship over the same ground the two do not
-fight (ship guns do not take hulls as targets, G4), though ground ordnance landing under a hull
-is absorbed by its shield as ever; strike craft go for the hostile hull and are shot down by its
-flak (G3).
+battle turns, as designed. With the company's own ship over the same ground the two fight each
+other with no mission order, since hostile hulls duel by default (`warship-behaviours.md`,
+Decided: ship against ship); who falls is a reading, not a verdict. Strike craft go for the
+hostile hull and are shot down by its flak (G3).
 
 ### Open questions (slice 4)
 

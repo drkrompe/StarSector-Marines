@@ -1,0 +1,107 @@
+{
+  "blocks": [{
+    "fillRgb": "0x969690",
+    "id": "fort.emplacement",
+    "layout": "wall-3x3",
+    "origin": [
+      0,
+      0
+    ]
+  }],
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "description": "exterior on the north and west",
+      "name": "fort.emplacement nw",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "exterior on the north",
+      "name": "fort.emplacement n",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "exterior on the north and east",
+      "name": "fort.emplacement ne",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "description": "exterior on the west",
+      "name": "fort.emplacement w",
+      "row": 1
+    },
+    {
+      "col": 1,
+      "description": "enclosed \u2014 no exterior on any side",
+      "name": "fort.emplacement center",
+      "row": 1
+    },
+    {
+      "col": 2,
+      "description": "exterior on the east",
+      "name": "fort.emplacement e",
+      "row": 1
+    },
+    {
+      "col": 0,
+      "description": "exterior on the south and west",
+      "name": "fort.emplacement sw",
+      "row": 2
+    },
+    {
+      "col": 1,
+      "description": "exterior on the south",
+      "name": "fort.emplacement s",
+      "row": 2
+    },
+    {
+      "col": 2,
+      "description": "exterior on the south and east",
+      "name": "fort.emplacement se",
+      "row": 2
+    },
+    {
+      "col": 3,
+      "description": "Flat gun-platform cell. Plain slab with hairline cracks.",
+      "name": "doodad.fort-emplacement-platform-0",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "Flat gun-platform cell. Four tie-down plates and a central drain.",
+      "name": "doodad.fort-emplacement-platform-1",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "Flat gun-platform cell. Worn square bearing recess.",
+      "name": "doodad.fort-emplacement-platform-2",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "col": 3,
+      "cover": "none",
+      "id": "doodad.fort-emplacement-platform-0",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "cover": "none",
+      "id": "doodad.fort-emplacement-platform-1",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "cover": "none",
+      "id": "doodad.fort-emplacement-platform-2",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/tilesets/fort-emplacement.png"
+}

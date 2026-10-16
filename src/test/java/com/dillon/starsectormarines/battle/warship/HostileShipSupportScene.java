@@ -55,8 +55,9 @@ import java.util.Set;
  *       the command post, the defender decides to call, the player is warned, and six seconds later
  *       the ship descends on the defender's side and works the ground under DEFEND.</li>
  *   <li>{@code both-ships}: the same world, and the company calls its own ship the moment the
- *       warning goes up. Two capitals are over the battle; ships are not yet targets of ship guns
- *       (G4), so neither is hurt by the other.</li>
+ *       warning goes up. Two capitals are over the battle, and hostile hulls fight each other by
+ *       default in any mission ({@code ShipFireOrder.AUTO}): each turns its guns on the other.
+ *       Who wins is a reading, not a verdict.</li>
  *   <li>{@code strike}: the same world with a company strike wing arriving after the ship is on
  *       station. Aircraft against ships is the G3 rule: the craft go for the hull and the ship's
  *       flak answers.</li>
@@ -76,7 +77,7 @@ public final class HostileShipSupportScene implements BehaviorScene {
 
     @Override public String label() {
         return "Hostile ship support: a defended world calls its own ship once, warned first, on the defender's side, "
-                + "holding the ground; a lightly defended world calls none; the company's ship and strike craft coexist with it";
+                + "holding the ground; a lightly defended world calls none; the company's ship fights it and strike craft go for it";
     }
 
     @Override
@@ -191,10 +192,12 @@ public final class HostileShipSupportScene implements BehaviorScene {
                             && t.entryX > KEEP_X + 0.5f,
                     String.format(Locale.ROOT, "%d hostile ship(s), faction %s, entered at x=%.1f of a keep at x=%d",
                             t.hostileShips, t.hostile == null ? "-" : t.hostile.faction, t.entryX, KEEP_X)));
-            verdicts.add(Verdict.of("stations-over-the-held-ground-and-holds-it",
+            // A ship fighting a hull flies its duel helm rather than holding its station, so the station and its
+            // clock are the loops without a hostile hull's question.
+            if (!loop.equals("both-ships")) verdicts.add(Verdict.of("stations-over-the-held-ground-and-holds-it",
                     t.arrivedTick >= 0 && t.arrivalDistance <= 1.5f && t.stance == MissionStance.DEFEND,
                     String.format(Locale.ROOT, "%.2f cells from the command post, stance %s", t.arrivalDistance, t.stance)));
-            verdicts.add(Verdict.of("departs-when-its-station-time-is-spent",
+            if (!loop.equals("both-ships")) verdicts.add(Verdict.of("departs-when-its-station-time-is-spent",
                     t.departingTick >= 0 && t.departedTick >= 0
                             && Math.abs(t.stationaryTicks - Math.round(ShipOnStation.STATION_SECONDS * tps)) <= 10,
                     String.format(Locale.ROOT, "stationary %.1f s, leaving at tick %d, gone at tick %d",
@@ -210,15 +213,17 @@ public final class HostileShipSupportScene implements BehaviorScene {
             verdicts.add(Verdict.of("the-company-called-its-own-too",
                     t.company != null && t.company.faction == Faction.MARINE && t.companyCalled,
                     "company ship " + (t.company == null ? "none" : t.company.hullId) + ", target seen " + t.companyTargetSeen));
-            verdicts.add(Verdict.of("both-over-the-battle-at-once", t.ticksBothOnStation >= 300,
-                    String.format(Locale.ROOT, "%.1f s with both on station", t.ticksBothOnStation / tps)));
-            // Ship guns do not target hulls (G4). What a shield can still take is ground ordnance
-            // landing under a hull, which the ship-vs-ground rule has always allowed.
-            verdicts.add(Verdict.of("neither-hull-is-hurt",
-                    t.hostile != null && t.company != null && t.hostile.hullFraction() == 1f && t.company.hullFraction() == 1f,
-                    String.format(Locale.ROOT, "hostile hull %.3f (%d shield hits from splash), company hull %.3f (%d shield hits from splash)",
-                            t.hostile == null ? -1f : t.hostile.hullFraction(), t.hostile == null ? -1 : t.hostile.shieldHits(),
-                            t.company == null ? -1f : t.company.hullFraction(), t.company == null ? -1 : t.company.shieldHits())));
+            verdicts.add(Verdict.of("both-over-the-battle-at-once", t.ticksBothOver >= 300,
+                    String.format(Locale.ROOT, "%.1f s with both over the battle", t.ticksBothOver / tps)));
+            // No mission order: the default alone sets them on each other. Who falls is a reading.
+            verdicts.add(Verdict.of("the-hulls-fight-each-other",
+                    t.hostileOnCompany && t.companyOnHostile && sim.warships().shipFire().roundsFired() > 0,
+                    String.format(Locale.ROOT, "hostile turned on the company's hull %s, company on the hostile %s, "
+                                    + "%d rounds at hulls (%d on a hull); hulls end at hostile %.3f, company %.3f",
+                            t.hostileOnCompany, t.companyOnHostile, sim.warships().shipFire().roundsFired(),
+                            sim.warships().shipFire().roundsOnHull(),
+                            t.hostile == null ? -1f : t.hostile.hullFraction(),
+                            t.company == null ? -1f : t.company.hullFraction())));
             verdicts.add(Verdict.of("each-works-the-ground",
                     t.rounds > 0 && t.companyRounds > 0,
                     "hostile rounds " + t.rounds + ", company rounds " + t.companyRounds));
@@ -241,6 +246,10 @@ public final class HostileShipSupportScene implements BehaviorScene {
         metrics.put("garrisonDead", t.garrisonDead);
         metrics.put("rounds", t.rounds);
         metrics.put("companyRounds", t.companyRounds);
+        metrics.put("hullRounds", sim.warships().shipFire().roundsFired());
+        metrics.put("hullRoundsOnHull", sim.warships().shipFire().roundsOnHull());
+        metrics.put("hostileHull", t.hostile == null ? -1f : t.hostile.hullFraction());
+        metrics.put("companyHull", t.company == null ? -1f : t.company.hullFraction());
         return new SceneReport(id(), loop, TICKS, verdicts, metrics);
     }
 
@@ -261,7 +270,9 @@ public final class HostileShipSupportScene implements BehaviorScene {
         int departingTick = -1;
         int departedTick = -1;
         int stationaryTicks;
-        int ticksBothOnStation;
+        int ticksBothOver;
+        boolean hostileOnCompany;
+        boolean companyOnHostile;
         int marinesDead;
         int garrisonDead;
         int rounds;
@@ -331,8 +342,10 @@ public final class HostileShipSupportScene implements BehaviorScene {
                 if (departingTick < 0 && hostile.departing()) departingTick = tick;
                 if (departedTick < 0 && hostile.departed()) departedTick = tick;
                 rounds = groundRounds(hostile);
-                if (company != null && !hostile.departing() && !hostile.isMoving()
-                        && !company.departing() && !company.isMoving()) ticksBothOnStation++;
+                if (company != null && !hostile.departing() && !hostile.destroyed()
+                        && !company.departing() && !company.destroyed() && !company.departed()) ticksBothOver++;
+                if (company != null && hostile.hullTarget() == company) hostileOnCompany = true;
+                if (company != null && company.hullTarget() == hostile) companyOnHostile = true;
             }
             if (company != null) companyRounds = groundRounds(company);
             if (hostile != null && loop.equals("strike")) trackCraft(sim);

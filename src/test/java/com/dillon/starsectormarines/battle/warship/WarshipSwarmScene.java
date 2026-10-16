@@ -149,6 +149,8 @@ public final class WarshipSwarmScene implements BehaviorScene {
         if (cover != Cover.NONE) {
             float guardX = cover == Cover.UMBRELLA ? targetX - 6f : PICKET_X;
             sim.addWarship(Warship.fit("onslaught", "onslaught_Standard", Faction.DEFENDER, guardX, TARGET_Y, 0f));
+            // The guard is here for its point defence against the swarm, not to fight the launching hull.
+            sim.warships().holdHullFire(HullFireHold.untilReleased("scene: point defence, not ship against ship"));
         }
         Trace trace = new Trace(world, keys);
         SceneRun.of(world).observe(trace)

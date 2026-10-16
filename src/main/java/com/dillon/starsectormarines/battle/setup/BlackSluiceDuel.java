@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.warship.ShipFireOrder;
+import com.dillon.starsectormarines.battle.warship.HullFireHold;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipDuelLedger;
 import com.dillon.starsectormarines.battle.world.gen.BlackSluice;
@@ -15,11 +15,12 @@ import java.util.Locale;
 
 /**
  * The duel over Black Sluice ({@code warship-behaviours.md}, ship against ship). Greyhook's salvage rig stands over the pier
- * with its two Hound (P) escorts from the start, quiet: they fire at nothing, ground or hull. When Voss orders the site
- * abandoned, the rig climbs out east, the Hounds are let loose on hostile hulls, and two Wolf (H) arrive through the
- * cloud deck on a visit nobody can command. Hull fire is opted in here, for these five hulls only; no hull of the
- * duel ever fires at the ground. Nothing is scripted after the order: who escapes, breaks off or falls is the ships'
- * own doing, and the debrief reads it from the {@link WarshipDuelLedger}.
+ * with its two Hound (P) escorts from the start, quiet: they fire at nothing on the ground, and the battle's hull fire is
+ * held until Voss's withdrawal beat ({@link HullFireHold#untilBeat}). When Voss orders the site abandoned, the rig
+ * climbs out east, the hold lets the Hounds loose on hostile hulls, and two Wolf (H) arrive through the cloud deck on
+ * a visit nobody can command. Every hull fights hulls by the ordinary default; no hull of the duel ever fires at the
+ * ground. Nothing is scripted after the order: who escapes, breaks off or falls is the ships' own doing, and the
+ * debrief reads it from the {@link WarshipDuelLedger}.
  *
  * <p>The ground referee reads nothing here. Stray rounds and falling wreckage are real on the ground, which is the
  * one way the duel can touch the fight below.
@@ -67,6 +68,7 @@ public final class BlackSluiceDuel implements SmallWarDuel {
         }
         sim.addWarship(rig);
         for (Warship hound : hounds) sim.addWarship(hound);
+        sim.warships().holdHullFire(HullFireHold.untilBeat(SmallWarSequence.VOSS_ABANDON_BEAT));
         ledger = sim.warships().duelLedger();
     }
 
@@ -82,13 +84,11 @@ public final class BlackSluiceDuel implements SmallWarDuel {
     public void withdrawalOrdered(BattleSimulation sim) {
         if (ordered || rig == null) return;
         ordered = true;
-        for (Warship hound : hounds) hound.shipFire(ShipFireOrder.ALL);
         rig.climbOut(CLIMB_ROUTE, BlackSluice.WIDTH, BlackSluice.HEIGHT);
         try {
             for (float[] entry : WOLF_ENTRIES) {
                 Warship wolf = quiet(Warship.fit("wolf_hegemony", "wolf_hegemony_Assault", Faction.ALLY,
                         entry[0], entry[1], 270f));
-                wolf.shipFire(ShipFireOrder.ALL);
                 wolf.arriveFromAbove();
                 wolf.visit(WOLF_DWELL_SECONDS);
                 wolves.add(wolf);

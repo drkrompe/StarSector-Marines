@@ -368,6 +368,8 @@ public final class WarshipMissileTacticsScene implements BehaviorScene {
         shooter("dragon", 4, MissilePreset.FLAVOURED, world);
         if (cover) {
             sim.addWarship(Warship.fit("onslaught", "onslaught_Standard", Faction.DEFENDER, targetX - 30f, TARGET_Y, 0f));
+            // The cover is here for its point defence against the Dragonfire, not to fight the launching hull.
+            sim.warships().holdHullFire(HullFireHold.untilReleased("scene: point defence, not ship against ship"));
         }
         DragonTrace trace = new DragonTrace(world, keys);
         SceneRun.of(world).observe(trace)
