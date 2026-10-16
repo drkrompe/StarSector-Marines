@@ -53,7 +53,7 @@ def main():
                and not (HERE / link.split('#')[0]).exists()]
     checks['readme_local_links_exist'] = not missing
     scene_hash = digest(HERE / 'port-refinement.blend')
-    for name in ('scene-validation', 'ground-regressions', 'traffic-visibility', 'media-validation'):
+    for name in ('scene-validation', 'ground-regressions', 'traffic-visibility', 'departure-motion', 'media-validation'):
         report = json.loads((HERE / 'review' / (name + '.json')).read_text(encoding='utf-8'))
         checks[name + '_current_scene'] = report['scene_sha256'] == scene_hash
     report = {'passed': all(checks.values()), 'checks': checks, 'python_files': len(scripts),

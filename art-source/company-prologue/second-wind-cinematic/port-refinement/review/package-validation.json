@@ -9,10 +9,11 @@
     "scene-validation_current_scene": true,
     "ground-regressions_current_scene": true,
     "traffic-visibility_current_scene": true,
+    "departure-motion_current_scene": true,
     "media-validation_current_scene": true
   },
-  "python_files": 16,
-  "json_files": 16,
+  "python_files": 17,
+  "json_files": 17,
   "assets": [
     {
       "file": "assets/hound-skin-v1.png",
@@ -94,6 +95,6 @@
     }
   ],
   "missing_links": [],
-  "scene_sha256": "4c5482c78e496ebd9d1b864489389491087d474b752a0c5a5255c6d9b0b10877",
+  "scene_sha256": "33332e2d69c0d5bd298c3ca66331b284e27261ddd916ff7d4f43b1d54696dddd",
   "limits": "Package integrity and syntax only; Blender and motion review are separate evidence."
 }

@@ -26,10 +26,9 @@ All outputs are silent 1920x1080 H.264/yuv420p; media checks record actual encod
 size, source hashes, frame counts and a full error-checked decode. Authoring
 masters, scenes and movies remain outside shipped `mod/` content.
 
-The port movie is 2,592,693 bytes; the combined cut is 7,090,052 bytes.
-Normal-speed browser playback presented all 96 and 288 frames respectively,
-with zero reported drops. Full-resolution start, midpoint and end views were
-inspected. The retained material fallbacks and broad apron treatment still have
+Exact movie sizes and playback observations are recorded in the media and motion
+reports below. Full-resolution start, midpoint and end views accompany the
+normal-speed review. The retained material fallbacks and broad apron treatment still have
 the character of a cinematic study; the flight cards are not a landing solution.
 
 ## Buildings and vehicles
@@ -78,11 +77,22 @@ and v1/v2 art remain as rejected studies, not an accepted grounding technique.
 The original [guide contract](ship-card-layout.json) remains separate.
 
 The final [air-traffic registration](airtraffic-registration.json) records
-independent linear source-space movement and altitude. Hound travels 85 m and
-Venture 50 m along source X over four seconds; their card centers are at
-Z=120 m and 180 m. Full quad clearance and screen coverage are sampled at all
-96 output times. These are authored traffic paths, not canonical flight performance.
-The camera overtakes the vessels, so their screen motion also includes parallax.
+independent linear source-space movement and altitude. Venture covers
+`[850,250,40]` metres and Hound `[1000,300,48]` over four seconds, at authored
+speeds of 222 and 261 m/s. Both travel bow-first toward screen right and away,
+with a gentle climb; their midpoint heights are 180 and 120 m.
+Across the sampled span Venture moves 197 pixels right and shrinks to 76 percent
+width; Hound moves 166 pixels right and shrinks to 69 percent. The fixed painted
+aspect approximates an 8.0/6.7-degree viewpoint change, so it remains a bounded
+shot technique. [Departure measurements](review/departure-motion.json) compare
+the actual motion against a stationary-world control at all 96 output times.
+Full quad clearance and screen coverage remain checked separately.
+These are authored traffic paths, not canonical flight performance.
+
+The first airborne pass was also rejected: its 50/85-metre X-only paths were
+overtaken by 413 metres of camera travel, making the ships drift backward across
+the window. Merely adding engine glow and independent keyframes did not read as
+departure. The revised motion explicitly accounts for camera speed and depth.
 These cards support this distant fixed-aspect passage, not ship rotation,
 close inspection, relighting or a later landing-mechanics shot.
 
@@ -134,7 +144,9 @@ and `--python-exit-code 1`:
 2. `--python verify_scene.py` compares the actual saved scene with its retained
    source, checks assets, ground, traffic and card registration.
 3. `--python verify_ground_regressions.py` runs temporary faults without
-   saving a scene. `--python verify_traffic_visibility.py` records visibility.
+   saving a scene. `--python verify_traffic_visibility.py` records visibility;
+   `--python verify_departure.py` measures ship travel, recession and a stationary
+   counterfactual from the actual saved scene.
 4. `--python render_motion.py` renders 96 half-frame evaluations at 64 samples.
 5. With Python/Pillow, run `assemble_review.py --ffmpeg '<ffmpeg.exe>' --ffprobe
    '<ffprobe.exe>'` to encode both movies and validate the source render hashes.

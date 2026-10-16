@@ -12,21 +12,23 @@
         448
       ],
       "start_source": [
-        157.5,
-        1100.0,
-        120.0
+        -300.0,
+        950.0,
+        96.0
       ],
       "end_source": [
-        242.5,
-        1100.0,
-        120.0
+        700.0,
+        1250.0,
+        144.0
       ],
       "delta_source": [
-        85,
-        0,
-        0
+        1000.0,
+        300.0,
+        48.0
       ],
+      "source_speed_metres_per_second": 261.283371074395,
       "source_fps": 12,
+      "screen_action": "Bow-first screen-right and receding; gentle climb, fixed painted aspect",
       "altitude_basis": "quad center source Z; conservative full quad lower bounds checked separately",
       "texture": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\port-refinement\\assets\\hound-card-v3-flight.png",
       "width": 105.43208673207317,
@@ -59,21 +61,23 @@
         448
       ],
       "start_source": [
-        -105.0,
-        1350.0,
-        180.0
+        -505.0,
+        1225.0,
+        160.0
       ],
       "end_source": [
-        -55.0,
-        1350.0,
-        180.0
+        345.0,
+        1475.0,
+        200.0
       ],
       "delta_source": [
-        50,
-        0,
-        0
+        850.0,
+        250.0,
+        40.0
       ],
+      "source_speed_metres_per_second": 221.72618248641723,
       "source_fps": 12,
+      "screen_action": "Bow-first screen-right and receding; gentle climb, fixed painted aspect",
       "altitude_basis": "quad center source Z; conservative full quad lower bounds checked separately",
       "texture": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\port-refinement\\assets\\venture-card-v3-flight.png",
       "width": 269.07889630036897,

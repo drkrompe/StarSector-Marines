@@ -83,6 +83,16 @@ For fixed-aspect traffic, independently moving airborne cards avoid that false
 grounding claim; retain their actual depth, trajectories and limits as in the
 [air-traffic registration](../../../../art-source/company-prologue/second-wind-cinematic/port-refinement/airtraffic-registration.json).
 
+Independent keyframes alone do not establish readable flight. Compare the
+evaluated vessel trajectory with camera travel and a stationary-world control.
+The initial port flight paths covered only 50/85 m while the camera advanced
+413 m in four seconds, so both ships slid backward across the window. For the
+rear-quarter artwork, departure needs bow-first screen-right motion and increasing
+depth. The revised paths produce about 197/166 pixels of rightward movement and
+24/31 percent width reduction. These are shot-specific artistic targets, not
+canonical ship performance. Retain the full camera/ship trajectory and review
+at playback speed; engine glow cannot substitute for travel.
+
 ## Second Wind identity and state
 
 | Source | Authority |

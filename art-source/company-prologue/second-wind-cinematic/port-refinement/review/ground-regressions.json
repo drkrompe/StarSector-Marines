@@ -1,6 +1,6 @@
 {
   "fixture": "Controlled temporary faults injected into the saved expanded rectangular port ground; no scene saved",
-  "scene_sha256": "4c5482c78e496ebd9d1b864489389491087d474b752a0c5a5255c6d9b0b10877",
+  "scene_sha256": "33332e2d69c0d5bd298c3ca66331b284e27261ddd916ff7d4f43b1d54696dddd",
   "passed": true,
   "bounds": [
     -2200,
@@ -86,7 +86,7 @@
     },
     "max_return_height_error_after_fault": 5.0
   },
-  "elapsed_seconds": 1.031,
+  "elapsed_seconds": 2.881,
   "limits": [
     "One axis-aligned rectangular precinct with nested rectangular material partitions; expanded footprint must contain existing cutout.",
     "323 deterministic interior rays sample visible tagged/named ground owners; finite sampling cannot prove arbitrary sub-pixel holes or unrelated untagged overlays.",

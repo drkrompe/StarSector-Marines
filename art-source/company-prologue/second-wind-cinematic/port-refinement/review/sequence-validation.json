@@ -1,8 +1,8 @@
 {
   "passed": true,
   "movie": "jangala-approach-refined.mp4",
-  "sha256": "39dd31971e0dd54c3c6f9caf377785c278f385d34403e31351297050adc949bc",
-  "bytes": 7090052,
+  "sha256": "20bf152a66683baf064171149747be40d521265070278fbac3aaf02a68fb7568",
+  "bytes": 7114790,
   "dimensions": [
     1920,
     1080
@@ -36,7 +36,7 @@
     {
       "title": "Refined working port",
       "movie": "port-refinement\\review\\jangala-port-refined.mp4",
-      "sha256": "1ccbbfdfff7cf2a2c232c85a6502eb453559fb29ae0d94717ef9a547c69f83b4",
+      "sha256": "f79e73cb41ff7aa3d3bbe86571b6e8e77ec99dbe8ae9a827ef6215ef9bb80266",
       "sequence_start_seconds": 8,
       "source_frames": [
         400,

@@ -10,8 +10,12 @@ def build_ship_cards(scene,world,layout=None):
     registration=json.loads((H/'artwork-registration.json').read_text(encoding='utf-8'))
     overlay={s['id']:s for s in registration['ships']}
     results=[];air_records=[]
-    specs={'venture':dict(midpoint=[-80,1350,180],delta_x=50),
-           'hound':dict(midpoint=[200,1100,120],delta_x=85)}
+    # Match the painted rear-quarter view: bow-first screen-right and away.
+    # The camera itself covers 413 m in four seconds; slow +X motion gets
+    # overtaken and reads as a stationary hovering cutout. Depth travel also
+    # supplies visible recession without inventing a new painted aspect.
+    specs={'venture':dict(midpoint=[-80,1350,180],delta=[850,250,40]),
+           'hound':dict(midpoint=[200,1100,120],delta=[1000,300,48])}
 
     for guide_ship in contract['ships']:
         ship=dict(guide_ship);ship.update(overlay[guide_ship['id']])
@@ -19,7 +23,8 @@ def build_ship_cards(scene,world,layout=None):
         spec=specs[ship['id']];ship['source_center']=spec['midpoint']
         path=H/ship['asset']
         if not path.exists():raise FileNotFoundError('Registered ship card asset required: '+str(path))
-        center=Vector(ship['source_center']);right=Vector(ship['source_right'])*ship['width']/2;up=Vector(ship['source_up'])*ship['height']/2
+        center=Vector(ship['source_center']);delta=Vector(spec['delta'])
+        right=Vector(ship['source_right'])*ship['width']/2;up=Vector(ship['source_up'])*ship['height']/2
         vertices=[-right-up,right-up,right+up,-right+up]
         md=bpy.data.meshes.new(ship['id']+' registered parallax quad');md.from_pydata(vertices,[],[(0,1,2,3)]);md.update()
         uv=md.uv_layers.new(name='exact retained guide canvas')
@@ -32,7 +37,7 @@ def build_ship_cards(scene,world,layout=None):
         out=n.new('ShaderNodeOutputMaterial');l.new(mix.outputs[0],out.inputs[0]);mat.surface_render_method='BLENDED';mat.use_transparent_shadow=True;md.materials.append(mat)
         # Source motion is independent of inverse-flight parent translation.
         for frame,t in ((400,-.5),(448,.5)):
-            obj.location=center+Vector((spec['delta_x']*t,0,0))
+            obj.location=center+delta*t
             obj.keyframe_insert(data_path='location',frame=frame)
         action=obj.animation_data.action
         for layer in action.layers:
@@ -41,8 +46,10 @@ def build_ship_cards(scene,world,layout=None):
                     for curve in bag.fcurves:
                         for key in curve.keyframe_points:key.interpolation='LINEAR'
         air=dict(ship=ship['id'],midpoint_source=list(center),source_frames=[400,448],
-                 start_source=list(center-Vector((spec['delta_x']/2,0,0))),end_source=list(center+Vector((spec['delta_x']/2,0,0))),
-                 delta_source=[spec['delta_x'],0,0],source_fps=12,altitude_basis='quad center source Z; conservative full quad lower bounds checked separately',
+                 start_source=list(center-delta/2),end_source=list(center+delta/2),
+                 delta_source=list(delta),source_speed_metres_per_second=delta.length/4,source_fps=12,
+                 screen_action='Bow-first screen-right and receding; gentle climb, fixed painted aspect',
+                 altitude_basis='quad center source Z; conservative full quad lower bounds checked separately',
                  texture=str(path),width=ship['width'],height=ship['height'],source_right=ship['source_right'],source_up=ship['source_up'],canvas=ship['canvas'],
                  representation='airborne fixed-orientation parallax quad, independent linear source motion; no landing or contact claim')
         obj['ship_card_id']=ship['id'];obj['source_center']=ship['source_center'];obj['canvas']=ship['canvas'];obj['reference_source_frame']=424
