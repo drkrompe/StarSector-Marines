@@ -1,0 +1,45 @@
+{
+ "part": "deck-fore-top",
+ "regions": {
+  "oxide": {
+   "pixels": 305816,
+   "share_as_declared": 0.943,
+   "share_in_declared_family": 0.943,
+   "came_back_as": {
+    "oxide": 0.943,
+    "gunmetal": 0.04
+   },
+   "swap": false,
+   "before_mean_lab": [
+    54.72,
+    24.21,
+    33.59
+   ],
+   "after_mean_lab": [
+    51.17,
+    18.92,
+    27.77
+   ],
+   "gain_L_a_b": [
+    1.33,
+    0.782,
+    0.827
+   ],
+   "dE_to_palette_before": 8.63,
+   "forced_back_to_declared": false
+  }
+ },
+ "planes": [
+  {
+   "pixels": 310485,
+   "ramp_span_L_removed": 0.8,
+   "ramp_dL_per_100px": [
+    -0.08,
+    -0.07
+   ],
+   "edge_band_dL_after": -3.7
+  }
+ ],
+ "ramp_span_L_removed_max": 0.8,
+ "edge_band_dL_after_mean": -3.7
+}

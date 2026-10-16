@@ -14,15 +14,9 @@
     },
     {
       "id": "marines_management_wounded",
-      "synthesisText": "[gentle, reassuring voice] Each card separates ready, wounded, and vacant places. The wounded still belong to their squads. We keep their billets while they recover; a replacement fills a vacancy, not somebody's hospital bed. Select the squads you want to bring back up to strength.",
+      "synthesisText": "[gentle, reassuring voice] Each card separates ready, wounded, and vacant places. The wounded still belong to their squads and keep their billets; a day aboard ship puts them back on duty, and the clock at the top of Barracks shows when everyone is fit. If we can't wait, select the squads you want to bring back up to strength and fill their empty places.",
       "titleKey": "marines_management_woundedTitle",
       "textKey": "marines_management_woundedText"
-    },
-    {
-      "id": "marines_management_consolidate",
-      "synthesisText": "[calm, practical voice] Sometimes we have enough people, just spread too thin. Choose Donors lets you mark squads that can spare their ready marines. Review Transfers shows where that leaves everyone. Apply Transfers moves them with their kit and service records. Their old squad stays on the roll, ready to rebuild.",
-      "titleKey": "marines_management_consolidateTitle",
-      "textKey": "marines_management_consolidateText"
     },
     {
       "id": "marines_management_replenish",

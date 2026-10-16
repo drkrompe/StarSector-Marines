@@ -1,0 +1,72 @@
+{
+ "part": "bay-davit-head-port",
+ "regions": {
+  "gunmetal": {
+   "pixels": 239933,
+   "share_as_declared": 0.939,
+   "share_in_declared_family": 0.999,
+   "came_back_as": {
+    "gunmetal": 0.939,
+    "dark": 0.053
+   },
+   "swap": false,
+   "before_mean_lab": [
+    38.94,
+    0.35,
+    0.07
+   ],
+   "after_mean_lab": [
+    46.45,
+    1.05,
+    1.83
+   ],
+   "gain_L_a_b": [
+    1.33,
+    1.5,
+    1.5
+   ],
+   "dE_to_palette_before": 7.75,
+   "forced_back_to_declared": false
+  }
+ },
+ "planes": [
+  {
+   "pixels": 44392,
+   "ramp_span_L_removed": 2.14,
+   "ramp_dL_per_100px": [
+    -1.47,
+    -0.1
+   ],
+   "edge_band_dL_after": 1.44
+  },
+  {
+   "pixels": 27156,
+   "ramp_span_L_removed": 1.33,
+   "ramp_dL_per_100px": [
+    0.12,
+    -1.2
+   ],
+   "edge_band_dL_after": 6.68
+  },
+  {
+   "pixels": 128164,
+   "ramp_span_L_removed": 0.89,
+   "ramp_dL_per_100px": [
+    -0.12,
+    -0.13
+   ],
+   "edge_band_dL_after": -4.86
+  },
+  {
+   "pixels": 44392,
+   "ramp_span_L_removed": 0.42,
+   "ramp_dL_per_100px": [
+    0.26,
+    -0.03
+   ],
+   "edge_band_dL_after": 1.28
+  }
+ ],
+ "ramp_span_L_removed_max": 2.14,
+ "edge_band_dL_after_mean": 1.13
+}

@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a14642-76d5-7e02-96ad-c836071b69bd",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a14642-76d5-7e02-96ad-c836071b69bd\\exec-f831a4fc-11ae-451d-8d16-dc668a05048f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-surface\\generated\\sheet-arm-a.png",
+    "sha256": "dc4996f8272ae05d8d8a23dcd45687a9dd994ba76c5170c0b0485401e729808a",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-surface\\prompts\\sheet-arm-a.prompt.txt",
+  "promptSha256": "23cd3123fafa389da2aa2a54f735924d56b603f8264e368228af039799efc342",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: layout authority: the exact shapes, positions, outlines and colours to keep; paint inside them only\nImage 2: INPUT 2: material/finish only, never layout\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of the faces of one 3D spacecraft's grapple arm (a heavy industrial cargo grapple on a battered freighter), each group of faces seen square-on and drawn alone as flat-coloured shapes on a plain light grey background:\ntop-left: the whole grapple arm seen from directly above: a long pale grey boom and a shorter pale grey forearm meeting at an octagonal gunmetal elbow pivot, an octagonal gunmetal shoulder pivot at the left end, a thin gunmetal hydraulic ram bar above the boom, and at the bottom a gunmetal wrist and grapple head with a small dark jaw;\ntop-right: the same arm seen from the side: the long narrow pale grey boom side with a thin gunmetal ram bar along it, a small gunmetal elbow block at the left, a gunmetal shoulder block and a large square gunmetal slew gear casing at the right, and a short pale grey winch drum below the boom;\nbottom-left: the forearm's side: a long diagonal pale grey arm between a gunmetal wrist block at the left and a tall gunmetal elbow block at the right;\nbottom-right: from above, a large square gunmetal slew gear casing and a separate pale grey rectangular winch drum.\nINPUT 2 is the SAME ship's hull, already painted: it is the finish to match. Use its wear density, chipping, grime, seam and fastener treatment, and its gunmetal colour. Never copy INPUT 2's composition, view or shapes.\n\nPaint each shape in INPUT 1 as worn industrial machinery surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and the background between shapes stays plain background grey.\n- Each shape is a flat painted steel surface. Add painted surface detail inside its outline only: plate seams and welded joints running along the length of the boom and forearm, rows of fasteners and rivets, small flush inspection covers, scuffed and lightly chipped paint, a thin even film of grime. Nothing may stand out from the surface or cross the outline. No hazard stripes, stencils or text.\n- Keep each shape's colour. The pale shapes (boom, forearm, winch drum) are PALE GREY PAINTED STEEL: a light, cool, neutral grey industrial paint, clearly lighter than the gunmetal parts. They are not cream, not beige, not yellowish, not white, and not bare metal. The gunmetal shapes (pivots, ram, casings, wrist, head) stay dark gunmetal steel as in INPUT 2. The small darkest shape (the jaw) stays dark machinery grey. Do not repaint any shape another colour, and do not add cream, white, orange or different-coloured patches or repair plates.\n- Weathering is light and even across each whole shape. No soot, scorch marks, burns, rust streaks, impact damage, dents, holes, large stains or any single concentrated area of wear: those are added separately later.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\second-wind-surface\\guide\\sheet-arm-a-guide.png",
+      "sha256": "889596d1855ef1d2f2f325679a1f312cae4bc6ffc05a8858e3e90710f381039d",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: layout authority: the exact shapes, positions, outlines and colours to keep; paint inside them only"
+    },
+    {
+      "path": "art-source\\company-prologue\\second-wind-surface\\reference\\finish-reference.png",
+      "sha256": "cee363a918c8013b9aee282642caca6d825349e8b09adedcd5ad74f0926f76d7",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: material/finish only, never layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to apply the worn finish while preserving Image 1’s layout, outlines, and colours."
+  ],
+  "usage": {
+    "input_tokens": 73612,
+    "cached_input_tokens": 62208,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 864,
+    "reasoning_output_tokens": 22
+  },
+  "elapsedSeconds": 60.6
+}

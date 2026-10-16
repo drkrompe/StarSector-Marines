@@ -1,0 +1,91 @@
+{
+ "part": "arm-machinery-tops",
+ "regions": {
+  "gunmetal": {
+   "pixels": 56644,
+   "share_as_declared": 0.948,
+   "share_in_declared_family": 1.0,
+   "came_back_as": {
+    "gunmetal": 0.948,
+    "dark": 0.028,
+    "pale": 0.024
+   },
+   "swap": false,
+   "before_mean_lab": [
+    42.54,
+    0.58,
+    0.43
+   ],
+   "after_mean_lab": [
+    46.45,
+    1.05,
+    1.83
+   ],
+   "gain_L_a_b": [
+    1.33,
+    1.381,
+    1.493
+   ],
+   "dE_to_palette_before": 4.18,
+   "forced_back_to_declared": false
+  },
+  "pale": {
+   "pixels": 27270,
+   "share_as_declared": 0.908,
+   "share_in_declared_family": 0.986,
+   "came_back_as": {
+    "gunmetal": 0.075,
+    "pale": 0.908
+   },
+   "swap": false,
+   "before_mean_lab": [
+    71.33,
+    0.67,
+    2.25
+   ],
+   "after_mean_lab": [
+    73.97,
+    1.05,
+    1.83
+   ],
+   "gain_L_a_b": [
+    1.279,
+    1.5,
+    1.5
+   ],
+   "dE_to_palette_before": 2.7,
+   "forced_back_to_declared": false
+  }
+ },
+ "planes": [
+  {
+   "pixels": 14522,
+   "ramp_span_L_removed": 4.55,
+   "ramp_dL_per_100px": [
+    0.01,
+    -9.02
+   ],
+   "edge_band_dL_after": -6.48
+  },
+  {
+   "pixels": 58564,
+   "ramp_span_L_removed": 3.12,
+   "ramp_dL_per_100px": [
+    -1.0,
+    -0.31
+   ],
+   "edge_band_dL_after": -5.83
+  },
+  {
+   "pixels": 14248,
+   "ramp_span_L_removed": 1.47,
+   "ramp_dL_per_100px": [
+    -0.15,
+    -2.15
+   ],
+   "edge_band_dL_after": -5.53
+  }
+ ],
+ "ramp_span_L_removed_max": 4.55,
+ "edge_band_dL_after_mean": -5.95
+}

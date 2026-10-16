@@ -18,7 +18,7 @@ import java.util.Objects;
  *
  * <p>Fixed power tuning remains in {@link PowerCatalog}; only Mech Support's
  * campaign-configured deployment payload, Ship on Station's frozen ships and
- * Armour Support's frozen company vehicles cross the fixture boundary, with
+ * the frozen company vehicles of Armour Support (or of Mech Support's bay manifest) cross the fixture boundary, with
  * the company boat a drop power flies with.
  *
  * @param companyCarrier the committed company boat a drop power flies with, or
@@ -65,7 +65,8 @@ public record CommandPowerCommitment(
         List<ShipSupportSource> ships = power instanceof ShipOnStation shipPower
                 ? shipPower.sources() : List.of();
         List<VehicleDeploymentSpec> vehicles = power instanceof VehicleSupport vehicleSupport
-                ? vehicleSupport.deployments() : List.of();
+                ? vehicleSupport.deployments()
+                : power instanceof MechSupport mechSupport ? mechSupport.vehicles() : List.of();
         FittedBoat carrier = power instanceof MechSupport mechSupport
                 ? mechSupport.companyCarrier()
                 : power instanceof VehicleSupport vehicleSupport

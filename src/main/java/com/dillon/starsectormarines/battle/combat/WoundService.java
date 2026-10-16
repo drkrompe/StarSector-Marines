@@ -58,10 +58,8 @@ public final class WoundService {
     }
 
     private Long2IntOpenHashMap countsFor(BodyPart part) {
-        return switch (part) {
-            case LEGS -> legWounds;
-            case ARMS -> armWounds;
-            default -> null;
-        };
+        if (part == BodyPart.LEGS) return legWounds;
+        if (part == BodyPart.ARMS) return armWounds;
+        return null;
     }
 }

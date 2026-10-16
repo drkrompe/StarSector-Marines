@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.power;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 
+import java.util.List;
+
 /**
  * A battlefield ability the player can invoke during a battle. The fleet the
  * player commits to the detachment determines <em>which</em> powers exist (the
@@ -86,6 +88,30 @@ public abstract class CommandPower {
      */
     public boolean canTarget(int cellX, int cellY, BattleView battle) {
         return battle != null && battle.getGrid().inBounds(cellX, cellY);
+    }
+
+    /**
+     * As {@link #canTarget(int, int, BattleView)}, for a power whose call carries a pick
+     * ({@code selection}: indices the player chose, or {@code null} for the power's own
+     * default). Only a power with a picker reads it.
+     */
+    public boolean canTarget(int cellX, int cellY, BattleView battle, List<Integer> selection) {
+        return canTarget(cellX, cellY, battle);
+    }
+
+    /** As {@link #resolve(int, int, CommandPowerService, BattleControl)}, with the call's pick. */
+    public void resolve(int cellX, int cellY, CommandPowerService service,
+                        BattleControl battle, List<Integer> selection) {
+        resolve(cellX, cellY, service, battle);
+    }
+
+    /**
+     * Calls this power still holds when it paces itself rather than spending charges
+     * (Mech Support: machines still aboard), or {@code -1} for the service's own charge
+     * count. {@code 0} reads as spent everywhere a charge count does.
+     */
+    public int availableCalls() {
+        return -1;
     }
 
     /**

@@ -1,0 +1,81 @@
+{
+ "part": "bow-nose-front",
+ "regions": {
+  "cream": {
+   "pixels": 140864,
+   "share_as_declared": 0.958,
+   "share_in_declared_family": 0.958,
+   "came_back_as": {
+    "cream": 0.958,
+    "gunmetal": 0.032
+   },
+   "swap": false,
+   "before_mean_lab": [
+    86.23,
+    1.6,
+    11.86
+   ],
+   "after_mean_lab": [
+    77.97,
+    1.64,
+    11.4
+   ],
+   "gain_L_a_b": [
+    1.33,
+    1.025,
+    0.961
+   ],
+   "dE_to_palette_before": 8.27,
+   "forced_back_to_declared": false
+  }
+ },
+ "planes": [
+  {
+   "pixels": 25367,
+   "ramp_span_L_removed": 0.26,
+   "ramp_dL_per_100px": [
+    0.09,
+    0.06
+   ],
+   "edge_band_dL_after": -7.05
+  },
+  {
+   "pixels": 25367,
+   "ramp_span_L_removed": 1.06,
+   "ramp_dL_per_100px": [
+    0.98,
+    0.08
+   ],
+   "edge_band_dL_after": -4.83
+  },
+  {
+   "pixels": 2439,
+   "ramp_span_L_removed": 17.08,
+   "ramp_dL_per_100px": [
+    -113.7,
+    0.74
+   ],
+   "edge_band_dL_after": null
+  },
+  {
+   "pixels": 90630,
+   "ramp_span_L_removed": 0.37,
+   "ramp_dL_per_100px": [
+    -0.04,
+    -0.08
+   ],
+   "edge_band_dL_after": -6.2
+  },
+  {
+   "pixels": 2487,
+   "ramp_span_L_removed": 2.78,
+   "ramp_dL_per_100px": [
+    8.35,
+    1.03
+   ],
+   "edge_band_dL_after": null
+  }
+ ],
+ "ramp_span_L_removed_max": 17.08,
+ "edge_band_dL_after_mean": -6.03
+}

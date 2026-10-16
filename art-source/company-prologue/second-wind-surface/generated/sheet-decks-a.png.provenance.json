@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a14644-e166-7060-a923-9a8b8b707a0f",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a14644-e166-7060-a923-9a8b8b707a0f\\exec-9902f52d-bd26-450b-8494-ae8b376e3f8b.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-surface\\generated\\sheet-decks-a.png",
+    "sha256": "e8c206cc0141a1c59f97113fc3f77c355df8c9d13beb824bfc429efa262c2ce4",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-surface\\prompts\\sheet-decks-a.prompt.txt",
+  "promptSha256": "43ed207b4a36aa2121b55fbc69318c72507a4001e3834949c2d007f1825f8f65",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: layout authority: four tiles; every shape's outline, position and size are exact and must not move\nImage 2: INPUT 2: material/finish only, never layout\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of armour faces of one 3D spacecraft (a battered industrial freighter), each seen square-on and drawn alone as flat-coloured shapes on a plain light grey background:\ntop-left: the large oxide-orange forward deck, seen from directly above (one broad flat deck plate with chamfered corners);\ntop-right: the ship's dorsal spine seen from directly above, a row of separate blocks: chalky cream housing roofs (with a cream walkway strip on the left one, and an octagonal cream command-deck roof inside a thin oxide-orange rim), three gunmetal grey ribbed trunk segments on the right, and the near-black dark machinery core showing in the gaps between the blocks;\nbottom-left: the same spine seen from the side: chalky cream housing walls, three gunmetal trunk segment ends, near-black dark core in the gaps between them, and above them two thin floating strips (a cream bulkhead strip and an oxide-orange brow strip);\nbottom-right: the large dark gunmetal steel keel plate on the ship's underside, seen from directly below.\nINPUT 2 is the SAME ship's port side, already painted: it is the finish to match. Use its paint colours, wear density, chipping, grime, seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the shapes in INPUT 1 as that worn industrial hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any gap between shapes stays plain background grey.\n- Each shape is a flat steel armour surface. Add painted surface detail inside its outline only: plate seams and welded joints, rows of fasteners and rivets, flush access panels and deck hatches drawn flat, scuffed and lightly chipped paint, a thin even film of grime. Nothing may stand out from the surface or cross the outline. The deck and keel are large: divide them into several big armour plates with seams and fastener rows, evenly detailed across the whole shape.\n- Keep each shape's colour: oxide-orange shapes stay faded oxide-orange armour paint, chalky cream shapes stay chalky off-white cream paint, gunmetal shapes stay dark gunmetal steel, and near-black shapes stay near-black dark machinery. Do not repaint any shape another colour, and do not add different-coloured patches, stripes or repair plates.\n- Weathering is light and even across each whole shape. No soot, scorch marks, burns, rust streaks, impact damage, dents, holes, large stains or any single concentrated area of wear: those are added separately later.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\second-wind-surface\\guide\\sheet-decks-a-guide.png",
+      "sha256": "88051d39ac715ea8064d52e7e9c47eb627f3c4dd70c9ac79fdb863a2ec0ce2e1",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: layout authority: four tiles; every shape's outline, position and size are exact and must not move"
+    },
+    {
+      "path": "art-source\\company-prologue\\second-wind-surface\\reference\\finish-reference.png",
+      "sha256": "cee363a918c8013b9aee282642caca6d825349e8b09adedcd5ad74f0926f76d7",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: material/finish only, never layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the image generation tool to reskin the four tiles, preserving the layout and colour assignments in Image 1.\n"
+  ],
+  "usage": {
+    "input_tokens": 47230,
+    "cached_input_tokens": 35328,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 746,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 59.3
+}

@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a14643-310a-7413-8a3f-3c1d63ff894e",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a14643-310a-7413-8a3f-3c1d63ff894e\\exec-d8c5c28f-e848-4612-9f2f-9d459919d19d.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-surface\\generated\\sheet-bow-nose.png",
+    "sha256": "86c49db7e7f4293e74e78d6c32a64d360a3ebd9e2cab5545a9ce7c7a06e0c3f1",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-surface\\prompts\\sheet-bow-nose.prompt.txt",
+  "promptSha256": "80ba30efa5c6c94c27666ec13b7e5cd4403b0da128d18891c43b5f4f9c6a3125",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: layout authority: four tiles whose shapes, outlines and colour regions must be kept exactly\nImage 2: INPUT 2: material/finish only, never layout\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of armour faces at the bow of one 3D spacecraft (a battered industrial freighter), each seen square-on and drawn alone as flat-coloured shapes on a plain light grey background:\ntop-left: the raked nose seen square-on: a large chalked-cream armoured nose block in the middle (with chamfered lower corners), framed left and right by two oxide-orange triangular wings of the bow shield's raked face behind it;\ntop-right: the cream nose block's side face (an upright plate whose upper-left and lower-left corners are cut by the rake and the chin);\nbottom-left: the cream nose block's front stem face: a long horizontal cream band widening into cream wedge-shaped corner faces at both ends;\nbottom-right: the cream nose block's flat crown, a long horizontal cream strip.\nINPUT 2 is the SAME ship's port side, already painted: it is the finish to match. Use its paint colours, wear density, chipping, grime, seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four tiles in INPUT 1 as that worn industrial hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any background stays plain background grey.\n- Each shape is a flat armour surface. Add painted surface detail inside its outline only: plate seams and welded joints, rows of fasteners and rivets, flush access panels, scuffed and lightly chipped paint, a thin even film of grime. Nothing may stand out from the surface or cross the outline.\n- Keep each shape's colour exactly where it is: cream shapes stay chalky, faded cream armour paint; the two oxide-orange wings in the top-left tile stay faded oxide-orange armour paint, and the boundary between the cream block and the orange wings stays exactly where it is. Do not repaint any area another colour, and do not add white, grey, orange or different-coloured patches, stripes, markings or repair plates.\n- Weathering is light and even across each whole shape. No soot, scorch marks, burns, rust streaks, impact damage, dents, holes, large stains or any single concentrated area of wear: those are added separately later.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening (remove the soft dark shading along the cream block's edges in the top-left tile), no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\second-wind-surface\\guide\\sheet-bow-nose-guide.png",
+      "sha256": "4798301a1d901c914d36d11d3acba2a301a2c3dd61c051f062ca41f127c55ba7",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: layout authority: four tiles whose shapes, outlines and colour regions must be kept exactly"
+    },
+    {
+      "path": "art-source\\company-prologue\\second-wind-surface\\reference\\finish-reference.png",
+      "sha256": "cee363a918c8013b9aee282642caca6d825349e8b09adedcd5ad74f0926f76d7",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: material/finish only, never layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to apply the worn hull finish while preserving the four-tile layout and colour boundaries."
+  ],
+  "usage": {
+    "input_tokens": 87324,
+    "cached_input_tokens": 60288,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 846,
+    "reasoning_output_tokens": 28
+  },
+  "elapsedSeconds": 61.8
+}
