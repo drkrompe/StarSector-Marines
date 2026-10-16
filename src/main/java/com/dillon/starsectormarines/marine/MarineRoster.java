@@ -45,6 +45,8 @@ public class MarineRoster implements Serializable {
     private List<MarineSoldier> soldiers = new ArrayList<>();
     /** Derived lookup only; campaign saves continue to persist the ordered soldier list. */
     private transient Map<String, MarineSoldier> soldierIndex;
+    /** Withheld templates to use instead of the running campaign's; null reads the campaign. */
+    private transient Set<String> withheldTemplatesOverride;
     private List<MarineSquad> squads = new ArrayList<>();
     private List<CaptainCandidate> captainCandidates = new ArrayList<>();
     private MarineArmory armory = new MarineArmory();
@@ -1100,8 +1102,36 @@ public class MarineRoster implements Serializable {
                     && (billet.specialEquipmentId() == null
                     || armory.ownsSpecialTemplate(billet.specialEquipmentId()));
         }
-        return new SquadEquipmentPreview(ownsTemplates ? SquadEquipmentResult.APPLIED
-                : SquadEquipmentResult.MISSING_TEMPLATE, billets);
+        if (!ownsTemplates) {
+            return new SquadEquipmentPreview(SquadEquipmentResult.MISSING_TEMPLATE, billets);
+        }
+        return new SquadEquipmentPreview(withholdsNewFitting(squad, billets)
+                ? SquadEquipmentResult.WARRANT_SUSPENDED : SquadEquipmentResult.APPLIED, billets);
+    }
+
+    /**
+     * Whether a suspended or revoked military warrant forbids this issue
+     * ({@code progression-nouns.md}, Kit and armory): some occupant would be newly fitted with a
+     * suit the warrant withholds. A marine already wearing it keeps it, and a suit no warrant
+     * names (grandfathered) is never withheld.
+     */
+    private boolean withholdsNewFitting(MarineSquad squad, List<SquadEquipmentBillet> billets) {
+        Set<String> withheld = withheldTemplatesOverride != null
+                ? withheldTemplatesOverride : MilitaryWarrants.liveWithheldTemplateIds();
+        if (withheld.isEmpty()) return false;
+        List<String> memberIds = manningMemberIds(squad);
+        for (int index = 0; index < memberIds.size() && index < billets.size(); index++) {
+            String armorId = billets.get(index).armorId();
+            if (armorId == null || !withheld.contains(EquipmentTemplateCatalog.armorId(armorId))) continue;
+            MarineSoldier soldier = soldierById(memberIds.get(index));
+            if (soldier == null || !armorId.equals(soldier.armorId())) return true;
+        }
+        return false;
+    }
+
+    /** Replaces the campaign's withheld warrant templates, for a roster outside a running campaign. */
+    public void setWithheldTemplates(Set<String> templateIds) {
+        withheldTemplatesOverride = templateIds != null ? Set.copyOf(templateIds) : null;
     }
 
     /** Fits known equipment without a material charge. */

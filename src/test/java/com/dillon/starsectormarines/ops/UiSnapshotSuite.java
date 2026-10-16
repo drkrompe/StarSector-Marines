@@ -310,6 +310,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderCompanyHq(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
                                 CompanyHqViewModel.auxiliaryWarrantPreview(AuxiliaryWarrantDesk.Page.DECLINED))),
+                // Military warrant obligations on the company record: an active warrant with
+                // its next service deadline beside a suspended one with what restores it.
+                new SnapshotArtifact("company-hq-warrants-wide.png",
+                        renderCompanyHq(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
+                                CompanyHqViewModel.warrantObligationsPreview())),
                 new SnapshotArtifact("barracks-wide.png",
                         renderBarracks(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),

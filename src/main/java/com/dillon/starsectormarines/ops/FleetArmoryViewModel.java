@@ -1412,6 +1412,7 @@ public final class FleetArmoryViewModel {
                     Strings.get("openingFleetArmoryBlockedOneOrMoreRequiredEquipmentTemplates");
             case INSUFFICIENT_CARGO ->
                     Strings.get("openingFleetArmoryTheOrderChangedReviewTheCurrentSquad");
+            case WARRANT_SUSPENDED -> Strings.get("squadEquipmentWarrantSuspended");
         };
     }
 
