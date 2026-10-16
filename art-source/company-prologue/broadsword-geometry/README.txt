@@ -67,11 +67,12 @@ glass by 0.21 m. Each exhaust bell is 1.8 m across. The canopy is broad,
 1.9 m at the sill against 0.9-1.3 m on real aircraft: the sprite's wide
 glazed hood, not a reason for a tighter scale.
 Beside a hull at another scale, scale the root by 0.50 / that hull's
-metres_per_unit: 0.77 beside the Legion (0.65). Her span then clears the
-Legion's forward hangar mouth (23.4 m) easily, but the aft mouth (14.3 m
-wide, 7.8 m high) by only 0.2 m. The hangars are under the wing arms and
-fighters leave only through the mouths, so an aft launch must fly
-straight out.
+metres_per_unit, read from its own geometry.json: the Legion's is 0.61
+(legion-geometry, local main 496340563), giving 0.82. Her 14.1 m span is
+about 23 Legion units. The Legion's hangar tunnels are being widened to
+clear a Hoplon's 38 units (about 40 forward, 46 aft; final mouth widths
+in its flight_decks), and fighters leave only through the mouths under
+the wing arms, so she fits either hangar with room to spare.
 The battle-map landed-ship convention (landed-ships-true-scale.md) is a
 different number.
 

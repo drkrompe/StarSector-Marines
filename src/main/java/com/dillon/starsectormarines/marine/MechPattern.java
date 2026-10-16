@@ -58,6 +58,11 @@ public record MechPattern(Kind kind, String definitionId) {
         VEHICLE_TIERS.put(VehicleType.ESCORT_APC, EquipmentAccessTier.ADVANCED);
         VEHICLE_TIERS.put(VehicleType.MILITIA_TECHNICAL, EquipmentAccessTier.ADVANCED);
         VEHICLE_TIERS.put(VehicleType.BREAKTHROUGH_TANK, EquipmentAccessTier.PRESTIGE);
+        // The ladder above each line's first hull: each variant is its own card.
+        VEHICLE_TIERS.put(VehicleType.UP_ARMORED_APC, EquipmentAccessTier.ADVANCED);
+        VEHICLE_TIERS.put(VehicleType.FIRE_SUPPORT_APC, EquipmentAccessTier.ADVANCED);
+        VEHICLE_TIERS.put(VehicleType.HEAVY_GUN_TANK, EquipmentAccessTier.PRESTIGE);
+        VEHICLE_TIERS.put(VehicleType.DOZER_BREACHER, EquipmentAccessTier.PRESTIGE);
     }
 
     /**
@@ -144,6 +149,13 @@ public record MechPattern(Kind kind, String definitionId) {
         };
     }
 
+    /** False only for a vehicle variant whose hull or turret art is still pending. */
+    public boolean presentationDeclared() {
+        if (kind != Kind.VEHICLE) return true;
+        VehicleType type = vehicleType();
+        return type != null && type.presentationDeclared();
+    }
+
     public boolean starter() {
         return STARTER.contains(this);
     }
@@ -190,10 +202,12 @@ public record MechPattern(Kind kind, String definitionId) {
         return Collections.unmodifiableList(patterns);
     }
 
-    /** Patterns a source may offer as a card: everything but the starter set. */
+    /** Patterns a source may offer as a card: everything but the starter set and art still pending. */
     public static List<MechPattern> offerable() {
         List<MechPattern> patterns = new ArrayList<>();
-        for (MechPattern pattern : all()) if (!pattern.starter()) patterns.add(pattern);
+        for (MechPattern pattern : all()) {
+            if (!pattern.starter() && pattern.presentationDeclared()) patterns.add(pattern);
+        }
         return Collections.unmodifiableList(patterns);
     }
 

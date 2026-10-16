@@ -15,6 +15,8 @@ import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -43,8 +45,17 @@ public final class WarshipTacticsScene implements BehaviorScene {
     private static final int TICKS = 9000;
     private static final int FRAME_EVERY = 30;
     private static final float TICK_SECONDS = 1f / 30f;
-    /** The deepest two hulls may overlap at the end of a tick, in cells, before contact is said to have failed. */
-    private static final float CONTACT_TOLERANCE_CELLS = 0.5f;
+    /** At least this many manoeuvres finished in a loop, and on average lasting at least this long. */
+    private static final int MIN_MANOEUVRES = 4;
+    private static final float MIN_MANOEUVRE_SECONDS = 10f;
+    /** A manoeuvring ship's widest range to its target is at least this multiple of its closest. */
+    private static final float RANGE_BREATH = 1.25f;
+    /** The share of escorted ticks a pack spends on different hulls. */
+    private static final int MIN_SPLIT_PERCENT = 75;
+    /** The most of a loop's ticks two friendly hulls may spend brushing each other. */
+    private static final float FRIENDLY_TOUCH_SHARE = 0.03f;
+    /** The deepest a Wolf may lie over the Onslaught, in cells: the brush any two hulls are forgiven. */
+    private static final float CONTACT_TOLERANCE_CELLS = WarshipSpacing.BRUSH_CELLS;
 
     /** One hull of a loop. {@code escortOf} is the index of the hull it screens, or -1. */
     private record Spec(String hull, String variant, Faction side, int escortOf) {}
@@ -88,6 +99,9 @@ public final class WarshipTacticsScene implements BehaviorScene {
             if (only != null && !only.isBlank() && !List.of(only.split(",")).contains(loop.id())) continue;
             reports.add(playOne(loop, frames));
         }
+        if (only == null || only.isBlank() || List.of(only.split(",")).contains(FIGHTER_LOOP)) {
+            reports.add(playFighterOverCapital(frames));
+        }
         return reports;
     }
 
@@ -125,6 +139,84 @@ public final class WarshipTacticsScene implements BehaviorScene {
         return report(loop, trace, sim);
     }
 
+    private static final String FIGHTER_LOOP = "fighter-over-capital";
+    private static final int FIGHTER_TICKS = 2400;
+
+    /**
+     * The control for hull contact: a fighter-sized hull may pass over a ship, a frigate may not. A held Onslaught lies
+     * across the lane between two of the company's hunters and a hostile Lasher on the far side: a Broadsword and a
+     * Wolf, each flying its duel helm at the Lasher, which fights nobody. The Broadsword flies straight over the
+     * capital; the Wolf goes round it.
+     */
+    private SceneReport playFighterOverCapital(FrameSink frames) throws Exception {
+        int width = 420;
+        int height = 200;
+        SceneBuilder builder = SceneBuilder.openGround(width, height).missionCompletion(false);
+        builder.squad("west-ground").faction(Faction.MARINE).size(1).at(3, 3).unarmed().stationary().done();
+        builder.squad("east-ground").faction(Faction.DEFENDER).size(1).at(width - 4, height - 4).unarmed()
+                .stationary().done();
+        SceneWorld world = builder.build();
+        BattleSimulation sim = world.sim();
+        sim.random().setSeed(20261016L);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) sim.getTopology().setGroundKind(x, y, GroundKind.GRASS);
+        }
+        float midY = height * 0.5f;
+        Warship capital = Warship.fit("onslaught", "onslaught_Standard", Faction.ALLY, 200f, midY, 0f);
+        capital.stationTo(capital.x, capital.y);
+        capital.shipFire(ShipFireOrder.OFF);
+        capital.groundFire(Warship.GroundFire.HOLD);
+        Warship lasher = Warship.fit("lasher", "lasher_Standard", Faction.DEFENDER, 395f, midY, 90f);
+        lasher.stationTo(lasher.x, lasher.y);
+        lasher.shipFire(ShipFireOrder.OFF);
+        lasher.groundFire(Warship.GroundFire.HOLD);
+        Warship fighter = hunter("broadsword", "broadsword_Fighter", 40f, midY - 18f);
+        Warship wolf = hunter("wolf_hegemony", "wolf_hegemony_Rusk", 40f, midY + 18f);
+        for (Warship s : List.of(capital, lasher, fighter, wolf)) sim.addWarship(s);
+        float[] deepest = new float[2];
+        int[] overTicks = new int[2];
+        TickObserver trace = (s, tick) -> {
+            Warship[] pair = {fighter, wolf};
+            for (int i = 0; i < 2; i++) {
+                if (pair[i].destroyed()) continue;
+                float g = WarshipSpacing.gap(pair[i], capital);
+                if (g < 0f) {
+                    overTicks[i]++;
+                    deepest[i] = Math.max(deepest[i], -g);
+                }
+            }
+        };
+        SceneRun.of(world).observe(trace)
+                .frames(frames, FIGHTER_LOOP, FRAME_EVERY, tick -> String.format(Locale.ROOT,
+                        "WARSHIP TACTICS / %s / %ds / Broadsword over the Onslaught %d ticks, Wolf %d", FIGHTER_LOOP,
+                        tick / 30, overTicks[0], overTicks[1]))
+                .run(FIGHTER_TICKS);
+        List<Verdict> verdicts = new ArrayList<>();
+        verdicts.add(Verdict.of("fighters-pass-over-ships", overTicks[0] > 0 && !WarshipSpacing.inContact(fighter),
+                String.format(Locale.ROOT, "the Broadsword lay over the Onslaught for %d ticks, %.1f cells deep",
+                        overTicks[0], deepest[0])));
+        verdicts.add(Verdict.of("frigates-go-round", deepest[1] <= CONTACT_TOLERANCE_CELLS,
+                String.format(Locale.ROOT, "the Wolf overlapped the Onslaught for %d ticks, at most %.1f cells",
+                        overTicks[1], deepest[1])));
+        Map<String, Number> metrics = new LinkedHashMap<>();
+        metrics.put("fighterOverTicks", overTicks[0]);
+        metrics.put("fighterDeepestCells", round1(deepest[0]));
+        metrics.put("wolfOverTicks", overTicks[1]);
+        metrics.put("wolfDeepestCells", round1(deepest[1]));
+        metrics.put("wolfEndX", round1(wolf.x));
+        metrics.put("fighterEndX", round1(fighter.x));
+        return new SceneReport(id(), FIGHTER_LOOP, FIGHTER_TICKS, verdicts, metrics);
+    }
+
+    private static Warship hunter(String hull, String variant, float x, float y) throws Exception {
+        Warship s = Warship.fit(hull, variant, Faction.ALLY, x, y, 270f);
+        s.stationTo(x, y);
+        s.limitFlux();
+        s.shipFire(ShipFireOrder.ALL);
+        s.groundFire(Warship.GroundFire.HOLD);
+        return s;
+    }
+
     private static List<Warship> fit(List<Spec> specs, float facing) throws Exception {
         List<Warship> out = new ArrayList<>();
         for (Spec s : specs) out.add(Warship.fit(s.hull(), s.variant(), s.side(), 0f, 0f, facing));
@@ -158,14 +250,40 @@ public final class WarshipTacticsScene implements BehaviorScene {
 
     private SceneReport report(Loop loop, Trace t, BattleSimulation sim) {
         List<Verdict> verdicts = new ArrayList<>();
-        verdicts.add(Verdict.of("hulls-never-pass-through", t.deepestOverlap <= CONTACT_TOLERANCE_CELLS,
-                String.format(Locale.ROOT, "deepest overlap at a tick's end %.2f cells, %d ticks with any overlap",
-                        t.deepestOverlap, t.overlapTicks)));
-        verdicts.add(Verdict.of("friends-keep-clear", t.friendlyOverlapTicks == 0,
-                String.format(Locale.ROOT, "least friendly gap %.1f cells, %d ticks with two friends overlapping",
-                        t.minFriendlyGap, t.friendlyOverlapTicks)));
+        verdicts.add(Verdict.of("hulls-never-pass-through", t.worstExcess <= 0.05f,
+                String.format(Locale.ROOT, "deepest overlap at a tick's end %.2f cells (%.2f past the pair's"
+                        + " tolerance), %d ticks with any overlap", t.deepestOverlap, t.worstExcess, t.overlapTicks)));
+        // Contact is the backstop, not the behaviour: friends may brush (within the tolerance), briefly.
+        verdicts.add(Verdict.of("friends-keep-clear", t.worstFriendlyExcess <= 0.05f
+                        && t.friendlyOverlapTicks <= FRIENDLY_TOUCH_SHARE * TICKS,
+                String.format(Locale.ROOT, "least friendly gap %.1f cells (%s), %d ticks with two friends overlapping"
+                                + " from %ds (%s)", t.minFriendlyGap, t.closestFriends, t.friendlyOverlapTicks,
+                        t.firstFriendlyTouchTick / 30, t.firstFriends)));
         verdicts.add(Verdict.of("the-sides-fight", t.damageToWest > 0f && t.damageToEast > 0f,
                 String.format(Locale.ROOT, "west took %.0f, east took %.0f", t.damageToWest, t.damageToEast)));
+
+        // The manoeuvre is the unit of behaviour: held for tens of seconds, not re-chosen every tick.
+        float meanSeconds = t.meanManoeuvreSeconds();
+        verdicts.add(Verdict.of("manoeuvres-are-held", t.finished.size() >= MIN_MANOEUVRES
+                        && meanSeconds >= MIN_MANOEUVRE_SECONDS,
+                String.format(Locale.ROOT, "%d manoeuvres finished, %.1fs on average", t.finished.size(), meanSeconds)));
+        // Distance breathes: every ship that flew manoeuvres closed and opened the range on its target.
+        StringBuilder flat = new StringBuilder();
+        for (Warship s : t.all) {
+            float[] range = t.rangeSpan.get(s);
+            if (range == null || s.manoeuvre().begun() < 2) continue;
+            if (range[1] < RANGE_BREATH * range[0]) {
+                flat.append(String.format(Locale.ROOT, " %s %.0f-%.0f", s.hullId, range[0], range[1]));
+            }
+        }
+        verdicts.add(Verdict.of("range-breathes", flat.length() == 0,
+                flat.length() == 0 ? "every manoeuvring ship opened its range by " + RANGE_BREATH + "x"
+                        : "held one range:" + flat));
+        if (t.splitSampleTicks > 0) {
+            int split = Math.round(100f * t.splitTicks / t.splitSampleTicks);
+            verdicts.add(Verdict.of("the-pack-splits-on-an-escorted-charge", split >= MIN_SPLIT_PERCENT,
+                    split + "% of escorted ticks with the pack on different hulls"));
+        }
 
         Map<String, Number> metrics = new LinkedHashMap<>();
         metrics.put("firstHitSeconds", round1(t.firstHitTick < 0 ? -1f : t.firstHitTick * TICK_SECONDS));
@@ -184,11 +302,19 @@ public final class WarshipTacticsScene implements BehaviorScene {
         metrics.put("sameTargetPercentEast", t.pairTicksEast == 0 ? -1 : Math.round(100f * t.sameTargetEast / t.pairTicksEast));
         WarshipShipFire fire = sim.warships().shipFire();
         metrics.put("roundsAtHulls", fire.roundsFired());
+        metrics.put("manoeuvresFinished", t.finished.size());
+        metrics.put("meanManoeuvreSeconds", round1(t.meanManoeuvreSeconds()));
+        for (WarshipManoeuvre.Kind k : WarshipManoeuvre.Kind.values()) {
+            metrics.put("seconds" + k.name(), round1(t.kindTicks.getOrDefault(k, 0) * TICK_SECONDS));
+        }
+        metrics.put("splitWhileEscortedPercent", t.splitSampleTicks == 0 ? -1 : Math.round(100f * t.splitTicks / t.splitSampleTicks));
+        metrics.put("lineHeldPercent", t.lineTicks == 0 ? -1 : Math.round(100f * t.lineHeldTicks / t.lineTicks));
         metrics.put("hitSharePercent", fire.roundsFired() == 0 ? 0 : Math.round(100f * fire.roundsOnHull() / fire.roundsFired()));
         int i = 0;
         for (Warship s : concat(t.west, t.east)) {
             String n = (s.faction == Faction.ALLY ? "west" : "east") + (i % 4) + s.hullId;
             metrics.put(n + "HullPercent", Math.round(100f * Math.max(0f, s.hullFraction())));
+            metrics.put(n + "Manoeuvres", t.kinds.getOrDefault(s, EnumSet.noneOf(WarshipManoeuvre.Kind.class)).size());
             float[] range = t.rangeSpan.get(s);
             if (range != null) {
                 metrics.put(n + "RangeMin", round1(range[0]));
@@ -224,9 +350,16 @@ public final class WarshipTacticsScene implements BehaviorScene {
         float damageToWest;
         float damageToEast;
         float deepestOverlap;
+        /** The most any pair lay in each other beyond {@link WarshipSpacing#contactTolerance}; and of friends. */
+        float worstExcess = Float.NEGATIVE_INFINITY;
+        float worstFriendlyExcess = Float.NEGATIVE_INFINITY;
         int overlapTicks;
         int friendlyOverlapTicks;
         float minFriendlyGap = Float.MAX_VALUE;
+        /** Which friendly pair came closest, and on which tick; and the first tick two friends touched. */
+        String closestFriends = "";
+        int firstFriendlyTouchTick = -1;
+        String firstFriends = "";
         float minHostileGap = Float.MAX_VALUE;
         int sameTargetWest;
         int pairTicksWest;
@@ -236,6 +369,18 @@ public final class WarshipTacticsScene implements BehaviorScene {
         final Map<Warship, Float> lastShield = new IdentityHashMap<>();
         /** Per hull, the least and most range to its hull target once the fight has begun. */
         final Map<Warship, float[]> rangeSpan = new IdentityHashMap<>();
+        /** Per hull, the manoeuvre it flew last tick, and the ticks each manoeuvre it finished lasted. */
+        final Map<Warship, WarshipManoeuvre.Kind> lastKind = new IdentityHashMap<>();
+        final Map<Warship, Integer> kindSince = new IdentityHashMap<>();
+        final Map<Warship, EnumSet<WarshipManoeuvre.Kind>> kinds = new IdentityHashMap<>();
+        final List<Integer> finished = new ArrayList<>();
+        final Map<WarshipManoeuvre.Kind, Integer> kindTicks = new EnumMap<>(WarshipManoeuvre.Kind.class);
+        /** Ticks two hunters of a side held different hulls while the other side still had a live escort. */
+        int splitTicks;
+        int splitSampleTicks;
+        /** Ticks a line's second ship was within its interval of its slot, of the ticks it sailed second. */
+        int lineHeldTicks;
+        int lineTicks;
 
         Trace(List<Warship> west, List<Warship> east) {
             this.west = west;
@@ -283,8 +428,20 @@ public final class WarshipTacticsScene implements BehaviorScene {
                         anyOverlap = true;
                         deepestOverlap = Math.max(deepestOverlap, -g);
                     }
+                    float excess = -g - WarshipSpacing.contactTolerance(a, b);
+                    worstExcess = Math.max(worstExcess, excess);
+                    if (a.faction == b.faction) worstFriendlyExcess = Math.max(worstFriendlyExcess, excess);
                     if (a.faction == b.faction) {
-                        minFriendlyGap = Math.min(minFriendlyGap, g);
+                        if (g < minFriendlyGap) {
+                            minFriendlyGap = g;
+                            closestFriends = a.hullId + "/" + b.hullId + " at " + tick / 30 + "s ("
+                                    + a.manoeuvre().kind() + "/" + b.manoeuvre().kind() + ")";
+                        }
+                        if (g < 0f && firstFriendlyTouchTick < 0) {
+                            firstFriendlyTouchTick = tick;
+                            firstFriends = a.hullId + "/" + b.hullId + " (" + a.manoeuvre().kind() + "/"
+                                    + b.manoeuvre().kind() + ")";
+                        }
                         friendlyOverlap |= g < 0f;
                     } else {
                         minHostileGap = Math.min(minHostileGap, g);
@@ -305,6 +462,29 @@ public final class WarshipTacticsScene implements BehaviorScene {
                     span[1] = Math.max(span[1], r);
                 }
             }
+            for (Warship s : all) {
+                WarshipManoeuvre.Kind k = live(s) ? s.manoeuvre().kind() : null;
+                WarshipManoeuvre.Kind was = lastKind.get(s);
+                if (k != was) {
+                    if (was != null) finished.add(tick - kindSince.getOrDefault(s, tick));
+                    kindSince.put(s, tick);
+                    lastKind.put(s, k);
+                    if (k != null) kinds.computeIfAbsent(s, x -> EnumSet.noneOf(WarshipManoeuvre.Kind.class)).add(k);
+                }
+                if (k != null) kindTicks.merge(k, 1, Integer::sum);
+                if (k == WarshipManoeuvre.Kind.LINE_AHEAD && s.manoeuvre().leader() != null) {
+                    Warship lead = s.manoeuvre().leader();
+                    float interval = 0.5f * lead.lengthCells + 0.5f * s.lengthCells
+                            + WarshipTactics.LINE_GAP_SHARE * WarshipEscort.GAP_CELLS;
+                    double back = Math.toRadians(lead.facingDegrees + 180f);
+                    float sx = lead.centerX() - (float) Math.sin(back) * interval;
+                    float sy = lead.centerY() + (float) Math.cos(back) * interval;
+                    lineTicks++;
+                    if (Math.hypot(sx - s.centerX(), sy - s.centerY()) <= 0.5f * interval) lineHeldTicks++;
+                }
+            }
+            split(west, east);
+            split(east, west);
             if (resolvedTick < 0 && firstHitTick >= 0) {
                 boolean westOver = false;
                 boolean eastOver = false;
@@ -312,6 +492,29 @@ public final class WarshipTacticsScene implements BehaviorScene {
                 for (Warship s : east) eastOver |= live(s) && !s.departing();
                 if (!westOver || !eastOver) resolvedTick = tick;
             }
+        }
+
+        /** While {@code theirs} has a live escort, counts whether two hunters of {@code ours} hold different hulls. */
+        private void split(List<Warship> ours, List<Warship> theirs) {
+            boolean escorted = false;
+            for (Warship t : theirs) escorted |= live(t) && WarshipEscort.liveLead(t) != null;
+            if (!escorted) return;
+            List<Warship> targets = new ArrayList<>();
+            for (Warship s : ours) {
+                if (live(s) && !s.departing() && WarshipEscort.liveLead(s) == null && s.hullTarget() != null) {
+                    targets.add(s.hullTarget());
+                }
+            }
+            if (targets.size() < 2) return;
+            splitSampleTicks++;
+            if (targets.get(0) != targets.get(1)) splitTicks++;
+        }
+
+        float meanManoeuvreSeconds() {
+            if (finished.isEmpty()) return 0f;
+            long sum = 0;
+            for (int t : finished) sum += t;
+            return sum * TICK_SECONDS / finished.size();
         }
 
         /** Counts ticks where two live hunters of a side (not escorts) are on the same hull. */

@@ -383,8 +383,12 @@ the tank. Each wheel retains its own silhouette and the gaps remain open;
 accepted chassis travel and yaw move only the tread material. Reverse reverses
 the texture motion, stopped or blocked hulls stay still, and teleport resets
 its phase. Steering and traction remain the ordinary vehicle motion model.
-Both APC variants retain separately registered wreck hull and MG art at their
+Every APC variant retains separately registered wreck hull and MG art at their
 final bearings, with torn troop roofs, damaged tires and bent turret plates.
+The up-armored APC is the same hull drawn darker for its welded plate. The
+fire-support APC keeps the hull and replaces the sheet's MG with its heavy-mortar
+mount's own catalog art, drawn on the roof bearing at the mount's intrinsic size
+the way an aircraft's hull turrets are, and darkened on the wreck.
 Destruction stops the tread animation and leaves the wreck after the effects cool.
 
 A directly controlled hull repels bodies exactly as an autonomous one does.
