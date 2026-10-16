@@ -47,6 +47,8 @@ public final class WarshipShipFire {
     private static final float GIVE_UP_REST_SECONDS = 0.5f;
     /** A ship turns toward a hostile hull this far beyond its longest anti-ship reach, so it is facing it by the time it can fire. */
     static final float NOTICE_REACH_SHARE = 1.5f;
+    /** The hunter running a charge down keeps the role until another is nearer the charge by more than this, in cells. */
+    static final float PACK_SWITCH_CELLS = 6f;
 
     /** One mount's trigger pull at one hull. */
     private static final class Engagement {
@@ -198,6 +200,13 @@ public final class WarshipShipFire {
         }
         // A ship free to manoeuvre goes to find the hull wherever it is over the battle; one holding its station
         // turns only toward a hull that is nearly in reach.
+        if (ship.duelHelm()) {
+            Warship role = packTarget(ship, ships);
+            if (role != null) {
+                ship.hullTarget(role);
+                return;
+            }
+        }
         float notice = ship.duelHelm() ? Float.MAX_VALUE : longestReach(ship) * NOTICE_REACH_SHARE;
         Warship current = ship.hullTarget();
         if (current != null && hostileHull(ship, current) && gap(ship, current) <= notice) return;
@@ -212,6 +221,58 @@ public final class WarshipShipFire {
             }
         }
         ship.hullTarget(best);
+    }
+
+    /**
+     * The pack's division of a hunt, re-decided every tick: when two or more ships of a side are hunting with their
+     * duel helm (not escorting) and a hostile hull is being escorted (a <em>charge</em>), the hunter nearest the
+     * charge runs it down and every other hunter pins the charge's escort nearest to itself. The runner keeps the
+     * role until another hunter is nearer the charge by {@link #PACK_SWITCH_CELLS}. {@code null} when there is no
+     * pack or no charge: a lone hunter fights the nearest hull, and so does a pack once the escorts are gone.
+     */
+    static Warship packTarget(Warship ship, List<Warship> ships) {
+        if (WarshipEscort.liveLead(ship) != null) return null;
+        Warship charge = null;
+        float chargeGap = Float.MAX_VALUE;
+        for (Warship other : ships) {
+            if (!hostileHull(ship, other) || WarshipEscort.escortsOf(other, ships).isEmpty()) continue;
+            float g = gap(ship, other);
+            if (g < chargeGap) {
+                charge = other;
+                chargeGap = g;
+            }
+        }
+        if (charge == null) return null;
+        Warship runner = null;
+        float runnerGap = Float.MAX_VALUE;
+        Warship holder = null;
+        int hunters = 0;
+        for (Warship other : ships) {
+            if (other.faction != ship.faction || !looksAtHulls(other) || !other.duelHelm()
+                    || WarshipEscort.liveLead(other) != null || !hostileHull(other, charge)) continue;
+            hunters++;
+            float g = gap(other, charge);
+            if (g < runnerGap) {
+                runner = other;
+                runnerGap = g;
+            }
+            // Whoever was running the charge down last tick holds the role, so it does not flap between near equals.
+            if (other.hullTarget() == charge && holder == null) holder = other;
+        }
+        if (hunters < 2) return null;
+        if (holder != null && gap(holder, charge) <= runnerGap + PACK_SWITCH_CELLS) runner = holder;
+        if (runner == ship) return charge;
+        Warship pinned = null;
+        float pinnedGap = Float.MAX_VALUE;
+        for (Warship escort : WarshipEscort.escortsOf(charge, ships)) {
+            if (!hostileHull(ship, escort)) continue;
+            float g = gap(ship, escort);
+            if (g < pinnedGap) {
+                pinned = escort;
+                pinnedGap = g;
+            }
+        }
+        return pinned != null ? pinned : charge;
     }
 
     private static float gap(Warship ship, Warship other) {

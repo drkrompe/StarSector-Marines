@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — a hostile hull is a target for a ship's direct-fire guns by mission order, misses fall on the ground, a lost hull falls as wreckage, a ship fighting hulls manoeuvres by its reach against theirs with its variant's capacitors and vents, and missiles fly at hulls with a Sabot's warheads aimed at the split (`atmospheric-frigate-duel.md`, slices 1-3); a fort's anti-air yard stands Locust and Swarmer towers instead of Ridgewatch and flak; earlier: Missile AA joins ordinary heavy defense posts; all six supported carrier wings use the shared commitment flow.
+Updated: 2026-10-16 — a hostile hull is a target for a ship's direct-fire guns by mission order, misses fall on the ground, a lost hull falls as wreckage, a ship fighting hulls manoeuvres by its reach against theirs with its variant's capacitors and vents, missiles fly at hulls with a Sabot's warheads aimed at the split, and a pack splits on an escorted hull while its escorts interpose (`atmospheric-frigate-duel.md`, slices 1-4); a fort's anti-air yard stands Locust and Swarmer towers instead of Ridgewatch and flak; earlier: Missile AA joins ordinary heavy defense posts; all six supported carrier wings use the shared commitment flow.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1870,6 +1870,16 @@ and its warheads are aimed at the split, at the hull as it is then, spread acros
 spec's arc, so the hull's size decides how many strike; each warhead that reaches no hull
 carries on to the ground. Missiles never set a ship's heading or its duel reach: those
 are its guns'.
+
+**A pack divides a hunt; an escort interposes.** When two or more ships of a side hunt
+hulls with their duel helm and a hostile hull is being escorted, the hunter nearest that
+**charge** runs it down and the others pin its escorts, re-decided as the fight changes
+with enough hysteresis that near equals do not trade roles. An escort with a live lead
+is not steered by the duel helm: it holds its ring on the side the hostile hulls are on
+and fights from there, and it saves itself by the ordinary withdraw rule. Ground fire
+`HOLD` keeps a duelling hull off the ground entirely. Whether hostile hulls duel without
+a mission's order (`ShipFireOrder.AUTO`) is undecided; until it is, hull fire is a
+mission's explicit choice.
 
 **A warship's stay and its magazine can both be bounded.** Station time is counted
 down only while the ship is on its station, not while it travels to it; when it

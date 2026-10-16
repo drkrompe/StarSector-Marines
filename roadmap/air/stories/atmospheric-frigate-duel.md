@@ -1,10 +1,10 @@
 # Story — Atmospheric frigate duel
 
-Status: ACTIVE — slices 1-3 built (hulls as targets for direct fire, stray rounds, falling wreckage, skins; duel helm and variant flux fittings; missiles at hulls); slice 4 (doctrine for duels) next
+Status: ACTIVE — slices 1-4 built (hulls as targets for direct fire, stray rounds, falling wreckage, skins; duel helm and variant flux fittings; missiles at hulls; doctrine for duels except `AUTO`); slice 5 (the rig climbs out) next
 
 Written: 2026-10-16
 
-Updated: 2026-10-16 — slice 3 built (missiles at hulls, Sabot warheads aimed at the split) with its readings; open questions left to the owner.
+Updated: 2026-10-16 — slice 4 built (pack roles, escorts interpose, ground-fire hold, withdraw) with its readings; `AUTO` left for the owner.
 
 Read `air-nouns.md` (**Overhead ships**, **Standing laws**), `warship-behaviours.md`
 (the posture model, Classes, Decided: escort, gap G4), `ship-support.md` and
@@ -143,7 +143,7 @@ ion cannon's arcs (not modelled; the ion cannon fires as an energy projectile).
 3. **Missiles at hulls** (built). A Sabot (or any missile) fired at a hull flies its own path
    to the led point; a multi-warhead missile splits short of the hull and its warheads
    converge on it; the target's point defence may shoot them.
-4. **Doctrine for duels.** `ShipFireOrder.AUTO` engages hostile hulls under air
+4. **Doctrine for duels** (built, except `AUTO`). `ShipFireOrder.AUTO` engages hostile hulls under air
    superiority (hostile hulls already raise it); the existing ground-fire permission
    `HOLD` keeps a hull off the ground entirely (the Wolfs); withdraw breaks a crippled
    hull off through the ordinary departure. **Pack roles**: a pair hunting one charge
@@ -278,6 +278,52 @@ reaches too) and `control` (ship fire off).
   tender scenes (139 loops) pass.
 - **A finding for the look.** The Sabot's split flash is the carrier's spec visual
   radius, very large at the close view; a presentation question, not a mechanic.
+
+## Slice 4 as built: what the scene reads
+
+`frigate-doctrine` (`sceneEvidence -Pscene=frigate-doctrine`; GIFs under
+`createSnapshots -Psnapshot=frigate-doctrine`) sets a Salvage Rig (`crig`, held on
+station) with two Hound (P) escorts (an explicit escort relation) against two Wolf (H)
+starting 94 cells west. Between them is a hostile garrison of 24. Every hull runs the
+ordinary warship doctrine under `ShipFireOrder.ALL`. The Wolfs carry a ground director
+and ground fire `HOLD`. Loops: `pack`, `withdraw` (every Hound starts at 40% hull) and
+`ground-allowed` (the `pack` fight with the Wolfs' ground fire at `ALL`). 1800 ticks.
+
+- **`AUTO` is not built.** Whether hostile hulls duel by default is open question 1,
+  left for the owner. Hull fire stays opt-in by mission (`ShipFireOrder.OFF` by
+  default), and nothing in this slice changes a shipped mission's default.
+- **Pack roles.** When two or more ships of a side hunt with the duel helm (not
+  escorting) and a hostile hull is being escorted (the *charge*), the hunter nearest
+  the charge runs it down and each other hunter pins the charge's escort nearest to
+  itself. This is re-decided every tick. The runner keeps the role until another hunter
+  is nearer the charge by 6 cells. A lone hunter fights the nearest hull, and so does a
+  pack once the escorts are gone.
+- **Escorts interpose.** An escort with a live lead holds its ring on the threat side
+  (hostile hulls already set the threat axis) and fights from there. The duel helm does
+  not steer it.
+- **Ground fire `HOLD`** keeps a hull off the ground entirely; nothing new was needed.
+  The slice adds a per-ship ground-shot count so a scene can show it.
+- **Withdraw** is the existing doctrine rule: under 35% hull a ship's posture becomes
+  `WITHDRAW` and it leaves through the ordinary departure, firing nothing new. A
+  departing hull is still a hostile hull, and it can be shot as it goes.
+- **The Salvage Rig's spec file is `constructionrig.ship`.** Fitting looked hull files
+  up by id and could not fit it. The few vanilla hulls whose file is not named by id now
+  resolve through `WarshipSkins.hullFile`.
+- `pack`: in all 335 ticks where both Wolfs hunted while the rig and an escort lived,
+  one Wolf was on the rig (the nearer) and the other on an escort. The escorts stood on
+  the Wolfs' side of the rig in all 374 settled escort-ticks. The Wolfs fired 0 ground
+  shots and passed directly over the garrison; all 24 garrison troops lived. 84 rounds
+  and 28 missiles went at hulls. The rig and both Hounds were lost (one Hound after
+  breaking off), and the Wolfs lost 240 hull. They then flew back to their mission
+  stations.
+- `withdraw`: 2 hulls crossed the withdraw line alive, and both were leaving within 75
+  ticks; 0 shots came from hulls already leaving.
+- `ground-allowed`: the same fight, with 46 Wolf ground shots and the garrison wiped
+  out. This is the control showing the hold is what spares it.
+- All 37 ship and tender scenes (142 loops) pass.
+- **A finding for the look.** Two hunters whose stations both lie near the rig can
+  pass through each other on the way in. Hulls do not separate from friendly hulls;
+  this is a presentation question for slice 8, not a mechanic here.
 
 ## Acceptance
 

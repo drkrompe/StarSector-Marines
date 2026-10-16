@@ -1041,8 +1041,9 @@ public final class WarshipSystem {
      */
     private static void duelHelm(BattleSimulation sim, Warship ship) {
         Warship target = ship.hullTarget();
+        // An escort with a live lead holds its ring on the threat side and fights from there: interposing is its helm.
         boolean free = !ship.piloted() && !ship.departing() && !ship.isPassingThrough() && ship.lowPass() == null
-                && ship.remoteOrder() == Warship.RemoteOrder.NONE;
+                && ship.remoteOrder() == Warship.RemoteOrder.NONE && WarshipEscort.liveLead(ship) == null;
         if (target == null || !ship.duelHelm() || !free) {
             float[] home = ship.duelHome();
             if (home != null) {
@@ -1381,6 +1382,7 @@ public final class WarshipSystem {
         m.lance = sim.startLanceSweep(sweep);
         ship.fluxPool().spend(w.fluxPerSecond() * burn);
         m.shotsFired++;
+        ship.noteGroundShot();
         ship.spendOrdnance(m);
         m.cooldown = sweep.totalSeconds() + Math.max(w.cooldownSeconds(), LANCE_REST_SECONDS);
     }
@@ -1558,6 +1560,7 @@ public final class WarshipSystem {
     private void fire(BattleSimulation sim, Warship ship, Warship.Mount m) {
         VanillaWeapon w = m.weapon;
         m.shotsFired++;
+        ship.noteGroundShot();
         ship.spendOrdnance(m);
         m.secondsSinceFired = 0f;
         float mx = ship.mountX(m);

@@ -31,8 +31,19 @@ public final class WarshipSkins {
         CACHE.clear();
     }
 
+    /**
+     * The vanilla hulls whose spec file is not named by their id: the Salvage Rig ({@code crig}) is
+     * {@code constructionrig.ship}. Every other hull's file is {@code <id>.ship}.
+     */
+    private static final Map<String, String> HULL_FILES = Map.of("crig", "constructionrig");
+
+    /** The name of the {@code .ship} file under {@code data/hulls/} that holds this hull id's spec. */
+    public static String hullFile(String hullId) {
+        return HULL_FILES.getOrDefault(hullId, hullId);
+    }
+
     private static Skin read(String hullId) {
-        if (load("data/hulls/" + hullId + ".ship") != null) return new Skin(hullId, null);
+        if (load("data/hulls/" + hullFile(hullId) + ".ship") != null) return new Skin(hullId, null);
         JSONObject skin = load("data/hulls/skins/" + hullId + ".skin");
         if (skin == null) return new Skin(hullId, null);
         String base = skin.optString("baseHullId", "");
