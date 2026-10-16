@@ -1,9 +1,9 @@
 # Mech locational damage
 
-Status: IN PROGRESS — slices 1 (body plan) and 2 (mech plan, section pools,
-paper-doll) shipped; slice 3 (cover rows, presentation, AI) is next.
+Status: IN PROGRESS — slices 1, 2 and 4 (campaign consequences) shipped;
+slice 3 (cover rows, presentation, AI) is in progress.
 Written: 2026-10-16
-Updated: 2026-10-16 — slice 2 shipped; its standing model is in `mechs-nouns.md`.
+Updated: 2026-10-16 — slice 4 shipped; its standing model is in `mechs-nouns.md` (After the battle, repair, readiness).
 
 Models: `mechs-nouns.md`, `combat-durability-nouns.md`, `body-part-cover.md`
 (marine body parts, cover per part, wounds). Prior art for sectioned machines:
@@ -98,8 +98,15 @@ apart, and a fitting choice (where the plating goes) matters.
 3. **Cover rows, presentation and AI.** Mech cover by section, destroyed-mount
    visuals, and doctrine that accounts for a crippled or disarmed mech (fall
    back, become a turret, withdraw).
-4. **Campaign consequences**: what a damaged or destroyed section costs after
-   the battle, as decided below.
+4. **Campaign consequences** (shipped 2026-10-16). Model folded into
+   `mechs-nouns.md` (After the battle, repair, readiness). The frozen
+   deployment carries the campaign id; `CompanyMechLedger` freezes owned mechs'
+   section records into the mission outcome and `MechBay.settleBattleDamage`
+   applies them. The Mech Lab shows section damage, the repair bill and days,
+   and orders the repair through `MechWorkshop`. Tuning to revisit with play:
+   full-wear clocks of 3/4/5 days (Hound/Sirocco/Bulwark), structure weighted
+   0.75 against armor. Not yet seen live: a save/reload with a damaged mech and
+   a real battle's writeback in the debrief.
 
 ## Decisions
 
