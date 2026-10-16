@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
 import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
 import com.dillon.starsectormarines.ops.battleview.BattlefieldMarkerPresentation;
@@ -93,7 +94,12 @@ public final class CommandPowerTargetingPanel implements HudPanel {
      */
     public void togglePick(int index) {
         if (selection == null) return;
-        for (MechSupport.PickerRow row : pickerRows()) {
+        togglePick(selection, pickerRows(), index);
+    }
+
+    /** {@link #togglePick(int)} against {@code rows}, the manifest as it reads for {@code selection}. */
+    static void togglePick(List<Integer> selection, List<MechSupport.PickerRow> rows, int index) {
+        for (MechSupport.PickerRow row : rows) {
             if (row.entry().index() != index) continue;
             if (row.selected()) {
                 selection.remove(Integer.valueOf(index));
@@ -103,6 +109,12 @@ public final class CommandPowerTargetingPanel implements HudPanel {
             }
             return;
         }
+    }
+
+    /** The pick a power arms with: Mech Support's default call, and none for any other power. */
+    static List<Integer> armedSelection(CommandPower power, BattleView battle) {
+        return power instanceof MechSupport mech
+                ? new ArrayList<>(mech.defaultSelection(battle)) : null;
     }
 
     private MechSupport armedMechSupport() {
@@ -129,8 +141,7 @@ public final class CommandPowerTargetingPanel implements HudPanel {
         CommandPower power = service.getPower(powerId);
         if (!service.canActivate(power)) return;
         targetingPowerId = powerId;
-        selection = power instanceof MechSupport mech
-                ? new ArrayList<>(mech.defaultSelection(sim)) : null;
+        selection = armedSelection(power, sim);
     }
 
     @Override
