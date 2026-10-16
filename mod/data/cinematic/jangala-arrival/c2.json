@@ -1,0 +1,56 @@
+{
+ "id": "c2",
+ "video": "cinematic/jangala-arrival/c2.mp4",
+ "fps": 24,
+ "width": 1920,
+ "height": 1080,
+ "frames": 360,
+ "duration": 15.0,
+ "captions": [
+  {
+   "t_in": 0.46,
+   "t_out": 9.39,
+   "speaker": "approach",
+   "key": "jangalaArrivalHail07"
+  },
+  {
+   "t_in": 9.76,
+   "t_out": 14.21,
+   "speaker": "castle",
+   "key": "jangalaArrivalHail08"
+  }
+ ],
+ "overlays": [],
+ "cues": [
+  {
+   "t": 0.3,
+   "sound": "jangala_squelch_open",
+   "volume": 1.0
+  },
+  {
+   "t": 0.46,
+   "sound": "jangala_arrival_hail_07",
+   "volume": 1.0
+  },
+  {
+   "t": 8.94,
+   "sound": "jangala_squelch_close",
+   "volume": 1.0
+  },
+  {
+   "t": 9.76,
+   "sound": "jangala_arrival_hail_08",
+   "volume": 1.0
+  }
+ ],
+ "speakers": {
+  "approach": {
+   "label_key": "jangalaArrivalSpeakerApproach",
+   "color": "hegemony"
+  },
+  "castle": {
+   "label_key": "jangalaArrivalSpeakerCastle",
+   "color": "player"
+  }
+ }
+}
