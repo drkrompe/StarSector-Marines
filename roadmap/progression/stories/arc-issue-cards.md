@@ -3,11 +3,11 @@
 > Each early arc teaches a way of fighting. Give each one a weapon card that
 > names it, stocked where the arc happened.
 
-Status: PLANNED — depends on `market-listings.md`.
+Status: PLANNED — builds on shipped market listings (`progression-nouns.md`, Kit and armory).
 Written: 2026-10-15
 
 Read `campaign-kit-arc.md` (the arc map this implements), `progression-nouns.md`
-(Kit and armory), `role-and-access.md` and `market-listings.md` before
+(Kit and armory, including market listings) and `role-and-access.md` before
 implementing.
 
 ## Problem
@@ -68,7 +68,6 @@ the other three. The listing is the guaranteed route; the pool is the fallback.
 
 ## Out of scope
 
-- The mechanism itself (`market-listings.md`).
 - Mortar fire at Blind Watch and approved Hegemony kit at Garnir. Those are
   Corvus roster changes, tracked in `campaign-kit-arc.md`.
 - New special equipment. Every special here already exists.
@@ -88,6 +87,6 @@ the other three. The listing is the guaranteed route; the pool is the fallback.
 
 1. Matchup experiments with uncarded `kit:` sides; settle each card's shape.
 2. Author the four doctrines, their strings and presentations; add pool entries.
-3. Wire each settlement to `MarketListings.list`.
+3. Wire each settlement to `MarketListings.listAndRestock`.
 4. Fold the cards into `campaign-kit-arc.md`, mark the arc map as shipped, and
    delete this story.

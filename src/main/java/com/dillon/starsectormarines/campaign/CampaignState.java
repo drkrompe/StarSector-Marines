@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.campaign;
 import com.dillon.starsectormarines.DebugOnly;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * Campaign-tier data model: structure-of-arrays tables backed by Java primitive
@@ -500,6 +501,25 @@ public final class CampaignState implements Serializable {
     public int[]   militaryWarrantDay = filledInts(INITIAL_CAPACITY, -1);
     public int     militaryWarrantCount = 0;
 
+    // ---------- market listings (see progression-nouns.md, Kit and armory) ----------
+
+    /*
+     * Cards a story beat has put on sale. One row per (card, scope): the open market of
+     * one named market, or of every market of one faction, keeps the card on its own
+     * shelf until the company knows or carries it. See MarketListings.
+     */
+
+    /** Loadout card id; null in unused slots. */
+    public String[] marketListingCardId = new String[INITIAL_CAPACITY];
+    /** Market id or faction id, as {@link #marketListingScopeKind} says. */
+    public String[] marketListingScopeId = new String[INITIAL_CAPACITY];
+    /** {@code MarketListings.Scope} code. */
+    public byte[]   marketListingScopeKind = filledBytes(INITIAL_CAPACITY, (byte) -1);
+    /** Strings key naming the event that stocked it. */
+    public String[] marketListingReason = new String[INITIAL_CAPACITY];
+    /** Sector day it was listed. */
+    public int[]    marketListingDay = filledInts(INITIAL_CAPACITY, -1);
+    public int      marketListingCount = 0;
     // ---------- polity ground doctrine (see polity-ground-doctrine.md) ----------
 
     /*
@@ -2185,7 +2205,22 @@ public final class CampaignState implements Serializable {
         }
         militaryWarrantCount = Math.max(0, Math.min(militaryWarrantCount,
                 Math.min(Math.min(militaryWarrantIssuerId.length, militaryWarrantTemplateId.length),
-                        Math.min(militaryWarrantReason.length, militaryWarrantDay.length))));        return this;
+                        Math.min(militaryWarrantReason.length, militaryWarrantDay.length))));
+        // A save from before listings has nothing on any shelf, which is what it meant.
+        if (marketListingCardId == null || marketListingScopeId == null || marketListingScopeKind == null
+                || marketListingReason == null || marketListingDay == null) {
+            marketListingCardId = new String[INITIAL_CAPACITY];
+            marketListingScopeId = new String[INITIAL_CAPACITY];
+            marketListingScopeKind = filledBytes(INITIAL_CAPACITY, (byte) -1);
+            marketListingReason = new String[INITIAL_CAPACITY];
+            marketListingDay = filledInts(INITIAL_CAPACITY, -1);
+            marketListingCount = 0;
+        }
+        marketListingCount = Math.max(0, Math.min(marketListingCount,
+                Math.min(Math.min(marketListingCardId.length, marketListingScopeId.length),
+                        Math.min(Math.min(marketListingScopeKind.length, marketListingReason.length),
+                                marketListingDay.length))));
+        return this;
     }
 
     /**
@@ -2237,6 +2272,48 @@ public final class CampaignState implements Serializable {
         return -1;
     }
 
+    /**
+     * Records a listing of {@code cardId} under {@code scopeKind}/{@code scopeId}.
+     *
+     * @return the row it landed on, or -1 when the arguments are incomplete or that card is
+     *         already listed under that scope. A second listing never rewrites the first.
+     */
+    public int recordMarketListing(String cardId, byte scopeKind, String scopeId, String reason, int day) {
+        if (cardId == null || scopeId == null || reason == null || scopeKind < 0) return -1;
+        if (marketListingRow(cardId, scopeKind, scopeId) >= 0) return -1;
+        ensureMarketListingCapacity(marketListingCount + 1);
+        int i = marketListingCount++;
+        marketListingCardId[i] = cardId;
+        marketListingScopeKind[i] = scopeKind;
+        marketListingScopeId[i] = scopeId;
+        marketListingReason[i] = reason;
+        marketListingDay[i] = day;
+        return i;
+    }
+
+    /** Row listing {@code cardId} under exactly that scope, or -1. */
+    public int marketListingRow(String cardId, byte scopeKind, String scopeId) {
+        for (int i = 0; i < marketListingCount; i++) {
+            if (marketListingScopeKind[i] == scopeKind && Objects.equals(marketListingCardId[i], cardId)
+                    && Objects.equals(marketListingScopeId[i], scopeId)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private void ensureMarketListingCapacity(int needed) {
+        if (needed <= marketListingCardId.length) return;
+        int oldLength = marketListingCardId.length;
+        int n = Math.max(needed, oldLength * 2);
+        marketListingCardId = Arrays.copyOf(marketListingCardId, n);
+        marketListingScopeId = Arrays.copyOf(marketListingScopeId, n);
+        marketListingScopeKind = Arrays.copyOf(marketListingScopeKind, n);
+        marketListingReason = Arrays.copyOf(marketListingReason, n);
+        marketListingDay = Arrays.copyOf(marketListingDay, n);
+        Arrays.fill(marketListingScopeKind, oldLength, n, (byte) -1);
+        Arrays.fill(marketListingDay, oldLength, n, -1);
+    }
     private void ensureMilitaryWarrantCapacity(int needed) {
         if (needed <= militaryWarrantTemplateId.length) return;
         int oldLength = militaryWarrantTemplateId.length;

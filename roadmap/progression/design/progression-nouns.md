@@ -200,6 +200,9 @@ legibility.
   teaches nothing by itself. Always written in full: the Agreus contracts'
   *civil-security procurement warrant* is a contract term that opens no access
   tier, and neither noun stands for the other.
+- **Market listing** — a named card a story beat has put on sale at one named
+  market, or at every open market of one faction, until the company knows or
+  carries it. Authored stock the market channel displays, not a fifth channel.
 - **Armory** — the persistent campaign authority for collected equipment
   templates and reusable squad definitions. Materialized marine kit persists on
   the marine; the Machine Shop fits learned technology for free.
@@ -621,7 +624,21 @@ approved suit through the old open routes keeps it and fits it freely. Held
 warrants stand on the Company HQ record beside the company's employers, each
 naming its issuer, how many approved suits it opens and how it was earned. A Restricted card's own
 tooltip and spec sheet name the tradition that issues it, in place of the
-reputation and victory thresholds the other tiers show. This is global reachability, not universal faction availability.
+reputation and victory thresholds the other tiers show.
+
+**Market listings are how a story stocks a shelf.** A card dropped into a market's
+cargo would not survive, because every open-market restock clears the cards and
+refills from the pools. So a story beat records a listing instead, and each restock
+puts listed cards on a shelf of their own before it draws the rotation. Listings
+are additional slots that never displace a rotating card, and a listed card is left
+out of the rotating draw. A listing bypasses the reputation and victory thresholds,
+because the story is the permission. It never bypasses the Restricted tier: listing
+Restricted kit needs a military warrant naming it, and a shelf never shows Restricted
+kit the company is not warranted for. A listing is withdrawn while the company knows
+or carries the card and returns if it stops doing so; nothing else expires it.
+Creating one restocks the markets at once, so the debrief's promise is on the shelf
+now. The card's tooltip names the event that stocked it. Settlement code owns
+once-only; listing the same card at the same place twice changes nothing. This is global reachability, not universal faction availability.
 It lets add-ons keep faction identity while ensuring that a newly collectible
 family, grade, suit, or special item cannot be stranded by an omitted or
 permanently ineligible source.

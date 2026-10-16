@@ -118,7 +118,7 @@ Even after Agreus, most of the catalog stays ahead of the company:
 1. **Restricted tier and military warrants**: shipped; see `progression-nouns.md`.
 2. **The first authored warrant**: `hegemony-auxiliary-warrant.md`.
 3. **The counter-pressure**: `warrant-obligations.md`.
-4. **New cards**: `arc-issue-cards.md`, stocked through `market-listings.md`. Checkpoint Issue, Convoy Escort Issue, Counter-Battery Issue,
+4. **New cards**: `arc-issue-cards.md`, stocked through market listings (shipped; `progression-nouns.md`). Checkpoint Issue, Convoy Escort Issue, Counter-Battery Issue,
    Builder's Guard. Each is a weapon card, so it pairs with whatever armour sheet the
    squad already wears. Place each on the `loadoutMatchup` ladder before shipping.
 5. **Story rewards**: part of `arc-issue-cards.md`. Each settlement lists its card\n   at a market rather than granting it, so nothing is granted twice.
