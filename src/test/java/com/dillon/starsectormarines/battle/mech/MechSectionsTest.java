@@ -84,39 +84,54 @@ class MechSectionsTest {
     }
 
     @Test
-    void structureTheLegsCannotHoldSpillsIntoTheTorsoStructureNotItsArmor() {
+    void whatTheLegsCannotHoldMeetsTheTorsoArmorBeforeItsStructure() {
         MechSections sections = houndSections();
         float legsStructure = sections.structure(MechSection.LEGS);
         float torsoStructure = sections.structure(MechSection.TORSO);
         float torsoArmor = sections.armor(MechSection.TORSO);
+        float efficiency = DurabilityModel.armorEfficiency(PEN, RATING);
 
         strike(sections, MechSection.LEGS, destroying(sections, MechSection.LEGS, 40f));
 
         assertEquals(0f, sections.armor(MechSection.LEGS), 1e-3f);
         assertEquals(0f, sections.structure(MechSection.LEGS), 1e-3f);
         assertEquals(legsStructure, hit.sectionStructureDamage(), 1e-3f);
-        assertEquals(40f, hit.spill(), 1e-2f);
-        assertEquals(legsStructure + 40f, hit.structureDamage(), 1e-2f);
         assertTrue(hit.sectionDestroyed());
-        assertFalse(hit.torsoDestroyed());
-        assertEquals(torsoStructure - hit.spill(), sections.structure(MechSection.TORSO), 1e-3f);
-        assertEquals(torsoArmor, sections.armor(MechSection.TORSO), "spill goes through the hole, not the plate");
-        assertTrue(sections.destroyed(MechSection.LEGS));
         assertTrue(sections.crippled());
+        assertEquals(torsoArmor - 40f * efficiency, sections.armor(MechSection.TORSO), 1e-2f,
+                "the overflow wears the torso's plate");
+        assertEquals(0f, hit.spill(), 1e-3f);
+        assertEquals(torsoStructure, sections.structure(MechSection.TORSO), 1e-3f);
     }
 
     @Test
-    void aHitOnADestroyedSectionGoesWhollyToTheTorsoStructure() {
+    void overflowPastTheTorsoArmorTakesTorsoStructure() {
+        MechSections sections = houndSections();
+        float torsoStructure = sections.structure(MechSection.TORSO);
+        float beyond = armorBreaker(sections, MechSection.TORSO) + 30f;
+
+        strike(sections, MechSection.LEGS, destroying(sections, MechSection.LEGS, beyond));
+
+        assertEquals(0f, sections.armor(MechSection.TORSO), 1e-2f);
+        assertEquals(30f, hit.spill(), 1e-2f);
+        assertEquals(torsoStructure - 30f, sections.structure(MechSection.TORSO), 1e-2f);
+        assertFalse(hit.torsoDestroyed());
+    }
+
+    @Test
+    void aHitOnADestroyedSectionGoesThroughTheHoleToTheTorso() {
         MechSections sections = houndSections();
         strike(sections, MechSection.LEGS, destroying(sections, MechSection.LEGS, 0f));
-        float torsoBefore = sections.structure(MechSection.TORSO);
+        float torsoArmor = sections.armor(MechSection.TORSO);
+        float torsoStructure = sections.structure(MechSection.TORSO);
 
         strike(sections, MechSection.LEGS, 20f);
 
         assertEquals(0f, hit.sectionStructureDamage());
-        assertEquals(20f, hit.spill(), 1e-3f);
         assertFalse(hit.sectionDestroyed(), "it was already gone");
-        assertEquals(torsoBefore - 20f, sections.structure(MechSection.TORSO), 1e-3f);
+        assertEquals(torsoArmor - 20f * DurabilityModel.armorEfficiency(PEN, RATING),
+                sections.armor(MechSection.TORSO), 1e-3f);
+        assertEquals(torsoStructure, sections.structure(MechSection.TORSO), 1e-3f);
     }
 
     @Test
@@ -147,7 +162,8 @@ class MechSectionsTest {
 
         MechSections spilled = houndSections();
         float torso = spilled.structure(MechSection.TORSO);
-        strike(spilled, MechSection.HEAD, destroying(spilled, MechSection.HEAD, torso + 500f));
+        strike(spilled, MechSection.HEAD, destroying(spilled, MechSection.HEAD,
+                armorBreaker(spilled, MechSection.TORSO) + torso + 500f));
         assertTrue(spilled.torsoDestroyed(), "a head hit that spills the whole torso away still kills");
         assertEquals(0f, spilled.structure(MechSection.TORSO));
     }

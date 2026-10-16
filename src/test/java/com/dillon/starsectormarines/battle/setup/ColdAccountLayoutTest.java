@@ -37,6 +37,20 @@ class ColdAccountLayoutTest {
             }
     }
 
+    @Test void aFurnishedOfficeStillGivesAFloorWithAClearCore() {
+        floor();
+        // Desks on a four-cell lattice: every five-by-five holds one, but the aisles are clear.
+        for (int y = 4; y <= 12; y += 4) for (int x = 4; x <= 14; x += 4) grid.setWalkable(x, y, false);
+        int[] point = ColdAccountLayout.evidenceCell(grid, topology, room);
+        int standing = 0;
+        for (int y = point[1] - 2; y <= point[1] + 2; y++)
+            for (int x = point[0] - 2; x <= point[0] + 2; x++) {
+                if (grid.isWalkable(x, y)) standing++;
+                if (Math.abs(x - point[0]) <= 1 && Math.abs(y - point[1]) <= 1) assertTrue(grid.isWalkable(x, y));
+            }
+        assertTrue(standing >= ColdAccountLayout.FURNISHED_FLOOR);
+    }
+
     @Test void inaccessibleCentralFloorIsRejected() {
         floor();
         grid.setWalkable(4, 3, false);
