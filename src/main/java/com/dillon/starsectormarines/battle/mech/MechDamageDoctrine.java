@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.mech;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 
 /**
- * What section loss does to a mech's doctrine ({@code mech-locational-damage.md}, slice 3).
+ * What section loss does to a mech's doctrine ({@code mechs-nouns.md}, Section loss).
  * Pure decisions over plain inputs; the dispatchers that act on them are
  * {@link MechReflexes#CRIPPLED_CHASSIS}, {@link ExecuteMechDoctrine} and
  * {@link GoapMechBehavior}'s goal choice.

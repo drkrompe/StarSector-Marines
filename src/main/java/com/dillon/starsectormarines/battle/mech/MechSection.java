@@ -4,7 +4,7 @@ package com.dillon.starsectormarines.battle.mech;
  * Where on a mech a round landed: one of the sections a chassis is taken apart by. Each has its
  * own armor and structure ({@link MechSections}) and its own consequence at zero. Only the torso
  * kills; every other section at zero costs a capability and passes further damage to the torso.
- * See {@code mech-locational-damage.md}.
+ * See {@code mechs-nouns.md}.
  */
 public enum MechSection {
     /** At zero the chassis is crippled: it pivots, turns its torso and fires, but cannot walk. */

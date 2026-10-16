@@ -96,7 +96,7 @@ plan, which every kind of person has. Band order and part order are separate,
 so a later plan can stack sections without reshuffling its tables.
 
 **People and mechs have parts.** A mech's plan is its sections' height bands
-(`mech-locational-damage.md`), a second plan through the same seam, not a
+(`mechs-nouns.md`, Section), a second plan through the same seam, not a
 second hit system. Vehicles, emplacements, aircraft and creatures have no plan,
 remain one whole-body contact and keep the flat model: vehicles and aircraft
 take no terrain cover, and the rest keep the flat catch and damage cut by level.

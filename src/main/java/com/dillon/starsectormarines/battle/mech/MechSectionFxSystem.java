@@ -11,7 +11,7 @@ import com.dillon.starsectormarines.engine.ecs.Query;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 
 /**
- * What section loss looks like on a standing mech ({@code mech-locational-damage.md}): a crippled
+ * What section loss looks like on a standing mech ({@code mechs-nouns.md}): a crippled
  * chassis smokes at its legs for as long as it stands, and a section that goes to zero bursts
  * into flame where it sat and then smoulders there. Emits into the effects service's per-frame
  * smoke and fire queues, which the live screen and the headless review feed both drain, so the

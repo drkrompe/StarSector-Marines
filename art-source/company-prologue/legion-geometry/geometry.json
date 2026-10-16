@@ -65,56 +65,54 @@
       "Bridge command dome",
       "Wing port sponson",
       "Wing starboard sponson",
-      "Flight deck WS 010 hangar",
-      "Flight deck WS 011 hangar",
-      "Flight deck WS 012 hangar",
-      "Flight deck WS 013 hangar"
+      "Wing port hangar",
+      "Wing starboard hangar"
     ],
-    "pressure_hull_units3": 1683226,
+    "pressure_hull_units3": 1727297,
     "machinery_units3": 43133,
     "usable_fraction": 0.33,
     "non_habitable_budget": {
-      "fighter hangars, launch bays, fighter ordnance": 0.138,
+      "fighter hangars, launch bays, fighter ordnance": 0.134,
       "belt and deck armour (rating 1650, about 1.5 m over the envelope)": 0.15,
       "reactors, flux plant, drive machinery": 0.12,
       "fifteen barbettes, gun and missile magazines": 0.05,
       "fuel (300), supplies and water tanks, structure, trunks": 0.1
     },
-    "habitable_share_from_budget": 0.442,
+    "habitable_share_from_budget": 0.446,
     "fighter_stowage_m3": {
       "legion_xiv_Elite": 52715,
       "legion_Strike": 47736
     },
-    "fighter_stowage_share_of_hull_at_published": 0.138,
+    "fighter_stowage_share_of_hull_at_published": 0.134,
     "budget_note": "with the fighters at their own scales (0.50 m/px) the itemised budget leaves more than a third habitable; 33% is the requested warship share, and budget_share in range is what the itemised budget alone solves to. Owner call if they differ much.",
-    "solved_metres_per_unit": 0.614,
+    "solved_metres_per_unit": 0.608,
     "range": {
-      "35pct_habitable": 0.602,
-      "30pct_habitable": 0.634,
-      "budget_share": 0.557,
-      "freighter_55pct_for_comparison": 0.518
+      "35pct_habitable": 0.597,
+      "30pct_habitable": 0.628,
+      "budget_share": 0.55,
+      "freighter_55pct_for_comparison": 0.513
     },
-    "published_vs_solved": 0.994,
+    "published_vs_solved": 1.002,
     "size_m": [
       179.9,
-      179.3,
+      179.2,
       47.4
     ],
-    "hull_volume_m3": 382060,
+    "hull_volume_m3": 392064,
     "real_world": {
       "Nimitz": "333 m, about 5,000 crew aboard, 76.8 m flight-deck beam",
       "fleet and light carriers": "200-260 m",
-      "this hull": "183 m long and 179 m wide, 382k m3 enclosed for 700-1500 crew",
-      "per crew at max crew m3": 255
+      "this hull": "183 m long and 179 m wide, 392k m3 enclosed for 700-1500 crew",
+      "per crew at max crew m3": 261
     },
     "cross_checks_m": {
       "forward hangar mouth w x h": [
-        22.0,
-        7.3
+        34.2,
+        7.9
       ],
       "aft hangar mouth w x h": [
-        13.4,
-        7.3
+        28.1,
+        7.9
       ],
       "fighters (length x span) m, own scales": {
         "broadsword": [
@@ -173,17 +171,17 @@
   "dimensions": {
     "min": [
       -137.93,
-      -147.0,
+      -146.9,
       -46.3
     ],
     "max": [
       157.0,
-      147.0,
+      146.9,
       31.44
     ],
     "size": [
       294.93,
-      294.0,
+      293.81,
       77.74
     ]
   },
@@ -237,34 +235,76 @@
         "anchor": "Flight deck WS 010 mouth",
         "centre": [
           -64.0,
-          99.0,
-          -18.35
+          105.0,
+          -18.908
         ],
         "normal": [
           -1,
           0,
           0
         ],
-        "width": 22.0,
-        "height": 12.0,
-        "note": "the hangar is under the wing arm; fighters leave through this mouth"
+        "width": 46.0,
+        "height": 13.0,
+        "clear_width": 46.0,
+        "note": "the forward mouth is the angled leading edge, the aft mouth opens into the notch"
       },
       "deck": {
         "floor_z": -21.0,
-        "roof_z": -9.0,
+        "roof_z": -8.0,
         "x": [
-          -66,
-          -16
+          -64,
+          40
         ],
         "y": [
-          88,
-          110
+          82,
+          128
         ],
         "under_wing": true,
         "elevator_well_x": [
           -60,
           -16
+        ],
+        "elevator_well_y": [
+          88,
+          110
         ]
+      },
+      "hangar": {
+        "name": "Wing port hangar",
+        "x": [
+          -64.0,
+          104.0
+        ],
+        "y": [
+          81,
+          128
+        ],
+        "floor": -21.0,
+        "roof": -8.0,
+        "fly_through": true,
+        "clear_sections": [
+          {
+            "x": [
+              -80,
+              42
+            ],
+            "y": [
+              82,
+              128
+            ]
+          },
+          {
+            "x": [
+              38,
+              130
+            ],
+            "y": [
+              81,
+              123
+            ]
+          }
+        ],
+        "note": "one hangar per arm shared by both slots, open at both mouths; the roof carries transverse frames (0.6 deep) and two longitudinal girders (0.9 deep)"
       },
       "anhedral": {
         "angle_deg": 10.0,
@@ -321,34 +361,76 @@
         "anchor": "Flight deck WS 011 mouth",
         "centre": [
           -64.0,
-          -99.0,
-          -18.35
+          -105.0,
+          -18.908
         ],
         "normal": [
           -1,
           0,
           0
         ],
-        "width": 22.0,
-        "height": 12.0,
-        "note": "the hangar is under the wing arm; fighters leave through this mouth"
+        "width": 46.0,
+        "height": 13.0,
+        "clear_width": 46.0,
+        "note": "the forward mouth is the angled leading edge, the aft mouth opens into the notch"
       },
       "deck": {
         "floor_z": -21.0,
-        "roof_z": -9.0,
+        "roof_z": -8.0,
         "x": [
-          -66,
-          -16
+          -64,
+          40
         ],
         "y": [
-          -110,
-          -88
+          -128,
+          -82
         ],
         "under_wing": true,
         "elevator_well_x": [
           -60,
           -16
+        ],
+        "elevator_well_y": [
+          -110,
+          -88
         ]
+      },
+      "hangar": {
+        "name": "Wing starboard hangar",
+        "x": [
+          -64.0,
+          104.0
+        ],
+        "y": [
+          -128,
+          -81
+        ],
+        "floor": -21.0,
+        "roof": -8.0,
+        "fly_through": true,
+        "clear_sections": [
+          {
+            "x": [
+              -80,
+              42
+            ],
+            "y": [
+              -128,
+              -82
+            ]
+          },
+          {
+            "x": [
+              38,
+              130
+            ],
+            "y": [
+              -123,
+              -81
+            ]
+          }
+        ],
+        "note": "one hangar per arm shared by both slots, open at both mouths; the roof carries transverse frames (0.6 deep) and two longitudinal girders (0.9 deep)"
       },
       "anhedral": {
         "angle_deg": 10.0,
@@ -404,35 +486,77 @@
       "mouth": {
         "anchor": "Flight deck WS 012 mouth",
         "centre": [
-          88.0,
-          104.0,
-          -19.232
+          82.0,
+          101.5,
+          -18.291
         ],
         "normal": [
-          0.83,
-          0.56,
+          0.742,
+          0.671,
           0
         ],
-        "width": 36.0,
-        "height": 12.0,
-        "note": "the hangar is under the wing arm; fighters leave through this mouth"
+        "width": 56.0,
+        "height": 13.0,
+        "clear_width": 42.0,
+        "note": "the forward mouth is the angled leading edge, the aft mouth opens into the notch"
       },
       "deck": {
         "floor_z": -21.0,
-        "roof_z": -9.0,
+        "roof_z": -8.0,
         "x": [
-          48,
+          40,
           118
         ],
         "y": [
-          88,
-          120
+          81,
+          123
         ],
         "under_wing": true,
         "elevator_well_x": [
           46,
           80
+        ],
+        "elevator_well_y": [
+          88,
+          110
         ]
+      },
+      "hangar": {
+        "name": "Wing port hangar",
+        "x": [
+          -64.0,
+          104.0
+        ],
+        "y": [
+          81,
+          128
+        ],
+        "floor": -21.0,
+        "roof": -8.0,
+        "fly_through": true,
+        "clear_sections": [
+          {
+            "x": [
+              -80,
+              42
+            ],
+            "y": [
+              82,
+              128
+            ]
+          },
+          {
+            "x": [
+              38,
+              130
+            ],
+            "y": [
+              81,
+              123
+            ]
+          }
+        ],
+        "note": "one hangar per arm shared by both slots, open at both mouths; the roof carries transverse frames (0.6 deep) and two longitudinal girders (0.9 deep)"
       },
       "anhedral": {
         "angle_deg": 10.0,
@@ -488,35 +612,77 @@
       "mouth": {
         "anchor": "Flight deck WS 013 mouth",
         "centre": [
-          88.0,
-          -104.0,
-          -19.232
+          82.0,
+          -101.5,
+          -18.291
         ],
         "normal": [
-          0.83,
-          -0.56,
+          0.742,
+          -0.671,
           0
         ],
-        "width": 36.0,
-        "height": 12.0,
-        "note": "the hangar is under the wing arm; fighters leave through this mouth"
+        "width": 56.0,
+        "height": 13.0,
+        "clear_width": 42.0,
+        "note": "the forward mouth is the angled leading edge, the aft mouth opens into the notch"
       },
       "deck": {
         "floor_z": -21.0,
-        "roof_z": -9.0,
+        "roof_z": -8.0,
         "x": [
-          48,
+          40,
           118
         ],
         "y": [
-          -120,
-          -88
+          -123,
+          -81
         ],
         "under_wing": true,
         "elevator_well_x": [
           46,
           80
+        ],
+        "elevator_well_y": [
+          -110,
+          -88
         ]
+      },
+      "hangar": {
+        "name": "Wing starboard hangar",
+        "x": [
+          -64.0,
+          104.0
+        ],
+        "y": [
+          -128,
+          -81
+        ],
+        "floor": -21.0,
+        "roof": -8.0,
+        "fly_through": true,
+        "clear_sections": [
+          {
+            "x": [
+              -80,
+              42
+            ],
+            "y": [
+              -128,
+              -82
+            ]
+          },
+          {
+            "x": [
+              38,
+              130
+            ],
+            "y": [
+              -123,
+              -81
+            ]
+          }
+        ],
+        "note": "one hangar per arm shared by both slots, open at both mouths; the roof carries transverse frames (0.6 deep) and two longitudinal girders (0.9 deep)"
       },
       "anhedral": {
         "angle_deg": 10.0,
@@ -1060,7 +1226,7 @@
       "position": [
         73.5,
         121.2,
-        10.74
+        12.17
       ],
       "colour": "red",
       "rgb": [
@@ -1080,7 +1246,7 @@
       "position": [
         73.5,
         -121.2,
-        10.74
+        12.17
       ],
       "colour": "red",
       "rgb": [
@@ -1120,7 +1286,7 @@
       "position": [
         -69.0,
         144.5,
-        -7.49
+        -6.47
       ],
       "colour": "red",
       "rgb": [
@@ -1140,7 +1306,7 @@
       "position": [
         64.8,
         122.0,
-        -1.06
+        0.37
       ],
       "colour": "red",
       "rgb": [
@@ -1160,7 +1326,7 @@
       "position": [
         46.0,
         126.5,
-        -4.65
+        -3.1
       ],
       "colour": "white",
       "rgb": [
@@ -1180,7 +1346,7 @@
       "position": [
         20.0,
         135.5,
-        -5.75
+        -5.29
       ],
       "colour": "white",
       "rgb": [
@@ -1200,7 +1366,7 @@
       "position": [
         -20.0,
         136.5,
-        -5.76
+        -5.46
       ],
       "colour": "white",
       "rgb": [
@@ -1220,7 +1386,7 @@
       "position": [
         -45.0,
         139.5,
-        -6.29
+        -5.99
       ],
       "colour": "white",
       "rgb": [
@@ -1360,7 +1526,7 @@
       "position": [
         -69.0,
         -144.5,
-        -7.49
+        -6.47
       ],
       "colour": "red",
       "rgb": [
@@ -1380,7 +1546,7 @@
       "position": [
         64.8,
         -122.0,
-        -1.06
+        0.37
       ],
       "colour": "red",
       "rgb": [
@@ -1400,7 +1566,7 @@
       "position": [
         46.0,
         -126.5,
-        -4.65
+        -3.1
       ],
       "colour": "white",
       "rgb": [
@@ -1420,7 +1586,7 @@
       "position": [
         20.0,
         -135.5,
-        -5.75
+        -5.29
       ],
       "colour": "white",
       "rgb": [
@@ -1440,7 +1606,7 @@
       "position": [
         -20.0,
         -136.5,
-        -5.76
+        -5.66
       ],
       "colour": "white",
       "rgb": [
@@ -1460,7 +1626,7 @@
       "position": [
         -45.0,
         -139.5,
-        -6.29
+        -6.19
       ],
       "colour": "white",
       "rgb": [
@@ -1610,14 +1776,14 @@
   "c2": {
     "layout": "second-wind-cinematic/patrol-abeam/c2-layout.md",
     "note": "Model axes are C2 world axes: the patrol flies bow first along +X with starboard toward the cabin.",
-    "patrol_centre_y_m": 194.67,
+    "patrol_centre_y_m": 194.61,
     "model_origin_z_m": -22.18,
     "cameras": {
       "c2-entry": {
         "time_s": 3.0,
         "position_units": [
           229.51,
-          -319.13,
+          -319.03,
           36.36
         ]
       },
@@ -1625,7 +1791,7 @@
         "time_s": 8.0,
         "position_units": [
           -0.0,
-          -319.13,
+          -319.03,
           36.36
         ]
       },
@@ -1633,7 +1799,7 @@
         "time_s": 11.4,
         "position_units": [
           -156.07,
-          -319.13,
+          -319.03,
           15.11
         ]
       }
@@ -1712,9 +1878,9 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9742,
-    "sprite_uncovered": 0.0108,
-    "model_outside_sprite": 0.0154,
+    "iou": 0.9741,
+    "sprite_uncovered": 0.0084,
+    "model_outside_sprite": 0.018,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.31 px per unit"
   },
   "c2_frame": {
@@ -1723,24 +1889,24 @@
         0,
         97,
         639,
-        525
+        536
       ],
       "size_px": [
         640,
-        429
+        440
       ],
       "touches_frame_edge": true
     },
     "c2-abeam": {
       "bbox_px": [
-        228,
+        227,
         97,
-        1690,
-        546
+        1691,
+        590
       ],
       "size_px": [
-        1463,
-        450
+        1465,
+        494
       ],
       "touches_frame_edge": false
     },
@@ -1749,11 +1915,11 @@
         1041,
         0,
         1919,
-        389
+        448
       ],
       "size_px": [
         879,
-        390
+        449
       ],
       "touches_frame_edge": true
     }
