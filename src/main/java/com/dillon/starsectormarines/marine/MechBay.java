@@ -15,9 +15,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * Persisted mech-squad and finite subsystem inventory authority. Installed
@@ -40,20 +42,46 @@ public final class MechBay implements Serializable {
      * Bulwark. New campaigns begin with only the empty support-lance gantries.
      */
     private boolean foundingModelInitialized = true;
-    // Absent in older saves: preserve their unrestricted workshop.
+    // Absent in older saves: preserve their unrestricted workshop. Now migration input only;
+    // knownPatternIds is the gate.
     private boolean starterPatternsOnly = true;
+    /** Learned {@link MechPattern} ids. Permanent: nothing removes one. */
+    private Set<String> knownPatternIds = starterPatternIds();
     private int labLesson;
     private boolean labLessonPaused;
     private boolean lessonRackRemoved;
 
     public boolean canFabricate(MechWeaponComponent component) {
-        return component != null && (!starterPatternsOnly
-                || component == MechWeaponComponent.NOSE_CHAINGUN
-                || component == MechWeaponComponent.SRM_5);
+        return component != null && knowsPattern(MechPattern.of(component).id());
     }
 
     public boolean canFabricate(MechVariant variant) {
-        return variant != null && (!starterPatternsOnly || variant == MechVariant.HOUND);
+        return variant != null && knowsPattern(MechPattern.of(variant).id());
+    }
+
+    public boolean knowsPattern(String patternId) {
+        return patternId != null && knownPatternIds.contains(patternId);
+    }
+
+    /** True when the pattern was registered and not yet known. Never removes a pattern. */
+    public boolean learnPattern(String patternId) {
+        return MechPattern.parse(patternId) != null && knownPatternIds.add(patternId);
+    }
+
+    public Set<String> knownPatternIds() {
+        return Collections.unmodifiableSet(knownPatternIds);
+    }
+
+    private static Set<String> starterPatternIds() {
+        Set<String> ids = new LinkedHashSet<>();
+        for (MechPattern pattern : MechPattern.STARTER) ids.add(pattern.id());
+        return ids;
+    }
+
+    private static Set<String> allPatternIds() {
+        Set<String> ids = new LinkedHashSet<>();
+        for (MechPattern pattern : MechPattern.all()) ids.add(pattern.id());
+        return ids;
     }
 
     public int labLesson() { return labLesson; }
@@ -94,6 +122,7 @@ public final class MechBay implements Serializable {
     static MechBay legacyStarterBay() {
         MechBay bay = new MechBay();
         bay.starterPatternsOnly = false;
+        bay.knownPatternIds = allPatternIds();
         bay.seedLegacyStarterAssets();
         return bay;
     }
@@ -373,6 +402,9 @@ public final class MechBay implements Serializable {
         if (squads == null) squads = new ArrayList<>();
         if (ownedReplenishers == null) ownedReplenishers = new HashMap<>();
         if (ownedWeapons == null) ownedWeapons = new HashMap<>();
+        if (knownPatternIds == null) {
+            knownPatternIds = starterPatternsOnly ? starterPatternIds() : allPatternIds();
+        }
         squads.removeIf(squad -> squad == null);
         if (!foundingModelInitialized) seedLegacyStarterAssets();
         else ensureSupportSquad();
