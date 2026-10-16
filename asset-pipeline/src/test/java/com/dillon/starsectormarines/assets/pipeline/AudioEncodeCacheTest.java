@@ -104,6 +104,13 @@ class AudioEncodeCacheTest {
         assertEquals(AudioEncodeCache.Result.RESTORED, cache.materialize(source, radio, comms, this::encode));
         assertEquals(AudioEncodeCache.Result.RESTORED, cache.materialize(source, radio, air, this::encode));
         assertEquals(4, encodes.get(), "Both radio treatments remain independently reusable");
+        String orbital = ProcessAudioTask.outputArguments(AudioManifest.Kind.UI, AudioManifest.Processing.ORBITAL_COMMS).toString();
+        assertTrue(orbital.contains("lowpass=f=2200:p=2") && !orbital.contains("rubberband"),
+                "Orbital traffic control is a narrower band than the cockpit, at the cast pitch");
+        cache.materialize(source, radio, orbital, this::encode);
+        assertEquals(5, encodes.get(), "Orbital processing must invalidate the other radio encodes");
+        assertEquals(AudioEncodeCache.Result.RESTORED, cache.materialize(source, radio, air, this::encode));
+        assertEquals(5, encodes.get());
     }
 
     @Test
