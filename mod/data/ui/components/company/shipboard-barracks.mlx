@@ -8,6 +8,7 @@
       <img id="shipboard-barracks-service-plate" class="company-service-plate" src="graphics/ui/console/service-plate.svg" />
       <div id="barracks-room-title" class="label heading tone-edge">{i18n.openingUiShipboardBarracksBarracksPersonnelCommand}</div>
       <div id="barracks-room-copy" class="label tone-muted">{command.summary}</div>
+      <div id="barracks-heal-timer" class="label heading tone-accent">{command.healTimer}</div>
 
     </div>
 
@@ -313,6 +314,7 @@
   .issue-stock-label { width: 0px; flex-grow: 1; height: 15px; font-family: heading; }
   #barracks-room-title { width: 326px; height: auto; white-space: normal; }
   #barracks-room-copy { width: 480px; flex-grow: 0; text-align: left; height: auto; white-space: normal; }
+  #barracks-heal-timer { width: 0px; flex-grow: 1; height: 20px; text-align: right; }
   .company-service-plate { width: 58px; height: 30px; pointer-events: none; }
   .command-board { flex-direction: row; height: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
   .command-rail { flex-direction: column; width: 294px; padding: 8px; gap: 6px; border-width: 1px; }
