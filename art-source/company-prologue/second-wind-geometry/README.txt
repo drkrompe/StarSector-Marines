@@ -27,25 +27,29 @@ are 0.31 * slot width to leave space between collars. Effect widths are not
 treated as literal solid nozzle diameters. No metre scale is claimed.
 Four weapon mount XY locations also follow that vanilla hull specification.
 
-V3 shell construction (detail pass, 2026-10-16)
+V3 shell construction (detail passes, 2026-10-16)
 The hull is a union of flat-shaded prism blocks rather than one smooth loft:
-vertical walls, flat deck plateaus, and chines of constant width along the
-whole length. Raised main decks stand on lower ledges; the waist and bow
-quarters sit a level lower, so the waist reads recessed and the decks stepped.
-The bow carries a forecastle out to an armoured nose over a recessed bow face
-and chin; a centre keel and engine-room strakes run beneath. Each engine pair
-is boxed by a thrust frame over a recessed bulkhead. The earlier smooth and
-inflated experiments looked organic and were rejected; no Gaussian or spline
-swelling is used. The port pod, four engines and bay thresholds retain their
-V2 coordinates.
+vertical walls, flat deck plateaus, and chines of constant width. The
+forebody planform is measured off the vanilla Cerberus sprite (widest +-32
+over x 30..40) and then cut by flat armour planes into a faceted shield: a
+glacis falling to a raked nose, raked cheek faces at the bow shoulders,
+sloped citadel shoulders and a raked chin. The two aft arms are separate
+engine nacelles, wider than the waist and taller than the main deck, each
+faceted, belted at the nozzle line and joined to the centre body by a low
+neck; the stern notch between them holds an open machinery frame. The
+earlier smooth and inflated experiments looked organic and were rejected;
+no Gaussian or spline swelling is used. The port pod, four engines and bay
+thresholds retain their V2 coordinates.
 
-Bridge
-The command bridge stands AFT, on the engine-room deck at the centreline,
-looking forward along the spine over the waist machinery: a squat armoured
-wheelhouse with wrapped, recessed smoked glazing behind heavy mullions, a
-visor brow, lookout wings, an aft hatch and a sensor mast. Its chamfered plinth
-is the aft machinery casing; the three waist service trunks rise into it. The
-forward dorsal casing remains a plain pressure casing.
+Command deck
+Following the sprite's central capsule, the command deck stands on the
+spine amidships rather than in a tower: a low segmented armoured housing
+from the aft turret pair to the forward pair, with a dark core showing
+between its armour segments, a gunmetal forward trunk, and a low command
+section with smoked viewport slits behind heavy mullions under a visor brow,
+facing forward over the forward turrets. Raised octagonal access trunks
+stand at the sprite's four deck rings; exposed service trunks run along the
+housing flanks.
 
 Weapons
 Four raised turrets at the vanilla mount XY: three small single-gun houses of
@@ -66,7 +70,7 @@ repaired, and no runtime art or gameplay is changed by this source reference.
 Files
 second-wind-geometry.blend: saved editable Blender 5.2 scene, cameras and objects.
 build_reference.py: deterministic scene and camera construction; runs in Blender.
-  sw_hull.py, sw_bridge.py, sw_turrets.py: one module per detail area, so
+  sw_hull.py, sw_engines.py, sw_bridge.py, sw_turrets.py: one module per detail area, so
   separate passes do not edit the same file; sw_kit.py holds shared materials
   and primitives. Engines and the pod stay locked in build_reference.py.
 geometry.json: coordinates and provenance for the proposed layout.

@@ -6,7 +6,8 @@ The vanilla engine XY positions and relative widths are retained; Z and hull
 depth are proposed art geometry, not canonical game dimensions.
 
 Detail lives in one module per area so separate passes do not collide:
-sw_hull (shell, bays, armor, spine), sw_bridge, sw_turrets; sw_kit holds the
+sw_hull (forebody shell, bow facets, bays, armor), sw_engines (aft engine pods
+and stern), sw_bridge (dorsal casings, command deck, spine), sw_turrets; sw_kit holds the
 shared materials and primitives. Engines and the port pod are locked here.
 
 Review options, after a literal "--":
@@ -31,8 +32,8 @@ from mathutils import Vector
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-import sw_kit, sw_hull, sw_bridge, sw_turrets
-for module in (sw_kit, sw_hull, sw_bridge, sw_turrets):
+import sw_kit, sw_hull, sw_engines, sw_bridge, sw_turrets
+for module in (sw_kit, sw_hull, sw_engines, sw_bridge, sw_turrets):
     importlib.reload(module)
 
 parser = argparse.ArgumentParser()
@@ -49,7 +50,13 @@ bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
 kit = sw_kit.Kit()
 
-sw_hull.build(kit)
+# Order matters: bow facets are cut before the engine pods join the hull,
+# and the bay apertures after, so neither cut reaches the wrong part.
+sw_hull.build_shell(kit)
+sw_engines.build_pods(kit)
+sw_hull.build_bays(kit)
+sw_hull.build_details(kit)
+sw_engines.build_details(kit)
 sw_bridge.build(kit)
 
 # A proposed service/airlock pod, not a standing mast: long axis +X,
@@ -112,7 +119,7 @@ cameras=[('port-quarter',(100,130,100),163),('top',(0,0,180),205),
          ('port-side',(0,180,0),132),('stern',(-180,0,0),130)]
 # Review close-ups: (name, position, target, orthographic scale).
 closeups=[('bow-detail',(110,60,55),(40,0,8),70),
-          ('bridge-detail',(95,45,45),(38,0,14),42),
+          ('bridge-detail',(60,60,50),(12,0,14),55),
           ('turret-detail',(70,70,60),(30,-5,12),60)]
 wanted=[v for v in args.views.split(',') if v]
 for spec in args.cam:
@@ -151,7 +158,7 @@ if not args.no_save:
         'status':'Proposed geometry reference; no scene art or gameplay changes',
         'axes':{'+X':'bow','+Y':'port','+Z':'dorsal'},
         'units':'Vanilla hull-space units; no canonical metre scale asserted',
-        'revision':'V3 detail: faceted plateau hull with stern notch, aft armoured bridge, naval turrets; recessed waist and service machinery retained',
+        'revision':'V3 detail: sprite-measured faceted bow, separate engine nacelles, spine command deck, naval turrets',
         'thickness_profile':{'method':'Upper Z uses plateaus and linear chamfer transitions between stations; lower hull has uniform 1.25 depth multiplier for level keel', 'stations':sw_hull.THICKNESS_STATIONS, 'deck_datum':0, 'attachments':'Engine and port-pod coordinates unchanged from V2'},
         'engine_source':'starsector-core/data/hulls/warhound.ship engineSlots',
         'engines':[{'location':[x,y,0],'width':w,'exhaust_direction':[-1,0,0]} for x,y,w in engines],
