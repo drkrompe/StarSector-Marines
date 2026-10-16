@@ -27,25 +27,28 @@ def citadel(base):
     return [(0,base),(0,12.6),(1,13.8),(2.2,MAIN_DECK)]
 
 BLOCKS = [
-    # Forebody lower hull: carries the waist deck aft and the bow shoulders.
+    # Forebody lower hull, measured off the vanilla sprite: widest (+-32) over
+    # x 30..40, then a blunt faceted shield closing to a narrow nose at x 57.
+    # The port service pod stands proud of the widest flank.
     ('Forebody lower hull', False, LOWER,
-     [(0,-22.5),(30,-28.5),(46,-26),(55,-17),(58,-8),(58,8),(55,17),(46,26),(30,28.5),(0,22.5)]),
+     [(0,-22.5),(14,-24),(22,-28),(30,-31.5),(40,-31.5),(47,-26.5),(52,-20.5),(56,-10),
+      (57,-5),(57,5),(56,10),(52,20.5),(47,26.5),(40,31.5),(30,31.5),(22,28),(14,24),(0,22.5)]),
     # Raised forward citadel: the main deck, stepped in from the flank ledge.
     ('Forward citadel', False, citadel(8.5),
-     [(16,-19.5),(28,-23.5),(44,-22.5),(50,-17),(50,17),(44,22.5),(28,23.5),(16,19.5)]),
+     [(16,-19.5),(26,-24),(42,-24),(50,-17),(50,17),(42,24),(26,24),(16,19.5)]),
     # Forecastle ridge carries the main deck out to an armoured nose that
     # overhangs a recessed bow face above a projecting chin; the bow quarters
     # stay a deck lower.
     ('Forecastle and armoured nose', False, [(0,5.5),(0,12.4),(1.2,13.6),(2.4,MAIN_DECK)],
-     [(44,-9),(60,-9),(63.5,-5.5),(63.5,5.5),(60,9),(44,9)]),
+     [(44,-8.5),(56,-8.5),(59,-5),(59,5),(56,8.5),(44,8.5)]),
     ('Bow chin', False, [(2.2,-12.4),(0,-11),(0,-8),(1,-6.5)],
-     [(42,-11),(57,-11),(61,-7),(61,7),(57,11),(42,11)]),
+     [(42,-11),(54,-11),(57,-7),(57,7),(54,11),(42,11)]),
     ('Ventral keel', False, [(1.6,-13),(0,-11.8),(0,-9)],
      [(-25,-6.5),(44,-6.5),(44,6.5),(-25,6.5)]),
 ]
 # Deck plateaus aft to fore, for the manifest: (x0, x1, deck z).
 THICKNESS_STATIONS = [(-36,-32,8),(-32,-1,MAIN_DECK),
-                      (0,18,WAIST_DECK),(18,50,MAIN_DECK),(50,58,WAIST_DECK),(44,63.5,MAIN_DECK)]
+                      (0,18,WAIST_DECK),(18,50,MAIN_DECK),(50,57,WAIST_DECK),(44,59,MAIN_DECK)]
 
 
 def inset(poly, d):
@@ -104,9 +107,9 @@ def facet(name, point, down, angle, span=None):
 # sliced through the hull, so the faces stay flat and crisp.
 # Cheeks hold clear of turrets 3 and 4 and stay above the port pod.
 BOW_FACETS = [
-    facet('Bow glacis', (46,0,MAIN_DECK), (1,0), 24),
-    facet('Bow glacis lower course', (56,0,WAIST_DECK+.6), (1,0), 40),
-    facet('Nose rake', (62,0,4), (1,0), 62),
+    facet('Bow glacis', (45,0,MAIN_DECK), (1,0), 27),
+    facet('Bow glacis lower course', (53,0,WAIST_DECK+.6), (1,0), 40),
+    facet('Nose rake', (57.5,0,1), (1,0), 58),
     facet('Port bow cheek', (48,17.5,MAIN_DECK), (.81,.58), 38),
     facet('Starboard bow cheek', (48,-17.5,MAIN_DECK), (.81,-.58), 38),
     facet('Chin rake', (50,0,KEEL-1), (1,0), 147),
@@ -237,14 +240,5 @@ def build_armor(kit):
         kit.cylinder('Protected waist service line',(14,side*24.2,7.2),.7,21,kit.steel,'X')
 
 
-def build_bow(kit):
-    # Bow-quarter shoulder decks carry louvered intakes; the nose gets a cap.
-    for s in (1,-1):
-        kit.box('Bow shoulder intake',(51.5,s*13,WAIST_DECK+.3),(6,4.4,.8),kit.dark,.2)
-        for dx in (-2,-1,0,1,2):
-            kit.box('Intake louver',(51.5+dx,s*13,WAIST_DECK+.8),(.3,4,.25),kit.steel,.05)
-
-
 def build_details(kit):
     build_armor(kit)
-    build_bow(kit)
