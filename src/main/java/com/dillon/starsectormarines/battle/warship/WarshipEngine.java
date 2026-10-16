@@ -42,7 +42,7 @@ public record WarshipEngine(
         List<WarshipEngine> out = new ArrayList<>();
         JSONArray slots = hull.optJSONArray("engineSlots");
         if (slots == null) return out;
-        float k = WarshipScale.cells(1f);
+        float k = WarshipScale.hullCells(1f);
         for (int i = 0; i < slots.length(); i++) {
             JSONObject slot = slots.getJSONObject(i);
             JSONArray loc = slot.optJSONArray("location");

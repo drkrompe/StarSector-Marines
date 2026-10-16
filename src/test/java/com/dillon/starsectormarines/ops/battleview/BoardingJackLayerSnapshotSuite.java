@@ -36,7 +36,7 @@ import java.util.Map;
 /**
  * The Boarding Jack's layered art through the shipping infantry compositor: its separate parts,
  * the rig beside the Specter it shares a registration with, the articulated poses, the baked
- * paints, the Latch Assist carrier, and the Greyhook raider's rig at world scale.
+ * paints, the boarding shield's sweep, and the Greyhook raider's rig at world scale.
  */
 public final class BoardingJackLayerSnapshotSuite implements SnapshotSuite {
     private static final String ROOT = "graphics/battle/marine-modular-topdown/";
@@ -75,7 +75,7 @@ public final class BoardingJackLayerSnapshotSuite implements SnapshotSuite {
         g.setColor(new Color(0x111920));
         g.fillRect(0, 0, 1920, 1080);
         text(g, "BOARDING JACK / PIRATE-REBUILT BOARDING FRAME", 40, 48, 28);
-        text(g, "1920 × 1080 · 100% UI scale · production infantry composition · catalog Latch Assist carrier", 40, 79, 17);
+        text(g, "1920 × 1080 · 100% UI scale · production infantry composition · Latch Assist is the left boarding shield", 40, 79, 17);
 
         MarineArmorCatalogDef jackArmor = MarineArmorCatalogRegistry.require(GreyhookRigIssue.PATTERN);
         MarineArmorCatalogDef specterArmor = MarineArmorCatalogRegistry.require("armor.specter-heavy");
@@ -85,7 +85,7 @@ public final class BoardingJackLayerSnapshotSuite implements SnapshotSuite {
 
         text(g, "Separate exported parts · magnified 2×", 40, 125, 20);
         String[] parts = {"body", "shoulder-left", "shoulder-right"};
-        String[] partLabels = {"Torso · power pack · joint backing", "Left welded slab", "Right cargo-frame cap"};
+        String[] partLabels = {"Torso · power pack · joint backing", "Left boarding shield (Latch Assist)", "Right cargo-frame cap"};
         for (int i = 0; i < parts.length; i++) {
             BufferedImage part = image(JACK + parts[i] + ".png");
             int x = 40 + i * 320;
@@ -94,11 +94,16 @@ public final class BoardingJackLayerSnapshotSuite implements SnapshotSuite {
         }
         BufferedImage head = image(JACK + "head.png");
         BufferedImage foot = image(JACK + "foot.png");
-        BufferedImage screen = image(ROOT + "variants/equipment/latch-screen.png");
         g.drawImage(head, 40, 380, head.getWidth() * 2, head.getHeight() * 2, null);
         g.drawImage(foot, 220, 380, foot.getWidth() * 2, foot.getHeight() * 2, null);
-        g.drawImage(screen, 340, 380, screen.getWidth(), screen.getHeight(), null);
-        text(g, "Helmet · foot · Latch screen (1×)", 40, 535, 15);
+        text(g, "Helmet · foot", 40, 535, 15);
+        String[] sweep = {"idle", "walking", "aiming", "firing"};
+        for (int i = 0; i < sweep.length; i++) {
+            actor(g, jack, jackArmor, 400 + i * 150, 450, 95, sweep[i], i == 3 ? 0.4f : phase, 0,
+                    WeaponRegistry.STARTER_PRIMARY_ID);
+            text(g, sweep[i], 370 + i * 150, 535, 15);
+        }
+        text(g, "Shield sweep: the slab leads the torso's turn", 360, 385, 15);
 
         text(g, "Same registration, different rig · magnified", 1000, 125, 20);
         LayeredUnitAssets raider = assets(JACK + "paints/pirate/", jackArmor);
@@ -154,7 +159,7 @@ public final class BoardingJackLayerSnapshotSuite implements SnapshotSuite {
             actor(g, i < 4 ? jack : raider, jackArmor, 1440 + i % 4 * 100, 940 + i / 4 * 70, 24, "walking",
                     phase + i * 0.11f, 0, WeaponRegistry.STARTER_PRIMARY_ID, 0);
         }
-        text(g, "Latch Assist screen is carried on the left slab · " + latch.id(), 40, 1060, 14);
+        text(g, "Latch Assist (" + latch.id() + ") is the left boarding shield: directional soak over 100° on that side", 40, 1060, 14);
         g.dispose();
         return output;
     }
@@ -214,10 +219,7 @@ public final class BoardingJackLayerSnapshotSuite implements SnapshotSuite {
                 layer(weapons + "rocket-launcher.png"));
         IntegralSystemDef system = def.integralSystem();
         if (system != null && system.carrierLayer() != null) {
-            String path = system.carrierLayer().spritePath();
-            String repainted = armor.contains("/paints/pirate/")
-                    ? LayeredArmorFamily.BOARDING_JACK_PIRATE.repaintedCarrier(path) : null;
-            result.registerIntegralSystem(system.id(), layer(repainted != null ? repainted : path));
+            result.registerIntegralSystem(system.id(), layer(system.carrierLayer().spritePath()));
         }
         return result;
     }

@@ -216,7 +216,7 @@ welded mismatched plate (a large square slab on one shoulder, a smaller cargo ca
 the other), visible joint backing, guarded hoses and hand-lettered service labels.
 It shares the Specter shell registration so the existing pose tracks articulate it,
 keeps torso, shoulders, helmet and feet separate with casing-only paint masks, and
-shows Latch Assist as a left-shoulder actuator/screen carrier. It must not reuse the
+makes its left slab a hinged boarding shield that carries Latch Assist: a long welded loading-frame plate whose forward lip leads the torso's turn, resting on the shoulder at rest and on the walk and sweeping across the chest in aim, fire and brace. The shield is the Latch Assist presentation (its existing 100-degree directional soak on that side); there is no separate screen layer. It must not reuse the
 Foundry-breaker's rejected presentation or borrow another suit's family. The shipped
 art is worn rust-orange welded plate over dark joint backing with a bare-steel power
 pack: warm and patched where the Specter is cool, faceted and lit. Its helmet is

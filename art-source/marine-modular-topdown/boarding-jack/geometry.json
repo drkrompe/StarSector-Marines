@@ -18,11 +18,12 @@
     },
     "left-shoulder": {
       "export_name": "shoulder-left.png",
-      "note": "the larger, squarer welded slab; the mismatch is deliberate",
-      "slab": [[0.05, 0.20], [0.30, 0.17], [0.34, 0.27], [0.33, 0.66], [0.24, 0.72], [0.07, 0.68], [0.03, 0.45]],
+      "note": "the boarding shield: a long welded loading-frame plate hung on the left hinge. Its forward lip stands ahead of the chest; the shield turns with the torso (armor master turn gain), so when the rig twists into aim, fire or brace the lip sweeps across the chest front. The Latch Assist rams are bolted to its back face: this slab is the Latch Assist screen, no separate carrier layer",
+      "slab": [[0.05, 0.06], [0.44, 0.03], [0.55, 0.09], [0.53, 0.18], [0.41, 0.22], [0.35, 0.27], [0.34, 0.66], [0.24, 0.73], [0.07, 0.7], [0.03, 0.45], [0.03, 0.12]],
       "pivot": [0.2653061224489796, 0.34987593052109184],
       "mastered_offset": [-0.26285714285714284, 0.04648800661703886],
-      "mastered_scale": 1.12
+      "mastered_scale": 1.12,
+      "turn_gain": 1.0
     },
     "right-shoulder": {
       "export_name": "shoulder-right.png",
@@ -45,13 +46,6 @@
     },
     "weapon": {
       "note": "Handheld weapons stay the shared swappable infantry layers. The rig adds no weapon art and no extra gun."
-    },
-    "latch-assist-carrier": {
-      "export_name": "graphics/battle/marine-modular-topdown/variants/equipment/latch-screen.png",
-      "note": "Integral-system carrier layer: a bolted actuator/screen plate on the left shoulder, visible while carried, like the Specter's screen emitter. A narrow screen, not a dome and not a ram.",
-      "attachment": "left-shoulder",
-      "proposed_size_shoulders": [0.34, 0.30],
-      "proposed_offset_shoulders": [-0.14, 0.03]
     }
   },
   "materials": {

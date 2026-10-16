@@ -95,10 +95,10 @@ class WarshipShieldTest {
         assertEquals(180f, s.shieldArcDegrees());
         assertEquals(0.6f, s.shieldModel().efficiency(), 1e-6f);
         assertEquals(0.4f, s.shieldModel().upkeep(), 1e-6f);
-        assertEquals(WarshipScale.cells(200f), s.shieldRadiusCells(), 1e-4f);
+        assertEquals(WarshipScale.hullCells(200f), s.shieldRadiusCells(), 1e-4f);
         // The first centre figure runs along the nose: the bubble sits ahead of the origin.
         assertEquals(50f, s.shieldCentreX(), 1e-4f);
-        assertEquals(50f + WarshipScale.cells(20f), s.shieldCentreY(), 1e-4f);
+        assertEquals(50f + WarshipScale.hullCells(20f), s.shieldCentreY(), 1e-4f);
         assertEquals("none", ship(row("NONE", "", "1")).shieldType());
         assertEquals("none", ship(row("PHASE", "", "1")).shieldType(), "a cloak is not a shield");
         assertEquals("none", ship(row("", "", "")).shieldType());

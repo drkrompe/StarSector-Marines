@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.world.model;
 
-import com.dillon.starsectormarines.battle.world.tiles.DoodadCover;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
@@ -171,24 +171,47 @@ public final class TileManifest {
 
     /** The prepared concrete gun-emplacement block: raised parapet round a flat platform. */
     public static final String EMPLACEMENT_BLOCK = "fort.emplacement";
+    /** Id prefix of the emplacement pieces' {@link CoverPropDamage} family (intact, {@code damaged-} and {@code destroyed-}). */
+    public static final String EMPLACEMENT_PIECE_PREFIX = "doodad.fort-emplacement-";
 
     /**
-     * One parapet cell of a concrete emplacement, as a doodad of the given cover level, chosen by where the cell sits relative to
-     * the emplacement's centre ({@code relX, relY} in {@code [-1, +1]}, {@code relY > 0} north). The exterior-facing
-     * edge or corner lands on the outward side. Presentation only: the caller owns the cell's topology.
+     * The piece of the tight emplacement collar for the ring cell at {@code (relX, relY)} from the centre of a turret
+     * body ({@code relY > 0} north), or {@code null} when the catalog carries no emplacement art. A tight collar hugs
+     * the body, so the piece is the one whose parapet faces it: an edge cell wears the opposite edge (the north cell
+     * wears {@code s}), and a diagonal cell the inner corner, a small notch in the one cell corner nearest the body. The
+     * ring is the cells immediately around the body, whatever its size; defence posts and fort pads share this.
      *
-     * @return the doodad, or {@code null} when the catalog carries no emplacement block (or the cell is the centre),
-     *         in which case the caller keeps its older art
+     * <p>The pieces are doodads of the wearable-cover family, so rounds and blasts that hit them take them intact ->
+     * damaged -> destroyed by their own hits like any other cover prop.
      */
-    public static Doodad emplacementParapet(int cellX, int cellY, int relX, int relY, int cover) {
-        GridBlockDef block = block(EMPLACEMENT_BLOCK);
-        if (block == null) return null;
-        int[] cell = block.resolve(relY > 0, relY < 0, relX > 0, relX < 0);
-        if (cell == null) return null;
-        return new Doodad(cellX, cellY, new TileFrame(cell[0], cell[1]), block.sheetPath, cover,
-                DoodadCover.fromLevel(cover).defaultBallisticHalfHeight(), 1, 1, null, block.cellPx);
+    public static Doodad emplacementTightParapet(int cellX, int cellY, int relX, int relY) {
+        return emplacementTightParapet(cellX, cellY, relX, relY, 0);
     }
-/**     * The tight placement of the emplacement block: the piece whose parapet faces the turret. A ring cell at     * {@code (relX, relY)} from the centre of the body takes the opposite slot (the north-west cell wears {@code se}),     * so the parapets hug the body instead of walling a platform gap round it. The ring is the cells immediately     * around the body, whatever its size; one helper serves defence posts and fort pads alike.     */    public static Doodad emplacementTightParapet(int cellX, int cellY, int relX, int relY, int cover) {        return emplacementParapet(cellX, cellY, -relX, -relY, cover);    }
+
+    /**
+     * As {@link #emplacementTightParapet(int, int, int, int)} for a body {@code bodyHalf} cells either side of its
+     * centre (0 for one cell, 1 for three by three), with {@code (relX, relY)} the ring cell's offset from the body's
+     * centre. An axis on which the cell lies within the body's span is not an exposure: every ring cell along a body
+     * edge wears that edge's piece, and only the four cells diagonal to the body's corners wear inner corners.
+     */
+    public static Doodad emplacementTightParapet(int cellX, int cellY, int relX, int relY, int bodyHalf) {
+        relX = Math.abs(relX) > bodyHalf ? Integer.signum(relX) : 0;
+        relY = Math.abs(relY) > bodyHalf ? Integer.signum(relY) : 0;
+        TileRegistry registry = TileRegistry.installed();
+        if (registry == null) return null;
+        String shape;
+        if (relX != 0 && relY != 0) {
+            shape = "inner-" + (relY > 0 ? "s" : "n") + (relX < 0 ? "e" : "w");
+        } else if (relY != 0) {
+            shape = relY > 0 ? "s" : "n";
+        } else if (relX != 0) {
+            shape = relX < 0 ? "e" : "w";
+        } else {
+            return null;
+        }
+        DoodadDef def = registry.doodad(EMPLACEMENT_PIECE_PREFIX + shape);
+        return def == null ? null : new Doodad(cellX, cellY, def);
+    }
 
     /**
      * One cell of a 3x3 ring block, chosen by where the cell sits relative to

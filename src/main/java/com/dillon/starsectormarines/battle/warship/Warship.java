@@ -116,8 +116,10 @@ public final class Warship {
     /** The hull's handling from its table row, in cells for travel and degrees for turning. */
     private record Handling(float maxSpeed, float accel, float decel, float turnRate, float turnAccel) {}
 
-    /** A battleship's handling, used for a hull the table does not list. */
-    private static final Handling DEFAULT_HANDLING = new Handling(1.1f, 0.4f, 0.4f, 4f, 4f);
+    /** A battleship's handling in atmosphere, used for a hull the table does not list. */
+    private static final Handling DEFAULT_HANDLING = new Handling(1.1f,
+            1.1f / AtmosphericHandling.SPOOL_SECONDS, 1.1f / AtmosphericHandling.SPOOL_SECONDS,
+            4f, 4f / AtmosphericHandling.TURN_SPOOL_SECONDS);
 
     /** The value a getter reports for a budget that was never set. */
     public static final int UNLIMITED = -1;
@@ -192,6 +194,8 @@ public final class Warship {
     /** The heading the hull is turning toward. */
     float desiredHeading;
     float turnVelocity;
+    /** The heading wanted on the previous tick, so a helm can lead a heading that is drifting; NaN before the first. */
+    float previousDesiredHeading = Float.NaN;
     private boolean headingChosen;
     private float hitPoints;
     /** The hull's armour grid, or null for a hull fitted without one. */
@@ -503,8 +507,13 @@ public final class Warship {
      * a hull with no armour grid (the control), is asked of where it landed, as it always was.
      */
     boolean shieldCoversFrom(float fromX, float fromY, float px, float py) {
-        if (plating != null && Float.isFinite(fromX) && Float.isFinite(fromY)) return shieldCovers(fromX, fromY);
-        return shieldCovers(px, py);
+        return shieldAbsorbing() && arcCoversFrom(fromX, fromY, px, py);
+    }
+
+    /** {@link #arcCovers} asked of the side a round was fired from, by the same rule as {@link #shieldCoversFrom}. */
+    boolean arcCoversFrom(float fromX, float fromY, float px, float py) {
+        if (plating != null && Float.isFinite(fromX) && Float.isFinite(fromY)) return arcCovers(fromX, fromY);
+        return arcCovers(px, py);
     }
 
     /** Whether {@code (px, py)} lies inside the arc, up or not. */
@@ -2076,7 +2085,7 @@ public final class Warship {
             mount.headingDegrees = facingDegrees + slot.angleDegrees();
             mounts.add(mount);
         }
-        float k = WarshipScale.cells(1f);
+        float k = WarshipScale.hullCells(1f);
         float w = (float) hull.optDouble("width", 0.0);
         float h = (float) hull.optDouble("height", 0.0);
         JSONArray c = hull.optJSONArray("center");
@@ -2150,17 +2159,19 @@ public final class Warship {
         return new float[]{DEFAULT_FLUX_CAPACITY, DEFAULT_FLUX_DISSIPATION};
     }
 
-    /** The hull's handling from the table, or a battleship's. */
+    /** The hull's handling from the table, made heavy for atmosphere ({@link AtmosphericHandling}), or a battleship's. */
     private static Handling handling(String hullId) {
         try {
             for (Map<String, String> row : VanillaData.csv("data/hulls/ship_data.csv")) {
                 if (!hullId.equals(row.get("id"))) continue;
-                return new Handling(
-                        WarshipScale.cells(positive(row.get("max speed"), DEFAULT_HANDLING.maxSpeed() / WarshipScale.cells(1f))),
-                        WarshipScale.cells(positive(row.get("acceleration"), DEFAULT_HANDLING.accel() / WarshipScale.cells(1f))),
-                        WarshipScale.cells(positive(row.get("deceleration"), DEFAULT_HANDLING.decel() / WarshipScale.cells(1f))),
+                AtmosphericHandling.Figures f = AtmosphericHandling.of(
+                        positive(row.get("max speed"), DEFAULT_HANDLING.maxSpeed() / WarshipScale.cells(1f)),
+                        positive(row.get("acceleration"), DEFAULT_HANDLING.accel() / WarshipScale.cells(1f)),
+                        positive(row.get("deceleration"), DEFAULT_HANDLING.decel() / WarshipScale.cells(1f)),
                         positive(row.get("max turn rate"), DEFAULT_HANDLING.turnRate()),
                         positive(row.get("turn acceleration"), DEFAULT_HANDLING.turnAccel()));
+                return new Handling(WarshipScale.cells(f.maxSpeed()), WarshipScale.cells(f.accel()),
+                        WarshipScale.cells(f.decel()), f.turnRate(), f.turnAccel());
             }
         } catch (Exception e) {
             // A hull whose handling cannot be read handles like a battleship.

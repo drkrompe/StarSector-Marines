@@ -309,8 +309,9 @@ public final class WarshipRenderSystem implements RenderSystem {
         String path = m.slot.hardpoint() ? m.weapon.hardpointSprite() : m.weapon.turretSprite();
         ShuttleSpriteCache art = sprites.spriteByPath(path);
         if (art == null) return;
-        float w = WarshipScale.cells(art.pxW) * cellPx;
-        float h = WarshipScale.cells(art.pxH) * cellPx;
+        // A mount is part of the hull's body, so it is drawn at the hull's size.
+        float w = WarshipScale.hullCells(art.pxW) * cellPx;
+        float h = WarshipScale.hullCells(art.pxH) * cellPx;
         out.addSprite(RenderLayer.SHUTTLES, art.sprite,
                 cam.cellToScreenX(ship.mountX(m)), cam.cellToScreenY(ship.mountY(m)),
                 w, h, heading(ship, m), 1f, 1f, 1f, alpha);
@@ -395,7 +396,7 @@ public final class WarshipRenderSystem implements RenderSystem {
         Color c = m.weapon.muzzleColor() != null ? m.weapon.muzzleColor() : DEFAULT_FLASH;
         double rad = Math.toRadians(heading(ship, m));
         // The flash sits a barrel's length out from the pivot, along the heading.
-        float barrel = 1.2f;
+        float barrel = 1.2f * WarshipScale.HULL_PRESENCE;
         float fx = ship.mountX(m) - (float) Math.sin(rad) * barrel;
         float fy = ship.mountY(m) + (float) Math.cos(rad) * barrel;
         float size = Math.max(1.5f, WarshipScale.cells(m.weapon.muzzleLengthPx()) * 2f) * cellPx;

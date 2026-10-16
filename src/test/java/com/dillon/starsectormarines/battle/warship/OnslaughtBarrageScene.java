@@ -39,7 +39,7 @@ public final class OnslaughtBarrageScene implements BehaviorScene {
     private static final int WIDTH = 160;
     private static final int HEIGHT = 80;
     private static final int TICKS = 900;
-    private static final float SHIP_X = 38f;
+    private static final float SHIP_X = 30f;
     private static final float SHIP_Y = 40f;
     /** Forward is (-sin h, cos h), so the compound due east is a bearing of -90; the port battery sits at +80 off the bow, so the ship turns to -170 to bring it to bear. */
     private static final float START_HEADING = -120f;

@@ -35,7 +35,7 @@ public final class WarshipPilotScene implements BehaviorScene {
 
     private static final int WIDTH = 180;
     private static final int HEIGHT = 110;
-    private static final int TICKS = 4800;
+    private static final int TICKS = 6000;
     private static final float START_X = 22f;
     private static final float START_Y = 40f;
     private static final float CLUSTER_Y = 80f;

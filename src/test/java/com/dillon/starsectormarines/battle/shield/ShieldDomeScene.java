@@ -39,7 +39,7 @@ public final class ShieldDomeScene implements BehaviorScene {
     private static final int WIDTH = 160;
     private static final int HEIGHT = 90;
     private static final int TICKS = 1500;
-    private static final float SHIP_X = 38f;
+    private static final float SHIP_X = 30f;
     private static final float SHIP_Y = 50f;
     private static final int GEN_X = 90;
     private static final int GEN_Y = 40;

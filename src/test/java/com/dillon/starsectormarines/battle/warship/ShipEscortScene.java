@@ -33,13 +33,13 @@ import java.util.Set;
  * <ul>
  *   <li>{@code control-alone}: a doctrine Onslaught under a defenders' bomber wing and nothing beside it. It takes the
  *       air fight on its own account once the wing is up and its flak downs some craft; the wing still works the hull.</li>
- *   <li>{@code escorted}: the same capital and wing, with an Enforcer ordered to escort it. The escort sits on the lead's
- *       ring, its picture counts the craft aimed at the lead, it takes the air fight with the lead named as the reason
+ *   <li>{@code escorted}: the same capital and wing, with an Enforcer ordered to escort it. The escort screens in line beside
+ *       the lead, its picture counts the craft aimed at the lead, it takes the air fight with the lead named as the reason
  *       and its flak downs part of the wing, so the lead takes less.</li>
  *   <li>{@code lead-departs}: the pair again, but the lead's station time runs out partway through. The escort drops
  *       the relation, goes back to the station its mission gave it, and is its own ship again.</li>
  *   <li>{@code auto-assigned}: a flagship, a destroyer and a frigate with automatic escorts on and no relation named:
- *       both small hulls follow the flagship, on separate slots of its ring.</li>
+ *       both small hulls follow the flagship, on separate places in its screen.</li>
  * </ul>
  *
  * Every wing loop keeps a distant marine and defender, as the air-strike scene does, so the dispatcher has a friendly
@@ -48,13 +48,14 @@ import java.util.Set;
 public final class ShipEscortScene implements BehaviorScene {
 
     private static final int WIDTH = 200;
-    private static final int HEIGHT = 64;
+    /** Tall enough for a screen a capital's half-length and an escort's out on either beam. */
+    private static final int HEIGHT = 110;
     private static final int TICKS = 2400;
     private static final int AUTO_TICKS = 900;
     private static final float LEAD_X = 110f;
-    private static final float LEAD_Y = 32f;
+    private static final float LEAD_Y = 55f;
     private static final float ESCORT_HOME_X = 70f;
-    private static final float ESCORT_HOME_Y = 12f;
+    private static final float ESCORT_HOME_Y = 20f;
     private static final float LEAD_STAY_SECONDS = 25f;
 
     @Override public String id() { return "ship-escort"; }
@@ -85,10 +86,10 @@ public final class ShipEscortScene implements BehaviorScene {
     private Run playOne(String loop, FrameSink frames) throws Exception {
         boolean auto = loop.equals("auto-assigned");
         SceneBuilder builder = SceneBuilder.openGround(WIDTH, HEIGHT).missionCompletion(false);
-        builder.unit("far-marine", Faction.MARINE, UnitType.MARINE, 5, 60);
+        builder.unit("far-marine", Faction.MARINE, UnitType.MARINE, 5, 100);
         builder.unit("far-defender", Faction.DEFENDER, UnitType.MARINE, 195, 6);
         for (int i = 0; i < 4; i++) {
-            builder.unit("edge-" + i, Faction.DEFENDER, UnitType.MARINE, 196 + (i % 2), 40 + i * 3);
+            builder.unit("edge-" + i, Faction.DEFENDER, UnitType.MARINE, 196 + (i % 2), 63 + i * 3);
         }
         SceneWorld world = builder.build();
         BattleSimulation sim = world.sim();
@@ -108,8 +109,8 @@ public final class ShipEscortScene implements BehaviorScene {
             escort.limitFlux();
         }
         if (auto) {
-            third = Warship.fit("hound", "hound_Assault", Faction.MARINE, ESCORT_HOME_X, 52f, 90f);
-            third.stationTo(ESCORT_HOME_X, 52f);
+            third = Warship.fit("hound", "hound_Assault", Faction.MARINE, ESCORT_HOME_X, 90f, 90f);
+            third.stationTo(ESCORT_HOME_X, 90f);
             sim.warships().autoEscort(true);
         } else if (escort != null) {
             escort.escort(lead);
@@ -149,8 +150,8 @@ public final class ShipEscortScene implements BehaviorScene {
                                 leadPressure(lead), lead.hullFraction(), lead.shieldAbsorbedFlux())));
             }
             case "escorted" -> {
-                verdicts.add(Verdict.of("escort-keeps-the-ring", t.ringSamples > 0 && t.maxRingError <= RING_TOLERANCE,
-                        String.format(Locale.ROOT, "%d samples once settled, worst ring error %.1f cells", t.ringSamples, t.maxRingError)));
+                verdicts.add(Verdict.of("escort-keeps-its-place-in-the-screen", t.ringSamples > 0 && t.maxRingError <= RING_TOLERANCE,
+                        String.format(Locale.ROOT, "%d samples once settled, worst screen-line error %.1f cells", t.ringSamples, t.maxRingError)));
                 verdicts.add(Verdict.of("escort-takes-the-air-fight", t.escortSawAirSuperiority,
                         "first air-superiority at tick " + t.firstEscortAirTick + ": " + t.escortAirReason));
                 verdicts.add(Verdict.of("the-reason-names-the-lead", t.escortAirReason.contains("at the lead"), t.escortAirReason));
@@ -183,8 +184,8 @@ public final class ShipEscortScene implements BehaviorScene {
                 verdicts.add(Verdict.of("the-flagship-follows-nobody", lead.escortLead() == null, "flagship lead " + lead.escortLead()));
                 double apart = Math.hypot(run.escort().stationX() - third.stationX(), run.escort().stationY() - third.stationY());
                 verdicts.add(Verdict.of("on-separate-slots", apart > 8.0, String.format(Locale.ROOT, "stations %.1f cells apart", apart)));
-                verdicts.add(Verdict.of("both-reach-the-ring", t.maxRingError <= RING_TOLERANCE && t.ringSamples > 0,
-                        String.format(Locale.ROOT, "worst ring error %.1f cells over %d samples", t.maxRingError, t.ringSamples)));
+                verdicts.add(Verdict.of("both-take-their-place-in-the-screen", t.maxRingError <= RING_TOLERANCE && t.ringSamples > 0,
+                        String.format(Locale.ROOT, "worst screen-line error %.1f cells over %d samples", t.maxRingError, t.ringSamples)));
             }
         }
         Map<String, Number> metrics = new LinkedHashMap<>();
@@ -200,7 +201,7 @@ public final class ShipEscortScene implements BehaviorScene {
         return new SceneReport(id(), loop, loop.equals("auto-assigned") ? AUTO_TICKS : TICKS, verdicts, metrics);
     }
 
-    /** Cells an escort's hull may sit from the point of its ring it is stationed on, once settled. */
+    /** Cells an escort's hull may sit off its screen line beside the lead, once settled. */
     private static final float RING_TOLERANCE = 3f;
 
     private static final class Trace implements TickObserver {
@@ -262,7 +263,13 @@ public final class ShipEscortScene implements BehaviorScene {
             }
             ringSamples++;
             float ring = WarshipEscort.ringRadius(lead, ship);
-            float err = (float) Math.abs(Math.hypot(ship.centerX() - lead.centerX(), ship.centerY() - lead.centerY()) - ring);
+            // The screen is a line parallel to the lead's course, the ring radius out on its beam: what is measured is
+            // how far the escort sits from that line, wherever along it its slot puts it.
+            double nose = Math.toRadians(WarshipEscort.noseBearingDegrees(lead));
+            float dx = ship.centerX() - lead.centerX();
+            float dy = ship.centerY() - lead.centerY();
+            float abeam = (float) Math.abs(dx * -Math.sin(nose) + dy * Math.cos(nose));
+            float err = Math.abs(abeam - ring);
             maxRingError = Math.max(maxRingError, err);
         }
     }
