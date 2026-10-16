@@ -603,6 +603,20 @@ not a tilted camera or baked ground shadow. Its Abrams/Type 10-inspired shape, f
 ochre paint and replacement panels depict scavenged, century-old Hegemony surplus.
 This provenance is Marine Operations art direction, not a claim about vanilla canon.
 
+The tank's exposed tread tops scroll separately from its fixed armor and track
+end caps. Accepted signed chassis travel drives their UV phase after the
+collision sweep; yaw adds outer-track travel and subtracts inner-track travel.
+Reversing reverses the texture motion, and a stopped, blocked or destroyed hull
+does not animate. Teleport resets the presentation odometers. This does not
+introduce differential steering or track slip into the bicycle motion model.
+
+Tank destruction replaces both registered frames with authored torn-armor wreck
+art at the final hull and turret bearings. One bounded blast starts a short roof
+fire and a longer rear-engine fire; both cool into finite smoke and leave the
+permanent wreck. The tank-specific emitters expire by 90 seconds. These effects
+use the shared presentation drains and cause no secondary damage, cover,
+concealment or navigation changes.
+
 An industrial freight hauler has no passenger or turret payload; its long chassis
 and slower handling distinguish cargo from the armed escort. Reinforced story
 escorts have their own durability profile rather than changing every ordinary

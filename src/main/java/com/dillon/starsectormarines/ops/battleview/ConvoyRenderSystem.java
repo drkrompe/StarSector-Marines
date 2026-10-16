@@ -27,7 +27,7 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
  * capacities as anything else that can be shot, so it wears the same ownership-coded
  * {@link DurabilityBarDecor} gauge, emitted last in the layer so bars paint over
  * every chassis. A wreck is exempt — its bar would read empty forever, and the
- * darkened hull already says what happened to it.
+ * wreck art or darkened hull already says what happened to it.
  *
  * <p>The debug overlays the old method dispatched (Reeds-Shepp docking paths,
  * selected-vehicle debug) are own-GL line passes and stay inline in
@@ -61,11 +61,13 @@ public final class ConvoyRenderSystem implements RenderSystem {
             if (v == null || !v.isVisible()) continue;
             VehicleType type = convoy.vehicleType(id);
             GroundBody body = convoy.body(id);
+            boolean wrecked = v.state == VehicleState.WRECKED;
+            boolean tank = type == VehicleType.BREAKTHROUGH_TANK;
             UnitSpriteCache cache = sprites.convoySprites().get(type);
             if (cache == null || cache.sheet == null || cache.frames == null) continue;
             if (type.spriteFrame < 0 || type.spriteFrame >= cache.frames.frames.length) continue;
             SpriteSheetFrames frames = cache.frames;
-            SpriteSheetFrames.Frame f = frames.frames[type.spriteFrame];
+            SpriteSheetFrames.Frame f = frames.frames[wrecked && tank ? 2 : type.spriteFrame];
 
             float frameAspect = (float) f.w / (float) f.h;
             float drawLong = type.visualLengthCells * cellPx;
@@ -73,9 +75,9 @@ public final class ConvoyRenderSystem implements RenderSystem {
             float chassisFacingDeg = body.facingDegrees + type.spriteFacingOffsetDeg;
             float cx = cam.cellToScreenX(body.x);
             float cy = cam.cellToScreenY(body.y);
-            boolean wrecked = v.state == VehicleState.WRECKED;
-            float wreckTint = wrecked ? 0.38f : 1f;
-            if (!wrecked && Math.abs(body.speed) > .3f && cellPx >= 4f) {
+            float wreckTint = wrecked && !tank ? 0.38f : 1f;
+            boolean pavedTank = tank && ctx.sim.getTopology().isStreet((int) body.x, (int) body.y);
+            if (!wrecked && !pavedTank && Math.abs(body.speed) > .3f && cellPx >= 4f) {
                 float bearing = (float) Math.toRadians(body.facingDegrees);
                 float fx = -(float) Math.sin(bearing), fy = (float) Math.cos(bearing);
                 float pulse = (ctx.sim.getSimTickIndex() % 12) / 12f;
@@ -93,8 +95,10 @@ public final class ConvoyRenderSystem implements RenderSystem {
                     cx, cy, drawLong, drawShort, chassisFacingDeg,
                     wreckTint, wreckTint, wreckTint, alphaMult);
 
+            if (tank && !wrecked) TankTrackRender.collect(cache, body, cam, alphaMult, out);
+
             if (type.turretFrame >= 0 && type.turretFrame < frames.frames.length) {
-                SpriteSheetFrames.Frame tf = frames.frames[type.turretFrame];
+                SpriteSheetFrames.Frame tf = frames.frames[wrecked && tank ? 3 : type.turretFrame];
                 float turretAspect = (float) tf.w / (float) tf.h;
                 float tDrawLong = type.turretVisualCells * cellPx;
                 float tDrawShort = tDrawLong / turretAspect;

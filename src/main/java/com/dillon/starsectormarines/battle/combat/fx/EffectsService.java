@@ -114,6 +114,17 @@ public final class EffectsService {
                 180f, .05f, scale, 24f));
     }
 
+    /** One bounded tank cook-off, a brief roof fire and a longer rear-engine burn. No damage. */
+    public void spawnTankWreck(float x, float y, float facingDeg) {
+        double angle = Math.toRadians(facingDeg);
+        float engineX = x + (float) Math.sin(angle) * 1.1f;
+        float engineY = y - (float) Math.cos(angle) * 1.1f;
+        spawnHeavyImpact(x, y, 1.6f);
+        fireBurstsThisFrame.add(new float[]{engineX, engineY, .65f});
+        smokingWrecks.add(new SmokingWreck(x, y, 35f, .05f, .8f, 6f));
+        smokingWrecks.add(new SmokingWreck(engineX, engineY, 90f, .12f, 1.15f, 18f));
+    }
+
     /** Emit a filled, irregular fan from the hull's current ground contact, including its centre. */
     public void spawnCrashBlastFan(float x, float y, float vx, float vy, float hullRadius) {
         float speed = (float) Math.hypot(vx, vy);
@@ -272,7 +283,7 @@ public final class EffectsService {
             if (w.nextPuffTimer <= 0f) {
                 float cooledFrac = Math.max(0.15f, w.remainingLifetime / w.totalLifetime);
                 float radius = (0.40f + cooledFrac * 0.45f) * w.effectScale;
-                smokePuffsThisFrame.add(new float[]{w.cellX + 0.5f, w.cellY + 0.5f, radius});
+                smokePuffsThisFrame.add(new float[]{w.x, w.y, radius});
                 w.nextPuffTimer = WRECK_PUFF_MIN_GAP
                         + rng.nextFloat() * (WRECK_PUFF_MAX_GAP - WRECK_PUFF_MIN_GAP);
             }
@@ -286,7 +297,7 @@ public final class EffectsService {
                             : 1f;
                     if (rng.nextFloat() < intensity) {
                         float fireRadius = (0.40f + rng.nextFloat() * 0.30f) * w.effectScale;
-                        fireBurstsThisFrame.add(new float[]{w.cellX + 0.5f, w.cellY + 0.5f, fireRadius});
+                        fireBurstsThisFrame.add(new float[]{w.x, w.y, fireRadius});
                     }
                     w.nextFireTimer = WRECK_FIRE_MIN_GAP
                             + rng.nextFloat() * (WRECK_FIRE_MAX_GAP - WRECK_FIRE_MIN_GAP);

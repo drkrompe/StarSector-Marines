@@ -17,7 +17,7 @@ the approved hull pixels are retained exactly.
 
 `registration.json` names the source, measured rectangle, bearing and uniform
 scale for each component. `pack.ps1` preserves alpha and proportions while
-registering two full 768x768 slots into
+registering four full 768x768 slots (live hull, live turret, wreck hull, wreck turret) into
 `mod/graphics/battle/vehicles/army-tank.png`. Reproduce with:
 
 ```powershell
@@ -37,11 +37,39 @@ Both rounds now leave the same barrel. The visible catalog name is Breach
 Cannon; internal `tank-twin-cannon` ids and localization keys remain stable
 for compatibility with existing references.
 
+The built-in ImageGen wreck edit is retained unmodified in `wreck-master.png`,
+with its exact `wreck-prompt.txt` and registered input `wreck-guide.png`.
+Its hull bearing (448,443), scale 0.835, and turret bearing (1344,447), scale
+0.855, register to the last two frame centers. The destruction transition keeps
+both final bearings. Torn armor, broken tread and damaged engine grilles remain
+visible after the live effects expire; there is no painted smoke or fire.
+
+`TankTrackRender` overlays two narrow wrapped UV strips from the live hull's
+own tread art. In the 768-pixel hull frame, the bands run x=88..687, y=187..216
+and y=550..574; a 108-pixel repeat starts at source x=91. Fixed armor and end
+caps keep their original pixels. The chassis controller accumulates accepted
+signed travel and yaw after collision resolution, and each side adds/subtracts
+its roughly one-cell distance from the center. Forward, reverse and turning
+therefore move the tread material; stopped, blocked and wrecked tanks do not.
+Teleport resets the visual odometers. This adds presentation, not differential
+steering or track-slip physics. Tank road movement omits the loose-ground dust bars.
+
+Tank destruction emits one bounded blast and two exact-position emitters:
+a six-second roof burn with 35 seconds of smoke, and an 18-second rear-engine
+burn with 90 seconds of cooling smoke. These use the shared live FX drains,
+cause no secondary damage and do not change navigation or cover.
+
 Run `gradlew createSnapshots -Psnapshot=tank` for headings, battle scale,
 marked muzzle rotation and actual autonomous firing/recoil. The suite also
 builds Thunder Run seed 9301 through its production campaign factory and renders
 `campaign-context.png` and `campaign-comparison.png`: the actual starting
 tank, two APC escorts, technical and three cargo haulers. Initial positions and
 terrain are untouched; turret bearings are posed forward for visual comparison.
+`tracks-drive.gif` then uses controlled throttle/steering through the shipping
+chassis and collision sweep on that map (empty gun magazines for the review).
+`destruction.gif` feeds the real lethal-damage event and every subsequent tick
+into the production impact recipe. `campaign-wreck.png` omits transient
+particles to expose the persistent damage artwork beside the other vehicles.
 All artifacts are 1920x1080 at 100% UI; close views change only camera zoom.
-This is pre-combat art evidence, not a mission balance or live-save acceptance run.
+These are controlled art/motion/destruction fixtures, not mission balance,
+player tank-control availability or live-save acceptance.

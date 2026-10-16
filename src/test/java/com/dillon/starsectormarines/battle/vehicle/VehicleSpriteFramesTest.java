@@ -12,8 +12,10 @@ class VehicleSpriteFramesTest {
                         new SpriteSheetFrames.Frame(830, 170, 440, 230)});
         for (VehicleType type : new VehicleType[]{VehicleType.HEAVY_APC, VehicleType.ESCORT_APC,
                 VehicleType.BREAKTHROUGH_TANK}) {
-            SpriteSheetFrames actual = type.registeredSpriteFrames(detected);
-            assertEquals(2, actual.frames.length);
+            SpriteSheetFrames input = type == VehicleType.BREAKTHROUGH_TANK
+                    ? new SpriteSheetFrames(3072, 576, detected.frames) : detected;
+            SpriteSheetFrames actual = type.registeredSpriteFrames(input);
+            assertEquals(type.frameCount, actual.frames.length);
             assertEquals(0, actual.frames[0].x);
             assertEquals(768, actual.frames[1].x);
             for (SpriteSheetFrames.Frame frame : actual.frames) {

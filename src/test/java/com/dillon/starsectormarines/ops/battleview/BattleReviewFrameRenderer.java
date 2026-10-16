@@ -209,8 +209,8 @@ public final class BattleReviewFrameRenderer {
         for (SmokingWreck wreck : simulation.getSmokingWrecks()) {
             float heat = wreck.totalLifetime <= 0f ? 1f
                     : Math.max(0f, Math.min(1f, wreck.remainingLifetime / wreck.totalLifetime));
-            int centerX = Math.round(camera.cellToScreenX(wreck.cellX + 0.5f));
-            int centerY = Math.round(height - camera.cellToScreenY(wreck.cellY + 0.5f));
+            int centerX = Math.round(camera.cellToScreenX(wreck.x));
+            int centerY = Math.round(height - camera.cellToScreenY(wreck.y));
             int diameter = Math.round(radius * 2f);
             graphics.setColor(new Color(WRECK_MARKER.getRed(), WRECK_MARKER.getGreen(),
                     WRECK_MARKER.getBlue(), Math.round(60 + 175 * heat)));

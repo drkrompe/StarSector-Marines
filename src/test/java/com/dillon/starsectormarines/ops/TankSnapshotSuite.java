@@ -3,12 +3,14 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.vehicle.VehicleControlSystem;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -19,6 +21,7 @@ import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotation.Point;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
 import com.dillon.starsectormarines.ops.battleview.ReviewStyle;
+import com.dillon.starsectormarines.ops.battleview.ReviewImpactFx;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
 import com.dillon.starsectormarines.testsupport.HeadlessSvgAssets;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
@@ -139,7 +142,58 @@ public final class TankSnapshotSuite implements SnapshotSuite {
             artifacts.add(new SnapshotArtifact("campaign-comparison.png", renderer.refocus(24, 76, 44).render(sim,
                     "THUNDER RUN / tank, APCs, technical and freight / camera zoom only / 1920 x 1080, UI 100%",
                     labels.build())));
+            lifecycle(context, artifacts, sim);
         }
+    }
+
+    /** Controlled inputs through the normal chassis/sweep, then one real lethal damage event. */
+    private static void lifecycle(SnapshotContext context, List<SnapshotArtifact> artifacts,
+                                  BattleSimulation sim) throws Exception {
+        sim.setMissionCompletionEnabled(false);
+        long tank = sim.getThunderRun().heavyLead();
+        var body = sim.convoy().body(tank);
+        for (long id : sim.getConvoyVehicleIds()) {
+            if (sim.convoy().vehicleType(id).hasTurretWeapon()) sim.convoy().turret(id).ammo = 0;
+        }
+        var control = new VehicleControlSystem(sim.convoy(),
+                new NavigationService(sim.getGrid(), sim.getTopology()));
+        var renderer = new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080,
+                body.x, body.y, 12);
+        List<BufferedImage> motion = new ArrayList<>();
+        for (int tick = 0; tick < 180; tick++) {
+            // Low speed keeps individual tread links readable at the GIF's 10 fps.
+            float throttle = tick < 65 ? .2f : tick < 100 ? 0 : tick < 150 ? -.35f : 0;
+            float steer = tick >= 30 && tick < 65 ? .3f : 0;
+            control.tickManual(tank, BattleSimulation.TICK_DT, throttle, steer);
+            sim.convoy().turret(tank).facingDeg = body.facingDegrees;
+            sim.advance(BattleSimulation.TICK_DT);
+            if (tick % 3 == 0) motion.add(renderer.refocus(body.x, body.y, 12).render(sim,
+                    "TANK TRACKS / controlled drive: " + (tick < 65 ? "forward + turn" : tick < 100
+                            ? "brake / stop" : tick < 150 ? "reverse" : "brake / stop")
+                            + " / actual chassis travel drives tread UVs / camera follows / UI 100%"));
+        }
+        artifacts.add(SnapshotArtifact.colorAnimation("tracks-drive.gif", motion, 100));
+        // Stop through the same controller before the damage demonstration.
+        for (int tick = 0; tick < 30; tick++) {
+            control.tickManual(tank, BattleSimulation.TICK_DT, 0, 0);
+            sim.advance(BattleSimulation.TICK_DT);
+        }
+        var impacts = new ReviewImpactFx(context.modRoot());
+        List<BufferedImage> destruction = new ArrayList<>();
+        renderer.refocus(body.x, body.y, 18).withImpactEffects();
+        for (int tick = 0; tick < 150; tick++) {
+            sim.advance(BattleSimulation.TICK_DT);
+            if (tick == 15) sim.applyDamage(tank, 10000, 10000);
+            impacts.feed(sim);
+            if (tick % 3 == 0) destruction.add(renderer.render(sim,
+                    "THUNDER RUN / controlled lethal hit / real destruction blast, engine fire and smoke / UI 100%",
+                    ReviewAnnotations.NONE, impacts));
+        }
+        artifacts.add(SnapshotArtifact.colorAnimation("destruction.gif", destruction, 100));
+        // Show the persistent art clearly, without the particle overlay concealing its damage.
+        artifacts.add(new SnapshotArtifact("campaign-wreck.png",
+                new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 29, 76, 44).render(sim,
+                        "THUNDER RUN / destroyed tank beside the convoy / transient particles omitted for art review / UI 100%")));
     }
 
     private static BattleSimulation scene() {
