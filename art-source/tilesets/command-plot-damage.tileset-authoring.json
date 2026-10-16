@@ -1,0 +1,45 @@
+{
+  "sheetName": "command-plot-damage",
+  "sheet": "art-source/tilesets/command-plot-damage.raw.png",
+  "cellPx": 128,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "ship-bridge",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/command-plot-damage.png",
+  "note": "Built-in ImageGen edit of retained geometry and intact plot reference. Full-footprint registration, native alpha, no repainting or keying. See art-source/console-bank/damage.",
+  "entries": [
+    {
+      "rect": [
+        70,
+        72,
+        748,
+        748
+      ],
+      "id": "ship-bridge.plot-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        73,
+        960,
+        741,
+        741
+      ],
+      "id": "ship-bridge.plot-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "included": true
+    }
+  ]
+}

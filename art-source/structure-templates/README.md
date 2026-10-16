@@ -47,11 +47,19 @@ repair bench. New equipment reuses the factory-machine, main-stores and colony
 kits with their existing damage states. The bay plan keeps its original berths,
 headings and service mouths; the wide entrance remains connected to the road.
 
-The `outpost-service-turn-*` frames show the utility building and armory at
+The `outpost-service-turn-*` frames show the command post, utility building and armory at
 24 pixels per cell. The generator house has a full skid, switchgear, monitoring
 and spares across a two-cell aisle. The armory has a public issue apron, a staff
 gate, repair bench, ready-use lockers, ammunition storage and loaded rifle racks.
 Both use the shared installation fittings in campaign and ordinary missions.
+The command post uses an L bank, a U bank and the ship's three-cell tactical
+plot. Its entry cross-aisle and loop around the table remain clear, with one
+plot officer and three console watch positions. The fitting also serves packed
+ground command rooms, adapting bank length to their size and door approaches.
+It records ordinary console-bank and assembly operations, so the room-authoring
+format retains the same reusable pieces. The tactical plot now has damaged and
+destroyed variants as well; `composable-damage` includes the assembled command
+post through real structural damage at all four rotations.
 The armory and adopted engineering assets now have built-in ImageGen damage
 pairs; retained guides, exact prompts and registration are documented in
 `art-source/console-bank/damage/README.md`. A collapsed rack or bench brings down
