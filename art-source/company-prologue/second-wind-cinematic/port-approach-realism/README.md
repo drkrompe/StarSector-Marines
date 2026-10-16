@@ -1,5 +1,11 @@
 # Port approach realism / shot 04
 
+> Historical study: superseded encoded movies were retired during the 2026-10-16 cleanup.
+> Source art, prompts, Blender scenes and reference stills remain. Movie sizes,
+> playback observations and media receipts below describe the original exports;
+> rebuild or recover them before running these historical media checks. See the
+> [current cinematic index](../README.md) and [cleanup record](../../cleanup-record.json).
+
 The [refined working port](../port-refinement/README.md) supersedes this early
 architecture pass with a varied district, road traffic, Hound/Venture parallax
 cards and a joined terrain/pavement boundary. This source proof remains retained.
@@ -36,7 +42,7 @@ review, as recorded in [scene-manifest.json](scene-manifest.json).
 
 ## Review and evidence
 
-The [movie](review/jangala-port-approach-realism.mp4) is silent H.264/yuv420p,
+The `review/jangala-port-approach-realism.mp4` (retired export) is silent H.264/yuv420p,
 1920×1080 at 24 fps, four seconds and 3,126,913 bytes. It contains 96 distinct
 rendered frames. [Media validation](review/media-validation.json) records its
 hash, frame count, cadence and successful full FFmpeg decode.

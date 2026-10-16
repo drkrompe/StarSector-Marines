@@ -1,5 +1,11 @@
 # Next arrival scenes: layered rough blocking
 
+> Historical study: superseded encoded movies were retired during the 2026-10-16 cleanup.
+> Source art, prompts, Blender scenes and reference stills remain. Movie sizes,
+> playback observations and media receipts below describe the original exports;
+> rebuild or recover them before running these historical media checks. See the
+> [current cinematic index](../README.md) and [cleanup record](../../cleanup-record.json).
+
 Untextured staging for the approach after the
 [painted forest/window study](../parallax-window/README.md). This review keeps the
 accepted ship, cabin and landing mechanics as actual geometry while separating
@@ -82,7 +88,7 @@ executable placeholders with installed paths.
 [assemble_review.py](assemble_review.py) encodes the clean review plus optional
 per-shot files and annotated review stills. Full assembly requires all 576 source
 images; preview mode uses representative stills. Review assets live in
-[review/](review/), including [the movie](review/layered-next-scenes-review.mp4).
+[review/](review/), including `review/layered-next-scenes-review.mp4` (retired export).
 Media validation confirms all 576 output frames decode. There are 564 unique
 images; the twelve repeats are authored holds before descent and after stopping
 or securing the ship. No frames are duplicated inside the moving spans.

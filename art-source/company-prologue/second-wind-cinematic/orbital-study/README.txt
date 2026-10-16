@@ -1,11 +1,13 @@
-SECOND WIND - JANGALA ARRIVAL CINEMATIC
+SECOND WIND - REJECTED ORBITAL COMPOSITING STUDY
 
 Status: compositing technique prototype; physical staging rejected in review.
 The hangar opening, ship attitude and approach path do not form a coherent
-docking maneuver. Retain this export as motion/lighting evidence only. Plan the
+docking maneuver. Reference layers and stills remain; the superseded movie is retired.
+Historical movie measurements below describe the original export, recoverable
+through ../../cleanup-record.json. The current sequence is indexed in ../README.md. Plan the
 storyboard, then resolve ship/berth clearance, cameras and travel in a shared
 Blender blockout before producing the next detailed scene layers.
-storyboard-v2.txt records the expanded surface-arrival proposal: a crew-window
+../storyboard-v2.txt records the expanded surface-arrival proposal: a crew-window
 entry/cloud reveal, landscape-to-port approach and exterior landing. The roughly
 65-second timing and existing intro voice cues remain a discussion draft. Lore
 sources, campaign sequence and unresolved physical details are recorded there.
@@ -21,12 +23,12 @@ position, scale and lighting animate; the silhouette, pod, turrets and engine
 locations stay fixed. This is a layered shot, not a freely orbiting 3D animation.
 
 Contents
-- review/arrival-cinematic.mp4: retained review movie, H.264, 1920x1080, 24 fps,
+- review/arrival-cinematic.mp4: retired historical movie, H.264, 1920x1080, 24 fps,
   288 frames, 12 seconds, yuv420p, faststart. Letterboxed to 2.39:1. No audio.
 - review/poster.jpg and review/contact-sheet.jpg: compact review stills.
 - review/verification.json: measured export properties, sizes and source hashes.
 - ship.png: transparent ship layer, derived by built-in ImageGen from
-  ../second-wind-skins/arrival-heavy.reference.png.
+  ../../second-wind-skins/arrival-heavy.reference.png.
 - background.png: industrial approach berth and Jangala plate.
 - foreground.png: transparent near gantry for stronger parallax.
 - *.prompt.txt: exact built-in ImageGen prompts for those layers.
@@ -51,12 +53,12 @@ Fine generated lettering and surface details remain conceptual reference art.
 
 Rebuild from the repository root with Python, Pillow, numpy and FFmpeg on PATH:
 
-python art-source/company-prologue/second-wind-cinematic/build_cinematic.py --preview
-python art-source/company-prologue/second-wind-cinematic/build_cinematic.py
+python art-source/company-prologue/second-wind-cinematic/orbital-study/build_cinematic.py --preview
+python art-source/company-prologue/second-wind-cinematic/orbital-study/build_cinematic.py
 
 Use --ffmpeg C:/path/to/ffmpeg.exe if it is not on PATH. Config paths are relative
 to composition.json, so the script also works from a different working directory.
-Generated files go into ignored build/. The retained review copy is deliberate:
-rebuilding does not silently replace the reviewed movie or rewrite source art.
+Generated files go into ignored build/. Rebuilding does not rewrite source art. Retired movie paths are ignored;
+promote only useful new review outputs deliberately.
 For a new accepted edit, copy build/arrival-cinematic.mp4 into review/, refresh
 the poster/contact sheet, and record the new output metadata and source hashes.

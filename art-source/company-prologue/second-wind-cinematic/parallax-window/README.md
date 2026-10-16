@@ -1,5 +1,11 @@
 # Layered painted Jangala window test
 
+> Historical study: superseded encoded movies were retired during the 2026-10-16 cleanup.
+> Source art, prompts, Blender scenes and reference stills remain. Movie sizes,
+> playback observations and media receipts below describe the original exports;
+> rebuild or recover them before running these historical media checks. See the
+> [current cinematic index](../README.md) and [cleanup record](../../cleanup-record.json).
+
 A four-second extension of the [single-panorama study](../painted-window/README.md),
 adding independent painted depth layers, moving cloud and Atlas industrial traffic.
 The output is 1920×1080, 24 fps and silent, approximately 1.40 MB. Scene and media
@@ -88,7 +94,7 @@ only. [scene-manifest.json](scene-manifest.json) records the built placements an
 stabilization contract; numeric coverage checks do not establish artistic acceptance.
 
 Review assets live in [review/](review/):
-[movie](review/jangala-parallax-window-test.mp4),
+`review/jangala-parallax-window-test.mp4` (retired export),
 [poster](review/poster.jpg) and [contact sheet](review/contact-sheet.jpg).
 Assess cabin stability, layer boundaries, river registration, cloud motion and
 traffic scale through the complete move. All masters and scenes are authoring-only

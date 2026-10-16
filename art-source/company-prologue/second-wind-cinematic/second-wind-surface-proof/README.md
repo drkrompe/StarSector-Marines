@@ -1,5 +1,11 @@
 # Second Wind: bounded 3D texture and setdown proof
 
+> Historical study: superseded encoded movies were retired during the 2026-10-16 cleanup.
+> Source art, prompts, Blender scenes and reference stills remain. Movie sizes,
+> playback observations and media receipts below describe the original exports;
+> rebuild or recover them before running these historical media checks. See the
+> [current cinematic index](../README.md) and [cleanup record](../../cleanup-record.json).
+
 This is a real retained-mesh ship with attached surfaces, tested in a short side
 landing excerpt. It is **not a finished cinematic or a complete multiangle ship
 texture**. The yard remains the original greybox. Generated side RGB retains some

@@ -6,7 +6,7 @@
   "edit_target": null,
   "historical_guide": "Intermediate 26mm grey-cabin guide with landscape v1; overwritten during experiments. This v1 output is retained as a style reference for v2, whose exact input guide is retained separately.",
   "actual_resolution": [1672, 941],
-  "material_reference": "../../../cargo-billets.master.png",
+  "material_reference": "../../../story-stills/cargo-billets.master.png",
   "prompt": "../prompts/cabin-v1.txt",
   "retained_pixels": "Unmodified tool output; projected only onto the cabin/ship surfaces."
 }

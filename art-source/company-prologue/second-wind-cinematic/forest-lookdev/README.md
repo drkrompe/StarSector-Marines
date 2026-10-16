@@ -1,5 +1,11 @@
 # Jangala forest material study
 
+> Historical study: superseded encoded movies were retired during the 2026-10-16 cleanup.
+> Source art, prompts, Blender scenes and reference stills remain. Movie sizes,
+> playback observations and media receipts below describe the original exports;
+> rebuild or recover them before running these historical media checks. See the
+> [current cinematic index](../README.md) and [cleanup record](../../cleanup-record.json).
+
 A 16-second foliage lookdev study derived from the retained
 [arrival greybox](../animatic/README.md). The original
 [scene](../animatic/jangala-blockout.blend) remains untouched. The study retains
@@ -49,7 +55,7 @@ It accepts `--frames`, `--output` and `--ffmpeg`, with a `FFMPEG` environment
 variable override. Pillow and FFmpeg provide the review composition and encode.
 
 The [review directory](review/) contains the
-[motion study](review/jangala-forest-motion-study.mp4),
+`review/jangala-forest-motion-study.mp4` (retired export),
 [contact sheet](review/contact-sheet.jpg) and [poster](review/poster.jpg).
 The movie is 14.5 MB (13.8 MiB); FFprobe reports 384 frames at 24 fps and a
 complete FFmpeg decode succeeds. [Media validation](review/media-validation.json)

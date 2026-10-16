@@ -1,5 +1,11 @@
 # Painted Jangala window test
 
+> Historical study: superseded encoded movies were retired during the 2026-10-16 cleanup.
+> Source art, prompts, Blender scenes and reference stills remain. Movie sizes,
+> playback observations and media receipts below describe the original exports;
+> rebuild or recover them before running these historical media checks. See the
+> [current cinematic index](../README.md) and [cleanup record](../../cleanup-record.json).
+
 The follow-up [layered parallax study](../parallax-window/README.md) retains this
 painting treatment while adding independent landscape layers, moving cloud and
 Atlas traffic, with a precision correction for the earlier cabin jitter.
@@ -117,7 +123,7 @@ to the relevant scripts. Keep the 12 fps source timeline unchanged: the renderer
 samples half frames, and only the encoder sets the delivery rate to 24 fps.
 
 Review outputs belong in [review/](review/):
-[movie](review/jangala-painted-window-test.mp4),
+`review/jangala-painted-window-test.mp4` (retired export),
 [poster](review/poster.jpg) and [contact sheet](review/contact-sheet.jpg).
 [projection-manifest.json](projection-manifest.json) records the built scene's
 projectors and scope; it is not itself proof of visual acceptance.
