@@ -228,7 +228,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                             new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 226, 64, 132).withImpactEffects().withUnitShadows()
                                     .render(sim, "BLACK SLUICE / LIFTOFF / " + String.format(Locale.ROOT, "%.1f", (sim.getSimTickIndex() - splitTick) / 30f)
                                             + "s after Voss's order / " + duelCaption(duel), ReviewAnnotations.builder().build())));
-                if (recordDuel && dockContactTick < 0 && marineNear(sim, 186)) {
+                if (recordDuel && dockContactTick < 0 && marineNear(sim, 176)) {
                     dockContactTick = sim.getSimTickIndex();
                     frames.add(new SnapshotArtifact(fixture.id() + "-dock-contact-" + dockContactTick + ".png",
                             new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 206, 60, 80).withImpactEffects().withUnitShadows()

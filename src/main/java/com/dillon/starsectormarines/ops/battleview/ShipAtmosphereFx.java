@@ -205,7 +205,8 @@ final class ShipAtmosphereFx {
         float[] g = tint.glow();
         float[] v = tint.vapour();
         float rot = ship.facingDegrees;
-        float streak = length * (1.6f + 2.4f * wake);
+        // Louder than a cruise, but still hot air astern of a heavy hull rather than a torch: two hulls at the most.
+        float streak = length * (0.8f + 1.2f * wake);
         float centreAstern = length * 0.5f + streak * 0.5f;
         out.addAdditiveSprite(RenderLayer.SHUTTLES, soft,
                 cam.cellToScreenX(cx[0] - nx * centreAstern), cam.cellToScreenY(cx[1] - ny * centreAstern),
@@ -273,8 +274,10 @@ final class ShipAtmosphereFx {
                     cam.cellToScreenX(cx[0] + nx * along), cam.cellToScreenY(cx[1] + ny * along),
                     size, size, 0f, g[0], g[1], g[2], 0.42f * glow * (1f - 0.18f * i) * alpha);
         }
-        // The wake astern: a plasma streak behind a ship coming down, an exhaust streak behind one going up.
-        float streak = length * (1.4f + 1.6f * strength);
+        // The wake astern: a plasma streak behind a ship coming down, an exhaust streak behind one going up. The
+        // climb is the one time a ship of the line burns hard in air, so its exhaust is pronounced, but it is a hull
+        // or two of hot air rather than the plasma column of a re-entry.
+        float streak = glow >= trail ? length * (1.4f + 1.6f * glow) : length * (0.6f + 0.8f * trail);
         float centreAstern = length * 0.5f + streak * 0.5f;
         out.addAdditiveSprite(RenderLayer.SHUTTLES, soft,
                 cam.cellToScreenX(cx[0] - nx * centreAstern), cam.cellToScreenY(cx[1] - ny * centreAstern),
