@@ -200,6 +200,12 @@ legibility.
   teaches nothing by itself. Always written in full: the Agreus contracts'
   *civil-security procurement warrant* is a contract term that opens no access
   tier, and neither noun stands for the other.
+- **Warrant obligations** — what a held military warrant costs to keep: service
+  and loyalty in each obligation period. A warrant that is kept is *active*; one
+  whose period was missed or whose loyalty was broken is *suspended*; one whose
+  issuer turned hostile is *revoked*. An *honoured* period is one in which both
+  terms were kept. A *service call* is an ordinary contract the issuer sends the
+  company directly, with a deadline.
 - **Market listing** — a named card a story beat has put on sale at one named
   market, or at every open market of one faction, until the company knows or
   carries it. Authored stock the market channel displays, not a fifth channel.
@@ -632,13 +638,56 @@ real answer: the terms are never offered again and every other route, the standi
 warrant included, stays open. Every step is once-only, so a replayed answer or a
 repeated honoured period grants nothing further. Lion's Guard and Knights kit is therefore not "never". It
 is "only for a company that has become one of theirs", which most companies will
-not. A warrant is permanent once granted; what it costs to keep is
-`warrant-obligations.md`.
+not.
+
+**A warrant is a relationship, so it keeps costing something.** Without that it
+would be the last unlock rather than the story of a mercenary company becoming
+somebody's auxiliary (`meta-progression.md` refuses Capability with no
+counter-pressure). Every warrant, standing or authored, states its terms when first
+held, and the same terms bind both:
+
+- **Service:** in each 90-day obligation period the company completes at least one
+  contract for the issuer. A service call counts, and is how the issuer makes sure
+  there is one: thirty days before a period ends without service, it sends an
+  ordinary contract from its own houses, open until the period ends.
+- **Loyalty:** the company takes no contract against the issuer, and keeps the
+  relationship at the warrant's floor. The floor is Favorable for an authored
+  warrant, the licence threshold it was offered at, and the standing rule's own
+  Cooperative for a standing one.
+
+A period with both is honoured and the next begins; the Hegemony auxiliary
+warrant's first honoured period is what opens its stage two. A period that ends
+without service, a contract taken against the issuer, or the relationship slipping
+below the floor **suspends** the warrant at once. Ninety days is the length chosen:
+shorter makes the warrant a chore that dictates the campaign, longer makes the
+obligation a formality.
+
+A suspended warrant's templates are not warranted: they cannot be acquired again,
+and no marine can be **newly fitted** with one of its suits. Marines already
+wearing one keep it, but a casualty's suit is not reissued and a recruit cannot be
+put into one. Nothing learned is revoked and no fitted suit is taken away; the
+warrant squeezes replacement, which is where a powered section feels pressure over a
+long campaign. The issuer sends a suspended company a service call at once, and one
+completed service with the relationship back at the floor restores the warrant and
+begins a fresh period.
+
+A relationship that falls to hostile **revokes** the warrant: the suspension rules
+apply permanently, and no service lifts them. An authored warrant is never
+re-offered, but the standing rule still applies, and a fresh standing grant from
+the same tradition replaces the revoked one.
+
+The fitting check lives in the one place a sheet's billets are resolved for a
+squad (`MarineRoster.previewSquadEquipment`), not in the screens, so every route to
+fitting asks it, and a refused issue says which warrant withholds it. A
+template opened by a held warrant counts only while that warrant is active.
 
 The gate refuses new acquisition and revokes nothing. A save that learned an
-approved suit through the old open routes keeps it and fits it freely. Held
-warrants stand on the Company HQ record beside the company's employers, each
-naming its issuer, how many approved suits it opens and how it was earned. A Restricted card's own
+approved suit through the old open routes keeps it and fits it freely: no warrant
+names it, so no obligation can withhold it. That is the compatibility promise, not
+a loophole to close later. Held warrants stand on the Company HQ record beside the
+company's employers, each naming its issuer, how many approved suits it opens and
+how it was earned, and its standing under its obligations: the next service
+deadline while active, what restores it while suspended, and revocation. A Restricted card's own
 tooltip and spec sheet name the tradition that issues it, in place of the
 reputation and victory thresholds the other tiers show.
 

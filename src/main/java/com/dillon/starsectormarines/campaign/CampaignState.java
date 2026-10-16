@@ -38,6 +38,15 @@ public final class CampaignState implements Serializable {
     public ShepherdRecoveryProgress shepherdRecovery;
     /** Null in older saves; the first Agreus launch freezes its authored attempt. */
     public AgreusArcProgress agreusArc;
+    /** What each held military warrant costs to keep; null in older saves, created on first read. */
+    public WarrantObligationLedger warrantObligations;
+
+    /** The warrant obligations ledger, created on first read so an old save starts with no terms. */
+    public WarrantObligationLedger warrantObligations() {
+        if (warrantObligations == null) warrantObligations = new WarrantObligationLedger();
+        return warrantObligations;
+    }
+
     /** The Hegemony auxiliary warrant offer; null in older saves, created on first read. */
     public AuxiliaryWarrantProgress hegemonyAuxiliary;
 
