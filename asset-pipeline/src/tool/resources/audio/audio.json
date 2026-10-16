@@ -781,6 +781,14 @@
     {"id": "jangala_arrival_hail_04", "source": "jangala-arrival/jangala_arrival_hail_04.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms"},
     {"id": "jangala_arrival_hail_07", "source": "jangala-arrival/jangala_arrival_hail_07.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "orbital_comms"},
     {"id": "jangala_arrival_hail_08", "source": "jangala-arrival/jangala_arrival_hail_08.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms"},
-    {"id": "jangala_arrival_hail_09", "source": "jangala-arrival/jangala_arrival_hail_09.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms"}
+    {"id": "jangala_arrival_hail_09", "source": "jangala-arrival/jangala_arrival_hail_09.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms"},
+    {"id": "c5_yard_steam_vent", "source": "jangala-yard/c5_yard_steam_vent.wav", "kind": "ui", "out": "story/jangala-arrival"},
+    {"id": "c5_yard_hull_ticks", "source": "jangala-yard/c5_yard_hull_ticks.wav", "kind": "ui", "out": "story/jangala-arrival"},
+    {"id": "c5_yard_crane_horn", "source": "jangala-yard/c5_yard_crane_horn.wav", "kind": "ui", "out": "story/jangala-arrival"},
+    {"id": "c5_yard_winch", "source": "jangala-yard/c5_yard_winch.wav", "kind": "ui", "out": "story/jangala-arrival"},
+    {"id": "c5_yard_radio_chatter", "source": "jangala-yard/c5_yard_radio_chatter.wav", "kind": "ui", "out": "story/jangala-arrival"},
+    {"id": "c5_yard_boots", "source": "jangala-yard/c5_yard_boots.wav", "kind": "ui", "out": "story/jangala-arrival"},
+    {"id": "c5_yard_jungle_bed", "source": "jangala-yard/c5_yard_jungle_bed.wav", "kind": "ui", "out": "story/jangala-arrival"},
+    {"id": "c5_yard_spool_down", "source": "jangala-yard/c5_yard_spool_down.wav", "kind": "ui", "out": "story/jangala-arrival"}
   ]
 }

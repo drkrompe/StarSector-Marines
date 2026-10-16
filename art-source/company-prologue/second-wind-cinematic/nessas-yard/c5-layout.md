@@ -1,209 +1,134 @@
 # C5 NESSA'S YARD: shared layout for every layer
 
-Shot C5 of `storyboard-v3.md`: about 8 seconds at 1920x1080 and 24 fps, outside
-the window for the first time since C1. Every painted layer follows this sheet.
-`build_c5_guides.py` owns the camera and the additions, and writes
-`guides/c5-camera.json`, the measured screen positions. `compose_c5.py` owns the
-push. If this sheet and the code disagree, the code is right.
+Status: ACTIVE (final frames delivered)
+Written: 2026-10-16
+Updated: 2026-10-16 — rebuilt at the shared 0.65 m per hull unit; final plates, cards, hull render, sheets and yard sound.
+
+Shot C5 of `storyboard-v3.md`: 8 seconds at 1920x1080 and 24 fps, outside the window for
+the first time since C1, delivered per `runtime-contract.md`. `build_c5_guides.py` owns the
+camera and the set, and writes `guides/c5-camera.json`, the measured screen positions.
+`render_c5_hull.py` renders the hull card. `compose_c5.py` owns the push, the moving
+elements and the contract data. If this sheet and the code disagree, the code is right.
 
 ## Purpose and payoff
 
-They made it. Second Wind is down, standing level in a private cradle, and it is
-plainly a wreck: craters, sheared plates and salvage straps, with vapour coming
-off a hull that should not have survived the trip. People come out to meet it.
-Nessa stands apart with her arms folded, too small to have a face, and that is
-the whole introduction the picture gives her. Castle tells the meeting in Y1.
+They made it. Second Wind is down, standing level in cradle Kilo Nine, and it is plainly a
+wreck: craters, sheared plates and grey repair patches, with vapour coming off a hull that
+should not have survived the trip. The yard crew walk out to meet it. Nessa stands apart
+with her arms folded, too small to have a face, and that is the whole introduction the
+picture gives her. Castle tells the meeting in Y1.
 
-The camera repeats C1's angle on purpose. C1 met Second Wind from astern, engine
-bells toward the camera, as it pushed in toward Jangala. C5 ends the arrival on
-the same view, starboard stern quarter, engines toward the camera, now cold and
-venting on the ground. The bookend is the payoff: the same ship from the same
-side, but down.
+The camera repeats C1's angle on purpose: starboard stern quarter, engine bells toward the
+camera, now cold and venting on the ground. The bookend is the payoff: the same ship from
+the same side, but down.
 
-This is **Greywater Down, private cradle Kilo Nine** (the hail, line 2).
+## Scale and the set
+
+Scale is the shared `metres_per_unit` in `second-wind-geometry/states/patched/geometry.json`
+(0.65), so Second Wind is about 66 m (`c1_ship.SW_LENGTH_M`). The landing scene the guides
+are built from still carries the old provisional 1.5 m per unit, so `build_c5_guides.py`
+shrinks the ship and its cradle about the hull root by K = 0.65 / 1.5 and brings the camera
+in by the same factor. That keeps the ship's framing from the look test while everything
+human-sized (people, the gantry, props, the eye height) stays its true size. The district
+is left where it stands, which reads as a smaller ship in the same yard.
+
+At this scale a 1.8 m person is about 47 px tall and Nessa about 56 px: people read as
+people, with no faces. (The look test's "too large" crew were nearly right for a 66 m hull.)
 
 ## Camera
 
-- **Position.** A person's view from the yard's perimeter walkway, 7 m above the
-  hardstand, at (−128, −178, 7) m in the settled landing scene's coordinates
-  (+X is the ship's bow, +Y is its port side, +Z is up; the hull's root is at the
-  origin). It aims at (10, 0, 17). The view is starboard stern quarter: the
-  engine bells are at the left and nearest, and the bow recedes to the right.
-- **Lens.** 40 mm on a 36 mm sensor (f = 2133 px at 1920), so the horizontal
-  field of view is 48°. That is the same field as C4's window within 2°, so the
-  cut from C4 to C5 does not jump in lens character.
-- **Motion.** A slow push-in, scale 1.00 to 1.08 with ease in and out over 8 s,
-  centred on (1000, 600). That is just aft of midships, between the hull and
-  Nessa, so she stays near the centre and the gantry stays in frame. Nearer
-  layers take more of the push: each layer scales by the camera scale raised to a
-  weight of 0.35 for the sky and tree line, 0.6 for the yard, 0.85 for the ship,
-  cradle, crew and steam, and 1.0 for the foreground. Nothing translates except
-  through the push, and nothing rotates.
-- **Duration.** 8 s, then a straight cut into Y1.
+- **Position.** The yard's perimeter walkway, 4 m up, at (−55.5, −77.1, 4.0) m in the C5
+  set (+X bow, +Y port, +Z up, hull root at the origin), aimed at (4.3, 0, 7.4).
+- **Lens.** 40 mm on a 36 mm sensor, 48° across: within 2° of C4's window, so the cut does
+  not jump in lens character.
+- **Motion.** A slow push-in, scale 1.00 to 1.08 with ease in and out over 8 s, centred on
+  (1000, 600). Each layer scales by the camera scale raised to its weight: 0.35 for the sky,
+  0.6 for the district, 0.85 for the yard, hull, cards and steam. Nothing else translates
+  and nothing rotates. Then a straight cut into Y1.
 
 ## Sun and atmosphere
 
-- **The same sun as C4** and every other shot: (−0.61, −0.09, 0.78) toward the
-  sun, which is astern, slightly to starboard, at 51°. From this camera it is
-  behind the viewer and to the left. The stern faces and the dorsal plates take
-  full light. The starboard flank takes the light at a grazing angle along its
-  length, and that raking light is what makes the craters read. Shadows fall
-  forward along the hull to the right and away. The hardstand under the hull is
-  in deep shade.
-- **Time.** Late morning, a few minutes after C4.
-- **Air.** Humid haze, with gentle falloff over a few hundred metres. The far
-  jungle line goes blue-green, and the yard halls pale by about 15%. The steam is
-  lit from behind the camera, so it is bright, sunlit and translucent. The heat
-  shimmer over the engine bells is the only distortion.
-- **Ground.** Dry, stained concrete. The look test came back with wet, reflective
-  puddles, which `landing-wreck-pass/yard-style-contract.json` already ruled out
-  for this yard. Ask for dry ground explicitly.
-
-## Scale and distance
-
-The ship's scale is the landing scene's provisional 1.5 m per hull unit. In
-the measured scene Second Wind is 150 m long and 48 m tall. Sizes are in output
-pixels at 1920x1080, before the push. The push adds up to 8% by the end.
-
-| Subject | Distance | Real size | On screen |
-|---|---:|---:|---:|
-| Second Wind, stern bell to bow | 180–270 m | 150 m long | about 1,170 px (x 256–1426) |
-| Second Wind, keel to dorsal | 226 m | 48 m tall | about 450 px |
-| Largest engine bell (mid-hull pod) | about 175 m | about 13 m across | about 155 px |
-| Cradle contact pad | about 200 m | 10 × 10 × 5 m | about 53 px tall |
-| Sheltered crew gantry | 197 m | 16 × 8.5 × 10.6 m | 115 px tall |
-| Yard crew member | 197 m | 1.8 m | **19–20 px tall** |
-| Nessa | 191 m | 1.72 m | 19 px tall |
-| Walking pace | 197 m | 1.3 m/s | 14 px/s, 112 px over 8 s |
-| Repair hall (district, left) | about 400 m | 20 m tall | about 105 px |
-| Far jungle line | 2.3–2.9 km | 25 m canopy | about 20 px |
-| Foreground barrier | 52 m | 0.9 m | about 37 px |
-
-At 19 px a person reads as a person but has no face, which is what the
-storyboard asks for. The look test painted the crew three to four times too
-large (see *Look test*), so people are never left to the plate pass.
+The shared sun of `landing-wreck-pass.blend` (`Shared sun | all shots`), read from that file
+by `render_c5_hull.py` together with its world colour and AgX exposure: astern, slightly to
+starboard, 51° up, behind the camera and to the left. The stern and the starboard flank take
+the light; the hardstand under the belly is in deep shade. Humid haze pales the far halls
+and turns the far jungle line blue-green. Ground is dry, stained concrete: the plate's
+highlight sheen is pulled down below the horizon so it never reads as wet
+(`landing-wreck-pass/yard-style-contract.json`).
 
 ## Layers, back to front
 
-Six render passes, of which five are depth layers. Steam is an effect sheet on
-the ship layer, not a sixth depth.
+| Layer | Contents | Weight | Source |
+|---|---|---:|---|
+| L1 sky | Humid sky, towering cumulus right, far jungle hills and tree line | 0.35 | `assets/c5-sky-v1.png`, stretched so its tree line stands just under the yard's horizon |
+| L2 district | Repair hall, control tower, offices | 0.6 | `assets/c5-yard-v1.png`, split by `guides/c5-L3-front-guide.png` (the near set rendered with the district as holdout), carried 10 px below the building bases |
+| L3 yard | Hardstand, cradle pads and rails, gantry with jib, apron, barriers, cable reel, service cart | 0.85 | the same plate; sky keyed by colour in a band around the guide's shapes |
+| L3 shade | The hull's cast shadow and the deep shade under the belly | 0.85 | `layers/c5-hull-shadow.png` plus a contact shade from the belly edge to the cradle footing |
+| L3 hull | Second Wind, settled | 0.85 | `layers/c5-hull.png` |
+| L3 moving | Hoist crate, steam, heat shimmer, crew, Nessa | 0.85 | cards and procedural sheets (below) |
 
-| Layer | Contents | Depth | Push weight | Guide | Painting method |
-|---|---|---|---:|---|---|
-| L1 sky | Humid sky and cumulus, the far jungle line and low hills | 2.3 km → ∞ | 0.35 | `guides/c5-L1-sky-guide.png` (opaque) | One Codex plate at 3840 × 2160 from the guide (horizon and tree line placement), reskinned; no ship, no yard |
-| L2 yard | The port-refinement district: repair halls, sawtooth stores, gantries, tanks, light masts; yard ground beyond the seam at Y = 190 m | 300–1,900 m | 0.6 | `guides/c5-L2-yard-guide.png` | Reskin of the guide with alpha; the seam line sits just behind the cradle and is hidden by the hull and the hardstand edge |
-| L3 ship | **Second Wind** settled in the cradle; contact pads, rails and the dark blue-grey berth hardstand; apron ground out to the foreground; the sheltered gantry with its jib hoist | 150–270 m | 0.85 | `guides/c5-L3-ship-guide.png` | **Two passes.** The hull as a Blender render of the damaged master (`second-wind-full-surface/`, appended and placed at the settled transform), lit by the shared sun, as a cut-out card. Then the cradle, apron and gantry as a Codex reskin of the guide with the hull area held out. The hull render may take a light Codex surface pass only if overlaid and registered as in `landing-refinement/` (landmark affine fit) |
-| L3s steam | Vapour from the two cradle cooling vents and from the hull beside the engine bells | on L3 | 0.85 | `guides/c5-L3s-steam-guide.png` (placement blockers only) | **Sheets**, not paint: 24–32 frame loops of rising, sunlit vapour (two vent loops, one hull loop), drifting up and right at about 6–9 px/s with slow opacity breathing. A heat-shimmer sheet over the engine bells applies a small screen-space refraction (see *Open questions*) |
-| L3e crew | Five yard crew; Nessa | 191–200 m | 0.85 | `guides/c5-L3e-crew-guide.png` | **Cards**, never part of the plate: walk-cycle sheets (8 frames, side three-quarter, at 4x painted size, about 80 px tall, then scaled to 19–20 px); Nessa a still card with a slow 2-frame weight shift |
-| L4 fore | A low yard barrier, a cable reel and a service cart along the bottom edge | 45–55 m | 1.0 | `guides/c5-L4-fore-guide.png` | Codex reskin with alpha. These props also hide the apron's differential-scale seam, up to about 15 px by the end of the push |
+The yard plate came back with every x right but stretched unevenly in y, so
+`compose_c5.YARD_ROWS` remaps its rows onto the guide through matched landmarks (tower cab,
+hall eave, jib, gantry roof and feet, hall base, pad tops). The foreground props were
+re-spaced by the generator; they touch nothing that registers, so they stand as painted.
+The near ground and the props share the yard layer, so nothing slides against its own
+shadow under the push.
 
-`guides/c5-clay-all.png` is the whole clay frame for reference. Every guide is
-3840 × 2160, rendered in Cycles from `landing-wreck-pass.blend` at its settled
-frame 774. The source blend is opened read-only and never saved.
-
-**Ship card consistency.** The damage must match C1's entrance card and C2's
-glimpses (storyboard: "No new damage appears during the descent"). C1's
-`render_ship_card.py` renders the same master, so C5's hull card should come
-from that script with a `yard` view added, using this camera's transform from
-`guides/c5-camera.json`. That way both shots use one lighting setup and one set
-of materials.
+**Hull card.** `render_c5_hull.py` renders the current full-surface master
+(`second-wind-full-surface/`) from the C5 camera at 3840x2160, scaled so its X extent is
+`SW_LENGTH_M` and centred where the shrunk landing hull stands. Everything in the near set
+that can stand in front of it (`guides/c5-occluders.glb`) holds it out. Model swap contract
+as C1: `SHIP_BLEND`, `SHIP_ROOT`, `THROAT_PATTERN`. Arrival is the patched state, so only
+the starboard throats (engines 3 and 4) keep a dull cooling glow. When the surfaced patched
+master lands, point `SHIP_BLEND` at it and re-run `render_c5_hull.py` and `compose_c5.py`.
 
 ## Moving elements
 
-| Element | Layer | Motion | Method |
-|---|---|---|---|
-| Yard crew, five, in grey coveralls and biofilter masks | L3e | Leave the gantry and walk toward the ship along (−0.79, 0.61), parallel to the picture plane, at 1.3 m/s: 14 px/s on screen, plus the push | Walk-cycle sheet at one fixed angle. The path stays parallel to the picture plane, so the size does not change (under 1% over the shot) and the angle never does. Each walker is staggered by 2–5 frames |
-| Nessa | L3e | Stands, arms folded, facing the ship and the arriving crew | Still card, optional 2-frame weight shift. She does not walk: the stillness is the characterisation |
-| Steam from the vents and hull | L3s | Rises and drifts right, breathing | Loop sheets (above) |
-| Heat shimmer over the engine bells | L3s | Constant | Shimmer sheet as a masked refraction offset, 1–2 px amplitude |
-| Gantry jib hoist | L3 | Lowers and raises a parts crate about 2 m, a 4 s loop: about 20 px | A 24-frame loop sheet of the hoist line and load at a fixed angle |
-| Yard light mast beacons | L2 | Slow blink | Additive dots, as in C4 |
+| Element | Motion | Method |
+|---|---|---|
+| Five yard crew, grey coveralls, biofilter masks | Leave the gantry and walk left toward the ship and Nessa at 1.3 m/s, parallel to the picture plane, staggered starts and cycle phases | `assets/c5-crew-walk-v1.png`: two walkers (empty hands, tool case) x 8-frame side-view cycle, one stride per 1.12 s, scaled to the guide's measured height; soft contact shadows |
+| Nessa | Stands, arms folded, facing the ship; one slow weight shift at about 4 s | `assets/c5-nessa-crate-v1.png`, two near-identical frames crossfaded |
+| Hoist crate | Rides 1.9–3.5 m under the painted jib tip on a 4 s loop, at the top while the crew pass under it | Crate card from the same sheet on a drawn cable; the plate's painted cable and hook are painted out |
+| Vent and hull steam | Rises and drifts right, breathing on a 2.9 s cycle; vents under the belly start in shade and brighten as they rise | Procedural translucent sheets from tileable fractal noise (`steam_sheet`) |
+| Heat shimmer | Pale wavering streaks rising over the near bell mouths | A translucent sheet (`shimmer_sheet`), not a refraction |
 
-The camera only scales, and the walkers walk parallel to the picture plane, so
-every element is safe under the rules in `storyboard-v3.md`. Nothing walks
-toward or away from the camera.
+The camera only scales and every mover travels parallel to the picture plane, so each is
+safe under `storyboard-v3.md`'s rules.
 
-## Audio and dialog sync
+## Audio and dialogue
 
-- **No dialog.** Per the storyboard, the flight noise falls away to ordinary yard
-  sound. Use cabin rumble from C4 ducking out over the first second, then the
-  open yard: steam hiss from the vents, ticking hull metal cooling, a distant
-  crane horn, the hoist's winch, faint radio chatter from the gantry, boots on
-  concrete as the crew arrive (late, quiet), and jungle insects under it all.
-- Cut into Y1, where Castle reports the meeting, on the last frame of the push.
-  Do not let a line start over C5. The silence after C4's "Let me talk first."
-  is the beat.
-- Steam bursts in the sound should follow the steam sheets' loop phases.
-- Asset candidates already in `asset-pipeline/src/tool/resources/audio/`:
-  `ambient-machinery/` and `tender/`.
-
-## Salvage
-
-| Source | Used for |
-|---|---|
-| `landing-wreck-pass/landing-wreck-pass.blend`, frame 774 | Settled hull pose, cradle pads and rails, berth hardstand and the port-refinement district: the whole guide geometry |
-| `second-wind-full-surface/second-wind-full-surface.blend` | The hull card: all-face relightable material on the same 196 meshes and damage |
-| `landing-wreck-pass/review/settled.png` | Identity and damage material reference for any Codex pass on the hull |
-| `landing-refinement/` | Starboard registration method (11-landmark affine fit) for reprojecting generated hull detail; yard finish as a material reference |
-| `port-refinement/assets/secondary-materials-v1.png` | Yard concrete, slate and teal surfaces, matching C4's port |
-| `corvus-approach/render_ship_card.py` | The card renderer, extended with this camera, so C1 and C5 share one ship look |
+No dialogue: the silence after C4's "Let me talk first." is the beat, and Y1 starts on the
+cut. `audio_cues()` lays original DSP masters from
+`asset-pipeline/src/tool/resources/audio/jangala-yard/` (README there): the ship winding
+down as the sound bridge from C4, the jungle bed, vent steam breathing in phase with the
+steam sheets, cooling hull ticks, the jib winch on the crate's loop, a faint unintelligible
+gantry radio, a distant crane horn and the crew's boots arriving late. The review mp4 lays
+the same cues for listening; the player schedules them for real.
 
 ## Build
 
 ```bash
-"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup ../landing-wreck-pass/landing-wreck-pass.blend --python build_c5_guides.py -- --samples 24
-python compose_c5.py                  # review/c5-blockout-t0.0, 2.5, 5.0, 8.0 .png
-python compose_c5.py --frames         # every frame to build/cinematic/c5-nessas-yard/frames
+"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup ../landing-wreck-pass/landing-wreck-pass.blend --python build_c5_guides.py -- --samples 16
+python render_c5_hull.py --samples 96         # layers/c5-hull.png, layers/c5-hull-shadow.png
+python compose_c5.py                          # review/c5-t*.png and review/c5-contact.png
+python compose_c5.py --frames --mp4           # build/cinematic/c5-nessas-yard/{frames,c5-nessas-yard.mp4,timeline.json}
+python ../../../../asset-pipeline/src/tool/resources/audio/jangala-yard/generate.py   # then :asset-pipeline:processAudio
 ```
 
-## Look test (one generation)
+Generated art (prompts in `prompts/`, provenance beside each master): `c5-sky-v1`,
+`c5-yard-v1`, `c5-crew-walk-v1`, `c5-nessa-crate-v1`. `c5-looktest-v1` was the earlier
+whole-frame look test.
 
-`assets/c5-looktest-v1.png` (1672 × 941) with brief `prompts/c5-looktest-v1.txt`
-and its `.provenance.json`. It reskins `guides/c5-looktest-guide.png` (the
-whole clay frame), with `landing-wreck-pass/review/settled.png` as the hull's
-identity and damage reference. Review copies at 1920x1080:
-`review/c5-looktest-1080.png` and `review/c5-looktest-registration.png`
-(a 50% overlay on the guide).
+## Decisions on the earlier open questions
 
-What it settles:
-
-- **The angle pays off.** The stern-quarter view of the cratered flank in raking
-  sun, with steam off the engines and the cradle under the hull, reads at once as
-  "down, and a wreck". The hull's silhouette, bells, pods, bay and pads register
-  to the guide almost exactly.
-- **People must be cards.** The plate pass drew the crew at three to four times
-  their true size, about 70–80 px against the measured 19–20. It also moved the
-  file left and put Nessa under the hull. Scale and placement of people belong to
-  the cards. The plate pass should be told "no people".
-- **It invents what it is not told about.** It added jungle hills behind the
-  yard and wet puddles. The hills are welcome and belong on L1. The puddles go
-  against the yard style contract. Ask for dry, stained concrete.
-
-## Open questions
-
-1. **Second Wind's size.** In the landing scene, 1.5 m per hull unit makes the
-   ship 150 m long and 48 m tall, so a person is 19 px against a 450 px hull.
-   The image model's instinct was a smaller ship (or larger people). Is 150 m the
-   intended scale for a converted mining escort? The answer changes the crew size
-   in C5 and the ship's size against the station in C1.
-2. **Heat shimmer.** The storyboard asks for shimmer "from sheets". Done
-   honestly, shimmer offsets the pixels behind it, which is a local distortion,
-   not a layer that translates. Proposal: allow a masked screen-space refraction
-   (1–2 px) over the engine bells as the one exception to "no layer deforms", or
-   fake it with a translucent shimmer sheet only.
-3. **Kilo Nine marking.** A stencilled "K9" on the cradle hardstand or the
-   gantry would tie the hail to the place without dialog. The C1 layers carry no
-   text. Is diegetic stencil text on a surface acceptable?
-4. **Nessa's mark.** At 19 px she is a silhouette. Should she get one cue to set
-   her apart from the crew, such as no mask, or a coat instead of coveralls? A
-   bare face in a biofilter-mask yard says she has been on Jangala long enough
-   not to bother. Or is that against the biosphere rule?
-5. **Where the crew come from.** The blockout puts the sheltered gantry at the
-   right, by the bow pad, so the crew walk left toward Nessa, across the frame
-   and parallel to the picture plane. An alternative is a gantry at the left by
-   the engines, with the crew walking right toward the bow, at the cost of
-   crossing the heat-shimmer area.
-6. **C4 → C5 cut.** C4 ends on the port and "Let me talk first.", and C5 opens
-   with the ship already down. Removing the descent is a storyboard decision.
-   Does the cut want a one-second sound bridge (landing-gear thump and engine
-   spool-down over black or white) to make the time jump legible?
+1. **Ship size.** Settled by the owner: 0.65 m per unit, about 66 m.
+2. **Heat shimmer.** A translucent sheet only. No layer deforms.
+3. **"K9" marking.** No diegetic text. Generated lettering garbles, and the place is named
+   by the hail; the player can caption it if it is ever wanted.
+4. **Nessa's mark.** A long ochre work coat over dark trousers, grey hair, no cap. She
+   keeps the biofilter mask, because the storyboard's biosphere rule says ground crew wear
+   them; the coat alone sets her apart from the grey coveralls.
+5. **Where the crew come from.** The gantry by the bow pad at right, walking left toward
+   Nessa and the ship, clear of the shimmer.
+6. **C4 → C5 cut.** A sound bridge, not a picture one: `c5_yard_spool_down` opens C5 with
+   the ship's drive winding down, heard from outside.
