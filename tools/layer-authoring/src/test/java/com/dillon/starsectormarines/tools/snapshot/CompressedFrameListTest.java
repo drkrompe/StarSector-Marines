@@ -24,6 +24,14 @@ class CompressedFrameListTest {
     }
 
     @Test
+    void framesSpilledToDiskComeBackInOrder() {
+        CompressedFrameList frames = new CompressedFrameList(true);
+        for (int i = 0; i < 6; i++) frames.add(image(BufferedImage.TYPE_INT_ARGB, 0xFF000000 | i * 0x102030));
+        assertEquals(6, frames.size());
+        for (int i = 5; i >= 0; i--) assertEquals(i * 0x102030, frames.get(i).getRGB(4, 3) & 0xFFFFFF);
+    }
+
+    @Test
     void anArtifactKeepsTheListRatherThanCopyingItOut() {
         CompressedFrameList frames = new CompressedFrameList();
         frames.add(image(BufferedImage.TYPE_3BYTE_BGR, 0x123456));

@@ -1,0 +1,12 @@
+{
+  "requestId": "BaH9eeShlujEDAeM28w9",
+  "characterCost": "122",
+  "inputSha256": "0b75f19b80155563256342decf6b067b241552a6aa2372d5b135794603596167",
+  "audioSha256": "9e3e13528e1127fe918bda18376d382cc8144f7197affec303eb46f692a7983b",
+  "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+  "modelId": "eleven_v4",
+  "durationSeconds": 15.84,
+  "outputFormat": "mp3_44100_128",
+  "take": 3,
+  "audition": "take 3 of 3 accepted. Take 1 (15.04s) was brisk; take 2 (22.96s, slower direction) repeated its first two sentences. Take 3 is complete, unedited, with no repeats (checked by speech-to-text)."
+}

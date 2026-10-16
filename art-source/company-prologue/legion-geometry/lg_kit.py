@@ -242,4 +242,10 @@ def clip_rect(poly, x0, x1, y0, y1):
         pts = clip(pts, inside, cross)
         if not pts:
             break
-    return pts
+    out = []   # drop repeated corners where a vertex lies on a clip edge
+    for p in pts:
+        if not out or abs(p[0]-out[-1][0])+abs(p[1]-out[-1][1]) > 1e-6:
+            out.append(p)
+    while len(out) > 1 and abs(out[0][0]-out[-1][0])+abs(out[0][1]-out[-1][1]) <= 1e-6:
+        out.pop()
+    return out

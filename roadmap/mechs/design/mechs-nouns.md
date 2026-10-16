@@ -97,7 +97,20 @@ increasing an encounter's total armored threat.
   access ladder: Hound (light) Common, Sirocco (medium) Advanced, Bulwark (heavy)
   Prestige; weapons and internals carry their own authored tier. Vehicle patterns follow the same ladder — heavy APC light/Common,
   escort APC and militia technical medium/Advanced, breakthrough tank
-  heavy/Prestige — and no vehicle is a starter: a company earns its first hull. A **mech pattern card** is the cargo item that teaches one
+  heavy/Prestige — and no vehicle is a starter: a company earns its first hull.
+  A vehicle line climbs by **variants**, each its own pattern card and bill, never
+  by fitting the hull it has: the heavy APC's up-armored APC (twice the plate, slower,
+  Medium lift) and fire-support APC (a heavy mortar where the troop bay was, no seats,
+  Medium lift) are Advanced; the breakthrough tank's heavy-gun tank and dozer
+  breacher are Prestige and Heavy lift. A variant earns its place by a trade —
+  among fabricable hulls on the same lift with the same gun, none is at least as good
+  at everything — and costs more than the hull it improves on. A faction weights up
+  the variant it is known for (Hegemony the up-armored APC, the Lion's Guard the
+  fire-support APC, Tri-Tachyon the heavy-gun tank, the Luddic Path the dozer).
+  **A variant whose hull or turret art is missing is not offerable**, exactly as a
+  loadout card whose presentation is pending is not: it keeps its stats, pattern and
+  bill, but no channel draws it and no card for it can become cargo
+  (`VehicleType.presentationDeclared`). A **mech pattern card** is the cargo item that teaches one
   pattern; learning writes only to the mech bay and is consumed only when it
   teaches something new. Cards arrive through the same market, licence, patron and
   recovery channels and access gates as loadout cards (`progression-nouns.md`),
@@ -172,6 +185,37 @@ increasing an encounter's total armored threat.
   one chassis another. The heat sink sets the reservoir and base cooling, a cooler
   adds to it, and an uprated engine runs hotter. Battle reads only these values;
   internals, mass and budget stay campaign authority.
+- A **section** is where on a mech a round lands (`MechSection`): legs, torso,
+  the arms mount, the left and right shoulder mounts, and the head. A chassis's
+  **mech plan** (`MechBodyPlan`, authored per chassis) stacks four height bands
+  from the feet up (legs, torso, shoulders, head) so the ballistic height picks
+  the band exactly as it picks a marine's part; the torso band gives the arms
+  mount a lateral share of its hits, and the shoulder band gives the hit to the
+  shoulder on the side the round came from, read against the upper torso's
+  facing. A lone pod a chassis draws on its centreline (the Hound's) takes the
+  whole shoulder band. A payload with no ballistic height (a blast, a strafe) is
+  struck at a uniform height. The roll is never aimed.
+- **Section pools** divide the frame's armor capacity and the chassis structure
+  across the sections by authored shares, so the totals are what frame and
+  plating set; the armor rating stays per chassis. A mount the mech deployed
+  without has no section and its share is the torso's. Each section is resolved
+  by the shared durability calculation; structure a section cannot hold spills
+  into the torso's structure, and a hit on a section already at zero goes
+  through to the torso. The chassis health and armor columns carry the
+  sections' totals, so whole-chassis readers see one body.
+- **Section loss** is a capability before it is the machine. Legs at zero
+  **cripple** the mech: no walking speed, autonomous or manual, while it still
+  pivots its hips onto its target, turns its torso and fires. A mount at zero
+  **destroys its weapon**: the mount becomes absent for the rest of the battle.
+  The head at zero **loses the sensors**: vision halves and weapon accuracy
+  drops. The torso at zero is the only death; legs are never a kill. Damage above
+  zero costs only that section's protection, with no hidden stat penalty. Cover
+  still meets a mech as one body with the flat chance until mech plans author
+  cover by section. `-Dbattle.mech.locationalDamage=false` is the whole-body
+  control. The battle keeps each mech's section record (pools, what was
+  destroyed, which weapon each lost mount carried) for campaign writeback,
+  where a lost mount is a lost assembly, other damaged sections are repairs,
+  and a destroyed torso loses the chassis.
 - The **Mech Lab** is the shipboard room that selects the active mech squad,
   parks its assets across four fabrication gantries, frames one selected asset as
   a top-down hardpoint doll, and performs inventory-checked refits. Asset/lance browsing is
@@ -686,7 +730,11 @@ support sortie, subject only to practical runtime resources.
   remains the high-capacity, high-rating anchor; Hound trades armor endurance for
   mobility; Sirocco has the least protection and depends on range and a screen.
 - Mount absence is a tactical weakness. Firing, continuation, AI utility,
-  resupply, and rendering must operate only on installed components.
+  resupply, and rendering must operate only on installed components. A mount
+  destroyed in battle is an absent mount, not a disabled one.
+- A mech dies only through its torso. Every other section at zero costs a
+  capability and passes further damage to the torso; section pools always sum to
+  the frame's armor capacity and the chassis structure.
 - Missile weapon hardware owns capacity and projectile behavior; the installed
   replenisher owns refill cadence. Upgrade content changes the subsystem rather
   than encoding reload speed in a chassis, role, or weapon definition.

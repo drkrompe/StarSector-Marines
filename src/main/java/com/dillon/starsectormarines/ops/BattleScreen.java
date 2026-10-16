@@ -1099,6 +1099,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         if (retainedSquadOverlay != null) top = occupiedTop(top, x, width, retainedSquadOverlay.surface());
         if (retainedMechOverlay != null) top = occupiedTop(top, x, width, retainedMechOverlay.surface());
+        if (retainedMechOverlay != null) top = occupiedTop(top, x, width, retainedMechOverlay.sectionSurface());
         if (retainedPowerOverlay != null) top = occupiedTop(top, x, width, retainedPowerOverlay.surface());
         if (retainedOrderOverlay != null) top = occupiedTop(top, x, width, retainedOrderOverlay.surface());
         if (retainedRetreatOverlay != null) top = occupiedTop(top, x, width, retainedRetreatOverlay.surface());

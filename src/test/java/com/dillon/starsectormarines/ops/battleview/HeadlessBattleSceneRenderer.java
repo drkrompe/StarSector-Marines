@@ -171,8 +171,10 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
         // RasterCanvasContext applies the document alpha while painting each
         // replayed primitive. Collect at full opacity so the host fade is not
         // folded into the battle commands and then multiplied a second time.
+        long collectStart = System.nanoTime();
         BattleSceneFrame frame = scenePass.prepare(viewport, 1f);
         DrawList commands = renderer.collectWorld(frame.context(), frame.layers());
+        if (ReviewRenderProfile.ENABLED) ReviewRenderProfile.phase("collect", System.nanoTime() - collectStart);
         // Opt-in per-layer census. "Nothing appeared" has two very different
         // causes -- a collector that emitted nothing, and a drain that dropped
         // what it was given -- and they look identical from the picture. This
@@ -191,21 +193,109 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
         // delivered rounds) is not in the simulation, so a review feed owns it and hands the collected commands in.
         DrawList overlay = scenePass instanceof ReviewOverlayPass review ? review.overlay(frame.context().camera) : null;
         camera = frame.context().camera;
+        List<DrawCommand> ordered = new ArrayList<>();
         for (RenderLayer layer : RenderLayer.values()) {
             if (!frame.layers().contains(layer)) continue;
             // Ahead of the layer's own commands: the production SHOTS order is contrails, delivered rounds and beams,
             // and only then the bodies, so a missile is drawn over its own trail.
             if (overlay != null) {
-                for (int index = 0; index < overlay.count(layer); index++) {
-                    drawCommand(context, viewport, overlay.buffer(layer)[index]);
-                }
+                for (int index = 0; index < overlay.count(layer); index++) ordered.add(overlay.buffer(layer)[index]);
             }
-            for (int index = 0; index < commands.count(layer); index++) {
-                drawCommand(context, viewport, commands.buffer(layer)[index]);
-            }
+            for (int index = 0; index < commands.count(layer); index++) ordered.add(commands.buffer(layer)[index]);
         }
+        // Whatever a command needs that is not a pure read is worked out here, once, on the caller's thread: the
+        // drain below may run as several bands at once, and each band would otherwise repeat it.
+        long prepareStart = System.nanoTime();
+        Prepared prepared = prepare(ordered, context, viewport);
+        long drainStart = System.nanoTime();
+        if (ReviewRenderProfile.ENABLED) ReviewRenderProfile.phase("prepare", drainStart - prepareStart);
+        // Always in the same bands, however many workers there are: where the bands fall is part of the picture
+        // (see HeadlessUiRenderer.drawInBands), so it must not depend on the machine.
+        if (!HeadlessUiRenderer.drawInBands(context, BAND_ROWS,
+                (band, top, bottom) -> drain(band, viewport, ordered, prepared, top, bottom))) {
+            drain(context, viewport, ordered, prepared, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        }
+        if (ReviewRenderProfile.ENABLED) ReviewRenderProfile.phase("drain", System.nanoTime() - drainStart);
         return true;
     }
+
+    /**
+     * The custom passes' own rasters and recordings for one frame. A night shade is a whole-frame composite of three
+     * renders, a hull light a whole-sprite relight, a plume list a replay of production code — none of which a band
+     * should do again, and the last of which should not run twice at all.
+     */
+    private record Prepared(Map<Object, BufferedImage> nightShades, Map<Object, List<PlumeDraw>> plumes,
+                            Map<Object, List<BufferedImage>> hullLights) { }
+
+    private Prepared prepare(List<DrawCommand> ordered, CanvasContext context, CanvasHostViewport viewport) {
+        Map<Object, BufferedImage> night = new IdentityHashMap<>();
+        Map<Object, List<PlumeDraw>> plumes = new IdentityHashMap<>();
+        Map<Object, List<BufferedImage>> hullLights = new IdentityHashMap<>();
+        for (DrawCommand command : ordered) {
+            if (command.kind() != DrawCommand.Kind.CUSTOM) continue;
+            Object custom = command.customDraw();
+            if (custom instanceof NightLightingPass pass && !night.containsKey(pass)) {
+                night.put(pass, renderNightLighting(pass, viewport));
+            } else if (custom instanceof EngineFxPass pass && !plumes.containsKey(pass)) {
+                plumes.put(pass, recordPlumes(pass));
+            } else if (custom instanceof EngineHullLightPass pass && !hullLights.containsKey(pass)) {
+                BufferedImage source = HeadlessUiRenderer.sourceImage(context, sprites.asset(pass.hullSprite()).path());
+                List<BufferedImage> overlays = new ArrayList<>(pass.lights().length);
+                for (EngineHullLighting.Light light : pass.lights()) {
+                    overlays.add(engineHullOverlay(source, pass.hullWidthCells(), pass.hullLengthCells(),
+                            pass.pivotX(), pass.pivotY(), new EngineHullLighting.Light[]{light}));
+                }
+                hullLights.put(pass, overlays);
+            }
+        }
+        return new Prepared(night, plumes, hullLights);
+    }
+
+    /**
+     * Draws {@code ordered} in order, skipping a sprite whose drawn box lies wholly outside rows
+     * {@code top}..{@code bottom}: it could not have written a pixel of them. The margin is wider than any edge a
+     * rasteriser touches, so a skipped draw is one that would have been clipped to nothing.
+     */
+    private void drain(CanvasContext context, CanvasHostViewport viewport, List<DrawCommand> ordered,
+                       Prepared prepared, int top, int bottom) {
+        boolean banded = top != Integer.MIN_VALUE || bottom != Integer.MAX_VALUE;
+        float surfaceHeight = viewport.height();
+        for (DrawCommand command : ordered) {
+            if (banded && (command.kind() == DrawCommand.Kind.SHEET_QUAD || command.kind() == DrawCommand.Kind.SPRITE)) {
+                float centerY = surfaceHeight - command.centerY();
+                float reach = command.angleDegrees() == 0f ? Math.abs(command.height()) / 2f
+                        : (float) Math.hypot(command.width(), command.height()) / 2f;
+                if (centerY + reach + CULL_MARGIN < top || centerY - reach - CULL_MARGIN > bottom) continue;
+            }
+            if (!ReviewRenderProfile.ENABLED) {
+                drawCommand(context, viewport, command, prepared, top, bottom);
+                continue;
+            }
+            long start = System.nanoTime();
+            drawCommand(context, viewport, command, prepared, top, bottom);
+            ReviewRenderProfile.draw(profileKey(command), System.nanoTime() - start);
+        }
+    }
+
+    /**
+     * Rows per band of a drained frame: 34 bands on a 1080-row frame, enough for a busy band (the rows a hull
+     * crosses) not to leave the other workers idle.
+     * {@code -Dsnapshot.bandRows=0} drains every frame whole, the control for what the bands change.
+     */
+    private static final int BAND_ROWS = Integer.getInteger("snapshot.bandRows", 32);
+
+    private String profileKey(DrawCommand command) {
+        String what = switch (command.kind()) {
+            case SHEET_QUAD, SPRITE -> sprites.asset(command.sprite()).path()
+                    + (command.angleDegrees() == 0f ? " axis" : " turned") + (command.additive() ? " additive" : "");
+            case CUSTOM -> command.customDraw() == null ? "null" : command.customDraw().getClass().getSimpleName();
+            default -> "";
+        };
+        return command.kind() + " " + what;
+    }
+
+    /** Pixels of slack around a culled draw's box: pixel-edge snapping moves an edge by at most one. */
+    private static final float CULL_MARGIN = 3f;
 
     /**
      * A review pass that brings commands of its own into the frame: the part of the production presentation that
@@ -221,6 +311,11 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
 
     private void drawCommand(CanvasContext context, CanvasHostViewport viewport,
                              DrawCommand command) {
+        drawCommand(context, viewport, command, null, Integer.MIN_VALUE, Integer.MAX_VALUE);
+    }
+
+    private void drawCommand(CanvasContext context, CanvasHostViewport viewport,
+                             DrawCommand command, Prepared prepared, int bandTop, int bandBottom) {
         float surfaceHeight = viewport.height();
         Color tint = color(command);
         switch (command.kind()) {
@@ -268,10 +363,10 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
                     command.polygon());
             case CUSTOM -> {
                 if (command.customDraw() instanceof WorldLabel label) drawWorldLabel(context, surfaceHeight, label);
-                else if (command.customDraw() instanceof ShieldDomePass domes) drawDomes(context, viewport, domes);
-                else if (command.customDraw() instanceof NightLightingPass night) drawNightLighting(context, viewport, night);
-                else if (command.customDraw() instanceof EngineFxPass engine) drawEngineFx(context, viewport, engine);
-                else if (command.customDraw() instanceof EngineHullLightPass light) drawEngineHullLight(context, viewport, light);
+                else if (command.customDraw() instanceof ShieldDomePass domes) drawDomes(context, viewport, domes, bandTop, bandBottom);
+                else if (command.customDraw() instanceof NightLightingPass night) drawNightLighting(context, viewport, night, prepared, bandTop, bandBottom);
+                else if (command.customDraw() instanceof EngineFxPass engine) drawEngineFx(context, viewport, engine, prepared);
+                else if (command.customDraw() instanceof EngineHullLightPass light) drawEngineHullLight(context, viewport, light, prepared);
                 else if (!skipUnsupportedCommands) throw new IllegalStateException("Unsupported custom draw");
             }
             case RIBBON -> drawRibbon(context, viewport.height(), command);
@@ -306,7 +401,16 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
     }
 
     /** Material-clipped reflected engine light, added one nozzle at a time just like the live shader. */
-    private void drawEngineHullLight(CanvasContext context, CanvasHostViewport viewport, EngineHullLightPass pass) {
+    private void drawEngineHullLight(CanvasContext context, CanvasHostViewport viewport, EngineHullLightPass pass,
+                                     Prepared prepared) {
+        List<BufferedImage> overlays = prepared == null ? null : prepared.hullLights().get(pass);
+        if (overlays != null) {
+            for (BufferedImage overlay : overlays) {
+                HeadlessUiRenderer.additiveImage(context, overlay, pass.centerX(), viewport.height() - pass.centerY(),
+                        pass.widthPx(), pass.heightPx(), pass.angleDegrees(), pass.alphaMult());
+            }
+            return;
+        }
         String path = sprites.asset(pass.hullSprite()).path();
         BufferedImage source = HeadlessUiRenderer.sourceImage(context, path);
         drawEngineHullLights(context, source, pass.centerX(), viewport.height()-pass.centerY(),
@@ -348,14 +452,22 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
      * Aircraft engine plumes: the production {@link EngineFxPass} run against sprites that remember each additive
      * glow and flame it is asked to draw, replayed here through the canvas.
      */
-    private void drawEngineFx(CanvasContext context, CanvasHostViewport viewport, EngineFxPass pass) {
-        if (pass.glowSprite() == null && pass.flameSprite() == null) return;
-        List<PlumeDraw> draws = new ArrayList<>();
-        pass.draw(recordingSprite(pass.glowSprite(), draws), recordingSprite(pass.flameSprite(), draws));
+    private void drawEngineFx(CanvasContext context, CanvasHostViewport viewport, EngineFxPass pass,
+                              Prepared prepared) {
+        List<PlumeDraw> draws = prepared == null ? null : prepared.plumes().get(pass);
+        if (draws == null) draws = recordPlumes(pass);
         for (PlumeDraw draw : draws) {
             context.sprite(draw.path(), null, draw.x(), viewport.height() - draw.y(), draw.width(), draw.height(),
                     draw.angle(), draw.tint(), CanvasSpriteRegion.FULL, CanvasBlend.ADDITIVE);
         }
+    }
+
+    /** The plumes {@code pass} asks for, recorded rather than drawn; empty when it has no sprites. */
+    private List<PlumeDraw> recordPlumes(EngineFxPass pass) {
+        List<PlumeDraw> draws = new ArrayList<>();
+        if (pass.glowSprite() == null && pass.flameSprite() == null) return draws;
+        pass.draw(recordingSprite(pass.glowSprite(), draws), recordingSprite(pass.flameSprite(), draws));
+        return draws;
     }
 
     private record PlumeDraw(String path, float x, float y, float width, float height, float angle, Color tint) { }
@@ -420,10 +532,13 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
         return result;
     }
 
-    private void drawNightLighting(CanvasContext context, CanvasHostViewport viewport, NightLightingPass pass) {
-        BufferedImage shade = renderNightLighting(pass, viewport);
-        // Equal adjacent pixels share a fill; transparent gaps never get a lighting rectangle.
-        for (int y = 0; y < shade.getHeight(); y++) {
+    private void drawNightLighting(CanvasContext context, CanvasHostViewport viewport, NightLightingPass pass,
+                                   Prepared prepared, int top, int bottom) {
+        BufferedImage shade = prepared == null ? null : prepared.nightShades().get(pass);
+        if (shade == null) shade = renderNightLighting(pass, viewport);
+        // Equal adjacent pixels share a fill; transparent gaps never get a lighting rectangle. A band fills only its
+        // own rows, which are the only ones its clip would let through.
+        for (int y = Math.max(0, top); y < Math.min(shade.getHeight(), bottom); y++) {
             int start = 0, color = shade.getRGB(0, y);
             for (int x = 1; x <= shade.getWidth(); x++) {
                 int next = x == shade.getWidth() ? 0 : shade.getRGB(x, y);
@@ -447,7 +562,8 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
      * raster (a block is several pixels), which is what a scene frame can afford;
      * the dome look suite renders the model per pixel.
      */
-    private static void drawDomes(CanvasContext context, CanvasHostViewport viewport, ShieldDomePass pass) {
+    private static void drawDomes(CanvasContext context, CanvasHostViewport viewport, ShieldDomePass pass,
+                                  int top, int bottom) {
         float surfaceHeight = viewport.height();
         float[] rgba = new float[4];
         for (ShieldDomeDraw dome : pass.draws()) {
@@ -459,6 +575,8 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
             if (x1 <= x0 || y1 <= y0) continue;
             float block = Math.max(3f, (float) Math.ceil(2f * extent / 150f));
             for (float y = y0; y < y1; y += block) {
+                float rowTop = surfaceHeight - (y + block);
+                if (rowTop + block < (float) top - 1f || rowTop > (float) bottom + 1f) continue;
                 for (float x = x0; x < x1; x += block) {
                     float lx = (x + block / 2f - dome.sx) / dome.radiusPx;
                     float ly = (y + block / 2f - dome.sy) / dome.radiusPx;

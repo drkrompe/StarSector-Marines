@@ -195,20 +195,26 @@ Wind method in `second-wind-pipeline.md`, Scale):
    bay against `RoomRecipe.BOAT_BAY`/`SHUTTLE_BAY`, hatch heights, a 1.8 m
    person).
 
-Report the plausible range. 55% usable is a freighter's share. A heavily
-armoured warship (armour rating in the thousands, many barbettes and their
-magazines) plausibly has less, about 35-45%; report the usable share the
-published scale implies beside the 55% solve, rather than quietly changing
-either.
+Report the plausible range. **Every hull gets its own scale, derived from
+what it is** (owner, 2026-10-16); hulls do not share one value, and a shot
+re-frames to the hull rather than the hull bending to the shot.
 
-**Every hull gets its own real-life scale (owner, 2026-10-16).** Never borrow
-another hull's `metres_per_unit` to keep sprite proportions: vanilla sprites
-are not drawn to one scale, and a military carrier is meant to be massive
-beside a small freighter. Shots that put hulls together derive each length
-from that hull's own `geometry.json` and re-solve their framing when a figure
-changes. Fighters follow the same rule, sized from their cockpit (one or two
-seated 1.8 m figures with canopy clearance), weapons and engines, and
-sanity-checked against real aircraft of 12-22 m. Note that the battle-map
+55% usable is a freighter's or liner's share. For a warship, do the warship
+form (the Legion's `scale_record` is the worked example):
+- Drop the program's notional `HANGAR` rooms and size the fighter
+  complement instead: craft footprint x servicing room x overhead, a spare
+  per wing, ordnance handling. Fighters have their own scales, from their
+  cockpits (`fighters-geometry`), so size the stowage in metres and take
+  it as a share of the pressure hull at the published scale. Check that
+  the bay mouths clear the largest craft's span and height converted into
+  the carrier's units.
+- Budget the rest of the non-habitable share explicitly (armour, reactors
+  and flux plant, barbettes and magazines, tanks and structure) and solve
+  at the resulting habitable share, about 30-35% for a battlecarrier.
+- Check the answer against real ships (crew, length, enclosed volume per
+  person) and against a 1.8 m person at doors, hatches and rails.
+The geometry sets the answer: a deeper hull lowers the solved scale, so
+report how a shape change moved it. Note that the battle-map
 landed-ship convention
 (`landed-ships-true-scale.md`) is about readability on the tactical map and
 is a different number.
