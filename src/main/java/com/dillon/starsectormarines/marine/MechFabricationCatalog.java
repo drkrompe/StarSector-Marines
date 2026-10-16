@@ -3,9 +3,11 @@ package com.dillon.starsectormarines.marine;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
 import java.util.List;
+import java.util.Locale;
 
 /** Discoverable Mech Lab patterns and their material bills. */
 public final class MechFabricationCatalog {
@@ -34,12 +36,28 @@ public final class MechFabricationCatalog {
             chassis(MechVariant.SIROCCO, "@gearFabricationSupportChassisStandardFit", 95, 75, 175, 20),
             chassis(MechVariant.BULWARK, "@gearFabricationHeavyChassisStandardFit", 140, 110, 260, 36));
 
+    /** Bills sit beside the chassis of the same weight class: a hull is cheaper than a walker. */
+    private static final List<Recipe> VEHICLES = List.of(
+            vehicle(VehicleType.HEAVY_APC, "@gearFabricationLightVehicleStandardFit", 50, 40, 110, 6),
+            vehicle(VehicleType.MILITIA_TECHNICAL, "@gearFabricationMediumVehicleStandardFit", 45, 35, 90, 8),
+            vehicle(VehicleType.ESCORT_APC, "@gearFabricationMediumVehicleStandardFit", 75, 60, 150, 14),
+            vehicle(VehicleType.BREAKTHROUGH_TANK, "@gearFabricationHeavyVehicleStandardFit", 120, 95, 240, 28));
+
     private MechFabricationCatalog() {
     }
 
     public static List<Recipe> weapons() { return WEAPONS; }
 
     public static List<Recipe> chassis() { return CHASSIS; }
+
+    public static List<Recipe> vehicles() { return VEHICLES; }
+
+    public static Recipe vehicle(VehicleType type) {
+        for (Recipe recipe : VEHICLES) {
+            if (recipe.vehicle() == type) return recipe;
+        }
+        return null;
+    }
 
     public static Recipe weapon(MechWeaponComponent component) {
         for (Recipe recipe : WEAPONS) {
@@ -58,13 +76,19 @@ public final class MechFabricationCatalog {
     private static Recipe weapon(MechWeaponComponent component, String provenance,
                                  int supplies, int machinery, int metals, int rareMetals) {
         return new Recipe("recipe." + component.id, null, provenance,
-                component, null, cost(supplies, machinery, metals, rareMetals));
+                component, null, null, cost(supplies, machinery, metals, rareMetals));
     }
 
     private static Recipe chassis(MechVariant variant, String provenance,
                                   int supplies, int machinery, int metals, int rareMetals) {
         return new Recipe("recipe.chassis." + variant.id, null,
-                provenance, null, variant, cost(supplies, machinery, metals, rareMetals));
+                provenance, null, variant, null, cost(supplies, machinery, metals, rareMetals));
+    }
+
+    private static Recipe vehicle(VehicleType type, String provenance,
+                                  int supplies, int machinery, int metals, int rareMetals) {
+        return new Recipe("recipe.vehicle." + type.name().toLowerCase(Locale.ROOT), null,
+                provenance, null, null, type, cost(supplies, machinery, metals, rareMetals));
     }
 
     private static FabricationCost cost(int supplies, int machinery,
@@ -78,9 +102,10 @@ public final class MechFabricationCatalog {
 
     public record Recipe(String id, String displayName, String provenance,
                          MechWeaponComponent component, MechVariant variant,
-                         FabricationCost cost) {
+                         VehicleType vehicle, FabricationCost cost) {
         public String displayName() {
             if (displayName != null) return Strings.resolve(displayName);
+            if (vehicle != null) return CampaignVehicle.typeName(vehicle);
             return component != null ? component.displayName()
                     : Strings.format("gearChassisName", variant.displayName());
         }
@@ -88,7 +113,9 @@ public final class MechFabricationCatalog {
         public String provenance() { return Strings.resolve(provenance); }
 
         public Recipe {
-            if ((component == null) == (variant == null)) {
+            int targets = (component != null ? 1 : 0) + (variant != null ? 1 : 0)
+                    + (vehicle != null ? 1 : 0);
+            if (targets != 1) {
                 throw new IllegalArgumentException("recipe requires one fabrication target");
             }
         }
