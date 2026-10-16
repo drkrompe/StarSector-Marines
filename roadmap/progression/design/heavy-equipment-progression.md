@@ -1,11 +1,11 @@
 # Heavy equipment progression
 
-Status: DRAFT — the stock-frame baseline, learned mech patterns, vehicles in the
-mech bay and heavy lift have shipped; internal fittings and the drop choice are
-planned direction.
+Status: DRAFT — the stock-frame baseline, learned mech patterns, internal fittings,
+vehicles in the mech bay and heavy lift have shipped; the drop choice is planned
+direction.
 
 Written: 2026-10-16
-Updated: 2026-10-16 — vehicles progress by fixed variants, not fittings.
+Updated: 2026-10-16 — internals shipped (engine budget, plating, heat sinks, cooler); vehicles progress by fixed variants, not fittings.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -88,7 +88,7 @@ Read `mechs-nouns.md` (chassis, sockets, Mech Lab, heat), `convoy-nouns.md`
 - **Every upgrade gives something up.** Heavy plating costs mass and so speed or
   budget; a large heat sink takes the utility slot a faster loader wanted; an
   uprated engine costs materials and runs hotter. Nothing multiplies structure,
-  armor capacity and armor rating together. (`mech-internal-systems.md`)
+  armor capacity and armor rating together (`mechs-nouns.md`, internal).
 - **Chassis identity survives every fit.** A fully refit Hound is a better Hound,
   not a cheap Bulwark. Each chassis keeps its weapon bands and its weakness.
 - **The fitting is frozen at launch.** Campaign validates and stores ids; the
@@ -114,8 +114,27 @@ included, on the three axes later internals will buy back:
 
 Structure, armor rating, heat capacity and every weapon are unchanged, so
 durability order (Bulwark, Hound, Sirocco) and each chassis's weapon bands hold.
-Plating restores capacity, engines restore speed, coolers restore cooling. These
-are untuned starting values awaiting a mission read.
+
+## Internals (shipped)
+
+Plating restores capacity, engines restore speed, heat sinks and coolers restore
+cooling, each along the chassis's own band (`mechs-nouns.md`, internal and engine
+budget). The ladder, untuned and awaiting a mission read:
+
+| Role | Common (stock) | Advanced | Prestige |
+| --- | --- | --- | --- |
+| Engine (CORE) | Industrial, output x1.00, 2x1 | Uprated, x1.25, half the speed band, 2x2 | Military, x1.50, full band, 2x2, -0.5 cooling |
+| Plating (frame) | Factory | Composite: half the armor band, 1 plating unit | Heavy: full band, 2.5 units |
+| Heat sink (AMMO_RESERVE) | Factory: 100 heat, 6/s, 1x1 | Double: 120, 7.5/s, 2x1, mass 3 | Military: 140, 8/s, 3x1, mass 5 |
+| Cooler (MINI_FAB) | none | Auxiliary: +1/s, mass 2 | — |
+
+Rated output is Hound 20, Sirocco 34, Bulwark 46 (stock weapons weigh 16, 30 and
+40); a plating unit is 3, 4 and 6. A full refit reaches the pre-cut armor and speed
+and roughly the old cooling: Bulwark 950 / 1.15 / 140 heat at 8.5/s, Sirocco 400 /
+1.45 at 8/s, Hound 500 / 1.70 at 7/s. The trade is room: the Hound's two-cell
+reserve cannot take the military sink and it has no utility socket, a faster loader
+displaces the cooler, and a full plate and engine leave little output for the top
+weapons.
 
 ## Lift classes
 
@@ -168,7 +187,7 @@ internals vocabulary without the doll.
 | Story | Owns |
 | --- | --- |
 | Mech patterns (shipped; `mechs-nouns.md`) | Learned patterns replace the starter-pattern gate; pattern cards through every existing source. |
-| `mech-internal-systems.md` | Engine, plating and cooler/loader internals; engine budget; tier-scaled footprints; per-loadout heat. |
+| Mech internals (shipped; `mechs-nouns.md`) | Engine, plating, heat sink and cooler internals; engine budget; tier-scaled footprints; per-loadout heat. |
 | Heavy lift (shipped; `air-nouns.md`, Lift) | Lift class and rating; the boat lift slot; drops flown by real company carriers. |
 | Vehicles in the bay (shipped; `mechs-nouns.md`) | Vehicle patterns; a bay space holds a mech or a vehicle; losses write back. |
 | `armor-drop-selection.md` | Pick which bay spaces come down per call; cooldown between calls; lift caps armor per mission. |
@@ -179,6 +198,9 @@ then internals, then lift; vehicles in the bay and the drop choice follow lift.
 
 ## Open questions
 
+- The internal ladder is untuned. A mission read should settle masses, outputs and
+  the Hound's lower cooling ceiling; Castle's introduction of each internal waits on
+  that, and needs no recorded dialogue until the rules settle.
 - Should an over-budget fit be refused, or allowed at a speed penalty? Refusal is
   the recommendation: it is legible in the lab and needs no new movement rule.
 - Is the per-mission lift cap a budget spent across calls, or a per-call cap with

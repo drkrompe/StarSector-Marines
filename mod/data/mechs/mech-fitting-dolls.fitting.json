@@ -14,7 +14,7 @@
           "anchor": [0.0, 0.0],
           "dockDirection": [0.0, -1.45],
           "footprintHull": [1.36, 0.68],
-          "factoryLocked": true
+          "factoryLocked": false
         },
         {
           "id": "ARMS",
@@ -47,7 +47,7 @@
           "anchor": [0.0, -0.26],
           "dockDirection": [-1.34, 0.68],
           "footprintHull": [1.36, 0.38],
-          "factoryLocked": true
+          "factoryLocked": false
         }
       ]
     },
@@ -64,7 +64,7 @@
           "anchor": [0.0, 0.0],
           "dockDirection": [0.0, -1.45],
           "footprintHull": [1.36, 0.68],
-          "factoryLocked": true
+          "factoryLocked": false
         },
         {
           "id": "ARMS",
@@ -108,7 +108,7 @@
           "anchor": [0.0, -0.26],
           "dockDirection": [-1.34, 0.68],
           "footprintHull": [1.36, 0.68],
-          "factoryLocked": true
+          "factoryLocked": false
         },
         {
           "id": "MINI_FAB",
@@ -136,7 +136,7 @@
           "anchor": [0.0, 0.03],
           "dockDirection": [0.0, -1.50],
           "footprintHull": [1.70, 0.68],
-          "factoryLocked": true
+          "factoryLocked": false
         },
         {
           "id": "ARMS",
@@ -180,7 +180,7 @@
           "anchor": [0.0, -0.26],
           "dockDirection": [-1.38, 0.72],
           "footprintHull": [1.40, 0.38],
-          "factoryLocked": true
+          "factoryLocked": false
         },
         {
           "id": "MINI_FAB",

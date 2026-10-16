@@ -1736,6 +1736,16 @@ for one mission:
 - **An escort screens beside its charge.** Fighting a hull, an escort takes its own duel
   station but stands no further beyond its charge's hull than a quarter of its own reach,
   so a screen and the ship it screens meet the enemy together rather than one at a time.
+- **Hulls are bodies and never pass through one another** (`warship-tactics.md`). Two
+  hulls whose footprints overlap are pushed apart along the line between them, friend or
+  foe, the smaller giving more way, and their closing speed along that line is spent; a
+  hull its mission holds in place (on a station, a route or an order, with no helm of its
+  own flying it) gives no way, and two such hulls a mission lays over each other are left
+  where it put them. Nothing is damaged: ramming is not modelled. A ship fighting hulls or
+  escorting keeps the screen line's gap of open air from every friendly hull: its station
+  is moved clear of a friend's position and station, and its course is bent away from a
+  friend it would close inside that gap within a few seconds. An escort's screen is a
+  formation spaced by its own geometry, so within it only an actual touch is refused.
 
 What the ground-support manoeuvres (a gun run, close air support, a low pass, a shelling)
 take from this is described with each: they inherit the slower handling through the
