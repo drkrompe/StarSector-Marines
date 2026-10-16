@@ -685,6 +685,15 @@ Do not run builds or leave generated task files there.
   runs, plus the windows and runs no node covers. Writes
   `build/reports/garrison/summary.md`. Map evidence, not battle evidence; opt-in
   and excluded from `test`. See `garrisonables.md`.
+- `gradlew.bat generatedSpaceEvidence` → the JUnit assertions that have to
+  generate a map, stand up a mission or man a deck to ask their question:
+  scans over canonical Conquest maps, city landing sites, forward-bunker
+  windows, Conquest setup and arrival plans, launch fixtures, filler batches
+  over representative cities, deck-scene runs. Tag a method or class
+  `@Tag("generated-space-evidence")` to put it here. Each took over a second,
+  which is what moved it out of `test`; it still asserts, so run it when
+  touching world generation, setup or the deck sim. Opt-in and excluded from
+  `test`.
 - `gradlew.bat loadoutCardSheet` → the design-pass stat sheet for every loadout card,
   written to `build/reports/loadout-cards/cards.md` and `cards.csv`. Each card lists its access
   tier and unlock gate, the twelve billets seat by seat (weapon, grade, special, or armor pattern
@@ -1263,6 +1272,11 @@ The discovered suite ids and default output directories are:
 | `barracks-medic` | The Barracks command board at 1920x1080, 100% scale, with the selected officer trained in Field Medicine: each of their squad cards marks its medic billet with a green plate, beside the amber wound mark and the NCO chevron | `build/snapshots/barracks-medic/` |
 | `officer-dossier` | The officer dossier untrained and trained, and Castle's induction from introduction through the specialty lesson to a ready company, at 1920x1080 and 150%. The single specialty tree (one root, a branch per specialty) untrained and trained, a hovered rank's sheet, and the lesson's highlight over the whole tree | `build/snapshots/officer-dossier/` |
 | `small-arms-wear` | Eight field rifles against four rooted defenders for two minutes at 1920x1080, 100% scale: a crate row shot away, a sandbag line worn more slowly, a windowed masonry wall that rifle fire does not mark, and the same wall opened by scripted anti-materiel rounds. The acceptance for rounds wearing the cover they stop in; stills at the start, middle and end of each loop | `build/snapshots/small-arms-wear/` |
+| `bsp-map-previews` | Generated BSP cities, Conquest maps and the three station layouts in flat preview colours with contact sheets and station-role overlays; a map whose walkable cells are partitioned fails the suite | `build/snapshots/bsp-map-previews/` |
+| `bsp-sprite-previews` | Generated BSP maps through the battle renderer: seed batch, Conquest military compound, forward-bunker windows, gated housing, civic headquarters and the civilian spaceport with and without parked craft | `build/snapshots/bsp-sprite-previews/` |
+| `fortress-preview` | The Conquest fortress district band cropped from three production-size maps | `build/snapshots/fortress-preview/` |
+| `campaign-settlements` | Campaign-driven settlements by market size beside a no-market control, on three world surfaces | `build/snapshots/campaign-settlements/` |
+| `taxonomy-previews` | Tactical region kinds, cover/exposure heat and top overwatch corners on Conquest and legacy maps | `build/snapshots/taxonomy-previews/` |
 
 Run all suites with `gradlew.bat createSnapshots`. Use
 `-Psnapshot=<id>` for one suite or a comma-separated selector for several; quote
@@ -1745,7 +1759,8 @@ question down to its unit, or move the test out of `test`.
 - **Mission and battle runs** — anything that plays a simulation forward for
   its outcome, stands up a mission, a world generator or a commander, or
   replays a fixture. That is evidence: it belongs in `commanderEvidence`,
-  `sceneEvidence`, `loadoutMatchup` or a new opt-in task of the same shape.
+  `sceneEvidence`, `loadoutMatchup`, `generatedSpaceEvidence` (for an assertion that
+  needs a generated world to ask) or a new opt-in task of the same shape.
 - **Snapshot and rendering work** — anything that renders a frame, a screen,
   a GIF or a contact sheet, or compares pixels. That belongs in a
   `SnapshotSuite` under `createSnapshots`, or in `shaderEvidence` /

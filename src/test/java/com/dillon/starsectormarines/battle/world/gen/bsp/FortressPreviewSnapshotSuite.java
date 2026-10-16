@@ -3,17 +3,15 @@ package com.dillon.starsectormarines.battle.world.gen.bsp;
 import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
-import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleMapRenderer;
-import org.json.JSONObject;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Renders the Conquest fortress district, so the wall and the district behind it
@@ -22,11 +20,10 @@ import java.nio.file.Paths;
  * <p>Baseline evidence for {@code compound-programs.md}: today the band comes
  * out as ordinary city — freestanding rectangles on a road grid — and the wall
  * is the only thing that says fortress. Re-run via
- * {@code gradlew :test --tests "*FortressPreviewTest*"}.
+ * {@code gradlew createSnapshots -Psnapshot=fortress-preview}.
  */
-public class FortressPreviewTest {
+public final class FortressPreviewSnapshotSuite implements SnapshotSuite {
 
-    private static final Path OUT_DIR = Paths.get("build/map-previews");
     private static final int CELL_PX = 14;
     /** Production Conquest size, so the band is the depth it really is. */
     private static final int MAP_W = 240;
@@ -34,22 +31,14 @@ public class FortressPreviewTest {
     /** Rows past the band's far edge, so the wall and its kill zone stay in frame. */
     private static final int BUFFER_ROWS = 16;
 
-    private static HeadlessBattleMapRenderer battleMaps;
+    @Override public String id() { return "fortress-preview"; }
+    @Override public String label() { return "Conquest fortress district crops"; }
 
-    @BeforeAll
-    static void installRegistry() throws Exception {
-        TileRegistry reg = new TileRegistry();
-        for (String path : TileRegistry.BUILTIN_TILESETS) {
-            reg.ingestSheet(new JSONObject(Files.readString(Paths.get("mod/" + path))));
-        }
-        reg.validateReferences();
-        TileRegistry.install(reg);
-        battleMaps = new HeadlessBattleMapRenderer(Paths.get("mod"));
-    }
-
-    @Test
-    void renderFortressDistrict() throws Exception {
-        Files.createDirectories(OUT_DIR);
+    @Override
+    public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
+        TileRegistryTestInstaller.install(context.projectRoot());
+        HeadlessBattleMapRenderer battleMaps = new HeadlessBattleMapRenderer(context.modRoot());
+        List<SnapshotArtifact> artifacts = new ArrayList<>();
         for (long seed : new long[] { 1L, 5L, 9L }) {
             BspCityGenerator generator = new BspCityGenerator();
             MapResult map = generator.generate(MAP_W, MAP_H, seed, TraversalAxis.SOUTH_TO_NORTH);
@@ -72,10 +61,8 @@ public class FortressPreviewTest {
             int pw = Math.min((maxX - minX + 1) * CELL_PX, full.getWidth() - px);
             int ph = Math.min((maxY - minY + 1 + BUFFER_ROWS) * CELL_PX, full.getHeight() - py);
             BufferedImage crop = full.getSubimage(px, py, pw, ph);
-            Path out = OUT_DIR.resolve("fortress-seed-" + seed + ".png");
-            ImageIO.write(crop, "PNG", out.toFile());
-            System.out.println("  wrote " + out.toAbsolutePath()
-                    + " (" + crop.getWidth() + "x" + crop.getHeight() + ")");
+            artifacts.add(new SnapshotArtifact("fortress-seed-" + seed + ".png", crop));
         }
+        return artifacts;
     }
 }

@@ -48,6 +48,12 @@ class InstallationServiceFittingTest {
             for (RoomPurpose purpose : List.of(RoomPurpose.ARMORY, RoomPurpose.ENGINE_ROOM)) {
                 var f = fit(7,6,pose,purpose,List.of(new int[]{3,6}));
                 assertFalse(f.ctx.fixtureTasks.isEmpty());
+                if (purpose == RoomPurpose.ENGINE_ROOM) {
+                    for (var machine : List.of(PowerPlantKit.TURBINE,PowerPlantKit.COOLANT))
+                        assertTrue(f.ctx.doodads.stream().anyMatch(d -> d.definitionId().equals(machine.id())));
+                    assertEquals(2,f.ctx.fixtureTasks.stream().filter(t -> t.affordance()==Affordance.TEND).count());
+                    assertEquals(1,f.ctx.fixtureTasks.stream().filter(t -> t.affordance()==Affordance.READOUT).count());
+                }
                 verify(f);
             }
         }

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.campaign.systems;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.CampaignTable;
+import com.dillon.starsectormarines.campaign.WarrantObligationLedger;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.ArmorTradition;
 import com.dillon.starsectormarines.marine.MilitaryWarrants;
@@ -60,7 +61,13 @@ public final class StandingWarrantSystem implements CampaignSystem {
                 continue;
             }
             List<String> opened = MilitaryWarrants.grantStanding(state, issuer, day);
-            if (!opened.isEmpty()) announce(issuer);
+            if (!opened.isEmpty()) announce(issuer, "militaryWarrantStandingGranted");
+            // A revoked warrant is replaced by a fresh standing grant once the rule is met again.
+            WarrantObligationLedger.Term term = state.warrantObligations().term(issuer.key);
+            if (term != null && term.status() == WarrantObligationLedger.Status.REVOKED) {
+                term.regrant(day);
+                announce(issuer, "warrantObligationRegranted");
+            }
         }
     }
 
@@ -71,11 +78,9 @@ public final class StandingWarrantSystem implements CampaignSystem {
         return player != null ? player.getRelationshipLevel(factionId) : null;
     }
 
-    private static void announce(ArmorTradition issuer) {
+    private static void announce(ArmorTradition issuer, String key) {
         SectorAPI sector = Global.getSector();
         if (sector == null || sector.getCampaignUI() == null) return;
-        sector.getCampaignUI().addMessage(
-                Strings.format("militaryWarrantStandingGranted",
-                        issuer.displayName()));
+        sector.getCampaignUI().addMessage(Strings.format(key, issuer.displayName()));
     }
 }

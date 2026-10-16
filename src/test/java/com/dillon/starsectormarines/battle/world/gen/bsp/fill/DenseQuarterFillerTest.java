@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.Compound;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import javax.imageio.ImageIO;
@@ -91,6 +92,7 @@ class DenseQuarterFillerTest {
         assertEquals(digest(generate(991L)), digest(generate(991L)));
     }
 
+    @Tag("generated-space-evidence")
     @Test
     void representativeCityBatchStillClaimsCommercialCompounds() {
         BspCityGenerator generator = new BspCityGenerator();

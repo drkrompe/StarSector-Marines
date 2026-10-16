@@ -46,6 +46,22 @@ public final class ConquestTrialGround {
     /** Where the fort stands relative to the lane. */
     public enum Placement { ON_PATH, OFFSET }
 
+    /**
+     * Which way the fort's main gate turns, by the point it looks at. {@code LANDING} (the default) faces the landing, so the lane
+     * squads meet the gate and its belt first; the cardinal facings turn the works so the lane meets another face of them.
+     */
+    public enum Facing {
+        LANDING(LANE_X, LANDING_Y), NORTH(LANE_X, HEIGHT - 1), EAST(WIDTH - 1, FORT_Y), WEST(0, FORT_Y);
+
+        final int x;
+        final int y;
+
+        Facing(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
     /** The finished map, the fort as placed, and the two defender compounds. */
     public record Ground(MapResult map, FortStage.Placed fort, TacticalNode objective, TacticalNode keep) {}
 
@@ -67,13 +83,19 @@ public final class ConquestTrialGround {
      */
     public static Ground generate(long seed, Placement placement, int offset, int objectiveGarrison, int keepGarrison,
                                   boolean airDefence) {
+        return generate(seed, placement, offset, objectiveGarrison, keepGarrison, airDefence, Facing.LANDING);
+    }
+
+    /** As above, with the main gate turned toward {@code facing}. */
+    public static Ground generate(long seed, Placement placement, int offset, int objectiveGarrison, int keepGarrison,
+                                  boolean airDefence, Facing facing) {
         GenContext c = new GenContext(new NavigationGrid(WIDTH, HEIGHT), new CellTopology(WIDTH, HEIGHT),
                 new Random(seed), WIDTH, HEIGHT, seed);
         c.put(BspKeys.MARKET_PROFILE, TargetProfile.NEUTRAL);
         c.put(BspKeys.AXIS, TraversalAxis.SOUTH_TO_NORTH);
         int fortX = placement == Placement.ON_PATH ? LANE_X : LANE_X + offset;
         FortStage forts = FortStage.pinned(List.of(
-                new FortStage.Pin(FortKind.BATTERY_FORT, fortX, FORT_Y, LANE_X, LANDING_Y, airDefence)));
+                new FortStage.Pin(FortKind.BATTERY_FORT, fortX, FORT_Y, facing.x, facing.y, airDefence)));
         new GenRecipe("Conquest trial ground", List.of(
                 ConquestTrialGround::open,
                 ConquestTrialGround::buildings,

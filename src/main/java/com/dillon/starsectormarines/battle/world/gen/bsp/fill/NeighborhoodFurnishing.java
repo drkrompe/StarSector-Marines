@@ -87,8 +87,10 @@ final class NeighborhoodFurnishing {
                     fit(groups,room,CompactBuildingFurnishing.pair("case","shelf"),1);
                 }
                 case STOCKROOM -> {
-                    if(fit(groups,room,BuildingWorkGroups.stockedRack("cases"),1)==0)
-                        fit(groups,room,CompactBuildingFurnishing.pair("case","case"),Math.max(1,room.area/12));
+                    fit(groups,room,BuildingWorkGroups.cargoDesk(false),1);
+                    fit(groups,room,BuildingWorkGroups.pallets(1,"cartons"),1);
+                    if(groups.fitRackRows(room.left-1,room.bottom-1,room.right+1,room.top+1,room.purpose)==0)
+                        fit(groups,room,CompactBuildingFurnishing.pair("shelf","shelf"),Math.max(1,room.area/16));
                 }
                 default -> { continue; }
             }

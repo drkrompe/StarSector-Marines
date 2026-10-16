@@ -1,0 +1,104 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "name": "power-plant.turbine",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "name": "power-plant.turbine-damaged",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "name": "power-plant.turbine-destroyed",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "name": "power-plant.coolant",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "name": "power-plant.coolant-damaged",
+      "row": 0
+    },
+    {
+      "col": 13,
+      "name": "power-plant.coolant-destroyed",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 0,
+      "cover": "heavy",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "power-plant.turbine",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 3,
+      "cover": "heavy",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "power-plant.turbine-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 6,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "power-plant.turbine-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 9,
+      "cover": "heavy",
+      "footprintCells": [
+        2,
+        3
+      ],
+      "id": "power-plant.coolant",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 11,
+      "cover": "heavy",
+      "footprintCells": [
+        2,
+        3
+      ],
+      "id": "power-plant.coolant-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 13,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        3
+      ],
+      "id": "power-plant.coolant-destroyed",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/tilesets/power-plant.png"
+}

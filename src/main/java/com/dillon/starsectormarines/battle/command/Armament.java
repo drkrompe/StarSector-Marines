@@ -27,9 +27,18 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
  * @param penetration     armour penetration of one round
  * @param wallDamage      structural damage one round does to a wall, zero for a weapon that does none
  * @param triggersLeft    trigger pulls left, or {@link #UNLIMITED}
+ * @param coverSeconds    for a {@link Delivery#SCREEN}, how long the cloud it stands holds its full radius; zero for anything else
+ * @param cloudRadius     for a {@link Delivery#SCREEN}, the radius that cloud blocks to while it is whole; zero for anything else
  */
 public record Armament(Delivery delivery, float range, int roundsPerTrigger, float cycleSeconds,
-                       float damagePerRound, float penetration, int wallDamage, int triggersLeft) {
+                       float damagePerRound, float penetration, int wallDamage, int triggersLeft,
+                       float coverSeconds, float cloudRadius) {
+
+    /** An armament that stands no cloud. */
+    public Armament(Delivery delivery, float range, int roundsPerTrigger, float cycleSeconds,
+                    float damagePerRound, float penetration, int wallDamage, int triggersLeft) {
+        this(delivery, range, roundsPerTrigger, cycleSeconds, damagePerRound, penetration, wallDamage, triggersLeft, 0f, 0f);
+    }
 
     /** {@code triggersLeft} of a weapon with no magazine to run dry. */
     public static final int UNLIMITED = -1;
@@ -129,7 +138,8 @@ public record Armament(Delivery delivery, float range, int roundsPerTrigger, flo
             }
             case UTILITY_SMOKE -> {
                 SmokeGrenadeSpec spec = item.smokeGrenadeSpec();
-                return new Armament(Delivery.SCREEN, spec.throwRange(), 1, Math.max(0.1f, spec.throwDuration()), 0f, 0f, 0, triggers);
+                return new Armament(Delivery.SCREEN, spec.throwRange(), 1, Math.max(0.1f, spec.throwDuration()), 0f, 0f, 0, triggers,
+                        spec.coverSeconds(), spec.cloudRadius());
             }
             case UTILITY_COMMS -> {
                 CommsKitSpec spec = item.commsKitSpec();

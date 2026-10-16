@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.world.gen.ship.HullClass;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullRole;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.EnumSet;
@@ -63,6 +64,7 @@ class ShipRoomAvailabilityTest {
      * a room the deck could not fit both come back absent, which is right:
      * from the player's side they are the same fact.
      */
+    @Tag("generated-space-evidence")
     @Test
     void whatTheShipOffersIsWhatIsOnHerDeck() {
         for (CompanyShip ship : FLEET) {
@@ -82,6 +84,7 @@ class ShipRoomAvailabilityTest {
      * list of rooms somebody expected, so this says the navigation follows the
      * ship without saying anything about what any ship holds.
      */
+    @Tag("generated-space-evidence")
     @Test
     void theShellOffersExactlyWhatTheShipHas() {
         for (CompanyShip ship : FLEET) {

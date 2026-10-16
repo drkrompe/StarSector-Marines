@@ -9,5 +9,7 @@ public enum SquadEquipmentResult {
     UNKNOWN_WEAPON_DOCTRINE,
     UNKNOWN_ARMOR_DOCTRINE,
     MISSING_TEMPLATE,
-    INSUFFICIENT_CARGO
+    INSUFFICIENT_CARGO,
+    /** A suspended or revoked military warrant withholds a suit some occupant is not already wearing. */
+    WARRANT_SUSPENDED
 }

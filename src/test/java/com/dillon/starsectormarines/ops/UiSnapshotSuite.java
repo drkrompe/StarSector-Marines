@@ -296,6 +296,26 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderCompanyHq(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
                                 CompanyHqViewModel.gettingReadyPreview())),
+                // The Hegemony auxiliary warrant's correspondence: the terms with their
+                // limits and stage-two condition, then the office's reply to each answer.
+                new SnapshotArtifact("company-hq-auxiliary-terms-wide.png",
+                        renderCompanyHq(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
+                                CompanyHqViewModel.auxiliaryWarrantPreview(AuxiliaryWarrantDesk.Page.TERMS))),
+                new SnapshotArtifact("company-hq-auxiliary-accepted-wide.png",
+                        renderCompanyHq(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
+                                CompanyHqViewModel.auxiliaryWarrantPreview(AuxiliaryWarrantDesk.Page.ACCEPTED))),
+                new SnapshotArtifact("company-hq-auxiliary-declined-wide.png",
+                        renderCompanyHq(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
+                                CompanyHqViewModel.auxiliaryWarrantPreview(AuxiliaryWarrantDesk.Page.DECLINED))),
+                // Military warrant obligations on the company record: an active warrant with
+                // its next service deadline beside a suspended one with what restores it.
+                new SnapshotArtifact("company-hq-warrants-wide.png",
+                        renderCompanyHq(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
+                                CompanyHqViewModel.warrantObligationsPreview())),
                 new SnapshotArtifact("barracks-wide.png",
                         renderBarracks(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),

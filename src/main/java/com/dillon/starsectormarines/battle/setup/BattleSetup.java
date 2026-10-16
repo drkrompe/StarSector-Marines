@@ -2724,6 +2724,7 @@ public final class BattleSetup {
                 // The mission's support kit (mortar teams, forward observers) is issued by squad ordinal across the force.
                 cycleLoadouts[c] = InfantryLoadoutRolls.playerSquad(
                         a.seatsForCycle(c), rng, supportKit.mortarTeam(squadOrdinal), supportKit.observer(squadOrdinal));
+                SupportKitIssue.issueBreachKit(cycleLoadouts[c], supportKit, squadOrdinal);
                 squadOrdinal++;
             }
             mission.cycleLoadouts = cycleLoadouts;

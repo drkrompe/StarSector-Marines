@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.GarrisonDefenseTriggerType;
+import com.dillon.starsectormarines.campaign.RaidShape;
 
 /** Shared idempotent boundary for rival, vanilla-raid, and political-flip producers. */
 public final class GarrisonDefenseTrigger {
@@ -20,6 +21,15 @@ public final class GarrisonDefenseTrigger {
                           GarrisonDefenseTriggerType triggerType,
                           long attackerHouseId, int attackerFactionId,
                           float attackerStrength, int day) {
+        return arm(state, eventKey, marketId, triggerType, attackerHouseId,
+                attackerFactionId, attackerStrength, RaidShape.UNKNOWN, day);
+    }
+
+    /** {@link #arm} recording which kind of vanilla raid armed the defence. */
+    public static int arm(CampaignState state, long eventKey, int marketId,
+                          GarrisonDefenseTriggerType triggerType,
+                          long attackerHouseId, int attackerFactionId,
+                          float attackerStrength, RaidShape raidShape, int day) {
         if (state == null || eventKey == 0L || marketId < 0 || triggerType == null
                 || triggerType == GarrisonDefenseTriggerType.NONE) {
             return 0;
@@ -51,6 +61,8 @@ public final class GarrisonDefenseTrigger {
             state.contractDefenseAttackerHouseId[row] = attackerHouseId;
             state.contractDefenseAttackerFactionId[row] = attackerFactionId;
             state.contractDefenseAttackerStrength[row] = attackerStrength;
+            state.contractDefenseRaidShape[row] =
+                    (raidShape != null ? raidShape : RaidShape.UNKNOWN).toByte();
             armed++;
         }
         return armed;

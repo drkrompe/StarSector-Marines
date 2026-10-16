@@ -1,0 +1,109 @@
+{
+  "sheetName": "power-plant",
+  "sheet": "art-source/tilesets/power-plant.raw.png",
+  "cellPx": 128,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "power-plant",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/power-plant.png",
+  "note": "Built-in ImageGen reskin. Actual 1024x1536 output registered to full square / 2:3 frames; native alpha and placement padding retained. See art-source/power-plant.",
+  "entries": [
+    {
+      "rect": [
+        64,
+        0,
+        512,
+        512
+      ],
+      "id": "power-plant.turbine",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        64,
+        512,
+        512,
+        512
+      ],
+      "id": "power-plant.turbine-damaged",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        64,
+        1024,
+        512,
+        512
+      ],
+      "id": "power-plant.turbine-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        640,
+        16,
+        320,
+        480
+      ],
+      "id": "power-plant.coolant",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "footprintCells": [
+        2,
+        3
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        640,
+        528,
+        320,
+        480
+      ],
+      "id": "power-plant.coolant-damaged",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "footprintCells": [
+        2,
+        3
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        640,
+        1040,
+        320,
+        480
+      ],
+      "id": "power-plant.coolant-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        2,
+        3
+      ],
+      "included": true
+    }
+  ]
+}

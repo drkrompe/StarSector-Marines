@@ -1,12 +1,14 @@
 package com.dillon.starsectormarines.battle.command.trace;
 
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolAllowance;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolDeclaration;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolStock;
 import com.dillon.starsectormarines.battle.command.AssaultStyle;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.infantry.SquadSupportDeclaration;
 import com.dillon.starsectormarines.battle.infantry.SquadSupportKit;
 import com.dillon.starsectormarines.battle.mech.MechDropAllowance;
@@ -28,6 +30,7 @@ import com.dillon.starsectormarines.battle.world.gen.ConquestTrialGround.Placeme
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.testsupport.InstalledHullEngines;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.ops.OperationTier;
@@ -42,6 +45,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -129,6 +133,17 @@ class ConquestTrialEvidenceTest {
         System.out.println("[conquest-trial] report " + output.resolve("summary.md").toAbsolutePath());
     }
 
+    /**
+     * The kit object of a fixture: periods for mortar teams, observers, sappers (satchel charges) and screeners (smoke pots). A
+     * {@code "base": "conquest"} names the standing mortar and observer periods (6 and 4) for the fields it does not give, so a
+     * fixture adds sappers and smoke to that kit without restating it. Absent sapper fields issue none.
+     */
+    static SquadSupportKit kitOf(JSONObject k) {
+        boolean base = "conquest".equals(k.optString("base", ""));
+        return new SquadSupportKit(k.optInt("mortarTeamEvery", base ? 6 : 0), k.optInt("observerEvery", base ? 4 : 0),
+                k.optInt("satchelEvery", 0), k.optInt("smokeEvery", 0));
+    }
+
     private static JSONArray fixtures() throws Exception {
         String custom = System.getProperty(PREFIX + ".fixture.path", "").trim();
         if (!custom.isEmpty()) return new JSONArray(Files.readString(Path.of(custom)));
@@ -171,7 +186,7 @@ class ConquestTrialEvidenceTest {
         Object kit = f.opt("supportKit");
         if (kit instanceof JSONObject k) {
             profile = profile.withDeclaredSupportKit(SquadSupportDeclaration.NONE.with(Faction.MARINE,
-                    new SquadSupportKit(k.optInt("mortarTeamEvery", 0), k.optInt("observerEvery", 0))));
+                    kitOf(k)));
         } else if ("conquest".equals(kit)) {
             profile = profile.withDeclaredSupportKit(SquadSupportDeclaration.NONE.with(Faction.MARINE,
                     new SquadSupportKit(6, 4)));
@@ -274,7 +289,8 @@ class ConquestTrialEvidenceTest {
         Placement placement = Placement.valueOf(f.optString("placement", Placement.ON_PATH.name()));
         ConquestTrialGround.Ground ground = ConquestTrialGround.generate(seed, placement,
                 f.optInt("offset", ConquestTrialGround.DEFAULT_OFFSET),
-                f.optInt("objectiveGarrison", 8), f.optInt("keepGarrison", 12), f.optBoolean("airDefence", false));
+                f.optInt("objectiveGarrison", 8), f.optInt("keepGarrison", 12), f.optBoolean("airDefence", false),
+                ConquestTrialGround.Facing.valueOf(f.optString("fortFacing", ConquestTrialGround.Facing.LANDING.name())));
         List<ShuttleAssignment> manifest = new ArrayList<>();
         ShuttleType type = ShuttleType.valueOf(f.optString("shuttleType", ShuttleType.VALKYRIE.name()));
         for (int s = 0; s < f.optInt("shuttles", 4); s++) {
@@ -293,6 +309,7 @@ class ConquestTrialEvidenceTest {
                 GroundRosterRegistry.resolve(""), roster);
         try (BattleSimulation sim = build.sim();
              CommanderEvidenceCapture capture = CommanderEvidenceCapture.open(visualRoot, id, sim)) {
+            thinLaunchers(sim, f.optInt("launcherEvery", -1));
             // The comparison control: with false the forts keep their radar but call nothing in, for this battle only.
             sim.forts().setSpotting(f.optBoolean("fortSpotting", true));
             FortOutcomes forts = new FortOutcomes();
@@ -391,6 +408,36 @@ class ConquestTrialEvidenceTest {
                     .put("sectionSecondsHeld", Math.round(sim.fieldMortars().sections().secondsHeld()))
                     .put("sectionRounds", sim.fieldMortars().sections().roundsFired());
             return new Outcome(id, row, detail, json, trace);
+        }
+    }
+
+    /**
+     * Force composition: the factory rolls a rocket launcher into the last seat of every squad, and a company of those can open a wall
+     * from range, so the plan never needs a sapper. {@code launcherEvery} N keeps the launcher on every Nth squad of the lift only
+     * (0 on none); absent (-1) leaves the factory rolls alone. Squads are counted in lift order, as the support kit is.
+     */
+    private static void thinLaunchers(BattleSimulation sim, int every) {
+        if (every < 0) return;
+        List<ShuttleMission> missions = new ArrayList<>();
+        for (long air : sim.getAirEntityIds()) {
+            if (sim.world().airFaction(air) != Faction.MARINE) continue;
+            ShuttleMission mission = sim.world().mission(air);
+            if (mission != null && mission.cycleLoadouts != null) missions.add(mission);
+        }
+        missions.sort(Comparator.comparingInt(m -> m.manifestOrdinal));
+        int ordinal = 0;
+        for (ShuttleMission mission : missions) {
+            for (MarineLoadout[] cycle : mission.cycleLoadouts) {
+                if (cycle == null) continue;
+                boolean keep = every > 0 && ordinal % every == every - 1;
+                if (!keep) {
+                    for (int i = 0; i < cycle.length; i++) {
+                        if (SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID.equals(cycle[i].specialEquipmentId)) cycle[i] = cycle[i].withSpecial(null, 0);
+                    }
+                }
+                ordinal++;
+            }
+            mission.marineLoadout = mission.cycleLoadouts[Math.min(Math.max(mission.currentCycle, 0), mission.cycleLoadouts.length - 1)];
         }
     }
 

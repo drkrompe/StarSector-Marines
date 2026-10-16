@@ -5,10 +5,24 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.marine.SmokeGrenadeSpec;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-/** Owns deterministic grenade flight and faction-neutral temporary smoke opacity. */
+/**
+ * Owns deterministic grenade flight and faction-neutral temporary smoke opacity.
+ *
+ * <p>A cloud that declares a {@link SmokeGrenadeSpec#thinSeconds() thin} stands at its full radius until that many seconds
+ * remain and then contracts toward a core ({@link #CORE_FRACTION} of the radius), clearing from the outside in and finally
+ * going. Opacity is given back cell by cell as it contracts, so line of sight through the edge of an old screen returns before
+ * the screen is gone: a longer-lasting screen is a screen that is eventually leaky, not one that is whole until it is not.
+ * The standing cloud reports both what it is now ({@link SmokeFieldView#radius()}) and what it was thrown as
+ * ({@link SmokeFieldView#fullRadius()}, held for {@link SmokeFieldView#coverSeconds()} more seconds), so a plan counts on the
+ * whole screen only for the stretch it is whole.
+ */
 public final class SmokeFieldService {
+
+    /** Share of its radius a thinning cloud still holds when its last moment arrives. */
+    public static final float CORE_FRACTION = 0.4f;
 
     private final NavigationGrid grid;
     private final ArrayList<SmokeThrow> throwsInFlight = new ArrayList<>();
@@ -25,7 +39,7 @@ public final class SmokeFieldService {
                                     float toX, float toY, SmokeGrenadeSpec spec) {
         throwsInFlight.add(new SmokeThrow(nextId++, carrierId, faction,
                 fromX, fromY, toX, toY, spec.flightSeconds(), spec.flightSeconds(),
-                spec.arcHeight(), spec.cloudRadius(), spec.cloudDuration()));
+                spec.arcHeight(), spec.cloudRadius(), spec.cloudDuration(), spec.thinSeconds()));
         publishSnapshots();
     }
 
@@ -33,9 +47,12 @@ public final class SmokeFieldService {
         for (int i = fields.size() - 1; i >= 0; i--) {
             SmokeField field = fields.get(i);
             field.remaining -= dt;
-            if (field.remaining > 0f) continue;
-            for (int idx : field.occupiedCells) grid.removeTransientOpacityAt(idx);
-            fields.remove(i);
+            if (field.remaining <= 0f) {
+                field.clearTo(-1f, grid);
+                fields.remove(i);
+                continue;
+            }
+            field.thin(grid);
         }
         for (int i = throwsInFlight.size() - 1; i >= 0; i--) {
             SmokeThrow grenade = throwsInFlight.get(i);
@@ -75,22 +92,38 @@ public final class SmokeFieldService {
         int maxY = Math.min(grid.getHeight() - 1,
                 (int) Math.floor(grenade.toY + grenade.cloudRadius));
         float radiusSq = grenade.cloudRadius * grenade.cloudRadius;
-        int[] scratch = new int[(maxX - minX + 1) * (maxY - minY + 1)];
+        int capacity = (maxX - minX + 1) * (maxY - minY + 1);
+        long[] keyed = new long[capacity];
         int count = 0;
         for (int y = minY; y <= maxY; y++) {
             for (int x = minX; x <= maxX; x++) {
                 float dx = x + 0.5f - grenade.toX;
                 float dy = y + 0.5f - grenade.toY;
-                if (dx * dx + dy * dy > radiusSq) continue;
+                float distSq = dx * dx + dy * dy;
+                if (distSq > radiusSq) continue;
                 int idx = grid.index(x, y);
-                scratch[count++] = idx;
                 grid.addTransientOpacityAt(idx);
+                // Outermost first, so a thinning cloud gives back its rim before its core; ties by index for repeatability.
+                // A non-negative float's bits order as the float does, so the complement sorts the far cells first.
+                long outward = ~(long) Float.floatToIntBits(distSq) & 0x7FFFFFFFL;
+                keyed[count++] = (outward << 32) | (idx & 0xFFFFFFFFL);
             }
         }
+        long[] sorted = Arrays.copyOf(keyed, count);
+        Arrays.sort(sorted);
         int[] occupied = new int[count];
-        System.arraycopy(scratch, 0, occupied, 0, count);
+        float[] distanceSq = new float[count];
+        int width = grid.getWidth();
+        for (int i = 0; i < count; i++) {
+            int idx = (int) (sorted[i] & 0xFFFFFFFFL);
+            occupied[i] = idx;
+            float dx = (idx % width) + 0.5f - grenade.toX;
+            float dy = (idx / width) + 0.5f - grenade.toY;
+            distanceSq[i] = dx * dx + dy * dy;
+        }
         fields.add(new SmokeField(grenade.id, grenade.faction, grenade.toX, grenade.toY,
-                grenade.cloudRadius, grenade.cloudDuration, grenade.cloudDuration, occupied));
+                grenade.cloudRadius, grenade.cloudDuration, grenade.cloudDuration, grenade.thinSeconds,
+                occupied, distanceSq));
     }
 
     private void publishSnapshots() {
@@ -106,7 +139,8 @@ public final class SmokeFieldService {
         ArrayList<SmokeFieldView> visibleFields = new ArrayList<>(fields.size());
         for (SmokeField field : fields) {
             visibleFields.add(new SmokeFieldView(field.id, field.faction, field.x, field.y,
-                    field.radius, field.remaining, field.totalDuration));
+                    field.currentRadius(), field.remaining, field.totalDuration,
+                    field.radius, Math.max(0f, field.remaining - field.thinSeconds)));
         }
         throwSnapshot = List.copyOf(visibleThrows);
         fieldSnapshot = List.copyOf(visibleFields);
@@ -115,9 +149,17 @@ public final class SmokeFieldService {
     public record SmokeThrowView(long id, long carrierId, Faction sourceFaction,
                                  float x, float y, float z, float progress) {}
 
+    /**
+     * A standing cloud.
+     *
+     * @param radius       the radius it blocks to now (smaller than {@code fullRadius} once it has begun to thin)
+     * @param fullRadius   the radius it was thrown at
+     * @param coverSeconds how much longer it holds {@code fullRadius}; zero once it is thinning
+     */
     public record SmokeFieldView(long id, Faction sourceFaction,
                                  float x, float y, float radius,
-                                 float remaining, float totalDuration) {}
+                                 float remaining, float totalDuration,
+                                 float fullRadius, float coverSeconds) {}
 
     private static final class SmokeThrow {
         final long id;
@@ -131,12 +173,13 @@ public final class SmokeFieldService {
         final float arcHeight;
         final float cloudRadius;
         final float cloudDuration;
+        final float thinSeconds;
         float remaining;
 
         SmokeThrow(long id, long carrierId, Faction faction,
                    float fromX, float fromY, float toX, float toY,
                    float totalFlight, float remaining, float arcHeight,
-                   float cloudRadius, float cloudDuration) {
+                   float cloudRadius, float cloudDuration, float thinSeconds) {
             this.id = id;
             this.carrierId = carrierId;
             this.faction = faction;
@@ -149,6 +192,7 @@ public final class SmokeFieldService {
             this.arcHeight = arcHeight;
             this.cloudRadius = cloudRadius;
             this.cloudDuration = cloudDuration;
+            this.thinSeconds = thinSeconds;
         }
     }
 
@@ -159,11 +203,16 @@ public final class SmokeFieldService {
         final float y;
         final float radius;
         final float totalDuration;
+        final float thinSeconds;
+        /** Occupied cells, outermost first, with each one's squared distance from the centre in the same order. */
         final int[] occupiedCells;
+        final float[] distanceSq;
+        /** Cells before this index have been given back. */
+        int firstHeld;
         float remaining;
 
         SmokeField(long id, Faction faction, float x, float y, float radius,
-                   float remaining, float totalDuration, int[] occupiedCells) {
+                   float remaining, float totalDuration, float thinSeconds, int[] occupiedCells, float[] distanceSq) {
             this.id = id;
             this.faction = faction;
             this.x = x;
@@ -171,7 +220,29 @@ public final class SmokeFieldService {
             this.radius = radius;
             this.remaining = remaining;
             this.totalDuration = totalDuration;
+            this.thinSeconds = thinSeconds;
             this.occupiedCells = occupiedCells;
+            this.distanceSq = distanceSq;
+        }
+
+        /** The radius the cloud blocks to at this moment. */
+        float currentRadius() {
+            if (thinSeconds <= 0f || remaining >= thinSeconds) return radius;
+            float held = remaining / thinSeconds;
+            return radius * (CORE_FRACTION + (1f - CORE_FRACTION) * held);
+        }
+
+        void thin(NavigationGrid grid) {
+            if (thinSeconds <= 0f || remaining >= thinSeconds) return;
+            clearTo(currentRadius(), grid);
+        }
+
+        /** Gives back every held cell farther from the centre than {@code limit}; a negative limit gives back all. */
+        void clearTo(float limit, NavigationGrid grid) {
+            float limitSq = limit < 0f ? -1f : limit * limit;
+            while (firstHeld < occupiedCells.length && distanceSq[firstHeld] > limitSq) {
+                grid.removeTransientOpacityAt(occupiedCells[firstHeld++]);
+            }
         }
     }
 }

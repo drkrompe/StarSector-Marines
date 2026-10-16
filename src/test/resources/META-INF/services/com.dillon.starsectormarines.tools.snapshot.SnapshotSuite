@@ -175,4 +175,14 @@ com.dillon.starsectormarines.ops.ApcSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.bsp.fill.CompactBuildingSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.bsp.fill.NeighborhoodLotSnapshotSuite
 com.dillon.starsectormarines.ops.TankSnapshotSuite
+com.dillon.starsectormarines.battle.smoke.SmokeScreenSceneSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.bsp.BspMapSpritePreviewSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.bsp.FortressPreviewSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.bsp.CampaignSettlementSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.bsp.BspMapPreviewSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionPreviewSnapshotSuite
 com.dillon.starsectormarines.ops.FreightVehiclesSnapshotSuite
+
+com.dillon.starsectormarines.battle.world.gen.bsp.fill.LogisticsSnapshotSuite
+
+com.dillon.starsectormarines.battle.world.gen.bsp.fill.PowerHallSnapshotSuite

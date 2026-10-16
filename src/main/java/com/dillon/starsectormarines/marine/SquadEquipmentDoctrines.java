@@ -39,6 +39,8 @@ public final class SquadEquipmentDoctrines {
     public static final String SALVAGE_ASSISTED_ARMOR = "armor:salvage-assisted";
     public static final String CORPORATE_SPECTER_SECTION_ARMOR = "armor:corporate-specter-section";
     public static final String HEGEMONY_ARBALEST_SECTION_ARMOR = "armor:hegemony-arbalest-section";
+    /** Stage one of the Hegemony auxiliary warrant: the recovered section, in approved Arbalests. */
+    public static final String HEGEMONY_AUXILIARY_SECTION_ARMOR = "armor:hegemony-auxiliary-section";
     public static final String HEGEMONY_SHOCK_ARMOR = "armor:hegemony-shock";
     public static final String CORPORATE_HEAVY_ARMOR = "armor:corporate-heavy";
     public static final String LEAGUE_HEAVY_ARMOR = "armor:league-heavy";
@@ -344,6 +346,12 @@ public final class SquadEquipmentDoctrines {
                             ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.POWER_SUIT, ArmorClass.STANDARD)),
             new SquadArmorPlan(HEGEMONY_ARBALEST_SECTION_ARMOR, "@loadoutHegemonyArbalestSectionName",
                     "@loadoutHegemonyArbalestSectionDescription",
+                    ArmorTradition.HEGEMONY, SquadRoleMix.BALANCED, ArmorClass.STANDARD,
+                    List.of(ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.POWER_SUIT,
+                            ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.STANDARD,
+                            ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.POWER_SUIT)),
+            new SquadArmorPlan(HEGEMONY_AUXILIARY_SECTION_ARMOR, "@loadoutHegemonyAuxiliarySectionName",
+                    "@loadoutHegemonyAuxiliarySectionDescription",
                     ArmorTradition.HEGEMONY, SquadRoleMix.BALANCED, ArmorClass.STANDARD,
                     List.of(ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.POWER_SUIT,
                             ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.STANDARD, ArmorClass.STANDARD,

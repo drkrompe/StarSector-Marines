@@ -443,8 +443,10 @@ milestone across every source, while preserving learned, carried and issued gear
 in existing saves. Do not disable the current routes until that later obtainable
 route exists, or claim that writing this story has installed the gate. The shared gate has
 shipped as the Restricted tier with standing military warrants (`progression-nouns.md`,
-Kit and armory); `hegemony-auxiliary-warrant.md` is the authored procurement route
-this chapter's introduction leads to. Advanced
+Kit and armory); the Hegemony auxiliary warrant (same section) is the authored
+procurement route this chapter's introduction leads to. Chapter 5's once-only
+settlement must set `AgreusArcProgress.smallWarSettled`: that flag is what sends
+the warrant's offer, and nothing else sets it. Advanced
 STANDARD armor and unrelated equipment retain their own access and purposes.
 
 ## Force, support and failure contract
@@ -589,8 +591,9 @@ military equipment to compensate for a harder map.
    usefulness; synthetic protection numbers alone do not accept the power curve.
 7. Author the later military procurement route and implement its shared source
    gate before claiming a strict story-first progression for fresh campaigns.
-   The shared gate has shipped (`progression-nouns.md`); the authored route is
-   `hegemony-auxiliary-warrant.md`.
+   The shared gate and the authored route have shipped (`progression-nouns.md`,
+   Kit and armory); the route waits on Chapter 5 setting
+   `AgreusArcProgress.smallWarSettled`.
 
 All mission, choice and reward text starts as readable correspondence with Castle's
 fact-bound operational briefing. The sample lines above are unrecorded copy, not

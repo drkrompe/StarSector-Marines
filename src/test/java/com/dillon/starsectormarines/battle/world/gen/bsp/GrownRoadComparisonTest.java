@@ -91,7 +91,7 @@ public class GrownRoadComparisonTest {
 
     /**
      * Generates and renders one (seed, variant) tile. Mirrors the overlay
-     * arguments {@code BspMapPreviewTest.renderPreviewBatch} passes: district
+     * arguments {@code BspMapPreviewSnapshotSuite.renderPreviewBatch} passes: district
      * map for zoning, no biome map (legacy/city mode), compounds, and the
      * tactical graph. Never throws — a generation or render failure becomes a
      * captioned placeholder tile instead, since a spike must still produce

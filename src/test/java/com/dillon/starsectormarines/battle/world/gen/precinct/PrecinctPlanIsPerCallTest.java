@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.EnumSet;
@@ -58,6 +59,7 @@ class PrecinctPlanIsPerCallTest {
      * fields, because the fault this guards against was invisible from outside:
      * a stale plan produces a perfectly good map of the wrong world.
      */
+    @Tag("generated-space-evidence")
     @Test
     void aPlanDoesNotSurviveIntoTheNextCall() {
         BspCityGenerator reused = new BspCityGenerator();

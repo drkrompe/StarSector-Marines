@@ -17,6 +17,7 @@ import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -147,6 +148,8 @@ final class FortAssault {
 
     /** Ticks a smoke screen job is given to stand its clouds: the walk of a grenadier from the staging cell, the throw and the flight. UNTUNED. */
     static final int SMOKE_JOB_TICKS = 600;
+    /** Ticks a squad takes between one cloud of a screen and the next: it throws, walks to the next place and throws again. UNTUNED. */
+    static final int SMOKE_THROW_CYCLE_TICKS = 300;
     /** Screens tried on one nest before the plan stops counting on smoke for it. UNTUNED. */
     static final int SMOKE_ATTEMPTS = 2;
     /** Most clouds one nest's screen may ask: a route needing more is not screened, it is answered another way. UNTUNED. */
@@ -159,8 +162,6 @@ final class FortAssault {
     static final int TICKS_PER_SECOND = 30;
     /** Ticks a sapper stands at the wall setting its charge, over which a screen must also hold. UNTUNED. */
     static final int PLANT_DWELL_TICKS = 150;
-    /** Ticks a grenade's cloud stands (the catalog's twelve seconds). */
-    static final int CLOUD_LIFE_TICKS = 12 * TICKS_PER_SECOND;
     /** How far from a grenadier's place to its cloud the order puts it: inside the throw. */
     static final int THROW_STANDOFF_CELLS = 5;
     /** A cloud this close to a screen's point is that screen standing. */
@@ -503,7 +504,7 @@ final class FortAssault {
     }
 
     /** A smoke screen being stood for one nest: the points a cloud is wanted on, and when it was begun. */
-    record SmokeJob(int nest, List<int[]> points, int startedTick) { }
+    record SmokeJob(int nest, List<int[]> points, int startedTick, int allowedTicks) { }
 
     /**
      * What a company's close breachers went through while the plan held them, kept for evidence and never read by the plan:
@@ -521,6 +522,10 @@ final class FortAssault {
         final Map<SatchelApproach.Answer, Integer> answersAtRelease = new EnumMap<>(SatchelApproach.Answer.class);
         int approachChangedTick = -1;
         String approachChange = "";
+        /** The nest each fire squad is placed against while it is believed live, as of the last pulse: where the company's own fire is meant to go. */
+        final Map<Integer, int[]> baseOfFire = new TreeMap<>();
+        /** Breach roles taken from squads that lost the kit behind them before they were let go. */
+        int breachersLost;
         /** The readings of the last pulse the breachers were held, as a sentence, for the evidence report. */
         String lastReadings = "";
         /** Pulses on which an open nest had nothing the company could answer it with. */
@@ -531,6 +536,14 @@ final class FortAssault {
         int lastProgressTick = -1;
         /** Nests that read DEAD for the first time while the breachers were held. */
         int nestsDiedWhileHeld;
+        /** Screens the planner declined because of what they would cost the company, by reason, in pulses. */
+        final Map<SatchelApproach.Refusal, Integer> refused = new EnumMap<>(SatchelApproach.Refusal.class);
+        /** Pulses on which the company carried smoke but none that would last the crossing. */
+        int smokeTooShortPulses;
+        /** The last reason each nest had no smoke on offer, for the evidence report. */
+        final Map<Integer, String> smokeNotes = new TreeMap<>();
+        /** What happened to each screen the company ordered: when, for which nest, who threw it and how it ended. */
+        final List<String> smokeLog = new ArrayList<>();
 
         int heldTicks() {
             return heldSinceTick < 0 ? 0 : (releasedTick >= 0 ? releasedTick : lastHeldTick) - heldSinceTick;
@@ -582,6 +595,8 @@ final class FortAssault {
         private final Map<Integer, List<int[]>> exposedCells = new TreeMap<>();
         /** The last cell of each held breacher's route that no live nest sees: where it waits. */
         private final Map<Integer, int[]> holdEdge = new TreeMap<>();
+        /** The places the held breachers are to reach, this pulse. */
+        private List<int[]> heldPlaces = List.of();
         /** Ticks the held breachers need to cross the exposed stretch and set their charge, this pulse. */
         private int crossingTicks;
         /** Smoke screens being stood, by the nest they are for, and the screens each nest has been tried with. */
@@ -589,6 +604,7 @@ final class FortAssault {
         private final Map<Integer, Integer> smokeTries = new TreeMap<>();
         /** Orders for squads that are throwing smoke this pulse, laid over the ones the step gave them. */
         private final Map<Integer, Order> smokeOrders = new TreeMap<>();
+        private final Set<String> smokeAssigned = new TreeSet<>();
         /** A base-of-fire squad the plan put against a particular nest, over the spread it was first given. */
         private final Map<Integer, Integer> forcedFire = new TreeMap<>();
         /** The tick from which a friendly squad in position has been engaging each nest, by nest index. */
@@ -607,12 +623,7 @@ final class FortAssault {
 
         /** The clouds of smoke standing this pulse, as the side sees them: their life is turned into the tick they thin out. */
         void clouds(List<SmokeCloudFact> standing, int tick) {
-            List<SatchelApproach.Cloud> out = new ArrayList<>();
-            for (SmokeCloudFact cloud : standing) {
-                out.add(new SatchelApproach.Cloud(cloud.x(), cloud.y(), Math.max(cloud.radius(), (float) CLOUD_RADIUS_CELLS),
-                        tick + Math.round(cloud.remainingSeconds() * TICKS_PER_SECOND)));
-            }
-            this.clouds = out;
+            this.clouds = SmokePartition.of(standing, tick, TICKS_PER_SECOND).clouds();
         }
 
 
@@ -753,6 +764,9 @@ final class FortAssault {
         Map<Integer, Order> run(int tick, Faction perspective, Objective objective, Set<Integer> members,
                                 Map<Integer, Body> byId, CommandTopology topology, List<String> notes) {
             assignRoles(members, byId);
+            if (revalidateBreachers(tick, members, byId, topology, notes)) {
+                return run(tick, perspective, objective, members, byId, topology, notes);
+            }
             liveCovering = belief.liveCovering(way);
             List<Integer> fire = new ArrayList<>();
             List<Integer> breach = new ArrayList<>();
@@ -782,6 +796,11 @@ final class FortAssault {
                 }
             }
             sortRoles(fire, breach, assault);
+            satchelRecord.baseOfFire.clear();
+            for (int id : fire) {
+                Integer placed = fireNests.get(id);
+                if (placed != null && belief.live(placed)) satchelRecord.baseOfFire.put(id, works.nests.get(placed));
+            }
             if (satchelStep(tick, members, fire, breach, byId, topology, notes)) {
                 return run(tick, perspective, objective, members, byId, topology, notes);
             }
@@ -960,6 +979,9 @@ final class FortAssault {
             if (held.isEmpty()) return false;
             List<int[]> route = new ArrayList<>();
             holdEdge.clear();
+            List<int[]> places = new ArrayList<>();
+            for (int id : held) places.add(breachPositions.get(id));
+            heldPlaces = places;
             SatchelApproach.Sight sight = (x0, y0, x1, y1) -> sight(topology, x0, y0, x1, y1);
             for (int id : held) {
                 int[] place = breachPositions.get(id);
@@ -1004,10 +1026,11 @@ final class FortAssault {
                 satchelRecord.lastProgressTick = tick;
                 satchelProgress = tick;
             }
-            SatchelResources resources = new SatchelResources(tick, members, fire, byId, topology, exposedNests);
+            SatchelResources resources = new SatchelResources(tick, members, fire, byId, topology, exposedNests, readings);
             SatchelApproach.Plan plan = SatchelApproach.plan(readings, resources);
             satchelRecord.lastReadings = describe(readings, plan, fire, byId, tick);
             upkeepSmoke(tick, readings);
+            resources.reweigh();
             if (plan.verdict() == SatchelApproach.Verdict.GO) {
                 satchelClear = true;
                 satchelRecord.releasedTick = tick;
@@ -1049,6 +1072,8 @@ final class FortAssault {
                 out.append("n").append(reading.nest()).append("@").append(cell[0]).append(",").append(cell[1]).append("=")
                         .append(reading.answer() == null ? "OPEN" : reading.answer()).append(" ");
             }
+            out.append("| smoke ").append(satchelRecord.smokeNotes).append(" ");
+            out.append("| crossing ").append(crossingTicks).append(" ticks over ").append(exposedCells.values().stream().mapToInt(List::size).max().orElse(0)).append(" exposed cells ");
             out.append("| moves ").append(plan.moves()).append(" pending ").append(plan.pending()).append(" unservable ")
                     .append(plan.unservable()).append(" | fire ");
             for (int id : fire) {
@@ -1078,12 +1103,29 @@ final class FortAssault {
                 SmokeJob job = jobs.next();
                 SatchelApproach.Reading reading = readings.get(job.nest());
                 if (!reading.open()) {
+                    satchelRecord.smokeLog.add("tick " + tick + ": screen for n" + job.nest() + " retired, the nest reads " + reading.answer());
                     jobs.remove();
-                } else if (tick - job.startedTick() >= SMOKE_JOB_TICKS) {
+                } else if (tick - job.startedTick() >= job.allowedTicks()) {
+                    satchelRecord.smokeLog.add("tick " + tick + ": screen for n" + job.nest() + " timed out after " + job.allowedTicks() + " ticks with "
+                            + standing(job, tick) + " of " + job.points().size() + " clouds standing");
                     smokeTries.merge(job.nest(), 1, Integer::sum);
                     jobs.remove();
                 }
             }
+        }
+
+        /** How many of a screen's points have a cloud standing on them now. */
+        private int standing(SmokeJob job, int tick) {
+            int n = 0;
+            for (int[] point : job.points()) {
+                for (SatchelApproach.Cloud cloud : clouds) {
+                    if (cloud.untilTick() > tick && Math.hypot(cloud.x() - (point[0] + 0.5), cloud.y() - (point[1] + 0.5)) <= SMOKE_STANDS_CELLS) {
+                        n++;
+                        break;
+                    }
+                }
+            }
+            return n;
         }
 
         /** Whether a squad in position has been engaging this nest for the settle time. */
@@ -1112,6 +1154,7 @@ final class FortAssault {
          * nothing.
          */
         private boolean changeApproach(int tick, Map<Integer, Body> byId, List<String> notes, SatchelApproach.Plan plan) {
+            int heldFor = satchelHeldSince < 0 ? 0 : tick - satchelHeldSince;
             Map<Integer, CapabilityProfile> profiles = new TreeMap<>();
             for (int id : roles.keySet()) if (byId.containsKey(id)) profiles.put(id, byId.get(id).capabilities());
             Way next = null;
@@ -1135,13 +1178,13 @@ final class FortAssault {
                         + " nests believed to cover it";
             }
             if (next == null) {
-                notes.add("the sappers have held " + (tick - satchelHeldSince) + " ticks with open nests " + plan.unservable()
+                notes.add("the sappers have held " + heldFor + " ticks with open nests " + (plan == null ? List.of() : plan.unservable())
                         + " and no other approach to take; they keep holding");
                 satchelProgress = tick;
                 return false;
             }
-            notes.add("assault plan changes approach at tick " + tick + " after " + (tick - satchelHeldSince)
-                    + " ticks holding the sappers with no further nest answered: " + why);
+            notes.add("assault plan changes approach at tick " + tick + " after " + heldFor
+                    + (plan == null ? " ticks, the breachers having lost their kit: " : " ticks holding the sappers with no further nest answered: ") + why);
             satchelRecord.approachChangedTick = tick;
             satchelRecord.approachChange = why;
             way = next;
@@ -1172,11 +1215,13 @@ final class FortAssault {
             private final Map<Integer, Body> byId;
             private final CommandTopology topology;
             private final Set<Integer> exposedNests;
+            private final List<SatchelApproach.Reading> readings;
             private final Map<Integer, Integer> engagers = new TreeMap<>();
             private final Set<Integer> retasked = new TreeSet<>();
 
             SatchelResources(int tick, Set<Integer> members, List<Integer> fire, Map<Integer, Body> byId,
-                             CommandTopology topology, Set<Integer> exposedNests) {
+                             CommandTopology topology, Set<Integer> exposedNests, List<SatchelApproach.Reading> readings) {
+                this.readings = readings;
                 this.tick = tick;
                 this.members = members;
                 this.fire = fire;
@@ -1256,13 +1301,14 @@ final class FortAssault {
              * The squads that could throw smoke now: any of the company's that is not a held breacher, carries grenades, and is the
              * assault element waiting at the staging cell or a fire squad that can be spared. Nearest to the staging cell first.
              */
-            private List<Integer> grenadiers() {
+            private List<Integer> grenadiers(int minLifeTicks) {
                 List<Integer> out = new ArrayList<>();
                 for (int id : members) {
                     Body body = byId.get(id);
                     Role role = roles.get(id);
                     if (body == null || role == null || role == Role.BREACH || !body.capabilities().has(AssaultCapability.SMOKE_SCREEN)) continue;
                     if (role == Role.FIRE && !spare(id)) continue;
+                    if (body.capabilities().screenSeconds() * TICKS_PER_SECOND < minLifeTicks) continue;
                     out.add(id);
                 }
                 out.sort(Comparator.<Integer>comparingDouble(id -> Math.hypot(byId.get(id).anchorX() - assembly[0],
@@ -1276,19 +1322,124 @@ final class FortAssault {
                 return n;
             }
 
-            private List<int[]> screenFor(int nest) {
+            private List<int[]> screenFor(int nest, double radius) {
                 List<int[]> cells = exposedCells.get(nest);
                 if (cells == null || cells.isEmpty()) return List.of();
-                return SatchelApproach.screenPoints(works.nests.get(nest), cells, CLOUD_RADIUS_CELLS);
+                return SatchelApproach.screenPoints(works.nests.get(nest), cells, radius);
+            }
+
+            /** The radius every one of these squads' clouds holds, at least: the smallest of theirs (the grenade's when a squad does not say). */
+            private double radiusOf(List<Integer> throwers) {
+                double radius = Double.MAX_VALUE;
+                for (int id : throwers) {
+                    float own = byId.get(id).capabilities().screenRadius();
+                    radius = Math.min(radius, own > 0f ? own : CLOUD_RADIUS_CELLS);
+                }
+                return radius == Double.MAX_VALUE ? CLOUD_RADIUS_CELLS : radius;
             }
 
             private boolean smokeOffered(int nest) {
-                if (smokeTries.getOrDefault(nest, 0) >= SMOKE_ATTEMPTS || smokeJobs.containsKey(nest)) return false;
-                // A cloud stands twelve seconds: it screens a crossing only if the crossing is done inside that.
-                if (crossingTicks > CLOUD_LIFE_TICKS) return false;
-                List<int[]> points = screenFor(nest);
-                if (points.isEmpty() || points.size() > MAX_SCREEN_CLOUDS) return false;
-                return grenades(grenadiers()) >= points.size();
+                if (smokeTries.getOrDefault(nest, 0) >= SMOKE_ATTEMPTS || smokeJobs.containsKey(nest)) {
+                    return noSmoke(nest, smokeJobs.containsKey(nest) ? "a screen is already being stood" : "tried " + SMOKE_ATTEMPTS + " times");
+                }
+                // A cloud holds its radius only so long: the screen has to be one that stands the whole crossing, which the
+                // hand grenade's twelve seconds seldom does and a pot's minute does.
+                List<Integer> throwers = grenadiers(crossingTicks);
+                if (throwers.isEmpty()) {
+                    List<Integer> any = grenadiers(0);
+                    if (!any.isEmpty()) satchelRecord.smokeTooShortPulses++;
+                    return noSmoke(nest, any.isEmpty() ? "no squad free to throw" : "no cloud lasts " + crossingTicks + " ticks");
+                }
+                List<int[]> points = screenFor(nest, radiusOf(throwers));
+                if (points.isEmpty() || points.size() > MAX_SCREEN_CLOUDS) return noSmoke(nest, points.size() + " clouds wanted");
+                if (grenades(throwers) < points.size()) return noSmoke(nest, points.size() + " clouds wanted, " + grenades(throwers) + " throws");
+                SatchelApproach.Refusal refusal = weighScreen(nest, points, throwers);
+                if (refusal != null) {
+                    satchelRecord.refused.merge(refusal, 1, Integer::sum);
+                    return noSmoke(nest, refusal.name());
+                }
+                return true;
+            }
+
+            /**
+             * Ticks a screen is given to stand: the base allowance, the walk of the nearest squad that can throw to the first point it
+             * is wanted on, and a throw cycle for each further cloud (a squad throws one, walks, and throws the next).
+             */
+            private int smokeAllowance(int nest, List<int[]> points) {
+                double nearest = Double.MAX_VALUE;
+                for (int id : grenadiers(crossingTicks)) {
+                    Body body = byId.get(id);
+                    nearest = Math.min(nearest, Math.hypot(body.anchorX() - points.get(0)[0], body.anchorY() - points.get(0)[1]));
+                }
+                int walk = nearest == Double.MAX_VALUE ? 0 : (int) Math.round(nearest * WALK_TICKS_PER_CELL);
+                return SMOKE_JOB_TICKS + walk + (points.size() - 1) * SMOKE_THROW_CYCLE_TICKS;
+            }
+
+            /** Notes why a nest has no smoke on offer, for the evidence report, and says so. */
+            private boolean noSmoke(int nest, String why) {
+                satchelRecord.smokeNotes.put(nest, why);
+                return false;
+            }
+
+            /**
+             * The other edge of a screen: whether laying it would cost the company a suppression it relies on or leave the sappers
+             * alone beyond it. The clouds it would stand are as long-lived as the shortest of the throwers' cloud. The suppressions
+             * relied on are every fire squad's placement against a nest believed live, answered yet or not (a squad on its way is
+             * still the company's fire, and a cloud laid across its line is laid before it gets there), read from both where the plan
+             * put it and where the squad stands now: a squad does not fire from the cell it was told to walk to.
+             */
+            private SatchelApproach.Refusal weighScreen(int nest, List<int[]> points, List<Integer> throwers) {
+                int life = Integer.MAX_VALUE;
+                for (int id : throwers) life = Math.min(life, Math.round(byId.get(id).capabilities().screenSeconds() * TICKS_PER_SECOND));
+                return weighPoints(nest, points, life, (float) radiusOf(throwers));
+            }
+
+            private SatchelApproach.Refusal weighPoints(int nest, List<int[]> points, int life, float radius) {
+                List<SatchelApproach.Cloud> proposed = new ArrayList<>();
+                for (int[] point : points) proposed.add(new SatchelApproach.Cloud(point[0] + 0.5f, point[1] + 0.5f, radius, tick + life));
+                List<SatchelApproach.Placement> placements = new ArrayList<>();
+                List<int[]> support = new ArrayList<>();
+                for (int id : fire) {
+                    Body body = byId.get(id);
+                    if (body == null) continue;
+                    int[] actual = {body.anchorX(), body.anchorY()};
+                    support.add(actual);
+                    if (firePositions.get(id) != null) support.add(firePositions.get(id));
+                    Integer placed = fireNests.get(id);
+                    boolean live = placed != null && belief.live(placed);
+                    placements.add(new SatchelApproach.Placement(live ? placed : -1, live ? works.nests.get(placed) : null,
+                            firePositions.get(id), actual));
+                }
+                List<SatchelApproach.Reliance> reliances = SatchelApproach.reliances(placements);
+                return SatchelApproach.weigh(nest, clouds, proposed, reliances, support, heldPlaces, NEST_REACH_CELLS,
+                        (x0, y0, x1, y1) -> sight(topology, x0, y0, x1, y1), tick, crossingTicks);
+            }
+
+            /**
+             * Re-weighs every screen still being stood against where the fire squads are now, and withdraws one that would now cut
+             * a line the company relies on: a screen is ordered many pulses before its clouds are thrown, and the base of fire
+             * moves in between. Clouds already standing stay; only the throws not yet made are cancelled.
+             */
+            void reweigh() {
+                List<Integer> throwers = grenadiers(crossingTicks);
+                if (throwers.isEmpty()) return;
+                int life = Integer.MAX_VALUE;
+                for (int id : throwers) life = Math.min(life, Math.round(byId.get(id).capabilities().screenSeconds() * TICKS_PER_SECOND));
+                float radius = (float) radiusOf(throwers);
+                Iterator<SmokeJob> jobs = smokeJobs.values().iterator();
+                while (jobs.hasNext()) {
+                    SmokeJob job = jobs.next();
+                    List<int[]> remaining = new ArrayList<>();
+                    for (int[] point : job.points()) if (!cloudStands(point)) remaining.add(point);
+                    if (remaining.isEmpty()) continue;
+                    SatchelApproach.Refusal refusal = weighPoints(job.nest(), remaining, life, radius);
+                    if (refusal == null) continue;
+                    satchelRecord.refused.merge(refusal, 1, Integer::sum);
+                    satchelRecord.smokeLog.add("tick " + tick + ": screen for n" + job.nest() + " withdrawn with " + remaining.size() + " throws to make, " + refusal);
+                    satchelRecord.smokeNotes.put(job.nest(), refusal.name());
+                    smokeTries.merge(job.nest(), 1, Integer::sum);
+                    jobs.remove();
+                }
             }
 
             /**
@@ -1302,7 +1453,7 @@ final class FortAssault {
                     for (int[] point : job.points()) {
                         if (cloudStands(point)) continue;
                         int squad = -1;
-                        for (int id : grenadiers()) {
+                        for (int id : grenadiers(crossingTicks)) {
                             if (!busy.contains(id)) {
                                 squad = id;
                                 break;
@@ -1316,6 +1467,10 @@ final class FortAssault {
                         int[] from = walkableNear((int) Math.round(point[0] + dx / d * THROW_STANDOFF_CELLS),
                                 (int) Math.round(point[1] + dy / d * THROW_STANDOFF_CELLS), byId.get(squad), topology);
                         if (from == null) continue;
+                        if (smokeAssigned.add(squad + ":" + point[0] + "," + point[1])) {
+                            satchelRecord.smokeLog.add("tick " + tick + ": squad " + squad + " sent to (" + from[0] + "," + from[1]
+                                    + ") to throw on (" + point[0] + "," + point[1] + ")");
+                        }
                         ObjectiveAssignment order = ObjectiveAssignment.attackMove(squad, from[0], from[1])
                                 .withScreen(new ObjectiveAssignment.ScreenMission(point[0], point[1]));
                         smokeOrders.put(squad, new Order(order, AssignmentReason.ASSAULT_STAGE));
@@ -1358,9 +1513,12 @@ final class FortAssault {
                         return true;
                     }
                     case SMOKE -> {
-                        List<int[]> points = screenFor(move.nest());
+                        List<int[]> points = screenFor(move.nest(), radiusOf(grenadiers(crossingTicks)));
                         if (points.isEmpty()) return false;
-                        smokeJobs.put(move.nest(), new SmokeJob(move.nest(), points, tick));
+                        smokeJobs.put(move.nest(), new SmokeJob(move.nest(), points, tick, smokeAllowance(move.nest(), points)));
+                        StringBuilder where = new StringBuilder();
+                        for (int[] point : points) where.append("(").append(point[0]).append(",").append(point[1]).append(") ");
+                        satchelRecord.smokeLog.add("tick " + tick + ": screen of " + points.size() + " clouds ordered for n" + move.nest() + " at " + where);
                         notes.add("a smoke screen of " + points.size() + " clouds is ordered for the nest at (" + cell[0] + "," + cell[1]
                                 + ") before the sappers go");
                         return true;
@@ -1568,6 +1726,56 @@ final class FortAssault {
                         && Math.hypot(body.anchorX() - cell[0], body.anchorY() - cell[1]) <= ARRIVE_CELLS) arrived++;
             }
             return arrived / (float) ids.size();
+        }
+
+        /**
+         * Whether a squad still carries what its breach role needs, read off the live profile of its living members rather than the
+         * one it was staffed with: a close breacher needs a charge or a cutter, a distance breacher a wall-damaging gun.
+         */
+        private boolean carriesBreachKit(Body body) {
+            if (body == null) return false;
+            return means == BreachMeans.CLOSE ? body.capabilities().has(AssaultCapability.CLOSE_BREACH)
+                    : body.capabilities().has(AssaultCapability.DISTANCE_BREACH);
+        }
+
+        /**
+         * Roles are sticky, but a breach role is only as good as the kit behind it. A breacher not yet let go that has lost its kit (the
+         * carrier fell on the walk up, or while held) cannot open the wall, and ordering it to would send the squad to a wall it can do
+         * nothing to. It is returned to the assault (or the fire, for a machine); another squad of the company that carries the kit takes
+         * the role, and when there is none the company changes approach rather than hold or send an empty squad. A breacher already
+         * let go is left alone: a charge it has set has spent its kit by design. Returns true when the approach changed and the pulse
+         * must be planned again.
+         */
+        private boolean revalidateBreachers(int tick, Set<Integer> members, Map<Integer, Body> byId, CommandTopology topology,
+                                            List<String> notes) {
+            if (way.variant() != Variant.BREACH || means == null || (step != Step.POSITION && step != Step.SUPPRESS)) return false;
+            boolean wallStands = breachCell(topology) != null;
+            if (!wallStands) return false;
+            boolean capable = false;
+            boolean lost = false;
+            for (Map.Entry<Integer, Role> role : new ArrayList<>(roles.entrySet())) {
+                if (role.getValue() != Role.BREACH) continue;
+                int id = role.getKey();
+                if (breachGo.containsKey(id) || carriesBreachKit(byId.get(id))) {
+                    capable = true;
+                    continue;
+                }
+                Body body = byId.get(id);
+                roles.put(id, body != null && body.machine() ? Role.FIRE : Role.ASSAULT);
+                breachPositions.remove(id);
+                lost = true;
+                satchelRecord.breachersLost++;
+                notes.add("squad " + id + " no longer carries what opens the wall; it is taken off the breach");
+            }
+            if (capable || !lost) return false;
+            for (int id : members) {
+                Body body = byId.get(id);
+                if (roles.get(id) != Role.ASSAULT || !carriesBreachKit(body)) continue;
+                roles.put(id, Role.BREACH);
+                notes.add("squad " + id + " carries the kit and takes over the breach");
+                return false;
+            }
+            return changeApproach(tick, byId, notes, null);
         }
 
         /**

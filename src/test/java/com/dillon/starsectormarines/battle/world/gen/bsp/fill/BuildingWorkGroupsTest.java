@@ -22,6 +22,19 @@ class BuildingWorkGroupsTest {
         }
     }
 
+    @Test void warehouseBaysAlignAndKeepTheirTwoCellHandlingAisles() {
+        assertTrue(groups.place(BuildingWorkGroups.cargoDesk(false),2,2,0,RoomPurpose.PATIENT_WARD));
+        assertTrue(groups.place(BuildingWorkGroups.pallets(1,"cartons"),18,2,0,RoomPurpose.PATIENT_WARD));
+        assertTrue(groups.fitRackRows(1,1,22,22,RoomPurpose.PATIENT_WARD) >= 4);
+        for (Doodad rack : doodads) if (rack.definitionId().equals("main-stores.rack")) {
+            assertEquals(0,rack.quarterTurns);
+            assertEquals(0,(rack.cellX-2)%4);
+            assertEquals(0,(rack.cellY-2)%8);
+            for (int y=rack.cellY;y<rack.cellY+8;y++) for (int x=rack.cellX+2;x<rack.cellX+4;x++)
+                assertTrue(grid.isWalkable(x,y),"Stock consumed its handling aisle");
+        }
+    }
+
     @Test void bedBayProtectsSideAndStretcherAccessFromLaterFurniture() {
         assertTrue(groups.place(BuildingWorkGroups.bedBay(), 3, 3, 0, RoomPurpose.PATIENT_WARD));
         assertFalse(groups.place(BuildingWorkGroups.pallets(1, "cases"), 4, 3, 0, RoomPurpose.PATIENT_WARD));

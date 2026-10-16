@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.CampaignTable;
 import com.dillon.starsectormarines.campaign.GarrisonDefenseTriggerType;
+import com.dillon.starsectormarines.campaign.RaidShape;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.comm.IntelInfoPlugin;
@@ -54,13 +55,21 @@ public final class VanillaRaidGarrisonSystem implements CampaignSystem {
         public final int attackerFactionId;
         /** Attacker ground strength in vanilla's raid-strength units; 0 when unestimated. */
         public final float groundStrength;
+        /** Which vanilla machinery the raid runs on, for the defence report. */
+        public final RaidShape shape;
 
         public RaidThreat(long eventKey, int marketId, int attackerFactionId,
                           float groundStrength) {
+            this(eventKey, marketId, attackerFactionId, groundStrength, RaidShape.UNKNOWN);
+        }
+
+        public RaidThreat(long eventKey, int marketId, int attackerFactionId,
+                          float groundStrength, RaidShape shape) {
             this.eventKey = eventKey;
             this.marketId = marketId;
             this.attackerFactionId = attackerFactionId;
             this.groundStrength = groundStrength;
+            this.shape = shape != null ? shape : RaidShape.UNKNOWN;
         }
     }
 
@@ -97,7 +106,7 @@ public final class VanillaRaidGarrisonSystem implements CampaignSystem {
             if (threat == null) continue;
             GarrisonDefenseTrigger.arm(state, threat.eventKey, threat.marketId,
                     GarrisonDefenseTriggerType.VANILLA_RAID, -1L,
-                    threat.attackerFactionId, threat.groundStrength, day);
+                    threat.attackerFactionId, threat.groundStrength, threat.shape, day);
         }
     }
 
@@ -133,7 +142,8 @@ public final class VanillaRaidGarrisonSystem implements CampaignSystem {
                 if (target == null || target.getId() == null) continue;
                 int marketSlot = state.marketRegistry.intern(target.getId());
                 long key = eventKey(visible, factionId, target.getId(), params.memoryKey);
-                out.add(new RaidThreat(key, marketSlot, factionSlot, strength));
+                out.add(new RaidThreat(key, marketSlot, factionSlot, strength,
+                        RaidShape.FLEET_GROUP));
             }
         }
     }
@@ -187,11 +197,13 @@ public final class VanillaRaidGarrisonSystem implements CampaignSystem {
                     ? raid.getPlayerVisibleTimestamp() : 0L;
             String memoryKey = raid.getClass().getSimpleName() + ":" + raid.getRouteSourceId();
             float strength = raidIntelGroundStrength(raid);
+            RaidShape shape = raid instanceof PunitiveExpeditionIntel
+                    ? RaidShape.PUNITIVE_EXPEDITION : RaidShape.RAID;
             for (MarketAPI target : raidIntelTargets(raid)) {
                 if (target == null || target.getId() == null) continue;
                 int marketSlot = state.marketRegistry.intern(target.getId());
                 long key = eventKey(visible, factionId, target.getId(), memoryKey);
-                out.add(new RaidThreat(key, marketSlot, factionSlot, strength));
+                out.add(new RaidThreat(key, marketSlot, factionSlot, strength, shape));
             }
         }
     }

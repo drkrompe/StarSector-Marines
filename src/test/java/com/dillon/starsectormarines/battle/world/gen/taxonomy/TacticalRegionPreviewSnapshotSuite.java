@@ -3,27 +3,27 @@ package com.dillon.starsectormarines.battle.world.gen.taxonomy;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
-import org.junit.jupiter.api.Test;
+import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 
-import javax.imageio.ImageIO;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Dev tool dressed as a test — the gut-check for the {@link TacticalRegionMap}
+ * Dev tool — the gut-check for the {@link TacticalRegionMap}
  * structural-taxonomy artifact. Generates the same map batch
- * {@code BspMapPreviewTest} uses and renders, per seed, two PNGs:
+ * {@code BspMapPreviewSnapshotSuite} uses and renders, per seed, two PNGs:
  * <ul>
  *   <li><b>{@code …-kind.png}</b> — each region filled by {@link RegionKind}
  *       (id-jittered so adjacent same-kind regions still read apart), with
@@ -34,10 +34,10 @@ import java.util.Map;
  * Also prints a per-seed attribute summary (region count by kind + the most
  * enclosed pockets) so the segmentation is auditable from the console too.
  *
- * <p>Output: {@code build/map-previews/taxonomy-*.png}. Run via:
- * <pre>gradlew :test --tests "*TacticalRegionPreviewTest*"</pre>
+ * <p>Output: {@code taxonomy-*.png}. Run via:
+ * <pre>gradlew createSnapshots -Psnapshot=taxonomy-previews</pre>
  */
-public class TacticalRegionPreviewTest {
+public final class TacticalRegionPreviewSnapshotSuite implements SnapshotSuite {
 
     private static final int GRID_W = 80, GRID_H = 80, CELL_PX = 8;
     private static final long[] SEEDS = { 1L, 42L, 100L, 777L, 1234L, 9999L };
@@ -45,7 +45,6 @@ public class TacticalRegionPreviewTest {
     private static final int CONQUEST_W = 240, CONQUEST_H = 160, CONQUEST_CELL_PX = 5;
     private static final long[] CONQUEST_SEEDS = { 1L, 42L, 100L, 777L };
 
-    private static final Path OUT_DIR = Paths.get("build/map-previews");
 
     private static final Map<RegionKind, Color> KIND_COLORS = new EnumMap<>(RegionKind.class);
     static {
@@ -65,32 +64,41 @@ public class TacticalRegionPreviewTest {
     /** Cap markers drawn per map so the overlay stays readable. */
     private static final int OVERWATCH_MAX_MARKERS = 18;
 
-    @Test
-    void renderConquestTaxonomy() throws Exception {
-        Files.createDirectories(OUT_DIR);
+    @Override public String id() { return "taxonomy-previews"; }
+    @Override public String label() { return "Tactical region taxonomy and overwatch overlays"; }
+
+    @Override
+    public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
+        TileRegistryTestInstaller.install(context.projectRoot());
+        List<SnapshotArtifact> artifacts = new ArrayList<>();
+        renderConquestTaxonomy(artifacts);
+        renderLegacyTaxonomy(artifacts);
+        return artifacts;
+    }
+
+    private static void renderConquestTaxonomy(List<SnapshotArtifact> artifacts) {
         BspCityGenerator gen = new BspCityGenerator();
         for (long seed : CONQUEST_SEEDS) {
             MapResult map = gen.generate(CONQUEST_W, CONQUEST_H, seed, TraversalAxis.SOUTH_TO_NORTH);
             TacticalRegionMap regions = gen.getLastTacticalRegions();
-            writePair(map, regions, TraversalAxis.SOUTH_TO_NORTH, seed, "taxonomy-conquest", CONQUEST_CELL_PX);
+            writePair(artifacts, map, regions, TraversalAxis.SOUTH_TO_NORTH, seed, "taxonomy-conquest", CONQUEST_CELL_PX);
             printSummary(seed, regions, true);
         }
     }
 
-    @Test
-    void renderLegacyTaxonomy() throws Exception {
-        Files.createDirectories(OUT_DIR);
+    private static void renderLegacyTaxonomy(List<SnapshotArtifact> artifacts) {
         BspCityGenerator gen = new BspCityGenerator();
         for (long seed : SEEDS) {
             MapResult map = gen.generate(GRID_W, GRID_H, seed);
             TacticalRegionMap regions = gen.getLastTacticalRegions();
-            writePair(map, regions, null, seed, "taxonomy-legacy", CELL_PX);
+            writePair(artifacts, map, regions, null, seed, "taxonomy-legacy", CELL_PX);
             printSummary(seed, regions, false);
         }
     }
 
-    private static void writePair(MapResult map, TacticalRegionMap regions, TraversalAxis axis,
-                                  long seed, String prefix, int cellPx) throws Exception {
+    private static void writePair(List<SnapshotArtifact> artifacts, MapResult map,
+                                  TacticalRegionMap regions, TraversalAxis axis,
+                                  long seed, String prefix, int cellPx) {
         int w = map.grid.getWidth(), h = map.grid.getHeight();
         BufferedImage kindImg = blank(w, h, cellPx);
         BufferedImage heatImg = blank(w, h, cellPx);
@@ -141,8 +149,8 @@ public class TacticalRegionPreviewTest {
         labelStrip(gh, "seed=" + seed + " heat (green=cover red=exposed)  orange=overwatch", w, h, cellPx);
         gk.dispose();
         gh.dispose();
-        ImageIO.write(kindImg, "PNG", OUT_DIR.resolve(String.format("%s-%04d-kind.png", prefix, (int) seed)).toFile());
-        ImageIO.write(heatImg, "PNG", OUT_DIR.resolve(String.format("%s-%04d-heat.png", prefix, (int) seed)).toFile());
+        artifacts.add(new SnapshotArtifact(String.format("%s-%04d-kind.png", prefix, (int) seed), kindImg));
+        artifacts.add(new SnapshotArtifact(String.format("%s-%04d-heat.png", prefix, (int) seed), heatImg));
         System.out.println("  wrote " + prefix + "-" + String.format("%04d", (int) seed)
                 + "-{kind,heat}.png  overwatchCorners=" + overwatch.size());
     }

@@ -9,7 +9,7 @@ import java.util.List;
  * {@link com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator}
  * lays down the trunk + BSP-frame road mask; consumed by ground-vehicle
  * pathing (convoys steer along edge cell-lists between {@link Node}s) and
- * by debug overlays in {@code BspMapPreviewTest}.
+ * by debug overlays in {@code BspMapPreviewSnapshotSuite}.
  *
  * <p>Nodes sit on cells; edges hold an ordered cell-list from {@link Edge#a}
  * to {@link Edge#b} that includes both endpoint cells. A truck reading the
