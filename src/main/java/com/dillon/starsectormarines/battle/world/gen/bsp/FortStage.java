@@ -1032,7 +1032,7 @@ public final class FortStage implements GenStage {
 
     /**
      * The optional anti-air aspect: its small hardened control room (shelled like every fort room), the plotting console
-     * against the room's back wall, the guided batteries on the bastions and the close-in flak either side of the door,
+     * against the room's back wall, the Locust batteries on the bastions and the close-in Swarmer towers either side of the door,
      * every one tagged to the fort's {@link FortAspect#AIR_DEFENCE} so the simulation assembles the aspect from what was
      * stamped.
      *
@@ -1051,10 +1051,10 @@ public final class FortStage implements GenStage {
             FortRoomFurnisher.furnish(ctx, placed.get(0), yard.room());
         });
         for (int[] battery : plan.airBatteries()) {
-            emitStructure(ctx, TurretCatalogRegistry.RIDGE_AA_STRUCTURE_ID, at.cell(battery[0], battery[1]), tag);
+            emitStructure(ctx, TurretCatalogRegistry.AA_LOCUST_STRUCTURE_ID, at.cell(battery[0], battery[1]), tag);
         }
-        for (int[] flak : yard.flakCells()) {
-            emitStructure(ctx, TurretCatalogRegistry.ANTI_AIR_STRUCTURE_ID, at.cell(flak[0], flak[1]), tag);
+        for (int[] tower : yard.closeInCells()) {
+            emitStructure(ctx, TurretCatalogRegistry.AA_SWARMER_STRUCTURE_ID, at.cell(tower[0], tower[1]), tag);
         }
         return placed;
     }

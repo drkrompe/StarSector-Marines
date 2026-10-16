@@ -71,7 +71,7 @@ public final class BatteryFort {
      */
     public static final List<int[]> NESTS;
 
-    /** Which bastions (indices of {@link #NESTS}) stand a Ridgewatch missile battery when the fort carries the anti-air aspect: the two farthest from the main gate. */
+    /** Which bastions (indices of {@link #NESTS}) stand a Locust missile battery when the fort carries the anti-air aspect: the two farthest from the main gate. */
     private static final int[] AIR_BASTIONS = {1, 3};
 
     /** How far from a bastion's centre, toward its tip, its missile battery's middle stands. */
@@ -199,7 +199,7 @@ public final class BatteryFort {
         @Override public List<int[]> airBatteries() { return AIR_BATTERIES; }
     };
 
-    /** The Ridgewatch batteries' middles: in the pocket behind the nest of each of the {@link #AIR_BASTIONS}. */
+    /** The Locust batteries' middles: in the pocket behind the nest of each of the {@link #AIR_BASTIONS}. */
     private static final List<int[]> AIR_BATTERIES = airBatteries();
 
     private static List<int[]> airBatteries() {
