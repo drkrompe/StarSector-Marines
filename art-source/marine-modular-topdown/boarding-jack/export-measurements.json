@@ -381,7 +381,32 @@
           0.9857
         ]
       },
-      "casing_pixels": 1111
+      "casing_pixels": 1111,
+      "pirate": {
+        "raw_sha256": "87e8c6815f5887fa2c54ec4d8efb07c867e7822b8b122c2723eebcdb4bbbf44d",
+        "raw_size": [
+          1335,
+          1178
+        ],
+        "fit": {
+          "raw_box_on_guide": [
+            19,
+            74,
+            1069,
+            902
+          ],
+          "guide_box": [
+            65,
+            124,
+            1023,
+            884
+          ],
+          "scale": [
+            0.9124,
+            0.9179
+          ]
+        }
+      }
     }
   }
 }
