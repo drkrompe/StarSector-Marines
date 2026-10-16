@@ -122,7 +122,9 @@ if not args.no_save:
                 w = ob.matrix_world @ Vector(c)
                 lo = Vector(map(min, lo, w)); hi = Vector(map(max, hi, w))
     manifest = {
-        'status': 'Blockout: silhouette, sections, mass and slots. No fine detail, damage or textures.',
+        'status': 'Pass 2 (plausible detailing) awaiting owner review (pass 3). No damage states or textures.',
+        'passes': {'1 blockout': 'accepted; snapshot in reference-history/v1-blockout',
+                   '2 plausible detailing': 'built; awaiting review'},
         'hull': {'hullId':'mudskipper','hullName':'Mudskipper','hullSize':'FRIGATE','style':'LOW_TECH',
                  'designation':'Civilian Transport','builtInMods':['civgrade'],'builtInWeapons':[],
                  'system':'maneuveringjets',
