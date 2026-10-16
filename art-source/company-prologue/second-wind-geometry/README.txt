@@ -107,16 +107,17 @@ derelict: nearly a decade tethered in the belt as an unpowered parts bin.
   and the port pod's feed pipes and access panels gone; the port bay's
   forward frame jamb bowed aft into the opening. All lamps dead. The four
   turrets remain (canon: stripped, then reinstalled for the escape).
-patched: derelict plus the emergency work that made the escape. Salvage
-  plates in mismatched stock are brake-bent over craters onto the original
-  skin line and stitch-welded all round (crushed lips dressed flat first);
-  emergency backing and splints in craters left open; bolted pressure
-  patches over small strikes; gouges welded or splinted; splint straps on
-  buckled plates; the bowed bay frame shored with yellow cargo rail (a
+patched: derelict plus the emergency work that made the escape, kept to
+  real-world proportions: thin salvage sheet squared to the hull's lines,
+  brake-bent onto the original skin line and fillet-welded all round
+  (crushed lips dressed flat first; the big shoulder crater takes four
+  lapped sheets of one stock); emergency backing in craters left open with
+  flat straps bolted across; bolted pressure patches over small strikes;
+  gouges run full of weld or strapped; straps bolted across buckled plates; the bowed bay frame shored with yellow cargo rail (a
   sister rail clamped to the coamings and a raking shore off the floor);
   a split clamp sleeve on the burst service line; a jury whip lashed to the
-  mast stub; external cable runs. Only the starboard pod runs, on a salvaged
-  copper drive coil bolted on saddles to its housing deck with leads into
+  mast stub; external cable runs. Only the starboard pod runs, on a cased
+  salvaged drive coil (copper showing in its cooling windows) clamped on saddles to its housing deck with leads into
   both cans; its throats glow. The port pod is dead, stripped and capped
   with bolted blanking plates and strongbacks, its warning lights dark.
 Continuity scars from ../second-wind-skins/README.txt, remapped onto this
@@ -166,7 +167,7 @@ engineering and a production-ready surface mesh are not represented.
 Rebuild from this folder
 blender --background --factory-startup --python build_reference.py
 For review renders that leave the committed guide alone, append
-  -- --out <dir> --no-save --views port-quarter,bridge-detail
+  -- --out <dir> --no-save --views port-quarter,bridge-detail --res 1920x1080
   --cam NAME:PX,PY,PZ:TX,TY,TZ:ORTHOSCALE
 python compose_guide.py
 Damage states (about 20 s each), then their review sheets:
