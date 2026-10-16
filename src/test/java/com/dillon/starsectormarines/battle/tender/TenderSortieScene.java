@@ -95,7 +95,8 @@ public final class TenderSortieScene implements BehaviorScene {
         Trace trace = new Trace(world, tender);
         TickObserver script = (s, tick) -> {
             if (loop.equals("sortie")) {
-                if (tick == MOVE_TICK) tender.ship().stationTo(95f, 42f);
+                // A short move, so the heavy hull has settled on its new station before the wing redeploys from it.
+                if (tick == MOVE_TICK) tender.ship().stationTo(65f, 42f);
                 if (tick == RECALL_TICK) {
                     trace.noteRecall(s, tick);
                     tender.defenceOut(false);

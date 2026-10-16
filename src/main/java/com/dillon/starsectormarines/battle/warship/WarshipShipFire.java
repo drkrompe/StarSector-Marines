@@ -405,6 +405,11 @@ public final class WarshipShipFire {
     private static boolean inReach(Warship ship, Warship.Mount m, float mx, float my, Warship target) {
         float[] aim = aimFor(mx, my, target, m.weapon);
         float reach = WarshipScale.cells(m.weapon.rangePx());
+        // A ship free to manoeuvre holds its missiles for the gun fight: a launcher at a hull waits until the hull is
+        // inside the ship's gun reach, so the duel opens with gunnery and a magazine is the close-quarters blow, not a
+        // long-range opener. A ship held on its station will never close, so it launches at the missile's own reach.
+        float guns = m.weapon.missile() && ship.duelHelm() ? longestReach(ship) : 0f;
+        if (guns > 0f) reach = Math.min(reach, guns);
         if (Math.hypot(aim[0] - mx, aim[1] - my) > reach) return false;
         float bearing = WarshipFacing.bearing(mx, my, aim[0], aim[1]);
         float off = Math.abs(WarshipFacing.wrap(bearing - (ship.facingDegrees + m.slot.angleDegrees())));

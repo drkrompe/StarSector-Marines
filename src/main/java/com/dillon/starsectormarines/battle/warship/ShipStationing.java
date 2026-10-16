@@ -58,7 +58,10 @@ public final class ShipStationing {
         float dy = stationY - edge.y();
         float len = (float) Math.hypot(dx, dy);
         float shortBy = CALL_SHORT_CELLS + lengthCells / 2f;
-        if (len <= shortBy) return new Placement(edge.x(), edge.y(), edge.facingDegrees(), stationX, stationY);
+        if (len <= shortBy) {
+            float facing = len > 1e-3f ? AirBody.facingToward(dx, dy) : edge.facingDegrees();
+            return new Placement(edge.x(), edge.y(), facing, stationX, stationY);
+        }
         float t = (len - shortBy) / len;
         float half = lengthCells / 2f;
         float x = clamp(edge.x() + dx * t, half, gridW - half);

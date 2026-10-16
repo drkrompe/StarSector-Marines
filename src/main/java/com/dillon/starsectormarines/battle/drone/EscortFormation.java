@@ -17,7 +17,7 @@ package com.dillon.starsectormarines.battle.drone;
  */
 public final class EscortFormation {
 
-    /** Ring radius at ease, in cells; a Shepherd is about four long, so this clears the hull. */
+    /** Ring radius at ease, in cells, round a hull {@link #REFERENCE_HALF_LENGTH} cells to either end of its centre. */
     public static final float EASE_RADIUS = 6.5f;
     /** Ring radius while the ship is threatened. */
     public static final float THREAT_RADIUS = 3.8f;
@@ -31,7 +31,19 @@ public final class EscortFormation {
     /** How far ahead of the hull the ring's centre rides while at ease, in cells. */
     public static final float LEAD_CELLS = 1.5f;
 
+    /**
+     * The half length the radii above were set for (a Shepherd at the old density, about four cells long). A
+     * longer hull pushes the whole ring out by the difference, so the ring always clears the hull it screens.
+     */
+    public static final float REFERENCE_HALF_LENGTH = 2f;
+
     private EscortFormation() {}
+
+    /** {@link #station(float, float, float, int, int, float, float, boolean, float)} round a reference-sized hull. */
+    public static float[] station(float ax, float ay, float headingDeg, int slot, int count, float seconds,
+                                  float phase, boolean threatened) {
+        return station(ax, ay, headingDeg, slot, count, seconds, phase, threatened, REFERENCE_HALF_LENGTH);
+    }
 
     /**
      * The point slot {@code slot} of {@code count} should loiter at.
@@ -42,16 +54,18 @@ public final class EscortFormation {
      * @param seconds simulation clock
      * @param phase this drone's own phase in [0, 1), from {@link DroneHash}
      * @param threatened whether a hostile is inside the ship's reach
+     * @param hullHalfLength half the screened hull's length, in cells
      * @return {@code {x, y}}
      */
     public static float[] station(float ax, float ay, float headingDeg, int slot, int count, float seconds,
-                                  float phase, boolean threatened) {
+                                  float phase, boolean threatened, float hullHalfLength) {
         int n = Math.max(1, count);
         double tau = Math.PI * 2.0;
         float drift = threatened ? 0f : seconds * DRIFT_DEG_PER_SEC;
         float wander = WANDER_DEG * (float) Math.sin(tau * (0.11 * seconds + phase));
         float bearing = headingDeg + 360f * slot / n + drift + wander;
         float radius = (threatened ? THREAT_RADIUS : EASE_RADIUS)
+                + Math.max(0f, hullHalfLength - REFERENCE_HALF_LENGTH)
                 + BREATH * (float) Math.sin(tau * (BREATH_HZ * seconds + phase));
         float lead = threatened ? 0f : LEAD_CELLS;
         double h = Math.toRadians(headingDeg);

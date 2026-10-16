@@ -37,8 +37,12 @@ public final class AtmosphericHandling {
 
     private AtmosphericHandling() {}
 
+    /** {@code -Dbattle.warship.atmosphericHandling=false} is the control that flies every hull on its table figures. */
+    static final boolean ENABLED = !"false".equals(System.getProperty("battle.warship.atmosphericHandling"));
+
     /** The atmospheric figures for a hull whose table row gives these. */
     public static Figures of(float maxSpeed, float accel, float decel, float turnRate, float turnAccel) {
+        if (!ENABLED) return new Figures(maxSpeed, accel, decel, turnRate, turnAccel);
         float speed = compress(maxSpeed, REFERENCE_SPEED);
         float turn = compress(turnRate, REFERENCE_TURN);
         return new Figures(speed,

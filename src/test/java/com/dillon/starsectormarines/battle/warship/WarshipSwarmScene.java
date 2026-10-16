@@ -55,7 +55,7 @@ public final class WarshipSwarmScene implements BehaviorScene {
     private static final float TARGET_Y = 45f;
     private static final float AREA_RADIUS = 6f;
     /** A picket flies in the carriers' lane, well short of where they split. */
-    private static final float PICKET_X = 38f;
+    private static final float PICKET_X = 58f;
     private static final int DISTRICT = 44;
     private static final float DISTRICT_RADIUS = 15f;
     private static final String[] SLOTS = {"WS 021", "WS 022", "WS 023", "WS 024"};
@@ -148,7 +148,8 @@ public final class WarshipSwarmScene implements BehaviorScene {
         sim.addWarship(ship);
         if (cover != Cover.NONE) {
             float guardX = cover == Cover.UMBRELLA ? targetX - 6f : PICKET_X;
-            sim.addWarship(Warship.fit("onslaught", "onslaught_Standard", Faction.DEFENDER, guardX, TARGET_Y, 0f));
+            // Bow to the launcher, so the guard's point defence lies along the swarm's lane rather than across it.
+            sim.addWarship(Warship.fit("onslaught", "onslaught_Standard", Faction.DEFENDER, guardX, TARGET_Y, 90f));
             // The guard is here for its point defence against the swarm, not to fight the launching hull.
             sim.warships().holdHullFire(HullFireHold.untilReleased("scene: point defence, not ship against ship"));
         }

@@ -37,14 +37,24 @@ class WarshipDuelHelmTest {
     }
 
     @Test
-    void theStationSitsOnTheRangeCircleTurnedByTheSlideAndInsideTheMap() {
-        float[] straight = WarshipDuelHelm.station(10f, 50f, 50f, 50f, 20f, 0f, 2f, 200f, 100f);
-        assertArrayEquals(new float[]{30f, 50f}, straight, 1e-4f);
-        float[] slid = WarshipDuelHelm.station(10f, 50f, 50f, 50f, 20f, 90f, 2f, 200f, 100f);
-        assertEquals(50f, slid[0], 1e-3f);
-        assertEquals(30f, slid[1], 1e-3f);
-        float[] edge = WarshipDuelHelm.station(10f, 50f, 15f, 50f, 20f, 0f, 2f, 200f, 100f);
-        assertEquals(WarshipDuelHelm.EDGE_MARGIN_CELLS + 2f, edge[0], 1e-4f, "clamped inside the map edge");
+    void theStationIsAlongsideTheTargetOnItsBeamAndAheadSoTheLinesConverge() {
+        // The target at (100, 50) heading east (bearing 0); the ship north of it takes the north beam.
+        float[] north = WarshipDuelHelm.station(90f, 70f, 100f, 50f, 0f, 20f, true, 2f, 200f, 100f);
+        assertArrayEquals(new float[]{100f + 20f * WarshipDuelHelm.CONVERGE_SHARE, 70f}, north, 1e-3f);
+        float[] south = WarshipDuelHelm.station(90f, 30f, 100f, 50f, 0f, 20f, true, 2f, 200f, 100f);
+        assertArrayEquals(new float[]{100f + 20f * WarshipDuelHelm.CONVERGE_SHARE, 30f}, south, 1e-3f);
+        // Dead ahead of the target: the beam the hull prefers, never a pass down its nose.
+        float[] ahead = WarshipDuelHelm.station(140f, 50f, 100f, 50f, 0f, 20f, false, 2f, 200f, 100f);
+        assertEquals(30f, ahead[1], 1e-3f);
+        float[] edge = WarshipDuelHelm.station(10f, 95f, 50f, 90f, 0f, 20f, true, 2f, 200f, 100f);
+        assertEquals(100f - WarshipDuelHelm.EDGE_MARGIN_CELLS - 2f, edge[1], 1e-4f, "clamped inside the map edge");
+    }
+
+    @Test
+    void bigHullsNeverCloseNearerThanTheirLengthsAndAClearance() {
+        assertEquals(10f + 8f + WarshipDuelHelm.CLEARANCE_CELLS,
+                WarshipDuelHelm.preferredRange(10f, 20f, 10f, 8f), 1e-4f);
+        assertEquals(WarshipDuelHelm.CLOSE_SHARE * 60f, WarshipDuelHelm.preferredRange(60f, 70f, 2f, 2f), 1e-4f);
     }
 
     @Test

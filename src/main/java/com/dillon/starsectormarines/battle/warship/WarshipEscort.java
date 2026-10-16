@@ -20,8 +20,6 @@ public final class WarshipEscort {
 
     /** Cells of open air between the lead's hull and the escort's, on the escort's ring. */
     public static final float GAP_CELLS = 4f;
-    /** Degrees between neighbouring escorts of one lead on its ring. */
-    public static final float SLOT_SPREAD_DEGREES = 45f;
 
     private WarshipEscort() {}
 
@@ -89,12 +87,31 @@ public final class WarshipEscort {
     }
 
     /**
-     * Where the escort in slot {@code slot} of {@code slots} stands: on the lead's ring at {@code baseDegrees}
-     * (the threat side), the slots fanned symmetrically about it.
+     * Where the escort in slot {@code slot} of {@code slots} stands: in line ahead beside its lead, as a screen does.
+     * The line runs parallel to the lead's course ({@code leadNoseDegrees}, a bearing in the {@code atan2}
+     * convention), {@code radius} out on whichever beam faces the threat ({@code threatDegrees}); the escorts are
+     * spaced {@code spacing} apart along it and centred on the lead, so the screen keeps pace with its charge on a
+     * parallel line between it and the threat rather than circling it.
      */
-    public static float[] station(float leadX, float leadY, float radius, float baseDegrees, int slot, int slots) {
-        float offset = (slot - (slots - 1) * 0.5f) * SLOT_SPREAD_DEGREES;
-        double a = Math.toRadians(baseDegrees + offset);
-        return new float[]{leadX + (float) Math.cos(a) * radius, leadY + (float) Math.sin(a) * radius};
+    public static float[] station(float leadX, float leadY, float leadNoseDegrees, float radius, float threatDegrees,
+                                  int slot, int slots, float spacing) {
+        double nose = Math.toRadians(leadNoseDegrees);
+        float ax = (float) Math.cos(nose);
+        float ay = (float) Math.sin(nose);
+        // The lead's port beam; the starboard is its opposite. The screen takes the beam the threat is on.
+        float bx = -ay;
+        float by = ax;
+        double threat = Math.toRadians(threatDegrees);
+        if (bx * Math.cos(threat) + by * Math.sin(threat) < 0.0) {
+            bx = -bx;
+            by = -by;
+        }
+        float along = (slot - (slots - 1) * 0.5f) * spacing;
+        return new float[]{leadX + bx * radius + ax * along, leadY + by * radius + ay * along};
+    }
+
+    /** Distance between neighbouring escorts in a screen's line: an escort's length and the gap. */
+    public static float lineSpacing(Warship escort) {
+        return escort.lengthCells + GAP_CELLS;
     }
 }

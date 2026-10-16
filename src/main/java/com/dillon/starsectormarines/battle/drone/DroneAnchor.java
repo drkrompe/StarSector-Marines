@@ -31,6 +31,11 @@ public interface DroneAnchor {
         return 0f;
     }
 
+    /** Half the screened hull's length in cells; an escort ring sits outside it. A point anchor has none. */
+    default float anchorHalfLengthCells() {
+        return 0f;
+    }
+
     /**
      * Whether the squad escorts this anchor: loiters in a loose formation round
      * it, engages what comes into its reach, and goes home when it must.

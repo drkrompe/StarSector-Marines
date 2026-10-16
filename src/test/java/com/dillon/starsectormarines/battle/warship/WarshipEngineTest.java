@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class WarshipEngineTest {
 
-    private static final float K = WarshipScale.cells(1f);
+    private static final float K = WarshipScale.hullCells(1f);
 
     @Test
     void anEngineSlotIsPlacedByTheSameRuleAsAWeaponSlot() throws Exception {

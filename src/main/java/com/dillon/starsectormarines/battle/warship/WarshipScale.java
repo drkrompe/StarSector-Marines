@@ -18,9 +18,10 @@ public final class WarshipScale {
 
     /**
      * How many times larger an overhead hull's body is than the shared density ladder draws it. One factor for every
-     * hull, so the ladder between frigate and capital is the game's own.
+     * hull, so the ladder between frigate and capital is the game's own. {@code -Dbattle.warship.hullPresence=1} is
+     * the control that draws hulls at the shared ladder's size.
      */
-    public static final float HULL_PRESENCE = 2f;
+    public static final float HULL_PRESENCE = Float.parseFloat(System.getProperty("battle.warship.hullPresence", "2"));
 
     private WarshipScale() {}
 

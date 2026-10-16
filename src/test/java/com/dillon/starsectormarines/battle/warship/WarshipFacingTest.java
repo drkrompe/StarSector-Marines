@@ -83,10 +83,11 @@ class WarshipFacingTest {
     }
 
     @Test
-    void theHullTurnsAtItsOwnTableRate() throws Exception {
+    void theHullTurnsAtItsOwnTableRateMadeHeavyForAtmosphere() throws Exception {
         Warship ship = ship(0f);
-        assertEquals(6f, ship.maxTurnDegPerSec, 0.001f);
-        assertEquals(3f, ship.turnAccelDegPerSec2, 0.001f);
+        AtmosphericHandling.Figures heavy = AtmosphericHandling.of(1f, 1f, 1f, 6f, 3f);
+        assertEquals(heavy.turnRate(), ship.maxTurnDegPerSec, 0.001f);
+        assertEquals(heavy.turnAccel(), ship.turnAccelDegPerSec2, 0.001f);
     }
 
     @Test

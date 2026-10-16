@@ -187,6 +187,8 @@ public final class Warship {
     /** The heading the hull is turning toward. */
     float desiredHeading;
     float turnVelocity;
+    /** The heading wanted on the previous tick, so a helm can lead a heading that is drifting; NaN before the first. */
+    float previousDesiredHeading = Float.NaN;
     private boolean headingChosen;
     private float hitPoints;
     /** The ship-support source this hull was called from, or null for any ship not called that way. */

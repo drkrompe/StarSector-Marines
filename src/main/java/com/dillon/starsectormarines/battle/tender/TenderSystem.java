@@ -172,6 +172,8 @@ public final class TenderSystem {
         flight.publishEscort(t.defenders, world);
         flight.trackBay(t.bayX(), t.bayY(), dt);
         int called = 0;
+        // The bay takes one drone a tick: a second arriving on the same tick holds in the mouth until the next.
+        boolean bayTaken = false;
         for (Long id : new ArrayList<>(t.defenders)) {
             TenderFlight.Sortie sortie = flight.of(id);
             AirBody body = world.kinematics(id);
@@ -184,6 +186,8 @@ public final class TenderSystem {
                 flight.resume(sortie);
             }
             if (!flight.step(sortie, body.x, body.y, t.bayX(), t.bayY(), t.bayMouthDegrees(), clock, dt)) continue;
+            if (bayTaken) continue;
+            bayTaken = true;
             if (sortie.damaged) flight.repairing(clock);
             sim.takeOffTheField(id);
             t.dockedDefender(id);

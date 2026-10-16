@@ -283,7 +283,11 @@ final class WarshipShield {
             else quiet += dt;
             float fraction = flux.fraction();
             if (fraction >= DROP_LEVEL) lockedOut = true;
-            else if (lockedOut && fraction <= WarshipFlux.RESUME_LEVEL) lockedOut = false;
+            // It stays down until the guns could start again: the lower of the shipped resume level and the posture's.
+            // Above the posture's own resume level a raised shield would hold the vent shut with the guns still
+            // silent, and a ship under steady fire would never shoot again (two identical capitals fought to a
+            // one-sided result that way, decided by whichever was hit first).
+            else if (lockedOut && fraction <= Math.min(WarshipFlux.RESUME_LEVEL, flux.resumeShare())) lockedOut = false;
             raised = !lockedOut && (threat || (raised && quiet < HOLD_SECONDS));
         } else {
             raised = manualUp;
