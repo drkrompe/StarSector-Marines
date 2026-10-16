@@ -4,7 +4,7 @@ Status: DRAFT — original local setting direction on an existing vanilla world 
 
 Written: 2026-10-13
 
-Updated: 2026-10-16 — Latchkey Yard's ground: walled yard, two-door tooling hall, operator lock, Cinder Steps lane and separate homes frontage.
+Updated: 2026-10-16 — the Terms of Protection visit: constables' post, rig tooling in the calibration room, the terrace mortar pit.
 
 ## Scope and provenance
 
@@ -112,10 +112,16 @@ other door open; holding both approaches and getting a living technician to the
 calibration room are competing uses of the same squads.
 
 **Returning in Terms of Protection.** The fourth chapter revisits this map rather
-than a new one. The handover bay at dispatch is its signing point; the Cinder Steps
-lane and gate are the approach the estate guards hold under House Custody and the
-second prize-crew party takes. The secured entrance and the inspection work stay
-visible on that visit. Nothing in the third chapter depends on that visit.
+than a new one: the same ground at the same seed, with what the inspection left
+standing. The operator entrance is now a constables' sandbagged post on the service
+road; the calibration room holds the captured Greyhook rig tooling on its benches,
+where commissioning is done; the nave keeps the inspection's stock. The handover bay
+at dispatch is the signing point and the employer's records carrier comes in by the
+west road to it. The Cinder Steps lane and gate are the approach the estate guards
+hold under House Custody, and the way the second prize-crew party comes. On the
+terraces beyond the wall a dug pit faces the yard, with its back to the lane: it is a
+place a mortar can be set up and found from, not a marker that one is there. Nothing
+in the third chapter depends on that visit.
 
 **The Cinder Steps** are old furnace terraces between yard and reclamation plant.
 Workers occupy sealed galleries and pressure habitats beside processing sheds,

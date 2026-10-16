@@ -86,7 +86,7 @@ public final class PowerCatalog {
             var tenders = AgreusConstructionSupport.sources(committedShips);
             List<CommandPower> powers = new ArrayList<>();
             if (!tenders.isEmpty()) powers.add(new ShipOnStation(tenders));
-            if (AgreusArcProgress.yardOwners(m.id) && configuredMechs != null && !configuredMechs.isEmpty())
+            if ((AgreusArcProgress.yardOwners(m.id) || AgreusArcProgress.termsOfProtection(m.id)) && configuredMechs != null && !configuredMechs.isEmpty())
                 powers.add(MechSupport.configured(configuredMechs));
             return List.copyOf(powers);
         }

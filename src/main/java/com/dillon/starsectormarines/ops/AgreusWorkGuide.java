@@ -31,7 +31,7 @@ record AgreusWorkGuide(AgreusArcProgress progress, OpeningBroker.Destination des
     private String handoverMission() {
         return switch (progress.handoverStage()) {
             case OPEN -> "DECISION / Latchkey custody agreements";
-            case SIGNED -> "IN PREPARATION / Terms of Protection";
+            case SIGNED -> "NEW / Terms of Protection";
             case RATIFIED -> "RATIFIED / " + agreementName(progress.signedAgreement());
             case DECLINED -> "CLOSED / Further work declined";
             case NOT_REACHED -> "COMPLETE / Latchkey inspection";
@@ -39,17 +39,18 @@ record AgreusWorkGuide(AgreusArcProgress progress, OpeningBroker.Destination des
     }
     private String handoverPayment() {
         return switch (progress.handoverStage()) {
-            case SIGNED -> "Signed: " + agreementName(progress.signedAgreement()) + " / ratified only on Chapter 4 victory"
+            case SIGNED -> "32,000 cr + Boarding Jack section entitlement / " + agreementName(progress.signedAgreement()) + " ratified only on victory"
                     + (progress.custodyPremiumDue() > 0 ? " / 12,000 cr premium on Chapter 5 victory" : " / premium forgone");
             case RATIFIED -> agreementName(progress.signedAgreement())
-                    + (progress.custodyPremiumDue() > 0 ? " / 12,000 cr premium on Chapter 5 victory" : " / premium forgone");
+                    + (progress.custodyPremiumDue() > 0 ? " / 12,000 cr premium on Chapter 5 victory" : " / premium forgone")
+                    + (progress.boardingJackDeferred() ? " / Boarding Jack card held until its pattern is ready" : "");
             default -> "92,000 cr settled / Recovered Specter and Arbalest entitlements fulfilled";
         };
     }
     private String handoverRoute() {
         return switch (progress.handoverStage()) {
             case OPEN -> "Company HQ > Latchkey custody: read both agreements, ask Castle to compare, or leave them. Nothing is signed.";
-            case SIGNED -> "Terms of Protection is in preparation; no deployment is available yet. Later escort work: "
+            case SIGNED -> "Marine operations > Baronet Elian Rusk / Terms of Protection at Latchkey. Later escort work: "
                     + (progress.signedAgreement() == AgreusYardAgreement.HOUSE_CUSTODY ? "Rusk's office." : "Lenna Saye's association.");
             default -> "Learn both recovered-suit cargo cards, then fit Salvage-assisted Section in the Armory.";
         };

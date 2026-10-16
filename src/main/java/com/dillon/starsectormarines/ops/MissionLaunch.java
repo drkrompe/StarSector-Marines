@@ -301,7 +301,10 @@ public final class MissionLaunch {
         if (AgreusArcCampaign.isBattle(m)) {
             var agreus = AgreusArcCampaign.requireCurrent(m);
             boolean records = agreus.recordsRecovered();
-            builder = AgreusArcProgress.yardOwners(m.id)
+            var signedRoute = AgreusArcProgress.termsOfProtection(m.id) ? AgreusArcCampaign.route(agreus.activeAgreement() != null ? agreus.activeAgreement() : agreus.signedAgreement()) : null;
+            builder = signedRoute != null
+                    ? () -> BattleSetup.createTermsOfProtection(seed, constructionDetachment.shuttleManifest, profile, signedRoute)
+                    : AgreusArcProgress.yardOwners(m.id)
                     ? () -> BattleSetup.createYardOwners(seed, constructionDetachment.shuttleManifest, profile)
                     : AgreusArcProgress.limitedWarrant(m.id)
                     ? () -> BattleSetup.createLimitedWarrant(seed, constructionDetachment.shuttleManifest, profile, records)

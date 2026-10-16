@@ -32,7 +32,7 @@ class AgreusHandoverLedgerTest {
         assertFalse(p.signAgreement(AgreusYardAgreement.YARD_COMPACT));
         assertFalse(p.declineFurtherWork());
         assertTrue(p.termsOfProtectionInPreparation());
-        assertNull(p.nextMissionId(), "Chapter 4 is in preparation, not a launchable mobilization");
+        assertEquals(AgreusArcProgress.TERMS_PREFIX + 1, p.nextMissionId(), "a signature makes Terms of Protection the next mobilization");
         p = reload(p);
         assertEquals(HandoverStage.SIGNED, p.handoverStage());
         assertEquals(AgreusYardAgreement.YARD_COMPACT, p.signedAgreement());

@@ -164,14 +164,22 @@ public final class MissionSelectScreen implements Screen {
         props.put("brokerPortrait", OpeningBroker.CREST);
         props.put("brokerName", AgreusArcCampaign.NAME);
         props.put("brokerRole", Strings.get("missionSelectHOUSERUSKKOCOMBINECONCESSION"));
-        props.put("brokerIntroduction", p != null && p.yardCompleted()
+        props.put("brokerIntroduction", p != null && p.termsCompleted()
+                ? Strings.get("missionSelectRuskTermsRatified")
+                : p != null && p.handoverStage() == AgreusArcProgress.HandoverStage.SIGNED
+                ? Strings.get("missionSelectRuskTermsIntroduction")
+                : p != null && p.yardCompleted()
                 ? Strings.get("missionSelectRuskLatchkeySInspectionIsSettledReadThe")
                 : p != null && p.warrantCompleted()
                 ? Strings.get("missionSelectRuskTheLowQuayRecoveryIsSettledNow")
                 : p != null && p.completed()
                 ? Strings.get("missionSelectRuskNorthWeirIsWorkingRecoverTheLow")
                 : AgreusArcCampaign.REFERRAL);
-        props.put("brokerProgress", p != null && p.yardCompleted()
+        props.put("brokerProgress", p != null && p.termsCompleted()
+                ? Strings.get("missionSelectTermsRatifiedProgress")
+                : p != null && p.handoverStage() == AgreusArcProgress.HandoverStage.SIGNED
+                ? Strings.get("missionSelectTermsProgress")
+                : p != null && p.yardCompleted()
                 ? Strings.get("missionSelectLATCHKEYINSPECTED92000CRSETTLEDBothRecovered")
                 : p != null && p.warrantCompleted()
                 ? Strings.get("missionSelectLIMITEDWARRANTCOMPLETETHEYARDSOWNERSAVAILABLE")
@@ -396,6 +404,14 @@ public final class MissionSelectScreen implements Screen {
     }
 
     private static List<DetailRow> detailRows(Mission mission) {
+        if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.termsOfProtection(mission.id)) {
+            boolean custody = AgreusArcCampaign.custodyRoute(mission);
+            return List.of(
+                    detailRow("force", Strings.get("missionSelectCompany"), Strings.get("missionSelectTermsForce")),
+                    detailRow("support", Strings.get("missionSelectCustodyParty"), Strings.get(custody ? "missionSelectTermsPartyCustody" : "missionSelectTermsPartyCompact")),
+                    detailRow("claim", Strings.get("missionSelectHandover"), Strings.get("missionSelectTermsClaim")),
+                    detailRow("payout", Strings.get("missionSelectVictoryAward"), Strings.get("missionSelectTermsAward")));
+        }
         if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.yardOwners(mission.id)) return List.of(
                 detailRow("force",Strings.get("missionSelectCompany"),Strings.get("missionSelect3FullSquadsRecommendedMinimum2With4")),
                 detailRow("support",Strings.get("missionSelectInspectionParty"),Strings.get("missionSelectOwnedTender8Constables2TechniciansOptionalOwned")),

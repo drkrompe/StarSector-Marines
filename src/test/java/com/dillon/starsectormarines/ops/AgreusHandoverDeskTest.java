@@ -93,7 +93,7 @@ class AgreusHandoverDeskTest {
         assertEquals("DECISION / Latchkey custody agreements", guide.markupProperty("mission"));
         assertEquals(List.of(AgreusArcCampaign.LENNA_GATE, AgreusArcCampaign.LENNA_LIEN), AgreusArcCampaign.correspondence(p));
         assertTrue(p.signAgreement(AgreusYardAgreement.HOUSE_CUSTODY));
-        assertEquals("IN PREPARATION / Terms of Protection", guide.markupProperty("mission"));
+        assertEquals("NEW / Terms of Protection", guide.markupProperty("mission"));
         assertTrue(((String) guide.markupProperty("preparation")).contains(AgreusArcCampaign.VOSS_WARNING.text()));
         assertTrue(((String) guide.markupProperty("payment")).contains("12,000 cr premium on Chapter 5 victory"));
         assertTrue(AgreusArcCampaign.correspondence(p).contains(AgreusArcCampaign.VOSS_WARNING));

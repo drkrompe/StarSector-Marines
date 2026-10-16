@@ -1043,6 +1043,18 @@ public class BriefingScreen implements Screen {
 
     private List<BriefingViewModel.InfoRow> retainedEmployerRows(Mission mission) {
         List<BriefingViewModel.InfoRow> rows = new ArrayList<>();
+        if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.termsOfProtection(mission.id)) {
+            boolean custody = AgreusArcCampaign.custodyRoute(mission);
+            return List.of(
+                    BriefingViewModel.info("terms-party", custody ? "Rusk's custodial party" : "Joint custody party",
+                            (custody ? "Two custodians" : "Rusk's custodian and the association's delegate") + " / records carrier / one must ratify at dispatch", ""),
+                    BriefingViewModel.info("terms-technicians", "Utilities crew", "Two technicians / one must finish commissioning in the calibration room", ""),
+                    BriefingViewModel.info("terms-route", custody ? "Rusk's estate guards" : "Lenna's fitters",
+                            custody ? "Four militia / hold the Cinder Steps gate; their post is the weak point"
+                                    : "Three fitters / stay at the hall benches under fire", ""),
+                    BriefingViewModel.info("terms-constables", "Rusk's constables", "Four militia / hold the secured operator entrance", ""),
+                    BriefingViewModel.info("terms-support", "Company support", "Working tender required; employer heavy lift for your owned active mech lance", ""));
+        }
         if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.yardOwners(mission.id)) return List.of(
                 BriefingViewModel.info("yard-constables","Rusk's constables","Eight militia / occupy company gains",""),
                 BriefingViewModel.info("yard-inspectors","Supplier inspection party","Two technicians / one must finish the protected inspection",""),
