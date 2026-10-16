@@ -81,7 +81,7 @@ public final class BlackSluice {
             new Berth("hound-south", "South Hound berth", 237.5f, 21f, 270f, 226, 12, 248, 29));
     /** Gantry arms: walkable boarding catwalks reaching from the aisles over each well to its hull. */
     private static final int[][] GANTRY_ARMS = {
-            {210, 61, 212, 67}, {231, 88, 234, 91}, {240, 88, 243, 91}, {231, 37, 234, 40}, {240, 37, 243, 40},
+            {210, 59, 217, 69}, {231, 88, 234, 91}, {240, 88, 243, 91}, {231, 37, 234, 40}, {240, 37, 243, 40},
             {226, 106, 228, 110}, {226, 19, 228, 23}};
     private BlackSluice() { }
 
