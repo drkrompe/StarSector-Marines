@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.air.LiftClass;
+import com.dillon.starsectormarines.battle.power.BayManifest;
 import com.dillon.starsectormarines.battle.power.CommandPower;
+import com.dillon.starsectormarines.battle.power.LiftBudget;
+import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.battle.power.CommandPowerService;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
@@ -17,8 +21,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 
-/** Live, render-free projection for the MLX-authored command-power tray. */
+/**
+ * Live, render-free projection for the MLX-authored command-power tray. While Mech Support
+ * is armed it also projects the bay manifest's picker rows into chips: what each machine
+ * is, and whether it is picked, available, already called, or why lift refuses it.
+ */
 final class BattlePowerOverlayModel {
 
     private static final String TARGETING_HIDDEN = "power-targeting power-targeting-hidden";
@@ -26,6 +35,13 @@ final class BattlePowerOverlayModel {
     private static final String READY = "power-card power-ready";
     private static final String DISABLED = "power-card power-disabled";
     private static final String ARMED = "power-card power-armed";
+    private static final String PICKER_HIDDEN = "power-picker power-picker-hidden";
+    private static final String PICKER_VISIBLE = "power-picker";
+    private static final String CHIP_SELECTED = "pick-chip pick-selected";
+    private static final String CHIP_AVAILABLE = "pick-chip pick-available";
+    private static final String CHIP_REFUSED = "pick-chip pick-refused";
+    private static final String TARGET_HINT = "LMB CONFIRM · RMB CANCEL";
+    private static final String PICK_HINT = "LMB DROP · RMB CANCEL";
     private static final String NORMAL_STYLE = "";
     private static final String ARMED_STYLE =
             "background-color: #3a3018; border-color: #ffd464; color: #ffd464;";
@@ -37,8 +53,13 @@ final class BattlePowerOverlayModel {
     private final MutableSignal<List<PowerCard>> powerCards;
     private final MutableSignal<String> targetingClasses;
     private final MutableSignal<String> targetingLabel;
+    private final MutableSignal<String> targetingHint;
+    private final MutableSignal<String> pickerClasses;
+    private final MutableSignal<List<PickerChip>> pickerChips;
     private final Consumer<String> targetingToggle;
+    private final IntConsumer pickToggle;
     private final Map<String, Runnable> actions = new HashMap<>();
+    private final Map<Integer, Runnable> pickActions = new HashMap<>();
 
     BattlePowerOverlayModel(Reactor reactor, Consumer<String> targetingToggle) {
         this(reactor, targetingToggle, CommodityPresentation.NONE);
@@ -46,7 +67,14 @@ final class BattlePowerOverlayModel {
 
     BattlePowerOverlayModel(Reactor reactor, Consumer<String> targetingToggle,
                             CommodityPresentation commodities) {
+        this(reactor, targetingToggle, index -> { }, commodities);
+    }
+
+    /** @param pickToggle toggles a bay-manifest entry in the armed Mech Support's pick */
+    BattlePowerOverlayModel(Reactor reactor, Consumer<String> targetingToggle,
+                            IntConsumer pickToggle, CommodityPresentation commodities) {
         this.targetingToggle = targetingToggle;
+        this.pickToggle = pickToggle;
         commandPoints = reactor.signal("CP 0 / 0");
         commandPointFillStyle = reactor.signal("width: 0%;");
         supplies = reactor.signal("SUP 0");
@@ -54,6 +82,9 @@ final class BattlePowerOverlayModel {
         powerCards = reactor.signal(List.of());
         targetingClasses = reactor.signal(TARGETING_HIDDEN);
         targetingLabel = reactor.signal("");
+        targetingHint = reactor.signal(TARGET_HINT);
+        pickerClasses = reactor.signal(PICKER_HIDDEN);
+        pickerChips = reactor.signal(List.of());
     }
 
     Map<String, Object> props() {
@@ -65,6 +96,9 @@ final class BattlePowerOverlayModel {
         props.put("powerCards", powerCards);
         props.put("targetingClasses", targetingClasses);
         props.put("targetingLabel", targetingLabel);
+        props.put("targetingHint", targetingHint);
+        props.put("pickerClasses", pickerClasses);
+        props.put("pickerChips", pickerChips);
         return props;
     }
 
@@ -74,6 +108,22 @@ final class BattlePowerOverlayModel {
 
     /** As above, with whether Orbital Barrage is held back by a hostile fortress battery. */
     Presentation update(CommandPowerService service, String targetingPowerId, boolean barrageLocked) {
+        return update(service, targetingPowerId, barrageLocked, List.of());
+    }
+
+    /**
+     * As above, with the armed Mech Support's picker rows (empty when another power, or
+     * nothing, is armed).
+     */
+    Presentation update(CommandPowerService service, String targetingPowerId, boolean barrageLocked,
+                        List<MechSupport.PickerRow> pickerRows) {
+        Presentation cards = updateCards(service, targetingPowerId, barrageLocked);
+        boolean picking = cards.targeting() && MechSupport.ID.equals(targetingPowerId);
+        return withPicker(cards, picking ? pickerRows : List.of());
+    }
+
+    private Presentation updateCards(CommandPowerService service, String targetingPowerId,
+                                     boolean barrageLocked) {
         if (service == null) return updateProjected(0f, 0f, 0, List.of(), null);
         List<PowerState> states = new ArrayList<>();
         for (CommandPower power : service.getAvailablePowers()) {
@@ -140,6 +190,63 @@ final class BattlePowerOverlayModel {
         return new Presentation(!stable.isEmpty(), stable.size(), targeting);
     }
 
+    /**
+     * Projects the armed power's picker rows into chips, after {@link #updateProjected};
+     * empty rows hide the picker.
+     */
+    Presentation withPicker(Presentation cards, List<MechSupport.PickerRow> rows) {
+        List<MechSupport.PickerRow> stable = rows == null ? List.of() : rows;
+        List<PickerChip> chips = new ArrayList<>(stable.size());
+        int picked = 0;
+        for (MechSupport.PickerRow row : stable) {
+            BayManifest.Entry entry = row.entry();
+            int index = entry.index();
+            if (row.selected()) picked++;
+            // A picked machine can always be dropped from the pick; anything else must be callable.
+            boolean clickable = row.selected() || row.callable();
+            Runnable action = pickActions.computeIfAbsent(index, i -> () -> pickToggle.accept(i));
+            String chipId = "battle-power-pick-" + index;
+            String callsign = entry.callsign();
+            chips.add(new PickerChip(chipId,
+                    upper(entry.typeName()),
+                    (entry.isVehicle() ? "VEHICLE · " : "MECH · ") + liftName(entry.weightClass()),
+                    callsign == null ? "" : upper(callsign),
+                    pickState(row),
+                    row.selected() ? CHIP_SELECTED : clickable ? CHIP_AVAILABLE : CHIP_REFUSED,
+                    !clickable, action));
+        }
+        boolean picking = !chips.isEmpty();
+        pickerChips.set(List.copyOf(chips));
+        pickerClasses.set(picking ? PICKER_VISIBLE : PICKER_HIDDEN);
+        targetingHint.set(picking ? PICK_HINT : TARGET_HINT);
+        if (picking) {
+            targetingLabel.set(targetingLabel.get() + " · " + picked + " OF " + chips.size() + " PICKED");
+        }
+        return new Presentation(cards.visible(), cards.powerCount(), cards.targeting(), chips.size());
+    }
+
+    /** A chip's state line: a prior call or lift refusal, else whether it is in the pick. */
+    static String pickState(MechSupport.PickerRow row) {
+        if (row.called()) return "CALLED";
+        LiftBudget.Refusal refusal = row.refusal();
+        if (refusal != null) {
+            return switch (refusal) {
+                case NO_LIFT -> "NO " + liftName(row.entry().weightClass()) + " LIFT";
+                case LIFT_SPENT -> "LIFT SPENT";
+                case CARRIER_AWAY -> "CARRIER AWAY";
+            };
+        }
+        return row.selected() ? "SELECTED" : "AVAILABLE";
+    }
+
+    private static String liftName(LiftClass weightClass) {
+        return weightClass == null ? "" : weightClass.name();
+    }
+
+    private static String upper(String text) {
+        return text == null ? "" : text.toUpperCase(Locale.ROOT);
+    }
+
     private static String number(float value) {
         if (Math.abs(value - Math.round(value)) < 0.05f) {
             return Integer.toString(Math.round(value));
@@ -161,7 +268,40 @@ final class BattlePowerOverlayModel {
         return Math.max(0f, Math.min(1f, value));
     }
 
-    record Presentation(boolean visible, int powerCount, boolean targeting) {}
+    /** @param pickerChips manifest chips shown above the strip (zero: no picker) */
+    record Presentation(boolean visible, int powerCount, boolean targeting, int pickerChips) {
+        Presentation(boolean visible, int powerCount, boolean targeting) {
+            this(visible, powerCount, targeting, 0);
+        }
+
+        boolean picking() {
+            return pickerChips > 0;
+        }
+    }
+
+    record PickerChip(String id, String name, String weight, String callsign, String state,
+                      String classes, boolean disabled, Runnable action)
+            implements MarkupPropertySource {
+        @Override
+        public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id;
+                case "nameId" -> id + "-name";
+                case "weightId" -> id + "-weight";
+                case "callsignId" -> id + "-callsign";
+                case "stateId" -> id + "-state";
+                case "name" -> name;
+                case "weight" -> weight;
+                case "callsign" -> callsign;
+                case "state" -> state;
+                case "classes" -> classes;
+                case "disabled" -> disabled;
+                case "action" -> action;
+                default -> throw new IllegalArgumentException(
+                        "Unknown picker-chip property: " + property);
+            };
+        }
+    }
 
     /** @param locked whether something on the ground is withholding the power (a fortress battery's fire control) */
     record PowerState(String id, String name, float cpCost, int supplyCost,

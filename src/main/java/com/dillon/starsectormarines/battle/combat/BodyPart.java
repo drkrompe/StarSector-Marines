@@ -1,29 +1,57 @@
 package com.dillon.starsectormarines.battle.combat;
 
 /**
- * Where on a person a round lands. Each part carries its {@link #share} of the silhouette a round
- * can reach, so the head is a small target before any cover enters into it. Parts are stacked up
- * the body from the feet — legs, torso, arms, head — and a round takes the part at the height it
- * meets the man, so a low round hits the legs. Only bodies whose type {@code hasBodyParts()} have
- * parts; a hull or a creature is one whole-body contact.
+ * Where on a body a round lands: one part of a {@link BodyPlan}. Each part carries its
+ * {@link #share} of the silhouette a round can reach, so a person's head is a small target before
+ * any cover enters into it, and the cover columns that say how much of it each level of cover
+ * hides. A plan stacks its parts up the body in height bands; which part a round takes is the
+ * plan's question ({@link BodyPlan#atHeight}).
  *
  * <p>A part also decides what the hit is worth: its {@link #damageMultiplier} scales a payload
- * that landed on it, and a limb that takes structure is {@linkplain #wounds wounded}. The
- * multipliers are set so their share-weighted mean is one: in the open a man takes the damage he
- * always did on average, and only cover, which changes which parts are left to hit, shifts it.
+ * that landed on it, and its {@link #consequence} says what a hit that took structure leaves
+ * behind. The infantry plan's multipliers are set so their share-weighted mean is one: in the
+ * open a man takes the damage he always did on average, and only cover, which changes which parts
+ * are left to hit, shifts it.
  *
- * <p>See {@code body-part-cover.md}.
+ * <p>Parts are compared by identity. {@link #HEAD}, {@link #ARMS}, {@link #TORSO} and {@link #LEGS}
+ * are the parts of {@link BodyPlan#INFANTRY}. See {@code body-part-cover.md}.
  */
-public enum BodyPart {
-    HEAD(0.10f, 1.60f),
-    ARMS(0.20f, 0.75f),
-    TORSO(0.40f, 1.10f),
-    LEGS(0.30f, 0.85f);
+public final class BodyPart {
 
-    /** Bottom to top. */
-    private static final BodyPart[] UP_THE_BODY = {LEGS, TORSO, ARMS, HEAD};
+    /** What a hit on a part leaves behind once it has taken structure from a body that lived. */
+    public enum Consequence {
+        /** Only damage. */
+        NONE,
+        /** A limb wound ({@link WoundService}): a leg slows the man, an arm costs him his aim. */
+        LIMB_WOUND
+    }
 
-    /** Fraction of hits on an uncovered body that land on this part. The shares sum to one. */
+    /** Cover levels a part carries a column for: none, low, medium, high. */
+    static final int COVER_LEVELS = 4;
+
+    // Cover columns by level 0..3. The rows were set so a level's expected interception equals
+    // what the old flat model's block chance and damage cut took off together; see CoverProfile.
+    public static final BodyPart HEAD = new BodyPart("HEAD", 0, 0.10f, 1.60f, Consequence.NONE,
+            new float[] {0f, 0f, 0f, 0.20f},
+            new float[] {0f, 0f, 0.10f, 0.20f},
+            new float[] {0f, 0f, 0f, 0.05f});
+    public static final BodyPart ARMS = new BodyPart("ARMS", 1, 0.20f, 0.75f, Consequence.LIMB_WOUND,
+            new float[] {0f, 0.10f, 0.30f, 0.60f},
+            new float[] {0f, 0f, 0.30f, 0.50f},
+            new float[] {0f, 0f, 0.05f, 0.20f});
+    public static final BodyPart TORSO = new BodyPart("TORSO", 2, 0.40f, 1.10f, Consequence.NONE,
+            new float[] {0f, 0.10f, 0.40f, 0.70f},
+            new float[] {0f, 0.30f, 0.70f, 0.90f},
+            new float[] {0f, 0.04f, 0.20f, 0.40f});
+    public static final BodyPart LEGS = new BodyPart("LEGS", 3, 0.30f, 0.85f, Consequence.LIMB_WOUND,
+            new float[] {0f, 0.60f, 0.90f, 1.00f},
+            new float[] {0f, 0.80f, 1.00f, 1.00f},
+            new float[] {0f, 0.45f, 0.70f, 0.85f});
+
+    private final String name;
+    private final int index;
+
+    /** Fraction of hits on an uncovered body that land on this part. A plan's shares sum to one. */
     public final float share;
 
     /**
@@ -32,9 +60,44 @@ public enum BodyPart {
      */
     public final float damageMultiplier;
 
-    BodyPart(float share, float damageMultiplier) {
+    /** What a hit here that took structure leaves behind. */
+    public final Consequence consequence;
+
+    private final float[] edgeCover;
+    private final float[] occupantCover;
+    private final float[] crossedCover;
+
+    /**
+     * @param index this part's position in its plan's {@link BodyPlan#parts()}, so per-part tables
+     *        can be flat arrays
+     * @param edgeCover fraction hidden by edge cover (a wall on the cell boundary), by level 0..3
+     * @param occupantCover fraction hidden by the ground the body stands in (a trench), by level
+     * @param crossedCover fraction of rounds headed here a prop crossed in the lane catches, by level
+     */
+    public BodyPart(String name, int index, float share, float damageMultiplier, Consequence consequence,
+                    float[] edgeCover, float[] occupantCover, float[] crossedCover) {
+        if (edgeCover.length != COVER_LEVELS || occupantCover.length != COVER_LEVELS
+                || crossedCover.length != COVER_LEVELS) {
+            throw new IllegalArgumentException(name + ": a cover column needs " + COVER_LEVELS + " levels");
+        }
+        this.name = name;
+        this.index = index;
         this.share = share;
         this.damageMultiplier = damageMultiplier;
+        this.consequence = consequence;
+        this.edgeCover = edgeCover.clone();
+        this.occupantCover = occupantCover.clone();
+        this.crossedCover = crossedCover.clone();
+    }
+
+    /** The part's name, upper case (e.g. {@code LEGS}). */
+    public String name() {
+        return name;
+    }
+
+    /** This part's position in its plan's {@link BodyPlan#parts()}. */
+    public int index() {
+        return index;
     }
 
     /**
@@ -42,20 +105,35 @@ public enum BodyPart {
      * him his aim. A head or torso hit is only damage.
      */
     public boolean wounds() {
-        return this == LEGS || this == ARMS;
+        return consequence == Consequence.LIMB_WOUND;
     }
 
-    /**
-     * The part at {@code heightFraction} up the body, 0 at the feet and 1 at the top. Each part
-     * spans a band as tall as its share, so a uniform height lands on each part in proportion to
-     * its share.
-     */
+    /** Fraction of this part edge cover of {@code level} hides at full distance. */
+    float edgeCover(int level) {
+        return edgeCover[clampLevel(level)];
+    }
+
+    /** Fraction of this part occupant cover of {@code level} hides at full distance. */
+    float occupantCover(int level) {
+        return occupantCover[clampLevel(level)];
+    }
+
+    /** Fraction of rounds headed for this part a prop of {@code level} crossed in the lane catches. */
+    float crossedCover(int level) {
+        return crossedCover[clampLevel(level)];
+    }
+
+    /** The infantry part at {@code heightFraction} up the body; see {@link BodyPlan#atHeight}. */
     public static BodyPart atHeight(float heightFraction) {
-        float r = heightFraction;
-        for (BodyPart part : UP_THE_BODY) {
-            r -= part.share;
-            if (r < 0f) return part;
-        }
-        return HEAD;
+        return BodyPlan.INFANTRY.atHeight(heightFraction);
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
+
+    private static int clampLevel(int level) {
+        return Math.max(0, Math.min(level, COVER_LEVELS - 1));
     }
 }

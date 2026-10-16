@@ -1,5 +1,15 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.air.FittedBoat;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.power.BayManifest;
+import com.dillon.starsectormarines.battle.power.LiftBudget;
+import com.dillon.starsectormarines.battle.power.MechSupport;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.campaign.CommodityPresentation;
 import com.dillon.starsectormarines.ui.retained.UiElement;
@@ -12,6 +22,7 @@ import java.awt.Color;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -92,6 +103,122 @@ class BattlePowerOverlayModelTest {
             assertTrue(instance.requireElement("battle-power-deck").box().borderBox().bottom()
                     <= BattlePowerOverlay.TARGETING_HEIGHT);
         }
+    }
+
+    @Test
+    void armedMechSupportShowsTheBayPickerAndTogglesOnlyCallableChips() throws Exception {
+        MechSupport mech = cradledBay();
+        List<Integer> pick = mech.defaultSelection(null);
+        assertEquals(List.of(0, 2), pick, "the default pick skips the unliftable Bulwark");
+
+        Reactor reactor = new Reactor();
+        AtomicInteger toggledPick = new AtomicInteger(-1);
+        BattlePowerOverlayModel model = new BattlePowerOverlayModel(reactor, ignored -> { },
+                toggledPick::set, CommodityPresentation.NONE);
+        List<BattlePowerOverlayModel.PowerState> powers = List.of(
+                power(MechSupport.ID, "Mech Support", 4f, 0, 0f, 3),
+                power("recon", "Recon Ping", 2f, 0, 0f, -1));
+        BattlePowerOverlayModel.Presentation presentation = model.withPicker(
+                model.updateProjected(4f, 10f, 4, powers, MechSupport.ID),
+                mech.picker(null, pick));
+        assertEquals(3, presentation.pickerChips());
+
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                Path.of("mod").resolve(path)), List.of(BattlePowerOverlay.COMPONENT_PATH));
+        loader.reload();
+        try (MarkupInstance instance = loader.build(
+                reactor, BattlePowerOverlay.COMPONENT, model.props())) {
+            BattlePowerOverlay.wireLayout(instance);
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            float width = BattlePowerOverlay.documentWidth(presentation);
+            float height = BattlePowerOverlay.documentHeight(presentation);
+            document.layout(width, height);
+
+            assertFalse(instance.requireElement("battle-power-picker")
+                    .hasClass("power-picker-hidden"));
+            assertEquals(3, instance.requireElement("battle-power-picker").childCount());
+            assertEquals("HOUND", chip(instance, 0, "name"));
+            assertEquals("ROOK", chip(instance, 0, "callsign"));
+            assertEquals("MECH \u00b7 LIGHT", chip(instance, 0, "weight"));
+            assertEquals("SELECTED", chip(instance, 0, "state"));
+            assertEquals("BULWARK", chip(instance, 1, "name"));
+            assertEquals("NO HEAVY LIFT", chip(instance, 1, "state"));
+            assertTrue(instance.requireElement("battle-power-pick-1").disabled());
+            assertEquals("HEAVY APC", chip(instance, 2, "name"));
+            assertEquals("MULE", chip(instance, 2, "callsign"));
+            assertEquals("VEHICLE \u00b7 LIGHT", chip(instance, 2, "weight"));
+            assertEquals("TARGETING \u00b7 MECH SUPPORT \u00b7 2 OF 3 PICKED",
+                    instance.requireElement("battle-power-targeting-label").text());
+            assertTrue(instance.requireElement("battle-power-pick-2").box().borderBox().right()
+                    <= width);
+            assertTrue(instance.requireElement("battle-power-deck").box().borderBox().bottom()
+                    <= height);
+
+            click(document, instance.requireElement("battle-power-pick-1"));
+            assertEquals(-1, toggledPick.get(), "a refused chip does nothing");
+            click(document, instance.requireElement("battle-power-pick-2"));
+            assertEquals(2, toggledPick.get());
+
+            // The host drops the APC from the pick; it reads available again.
+            model.withPicker(model.updateProjected(4f, 10f, 4, powers, MechSupport.ID),
+                    mech.picker(null, List.of(0)));
+            instance.flush();
+            assertEquals("AVAILABLE", chip(instance, 2, "state"));
+            assertFalse(instance.requireElement("battle-power-pick-2").disabled());
+
+            // Disarmed: the picker hides and the tray drops back to its deck height.
+            BattlePowerOverlayModel.Presentation idle = model.withPicker(
+                    model.updateProjected(4f, 10f, 4, powers, null), List.of());
+            instance.flush();
+            assertEquals(0, idle.pickerChips());
+            assertTrue(instance.requireElement("battle-power-picker")
+                    .hasClass("power-picker-hidden"));
+            assertEquals(BattlePowerOverlay.DECK_HEIGHT, BattlePowerOverlay.documentHeight(idle));
+        }
+    }
+
+    @Test
+    void chipStatesNameThePriorCallAndEachLiftRefusal() {
+        MechSupport mech = cradledBay();
+        BayManifest.Entry hound = mech.manifest().get(0);
+        BayManifest.Entry bulwark = mech.manifest().get(1);
+        assertEquals("CALLED", BattlePowerOverlayModel.pickState(
+                new MechSupport.PickerRow(hound, true, false, null)));
+        assertEquals("NO HEAVY LIFT", BattlePowerOverlayModel.pickState(
+                new MechSupport.PickerRow(bulwark, false, false, LiftBudget.Refusal.NO_LIFT)));
+        assertEquals("LIFT SPENT", BattlePowerOverlayModel.pickState(
+                new MechSupport.PickerRow(hound, false, false, LiftBudget.Refusal.LIFT_SPENT)));
+        assertEquals("CARRIER AWAY", BattlePowerOverlayModel.pickState(
+                new MechSupport.PickerRow(hound, false, false, LiftBudget.Refusal.CARRIER_AWAY)));
+        assertEquals("AVAILABLE", BattlePowerOverlayModel.pickState(
+                new MechSupport.PickerRow(hound, false, false, null)));
+    }
+
+    /** A cradled Buffalo and no ship lift behind it: Light machines lift, Heavy is refused. */
+    static MechSupport cradledBay() {
+        FittedBoat buffalo = new FittedBoat(ShuttleType.BUFFALO, BoatFitting.STANDARD_PLATING,
+                BoatFitting.STANDARD_DRIVE, BoatFitting.LIFT_CRADLE, "buffalo-1");
+        MechDeploymentSpec houndSpec = MechDeploymentSpec.standard(MechVariant.HOUND);
+        MechDeploymentSpec rook = new MechDeploymentSpec(houndSpec.variant(), houndSpec.role(),
+                houndSpec.missileReplenisher(), houndSpec.arms(), houndSpec.leftShoulder(),
+                houndSpec.rightShoulder(), "Rook");
+        return MechSupport.configured(
+                List.of(rook, MechDeploymentSpec.standard(MechVariant.BULWARK)),
+                List.of(new VehicleDeploymentSpec(null, "Mule", VehicleType.HEAVY_APC)),
+                buffalo, false);
+    }
+
+    private static String chip(MarkupInstance instance, int index, String part) {
+        return instance.requireElement("battle-power-pick-" + index + "-" + part).text();
+    }
+
+    private static void click(UiDocument document, UiElement element) {
+        float x = element.box().borderBox().x() + element.box().borderBox().width() * 0.5f;
+        float y = element.box().borderBox().y() + element.box().borderBox().height() * 0.5f;
+        document.pointerDown(x, y);
+        document.pointerUp(x, y);
     }
 
     private static String status(MarkupInstance instance, String id) {

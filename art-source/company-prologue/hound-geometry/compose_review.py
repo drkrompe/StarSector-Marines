@@ -22,6 +22,9 @@ BG = (222, 223, 223)
 parser = argparse.ArgumentParser()
 parser.add_argument('--dir', default=str(HERE))
 parser.add_argument('--sprite', default=str(GAME_SPRITE))
+parser.add_argument('--before', default='reference-history/v2-detail',
+                    help='snapshot folder (relative to this one) for the before/after sheet')
+parser.add_argument('--compare', default='pass3-before-after.png')
 args = parser.parse_args()
 src = Path(args.dir)
 manifest = json.loads((src/'geometry.json').read_text(encoding='utf-8'))
@@ -106,17 +109,23 @@ draw.text((28, 1050), f'Slots and engines from hound.ship; heights proposed. Sil
           font=font(17), fill=(72, 81, 88))
 sheet.save(src/'hound-geometry.reference.png', optimize=True)
 
-# Before/after close-ups against the accepted blockout, when both exist.
-before = HERE/'reference-history'/'v1-blockout'
-DETAILS = ['bow-detail', 'bridge-detail', 'fork-detail', 'turret-detail', 'engine-detail', 'stern-detail']
-if all((before/(n+'.png')).exists() and (src/(n+'.png')).exists() for n in DETAILS):
+# Before/after close-ups against a reference-history snapshot, for every
+# close-up both sides have.
+before = HERE/args.before
+DETAILS = ['bow-detail', 'bridge-detail', 'fork-detail', 'turret-detail', 'engine-detail', 'stern-detail',
+           'wheelhouse-detail', 'underside-aft']
+pairs = [n for n in DETAILS if (before/(n+'.png')).exists() and (src/(n+'.png')).exists()]
+if pairs:
     cmp = Image.new('RGB', (1920, 1080), BG)
     d = ImageDraw.Draw(cmp)
-    for i, n in enumerate(DETAILS):
-        x, y = (i % 2)*960, 40+(i//2)*346
+    rows = (len(pairs)+1)//2
+    ch = min(270, (1080-40)//rows-28)
+    cw = round(ch*16/9)
+    for i, n in enumerate(pairs):
+        x, y = (i % 2)*960, 40+(i//2)*(ch+28)
         for j, folder in enumerate((before, src)):
-            im = Image.open(folder/(n+'.png')).convert('RGB').resize((480, 270), Image.LANCZOS)
-            cmp.paste(im, (x+j*480, y))
-        d.text((x+8, y+274), f'{n.upper()}   blockout | pass 2', font=font(18), fill=(39, 49, 55))
-    d.text((12, 8), 'HOUND (A) / PASS 2 DETAILING - BEFORE | AFTER (same cameras)', font=font(24), fill=(39, 49, 55))
-    cmp.save(src/'pass2-before-after.png', optimize=True)
+            im = Image.open(folder/(n+'.png')).convert('RGB').resize((cw, ch), Image.LANCZOS)
+            cmp.paste(im, (x+j*cw, y))
+        d.text((x+8, y+ch+3), f'{n.upper()}   before | after', font=font(18), fill=(39, 49, 55))
+    d.text((12, 8), f'HOUND (A) / BEFORE ({before.name}) | AFTER - same cameras', font=font(24), fill=(39, 49, 55))
+    cmp.save(src/args.compare, optimize=True)

@@ -54,11 +54,14 @@ public final class CommandPowerService {
         final String powerId;
         final int cellX;
         final int cellY;
+        /** The player's pick for a power with a picker; {@code null} for its default. */
+        final List<Integer> selection;
 
-        PendingActivation(String powerId, int cellX, int cellY) {
+        PendingActivation(String powerId, int cellX, int cellY, List<Integer> selection) {
             this.powerId = powerId;
             this.cellX = cellX;
             this.cellY = cellY;
+            this.selection = selection == null ? null : List.copyOf(selection);
         }
     }
 
@@ -137,6 +140,8 @@ public final class CommandPowerService {
 
     /** Remaining uses, or {@code -1} when the power is unlimited. */
     public int getChargesRemaining(String powerId) {
+        CommandPower power = powers.get(powerId);
+        if (power != null && power.availableCalls() >= 0) return power.availableCalls();
         Integer remaining = charges.get(powerId);
         return remaining == null ? -1 : Math.max(0, remaining);
     }
@@ -168,7 +173,15 @@ public final class CommandPowerService {
      * when {@link CommandPowerSystem} drains the queue on the next tick.
      */
     public void requestActivation(String powerId, int cellX, int cellY) {
-        pending.add(new PendingActivation(powerId, cellX, cellY));
+        requestActivation(powerId, cellX, cellY, null);
+    }
+
+    /**
+     * As above, with the player's pick for a power that offers one (Mech Support's bay
+     * manifest). The pick is copied now: what the player chose is what the tick commits.
+     */
+    public void requestActivation(String powerId, int cellX, int cellY, List<Integer> selection) {
+        pending.add(new PendingActivation(powerId, cellX, cellY, selection));
     }
 
     // ---- mutations driven by CommandPowerSystem ----

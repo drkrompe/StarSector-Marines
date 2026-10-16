@@ -92,6 +92,10 @@ public final class LiftReadout {
                 payload.putIfAbsent(deployment.variant().displayName(),
                         deployment.variant().liftClass());
             }
+            for (VehicleDeploymentSpec deployment : mech.vehicles()) {
+                payload.putIfAbsent(vehicleName(deployment.type().name()),
+                        deployment.type().liftClass());
+            }
         } else if (power instanceof VehicleSupport vehicles) {
             if (vehicles.deployments().isEmpty()) {
                 payload.put(vehicleName(VehicleSupportPayload.FALLBACK.name()),

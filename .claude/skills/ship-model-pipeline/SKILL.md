@@ -143,6 +143,21 @@ owner has to point them out:
 Keep a `reference-history/` snapshot of the accepted blockout, so a later pass
 can be compared against it.
 
+Snapshot the reviewed state too (the Hound's `reference-history/v2-detail/`)
+before each round. A round that adds a camera renders that camera's "before"
+from the committed tree with `--cam`, because the committed driver doesn't
+have it yet.
+
+When feedback adds something that moves (a ramp, door, hatch or crane),
+build it closed. Parent its parts to one named empty at the pivot
+(`Hull aft ventral ramp hinge`) and store the open axis and sign, plus any
+contact angle, as custom properties on that empty. Add a driver flag that
+poses it for review renders. Put a 1.8 m scale figure behind a flag as well
+(`--figure`), so a person is placed against doors, windows and rails in a
+review render and never saved in the `.blend`. Feedback quoting a size in
+units ("a 2.8-unit person") may come from another hull's scale. Convert it
+through this hull's `metres_per_unit` and say so.
+
 ## Pass 4: real-world scale
 
 Each hull gets exactly one `metres_per_unit` value, published in

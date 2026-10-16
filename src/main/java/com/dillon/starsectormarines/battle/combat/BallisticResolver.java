@@ -625,9 +625,9 @@ public final class BallisticResolver {
         int penetrationsRemaining = bodyPenetrations;
         // The part the committed aim landed on, when the round is headed for a person. A prop
         // crossed in the lane short of him catches by that part; no roll is spent deciding it.
-        BodyPart intendedPart = onTarget && target != 0L && bodies.carrierOf(target) == null
-                && roster.identity().type(target).hasBodyParts()
-                ? BodyPart.atHeight(targetHeightFraction) : null;
+        BodyPlan targetPlan = onTarget && target != 0L && bodies.carrierOf(target) == null
+                ? roster.identity().type(target).bodyPlan() : null;
+        BodyPart intendedPart = targetPlan != null ? targetPlan.atHeight(targetHeightFraction) : null;
         for (Event e : events) {
             float proximityScale = proximityCatchScale(e.t * roundVelocity);
             if (e.doodad) {
@@ -667,12 +667,13 @@ public final class BallisticResolver {
             BodyPart part = null;
             float edgeBlockChance;
             float occupantBlockChance;
-            if (!e.hull && roster.identity().type(victim).hasBodyParts()) {
+            BodyPlan victimPlan = e.hull ? null : roster.identity().type(victim).bodyPlan();
+            if (victimPlan != null) {
                 // A person: the round lands on the part at the height it meets him, and cover
                 // hides parts. One roll against the better of the two covers for that part. The
                 // intended target's height is where the committed aim landed on him; anyone else
                 // is struck wherever the round happens to be crossing.
-                part = BodyPart.atHeight(victim == target && onTarget
+                part = victimPlan.atHeight(victim == target && onTarget
                         ? targetHeightFraction
                         : heightFraction(e.z, roster.hitHalfHeight(victim)));
                 edgeBlockChance = CoverProfile.edge(coverLevel, part) * proximityScale;
