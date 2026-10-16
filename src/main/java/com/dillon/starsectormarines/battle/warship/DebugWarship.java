@@ -153,7 +153,7 @@ public final class DebugWarship {
         ship.facingDegrees = p.facingDegrees();
         ship.desiredHeading = p.facingDegrees();
         ship.stationTo(p.stationX(), p.stationY());
-        ship.arriveFromAbove();
+        ship.arriveFromAbove(p.stationX(), p.stationY());
         if (spec.mode() == Mode.DIRECTOR) {
             ship.direct(AREA_RADIUS_CELLS, true);
             ship.useDoctrine();

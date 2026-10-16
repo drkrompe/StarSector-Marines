@@ -11,7 +11,8 @@
       "offset_px": [
         -107.71325016857722,
         -46.137373737373764
-      ]
+      ],
+      "generated_texels_per_model_unit": 12.666666666666666
     },
     {
       "view": "quarter30",
@@ -24,26 +25,86 @@
       "offset_px": [
         -0.9193319118692216,
         -1.2783783783783633
-      ]
+      ],
+      "generated_texels_per_model_unit": 11.146666666666667
     }
   ],
-  "pixel_coverage_of_visible_hull": {
-    "guide": 0.9777981726676143,
-    "quarter30": 0.8648464202534708,
-    "quarter60": 0.5934832838213797
-  },
-  "two_view_disagreement": {
+  "views": {
     "guide": {
-      "overlap_share_of_visible_hull": 0.7132752078972993,
-      "mean_abs_srgb_diff_0_255": 15.888321876525879,
-      "p90_abs_srgb_diff_0_255": 47.30429458618164,
-      "mean_luminance_offset_0_255 (view0 - view1)": -0.9343858978990038
+      "pixel_coverage_of_visible_hull": 0.9777981726676143,
+      "dominant_share": {
+        "port-side": 0.7558339955454576,
+        "quarter30": 0.2219641771221567
+      },
+      "stretch_mean": 1.2545605897903442,
+      "stretch_share_over_1_5": 0.14382464039070547,
+      "handover_pixels_share_of_textured": 0.002001220954633904,
+      "handover_step_mean_0_255": 16.74357032775879,
+      "same_projector_step_mean_0_255": 4.513113975524902,
+      "pairs": {
+        "port-side vs quarter30": {
+          "overlap_share_of_visible_hull": 0.7132752078972993,
+          "mean_abs_srgb_diff_0_255": 15.888381958007812,
+          "mean_luminance_offset_0_255": -0.9343613358444482
+        }
+      }
     },
     "quarter30": {
-      "overlap_share_of_visible_hull": 0.541882807537582,
-      "mean_abs_srgb_diff_0_255": 16.125070571899414,
-      "p90_abs_srgb_diff_0_255": 48.59636688232422,
-      "mean_luminance_offset_0_255 (view0 - view1)": -1.166390885469145
+      "pixel_coverage_of_visible_hull": 0.8648464202534708,
+      "dominant_share": {
+        "port-side": 0.3171864129941623,
+        "quarter30": 0.5476600072593085
+      },
+      "stretch_mean": 1.4527227878570557,
+      "stretch_share_over_1_5": 0.34647844837950265,
+      "handover_pixels_share_of_textured": 0.004391420009049516,
+      "handover_step_mean_0_255": 16.022497177124023,
+      "same_projector_step_mean_0_255": 5.1478447914123535,
+      "pairs": {
+        "port-side vs quarter30": {
+          "overlap_share_of_visible_hull": 0.541882807537582,
+          "mean_abs_srgb_diff_0_255": 16.12515640258789,
+          "mean_luminance_offset_0_255": -1.1664003374743601
+        }
+      }
+    },
+    "quarter60": {
+      "pixel_coverage_of_visible_hull": 0.5934832838213797,
+      "dominant_share": {
+        "port-side": 0.09409526386898502,
+        "quarter30": 0.49938801995239473
+      },
+      "stretch_mean": 1.6494078636169434,
+      "stretch_share_over_1_5": 0.5180013679796047,
+      "handover_pixels_share_of_textured": 0.002079605358611017,
+      "handover_step_mean_0_255": 18.149534225463867,
+      "same_projector_step_mean_0_255": 5.471164703369141,
+      "pairs": {
+        "port-side vs quarter30": {
+          "overlap_share_of_visible_hull": 0.2728446923800796,
+          "mean_abs_srgb_diff_0_255": 16.924179077148438,
+          "mean_luminance_offset_0_255": -1.5300658619233733
+        }
+      }
+    },
+    "high45": {
+      "pixel_coverage_of_visible_hull": 0.39132388524023504,
+      "dominant_share": {
+        "port-side": 0.07567116027192072,
+        "quarter30": 0.3156527249683143
+      },
+      "stretch_mean": 1.6689494848251343,
+      "stretch_share_over_1_5": 0.5177509348408562,
+      "handover_pixels_share_of_textured": 0.004015399110797044,
+      "handover_step_mean_0_255": 20.257150650024414,
+      "same_projector_step_mean_0_255": 6.240722179412842,
+      "pairs": {
+        "port-side vs quarter30": {
+          "overlap_share_of_visible_hull": 0.18186715059338635,
+          "mean_abs_srgb_diff_0_255": 17.3032169342041,
+          "mean_luminance_offset_0_255": -0.8746452188096542
+        }
+      }
     }
   },
   "facing_cosine": 0.25,
@@ -58,6 +119,11 @@
     "quarter60": [
       60,
       24,
+      170
+    ],
+    "high45": [
+      45,
+      50,
       170
     ]
   }

@@ -94,7 +94,7 @@ public final class FrigateLedgerScene implements BehaviorScene {
         for (float y : new float[]{24f, 44f}) {
             Warship wolf = ship("wolf_hegemony", "wolf_hegemony_Assault", Faction.ALLY, 22f, y, 0f);
             wolf.groundFire(Warship.GroundFire.HOLD);
-            wolf.arriveFromAbove();
+            wolf.arriveFromAbove(line.x, line.y);
             wolf.visit(8f);
             wolves.add(wolf);
         }

@@ -1,0 +1,41 @@
+{
+  "camera": "SPIKE part-bow",
+  "source": "views.py part view, rendered alone: Armoured nose block, Boom luff ram, Boom luff ram rod, Boom web seam, Elbow knuckle cap, Forebody armour belt plate.002, Forebody armour module, Forebody armour module.001, Forebody armour module.002, Forebody reinforcing band.001, Forebody reinforcing band.003, Forebody replaceable armor.004, Forebody replaceable armor.006, Forebody replaceable armor.008, Forebody replaceable armor.010, Forebody seam recess, Frame groove floor.002, Main hull - level datum Z0, Shoulder clevis plate, Shoulder clevis plate.001, Shoulder pivot pin, Spine trunk nose, Trunk nose sensor housing, Trunk nose sensor window",
+  "matrix_world": [
+    [
+      -0.7071067094802856,
+      3.0908619663705394e-08,
+      0.7071067094802856,
+      126.85281372070312
+    ],
+    [
+      0.7071067094802856,
+      3.0908619663705394e-08,
+      0.7071067094802856,
+      98.85281372070312
+    ],
+    [
+      0.0,
+      1.0,
+      -4.371138473402425e-08,
+      4.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 50.0,
+  "resolution": [
+    912,
+    513
+  ],
+  "background_srgb": [
+    0.84,
+    0.84,
+    0.84
+  ],
+  "lighting": "No lamps; uniform white world, strength 1.6, Standard view transform"
+}

@@ -2,7 +2,8 @@
 
 Run after build_reference.py has written build/geom/second-wind-geometry.blend:
   blender --background --factory-startup --python render_guide.py [-- --view quarter30]
---view is a name from views.py (default port-side).
+--view is a name from views.py (default port-side); part views render their
+objects alone at one sheet-tile size.
 
 Opens that untouched scene, applies every modifier on a copy (so later UVs and
 visibility tests address the faces that actually render), and saves it as
@@ -55,6 +56,14 @@ scene.world.node_tree.nodes['Background'].inputs[1].default_value = 1.6
 scene.cycles.samples = 64
 bpy.ops.wm.save_as_mainfile(filepath=str(BUILD / 'base.blend'))  # before any spike camera exists
 cam = scene.camera = views.camera(VIEW)
+if VIEW in views.PARTS:
+    # A part is rendered alone: nothing else occludes it, and nothing else is painted.
+    keep = set(views.part_objects(VIEW))
+    for ob in scene.objects:
+        if ob.type == 'MESH' and ob not in keep:
+            ob.hide_render = True
+RES = views.resolution(VIEW)
+scene.render.resolution_x, scene.render.resolution_y = RES
 
 scene.render.image_settings.file_format = 'PNG'
 scene.render.image_settings.color_mode = 'RGBA'
@@ -86,7 +95,9 @@ bpy.ops.render.render(write_still=True)
 
 (GUIDE / f'{VIEW}-camera.json').write_text(json.dumps({
     'camera': cam.name,
-    'source': 'build_reference.py port-side camera, unchanged' if views.VIEWS[VIEW] is None else 'views.py orbit (azimuth, elevation, ortho scale) = %s' % (views.VIEWS[VIEW],),
+    'source': ('views.py part view, rendered alone: ' + ', '.join(sorted(o.name for o in views.part_objects(VIEW)))) if VIEW in views.PARTS
+              else 'build_reference.py port-side camera, unchanged' if views.VIEWS[VIEW] is None
+              else 'views.py orbit (azimuth, elevation, ortho scale) = %s' % (views.VIEWS[VIEW],),
     'matrix_world': [list(r) for r in cam.matrix_world],
     'ortho_scale': cam.data.ortho_scale,
     'resolution': list(RES),
