@@ -1,9 +1,9 @@
 # Mech locational damage
 
-Status: IN PROGRESS — slice 1 (body plan refactor) shipped; slice 2 (mech plan
-and section pools) is next. Campaign consequences are decided below.
+Status: IN PROGRESS — slices 1 (body plan) and 2 (mech plan, section pools,
+paper-doll) shipped; slice 3 (cover rows, presentation, AI) is next.
 Written: 2026-10-16
-Updated: 2026-10-16 — slice 1 shipped; owner decided after-battle consequences.
+Updated: 2026-10-16 — slice 2 shipped; its standing model is in `mechs-nouns.md`.
 
 Models: `mechs-nouns.md`, `combat-durability-nouns.md`, `body-part-cover.md`
 (marine body parts, cover per part, wounds). Prior art for sectioned machines:
@@ -64,8 +64,31 @@ apart, and a fitting choice (where the plating goes) matters.
    and sensor loss join it), separate band and part order, and the
    per-plan expected-interception readings. Combat telemetry's part tallies
    still count infantry parts only.
-2. **Mech plan and section pools:** rolls, per-section durability, spill to
-   torso, torso-only death. Mount destruction and leg crippling. HUD paper-doll.
+2. **Mech plan and section pools** (shipped 2026-10-16). Model folded into
+   `mechs-nouns.md` (section, mech plan, section pools, section loss). Each
+   chassis's `MechBodyPlan` gives its bands, arm share and pool shares; mech
+   sections have no cover rows, so cover still meets a mech as one body. The
+   battle keeps a `MechSections.Report` per mech for slice 4. The paper-doll is
+   in the direct-control HUD and above the selected-mech panel
+   (`direct-control-ui` snapshots). `-Dbattle.mech.locationalDamage=false` is
+   the whole-body control.
+   - Scene `mech-locational-damage` (`sceneEvidence`, `createSnapshots`): the
+     recorded seed loses the pod at 0.9s, the legs at 8.2s, fires 18 rounds
+     crippled without moving, and dies to a torso kill at 19.6s (control 20.8s).
+     The full order is a roll: across 16 seeded plays every death is a torso
+     kill and every crippled Hound stands, but pod-then-legs happens 10 times
+     and the whole sequence 5.
+   - Time-to-kill against the whole-body control (scene sweep): with a rocket
+     tube, median 20.6s against 19.5s, but spread 4.5–55.6s against 15–21s;
+     rifles only, median 42.9s against 47.4s. In `commanderEvidence`
+     (conquest-trial offset/on-path, Corvus Dust Ledger and Blind Watch) no
+     marine mech was worn down to a kill, so those runs give no time-to-kill;
+     the Corvus Hound ended both chapters alive with structure whole in both arms.
+   - **Open for slice 3:** structure a small section cannot hold goes straight
+     into torso structure, skipping torso armor. That is the model as written,
+     and it is what makes a heavy rocket swingy (a 162-damage round erases a
+     small section and puts about 100 into the torso). Whether spill should meet
+     torso armor first is a balance decision to take with the cover rows.
 3. **Cover rows, presentation and AI.** Mech cover by section, destroyed-mount
    visuals, and doctrine that accounts for a crippled or disarmed mech (fall
    back, become a turret, withdraw).
