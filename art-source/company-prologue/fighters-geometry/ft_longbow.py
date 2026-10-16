@@ -13,6 +13,7 @@ they disagree the sprite wins (short nose, twin forward sensor prongs at
 Y +-4.5, pods centred on Y +-9).
 """
 import math
+import bpy
 import fg_kit as K
 from fg_kit import prism, section, mirror_y, section_loft
 
@@ -79,6 +80,23 @@ NOTES = [
     'exhaust anchors are at those bells.',
     'The master\'s long pointed nose and outboard pods are not followed: the sprite ends the fuselage at '
     'X 13 between two forward sensor prongs and centres its pods on Y +-9.',
+    'Pass 2 (detail read off master-v2, sized in metres at 0.45 m/unit): the forward prongs carry sensor blisters '
+    'and the nose the master\'s dark centre strip and lamp; the canopy dome a sill, windscreen arch and bow. Behind '
+    'it are the master\'s square dorsal sensor housing, a blade antenna and the slatted aft grille between the aft '
+    'arms; the aft arms carry the master\'s small vents. The port emitter gets coil bands and a collar where it '
+    'leaves the housing, and the housing the master\'s window. The starboard rack shows four sabot tubes (bright '
+    'rims, dark bores) in its open mouth, with hold-down latches on top. Each pod has the master\'s top slot, a '
+    'lamp, two collar ribs and a centre body with stator vanes. Panel lines split fuselage, arms, housing and '
+    'plates.',
+]
+
+# Pass-2 close-up cameras: (name, view direction from the target, target in units, frame width in metres).
+CLOSEUPS = [
+    ('nose-detail', (1.0, .6, .8), (13.6, 0.0, 1.2), 6.0),
+    ('cockpit-detail', (.8, -1.0, 1.2), (9.4, 0.0, 2.6), 4.2),
+    ('emitter-detail', (1.0, 1.0, .65), (15.6, 11.6, .5), 5.4),
+    ('rack-detail', (1.0, -1.0, .55), (12.2, -11.0, .3), 4.8),
+    ('engine-detail', (-1.0, .75, .5), (-12.2, 9.6, 0.0), 5.6),
 ]
 
 
@@ -206,3 +224,80 @@ def build(kit):
     kit.slot_anchor(a1, (*a1['location'], SPIKE_Z), muzzle=(20.4, SPIKE_Y, SPIKE_Z))
     a2 = SLOTS[1]
     kit.slot_anchor(a2, (*a2['location'], .05), muzzle=(13.13, -11.0, .05))
+    if kit.detail:
+        detail(kit)
+
+
+def detail(kit):
+    kit.mark_detail()
+    ob = bpy.data.objects
+    S, D, B, G = kit.steel, kit.dark, kit.bright, kit.glass
+    u = kit.u
+    w, top = .05, .3
+    fus = ob['Hull fuselage']
+
+    # Nose: the master's dark centre strip and lamp; sensor blisters on the forward prongs.
+    kit.skin(fus, 'Hull nose strip', kit.region(12.35, 13.4, -.55, .55, .3, 6), .03, S)
+    kit.seated('Hull nose lamp', 12.75, 0, (.16, .3, .03), G, 0, -.02, 0)  # on the strip
+    for side, x, y in (('port', 16.3, 4.55), ('starboard', 15.7, -4.5)):
+        kit.fairing(f'Hull {side} prong sensor fairing', x, y, .7, .28, .14, S)
+    # Canopy frame on the dome.
+    glass = ob['Canopy glass dome']
+    kit.skin(glass, 'Canopy frame sill', kit.region(6.2, 12.5, -1.6, 1.6, -3, 2.15+u(.1)), .05, S)
+    kit.skin(glass, 'Canopy frame windscreen arch', kit.band_slab(10.8, .08), .045, S)
+    kit.skin(glass, 'Canopy frame bow', kit.band_slab(8.4, .07), .045, S)
+    # Behind the canopy: the master's square dorsal sensor housing, an antenna, the aft grille.
+    kit.seated('Hull dorsal sensor housing', 3.6, 0, (.42, .42, .16), S, 0, .03, .02)
+    kit.blade('Hull dorsal antenna', -1.4, 1.3, .32, .5, S)
+    kit.grille('Hull aft grille', -4.7, 0, 1.3, .95, 6)
+    kit.engrave(fus, [kit.band_slab(6.1, w, z0=top), kit.band_slab(.6, w, z0=top),
+                      *kit.lines([(5.9, 1.9), (-6.6, 1.7)], w, top), *kit.lines([(5.9, -1.9), (-6.6, -1.7)], w, top),
+                      *kit.outline(2.0, 0, 3.0, 1.8, w, -4, -1.4)])
+
+    # Arms: the master's small vents on the aft arms, seams across all four.
+    for side, s in (('port', 1), ('starboard', -1)):
+        for part, p0, p1 in (('fore', (1.5, s*2.2), (11.6, s*11.4)), ('aft', (-0.8, s*1.5), (-8.6, s*POD_Y))):
+            dx, dy = p1[0]-p0[0], p1[1]-p0[1]
+            n = math.hypot(dx, dy)
+            q = (-dy/n*3.2, dx/n*3.2)
+            at_t = lambda t: (p0[0]+dx*t, p0[1]+dy*t)
+            seams = []
+            for t in ((.38, .72) if part == 'fore' else (.4,)):
+                cx, cy = at_t(t)
+                seams.append(kit.line_slab((cx-q[0], cy-q[1]), (cx+q[0], cy+q[1]), w, top))
+            if part == 'aft':
+                vx, vy = at_t(.62)
+                kit.grille(f'Wing {side} aft arm vent', vx, vy, .7, .4, 3, math.degrees(math.atan2(dy, dx)))
+            kit.engrave(ob[f'Wing {side} {part} arm'], seams)
+
+    # Port emitter: coil bands, a collar where it leaves the housing, the housing's window and seams.
+    spike = ob['Weapon WS 001 emitter']
+    kit.skin(spike, 'Weapon WS 001 emitter collar', kit.band_slab(16.05, .16), .05, S)
+    for k, x in enumerate((17.3, 18.4), 1):
+        kit.skin(spike, f'Weapon WS 001 emitter coil {k}', kit.band_slab(x, .08), .03, D)
+    housing = ob['Weapon WS 001 housing']
+    kit.seated('Weapon WS 001 housing window', 12.6, 14.9, (.4, .14, .03), G, 0, .01, 0)
+    kit.engrave(housing, [kit.band_slab(9.4, w, z0=top), *kit.lines([(15.8, 10.0), (6.2, 10.0)], w, top)])
+
+    # Starboard rack: four sabot tubes in the open mouth, hold-down latches on the rack's top.
+    for k, (dy, dz) in enumerate(((.62, .48), (-.62, .48), (.62, -.48), (-.62, -.48)), 1):
+        kit.xcyl(f'Weapon WS 002 tube rim {k}', 13.0, 13.2, -11.0+dy, .05+dz, .22, B, 16)
+        kit.xcyl(f'Weapon WS 002 tube bore {k}', 13.05, 13.22, -11.0+dy, .05+dz, .16, D, 16, 0)
+    rack = ob['Weapon WS 002 missile rack']
+    kit.hull.append(rack)
+    for k, x in enumerate((6.2, 11.6), 1):
+        kit.seated(f'Weapon WS 002 rack latch {k}', x, -11.0, (.3, .9, .1), S, 0, .02, .01)
+    kit.hull.remove(rack)
+    for name in ('Weapon WS 002 inner plate', 'Weapon WS 002 outer plate'):
+        kit.engrave(ob[name], [kit.band_slab(9.0, w, z0=top), kit.band_slab(12.6, w, z0=top)])
+
+    # Pods: the master's top slot and lamp, two collar ribs, and the drive core in each bell.
+    for i, (s, (nx, ny)) in enumerate(((1, NOZZLES[0]), (-1, NOZZLES[1])), 1):
+        side = 'port' if s > 0 else 'starboard'
+        pod = ob[f'Engine {i} {side} drive pod']
+        kit.grille(f'Engine {i} pod top slot', -8.4, s*POD_Y, .45, 1.0, 4, 90)
+        kit.seated(f'Engine {i} pod lamp', -11.8, s*POD_Y, (.14, .34, .03), G, 0, .01, 0)
+        for k, x in enumerate((-10.9, -11.6), 1):
+            kit.skin(pod, f'Engine {i} collar rib {k}', kit.band_slab(x, .12), .05, S)
+        kit.drive_core(i, nx, ny, -.05, 1.55*.82)
+        kit.engrave(pod, kit.band_slab(-9.6, w))

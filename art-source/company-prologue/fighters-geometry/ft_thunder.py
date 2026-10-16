@@ -15,6 +15,7 @@ delta, the wingtip plates and the two engine pods are near-symmetric. The
 pods and bells sit at +-6.75 and +-6.5, the mean of the integer slots,
 while the slot anchors keep the .ship coordinates exactly.
 """
+import bpy
 import fg_kit as K
 from fg_kit import prism, section, section_loft, mirror_y
 
@@ -61,6 +62,24 @@ NOTES = [
     'at Y 2 is drawn hull, not a weapon. The light dual MG is the short twin barrel on the starboard root of the '
     'lance (WS 002). The swarmer launcher is the dark bay on the fuselage nose at WS 003, with no visible gun.',
     'master-v1 is mirrored and does not match this plan; see source.sprite_choice.',
+    'Pass 2 (detail read off master-v1\'s parts, which survive its mirrored plan, sized in metres at 0.45 '
+    'm/unit): the lance carries the master\'s long slatted dorsal grille, a slot near its tip and a radome seam. The '
+    'ion cannon (outer prong) gets coil bands, a focus ring and a dark bore; the inner prong bands and a cap; the '
+    'dual MG perforated barrel jackets, muzzle brakes and a breech cover on its housing; the gun block a capacitor '
+    'vent. The swarmer bay at WS 003 shows three launch cells in its recess. The canopy has a sill and two bows; '
+    'behind it runs the master\'s dark dorsal spine with a ribbed grille, flanked by the master\'s intakes on the '
+    'delta. Each engine pod has a forward intake grille, an aft vent, two collar ribs and a centre body with stator '
+    'vanes; the tip plates the master\'s two slots on their outer faces. Panel lines split lance, block, fuselage, '
+    'delta and pods.',
+]
+
+# Pass-2 close-up cameras: (name, view direction from the target, target in units, frame width in metres).
+CLOSEUPS = [
+    ('nose-detail', (1.0, -.8, .8), (24.6, -2.5, 1.0), 6.0),
+    ('gun-detail', (1.0, .35, .5), (21.2, 1.0, .5), 6.6),
+    ('cockpit-detail', (.8, -1.0, 1.2), (6.2, 0.0, 2.4), 4.8),
+    ('aft-detail', (-.4, .6, 1.4), (-.5, 2.5, 1.4), 7.0),
+    ('engine-detail', (-1.0, .7, .5), (-11.4, 6.6, -.2), 6.0),
 ]
 
 ZB = .45  # gun axis height
@@ -126,3 +145,77 @@ def build(kit):
             kit.slot_anchor(slot, (x, y, ZB), muzzle=(23.4, 6.0, ZB))
         else:
             kit.slot_anchor(slot, (x, y, ZB), muzzle=(21.2, -4.15, ZB))
+    if kit.detail:
+        detail(kit)
+
+
+def detail(kit):
+    kit.mark_detail()
+    ob = bpy.data.objects
+    S, D, B, G = kit.steel, kit.dark, kit.bright, kit.glass
+    u = kit.u
+    w, top = .05, .3
+    lance, block, fus, wing = (ob[n] for n in ('Hull starboard lance', 'Hull port gun block', 'Hull central fuselage',
+                                              'Hull delta wing'))
+
+    # Lance: the master's long slatted grille, a slot near the tip, a radome seam.
+    kit.grille('Hull lance dorsal grille', 23.4, -2.5, 2.0, .45, 9)
+    kit.seated('Hull lance tip slot', 27.4, -2.5, (.36, .14, .03), D, 0, .01, 0)
+    kit.engrave(lance, [kit.band_slab(28.2, w), kit.band_slab(20.6, w, z0=top),
+                        *kit.lines([(19.8, -1.55), (12.4, -1.55)], w, top)])
+
+    # Dual MG: perforated jackets, muzzle brakes, a breech cover on the housing.
+    for dy, which in ((.3, 'inner'), (-.3, 'outer')):
+        y = -4.15+dy
+        kit.xcyl(f'Weapon starboard gun jacket {which}', 20.25, 20.75, y, ZB, .13, D, 12)
+        kit.xcyl(f'Weapon starboard gun brake {which}', 21.02, 21.18, y, ZB, .12, B, 12)
+    kit.seated('Weapon starboard gun breech cover', 17.4, -4.15, (1.3, .55, .16), S, 0, .03, .02)
+    kit.engrave(ob['Hull starboard gun housing'], kit.band_slab(15.2, w, z0=.2))
+
+    # Ion cannon (the outer prong): coil bands, a focus ring and a dark bore; bands on the inner prong.
+    shroud, inner = ob['Weapon port gun shroud'], ob['Hull port inner prong']
+    for k, x in enumerate((20.9, 21.7), 1):
+        kit.skin(shroud, f'Weapon port gun coil {k}', kit.band_slab(x, .09), .04, B)
+        kit.skin(inner, f'Hull port inner prong band {k}', kit.band_slab(x, .09), .04, S)
+    kit.xcyl('Weapon port gun focus ring', 23.3, 23.44, 6.0, ZB, .16, G, 16, 0)
+    kit.xcyl('Weapon port gun bore', 23.36, 23.46, 6.0, ZB, .1, D, 16, 0)
+    kit.xcyl('Hull port inner prong cap', 23.25, 23.36, 2.0, ZB, .12, D, 12, 0)
+    kit.grille('Hull port gun block vent', 14.4, 5.0, 1.6, .7, 6)
+    kit.engrave(block, [kit.band_slab(17.6, w, z0=top), *kit.lines([(19.6, 2.4), (11.4, 2.4)], w, top),
+                        *kit.outline(14.6, 3.6, 2.2, 3.0, w, -3, -.2)])
+
+    # WS 003: three launch cells in the swarmer bay's recess.
+    for k, x in enumerate((15.0, 15.8, 16.6), 1):
+        kit.cylinder(f'Weapon WS 003 launch cell {k}', (x, 0, 1.67), u(.15), u(.04), B, 'Z', 16, 0)
+        kit.cylinder(f'Weapon WS 003 launch cell {k} hatch', (x, 0, 1.69), u(.11), u(.04), D, 'Z', 16, 0)
+
+    # Canopy frame; the master's dark dorsal spine with its ribbed grille; the flank intakes on the delta.
+    glass = ob['Canopy glass']
+    kit.skin(glass, 'Canopy frame sill', kit.region(2.4, 10.0, -1.7, 1.7, -3, 1.9+u(.1)), .05, S)
+    kit.skin(glass, 'Canopy frame windscreen arch', kit.band_slab(8.5, .08), .045, S)
+    kit.skin(glass, 'Canopy frame bow', kit.band_slab(5.0, .07), .045, S)
+    spine = kit.skin(fus, 'Hull dorsal spine', kit.region(-4.6, 2.3, -.95, .95, 1.0, 6), .07, S)
+    kit.hull.append(spine)
+    kit.grille('Hull dorsal spine grille', -1.2, 0, 1.9, .65, 7)
+    kit.hull.remove(spine)
+    for side, s in (('port', 1), ('starboard', -1)):
+        kit.grille(f'Hull {side} flank intake', .6, s*3.75, 1.2, .5, 4)
+    kit.engrave(fus, [kit.band_slab(12.2, w, z0=.5), *kit.outline(5.0, 0, 3.2, 1.6, w, -3, -.4)])
+    kit.engrave(wing, kit.lines([(5.4, 9.6), (-3.7, 9.6)], w, 0) + kit.lines([(5.4, -9.6), (-3.7, -9.6)], w, 0))
+
+    # Engine pods: a forward intake grille, an aft vent, two collar ribs, the drive core.
+    for i, (ex, ey, _) in enumerate(ENGINES, 1):
+        s = 1 if ey > 0 else -1
+        side = 'port' if s > 0 else 'starboard'
+        pod = ob[f'Engine {i} {side} pod']
+        kit.grille(f'Engine {i} pod intake grille', .2, s*6.75, 1.1, .9, 4)
+        kit.grille(f'Engine {i} pod aft vent', -6.6, s*6.75, .45, 1.1, 3, 90)
+        for k, x in enumerate((-9.2, -9.9), 1):
+            kit.skin(pod, f'Engine {i} collar rib {k}', kit.band_slab(x, .12), .05, S)
+        kit.drive_core(i, -12.0, s*6.5, -.32, 1.75)
+        kit.engrave(pod, [kit.band_slab(-2.2, w), kit.band_slab(-7.9, w, z0=-.5)])
+
+    # Tip plates: the master's two slots on each outer face.
+    for side, s in (('port', 1), ('starboard', -1)):
+        for k, x in enumerate((-1.3, .9), 1):
+            kit.box(f'Wing {side} tip plate slot {k}', (x, s*12.0, .25), (u(.5), u(.04), u(.22)), D, 0)
