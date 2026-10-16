@@ -87,7 +87,7 @@ Captions and the lock are drawn live in the game's bitmap fonts (`Fonts.ORBITRON
      shot's. The hail bed is C1's and runs to the end of the hail; C2 must not add another.
 3. Add a row to `SHOTS` in `cinematic_export.py` (folder, module, frames directory).
 4. `python art-source/company-prologue/second-wind-cinematic/cinematic_export.py --shot <id>`
-   writes `mod/cinematic/jangala-arrival/<id>.mp4` (gitignored) and
+   writes `mod/cinematic/jangala-arrival/<id>.mp4` (checked in: the source frames are not, so the video cannot be rebuilt from a fresh checkout) and
    `mod/data/cinematic/jangala-arrival/<id>.json` (checked in). The shot ids and order are in
    `mod/data/cinematic/jangala-arrival/sequence.json`: `c1, c2, entry, c3, c4, c5`.
    `--check` validates without encoding. A shot with no video is skipped at runtime.
