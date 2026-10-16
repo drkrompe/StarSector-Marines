@@ -4,7 +4,7 @@ Status: DRAFT — original local setting direction on an existing vanilla world 
 
 Written: 2026-10-13
 
-Updated: 2026-10-16 — Latchkey Yard's ground: walled yard, two-door tooling hall, operator lock, Cinder Steps lane and separate homes frontage.
+Updated: 2026-10-16 — Latchkey Yard, Low Quay and North Weir ground described as connected compounds: galleries, locks, routes and a two-circuit reclamation plant.
 
 ## Scope and provenance
 
@@ -59,6 +59,28 @@ by cranes, floodlights and condensate inside sealed service halls.
 freight offices, a clinic, boarding rooms and a lease-arbitration office. House
 Rusk maintains administrative rooms above a working customs shed. The baronet
 has an office overlooking overdue cargo rather than a palace overlooking subjects.
+
+Low Quay's **bonded stores**, at the quarter's industrial edge, are one walled
+compound. A secure freight gate in its western wall is the only way between the
+company's apron and the single loading lane that runs east to the load court.
+North of the lane stand the gatehouse over the gate, the records archive and the
+bonded warehouse with its rack aisles; south of it lie the hold where Drent
+Haulage stages diverted cargo and the calibration shop with its cage. Occupied
+rooms are reached through enclosed service galleries whose pressure vestibules
+open on the lane at one place, **the crossing**: the supplier's technician walks
+in across it, the calibration carrier drives out over it, and Greyhook's finite
+rearguard comes to it from the north freight gate down the north gallery. In
+Limited Warrant the rearguard's objective is that crossing rather than the gate
+mouth; while the technician is walking in, a second company squad holds it, and
+the technician waits whenever the company knows of enemies there. The protected
+calibration work counts the whole shop with its cage. Vestibules and galleries
+sell the pressure hull; nothing counts oxygen.
+
+The **diverted clinic consignments** are identifiable cargo — insulated totes and
+medical stock matching Nadi Orr's list, in the hold, on the dock apron and beside
+Drent's truck in the transfer yard. They are evidence of the seizures, not an
+objective: Limited Warrant neither moves, returns nor pays for them, and any
+return to their named recipients needs its own implemented outcome.
 
 **Latchkey Yard** stands along the elevated freight route beyond the habitat
 quarter. It repairs small commercial hulls and manufactures replacement assemblies
@@ -123,8 +145,17 @@ active district heating and buried service routes. Households remain woven throu
 industry; an enemy compound can sit beside somebody's livelihood.
 
 **North Weir** controls coolant diversion and power distribution to the basin.
-Maintenance roads connect protected switching rooms, enclosed channels and pumping
-housings. Losing it interrupts work, heat and essential services. Its importance
+It is a closed-circuit reclamation plant with two circuits: intake pump groups
+on one side and settling tanks with heat exchangers on the other, joined by a
+covered conduit that service crossings pass over. Each circuit answers to its own
+sealed switching room, so reopening one room restores one visible part of the
+works rather than an abstract half of a timer. Repair loads come in from the
+western service apron and dock in a screened bay at the conduit's head, between
+the isolation switch house and a crew shelter; both are entered through pressure
+vestibules, which is how the airless setting reads without any survival
+bookkeeping. The maintenance road enters past a checkpoint, with a service track
+along the outfall line as a second approach for anyone holding the road.
+Losing the weir interrupts work, heat and essential services. Its importance
 comes from the people and machinery it serves, not an unexplained strategic label.
 
 **Black Sluice** is the basin complex's outer fuel and dispatch apron. Protected
