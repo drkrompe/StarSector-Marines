@@ -49,7 +49,11 @@ gen_rgb = gen_native.resize((W, H), Image.LANCZOS)
 def segment(img, thr=22.0):
     a = np.asarray(img, dtype=np.float32)
     border = np.concatenate([a[0], a[-1], a[:, 0], a[:, -1]])
-    bg = np.median(border, 0)
+    # The background is neutral light grey. A part tile's border can be mostly
+    # hull, so take the median of neutral bright border pixels when there are
+    # enough of them rather than of the whole border.
+    neutral = border[(border.max(1) - border.min(1) < 10) & (border.mean(1) > 160)]
+    bg = np.median(neutral if len(neutral) > 50 else border, 0)
     near_bg = np.linalg.norm(a - bg, axis=2) < thr
     lab = Image.fromarray(np.where(near_bg, 128, 0).astype(np.uint8)).copy()  # copy: floodfill on an array-backed image is a silent no-op
     for seed in [(0, 0), (W - 1, 0), (0, H - 1), (W - 1, H - 1)]:
@@ -78,6 +82,8 @@ def boundary(m):
 
 def boundary_distance(a, b, step=3):
     pa, pb = boundary(a)[::step], boundary(b)[::step]
+    if len(pa) == 0 or len(pb) == 0:  # a fit that leaves no hull in frame
+        return {'mean_px': float('nan'), 'p95_px': float('nan'), 'max_px': float('nan')}
     def nearest(p, q):
         out = np.empty(len(p), np.float32)
         for i in range(0, len(p), 512):

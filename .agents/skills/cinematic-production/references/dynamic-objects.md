@@ -94,8 +94,12 @@ reskin came back uniformly scaled 1.12x and a second not at all, so measure each
 image; once that global fit is removed, interior features sat within 2 px. Decide
 coverage per pixel against the guide's depth map, not per face. Separate views
 agree on paint layout but each invents its own chips and rivets, so blended
-overlaps soften. Prefer projection for camera-held hero faces and generated
-tileable swatches for the rest.
+overlaps soften. Its part-by-part arm projects square-on renders of single
+parts. Those came back without drift and reached decks and roofs, and their
+seams fall on real part edges. Separate generations drift in tone, though,
+so grade each part to one palette. Cut parts at geometric boundaries, not
+by a region box. Prefer parts for major armour, whole-ship projection for
+camera-held hero faces, and generated tileable swatches for the rest.
 
 The managed-land agriculture study provides a small-prop example: one midpoint
 projector travels with each rigid assembly, and physical materials cover backward

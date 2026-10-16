@@ -1,0 +1,41 @@
+{
+  "camera": "SPIKE part-deck",
+  "source": "views.py part view, rendered alone: Main hull - level datum Z0",
+  "matrix_world": [
+    [
+      7.549790126404332e-08,
+      1.0,
+      0.0,
+      31.0
+    ],
+    [
+      -1.0,
+      7.549790126404332e-08,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0,
+      134.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 66.0,
+  "resolution": [
+    912,
+    513
+  ],
+  "background_srgb": [
+    0.84,
+    0.84,
+    0.84
+  ],
+  "lighting": "No lamps; uniform white world, strength 1.6, Standard view transform"
+}

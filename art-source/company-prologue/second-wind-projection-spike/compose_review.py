@@ -65,7 +65,8 @@ def sheet(title, cells, out):
 
 
 reg = json.loads((HERE / 'registration/reskin-v1.json').read_text())
-one = json.loads((HERE / 'review/one-view-projection.json').read_text())['pixel_coverage_of_visible_hull']
+coverage = lambda tag: {v: d['pixel_coverage_of_visible_hull'] for v, d in json.loads((HERE / f'review/{tag}-projection.json').read_text())['views'].items()}
+one = coverage('one-view')
 two = json.loads((HERE / 'review/two-view-projection.json').read_text())
 fit = reg['fits']
 pct = lambda v: f'{100 * v:.0f}%'
@@ -81,10 +82,10 @@ sheet('SECOND WIND - CODEX RESKIN -> MESH PROJECTION SPIKE (port-side guide, one
     panel('build/review/one-view-coverage60.png', f"6  60 deg port bow quarter, magenta = unseen ({pct(one['quarter60'])} textured)"),
 ], 'review-sheet.png')
 
-dis = two['two_view_disagreement']['guide']
+dis = two['views']['guide']['pairs']['port-side vs quarter30']
 sw = json.loads((HERE / 'review/swatches.json').read_text())
 worst = max(max(v['wrap_seam_ratio_x'], v['wrap_seam_ratio_y']) for k, v in sw.items() if k != 'method')
-cov2 = two['pixel_coverage_of_visible_hull']
+cov2 = coverage('two-view')
 sheet('SCALING TESTS - second projector at 30 deg, best-view blend, and tileable swatches instead', [
     panel('generated/reskin-quarter30.png', '7  Second Codex reskin at 30 deg (unscaled: IoU 0.995 raw)'),
     panel('build/review/two-view-quarter30.png', f"8  Two projectors blended, 30 deg ({pct(cov2['quarter30'])} textured)"),
@@ -94,3 +95,16 @@ sheet('SCALING TESTS - second projector at 30 deg, best-view blend, and tileable
     panel('generated/swatches.png', '11  Codex tileable swatch sheet (one generation)', crop=False),
     panel('build/review/swatches-tiled.png', f'12  Each swatch repeated 2x2 (wrap seam up to {worst:.1f}x interior)', crop=False),
 ], 'review-sheet-scaling.png')
+
+allp = json.loads((HERE / 'review/all-projection.json').read_text())['views']
+twop = json.loads((HERE / 'review/two-view-projection.json').read_text())['views']
+regs = {p: json.loads((HERE / f'registration/{p}.json').read_text()) for p in ('part-deck', 'part-turret', 'part-pod', 'part-bow')}
+worst_scale = max(abs(v - 1) for r in regs.values() for v in r['bounds_scale'].values())
+sheet('PART-BY-PART ARM - four parts rendered alone and square-on, one Codex generation', [
+    panel('guide/parts-sheet-guide.png', '13  Part guides: deck, turret, engine pod, bow (rendered alone)', crop=False),
+    panel('generated/parts-sheet.png', f'14  Codex parts sheet: no global scale (all within {100 * worst_scale:.1f}%); turret recoloured', crop=False),
+    panel('build/review/two-view-high45.png', f"15  Two whole-ship views only, high 45 deg ({pct(twop['high45']['pixel_coverage_of_visible_hull'])} textured)"),
+    panel('build/review/all-high45.png', f"16  Plus the four parts ({pct(allp['high45']['pixel_coverage_of_visible_hull'])}): deck and turret roof reached"),
+    panel('build/review/all-quarter60.png', f"17  All six projectors, 60 deg ({pct(allp['quarter60']['pixel_coverage_of_visible_hull'])} textured)"),
+    panel('build/review/all-seams-quarter30.png', '18  Hand-overs cyan, unseen magenta, 30 deg (all six)'),
+], 'review-sheet-parts.png')
