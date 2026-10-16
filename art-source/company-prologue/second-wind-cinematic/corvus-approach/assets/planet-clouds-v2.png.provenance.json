@@ -1,0 +1,32 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a145da-db65-7180-8bf0-98bfd47b7e24",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a145da-db65-7180-8bf0-98bfd47b7e24\\exec-0843186f-48c9-4cdc-95d9-eb9eb2240356.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\assets\\planet-clouds-v2.png",
+    "sha256": "30d92a39e0549de9108f1807aba78fe5725688f9f70362e577fd2fc24c2e3589",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\prompts\\planet-clouds-v2.txt",
+  "promptSha256": "8a809c38d9c15e382eb45fca7c05621f2219b5b823f11becdf34e01c0f39f514",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAsset: an equirectangular (2:1, plate carree) cloud cover map for Jangala, a warm humid jungle and ocean world, used as the density/alpha of a cloud shell on a 3D sphere in Blender. Exactly 2:1 landscape canvas, highest resolution available, full bleed, flat orthographic map projection, nothing else in the frame.\nContent: greyscale clouds on PURE BLACK. Black (#000000) means clear sky and must be completely black: no land, no ocean, no colour, no texture in the gaps. Brightness encodes optical thickness: deep convective towers and thick frontal cloud near white, thin stratus and cirrus veils dark-to-mid grey. Flat and unlit: no shading direction, no shadows, no terminator.\nWeather, realistic global circulation as in a real geostationary satellite composite of Earth (GOES / Himawari full-disc mosaics), but an alien world: a broken equatorial band of tropical convective clusters (anvil tops, popcorn cumulus fields, a few large mesoscale complexes) along the middle of the map; clearer subtropical belts above and below it with scattered fair-weather cumulus and some low stratocumulus decks with cellular texture; in each hemisphere's mid-latitudes two or three large comma-shaped extratropical cyclones with long trailing cold fronts that curve toward the equator, cirrus streaks along the jet; one mature tropical cyclone in the northern subtropics right of centre with tight spiral bands and a small, ragged, partly cloud-filled eye that is dark grey, never a hard black dot. Roughly 40% total coverage with large, natural clear areas. Cloud edges are soft and fibrous at the scale of a whole planet, not cotton blobs.\nProjection: equirectangular, features stretch horizontally only near the top and bottom rows; no other distortion, no vignette. The left and right edges must continue seamlessly into each other (wrap-around tileable horizontally). Polar rows sparse and thin, not heavy streaked bands.\nNo text, grid, borders, legend or watermark.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one cloud map using your projection, coverage, and grayscale density requirements."
+  ],
+  "usage": {
+    "input_tokens": 37371,
+    "cached_input_tokens": 30464,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 643,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 55.6
+}

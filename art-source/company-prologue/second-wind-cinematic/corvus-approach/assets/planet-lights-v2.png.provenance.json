@@ -1,0 +1,27 @@
+{
+  "generator": "planet_maps.py (derived, no image generation)",
+  "inputs": {
+    "assets\\planet-albedo-v2.png": "ac7dd1ecb8e5ed761ec75de5d468124c72f0b4cd6df684839f35373a47988057"
+  },
+  "script": "planet_maps.py",
+  "scriptSha256": "62325d9428a14b7ed354d02749dddc829036493f4f1282a6a5ecaefe4010476b",
+  "parameters": {
+    "seed": 1729,
+    "towns": 1400,
+    "sizes": "pareto(1.6)+0.5, cap 6",
+    "resolution": [
+      3548,
+      1774
+    ]
+  },
+  "note": "Procedural night lights placed by a population field from the albedo: coasts, deltas and agricultural lowlands; none on highlands, desert, ice, sea or above ~60 degrees latitude.",
+  "output": {
+    "path": "assets\\planet-lights-v2.png",
+    "sha256": "a93d2b676524374dc75e2d9ed98f1cd138f4cc799a640649c06d9332f7f37196",
+    "dimensions": [
+      3548,
+      1774
+    ],
+    "mode": "L"
+  }
+}
