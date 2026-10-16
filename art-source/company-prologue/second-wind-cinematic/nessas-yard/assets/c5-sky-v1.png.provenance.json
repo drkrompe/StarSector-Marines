@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a14678-3ecd-75f0-ba36-61bb53b042de",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a14678-3ecd-75f0-ba36-61bb53b042de\\exec-80b87d23-b23a-4a49-b269-923764c17e0a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\nessas-yard\\assets\\c5-sky-v1.png",
+    "sha256": "1e441f62b698a8778cd1a2bb6838aaf8f5cb1755d4e24c93da957d226a08e0f8",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\nessas-yard\\prompts\\c5-sky-v1.txt",
+  "promptSha256": "807c22204372b71c0c76ffc8c65759e930096b7ee345370c2e5b687892729fdf",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Layout authority: horizon height and far tree line placement\nImage 2: Material and style reference only: sky, haze, daylight; not layout\n\nShot plate: the SKY AND FAR HORIZON layer for a grounded, photographic science-fiction film. Late morning on the humid jungle world Jangala, seen from ground level at a spaceport repair yard, looking out over flat yard ground toward the far edge of the port. 16:9, the widest landscape canvas.\n\nImage 1 is the LAYOUT AUTHORITY: a clay render from the real shot camera. Keep the horizon exactly where it is (a little below the middle of the frame) and keep the camera level. The green blobs mark a distant jungle tree line; continue that tree line across the WHOLE width of the horizon, with low, softly rolling forested hills rising behind it on the left and centre, very far away (two to four kilometres), blue-green with heavy humid haze.\nImage 2 is MATERIAL AND STYLE REFERENCE ONLY for the film's sky, haze and daylight. Do not copy its ship, yard, people or layout.\n\nSky: humid tropical late-morning sky, deep soft blue overhead fading to a pale hazy band at the horizon, with towering bright sunlit cumulus building above the hills on the right and scattered smaller cumulus elsewhere. The sun is high, behind the viewer and to the left, so the clouds are lit from the front-left.\nBelow the horizon line, only flat, hazy, featureless pale grey yard ground receding into the distance (it will be covered by another layer).\n\nThis layer contains ONLY sky, clouds, hills and the far tree line: no ships, no buildings, no towers, no cranes, no aircraft, no people, no steam, no birds.\nStyle: photographic, natural colour, real atmosphere, cinematic. Not a painting, not a cartoon. No text, labels, borders or lens flares.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\nessas-yard\\guides\\c5-L1-sky-guide.png",
+      "sha256": "f8e18f08460b09129d3750183db5ddd1382bfed1c33d29403efd60409304984d",
+      "dimensions": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "role": "Layout authority: horizon height and far tree line placement"
+    },
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\nessas-yard\\review\\c5-looktest-1080.png",
+      "sha256": "1cc5ce0013e2af214b8ad75bf1395e7528f7b39e091a89672a149d5f37850b2d",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Material and style reference only: sky, haze, daylight; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to generate one sky-and-horizon plate, matching Image 1’s layout and Image 2’s atmospheric style."
+  ],
+  "usage": {
+    "input_tokens": 87644,
+    "cached_input_tokens": 66816,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 654,
+    "reasoning_output_tokens": 20
+  },
+  "elapsedSeconds": 58.0
+}

@@ -1,0 +1,43 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a1467b-6e5b-76d3-8221-5a08d2928ca9",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1467b-6e5b-76d3-8221-5a08d2928ca9\\exec-ea97470c-ac6d-4e2f-9070-503ef66bc688.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\patrol-abeam\\assets\\c2-planet-v1.png",
+    "sha256": "10ca6c108be2c2cfc024a0d22582f64ff41ceba499a960c2559fe8f6ba6a8f6b",
+    "dimensions": [
+      1931,
+      814
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\patrol-abeam\\prompts\\c2-planet-v1.txt",
+  "promptSha256": "af31cd41f46f45d5fe7e471e5864ed91be99158a3d56842089b3db77c41d6495",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry, layout and light authority: keep horizon, limb, coastlines and cloud placement exactly; replace coarse texels with photographic detail\n\nPhotoreal orbital photograph: the planet Jangala seen from a spacecraft window at 200 km altitude, looking out and down across a curved horizon. Wide landscape canvas, the full frame filled edge to edge.\n\nReference 1 is the GEOMETRY, LAYOUT AND LIGHT authority, rendered from the exact camera: keep its horizon curve and height exactly, the thin blue limb, black space above, and the placement of every coastline, island chain, shallow lagoon, ocean and cloud mass. Do not move, re-crop or re-curve anything. Its pixels are coarse map texels: replace them with real detail at that layout.\n\nRender it like an astronaut's photograph from low orbit in full daylight: deep navy ocean with subtle wind texture; jungle islands in dark rich green with brown river deltas, pale reefs and turquoise shallows; cumulus fields and cloud streets with crisp sunlit tops and soft shadows on the sea, thicker cloud banks in the lower foreground; aerial perspective that softens and blues everything toward the horizon; a thin luminous blue atmosphere band along the limb fading into pure black space. Sun from upper left, out of frame. Natural true colour, no stars (daylight exposure), no spacecraft, no window frame, no text, no lens flare, no vignette, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\patrol-abeam\\guides\\c2-planet-guide.png",
+      "sha256": "7c1cadf4d1087847f6617d291ba0cbee0dda64f9814977ccba9cdea10dc7a94c",
+      "dimensions": [
+        2040,
+        860
+      ],
+      "mode": "RGB",
+      "role": "Geometry, layout and light authority: keep horizon, limb, coastlines and cloud placement exactly; replace coarse texels with photographic detail"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image generation to add photographic detail while preserving the reference’s geometry and layout."
+  ],
+  "usage": {
+    "input_tokens": 41248,
+    "cached_input_tokens": 32512,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 412,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 45.7
+}

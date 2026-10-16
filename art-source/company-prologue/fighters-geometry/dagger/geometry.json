@@ -1,5 +1,6 @@
 {
-  "status": "Blockout (pass 1): silhouette, sections, mass, slots and engines. No detail, damage or textures.",
+  "status": "Pass 2: plausible detail (panel lines, access plates, intakes, drive, gun and canopy detail, sensors) on the pass-1 silhouette. No damage or textures.",
+  "pass": 2,
   "hull": {
     "name": "Dagger",
     "hullId": "dagger",
@@ -53,7 +54,7 @@
     "size_m": [
       16.4,
       12.1,
-      2.2
+      2.3
     ],
     "canopy": {
       "length_m": 3.1,
@@ -85,17 +86,17 @@
     "min": [
       -15.15,
       -10.05,
-      -1.6
+      -1.7
     ],
     "max": [
       17.7,
       14.05,
-      2.78
+      2.8
     ],
     "size": [
       32.85,
       24.1,
-      4.38
+      4.5
     ]
   },
   "root": {
@@ -183,7 +184,8 @@
     "The open notch between the prongs (|Y| < 1) is empty in the sprite down to X = 2, the cockpit body's front face. The master fills its lower half with a central spine and puts its canopy there; the sprite wins: the canopy sits on the waist (X -0.5..-6.5) under the sprite's pale centre patch.",
     "Unequal wings as the sprite draws them: port pylon (Y 7..8) to a pod (Y 8..12) carrying the cream torpedo store, then a strut (Y 12..13) to a tip fin (Y 13..14); starboard a stub (Y -9..-6) to a tip fin (Y -10..-9).",
     "WS 001 (ENERGY, HIDDEN, unfitted on dagger_Bomber) anchors on the cockpit body's front face at the notch root (2, 0). WS 002 (MISSILE, HIDDEN, atropos_single) anchors in the open notch at (7, 0); no launcher is modelled there because the sprite draws none. The visible ordnance is the painted port store, modelled as Weapon WS 002 port torpedo store on the port pod: presentation only, the game launches from (7, 0).",
-    "Engine slot (-13, 0), width 12: the 12-unit drive block (X -7..-15, |Y| <= 6) is the drive unit. Its bell sits on the block's aft face at X -15.15, 2.15 units aft of the slot, because the sprite closes the tail there; the Engine 1 centre exhaust anchor is at that mouth. No renderEngineOffsetsNativePx is listed for the Dagger."
+    "Engine slot (-13, 0), width 12: the 12-unit drive block (X -7..-15, |Y| <= 6) is the drive unit. Its bell sits on the block's aft face at X -15.15, 2.15 units aft of the slot, because the sprite closes the tail there; the Engine 1 centre exhaust anchor is at that mouth. No renderEngineOffsetsNativePx is listed for the Dagger.",
+    "Pass 2 (detail read off master-v2, sized in metres at 0.5 m/unit): each prong carries the master's slatted vent behind its tip, a small sensor blister ahead of it and seams at its tip cap and root. The unfitted WS 001 energy mount is a closed aperture (bright ring, dark iris) on the body's front face at the notch root. The canopy has a sill, windscreen arch and bow; the body the master's flank intakes and plate seams. The drive block carries the master's dorsal grille, a blade antenna, a collar rib ahead of the lip and a centre body with stator vanes in its bell. The cream store gets joint bands, cruciform tail fins, a seeker window and two sway braces to its pod; the fins and stub carry vents and seams."
   ],
   "cameras": {
     "top": {
@@ -219,10 +221,69 @@
       "orthographic_scale": 49.3
     }
   },
+  "closeup_cameras": {
+    "nose-detail": {
+      "position": [
+        84.29,
+        41.079,
+        56.517
+      ],
+      "target": [
+        9.6,
+        0.0,
+        0.5
+      ],
+      "orthographic_scale": 15.2
+    },
+    "cockpit-detail": {
+      "position": [
+        44.8,
+        -54.0,
+        74.0
+      ],
+      "target": [
+        -3.2,
+        0.0,
+        2.0
+      ],
+      "orthographic_scale": 8.8
+    },
+    "store-detail": {
+      "position": [
+        50.875,
+        82.125,
+        58.9
+      ],
+      "target": [
+        7.6,
+        10.0,
+        1.2
+      ],
+      "orthographic_scale": 10.0
+    },
+    "engine-detail": {
+      "position": [
+        -90.926,
+        54.128,
+        38.963
+      ],
+      "target": [
+        -13.6,
+        0.0,
+        0.3
+      ],
+      "orthographic_scale": 12.8
+    }
+  },
+  "object_count": {
+    "meshes": 80,
+    "empties": 4,
+    "pass2_detail_meshes": 64
+  },
   "silhouette": {
-    "iou": 0.9594,
+    "iou": 0.9589,
     "sprite_uncovered": 0.0129,
-    "model_outside_sprite": 0.0289,
+    "model_outside_sprite": 0.0294,
     "sprite": "dagger_trp.png",
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 37.09 px per unit"
   }

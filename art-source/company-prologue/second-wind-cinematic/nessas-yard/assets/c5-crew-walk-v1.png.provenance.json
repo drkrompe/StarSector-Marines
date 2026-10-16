@@ -1,0 +1,32 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a1466f-8516-7db2-a607-950def237688",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1466f-8516-7db2-a607-950def237688\\exec-91efa51a-c9ac-4df8-a772-9107898bb871.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\nessas-yard\\assets\\c5-crew-walk-v1.png",
+    "sha256": "e0ad5ef4cd737c89ad3b159804dcd08dc50642335d74b844e1f72bd0292b6d4c",
+    "dimensions": [
+      2048,
+      768
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\nessas-yard\\prompts\\c5-crew-walk-v1.txt",
+  "promptSha256": "3f8a54d5ba905565b7cd1f28e4d691c208955cfda67a3f31ff7f6ee371710dd4",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAsset: a sprite sheet of a walk cycle for a grounded, photographic science-fiction film. These figures will be composited very small into a daylight shot of a spaceport repair yard on the humid jungle world Jangala, so they must read clearly as a silhouette.\n\nLayout: a wide landscape sheet with TWO ROWS of EIGHT frames, evenly spaced in equal cells, one complete figure per cell, nothing touching or overlapping a neighbouring cell. Every figure in a row is exactly the same height and stands on the same baseline. The eight frames of each row are one complete, smoothly looping walk cycle at an ordinary unhurried pace: right foot contact, down, passing, up, left foot contact, down, passing, up. Only the limbs and a slight body bob change between frames; the person, clothing, proportions and lighting are identical in every frame.\n\nRow 1: a yard worker in a loose, worn mid-grey one-piece coverall with reflective strips at the shins, heavy work boots, gloves, a close-fitting grey cap, and a compact biofilter respirator mask covering the nose and mouth, with a small filter canister on each side. Empty hands, arms swinging naturally.\nRow 2: a second, slightly broader yard worker in the same kind of grey coverall, darker and more stained, with a short dark utility vest over it, the same respirator mask, carrying a small hard tool case in the hand nearer the viewer; the other arm swings.\n\nView: exact side profile, both walking toward the LEFT of the image, seen at eye level, no perspective tilt. Light: one high sun from behind the viewer and to the left, so the side facing the viewer is lit, with soft shade on the far side and under the arms. Realistic adult proportions (about 1.8 m, roughly seven and a half heads tall).\n\nStyle: photographic, natural colour, real fabric and gear, like a cut-out from a film still. Not cartoon, not anime, not a game sprite, not pixel art, no outlines.\nBackground: true transparent background (alpha), including the gaps between legs and arms. No ground, no cast shadow, no floor line, no frame borders, no grid lines, no numbers, no text.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one transparent sprite sheet with the two eight-frame walk cycles as specified.\n"
+  ],
+  "usage": {
+    "input_tokens": 36455,
+    "cached_input_tokens": 25728,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 576,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 56.9
+}

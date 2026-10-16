@@ -1,5 +1,6 @@
 {
-  "status": "Blockout (pass 1): silhouette, sections, mass, slots and engines. No detail, damage or textures.",
+  "status": "Pass 2: plausible detail (panel lines, access plates, intakes, drive, gun and canopy detail, sensors) on the pass-1 silhouette. No damage or textures.",
+  "pass": 2,
   "hull": {
     "name": "Talon",
     "hullId": "talon",
@@ -39,7 +40,7 @@
     "size_m": [
       12.1,
       12.1,
-      2.4
+      2.5
     ],
     "canopy": {
       "length_m": 2.15,
@@ -71,17 +72,17 @@
     "min": [
       -9.0,
       -10.0,
-      -2.3
+      -2.39
     ],
     "max": [
-      13.01,
+      13.03,
       12.0,
-      2.1
+      2.13
     ],
     "size": [
-      22.01,
+      22.03,
       22.0,
-      4.4
+      4.52
     ]
   },
   "root": {
@@ -215,7 +216,8 @@
     "Engine slots (-9, 6) and (-9, -4) are already symmetric about the sprite centre line Y = 1; the drive drums, bells and exhaust anchors sit on the slots exactly. The sprite paints the drive drums at Y 4..9 and -7..-2, half a unit outboard of the slots (also symmetric about Y = 1), so the drums follow the sprite and each bell sits half a unit inboard of its drum centre.",
     "WS 001 (0, 4) is the vulcan. The sprite draws its barrel in column 9 (Y 3..4), so the barrel is modelled on Y = 3.5 and its muzzle empty sits at the barrel tip there, half a unit off the integer slot, as with a slot straddling a pixel centre line. The anchor itself is at the slot.",
     "WS 003 (6, 1) swarmers and WS 002 (-8, 2) system are HIDDEN with nothing drawn on the sprite or master: anchors only, on the gun nacelle's inboard wall and the spine's tail face.",
-    "The forward asymmetry is the sprite's: the gun nacelle is 5 px wide and longer, the cockpit pod 6 px wide and shorter, with an open slot between them. The master is not registered closely enough forward to place the pods (its cockpit pod is 3 units short), so lengths come from the sprite and forms from the master."
+    "The forward asymmetry is the sprite's: the gun nacelle is 5 px wide and longer, the cockpit pod 6 px wide and shorter, with an open slot between them. The master is not registered closely enough forward to place the pods (its cockpit pod is 3 units short), so lengths come from the sprite and forms from the master.",
+    "Pass 2 (detail read off master-v3, sized in metres at 0.55 m/unit): the vulcan gets the master's red octagonal shroud collar, a banded barrel jacket and a six-barrel cluster in the muzzle ring, and a steel breech and feed housing on the nacelle behind the collar (the master's grey block). The hidden swarmer bay at WS 003 is a closed door outlined in the nacelle's inboard wall. The cockpit pod carries the master's grey nose strip with a sensor blister, a canopy sill, windscreen arch and bow, and a grey dorsal strip with a vent behind the glass. The armoured shoulders over the drums carry the master's intake grilles, the steel spine its slots, centre grille and a blade antenna, and the wings small outboard vents. Each drive drum has two collar ribs ahead of the lip and a centre body with stator vanes in the bell. Panel lines (5 cm wide, 2.5 cm deep) split the nose caps, shoulders, wings and underside into plates."
   ],
   "cameras": {
     "top": {
@@ -232,7 +234,7 @@
         97.0,
         0.0
       ],
-      "orthographic_scale": 30.233522870323874
+      "orthographic_scale": 30.264772393486716
     },
     "front": {
       "position": [
@@ -251,10 +253,69 @@
       "orthographic_scale": 34.8
     }
   },
+  "closeup_cameras": {
+    "gun-detail": {
+      "position": [
+        54.418,
+        51.7,
+        31.172
+      ],
+      "target": [
+        10.6,
+        3.5,
+        0.5
+      ],
+      "orthographic_scale": 7.636
+    },
+    "cockpit-detail": {
+      "position": [
+        44.686,
+        -37.637,
+        51.231
+      ],
+      "target": [
+        6.2,
+        -3.0,
+        1.2
+      ],
+      "orthographic_scale": 7.273
+    },
+    "aft-detail": {
+      "position": [
+        -18.761,
+        23.23,
+        67.591
+      ],
+      "target": [
+        -3.2,
+        1.0,
+        0.9
+      ],
+      "orthographic_scale": 13.636
+    },
+    "engine-detail": {
+      "position": [
+        -63.26,
+        42.145,
+        21.444
+      ],
+      "target": [
+        -8.4,
+        1.0,
+        -0.5
+      ],
+      "orthographic_scale": 13.636
+    }
+  },
+  "object_count": {
+    "meshes": 88,
+    "empties": 7,
+    "pass2_detail_meshes": 70
+  },
   "silhouette": {
-    "iou": 0.9768,
-    "sprite_uncovered": 0.011,
-    "model_outside_sprite": 0.0125,
+    "iou": 0.9765,
+    "sprite_uncovered": 0.0111,
+    "model_outside_sprite": 0.0127,
     "sprite": "talon.png",
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 40.18 px per unit"
   }
