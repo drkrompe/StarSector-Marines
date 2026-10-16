@@ -316,7 +316,8 @@ def _barbette(kit, name, x, y, seat, lift, r):
     """Fixed ring: foot flange sunk into the deck, wall, chamfered lip at the pivot.
     A tall barbette steps in once halfway up: a lit ledge on an otherwise plain drum."""
     lip = min(.35, lift*.25)
-    prof = [(1.08*r, -2), (1.08*r, .3), (r, .45)]
+    # The foot runs 0.35 r below the seat so a ring on a sloped wing arm (lg_droop) still meets it.
+    prof = [(1.08*r, -2-.35*r), (1.08*r, .3), (r, .45)]
     if lift >= 3:
         m = .3+(lift-.3)*.45
         prof += [(r, m), (.955*r, m)]
