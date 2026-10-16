@@ -1,0 +1,41 @@
+{
+  "camera": "SPIKE part-pod",
+  "source": "views.py part view, rendered alone: Aft band hatch, Aft band louver, Aft band louver.001, Aft band louver.002, Aft deck edge lip, Can feed pipe, Can feed pipe.001, Casing access panel, Casing access panel frame, Casing access panel frame.001, Casing access panel.001, Casing feed manifold, Centre body feed manifold, Coolant feed line, Coolant feed line.001, Coolant feed line.002, Cradle arm, Cradle arm seam, Cradle clamp jaw, Cradle winch drum, Drive casing armour plate, Drive casing armour plate.001, Drive lower casing, Drive pod dark core, Drive reinforcing band, Drive reinforcing band.001, Drive warning light, Drive warning light.001, Engine 1 aft-facing bell, Engine 1 dark throat, Engine 1 mouth lip, Engine 1 shroud collar, Engine 1 throat ring, Engine 2 aft-facing bell, Engine 2 dark throat, Engine 2 mouth lip, Engine 2 shroud collar, Engine 2 throat ring, Feed line flange, Feed line flange.001, Feed line flange.002, Fin bank tie bar, Fin bank tie bar.001, Fin bank tie bar.002, Fin bank tie bar.003, Fuel feed trunk, Fuel feed trunk.001, Heat-sink fin, Heat-sink fin.001, Heat-sink fin.002, Heat-sink fin.003, Heat-sink fin.004, Heat-sink fin.005, Heat-sink fin.006, Heat-sink section, Housing flank seam strap, Housing frame rib, Inner pump drum, Lower casing drain slot.001, Lower casing drain slot.002, Lower casing stiffener.001, Lower casing stiffener.002, Lower casing stiffener.003, Main hull - level datum Z0, Panel grab strap, Panel grab strap.001, Prong armour block, Prong seam, Pump drive drum, Pump drive drum.001, Pump strap, Pump strap.001, Thrust bay engine can, Thrust bay engine can.001, Thrust bay seam backing, Thrust housing, Turbopump housing, Turbopump vent slot, Valley wall stiffener, Valley wall stiffener.001, Valley wall stiffener.002, Valley wall stiffener.003, Valley wall strake, Winch bay, Winch bay louvre recess, Winch cheek plate, Winch cheek plate.001",
+  "matrix_world": [
+    [
+      -1.0,
+      6.6002361555513294e-15,
+      -8.742277657347586e-08,
+      -29.0
+    ],
+    [
+      -8.742277657347586e-08,
+      -7.549790126404332e-08,
+      1.0,
+      145.0
+    ],
+    [
+      0.0,
+      1.0,
+      7.549790126404332e-08,
+      3.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 46.0,
+  "resolution": [
+    912,
+    513
+  ],
+  "background_srgb": [
+    0.84,
+    0.84,
+    0.84
+  ],
+  "lighting": "No lamps; uniform white world, strength 1.6, Standard view transform"
+}

@@ -10,6 +10,8 @@ arrival cinematic. These are authoring sources; only the packed JPEGs under
 | [pack.ps1](pack.ps1) | Packs only `story-stills/*.master.png`: complete 3:2 frames, 1200x800 JPEG, quality 85, maximum 400 KiB each. |
 | `second-wind-hull.reference.png`, `second-wind-design-v1/v2/v3.reference.png` and adjacent prompts | Original hull and design evolution. V3 is the accepted clean/medium geometry reference; earlier sheets remain useful reference art. |
 | [second-wind-geometry/](second-wind-geometry/) | The single accepted clean-hull geometry source (V3 revision), renders and coordinate contract. Older V2 reference images are under `reference-history/v2/`; its obsolete model and builders were removed. |
+| [second-wind-pipeline.md](second-wind-pipeline.md) | How geometry, condition states (derelict → patched → refit → restored) and surfacing fit together across the ship's campaign life. Read first for any Second Wind work. |
+| [hound-geometry/](hound-geometry/README.txt) | Hound (A) cinematic blockout (`hound_hegemony` over `hound`): silhouette, sections and the vanilla slots, with a sprite overlay and IoU. No detail, damage or surfacing yet. |
 | [second-wind-skins/](second-wind-skins/README.txt) | Weathering states, including the heavily damaged arrival reference. |
 | [second-wind-cinematic/](second-wind-cinematic/README.md) | Current shot order, reusable ship master, sources and earlier technique studies. |
 | [second-wind-projection-spike/](second-wind-projection-spike/README.md) | Spike: Codex CLI reskins of clean-model guides, measured drift, and projection back onto the mesh. Findings and recommendation only. |

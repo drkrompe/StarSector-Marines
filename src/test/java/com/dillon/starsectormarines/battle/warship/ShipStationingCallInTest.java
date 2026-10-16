@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** A called ship comes out of the clouds a short glide from its station, not at the far edge. */
+/** A called ship comes out of the clouds a hull length and a glide short of its station, facing it. */
 class ShipStationingCallInTest {
 
     private static final float LENGTH = 10f;
@@ -17,7 +17,7 @@ class ShipStationingCallInTest {
         ShipStationing.Placement p = ShipStationing.callIn(Faction.MARINE, TraversalAxis.WEST_TO_EAST,
                 200, 100, LENGTH, 120f, 50f);
         float glide = (float) Math.hypot(120f - p.x(), 50f - p.y());
-        assertEquals(ShipStationing.CALL_SHORT_CELLS + LENGTH / 2f, glide, 1e-3f);
+        assertEquals(ShipStationing.CALL_SHORT_CELLS + LENGTH, glide, 1e-3f);
         assertTrue(p.x() < 120f, "it comes in from the company's side of its station");
         assertEquals(-90f, p.facingDegrees(), 1e-3f, "facing east, onto its station");
         assertEquals(120f, p.stationX(), 1e-6f);
@@ -25,12 +25,12 @@ class ShipStationingCallInTest {
     }
 
     @Test
-    void aStationNearTheEdgeKeepsTheEdgeStart() {
-        ShipStationing.Placement edge = ShipStationing.place(Faction.MARINE, TraversalAxis.WEST_TO_EAST, 200, 100, LENGTH);
+    void aStationNearTheEdgeIsReachedOverTheEdgeItself() {
         ShipStationing.Placement p = ShipStationing.callIn(Faction.MARINE, TraversalAxis.WEST_TO_EAST,
-                200, 100, LENGTH, edge.x() + 8f, 50f);
-        assertEquals(edge.x(), p.x(), 1e-6f);
-        assertEquals(edge.y(), p.y(), 1e-6f);
+                200, 100, LENGTH, 8f, 50f);
+        assertEquals(0f, p.x(), 1e-6f, "centre on the edge line, flying in");
+        assertEquals(50f, p.y(), 1e-6f);
+        assertEquals(-90f, p.facingDegrees(), 1e-3f);
     }
 
     @Test

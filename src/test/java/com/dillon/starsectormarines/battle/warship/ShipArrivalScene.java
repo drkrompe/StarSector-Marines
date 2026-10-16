@@ -91,7 +91,7 @@ public final class ShipArrivalScene implements BehaviorScene {
         ship.stationTo(p.stationX(), STATION_Y);
         ship.order(WarshipOrder.HoldFire.INSTANCE);
         if (arrival) {
-            ship.arriveFromAbove();
+            ship.arriveFromAbove(p.stationX(), STATION_Y);
         } else {
             // Already on station: the loop is about leaving, not arriving.
             ship.x = p.stationX();

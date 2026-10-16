@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at six times the shared density and slower in atmosphere, a declared airspace for the hull fight, point defence tracking what is inbound, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture, landed on the pads south of the ridge and fighting over that southern ground; a landed ship is drawn at true scale and lifts on a run (ahead off the berth, round a climbing turn) that carries it to flight presence (rationale in `warship-behaviours.md`).
+Updated: 2026-10-16 — warships brought in mid-battle come down at a distance on an entry heading, hull-fight stations eased off airspace edges, escorts screening beside their charge, a climb up through the deck, the Greyhook fighting a withdrawal against Wolfs from the west; ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at six times the shared density and slower in atmosphere, a declared airspace for the hull fight, point defence tracking what is inbound, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture, landed on the pads south of the ridge and fighting over that southern ground; a landed ship is drawn at true scale and lifts on a run (ahead off the berth, round a climbing turn) that carries it to flight presence (rationale in `warship-behaviours.md`).
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1703,7 +1703,12 @@ for one mission:
 - **A mission may keep the hull fight over its own ground.** It declares an
   **airspace** (`HullAirspace`), and ships fighting hulls choose their stations inside
   it, in sight of the ground battle and not over it; entering, climbing out and routes
-  cross it freely. With none declared the whole map is the airspace.
+  cross it freely. With none declared the whole map is the airspace. A station chosen near
+  an airspace edge is eased back toward the interior over a soft band, so a fight that
+  drifts toward an edge turns back over the middle rather than running along the boundary.
+- **An escort screens beside its charge.** Fighting a hull, an escort takes its own duel
+  station but stands no further beyond its charge's hull than a quarter of its own reach,
+  so a screen and the ship it screens meet the enemy together rather than one at a time.
 
 What the ground-support manoeuvres (a gun run, close air support, a low pass, a shelling)
 take from this is described with each: they inherit the slower handling through the
@@ -1745,6 +1750,17 @@ the ground suffers on arrival, and a heavy round lands as the existing heavy
 blast; point-defence-only
 weapons never fire at ground (see below). A weapon fires at its tightest cone, because
 the wider figure is only what sustained fire builds up.
+
+**A warship brought into a battle already under way arrives like a ship.** It comes
+down through the cloud deck at a distance, never on top of what it came for: a called
+ship breaks out on its own side of its station, a glide and a whole hull length short
+of it, or over its own map edge when the station is nearer the edge than that, and a
+mission's ship comes down where the mission puts it. It comes down already on its
+**entry heading**, which the mission names or which defaults to facing its station or
+first objective, so it never has to come about after appearing; the descent's
+presentation follows that heading. While it is still coming down it fires nothing and
+takes no duel station. Then it closes under its own handling, so the approach is part
+of the fight.
 
 **A ship enters and leaves through the cloud deck, and that is presentation only.**
 A ship brought in from the map edge starts at the top of the deck and descends to its
@@ -2015,6 +2031,12 @@ map. Until then it can be hit and it answers: a departing hull fires at hostile 
 its guns' reach as it goes, though it takes on no new ground or air work, and its escorts keep it as their lead and follow it out
 once it has gone. Any other departure of a lead releases its escorts.
 
+**A hull that has made its height may leave straight up through the deck.** That is
+the reverse of an arrival: the hull keeps way on along its heading, climbs, and is gone
+from the battle once it is into the deck, without crossing an edge, so its escape does
+not drag the fight to the map's edge. It counts as a climb-out (gone this way it has
+escaped), it can be hit until it is into the deck, and its escorts follow it up.
+
 **A mission's hull visits once and is nobody's to command.** A hull on a **visit**
 belongs to its mission: no remote ship command, piloting or power reaches it, whatever
 side it is on. It leaves through the ordinary departure once no hostile hull has been
@@ -2034,7 +2056,15 @@ hull-fire hold until the chapter's moment comes, the duel then runs on its own, 
 ledger. The referee settles on nothing the duel does; stray rounds and wreckage are the
 only way it reaches the ground. Black Sluice is the first: the *Greyhook*, Voss's Venture,
 and two Hound (P) landed on the pads south of the ridge, two of Rusk's Wolfs arriving when
-Voss orders the withdrawal, the fight kept over that southern ground by its airspace. A
+Voss orders the withdrawal, coming down at the west edge on a heading east so their whole
+approach over the basin is in sight before a gun bears, the fight kept over the middle of
+that southern ground by its airspace. The *Greyhook* fights a withdrawal: she lifts onto a
+wide circuit over the basin, fights the Wolfs broadside with her Hounds screening, and
+climbs as she fights, slowly while a Wolf has her in reach and faster while a Hound still
+screens her. She breaks up through the deck only once she has made her height, is
+crippled, or has nobody left to stop her; her escape is the fight's outcome, not a clock.
+The approach reaches the radio as story beats (the Wolfs sighted, closing, the first hull
+fire). A
 warship over a ground battle never launches a wing from its bays (bays only classify the
 hull), and the Greyhook's fitting carries none, so it stays gun against gun.
 
