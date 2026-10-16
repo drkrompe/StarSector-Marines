@@ -349,8 +349,8 @@ It is a fort *aspect* like the others (`FortAspect.AIR_DEFENCE`), declared per k
 declares it yet, and no mission should until it is a design decision about that mission's air.
 
   banks of seated consoles, two operators sit at them, and nothing else stands in the yard. Its place is the room's floor. The two Swarmer towers (`aa-swarmer`, guided four-round salvos, reach 50) stand in the pockets of the two front bastions (`FortPlan.airTowers`), so every corner of the works carries anti-air.
-  level with its middle and clear of the door. Its place is the room's floor. X
-  its buildings, lanes and centrepiece. The two **Locust missile batteries** (`aa-locust`, thirty-round salvos at reach 70) are not in the yard: the plan
+  Each plan (`BatteryFort`, `ShieldFort`) places the room clear of its buildings, lanes and centrepiece.
+  The two **Locust missile batteries** (`aa-locust`, thirty-round salvos at reach 70) are not in the yard: the plan
   (`FortPlan.airBatteries`) stands them in the pockets of its two rear bastions, the two farthest from the main gate, so the
   airspace they cover is as wide as the works and no single strike silences both. `FortStage` stamps all of it as ordinary posts
   tagged to the fort. Art reuses the console base and the missile-AA base and mounts; a Locust launch vents its blowback gas and smoke behind the tubes (authored in the weapon's `fx.launch`). The Ridgewatch battery remains the authored mission battery and is not stood by forts.
