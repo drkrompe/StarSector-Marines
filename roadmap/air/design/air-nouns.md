@@ -1646,6 +1646,34 @@ sorties and ground procedures, and a capital has none of them. It hovers: it
 arrives, holds a station, drifts between stations on a mass-limited translation
 and yaw, and leaves. It never lands, never orbits and never flies a run.
 
+**In atmosphere a warship is a lumbering giant, and a fight between ships is a fleet
+action (standing, owner, 2026-10-16).** This holds for every warship over a battle, not
+for one mission:
+
+- **Its body is large.** A hull is drawn, hit, shielded and fitted at twice the shared
+  density (`WarshipScale.HULL_PRESENCE`), so a frigate reads as a ship beside marines
+  and a capital dominates the sky. Only the body grows: a gun's reach, a round's speed
+  and a shell's blast stay on the shared density, so a hull is a bigger target and its
+  mounts sit further from its centre, but no weapon hits harder or further.
+- **It handles like a ship of the line.** Its speed and turn are its table row's pulled
+  toward a battleship's (`AtmosphericHandling`): the ladder between hulls survives, so a
+  frigate still outruns and outturns a capital, but at a few times a battleship's pace
+  rather than many; and no hull gathers or sheds its way, or settles into or out of a
+  turn, faster than a fixed few seconds. Every hull carries momentum.
+- **Ships fight on parallel and converging lines.** A ship fighting a hull takes its
+  station on the target's beam, a little ahead along the target's course, and turns to
+  bring its battery to bear; it never runs nose-on at the target to pass it. Where a
+  hull's anti-ship guns are all forward (a Wolf (H)'s are), the same station turns its
+  nose in from the beam, so it fights on a converging line rather than a pass.
+- **Escorts screen their charge in line**, abreast of it on the beam its threats come
+  from, on the lead's own course.
+- **A ship free to manoeuvre fights with its guns.** Its missiles wait until its guns
+  are in reach; a ship held on station keeps launching at the missile's own reach.
+
+What the ground-support manoeuvres (a gun run, close air support, a low pass, a shelling)
+take from this is described with each: they inherit the slower handling through the
+hull's own figures, and none of them is turned into a broadside.
+
 **It is a superweapon, used rarely, and it is the map's dominant fact while it
 is there.** Its weapons are authored *ground effects* resolved by the simulation,
 not vanilla projectiles bridged in, because the vanilla combat model cannot
@@ -1671,9 +1699,11 @@ slot): the hull spec says where each slot is, which way it
 faces and how far it traverses; the variant says what sits in it; the weapon,
 projectile and weapon-table data say what a round does, how far and fast it
 goes and what it looks like. The mod authors none of those numbers or sprites.
-One conversion (`WarshipScale`, the density that sizes every hull) turns the
+One conversion (`WarshipScale`, the shared density) turns the
 game's units into cells, so a gun's reach and a shell's blast keep the
-proportion the player knows from the ship. A round is an ordinary detonation
+proportion the player knows from the ship; the hull's body is that density times
+its atmospheric presence (above), so where a slot sits is the hull's own data at the
+hull's drawn size. A round is an ordinary detonation
 that the ship carries from the muzzle to the ground over the flight time its own
 speed implies, so one clock serves what is drawn crossing the distance and what
 the ground suffers on arrival, and a heavy round lands as the existing heavy
@@ -1709,16 +1739,16 @@ the ground it was given. Nothing outside the circle is fired on, though a round
 that lands inside it hurts whoever stands there. The order may also ask the ship
 to bring its guns to bear: it then turns, once, to the heading that puts the most
 firepower on the area, preferring the smaller turn when two are nearly as good.
-The hull turns at its own table rate and acceleration and brakes onto the
-heading; a turret swings at its weapon's own traverse rate and fires only when
+The hull turns at its atmospheric turn rate and acceleration and brakes onto the
+heading, leading a heading that is still moving so a turning ship settles on it; a turret swings at its weapon's own traverse rate and fires only when
 it has come onto its bearing, and a fixed mount points where the hull does. A
 choice is kept until it has been fired on. Eventually these orders belong to
 every such unit, not just to cinematics.
 
 **A warship hovers to a station at its hull's own speed, and a director can choose
 its ground.** The ship translates in any direction regardless of heading,
-accelerating, cruising and braking onto its station at the speed and
-acceleration its table row gives; a ship that has moved far re-chooses the
+accelerating, cruising and braking onto its station at its atmospheric speed and
+acceleration; a ship that has moved far re-chooses the
 heading that brings its guns to bear. A director, given only an area size,
 issues ordinary area orders itself: the densest hostile concentration within
 the ship's longest reach that no friendly ship's area already covers, chosen
@@ -1808,7 +1838,7 @@ a faction and no allegiance logic of its own. What it fires at is chosen by a
 director from the densest concentration of opposing force not already being
 worked, the same rule a fighter strike uses.
 
-**A smaller combat ship may escort a larger one.** An escort is a ship with a lead-ship relation (named by a mission or script, or picked up automatically as its side's flagship when that option is on): it keeps station on a ring beside the lead on the side its threats come from, its threat picture counts a strike sortie aimed at the lead at twice an ordinary armed craft, and its anti-air fire takes those craft first. It is a posture-layer role, so it changes where the ship sits and what it favours and never how hard anything hits; when the lead is lost or leaves, the relation ends and the escort returns to its own station and posture. See `warship-behaviours.md`.
+**A smaller combat ship may escort a larger one.** An escort is a ship with a lead-ship relation (named by a mission or script, or picked up automatically as its side's flagship when that option is on): it keeps station in a screen line abreast the lead, parallel to the lead's course on the beam its threats come from, and holds the lead's heading, its threat picture counts a strike sortie aimed at the lead at twice an ordinary armed craft, and its anti-air fire takes those craft first. It is a posture-layer role, so it changes where the ship sits and what it favours and never how hard anything hits; when the lead is lost or leaves, the relation ends and the escort returns to its own station and posture. See `warship-behaviours.md`.
 
 **A ship may make a low pass: a fast, low run along a line, guns on the corridor, at the cost of station time.** The order (the pilot's, a script's or the debug panel's; see `ship-support.md`, slice 5) flies the hull at a burn of its own table speed with no station kept, fires on hostiles in a corridor sliding down the line through the ordinary hand-order fire machinery (so friendly fire stays on and nothing is refused or multiplied), charges twice its flying time against the stay, and gives the ship back to its station, route or pilot; its shadow lies closer and sharper, its wake is louder and it leaves dust along the line, all presentation read from the pass's own clocks.
 
@@ -1866,15 +1896,21 @@ and then the armour rule, and a round that reaches none carries on along its lin
 comes down on the ground as an ordinary detonation, so stray fire between ships is
 real below them. Rounds between hulls are direct fire and no point defence engages
 them. A ship with a hull to fight and no ground to bring its guns to bear on turns to
-the heading that puts the most anti-ship firepower on it, re-chosen as it moves. A
+the heading the broadside rule gives (below), re-chosen as it moves. A
 vanilla skin (a Wolf (H), a Hound (P)) is fitted as its base hull under its own
 sprite. Why it is shaped this way: `warship-behaviours.md`, Decided: ship against ship.
 
 **A ship fighting a hull manoeuvres by the two reaches.** Its **duel helm** moves the
-station it flies to, never its speed or turn: a ship whose strongest anti-ship gun
-outranges the target's holds off between the two reaches and slides across the
-target's nose; one that is outranged or even closes well inside its own reach. The
-heading puts its strongest gun on where the target will be. A ship being piloted,
+station it flies to, never its speed or turn. The range is decided by the reaches: a
+ship whose strongest anti-ship gun outranges the target's holds off between the two;
+one that is outranged or even closes well inside its own reach; and neither closes so
+far that the two hulls would not clear each other. The station is on the target's beam
+at that range, on the side the ship is already on, and a little ahead along the
+target's course, so two ships converge or run parallel rather than meeting nose-on.
+The heading is the broadside rule: of the headings that put nearly all the anti-ship
+firepower it can bring on the target (counting a gun only if it still bears a couple of
+degrees either side), the one that keeps the target most nearly abeam with the least
+turn. A ship being piloted,
 departing, passing low or under a remote order is not steered by it, and the
 mission station returns when no hull is left to fight. While a ship's fire order
 allows hull fire, its variant's flux capacitors and vents count as the base game
@@ -1888,13 +1924,15 @@ turns after launch. A multi-warhead carrier splits at its spec's range short of 
 and its warheads are aimed at the split, at the hull as it is then, spread across the
 spec's arc, so the hull's size decides how many strike; each warhead that reaches no hull
 carries on to the ground. Missiles never set a ship's heading or its duel reach: those
-are its guns'.
+are its guns'. A ship steered by its duel helm holds its missiles until the target is
+within its guns' reach, so it does not spend its racks closing; a ship held on its
+station launches at the missile's own reach.
 
 **A pack divides a hunt; an escort interposes.** When two or more ships of a side hunt
 hulls with their duel helm and a hostile hull is being escorted, the hunter nearest that
 **charge** runs it down and the others pin its escorts, re-decided as the fight changes
 with enough hysteresis that near equals do not trade roles. An escort with a live lead
-is not steered by the duel helm: it holds its ring on the side the hostile hulls are on
+is not steered by the duel helm: it holds its place in the screen line on the side the hostile hulls are on
 and fights from there, and it saves itself by the ordinary withdraw rule. Ground fire
 `HOLD` keeps a duelling hull off the ground entirely. The first time a ship turns on a
 hull it takes the base game's **duel footing** for the rest of the battle: its variant's
@@ -2099,8 +2137,9 @@ By default the shield is automatic: it rises when a hostile round that would hur
 the hull is about to land within a few cells of it from inside the arc (a queued
 detonation, a projectile in flight, a hostile warship's shell, or a landing that
 close), drops three seconds after the last such round, and drops at once when the
-pool passes 90% and stays down until it has vented to 55% (the ship takes hull damage
-rather than overload). `raiseShield` holds it as commanded and `shieldAuto` gives it back.
+pool passes 90% and stays down until it has vented to 55%, or to the level at which its
+posture lets the guns fire again if that is lower (the ship takes hull damage rather
+than overload, and a shield cannot hold the vent shut while the guns are still silent). `raiseShield` holds it as commanded and `shieldAuto` gives it back.
 A shield works only on a ship that is on flux, so a scripted hull's armour answers
 as it always has. It is readable for a HUD (`shieldUp`, `shieldLevel`, `shieldState`,
 absorbed hits and flux) and drawn as the arc of the hull's own bubble. A round too
@@ -2274,8 +2313,9 @@ being shot at. A lost drone is gone for the battle. Builders are heard and seen 
 
 **The wing flies; it does not teleport.** Drones leave through the bay's mouth in a
 staggered line, and recall, a stood-down build and a retreat are flights home to a
-short approach and then the bay, docking on arrival and leading a moving hull. Defence
-drones loiter on a loose ring round the hull (tighter when it is threatened), engage
+short approach and then the bay, docking on arrival, one a tick, and leading a moving hull. Defence
+drones loiter on a loose ring round the hull, clear of a longer hull by its extra length
+(tighter when it is threatened), engage
 the hostile nearest the hull inside its reach, are let off their target past a leash,
 and a badly hurt one goes home to be repaired and sent out whole. Builders keep one
 station each on the ring round the site and weld there. This is the ordinary drone
