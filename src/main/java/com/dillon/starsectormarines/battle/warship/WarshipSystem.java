@@ -1073,7 +1073,7 @@ public final class WarshipSystem {
             if (ship.destroyed() || !ship.faction.hostileTo(det.shooterFaction)) continue;
             float gap = ship.distanceTo(det.endpointX, det.endpointY);
             if (ship.hasShield() && gap <= det.aoeRadius + WarshipShield.THREAT_MARGIN_CELLS
-                    && threatens(ship, det.damage, det.penetration, det.endpointX, det.endpointY)) {
+                    && threatens(ship, det.damage, det.penetration, fromX, fromY, det.endpointX, det.endpointY)) {
                 // A landing this close is itself the warning: the shield rises for the next one.
                 ship.shieldModel().noteThreat();
             }
@@ -1260,7 +1260,19 @@ public final class WarshipSystem {
 
     /** Whether a round of this strength landing at {@code (px, py)} would hurt the hull and comes from inside the shield's arc. */
     private static boolean threatens(Warship ship, float damage, float penetration, float px, float py) {
-        return Warship.effectiveDamage(damage, penetration, ship.armour) > 0f && ship.arcCovers(px, py);
+        return threatens(ship, damage, penetration, Float.NaN, Float.NaN, px, py);
+    }
+
+    /**
+     * Whether a round fired from {@code (fromX, fromY)} (NaN when it has no source) that lands at {@code (px, py)}
+     * would hurt the hull from inside the shield's arc. Asked of the side it came from, as absorption is: a round
+     * aimed at a hull's sprite centre lands ahead of a capital's shield centre whichever side it was fired from,
+     * and judged by the landing every round read as head-on and kept a front shield raised against fire from astern.
+     */
+    private static boolean threatens(Warship ship, float damage, float penetration, float fromX, float fromY,
+                                     float px, float py) {
+        return Warship.effectiveDamage(damage, penetration, ship.armour) > 0f
+                && ship.arcCoversFrom(fromX, fromY, px, py);
     }
 
     /**
@@ -1290,7 +1302,7 @@ public final class WarshipSystem {
             PendingDetonation d = s.landing();
             if (d == null) continue;
             if (nearHull(ship, s.toX, s.toY, s.blastCells())
-                    && threatens(ship, d.damage, d.penetration, s.toX, s.toY)) return true;
+                    && threatens(ship, d.damage, d.penetration, s.fromX, s.fromY, s.toX, s.toY)) return true;
         }
         for (WarheadStrike s : strikes) {
             if (s.intercepted || !ship.faction.hostileTo(s.faction)) continue;

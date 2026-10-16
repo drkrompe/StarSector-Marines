@@ -155,7 +155,10 @@ public final class WarshipShipRules {
         }
         if (most <= 0f) return toTarget;
         // Of the headings that keep nearly all of that firepower on the target, the one that lays the target most
-        // nearly abeam: a broadside where the guns allow one, and the nose only where they do not.
+        // nearly abeam: a broadside where the guns allow one, and the nose only where they do not. Between two
+        // broadsides it prefers the side with more plate left, so a ship whose engaged side is stripped wears round
+        // to fight on its fresh one, as a ship of the line does, rather than taking every round on the same plate.
+        WarshipPlating plating = ship.plating();
         float best = ship.facingDegrees;
         float bestScore = Float.NEGATIVE_INFINITY;
         for (int i = 0; i < power.length; i++) {
@@ -163,13 +166,33 @@ public final class WarshipShipRules {
             float h = candidates.get(i);
             float abeam = (float) Math.abs(Math.sin(Math.toRadians(WarshipFacing.wrap(toTarget - h))));
             float turn = Math.abs(WarshipFacing.wrap(h - ship.facingDegrees));
-            float score = abeam - TURN_PENALTY * turn / 180f + POWER_PREFERENCE * power[i] / most;
+            float score = abeam - TURN_PENALTY * turn / 180f + POWER_PREFERENCE * power[i] / most
+                    + FRESH_SIDE_PREFERENCE * abeam * plateFacing(plating, WarshipFacing.wrap(toTarget - h));
             if (score > bestScore) {
                 best = h;
                 bestScore = score;
             }
         }
         return best;
+    }
+
+    /**
+     * How much the plate left on the side a heading turns toward the target is worth, scaled by how nearly abeam
+     * it lays it. Against {@link #TURN_PENALTY} a half-circle wear is worth it once the engaged side has about half
+     * its plate less than the other, and a ship that has worn round does not turn back.
+     */
+    static final float FRESH_SIDE_PREFERENCE = 0.3f;
+
+    /**
+     * The plate left on the side of the hull a target at {@code relative} degrees off the nose would strike: port
+     * when it lies counter-clockwise of the nose. One for a hull without a grid, and for a target nearer the nose
+     * or stern than the beam, so the preference only ever chooses between broadsides.
+     */
+    static float plateFacing(WarshipPlating plating, float relative) {
+        if (plating == null) return 1f;
+        float side = (float) Math.sin(Math.toRadians(relative));
+        if (Math.abs(side) < 0.5f) return 1f;
+        return plating.plateLeft(side > 0f ? WarshipPlating.Section.PORT : WarshipPlating.Section.STARBOARD);
     }
 
     /** A heading that brings at least this share of the most anti-ship firepower to bear may be chosen for a broadside. */

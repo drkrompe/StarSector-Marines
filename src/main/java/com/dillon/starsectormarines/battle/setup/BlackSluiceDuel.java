@@ -32,8 +32,12 @@ public final class BlackSluiceDuel implements SmallWarDuel {
     /** Where the rig stands over the pier, and where its escorts stand off its flanks. */
     static final float RIG_X = 172f, RIG_Y = 56f;
     static final float[][] HOUND_POSTS = {{164f, 44f}, {164f, 68f}};
-    /** Where the Wolfs drop through the cloud deck: inland, over the company's side of the basin, a run short of the pier. */
-    static final float[][] WOLF_ENTRIES = {{70f, 36f}, {70f, 76f}};
+    /**
+     * Where the Wolfs drop through the cloud deck: inland of the pier, over the company's side of the basin. Ships in
+     * atmosphere are heavy, so this is about seventy-five cells out rather than a hundred: from a hundred the rig and
+     * its screen climbed out before the Wolfs' guns reached them, and from fifty the screen and the rig both fell.
+     */
+    static final float[][] WOLF_ENTRIES = {{95f, 36f}, {95f, 76f}};
     /** The rig's way out: off the pier's seaward end and over the east edge. */
     static final float[][] CLIMB_ROUTE = {{186f, 66f}, {BlackSluice.WIDTH + 4f, 78f}};
     /** Seconds without a hostile hull over the battle before the Wolfs leave. */

@@ -58,6 +58,17 @@ class WarshipDuelHelmTest {
     }
 
     @Test
+    void aKnockedOutGunNoLongerSetsTheReach() throws Exception {
+        Warship wolf = Warship.fit("wolf_hegemony", "wolf_hegemony_Assault", Faction.ALLY, 0f, 0f, 0f);
+        Warship.Mount strongest = WarshipShipRules.strongest(wolf);
+        strongest.knockedOut = true;
+        Warship.Mount next = WarshipShipRules.strongest(wolf);
+        assertTrue(next != strongest);
+        float expected = next == null ? 0f : WarshipScale.cells(next.weapon.rangePx());
+        assertEquals(expected, WarshipDuelHelm.reach(wolf), 1e-4f);
+    }
+
+    @Test
     void capacitorsAndVentsCountOnlyForAShipFightingHulls() throws Exception {
         assertArrayEquals(new int[]{7, 10}, WarshipVariants.fluxFittings("wolf_hegemony", "wolf_hegemony_Assault"));
         Warship wolf = Warship.fit("wolf_hegemony", "wolf_hegemony_Assault", Faction.ALLY, 0f, 0f, 0f);

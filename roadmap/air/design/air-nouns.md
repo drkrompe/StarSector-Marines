@@ -1664,7 +1664,9 @@ for one mission:
   station on the target's beam, a little ahead along the target's course, and turns to
   bring its battery to bear; it never runs nose-on at the target to pass it. Where a
   hull's anti-ship guns are all forward (a Wolf (H)'s are), the same station turns its
-  nose in from the beam, so it fights on a converging line rather than a pass.
+  nose in from the beam, so it fights on a converging line rather than a pass. Between two broadsides it
+  prefers the side with more plate left, so a ship whose engaged side has been stripped
+  wears round to fight on its fresh one.
 - **Escorts screen their charge in line**, abreast of it on the beam its threats come
   from, on the lead's own course.
 - **A ship free to manoeuvre fights with its guns.** Its missiles wait until its guns
@@ -1915,8 +1917,8 @@ at that range, on the side the ship is already on, and a little ahead along the
 target's course, so two ships converge or run parallel rather than meeting nose-on.
 The heading is the broadside rule: of the headings that put nearly all the anti-ship
 firepower it can bring on the target (counting a gun only if it still bears a couple of
-degrees either side), the one that keeps the target most nearly abeam with the least
-turn. A ship being piloted,
+degrees either side, and never a gun lost with its plating), the one that keeps the target
+most nearly abeam with the least turn, preferring the broadside with more plate left. A ship being piloted,
 departing, passing low or under a remote order is not steered by it, and the
 mission station returns when no hull is left to fight. While a ship's fire order
 allows hull fire, its variant's flux capacitors and vents count as the base game
@@ -2140,7 +2142,8 @@ the ship overloads, the ordinary overload. A raised shield therefore costs the
 guns their venting and, held long enough, the whole ship its guns: the brawler
 that fires hard behind its shield cannot do both indefinitely.
 By default the shield is automatic: it rises when a hostile round that would hurt
-the hull is about to land within a few cells of it from inside the arc (a queued
+the hull is about to land within a few cells of it from inside the arc (for a hull with an
+armour grid and a round with a firer, judged by the side it was fired from, as absorption is) (a queued
 detonation, a projectile in flight, a hostile warship's shell, or a landing that
 close), drops three seconds after the last such round, and drops at once when the
 pool passes 90% and stays down until it has vented to 55%, or to the level at which its

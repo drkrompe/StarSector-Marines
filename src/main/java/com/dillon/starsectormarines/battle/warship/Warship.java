@@ -505,8 +505,13 @@ public final class Warship {
      * a hull with no armour grid (the control), is asked of where it landed, as it always was.
      */
     boolean shieldCoversFrom(float fromX, float fromY, float px, float py) {
-        if (plating != null && Float.isFinite(fromX) && Float.isFinite(fromY)) return shieldCovers(fromX, fromY);
-        return shieldCovers(px, py);
+        return shieldAbsorbing() && arcCoversFrom(fromX, fromY, px, py);
+    }
+
+    /** {@link #arcCovers} asked of the side a round was fired from, by the same rule as {@link #shieldCoversFrom}. */
+    boolean arcCoversFrom(float fromX, float fromY, float px, float py) {
+        if (plating != null && Float.isFinite(fromX) && Float.isFinite(fromY)) return arcCovers(fromX, fromY);
+        return arcCovers(px, py);
     }
 
     /** Whether {@code (px, py)} lies inside the arc, up or not. */
