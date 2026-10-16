@@ -73,7 +73,9 @@ crew-applied red (a slashed chest stripe, a band and tally slashes on the slab, 
 rail panel, a crooked dome stripe, a red-painted instep). The exporter registers
 `raw/pirate-<part>.raw.png` like any raw, composites it over the soot export and then
 takes the default export's alpha, so the pirate paint has exactly the shared
-silhouette. The Latch screen carrier is shared by every paint and stays rust-orange.
+silhouette. The Latch screen gets the same pass (`pirate-latch-screen`, exported to
+`equipment/latch-screen-pirate.png`); `LayeredArmorFamily.repaintedCarrier` swaps it in
+for the pirate family only, so the issue keeps the rust-orange screen.
 `GreyhookRigIssue` draws raiders in `BOARDING_JACK_PIRATE`
 (`armor-master-boarding-jack-pirate`, the same transforms as the issue master); the
 company's issue keeps `BOARDING_JACK`.

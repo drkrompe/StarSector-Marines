@@ -214,7 +214,10 @@ public final class BoardingJackLayerSnapshotSuite implements SnapshotSuite {
                 layer(weapons + "rocket-launcher.png"));
         IntegralSystemDef system = def.integralSystem();
         if (system != null && system.carrierLayer() != null) {
-            result.registerIntegralSystem(system.id(), layer(system.carrierLayer().spritePath()));
+            String path = system.carrierLayer().spritePath();
+            String repainted = armor.contains("/paints/pirate/")
+                    ? LayeredArmorFamily.BOARDING_JACK_PIRATE.repaintedCarrier(path) : null;
+            result.registerIntegralSystem(system.id(), layer(repainted != null ? repainted : path));
         }
         return result;
     }
