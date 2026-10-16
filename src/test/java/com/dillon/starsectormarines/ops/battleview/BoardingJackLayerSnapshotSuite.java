@@ -101,10 +101,13 @@ public final class BoardingJackLayerSnapshotSuite implements SnapshotSuite {
         text(g, "Helmet · foot · Latch screen (1×)", 40, 535, 15);
 
         text(g, "Same registration, different rig · magnified", 1000, 125, 20);
-        actor(g, specter, specterArmor, 1150, 300, 165, "idle", phase, 0, WeaponRegistry.STARTER_PRIMARY_ID);
-        actor(g, jack, jackArmor, 1530, 300, 165, "idle", phase, 0, WeaponRegistry.STARTER_PRIMARY_ID);
-        text(g, "Specter (Tri-Tachyon)", 1060, 470, 17);
-        text(g, "Boarding Jack (pirate rebuild)", 1420, 470, 17);
+        LayeredUnitAssets raider = assets(JACK + "paints/pirate/", jackArmor);
+        actor(g, specter, specterArmor, 1100, 300, 150, "idle", phase, 0, WeaponRegistry.STARTER_PRIMARY_ID);
+        actor(g, jack, jackArmor, 1420, 300, 150, "idle", phase, 0, WeaponRegistry.STARTER_PRIMARY_ID);
+        actor(g, raider, jackArmor, 1740, 300, 150, "idle", phase, 0, WeaponRegistry.STARTER_PRIMARY_ID);
+        text(g, "Specter (Tri-Tachyon)", 1020, 470, 17);
+        text(g, "Boarding Jack · company issue", 1310, 470, 17);
+        text(g, "Boarding Jack · Greyhook paint", 1630, 470, 17);
         g.setColor(new Color(0x2A3640));
         g.fillRect(40, 560, 1840, 2);
 
@@ -118,13 +121,13 @@ public final class BoardingJackLayerSnapshotSuite implements SnapshotSuite {
                     i == 1 ? 50f * (float) Math.sin(phase * Math.PI * 2) : 0, weapons[i]);
             text(g, labels[i], 70 + i * 255, 830, 15);
         }
-        text(g, "Baked paints · one casing mask, one silhouette", 1330, 600, 20);
-        String[] paints = {"rust-orange", "hull-grey", "oxide-green", "soot"};
+        text(g, "Paints · one silhouette · pirate is Greyhook's", 1330, 600, 20);
+        String[] paints = {"rust-orange", "hull-grey", "oxide-green", "soot", "pirate"};
         for (int i = 0; i < paints.length; i++) {
             LayeredUnitAssets painted = i == 0 ? jack : assets(JACK + "paints/" + paints[i] + "/", jackArmor);
-            actor(g, painted, jackArmor, 1395 + i * 135, 715, 85, "walking", phase, 0,
+            actor(g, painted, jackArmor, 1385 + i * 110, 715, 80, "walking", phase, 0,
                     WeaponRegistry.STARTER_PRIMARY_ID);
-            text(g, paints[i], 1355 + i * 135, 830, 14);
+            text(g, paints[i], 1350 + i * 110, 830, 14);
         }
         g.setColor(new Color(0x2A3640));
         g.fillRect(40, 855, 1840, 2);
@@ -140,15 +143,15 @@ public final class BoardingJackLayerSnapshotSuite implements SnapshotSuite {
         }
         text(g, "Specter", 90, 1025, 15);
         text(g, "Boarding Jack", 420, 1025, 15);
-        text(g, "Greyhook raider's rig draws family " + greyhook + (greyhook == jackArmor.appearanceFamily()
-                ? " (its own art)" : " (stand-in)"), 760, 890, 18);
+        text(g, "Greyhook raiders draw " + greyhook + (greyhook == GreyhookRigIssue.RAIDER_PAINT
+                ? " (Greyhook paint)" : " (stand-in)"), 760, 890, 18);
         for (int i = 0; i < 6; i++) {
-            actor(g, jack, jackArmor, 800 + i * 75, 965, normalSw, i % 2 == 0 ? "walking" : "firing",
+            actor(g, raider, jackArmor, 800 + i * 75, 965, normalSw, i % 2 == 0 ? "walking" : "firing",
                     phase + i * 0.17f, 0, WeaponRegistry.STARTER_PRIMARY_ID, 180f + i * 25f);
         }
-        text(g, "Small-scale legibility · 24px", 1420, 890, 18);
+        text(g, "Small-scale legibility · 24px · issue above, Greyhook below", 1360, 890, 18);
         for (int i = 0; i < 8; i++) {
-            actor(g, jack, jackArmor, 1440 + i % 4 * 100, 940 + i / 4 * 70, 24, "walking",
+            actor(g, i < 4 ? jack : raider, jackArmor, 1440 + i % 4 * 100, 940 + i / 4 * 70, 24, "walking",
                     phase + i * 0.11f, 0, WeaponRegistry.STARTER_PRIMARY_ID, 0);
         }
         text(g, "Latch Assist screen is carried on the left slab · " + latch.id(), 40, 1060, 14);

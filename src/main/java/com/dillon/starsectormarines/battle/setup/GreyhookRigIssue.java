@@ -11,8 +11,10 @@ import java.util.Objects;
  * capacity, rating, handling, incoming accuracy and the surplus Latch Assist — so the rig the
  * company meets is the rig it is later paid with, not a stronger enemy copy.
  *
- * <p>Enemy use needs no award gate, but it needs something drawable. The rig draws its own
- * {@code BOARDING_JACK} family. Should the pattern ever declare its presentation pending again,
+ * <p>Enemy use needs no award gate, but it needs something drawable. Greyhook's rigs wear the
+ * pattern in their own {@link #RAIDER_PAINT} — soot plate, scraped and scorched, with crude red
+ * crew markings — while the company's issue keeps the catalog family. Paint is presentation only.
+ * Should the pattern ever declare its presentation pending again,
  * the rig falls back to the {@link #STAND_IN} shell — the registration the Boarding Jack's own
  * layers are cut to — rather than the legacy sheet, which draws a powered rig as one more
  * rifleman. The stand-in is presentation only; it changes no number.
@@ -21,6 +23,8 @@ public final class GreyhookRigIssue {
     public static final String PATTERN = "armor.boarding-jack";
     /** Powered shell the pending pattern is drawn on; its layers share the Boarding Jack's registration. */
     public static final LayeredArmorFamily STAND_IN = LayeredArmorFamily.SPECTER_HEAVY;
+    /** Greyhook's own paint on the Boarding Jack shell. */
+    public static final LayeredArmorFamily RAIDER_PAINT = LayeredArmorFamily.BOARDING_JACK_PIRATE;
 
     private GreyhookRigIssue() {}
 
@@ -32,8 +36,8 @@ public final class GreyhookRigIssue {
                 .integralSystem(armor.integralSystem());
     }
 
-    /** The family the rig is drawn with: its own once its art is declared, the shared shell until then. */
+    /** The family a raider's rig is drawn with: Greyhook's paint once its art is declared, the shared shell until then. */
     public static LayeredArmorFamily drawnFamily(MarineArmorCatalogDef armor) {
-        return armor.presentationDeclared() ? armor.appearanceFamily() : STAND_IN;
+        return armor.presentationDeclared() ? RAIDER_PAINT : STAND_IN;
     }
 }

@@ -13,6 +13,7 @@ mask, so every paint shares one silhouette and alpha.
 
   armor/boarding-jack/{body,shoulder-left,shoulder-right,head,foot}.png    rust-orange (default)
   armor/boarding-jack/paints/<palette>/...                                  hull-grey, oxide-green, soot
+  armor/boarding-jack/paints/pirate/...                                     soot weathered with crude red (own raws)
   equipment/latch-screen.png                                                Latch Assist carrier layer
 """
 import hashlib
@@ -66,10 +67,9 @@ def downsample(image, size):
     return image.convert("RGBa").resize(size, Image.Resampling.LANCZOS).convert("RGBA")
 
 
-def export_part(geometry, windows, name):
-    canvas_size, window, _ = windows[name]
+def registered(name, raw_path):
+    """A raw resampled onto its part's edit target, fitted and bounded; returns (image, fit, guide)."""
     guide = Image.open(TEMPLATES / f"boarding-jack-{name}-guide.png").convert("RGBA")
-    raw_path = HERE / "raw" / f"{name}.raw.png"
     raw = Image.open(raw_path).convert("RGBA")
     ratio = (raw.width / raw.height) / (guide.width / guide.height)
     if abs(ratio - 1) > 0.03:
@@ -89,24 +89,70 @@ def export_part(geometry, windows, name):
                      round((guide_box[3] - guide_box[1]) / (raw_box[3] - raw_box[1]), 4)]}
     if not all(0.8 <= s <= 1.25 for s in fit["scale"]):
         raise ValueError(f"{name}: raw silhouette drifted beyond a mechanical fit: {fit}")
-    raw = fitted
     grow = odd(GROW * max(guide.size))
     bound = guide.getchannel("A").point(lambda a: 255 if a else 0).filter(ImageFilter.MaxFilter(grow))
-    raw.putalpha(ImageChops.multiply(raw.getchannel("A"), bound))
+    fitted.putalpha(ImageChops.multiply(fitted.getchannel("A"), bound))
+    return fitted, fit, guide
+
+
+def to_canvas(image, canvas_size, window, mode=None):
+    size = (window[2] - window[0], window[3] - window[1])
+    if mode == "L":
+        out = Image.new("L", canvas_size)
+        out.paste(image.resize(size, Image.Resampling.BOX), (window[0], window[1]))
+        return out
+    out = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
+    out.alpha_composite(downsample(image, size), (window[0], window[1]))
+    return out
+
+
+def export_part(geometry, windows, name):
+    canvas_size, window, _ = windows[name]
+    raw_path = HERE / "raw" / f"{name}.raw.png"
+    raw, fit, guide = registered(name, raw_path)
     # Paint is classified by colour inside the bounded silhouette. The guide's own casing regions are
     # too strict a fence: ImageGen narrowed the backing rims and widened the plates over them.
     casing = warm_paint(raw)
     casing = ImageChops.multiply(casing, raw.getchannel("A").point(lambda a: 255 if a >= 128 else 0))
-
-    size = (window[2] - window[0], window[3] - window[1])
-    part = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
-    part.alpha_composite(downsample(raw, size), (window[0], window[1]))
-    mask = Image.new("L", canvas_size)
-    mask.paste(casing.resize(size, Image.Resampling.BOX), (window[0], window[1]))
-    mask = ImageChops.multiply(mask, part.getchannel("A").point(lambda a: 255 if a else 0))
+    part = to_canvas(raw, canvas_size, window)
+    mask = ImageChops.multiply(to_canvas(casing, canvas_size, window, "L"),
+                               part.getchannel("A").point(lambda a: 255 if a else 0))
     return part, mask, {"raw_sha256": fingerprint(raw_path), "raw_size": list(Image.open(raw_path).size),
                         "guide_size": list(guide.size), "window": list(window), "canvas": list(canvas_size), "fit": fit,
-                        "casing_pixels": sum(v >= 128 for v in mask.get_flattened_data())}
+                        "casing_pixels": sum(v >= 128 for v in mask.get_flattened_data())}, raw, casing
+
+
+# ---------------------------------------------------------------------------------------------
+# Pirate paint: Greyhook's own rigs. A luminance ramp can recolour plate but cannot scrape it,
+# scorch it or daub a stripe on it, so this paint has hand-made detail of its own. The soot paint
+# is applied to each part at edit-target resolution and written to pirate/<part>-base.png; ImageGen
+# weathers that base and adds crude red crew markings (generate.sh pirate-<part>); the result is
+# registered like any raw and then held to the default export's alpha, so the pirate paint shares
+# the one silhouette every other paint has.
+# ---------------------------------------------------------------------------------------------
+PIRATE = HERE / "pirate"
+
+
+def write_pirate_bases():
+    guide_module = runpy.run_path(str(HERE / "make_guide.py"))
+    recolor = runpy.run_path(str(HERE.parent / "specter-v1" / "export_assets.py"))["recolor"]
+    geometry = json.loads((HERE / "geometry.json").read_text())
+    windows = guide_module["edit_windows"](geometry)
+    PIRATE.mkdir(exist_ok=True)
+    for name in EXPORT_NAMES:
+        _, _, _, raw, casing = export_part(geometry, windows, name)
+        recolor(raw, casing, PALETTES["soot"]).save(PIRATE / f"{name}-base.png")
+
+
+def pirate_part(geometry, windows, name, default, soot):
+    canvas_size, window, _ = windows[name]
+    raw_path = HERE / "raw" / f"pirate-{name}.raw.png"
+    raw, fit, _ = registered(name, raw_path)
+    painted = to_canvas(raw, canvas_size, window)
+    # Where the weathered pass left a hole or a fringe inside the shared silhouette, soot shows.
+    part = Image.alpha_composite(soot.copy(), painted)
+    part.putalpha(default.getchannel("A"))
+    return part, {"raw_sha256": fingerprint(raw_path), "raw_size": list(Image.open(raw_path).size), "fit": fit}
 
 
 def export():
@@ -117,7 +163,7 @@ def export():
     outputs, report = {}, {"palettes": {"rust-orange": "raw ImageGen paint", **PALETTES}, "parts": {}}
     (HERE / "masks").mkdir(exist_ok=True)
     for name, export_name in EXPORT_NAMES.items():
-        part, mask, record = export_part(geometry, windows, name)
+        part, mask, record, _, _ = export_part(geometry, windows, name)
         if record["casing_pixels"] == 0:
             raise ValueError(f"{name}: casing mask is empty")
         report["parts"][name] = record
@@ -125,7 +171,12 @@ def export():
         mask.save(HERE / "masks" / f"{name}-casing.png")
         for palette, ramp in PALETTES.items():
             outputs[OUTPUT / "paints" / palette / export_name] = recolor(part, mask, ramp)
-    latch, _, record = export_part(geometry, windows, "latch-screen")
+        if (HERE / "raw" / f"pirate-{name}.raw.png").exists():
+            pirate, pirate_record = pirate_part(geometry, windows, name, part,
+                                                outputs[OUTPUT / "paints" / "soot" / export_name])
+            outputs[OUTPUT / "paints" / "pirate" / export_name] = pirate
+            record["pirate"] = pirate_record
+    latch, _, record, _, _ = export_part(geometry, windows, "latch-screen")
     report["parts"]["latch-screen"] = record
     outputs[LATCH_OUTPUT] = latch
     for path, image in outputs.items():
@@ -136,4 +187,8 @@ def export():
 
 
 if __name__ == "__main__":
-    print(json.dumps(export(), indent=2))
+    import sys
+    if "--pirate-bases" in sys.argv:
+        write_pirate_bases()
+    else:
+        print(json.dumps(export(), indent=2))
