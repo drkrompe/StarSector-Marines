@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlAimLane;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlAimOrigins;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechSection;
 import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.combat.DurabilityModel;
@@ -157,13 +158,42 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
     private static BufferedImage activeComposite(HeadlessUiRenderer renderer, Path modRoot,
                                                   int width, int height, float uiScale,
                                                   boolean paused) throws Exception {
-        return activeComposite(renderer, modRoot, width, height, uiScale,
-                BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.MECH, false), paused);
+        MechLoadoutComponent hound = damagedHound();
+        return activeComposite(renderer, modRoot, width, height, uiScale, houndSnapshot(hound), hound, paused);
+    }
+
+    /**
+     * The direct-control status of the same damaged Hound the section plate draws: its SRM pod is
+     * gone, so the nose chaingun is its only weapon card, and its durability is the sections' totals.
+     */
+    private static BattleDirectControlStatus.Snapshot houndSnapshot(MechLoadoutComponent hound) {
+        MechSections sections = hound.sections();
+        float maxStructure = 0f;
+        float maxArmor = 0f;
+        for (MechSection section : MechSection.values()) {
+            maxStructure += sections.maxStructure(section);
+            maxArmor += sections.maxArmor(section);
+        }
+        var durability = new BattleDirectControlStatus.Durability(sections.totalStructure(), maxStructure,
+                sections.totalArmor(), maxArmor, MechVariant.HOUND.armorRating);
+        List<BattleDirectControlStatus.WeaponStatus> weapons = new ArrayList<>();
+        for (var mount : hound.mounts()) {
+            if (mount == null) continue;
+            String name = mount.component == MechWeaponComponent.NOSE_CHAINGUN ? "Nose chaingun" : mount.weaponId();
+            weapons.add(new BattleDirectControlStatus.WeaponStatus(weapons.size() + 1, mount.slot.name(), name,
+                    new BattleDirectControlStatus.Behavior(BattleDirectControlStatus.FireKind.BURST,
+                            mount.component.projectilesPerTrigger, .1f, 1),
+                    true, 0f, 1f, 0, .1f, new BattleDirectControlStatus.Ammo(-1, -1,
+                            BattleDirectControlStatus.AmmoUnit.TRIGGER_PACKS, true)));
+        }
+        return new BattleDirectControlStatus.Snapshot(101, "Hound Lead", BattleDirectControlStatus.Carrier.MECH,
+                durability, weapons);
     }
 
     private static BufferedImage activeComposite(HeadlessUiRenderer renderer, Path modRoot,
                                                   int width, int height, float uiScale,
                                                   BattleDirectControlStatus.Snapshot snapshot,
+                                                  MechLoadoutComponent mech,
                                                   boolean paused) throws Exception {
         var layout = BattleDirectControlOverlayTest.layout(width, height, uiScale);
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
@@ -188,7 +218,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 draw(graphics, renderer, fixture.markup(), layout.activeControl(), layout.host(), uiScale);
                 draw(graphics, renderer, fixture.actionsMarkup(), layout.activeActions(), layout.host(), uiScale);
             }
-            var plate = sectionPlate(modRoot, damagedHound());
+            var plate = sectionPlate(modRoot, mech);
             draw(graphics, renderer, plate, BattleMechSectionPlate.leftOf(layout.activeControl()),
                     layout.host(), uiScale);
         } finally {

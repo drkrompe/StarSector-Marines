@@ -341,6 +341,8 @@ class CorvusCombatEvidenceTest {
                     }
                 }
                 if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
+                // Written before any mission contract is asserted: a reading survives a failed chapter.
+                Files.writeString(dir.resolve("mechs.json"), mechs.json().toString(2));
                 if (hound >= 0 && !sim.survivorPickup().surviving(hound)) {
                     houndKills = sim.telemetry().kills(hound);
                     houndDamage = sim.telemetry().damageDealt(hound);
