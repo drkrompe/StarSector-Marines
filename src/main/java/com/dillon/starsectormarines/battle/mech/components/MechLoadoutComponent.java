@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.mech.MechTurretSystem;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.ManualMechDrive;
+import com.dillon.starsectormarines.battle.mech.MechFrame;
 import com.dillon.starsectormarines.battle.mech.MechHeat;
 import com.dillon.starsectormarines.battle.mech.MechRouteIntent;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
@@ -35,6 +36,11 @@ public final class MechLoadoutComponent {
 
     /** Shared thermal state survives control handback; the serial weapon pass owns cooling. */
     public final MechHeat heat = new MechHeat();
+
+    /** Size the thermal reservoir from a frozen deployment frame; before any heat is committed. */
+    public void applyFrame(MechFrame frame) {
+        heat.configure(frame.heatCapacity(), frame.coolingPerSecond());
+    }
 
     /** Manual velocity survives the applied-velocity tick reset, but never handback. */
     public final ManualMechDrive manualDrive = new ManualMechDrive();

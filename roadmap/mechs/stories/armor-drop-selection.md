@@ -1,7 +1,7 @@
 # Armor drop selection
 
-Status: PLANNED — after `mech-bay-vehicles.md`; lift limits from
-`heavy-lift-fittings.md`.
+Status: PLANNED — vehicles in the bay shipped (`mechs-nouns.md`, gantries); lift
+limits from `heavy-lift-fittings.md`.
 Written: 2026-10-16
 
 Direction: `heavy-equipment-progression.md`. Models: `mechs-nouns.md` (Mech

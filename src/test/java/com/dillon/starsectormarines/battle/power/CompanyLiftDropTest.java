@@ -99,7 +99,7 @@ class CompanyLiftDropTest {
     @Test
     void armourSupportFliesTheHeavyApcInACradledBoat() {
         BattleSimulation sim = openSim();
-        VehicleSupport power = new VehicleSupport(CRADLED_BUFFALO, true);
+        VehicleSupport power = VehicleSupport.configured(List.of(), CRADLED_BUFFALO, true);
         sim.setCommandPowers(List.of(power));
 
         sim.getCommandPowerService().requestActivation(power.id, 15, 15);

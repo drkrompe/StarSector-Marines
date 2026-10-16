@@ -12,8 +12,13 @@ import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
+import com.dillon.starsectormarines.marine.CampaignVehicle;
+import com.dillon.starsectormarines.marine.MechPattern;
 import com.dillon.starsectormarines.marine.MechBay;
 import com.dillon.starsectormarines.marine.MechFabricationCatalog;
 import com.dillon.starsectormarines.marine.FabricationCost;
@@ -46,6 +51,8 @@ public final class MechLabViewModel {
     private final MutableSignal<Integer> dismissedLesson;
     private final MutableSignal<String> selectedSquadId;
     private final MutableSignal<String> selectedMechId;
+    /** A gantry holds a mech or a vehicle; at most one of the two selections is set. */
+    private final MutableSignal<String> selectedVehicleId;
     private final MutableSignal<Integer> selectedGantry;
     private final MutableSignal<SocketId> selectedSlot;
     private final MutableSignal<Boolean> fittingFocused;
@@ -119,6 +126,7 @@ public final class MechLabViewModel {
         dismissedLesson = reactor.signal(0);
         selectedSquadId = reactor.signal(initialSquad != null ? initialSquad.id() : null);
         selectedMechId = reactor.signal(null);
+        selectedVehicleId = reactor.signal(null);
         selectedGantry = reactor.signal(0);
         selectedSlot = reactor.signal(SocketId.MINI_FAB);
         fittingFocused = reactor.signal(false);
@@ -138,32 +146,37 @@ public final class MechLabViewModel {
         gantryRows = reactor.computed(this::buildGantryRows);
         activeGantryLabel = reactor.computed(() -> {
             int index = selectedGantryIndex();
-            CampaignMech mech = selectedMech() != null ? selectedMech() : mechAt(selectedSquad(), index);
+            boolean occupied = selectedMech() != null || selectedVehicle() != null
+                    || gantryOccupied(selectedSquad(), index);
             return String.format(Locale.ROOT, Strings.get("openingMechLabGantryDDS"), index + 1,
-                    physicalGantries, mech != null ? "" : Strings.get("openingMechLabVacant"));
+                    physicalGantries, occupied ? "" : Strings.get("openingMechLabVacant"));
         });
         selectedMechName = reactor.computed(() -> {
             CampaignMech mech = selectedMech();
+            CampaignVehicle vehicle = selectedVehicle();
+            if (vehicle != null) return vehicle.displayName();
             return mech != null ? mech.displayName() : fabricatingChassis()
                     ? String.format(Locale.ROOT, Strings.get("openingMechLabVacantGantryD"), selectedGantryIndex() + 1)
                     : Strings.get("openingMechLabNoAssetSelected");
         });
-        selectedMechNameClasses = reactor.computed(() -> selectedMech() == null
+        selectedMechNameClasses = reactor.computed(() -> selectedAssetName() == null
                 ? "label asset-name tone-accent"
                 : "label asset-name tone-accent hidden");
-        callSignEditorClasses = reactor.computed(() -> selectedMech() == null
+        callSignEditorClasses = reactor.computed(() -> selectedAssetName() == null
                 ? "mech-call-sign-editor hidden" : "mech-call-sign-editor");
         callSignRenameDisabled = reactor.computed(() -> {
-            CampaignMech mech = selectedMech();
+            String current = selectedAssetName();
             String candidate = callSignDraft.get();
-            if (mech == null || candidate == null) return true;
+            if (current == null || candidate == null) return true;
             String normalized = CampaignMech.normalizeCallSign(candidate);
             return normalized.isEmpty()
                     || normalized.length() > CampaignMech.CALLSIGN_MAX_LENGTH
-                    || normalized.equals(mech.displayName());
+                    || normalized.equals(current);
         });
         selectedMechIdentity = reactor.computed(() -> {
             CampaignMech mech = selectedMech();
+            CampaignVehicle vehicle = selectedVehicle();
+            if (vehicle != null) return vehicleIdentity(vehicle.type());
             return mech != null ? Strings.format("openingMechLabChassisWalkerHeavyAsset", mech.variant().displayName())
                     : fabricatingChassis()
                     ? Strings.get("openingMechLabSelectADiscoveredChassisPatternAndCommit")
@@ -171,6 +184,8 @@ public final class MechLabViewModel {
         });
         selectedMechDoctrine = reactor.computed(() -> {
             CampaignMech mech = selectedMech();
+            CampaignVehicle vehicle = selectedVehicle();
+            if (vehicle != null) return vehicleArmament(vehicle.type());
             if (mech == null) return fabricatingChassis() ? Strings.get("openingMechLabChassisForge") : Strings.get("openingMechLabDoctrineUnavailable");
             return roleLabel(mech.role()) + "  ·  " + doctrineAdvice(mech.role());
         });
@@ -187,6 +202,7 @@ public final class MechLabViewModel {
         });
         selectedSlotTitle = reactor.computed(() -> {
             if (fabricatingChassis()) return Strings.get("openingMechLabChassisPatterns");
+            if (selectedVehicle() != null) return Strings.get("openingMechLabVehicleHull");
             CampaignMech mech = selectedMech();
             if (mech != null) {
                 SocketDef def = MechFittingLayout.forVariant(mech.variant()).socket(selectedSlot.get());
@@ -204,7 +220,8 @@ public final class MechLabViewModel {
                 ? "fitting-workspace hidden" : "fitting-workspace");
         fittingHeaderClasses = reactor.computed(() -> fittingFocused.get()
                 ? "asset-strip edge-surface" : "asset-strip edge-surface hidden");
-        performanceClasses = reactor.computed(() -> fittingFocused.get() && selectedMech() != null
+        performanceClasses = reactor.computed(() -> fittingFocused.get()
+                && (selectedMech() != null || selectedVehicle() != null)
                 ? "performance-grid" : "performance-grid hidden");
         catalogClasses = reactor.computed(() -> fittingFocused.get()
                 ? "panel catalog-panel" : "panel catalog-panel hidden");
@@ -477,6 +494,13 @@ public final class MechLabViewModel {
                 selectedGantry.get()));
     }
 
+    /** Gantries in the selected lance holding a mech or a vehicle; the rest are vacant pads. */
+    public int occupiedGantries() {
+        revision.get();
+        CampaignMechSquad squad = bay.squadById(selectedSquadId.get());
+        return squad != null ? squad.occupied() : 0;
+    }
+
     /** Reprojects mutable campaign authority whenever the room is re-entered. */
     public void refresh() {
         CampaignMechSquad squad = bay.squadById(selectedSquadId.get());
@@ -485,6 +509,7 @@ public final class MechLabViewModel {
             selectedSquadId.set(squad != null ? squad.id() : null);
         }
         selectedMechId.set(null);
+        selectedVehicleId.set(null);
         callSignDraft.set("");
         fittingFocused.set(false);
         assetPickerOpen.set(false);
@@ -494,7 +519,7 @@ public final class MechLabViewModel {
     private String buildLabSummary() {
         revision.get();
         CampaignMechSquad active = bay.activeSquad();
-        int chassis = active != null ? active.mechs().size() : 0;
+        int chassis = active != null ? active.occupied() : 0;
         return Strings.format("openingMechLabHeavyAssetsAssignedLoadoutFreezesAtMission", bay.squads().size() + (bay.squads().size() == 1
                 ? Strings.get("openingMechLabSupportLance") : Strings.get("openingMechLabSupportLances")), chassis, CampaignMechSquad.CAPACITY);
     }
@@ -510,7 +535,7 @@ public final class MechLabViewModel {
             rows.add(new SquadRow(base, base + ":name", base + ":status", base + ":strength",
                     squad.id().equals(selected) ? "mech-squad-row selected" : "mech-squad-row",
                     squad.displayName(), activeSupport ? Strings.get("openingMechLabActiveSupport") : Strings.get("openingMechLabAvailable"),
-                    Strings.format("openingMechLabAssets", squad.mechs().size(), CampaignMechSquad.CAPACITY),
+                    Strings.format("openingMechLabAssets", squad.occupied(), CampaignMechSquad.CAPACITY),
                     () -> selectSquad(squad.id())));
         }
         return List.copyOf(rows);
@@ -530,6 +555,15 @@ public final class MechLabViewModel {
                     mech.displayName(), mech.variant().displayName() + "  ·  " + roleLabel(mech.role()),
                     mech.missileReplenisher().displayName(), () -> selectMech(mech.id())));
         }
+        String selectedVehicle = selectedVehicleId.get();
+        for (CampaignVehicle vehicle : squad.vehicles()) {
+            String base = "vehicle:" + vehicle.id();
+            rows.add(new MechRow(base, base + ":name", base + ":chassis", base + ":subsystem",
+                    base + ":action",
+                    vehicle.id().equals(selectedVehicle) ? "mech-row selected" : "mech-row",
+                    vehicle.displayName(), vehicleIdentity(vehicle.type()),
+                    vehicleArmament(vehicle.type()), () -> selectVehicle(vehicle.id())));
+        }
         return List.copyOf(rows);
     }
 
@@ -539,22 +573,28 @@ public final class MechLabViewModel {
         List<GantryRow> rows = new ArrayList<>();
         for (int index = 0; index < physicalGantries; index++) {
             CampaignMech mech = mechAt(squad, index);
+            CampaignVehicle vehicle = mech == null ? vehicleAt(squad, index) : null;
+            boolean occupied = mech != null || vehicle != null;
             String base = "overview-gantry:" + index;
             int gantry = index;
             rows.add(new GantryRow(base, base + ":station", base + ":name",
-                    base + ":detail", mech != null ? "overview-gantry occupied"
+                    base + ":detail", occupied ? "overview-gantry occupied"
                             : "overview-gantry vacant",
                     String.format(Locale.ROOT, Strings.get("openingMechLabGantryD"), index + 1),
-                    mech != null ? mech.displayName() : Strings.get("openingMechLabVacant2"),
+                    mech != null ? mech.displayName() : vehicle != null ? vehicle.displayName()
+                            : Strings.get("openingMechLabVacant2"),
                     mech != null ? mech.variant().displayName() + "  ·  " + roleLabel(mech.role())
+                            : vehicle != null ? vehicleIdentity(vehicle.type())
                             : Strings.get("openingMechLabPressOnPadToFabricate"),
-                    mech == null, () -> selectGantry(gantry)));
+                    !occupied, () -> selectGantry(gantry)));
         }
         return List.copyOf(rows);
     }
 
     private List<PerformanceMeter> buildPerformanceMeters() {
         revision.get();
+        CampaignVehicle vehicle = selectedVehicle();
+        if (vehicle != null) return vehicleMeters(vehicle.type());
         CampaignMech mech = selectedMech();
         if (mech == null) return List.of();
         MechVariant v = mech.variant();
@@ -629,6 +669,8 @@ public final class MechLabViewModel {
     }
 
     private String buildSelectedSlotCopy() {
+        CampaignVehicle vehicle = selectedVehicle();
+        if (vehicle != null) return vehicleSummary(vehicle.type());
         CampaignMech mech = selectedMech();
         if (mech == null) return fabricatingChassis()
                 ? Strings.get("openingMechLabFabricateACompleteStandardFitWalkerHere")
@@ -648,6 +690,7 @@ public final class MechLabViewModel {
         if (fabricatingChassis()) {
             return Strings.get("openingMechLabPlayerCargoStandardFitVacantGantry");
         }
+        if (selectedVehicle() != null) return Strings.get("openingMechLabVehicleNoFitting");
         SocketDef definition = selectedSocketDefinition();
         if (definition == null) return Strings.get("openingMechLabNoSocketDefinition");
         String authority = definition.factoryLocked()
@@ -660,6 +703,8 @@ public final class MechLabViewModel {
         revision.get();
         CampaignMech mech = selectedMech();
         if (fabricatingChassis()) return chassisCatalog();
+        // A vehicle's hull and turret are its type's: nothing on it is fitted.
+        if (selectedVehicle() != null) return List.of();
         if (selectedSlot.get() == SocketId.MINI_FAB) return replenisherCatalog(mech);
         MechMountSlot mount = mountFor(selectedSlot.get());
         if (mount != null && mech != null) return weaponCatalog(mech, mount);
@@ -780,7 +825,7 @@ public final class MechLabViewModel {
 
     private List<CatalogRow> chassisCatalog() {
         CampaignMechSquad squad = selectedSquad();
-        boolean hasSpace = squad != null && squad.mechs().size() < physicalGantries && bay.canAddMech(squad.id());
+        boolean hasSpace = squad != null && squad.occupied() < physicalGantries && bay.canAddMech(squad.id());
         List<CatalogRow> rows = new ArrayList<>();
         for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.chassis()) {
             if (!bay.canFabricate(recipe.variant())) continue;
@@ -804,7 +849,36 @@ public final class MechLabViewModel {
                     !hasSpace || !affordable, materialRows(base, resources.quote(recipe.cost())), "material-costs",
                     () -> fabricateChassis(variant)));
         }
+        rows.addAll(vehicleCatalog(hasSpace));
         return List.copyOf(rows);
+    }
+
+    /** Vehicle patterns share the vacant gantry with chassis, gated by pattern the same way. */
+    private List<CatalogRow> vehicleCatalog(boolean hasSpace) {
+        List<CatalogRow> rows = new ArrayList<>();
+        for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.vehicles()) {
+            VehicleType type = recipe.vehicle();
+            if (!bay.canFabricate(type)) continue;
+            boolean affordable = resources.canAfford(resources.quote(recipe.cost()));
+            String base = "mech-catalog:" + recipe.id();
+            rows.add(new CatalogRow(base, base + ":copy", base + ":header", base + ":name", base + ":badge",
+                    base + ":stock", base + ":telemetry", base + ":delta",
+                    base + ":detail", base + ":action", base + ":materials", base + ":body",
+                    base + ":preview",
+                    "catalog-preview hidden", null, null, null, "catalog-row chassis-pattern",
+                    recipe.displayName(), Strings.get("openingMechLabVehicle"), "catalog-badge chassis",
+                    recipe.provenance(),
+                    Strings.format("openingMechLabSpeedArmor", number(type.maxSpeed), Math.round(type.maxArmor)),
+                    "", "catalog-delta hidden",
+                    vehicleIdentity(type),
+                    !hasSpace ? Strings.get("openingMechLabLanceFull") : !affordable ? Strings.get("openingMechLabMaterialsShort") : Strings.get("openingMechLabFabricateVehicle"),
+                    !hasSpace ? Strings.get("openingMechLabThisWorkshopHasNoVacantGantry")
+                            : !affordable ? Strings.get("openingMechLabNotEnoughMaterialsHoverACostFor")
+                            : Strings.get("openingMechLabBuildThisVehicleIntoTheVacantGantry"),
+                    !hasSpace || !affordable, materialRows(base, resources.quote(recipe.cost())), "material-costs",
+                    () -> fabricateVehicle(type)));
+        }
+        return rows;
     }
 
     private List<CatalogRow> replenisherCatalog(CampaignMech mech) {
@@ -861,6 +935,7 @@ public final class MechLabViewModel {
         CampaignMechSquad squad = bay.squadById(squadId);
         selectedSquadId.set(squadId);
         selectedMechId.set(null);
+        selectedVehicleId.set(null);
         callSignDraft.set("");
         selectedGantry.set(0);
         selectedSlot.set(SocketId.MINI_FAB);
@@ -881,11 +956,28 @@ public final class MechLabViewModel {
             }
         }
         selectedMechId.set(mechId);
+        selectedVehicleId.set(null);
         callSignDraft.set(squad.mechById(mechId).displayName());
         selectedSlot.set(defaultFittingSlot(squad.mechById(mechId)));
         fittingFocused.set(true);
         assetPickerOpen.set(false);
         feedbackText.set(Strings.format("openingMechLabInspectingNoCampaignHardwareChanged", squad.mechById(mechId).displayName()));
+        feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
+    }
+
+    /** Vehicles stand on the gantries after the mechs, in bay order. */
+    private void selectVehicle(String vehicleId) {
+        CampaignMechSquad squad = selectedSquad();
+        CampaignVehicle vehicle = squad != null ? squad.vehicleById(vehicleId) : null;
+        if (vehicle == null) return;
+        selectedGantry.set(squad.mechs().size() + squad.vehicles().indexOf(vehicle));
+        selectedMechId.set(null);
+        selectedVehicleId.set(vehicleId);
+        callSignDraft.set(vehicle.displayName());
+        selectedSlot.set(SocketId.MINI_FAB);
+        fittingFocused.set(true);
+        assetPickerOpen.set(false);
+        feedbackText.set(Strings.format("openingMechLabInspectingNoCampaignHardwareChanged", vehicle.displayName()));
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
     }
 
@@ -902,14 +994,17 @@ public final class MechLabViewModel {
         if (capacity == 0) return;
         int index = Math.floorMod(requested, capacity);
         CampaignMech mech = mechAt(selectedSquad(), index);
+        CampaignVehicle vehicle = mech == null ? vehicleAt(selectedSquad(), index) : null;
+        String occupant = mech != null ? mech.displayName() : vehicle != null ? vehicle.displayName() : null;
         selectedGantry.set(index);
         selectedMechId.set(mech != null ? mech.id() : null);
-        callSignDraft.set(mech != null ? mech.displayName() : "");
+        selectedVehicleId.set(vehicle != null ? vehicle.id() : null);
+        callSignDraft.set(occupant != null ? occupant : "");
         selectedSlot.set(defaultFittingSlot(mech));
         fittingFocused.set(true);
         assetPickerOpen.set(false);
-        feedbackText.set(mech != null
-                ? Strings.format("openingMechLabGantrySelectedNoCampaignHardwareChanged", String.format(Locale.ROOT, "%02d", index + 1), mech.displayName())
+        feedbackText.set(occupant != null
+                ? Strings.format("openingMechLabGantrySelectedNoCampaignHardwareChanged", String.format(Locale.ROOT, "%02d", index + 1), occupant)
                 : Strings.format("openingMechLabGantryIsVacantSelectAChassisPattern", String.format(Locale.ROOT, "%02d", index + 1)));
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
     }
@@ -918,6 +1013,7 @@ public final class MechLabViewModel {
         assetPickerOpen.set(true);
         fittingFocused.set(false);
         selectedMechId.set(null);
+        selectedVehicleId.set(null);
         callSignDraft.set("");
         feedbackText.set(Strings.get("openingMechLabChooseASupportLanceAndAssignedAsset"));
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
@@ -927,6 +1023,7 @@ public final class MechLabViewModel {
         assetPickerOpen.set(false);
         fittingFocused.set(false);
         selectedMechId.set(null);
+        selectedVehicleId.set(null);
         callSignDraft.set("");
         feedbackText.set(Strings.get("openingMechLabReturnedToTheLanceOverviewNoCampaign"));
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
@@ -963,6 +1060,7 @@ public final class MechLabViewModel {
         assetPickerOpen.set(false);
         fittingFocused.set(false);
         selectedMechId.set(null);
+        selectedVehicleId.set(null);
         callSignDraft.set("");
         feedbackText.set(Strings.get("openingMechLabLanceOverviewRestoredSelectAnOccupiedGantry"));
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
@@ -1032,11 +1130,12 @@ public final class MechLabViewModel {
 
     private void fabricateChassis(MechVariant variant) {
         CampaignMechSquad squad = selectedSquad();
-        if (squad == null || squad.mechs().size() >= physicalGantries) return;
+        if (squad == null || squad.occupied() >= physicalGantries) return;
         MechWorkshop.Result result = workshop.fabricateChassis(squad.id(), variant);
         CampaignMech fabricated = result.mech();
         if (fabricated != null) {
             selectedMechId.set(fabricated.id());
+            selectedVehicleId.set(null);
             callSignDraft.set(fabricated.displayName());
             selectedGantry.set(Math.max(0, squad.mechs().size() - 1));
             selectedSlot.set(SocketId.ARMS);
@@ -1044,6 +1143,7 @@ public final class MechLabViewModel {
         }
         feedbackText.set(switch (result.status()) {
             case CHASSIS_FABRICATED -> Strings.format("openingMechLabFabricatedWithItsStandardRollOutFit", fabricated.displayName());
+            case PATTERN_LOCKED -> Strings.get("openingMechLabThisFabricationPatternHasNotBeenAcquired");
             case INSUFFICIENT_MATERIALS -> Strings.get("openingMechLabChassisFabricationBlockedRequiredFleetMaterialsAre");
             case LANCE_FULL -> Strings.get("openingMechLabChassisFabricationBlockedThisLanceHasNo");
             default -> Strings.get("openingMechLabChassisFabricationBlockedCampaignAssetsWereNot");
@@ -1053,6 +1153,37 @@ public final class MechLabViewModel {
                 : "mech-lab-feedback tone-danger surface-dark");
         if (result.succeeded()) bayChanged.run();
         revision.update(value -> value + 1);
+    }
+
+    /**
+     * Builds a vehicle onto the selected lance's next vacant gantry through the workshop,
+     * which owns the pattern, berth and material refusals.
+     */
+    boolean fabricateVehicle(VehicleType type) {
+        CampaignMechSquad squad = selectedSquad();
+        if (squad == null || type == null) return false;
+        MechWorkshop.Result result = workshop.fabricateVehicle(squad.id(), type);
+        CampaignVehicle fabricated = result.vehicle();
+        if (fabricated != null) {
+            selectedMechId.set(null);
+            selectedVehicleId.set(fabricated.id());
+            callSignDraft.set(fabricated.displayName());
+            selectedGantry.set(Math.max(0, squad.occupied() - 1));
+            fittingFocused.set(true);
+        }
+        feedbackText.set(switch (result.status()) {
+            case VEHICLE_FABRICATED -> Strings.format("openingMechLabVehicleFabricated", fabricated.displayName());
+            case PATTERN_LOCKED -> Strings.get("openingMechLabThisFabricationPatternHasNotBeenAcquired");
+            case INSUFFICIENT_MATERIALS -> Strings.get("openingMechLabVehicleFabricationBlockedMaterials");
+            case LANCE_FULL -> Strings.get("openingMechLabVehicleFabricationBlockedLanceFull");
+            default -> Strings.get("openingMechLabVehicleFabricationBlocked");
+        });
+        feedbackClasses.set(result.succeeded()
+                ? "mech-lab-feedback tone-good surface-dark"
+                : "mech-lab-feedback tone-danger surface-dark");
+        if (result.succeeded()) bayChanged.run();
+        revision.update(value -> value + 1);
+        return result.succeeded();
     }
 
     private void editCallSign(String value) {
@@ -1069,6 +1200,11 @@ public final class MechLabViewModel {
 
     private void renameSelectedMech() {
         CampaignMech mech = selectedMech();
+        CampaignVehicle vehicle = selectedVehicle();
+        if (mech == null && vehicle != null) {
+            renameSelectedVehicle(vehicle);
+            return;
+        }
         if (mech == null) return;
         if (!mech.rename(callSignDraft.get())) {
             feedbackText.set(Strings.format("openingMechLabCallSignMustContainCharacters", CampaignMech.CALLSIGN_MAX_LENGTH));
@@ -1077,6 +1213,18 @@ public final class MechLabViewModel {
         }
         callSignDraft.set(mech.displayName());
         feedbackText.set(Strings.format("openingMechLabRenamedChassisIdentityFitAndStoresWere", mech.displayName()));
+        feedbackClasses.set("mech-lab-feedback tone-good surface-dark");
+        revision.update(value -> value + 1);
+    }
+
+    private void renameSelectedVehicle(CampaignVehicle vehicle) {
+        if (!vehicle.rename(callSignDraft.get())) {
+            feedbackText.set(Strings.format("openingMechLabCallSignMustContainCharacters", CampaignMech.CALLSIGN_MAX_LENGTH));
+            feedbackClasses.set("mech-lab-feedback tone-danger surface-dark");
+            return;
+        }
+        callSignDraft.set(vehicle.displayName());
+        feedbackText.set(Strings.format("openingMechLabRenamedVehicle", vehicle.displayName()));
         feedbackClasses.set("mech-lab-feedback tone-good surface-dark");
         revision.update(value -> value + 1);
     }
@@ -1093,9 +1241,88 @@ public final class MechLabViewModel {
         return squad != null && mechId != null ? squad.mechById(mechId) : null;
     }
 
+    private CampaignVehicle selectedVehicle() {
+        if (!fittingFocused.get()) return null;
+        CampaignMechSquad squad = selectedSquad();
+        String vehicleId = selectedVehicleId.get();
+        return squad != null && vehicleId != null ? squad.vehicleById(vehicleId) : null;
+    }
+
+    /** Callsign of the selected mech or vehicle, or null when neither is selected. */
+    private String selectedAssetName() {
+        CampaignMech mech = selectedMech();
+        if (mech != null) return mech.displayName();
+        CampaignVehicle vehicle = selectedVehicle();
+        return vehicle != null ? vehicle.displayName() : null;
+    }
+
+    /** True on a vacant gantry, where chassis and vehicle patterns are offered. */
     private boolean fabricatingChassis() {
-        if (!fittingFocused.get() || selectedMechId.get() != null) return false;
-        return mechAt(selectedSquad(), selectedGantryIndex()) == null;
+        if (!fittingFocused.get() || selectedMechId.get() != null
+                || selectedVehicleId.get() != null) return false;
+        return !gantryOccupied(selectedSquad(), selectedGantryIndex());
+    }
+
+    private static boolean gantryOccupied(CampaignMechSquad squad, int index) {
+        return squad != null && index >= 0 && index < squad.occupied();
+    }
+
+    /** Gantries hold the mechs first, then the vehicles. */
+    private static CampaignVehicle vehicleAt(CampaignMechSquad squad, int index) {
+        if (squad == null) return null;
+        int vehicleIndex = index - squad.mechs().size();
+        return vehicleIndex >= 0 && vehicleIndex < squad.vehicles().size()
+                ? squad.vehicles().get(vehicleIndex) : null;
+    }
+
+    private static String vehicleIdentity(VehicleType type) {
+        String weight = switch (MechPattern.weightClass(type)) {
+            case LIGHT -> Strings.get("openingMechLabWeightClassLIGHT");
+            case MEDIUM -> Strings.get("openingMechLabWeightClassMEDIUM");
+            case HEAVY -> Strings.get("openingMechLabWeightClassHEAVY");
+        };
+        return Strings.format("openingMechLabVehicleIdentity", CampaignVehicle.typeName(type), weight);
+    }
+
+    private static String vehicleArmament(VehicleType type) {
+        String turret = turretName(type);
+        return turret != null ? Strings.format("openingMechLabVehicleTurret", turret)
+                : Strings.get("openingMechLabVehicleUnarmed");
+    }
+
+    /** The turret's catalog name; a generic label when the catalog is not loaded. */
+    private static String turretName(VehicleType type) {
+        if (!type.hasTurretWeapon()) return null;
+        TurretCatalogRegistry registry = TurretCatalogRegistry.installed();
+        StructureDef structure = registry != null ? registry.getStructure(type.turretStructureId) : null;
+        return structure != null ? structure.displayName : Strings.get("openingMechLabVehicleTurretGeneric");
+    }
+
+    private static String vehicleSummary(VehicleType type) {
+        return Strings.format("openingMechLabVehicleSummary", number(type.maxStructure),
+                number(type.maxArmor), number(type.armorRating), number(type.maxSpeed), type.capacity);
+    }
+
+    /** Read-only hull figures, scaled against the largest fabricable vehicle of each. */
+    private static List<PerformanceMeter> vehicleMeters(VehicleType type) {
+        return List.of(
+                meter("structure", Strings.get("openingMechLabStructure"), number(type.maxStructure),
+                        type.maxStructure, vehicleMaximum(t -> t.maxStructure), type.maxStructure),
+                meter("armor", Strings.get("openingMechLabArmor"),
+                        Strings.format("openingMechLabVehicleArmor", number(type.maxArmor), number(type.armorRating)),
+                        type.maxArmor, vehicleMaximum(t -> t.maxArmor), type.maxArmor),
+                meter("mobility", Strings.get("openingMechLabMobility"), Strings.format("openingMechLabCellsS", number(type.maxSpeed)),
+                        type.maxSpeed, vehicleMaximum(t -> t.maxSpeed), type.maxSpeed),
+                meter("capacity", Strings.get("openingMechLabPassengers"), Strings.format("openingMechLabSeats", type.capacity),
+                        type.capacity, vehicleMaximum(t -> t.capacity), type.capacity));
+    }
+
+    private static float vehicleMaximum(VehicleMetric metric) {
+        float max = 0f;
+        for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.vehicles()) {
+            max = Math.max(max, metric.value(recipe.vehicle()));
+        }
+        return max;
     }
 
     private static CampaignMech mechAt(CampaignMechSquad squad, int index) {
@@ -1265,6 +1492,8 @@ public final class MechLabViewModel {
     }
 
     private interface VariantMetric { float value(MechVariant variant); }
+
+    private interface VehicleMetric { float value(VehicleType type); }
 
     public record SquadRow(String id, String nameId, String statusId, String strengthId,
                            String classes, String name, String status, String strength,

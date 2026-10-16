@@ -145,6 +145,8 @@ public final class MissionOutcome {
      * they were called. A committed ship never called is absent, which is how it pays nothing.
      */
     public final List<ShipSupportResult> shipsCalled;
+    /** Mech-bay vehicle ids wrecked on the field; each leaves its gantry on settlement. */
+    public final List<String> vehiclesLost;
     public final Set<String> survivingSoldierIds;
     public final Set<String> fallenSoldierIds;
     /** Mission-time persistent squad selection, in briefing order. */
@@ -235,6 +237,7 @@ public final class MissionOutcome {
         this.boatDamage = Map.copyOf(b.boatDamage);
         this.marinesLostAboard = Math.max(0, b.marinesLostAboard);
         this.shipsCalled = b.shipsCalled == null ? Collections.emptyList() : List.copyOf(b.shipsCalled);
+        this.vehiclesLost = b.vehiclesLost == null ? Collections.emptyList() : List.copyOf(b.vehiclesLost);
         this.survivingSoldierIds = immutableIds(b.survivingSoldierIds);
         this.fallenSoldierIds = immutableIds(b.fallenSoldierIds);
         this.deployedFireteamIds = immutableOrderedIds(b.deployedFireteamIds);
@@ -334,6 +337,7 @@ public final class MissionOutcome {
 
         private int marinesLostAboard;
         private List<ShipSupportResult> shipsCalled = Collections.emptyList();
+        private List<String> vehiclesLost = Collections.emptyList();
         private Set<String> survivingSoldierIds = Collections.emptySet();
         private Set<String> fallenSoldierIds = Collections.emptySet();
         private Set<String> deployedFireteamIds = Collections.emptySet();
@@ -558,6 +562,11 @@ public final class MissionOutcome {
 
         public Builder shipsCalled(List<ShipSupportResult> shipsCalled) {
             this.shipsCalled = shipsCalled;
+            return this;
+        }
+
+        public Builder vehiclesLost(List<String> vehiclesLost) {
+            this.vehiclesLost = vehiclesLost;
             return this;
         }
 
