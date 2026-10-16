@@ -387,7 +387,7 @@ public final class WarshipSystem {
             duelHelm(sim, ship);
             float entryBefore = ship.entrySeconds();
             ship.addEntrySeconds(dt);
-            ship.addLiftSeconds(dt);
+            ship.addLiftSeconds(dt, 0.5f * sim.getGrid().getWidth(), 0.5f * sim.getGrid().getHeight());
             entryCues(ship, entryBefore);
             if (ship.tickVisit(dt, hostileHullOver(ship))) {
                 // The visit is over: nothing hostile in the air for the dwell, so it leaves the ordinary way.
@@ -1004,6 +1004,11 @@ public final class WarshipSystem {
 
     /** Chooses the heading an unpiloted ship wants: the one that brings its guns to bear, or along its route. */
     private static void chooseHeading(Warship ship) {
+        if (ship.liftRunning() && Math.hypot(ship.velocityX, ship.velocityY) > 0.05f) {
+            // Off the berth and round the climbing turn, the nose follows the run before anything else claims it.
+            ship.desiredHeading = AirBody.facingToward(ship.velocityX, ship.velocityY);
+            return;
+        }
         List<Warship.Held> held = ship.held();
         boolean bring = !held.isEmpty() && held.get(0).area.bringGunsToBear();
         Warship hull = ship.hullTarget();

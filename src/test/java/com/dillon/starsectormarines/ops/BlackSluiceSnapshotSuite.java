@@ -209,7 +209,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                         && sim.getSimTickIndex() <= Integer.getInteger("battle.blackSluice.closeTo", 0))
                     frames.add(new SnapshotArtifact(fixture.id() + "-close-" + sim.getSimTickIndex() + ".png",
                             new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, Integer.getInteger("battle.blackSluice.closeX", 110),
-                                    Integer.getInteger("battle.blackSluice.closeY", 66), 70).withImpactEffects()
+                                    Integer.getInteger("battle.blackSluice.closeY", 170), 70).withImpactEffects()
                                     .render(sim, "BLACK SLUICE / CLOSE / tick " + sim.getSimTickIndex(), ReviewAnnotations.builder().build())));
                 if (recordDuel && splitSeen) {
                     int since = sim.getSimTickIndex() - splitTick;
@@ -217,22 +217,22 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                     if (over && duelOverTick < 0) duelOverTick = sim.getSimTickIndex();
                     boolean tail = duelOverTick < 0 || sim.getSimTickIndex() - duelOverTick <= DUEL_FRAME_TAIL;
                     if (since <= DUEL_FRAME_TICKS && since % DUEL_FRAME_EVERY == 0 && tail)
-                        duelFrames.add(new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 196, 64, 150)
+                        duelFrames.add(new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 150, 76, 300)
                                 .withImpactEffects().withUnitShadows()
-                                .render(sim, "BLACK SLUICE / THE DUEL OVERHEAD / " + since / 30 + "s after Voss's order / "
+                                .render(sim, "BLACK SLUICE / THE DUEL OVER THE SOUTHERN GROUND / " + since / 30 + "s after Voss's order / "
                                         + duelCaption(duel), ReviewAnnotations.builder().build()));
                 }
                 if (recordDuel && splitSeen && (sim.getSimTickIndex() - splitTick) % 45 == 0
                         && sim.getSimTickIndex() - splitTick <= 225)
                     frames.add(new SnapshotArtifact(String.format(Locale.ROOT, "%s-liftoff-t%03d.png", fixture.id(), sim.getSimTickIndex() - splitTick),
-                            new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 226, 64, 132).withImpactEffects().withUnitShadows()
+                            new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 176, 40, 200).withImpactEffects().withUnitShadows()
                                     .render(sim, "BLACK SLUICE / LIFTOFF / " + String.format(Locale.ROOT, "%.1f", (sim.getSimTickIndex() - splitTick) / 30f)
                                             + "s after Voss's order / " + duelCaption(duel), ReviewAnnotations.builder().build())));
-                if (recordDuel && dockContactTick < 0 && marineNear(sim, 176)) {
+                if (recordDuel && dockContactTick < 0 && marineNear(sim, 200)) {
                     dockContactTick = sim.getSimTickIndex();
                     frames.add(new SnapshotArtifact(fixture.id() + "-dock-contact-" + dockContactTick + ".png",
-                            new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 206, 60, 80).withImpactEffects().withUnitShadows()
-                                    .render(sim, "BLACK SLUICE / MARINES AT THE DOCK / tick " + dockContactTick, ReviewAnnotations.builder().build())));
+                            new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 222, 160, 80).withImpactEffects().withUnitShadows()
+                                    .render(sim, "BLACK SLUICE / MARINES IN THE BERTH YARD / tick " + dockContactTick, ReviewAnnotations.builder().build())));
                 }
                 if (splitSeen && sim.getSimTickIndex() == splitTick + 360)
                     frames.add(frame(context, fixture.id() + "-withdrawal-" + sim.getSimTickIndex() + ".png", sim, false));
@@ -337,39 +337,46 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
         var lift = DetachmentResolver.buildShuttleManifestForPersonnel(mission(), List.of(boat("map-one"), boat("map-two")), 36);
         try (var sim = BattleSetup.createSmallWar(15305, lift, new TargetProfile(0, 0, 0, 0, "pirates", Set.of(), SurfacePalette.ROCK, SettlementLink.ROAD), true)) {
             var marks = ReviewAnnotations.builder()
-                    .box(14, 44, 40, 84, "COMPANY LIFT / HOLDERS / CUSTODY PARTY", ReviewStyle.LANDING);
+                    .box(14, 148, 40, 188, "COMPANY LIFT / HOLDERS / CUSTODY PARTY", ReviewStyle.LANDING);
             var labels = new String[]{"1 / CUSTOMS BLOCK", "2 / FUEL CONTROL / HANDOVER", "3 / DISPATCH PIER"};
             for (int i = 0; i < 3; i++) {
                 var site = BlackSluice.SITES.get(i);
                 marks.box(site.left(), site.bottom(), site.right(), site.top(), labels[i], i == 1 ? ReviewStyle.KEEP : ReviewStyle.OBJECTIVE);
             }
-            marks.box(48, 44, 60, 53, "REAR POSITION / TENDER BUILD", ReviewStyle.KEEP)
-                    .box(140, 78, 157, 91, "PRESERVE MARKED FUEL TANKS", ReviewStyle.KEEP)
+            marks.box(48, 148, 60, 157, "REAR POSITION / TENDER BUILD", ReviewStyle.KEEP)
+                    .box(140, 182, 157, 195, "PRESERVE MARKED FUEL TANKS", ReviewStyle.KEEP)
                     .label(BlackSluice.GUN_X, BlackSluice.GUN_Y - 3, "SUPPORT GUN", ReviewStyle.ROUTE)
-                    .arrow(66, 60, 106, 60, "EXPOSED CAUSEWAY", ReviewStyle.ROUTE)
-                    .arrow(66, 84, 118, 84, "NORTH SERVICE GALLERY", ReviewStyle.APPROACH)
-                    .arrow(66, 35, 108, 35, "SOUTH SERVICE GALLERY", ReviewStyle.APPROACH)
-                    .arrow(134, 40, 192, 23, "SERVICE ROAD / VEHICLE LOCK / WAY OUT", ReviewStyle.NOTE)
-                    .arrow(BlackSluice.PIER_INGRESS_X, BlackSluice.PIER_INGRESS_Y, 170, 56, "PIER STAIR", ReviewStyle.ROUTE)
+                    .arrow(66, 164, 106, 164, "EXPOSED CAUSEWAY", ReviewStyle.ROUTE)
+                    .arrow(66, 188, 118, 188, "NORTH SERVICE GALLERY", ReviewStyle.APPROACH)
+                    .arrow(66, 139, 108, 139, "SOUTH SERVICE GALLERY", ReviewStyle.APPROACH)
+                    .arrow(134, 144, 192, 127, "SERVICE ROAD / VEHICLE LOCK / WAY OUT", ReviewStyle.NOTE)
+                    .arrow(BlackSluice.PIER_INGRESS_X, BlackSluice.PIER_INGRESS_Y, 170, 160, "PIER STAIR", ReviewStyle.ROUTE)
                     .box(BlackSluice.DOCK_LEFT, BlackSluice.DOCK_BOTTOM, BlackSluice.DOCK_RIGHT, BlackSluice.DOCK_TOP,
-                            "DOCKING COMPOUND", ReviewStyle.NOTE);
+                            "BERTH YARD", ReviewStyle.NOTE)
+                    .arrow(190, 160, 206, 160, "PRESSURE VESTIBULE", ReviewStyle.APPROACH)
+                    .arrow(240, 160, BlackSluice.GATE_X + 4, BlackSluice.GATE_Y, "BERTH GATE", ReviewStyle.ROUTE)
+                    .arrow(283, 150, 283, 74, "BERTH ROAD: THE ONLY WAY DOWN", ReviewStyle.ROUTE)
+                    .label(150, 92, "RIDGE: NO WAY THROUGH", ReviewStyle.NOTE)
+                    .label(56, 40, "ROCK MASSIF", ReviewStyle.NOTE)
+                    .box(0, 0, BlackSluice.WIDTH - 1, BlackSluice.AIRSPACE_TOP, "DUEL AIRSPACE", ReviewStyle.NOTE);
             var cradle = BlackSluice.VENTURE_CRADLE;
             marks.box(cradle.left(), cradle.bottom(), cradle.right(), cradle.top(), "VENTURE CRADLE", ReviewStyle.OBJECTIVE);
             for (var berth : BlackSluice.HOUND_BERTHS)
                 marks.box(berth.left(), berth.bottom(), berth.right(), berth.top(), "HOUND BERTH", ReviewStyle.OBJECTIVE);
-            marks.arrow(190, 56, 206, 56, "PRESSURE VESTIBULE", ReviewStyle.APPROACH);
             frames.add(new SnapshotArtifact("black-sluice-overview.png", new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080)
                     .render(sim, "A SMALL WAR / BLACK SLUICE / seed 15305 / roofs omitted / observer annotations", marks.build())));
-            frames.add(new SnapshotArtifact("black-sluice-detail-fuel-control.png", new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 134, 70, 88)
+            frames.add(new SnapshotArtifact("black-sluice-detail-fuel-control.png", new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 134, 174, 88)
                     .render(sim, "BLACK SLUICE / FUEL CONTROL, GUN AND TANK YARD / 88 cells across")));
-            // Greyhook's ships landed at true scale in the docking compound, Greyhook's own crews on the apron beside them.
-            frames.add(new SnapshotArtifact("black-sluice-detail-dock.png", new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 172, 64, 192)
-                    .withUnitShadows().render(sim, "BLACK SLUICE / DOCKING COMPOUND / Venture and two Hound (P) landed at true scale / 192 cells across")));
-            frames.add(new SnapshotArtifact("black-sluice-detail-venture-stern.png", new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 200, 60, 64)
-                    .withUnitShadows().render(sim, "BLACK SLUICE / VENTURE STERN, MAIN VESTIBULE AND DISPATCH APRON / 64 cells across")));
-            frames.add(new SnapshotArtifact("black-sluice-detail-hound-berth.png", new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 228, 104, 48)
-                    .withUnitShadows().render(sim, "BLACK SLUICE / NORTH HOUND BERTH, GANTRY AND FUEL LINE / 48 cells across")));
-            frames.add(new SnapshotArtifact("black-sluice-detail-customs.png", new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 70, 60, 88)
+            // Greyhook's ships landed at true scale on the southern pads, below the ridge from the ground fight.
+            frames.add(new SnapshotArtifact("black-sluice-detail-dock.png", new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 196, 44, 192)
+                    .withUnitShadows().render(sim, "BLACK SLUICE / SOUTHERN BERTHS / Venture and two Hound (P) landed at true scale / 192 cells across")));
+            frames.add(new SnapshotArtifact("black-sluice-detail-venture-stern.png", new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 222, 36, 64)
+                    .withUnitShadows().render(sim, "BLACK SLUICE / VENTURE STERN, CONCRETE PAD AND GANTRY ARMS / 64 cells across")));
+            frames.add(new SnapshotArtifact("black-sluice-detail-hound-berth.png", new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 142, 34, 48)
+                    .withUnitShadows().render(sim, "BLACK SLUICE / WEST HOUND BERTH, GANTRY ARMS AND KERB / 48 cells across")));
+            frames.add(new SnapshotArtifact("black-sluice-detail-berth-gate.png", new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 262, 124, 112)
+                    .withUnitShadows().render(sim, "BLACK SLUICE / BERTH YARD, BERTH GATE, BERTH ROAD AND RIDGE / 112 cells across")));
+            frames.add(new SnapshotArtifact("black-sluice-detail-customs.png", new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 70, 164, 88)
                     .render(sim, "BLACK SLUICE / CUSTOMS, REAR BAY AND GALLERY MOUTHS / 88 cells across")));
         }
     }
@@ -448,7 +455,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
     private Mission mission() { return AgreusArcCampaign.offer(ratified(AgreusYardAgreement.HOUSE_CUSTODY), "Agreus"); }
     private SnapshotArtifact frame(SnapshotContext context, String name, BattleSimulation sim, boolean detail) throws Exception {
         var sequence = sim.getSmallWar();
-        return new SnapshotArtifact(name, new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, BlackSluice.WIDTH / 2, 64, BlackSluice.WIDTH)
+        return new SnapshotArtifact(name, new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080)
                 .withImpactEffects().withUnitShadows().render(sim, "BLACK SLUICE / " + sequence.progress().phase()
                         + (sequence.progress().split() ? " / AFTER VOSS'S ORDER" : ""), ReviewAnnotations.builder().build()));
     }
