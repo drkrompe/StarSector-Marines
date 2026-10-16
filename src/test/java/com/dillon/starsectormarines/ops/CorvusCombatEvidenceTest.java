@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.command.trace.MechTimeToKillProbe;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
@@ -167,6 +168,7 @@ class CorvusCombatEvidenceTest {
                 Warship departingCapital = null;
                 var frameTicks = new JSONArray().put(0);
                 var samples = new JSONArray();
+                var mechs = new MechTimeToKillProbe();
                 writeFrame(renderer, sim, chapter, dir);
                 while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                     var service = sim.getCommandPowerService();
@@ -182,6 +184,7 @@ class CorvusCombatEvidenceTest {
                     int beforeShipShots = sim.getColdAccount() == null ? 0 : sim.getColdAccount().shotsFired();
                     var beforeNarration = narration.current();
                     sim.advance(BattleSimulation.TICK_DT);
+                    mechs.sample(sim);
                     if (damageReview != null) damageReview.tick();
                     playbackSeconds[0] += BattleSimulation.TICK_DT / replaySpeed(sim);
                     narration.advance(BattleSimulation.TICK_DT / replaySpeed(sim),
@@ -409,6 +412,7 @@ class CorvusCombatEvidenceTest {
                                 "The patrol report plays before completion");
                     }
                 }
+                report.put("mechs", mechs.json());
                 Files.writeString(dir.resolve("summary.json"),report.toString(2));
                 reports.put(report);
                 Files.writeString(output.resolve("summary.json"),reports.toString(2));

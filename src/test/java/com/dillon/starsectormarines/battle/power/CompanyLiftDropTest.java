@@ -1,21 +1,17 @@
 package com.dillon.starsectormarines.battle.power;
 
+import com.dillon.starsectormarines.battle.air.ArmorLoad;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.LiftClass;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
-import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.EntitySpec;
-import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.UnitType;
-import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -23,12 +19,18 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Who flies a drop: the company's cradled boat when it can, the synthetic Valkyrie when it cannot. */
+/**
+ * Who flies a drop: the company's cradled boat when it can, the synthetic Valkyrie when it
+ * cannot. Asked of the call's commit and the carrier choice; the carrier actually flying in
+ * and unloading is {@code HeavyLiftScene}'s.
+ */
 class CompanyLiftDropTest {
 
     private static final FittedBoat CRADLED_BUFFALO = new FittedBoat(ShuttleType.BUFFALO,
             BoatFitting.STANDARD_PLATING, BoatFitting.STANDARD_DRIVE,
             BoatFitting.LIFT_CRADLE, "buffalo-1");
+    private static final MechDeploymentSpec HOUND = MechDeploymentSpec.standard(MechVariant.HOUND);
+    private static final MechDeploymentSpec BULWARK = MechDeploymentSpec.standard(MechVariant.BULWARK);
 
     @Test
     void theCompanyBoatFliesACallItCanLiftAndTheSyntheticCarrierTheRest() {
@@ -48,74 +50,51 @@ class CompanyLiftDropTest {
 
     @Test
     void aCradledBuffaloFliesOneHoundPerSortie() {
-        BattleSimulation sim = openSim();
-        MechSupport power = MechSupport.configured(List.of(
-                MechDeploymentSpec.standard(MechVariant.HOUND),
-                MechDeploymentSpec.standard(MechVariant.HOUND)), CRADLED_BUFFALO, false);
-        sim.setCommandPowers(List.of(power));
+        MechSupport power = MechSupport.configured(List.of(HOUND, HOUND), CRADLED_BUFFALO, false);
 
-        assertTrue(power.canTarget(15, 15, sim));
-        sim.getCommandPowerService().requestActivation(power.id, 15, 15);
-        sim.advance(BattleSimulation.TICK_DT);
+        Map<LiftBudget.Carrier, List<ArmorLoad>> sorties =
+                power.commitCall(power.defaultSelection(null), true);
 
-        assertEquals(1, sim.getAirEntityIds().length);
-        long boat = sim.getAirEntityIds()[0];
-        assertEquals(CRADLED_BUFFALO, sim.world().airframe(boat),
-                "the company's own boat is in the air, so its loss is the company's");
-        ShuttleMission mission = sim.world().mission(boat);
+        assertEquals(1, sorties.size());
+        LiftBudget.Carrier carrier = sorties.keySet().iterator().next();
+        assertEquals(CRADLED_BUFFALO, carrier.frame(),
+                "the company's own boat flies, so its loss is the company's");
+        assertTrue(carrier.company());
+        ShuttleMission mission = new ShuttleMission(15f, 15f, 0f, 0f, 0f, 0f, 0f, 0);
+        MechSupport.loadArmor(mission, sorties.get(carrier), carrier.company());
         assertEquals(2, mission.totalCycles, "one trip per machine");
         assertEquals(1, mission.marinesRemaining);
     }
 
     @Test
-    void aBulwarkIsRefusedWithoutHeavyLiftAndNoChargeIsSpent() {
-        BattleSimulation sim = openSim();
-        MechSupport power = MechSupport.configured(List.of(
-                MechDeploymentSpec.standard(MechVariant.BULWARK)), CRADLED_BUFFALO, false);
-        sim.setCommandPowers(List.of(power));
+    void aBulwarkIsRefusedWithoutHeavyLiftAndNothingIsSpent() {
+        MechSupport power = MechSupport.configured(List.of(BULWARK), CRADLED_BUFFALO, false);
+        int lift = power.budget().remaining();
 
-        assertFalse(power.canTarget(15, 15, sim));
-        sim.getCommandPowerService().requestActivation(power.id, 15, 15);
-        sim.advance(BattleSimulation.TICK_DT);
-
-        assertEquals(0, sim.getAirEntityIds().length);
-        assertEquals(1, sim.getCommandPowerService().getChargesRemaining(power.id));
+        assertSame(LiftBudget.Refusal.NO_LIFT, power.picker(null, List.of()).get(0).refusal());
+        assertTrue(power.commitCall(List.of(0), true).isEmpty());
+        assertFalse(power.called(0));
+        assertEquals(1, power.availableCalls(), "the Bulwark is still aboard");
+        assertEquals(lift, power.budget().remaining());
     }
 
     @Test
     void withShipLiftBehindItABulwarkStillComesDownInTheValkyrie() {
-        BattleSimulation sim = openSim();
-        MechSupport power = MechSupport.configured(List.of(
-                MechDeploymentSpec.standard(MechVariant.BULWARK)), CRADLED_BUFFALO, true);
-        sim.setCommandPowers(List.of(power));
+        MechSupport power = MechSupport.configured(List.of(BULWARK), CRADLED_BUFFALO, true);
 
-        sim.getCommandPowerService().requestActivation(power.id, 15, 15);
-        sim.advance(BattleSimulation.TICK_DT);
+        Map<LiftBudget.Carrier, List<ArmorLoad>> sorties = power.commitCall(List.of(0), true);
 
-        assertEquals(1, sim.getAirEntityIds().length);
-        assertSame(ShuttleType.VALKYRIE, sim.world().airframe(sim.getAirEntityIds()[0]));
+        assertEquals(1, sorties.size());
+        LiftBudget.Carrier carrier = sorties.keySet().iterator().next();
+        assertSame(ShuttleType.VALKYRIE, carrier.frame());
+        assertFalse(carrier.company());
     }
 
     @Test
     void armourSupportFliesTheHeavyApcInACradledBoat() {
-        BattleSimulation sim = openSim();
         VehicleSupport power = VehicleSupport.configured(List.of(), CRADLED_BUFFALO, true);
-        sim.setCommandPowers(List.of(power));
 
-        sim.getCommandPowerService().requestActivation(power.id, 15, 15);
-        sim.advance(BattleSimulation.TICK_DT);
-
-        assertEquals(1, sim.getAirEntityIds().length);
-        assertEquals(CRADLED_BUFFALO, sim.world().airframe(sim.getAirEntityIds()[0]));
-    }
-
-    private static BattleSimulation openSim() {
-        NavigationGrid grid = new NavigationGrid(30, 30);
-        for (int y = 0; y < 30; y++) {
-            for (int x = 0; x < 30; x++) grid.setWalkableFloor(x, y);
-        }
-        BattleSimulation sim = new BattleSimulation(grid, new CellTopology(30, 30));
-        sim.spawn(new EntitySpec("defender", Faction.DEFENDER, UnitType.MILITIA, 25, 25));
-        return sim;
+        assertSame(CRADLED_BUFFALO, AirDeliveryPower.chooseCarrier(power.nextLoad(null),
+                CRADLED_BUFFALO, true, power.syntheticLift(), ShuttleType.VALKYRIE));
     }
 }
