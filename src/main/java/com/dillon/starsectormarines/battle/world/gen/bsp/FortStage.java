@@ -107,12 +107,12 @@ public final class FortStage implements GenStage {
     private static final int KEEP_WEIGHT = 6;
     private static final int SUPPLY_WEIGHT = 2;
     /**
-     * The guns a fort's nests carry in turn: anti-infantry, the flak emplacement (which reaches aircraft by the area
-     * model), anti-infantry again, and a dedicated anti-air position that fires real rounds at aircraft. A strong defence
-     * is likely to have anti-air even when it is not the capital's: a strike over a fort meets it. UNTUNED mix.
+     * The guns a fort's nests carry in turn: anti-infantry, the Hephaestus cannon (for the vehicles and mechs that come up the
+     * gates), anti-infantry again, and a Vulcan to suppress. Anti-air is the missile towers' job, not the nests'. A strong defence
+     * is a mix of fire, not a single gun. UNTUNED mix.
      */
-    private static final String[] NEST_STRUCTURES = {"structure.turret-heavy-mg", "structure.turret-dual-flak",
-            "structure.turret-heavy-mg", TurretCatalogRegistry.ANTI_AIR_STRUCTURE_ID};
+    private static final String[] NEST_STRUCTURES = {"structure.turret-heavy-mg", TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID,
+            "structure.turret-heavy-mg", TurretCatalogRegistry.VULCAN_STRUCTURE_ID};
 
     /** Members in a fort's token picket, the eyes that raise the pressure the commander's reactive manning answers. UNTUNED. */
     static final int PICKET_SIZE = 4;

@@ -81,12 +81,11 @@ once.
 ## Defence nests
 
 The dispersed Ground Defenses network is mostly today's defence posts and overwatch
-towers, with one change: a nest's flak and anti-air weapons engage aircraft (they already
-drain aircraft through the air-threat field). They do not threaten a capital, keeping
+towers. Nests carry no flak: a nest is an anti-armour cannon or an anti-infantry gun, and air defence is the missile AA's job (Locust, Swarmer), which a fort stands on its bastions and ordinary heavy posts may select. Nests do not threaten a capital, keeping
 ordinary ground-to-ship weak. Nothing new is required beyond the profile signal deciding
 how many there are.
 
-A fort may add a dedicated **anti-air yard** to its works (`forts.md`, optional anti-air aspect): guided batteries (on its bastions) and flak (in the control yard) that reach well beyond a nest's bubble, shut down by wrecking, power or capture like any aspect. It is declared per fort kind and is still absent from every shipped mission.
+A fort may add a dedicated **anti-air yard** to its works (`forts.md`, optional anti-air aspect): Locust batteries and Swarmer towers (all on its bastions) that reach well beyond a nest's bubble, shut down by wrecking, power or capture like any aspect. It is declared per fort kind and is still absent from every shipped mission.
 
 ## What this does to a battle
 
@@ -222,8 +221,8 @@ capital that is not another ship.
      `FORTRESS` now includes nests with its batteries and generator.
    - *Placement.* `DefenceNestStage` runs after the battery stage and places exactly the declared count, drawing no
      random numbers. A nest is the ordinary light defence post (vent ring, one sealed mount) stamped by
-     `DefensePostStamper`, so nothing parallel exists; the guns are the catalog's own emplacements, dual flak
-     alternating with heavy machine gun (anti-air, then anti-infantry). Nests are unmanned, as the overwatch towers are:
+     `DefensePostStamper`, so nothing parallel exists; the guns are the catalog's own emplacements, the Hephaestus cannon
+     alternating with heavy machine gun (anti-armour, then anti-infantry). Nests are unmanned, as the overwatch towers are:
      no guard-post node, so no defender roster change. Sites are open outdoor ground that fits the post footprint in the
      middle or deep band; each pick is the site furthest from every post and nest already standing (distance counted up
      to a spacing set by the map's area and the declared count), ties to the ground nearest the centre. Fewer are placed

@@ -50,9 +50,9 @@ public final class DefenceNestStage implements GenStage {
     private static final int SCAN_STRIDE = 3;
     private static final EnumSet<DepthBand> ALLOWED_BANDS = EnumSet.of(DepthBand.MID, DepthBand.DEEP, DepthBand.UNSET);
 
-    /** The two guns a nest carries in turn: anti-air first, anti-infantry second. */
+    /** The two guns a nest carries in turn: an anti-armour cannon first, anti-infantry second. */
     static final String[] NEST_GUNS = {
-            TurretCatalogRegistry.DUAL_FLAK_STRUCTURE_ID,
+            TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID,
             TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID
     };
 

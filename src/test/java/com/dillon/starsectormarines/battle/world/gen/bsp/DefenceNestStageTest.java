@@ -58,7 +58,7 @@ class DefenceNestStageTest {
     }
 
     @Test
-    void exactlyTheDeclaredCountStandsAlternatingFlakAndMachineGun() {
+    void exactlyTheDeclaredCountStandsAlternatingCannonAndMachineGun() {
         GenContext ctx = field(declared(7));
         new DefenceNestStage().run(ctx);
 
@@ -67,7 +67,7 @@ class DefenceNestStageTest {
             DefensePost post = ctx.defensePosts.get(i);
             assertEquals(1, post.turrets.size());
             String expected = i % 2 == 0
-                    ? TurretCatalogRegistry.DUAL_FLAK_STRUCTURE_ID : TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID;
+                    ? TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID : TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID;
             assertEquals(expected, post.turrets.get(0).structureId);
             assertFalse(ctx.grid.isWalkable(post.anchorX, post.anchorY), "the mount is sealed");
         }
