@@ -54,6 +54,10 @@ class FactionEquipmentCatalogTest {
                 "equipment-template:weapon.pulse-rifle:masterwork",
                 FactionEquipmentSource.PATRON));
         assertTrue(FactionEquipmentCatalog.resolve("lions_guard").offers(
+                "equipment-template:armor.lions-mantle",
+                FactionEquipmentSource.PATRON));
+        // Approved military issue is offered only by the tradition that builds it.
+        assertFalse(FactionEquipmentCatalog.resolve("lions_guard").offers(
                 "equipment-template:armor.heavy",
                 FactionEquipmentSource.PATRON));
     }

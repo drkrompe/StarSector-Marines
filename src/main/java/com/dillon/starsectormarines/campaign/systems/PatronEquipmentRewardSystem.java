@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.PatronEngagementOutcome;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.EquipmentAcquisitionEligibility;
+import com.dillon.starsectormarines.marine.MilitaryWarrants;
 import com.dillon.starsectormarines.marine.FactionEquipmentSource;
 import com.dillon.starsectormarines.marine.LoadoutCard;
 import com.dillon.starsectormarines.marine.LoadoutCardInventory;
@@ -125,7 +126,8 @@ public final class PatronEquipmentRewardSystem implements CampaignSystem {
         List<String> selected = LoadoutCardPicker.pick(factionId,
                 FactionEquipmentSource.PATRON, 1, seed, unavailable,
                 new EquipmentAcquisitionEligibility.Progress(
-                        victories, state.playerMrbRep));
+                        victories, state.playerMrbRep,
+                        MilitaryWarrants.warrantedTemplateIds(state)));
         return selected.isEmpty() ? null : selected.get(0);
     }
 

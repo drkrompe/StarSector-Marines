@@ -1,0 +1,104 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "name": "ship-engineering.generator-damaged",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "name": "ship-engineering.generator-destroyed",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "name": "ship-engineering.control-damaged",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "ship-engineering.control-destroyed",
+      "row": 4
+    },
+    {
+      "col": 3,
+      "name": "ship-engineering.switchgear-damaged",
+      "row": 4
+    },
+    {
+      "col": 6,
+      "name": "ship-engineering.switchgear-destroyed",
+      "row": 4
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.9,
+      "col": 0,
+      "cover": "med",
+      "footprintCells": [
+        6,
+        4
+      ],
+      "id": "ship-engineering.generator-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 6,
+      "cover": "none",
+      "footprintCells": [
+        6,
+        4
+      ],
+      "id": "ship-engineering.generator-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 12,
+      "cover": "med",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "ship-engineering.control-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "ship-engineering.control-destroyed",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0.9,
+      "col": 3,
+      "cover": "med",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "ship-engineering.switchgear-damaged",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 6,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "ship-engineering.switchgear-destroyed",
+      "row": 4
+    }
+  ],
+  "sheet": "graphics/tilesets/installation-utility-damage.png"
+}

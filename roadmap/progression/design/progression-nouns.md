@@ -190,9 +190,19 @@ legibility.
   a template outside ordinary faction channels. Its declaration identifies who
   must implement the reward; it does not certify a playable mission or a completed
   reward path, and never grants technology by itself.
-- **Equipment access tier** — a card's authored Common, Advanced, or Prestige
-  campaign band. It is independent of grade, armor role, provenance and loadout collectible rarity; acquisition channels interpret it
-  through shared company-history and reputation gates.
+- **Equipment access tier** — a card's authored Common, Advanced, Prestige or
+  Restricted campaign band. It is independent of grade, armor role, provenance and loadout collectible rarity; acquisition channels interpret the
+  first three through shared company-history and reputation gates. Restricted is
+  not a fourth threshold: no reputation or victory count reaches it.
+- **Military warrant** — a named, persistent authorisation from one tradition
+  that makes the Restricted templates it lists acquirable through that
+  tradition's own licence and patron channels, and through nothing else. It
+  teaches nothing by itself. Always written in full: the Agreus contracts'
+  *civil-security procurement warrant* is a contract term that opens no access
+  tier, and neither noun stands for the other.
+- **Market listing** — a named card a story beat has put on sale at one named
+  market, or at every open market of one faction, until the company knows or
+  carries it. Authored stock the market channel displays, not a fifth channel.
 - **Armory** — the persistent campaign authority for collected equipment
   templates and reusable squad definitions. Materialized marine kit persists on
   the marine; the Machine Shop fits learned technology for free.
@@ -574,7 +584,78 @@ explicit named story source. A story-only armor template declares that owner
 through `storySource`; it cannot also enter a faction pool or starter issue.
 The declaration does not prove that the story reward is implemented. An Advanced
 or Prestige card authored only for the Common-only open market is therefore
-still stranded. This is global reachability, not universal faction availability.
+still stranded. A Restricted template's owner is a warrant rule instead: it must
+be offered by its issuing tradition's own pool, through licence or patron only.
+Any other entry, whether another faction's pool, the open market or recovery, is an
+unwarranted route and fails the audit just as a stranded card does.
+
+**Restricted equipment is approved military issue.** The six approved tier-4 power
+suits are Restricted: the Hegemony XIV battlesuit and military Arbalest, and the
+Tri-Tachyon Specter, League Bulwark, Knights Reliquary and Lion's Guard Mantle. A
+template is Restricted because it is a tradition's current military issue, not
+because it is powerful. The pirate Foundry-Breaker stays Prestige and recoverable,
+as the crude road to powered armour that nobody warrants. The tier-3 recovered
+Specter and Arbalest stay Advanced. The **issuer** of a Restricted template is the
+tradition its armour catalog entry already declares; it is never authored a
+second time.
+
+Every channel refuses Restricted kit unless the company holds a military warrant
+naming it, and even then only that tradition's licence and patron channels offer
+it. A card bundling Restricted kit is offered only by a faction that fields that
+kit itself, so an independent licence that fields a card's scout suits does not
+thereby sell Hegemony military issue. The collection safety net and victory
+milestones never grant Restricted kit. Polity release never lists it: a warrant
+authorises the company, not whoever the company arms.
+
+A tradition grants its **standing warrant** once the company is at the Prestige
+reputation band and its relationship with that faction is Cooperative, well above
+the Favorable a licence needs. The standing warrant opens every Restricted
+template the tradition builds that no earlier warrant already opened. This is the
+route that keeps every approved suit reachable, so the open routes could close
+without stranding anything. Authored warrants (`hegemony-auxiliary-warrant.md`)
+arrive earlier through story beats, and a later standing grant completes them
+without rewriting them. Lion's Guard and Knights kit is therefore not "never". It
+is "only for a company that has become one of theirs", which most companies will
+not. A warrant is permanent once granted; what it costs to keep is
+`warrant-obligations.md`.
+
+The gate refuses new acquisition and revokes nothing. A save that learned an
+approved suit through the old open routes keeps it and fits it freely. Held
+warrants stand on the Company HQ record beside the company's employers, each
+naming its issuer, how many approved suits it opens and how it was earned. A Restricted card's own
+tooltip and spec sheet name the tradition that issues it, in place of the
+reputation and victory thresholds the other tiers show.
+
+**Market listings are how a story stocks a shelf.** A card dropped into a market's
+cargo would not survive, because every open-market restock clears the cards and
+refills from the pools. So a story beat records a listing instead, and each restock
+puts listed cards on a shelf of their own before it draws the rotation. Listings
+are additional slots that never displace a rotating card, and a listed card is left
+out of the rotating draw. A listing bypasses the reputation and victory thresholds,
+because the story is the permission. It never bypasses the Restricted tier: listing
+Restricted kit needs a military warrant naming it, and a shelf never shows Restricted
+kit the company is not warranted for. A listing is withdrawn while the company knows
+or carries the card and returns if it stops doing so; nothing else expires it.
+Creating one restocks the markets at once, so the debrief's promise is on the shelf
+now. The card's tooltip names the event that stocked it. Settlement code owns
+once-only; listing the same card at the same place twice changes nothing. This is global reachability, not universal faction availability.
+
+**Arc issue cards are how the early arcs pay in ways of fighting.** Four weapon
+cards carry the kit no older card fielded, each stocked by the arc beat that
+teaches its lesson. *Checkpoint Issue* (Rampart revetments and smoke) is listed at
+the Wayline broker's market once Relief settles. It is bought beside *A Proper
+Issue*'s free choice, never offered as one of its paths. *Convoy Escort Issue*
+(rocket tubes and one Palisade pod) is listed at the route employer's market once
+Thunder Run opens the road. *Counter-Battery Issue* (two Arrestor packs and an
+anti-materiel rifle) is listed at every Hegemony open market once *A Cold Account*
+settles: Kord's nod, Advanced kit and no warrant. *Builder's Guard* (revetments and
+Palisade pods) is listed at Asharu once the Morrow's Working Passage settles. Each
+listing comes from the arc's own once-only settlement and is laid only on a won
+beat; a settlement that cannot place it logs and moves on rather than unwinding a
+payment. The cards also circulate like any other, because a card's pool weight is
+its templates' weight: Counter-Battery Issue reaches a Hegemony licence through the
+Arrestor pack, the others reach independent markets and licences. The listing is
+the guaranteed route; the pools are the fallback.
 It lets add-ons keep faction identity while ensuring that a newly collectible
 family, grade, suit, or special item cannot be stranded by an omitted or
 permanently ineligible source.

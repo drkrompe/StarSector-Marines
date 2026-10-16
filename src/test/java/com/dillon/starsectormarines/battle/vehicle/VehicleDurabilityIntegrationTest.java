@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class VehicleDurabilityIntegrationTest {
 
     @ParameterizedTest
-    @EnumSource(value = VehicleType.class, names = {"BREAKTHROUGH_TANK", "HEAVY_APC", "ESCORT_APC"})
+    @EnumSource(VehicleType.class)
     void destructionFreezesBothPosesAndQueuesItsEffectsOnlyOnce(VehicleType type) {
         try (var sim = openArena()) {
             long tank = sim.convoy().spawn(type, Faction.ALLY,
@@ -32,16 +32,21 @@ class VehicleDurabilityIntegrationTest {
             var body = sim.convoy().body(tank);
             body.teleport(12, 7, 90);
             body.speed = 2;
-            sim.convoy().turret(tank).facingDeg = 35;
+            if (type.hasTurretWeapon()) sim.convoy().turret(tank).facingDeg = 35;
             sim.applyDamage(tank, 10000, 10000);
             assertEquals(VehicleState.WRECKED, sim.convoy().mission(tank).state);
             assertEquals(0, body.speed);
             assertEquals(90, body.facingDegrees);
-            assertEquals(35, sim.convoy().turret(tank).facingDeg);
+            if (type.hasTurretWeapon()) assertEquals(35, sim.convoy().turret(tank).facingDeg);
             assertEquals(1, sim.getHeavyImpactsThisFrame().size());
             assertEquals(2, sim.getSmokingWrecks().size());
             var engine = sim.getSmokingWrecks().get(1);
-            float rearOffset = type.isApc() ? .55f * type.visualLengthCells / 2.4f : 1.1f;
+            float rearOffset = switch (type) {
+                case HEAVY_APC, ESCORT_APC -> .55f * type.visualLengthCells / 2.4f;
+                case BREAKTHROUGH_TANK -> 1.1f;
+                case MILITIA_TECHNICAL -> .9875f;
+                case CARGO_CARRIER -> .75f;
+            };
             assertEquals(12 + rearOffset, engine.x, .001f);
             assertEquals(7f, engine.y, .001f);
             sim.applyDamage(tank, 10000, 10000);

@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 - shared working yards include medical receiving and transfer courts, with purpose-furnished supply annexes.
+Updated: 2026-10-15 - shared ground command posts combine tactical plots and shaped console banks around connected working aisles.
 
 Earlier 2026-10-13 — reversible authored damage layers give Relief a worn checkpoint without changing its landing contract; Relief rear working courts preserve the expanded landing and assembly apron.
 
@@ -1390,6 +1390,35 @@ window panes along a clear facade; guard rooms and vehicle sheds retain their
 spaced defensive apertures. Every pane keeps an accessible inward approach,
 solid corner and doorway piers, and its own shared-edge barrier. A wider bay
 does not join the building's interior to the yard or change mission ownership.
+
+Ground workshops reserve machining, bench work and parts handling as distinct
+activities. Equipment occupies its full rotated footprint and publishes work
+from the adjoining aisle; loaded rack layers share one physical footprint.
+Vehicle sheds retain their berth geometry and service positions while grouping
+tool cabinets and shelves beside the bays and keeping fabrication at the shop
+end. Door approaches are reserved before these larger fixtures are placed, and
+the main lane continues through the shop to the vehicle entrance. A smaller
+room uses a smaller complete work group rather than shrinking machinery or
+scattering loose props into the remaining cells. Reused equipment retains its
+registered damaged and destroyed states.
+
+Ground armories put an issue counter between the courtyard apron and the
+armourer's work area. Ready-use lockers, a weapon repair bench, ammunition
+cabinets and loaded rifle racks occupy separate runs linked by staff aisles.
+Compact generator houses put a full plant skid opposite switchgear, monitoring
+and spares, with a two-cell service aisle between them. Door approaches take
+precedence over equipment, and small rooms retain complete electrical or repair
+stations instead of miniature machinery. These kits carry full-footprint damage
+states; when a rack or bench collapses, its supported rifles, frame and tools
+collapse with it. Debris preserves the original floor and releases obstruction.
+
+Ground command posts arrange L- and U-shaped console banks around a central
+tactical plot. A circulation loop reaches every side of the plot, and door
+approaches join that loop without cutting through the table. Watch positions
+belong to accessible working sides of installed consoles, with a separate plot
+officer position. This room program is shared by authored and packed ground
+compounds; constrained pockets use complete shorter banks, and small rooms use
+a compact chart table. The plot and consoles retain matching damage states.
 
 A stage that replaces what an earlier stage built owns everything the earlier one
 recorded, not only what it drew: decorative placements, points of interest,

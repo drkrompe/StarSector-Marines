@@ -1,0 +1,6 @@
+ship-engineering.generator-damaged	45	116	428	287	6	4	med	0.9
+ship-engineering.generator-destroyed	42	625	428	286	6	4	none	0
+ship-engineering.control-damaged	558	192	426	141	3	1	med	0.65
+ship-engineering.control-destroyed	554	696	428	144	3	1	none	0
+ship-engineering.switchgear-damaged	1066	117	428	284	3	2	med	0.9
+ship-engineering.switchgear-destroyed	1062	625	432	286	3	2	none	0

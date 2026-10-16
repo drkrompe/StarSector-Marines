@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
@@ -20,8 +21,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Structural and consumer coverage for authored Conquest bunker firing cells. */
-public class FortressBunkerWindowTest {
+/**
+ * Evidence, not a test: structural and consumer coverage for authored Conquest
+ * bunker firing cells on sixteen whole generated maps (~75 s inside {@code :test}).
+ * The consumers are unit-tested on their own: window-edge movement, sight and fire
+ * in {@code NavigationEdgeBarrierTest}, and authored stand positions preceding
+ * derived cells in {@code BattleSetupPickCellsNearTest}. What only a finished map
+ * can show is that the wall stamper authors them. Run with
+ * {@code gradlew.bat generatedSpaceEvidence}.
+ */
+@Tag("generated-space-evidence")
+public class FortressBunkerWindowEvidence {
 
     private static final int SEEDS_PER_AXIS = 8;
 

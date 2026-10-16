@@ -2,7 +2,9 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.campaign.start.SecondhandWingsCampaign;
+import com.dillon.starsectormarines.marine.ArmorTradition;
 import com.dillon.starsectormarines.marine.FirstRefit;
+import com.dillon.starsectormarines.marine.MilitaryWarrants;
 import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CampaignState;
@@ -111,9 +113,13 @@ final class CompanyHqViewModel {
         props.put("runwayClasses", runwayClasses(standing.finances.runwayMonths()));
         props.put("financeRows", financeRows(standing, credits));
         CampaignStateScript script = CampaignStateScript.getInstance();
-        props.put("employers", employerRows(standing.employers,
+        List<EmployerRow> employerRows = new ArrayList<>(employerRows(standing.employers,
                 script == null ? null : script.state()));
-        props.put("employerEmpty", standing.employers.isEmpty()
+        employerRows.addAll(warrantRows(
+                MilitaryWarrants.held(script == null ? null : script.state()),
+                CompanyHqViewModel::factionCrest));
+        props.put("employers", List.copyOf(employerRows));
+        props.put("employerEmpty", employerRows.isEmpty()
                 ? Strings.get("companyHqNoEmployers") : "");
 
         int obligationCount = Math.min(clocks.size(), OBLIGATION_LIMIT);
@@ -341,7 +347,8 @@ final class CompanyHqViewModel {
         props.put("employers", List.of(
                 new EmployerRow("preview-employer-1", "", Strings.get("openingCompanyHqKazeronCompact"), "+42", Strings.get("openingCompanyHqCompletedFailed"), "graphics/factions/crest_persean_league.png"),
                 new EmployerRow("preview-employer-2", "", Strings.get("openingCompanyHqSindrianDiktat"), "+18", Strings.get("openingCompanyHqCompletedFailed2"), "graphics/factions/crest_sindrian_diktat.png"),
-                new EmployerRow("preview-employer-3", "tone-danger", Strings.get("openingCompanyHqHouseUmbra"), "-6", Strings.get("openingCompanyHqCompletedFailed3"), "")));
+                new EmployerRow("preview-employer-3", "tone-danger", Strings.get("openingCompanyHqHouseUmbra"), "-6", Strings.get("openingCompanyHqCompletedFailed3"), ""),
+                new EmployerRow("preview-warrant-hegemony", "tone-good", Strings.format("companyHqWarrantName", ArmorTradition.HEGEMONY.displayName()), "", Strings.format("companyHqWarrantRecord", 2, Strings.get("companyHqWarrantEarnedStanding")), "graphics/factions/crest_hegemony.png")));
         props.put("employerEmpty", "");
         props.put("obligations", List.of(
                 new ObligationPost("preview-obligation-1", "post-card danger-surface", Strings.get("openingCompanyHqDueInDay"), Strings.get("openingCompanyHqGarrisonDefense"), Strings.get("openingCompanyHqSindriaHouseKardosFailsIfMissed"), Strings.get("openingCompanyHqRespond"), false, () -> { }),
@@ -442,6 +449,27 @@ final class CompanyHqViewModel {
                     MessageFormat.format(Strings.get("companyHqEmployerRecord"),
                             employer.contractsCompleted, employer.contractsFailed),
                     employerCrest(state, employer.houseId, CompanyHqViewModel::factionCrest)));
+        }
+        return List.copyOf(rows);
+    }
+
+    /**
+     * The company's military warrants, one row per issuing tradition beside its employers:
+     * a warrant is a standing relationship with that tradition, and the row says what it
+     * opens and how it was earned ({@code progression-nouns.md}).
+     */
+    static List<EmployerRow> warrantRows(List<MilitaryWarrants.Held> held,
+                                         Function<String, String> crest) {
+        List<EmployerRow> rows = new ArrayList<>();
+        for (MilitaryWarrants.Held warrant : held) {
+            String earned = Strings.get(warrant.reason() == MilitaryWarrants.Reason.STORY
+                    ? "companyHqWarrantEarnedStory" : "companyHqWarrantEarnedStanding");
+            String resolved = crest.apply(warrant.issuer().key);
+            rows.add(new EmployerRow("hq-warrant-" + warrant.issuer().key, "tone-good",
+                    Strings.format("companyHqWarrantName", warrant.issuer().displayName()),
+                    "",
+                    Strings.format("companyHqWarrantRecord", warrant.templateIds().size(), earned),
+                    resolved == null ? "" : resolved));
         }
         return List.copyOf(rows);
     }

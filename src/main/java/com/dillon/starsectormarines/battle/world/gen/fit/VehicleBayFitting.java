@@ -40,8 +40,9 @@ import java.util.List;
  * several kinds.</b> A berthed machine is serviced from five distinct positions rather
  * than one, because panels come off along both flanks and somebody is at its
  * head as well as under it. Shipboard stores use layered shelf runs at the
- * shop end and short bulkhead partitions separate the bays. The ground-side
- * fitting keeps its legacy gap stores, worked
+ * shop end and short bulkhead partitions separate the bays. Ground installations
+ * use tool cabinets, ordered shelves and full-sized fabrication equipment. The
+ * generic fallback keeps its legacy gap stores, worked
  * down a single-file aisle: stowage at the stacks, and a tally taken at the
  * terminal where each run begins. The shop at the end makes and counts. And a
  * deterministic slice of the bay's own equipment — a gantry rail, the shop's
@@ -55,14 +56,21 @@ import java.util.List;
  */
 public final class VehicleBayFitting implements RoomFitting {
     private final boolean shipboard;
+    private final boolean installation;
 
-    public VehicleBayFitting() { this(false); }
+    public VehicleBayFitting() { this(false, false); }
 
-    private VehicleBayFitting(boolean shipboard) { this.shipboard = shipboard; }
+    private VehicleBayFitting(boolean shipboard, boolean installation) {
+        this.shipboard = shipboard;
+        this.installation = installation;
+    }
 
     /** The ship's orderly stores and bulkhead partitions share the same bay and door geometry. */
-    public static VehicleBayFitting shipboard() { return new VehicleBayFitting(true); }
+    public static VehicleBayFitting shipboard() { return new VehicleBayFitting(true, false); }
 
+
+    /** Ground bay geometry with full-sized fabrication equipment and grouped service stores. */
+    public static VehicleBayFitting installation() { return new VehicleBayFitting(false, true); }
 
     /** Cells across one gantry bay: the machine plus a working column each side. */
     public static final int BAY_WIDTH = 5;
@@ -359,7 +367,7 @@ public final class VehicleBayFitting implements RoomFitting {
         reserve(floor, plan.vestibule(), plan.laneFrom(),
                 plan.bayLimit() - plan.vestibule(), plan.laneSpan());
 
-        if (shipboard) {
+        if (shipboard || installation) {
             reserve(floor, plan.bayLimit(), plan.laneFrom(), plan.shopWidth(), plan.laneSpan());
             stubStrandedDoors(floor, along, across,
                     plan.laneFrom(), plan.laneSpan(), plan.vestibule());
@@ -372,15 +380,17 @@ public final class VehicleBayFitting implements RoomFitting {
                 layBay(floor, cursor, across - plan.bayDepth(), plan.bayDepth(), false, bay++);
             }
             if (shipboard) layPartitions(floor, cursor + BAY_WIDTH, plan);
+            else if (installation) layInstallationStores(floor, cursor + BAY_WIDTH, plan);
             else layStores(floor, cursor + BAY_WIDTH, plan.bayLimit(), across,
                     plan.bayDepth(), plan.facingRanks());
             cursor += BAY_WIDTH + BAY_GAP;
         }
 
-        if (!shipboard) stubStrandedDoors(floor, along, across,
+        if (!shipboard && !installation) stubStrandedDoors(floor, along, across,
                 plan.laneFrom(), plan.laneSpan(), plan.vestibule());
         if (plan.shopWidth() > 0) {
             if (shipboard) layRackStores(floor, plan);
+            else if (installation) layInstallationShop(floor, plan);
             else layShop(floor, plan.bayLimit(), along, across);
         }
     }
@@ -437,14 +447,18 @@ public final class VehicleBayFitting implements RoomFitting {
         // The station sits at the head of the bay, against the outer bulkhead,
         // so it never stands between the machine and the lane it leaves by.
         for (int i = 0; i < BAY_STATION.length; i++) {
-            place(floor, origin + 1 + i, head, BAY_STATION[i],
-                    BAY_STATION_WORK[i]);
+            if (installation) {
+                InstallationWorkshopFitting.station(floor, origin + 1 + i, head,
+                        i == 0 ? "colony-furnishings.utility" : "colony-furnishings.desk",
+                        origin + 1 + i, head + Integer.signum(mouth - head), origin + 1 + i, head,
+                        BAY_STATION_WORK[i]);
+            } else place(floor, origin + 1 + i, head, BAY_STATION[i], BAY_STATION_WORK[i]);
         }
 
         layFrame(floor, origin, band, depth, head, mouth, waist, true);
         layFrame(floor, origin + BAY_WIDTH - 1, band, depth, head, mouth, waist, false);
         layService(floor, origin, mouth, head, waist, berth,
-                bay % DEFECT_STRIDE == DEFECT_PHASE);
+                !installation && bay % DEFECT_STRIDE == DEFECT_PHASE);
     }
 
     /**
@@ -464,6 +478,14 @@ public final class VehicleBayFitting implements RoomFitting {
     private void layFrame(RoomFloor floor, int column,
                           int band, int depth, int head, int mouth, int waist,
                           boolean nearSide) {
+        if (installation) {
+            // Tool cabinets frame each service position, leaving the waist and mouth open.
+            for (int row : new int[]{head, head + Integer.signum(mouth - head), mouth - Integer.signum(mouth - head)}) {
+                if (row == waist || row == mouth) continue;
+                floor.placeAssembly(column, row, "colony-furnishings.locker", List.of());
+            }
+            return;
+        }
         // The run is drawn in deck space, so the sprite has to be chosen there
         // too: a rail authored running fore-and-aft is athwartships once the
         // room is turned, and a compass-named piece cannot be turned with it.
@@ -714,6 +736,52 @@ public final class VehicleBayFitting implements RoomFitting {
                         task(floor, stand, row + slot * 2, Affordance.STOW, fixture, row + slot * 2);
                 }
             }
+        }
+    }
+
+    /** Paired shelf runs with one continuous picking aisle; no mixed loose clutter. */
+    private void layInstallationStores(RoomFloor floor, int from, Plan plan) {
+        int width = Math.min(BAY_GAP, plan.bayLimit() - from);
+        if (width <= 0) return;
+        int aisle = gapAisle(from, plan.bayLimit());
+        if (aisle < 0) { reserve(floor, from, 0, width, plan.across()); return; }
+        reserve(floor, aisle, 0, 1, plan.across());
+        for (int rank = 0; rank < (plan.facingRanks() ? 2 : 1); rank++) {
+            int start = rank == 0 ? 0 : plan.across() - plan.bayDepth();
+            for (int row = start; row < start + plan.bayDepth() - 1; row++) {
+                boolean left = floor.placeAssembly(from, row, "colony-furnishings.shelf", List.of());
+                boolean right = floor.placeAssembly(from + width - 1, row, "colony-furnishings.shelf", List.of());
+                if ((row - start) % 2 == 0 && (left || right))
+                    task(floor, aisle, row, Affordance.STOW, left ? from : from + width - 1, row);
+            }
+        }
+    }
+
+    /** Fabrication and bench work on one side of the service lane, organized stock on the other. */
+    private void layInstallationShop(RoomFloor floor, Plan plan) {
+        int from = plan.bayLimit(), h = plan.across();
+        reserve(floor, from, 0, 1, h);
+        reserve(floor, plan.along() - 1, 0, 1, h);
+        if (plan.shopWidth() >= 7 && plan.laneFrom() >= 6 && h - plan.laneFrom() - plan.laneSpan() >= 7) {
+            reserve(floor, from, 4, plan.shopWidth(), 1);
+            reserve(floor, from + 3, plan.laneFrom() + plan.laneSpan(), 1,
+                    h - plan.laneFrom() - plan.laneSpan());
+            InstallationWorkshopFitting.station(floor, from + 1, 1, "factory-machines.fabricator",
+                    from + 2, 4, from + 2, 3, Affordance.FABRICATE);
+            InstallationWorkshopFitting.station(floor, from + 1, 5, "main-stores.packing",
+                    from + 2, 6, from + 2, 5, Affordance.REPAIR);
+            InstallationWorkshopFitting.station(floor, from + 4, 1, "factory-machines.coolant",
+                    from + 4, 3, from + 4, 2, Affordance.REPAIR);
+            InstallationWorkshopFitting.rack(floor, from + 1, h - 7, from + 3);
+            for (int y = h - 7; y < h - 1; y += 2)
+                InstallationWorkshopFitting.station(floor, from + 5, y, "colony-furnishings.utility",
+                        from + 4, y, from + 5, y, Affordance.REPAIR);
+        } else {
+            // Shallow sheds still get complete bench runs, with their approaches on the main lane.
+            int y = Math.max(0, plan.laneFrom() - 1);
+            if (plan.shopWidth() >= 4)
+                InstallationWorkshopFitting.station(floor, from + 1, y, "main-stores.packing",
+                        from + 2, plan.laneFrom(), from + 2, y, Affordance.REPAIR);
         }
     }
 

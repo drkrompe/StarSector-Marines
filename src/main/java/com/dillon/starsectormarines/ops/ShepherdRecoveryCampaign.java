@@ -157,7 +157,7 @@ public final class ShepherdRecoveryCampaign {
             var r=o.workingPassage;
             FleetMemberAPI ship=o.victory?Global.getFactory().createFleetMember(FleetMemberType.SHIP,"shepherd_Frontier"):null;
             int crew=ship==null?0:(int)Math.ceil(ship.getMinCrew());
-            return settlePassage(p,o,ship==null?null:new FleetAward() {
+            int paid=settlePassage(p,o,ship==null?null:new FleetAward() {
                 public String memberId(){return ship.getId();}
                 public int minimumCrew(){return crew;}
                 public void transfer(){
@@ -168,6 +168,9 @@ public final class ShepherdRecoveryCampaign {
                     catch(RuntimeException failure){fleet.getFleetData().removeFleetMember(ship);throw failure;}
                 }
             });
+            if(paid>=0){var site=destination();
+                ArcIssueListings.afterLive(ArcIssueListings.Beat.WORKING_PASSAGE,o.victory,site==null?null:site.planet());}
+            return paid;
         }
         if(o.workingPassage!=null)return -1;
         if(ShepherdRecoveryProgress.coldStart(o.missionId)){

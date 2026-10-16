@@ -1,0 +1,264 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "name": "armory-workshop.counter-damaged",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "name": "armory-workshop.counter-destroyed",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "name": "armory-workshop.rack-damaged",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "name": "armory-workshop.rack-destroyed",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "name": "armory-workshop.rifles-damaged",
+      "row": 0
+    },
+    {
+      "col": 13,
+      "name": "armory-workshop.rifles-destroyed",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "armory-workshop.rack-frame-damaged",
+      "row": 1
+    },
+    {
+      "col": 3,
+      "name": "armory-workshop.rack-frame-destroyed",
+      "row": 1
+    },
+    {
+      "col": 6,
+      "name": "armory-workshop.bench-damaged",
+      "row": 1
+    },
+    {
+      "col": 9,
+      "name": "armory-workshop.bench-destroyed",
+      "row": 1
+    },
+    {
+      "col": 12,
+      "name": "armory-workshop.bench-tools-damaged",
+      "row": 1
+    },
+    {
+      "col": 0,
+      "name": "armory-workshop.bench-tools-destroyed",
+      "row": 3
+    },
+    {
+      "col": 3,
+      "name": "armory-workshop.ready-locker-damaged",
+      "row": 3
+    },
+    {
+      "col": 6,
+      "name": "armory-workshop.ready-locker-destroyed",
+      "row": 3
+    },
+    {
+      "col": 9,
+      "name": "armory-workshop.ammo-damaged",
+      "row": 3
+    },
+    {
+      "col": 11,
+      "name": "armory-workshop.ammo-destroyed",
+      "row": 3
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 0,
+      "cover": "med",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "armory-workshop.counter-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 2,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "armory-workshop.counter-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 4,
+      "cover": "heavy",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "armory-workshop.rack-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 7,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "armory-workshop.rack-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 10,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "armory-workshop.rifles-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 13,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "armory-workshop.rifles-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "armory-workshop.rack-frame-damaged",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "armory-workshop.rack-frame-destroyed",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 6,
+      "cover": "med",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "armory-workshop.bench-damaged",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 9,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "armory-workshop.bench-destroyed",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 12,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "armory-workshop.bench-tools-damaged",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "armory-workshop.bench-tools-destroyed",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 3,
+      "cover": "heavy",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "armory-workshop.ready-locker-damaged",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 6,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "armory-workshop.ready-locker-destroyed",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 9,
+      "cover": "heavy",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "armory-workshop.ammo-damaged",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 11,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "armory-workshop.ammo-destroyed",
+      "row": 3
+    }
+  ],
+  "sheet": "graphics/tilesets/armory-workshop-damage.png"
+}

@@ -1,9 +1,16 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
+import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.ambient.CrewRole;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.combat.ShotEvent;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.task.TaskPoint;
+import com.dillon.starsectormarines.battle.task.TaskPointService;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.sim.IdentityService;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
@@ -12,10 +19,14 @@ import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -23,7 +34,14 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * The whole ship runs, not the room somebody is looking at.
+ * Evidence, not a test: the whole generated ship runs, not the room somebody is
+ * looking at.
+ *
+ * <p>Each case generates a whole troop-transport deck, crews it and runs it for
+ * minutes of ship's time, which cost ~35 s of wall clock inside {@code :test}.
+ * The scene's own rules (berth occupancy, facing, what a bay's work depends on,
+ * the monotonic clock, a lost boat's empty berth) are pinned on a hand-laid deck by
+ * {@code ShipDeckBattleSceneTest}. Run with {@code gradlew.bat crewEvidence}.
  *
  * <p>A screen framed on a compartment is a camera, and a camera does not decide
  * what exists. Simulating only the framed room would make the ship's population
@@ -40,7 +58,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * headless renderer up to get at them would drag the whole battle sprite pack
  * into a test that draws nothing.
  */
-final class MannedDeckTest {
+@Tag("crew-liveliness")
+final class ManningEvidence {
 
     private static final long SEED = 42L;
     private static final float TRANSPORT_ASPECT = 0.28f;
@@ -143,41 +162,6 @@ final class MannedDeckTest {
     }
 
     /**
-     * The clock only runs forwards, and running it twice to the same instant
-     * changes nothing.
-     *
-     * <p>A host takes more than one render pass off a frame — a backdrop and an
-     * actor pass have to agree about where everybody is standing — so advancing
-     * has to be something a screen can ask for repeatedly.
-     */
-    @Test
-    void aDeckClockIsMonotonicAndIdempotent() {
-        ShipDeckGenerator generator = new ShipDeckGenerator();
-        MapResult deck = generator.generateDeck(transportPlan(), SEED, null);
-        try (ShipDeckBattleScene scene = new ShipDeckBattleScene(
-                deck, generator.getLastDeckGraph(), SEED, null)) {
-            long[] crew = scene.manDeck(2);
-            assertTrue(crew.length > 0, "nobody came aboard");
-
-            scene.advanceTo(12f);
-            World world = scene.simulation().world();
-            float[] settledX = new float[crew.length];
-            for (int index = 0; index < crew.length; index++) {
-                settledX[index] = world.x(crew[index]);
-            }
-
-            scene.advanceTo(12f);
-            scene.advanceTo(3f);
-            assertEquals(12f, scene.simulatedSeconds(), 1e-4f,
-                    "asking for an earlier time wound the deck back");
-            for (int index = 0; index < crew.length; index++) {
-                assertEquals(settledX[index], world.x(crew[index]), 1e-4f,
-                        "re-advancing to the same instant moved somebody");
-            }
-        }
-    }
-
-    /**
      * Every room view frames one ship, and she keeps running between them.
      *
      * <p>The question a shared scene answers and a per-screen one cannot is
@@ -230,7 +214,7 @@ final class MannedDeckTest {
             assertTrue(billeted > 0, "the ship billeted none of the company");
 
             IdentityService identity = scene.simulation().identity();
-            java.util.Set<Long> mustered = new java.util.HashSet<>();
+            Set<Long> mustered = new HashSet<>();
             for (MarineSoldier soldier : company) {
                 long actor = ship.marineFor(soldier.id());
                 if (actor != 0L) mustered.add(actor);
@@ -246,6 +230,160 @@ final class MannedDeckTest {
                     "crewing the ship added marines who are on no muster roll: " + unrostered);
         } finally {
             ship.dismiss();
+        }
+    }
+
+    /**
+     * A staffed bay is inhabited: technicians take jobs the room affords and
+     * come round to a different one, without a single authored waypoint.
+     *
+     * <p>Advancing the clock is the whole test. A route that never moves anybody
+     * off its first stop is indistinguishable from a static pose at the moment
+     * of spawn, so this watches a technician's claim change rather than checking
+     * that one was handed out.
+     */
+    @Test
+    void staffedTechniciansCycleTheBaysJobs() {
+        ShipDeckGenerator generator = new ShipDeckGenerator();
+        MapResult deck = generator.generateDeck(transportPlan(), SEED, null);
+        try (ShipDeckBattleScene scene = new ShipDeckBattleScene(
+                deck, generator.getLastDeckGraph(), SEED, null)) {
+            DeckGraph.Compartment bay = scene.room(RoomPurpose.VEHICLE_BAY);
+            List<MechVariant> lance = new ArrayList<>();
+            for (Gantry berth : scene.berthsIn(bay)) lance.add(MechVariant.BULWARK);
+            scene.occupyGantries(lance);
+            long[] hands = scene.staff(bay, CrewRole.MECH_TECH, 5);
+            assertTrue(hands.length > 1, "the bay took on " + hands.length + " technicians");
+
+            TaskPointService points = scene.simulation().taskPoints();
+            Set<String> visitedByFirst = new HashSet<>();
+            Set<Long> everWorking = new HashSet<>();
+            for (int step = 0; step < 600; step++) {
+                scene.simulation().ambientTasks().advance(0.1f);
+
+                // Nobody may be standing where somebody else is standing, at any
+                // instant. Claims are exclusive or the capacity is a fiction.
+                Set<String> heldNow = new HashSet<>();
+                for (long hand : hands) {
+                    TaskPoint claim = points.claimedPoint(hand);
+                    if (claim == null) continue;
+                    everWorking.add(hand);
+                    assertTrue(heldNow.add(claim.id()),
+                            "two technicians claimed " + claim.id() + " at once");
+                }
+                TaskPoint first = points.claimedPoint(hands[0]);
+                if (first != null) visitedByFirst.add(first.id());
+            }
+            assertEquals(hands.length, everWorking.size(),
+                    "a technician was taken on and never given anything to do");
+            assertTrue(visitedByFirst.size() > 1,
+                    "a technician never left the station they started at, so nothing cycles");
+        }
+    }
+
+    /**
+     * A ship's boat bays are a field, and her crew turn her boats round: a berth
+     * is measurably better off after her crew have had time with it. Every boat
+     * is sampled as it goes, since boats fly one after another and hull put back
+     * on a boat that then launched is invisible to a single reading afterwards.
+     */
+    @Test
+    void aShipsCrewTurnHerBoatsRound() {
+        ShipDeckGenerator generator = new ShipDeckGenerator();
+        MapResult deck = generator.generateDeck(transportPlan(), SEED, null);
+        try (ShipDeckBattleScene scene = new ShipDeckBattleScene(
+                deck, generator.getLastDeckGraph(), SEED, null)) {
+            AirfieldService bays = scene.simulation().getAirfieldService();
+            assertTrue(bays.berths().size() > 1,
+                    "a transport's boat bays registered " + bays.berths().size() + " berths");
+            assertEquals(Faction.MARINE, bays.owner(), "the ship's own bays are not hers");
+
+            scene.manDeck();
+            scene.advanceTo(1f);
+            Map<Long, Float> hurt = new LinkedHashMap<>();
+            for (AirfieldService.Berth boat : bays.berths()) {
+                float whole = scene.simulation().world().maxHp(boat.airframeId);
+                scene.simulation().world().setHp(boat.airframeId, whole * 0.4f);
+                hurt.put(boat.airframeId, whole);
+            }
+
+            boolean mended = false;
+            for (float second = 11f; second <= 181f && !mended; second += 10f) {
+                scene.advanceTo(second);
+                for (Map.Entry<Long, Float> boat : hurt.entrySet()) {
+                    if (!scene.simulation().world().isAlive(boat.getKey())) continue;
+                    if (scene.simulation().world().hp(boat.getKey()) > boat.getValue() * 0.4f) {
+                        mended = true;
+                    }
+                }
+            }
+            assertTrue(mended,
+                    "three minutes of a ship's time put no hull back on any of her"
+                            + " damaged boats");
+        }
+    }
+
+    /**
+     * Nobody is put down inside the ship.
+     *
+     * <p>A watch is spread across its loop on purpose, and the pose sampler draws
+     * the in-between as a straight line from one stop to the next. On a generated
+     * deck that line crosses bulkheads: a seeded sweep once found one shift in
+     * seventy standing in one, an actor physically stuck in a wall for as long as
+     * the ship exists. Hands now spawn on their first stop.
+     */
+    @Test
+    void aStaffedDeckPutsNobodyInsideABulkhead() {
+        ShipDeckGenerator generator = new ShipDeckGenerator();
+        MapResult deck = generator.generateDeck(transportPlan(), SEED, null);
+        try (ShipDeckBattleScene scene = new ShipDeckBattleScene(
+                deck, generator.getLastDeckGraph(), SEED, null)) {
+            World world = scene.simulation().world();
+            int placed = 0;
+            for (DeckGraph.Compartment room : generator.getLastDeckGraph().compartments()) {
+                for (CrewRole role : CrewRole.values()) {
+                    for (long hand : scene.staff(room, role, 4)) {
+                        placed++;
+                        int cellX = world.cellX(hand);
+                        int cellY = world.cellY(hand);
+                        assertTrue(deck.grid.isWalkable(cellX, cellY),
+                                role + " posted to " + room.purpose() + " was put down at "
+                                        + cellX + "," + cellY + ", which is not floor");
+                    }
+                }
+            }
+            assertTrue(placed > 20,
+                    "only " + placed + " hands were placed, so this is not testing much");
+        }
+    }
+
+    /**
+     * A detail on a generated range puts rounds downrange: the fitting bound each
+     * firing point to the butts it faces, so the shift's own focus is what the
+     * target is spawned on and what the shooter fires at.
+     */
+    @Test
+    void aDetailOnAGeneratedRangeFiresDownIt() {
+        ShipDeckGenerator generator = new ShipDeckGenerator();
+        MapResult deck = generator.generateDeck(transportPlan(), SEED, null);
+        try (ShipDeckBattleScene scene = new ShipDeckBattleScene(
+                deck, generator.getLastDeckGraph(), SEED, null)) {
+            DeckGraph.Compartment range = scene.room(RoomPurpose.FIRING_RANGE);
+            long[] detail = scene.staff(range, CrewRole.MARINE, 4);
+            assertTrue(detail.length > 0, "the range took nobody on");
+
+            Set<Long> shooters = new HashSet<>();
+            for (long actor : detail) shooters.add(actor);
+
+            int rounds = 0;
+            for (int step = 0; step < 400 && rounds == 0; step++) {
+                scene.simulation().advance(0.1f);
+                for (ShotEvent shot : scene.simulation().getShotsThisFrame()) {
+                    if (shooters.contains(shot.shooterId)) rounds++;
+                }
+            }
+            assertTrue(rounds > 0,
+                    "the detail stood on the firing line and never fired a round");
         }
     }
 
