@@ -130,10 +130,9 @@ public final class PlayerFleetWings {
     }
 
     /**
-     * Maps a vanilla wing ID to a {@link FighterProfile}. Coverage is intentionally
-     * narrow — we only have art + tuning for these four — but expanding later is
-     * a one-line addition per new profile. Unmapped wings (Daggers, Tridents,
-     * Piranhas, etc.) return {@code null} and the caller silently skips them.
+     * Maps the six supported vanilla fighter and bomber wings to their battle
+     * profiles. Unmapped wings (Tridents, Piranhas, modded wings, etc.) return
+     * {@code null} and the caller skips them.
      */
     static FighterProfile profileFromWingId(String wingId) {
         if (wingId == null) return null;
@@ -142,6 +141,8 @@ public final class PlayerFleetWings {
             case "talon_wing":      return FighterProfile.TALON;
             case "wasp_wing":       return FighterProfile.WASP;
             case "thunder_wing":    return FighterProfile.THUNDER;
+            case "longbow_wing":    return FighterProfile.LONGBOW;
+            case "dagger_wing":     return FighterProfile.DAGGER;
             default:                return null;
         }
     }

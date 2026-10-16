@@ -109,7 +109,7 @@ class ShotRenderServiceTest {
         sim.postShot(shot);
         DrawList out = new DrawList();
 
-        new ShotRenderService(sprites, new ImpactFx()).collect(context(sim), out);
+        new ShotRenderService(sprites).collect(context(sim), out);
 
         assertEquals(2, out.count(RenderLayer.SHOTS), "tail plus projectile sprite");
         DrawCommand tail = out.buffer(RenderLayer.SHOTS)[0];
@@ -140,7 +140,7 @@ class ShotRenderServiceTest {
         sim.postShot(shot);
         DrawList out = new DrawList();
 
-        new ShotRenderService(sprites, new ImpactFx()).collect(context(sim), out);
+        new ShotRenderService(sprites).collect(context(sim), out);
 
         assertEquals(2, out.count(RenderLayer.SHOTS), "tracer plus physical shell");
         DrawCommand tail = out.buffer(RenderLayer.SHOTS)[0];
@@ -222,7 +222,7 @@ class ShotRenderServiceTest {
                 return cache;
             }
         };
-        ShotRenderService renderer = new ShotRenderService(sprites, new ImpactFx());
+        ShotRenderService renderer = new ShotRenderService(sprites);
 
         for (WeaponDef weapon : List.of(
                 WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), WeaponRegistry.require(WeaponRegistry.DMR_ID), WeaponRegistry.require(WeaponRegistry.DRONE_PULSE_ID))) {

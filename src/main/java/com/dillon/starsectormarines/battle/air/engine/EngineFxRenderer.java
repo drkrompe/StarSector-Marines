@@ -31,23 +31,14 @@ import java.awt.Color;
 public final class EngineFxRenderer {
 
     /** Length scales between {@link #LEN_INTENSITY_FLOOR}× at intensity 0 and 1.0× at intensity 1. */
-    private static final float LEN_INTENSITY_FLOOR = 0.4f;
+    private static final float LEN_INTENSITY_FLOOR = 0.35f;
     /** Width scales between {@link #WIDTH_INTENSITY_FLOOR}× at intensity 0 and 1.0× at intensity 1. */
-    private static final float WIDTH_INTENSITY_FLOOR = 0.7f;
-    /** Per-frame alpha multiplier — flame alpha = alphaMult × (FLOOR + (1 - FLOOR) × intensity). */
-    private static final float ALPHA_INTENSITY_FLOOR = 0.5f;
-    /** Glow halo is {@link #GLOW_WIDTH_MULT}× the flame width — slightly bigger than the column so it reads as a bloom around the nozzle. */
-    private static final float GLOW_WIDTH_MULT = 2.0f;
-    /** Minimum glow display size — guards against degenerate glows on tiny / parked entities. */
-    private static final float GLOW_MIN_CELL_FRACTION = 0.4f;
-
-    /**
-     * Per-slot floor when a {@code perSlotDemand} array is supplied: an idle
-     * thruster (demand 0) still draws at this fraction of the master intensity,
-     * so a lit engine never blinks fully dark. Matches the old uniform
-     * {@code Shuttle.HOVER_FX_FLOOR} so a stationary hover reads the same.
-     */
-    private static final float DEMAND_FLOOR = 0.45f;
+    private static final float WIDTH_INTENSITY_FLOOR = 0.65f;
+    /** A restrained nozzle bloom, measured against native nozzle width rather than the narrowed exhaust. */
+    private static final float GLOW_WIDTH_MULT = 1.1f;
+    private static final float GLOW_ALPHA_MULT = 0.2f;
+    private static final float FLAME_WIDTH_MULT = 0.7f;
+    private static final float FLAME_LENGTH_MULT = 0.72f;
 
     private EngineFxRenderer() {}
 
@@ -101,7 +92,7 @@ public final class EngineFxRenderer {
             EngineSlotData es = slots[si];
             // Each thruster's intensity is the master throttle scaled by how
             // much that nozzle is contributing this tick (1.0 when uniform).
-            float intensityS = intensity * slotFactor(perSlotDemand, si);
+            float intensityS = EngineBurn.slotIntensity(intensity, perSlotDemand, si);
             // Slot world position — scale-then-rotate so engines stay locked
             // to their hardpoints through any scaling the caller applies.
             float lx = es.localX * scaleMult;
@@ -121,22 +112,22 @@ public final class EngineFxRenderer {
             float plumeDX = (float) -Math.sin(plumeRad);
             float plumeDY = (float)  Math.cos(plumeRad);
 
-            float lenCells   = es.lengthCells * scaleMult
+            float lenCells   = es.lengthCells * scaleMult * FLAME_LENGTH_MULT
                     * (LEN_INTENSITY_FLOOR   + (1f - LEN_INTENSITY_FLOOR)   * intensityS);
-            float widthCells = es.widthCells  * scaleMult
+            float widthCells = es.widthCells  * scaleMult * FLAME_WIDTH_MULT
                     * (WIDTH_INTENSITY_FLOOR + (1f - WIDTH_INTENSITY_FLOOR) * intensityS);
             float lenPx = lenCells * cellPx;
             float widthPx = widthCells * cellPx;
-            float flameAlpha = alphaMult
-                    * (ALPHA_INTENSITY_FLOOR + (1f - ALPHA_INTENSITY_FLOOR) * intensityS);
+            float flameAlpha = EngineBurn.flameAlpha(alphaMult, intensityS);
 
             Color flame = EngineStylePalette.flameColor(es.style);
 
             if (glowSprite != null) {
-                float glowSize = Math.max(widthPx * GLOW_WIDTH_MULT, cellPx * GLOW_MIN_CELL_FRACTION);
+                float glowSize = es.widthCells * scaleMult * cellPx * GLOW_WIDTH_MULT
+                        * (WIDTH_INTENSITY_FLOOR + (1f - WIDTH_INTENSITY_FLOOR) * intensityS);
                 glowSprite.setSize(glowSize, glowSize);
                 glowSprite.setAngle(0f);
-                glowSprite.setAlphaMult(flameAlpha);
+                glowSprite.setAlphaMult(flameAlpha * GLOW_ALPHA_MULT);
                 glowSprite.setAdditiveBlend();
                 glowSprite.setColor(flame);
                 glowSprite.renderAtCenter(screenX, screenY);
@@ -167,16 +158,4 @@ public final class EngineFxRenderer {
         }
     }
 
-    /**
-     * The effective per-slot intensity multiplier: {@code 1} when no demand
-     * array is supplied (uniform), else {@link #DEMAND_FLOOR} lerped to 1 by the
-     * clamped demand for slot {@code i}.
-     */
-    private static float slotFactor(float[] perSlotDemand, int i) {
-        if (perSlotDemand == null || i >= perSlotDemand.length) return 1f;
-        float d = perSlotDemand[i];
-        if (d < 0f) d = 0f;
-        else if (d > 1f) d = 1f;
-        return DEMAND_FLOOR + (1f - DEMAND_FLOOR) * d;
-    }
 }

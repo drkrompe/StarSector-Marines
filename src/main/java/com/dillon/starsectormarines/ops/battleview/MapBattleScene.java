@@ -92,6 +92,7 @@ public final class MapBattleScene implements AutoCloseable {
 
     @Override
     public void close() {
+        if (renderer != null) renderer.disposeLighting();
         simulation.close();
     }
 

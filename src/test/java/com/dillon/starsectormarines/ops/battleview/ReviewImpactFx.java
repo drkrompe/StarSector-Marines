@@ -49,6 +49,7 @@ public final class ReviewImpactFx {
     private static final long REVIEW_SEED = 0x5EEDFACEL;
     private final ImpactFx fx = new ImpactFx(REVIEW_SEED);
     private final ContrailFxService contrails = new ContrailFxService();
+    private final ProjectileTrailFxService trails = new ProjectileTrailFxService();
     private final BeamFxService beams = new BeamFxService();
     private OrdnanceTraceFxService traces;
     private final DrawList overlay = new DrawList();
@@ -120,8 +121,7 @@ public final class ReviewImpactFx {
             traces.advance(dt);
             for (OrdnanceRelease arrival : traces.arrivalsThisFrame()) OrdnanceFxRuntime.spawnArrival(fx, null, arrival);
         }
-        // The screen sheds a trail sample once per rendered frame; a review samples every few ticks, so it is shed here.
-        for (ShotEvent shot : sim.getActiveShots()) ShotRenderService.spawnTrail(fx, shot);
+        trails.tick(sim.getActiveShots(), fx);
         fx.advance(dt);
         contrails.tick(sim.getActiveShots(), dt);
     }

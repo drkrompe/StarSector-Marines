@@ -49,14 +49,15 @@ runtime elevation. The circular floor has radius 1.02, thickness 0.22 and center
 18 parallel launch bores, 20-degree displayed pitch, side cheeks, trunnions and
 axle height are fixed. The foundation remains a separate stationary layer.
 
-These are art-review assets. No runtime catalog entries, combat stats, world
-footprint, destruction states or firing origins are authored by this pass.
+These masters are art-review assets. The [family integration](../missile-aa/README.md)
+now owns runtime packaging, footprint and firing origins; dedicated destruction
+art remains unauthored.
 The approved Blender assembly owns the shape; vanilla art supplies only the
 material reference. This is a new interpretation, not recovered original
 high-resolution detail. Visual comparison retains the elongated silhouette,
 visible bore arrangement and gimbal connections, but ImageGen is not a
-pixel-exact geometry renderer. Author firing origins against this assembly
-when the weapon is integrated; vanilla offsets do not define its new bores.
+pixel-exact geometry renderer. Runtime firing origins follow the twelve visible
+painted openings in this assembly; vanilla offsets do not define its new bores.
 
 ## Reproduce the exports
 

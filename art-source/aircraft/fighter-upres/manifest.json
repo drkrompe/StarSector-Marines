@@ -1,0 +1,281 @@
+{
+  "status": "Approved ImageGen masters registered to native hull frames; compact runtime PNGs installed through FighterProfile",
+  "tool": "built-in image_gen",
+  "sourceRoot": "Starsector/starsector-core",
+  "generatedRoot": "C:/Users/Dillon/.codex/generated_images/01a14065-0b52-7761-83c0-3c02380cd62b",
+  "fighters": [
+    {
+      "id": "talon",
+      "source": "graphics/ships/talon/talon.png",
+      "sourceSize": [
+        24,
+        24
+      ],
+      "pivotFromLeftBottom": [
+        13,
+        10
+      ],
+      "master": "talon/master-v3.png",
+      "generations": [
+        {
+          "version": "v1",
+          "file": "talon/master-v1.png",
+          "prompt": "talon/prompt-v1.txt",
+          "generatedFile": "exec-6c8618f8-18b5-4a85-b663-999d0d6bbbc3.png"
+        },
+        {
+          "version": "v2",
+          "file": "talon/master-v2.png",
+          "prompt": "talon/prompt-v2.txt",
+          "generatedFile": "exec-c6bcc284-f5b9-4d0d-8e63-d66d5d9fccc0.png"
+        },
+        {
+          "version": "v3",
+          "file": "talon/master-v3.png",
+          "prompt": "talon/prompt-v3.txt",
+          "generatedFile": "exec-cbaa9bed-68bc-4aef-bfa4-d4db8727702d.png"
+        }
+      ],
+      "runtime": "graphics/battle/aircraft/talon.png",
+      "registration": {
+        "masterBodyBounds": [
+          60,
+          77,
+          1085,
+          1276
+        ],
+        "nativeBodyBounds": [
+          1,
+          1,
+          23,
+          23
+        ],
+        "boundsConvention": "left,top,right,bottom; right/bottom exclusive; measured at alpha >= 32"
+      }
+    },
+    {
+      "id": "wasp",
+      "source": "graphics/ships/wasp_ftr.png",
+      "sourceSize": [
+        18,
+        21
+      ],
+      "pivotFromLeftBottom": [
+        9,
+        11
+      ],
+      "master": "wasp/master-v2.png",
+      "generations": [
+        {
+          "version": "v1",
+          "file": "wasp/master-v1.png",
+          "prompt": "wasp/prompt-v1.txt",
+          "generatedFile": "exec-2f382b5c-cf00-4d9f-987e-0e2ea73f081c.png"
+        },
+        {
+          "version": "v2",
+          "file": "wasp/master-v2.png",
+          "prompt": "wasp/prompt-v2.txt",
+          "generatedFile": "exec-3a3d3614-cd85-44f8-8e59-34d0e96726e3.png"
+        }
+      ],
+      "runtime": "graphics/battle/aircraft/wasp.png",
+      "registration": {
+        "masterBodyBounds": [
+          85,
+          27,
+          1079,
+          1293
+        ],
+        "nativeBodyBounds": [
+          1,
+          1,
+          17,
+          20
+        ],
+        "boundsConvention": "left,top,right,bottom; right/bottom exclusive; measured at alpha >= 32",
+        "renderEngineOffsetsNativePx": [
+          [
+            2,
+            -1.25
+          ],
+          [
+            -2,
+            -1.25
+          ]
+        ]
+      }
+    },
+    {
+      "id": "thunder",
+      "source": "graphics/ships/thunder.png",
+      "sourceSize": [
+        26,
+        43
+      ],
+      "pivotFromLeftBottom": [
+        13,
+        13
+      ],
+      "master": "thunder/master-v1.png",
+      "generations": [
+        {
+          "version": "v1",
+          "file": "thunder/master-v1.png",
+          "prompt": "thunder/prompt-v1.txt",
+          "generatedFile": "exec-337adba2-02e4-4d39-9aef-965f00689156.png"
+        }
+      ],
+      "runtime": "graphics/battle/aircraft/thunder.png",
+      "registration": {
+        "masterBodyBounds": [
+          57,
+          28,
+          919,
+          1498
+        ],
+        "nativeBodyBounds": [
+          1,
+          1,
+          25,
+          42
+        ],
+        "boundsConvention": "left,top,right,bottom; right/bottom exclusive; measured at alpha >= 32"
+      }
+    },
+    {
+      "id": "broadsword",
+      "source": "graphics/ships/broadsword.png",
+      "sourceSize": [
+        30,
+        33
+      ],
+      "pivotFromLeftBottom": [
+        15,
+        13
+      ],
+      "master": "broadsword/master-v1.png",
+      "generations": [
+        {
+          "version": "v1",
+          "file": "broadsword/master-v1.png",
+          "prompt": "broadsword/prompt-v1.txt",
+          "generatedFile": "exec-46c55051-6fa7-4cfc-abb3-b07e03c4cb4d.png"
+        }
+      ],
+      "runtime": "graphics/battle/aircraft/broadsword.png",
+      "registration": {
+        "masterBodyBounds": [
+          42,
+          28,
+          1154,
+          1224
+        ],
+        "nativeBodyBounds": [
+          1,
+          1,
+          29,
+          32
+        ],
+        "boundsConvention": "left,top,right,bottom; right/bottom exclusive; measured at alpha >= 32"
+      }
+    },
+    {
+      "id": "dagger",
+      "source": "graphics/ships/dagger_trp.png",
+      "sourceSize": [
+        26,
+        34
+      ],
+      "pivotFromLeftBottom": [
+        15,
+        16
+      ],
+      "master": "dagger/master-v2.png",
+      "generations": [
+        {
+          "version": "v1",
+          "file": "dagger/master-v1.png",
+          "prompt": "dagger/prompt-v1.txt",
+          "generatedFile": "exec-c9b484c5-4955-4b6b-9197-756f3d04146b.png"
+        },
+        {
+          "version": "v2",
+          "file": "dagger/master-v2.png",
+          "prompt": "dagger/prompt-v2.txt",
+          "generatedFile": "exec-57385127-eef9-4d30-b396-56eafcfda46f.png"
+        }
+      ],
+      "runtime": "graphics/battle/aircraft/dagger.png",
+      "registration": {
+        "masterBodyBounds": [
+          72,
+          26,
+          991,
+          1403
+        ],
+        "nativeBodyBounds": [
+          1,
+          0,
+          25,
+          33
+        ],
+        "boundsConvention": "left,top,right,bottom; right/bottom exclusive; measured at alpha >= 32"
+      }
+    },
+    {
+      "id": "longbow",
+      "source": "graphics/ships/longbow_intg.png",
+      "sourceSize": [
+        34,
+        35
+      ],
+      "pivotFromLeftBottom": [
+        17,
+        14
+      ],
+      "master": "longbow/master-v2.png",
+      "generations": [
+        {
+          "version": "v1",
+          "file": "longbow/master-v1.png",
+          "prompt": "longbow/prompt-v1.txt",
+          "generatedFile": "exec-3258802f-c67a-4f26-b025-de6d492e33bb.png"
+        },
+        {
+          "version": "v2",
+          "file": "longbow/master-v2.png",
+          "prompt": "longbow/prompt-v2.txt",
+          "generatedFile": "exec-897a88af-eadf-4ef8-beb7-a4752dd16ba6.png"
+        }
+      ],
+      "runtime": "graphics/battle/aircraft/longbow.png",
+      "registration": {
+        "masterBodyBounds": [
+          45,
+          54,
+          1119,
+          1317
+        ],
+        "nativeBodyBounds": [
+          1,
+          0,
+          33,
+          34
+        ],
+        "boundsConvention": "left,top,right,bottom; right/bottom exclusive; measured at alpha >= 32",
+        "renderEngineOffsetsNativePx": [
+          [
+            -2.5,
+            0.5
+          ],
+          [
+            3,
+            0.5
+          ]
+        ]
+      }
+    }
+  ],
+  "runtimeScale": 8
+}

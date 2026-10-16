@@ -164,7 +164,9 @@ public class GroundSceneBackdrop implements CombatLayeredRenderingPlugin {
     }
 
     @Override public void init(CombatEntityAPI entity) {}
-    @Override public void cleanup() {}
+    @Override public void cleanup() {
+        if (renderer != null) renderer.disposeLighting();
+    }
     @Override public boolean isExpired() { return expired; }
     public void expire() { expired = true; }
     @Override public void advance(float amount) {}

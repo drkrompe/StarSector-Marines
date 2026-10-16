@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** The anti-air aspect's authored geometry: a small hardened control room, its console against the back wall, the flak outside the door. */
+/** The anti-air aspect's authored geometry: a small hardened control room, its console against the back wall, the close-in towers outside the door. */
 class AirDefenceYardTest {
 
     private static final AirDefenceYard SOUTH = new AirDefenceYard(20, 20, 0, 1);
@@ -34,16 +34,16 @@ class AirDefenceYardTest {
     }
 
     @Test
-    void theDoorIsInTheWallOnTheNearSideAndTheFlakStandsOutsideBesideIt() {
+    void theDoorIsInTheWallOnTheNearSideAndTheTowersStandOutsideAgainstItsSides() {
         for (AirDefenceYard yard : new AirDefenceYard[]{SOUTH, NORTH}) {
             int[] floor = yard.floor();
             int[] door = yard.gapCell();
             assertFalse(inside(floor, door[0], door[1]), "the door is in the ring, not on the floor");
             assertEquals(1, Math.abs(door[1] - (yard.gapDy() > 0 ? floor[1] + floor[3] - 1 : floor[1])), "one step outside the floor");
-            for (int[] flak : yard.flakCells()) {
-                assertFalse(inside(floor, flak[0], flak[1]), "the flak is outside the room");
-                assertTrue(Math.abs(flak[0] - door[0]) >= 2, "and clear of the door's own line");
-                assertEquals(door[1] + yard.gapDy(), flak[1], "one step past the door's row");
+            for (int[] tower : yard.closeInCells()) {
+                assertFalse(inside(floor, tower[0], tower[1]), "the tower is outside the room");
+                assertEquals(AirDefenceYard.HALF_WIDTH + 3, Math.abs(tower[0] - yard.centreX()), "the 3x3 stands against the side wall ring");
+                assertEquals(yard.centreY(), tower[1], "level with the room's middle");
             }
         }
     }

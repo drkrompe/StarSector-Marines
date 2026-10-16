@@ -66,6 +66,7 @@ public final class ImpactFx {
     private final Random rng;
     private SpriteAPI particleSheetSprite;
     private SpriteAPI glowSprite;
+    private SpriteAPI shardSprite;
     private SpriteAPI explosionRingSprite;
     private final SpriteAPI[] explosionSprites = new SpriteAPI[SPRITE_EXPLOSIONS.length];
     private boolean spritesLoadAttempted;
@@ -89,6 +90,7 @@ public final class ImpactFx {
         spritesLoadAttempted = true;
         particleSheetSprite = loadSpriteOrNull(SPRITE_PARTICLE_SHEET);
         glowSprite          = loadSpriteOrNull(SPRITE_GLOW);
+        shardSprite         = loadSpriteOrNull("graphics/battle/fx/aircraft-metal-chip.png");
         explosionRingSprite = loadSpriteOrNull(SPRITE_EXPLOSION_RING);
         for (int i = 0; i < SPRITE_EXPLOSIONS.length; i++) {
             explosionSprites[i] = loadSpriteOrNull(SPRITE_EXPLOSIONS[i]);
@@ -123,6 +125,7 @@ public final class ImpactFx {
         particle.vx *= decay;
         particle.vy *= decay;
         particle.radiusCells += particle.radiusGrowthPerSec * activeDt;
+        particle.angleDeg += particle.angularVelocityDegPerSec * activeDt;
         return true;
     }
 
@@ -356,6 +359,33 @@ public final class ImpactFx {
             p.vy = blast.vy() + (rng.nextFloat() - .5f) * .8f;
             p.dragPerSecond = .8f;
         }
+        spawnCrashFragments(blast);
+    }
+
+    /** Sparse hot streaks and tumbling metal; shares the same event, seed and lifetime clock as the rolling blast. */
+    private void spawnCrashFragments(RollingBlast blast) {
+        for (int i = 0; i < 3; i++) {
+            boolean spark = i < 2;
+            SpriteAPI sprite = spark ? glowSprite : shardSprite;
+            if (sprite == null) continue;
+            Particle p = new Particle();
+            p.x = blast.x();
+            p.y = blast.y();
+            float scatter = spark ? 5f : 3f;
+            p.vx = blast.vx() * .65f + (rng.nextFloat() - .5f) * scatter;
+            p.vy = blast.vy() * .65f + (rng.nextFloat() - .5f) * scatter;
+            p.dragPerSecond = spark ? 2.2f : 3f;
+            p.radiusCells = spark ? .12f + rng.nextFloat() * .07f : .055f + rng.nextFloat() * .055f;
+            p.aspectRatio = spark ? .15f : .65f + rng.nextFloat() * .45f;
+            p.angleDeg = spark ? (float) Math.toDegrees(Math.atan2(-p.vx, p.vy)) : rng.nextFloat() * 360;
+            p.angularVelocityDegPerSec = spark ? 0 : (rng.nextFloat() - .5f) * 540;
+            p.lifetimeRemaining = p.lifetimeMax = spark ? .3f + rng.nextFloat() * .25f
+                    : .9f + rng.nextFloat() * .55f;
+            p.color = spark ? new Color(255, 210, 115) : new Color(105, 110, 118);
+            p.sprite = sprite;
+            p.additive = spark;
+            particles.add(p);
+        }
     }
 
     /** Smoke puff from the flipbook sheet. Light upward drift, random rotation, normal-alpha. Deliberately small: a ground impact is a point event, not an aerial burst. */
@@ -416,7 +446,7 @@ public final class ImpactFx {
         float radiusPx = p.radiusCells * cellPx;
         SpriteAPI s = p.sprite;
         if (s == null) return;
-        s.setSize(radiusPx * 2f, radiusPx * 2f);
+        s.setSize(radiusPx * 2f * p.aspectRatio, radiusPx * 2f);
         s.setAngle(p.angleDeg);
         s.setAlphaMult(alphaMult * lifeFrac);
         s.setColor(p.color);

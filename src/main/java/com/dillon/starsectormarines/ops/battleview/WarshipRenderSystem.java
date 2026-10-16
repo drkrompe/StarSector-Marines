@@ -182,8 +182,8 @@ public final class WarshipRenderSystem implements RenderSystem {
     private void drawEngines(DrawList out, BattleCamera cam, float cellPx, float alpha, Warship ship) {
         List<WarshipEngine> engines = WarshipEngine.forHull(ship.hullId);
         if (engines.isEmpty()) return;
-        SpriteAPI flame = sprites.engineFlameSprite();
-        SpriteAPI glow = sprites.engineGlowSprite();
+        SpriteAPI flame = sprites.warshipEngineFlameSprite();
+        SpriteAPI glow = sprites.warshipEngineGlowSprite();
         if (flame == null && glow == null) return;
         ShuttleSpriteCache soft = sprites.spriteByPath(GLOW);
         WarshipThrust.Demand demand = WarshipThrust.of(ship);
@@ -516,7 +516,7 @@ public final class WarshipRenderSystem implements RenderSystem {
                     size, size, 0f,
                     c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, a * fade * alpha);
         }
-        SpriteAPI flameSprite = sprites.engineFlameSprite();
+        SpriteAPI flameSprite = sprites.warshipEngineFlameSprite();
         if (flameSprite == null || flight == null || !swarmDetail) return;
         // The nozzle burns while the motor does; the flame points back down the path.
         if (now > flight.burnSeconds() && flight.burnSeconds() > 0f) return;

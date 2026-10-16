@@ -110,6 +110,8 @@ final class HeadlessBattleSprites extends BattleSprites {
     private final LayeredMechAssets mech;
     private SpriteAPI decals;
     private SpriteSheetFrames decalFrames;
+    private SpriteAPI warshipEngineFlame;
+    private SpriteAPI warshipEngineGlow;
     private SpriteAPI engineFlame;
     private SpriteAPI engineGlow;
     private SpriteAPI shadowBlob;
@@ -207,6 +209,8 @@ final class HeadlessBattleSprites extends BattleSprites {
     }
 
     private void loadEngineFx() {
+        warshipEngineFlame = spriteOrNull(WARSHIP_ENGINE_FLAME_SPRITE);
+        warshipEngineGlow = spriteOrNull(WARSHIP_ENGINE_GLOW_SPRITE);
         engineFlame = spriteOrNull(ENGINE_FLAME_SPRITE);
         engineGlow = spriteOrNull(ENGINE_GLOW_SPRITE);
         shadowBlob = spriteOrNull(SHADOW_BLOB_SPRITE);
@@ -310,6 +314,8 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public SpriteSheetFrames decalFrames() { return decalFrames; }
     @Override public void ensureDecalSheet() { }
 
+    @Override public SpriteAPI warshipEngineFlameSprite() { return warshipEngineFlame; }
+    @Override public SpriteAPI warshipEngineGlowSprite() { return warshipEngineGlow; }
     /**
      * The smoke utility sprites, off the resource roots. The base class loads them through {@code Global.getSettings().loadTexture}, a
      * stub here, so a headless frame of a screen showed the soldiers either side of it and no smoke between them. Loaded on first

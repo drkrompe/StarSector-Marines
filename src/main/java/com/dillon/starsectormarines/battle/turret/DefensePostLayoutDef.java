@@ -108,6 +108,7 @@ public final class DefensePostLayoutDef {
         JSONArray turretJson = json.getJSONArray("turrets");
         List<TurretPlacement> placements = new ArrayList<>(turretJson.length());
         Set<Offset> turretOffsets = new HashSet<>();
+        Set<Offset> occupiedPads = new HashSet<>();
         for (int i = 0; i < turretJson.length(); i++) {
             JSONObject object = turretJson.getJSONObject(i);
             int[] offsetPair = pair(object.getJSONArray("offset"), id + ".turrets[" + i + "].offset");
@@ -127,9 +128,21 @@ public final class DefensePostLayoutDef {
                 throw new JSONException("Defense-post layout '" + id
                         + "' references unknown turret structure '" + structureId + "'");
             }
-            if (structure.footprintCellsX != 1 || structure.footprintCellsY != 1) {
-                throw new JSONException("Defense-post layout '" + id
-                        + "' requires one-cell turret structure '" + structureId + "'");
+            int left = StructureFootprint.minX(structure, offset.x);
+            int top = StructureFootprint.minY(structure, offset.y);
+            for (int y = top; y < top + structure.footprintCellsY; y++) {
+                for (int x = left; x < left + structure.footprintCellsX; x++) {
+                    Offset footprint = new Offset(x, y);
+                    Cell pad = cellsByOffset.get(footprint);
+                    if (pad == null || pad.kind != CellKind.PAD || pad.padOccupant != PadOccupant.NONE) {
+                        throw new JSONException("Defense-post layout '" + id + "' structure '" + structureId
+                                + "' footprint must occupy ordinary pad cells; invalid cell " + footprint);
+                    }
+                    if (!occupiedPads.add(footprint)) {
+                        throw new JSONException("Defense-post layout '" + id
+                                + "' has overlapping structure footprints at " + footprint);
+                    }
+                }
             }
             placements.add(new TurretPlacement(offset, structureId, structure));
         }
