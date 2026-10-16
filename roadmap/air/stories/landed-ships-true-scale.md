@@ -149,6 +149,20 @@ distance from the rig.
   semantics is reported explicitly.
 - A unit test pins the body factor: berth presence, the ease's endpoints and its
   monotonicity, and the identity case.
+- `createSnapshots -Psnapshot=landed-ships` shows a Venture and both Hounds in the
+  production dock with Greyhook's prize crew at the stern gantry, and the lift as a
+  frame every 1.5 s, independent of which hull the duel flies.
+
+## State
+
+Built: the berth body and eased lift, the remastered Venture and Hound (P), the
+docking compound, the duel staging in berths, and both suites' evidence (all
+`black-sluice` verdicts green). Waiting on the ships-of-the-line pass: the
+production duel still fits the salvage rig in the cradle until its Venture swap
+lands, and that merge must keep the berth staging (`BlackSluiceDuel.stage` berths
+every hull and `withdrawalOrdered` lifts the Hounds) and re-read its tuned Wolf
+entry and climb-out against the cradle, which sits about sixty cells east of the old
+pier post.
 
 ## Plan
 

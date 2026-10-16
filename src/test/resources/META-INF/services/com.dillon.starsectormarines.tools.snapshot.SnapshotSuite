@@ -193,5 +193,6 @@ com.dillon.starsectormarines.battle.world.gen.bsp.fill.LogisticsSnapshotSuite
 
 com.dillon.starsectormarines.battle.world.gen.bsp.fill.PowerHallSnapshotSuite
 com.dillon.starsectormarines.ops.BlackSluiceSnapshotSuite
+com.dillon.starsectormarines.ops.LandedShipsSnapshotSuite
 com.dillon.starsectormarines.ops.TermsOfProtectionSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.bsp.DefencePostSnapshotSuite

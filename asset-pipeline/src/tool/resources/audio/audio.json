@@ -774,6 +774,15 @@
     {"id": "wayline_junction_gunship_working_trench", "source": "wayline/wayline_junction_gunship_working_trench.mp3", "kind": "ui", "out": "story/wayline", "processing": "air_comms"},
     {"id": "wayline_junction_gunship_hit", "source": "wayline/wayline_junction_gunship_hit.mp3", "kind": "ui", "out": "story/wayline", "processing": "air_comms"},
     {"id": "wayline_junction_gunship_lost", "source": "wayline/wayline_junction_gunship_lost.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms"},
-    {"id": "wayline_junction_gunship_returned", "source": "wayline/wayline_junction_gunship_returned.mp3", "kind": "ui", "out": "story/wayline", "processing": "air_comms"}
+    {"id": "wayline_junction_gunship_returned", "source": "wayline/wayline_junction_gunship_returned.mp3", "kind": "ui", "out": "story/wayline", "processing": "air_comms"},
+    {"id": "jangala_arrival_hail_01", "source": "jangala-arrival/jangala_arrival_hail_01.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "orbital_comms"},
+    {"id": "jangala_arrival_hail_02", "source": "jangala-arrival/jangala_arrival_hail_02.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms"},
+    {"id": "jangala_arrival_hail_03", "source": "jangala-arrival/jangala_arrival_hail_03.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "orbital_comms"},
+    {"id": "jangala_arrival_hail_04", "source": "jangala-arrival/jangala_arrival_hail_04.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms"},
+    {"id": "jangala_arrival_hail_05", "source": "jangala-arrival/jangala_arrival_hail_05.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "orbital_comms"},
+    {"id": "jangala_arrival_hail_06", "source": "jangala-arrival/jangala_arrival_hail_06.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms"},
+    {"id": "jangala_arrival_hail_07", "source": "jangala-arrival/jangala_arrival_hail_07.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "orbital_comms"},
+    {"id": "jangala_arrival_hail_08", "source": "jangala-arrival/jangala_arrival_hail_08.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms"},
+    {"id": "jangala_arrival_hail_09", "source": "jangala-arrival/jangala_arrival_hail_09.mp3", "kind": "ui", "out": "story/jangala-arrival", "processing": "comms"}
   ]
 }

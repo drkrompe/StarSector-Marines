@@ -4,7 +4,7 @@ Status: DRAFT. Image-first replacement for `storyboard-v2.txt`, which it superse
 
 Written: 2026-10-16
 
-Updated: 2026-10-16 — owner decisions: trigger, P6 edit, Approach voice and its radio treatment.
+Updated: 2026-10-16 — hail recorded and treated; moving-element rules added; the hail runs longer than C1–C2.
 
 ## What changed from v2
 
@@ -245,25 +245,38 @@ treatment is applied afterwards):
 | 8 | Castle | `[relieved, quiet]` |
 | 9 | Castle | `[quiet, half to herself, a breath of a laugh]` |
 
-**The Approach treatment, `orbital_comms`.** This is a proposed recipe, to be
-auditioned. It sits beside `air_comms` and `comms` in `radio-effects.md` and
-`ProcessAudioTask.outputArguments`, and is applied once to the clean take:
+**The Approach treatment, `orbital_comms`.** This is in the audio pipeline
+(`ProcessAudioTask`) and awaits the owner's audition. The exact recipe and its
+rationale live in `radio-effects.md`. In short:
 
-```text
-highpass=f=500:p=2,lowpass=f=2200:p=2,acompressor=threshold=0.05:ratio=8:attack=2:release=60:makeup=3,asoftclip=type=tanh:threshold=0.3:oversample=4,acrusher=bits=10:mode=log:aa=1,aeval='val(ch)+0.012*(random(ch)*2-1)':c=same,highpass=f=500:p=2,lowpass=f=2200:p=2,alimiter=limit=0.85:level=false:latency=true
-```
-
-- The band is narrower than Talon's 420–2500 Hz `air_comms`, because this is a
+- The band is 500–2200 Hz, narrower than Talon's cockpit `air_comms`: this is a
   station across orbit, not a gunship a few kilometres away.
-- The bit crusher adds digital grit, and `aeval` adds a constant noise floor.
-  The second band-pass keeps both inside the radio band.
+- Hard compression, saturation, a bit crusher for digital grit and a constant
+  noise floor, with makeup gain so Approach sits at Castle's loudness (about
+  −19 LUFS each).
 - There is no pitch shift: the voice stays the one that was cast.
-- Squelch bursts are separate short sound effects at the start and end of each
-  Approach transmission. The animatic places them, rather than baking them into
-  every line, so the gap between turns can be tuned without re-encoding.
+- Squelch bursts are separate sounds at the start and end of each Approach
+  transmission. The timeline places them, so the gaps between turns can be tuned
+  without re-encoding.
 - Accept it by ear: every word of line 1 must still be understood through the
   cabin rumble. If the masking costs intelligibility, ease the crusher first,
   then the saturation, and keep the narrow band.
+
+**Recordings.** All nine lines are recorded clean
+(`asset-pipeline/src/tool/resources/audio/jangala-arrival/`, with receipts). The
+catalog is `mod/data/marines/jangala_arrival_hail.json`. They are encoded to
+`mod/sounds/story/jangala-arrival/`, but they are not yet registered in
+`sounds.json`: playback belongs to runtime integration.
+`arrival-audio/build_hail_preview.py` builds the audition mixes (`cabin`,
+`radio` and `clean`) under `build/audio-previews/jangala-hail/`.
+
+**The hail is longer than the shots it was written for.** The nine takes total
+about 51 seconds of speech, and about 58 seconds with squelch and gaps between
+turns. C1 and C2 were budgeted at 22 seconds. Either the space section grows,
+since it is the Hegemony-and-traffic payoff and can hold about 45 seconds once it
+has moving elements (below), or the exchange is cut: lines 3–4 (the register
+joke) save about 7 seconds. Even both together do not fit the original budget.
+The owner decides after the audition.
 
 ## Salvage from the current work
 
@@ -282,14 +295,48 @@ highpass=f=500:p=2,lowpass=f=2200:p=2,acompressor=threshold=0.05:ratio=8:attack=
 - Paint plates at 3840x2160 or larger. Make C4's panorama about 9600x2160 so a
   single pan never runs out of image. Review frames are shown at 1920x1080 with
   100% UI scale.
-- Use no more than five layers per shot. Each layer only translates and scales.
-  No layer rotates, deforms or changes perspective.
+- Use no more than five depth layers per shot. Each layer only translates and
+  scales. No layer rotates, deforms or changes perspective. Moving elements ride
+  on those layers (see *Moving elements*).
 - Hold one approach heading and one sun direction for all window shots: the world
   moves aft, and that flow never reverses between cuts.
 - Ship damage stays consistent across C1, C2's glimpses and C5. No new damage
   appears during the descent.
 - Ground crew wear environmental protection: Jangala's biosphere calls for
   biofilters.
+
+## Moving elements
+
+Plates can and should carry things that move: traffic, lifters, vehicles,
+people, steam. Each one has to be chosen against how its shot's camera moves.
+
+- **A moving element belongs to one depth layer** and moves in screen space at
+  that layer's parallax rate, plus its own travel. A truck far down a road is
+  fine. The same truck under a camera that changes perspective as it moves is
+  not, because its size, angle and occlusion would all have to change with the
+  view. v3's cameras only pan and scale, which keeps every element in this
+  section safe. If a later shot wants real perspective change, its moving
+  elements need their own review.
+- **Travel parallel to the picture plane.** A vehicle on a road that runs across
+  the frame only translates. On a road that recedes into depth, it would also
+  have to shrink along an authored scale curve and keep its contact shadow. Use
+  that only for distant, small elements.
+- **Motion within an element comes from sprite sheets**, not from moving
+  pieces: wheels, a walk cycle, steam, an engine glow, a crane's swing. Short
+  loops at a fixed angle, matched to the plate's lighting.
+- **Distance forgives.** The further away an element is, the less its
+  perspective changes under a pan, so the busiest traffic goes at mid and far
+  depth. Near layers carry few moving elements, and they move slowly.
+- **Occlusion is layering.** An element passing behind a building lives on a
+  layer behind that building's cut-out, never in front with a mask.
+
+| Shot | Moving elements |
+|---|---|
+| C1 Corvus | Running lights and small freighters drifting along the traffic lanes; shuttles crossing toward the descent corridor; the battlegroup holding station with slow drift and engine-glow sheets. No rotating station: rotation is ruled out, unless an animation sheet carries it. |
+| C2 Patrol abeam | The patrol hull is the moving layer. Engine glow and running lights flicker from sheets. |
+| C3 First open sky | The Atlas lifter crossing; a distant flock from a sheet; mist bands sliding at their own depth. |
+| C4 The road and the port | Trucks on the freight road, which runs across the window so they only translate (the owner's example); a sprayer in the fields; lifters climbing vertically from the port at far depth; crane swings and landing lights from sheets. |
+| C5 Nessa's yard | Yard crew walking out on a walk cycle; steam and heat shimmer from sheets; a crane or hoist with a short loop. |
 
 ## Decisions
 
@@ -316,10 +363,9 @@ highpass=f=500:p=2,lowpass=f=2200:p=2,acompressor=threshold=0.05:ratio=8:attack=
 ## Production order
 
 1. Agree this beat sheet and the hail lines.
-2. Record the hail and the moved Nessa line with the project's narration
-   generator (paid, explicit, never part of a build), add `orbital_comms` to the
-   audio pipeline, and audition the hail in the cabin bed. Measure the treated
-   takes: shot lengths come from them.
+2. Audition the recorded hail in the cabin bed. Settle the hail's
+   length against C1–C2. Record the moved Nessa line. Shot lengths come from the
+   treated takes.
 3. Plates: C3 (salvage) first, then C1, C2, C4 and C5, following
    `geometry-first-imagegen.md` where geometry matters.
 4. Build a layered animatic at 1920x1080 with the recorded audio, for review.

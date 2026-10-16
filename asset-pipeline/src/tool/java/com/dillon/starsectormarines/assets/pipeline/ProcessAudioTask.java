@@ -99,6 +99,19 @@ public final class ProcessAudioTask {
                     + "asoftclip=type=tanh:threshold=0.38:oversample=4,volume=3,"
                     + "lowpass=f=2500:p=2,alimiter=limit=0.85:level=false:latency=true"));
         }
+        if (processing == AudioManifest.Processing.ORBITAL_COMMS) {
+            // A station across orbit: narrower than the cockpit band, harder driven, with digital
+            // grit and a constant noise floor. Gain makes up what the narrow band removes; band-limit
+            // again so the grit and floor stay inside it.
+            // No pitch change; the cast voice stays the one that was cast. The noise is written per
+            // channel on a fixed stereo layout: aeval's single shared expression (c=same) with
+            // random() crashes FFmpeg 8.1 on real takes.
+            options.addAll(List.of("-af", "aformat=channel_layouts=stereo,highpass=f=500:p=2,lowpass=f=2200:p=2,"
+                    + "acompressor=threshold=0.05:ratio=8:attack=2:release=60:makeup=3,"
+                    + "asoftclip=type=tanh:threshold=0.3:oversample=4,acrusher=bits=10:mode=log:aa=1,"
+                    + "aeval='val(0)+0.012*(random(0)*2-1)|val(1)+0.012*(random(1)*2-1)':c=stereo,volume=3,"
+                    + "highpass=f=500:p=2,lowpass=f=2200:p=2,alimiter=limit=0.85:level=false:latency=true"));
+        }
         if (processing == AudioManifest.Processing.DIALOGUE) {
             // Match alternating speakers without modifying the retained clean generation takes.
             options.addAll(List.of("-af", "loudnorm=I=-20:TP=-2:LRA=7"));
