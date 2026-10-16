@@ -37,4 +37,8 @@ c, g = out['classes']['cream'], out['classes']['gunmetal']
 out['classes']['pale'] = {'derived': 'not on the finish reference (the grapple arm is its only material): cream lightness, gunmetal chroma and spread',
                           'mean': [round(c['mean'][0] - 4, 2), g['mean'][1], g['mean'][2]],
                           'std': [round(c['std'][0] * 0.8, 2), g['std'][1], g['std'][2]]}
+# The owned wear colours (wear.py) are authored, not measured: carry them over.
+old = HERE / 'palette.json'
+if old.exists() and 'wear' in json.loads(old.read_text()):
+    out['wear'] = json.loads(old.read_text())['wear']
 (HERE / 'palette.json').write_text(json.dumps(out, indent=1) + '\n')
