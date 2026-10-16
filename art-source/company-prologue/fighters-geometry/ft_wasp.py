@@ -10,6 +10,7 @@ read off the up-res master-v2. The master was registered on its gun
 barrel, so its arm tips sit about a unit inboard of the sprite's; where
 they disagree the sprite wins.
 """
+import math
 import fg_kit as K
 from fg_kit import prism, section, mirror_y, section_loft
 
@@ -76,10 +77,11 @@ NOTES = [
     'Arm edges run straight through the midpoints of the sprite\'s pixel stairs rather than tracing them (owner: '
     'the traced stairs read as pixelated wings). The stair corners the line cuts and leaves account for most of '
     'the drop in silhouette IoU from 0.951 to 0.909; on arms one to three pixels wide they are a large share.',
-    'Landing stance (owner): the drone has no gear and stands on its four arm tips. Each arm droops from its pivot '
-    'and thins to 40 per cent of its depth at the tip, where a foot pad sits underneath; plan positions are '
-    'unchanged. All four soles are on one plane (Z -2.2), so it sits level, and the drive cans clear the deck by '
-    '0.33 m (see parked_check). The aft arms are shorter, so they droop more steeply than the fore arms.',
+    'Landing stance (owner): the drone has no gear and stands on a hooked claw under each arm tip. Each arm droops '
+    'from its pivot and thins to 40 per cent of its depth at the tip; plan positions are unchanged. The deck is '
+    'pitched 6 degrees in the hull frame (Z -2.2 under the centre, rising toward the nose), so parked it crouches '
+    'nose-down with the tail raised, while the hull axes stay the flight frame. The fore arms barely droop and carry '
+    'short claws; the aft arms droop steeply onto long ones. parked_check records the fitted deck and clearances.',
 ]
 
 # --- Spine: (x, half width, keel z, deck z, top chamfer, keel chamfer). ---
@@ -117,19 +119,29 @@ CORNER_CHAMFER = .3
 PIVOTS = {'fore': (1.5, 4.45), 'aft': (-3.5, 4.4)}
 PIVOT_R = .75
 
-# Landing stance: each arm droops from its pivot and thins toward the tip,
-# where a foot pad underneath is what the drone stands on (it has no gear).
-# Only height changes, so the plan and the sprite match are untouched. All
-# four feet end on one plane, so the drone sits level; the shorter aft arms
-# simply droop more steeply than the fore arms.
+# Landing stance: the drone has no gear and stands on four hooked claws,
+# one under each arm tip. Each arm droops from its pivot and thins toward
+# the tip; the claw grows out of its underside, swells outboard and curls
+# back to a blunt point on the deck. Only height changes, so the plan and
+# the sprite match are untouched. The deck is pitched in the hull frame,
+# so parked the body crouches nose-down with its tail raised: the hull's
+# own axes stay the flight frame, and only the ground under it is tilted.
 ARM_TIPS = {'fore': (9.0, 7.5), 'aft': (-10.0, 7.75)}  # tip mid-points; the axis runs pivot -> tip
-DROOP = 1.4        # units the frame's underside drops from pivot to tip
+DROOP = {'fore': .3, 'aft': 2.0}  # units the frame's underside drops from pivot to tip
 TIP_TAPER = .6     # share of arm depth lost by the tip
-FOOT_Z = -2.2      # foot soles: 0.65 units (0.33 m) below the drive cans' keels
-FOOT_R, FOOT_T = .45, .6
-FOOT_AT = .92      # foot centre, as a share of the pivot -> tip distance
-FEET = [f'Wing {side} {part} foot pad' for side in ('port', 'starboard') for part in ('fore', 'aft')]
-LEG_PARTS = ['Wing ']  # the arms carry the feet; body clearance is measured without them
+STANCE_PITCH_DEG = 6.0  # nose-down crouch: the deck plane rises toward the nose in the hull frame
+DECK_Z0 = -2.2     # deck height under the hull centre (X = 0), hull frame
+# Claw rings, base to point: (share of pivot -> tip distance, half length along the arm, half width,
+# share of the drop from the arm's underside to the deck). The middle ring sits furthest out, so the
+# point curls back under: a talon rather than a post.
+CLAW = [(.88, .55, .40, -.25), (.99, .30, .25, .55), (.97, .09, .07, 1.0)]
+FEET = [f'Wing {side} {part} claw' for side in ('port', 'starboard') for part in ('fore', 'aft')]
+LEG_PARTS = ['Wing ']  # the arms carry the claws; body clearance is measured without them
+
+
+def deck_z(x):
+    return DECK_Z0+x*math.tan(math.radians(STANCE_PITCH_DEG))
+
 
 POD_CY = 2.6
 POD = [  # drive can: (x, half width, keel z, deck z, top chamfer, keel chamfer)
@@ -164,8 +176,30 @@ def droop(ob, part, s):
     dx, dy = tx-rx, ty-ry
     for v in ob.data.vertices:
         t = min(max(((v.co.x-rx)*dx+(v.co.y-ry)*dy)/(dx*dx+dy*dy), 0), 1.05)
-        v.co.z = FRAME_Z[0]+(v.co.z-FRAME_Z[0])*(1-TIP_TAPER*t)-DROOP*t
+        v.co.z = FRAME_Z[0]+(v.co.z-FRAME_Z[0])*(1-TIP_TAPER*t)-DROOP[part]*t
     ob.data.update()
+
+
+def claw(kit, name, part, s):
+    """A hooked talon from the arm's underside near the tip down to the pitched deck."""
+    (px, py), (tx, ty) = PIVOTS[part], ARM_TIPS[part]
+    py, ty = s*py, s*ty
+    dx, dy = tx-px, ty-py
+    n = math.hypot(dx, dy)
+    ax, ay = dx/n, dy/n
+    qx, qy = -ay, ax
+    tb = CLAW[0][0]
+    top = FRAME_Z[0]-DROOP[part]*tb               # arm underside over the claw base
+    floor = deck_z(px+dx*CLAW[-1][0])
+    verts = []
+    for t, hl, hw, k in CLAW:
+        cx, cy = px+dx*t, py+dy*t
+        z = top+(floor-top)*k if k >= 0 else top-k  # a negative share buries the base in the arm
+        verts += [(cx+ax*a*hl+qx*b*hw, cy+ay*a*hl+qy*b*hw, z) for a, b in ((1, 1), (-1, 1), (-1, -1), (1, -1))]
+    faces = [(0, 1, 2, 3), (len(verts)-4, len(verts)-3, len(verts)-2, len(verts)-1)]
+    for r in range(len(CLAW)-1):
+        faces += [(4*r+i, 4*r+(i+1) % 4, 4*(r+1)+(i+1) % 4, 4*(r+1)+i) for i in range(4)]
+    return kit.mesh(name, verts, faces, kit.steel, .03)
 
 
 def build(kit):
@@ -185,10 +219,7 @@ def build(kit):
             kit.hull += [f, b]
             px, py = PIVOTS[part]
             kit.cylinder(f'Wing {side} {part} pivot housing', (px, s*py, .1), PIVOT_R, 1.6, kit.steel, 'Z', 20, .06)
-            tx, ty = ARM_TIPS[part]
-            fx, fy = px+(tx-px)*FOOT_AT, py+(ty-py)*FOOT_AT
-            kit.cylinder(f'Wing {side} {part} foot pad', (fx, s*fy, FOOT_Z+FOOT_T/2), FOOT_R, FOOT_T, kit.steel,
-                         'Z', 16, .05)
+            claw(kit, f'Wing {side} {part} claw', part, s)
 
     for i, ((ex, ey, w), (nx, ny)) in enumerate(zip(ENGINES, NOZZLES), 1):
         side = 'port' if ey > 0 else 'starboard'

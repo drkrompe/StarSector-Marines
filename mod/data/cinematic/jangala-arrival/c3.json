@@ -1,0 +1,34 @@
+{
+ "id": "c3",
+ "video": "cinematic/jangala-arrival/c3.mp4",
+ "fps": 24,
+ "width": 1920,
+ "height": 1080,
+ "frames": 288,
+ "duration": 12.0,
+ "captions": [],
+ "overlays": [],
+ "cues": [
+  {
+   "t": 0.0,
+   "sound": "jangala_arrival_cabin_bed",
+   "volume": 0.55,
+   "until": 12.0
+  },
+  {
+   "t": 0.0,
+   "sound": "jangala_arrival_wind",
+   "volume": 0.8
+  }
+ ],
+ "speakers": {
+  "approach": {
+   "label": "JANGALA APPROACH",
+   "color": "hegemony"
+  },
+  "castle": {
+   "label": "CASTLE  /  SECOND WIND",
+   "color": "player"
+  }
+ }
+}

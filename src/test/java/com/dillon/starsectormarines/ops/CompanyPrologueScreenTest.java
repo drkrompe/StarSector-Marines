@@ -58,6 +58,16 @@ class CompanyPrologueScreenTest {
         assertFalse(fallbackHandoff.get("dialogue").toString().contains("Nessa"));
     }
 
+    @Test void jangalaPageSixPromisesTheMemoryOnlyWhileTheArrivalIsAhead() {
+        var promised = CompanyPrologueScreen.model(5, "Jangala", true, true, 20, 500, 5000, () -> {}, () -> {}, () -> {});
+        assertTrue(promised.get("dialogue").toString().contains("tell you on the way down"));
+        assertFalse(promised.get("dialogue").toString().contains("ran ore together"));
+        var withheld = CompanyPrologueScreen.model(5, "Jangala", true, false, 20, 500, 5000, () -> {}, () -> {}, () -> {});
+        assertTrue(withheld.get("dialogue").toString().contains("ran ore together"));
+        var fallback = CompanyPrologueScreen.model(5, "Independent Port", false, true, 20, 500, 5000, () -> {}, () -> {}, () -> {});
+        assertFalse(fallback.get("dialogue").toString().contains("on the way down"));
+    }
+
     @Test void allPagesKeepNavigationClickableAt1920x1080And100Percent() throws Exception {
         var loader = new MarkupLoader(path -> Files.readString(Path.of("mod").resolve(path)), CompanyPrologueScreen.COMPONENTS);
         loader.reload();
