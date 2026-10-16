@@ -377,6 +377,7 @@ public final class MissionResolver {
                 .limitedWarrant(sim.getLimitedWarrant()==null?null:sim.getLimitedWarrant().report(sim))
                 .yardOwners(sim.getYardOwners()==null?null:sim.getYardOwners().report(sim))
                 .smallWar(sim.getSmallWar()==null?null:sim.getSmallWar().report(sim))
+                .smallWarOverhead(sim.getSmallWar()==null||sim.getSmallWar().duel()==null?null:sim.getSmallWar().duel().outcomeSummary())
                 .termsOfProtection(sim.getTermsOfProtection()==null?null:sim.getTermsOfProtection().report(sim))
                 .districtEscort(sim.getDistrictEscort()==null?null:sim.getDistrictEscort().report(sim))
                 .coldStart(sim.getColdStart()==null?null:sim.getColdStart().report(sim))

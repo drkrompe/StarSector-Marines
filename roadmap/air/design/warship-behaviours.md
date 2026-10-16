@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-11
 
-Updated: 2026-10-16 — ships fight hulls by mission order (`atmospheric-frigate-duel.md`, slice 1); Decision 5 opened by the a-small-war duel.
+Updated: 2026-10-16 — ship against ship built by mission order and first flown over Black Sluice (a-small-war Chapter 5); its decisions and open questions are below.
 
 Read `air-nouns.md` (**Overhead ships**) first. Vocabulary (warship, mount, area order, director, point defence, flux) is that doc's. `warship-missiles.md` owns what a missile round does; `warship-on-station.md` owns the body, orders and acceptance scenes. This doc adds the layer that decides **what the ship is trying to do**, so that a capital in an ordinary fight or mission behaves like a ship with a job and not like a density-seeking turret.
 
@@ -34,9 +34,9 @@ Read from `src/main` on 2026-10-11. This is the ground the proposal stands on, a
 - A hull is hurt only through `WarshipSystem.onDetonation`, as it always was: any detonation by a hostile faction whose blast reaches the hull footprint, shield first (as flux on the pool) then the armour rule. The attack run is the ordinary one, so aircraft weapons are unchanged and there is no second route.
 - A warship is not a body. It is not in the unit roster, not an air entity, not in `EngagementService`, not in `getAirEntityIds`. Nothing can *target* it; it can only be *splashed*.
 
-**Ship against ship: by order only (slices 1-4 of `atmospheric-frigate-duel.md`).**
+**Ship against ship: by mission order only (see Decided: ship against ship).**
 
-- A hostile ship's shells are point-defence targets, and a shell that lands near a hostile hull damages it. A director never picks a hull as ground to fire on. Under `ShipFireOrder.ALL` a ship's guns and missiles fight hostile hulls (`WarshipShipFire`), a ship free to manoeuvre flies a duel helm, a pack splits on an escorted hull and its escorts interpose; with the default `OFF`, two hostile capitals still ignore each other until a round happens to land. No posture turns it on yet.
+- A hostile ship's shells are point-defence targets, and a shell that lands near a hostile hull damages it. A director never picks a hull as ground to fire on. Under `ShipFireOrder.ALL` a ship's guns and missiles fight hostile hulls (`WarshipShipFire`), a ship free to manoeuvre flies a duel helm, a pack splits on an escorted hull and its escorts interpose; with the default `OFF`, two hostile capitals still ignore each other until a round happens to land. No posture turns it on yet. A hull can climb out along a route, make one finite visit nobody commands, and the duel ledger records how each hull ended.
 
 **Ground against aircraft: defence posts only, as an area drain.**
 
@@ -191,7 +191,7 @@ The rest of the original class intent (support ships, escort) is **not built** a
 | G1 | Director ignores objectives and friendlies | Owner's attack/defend and friendly-fire asks | Slice 2; reads existing roster, objectives, tactical map |
 | G2 | ~~Ship weapons cannot target aircraft~~ | **Built (slice 3).** | `WarshipAirFire` and `WarshipAirRules`, damage through the shared body damage route's aimed entry; no second air registry |
 | G3 | ~~Aircraft cannot hurt a ship~~ | **Built.** | `HullStrike` in both dispatchers; damage rides the existing detonation route, `Warship` still not an entity |
-| G4 | Ships are not targets | Ship-vs-ship (escorts no longer wait on it), counter-battery, air superiority between capitals | Make a hull a target class for ship mounts (circle, then the authored polygon the nouns already require). Planned in `atmospheric-frigate-duel.md` for a-small-war Chapter 5 |
+| G4 | ~~Ships are not targets~~ | **Built for direct fire and missiles, by mission order.** Counter-battery and air superiority between capitals remain | A hull is a circle target for ship mounts (`WarshipShipFire`); the authored polygon the nouns require is still to come. See Decided: ship against ship |
 | G5 | Ground defences cannot hurt a ship, so there is no hazard to stand off from (answered for fortress batteries, `ground-defences.md`; ordinary turrets still cannot) | "Stay out of range of ground defences" is fiction until it has a cause | Model it as the same kind of area drain `tickAirThreat` uses, from anti-air/anti-armour emplacements, so the posture's standoff has something to read; owner decision first |
 | G6 | ~~Hull class, bays, hints, shield type unread~~ | **Built (weights).** Parameter biases and escort remain, see Classes and its open questions | `ShipClass` read in `Warship.fit`; `AirThreatWeights` |
 | G7 | No query for hostile loaded shuttles with ETA | INTERCEPT | A few lines over `getAirEntityIds`; belongs with the threat picture |
@@ -236,7 +236,7 @@ Owner direction of 2026-10-11 on the questions this doc was drafted around. Thes
 2. **Ordinary ground defence turrets do not threaten a capital.** Only planetary defences do: a fortress battery (`ground-defences.md`) hurts a hull at ship-vs-ship balance and registers its live envelope as a hazard (`WarshipSystem.setBatteryHazard`), which a doctrine ship's standoff keeps its station out of. The other input to standoff is still a **declared capital hazard** (`WarshipSystem.declareCapitalHazard`, a mission-declared zone owned by a faction), which does no damage.
 3. **Attacker or defender is the mission's stance, and it can change mid-mission.** The target of this engine is ordinary RTS campaign missions: take the objective, then defend it from attack waves. A ship carries a `MissionStance` (ATTACK, DEFEND, HOLD), settable at any time by a mission, a script or a test; its doctrine reads it at every pass. It is never derived from faction side. HOLD (the default) is "no objective job": the ship stays BOMBARD.
 4. **Friendly fire is avoided, and the weapons stay devastating.** The ship is not nerfed and the player and allies do not survive the equivalent of a MOAB on their own position. A weighted director rejects any area whose blast (the weapon's damage radius plus a safety margin) would reach a friendly body or declared protected ground, scoring areas by hostiles minus a heavy weight on friendlies in the blast. Where every candidate is dirty the ship holds fire and says so, unless the mission sets **danger-close**, in which case it fires but still prefers fewer friendlies. A manual order (debug F6, a script) is never refused.
-5. **Ships fighting ships in a ground battle is out of scope for now.** A later extension (needs hulls as targets, gap G4). Opened by a-small-war Chapter 5's duel: hulls are targets for direct fire by mission order (`atmospheric-frigate-duel.md`, slice 1); whether the doctrine engages them by default is that story's open question 1.
+5. **Ships fighting ships in a ground battle is out of scope for now.** A later extension (needs hulls as targets, gap G4). Opened by a-small-war Chapter 5's duel: hulls are targets for a ship's guns and missiles by mission order (Decided: ship against ship); whether the doctrine engages them by default is open question 1 under Open questions: ship against ship.
 6. **Intercept denies the landing zone first.** It fires timed area fire at the zone of an inbound hostile drop so the round lands at touchdown; it shoots shuttles in flight only where the weapon rules of decision 1 allow, later. Passengers are lost if a shuttle goes down.
 7. **No favouring of named-campaign-soldier drops.** The ship ranks drops by what an observer sees (seated people, a machine payload, time to touchdown).
 8. **Carriers launch from the hull on the map later.** Today they use the existing corridor.
@@ -302,9 +302,28 @@ Owner direction of 2026-10-14: escort is wanted, and it no longer waits on ships
 
 **Ground fire.** The escort's ordinary posture rules apply unchanged: with no threat to its lead (or itself) it bombards, supports or intercepts as its stance says; under the air fight it takes air superiority's conserving profile like any ship. No separate reduced share was invented.
 
-**Not built.** Interposing against hostile ships (needs G4); escort-specific point-defence priority beyond the existing ordnance-first rule; a lead that is a carrier moving with its wing; the escort's heading (the director still bears guns as it does for any ship).
+**Not built.** Escort-specific point-defence priority beyond the existing ordnance-first rule; a lead that is a carrier moving with its wing; the escort's heading (the director still bears guns as it does for any ship).
 
 Evidence: `WarshipEscortTest` (who may escort, automatic assignment, ring slots, the lead-craft weight, a craft aimed away is not a lead craft, station and reversion) and the `ship-escort` scene: a doctrine Onslaught alone under a four-bomber wing against the same capital with an Enforcer escort (the escort takes air superiority with the lead named, downs more craft and the lead takes a fraction of the pressure), the lead departing partway (the escort drops the relation and goes home), and automatic assignment of a destroyer and a frigate on separate slots.
+
+## Decided: ship against ship
+
+Built for a-small-war Chapter 5, where two lent Wolf (H) meet two Hound (P) escorting Greyhook's salvage rig as it climbs out from the Black Sluice pier. The standing model (targets, stray rounds, falling wreckage, duel helm, missiles at hulls, pack and escort roles, climb-out, visit, ledger) is in `air-nouns.md`, **Overhead ships**. What follows is why it is shaped that way.
+
+- **The matchup is vanilla's.** No damage, hit chance or durability is authored per hull or for the chapter (balance law). The duel's shape comes from the hull table: the Wolf is the faster, handier, shielded hull; the Hound the tougher, unshielded one; the rig carries no guns. Posture, roles and the duel helm choose what a ship does; they never scale anything.
+- **Nothing is scripted.** A mission sets up hulls, a route and a fire order, never an event: who escapes, breaks off or falls is the ships' own doing, and the debrief reads it from the ledger. Evidence scenes may set up a battered hull or a position, never an outcome.
+- **Hull fire is a mission's explicit choice.** `ShipFireOrder.OFF` stays the default, so no shipped mission changed until it opted in; the falling wreck is the one exception, a standing law for every warship.
+- **A duel overhead never decides the ground.** A ground chapter stages its duel through an optional seam (`SmallWarDuel` on the Black Sluice referee): absent by default, told when the withdrawal order goes out, and read by nothing the referee settles on. Stray rounds and wreckage are the only way it reaches the ground, and they are real in both directions. The Black Sluice evidence plays the same battle with and without the duel and requires the same ground result.
+- **Geometry, not numbers, gives the rig its chance.** The rig and its escorts stand quiet over the pier from the start (no ground or hull fire, so nothing changes until the order). At the order the rig climbs out east and the Wolfs drop through the cloud deck inland, a run short of the pier. With the Wolfs dropped beside the pier, the rig and both Hounds were down within seven seconds of the order on every seed; dropped inland, the rig gets away hurt on all three seeds and both Hounds fall. When the rig is gone and no Wolf is left, the Hounds climb out after it: one finite visit for Greyhook too.
+- **Not modelled, by choice:** hard flux, the base game's damage-type multipliers between hulls (open question 3), EMP and the ion cannon's arcs (it fires as an energy projectile), and carriers or fighters in a duel (the chapter rejected them). The Wolfs are not the company's ships and have no campaign writeback.
+
+Evidence: the scenes `frigate-duel`, `frigate-duel-helm`, `frigate-missiles`, `frigate-doctrine`, `frigate-climb-out`, `frigate-visit` and `frigate-ledger` (`sceneEvidence`, with `createSnapshots` GIFs of the same ids), and `createSnapshots -Psnapshot=black-sluice`, which plays the production chapter with the duel installed, the `ordinary-15305-no-duel` control, the duel recorded as `ordinary-15305-duel.gif`, and Castle's overhead line on the debrief.
+
+## Open questions: ship against ship
+
+1. **Does the doctrine duel by default?** Decision 5 is lifted by the chapter's need. Is that general (any hostile hulls duel under `ShipFireOrder.AUTO`) or only where a mission declares it? Until the owner answers, hull fire stays opt-in per mission and `AUTO` engages nothing.
+2. **Should a falling capital's crash scale with hull size beyond the aircraft crash's cap?** A wreck reuses the aircraft crash as it stands (radius capped at eight cells), so a capital and a frigate crush the same ground.
+3. **Damage between hulls uses the ground penetration scale.** The armour rule takes penetration from the weapon's damage type at the figures tuned for ground fire (kinetic 12, energy 10, high explosive 8). Against hull plate of 150 to 400, armour barely matters and kinetic beats high explosive; the base game's damage-type multipliers (kinetic weak against armour and strong against shields, high explosive the reverse) are not modelled between hulls. So the Sabot, an anti-shield weapon in the base game, takes an unshielded Hound in seconds, and over Black Sluice both Hounds fall within about sixteen seconds of the order while the Wolfs lose at most a fifth of one hull. Reading the vanilla multipliers would be a contained change to `WarshipSystem.strikeHulls` and the shield absorb, but it would change every duel reading and any shipped scene where ground batteries hit hulls.
 
 ## Open questions: ship class
 

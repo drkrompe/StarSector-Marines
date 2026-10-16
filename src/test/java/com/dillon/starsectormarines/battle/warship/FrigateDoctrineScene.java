@@ -23,7 +23,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Slice 4 of {@code atmospheric-frigate-duel.md}: doctrine for duels. Two Wolf (H) hunt a Salvage Rig held on
+ * Slice 4 of the frigate duel ({@code warship-behaviours.md}, ship against ship): doctrine for duels. Two Wolf (H) hunt a Salvage Rig held on
  * station with its two Hound (P) escorts, over a hostile garrison. Every hull runs the ordinary warship doctrine.
  *
  * <p>Loops: {@code pack} (the Wolfs on ground-fire {@code HOLD}: the one nearer the rig runs it down, the other

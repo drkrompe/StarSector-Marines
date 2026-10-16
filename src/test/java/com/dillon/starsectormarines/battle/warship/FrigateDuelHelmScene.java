@@ -21,7 +21,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Slice 2 of {@code atmospheric-frigate-duel.md}: the duel helm and the variant's flux fittings. Two Wolf (H) and two
+ * Slice 2 of the frigate duel ({@code warship-behaviours.md}, ship against ship): the duel helm and the variant's flux fittings. Two Wolf (H) and two
  * Hound (P) start eighty cells apart, far out of reach, under {@link ShipFireOrder#ALL} and nothing else.
  *
  * <p>Loops: {@code helm} (the helm flies them: each finds a hull, the outranged Hounds close and the outranging

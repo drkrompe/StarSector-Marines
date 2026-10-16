@@ -24,7 +24,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Slice 7 of {@code atmospheric-frigate-duel.md}: the duel ledger. One fight with every way a hull can end it: a
+ * Slice 7 of the frigate duel ({@code warship-behaviours.md}, ship against ship): the duel ledger. One fight with every way a hull can end it: a
  * Salvage Rig climbing out over the east edge, a battered Hound (P) the doctrine will withdraw, a second Hound
  * fighting over a hostile squad, and two Wolf (H) on a mission's visit that leave once the air is quiet. Unarmed
  * units stand under the whole fight to catch stray rounds and wreckage.

@@ -22,7 +22,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Slice 6 of {@code atmospheric-frigate-duel.md}: one finite visit, nobody's to command. The two Wolf (H) are put
+ * Slice 6 of the frigate duel ({@code warship-behaviours.md}, ship against ship): one finite visit, nobody's to command. The two Wolf (H) are put
  * on the player's own side here on purpose: an allied hull is already outside every player gate by its side, so
  * only a player-side hull can show that a mission's visit, not the side, is what keeps the player's hands off it.
  *

@@ -1839,8 +1839,19 @@ public final class BattleSetup {
      * Black Sluice, the chapter-five foothold. Greyhook's groups are the finite authored table in
      * {@link SmallWarForces}; holders and the custody party are the employer's. {@code houseCustody}
      * names who walks the handover (Rusk's custodians or the joint party); it changes no strength.
+     * The duel overhead ({@link BlackSluiceDuel}) is installed: Greyhook's rig and escorts over the pier
+     * from the start, and two lent Wolf (H) once Voss orders the withdrawal.
      */
     public static BattleSimulation createSmallWar(long seed, List<ShuttleAssignment> manifest, TargetProfile profile, boolean houseCustody) {
+        return createSmallWar(seed, manifest, profile, houseCustody, true);
+    }
+
+    /**
+     * As {@link #createSmallWar(long, List, TargetProfile, boolean)}; {@code duel} false leaves the sky empty, the
+     * control that shows the ground chapter does not depend on the duel.
+     */
+    public static BattleSimulation createSmallWar(long seed, List<ShuttleAssignment> manifest, TargetProfile profile,
+                                                  boolean houseCustody, boolean duel) {
         if (manifest == null || manifest.isEmpty() || manifest.size() > 4)
             throw new IllegalArgumentException("A Small War requires one to four fitted company boats");
         MapResult map = BlackSluice.generate(seed, profile);
@@ -1898,6 +1909,11 @@ public final class BattleSetup {
         sim.getSquad(custody).originalSize = SmallWarProgress.CUSTODIANS;
         sim.claimSquadCommand(custody, CommandAuthority.MISSION_COMMAND, SmallWarCommand.issuer(Faction.ALLY), "Agreed local custody party");
         sim.installSmallWar(custody, holders, starting, reserves, gun, houseCustody);
+        if (duel) {
+            var overhead = new BlackSluiceDuel();
+            overhead.stage(sim);
+            sim.getSmallWar().installDuel(overhead);
+        }
         for (Faction faction : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER))
             sim.setAutonomousCommander(faction, new SmallWarCommand(faction), SmallWarCommand.disclosure(sim.getSmallWar()));
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(SmallWarCommand.issuer(Faction.MARINE), "Company Black Sluice support"));

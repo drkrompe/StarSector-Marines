@@ -21,7 +21,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Slice 5 of {@code atmospheric-frigate-duel.md}: the rig climbs out. A Salvage Rig with two Hound (P) escorts
+ * Slice 5 of the frigate duel ({@code warship-behaviours.md}, ship against ship): the rig climbs out. A Salvage Rig with two Hound (P) escorts
  * leaves along a route to the east edge, climbing as it goes, at its own speed.
  *
  * <p>Loops: {@code escape} (nobody hunting: the rig is gone over the edge by its own propulsion, its escorts keep

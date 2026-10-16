@@ -5,8 +5,8 @@ package com.dillon.starsectormarines.battle.warship;
  *
  * <p>{@code OFF} is the default, so a ship no mission has told to fight ships behaves exactly as it always has.
  * {@code ALL} is an explicit order from a mission or a script. {@code AUTO} follows the ship's posture and is
- * reserved for the duel doctrine (story {@code atmospheric-frigate-duel.md}, slice 4); until that lands it engages
- * nothing.
+ * reserved for a duel doctrine the owner has not decided on ({@code warship-behaviours.md}, open questions: ship
+ * against ship); until then it engages nothing.
  */
 public enum ShipFireOrder {
     /** Never fire at a hull. The default. */

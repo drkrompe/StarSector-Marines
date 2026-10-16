@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — a hostile hull is a target for a ship's direct-fire guns by mission order, misses fall on the ground, a lost hull falls as wreckage, a ship fighting hulls manoeuvres by its reach against theirs with its variant's capacitors and vents, missiles fly at hulls with a Sabot's warheads aimed at the split, a pack splits on an escorted hull while its escorts interpose, a hull can climb out along a route with its escorts, a mission's hull visits once and is nobody's to command, and a duel ledger records each hull's outcome and the ground it cost (`atmospheric-frigate-duel.md`, slices 1-7); a fort's anti-air yard stands Locust and Swarmer towers instead of Ridgewatch and flak; earlier: Missile AA joins ordinary heavy defense posts; all six supported carrier wings use the shared commitment flow.
+Updated: 2026-10-16 — a hostile hull is a target for a ship's direct-fire guns by mission order, misses fall on the ground, a lost hull falls as wreckage, a ship fighting hulls manoeuvres by its reach against theirs with its variant's capacitors and vents, missiles fly at hulls with a Sabot's warheads aimed at the split, a pack splits on an escorted hull while its escorts interpose, a hull can climb out along a route with its escorts, a mission's hull visits once and is nobody's to command, a duel ledger records each hull's outcome and the ground it cost, and a ground chapter may stage a duel overhead its referee never reads (built for a-small-war Chapter 5; rationale in `warship-behaviours.md`); a fort's anti-air yard stands Locust and Swarmer towers instead of Ridgewatch and flak; earlier: Missile AA joins ordinary heavy defense posts; all six supported carrier wings use the shared commitment flow.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1849,7 +1849,7 @@ real below them. Rounds between hulls are direct fire and no point defence engag
 them. A ship with a hull to fight and no ground to bring its guns to bear on turns to
 the heading that puts the most anti-ship firepower on it, re-chosen as it moves. A
 vanilla skin (a Wolf (H), a Hound (P)) is fitted as its base hull under its own
-sprite. See `atmospheric-frigate-duel.md`.
+sprite. Why it is shaped this way: `warship-behaviours.md`, Decided: ship against ship.
 
 **A ship fighting a hull manoeuvres by the two reaches.** Its **duel helm** moves the
 station it flies to, never its speed or turn: a ship whose strongest anti-ship gun
@@ -1900,6 +1900,13 @@ battle: escaped (climbed out and gone), broke off (withdrawn by its doctrine), d
 (any other leaving) or destroyed (when, where it burst and where its wreck struck). It
 also counts ground casualties by side, from stray rounds and from wreckage. Nothing in
 the battle reads it, and a ground objective never does.
+
+**A duel overhead belongs to its mission, never to the ground.** A ground chapter may
+stage a duel through an optional seam on its referee: hulls stand quiet until the
+chapter's moment comes, the duel then runs on its own, and the debrief reads its
+ledger. The referee settles on nothing the duel does; stray rounds and wreckage are the
+only way it reaches the ground. Black Sluice is the first: Greyhook's rig and two
+Hounds over the pier, two lent Wolfs arriving when Voss orders the withdrawal.
 
 **A warship's stay and its magazine can both be bounded.** Station time is counted
 down only while the ship is on its station, not while it travels to it; when it

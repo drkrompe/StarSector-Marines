@@ -50,6 +50,8 @@ public final class MissionOutcome {
     public final LimitedWarrantProgress.Report limitedWarrant;
     public final YardOwnersProgress.Report yardOwners;
     public final SmallWarProgress.Report smallWar;
+    /** What the Black Sluice duel overhead came to, for the debrief; null when no duel was fought. */
+    public final String smallWarOverhead;
     public final TermsOfProtectionProgress.Report termsOfProtection;
     /** District Escort's frozen physical receipt; null for every other mission. */
     public final DistrictEscortProgress.Report districtEscort;
@@ -173,6 +175,7 @@ public final class MissionOutcome {
         this.limitedWarrant=b.limitedWarrant;
         this.yardOwners=b.yardOwners;
         this.smallWar=b.smallWar;
+        this.smallWarOverhead=b.smallWarOverhead;
         this.termsOfProtection=b.termsOfProtection;
         this.districtEscort=b.districtEscort;
         this.lastLiftOutcome    = b.lastLiftOutcome;
@@ -266,6 +269,8 @@ public final class MissionOutcome {
         public Builder yardOwners(YardOwnersProgress.Report value) { yardOwners = value; return this; }
         private SmallWarProgress.Report smallWar;
         public Builder smallWar(SmallWarProgress.Report value) { smallWar = value; return this; }
+        private String smallWarOverhead;
+        public Builder smallWarOverhead(String value) { smallWarOverhead = value; return this; }
         private TermsOfProtectionProgress.Report termsOfProtection;
         public Builder termsOfProtection(TermsOfProtectionProgress.Report value) { termsOfProtection = value; return this; }
         private DistrictEscortProgress.Report districtEscort;
