@@ -304,7 +304,8 @@ public final class MissionResolver {
         int payoutEarned = SupplyRouteCampaign.isBattle(mission)
                 ? SupplyRouteCampaign.payment(mission, victory, sim.getLastLiftAttempt() == null ? null : sim.getLastLiftAttempt().outcome(),
                         sim.getThunderRun() == null ? null : sim.getThunderRun().outcome())
-                : CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission) ? (victory ? mission.payout : 0)
+                : CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission)
+                        || DistrictEscortCampaign.isBattle(mission) ? (victory ? mission.payout : 0)
                 : victory ? (int) ((long) mission.payout * cashMult / 100L) : 0;
 
         // Freeze the negotiated claim and current Layer-3 recovery modifiers so
@@ -375,6 +376,7 @@ public final class MissionResolver {
                 .waterUnderSeal(sim.getWaterUnderSeal()==null?null:sim.getWaterUnderSeal().report(sim))
                 .limitedWarrant(sim.getLimitedWarrant()==null?null:sim.getLimitedWarrant().report(sim))
                 .yardOwners(sim.getYardOwners()==null?null:sim.getYardOwners().report(sim))
+                .districtEscort(sim.getDistrictEscort()==null?null:sim.getDistrictEscort().report(sim))
                 .coldStart(sim.getColdStart()==null?null:sim.getColdStart().report(sim))
                 .salvageRights(sim.getSalvageRights()==null?null:sim.getSalvageRights().report(sim))
                 .officers(sim.officerAttemptId(), officers)
@@ -500,6 +502,10 @@ public final class MissionResolver {
         }
         if (AgreusArcCampaign.owns(outcome.missionId) && (cargo == null || AgreusArcCampaign.settle(outcome) < 0)) {
             LOG.info("MarineOps: refused stale or invalid Agreus outcome " + outcome.missionId);
+            return;
+        }
+        if (DistrictEscortCampaign.owns(outcome.missionId) && (cargo == null || DistrictEscortCampaign.settle(outcome) < 0)) {
+            LOG.info("MarineOps: refused stale or invalid District Escort outcome " + outcome.missionId);
             return;
         }
         if (cargo != null) {

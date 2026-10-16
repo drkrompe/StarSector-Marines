@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.mission.story;
 
 import com.dillon.starsectormarines.ops.ShepherdRecoveryCampaign;
 import com.dillon.starsectormarines.ops.AgreusArcCampaign;
+import com.dillon.starsectormarines.ops.DistrictEscortCampaign;
 
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
@@ -51,6 +52,7 @@ public final class StoryMissionRegistry {
         out.addAll(0, CorvusWaylineCampaign.offers(ctx));
         out.addAll(0, ShepherdRecoveryCampaign.offers(ctx));
         out.addAll(0, AgreusArcCampaign.offers(ctx));
+        out.addAll(0, DistrictEscortCampaign.offers(ctx));
         return out;
     }
 }

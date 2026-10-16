@@ -176,14 +176,14 @@ public class DefensePostFootprintTest {
     }
 
     @Test
-    public void mediumUsesGeneratedSandbagSheet() {
+    public void mediumIsAConcreteRevetmentRingNotSandbags() {
         NavigationGrid grid = openGrid();
         CellTopology topo = new CellTopology(W, H);
         List<Doodad> doodads = new ArrayList<>();
         DefensePostStamper.stampPost(grid, topo, doodads, DefensePostKind.MEDIUM,
                 null, CX, CY, new Random(1));
         assertEquals(8, doodads.size());
-        assertTrue(doodads.stream().allMatch(d -> TileManifest.DOODAD_SHEET.equals(d.sheetPath)));
+        assertTrue(doodads.stream().noneMatch(d -> TileManifest.DOODAD_SHEET.equals(d.sheetPath)));
         assertEquals(8, doodads.stream().map(d -> d.tile.col + "," + d.tile.row).distinct().count());
     }
 

@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — Heavy defense posts include missile AA towers with validated multi-cell foundations; fort power halls and compact utility buildings share full-footprint power and cooling equipment.
+Updated: 2026-10-16 — Permanent defense posts are drawn as concrete revetment rings (`road.revetment`), not sandbag rings; sandbags mark field positions; Heavy defense posts include missile AA towers with validated multi-cell foundations; fort power halls and compact utility buildings share full-footprint power and cooling equipment.
 
 Earlier 2026-10-13 — reversible authored damage layers give Relief a worn checkpoint without changing its landing contract; Relief rear working courts preserve the expanded landing and assembly apron.
 
