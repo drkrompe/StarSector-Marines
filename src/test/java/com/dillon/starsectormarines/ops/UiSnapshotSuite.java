@@ -319,6 +319,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("barracks-wide.png",
                         renderBarracks(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
+                // The company roster: every marine on one comparable row, sorted by aptitude.
+                new SnapshotArtifact("barracks-roster-wide.png",
+                        renderBarracks(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
                 new SnapshotArtifact("ship-view-wide.png",
                         renderShipView(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
@@ -2206,6 +2210,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static BufferedImage renderBarracks(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height) throws Exception {
+        return renderBarracks(context, renderer, width, height, false);
+    }
+
+    private static BufferedImage renderBarracks(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, boolean companyRoster) throws Exception {
         Reactor reactor = new Reactor();
         MarineRoster roster = new MarineRoster();
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY * 3);
@@ -2214,9 +2224,21 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 .findFirst().orElseThrow();
         Map<String, MarineSoldierStatus> postBattle = new LinkedHashMap<>();
         postBattle.put(squad.memberIds().get(3), MarineSoldierStatus.WIA);
+        if (companyRoster) {
+            // A service record that varies across the company, so the SERVICE column reads.
+            List<MarineSoldier> all = roster.soldiers();
+            for (int mission = 0; mission < 6; mission++) {
+                Map<String, MarineSoldierStatus> deployed = new LinkedHashMap<>();
+                for (int i = 0; i < all.size(); i++) {
+                    if ((i + mission) % 3 != 0) deployed.put(all.get(i).id(), MarineSoldierStatus.ACTIVE);
+                }
+                roster.applySoldierOutcome(deployed, 90f + mission, 1f, null, true);
+            }
+        }
         roster.applySoldierOutcome(postBattle, 100f, 1.25f);
         BarracksViewModel viewModel = new BarracksViewModel(reactor, roster, () -> 100d, EquipmentIssueResources.UNLIMITED,
                 snapshotSquadFoundingResources(), () -> 0, id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0));
+        if (companyRoster) viewModel.command().showCompanyRoster();
         CompanyDeck ship = companyShip(List::of,
                 () -> MarineOpsContext.companyMarines(roster));
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(

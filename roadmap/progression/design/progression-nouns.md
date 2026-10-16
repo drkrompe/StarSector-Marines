@@ -1319,6 +1319,19 @@ and recommended squads describe quantity separately. The comparison is advice,
 not an invisible strength calculation or a source of battle scaling; it must
 not prevent a valid understrength fire team from attempting the work.
 
+**The company roster ranks the company without arithmetic.** The Barracks'
+Company Roster lists every marine on the books (the fallen are not) on one
+comparable row: squad, status with the return day of the wounded, aptitude, the
+band their issued armour sets, the primary and its grade, the armour, and the
+service record that also decides seniority. The three quality axes are drawn as
+**absolute** four-step bars, never scaled to the company, because a relative bar
+makes a company of Limited marines look uniformly excellent; the step holding the
+company's median aptitude is outlined so each marine also reads against the
+company. Every column sorts, quality columns best first. Captains' traits read on
+the officer dossier, and a trait with no mechanic says so rather than claiming
+one; outlook traits read as character. Retained screens assign their compact text
+faces by role (heading, body, compact) rather than one display face everywhere.
+
 Avoid stacking redundant
 battlefield overlays; start with the closest decision surface and add in-world
 signal only when it materially improves play.
