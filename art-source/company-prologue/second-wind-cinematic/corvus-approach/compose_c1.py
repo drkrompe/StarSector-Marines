@@ -167,11 +167,13 @@ def duration():
 
 
 def captions():
-    """[(t_in, t_out, speaker_id, text)]: every page of every hail line that starts in C1."""
+    """[(t_in, t_out, speaker_id, catalog_line_id)]: one entry per hail line that starts in C1, over
+    the whole take (first page in to last page out). No text: the exporter turns the id into a
+    strings.json key and the player pages whatever that language says."""
     out = []
-    for speaker, _key_up, _release, pages in c1_overlay.caption_schedule(duration()):
-        for text, t0, t1 in pages:
-            out.append((round(t0, 3), round(t1, 3), SPEAKER_IDS[speaker], text))
+    starting = [line for line, start, *_ in c1_overlay.hail_lines() if start < duration()]
+    for line, (speaker, _key_up, _release, pages) in zip(starting, c1_overlay.caption_schedule(duration())):
+        out.append((round(pages[0][1], 3), round(pages[-1][2], 3), SPEAKER_IDS[speaker], line["id"]))
     return out
 
 
@@ -192,8 +194,9 @@ def overlays():
         "kind": "lock", "t_in": round(t_lock, 3), "t_out": round(t_out, 3),
         "close_seconds": c1_overlay.LOCK_SECONDS, "out_seconds": c1_overlay.OUT_SECONDS,
         "arc_degrees": c1_overlay.ARC_DEG, "leader": c1_overlay.LEADER,
-        "title": "JANGALA",
-        "detail": [{"text": "CORVUS  /  ", "color": "player"}, {"text": "HEGEMONY", "color": "hegemony"}],
+        "title_key": "jangalaArrivalLockTitle",
+        "detail": [{"key": "jangalaArrivalLockDetailSystem", "color": "player"},
+                   {"key": "jangalaArrivalLockDetailFaction", "color": "hegemony"}],
         "track": track,
     }]
 
