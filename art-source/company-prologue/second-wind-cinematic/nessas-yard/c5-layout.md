@@ -74,13 +74,15 @@ re-spaced by the generator; they touch nothing that registers, so they stand as 
 The near ground and the props share the yard layer, so nothing slides against its own
 shadow under the push.
 
-**Hull card.** `render_c5_hull.py` renders the current full-surface master
-(`second-wind-full-surface/`) from the C5 camera at 3840x2160, scaled so its X extent is
-`SW_LENGTH_M` and centred where the shrunk landing hull stands. Everything in the near set
-that can stand in front of it (`guides/c5-occluders.glb`) holds it out. Model swap contract
-as C1: `SHIP_BLEND`, `SHIP_ROOT`, `THROAT_PATTERN`. Arrival is the patched state, so only
-the starboard throats (engines 3 and 4) keep a dull cooling glow. When the surfaced patched
-master lands, point `SHIP_BLEND` at it and re-run `render_c5_hull.py` and `compose_c5.py`.
+**Hull card.** `render_c5_hull.py` renders the surfaced patched Second Wind
+(`second-wind-surface/build/skinned-patched.blend`, a gitignored build output; build it per
+that folder's README) from the C5 camera at 3840x2160. The model has no root object, so the
+script parents everything to a new empty; it is scaled so its X extent is `SW_LENGTH_M`
+(exactly `metres_per_unit` for this model), centred where the shrunk landing hull stands,
+with its keel on the cradle's pad tops. Everything in the near set that can stand in front
+of it (`guides/c5-occluders.glb`) holds it out. All four engines are cold in the yard, so no
+throat glows; bell interiors and throats take a sooty matte finish. Swap contract as C1:
+`SHIP_BLEND`, `SHIP_ROOT` (None for a rootless model), `THROAT_PATTERN`.
 
 ## Moving elements
 
@@ -98,7 +100,8 @@ safe under `storyboard-v3.md`'s rules.
 ## Audio and dialogue
 
 No dialogue: the silence after C4's "Let me talk first." is the beat, and Y1 starts on the
-cut. `audio_cues()` lays original DSP masters from
+cut. `audio_cues()` lets C4's cabin bed (`jangala_arrival_cabin_bed`) run out within the
+first second, then lays original DSP masters from
 `asset-pipeline/src/tool/resources/audio/jangala-yard/` (README there): the ship winding
 down as the sound bridge from C4, the jungle bed, vent steam breathing in phase with the
 steam sheets, cooling hull ticks, the jib winch on the crate's loop, a faint unintelligible
@@ -109,7 +112,7 @@ the same cues for listening; the player schedules them for real.
 
 ```bash
 "C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup ../landing-wreck-pass/landing-wreck-pass.blend --python build_c5_guides.py -- --samples 16
-python render_c5_hull.py --samples 96         # layers/c5-hull.png, layers/c5-hull-shadow.png
+python render_c5_hull.py --samples 96         # layers/c5-hull.png, layers/c5-hull-shadow.png (needs skinned-patched.blend)
 python compose_c5.py                          # review/c5-t*.png and review/c5-contact.png
 python compose_c5.py --frames --mp4           # build/cinematic/c5-nessas-yard/{frames,c5-nessas-yard.mp4,timeline.json}
 python ../../../../asset-pipeline/src/tool/resources/audio/jangala-yard/generate.py   # then :asset-pipeline:processAudio

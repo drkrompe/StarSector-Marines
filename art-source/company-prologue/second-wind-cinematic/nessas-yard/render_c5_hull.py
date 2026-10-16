@@ -13,8 +13,9 @@ The camera only scales in C5 and the hull does not move, so one still is the who
 Model convention (the swap contract, shared with corvus-approach/render_ship_sequence.py):
 +X bow, +Y port, +Z up, origin anywhere. The hull is scaled so its X extent is
 c1_ship.SW_LENGTH_M (from `metres_per_unit` in second-wind-geometry's patched geometry.json),
-and its bounding box is centred where the landing scene's settled hull stands, shrunk to that
-scale. A new model needs only SHIP_BLEND / SHIP_ROOT / THROAT_PATTERN (or the flags).
+and it is centred where the landing scene's settled hull stands, shrunk to that scale, with its
+keel down on the cradle's pad tops. A new model needs only SHIP_BLEND / SHIP_ROOT / THROAT_PATTERN (or the flags); a model
+without a root object gets one.
 
 Light is the shared sun of landing-wreck-pass.blend (read from that file, never retyped), its
 world colour and its AgX exposure, so C5 is lit like C4 and the landing. The yard ground is
@@ -36,17 +37,31 @@ LANDING_BLEND = BASE.parent / "landing-wreck-pass" / "landing-wreck-pass.blend"
 SUN_NAME = "Shared sun | all shots"
 
 # ---------------------------------------------------------------- the swappable model
-SHIP_BLEND = BASE.parent / "second-wind-full-surface" / "second-wind-full-surface.blend"
-SHIP_ROOT = "SECOND WIND | flight root"
+# The surfaced patched state, a gitignored build output of ../../second-wind-surface
+# (`rebuild.sh`, or build_reference.py --state patched then apply_skin.py; see its README).
+# It has no root object: with SHIP_ROOT None every object is parented to a new empty.
+# The older full-surface master is SHIP_BLEND = second-wind-full-surface.blend with
+# SHIP_ROOT = "SECOND WIND | flight root".
+SHIP_BLEND = BASE.parents[1] / "second-wind-surface" / "build" / "skinned-patched.blend"
+SHIP_ROOT = None
 # Arrival is the patched state: only the starboard pod (engines 3 and 4) ran on the way in.
-# On the ground minutes later their throats still hold a dull heat; the port pod is cold.
-THROAT_PATTERN = r"^Engine [34] dark throat$"
+# In the yard after landing all four are cold, so no throat glows (a regex here would light them).
+THROAT_PATTERN = None
 THROAT_EMISSION = ((1.0, 0.32, 0.08), 0.6)
+# Cold, heat-darkened bells: their interiors and throats take a sooty matte finish. The
+# surfaced model's recess material mirrors the sky from inside a bell seen nearly head-on.
+SOOT_PATTERN = r"^Engine \d (aft-facing bell|dark throat|aft-facing nozzle)$"
+SOOT_RGB = (0.025, 0.023, 0.022)
+# The engine parts are modelled round but flat-shaded, which reads as facets at this range:
+# shade them smooth, keeping edges sharper than this angle (rims, lips) crisp.
+SMOOTH_PATTERN = r"^Engine \d "
+SMOOTH_SHARP_DEG = 35.0
+LANDING_PAD_TOP_M = 5.0       # the landing cradle's contact pads, before the shrink
 GROUND_RGB = (0.30, 0.30, 0.29)
 
 
 def _args(argv):
-    opts = {"samples": 96, "blend": str(SHIP_BLEND), "root": SHIP_ROOT, "throats": THROAT_PATTERN,
+    opts = {"samples": 96, "blend": str(SHIP_BLEND), "root": SHIP_ROOT or "", "throats": THROAT_PATTERN or "",
             "scale": 1.0, "plan": None}
     i = 0
     while i < len(argv):
@@ -63,6 +78,7 @@ def plan_and_launch(argv):
     import c1_ship
     cam = json.loads((BASE / "guides" / "c5-camera.json").read_text(encoding="utf-8"))
     plan = dict(opts, camera=cam["camera"], hull_box=cam["hull_box"], length_m=c1_ship.SW_LENGTH_M,
+                pad_top=LANDING_PAD_TOP_M * cam["scale_from_landing"],
                 landing=str(LANDING_BLEND), sun=SUN_NAME, occluders=str(BASE / "guides" / "c5-occluders.glb"),
                 out=str(OUT / "c5-hull.png"), shadow_out=str(OUT / "c5-hull-shadow.png"))
     OUT.mkdir(parents=True, exist_ok=True)
@@ -96,11 +112,24 @@ def blender_main(argv):
     view = dict(transform=sc0.view_settings.view_transform, look=sc0.view_settings.look,
                 exposure=sc0.view_settings.exposure, gamma=sc0.view_settings.gamma)
 
+    if not Path(plan["blend"]).exists():
+        raise RuntimeError("Missing ship master %s (build it: second-wind-surface/README.md)" % plan["blend"])
     bpy.ops.wm.open_mainfile(filepath=plan["blend"], load_ui=False)
     scene = bpy.context.scene
-    root = bpy.data.objects.get(plan["root"])
-    if root is None:
-        raise RuntimeError("Missing ship root %r in %s" % (plan["root"], plan["blend"]))
+    if plan["root"]:
+        root = bpy.data.objects.get(plan["root"])
+        if root is None:
+            raise RuntimeError("Missing ship root %r in %s" % (plan["root"], plan["blend"]))
+    else:
+        for obj in [o for o in bpy.data.objects if o.type in ("CAMERA", "LIGHT")]:
+            bpy.data.objects.remove(obj, do_unlink=True)
+        root = bpy.data.objects.new("C5 | ship root", None)
+        scene.collection.objects.link(root)
+        for obj in bpy.data.objects:
+            if obj is not root and obj.parent is None:
+                mw = obj.matrix_world.copy()
+                obj.parent = root
+                obj.matrix_world = mw
     ship = {root, *root.children_recursive}
     for obj in list(bpy.data.objects):
         if obj not in ship:
@@ -116,7 +145,10 @@ def blender_main(argv):
     hi = Vector([max(p[i] for p in pts) for i in range(3)])
     s = plan["length_m"] / (hi.x - lo.x)
     tlo, thi = Vector(plan["hull_box"]["lo"]), Vector(plan["hull_box"]["hi"])
-    root.matrix_world = Matrix.Translation((tlo + thi) / 2) @ Matrix.Scale(s, 4) @ Matrix.Translation(-(lo + hi) / 2)
+    # centred where the landing hull stands, keel down on the cradle's pad tops
+    seat = Vector(((tlo.x + thi.x) / 2, (tlo.y + thi.y) / 2, plan["pad_top"]))
+    model = Vector(((lo.x + hi.x) / 2, (lo.y + hi.y) / 2, lo.z))
+    root.matrix_world = Matrix.Translation(seat) @ Matrix.Scale(s, 4) @ Matrix.Translation(-model)
     bpy.context.view_layer.update()
     print("hull scale %.4f m/unit-of-model, box %s..%s" % (s, tuple(round(v, 2) for v in tlo), tuple(round(v, 2) for v in thi)))
 
@@ -129,9 +161,26 @@ def blender_main(argv):
     em.inputs["Strength"].default_value = THROAT_EMISSION[1]
     nt.links.new(em.outputs[0], nt.nodes.new("ShaderNodeOutputMaterial").inputs[0])
     for o in meshes:
-        if re.search(plan["throats"], o.name):
+        if plan["throats"] and re.search(plan["throats"], o.name):
             o.data.materials.clear()
             o.data.materials.append(emit)
+
+    for o in meshes:
+        if re.search(SMOOTH_PATTERN, o.name):
+            o.data = o.data.copy()
+            o.data.shade_smooth()
+            o.data.set_sharp_from_angle(angle=math.radians(SMOOTH_SHARP_DEG))
+
+    soot = bpy.data.materials.new("C5 | cold sooty bell")
+    soot.use_nodes = True
+    sb = soot.node_tree.nodes["Principled BSDF"]
+    sb.inputs["Base Color"].default_value = (*SOOT_RGB, 1)
+    sb.inputs["Roughness"].default_value = 0.95
+    sb.inputs["Metallic"].default_value = 0.0
+    for o in meshes:
+        if re.search(SOOT_PATTERN, o.name):
+            o.data.materials.clear()
+            o.data.materials.append(soot)
 
     # Occluders: everything in front of the hull from this camera holds it out.
     hold = bpy.data.materials.new("C5 | holdout")

@@ -525,6 +525,7 @@ def overlays():
 def audio_cues():
     """(t, sound_id, volume[, until]). Sound ids are built by processAudio from audio.json."""
     return [
+        (0.0, "jangala_arrival_cabin_bed", 0.30, 1.0),       # C4's cabin rumble, out within the first second
         (0.0, "c5_yard_spool_down", 0.55),
         (0.0, "c5_yard_jungle_bed", 0.40, DURATION),
         (0.0, "c5_yard_steam_vent", 0.45, DURATION),
@@ -537,6 +538,20 @@ def audio_cues():
     ]
 
 
+def _decoded(sid):
+    """A cue's source master as stereo float at 44.1 kHz, found through audio.json."""
+    text = (AUDIO.parent / "audio.json").read_text(encoding="utf-8")
+    text = "
+".join(line.split("//")[0] if line.lstrip().startswith("//") else line for line in text.splitlines())
+    src = {c["id"]: c["source"] for c in json.loads(text)["clips"]}[sid]
+    out = CACHE / ("audio-%s.wav" % sid)
+    if not out.exists():
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(AUDIO.parent / src), "-ac", "2", "-ar", "44100",
+                        "-c:a", "pcm_s16le", str(out)], check=True)
+    with wave.open(str(out)) as w:
+        return np.frombuffer(w.readframes(w.getnframes()), "<i2").reshape(-1, 2).astype(np.float32) / 32767
+
+
 def mix_cues(path):
     """Lay audio_cues() over the shot's length from the retained masters, for the review mp4."""
     n = int(DURATION * 44100)
@@ -544,11 +559,12 @@ def mix_cues(path):
     for cue in audio_cues():
         t, sid, vol = cue[:3]
         until = cue[3] if len(cue) > 3 else None
-        with wave.open(str(AUDIO / (sid + ".wav"))) as w:
-            x = np.frombuffer(w.readframes(w.getnframes()), "<i2").reshape(-1, 2).astype(np.float32) / 32767
+        x = _decoded(sid)
         a = int(t * 44100)
         if until is not None:
-            x = x[: int((until - t) * 44100)]
+            x = x[: int((until - t) * 44100)].copy()
+            tail = min(len(x), int(0.25 * 44100))
+            x[len(x) - tail:] *= np.linspace(1, 0, tail)[:, None]
         e = min(n, a + len(x))
         mix[a:e] += x[: e - a] * vol
     mix /= max(1.0, np.abs(mix).max() / 0.9)
