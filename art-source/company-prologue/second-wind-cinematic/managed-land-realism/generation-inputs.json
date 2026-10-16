@@ -126,6 +126,17 @@
           "role": "style/daylight"
         }
       ]
+    },
+    {
+      "file": "assets/agriculture-reskin-v1.png",
+      "prompt": "prompts/agriculture-reskin-v1.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-3d76c825-c07c-449a-9e17-1da12978c275.png",
+      "inputs": [
+        {
+          "path": "guides/shot03-agriculture-tight-reskin-guide.png",
+          "role": "native Blender camera-crop geometry/layout guide; material direction supplied in text"
+        }
+      ]
     }
   ]
 }

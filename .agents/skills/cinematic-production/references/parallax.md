@@ -68,6 +68,16 @@ whole move rather than treating extraction as automatically faithful.
 
 ## Diagnose jitter before adding shake
 
+Distinguish texture sampling shimmer from surfaces switching in depth. Broad
+triangular regions changing crop patterns between consecutive source frames are
+evidence of intersecting ground meshes, even if the encoded movie also shimmers.
+Fitting only a clearing's corner vertices to terrain does not fit the interior:
+its large faces can cross the terrain's different triangulation by metres. Put
+field/road artwork on the continuous terrain using source-coordinate masks, or
+use exactly matching terrain topology where a separate surface is necessary.
+Sample face interiors and actual moving contacts; UV coverage alone cannot detect
+depth conflicts. Compare consecutive rendered frames before blaming compression.
+
 In the first cabin study, world X near −12,000 produced about 3 pixels of
 projection error. Keeping the ship near the origin and moving scenery by inverse
 source displacement reduced the measured residual to about 0.023 pixels. There

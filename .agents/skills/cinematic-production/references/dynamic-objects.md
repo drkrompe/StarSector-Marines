@@ -42,6 +42,14 @@ moving textured Second Wind have **not yet been demonstrated**. The existing
 four-view skins are concept sheets, not coherent UV atlases. Treat the first
 object-attached moving reskin as a focused proof before extending it to every shot.
 
+The managed-land agriculture study provides a small-prop example: one midpoint
+projector travels with each rigid assembly, and physical materials cover backward
+faces and transparent artwork gaps. Its generated assemblies moved and changed
+size relative to the guide. Per-component bounds alignment recovered a useful
+finish at their small screen footprint, but did not register internal panels.
+Record that distinction explicitly; do not promote a bounds-aligned projection
+to a coherent UV texture or use it as evidence for a rotating hero hull.
+
 ## Second Wind identity and state
 
 | Source | Authority |

@@ -9,15 +9,15 @@ This is a review of surfacing and motion, not a finished arrival sequence.
 
 ## Review and source
 
-- [1920×1080 motion proof](review/jangala-managed-land-realism.mp4)
+- [1920Ãƒâ€”1080 motion proof](review/jangala-managed-land-realism.mp4)
 - [Midpoint still](review/poster.jpg), [start](review/start.jpg), [end](review/end.jpg)
 - [Blockout comparison](review/contact-sheet.jpg)
 - [Editable scene](managed-land-realism.blend) and [scene manifest](scene-manifest.json)
 
 The output contains 96 actual evaluations at 24 fps. Output index `i=0..95` maps
 to source frame `240 + 0.5*i` at the original 12 fps, preserving four seconds of
-motion. The H.264 review is approximately 2.3 MB, with 96 distinct source frames
-and a successful full decode. Camera `03 LAND / side window`, ship geometry and inverse source-flight
+motion. The H.264 review has 96 distinct source frames; its measured size and full
+decode result are recorded in `review/media-validation.json`. Camera `03 LAND / side window`, ship geometry and inverse source-flight
 transforms are retained. The viewpoint is a crew cabin; no player identity or
 spoken dialogue is assigned. The saved scene keeps the original timeline rate.
 
@@ -29,13 +29,33 @@ review size, without conspicuous brush strokes, exaggerated sharpening or a dark
 grade. Generated guides are layout constraints; the approved naturalistic study
 is the style reference.
 
-Nearby fields remain actual ground and clearing surfaces with orthographic
-textures. A single map covering over five kilometres cannot provide enough detail
-near the window: the broad map supplies surrounding land while a separate,
-denser plot texture supplies each clearing. Crop-box proxies are hidden; roads
-and clearings follow the ground instead of appearing as raised planter walls.
-Small variation between plots reduces exact visual repetition; this remains a
-limited set of crop artwork rather than a complete plantation asset library.
+Nearby fields and roads share one continuous terrain mesh. The broad orthographic
+map supplies surrounding land and roads; source-space XY masks apply denser crop
+art to ten parcel footprints on that same surface. Small variations between plots
+reduce exact repetition. This remains a limited crop-art set rather than a complete
+plantation library.
+
+The earlier moving triangular field patches were real surface intersections:
+fitting only the corners of separate clearing faces left their interiors crossing
+the terrain below. The original crop, clearing and road proxies are now hidden.
+`review/ground-overlap-before.json` retains the diagnosis; the validator samples
+face interiors and terrain contact as well as visible texture coverage. Raising
+the old faces or adding motion blur would not address the underlying topology.
+
+On the right, a low hovering crop tender has four lift pods, transverse spray
+booms, a reagent tank and a weathered control cabin. A small survey drone works
+farther out; two service sheds, three silos and a utility pad establish an outlying
+farm compound. These are geometry-based, provisionally sized props anchored to
+the actual source terrain. The tender's soft shadow uses terrain triangles with
+a moving material mask, avoiding a coarse floating ground plane.
+
+The agriculture finish comes from a tight camera guide and one retained RGBA
+ImageGen output. Each rigid assembly carries its own midpoint projector, with
+physical materials on backward faces and outside the artwork's alpha. ImageGen
+changed the sizes and positions of the three assemblies: per-assembly bounds
+registration restores their placement in the shader, but their internal panels
+are only approximately registered. Geometry still owns every silhouette. This
+small-prop proof does not establish a multiangle hero-ship texture workflow.
 
 Distant sky, hills and woodland use separate cards with overlap for the whole
 move. Hills use master RGB and extracted alpha. Woodland uses the master's color
@@ -83,6 +103,9 @@ keeps the user's open Blender scene untouched.
 [guide-manifest.json](guide-manifest.json). The separate plot guide's crop is in
 [single-field-guide.json](single-field-guide.json). Retain the exact guides used
 for generation: changing guides after generation invalidates their provenance.
+`export_agriculture_guides.py` and `agriculture-guide-manifest.json` retain the
+agriculture geometry guide, native camera crop and provisional object dimensions;
+`agriculture-reskin-registration.json` records the measured component bounds.
 The scene uses relative external textures, avoiding a second packed copy of the
 masters. Keep this directory and its referenced sibling directories together.
 Transient rendered PNG sequences, logs and Blender backups are ignored.
@@ -94,16 +117,24 @@ exact prompt, input role and original tool output. [generation.json](generation.
 adds dimensions, hashes, alpha statistics and selection decisions. Files under
 `assets/` retain the tool's original bytes and alpha, including rejected variants.
 The scene performs projection, cropping and alpha handling without replacing those
-masters. The approximately 1.5–1.7 megapixel generated sources are not claimed to
-be native 1080p detail simply because the review is rendered at 1920×1080.
+masters. The approximately 1.5Ã¢â‚¬â€œ1.7 megapixel generated sources are not claimed to
+be native 1080p detail simply because the review is rendered at 1920Ãƒâ€”1080.
 
 [Scene validation](review/scene-validation.json) compares retained geometry and
-mapped transforms, samples the camera's visible texture coverage, and checks
-external image paths. All 171 ship mesh comparisons and 96 transform samples pass;
-48,960 sampled rays find no uncovered pixels or visible UV bounds failures.
+mapped transforms, samples visible texture coverage, and checks external images.
+It also evaluates agriculture meshes, terrain clearance, broad thin-surface
+intersections, assembly bounds and attached-projector stability at all 96 times.
+All 171 ship meshes and 96 camera/rebase samples remain unchanged. Ground
+ownership probes hit the single terrain in all ten parcels. The tender clears
+the ground by at least 2.199 m; the compound apron top clears it by 0.458 m,
+and the soft shadow stays 0.160 m above matching terrain triangles. No sampled
+terrain crossings, assembly overlaps or attached-projector drift were found.
+The report records sampling limits; these checks supplement rendered motion review.
 The small Atlas misses this sampling grid, so its visibility was checked in the
 rendered frames instead. [Media validation](review/media-validation.json) verifies
 96 distinct source frames, duration, resolution, codec and full video decoding.
+[Motion review](review/motion-review.json) records consecutive and spaced frame
+inspection plus a complete browser playback: 96 presented frames, zero dropped.
 Those checks do not establish artistic acceptance, collision engineering, or
 whether foreground crop detail is sufficient for a final cinematic. Review the
 rendered motion for layer seams, texture drift, repetition and compression.

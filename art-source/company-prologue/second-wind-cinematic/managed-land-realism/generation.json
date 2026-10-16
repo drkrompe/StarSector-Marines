@@ -264,12 +264,41 @@
       "bytes": 4108038,
       "raw_source_byte_identical": true,
       "prompt_sha256": "9dce86b5d19ed193959549bb12f0cf7c0f36d56df78e269efa7eede13a7eae99",
-      "status": "Selected per-clearing orthographic detail; cropped central plot UV and small per-plot variation.",
+      "status": "Selected per-parcel orthographic detail masked onto the continuous terrain; cropped plot UV and small per-plot variation.",
       "dimensions": [
         1672,
         941
       ],
       "mode": "RGB"
+    },
+    {
+      "file": "assets/agriculture-reskin-v1.png",
+      "prompt": "prompts/agriculture-reskin-v1.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-3d76c825-c07c-449a-9e17-1da12978c275.png",
+      "inputs": [
+        {
+          "path": "guides/shot03-agriculture-tight-reskin-guide.png",
+          "role": "native Blender camera-crop geometry/layout guide; material direction supplied in text",
+          "sha256": "6e7a5ec3d3431dde547910178a2ccefc196e609f6bf78ee1e8c6271505afdfc0"
+        }
+      ],
+      "sha256": "b8c0f8b09935a250f64b9b55d68b977e22911d028c2473300f38e0401cf6d537",
+      "bytes": 495333,
+      "raw_source_byte_identical": true,
+      "prompt_sha256": "9e086ee22ba4ee16b5c02e6fc13b2ae7d43c7cbf8347983c7037cb9393e6b9be",
+      "status": "Selected as approximate per-assembly projected finish with attached projectors and physical-material fallback; generated internal panels differ from guide. Geometry retained unchanged.",
+      "registration": "agriculture-reskin-registration.json",
+      "dimensions": [
+        1444,
+        1089
+      ],
+      "mode": "RGBA",
+      "alpha": {
+        "min": 0,
+        "max": 255,
+        "fully_transparent_fraction": 0.8897842692856544,
+        "fully_opaque_fraction": 0.0004387872683012446
+      }
     }
   ],
   "note": "Raw files and alpha retained unchanged; scene shaders own placement and technical compositing. Selection does not imply user approval of this new shot."

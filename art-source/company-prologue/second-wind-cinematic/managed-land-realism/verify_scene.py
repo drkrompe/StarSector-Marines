@@ -10,6 +10,7 @@ import numpy as np
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 from mathutils.geometry import barycentric_transform
+from bpy_extras.object_utils import world_to_camera_view
 
 HERE = Path(__file__).resolve().parent
 CAMERA, ROOT, WORLD = "03 LAND / side window", "SECOND WIND | flight root", "LAYERED | inverse source flight"
@@ -39,7 +40,8 @@ def hierarchy_bvh(scene):
     for obj in scene.objects:
         if obj.type != "MESH" or obj.hide_render:
             continue
-        # Builder retains original topology and has no new mesh modifiers.
+        # Coverage traverses retained base topology; modifier-aware contact
+        # geometry is measured separately by agriculture_audit.
         data = obj.data
         offset = len(vertices)
         vertices.extend(obj.matrix_world @ v.co for v in data.vertices)
@@ -47,6 +49,140 @@ def hierarchy_bvh(scene):
             polygons.append(tuple(offset + i for i in polygon.vertices))
             info.append((obj, polygon.index))
     return BVHTree.FromPolygons(vertices, polygons), info
+
+
+def agriculture_audit(scene, world, land, root, times):
+    """Measure evaluated render geometry, including modifiers, over the move.
+
+    Sample vertices and triangle barycentres/edge midpoints against actual
+    terrain triangles. This detects coarse-face terrain crossings, not merely
+    proxy labels or corner clearance. Mesh-mesh assembly overlaps are allowed
+    (bolted parts); disjoint-assembly collision uses conservative world AABBs.
+    """
+    inverse = world.matrix_world.inverted()
+    transform = inverse @ land.matrix_world
+    tree = BVHTree.FromPolygons([transform @ v.co for v in land.data.vertices],
+                               [tuple(p.vertices) for p in land.data.polygons])
+    ship = set(root.children_recursive)
+    stats, collisions, issues, projectors = {}, [], [], {}
+    assemblies = [o for o in scene.objects if o.type == 'EMPTY' and o.name.startswith('AGRI | ')
+                  and o.parent == world]
+    for t in times:
+        frame(scene, t)
+        depsgraph = bpy.context.evaluated_depsgraph_get()
+        inverse = world.matrix_world.inverted()
+        bounds = {}
+        for obj in scene.objects:
+            if obj.type != 'MESH' or obj.hide_render or obj in ship or obj == land:
+                continue
+            # Sky/canopy plates and the independently authored river are not
+            # competing land surfaces. Their intentional depth is checked above.
+            if obj.name in ('REALISM | sky','REALISM | distant hills','REALISM | middle woodland',
+                            'REALISM | distant Atlas card','Jangala | winding river','Jangala | far estuary'):
+                continue
+            evaluated = obj.evaluated_get(depsgraph)
+            projected = [world_to_camera_view(scene, scene.camera, evaluated.matrix_world @ Vector(corner))
+                         for corner in evaluated.bound_box]
+            if not obj.name.startswith('AGRI | ') and (max(p.z for p in projected) <= 0 or
+                (min(p.z for p in projected) > 0 and
+                 (max(p.x for p in projected) < 0 or min(p.x for p in projected) > 1 or
+                  max(p.y for p in projected) < 0 or min(p.y for p in projected) > 1))):
+                continue
+            mesh = evaluated.to_mesh()
+            try:
+                mesh.calc_loop_triangles()
+                matrix = inverse @ evaluated.matrix_world
+                vertices = [matrix @ v.co for v in mesh.vertices]
+                if not vertices:
+                    continue
+                if any(not math.isfinite(c) for v in vertices for c in v):
+                    issues.append('Nonfinite evaluated prop geometry: '+obj.name)
+                    continue
+                lo = [min(v[i] for v in vertices) for i in range(3)]
+                hi = [max(v[i] for v in vertices) for i in range(3)]
+                assembly = next((a for a in assemblies if obj in a.children_recursive),None)
+                if assembly:
+                    for material in obj.data.materials:
+                        if not material or not material.use_nodes:
+                            continue
+                        for node in material.node_tree.nodes:
+                            if node.type == 'TEX_COORD' and node.object and node.object.type == 'CAMERA':
+                                if node.object.parent != assembly:
+                                    issues.append('Prop texture projector belongs to another frame: '+obj.name)
+                    old = bounds.setdefault(assembly.name,[lo.copy(),hi.copy()])
+                    for i in range(3):
+                        old[0][i],old[1][i] = min(old[0][i],lo[i]),max(old[1][i],hi[i])
+                samples = vertices.copy()
+                top_samples = []
+                for tri in mesh.loop_triangles:
+                    a,b,c = (vertices[i] for i in tri.vertices)
+                    probes = [(a+b+c)/3,(a+b)/2,(a+c)/2,(b+c)/2]
+                    samples.extend(probes)
+                    normal = (b-a).cross(c-a)
+                    if normal.length and normal.normalized().z > .7:
+                        top_samples.extend([a,b,c,*probes])
+                def clearances(points):
+                    result=[]
+                    for point in points:
+                        hit,_,_,_=tree.ray_cast(Vector((point.x,point.y,5000)),Vector((0,0,-1)),10000)
+                        if hit is not None:
+                            result.append(point.z-hit.z)
+                    return result
+                gaps = clearances(samples)
+                tops = clearances(top_samples)
+                if not gaps:
+                    if obj.name.startswith('AGRI | '):
+                        issues.append('No terrain below prop: '+obj.name)
+                    continue
+                row = stats.setdefault(obj.name,{'minimum_clearance_m':1e9,'maximum_clearance_m':-1e9,
+                    'minimum_top_clearance_m':1e9,'sample_count':0,'evaluated_times':0,
+                    'thin_ground_surface':False,'terrain_crossing_samples':0})
+                row['minimum_clearance_m']=min(row['minimum_clearance_m'],min(gaps))
+                row['maximum_clearance_m']=max(row['maximum_clearance_m'],max(gaps))
+                row['sample_count']+=len(gaps)
+                row['evaluated_times']+=1
+                if tops:
+                    row['minimum_top_clearance_m']=min(row['minimum_top_clearance_m'],min(tops))
+                row['terrain_crossing_samples']+=sum(g < -.02 for g in gaps)
+                thin = hi[2]-lo[2] < max(1, .04*max(hi[0]-lo[0],hi[1]-lo[1]))
+                near = min(gaps) < 1 and max(gaps) > -.1
+                if near and tops and (thin or max(hi[0]-lo[0],hi[1]-lo[1]) > 20):
+                    row['thin_ground_surface']=True
+                    if min(tops) < -.02:
+                        issues.append('Competing ground top intersects terrain: '+obj.name)
+                    # Fractional-metre separation across broad opaque top faces
+                    # recreates the original precision/overlap risk regardless
+                    # of pass index. Physical thick foundations may bury bottoms.
+                    if min(tops) < .08 and max(hi[0]-lo[0],hi[1]-lo[1]) > 20:
+                        issues.append('Broad ground overlay lacks top clearance: '+obj.name)
+                if assembly and ('tender' in assembly.name or 'drone' in assembly.name) and min(gaps) < .25:
+                    issues.append('Hovering assembly intersects/approaches terrain: '+obj.name)
+            finally:
+                evaluated.to_mesh_clear()
+        for i,a in enumerate(assemblies):
+            for b in assemblies[i+1:]:
+                if a.name in bounds and b.name in bounds:
+                    aa,bb=bounds[a.name],bounds[b.name]
+                    if all(min(aa[1][k],bb[1][k])-max(aa[0][k],bb[0][k])>0 for k in range(3)):
+                        collisions.append({'frame':t,'assemblies':[a.name,b.name]})
+        for obj in scene.objects:
+            if obj.type != 'CAMERA' or not obj.name.startswith('AGRI | '):
+                continue
+            row=projectors.setdefault(obj.name,{'parent':obj.parent.name if obj.parent else None,
+                                               'max_local_delta':0,'reference':obj.matrix_basis.copy()})
+            row['max_local_delta']=max(row['max_local_delta'],delta(obj.matrix_basis,row['reference']))
+            if obj.parent not in assemblies:
+                issues.append('Reskin projector is not attached to its rigid assembly: '+obj.name)
+    for row in projectors.values():
+        row.pop('reference')
+        if row['max_local_delta']>1e-6:
+            issues.append('Object-attached projector local transform drifts')
+    if collisions:
+        issues.append('Agriculture assembly AABBs overlap; inspect possible collision')
+    return {'objects':stats,'projectors':projectors,'assembly_aabb_collisions':collisions,
+            'errors':sorted(set(issues)), 'sample_times':len(times),
+            'limits':['Evaluated vertices, triangle centers and edge midpoints; not exhaustive surface proof.',
+                      'Assembly AABB rejection is conservative; touching/overlapping parts inside one assembly are intentional.']}
 
 
 def main():
@@ -89,9 +225,9 @@ def main():
         errors.append("Bound timeline camera markers can override shot camera")
     coords = bpy.data.objects["REALISM | source-world coordinates"]
     coordinate_ok = coords.parent == world and delta(coords.matrix_basis, world.matrix_basis.Identity(4)) < 1e-7
-    material = bpy.data.materials["REALISM | source-world orthographic fields"]
+    material = bpy.data.materials["REALISM | field ground clipped at actual source river nearbank"]
     coordinate_nodes = [n for n in material.node_tree.nodes if n.type == "TEX_COORD"]
-    coordinate_ok = coordinate_ok and len(coordinate_nodes) == 1 and coordinate_nodes[0].object == coords
+    coordinate_ok = coordinate_ok and bool(coordinate_nodes) and all(n.object == coords for n in coordinate_nodes)
     if not coordinate_ok:
         errors.append("FieldXY coordinate object is not rigidly attached to source-world frame")
     missing = [im.filepath for im in bpy.data.images if im.source == "FILE" and im.filepath and
@@ -102,6 +238,34 @@ def main():
     absolute_paths = [im.filepath for im in bpy.data.images if im.source == "FILE" and im.filepath and not im.filepath.startswith("//")]
     if packed or absolute_paths:
         errors.append("Expected external relative textures without packed duplicates")
+
+    # Coverage alone cannot detect intersecting surfaces: the nearest ray hit
+    # may alternate between two fully textured objects. Enforce one ground
+    # owner and independently measure terrain coverage within every parcel.
+    visible_proxies = [obj.name for obj in scene.objects
+        if obj.type == 'MESH' and obj.pass_index == 13 and not obj.hide_render]
+    if visible_proxies:
+        errors.append('Competing plantation ground proxy surfaces remain renderable')
+    land = bpy.data.objects['Jangala | continuous landform']
+    land_matrix = world.matrix_world.inverted() @ land.matrix_world
+    land_tree = BVHTree.FromPolygons([land_matrix @ v.co for v in land.data.vertices],
+                                     [tuple(p.vertices) for p in land.data.polygons])
+    footprint_checks = []
+    for parcel in json.loads(land.get('field_footprints_json', '[]')):
+        xmin, xmax, ymin, ymax = parcel['source_xy_bounds_m']
+        hits = []
+        for ix in range(21):
+            for iy in range(21):
+                point = Vector((xmin + (xmax-xmin)*ix/20, ymin + (ymax-ymin)*iy/20, 5000))
+                hit, _, _, _ = land_tree.ray_cast(point, Vector((0,0,-1)), 10000)
+                if hit is not None:
+                    hits.append(hit.z)
+        footprint_checks.append({**parcel, 'sample_count':441, 'terrain_hits':len(hits),
+                                  'terrain_z_range_m':[min(hits), max(hits)] if hits else None,
+                                  'detail_surface_clearance_m':0,
+                                  'detail_surface_owner':land.name})
+    if not footprint_checks or any(p['terrain_hits'] != 441 for p in footprint_checks):
+        errors.append('Field detail footprint lacks continuous terrain coverage')
 
     image_cache = {}
     def alpha(image, uv):
@@ -174,6 +338,7 @@ def main():
                 return (1-f)*value(node.inputs[1])+f*value(node.inputs[2])
             if node.type == "VECT_MATH":
                 a,b = value(node.inputs[0]),value(node.inputs[1])
+                if node.operation == "LENGTH": return a.length
                 if node.operation == "MULTIPLY_ADD": return Vector(a[i]*b[i]+value(node.inputs[2])[i] for i in range(3))
                 if node.operation == "MULTIPLY": return Vector(a[i]*b[i] for i in range(3))
                 if node.operation == "ADD": return a+b
@@ -255,7 +420,10 @@ def main():
                     for axis in range(2):
                         stats["uv_min"][axis] = min(stats["uv_min"][axis],uv[axis])
                         stats["uv_max"][axis] = max(stats["uv_max"][axis],uv[axis])
-                    bad = depth <= 0 or any(value < -.005 or value > 1.005 for value in uv)
+                    # Prop images are clipped color overlays with an opaque physical
+                    # fallback; outside image UV is deliberately valid there.
+                    prop_fallback = obj.name.startswith('AGRI | ') and any(n.type == 'BSDF_PRINCIPLED' for n in mat.node_tree.nodes)
+                    bad = depth <= 0 or (not prop_fallback and any(value < -.005 or value > 1.005 for value in uv))
                     record = {"frame":t,"pixel":[px,py],"object":obj.name,"material":name,"uv":list(uv),"alpha":texture_alpha,"shader_opacity":opacity}
                     if bad:
                         outside.append(record)
@@ -272,6 +440,8 @@ def main():
         errors.append("Visible cabin geometry projects into transparent artwork")
     if misses:
         errors.append("Visible frame rays have no covered geometry/sky")
+    agriculture_checks = agriculture_audit(scene, world, land, root, times)
+    errors.extend(agriculture_checks['errors'])
     after = {p.relative_to(HERE.parent).as_posix(): digest(p) for p in protected}
     if after != source_hashes:
         errors.append("Protected source blend changed during verification")
@@ -293,11 +463,15 @@ def main():
               "field_coordinates_attached_to_scenery":coordinate_ok,"missing_images":missing,
               "packed_file_images":packed,"absolute_image_paths":absolute_paths,
               "selected_assets":manifest.get("assets"),"coverage_by_material":coverage,
+              "agriculture_geometry_check":agriculture_checks,
+              "ground_surface_check":{"visible_competing_proxies":visible_proxies,
+                                      "field_footprint_coverage":footprint_checks,
+                                      "contract":"Detail shades the terrain surface directly; no offset mesh"},
               "visible_outside_count":len(outside),"visible_outside_samples":outside[:100],
               "cabin_transparent_hit_count":len(cabin_holes),"cabin_transparent_samples":cabin_holes[:100],
               "uncovered_ray_count":len(misses),"uncovered_samples":misses[:100],"frame_samples":frame_reports,
               "limits":["64px image grid at all96half-frame times; not exhaustive every-pixel proof.",
-                        "Local generated-field UVs and crop mapping are evaluated from actual node graph; color/top-versus-side selection is not a visual material-quality check.",
+                        "Source-XY parcel masks are bound to the terrain shader; numerical coverage does not establish material quality.",
                         "Shader opacity graph evaluated including alpha remaps, bank sine-curve and nested transparent mixes; traversal uses0.5opacity decision, not full soft-edge compositing.",
                         "Cabin alpha check cannot detect incorrect RGB aperture paint when its alpha is opaque; rendered aperture/trim registration still required.",
                         "Source hashes prove no source modification during this validation, not prior historical immutability.",

@@ -14,8 +14,8 @@
     "layered-next-scenes/layered-next-scenes.blend": "69484c50e12e2c9d39fd9b08e7050b48c678baed563d41a32a939dd147622ca1",
     "animatic/jangala-blockout.blend": "c8cb5950c8409735353765a784bdcf7a52adaa4714c105923b6be89218f5b6b7"
   },
-  "scene_sha256_before": "dacf96981f01bbdecf52208529d660b7e445b9a2dedeb7518ad67ae598adfcd1",
-  "scene_sha256_after": "dacf96981f01bbdecf52208529d660b7e445b9a2dedeb7518ad67ae598adfcd1",
+  "scene_sha256_before": "d7def5684bcf50486a3e8fe1900656c5ce128c96c19d1950751d1b38fe79569b",
+  "scene_sha256_after": "d7def5684bcf50486a3e8fe1900656c5ce128c96c19d1950751d1b38fe79569b",
   "ship_mesh_count": 171,
   "changed_ship_meshes": [],
   "time_mapping": {
@@ -109,7 +109,7 @@
       "coverage_alpha_image": "woodland-realism-v1.png"
     },
     "REALISM | source-world river ripples without projected foliage": {
-      "hits": 1014,
+      "hits": 1026,
       "uv_min": [
         0.23317494988441467,
         0.8525030612945557
@@ -125,7 +125,7 @@
       "coverage_alpha_image": "fields-realism-v1.png"
     },
     "REALISM | field ground clipped at actual source river nearbank": {
-      "hits": 10855,
+      "hits": 14978,
       "uv_min": [
         0.08300525695085526,
         0.19179706275463104
@@ -136,122 +136,1535 @@
       ],
       "alpha_min": 1,
       "texture_images": [
-        "fields-realism-v1.png"
+        "fields-realism-v1.png",
+        "field-detail-realism-v1.png",
+        "field-detail-realism-v1.png",
+        "field-detail-realism-v1.png",
+        "field-detail-realism-v1.png",
+        "field-detail-realism-v1.png",
+        "field-detail-realism-v1.png",
+        "field-detail-realism-v1.png",
+        "field-detail-realism-v1.png",
+        "field-detail-realism-v1.png",
+        "field-detail-realism-v1.png"
       ],
       "coverage_alpha_image": "fields-realism-v1.png"
     },
-    "REALISM | local detail Plantation | clearing 3 1": {
-      "hits": 1577,
+    "AGRI | service concrete registered AGRI | right agricultural service compound": {
+      "hits": 54,
       "uv_min": [
-        0.2343749701976776,
-        0.02083333395421505
+        0.43936944007873535,
+        0.5980932712554932
       ],
       "uv_max": [
-        0.765496015548706,
-        0.9788533449172974
+        0.9361273050308228,
+        0.6882564425468445
       ],
-      "alpha_min": 1,
+      "alpha_min": 0.0,
       "texture_images": [
-        "field-detail-realism-v1.png"
+        "agriculture-reskin-v1.png"
       ],
-      "coverage_alpha_image": "field-detail-realism-v1.png"
+      "coverage_alpha_image": "agriculture-reskin-v1.png"
     },
-    "REALISM | local detail Plantation | clearing 4 1": {
-      "hits": 740,
+    "AGRI | faded oxide safety panels registered AGRI | crop tender moving frame": {
+      "hits": 5,
       "uv_min": [
-        0.2354111671447754,
-        0.02083519846200943
+        0.7325275540351868,
+        0.1323547065258026
       ],
       "uv_max": [
-        0.7654227018356323,
-        0.7436231374740601
+        0.8951833248138428,
+        0.2863374352455139
       ],
-      "alpha_min": 1,
+      "alpha_min": 0.9764706492424011,
       "texture_images": [
-        "field-detail-realism-v1.png"
+        "agriculture-reskin-v1.png"
       ],
-      "coverage_alpha_image": "field-detail-realism-v1.png"
+      "coverage_alpha_image": "agriculture-reskin-v1.png"
     },
-    "REALISM | local detail Plantation | clearing 2 1": {
-      "hits": 1229,
+    "AGRI | dark structural steel registered AGRI | crop tender moving frame": {
+      "hits": 16,
       "uv_min": [
-        0.2344464659690857,
-        0.02083350345492363
+        0.5743727087974548,
+        0.1651299148797989
       ],
       "uv_max": [
-        0.6974710822105408,
-        0.97728031873703
+        0.856743574142456,
+        0.2949213683605194
       ],
-      "alpha_min": 1,
+      "alpha_min": 0.011764707043766975,
       "texture_images": [
-        "field-detail-realism-v1.png"
+        "agriculture-reskin-v1.png"
       ],
-      "coverage_alpha_image": "field-detail-realism-v1.png"
+      "coverage_alpha_image": "agriculture-reskin-v1.png"
     },
-    "REALISM | source-world orthographic fields": {
-      "hits": 451,
+    "AGRI | weathered ceramic alloy registered AGRI | right agricultural service compound": {
+      "hits": 43,
       "uv_min": [
-        0.09721410274505615,
-        0.41789475083351135
+        0.47950559854507446,
+        0.6340227723121643
       ],
       "uv_max": [
-        0.5315442681312561,
-        0.7700648903846741
+        0.7761112451553345,
+        0.6899479627609253
       ],
-      "alpha_min": 1,
+      "alpha_min": 0.988235354423523,
       "texture_images": [
-        "fields-realism-v1.png"
+        "agriculture-reskin-v1.png"
       ],
-      "coverage_alpha_image": "fields-realism-v1.png"
+      "coverage_alpha_image": "agriculture-reskin-v1.png"
     },
-    "REALISM | local detail Plantation | clearing 3 0": {
-      "hits": 123,
+    "AGRI | weathered ceramic alloy registered AGRI | crop tender moving frame": {
+      "hits": 5,
       "uv_min": [
-        0.23525123298168182,
-        0.9432502388954163
+        0.6597656011581421,
+        0.2441195249557495
       ],
       "uv_max": [
-        0.7645660042762756,
-        0.9790757894515991
+        0.7521753311157227,
+        0.2688111960887909
       ],
-      "alpha_min": 1,
+      "alpha_min": 0.988235354423523,
       "texture_images": [
-        "field-detail-realism-v1.png"
+        "agriculture-reskin-v1.png"
       ],
-      "coverage_alpha_image": "field-detail-realism-v1.png"
+      "coverage_alpha_image": "agriculture-reskin-v1.png"
     },
-    "REALISM | local detail Plantation | clearing 2 0": {
-      "hits": 130,
+    "AGRI | dark structural steel registered AGRI | right agricultural service compound": {
+      "hits": 7,
       "uv_min": [
-        0.2627495527267456,
-        0.9430204629898071
+        0.5287876725196838,
+        0.6453891396522522
       ],
       "uv_max": [
-        0.765483021736145,
-        0.9791667461395264
+        0.6497603058815002,
+        0.6806181073188782
       ],
-      "alpha_min": 1,
+      "alpha_min": 0.9803922176361084,
       "texture_images": [
-        "field-detail-realism-v1.png"
+        "agriculture-reskin-v1.png"
       ],
-      "coverage_alpha_image": "field-detail-realism-v1.png"
+      "coverage_alpha_image": "agriculture-reskin-v1.png"
     },
-    "REALISM | local detail Plantation | clearing 4 0": {
-      "hits": 35,
+    "AGRI | faded oxide safety panels registered AGRI | right agricultural service compound": {
+      "hits": 6,
       "uv_min": [
-        0.2713978886604309,
-        0.9429672956466675
+        0.7588648796081543,
+        0.6513881683349609
       ],
       "uv_max": [
-        0.4193766415119171,
-        0.9790629148483276
+        0.807984471321106,
+        0.6803776025772095
       ],
-      "alpha_min": 1,
+      "alpha_min": 0.9921569228172302,
       "texture_images": [
-        "field-detail-realism-v1.png"
+        "agriculture-reskin-v1.png"
       ],
-      "coverage_alpha_image": "field-detail-realism-v1.png"
+      "coverage_alpha_image": "agriculture-reskin-v1.png"
+    },
+    "AGRI | recesses rubber and shadow registered AGRI | right agricultural service compound": {
+      "hits": 5,
+      "uv_min": [
+        0.576932430267334,
+        0.6527107357978821
+      ],
+      "uv_max": [
+        0.5952751636505127,
+        0.6846479773521423
+      ],
+      "alpha_min": 0.988235354423523,
+      "texture_images": [
+        "agriculture-reskin-v1.png"
+      ],
+      "coverage_alpha_image": "agriculture-reskin-v1.png"
+    },
+    "AGRI | galvanized roof registered AGRI | right agricultural service compound": {
+      "hits": 9,
+      "uv_min": [
+        0.831983745098114,
+        0.6609412431716919
+      ],
+      "uv_max": [
+        0.9019579291343689,
+        0.6720314621925354
+      ],
+      "alpha_min": 0.9921569228172302,
+      "texture_images": [
+        "agriculture-reskin-v1.png"
+      ],
+      "coverage_alpha_image": "agriculture-reskin-v1.png"
     }
+  },
+  "agriculture_geometry_check": {
+    "objects": {
+      "AGRI | terrain sampled hover footprint": {
+        "minimum_clearance_m": 0.15999984741210938,
+        "maximum_clearance_m": 0.15999984741210938,
+        "minimum_top_clearance_m": 0.15999984741210938,
+        "sample_count": 2688,
+        "evaluated_times": 96,
+        "thin_ground_surface": true,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender keel": {
+        "minimum_clearance_m": 2.9494991302490234,
+        "maximum_clearance_m": 8.65047836303711,
+        "minimum_top_clearance_m": 8.269115447998047,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender upper casing": {
+        "minimum_clearance_m": 7.899499893188477,
+        "maximum_clearance_m": 12.700475692749023,
+        "minimum_top_clearance_m": 12.382513046264648,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender control cabin": {
+        "minimum_clearance_m": 10.449493408203125,
+        "maximum_clearance_m": 16.449981689453125,
+        "minimum_top_clearance_m": 16.132505416870117,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender front glazing": {
+        "minimum_clearance_m": 12.54949951171875,
+        "maximum_clearance_m": 15.54998779296875,
+        "minimum_top_clearance_m": 15.536819458007812,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender lift outrigger": {
+        "minimum_clearance_m": 4.299487113952637,
+        "maximum_clearance_m": 6.40046501159668,
+        "minimum_top_clearance_m": 6.3234100341796875,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender lift shroud": {
+        "minimum_clearance_m": 2.4995059967041016,
+        "maximum_clearance_m": 5.800481796264648,
+        "minimum_top_clearance_m": 5.799505233764648,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender dark lift mouth": {
+        "minimum_clearance_m": 2.319514274597168,
+        "maximum_clearance_m": 2.5604915618896484,
+        "minimum_top_clearance_m": 2.559514045715332,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender lift ceramic ring": {
+        "minimum_clearance_m": 2.1994895935058594,
+        "maximum_clearance_m": 2.3804664611816406,
+        "minimum_top_clearance_m": 2.3794898986816406,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender lift outrigger.001": {
+        "minimum_clearance_m": 4.299487113952637,
+        "maximum_clearance_m": 6.400464057922363,
+        "minimum_top_clearance_m": 6.3234100341796875,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender lift shroud.001": {
+        "minimum_clearance_m": 2.4995059967041016,
+        "maximum_clearance_m": 5.800481796264648,
+        "minimum_top_clearance_m": 5.799505233764648,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender dark lift mouth.001": {
+        "minimum_clearance_m": 2.319514274597168,
+        "maximum_clearance_m": 2.5604915618896484,
+        "minimum_top_clearance_m": 2.559514045715332,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender lift ceramic ring.001": {
+        "minimum_clearance_m": 2.1994895935058594,
+        "maximum_clearance_m": 2.3804664611816406,
+        "minimum_top_clearance_m": 2.3794898986816406,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender extended spray spar": {
+        "minimum_clearance_m": 5.274511337280273,
+        "maximum_clearance_m": 7.225488662719727,
+        "minimum_top_clearance_m": 7.148434638977051,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender oxide spar stripe": {
+        "minimum_clearance_m": 7.179498672485352,
+        "maximum_clearance_m": 7.480474472045898,
+        "minimum_top_clearance_m": 7.41610050201416,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender downward nozzle": {
+        "minimum_clearance_m": 3.9245119094848633,
+        "maximum_clearance_m": 5.575488090515137,
+        "minimum_top_clearance_m": 5.574511528015137,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender downward nozzle.001": {
+        "minimum_clearance_m": 3.9245119094848633,
+        "maximum_clearance_m": 5.575488090515137,
+        "minimum_top_clearance_m": 5.574511528015137,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender downward nozzle.002": {
+        "minimum_clearance_m": 3.9245119094848633,
+        "maximum_clearance_m": 5.575488090515137,
+        "minimum_top_clearance_m": 5.574511528015137,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender downward nozzle.003": {
+        "minimum_clearance_m": 3.9245119094848633,
+        "maximum_clearance_m": 5.575488090515137,
+        "minimum_top_clearance_m": 5.574511528015137,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender service rail": {
+        "minimum_clearance_m": 12.999500274658203,
+        "maximum_clearance_m": 13.600475311279297,
+        "minimum_top_clearance_m": 13.586820602416992,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender rail support": {
+        "minimum_clearance_m": 11.199512481689453,
+        "maximum_clearance_m": 13.300487518310547,
+        "minimum_top_clearance_m": 13.286832809448242,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender rail support.001": {
+        "minimum_clearance_m": 11.199512481689453,
+        "maximum_clearance_m": 13.300487518310547,
+        "minimum_top_clearance_m": 13.286832809448242,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender rail support.002": {
+        "minimum_clearance_m": 11.199512481689453,
+        "maximum_clearance_m": 13.300487518310547,
+        "minimum_top_clearance_m": 13.286832809448242,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender lift outrigger.002": {
+        "minimum_clearance_m": 4.299487113952637,
+        "maximum_clearance_m": 6.400464057922363,
+        "minimum_top_clearance_m": 6.3234100341796875,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender lift shroud.002": {
+        "minimum_clearance_m": 2.4995059967041016,
+        "maximum_clearance_m": 5.800481796264648,
+        "minimum_top_clearance_m": 5.799505233764648,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender dark lift mouth.002": {
+        "minimum_clearance_m": 2.319514274597168,
+        "maximum_clearance_m": 2.5604915618896484,
+        "minimum_top_clearance_m": 2.559514045715332,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender lift ceramic ring.002": {
+        "minimum_clearance_m": 2.1994895935058594,
+        "maximum_clearance_m": 2.3804664611816406,
+        "minimum_top_clearance_m": 2.3794898986816406,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender lift outrigger.003": {
+        "minimum_clearance_m": 4.299487113952637,
+        "maximum_clearance_m": 6.400464057922363,
+        "minimum_top_clearance_m": 6.3234100341796875,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender lift shroud.003": {
+        "minimum_clearance_m": 2.4995059967041016,
+        "maximum_clearance_m": 5.800481796264648,
+        "minimum_top_clearance_m": 5.799505233764648,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender dark lift mouth.003": {
+        "minimum_clearance_m": 2.319514274597168,
+        "maximum_clearance_m": 2.5604915618896484,
+        "minimum_top_clearance_m": 2.559514045715332,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender lift ceramic ring.003": {
+        "minimum_clearance_m": 2.1994895935058594,
+        "maximum_clearance_m": 2.3804664611816406,
+        "minimum_top_clearance_m": 2.3794898986816406,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender extended spray spar.001": {
+        "minimum_clearance_m": 5.274511337280273,
+        "maximum_clearance_m": 7.225488662719727,
+        "minimum_top_clearance_m": 7.148434638977051,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender oxide spar stripe.001": {
+        "minimum_clearance_m": 7.179498672485352,
+        "maximum_clearance_m": 7.480474472045898,
+        "minimum_top_clearance_m": 7.41610050201416,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender downward nozzle.004": {
+        "minimum_clearance_m": 3.9245119094848633,
+        "maximum_clearance_m": 5.575488090515137,
+        "minimum_top_clearance_m": 5.574511528015137,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender downward nozzle.005": {
+        "minimum_clearance_m": 3.9245119094848633,
+        "maximum_clearance_m": 5.575488090515137,
+        "minimum_top_clearance_m": 5.574511528015137,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender downward nozzle.006": {
+        "minimum_clearance_m": 3.9245119094848633,
+        "maximum_clearance_m": 5.575488090515137,
+        "minimum_top_clearance_m": 5.574511528015137,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender downward nozzle.007": {
+        "minimum_clearance_m": 3.9245119094848633,
+        "maximum_clearance_m": 5.575488090515137,
+        "minimum_top_clearance_m": 5.574511528015137,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender service rail.001": {
+        "minimum_clearance_m": 12.999500274658203,
+        "maximum_clearance_m": 13.600475311279297,
+        "minimum_top_clearance_m": 13.586820602416992,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender rail support.003": {
+        "minimum_clearance_m": 11.199512481689453,
+        "maximum_clearance_m": 13.300487518310547,
+        "minimum_top_clearance_m": 13.286832809448242,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender rail support.004": {
+        "minimum_clearance_m": 11.199512481689453,
+        "maximum_clearance_m": 13.300487518310547,
+        "minimum_top_clearance_m": 13.286832809448242,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender rail support.005": {
+        "minimum_clearance_m": 11.199512481689453,
+        "maximum_clearance_m": 13.300487518310547,
+        "minimum_top_clearance_m": 13.286832809448242,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender reagent tank": {
+        "minimum_clearance_m": 9.249505996704102,
+        "maximum_clearance_m": 18.55048179626465,
+        "minimum_top_clearance_m": 17.187551498413086,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender tank retaining band": {
+        "minimum_clearance_m": 9.099504470825195,
+        "maximum_clearance_m": 18.700483322143555,
+        "minimum_top_clearance_m": 17.293617248535156,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender tank retaining band.001": {
+        "minimum_clearance_m": 9.099504470825195,
+        "maximum_clearance_m": 18.700483322143555,
+        "minimum_top_clearance_m": 17.293617248535156,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender top cooling fins": {
+        "minimum_clearance_m": 16.899494171142578,
+        "maximum_clearance_m": 17.500469207763672,
+        "minimum_top_clearance_m": 17.4804744720459,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender top cooling fins.001": {
+        "minimum_clearance_m": 16.899494171142578,
+        "maximum_clearance_m": 17.500469207763672,
+        "minimum_top_clearance_m": 17.4804744720459,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender top cooling fins.002": {
+        "minimum_clearance_m": 16.899494171142578,
+        "maximum_clearance_m": 17.500469207763672,
+        "minimum_top_clearance_m": 17.4804744720459,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender top cooling fins.003": {
+        "minimum_clearance_m": 16.899494171142578,
+        "maximum_clearance_m": 17.500469207763672,
+        "minimum_top_clearance_m": 17.4804744720459,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | tender top cooling fins.004": {
+        "minimum_clearance_m": 16.899494171142578,
+        "maximum_clearance_m": 17.500469207763672,
+        "minimum_top_clearance_m": 17.4804744720459,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | drone center": {
+        "minimum_clearance_m": 20.5,
+        "maximum_clearance_m": 23.50048828125,
+        "minimum_top_clearance_m": 23.33094024658203,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | drone arm": {
+        "minimum_clearance_m": 21.5,
+        "maximum_clearance_m": 22.5,
+        "minimum_top_clearance_m": 22.448793411254883,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | drone duct": {
+        "minimum_clearance_m": 20.399499893188477,
+        "maximum_clearance_m": 22.200475692749023,
+        "minimum_top_clearance_m": 22.199499130249023,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | drone dark duct": {
+        "minimum_clearance_m": 20.299518585205078,
+        "maximum_clearance_m": 20.400493621826172,
+        "minimum_top_clearance_m": 20.399517059326172,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | drone arm.001": {
+        "minimum_clearance_m": 21.49951171875,
+        "maximum_clearance_m": 22.50048828125,
+        "minimum_top_clearance_m": 22.449281692504883,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | drone duct.001": {
+        "minimum_clearance_m": 20.399499893188477,
+        "maximum_clearance_m": 22.200475692749023,
+        "minimum_top_clearance_m": 22.199499130249023,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | drone dark duct.001": {
+        "minimum_clearance_m": 20.299518585205078,
+        "maximum_clearance_m": 20.400493621826172,
+        "minimum_top_clearance_m": 20.399517059326172,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | drone survey head": {
+        "minimum_clearance_m": 18.99951171875,
+        "maximum_clearance_m": 21.00048828125,
+        "minimum_top_clearance_m": 20.99951171875,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | compound broad apron": {
+        "minimum_clearance_m": -0.00048828125,
+        "maximum_clearance_m": 0.5,
+        "minimum_top_clearance_m": 0.4577350616455078,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": true,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 0 plinth": {
+        "minimum_clearance_m": -0.00048828125,
+        "maximum_clearance_m": 2.00048828125,
+        "minimum_top_clearance_m": 1.9492816925048828,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": true,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 0 walls": {
+        "minimum_clearance_m": 0.99951171875,
+        "maximum_clearance_m": 17.00048828125,
+        "minimum_top_clearance_m": 16.83045196533203,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": true,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 0 sloped roof": {
+        "minimum_clearance_m": 16.614599227905273,
+        "maximum_clearance_m": 20.785425186157227,
+        "minimum_top_clearance_m": 17.646045684814453,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 0 sloped roof.001": {
+        "minimum_clearance_m": 16.614599227905273,
+        "maximum_clearance_m": 20.785425186157227,
+        "minimum_top_clearance_m": 17.646045684814453,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 0 seam": {
+        "minimum_clearance_m": 18.599506378173828,
+        "maximum_clearance_m": 19.200481414794922,
+        "minimum_top_clearance_m": 19.19105339050293,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 0 seam.001": {
+        "minimum_clearance_m": 18.599506378173828,
+        "maximum_clearance_m": 19.200481414794922,
+        "minimum_top_clearance_m": 19.19154167175293,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 0 seam.002": {
+        "minimum_clearance_m": 18.599994659423828,
+        "maximum_clearance_m": 19.200481414794922,
+        "minimum_top_clearance_m": 19.19105339050293,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 0 seam.003": {
+        "minimum_clearance_m": 18.599994659423828,
+        "maximum_clearance_m": 19.200481414794922,
+        "minimum_top_clearance_m": 19.19154167175293,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 0 seam.004": {
+        "minimum_clearance_m": 18.599994659423828,
+        "maximum_clearance_m": 19.200481414794922,
+        "minimum_top_clearance_m": 19.19105339050293,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 0 seam.005": {
+        "minimum_clearance_m": 18.599506378173828,
+        "maximum_clearance_m": 19.200481414794922,
+        "minimum_top_clearance_m": 19.19105339050293,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 0 seam.006": {
+        "minimum_clearance_m": 18.599506378173828,
+        "maximum_clearance_m": 19.200481414794922,
+        "minimum_top_clearance_m": 19.19154167175293,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 0 seam.007": {
+        "minimum_clearance_m": 18.599506378173828,
+        "maximum_clearance_m": 19.200481414794922,
+        "minimum_top_clearance_m": 19.19105339050293,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 0 seam.008": {
+        "minimum_clearance_m": 18.599506378173828,
+        "maximum_clearance_m": 19.200481414794922,
+        "minimum_top_clearance_m": 19.19154167175293,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 0 seam.009": {
+        "minimum_clearance_m": 18.599506378173828,
+        "maximum_clearance_m": 19.200481414794922,
+        "minimum_top_clearance_m": 19.19105339050293,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 0 recessed service door": {
+        "minimum_clearance_m": 1.49951171875,
+        "maximum_clearance_m": 12.50048828125,
+        "minimum_top_clearance_m": 12.491546630859375,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 0 door header": {
+        "minimum_clearance_m": 12.399511337280273,
+        "maximum_clearance_m": 13.60000228881836,
+        "minimum_top_clearance_m": 13.54879379272461,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 0 recessed service door.001": {
+        "minimum_clearance_m": 1.49951171875,
+        "maximum_clearance_m": 12.5,
+        "minimum_top_clearance_m": 12.491546630859375,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 0 door header.001": {
+        "minimum_clearance_m": 12.399511337280273,
+        "maximum_clearance_m": 13.600488662719727,
+        "minimum_top_clearance_m": 13.54928207397461,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 0 wall buttress": {
+        "minimum_clearance_m": 0.49951171875,
+        "maximum_clearance_m": 15.50048828125,
+        "minimum_top_clearance_m": 15.448793411254883,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 0 wall buttress.001": {
+        "minimum_clearance_m": 0.5,
+        "maximum_clearance_m": 15.5,
+        "minimum_top_clearance_m": 15.449281692504883,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 0 wall buttress.002": {
+        "minimum_clearance_m": 0.5,
+        "maximum_clearance_m": 15.5,
+        "minimum_top_clearance_m": 15.449281692504883,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 0 rooftop HVAC": {
+        "minimum_clearance_m": 18.99951171875,
+        "maximum_clearance_m": 23.00048828125,
+        "minimum_top_clearance_m": 22.949281692504883,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 0 rooftop HVAC.001": {
+        "minimum_clearance_m": 18.99951171875,
+        "maximum_clearance_m": 23.00048828125,
+        "minimum_top_clearance_m": 22.949281692504883,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 1 plinth": {
+        "minimum_clearance_m": 0.0,
+        "maximum_clearance_m": 2.0,
+        "minimum_top_clearance_m": 1.9492816925048828,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": true,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 1 walls": {
+        "minimum_clearance_m": 1.0,
+        "maximum_clearance_m": 17.00048828125,
+        "minimum_top_clearance_m": 16.83094024658203,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 1 sloped roof": {
+        "minimum_clearance_m": 16.938684463500977,
+        "maximum_clearance_m": 20.461339950561523,
+        "minimum_top_clearance_m": 17.970130920410156,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 1 sloped roof.001": {
+        "minimum_clearance_m": 16.938684463500977,
+        "maximum_clearance_m": 20.461339950561523,
+        "minimum_top_clearance_m": 17.970130920410156,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 1 seam": {
+        "minimum_clearance_m": 18.599994659423828,
+        "maximum_clearance_m": 19.199993133544922,
+        "minimum_top_clearance_m": 19.19154167175293,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 1 seam.001": {
+        "minimum_clearance_m": 18.599994659423828,
+        "maximum_clearance_m": 19.199993133544922,
+        "minimum_top_clearance_m": 19.19154167175293,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 1 seam.002": {
+        "minimum_clearance_m": 18.599994659423828,
+        "maximum_clearance_m": 19.199993133544922,
+        "minimum_top_clearance_m": 19.19154167175293,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 1 seam.003": {
+        "minimum_clearance_m": 18.599994659423828,
+        "maximum_clearance_m": 19.199993133544922,
+        "minimum_top_clearance_m": 19.19154167175293,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 1 seam.004": {
+        "minimum_clearance_m": 18.599994659423828,
+        "maximum_clearance_m": 19.199993133544922,
+        "minimum_top_clearance_m": 19.19154167175293,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 1 seam.005": {
+        "minimum_clearance_m": 18.599994659423828,
+        "maximum_clearance_m": 19.199993133544922,
+        "minimum_top_clearance_m": 19.19154167175293,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 1 seam.006": {
+        "minimum_clearance_m": 18.599994659423828,
+        "maximum_clearance_m": 19.199993133544922,
+        "minimum_top_clearance_m": 19.19154167175293,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 1 recessed service door": {
+        "minimum_clearance_m": 1.5,
+        "maximum_clearance_m": 12.5,
+        "minimum_top_clearance_m": 12.491546630859375,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 1 door header": {
+        "minimum_clearance_m": 12.399999618530273,
+        "maximum_clearance_m": 13.60000228881836,
+        "minimum_top_clearance_m": 13.54928207397461,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 1 recessed service door.001": {
+        "minimum_clearance_m": 1.49951171875,
+        "maximum_clearance_m": 12.5,
+        "minimum_top_clearance_m": 12.491546630859375,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 1 door header.001": {
+        "minimum_clearance_m": 12.399999618530273,
+        "maximum_clearance_m": 13.60000228881836,
+        "minimum_top_clearance_m": 13.54928207397461,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 1 wall buttress": {
+        "minimum_clearance_m": 0.5,
+        "maximum_clearance_m": 15.5,
+        "minimum_top_clearance_m": 15.449281692504883,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 1 wall buttress.001": {
+        "minimum_clearance_m": 0.5,
+        "maximum_clearance_m": 15.5,
+        "minimum_top_clearance_m": 15.449281692504883,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 1 wall buttress.002": {
+        "minimum_clearance_m": 0.5,
+        "maximum_clearance_m": 15.5,
+        "minimum_top_clearance_m": 15.449281692504883,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 1 rooftop HVAC": {
+        "minimum_clearance_m": 19.0,
+        "maximum_clearance_m": 23.0,
+        "minimum_top_clearance_m": 22.949281692504883,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | shed 1 rooftop HVAC.001": {
+        "minimum_clearance_m": 18.99951171875,
+        "maximum_clearance_m": 23.00048828125,
+        "minimum_top_clearance_m": 22.949281692504883,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | compound storage silo": {
+        "minimum_clearance_m": 0.49951171875,
+        "maximum_clearance_m": 25.50048828125,
+        "minimum_top_clearance_m": 25.49951171875,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | silo reinforcing ring": {
+        "minimum_clearance_m": 2.6495113372802734,
+        "maximum_clearance_m": 3.350489616394043,
+        "minimum_top_clearance_m": 3.3495121002197266,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | silo reinforcing ring.001": {
+        "minimum_clearance_m": 11.649511337280273,
+        "maximum_clearance_m": 12.35049057006836,
+        "minimum_top_clearance_m": 12.349512100219727,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | silo reinforcing ring.002": {
+        "minimum_clearance_m": 22.649511337280273,
+        "maximum_clearance_m": 23.35049057006836,
+        "minimum_top_clearance_m": 23.349512100219727,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | silo crown": {
+        "minimum_clearance_m": 25.24951171875,
+        "maximum_clearance_m": 26.75048828125,
+        "minimum_top_clearance_m": 26.74951171875,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | compound storage silo.001": {
+        "minimum_clearance_m": 0.49951171875,
+        "maximum_clearance_m": 25.50048828125,
+        "minimum_top_clearance_m": 25.49951171875,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | silo reinforcing ring.003": {
+        "minimum_clearance_m": 2.6495113372802734,
+        "maximum_clearance_m": 3.350489616394043,
+        "minimum_top_clearance_m": 3.3495121002197266,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | silo reinforcing ring.004": {
+        "minimum_clearance_m": 11.649511337280273,
+        "maximum_clearance_m": 12.35049057006836,
+        "minimum_top_clearance_m": 12.349512100219727,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | silo reinforcing ring.005": {
+        "minimum_clearance_m": 22.649511337280273,
+        "maximum_clearance_m": 23.35049057006836,
+        "minimum_top_clearance_m": 23.349512100219727,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | silo crown.001": {
+        "minimum_clearance_m": 25.24951171875,
+        "maximum_clearance_m": 26.75048828125,
+        "minimum_top_clearance_m": 26.74951171875,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | compound storage silo.002": {
+        "minimum_clearance_m": 0.49951171875,
+        "maximum_clearance_m": 25.50048828125,
+        "minimum_top_clearance_m": 25.49951171875,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | silo reinforcing ring.006": {
+        "minimum_clearance_m": 2.6495113372802734,
+        "maximum_clearance_m": 3.350489616394043,
+        "minimum_top_clearance_m": 3.3495121002197266,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | silo reinforcing ring.007": {
+        "minimum_clearance_m": 11.649511337280273,
+        "maximum_clearance_m": 12.35049057006836,
+        "minimum_top_clearance_m": 12.349512100219727,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | silo reinforcing ring.008": {
+        "minimum_clearance_m": 22.649511337280273,
+        "maximum_clearance_m": 23.35049057006836,
+        "minimum_top_clearance_m": 23.349512100219727,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | silo crown.002": {
+        "minimum_clearance_m": 25.24951171875,
+        "maximum_clearance_m": 26.75048828125,
+        "minimum_top_clearance_m": 26.74951171875,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | pump service building": {
+        "minimum_clearance_m": 0.0,
+        "maximum_clearance_m": 8.00048828125,
+        "minimum_top_clearance_m": 7.949281692504883,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": true,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | pump roof": {
+        "minimum_clearance_m": 7.99951171875,
+        "maximum_clearance_m": 9.00048828125,
+        "minimum_top_clearance_m": 8.949281692504883,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | landing service pad": {
+        "minimum_clearance_m": 0.399993896484375,
+        "maximum_clearance_m": 0.899993896484375,
+        "minimum_top_clearance_m": 0.8788614273071289,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": true,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | landing pad bar": {
+        "minimum_clearance_m": 0.9000024795532227,
+        "maximum_clearance_m": 0.9800024032592773,
+        "minimum_top_clearance_m": 0.9757757186889648,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": true,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | landing pad bar.001": {
+        "minimum_clearance_m": 0.9000024795532227,
+        "maximum_clearance_m": 0.9800024032592773,
+        "minimum_top_clearance_m": 0.9757757186889648,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": true,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | landing H legs": {
+        "minimum_clearance_m": 0.9199914932250977,
+        "maximum_clearance_m": 0.9999914169311523,
+        "minimum_top_clearance_m": 0.9957647323608398,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": true,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | landing H legs.001": {
+        "minimum_clearance_m": 0.9199914932250977,
+        "maximum_clearance_m": 0.9999914169311523,
+        "minimum_top_clearance_m": 0.9957647323608398,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": true,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | landing H bridge": {
+        "minimum_clearance_m": 0.9300012588500977,
+        "maximum_clearance_m": 1.0100011825561523,
+        "minimum_top_clearance_m": 1.0057744979858398,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": true,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | compound antenna mast": {
+        "minimum_clearance_m": 0.0,
+        "maximum_clearance_m": 42.0,
+        "minimum_top_clearance_m": 42.0,
+        "sample_count": 39936,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | antenna transverse spar": {
+        "minimum_clearance_m": 29.75,
+        "maximum_clearance_m": 30.25,
+        "minimum_top_clearance_m": 30.241058349609375,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | antenna transverse spar.001": {
+        "minimum_clearance_m": 37.75,
+        "maximum_clearance_m": 38.25,
+        "minimum_top_clearance_m": 38.241058349609375,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | compound cargo crate": {
+        "minimum_clearance_m": -0.00048828125,
+        "maximum_clearance_m": 4.0,
+        "minimum_top_clearance_m": 3.949281692504883,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | compound cargo crate.001": {
+        "minimum_clearance_m": -0.00048828125,
+        "maximum_clearance_m": 4.0,
+        "minimum_top_clearance_m": 3.949281692504883,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      },
+      "AGRI | compound cargo crate.002": {
+        "minimum_clearance_m": 0.0,
+        "maximum_clearance_m": 4.0,
+        "minimum_top_clearance_m": 3.949281692504883,
+        "sample_count": 46848,
+        "evaluated_times": 96,
+        "thin_ground_surface": false,
+        "terrain_crossing_samples": 0
+      }
+    },
+    "projectors": {
+      "AGRI | attached reskin projector AGRI | crop tender moving frame": {
+        "parent": "AGRI | crop tender moving frame",
+        "max_local_delta": 0
+      },
+      "AGRI | attached reskin projector AGRI | survey drone frame": {
+        "parent": "AGRI | survey drone frame",
+        "max_local_delta": 0
+      },
+      "AGRI | attached reskin projector AGRI | right agricultural service compound": {
+        "parent": "AGRI | right agricultural service compound",
+        "max_local_delta": 0
+      }
+    },
+    "assembly_aabb_collisions": [],
+    "errors": [],
+    "sample_times": 96,
+    "limits": [
+      "Evaluated vertices, triangle centers and edge midpoints; not exhaustive surface proof.",
+      "Assembly AABB rejection is conservative; touching/overlapping parts inside one assembly are intentional."
+    ]
+  },
+  "ground_surface_check": {
+    "visible_competing_proxies": [],
+    "field_footprint_coverage": [
+      {
+        "proxy": "Plantation | clearing 0 0",
+        "source_xy_bounds_m": [
+          -6290.0,
+          -5610.0,
+          305.0,
+          995.0
+        ],
+        "sample_count": 441,
+        "terrain_hits": 441,
+        "terrain_z_range_m": [
+          5.37890625,
+          8.0
+        ],
+        "detail_surface_clearance_m": 0,
+        "detail_surface_owner": "Jangala | continuous landform"
+      },
+      {
+        "proxy": "Plantation | clearing 0 1",
+        "source_xy_bounds_m": [
+          -6290.0,
+          -5610.0,
+          1125.0,
+          1815.0
+        ],
+        "sample_count": 441,
+        "terrain_hits": 441,
+        "terrain_z_range_m": [
+          8.0,
+          8.0
+        ],
+        "detail_surface_clearance_m": 0,
+        "detail_surface_owner": "Jangala | continuous landform"
+      },
+      {
+        "proxy": "Plantation | clearing 1 0",
+        "source_xy_bounds_m": [
+          -5510.0,
+          -4830.0,
+          305.0,
+          995.0
+        ],
+        "sample_count": 441,
+        "terrain_hits": 441,
+        "terrain_z_range_m": [
+          5.37890625,
+          8.0
+        ],
+        "detail_surface_clearance_m": 0,
+        "detail_surface_owner": "Jangala | continuous landform"
+      },
+      {
+        "proxy": "Plantation | clearing 1 1",
+        "source_xy_bounds_m": [
+          -5510.0,
+          -4830.0,
+          1125.0,
+          1815.0
+        ],
+        "sample_count": 441,
+        "terrain_hits": 441,
+        "terrain_z_range_m": [
+          8.0,
+          8.0
+        ],
+        "detail_surface_clearance_m": 0,
+        "detail_surface_owner": "Jangala | continuous landform"
+      },
+      {
+        "proxy": "Plantation | clearing 2 0",
+        "source_xy_bounds_m": [
+          -4730.0,
+          -4050.0,
+          305.0,
+          995.0
+        ],
+        "sample_count": 441,
+        "terrain_hits": 441,
+        "terrain_z_range_m": [
+          5.37890625,
+          8.0
+        ],
+        "detail_surface_clearance_m": 0,
+        "detail_surface_owner": "Jangala | continuous landform"
+      },
+      {
+        "proxy": "Plantation | clearing 2 1",
+        "source_xy_bounds_m": [
+          -4730.0,
+          -4050.0,
+          1125.0,
+          1815.0
+        ],
+        "sample_count": 441,
+        "terrain_hits": 441,
+        "terrain_z_range_m": [
+          8.0,
+          8.0
+        ],
+        "detail_surface_clearance_m": 0,
+        "detail_surface_owner": "Jangala | continuous landform"
+      },
+      {
+        "proxy": "Plantation | clearing 3 0",
+        "source_xy_bounds_m": [
+          -3950.0,
+          -3270.0,
+          305.0,
+          995.0
+        ],
+        "sample_count": 441,
+        "terrain_hits": 441,
+        "terrain_z_range_m": [
+          5.37890625,
+          8.0
+        ],
+        "detail_surface_clearance_m": 0,
+        "detail_surface_owner": "Jangala | continuous landform"
+      },
+      {
+        "proxy": "Plantation | clearing 3 1",
+        "source_xy_bounds_m": [
+          -3950.0,
+          -3270.0,
+          1125.0,
+          1815.0
+        ],
+        "sample_count": 441,
+        "terrain_hits": 441,
+        "terrain_z_range_m": [
+          8.0,
+          8.0
+        ],
+        "detail_surface_clearance_m": 0,
+        "detail_surface_owner": "Jangala | continuous landform"
+      },
+      {
+        "proxy": "Plantation | clearing 4 0",
+        "source_xy_bounds_m": [
+          -3170.0,
+          -2490.0,
+          305.0,
+          995.0
+        ],
+        "sample_count": 441,
+        "terrain_hits": 441,
+        "terrain_z_range_m": [
+          5.37890625,
+          8.0
+        ],
+        "detail_surface_clearance_m": 0,
+        "detail_surface_owner": "Jangala | continuous landform"
+      },
+      {
+        "proxy": "Plantation | clearing 4 1",
+        "source_xy_bounds_m": [
+          -3170.0,
+          -2490.0,
+          1125.0,
+          1815.0
+        ],
+        "sample_count": 441,
+        "terrain_hits": 441,
+        "terrain_z_range_m": [
+          8.0,
+          8.0
+        ],
+        "detail_surface_clearance_m": 0,
+        "detail_surface_owner": "Jangala | continuous landform"
+      }
+    ],
+    "contract": "Detail shades the terrain surface directly; no offset mesh"
   },
   "visible_outside_count": 0,
   "visible_outside_samples": [],
@@ -647,7 +2060,7 @@
   ],
   "limits": [
     "64px image grid at all96half-frame times; not exhaustive every-pixel proof.",
-    "Local generated-field UVs and crop mapping are evaluated from actual node graph; color/top-versus-side selection is not a visual material-quality check.",
+    "Source-XY parcel masks are bound to the terrain shader; numerical coverage does not establish material quality.",
     "Shader opacity graph evaluated including alpha remaps, bank sine-curve and nested transparent mixes; traversal uses0.5opacity decision, not full soft-edge compositing.",
     "Cabin alpha check cannot detect incorrect RGB aperture paint when its alpha is opaque; rendered aperture/trim registration still required.",
     "Source hashes prove no source modification during this validation, not prior historical immutability.",

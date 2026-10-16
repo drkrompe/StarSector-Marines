@@ -1,0 +1,130 @@
+[
+  {
+    "object": "Plantation | clearing 0 0",
+    "min": -2.1279296875,
+    "max": 0.10000038146972656,
+    "negative": 209,
+    "near": 42,
+    "samples": 231
+  },
+  {
+    "object": "Plantation | clearing 0 1",
+    "min": 0.10000038146972656,
+    "max": 0.10000133514404297,
+    "negative": 0,
+    "near": 231,
+    "samples": 231
+  },
+  {
+    "object": "Plantation | cross road 0",
+    "min": -5.977929353713989,
+    "max": 0.10000038146972656,
+    "negative": 209,
+    "near": 22,
+    "samples": 231
+  },
+  {
+    "object": "Plantation | clearing 1 0",
+    "min": -2.1279296875,
+    "max": 0.10000038146972656,
+    "negative": 209,
+    "near": 42,
+    "samples": 231
+  },
+  {
+    "object": "Plantation | clearing 1 1",
+    "min": 0.10000038146972656,
+    "max": 0.10000133514404297,
+    "negative": 0,
+    "near": 231,
+    "samples": 231
+  },
+  {
+    "object": "Plantation | cross road 1",
+    "min": -5.977929353713989,
+    "max": 0.10000038146972656,
+    "negative": 209,
+    "near": 22,
+    "samples": 231
+  },
+  {
+    "object": "Plantation | clearing 2 0",
+    "min": -2.1279296875,
+    "max": 0.10000038146972656,
+    "negative": 209,
+    "near": 42,
+    "samples": 231
+  },
+  {
+    "object": "Plantation | clearing 2 1",
+    "min": 0.10000038146972656,
+    "max": 0.10000133514404297,
+    "negative": 0,
+    "near": 231,
+    "samples": 231
+  },
+  {
+    "object": "Plantation | cross road 2",
+    "min": -5.977929353713989,
+    "max": 0.10000038146972656,
+    "negative": 209,
+    "near": 22,
+    "samples": 231
+  },
+  {
+    "object": "Plantation | clearing 3 0",
+    "min": -2.1279296875,
+    "max": 0.10000038146972656,
+    "negative": 209,
+    "near": 42,
+    "samples": 231
+  },
+  {
+    "object": "Plantation | clearing 3 1",
+    "min": 0.10000038146972656,
+    "max": 0.10000133514404297,
+    "negative": 0,
+    "near": 231,
+    "samples": 231
+  },
+  {
+    "object": "Plantation | cross road 3",
+    "min": -5.977929353713989,
+    "max": 0.10000038146972656,
+    "negative": 209,
+    "near": 22,
+    "samples": 231
+  },
+  {
+    "object": "Plantation | clearing 4 0",
+    "min": -2.1279296875,
+    "max": 0.10000038146972656,
+    "negative": 209,
+    "near": 42,
+    "samples": 231
+  },
+  {
+    "object": "Plantation | clearing 4 1",
+    "min": 0.10000038146972656,
+    "max": 0.10000133514404297,
+    "negative": 0,
+    "near": 231,
+    "samples": 231
+  },
+  {
+    "object": "Plantation | cross road 4",
+    "min": -5.977929353713989,
+    "max": 0.10000038146972656,
+    "negative": 209,
+    "near": 22,
+    "samples": 231
+  },
+  {
+    "object": "Plantation | collector road",
+    "min": 0.09999847412109375,
+    "max": 9.1370849609375,
+    "negative": 0,
+    "near": 22,
+    "samples": 231
+  }
+]

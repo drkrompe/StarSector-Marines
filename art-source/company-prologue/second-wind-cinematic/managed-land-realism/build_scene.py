@@ -337,66 +337,71 @@ def near_bank_ground(base):
 
 fields_ground=near_bank_ground(fields)
 
-def detailed_clearing(obj):
-    mat=bpy.data.materials.new('REALISM | local detail '+obj.name)
-    mat.use_nodes=True
-    nodes,links=mat.node_tree.nodes,mat.node_tree.links
-    nodes.clear()
-    texture=image_texture(nodes,'field-detail-realism-v1.png')
-    coords=nodes.new('ShaderNodeTexCoord')
-    split=nodes.new('ShaderNodeSeparateXYZ')
-    links.new(coords.outputs['Generated'],split.inputs[0])
-    vector=nodes.new('ShaderNodeCombineXYZ')
-    numbers=[int(n) for n in obj.name.split()[-2:]]
-    flip=sum(numbers)%2==1
-    for axis,scale,offset in (('X',-.53125 if flip else .53125,.765625 if flip else .234375),
-                              ('Y',.958333333334,.020833333333)):
-        remap=nodes.new('ShaderNodeMath')
-        remap.operation='MULTIPLY_ADD'
-        remap.inputs[1].default_value=scale
-        remap.inputs[2].default_value=offset
-        links.new(split.outputs[axis],remap.inputs[0])
-        links.new(remap.outputs[0],vector.inputs[axis])
-    links.new(vector.outputs[0],texture.inputs['Vector'])
-    brightness=nodes.new('ShaderNodeMixRGB')
-    brightness.blend_type='MULTIPLY'
-    brightness.inputs[0].default_value=1
-    gain=.96+((numbers[0]*3+numbers[1])%5)*.02
-    brightness.inputs[2].default_value=(gain,gain,gain,1)
-    links.new(texture.outputs['Color'],brightness.inputs[1])
-    geometry=nodes.new('ShaderNodeNewGeometry')
-    normal=nodes.new('ShaderNodeSeparateXYZ')
-    links.new(geometry.outputs['Normal'],normal.inputs[0])
-    top=nodes.new('ShaderNodeMath')
-    top.operation='GREATER_THAN'
-    top.inputs[1].default_value=.6
-    links.new(normal.outputs['Z'],top.inputs[0])
-    mix=nodes.new('ShaderNodeMixRGB')
-    mix.inputs[1].default_value=(.12,.14,.075,1)
-    links.new(top.outputs[0],mix.inputs[0])
-    links.new(brightness.outputs[0],mix.inputs[2])
-    emission=nodes.new('ShaderNodeEmission')
-    links.new(mix.outputs[0],emission.inputs[0])
-    out=nodes.new('ShaderNodeOutputMaterial')
-    links.new(emission.outputs[0],out.inputs[0])
-    return mat
-land_obj=bpy.data.objects['Jangala | continuous landform']
-land_source=world.matrix_world.inverted()@land_obj.matrix_world
-ground_tree=BVHTree.FromPolygons([land_source@v.co for v in land_obj.data.vertices],
-                                [tuple(p.vertices) for p in land_obj.data.polygons])
+def terrain_field_detail(mat, plots):
+    """Paint parcel detail onto the landform itself: no competing top faces.
 
-def conform_to_terrain(obj):
-    obj.data=obj.data.copy()
-    to_source=world.matrix_world.inverted()@obj.matrix_world
-    inverse=to_source.inverted()
-    original=[to_source@v.co for v in obj.data.vertices]
-    middle_z=sum(v.z for v in original)/len(original)
-    for vertex,point in zip(obj.data.vertices,original):
-        hit,_,_,_=ground_tree.ray_cast(Vector((point.x,point.y,5000)),Vector((0,0,-1)),10000)
-        if hit is not None:
-            point.z=hit.z+(.10 if point.z>=middle_z else -.03)
-            vertex.co=inverse@point
-    obj.data.update()
+    Plot proxies supply source-world footprints only. Their corner-conformed
+    quads crossed the terrain between corners, so no height offset fixes them.
+    """
+    nodes, links = mat.node_tree.nodes, mat.node_tree.links
+    emission = next(n for n in nodes if n.type == 'EMISSION')
+    color = emission.inputs['Color'].links[0].from_socket
+    coords = nodes.new('ShaderNodeTexCoord')
+    coords.object = source_coords
+    split = nodes.new('ShaderNodeSeparateXYZ')
+    links.new(coords.outputs['Object'], split.inputs[0])
+
+    def math(operation, a, b):
+        node = nodes.new('ShaderNodeMath')
+        node.operation = operation
+        for socket, value in zip(node.inputs, (a, b)):
+            if isinstance(value, (float, int)):
+                socket.default_value = value
+            else:
+                links.new(value, socket)
+        return node.outputs[0]
+
+    footprints = []
+    for obj in plots:
+        transform = world.matrix_world.inverted() @ obj.matrix_world
+        vertices = [transform @ v.co for v in obj.data.vertices]
+        xmin, xmax = min(v.x for v in vertices), max(v.x for v in vertices)
+        ymin, ymax = min(v.y for v in vertices), max(v.y for v in vertices)
+        numbers = [int(n) for n in obj.name.split()[-2:]]
+        flip = sum(numbers) % 2 == 1
+        texture = image_texture(nodes, 'field-detail-realism-v1.png')
+        vector = nodes.new('ShaderNodeCombineXYZ')
+        mask = None
+        for axis, lo, hi, scale, offset in (
+                ('X', xmin, xmax, -.53125 if flip else .53125, .765625 if flip else .234375),
+                ('Y', ymin, ymax, .958333333334, .020833333333)):
+            local = math('MULTIPLY', math('SUBTRACT', split.outputs[axis], lo), 1 / (hi - lo))
+            mapped = math('ADD', math('MULTIPLY', local, scale), offset)
+            links.new(mapped, vector.inputs[axis])
+            inside = math('MULTIPLY', math('GREATER_THAN', local, 0), math('LESS_THAN', local, 1))
+            mask = inside if mask is None else math('MULTIPLY', mask, inside)
+        links.new(vector.outputs[0], texture.inputs['Vector'])
+        brightness = nodes.new('ShaderNodeMixRGB')
+        brightness.blend_type = 'MULTIPLY'
+        brightness.inputs[0].default_value = 1
+        gain = .96 + ((numbers[0] * 3 + numbers[1]) % 5) * .02
+        brightness.inputs[2].default_value = (gain, gain, gain, 1)
+        links.new(texture.outputs['Color'], brightness.inputs[1])
+        mix = nodes.new('ShaderNodeMixRGB')
+        links.new(mask, mix.inputs[0])
+        links.new(color, mix.inputs[1])
+        links.new(brightness.outputs[0], mix.inputs[2])
+        color = mix.outputs[0]
+        footprints.append({'proxy': obj.name, 'source_xy_bounds_m': [xmin, xmax, ymin, ymax]})
+    links.new(color, emission.inputs['Color'])
+    return footprints
+
+field_footprints = terrain_field_detail(fields_ground, [obj for obj in scene.objects
+    if obj.type == 'MESH' and obj.name.startswith('Plantation | clearing ')])
+land_obj = bpy.data.objects['Jangala | continuous landform']
+land_obj['ground_surface_contract'] = 'Single terrain surface; plantation proxies are footprint guides only'
+land_obj['field_footprints_json'] = json.dumps(field_footprints)
+
 ship = set(root.children_recursive)
 for obj in list(scene.objects):
     if obj.type != 'MESH' or obj.hide_render:
@@ -408,11 +413,9 @@ for obj in list(scene.objects):
         # coarse raised banks fight the realistic orthographic field texture.
         obj.hide_render = True
     elif obj.pass_index == 13:
-        if obj.name.startswith('Plantation | crop '):
-            obj.hide_render=True
-            continue
-        conform_to_terrain(obj)
-        paint(obj,detailed_clearing(obj) if obj.name.startswith('Plantation | clearing ') else fields)
+        # Retain source proxy geometry for authoring, but render only the actual
+        # terrain. Parcel detail is shaded on that surface in source-world XY.
+        obj.hide_render = True
     elif obj.pass_index in (31, 32, 33, 35, 36, 37, 38, 39):
         obj.hide_render = True
     elif obj.name == 'Jangala | continuous landform':
@@ -430,6 +433,15 @@ for obj in list(scene.objects):
                 polygon.material_index = 0
     elif obj.name in ('Jangala | winding river', 'Jangala | far estuary'):
         paint(obj, river_mat)
+
+# Agriculture geometry is authored independently of the terrain surface shader.
+# It samples the same actual landform triangles for support/contact heights.
+land_source = world.matrix_world.inverted() @ land_obj.matrix_world
+ground_tree = BVHTree.FromPolygons([land_source @ v.co for v in land_obj.data.vertices],
+                                 [tuple(p.vertices) for p in land_obj.data.polygons])
+sys.path.insert(0, str(HERE))
+from agriculture_props import build_agriculture_props
+agriculture = build_agriculture_props(scene, world, ground_tree)
 
 layers = []
 def card(name, filename, source_y, transparent):
@@ -527,9 +539,10 @@ bpy.ops.wm.save_as_mainfile(filepath=str(HERE / 'managed-land-realism.blend'), c
 (HERE / 'scene-manifest.json').write_text(json.dumps({'source':'../layered-next-scenes/layered-next-scenes.blend', 'guide_manifest':'guide-manifest.json',
     'source_frames':[240,287.5], 'source_fps':12, 'output_frames':96, 'output_fps':24,
     'camera':camera.name, 'missing_assets':missing, 'assets':required, 'layers':layers,
+    'agriculture':agriculture,
     'environment_relief':{'crop_rows':'Hidden box proxies; crop detail supplied by orthographic surface',
-                          'road_clearing_offset_m':.10,'hidden_replaceable_proxy_ids':[34],
-                          'field_detail':'Per-clearing GeneratedXY maps to centralplotUV U.234375..765625,V.0208333..9791667; alternateXflip and gain.96..1.04',
+                          'road_clearing_offset_m':0,'hidden_replaceable_proxy_ids':[13,34],
+                          'field_detail':'Single landform surface with source-world XY parcel masks; centralplotUV U.234375..765625,V.0208333..9791667; alternateXflip and gain.96..1.04',
                           'far_ground':'Per-pixel source-world analytic river nearbank mask hides all coarse ground beyond nearbank; no canopy projection onto coarse terrain',
                           'river':'Retained river geometry; clean water-only UV subregion of fields master tiled in source-worldXY, with12% low-contrast fine-ripple modulation. No projected tree RGB',
                           'woodland_rgb':'Originalmaster above conservative farshore UV boundary V=.60+.15U; smooth.03Vblend to generatedopaquecompletion below'},

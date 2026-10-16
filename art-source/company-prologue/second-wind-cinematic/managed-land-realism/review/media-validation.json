@@ -10,17 +10,17 @@
   "decoded_frames": 96,
   "unique_source_frames": 96,
   "source_frame_mapping": "240 + 0.5*i at source 12fps, i=0..95",
-  "scene_sha256": "dacf96981f01bbdecf52208529d660b7e445b9a2dedeb7518ad67ae598adfcd1",
+  "scene_sha256": "d7def5684bcf50486a3e8fe1900656c5ce128c96c19d1950751d1b38fe79569b",
   "audio": false,
   "codec": "h264",
   "pixel_format": "yuv420p",
-  "bytes": 2261011,
-  "sha256": "201a720dc8f79f5595e5ea759ab0034a81aadb4c1eb01db627e4a7b54f89a623",
+  "bytes": 2933212,
+  "sha256": "eacfdca65031059a857dbc1b9cfc759606bba94d9d4a830cf8334ee287aea358",
   "full_decode": "FFmpeg -xerror exit 0",
   "adjacent_mean_absolute_pixel_change_0_to_255": {
-    "min": 5.06953928755144,
-    "max": 6.047811374742799,
-    "mean": 5.403991366823695
+    "min": 6.347676986882717,
+    "max": 6.915842496141976,
+    "mean": 6.6518219724658865
   },
   "limits": "Media integrity and cadence only; visual quality and physical plausibility require rendered review."
 }

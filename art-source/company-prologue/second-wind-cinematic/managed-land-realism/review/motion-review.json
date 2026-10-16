@@ -1,0 +1,37 @@
+{
+  "scene_sha256": "d7def5684bcf50486a3e8fe1900656c5ce128c96c19d1950751d1b38fe79569b",
+  "movie_sha256": "eacfdca65031059a857dbc1b9cfc759606bba94d9d4a830cf8334ee287aea358",
+  "source_frames_reviewed": [
+    1,
+    2,
+    3,
+    25,
+    49,
+    73,
+    96
+  ],
+  "native_source_resolution": [
+    1920,
+    1080
+  ],
+  "reviewers": "Primary agent plus independent shot-motion agent",
+  "findings": [
+    "Coarse triangular field switching present in the previous source PNGs is absent in reviewed corrected consecutive and spaced frames.",
+    "Right-side tender emerges from the window jamb, with stable geometry and a low-hover shadow cue; distant compound remains grounded.",
+    "Prop finish stays attached across reviewed poses; internal artwork registration remains approximate."
+  ],
+  "browser_playback": {
+    "player": "Codex in-app browser, localhost-only review page",
+    "playback_rate": 1,
+    "completed_seconds": 4,
+    "total_video_frames": 96,
+    "dropped_video_frames": 0,
+    "frame_callbacks": 96,
+    "observation": "Complete normal-speed encoded playback with UI screenshots at early times and endpoint; native source stills cover intermediate poses."
+  },
+  "limits": [
+    "Screenshot sampling and playback telemetry cannot prove absence of every transient shimmer.",
+    "Fine repeated crop rows can alias in motion; distant shoreline remains straight and woodland completion soft.",
+    "Small-prop projection proof only; no general multiangle UV registration or physical flight simulation."
+  ]
+}
