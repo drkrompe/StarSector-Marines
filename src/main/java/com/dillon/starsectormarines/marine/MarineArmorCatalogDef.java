@@ -33,10 +33,32 @@ public record MarineArmorCatalogDef(
         float moveSpeedMult,
         float incomingAccuracyMult,
         IntegralSystemDef integralSystem,
-        List<String> sheets) {
+        List<String> sheets,
+        String presentationPending) {
     public MarineArmorCatalogDef {
         sheets = sheets == null ? List.of() : List.copyOf(sheets);
+        if (presentationPending != null && presentationPending.isBlank()) presentationPending = null;
     }
+
+    public MarineArmorCatalogDef(String id, String displayName, ArmorRole role, ArmorClass armorClass,
+            ArmorTradition tradition, String description, int tier, String iconPath,
+            LayeredArmorFamily appearanceFamily, float armorCapacity, float armorRating,
+            float moveSpeedMult, float incomingAccuracyMult, IntegralSystemDef integralSystem,
+            List<String> sheets) {
+        this(id, displayName, role, armorClass, tradition, description, tier, iconPath,
+                appearanceFamily, armorCapacity, armorRating, moveSpeedMult, incomingAccuracyMult,
+                integralSystem, sheets, null);
+    }
+
+    /**
+     * Whether the pattern's battle and armory presentation is complete. A pattern may be
+     * authored (combat values, system, sheet) before its art exists; it then declares why in
+     * {@code presentationPending}, and no card carrying it can become cargo
+     * ({@link LoadoutCard#presentationDeclared}). Its appearance family meanwhile has no
+     * layered assets, so a debug or test deployment draws the legacy unit sheet rather than
+     * borrowing another suit's look.
+     */
+    public boolean presentationDeclared() { return presentationPending == null; }
 
     /**
      * Tactic sheets this pattern is added to on top of the ones that already carry it, by
@@ -57,7 +79,7 @@ public record MarineArmorCatalogDef(
             float moveSpeedMult, float incomingAccuracyMult, IntegralSystemDef integralSystem) {
         this(id, displayName, role, ArmorClass.STANDARD, tradition, description, tier,
                 iconPath, appearanceFamily, armorCapacity, armorRating, moveSpeedMult,
-                incomingAccuracyMult, integralSystem, List.of());
+                incomingAccuracyMult, integralSystem, List.of(), null);
     }
 
     public static MarineArmorCatalogDef parse(JSONObject json) throws JSONException {
@@ -93,7 +115,9 @@ public record MarineArmorCatalogDef(
                 battle.has("integralSystem")
                         ? IntegralSystemDef.parse(battle.getJSONObject("integralSystem"), id)
                         : null,
-                sheets(catalog.optJSONArray("sheets")));
+                sheets(catalog.optJSONArray("sheets")),
+                catalog.has("presentationPending")
+                        ? requireText(catalog, "presentationPending", id) : null);
     }
 
     /**

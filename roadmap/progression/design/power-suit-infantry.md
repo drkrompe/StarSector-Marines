@@ -2,7 +2,7 @@
 
 Status: ACTIVE — equipment-category direction; field balance and distinct art require acceptance.
 Written: 2026-10-13
-Updated: 2026-10-13 — Agreus supplies both recovered roles; mixed issue remains a player fitting choice.
+Updated: 2026-10-16 — Boarding Jack pattern and section defined, story-only and not awardable until its art ships.
 
 ## Purpose
 
@@ -90,8 +90,11 @@ Recovered Specter cargo card. Learning it teaches the matching Tri-Tachyon Spect
 Protection sheet, enabling explicit assault-suit fitting before the support reward.
 The Yard's Owners awards Recovered Arbalest after a protected tooling inspection.
 Learning both cards exposes Salvage-assisted Section for explicit mixed issue.
-The pirate Boarding Jack reward remains planned in `a-small-war.md`. Both existing
-recovered templates remain outside random faction acquisition. Explicit development
+The pirate Boarding Jack is defined with its own light section card (two Jacks among
+ten raiders in outlaw plate, a scout and two packframe gunners). It is reserved to
+`a-small-war.md` and cannot be awarded until its grounded art ships: the pattern
+declares its presentation pending, which refuses any cargo payload for the card.
+Both existing recovered templates remain outside random faction acquisition. Explicit development
 controls also support campaign-loop testing; neither route automatically changes
 anyone's issued kit.
 
@@ -121,6 +124,18 @@ and issued tiers retain their existing tradeoffs.
 | Arbalest support battlesuit | 50 | Mechanized support carrying finite shoulder ordnance |
 | Recovered Specter frame | 36 | Early recovered assault shell with a slower, weaker breach system |
 | Recovered Arbalest frame | 34 | Early support shell with two salvos and slower movement |
+| Boarding Jack rebuilt frame | 40 | Pirate recovered assault shell: more raw reserve than recovered Specter, worse resistance (6), handling (x0.82) and target profile (x1.04) |
+
+Within tier III the ladder is a trade, not an order of raw capacity. The Boarding
+Jack's Latch Assist is the existing breacher assist (2-second window, 22-second
+cooldown, x1.15 movement, a 4-point screen over 100 degrees), weaker than the
+Foundry-breaker's and slower to recover than the recovered Specter's predictive
+breach. Matchup evidence at its introduction: twelve Jacks hold at least as well as
+twelve recovered Specters against plain rifles, the Specter holds noticeably better
+against military fire, and a regular military section with rockets and an
+anti-materiel rifle beats either suit section in the open by a wide margin, while
+a dug-in suit section can still trade evenly with cheap auxiliaries. Terrain and
+tactics matter; no faction modifier decides it.
 
 Concentrated high-penetration fire must remain an answer. A suit is slower or
 more conspicuous according to its authored pattern, and it still needs cover,
@@ -194,6 +209,15 @@ yellow remnants, and dull steel identify origin. Irregularity must not make the
 weapon, facing, or two-leg walking motion unreadable. Its greater crude capacity
 is visually volume, not superior material quality. Avoid incidental extra guns
 or machinery that promise mechanics the pattern does not own.
+
+The Boarding Jack is a rebuilt loading/boarding frame: compact pressure helmet,
+welded mismatched plate (a large square slab on one shoulder, a smaller cargo cap on
+the other), visible joint backing, guarded hoses and hand-lettered service labels.
+It shares the Specter shell registration so the existing pose tracks articulate it,
+keeps torso, shoulders, helmet and feet separate with casing-only paint masks, and
+shows Latch Assist as a left-shoulder actuator/screen carrier. It must not reuse the
+Foundry-breaker's rejected presentation or borrow another suit's family. The
+geometry guide lives under `art-source/marine-modular-topdown/boarding-jack/`.
 
 Produce reference comparisons beside an ordinary Legionary marine and a Hound
 at one shared camera scale, including front, rear, and top-down views. The three
