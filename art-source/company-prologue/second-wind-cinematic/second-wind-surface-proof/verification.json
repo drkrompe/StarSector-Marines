@@ -1,0 +1,6411 @@
+{
+  "status": "PASS for construction invariants, not artistic acceptance or full collision simulation",
+  "source_blend": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\animatic\\jangala-blockout.blend",
+  "source_blend_sha256": "c8cb5950c8409735353765a784bdcf7a52adaa4714c105923b6be89218f5b6b7",
+  "final_blend": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\second-wind-surface-proof\\second-wind-daylight-landing-proof.blend",
+  "final_blend_sha256": "4b64b68b13314c1aeb7b702884ebbac4b7774b3a9ae4bc9b8991273f84f46e4d",
+  "retained_meshes": 171,
+  "all_original_vertex_polygon_hashes_match": true,
+  "source_camera_and_ship_transform_max_element_error": 0,
+  "retained_mesh_hashes": {
+    "Aft flank access housing": "d0293d7e4a591efb35b8090ae02346d8db8f0dbb34024db4e710d3297351b140",
+    "Aft flank access housing.001": "d0293d7e4a591efb35b8090ae02346d8db8f0dbb34024db4e710d3297351b140",
+    "Aft flank access housing.002": "d0293d7e4a591efb35b8090ae02346d8db8f0dbb34024db4e710d3297351b140",
+    "Aft flank access housing.003": "d0293d7e4a591efb35b8090ae02346d8db8f0dbb34024db4e710d3297351b140",
+    "Aft flank access housing.004": "d0293d7e4a591efb35b8090ae02346d8db8f0dbb34024db4e710d3297351b140",
+    "Aft flank access housing.005": "d0293d7e4a591efb35b8090ae02346d8db8f0dbb34024db4e710d3297351b140",
+    "Aft machinery casing": "b70ec45103743856294689f1b4b1bd547ae776d3ed4d0f6ff2901bbf9f54df5c",
+    "Bay ceiling": "c8bbc03acf0f04232060535ad502d236358267f4cb4c615adcc440ad70c746ec",
+    "Bay ceiling.001": "c8bbc03acf0f04232060535ad502d236358267f4cb4c615adcc440ad70c746ec",
+    "Bay coaming": "6b3e78594bfe0cd8fee041fbb5ddaf647be5c420144496a9f85f5f43550a2b7b",
+    "Bay coaming.001": "6b3e78594bfe0cd8fee041fbb5ddaf647be5c420144496a9f85f5f43550a2b7b",
+    "Bay coaming.002": "6b3e78594bfe0cd8fee041fbb5ddaf647be5c420144496a9f85f5f43550a2b7b",
+    "Bay coaming.003": "6b3e78594bfe0cd8fee041fbb5ddaf647be5c420144496a9f85f5f43550a2b7b",
+    "Bay jamb": "7010f0de690d4162c6feda038e1cf080e868b927ee10985cdaba7aa903f5ceb4",
+    "Bay jamb.001": "7010f0de690d4162c6feda038e1cf080e868b927ee10985cdaba7aa903f5ceb4",
+    "Bay jamb.002": "7010f0de690d4162c6feda038e1cf080e868b927ee10985cdaba7aa903f5ceb4",
+    "Bay jamb.003": "7010f0de690d4162c6feda038e1cf080e868b927ee10985cdaba7aa903f5ceb4",
+    "Bay level floor": "c8bbc03acf0f04232060535ad502d236358267f4cb4c615adcc440ad70c746ec",
+    "Bay level floor.001": "c8bbc03acf0f04232060535ad502d236358267f4cb4c615adcc440ad70c746ec",
+    "Bay structural buttress": "4183372d658f9ce7a016d33069d3b929b92f70ba3c55c0058a403831256417ef",
+    "Bay structural buttress.001": "4183372d658f9ce7a016d33069d3b929b92f70ba3c55c0058a403831256417ef",
+    "Bay structural buttress.002": "4183372d658f9ce7a016d33069d3b929b92f70ba3c55c0058a403831256417ef",
+    "Bay structural buttress.003": "4183372d658f9ce7a016d33069d3b929b92f70ba3c55c0058a403831256417ef",
+    "Cabin ceiling": "dca77e879e8510509c25ba058180dbee4e95aa1fd7b1957b1830f45c61ec5db6",
+    "Cabin floor": "dca77e879e8510509c25ba058180dbee4e95aa1fd7b1957b1830f45c61ec5db6",
+    "Cabin side lining": "a0b5df67a8d5c2f761477b7baca9978b7b85a3b25add5eec1777a92dbee335a9",
+    "Cabin side lining.001": "a0b5df67a8d5c2f761477b7baca9978b7b85a3b25add5eec1777a92dbee335a9",
+    "Casing access cover": "87a1d1772940f07e2e31ef22f47975ae16515811f56dd12ca06eb6b61478b0ae",
+    "Casing access cover.001": "87a1d1772940f07e2e31ef22f47975ae16515811f56dd12ca06eb6b61478b0ae",
+    "Casing access cover.002": "87a1d1772940f07e2e31ef22f47975ae16515811f56dd12ca06eb6b61478b0ae",
+    "Casing access cover.003": "87a1d1772940f07e2e31ef22f47975ae16515811f56dd12ca06eb6b61478b0ae",
+    "Casing access cover.004": "87a1d1772940f07e2e31ef22f47975ae16515811f56dd12ca06eb6b61478b0ae",
+    "Casing access cover.005": "87a1d1772940f07e2e31ef22f47975ae16515811f56dd12ca06eb6b61478b0ae",
+    "Closed door stiffener": "46157c9f92860a469f9fb0141761cf7c117960c0944e9d4f49b0ae995cfe5c68",
+    "Closed door stiffener.001": "46157c9f92860a469f9fb0141761cf7c117960c0944e9d4f49b0ae995cfe5c68",
+    "Closed door stiffener.002": "46157c9f92860a469f9fb0141761cf7c117960c0944e9d4f49b0ae995cfe5c68",
+    "Closed door stiffener.003": "46157c9f92860a469f9fb0141761cf7c117960c0944e9d4f49b0ae995cfe5c68",
+    "Closed door stiffener.004": "46157c9f92860a469f9fb0141761cf7c117960c0944e9d4f49b0ae995cfe5c68",
+    "Cloud breakup proxy": "d8dd7660d8d7a6ff8a7ac9eaff13369c43ed408e10ffe9bdafdb8a7713c96a0b",
+    "Cloud breakup proxy.001": "262dca40f3a2688e36cb540f5efde843f7d3c65245490ab56353e48b847b43fb",
+    "Cloud breakup proxy.002": "91c9300c4b50683c7aa6f1e555671b1363f7b9841ac105602ab8cb5c0c679c51",
+    "Cloud breakup proxy.003": "a4a39f5aa21f0a3d92f69a565475eaf613372bf6db8abc543c2a69b91cc7125d",
+    "Cloud breakup proxy.004": "6f1c5f12a2e9124e607dfe446d1a856926782b0d5027f893b2d3ad576fe05790",
+    "Crew baggage": "a250bc45024f4b20585b14d61195762fd1dc246d67af72e0c44994fd07701cd4",
+    "Crew hand proxy": "5977c826dda2dd5c8fe2cdaf53748cdeb04a84b910409a130155b68f2be769fd",
+    "Crew sleeve proxy": "031ea9f3070b763bbe95f24ca059ceda57b6cda7340cbb02b926fafd7b78acec",
+    "Empty maintenance cradle": "439b1844c7b1ea7d8b2336fef06de944861abc3373a638573b1d5fac44bed46c",
+    "Empty maintenance cradle.001": "439b1844c7b1ea7d8b2336fef06de944861abc3373a638573b1d5fac44bed46c",
+    "Engine 1 aft-facing nozzle": "89710ba8d2c40e854dbc54a97e3b2b32e6cd363d10b68b330fa3c88dbf9c46c3",
+    "Engine 1 body": "1e351773e9e53471e51743eeb9ebc540d1e1325281abd3db7f06a62b5719ff53",
+    "Engine 1 dark throat": "02076ce0fdd8c370c5c43d52ed1afab71d60092ae9277155d50af46249df8054",
+    "Engine 1 mouth rim": "5bf0c8668fccfafe44e7da3d0763ddaed12067b61532fd49e0c9adf509f93929",
+    "Engine 2 aft-facing nozzle": "b84ed46d90bfe34c7950e7145ec4a12da7ca686d23a8ead3d164572be2e9433b",
+    "Engine 2 body": "1c22cb3d06d3afecb140a12c5a97ed9cacc2cfddf2f37196294efcdd669990e4",
+    "Engine 2 dark throat": "75c5acb726d0f269ac10be02dafdd702914b4eb548b1b2d463aa31c54e9e2e4b",
+    "Engine 2 mouth rim": "7f11919b24c936393c80090fc96566166d37328575e284e405ea097fb472cfef",
+    "Engine 3 aft-facing nozzle": "eab11cdca98e406384257de9301cbd6c0d8afed57590e002f48a3d7b2c5bb8c5",
+    "Engine 3 body": "1c22cb3d06d3afecb140a12c5a97ed9cacc2cfddf2f37196294efcdd669990e4",
+    "Engine 3 dark throat": "75c5acb726d0f269ac10be02dafdd702914b4eb548b1b2d463aa31c54e9e2e4b",
+    "Engine 3 mouth rim": "7f11919b24c936393c80090fc96566166d37328575e284e405ea097fb472cfef",
+    "Engine 4 aft-facing nozzle": "d346336c73fad46055eba0a5b9fb38c0242d61278b82db9dc4d05cb9d9c41655",
+    "Engine 4 body": "1e351773e9e53471e51743eeb9ebc540d1e1325281abd3db7f06a62b5719ff53",
+    "Engine 4 dark throat": "02076ce0fdd8c370c5c43d52ed1afab71d60092ae9277155d50af46249df8054",
+    "Engine 4 mouth rim": "5bf0c8668fccfafe44e7da3d0763ddaed12067b61532fd49e0c9adf509f93929",
+    "Engine room armored shoulder": "66d3f4d8dc64ff89dcafc6d233ed64d41b95d7131518165e6aecef77dd1637c4",
+    "Engine room armored shoulder.001": "2b17591346691a07cdb60d51bceb757690cdacf1fb05c13c5f3681f8fd8ecf4c",
+    "Engine room armored shoulder.002": "8db8f62a983e9aa5a5c4f6bd6e4eefd2315d9d2b4dca5cc9006e7b6ae1471d36",
+    "Engine room armored shoulder.003": "67fe3dd8530ff94bf0b5bbff2de303adc8172c38dace6b5b9851e8ccd95b2b88",
+    "Engine room armored shoulder.004": "aeb78534b8b7477a4046c4a48951b74df40cd16ca8589aa269c56ac19601de09",
+    "Engine room armored shoulder.005": "28aaed35ef42e1e6fb2ae883def57ccaf96c4a8f7ea13fe48de5aaa441d09a77",
+    "Engine room armored shoulder.006": "c88bad433672a8ff0bc08f10d37560387f993b383aa84cf62709c3cd2d824d8e",
+    "Engine room armored shoulder.007": "82ffd02e10b90cab6e810b6b6d0a4b79fa7332edd1edb80de1199398a733c86c",
+    "Engine room armored shoulder.008": "04d7e80426a38fcfcec79a3737d0d7921682b9adb0abd6d8e064b185dac534e6",
+    "Engine room armored shoulder.009": "5610b21bf50593304bc87fce299321a65621ab232f6ea5ff97156e4e7e512762",
+    "Engine room armored shoulder.010": "c971e8e8479a0a94a6569cc4abdc9c67f00c89fd0c4e781cf0299f1696930abc",
+    "Engine room armored shoulder.011": "d9e55ee7769c12e0d4a930de2d107126e92873d46e75a095dfc2f6ffc127c724",
+    "Engine room reinforcing band": "815399eeb6fdfd8a94fa006567d86a8c1f384d29d9ec53269590a834038fc6f3",
+    "Engine room reinforcing band.001": "375546a00df178c6429a959adfc3b039af369ea32bc136973be7ff6a8e9b2969",
+    "Engine room reinforcing band.002": "d42671ac715fe02b61de941e63198d198cb1231a79e2be8b07018aeb87682e28",
+    "Engine room reinforcing band.003": "fef9ce490d302f86233861fc28bcec212ac3330373701688378c9ce8b5b4e8a2",
+    "Exposed longitudinal service trunk": "fcba41ed5ba48bc373eabce1c872e08e0641b346eff4067bcddd6544c55c9c7a",
+    "Exposed longitudinal service trunk.001": "fcba41ed5ba48bc373eabce1c872e08e0641b346eff4067bcddd6544c55c9c7a",
+    "Exposed longitudinal service trunk.002": "fcba41ed5ba48bc373eabce1c872e08e0641b346eff4067bcddd6544c55c9c7a",
+    "Fore pressure casing": "10c300784bebeff35f67cba493ffb06fd2af632fccd1e306bbe27a190fa7b1f0",
+    "Forebody reinforcing band": "ea15fa2209061441272af841d4af5fb0f6c3782301623fcd83a263ad7701da41",
+    "Forebody replaceable armor": "3ee89ca7702db6343955cbff284eee2de38db317b328fbcdd32af072d49c8af9",
+    "Forebody replaceable armor.001": "d4844d2c91c79715f492dc1f96a98b5eabe8d8550c0a275bc608315e5b2c6ae7",
+    "Forebody replaceable armor.002": "6411162364462907ab7aea23dde43a4dc3d82b224aec19172c93ebc50d56dbef",
+    "Forebody replaceable armor.003": "84614892677fd28dd07527c4b04caa01fcbc33ec3545d98f935f6d8cb0732777",
+    "Forebody replaceable armor.004": "f013954bb1c2103f314c487ac06e96c0a3f4486e4372a1e85b551898abade03c",
+    "Forebody replaceable armor.005": "4bfd4f2dc2d4f737485bdfcc9834f215e78c533e2fa5cd06bd55c0df3e9726ff",
+    "Forebody replaceable armor.006": "f5875710b2af467412de26328c531e14f5115bdae4107bca852827e60ede062c",
+    "Forebody replaceable armor.007": "6724a5c2114b7b81644b351606944e4d84f93606ab9eeb830a966f8713dbc6dc",
+    "Forebody replaceable armor.008": "68f6032e43c5e912ee2622b5a558a2bb981ebbdf0bb7817fb3bdcb947e68f0f9",
+    "Forebody replaceable armor.009": "e4944f588dd817a81185aec1a86fe5ca47b4b8cfab3ddcb9431c2ca74efd31f3",
+    "LIFT VECTOR | placeholder": "774a8d9255fadf34786c8664d891f79cca55ef363c094f3ec80d263dcf20f453",
+    "LIFT VECTOR | placeholder.001": "774a8d9255fadf34786c8664d891f79cca55ef363c094f3ec80d263dcf20f453",
+    "LIFT VECTOR | placeholder.002": "774a8d9255fadf34786c8664d891f79cca55ef363c094f3ec80d263dcf20f453",
+    "LIFT VECTOR | placeholder.003": "774a8d9255fadf34786c8664d891f79cca55ef363c094f3ec80d263dcf20f453",
+    "Main hull - level datum Z0": "60e557e43b95b0a1b7207db6c9f69b2183e3a5a2103437fccc2548094eab6bf7",
+    "Passenger seat back": "7221f2f2b962f01feb42f466d93d3958207a213f9c127dd00e0878aaf62b6370",
+    "Passenger seat cushion": "a815b01318dec200f98c8f5899634dd92da5a7428e0d71899e2f8c73582ef521",
+    "Pod dorsal inspection plate": "b1c3b93f0d682051f33b9df1458a104553ef533c05e43bb86e366673834ddd86",
+    "Pod outward access hatch": "9a73adcf8b2857c0f05a7d55d0c51eeaa7468203e86407d4e06effa252a8af35",
+    "Port bay interior": "fdbf2220df6f48030d2b8d037db1a20b15003fea0868459255a103270db5201a",
+    "Port bay interior lamp": "446557073cea1c4ea878fb2b547f0b7f15fe4fbd54d7c17da8fdf3fd130d8aab",
+    "Port bay interior lamp.001": "446557073cea1c4ea878fb2b547f0b7f15fe4fbd54d7c17da8fdf3fd130d8aab",
+    "PORT SERVICE POD - fixed low horizontal body": "341763a68c7d6d29ce6d45386413444a3eb5ceb3bf78d35d30d78eb465a2dffb",
+    "Port service pod neck": "e3083242086031215963c399cb5724728eb83b03fe5c0af5246ff82154378d84",
+    "PROPOSAL keel shoe": "67e3280e0e77f5c573739cd6cfab0d2a47fbdf240b9c84de2de0af43dbc742fc",
+    "PROPOSAL keel shoe.001": "67e3280e0e77f5c573739cd6cfab0d2a47fbdf240b9c84de2de0af43dbc742fc",
+    "PROPOSAL keel shoe.002": "67e3280e0e77f5c573739cd6cfab0d2a47fbdf240b9c84de2de0af43dbc742fc",
+    "PROPOSAL keel shoe.003": "67e3280e0e77f5c573739cd6cfab0d2a47fbdf240b9c84de2de0af43dbc742fc",
+    "PROPOSAL lift mouth": "d25cc322303ebb5843b8ca37cb2cb9bfecf7b61723dede9ce51add6a71d96d62",
+    "PROPOSAL lift mouth.001": "d25cc322303ebb5843b8ca37cb2cb9bfecf7b61723dede9ce51add6a71d96d62",
+    "PROPOSAL lift mouth.002": "d25cc322303ebb5843b8ca37cb2cb9bfecf7b61723dede9ce51add6a71d96d62",
+    "PROPOSAL lift mouth.003": "d25cc322303ebb5843b8ca37cb2cb9bfecf7b61723dede9ce51add6a71d96d62",
+    "PROPOSAL ventral lift collar": "15e9b267bd27d33af14b90b158baa3e25d8550e299b4e8144355998195b36d8a",
+    "PROPOSAL ventral lift collar.001": "15e9b267bd27d33af14b90b158baa3e25d8550e299b4e8144355998195b36d8a",
+    "PROPOSAL ventral lift collar.002": "15e9b267bd27d33af14b90b158baa3e25d8550e299b4e8144355998195b36d8a",
+    "PROPOSAL ventral lift collar.003": "15e9b267bd27d33af14b90b158baa3e25d8550e299b4e8144355998195b36d8a",
+    "Protected waist service line": "807b10bc69f7af1d707967cfa5171553a7c9a68749aa0949097133993cb373b6",
+    "Protected waist service line.001": "807b10bc69f7af1d707967cfa5171553a7c9a68749aa0949097133993cb373b6",
+    "Recessed central service bed": "c42c8714b9ee9087731a1d78169f8255c45d7c32a7392945072e7bc89f9ae440",
+    "SEALED GLAZING | clear proxy": "2e2ca0ea1dcfb8a6b4b3afa597190871db24c4727472a5285a9e47d1bd80163c",
+    "Service trunk support hoop": "337b51ff3c4015ac2e7644fe986ae186b2cb543cc6f0be4e31f6cbd26a4b22f3",
+    "Service trunk support hoop.001": "337b51ff3c4015ac2e7644fe986ae186b2cb543cc6f0be4e31f6cbd26a4b22f3",
+    "Service trunk support hoop.002": "337b51ff3c4015ac2e7644fe986ae186b2cb543cc6f0be4e31f6cbd26a4b22f3",
+    "Shoulder louver vent": "779607be8ab8973a74440bf87a354b4bbfe7f442d586167f66b96bc17589b40a",
+    "Shoulder louver vent.001": "779607be8ab8973a74440bf87a354b4bbfe7f442d586167f66b96bc17589b40a",
+    "Shoulder louver vent.002": "779607be8ab8973a74440bf87a354b4bbfe7f442d586167f66b96bc17589b40a",
+    "Shoulder louver vent.003": "779607be8ab8973a74440bf87a354b4bbfe7f442d586167f66b96bc17589b40a",
+    "Starboard bay interior": "fdbf2220df6f48030d2b8d037db1a20b15003fea0868459255a103270db5201a",
+    "Starboard bay sealed sectional door": "18a2a53edcc328dd1a3846eb126ad929b29f1f4296520d2d62191dbe4caa2d5b",
+    "Turret 1 forward barrel": "c0944f1769d0ccce82553ecc4d0916cd9d30aa8009e15a4a06c09d43a634cfdb",
+    "Turret 1 raised armored housing": "07cbcf67a54f5999a661056f97fb8d24fd02d60218681e80f327d98175d1e2b6",
+    "Turret 1 shallow ring": "9d797a94192698d2b47253a7b15ae65c70f6aa8271076c758b2533f9d38166df",
+    "Turret 2 forward barrel": "c0944f1769d0ccce82553ecc4d0916cd9d30aa8009e15a4a06c09d43a634cfdb",
+    "Turret 2 raised armored housing": "07cbcf67a54f5999a661056f97fb8d24fd02d60218681e80f327d98175d1e2b6",
+    "Turret 2 shallow ring": "9d797a94192698d2b47253a7b15ae65c70f6aa8271076c758b2533f9d38166df",
+    "Turret 3 forward barrel": "c0944f1769d0ccce82553ecc4d0916cd9d30aa8009e15a4a06c09d43a634cfdb",
+    "Turret 3 raised armored housing": "07cbcf67a54f5999a661056f97fb8d24fd02d60218681e80f327d98175d1e2b6",
+    "Turret 3 shallow ring": "9d797a94192698d2b47253a7b15ae65c70f6aa8271076c758b2533f9d38166df",
+    "Turret 4 forward barrel": "fcdb2401fca375a1f45e9fe1c002ed6c7dd130e9ac1be7da16fb092e707df7cb",
+    "Turret 4 raised armored housing": "36ee839097f7ce1ff8d5a05bacb40928d3b9c05afcc6332dd71cc65a891daaee",
+    "Turret 4 shallow ring": "f008103628e3904e25f324b4db23130e51a6bdd518897bd49e26dc7957c8629f",
+    "Vent louver": "a6c61c5311ebea84636fbf16b2e709b6ef5e2b80dd686ceb61dd0da7bfa12a60",
+    "Vent louver.001": "a6c61c5311ebea84636fbf16b2e709b6ef5e2b80dd686ceb61dd0da7bfa12a60",
+    "Vent louver.002": "a6c61c5311ebea84636fbf16b2e709b6ef5e2b80dd686ceb61dd0da7bfa12a60",
+    "Vent louver.003": "a6c61c5311ebea84636fbf16b2e709b6ef5e2b80dd686ceb61dd0da7bfa12a60",
+    "Vent louver.004": "a6c61c5311ebea84636fbf16b2e709b6ef5e2b80dd686ceb61dd0da7bfa12a60",
+    "Vent louver.005": "a6c61c5311ebea84636fbf16b2e709b6ef5e2b80dd686ceb61dd0da7bfa12a60",
+    "Vent louver.006": "a6c61c5311ebea84636fbf16b2e709b6ef5e2b80dd686ceb61dd0da7bfa12a60",
+    "Vent louver.007": "a6c61c5311ebea84636fbf16b2e709b6ef5e2b80dd686ceb61dd0da7bfa12a60",
+    "Vent louver.008": "a6c61c5311ebea84636fbf16b2e709b6ef5e2b80dd686ceb61dd0da7bfa12a60",
+    "Vent louver.009": "a6c61c5311ebea84636fbf16b2e709b6ef5e2b80dd686ceb61dd0da7bfa12a60",
+    "Vent louver.010": "a6c61c5311ebea84636fbf16b2e709b6ef5e2b80dd686ceb61dd0da7bfa12a60",
+    "Vent louver.011": "a6c61c5311ebea84636fbf16b2e709b6ef5e2b80dd686ceb61dd0da7bfa12a60",
+    "Vent louver.012": "a6c61c5311ebea84636fbf16b2e709b6ef5e2b80dd686ceb61dd0da7bfa12a60",
+    "Vent louver.013": "a6c61c5311ebea84636fbf16b2e709b6ef5e2b80dd686ceb61dd0da7bfa12a60",
+    "Vent louver.014": "a6c61c5311ebea84636fbf16b2e709b6ef5e2b80dd686ceb61dd0da7bfa12a60",
+    "Vent louver.015": "a6c61c5311ebea84636fbf16b2e709b6ef5e2b80dd686ceb61dd0da7bfa12a60",
+    "Vent louver.016": "a6c61c5311ebea84636fbf16b2e709b6ef5e2b80dd686ceb61dd0da7bfa12a60",
+    "Vent louver.017": "a6c61c5311ebea84636fbf16b2e709b6ef5e2b80dd686ceb61dd0da7bfa12a60",
+    "Vent louver.018": "a6c61c5311ebea84636fbf16b2e709b6ef5e2b80dd686ceb61dd0da7bfa12a60",
+    "Vent louver.019": "a6c61c5311ebea84636fbf16b2e709b6ef5e2b80dd686ceb61dd0da7bfa12a60",
+    "Viewport horizontal frame": "06c8c5705477110641f8e688a4e87b545859527bc6d437d13e60d1eb60517a71",
+    "Viewport horizontal frame.001": "06c8c5705477110641f8e688a4e87b545859527bc6d437d13e60d1eb60517a71",
+    "Viewport vertical frame": "94167c5c4d2451889734d1a974ea056005f28c4f07b28355c55b978219a6337d",
+    "Viewport vertical frame.001": "94167c5c4d2451889734d1a974ea056005f28c4f07b28355c55b978219a6337d",
+    "Window lower wall": "d53d950df85feb887cb8d457cb95517eb89e883de262636f046f2c007f8a00ab"
+  },
+  "source_frames_compared": [
+    720.0,
+    720.5,
+    721.0,
+    721.5,
+    722.0,
+    722.5,
+    723.0,
+    723.5,
+    724.0,
+    724.5,
+    725.0,
+    725.5,
+    726.0,
+    726.5,
+    727.0,
+    727.5,
+    728.0,
+    728.5,
+    729.0,
+    729.5,
+    730.0,
+    730.5,
+    731.0,
+    731.5,
+    732.0,
+    732.5,
+    733.0,
+    733.5,
+    734.0,
+    734.5,
+    735.0,
+    735.5,
+    736.0,
+    736.5,
+    737.0,
+    737.5,
+    738.0,
+    738.5,
+    739.0,
+    739.5,
+    740.0,
+    740.5,
+    741.0,
+    741.5,
+    742.0,
+    742.5,
+    743.0,
+    743.5,
+    744.0,
+    744.5,
+    745.0,
+    745.5,
+    746.0,
+    746.5,
+    747.0,
+    747.5,
+    748.0,
+    748.5,
+    749.0,
+    749.5,
+    750.0,
+    750.5,
+    751.0,
+    751.5,
+    752.0,
+    752.5,
+    753.0,
+    753.5,
+    754.0,
+    754.5,
+    755.0,
+    755.5,
+    756.0,
+    756.5,
+    757.0,
+    757.5,
+    758.0,
+    758.5,
+    759.0,
+    759.5,
+    760.0,
+    760.5,
+    761.0,
+    761.5,
+    762.0,
+    762.5,
+    763.0,
+    763.5,
+    764.0,
+    764.5,
+    765.0,
+    765.5,
+    766.0,
+    766.5,
+    767.0,
+    767.5
+  ],
+  "side_projection_uv_meshes": 189,
+  "uv_mapping": "Stored per mesh; rigid movement leaves UV values unchanged",
+  "side_uv_hash_static_all_96_samples": true,
+  "side_uv_sha256": "f26ce890d414af0d5bd9e0475b4ebd991b7b11b20d1f38dff38e0ffa2a347baa",
+  "shoe_pad_samples": [
+    {
+      "frame": 720.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 1.71875
+    },
+    {
+      "frame": 720.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 1.71875
+    },
+    {
+      "frame": 720.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 1.71875
+    },
+    {
+      "frame": 720.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 1.71875
+    },
+    {
+      "frame": 720.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 1.6552047729492188
+    },
+    {
+      "frame": 720.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 1.6552047729492188
+    },
+    {
+      "frame": 720.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 1.6552047729492188
+    },
+    {
+      "frame": 720.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 1.6552047729492188
+    },
+    {
+      "frame": 721.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 1.5916595458984375
+    },
+    {
+      "frame": 721.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 1.5916595458984375
+    },
+    {
+      "frame": 721.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 1.5916595458984375
+    },
+    {
+      "frame": 721.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 1.5916595458984375
+    },
+    {
+      "frame": 721.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 1.5299797058105469
+    },
+    {
+      "frame": 721.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 1.5299797058105469
+    },
+    {
+      "frame": 721.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 1.5299797058105469
+    },
+    {
+      "frame": 721.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 1.5299797058105469
+    },
+    {
+      "frame": 722.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 1.4682979583740234
+    },
+    {
+      "frame": 722.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 1.4682979583740234
+    },
+    {
+      "frame": 722.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 1.4682979583740234
+    },
+    {
+      "frame": 722.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 1.4682979583740234
+    },
+    {
+      "frame": 722.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 1.4085578918457031
+    },
+    {
+      "frame": 722.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 1.4085578918457031
+    },
+    {
+      "frame": 722.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 1.4085578918457031
+    },
+    {
+      "frame": 722.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 1.4085578918457031
+    },
+    {
+      "frame": 723.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 1.34881591796875
+    },
+    {
+      "frame": 723.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 1.34881591796875
+    },
+    {
+      "frame": 723.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 1.34881591796875
+    },
+    {
+      "frame": 723.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 1.34881591796875
+    },
+    {
+      "frame": 723.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 1.2910881042480469
+    },
+    {
+      "frame": 723.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 1.2910881042480469
+    },
+    {
+      "frame": 723.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 1.2910881042480469
+    },
+    {
+      "frame": 723.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 1.2910881042480469
+    },
+    {
+      "frame": 724.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 1.2333621978759766
+    },
+    {
+      "frame": 724.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 1.2333621978759766
+    },
+    {
+      "frame": 724.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 1.2333621978759766
+    },
+    {
+      "frame": 724.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 1.2333621978759766
+    },
+    {
+      "frame": 724.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 1.1777229309082031
+    },
+    {
+      "frame": 724.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 1.1777229309082031
+    },
+    {
+      "frame": 724.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 1.1777229309082031
+    },
+    {
+      "frame": 724.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 1.1777229309082031
+    },
+    {
+      "frame": 725.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 1.1220855712890625
+    },
+    {
+      "frame": 725.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 1.1220855712890625
+    },
+    {
+      "frame": 725.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 1.1220855712890625
+    },
+    {
+      "frame": 725.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 1.1220855712890625
+    },
+    {
+      "frame": 725.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 1.0686111450195312
+    },
+    {
+      "frame": 725.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 1.0686111450195312
+    },
+    {
+      "frame": 725.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 1.0686111450195312
+    },
+    {
+      "frame": 725.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 1.0686111450195312
+    },
+    {
+      "frame": 726.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 1.01513671875
+    },
+    {
+      "frame": 726.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 1.01513671875
+    },
+    {
+      "frame": 726.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 1.01513671875
+    },
+    {
+      "frame": 726.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 1.01513671875
+    },
+    {
+      "frame": 726.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.9638996124267578
+    },
+    {
+      "frame": 726.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.9638996124267578
+    },
+    {
+      "frame": 726.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.9638996124267578
+    },
+    {
+      "frame": 726.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.9638996124267578
+    },
+    {
+      "frame": 727.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.9126625061035156
+    },
+    {
+      "frame": 727.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.9126625061035156
+    },
+    {
+      "frame": 727.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.9126625061035156
+    },
+    {
+      "frame": 727.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.9126625061035156
+    },
+    {
+      "frame": 727.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.863739013671875
+    },
+    {
+      "frame": 727.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.863739013671875
+    },
+    {
+      "frame": 727.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.863739013671875
+    },
+    {
+      "frame": 727.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.863739013671875
+    },
+    {
+      "frame": 728.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.8148155212402344
+    },
+    {
+      "frame": 728.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.8148155212402344
+    },
+    {
+      "frame": 728.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.8148155212402344
+    },
+    {
+      "frame": 728.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.8148155212402344
+    },
+    {
+      "frame": 728.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.7682781219482422
+    },
+    {
+      "frame": 728.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.7682781219482422
+    },
+    {
+      "frame": 728.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.7682781219482422
+    },
+    {
+      "frame": 728.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.7682781219482422
+    },
+    {
+      "frame": 729.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.72174072265625
+    },
+    {
+      "frame": 729.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.72174072265625
+    },
+    {
+      "frame": 729.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.72174072265625
+    },
+    {
+      "frame": 729.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.72174072265625
+    },
+    {
+      "frame": 729.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.6776657104492188
+    },
+    {
+      "frame": 729.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.6776657104492188
+    },
+    {
+      "frame": 729.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.6776657104492188
+    },
+    {
+      "frame": 729.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.6776657104492188
+    },
+    {
+      "frame": 730.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.6335906982421875
+    },
+    {
+      "frame": 730.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.6335906982421875
+    },
+    {
+      "frame": 730.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.6335906982421875
+    },
+    {
+      "frame": 730.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.6335906982421875
+    },
+    {
+      "frame": 730.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.5920524597167969
+    },
+    {
+      "frame": 730.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.5920524597167969
+    },
+    {
+      "frame": 730.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.5920524597167969
+    },
+    {
+      "frame": 730.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.5920524597167969
+    },
+    {
+      "frame": 731.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.5505123138427734
+    },
+    {
+      "frame": 731.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.5505123138427734
+    },
+    {
+      "frame": 731.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.5505123138427734
+    },
+    {
+      "frame": 731.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.5505123138427734
+    },
+    {
+      "frame": 731.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.5115852355957031
+    },
+    {
+      "frame": 731.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.5115852355957031
+    },
+    {
+      "frame": 731.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.5115852355957031
+    },
+    {
+      "frame": 731.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.5115852355957031
+    },
+    {
+      "frame": 732.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.47265625
+    },
+    {
+      "frame": 732.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.47265625
+    },
+    {
+      "frame": 732.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.47265625
+    },
+    {
+      "frame": 732.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.47265625
+    },
+    {
+      "frame": 732.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.4364128112792969
+    },
+    {
+      "frame": 732.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.4364128112792969
+    },
+    {
+      "frame": 732.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.4364128112792969
+    },
+    {
+      "frame": 732.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.4364128112792969
+    },
+    {
+      "frame": 733.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.40017127990722656
+    },
+    {
+      "frame": 733.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.40017127990722656
+    },
+    {
+      "frame": 733.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.40017127990722656
+    },
+    {
+      "frame": 733.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.40017127990722656
+    },
+    {
+      "frame": 733.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.3666877746582031
+    },
+    {
+      "frame": 733.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.3666877746582031
+    },
+    {
+      "frame": 733.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.3666877746582031
+    },
+    {
+      "frame": 733.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.3666877746582031
+    },
+    {
+      "frame": 734.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.3332061767578125
+    },
+    {
+      "frame": 734.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.3332061767578125
+    },
+    {
+      "frame": 734.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.3332061767578125
+    },
+    {
+      "frame": 734.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.3332061767578125
+    },
+    {
+      "frame": 734.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.30255889892578125
+    },
+    {
+      "frame": 734.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.30255889892578125
+    },
+    {
+      "frame": 734.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.30255889892578125
+    },
+    {
+      "frame": 734.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.30255889892578125
+    },
+    {
+      "frame": 735.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.27191162109375
+    },
+    {
+      "frame": 735.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.27191162109375
+    },
+    {
+      "frame": 735.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.27191162109375
+    },
+    {
+      "frame": 735.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.27191162109375
+    },
+    {
+      "frame": 735.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.2441730499267578
+    },
+    {
+      "frame": 735.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.2441730499267578
+    },
+    {
+      "frame": 735.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.2441730499267578
+    },
+    {
+      "frame": 735.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.2441730499267578
+    },
+    {
+      "frame": 736.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.21643447875976562
+    },
+    {
+      "frame": 736.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.21643447875976562
+    },
+    {
+      "frame": 736.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.21643447875976562
+    },
+    {
+      "frame": 736.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.21643447875976562
+    },
+    {
+      "frame": 736.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.191680908203125
+    },
+    {
+      "frame": 736.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.191680908203125
+    },
+    {
+      "frame": 736.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.191680908203125
+    },
+    {
+      "frame": 736.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.191680908203125
+    },
+    {
+      "frame": 737.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.16692733764648438
+    },
+    {
+      "frame": 737.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.16692733764648438
+    },
+    {
+      "frame": 737.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.16692733764648438
+    },
+    {
+      "frame": 737.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.16692733764648438
+    },
+    {
+      "frame": 737.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.1452312469482422
+    },
+    {
+      "frame": 737.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.1452312469482422
+    },
+    {
+      "frame": 737.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.1452312469482422
+    },
+    {
+      "frame": 737.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.1452312469482422
+    },
+    {
+      "frame": 738.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.12353515625
+    },
+    {
+      "frame": 738.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.12353515625
+    },
+    {
+      "frame": 738.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.12353515625
+    },
+    {
+      "frame": 738.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.12353515625
+    },
+    {
+      "frame": 738.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.10497283935546875
+    },
+    {
+      "frame": 738.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.10497283935546875
+    },
+    {
+      "frame": 738.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.10497283935546875
+    },
+    {
+      "frame": 738.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.10497283935546875
+    },
+    {
+      "frame": 739.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0864105224609375
+    },
+    {
+      "frame": 739.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0864105224609375
+    },
+    {
+      "frame": 739.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0864105224609375
+    },
+    {
+      "frame": 739.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0864105224609375
+    },
+    {
+      "frame": 739.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.07105636596679688
+    },
+    {
+      "frame": 739.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.07105636596679688
+    },
+    {
+      "frame": 739.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.07105636596679688
+    },
+    {
+      "frame": 739.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.07105636596679688
+    },
+    {
+      "frame": 740.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.05570030212402344
+    },
+    {
+      "frame": 740.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.05570030212402344
+    },
+    {
+      "frame": 740.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.05570030212402344
+    },
+    {
+      "frame": 740.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.05570030212402344
+    },
+    {
+      "frame": 740.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.043628692626953125
+    },
+    {
+      "frame": 740.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.043628692626953125
+    },
+    {
+      "frame": 740.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.043628692626953125
+    },
+    {
+      "frame": 740.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.043628692626953125
+    },
+    {
+      "frame": 741.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.03155517578125
+    },
+    {
+      "frame": 741.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.03155517578125
+    },
+    {
+      "frame": 741.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.03155517578125
+    },
+    {
+      "frame": 741.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.03155517578125
+    },
+    {
+      "frame": 741.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.022838592529296875
+    },
+    {
+      "frame": 741.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.022838592529296875
+    },
+    {
+      "frame": 741.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.022838592529296875
+    },
+    {
+      "frame": 741.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.022838592529296875
+    },
+    {
+      "frame": 742.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.014123916625976562
+    },
+    {
+      "frame": 742.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.014123916625976562
+    },
+    {
+      "frame": 742.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.014123916625976562
+    },
+    {
+      "frame": 742.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.014123916625976562
+    },
+    {
+      "frame": 742.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.008838653564453125
+    },
+    {
+      "frame": 742.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.008838653564453125
+    },
+    {
+      "frame": 742.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.008838653564453125
+    },
+    {
+      "frame": 742.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.008838653564453125
+    },
+    {
+      "frame": 743.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0035552978515625
+    },
+    {
+      "frame": 743.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0035552978515625
+    },
+    {
+      "frame": 743.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0035552978515625
+    },
+    {
+      "frame": 743.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0035552978515625
+    },
+    {
+      "frame": 743.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.00177764892578125
+    },
+    {
+      "frame": 743.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.00177764892578125
+    },
+    {
+      "frame": 743.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.00177764892578125
+    },
+    {
+      "frame": 743.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.00177764892578125
+    },
+    {
+      "frame": 744.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 744.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 744.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 744.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 744.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 744.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 744.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 744.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 745.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 745.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 745.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 745.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 745.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 745.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 745.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 745.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 746.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 746.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 746.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 746.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 746.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 746.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 746.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 746.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 747.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 747.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 747.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 747.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 747.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 747.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 747.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 747.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 748.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 748.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 748.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 748.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 748.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 748.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 748.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 748.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 749.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 749.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 749.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 749.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 749.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 749.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 749.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 749.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 750.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 750.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 750.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 750.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 750.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 750.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 750.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 750.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 751.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 751.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 751.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 751.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 751.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 751.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 751.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 751.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 752.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 752.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 752.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 752.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 752.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 752.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 752.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 752.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 753.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 753.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 753.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 753.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 753.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 753.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 753.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 753.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 754.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 754.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 754.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 754.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 754.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 754.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 754.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 754.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 755.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 755.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 755.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 755.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 755.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 755.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 755.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 755.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 756.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 756.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 756.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 756.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 756.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 756.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 756.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 756.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 757.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 757.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 757.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 757.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 757.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 757.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 757.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 757.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 758.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 758.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 758.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 758.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 758.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 758.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 758.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 758.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 759.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 759.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 759.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 759.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 759.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 759.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 759.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 759.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 760.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 760.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 760.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 760.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 760.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 760.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 760.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 760.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 761.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 761.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 761.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 761.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 761.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 761.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 761.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 761.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 762.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 762.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 762.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 762.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 762.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 762.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 762.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 762.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 763.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 763.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 763.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 763.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 763.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 763.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 763.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 763.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 764.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 764.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 764.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 764.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 764.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 764.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 764.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 764.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 765.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 765.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 765.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 765.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 765.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 765.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 765.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 765.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 766.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 766.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 766.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 766.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 766.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 766.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 766.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 766.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 767.0,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 767.0,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 767.0,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 767.0,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 767.5,
+      "shoe": "PROPOSAL keel shoe",
+      "pad": "YARD_contact_pad_0",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 767.5,
+      "shoe": "PROPOSAL keel shoe.001",
+      "pad": "YARD_contact_pad_1",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 767.5,
+      "shoe": "PROPOSAL keel shoe.002",
+      "pad": "YARD_contact_pad_2",
+      "gap_m": 0.0
+    },
+    {
+      "frame": 767.5,
+      "shoe": "PROPOSAL keel shoe.003",
+      "pad": "YARD_contact_pad_3",
+      "gap_m": 0.0
+    }
+  ],
+  "source_pose_sha256": "8c6334db7b282e384d1f03f2a3faf6d48d1f713700f501057066a0429d0e7fb3",
+  "final_pose_sha256": "8c6334db7b282e384d1f03f2a3faf6d48d1f713700f501057066a0429d0e7fb3",
+  "root_camera_poses": [
+    {
+      "frame": 720.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        22.71875,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 720.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        22.65520477294922,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 721.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        22.591659545898438,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 721.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        22.529979705810547,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 722.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        22.468297958374023,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 722.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        22.408557891845703,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 723.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        22.34881591796875,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 723.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        22.291088104248047,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 724.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        22.233362197875977,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 724.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        22.177722930908203,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 725.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        22.122085571289062,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 725.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        22.06861114501953,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 726.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        22.01513671875,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 726.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.963899612426758,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 727.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.912662506103516,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 727.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.863739013671875,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 728.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.814815521240234,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 728.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.768278121948242,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 729.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.72174072265625,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 729.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.67766571044922,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 730.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.633590698242188,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 730.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.592052459716797,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 731.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.550512313842773,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 731.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.511585235595703,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 732.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.47265625,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 732.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.436412811279297,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 733.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.400171279907227,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 733.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.366687774658203,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 734.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.333206176757812,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 734.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.30255889892578,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 735.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.27191162109375,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 735.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.244173049926758,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 736.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.216434478759766,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 736.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.191680908203125,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 737.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.166927337646484,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 737.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.145231246948242,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 738.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.12353515625,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 738.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.10497283935547,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 739.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.086410522460938,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 739.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.071056365966797,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 740.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.055700302124023,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 740.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.043628692626953,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 741.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.03155517578125,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 741.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.022838592529297,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 742.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.014123916625977,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 742.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.008838653564453,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 743.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.003555297851562,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 743.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.00177764892578,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 744.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 744.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 745.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 745.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 746.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 746.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 747.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 747.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 748.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 748.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 749.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 749.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 750.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 750.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 751.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 751.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 752.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 752.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 753.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 753.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 754.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 754.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 755.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 755.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 756.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 756.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 757.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 757.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 758.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 758.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 759.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 759.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 760.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 760.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 761.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 761.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 762.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 762.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 763.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 763.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 764.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 764.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 765.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 765.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 766.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 766.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 767.0,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "frame": 767.5,
+      "root_matrix": [
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.5,
+        21.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "camera_matrix": [
+        -0.9986178278923035,
+        0.005222498904913664,
+        0.05229870229959488,
+        20.0,
+        0.052558813244104385,
+        0.09923037141561508,
+        0.9936754703521729,
+        190.0,
+        -1.5099580252808664e-07,
+        0.9950507879257202,
+        -0.09936770796775818,
+        4.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    }
+  ],
+  "locally_animated_meshes": [
+    "LIFT VECTOR | placeholder",
+    "LIFT VECTOR | placeholder.001",
+    "LIFT VECTOR | placeholder.002",
+    "LIFT VECTOR | placeholder.003"
+  ],
+  "locally_animated_surfaced_meshes": [
+    "LIFT VECTOR | placeholder.001",
+    "LIFT VECTOR | placeholder.002",
+    "LIFT VECTOR | placeholder",
+    "LIFT VECTOR | placeholder.003"
+  ],
+  "mapping_scope": "Four locally animated lift placeholders use individual component-local atlas coordinates. Hull and hardware remain rigid; their atlas coordinates attach to ship root. Side UVs attach to each mesh.",
+  "mapping_empty_parent": "SECOND WIND | flight root",
+  "images": [
+    {
+      "name": "backing.png",
+      "dimensions": [
+        627,
+        627
+      ],
+      "packed": true,
+      "filepath": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\second-wind-surface-proof\\assets\\backing.png",
+      "usable": true
+    },
+    {
+      "name": "cream.png",
+      "dimensions": [
+        627,
+        627
+      ],
+      "packed": true,
+      "filepath": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\second-wind-surface-proof\\assets\\cream.png",
+      "usable": true
+    },
+    {
+      "name": "gunmetal.png",
+      "dimensions": [
+        627,
+        627
+      ],
+      "packed": true,
+      "filepath": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\second-wind-surface-proof\\assets\\gunmetal.png",
+      "usable": true
+    },
+    {
+      "name": "oxide.png",
+      "dimensions": [
+        627,
+        627
+      ],
+      "packed": true,
+      "filepath": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\second-wind-surface-proof\\assets\\oxide.png",
+      "usable": true
+    },
+    {
+      "name": "side-surface-v1.png",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "packed": true,
+      "filepath": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\second-wind-surface-proof\\assets\\side-surface-v1.png",
+      "usable": true
+    }
+  ],
+  "render_resolution": [
+    1920,
+    1080
+  ],
+  "render_percentage": 100,
+  "review_limits": "Near-side single-view texture with partially baked lighting; atlas fallback elsewhere. Generalized plate hierarchy and original simplified hardpoints; greybox yard. No finished cinematic claim."
+}

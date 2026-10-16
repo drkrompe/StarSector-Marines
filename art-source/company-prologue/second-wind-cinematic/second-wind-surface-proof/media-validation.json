@@ -1,0 +1,22 @@
+{
+  "movie": "review/second-wind-setdown-proof.mp4",
+  "sha256": "c7bc35404ed58368b4f8d96c65ef6eb6774f5e7a0163e91a8dd578557f7a4331",
+  "bytes": 745449,
+  "probe": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "width": 1920,
+        "height": 1080,
+        "r_frame_rate": "24/1",
+        "nb_read_frames": "96"
+      }
+    ]
+  },
+  "decode_all_frames": "PASS",
+  "render_manifest_sha256": "4c62413e61abc041a5d7b47d14ff87c2989ff998e1361cec977ea517f62981f3",
+  "unique_source_png_hashes": 96,
+  "audio": "none",
+  "visual_review": "Parent browser playback receipt and sampled image review retained in motion-review.json; not continuous per-frame visual QA."
+}

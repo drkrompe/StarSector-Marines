@@ -1,0 +1,90 @@
+{
+  "inputs": [
+    {
+      "path": "assets/arrival-material-atlas-v1.png",
+      "sha256": "86004cc2d9dd9dc3e6d0ac30fdf19d98bb3ce2fea10ddde2eb5a722eba146f47",
+      "bytes": 4230354,
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "path": "assets/backing.png",
+      "sha256": "7f01425df945f9548fd2d9dec300cea10d206b2a81826e1616344d30bf055c0f",
+      "bytes": 934885,
+      "dimensions": [
+        627,
+        627
+      ]
+    },
+    {
+      "path": "assets/cream.png",
+      "sha256": "00eafca7d6e55d3ea4a2ff4e237def5109f72f5fe551617e6bdf99c1f293e1c4",
+      "bytes": 927055,
+      "dimensions": [
+        627,
+        627
+      ]
+    },
+    {
+      "path": "assets/gunmetal.png",
+      "sha256": "09ed19bb19379cfc448ce91ef2d96a54667289ec1d8a0c11fcda2b6708600987",
+      "bytes": 889247,
+      "dimensions": [
+        627,
+        627
+      ]
+    },
+    {
+      "path": "assets/oxide.png",
+      "sha256": "a357173be25977155d52ad5375913e85b350f876a3f5e4646e64b9779cbb083a",
+      "bytes": 907036,
+      "dimensions": [
+        627,
+        627
+      ]
+    },
+    {
+      "path": "assets/side-surface-v1.png",
+      "sha256": "3d52745a7d2e15c31637c9296b3f95bdbf4cccca70ae0e5ec0d5da19240f6965",
+      "bytes": 1807666,
+      "dimensions": [
+        1672,
+        941
+      ]
+    },
+    {
+      "path": "prompts/arrival-material-atlas-v1.txt",
+      "sha256": "f8fc589e1d6c10a8236979891057744d5678462969501a9f1a83ae85ec844319",
+      "bytes": 2031
+    },
+    {
+      "path": "prompts/side-surface-v1.txt",
+      "sha256": "610c9bd6cb59d12092e430ad206c03479b7a1f614f17147758bf73b2750aa2ec",
+      "bytes": 2319
+    },
+    {
+      "path": "guides/side-surface-guide-v1.png",
+      "sha256": "7ed6468a8bcbc76983725382ead7a41509d7e5498504231f302c6ee5dd3178b1",
+      "bytes": 2332126,
+      "dimensions": [
+        1920,
+        1080
+      ]
+    }
+  ],
+  "roles": {
+    "guides/side-surface-guide-v1.png": "Exact model/camera geometry and layout input for side ImageGen. Immutable copy.",
+    "assets/side-surface-v1.png": "Generated near-side material finish,1672x941 native RGB. No canonical geometry authority, no full hidden-side coverage.",
+    "assets/arrival-material-atlas-v1.png": "Generated neutral four-material albedo atlas,1254x1254 native. Four627square lossless crops;9 provisional metres per repeat.",
+    "../../second-wind-skins/arrival-heavy.reference.png": "External source material/damage direction only; accepted actual V3 mesh owns identity."
+  },
+  "external_reference_sha256": {
+    "arrival-heavy.reference.png": "cf767d0a059bf40ee66728fa8e1480c920d25da772f82c92b6221c3f9308432e",
+    "second-wind-geometry-v3.blend": "6ce9047c5cd76f1c1c84218435c2dde8e3c742483a621ba26e679fb5d1e7ec4a"
+  },
+  "generation": "OpenAI built-in ImageGen. Exact prompt files retained in prompts; generated native images preserved without rescaling.",
+  "side_registration": "Identity normalized camera UV:1920x1080 guide ->1672x941 master. No arbitrary bounds fitting; individual generated details not asserted registered.",
+  "limits": "Partly baked side RGB lighting remains. Neutral box atlas covers other faces. Bounded side proof, not a complete multiangle textured ship."
+}

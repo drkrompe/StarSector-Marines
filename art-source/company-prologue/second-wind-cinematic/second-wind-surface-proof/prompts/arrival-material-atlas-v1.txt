@@ -1,0 +1,10 @@
+Use case: stylized-concept
+Asset type: reusable neutral albedo material atlas for the existing 3D Second Wind spaceship; this is a flat texture sheet, NOT a new ship rendering.
+Input image 1 is a material/color/weathering reference only. It depicts the battered arrival state after 8–10 years of asteroid belt exposure. Do not copy the ship, layout, text, silhouettes, perspective, lighting or its large craters.
+
+Create one square texture image, ideally 2048x2048, divided exactly into four equal square quadrants with no border, margins, gutters, labels, separator lines or typography. Every quadrant fills its full quarter and is a seamless repeating surface. All four are orthographic perfectly front-on diffuse albedo scans in neutral even illumination; no directional highlights or cast shadows, no vignette, no ambient occlusion gradients.
+TOP LEFT: chalked old warm cream painted spacecraft armor, worn thin with localized dark substrate chips, fine scratches, small scattered impact pocks and mineral grime, softly varied ivory/beige.
+TOP RIGHT: faded muted oxide-orange painted armor with corresponding small substrate chips, shallow scratches, micro-impact pitting and uneven oxidized wear.
+BOTTOM LEFT: dark gunmetal engine/service steel with fine grain, old heat discoloration, fine wear, diffuse dark charcoal grey metal; no luminous areas.
+BOTTOM RIGHT: stripped pressure-backing steel, irregular dark grey weld discoloration and oxidation, fine scratches and rough industrial grain, no large seams or shapes.
+Each quadrant represents about 4 by 4 metres of surface. Texture detail must be subtle enough to apply across real panel geometry. No large holes, hero craters, big damage motifs, hatches, bolts, regular panel grid, pipes, machinery, text or decals: those are separately modeled and must not tile. Grounded gritty cinematic realism, physically believable weathered materials; not painterly brushwork or a glossy toy. Preserve medium readable values in cream and oxide; do not turn the whole sheet black.

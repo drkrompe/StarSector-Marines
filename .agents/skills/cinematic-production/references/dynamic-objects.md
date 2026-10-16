@@ -36,11 +36,24 @@ moving mechanisms that affect occlusion belong in geometry. Local crater damage
 can deform sacrificial armor while retaining pressure backing. Major structural
 changes require an updated model, not a painted illusion that fails on rotation.
 
-This is the intended extension of the demonstrated geometry-first guides.
-Registered multiangle hull textures, complete hidden-side coverage and a finished
-moving textured Second Wind have **not yet been demonstrated**. The existing
-four-view skins are concept sheets, not coherent UV atlases. Treat the first
-object-attached moving reskin as a focused proof before extending it to every shot.
+The [Second Wind surface proof](../../../../art-source/company-prologue/second-wind-cinematic/second-wind-surface-proof/README.md)
+extends this to the actual hull: physical armor and repair details, neutral
+material tiles, and guide-camera UVs stored on near-side mesh faces. It is a
+bounded side-view study. Registered multiangle hull textures, complete hidden-side
+coverage and a finished cinematic have **not yet been demonstrated**. The original
+four-view skins remain concept sheets, not coherent UV atlases.
+
+For a side-view projection, retain the exact immutable guide and camera, start
+with normalized registration, and measure any correction rather than fitting
+silhouette bounds by habit. Select coverage by face orientation and visibility;
+verify actual outward triangle winding before trusting a normal-based mask.
+Keep neutral material fallback on uncovered faces. Generated RGB may contain
+baked shading even when neutral lighting was requested, and geometry can reveal
+that mismatch at wider angles. Added plate courses need restrained deflection
+and checks against bridging steep steps; dense plates alone can look like roof
+shingles instead of a heavy industrial hull. Inspect a still before rendering
+a long movement test, then verify stored UVs and physical support contacts
+through the actual descent.
 
 The managed-land agriculture study provides a small-prop example: one midpoint
 projector travels with each rigid assembly, and physical materials cover backward

@@ -1,0 +1,364 @@
+{
+  "status": "Optional near-side object-attached single-guide surface prototype; hidden faces use neutral atlas",
+  "source_image": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\second-wind-surface-proof\\assets\\side-surface-v1.png",
+  "source_sha256": "3d52745a7d2e15c31637c9296b3f95bdbf4cccca70ae0e5ec0d5da19240f6965",
+  "native_image_dimensions": [
+    1672,
+    941
+  ],
+  "geometry_guide": "guides/side-surface-guide-v1.png",
+  "camera_name": "PROOF | port side landing surface",
+  "camera_matrix_world": [
+    [
+      -0.9999218583106995,
+      -0.0006240175571292639,
+      0.012483332306146622,
+      12.0
+    ],
+    [
+      0.012498919852077961,
+      -0.04992993548512459,
+      0.9986745119094849,
+      240.0
+    ],
+    [
+      1.0154225549285911e-07,
+      0.9987525343894958,
+      0.04993383586406708,
+      37.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "camera_matrix_ship_local": [
+    [
+      -0.6666145920753479,
+      -0.0004160117241553962,
+      0.008322222158312798,
+      8.0
+    ],
+    [
+      0.008332613855600357,
+      -0.033286623656749725,
+      0.6657830476760864,
+      160.0
+    ],
+    [
+      6.769484173219098e-08,
+      0.6658350229263306,
+      0.03328922390937805,
+      10.666667938232422
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "guide_resolution": [
+    1920,
+    1080
+  ],
+  "global_registration": {
+    "scale": [
+      1,
+      1
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "notes": "No global adjustment; unmeasured generated internal registration."
+  },
+  "covered_polygons": 3183,
+  "tested_polygons": 18898,
+  "covered_objects": [
+    {
+      "name": "Aft flank access housing.003",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Aft flank access housing.004",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Aft flank access housing.005",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Armor captive fasteners | combined mesh",
+      "covered_polygons": 1332
+    },
+    {
+      "name": "Bay ceiling",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Bay coaming",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Bay coaming.001",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Bay level floor",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Cabin ceiling",
+      "covered_polygons": 2
+    },
+    {
+      "name": "Cabin side lining",
+      "covered_polygons": 2
+    },
+    {
+      "name": "Cabin side lining.001",
+      "covered_polygons": 2
+    },
+    {
+      "name": "Casing access cover",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Casing access cover.001",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Casing access cover.002",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Casing access cover.003",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Casing access cover.004",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Empty maintenance cradle",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Empty maintenance cradle.001",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Engine 1 aft-facing nozzle",
+      "covered_polygons": 19
+    },
+    {
+      "name": "Engine 1 body",
+      "covered_polygons": 12
+    },
+    {
+      "name": "Engine 1 mouth rim",
+      "covered_polygons": 87
+    },
+    {
+      "name": "Engine room armored shoulder.007",
+      "covered_polygons": 3
+    },
+    {
+      "name": "Engine room reinforcing band.001",
+      "covered_polygons": 4
+    },
+    {
+      "name": "Engine room reinforcing band.003",
+      "covered_polygons": 4
+    },
+    {
+      "name": "Exposed longitudinal service trunk.002",
+      "covered_polygons": 10
+    },
+    {
+      "name": "Forebody replaceable armor.007",
+      "covered_polygons": 3
+    },
+    {
+      "name": "LIFT VECTOR | placeholder",
+      "covered_polygons": 5
+    },
+    {
+      "name": "LIFT VECTOR | placeholder.001",
+      "covered_polygons": 5
+    },
+    {
+      "name": "LIFT VECTOR | placeholder.002",
+      "covered_polygons": 5
+    },
+    {
+      "name": "Main hull - level datum Z0",
+      "covered_polygons": 103
+    },
+    {
+      "name": "Physical armor | ARRIVAL | backing",
+      "covered_polygons": 119
+    },
+    {
+      "name": "Physical armor | ARRIVAL | cream",
+      "covered_polygons": 350
+    },
+    {
+      "name": "Physical armor | ARRIVAL | gunmetal",
+      "covered_polygons": 57
+    },
+    {
+      "name": "Physical armor | ARRIVAL | oxide",
+      "covered_polygons": 927
+    },
+    {
+      "name": "Pod dorsal inspection plate",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Pod outward access hatch",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Port bay interior",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Port bay interior lamp",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Port bay interior lamp.001",
+      "covered_polygons": 1
+    },
+    {
+      "name": "PORT SERVICE POD - fixed low horizontal body",
+      "covered_polygons": 1
+    },
+    {
+      "name": "PROPOSAL lift mouth",
+      "covered_polygons": 7
+    },
+    {
+      "name": "PROPOSAL ventral lift collar",
+      "covered_polygons": 6
+    },
+    {
+      "name": "Protected waist service line.001",
+      "covered_polygons": 12
+    },
+    {
+      "name": "Recessed central service bed",
+      "covered_polygons": 1
+    },
+    {
+      "name": "SEALED GLAZING | clear proxy",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Service panel recessed seam inlays",
+      "covered_polygons": 25
+    },
+    {
+      "name": "Service trunk support hoop",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Service trunk support hoop.001",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Service trunk support hoop.002",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Shoulder louver vent",
+      "covered_polygons": 2
+    },
+    {
+      "name": "Shoulder louver vent.002",
+      "covered_polygons": 2
+    },
+    {
+      "name": "Turret 1 forward barrel",
+      "covered_polygons": 6
+    },
+    {
+      "name": "Turret 1 raised armored housing",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Turret 1 shallow ring",
+      "covered_polygons": 12
+    },
+    {
+      "name": "Turret 2 forward barrel",
+      "covered_polygons": 6
+    },
+    {
+      "name": "Turret 3 forward barrel",
+      "covered_polygons": 6
+    },
+    {
+      "name": "Turret 3 raised armored housing",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Turret 3 shallow ring",
+      "covered_polygons": 8
+    },
+    {
+      "name": "Vent louver",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Vent louver.001",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Vent louver.002",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Vent louver.003",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Vent louver.004",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Vent louver.010",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Vent louver.011",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Vent louver.012",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Vent louver.013",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Vent louver.014",
+      "covered_polygons": 1
+    },
+    {
+      "name": "Viewport horizontal frame.001",
+      "covered_polygons": 2
+    },
+    {
+      "name": "Viewport vertical frame",
+      "covered_polygons": 1
+    }
+  ],
+  "coverage_method": "Guide-camera visible polygon center/inset-corner samples plus camera-facing normal threshold0.35; pod broad-front hatch occlusion exception. Material blend stored per corner; rigid UV coverage travels with mesh.",
+  "limits": "Generated artwork may alter internal geometry. UV projection does not certify internal correspondence. Single aspect, no hidden-surface texture claim; source lighting remains partly baked into RGB."
+}

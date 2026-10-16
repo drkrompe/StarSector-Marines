@@ -1,0 +1,34 @@
+{
+  "source": "arrival-material-atlas-v1.png",
+  "native_dimensions": [
+    1254,
+    1254
+  ],
+  "sha256": "86004cc2d9dd9dc3e6d0ac30fdf19d98bb3ce2fea10ddde2eb5a722eba146f47",
+  "regions": {
+    "cream": [
+      0,
+      0,
+      627,
+      627
+    ],
+    "oxide": [
+      627,
+      0,
+      1254,
+      627
+    ],
+    "gunmetal": [
+      0,
+      627,
+      627,
+      1254
+    ],
+    "backing": [
+      627,
+      627,
+      1254,
+      1254
+    ]
+  }
+}
