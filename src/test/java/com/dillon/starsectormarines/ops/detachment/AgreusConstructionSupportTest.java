@@ -45,7 +45,7 @@ class AgreusConstructionSupportTest {
         assertEquals(1,PowerCatalog.resolve(List.of(tender),mission,List.of()).size());
         var powers=PowerCatalog.resolve(List.of(tender),mission,List.of(MechDeploymentSpec.standard(MechVariant.HOUND)));
         assertEquals(Set.of(ShipOnStation.ID,MechSupport.ID),powers.stream().map(power -> power.id).collect(Collectors.toSet()));
-        assertEquals(1,powers.stream().filter(power -> power.id.equals(MechSupport.ID)).findFirst().orElseThrow().maxCharges);
+        assertEquals(1,powers.stream().filter(power -> power.id.equals(MechSupport.ID)).findFirst().orElseThrow().availableCalls());
     }
     @Test void onlyCommittedWorkingOwnedTendersContributeSupport() {
         var working = member("shepherd", "replacement-tender", Map.of());

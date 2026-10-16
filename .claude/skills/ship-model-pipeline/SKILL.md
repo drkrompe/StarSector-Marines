@@ -76,7 +76,13 @@ Purpose: the correct silhouette, sections, mass and slots. No fine detail.
 - an orthographic top view overlaid on the sprite, with silhouette IoU
   reported (aim for at least 0.93);
 - side, front, stern and three-quarter renders at 1920x1080;
-- slots match the `.ship` file exactly.
+- slots match the `.ship` file exactly;
+- when the hull is built for a particular shot, its camera and light as
+  well: the driver imports that shot's shared model (the Legion's
+  `c2_core`) and renders the shot camera under the shot's sun with no studio
+  fill, with the frame extent measured against the layout's target. Export
+  what the shot will register to (bay mouths, launch points and directions,
+  turret pivots) in `geometry.json` from the start.
 
 ## Pass 2: plausible detailing
 
@@ -170,11 +176,15 @@ Wind method in `second-wind-pipeline.md`, Scale):
    this is what reproduces the Second Wind's 0.64), and multiply by about
    3.2 m of deck height. `DeckProgramProbe.java` beside this skill prints
    all of it with no game process (usage in its Javadoc: class, designation,
-   min crew, max crew, cargo, run against compiled `build/classes`).
+   min crew, max crew, cargo, run against compiled `build/classes`). The
+   class argument is the `HullClass` name (`CAPITAL`, not ship_data's
+   `CAPITAL_SHIP`).
 2. Measure the model's main pressure-hull volume in Blender
    (`bmesh.calc_volume` on the main hull object, in cubic units). Take about
    55% of it as usable. Where the hull is several objects, sum the
-   habitable ones by name. Count drive pods' outer casings, as the Second
+   habitable ones by name, and measure their union, not the sum of their
+   volumes: overlapping sections double-count (the Legion's driver
+   integrates vertical ray intervals per column). Count drive pods' outer casings, as the Second
    Wind's unioned hull did, but not their dark cores or overlapping bands.
    Report the pods-excluded solution as the top of the range. Have the
    driver re-measure this on every build and record the solved value
@@ -185,7 +195,13 @@ Wind method in `second-wind-pipeline.md`, Scale):
    bay against `RoomRecipe.BOAT_BAY`/`SHUTTLE_BAY`, hatch heights, a 1.8 m
    person).
 
-Report the plausible range. Note that the battle-map landed-ship convention
+Report the plausible range. 55% usable is a freighter's share. A heavily
+armoured warship (armour rating in the thousands, many barbettes and their
+magazines) plausibly has less, about 35-45%; report the usable share the
+published scale implies beside the 55% solve, rather than quietly changing
+either. When a hull must match a scale another shot already assumes (the
+Legion was asked to keep Second Wind's 0.65 so relative sizes hold in
+frame), keep it and report the gap. Note that the battle-map landed-ship convention
 (`landed-ships-true-scale.md`) is about readability on the tactical map and
 is a different number.
 
