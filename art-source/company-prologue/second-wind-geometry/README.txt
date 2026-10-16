@@ -87,51 +87,56 @@ trained to its slot's angle: the aft pair broadside to port and starboard,
 the forward pair 30 degrees outboard. Turret 3 stands on a taller barbette
 so its resting line fires over the stowed port grapple arm.
 
-Damage states (sw_damage.py, --state derelict|patched)
-The committed guide above is always the clean ship. Two campaign condition
-states are real geometry layered on it after the clean build finishes, so
-the clean renders stay pixel-identical. Damage never moves or removes the
-bays, the four turret slots, the four engine centres, the grapple module or
-the silhouette, and adds no open breach into occupied space, fire or engine.
-Placement is data (tables of basins, strike clusters, spalls, gouges, torn
-and buckled plates) resolved by ray casts against the clean ship, so it
-follows hull edits. Cuts are live Boolean modifiers over each part's own
-bevel; the faces they open are dark spalled backing.
-Each item is chosen for a cause the setting supports and, in patched, for
-whether a stranded crew with salvage and a welder would or could fix it.
-derelict: nearly a decade tethered in the belt as an unpowered parts bin,
-  port side and deck turned into the drift. Fast strikes are rare and land
-  on that windward face as faceted basins with crushed-lip shards and
-  clustered small strikes; the lee shows only shallow lipless dents.
-  Glancing contact left scrapes along the port sponson and pod casing and
-  gouges across plate seams; spalls tear outer armour to backing. Two deck
-  plates are torn to jagged remnants; four were unbolted by salvagers,
-  leaving backing, stringers and bare stud rings. Buckled plates, a bent
-  port fin bank. Salvagers torch-cut two waist service runs (square ends,
-  heat tint at the cut only, conductors cut short) and took the turbopumps,
-  both pods' access panels, both drive coils (empty saddles, cut feed
-  stubs) and the four gun houses (barbettes and stud rings remain). The
-  port outer can is crushed against the anchor rock with its nozzle ring
-  round; two tether padeyes with cut tether stubs mark the mooring. The
-  sensor mast is sheared to a stub, one whip lost and one bent. A knock
-  bowed the sealed starboard bay's forward jamb outboard. All lamps dead.
-patched: derelict plus only what the flight needed - thrust, power,
-  pressure, navigation. A rough salvage patch under the sponson's collar and
-  welded doublers on the bow cheek and spine housing; bolted pressure
-  patches with borrowed hab-door gaskets on every strike over the spine and
-  command deck, nowhere else; borrowed seals on the access trunks and one
-  trunk dogged shut with a bolted blank. Point defence reinstalled on
-  adapter rings, two gun houses in another owner's primer. The bowed jamb
-  shored with a length of yellow cargo rail, wedged and clamped; the jammed
-  starboard bay door welded shut with dog plates. Split clamp sleeves over
-  the torch cuts; a jury whip and salvaged nav sensor on the mast stub. The
-  starboard pod runs on a cased salvaged drive coil tied down on saddles,
-  leads to a junction box, a coolant pair to the fin bank, and a jury
-  propellant feed through a salvaged pump; its throats glow. The port pod is
-  dead and cold: nozzles open, coil cradle empty, cut feed lines
-  blind-flanged. An external cable run, clipped every metre, ends at a gland
-  blank on the engine-room hatch. Torn plates, dents, gouges and buckles are
-  left as they are.
+Condition states (sw_damage.py and sw_scars_*.py, --state S)
+The committed guide above is always the clean ship. The campaign life is one
+ladder of builds of the same model, derelict -> patched -> refit -> restored
+(see ../second-wind-pipeline.md); clean is the reference. sw_damage.apply is
+the last phase of build_reference.py, so surfacing can be laid on the clean
+parts before scars cut them, and the clean renders stay pixel-identical.
+Every damage site is one Scar row with a stable id, a kind and a status per
+state: open -> patched -> replaced -> faded, or gone (drive pods: dead,
+capped, jury, running). Rows are placed by ray casts against the clean ship
+and every change to a base object is deferred to the end of the build, so
+each id lands in the same place in all four states. states/scar-table.md
+lists every id and its ladder. Rows live in one module per area, each owning
+its rows and any kinds of its own: sw_scars_forebody (fb-), sw_scars_pods
+(pod-), sw_scars_aft (aft-), sw_scars_spine (sp-); sw_damage holds the
+ladder, the schema, the generic kinds (basin, cluster, spall, gouge, plate,
+buckle, strip, power) and the ship-power row.
+Base objects are never renamed, replaced, deleted or re-materialled. Scars
+Boolean-cut them (the opened faces take the cutter's scar material), bend
+them with a shape key named 'Scar <id>', hide them (a stripped or replaced
+part stays in the file, flagged scar_hidden), or override their look with an
+object-level material slot (flagged scar_override; the mesh keeps its base
+material). Everything added is named 'Scar <id> <part>' and uses scar and
+repair materials only, so a base skin keyed by object name serves every
+state. Damage never moves or removes the bays, the four turret slots, the
+four engine centres, the grapple module or the silhouette; no breach into
+occupied space, no fire, no new engines.
+derelict: ~8 years tethered in the belt as an unpowered parts bin, port side
+  and deck to the drift. Lipped basins and strike clusters on that windward
+  face, shallow dents on the lee, scrapes and gouges from glancing contact,
+  spalls, torn and unbolted deck plates, buckles, bent port fins, the port
+  outer can crushed (nozzle ring round), tether padeyes. Salvagers took the
+  pumps, coils, access panels, gun houses and hatch seals and torch-cut two
+  waist runs; the mast is sheared; the sealed starboard bay's jamb is bowed
+  and its door creased. No power.
+patched: the escape, only what the flight needed. Collar patch on the
+  sponson, welded doublers on the bow cheek and spine housing, pressure
+  patches over strikes on occupied space, borrowed seals and one trunk dogged
+  shut, point defence back on adapter rings (two houses in another owner's
+  primer), the jamb shored with cargo rail and the starboard bay door welded,
+  clamp sleeves on the cut runs, jury whip and nav sensor on the mast stub.
+  Starboard pod on a jury-rigged salvaged coil and feed pump, its power run
+  clipped across the aft deck to the engine-room hatch; port pod cold with
+  its feed lines blind-flanged, nozzles open.
+refit: the limited berthing/command conversion. The collar, the spine and
+  command-deck patches, the dogged trunk, the trunk seals, the mast, one
+  waist run and two plates are done properly (shop primer, fresh seams).
+  Heavy craters, the dead port pod and the jury coil remain.
+restored: structurally whole, both pods running, stripped parts reinstalled.
+  Replacement plates repainted near (never exactly) the hull colour with
+  seams visible; never-plated scars are painted-over shallow dents.
 Continuity scars from ../second-wind-skins/README.txt, remapped onto this
 geometry (the old teal side pod no longer exists): the impact cluster on the
 forward port flank sits on the grapple sponson and the port bow cheek above
@@ -158,9 +163,10 @@ build_reference.py: deterministic scene and camera construction; runs in Blender
   sw_port_module.py: one module per area, so
   separate passes do not edit the same file; sw_kit.py holds shared materials
   and primitives; sw_port_module.py builds the port grapple.
-sw_damage.py: the derelict and patched damage states (see Damage states).
-states/derelict/, states/patched/: review renders, .blend, geometry.json and
-  review sheet per damage state; never the guide sent to ImageGen.
+sw_damage.py, sw_scars_*.py: condition states (see Condition states).
+states/<state>/ (derelict, patched, refit, restored): review renders, .blend,
+  geometry.json and review sheet per state; never the guide sent to ImageGen.
+states/scar-table.md: every scar id and its status in each state.
 geometry.json: coordinates and provenance for the proposed layout.
 port-quarter.png, top.png, port-side.png, stern.png: direct Blender guide renders.
 compose_guide.py: Pillow composition of those untouched renders into a guide.
@@ -182,11 +188,15 @@ For review renders that leave the committed guide alone, append
   -- --out <dir> --no-save --views port-quarter,bridge-detail --res 1920x1080
   --cam NAME:PX,PY,PZ:TX,TY,TZ:ORTHOSCALE
 python compose_guide.py
-Damage states (about 20 s each), then their review sheets:
+Condition states (about 30 s each), then their review sheets:
 blender --background --factory-startup --python build_reference.py -- --state derelict
 blender --background --factory-startup --python build_reference.py -- --state patched
+blender --background --factory-startup --python build_reference.py -- --state refit
+blender --background --factory-startup --python build_reference.py -- --state restored
 python compose_guide.py --state derelict
 python compose_guide.py --state patched
+python compose_guide.py --state refit
+python compose_guide.py --state restored
 The compose commands use Pillow. Blender is not a runtime mod dependency.
 Do not use scene generation against a user's unsaved live Blender session.
 

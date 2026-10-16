@@ -1,0 +1,650 @@
+{
+  "status": "Proposed damage-state review geometry; the committed guide remains the clean ship",
+  "axes": {
+    "+X": "bow",
+    "+Y": "port",
+    "+Z": "dorsal"
+  },
+  "units": "Vanilla hull-space units; no canonical metre scale asserted",
+  "revision": "V3 detail: segmented sprite-measured hull, whole engine pods, spine command deck, port grapple, naval turrets",
+  "thickness_profile": {
+    "method": "Flat deck plateaus (x0, x1, deck z) over single-chamfer sections; level keel",
+    "stations": [
+      [
+        -36,
+        -32,
+        8
+      ],
+      [
+        -32,
+        -1,
+        14.5
+      ],
+      [
+        0,
+        18,
+        10.5
+      ],
+      [
+        18,
+        50,
+        14.5
+      ],
+      [
+        47.6,
+        57,
+        14.5
+      ],
+      [
+        49,
+        59.6,
+        12.4
+      ]
+    ],
+    "deck_datum": 0,
+    "attachments": "Engine centres unchanged from V2"
+  },
+  "engine_source": "starsector-core/data/hulls/warhound.ship engineSlots",
+  "engines": [
+    {
+      "location": [
+        -41,
+        31,
+        0
+      ],
+      "width": 12,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "location": [
+        -39,
+        24,
+        0
+      ],
+      "width": 8,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "location": [
+        -39,
+        -24,
+        0
+      ],
+      "width": 8,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "location": [
+        -41,
+        -31,
+        0
+      ],
+      "width": 12,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ]
+    }
+  ],
+  "port_fitting": {
+    "extent_x": [
+      28.5,
+      48
+    ],
+    "extent_y": [
+      24,
+      34.3
+    ],
+    "function": "Proposed boarding/cargo grapple sponson and folded arm, read from the sprite; not canonical lore"
+  },
+  "cameras": [
+    {
+      "name": "port-quarter",
+      "position": [
+        100,
+        130,
+        100
+      ],
+      "orthographic_scale": 163
+    },
+    {
+      "name": "top",
+      "position": [
+        0,
+        0,
+        180
+      ],
+      "orthographic_scale": 205
+    },
+    {
+      "name": "port-side",
+      "position": [
+        0,
+        180,
+        0
+      ],
+      "orthographic_scale": 132
+    },
+    {
+      "name": "stern",
+      "position": [
+        -180,
+        0,
+        0
+      ],
+      "orthographic_scale": 130
+    }
+  ],
+  "bay_state": {
+    "port": "open, empty cradle",
+    "starboard": "sealed, awaits repair"
+  },
+  "mesh_authority": "All views render the same objects; generated surface art is subordinate to this geometry.",
+  "damage": {
+    "state": "restored",
+    "scars": [
+      {
+        "id": "ship-power",
+        "kind": "power",
+        "area": "core",
+        "status": "gone",
+        "note": "Unpowered for the years in the belt; lit from the escape on."
+      },
+      {
+        "id": "fb-port-sponson-cowl-strike",
+        "kind": "fb-collar",
+        "area": "sw_scars_forebody",
+        "status": "faded",
+        "note": "Continuity scar 1: canon puts a rough patch under the collar at arrival; the refit sorted the forward collar out with a proper plate."
+      },
+      {
+        "id": "fb-port-bow-cheek-strike",
+        "kind": "fb-cheek",
+        "area": "sw_scars_forebody",
+        "status": "faded",
+        "note": "On the cheek facet above the sponson, over occupied space: a welded doubler for the flight; untouched by the refit; re-plated in the restoration. Sized to the facet."
+      },
+      {
+        "id": "fb-port-bow-flank-strike",
+        "kind": "fb-basin",
+        "area": "sw_scars_forebody",
+        "status": "faded",
+        "note": "Not needed for the flight; re-plated only in the restoration."
+      },
+      {
+        "id": "fb-bow-glacis-strike",
+        "kind": "fb-basin",
+        "area": "sw_scars_forebody",
+        "status": "faded",
+        "note": "Not needed for the flight; re-plated only in the restoration."
+      },
+      {
+        "id": "fb-stbd-forebody-deck-dent",
+        "kind": "fb-dent",
+        "area": "sw_scars_forebody",
+        "status": "faded",
+        "note": "Lee knock; cosmetic, painted over."
+      },
+      {
+        "id": "fb-forward-deck-dent",
+        "kind": "fb-dent",
+        "area": "sw_scars_forebody",
+        "status": "faded",
+        "note": "Lee knock; cosmetic, painted over."
+      },
+      {
+        "id": "fb-stbd-flank-dent",
+        "kind": "fb-dent",
+        "area": "sw_scars_forebody",
+        "status": "faded",
+        "note": "Lee knock; cosmetic, painted over."
+      },
+      {
+        "id": "fb-stbd-bay-door-strike",
+        "kind": "fb-crease",
+        "area": "sw_scars_forebody",
+        "status": "faded",
+        "note": "The slow knock that bowed the jamb and jammed the door: a crease, not a hole; faired and painted once the door was freed."
+      },
+      {
+        "id": "fb-port-forward-flank-cluster",
+        "kind": "cluster",
+        "area": "sw_scars_forebody",
+        "status": "faded",
+        "note": "Continuity scar 1: small strikes round the sponson; left open, painted over when restored."
+      },
+      {
+        "id": "fb-port-bow-deck-cluster",
+        "kind": "cluster",
+        "area": "sw_scars_forebody",
+        "status": "faded",
+        "note": "Windward deck; outside the pressure hull, left open."
+      },
+      {
+        "id": "fb-stbd-bow-deck-cluster",
+        "kind": "cluster",
+        "area": "sw_scars_forebody",
+        "status": "faded",
+        "note": "Only strikes over the command deck got pressure patches."
+      },
+      {
+        "id": "fb-stbd-flank-module-tear",
+        "kind": "fb-spall",
+        "area": "sw_scars_forebody",
+        "status": "faded",
+        "note": "Armour only, not pressure: left; re-plated when restored."
+      },
+      {
+        "id": "fb-port-citadel-wall-spall",
+        "kind": "fb-spall",
+        "area": "sw_scars_forebody",
+        "status": "faded",
+        "note": "Armour only: left; re-plated when restored."
+      },
+      {
+        "id": "fb-stbd-bow-cheek-spall",
+        "kind": "fb-spall",
+        "area": "sw_scars_forebody",
+        "status": "faded",
+        "note": "Armour only, on the chine: left; built up with weld and dressed, painted over when restored (a plate cannot lie flat across the chine)."
+      },
+      {
+        "id": "fb-port-nose-block-spall",
+        "kind": "fb-spall",
+        "area": "sw_scars_forebody",
+        "status": "faded",
+        "note": "Armour only: left; re-plated when restored."
+      },
+      {
+        "id": "fb-port-sponson-scrape",
+        "kind": "gouge",
+        "area": "sw_scars_forebody",
+        "status": "faded",
+        "note": "A rock rolled along the sponson; cosmetic, painted over."
+      },
+      {
+        "id": "fb-port-glacis-gouge",
+        "kind": "gouge",
+        "area": "sw_scars_forebody",
+        "status": "faded",
+        "note": "Glancing contact across plate seams; painted over."
+      },
+      {
+        "id": "fb-port-deck-plate-fwd-torn",
+        "kind": "plate",
+        "area": "sw_scars_forebody",
+        "status": "faded",
+        "note": "Torn by a strike; deck armour, not flight-critical; replaced when restored."
+      },
+      {
+        "id": "fb-port-deck-plate-aft-torn",
+        "kind": "plate",
+        "area": "sw_scars_forebody",
+        "status": "faded",
+        "note": "Torn by a strike; replaced when restored."
+      },
+      {
+        "id": "fb-stbd-deck-plate-unbolted",
+        "kind": "plate",
+        "area": "sw_scars_forebody",
+        "status": "faded",
+        "note": "Unbolted by salvagers; replaced when restored."
+      },
+      {
+        "id": "fb-port-deck-plate-buckle",
+        "kind": "buckle",
+        "area": "sw_scars_forebody",
+        "status": "faded",
+        "note": "Slow heavy contact; left buckled, replaced when restored."
+      },
+      {
+        "id": "fb-bow-tether-padeye",
+        "kind": "fb-tether",
+        "area": "sw_scars_forebody",
+        "status": "faded",
+        "note": "Where the hulk was moored; nobody needed it gone until the restoration ground it flush."
+      },
+      {
+        "id": "fb-stbd-bay-jamb",
+        "kind": "fb-jamb",
+        "area": "sw_scars_forebody",
+        "status": "faded",
+        "note": "Bowed by the bay-door knock; shored for the flight; a new section welded in when restored."
+      },
+      {
+        "id": "fb-stbd-bay-door",
+        "kind": "fb-door",
+        "area": "sw_scars_forebody",
+        "status": "faded",
+        "note": "Jammed; welded shut for pressure and thrust loads; freed when the jamb was rebuilt."
+      },
+      {
+        "id": "pod-port-drive",
+        "kind": "drive",
+        "area": "sw_scars_pods",
+        "status": "running",
+        "note": "Coil lifted and feeds cut in the belt; blind-flanged and left cold for the escape and the refit; restored with a new coil."
+      },
+      {
+        "id": "pod-starboard-drive",
+        "kind": "drive",
+        "area": "sw_scars_pods",
+        "status": "running",
+        "note": "Coil lifted in the belt; the escape ran on a salvaged coil and a jury feed; restored to the pod as built."
+      },
+      {
+        "id": "pod-port-pumps",
+        "kind": "pod_strip",
+        "area": "sw_scars_pods",
+        "status": "gone",
+        "note": "Turbopumps taken off the port housing deck; reinstalled at restoration."
+      },
+      {
+        "id": "pod-starboard-pumps",
+        "kind": "pod_strip",
+        "area": "sw_scars_pods",
+        "status": "gone",
+        "note": "Turbopumps taken off the starboard deck; the jury coil and feed pump stood in for them until restoration."
+      },
+      {
+        "id": "pod-port-can-feeds",
+        "kind": "pod_strip",
+        "area": "sw_scars_pods",
+        "status": "gone",
+        "note": "Port can feed pipes cut out for their metal; renewed at restoration."
+      },
+      {
+        "id": "pod-casing-access-panels",
+        "kind": "pod_strip",
+        "area": "sw_scars_pods",
+        "status": "gone",
+        "note": "Both pods' outboard access panels carried off; never needed for the flight."
+      },
+      {
+        "id": "pod-port-outer-can",
+        "kind": "crushed_can",
+        "area": "sw_scars_pods",
+        "status": "gone",
+        "note": "Engine 1 can crushed against the anchor rock; nozzle ring stays round. A replacement can when the port pod is restored."
+      },
+      {
+        "id": "pod-port-fins",
+        "kind": "bent_fins",
+        "area": "sw_scars_pods",
+        "status": "gone",
+        "note": "Top outboard fins of the windward bank bent; cold pod, left until restored."
+      },
+      {
+        "id": "pod-port-aft-shoulder",
+        "kind": "basin",
+        "area": "sw_scars_pods",
+        "status": "faded",
+        "note": "Heaviest strike on the ship, over the dead pod; never plated, painted over."
+      },
+      {
+        "id": "pod-port-lower-casing",
+        "kind": "basin",
+        "area": "sw_scars_pods",
+        "status": "faded",
+        "note": "Windward strike low on the port casing."
+      },
+      {
+        "id": "pod-port-intake-cap",
+        "kind": "basin",
+        "area": "sw_scars_pods",
+        "status": "faded",
+        "note": "Windward strike on the port intake cap."
+      },
+      {
+        "id": "pod-starboard-cowl-dent",
+        "kind": "basin",
+        "area": "sw_scars_pods",
+        "status": "faded",
+        "note": "Lee-side slow knock: a shallow lipless dent."
+      },
+      {
+        "id": "pod-port-shoulder-cluster",
+        "kind": "cluster",
+        "area": "sw_scars_pods",
+        "status": "faded",
+        "note": "Small strikes round the shoulder crater."
+      },
+      {
+        "id": "pod-port-flank-cluster",
+        "kind": "cluster",
+        "area": "sw_scars_pods",
+        "status": "faded",
+        "note": "Small strikes on the port pod flank."
+      },
+      {
+        "id": "pod-port-contact-scrape",
+        "kind": "gouge",
+        "area": "sw_scars_pods",
+        "status": "faded",
+        "note": "Rock rolled along the port pod as the hulk swung."
+      },
+      {
+        "id": "pod-port-cowl-gouge",
+        "kind": "gouge",
+        "area": "sw_scars_pods",
+        "status": "faded",
+        "note": "Glancing gouge across the port cowl top."
+      },
+      {
+        "id": "pod-port-casing-plate",
+        "kind": "plate",
+        "area": "sw_scars_pods",
+        "status": "faded",
+        "note": "Unbolted by salvagers off the cold pod; plated only at restoration."
+      },
+      {
+        "id": "pod-starboard-casing-plate",
+        "kind": "plate",
+        "area": "sw_scars_pods",
+        "status": "faded",
+        "note": "Unbolted by salvagers; salvage sheet over the running pod for the escape, a proper plate at the refit."
+      },
+      {
+        "id": "pod-starboard-casing-buckle",
+        "kind": "buckle",
+        "area": "sw_scars_pods",
+        "status": "faded",
+        "note": "Casing plate buckled by slow contact; renewed at restoration."
+      },
+      {
+        "id": "pod-tether-padeye",
+        "kind": "tether",
+        "area": "sw_scars_pods",
+        "status": "faded",
+        "note": "The aft mooring point; tether cut at the shackle for the escape; ground off at restoration."
+      },
+      {
+        "id": "aft-deck-strike",
+        "kind": "basin",
+        "area": "sw_scars_aft",
+        "status": "faded",
+        "note": "A fast dorsal strike on the port armour plate beside the plant well. Not pressure or thrust: left open through the escape and the refit; painted over as a shallow dent once restored."
+      },
+      {
+        "id": "aft-deck-cluster",
+        "kind": "cluster",
+        "area": "sw_scars_aft",
+        "status": "faded",
+        "note": "Small dorsal strikes across the engine-room roof; the armour took them, nothing was breached, so nobody patched them until the restoration paint."
+      },
+      {
+        "id": "aft-deck-plate",
+        "kind": "plate",
+        "area": "sw_scars_aft",
+        "status": "faded",
+        "note": "Starboard (lee) armour plate unbolted by salvagers, not torn: a clean stud ring. Left bare for the flight; an easy proper plate in the refit."
+      },
+      {
+        "id": "aft-power-run",
+        "kind": "power_run",
+        "area": "sw_scars_aft",
+        "status": "gone",
+        "note": "Power from the starboard jury coil to the cold engine room, run outside and clipped down for thrust; still in service through the limited refit, gone once restored (internal feed, hatch blank removed)."
+      },
+      {
+        "id": "aft-port-prong-strike",
+        "kind": "basin",
+        "area": "sw_scars_aft",
+        "status": "faded",
+        "note": "A fast strike from port-above on the port prong armour block over the cradle winch. Tow-cradle machinery: nothing the flight or the refit needed."
+      },
+      {
+        "id": "aft-girder-scrape",
+        "kind": "gouge",
+        "area": "sw_scars_aft",
+        "status": "faded",
+        "note": "A slow tumbling contact that dragged inboard along the top of the stern cross girder from its port end, shearing bolt heads. Cosmetic: painted over."
+      },
+      {
+        "id": "sp-housing-strike",
+        "kind": "basin",
+        "area": "sw_scars_spine",
+        "status": "faded",
+        "note": "Strike on the spine housing over occupied space: welded doubler in the escape, plated properly by the berthing conversion."
+      },
+      {
+        "id": "sp-spine-cluster",
+        "kind": "sealed_cluster",
+        "area": "sw_scars_spine",
+        "status": "faded",
+        "note": "Small strikes along the spine and command deck: pressure patches, then inserts."
+      },
+      {
+        "id": "sp-scattered",
+        "kind": "sealed_cluster",
+        "area": "sw_scars_spine",
+        "status": "faded",
+        "note": "Scattered deck strikes; only those over the occupied spine are ever patched."
+      },
+      {
+        "id": "sp-trunk-fwd-port",
+        "kind": "trunk",
+        "area": "sw_scars_spine",
+        "status": "gone",
+        "note": "Hatch seal taken; borrowed gasket; proper seal fitted in the conversion."
+      },
+      {
+        "id": "sp-trunk-fwd-stbd",
+        "kind": "trunk",
+        "area": "sw_scars_spine",
+        "status": "gone",
+        "note": "Hatch seal taken; borrowed gasket; proper seal fitted in the conversion."
+      },
+      {
+        "id": "sp-trunk-aft-port",
+        "kind": "trunk",
+        "area": "sw_scars_spine",
+        "status": "gone",
+        "note": "Hatch seal taken; borrowed gasket; proper seal fitted in the conversion."
+      },
+      {
+        "id": "sp-trunk-aft-stbd",
+        "kind": "trunk",
+        "area": "sw_scars_spine",
+        "status": "faded",
+        "note": "Seal and hinge taken; dogged shut under a bolted blank; reopened on a new hinge as the berthing's second exit."
+      },
+      {
+        "id": "sp-mast",
+        "kind": "mast",
+        "area": "sw_scars_spine",
+        "status": "faded",
+        "note": "Mast sheared above the pedestal; jury whip and salvaged nav sensor for the flight; the command conversion fits a proper flanged upper section and scanner."
+      },
+      {
+        "id": "sp-turret-1",
+        "kind": "turret",
+        "area": "sw_scars_spine",
+        "status": "faded",
+        "note": "Gun house stripped; reinstalled in another owner's primer; repainted to near match."
+      },
+      {
+        "id": "sp-turret-2",
+        "kind": "turret",
+        "area": "sw_scars_spine",
+        "status": "faded",
+        "note": "Gun house stripped; reinstalled on an adapter ring; ring painted over."
+      },
+      {
+        "id": "sp-turret-3",
+        "kind": "turret",
+        "area": "sw_scars_spine",
+        "status": "faded",
+        "note": "Gun house stripped; reinstalled in another owner's primer; repainted to near match."
+      },
+      {
+        "id": "sp-turret-4",
+        "kind": "turret",
+        "area": "sw_scars_spine",
+        "status": "faded",
+        "note": "Gun house stripped; reinstalled on an adapter ring; ring painted over."
+      },
+      {
+        "id": "sp-waist-line-cut",
+        "kind": "torch",
+        "area": "sw_scars_spine",
+        "status": "faded",
+        "note": "Protected waist line cut for its contents: sleeved for the flight, spooled in restoration."
+      },
+      {
+        "id": "sp-waist-trunk-cut",
+        "kind": "torch",
+        "area": "sw_scars_spine",
+        "status": "faded",
+        "note": "Exposed waist trunk feeds the spine: the command conversion re-runs it with a new spool."
+      }
+    ],
+    "hidden": {
+      "Aft deck armour plate.003": "aft-deck-plate",
+      "Drive casing armour plate": "pod-port-casing-plate",
+      "Drive casing armour plate.003": "pod-starboard-casing-buckle",
+      "Drive casing armour plate.005": "pod-starboard-casing-plate",
+      "Forebody replaceable armor": "fb-port-deck-plate-buckle",
+      "Forebody replaceable armor.002": "fb-port-deck-plate-aft-torn",
+      "Forebody replaceable armor.005": "fb-stbd-deck-plate-unbolted",
+      "Forebody replaceable armor.006": "fb-port-deck-plate-fwd-torn"
+    },
+    "shape_keys": [],
+    "overrides": [
+      "Engine 1 aft-facing bell: Drive bell heat (pod-port-drive)",
+      "Engine 2 aft-facing bell: Drive bell heat (pod-port-drive)",
+      "Engine 3 aft-facing bell: Drive bell heat (pod-starboard-drive)",
+      "Engine 4 aft-facing bell: Drive bell heat (pod-starboard-drive)",
+      "Aft access trunk hinge.001: Scar repaint over Recess and machinery (sp-trunk-aft-stbd)",
+      "Mast crosstree: Scar repaint over Engine collars (sp-mast)",
+      "Scanner turntable: Scar repaint over Engine collars (sp-mast)",
+      "Search radar scanner bar: Scar repaint over Recess and machinery (sp-mast)",
+      "Turret 1 gun house: Scar repaint over Engine collars (sp-turret-1)",
+      "Turret 1 mantlet drum: Scar repaint over Engine collars (sp-turret-1)",
+      "Turret 1 mantlet face: Scar repaint over Engine collars (sp-turret-1)",
+      "Turret 1 optics blister: Scar repaint over Engine collars (sp-turret-1)",
+      "Turret 1 rear bustle: Scar repaint over Engine collars (sp-turret-1)",
+      "Turret 1 roof hatch: Scar repaint over Engine collars (sp-turret-1)",
+      "Turret 3 gun house: Scar repaint over Engine collars (sp-turret-3)",
+      "Turret 3 mantlet drum: Scar repaint over Engine collars (sp-turret-3)",
+      "Turret 3 mantlet face: Scar repaint over Engine collars (sp-turret-3)",
+      "Turret 3 optics blister: Scar repaint over Engine collars (sp-turret-3)",
+      "Turret 3 rear bustle: Scar repaint over Engine collars (sp-turret-3)",
+      "Turret 3 roof hatch: Scar repaint over Engine collars (sp-turret-3)"
+    ],
+    "cut_objects": 72
+  }
+}
