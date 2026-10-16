@@ -1,0 +1,40 @@
+{
+  "source": "forest-reveal-realism/forest-reveal-realism.blend (read-only), frame 144",
+  "camera": "02 REVEAL / near glass",
+  "pitch_down_deg": 19.29,
+  "lens_mm": 26.0,
+  "sensor_mm": 36.0,
+  "eye": [
+    72.7039,
+    30.0627,
+    4.92
+  ],
+  "c2_axes_in_scene": {
+    "x_right": [
+      0.8192318081855774,
+      -0.5734626054763794,
+      0.0
+    ],
+    "y_out": [
+      0.5734626054763794,
+      0.8192318081855774,
+      0.0
+    ],
+    "z_up": [
+      0.0,
+      0.0,
+      1.0
+    ]
+  },
+  "sun_c2": [
+    -0.622,
+    0.609,
+    0.492
+  ],
+  "sun_scene": [
+    -0.1603371500968933,
+    0.8556790351867676,
+    0.49204206466674805
+  ],
+  "note": "c2_core.CABIN_PITCH_DEG must equal pitch_down_deg (compose_c2.py checks)."
+}

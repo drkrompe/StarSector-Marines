@@ -51,6 +51,7 @@ PEOPLE = {
     "comms-left": (-6.35, 11.45, 1.30, TIER["height"]),
     "comms-right": (-4.75, 11.45, 1.30, TIER["height"]),
     "quartermaster": (4.2, 11.95, 1.80, TIER["height"]),
+    "sabine": (2.4, 5.4, 1.72, 0.0),
 }
 
 

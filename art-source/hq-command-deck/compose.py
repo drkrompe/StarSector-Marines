@@ -28,6 +28,7 @@ CARDS = {
     "comms-left": ("comms-left-v2.master.png", 0.45),
     "comms-right": ("comms-right-v2.master.png", 0.45),
     "quartermaster": ("quartermaster-v2.master.png", 0.0),
+    "sabine": ("sabine-v2.master.png", 0.0),
 }
 FOCAL, CY = 1050.0, 170.0
 
