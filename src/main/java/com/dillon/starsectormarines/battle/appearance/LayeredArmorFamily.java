@@ -52,6 +52,17 @@ public enum LayeredArmorFamily {
      * Whether this family is a powered shell cut into a torso and two hinged shoulder layers
      * with its own feet, rather than one body plate over the shared infantry boots.
      */
+    /**
+     * A painted family's own copy of a shared integral-system carrier, or {@code null} to draw the
+     * shared one. Greyhook's paint carries its own Latch screen so a raider's shield matches its rig.
+     */
+    public String repaintedCarrier(String spritePath) {
+        if (this != BOARDING_JACK_PIRATE || spritePath == null || !spritePath.endsWith(LATCH_SCREEN)) return null;
+        return spritePath.substring(0, spritePath.length() - ".png".length()) + "-pirate.png";
+    }
+
+    private static final String LATCH_SCREEN = "/equipment/latch-screen.png";
+
     public boolean articulatedShoulders() {
         return this == SPECTER_HEAVY || this == ARBALEST_HEAVY || this == BOARDING_JACK
                 || this == BOARDING_JACK_PIRATE;

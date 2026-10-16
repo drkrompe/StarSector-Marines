@@ -172,6 +172,7 @@ public final class HullBroadsideScene implements BehaviorScene {
                             Float.isNaN(core) || (!Float.isNaN(breach) && core >= breach),
                             String.format(Locale.ROOT, "first breach %.1fs, first core entry %.1fs", breach, core)));
                     metrics.put(name + "Breaches", p.breachCount());
+                    metrics.put(name + "MountsKnockedOut", ship.mountsKnockedOut());
                     metrics.put(name + "FirstBreachSeconds", Float.isNaN(breach) ? -1 : Math.round(breach * 10f) / 10f);
                     metrics.put(name + "FirstCoreEntrySeconds", Float.isNaN(core) ? -1 : Math.round(core * 10f) / 10f);
                     for (Section s : Section.values()) {
@@ -200,6 +201,13 @@ public final class HullBroadsideScene implements BehaviorScene {
             }
             default -> throw new IllegalStateException(loop);
         }
+        if (loop.equals("broadside")) {
+            int lost = west.mountsKnockedOut() + east.mountsKnockedOut();
+            verdicts.add(Verdict.of("a-mount-lost-with-its-plating-fires-no-more",
+                    run.trace().shotsAfterKnockOut == 0,
+                    lost == 0 ? "no mount was lost" : lost + " mounts lost with their plating, "
+                            + run.trace().shotsAfterKnockOut + " rounds fired by them afterwards"));
+        }
         return new SceneReport(id(), loop, run.ticks(), verdicts, metrics);
     }
 
@@ -213,6 +221,9 @@ public final class HullBroadsideScene implements BehaviorScene {
         private final Map<Warship, Snapshot> snapshots = new LinkedHashMap<>();
         int shieldUpTicks;
         int westDownTick = -1;
+        /** Rounds each lost mount had fired when it was lost, and rounds lost mounts fired afterwards. */
+        private final Map<Warship.Mount, Integer> shotsAtKnockOut = new LinkedHashMap<>();
+        int shotsAfterKnockOut;
         int eastDownTick = -1;
 
         /** One hull's grid as it stood when it first fell to {@link #SNAPSHOT_HULL}. */
@@ -264,6 +275,16 @@ public final class HullBroadsideScene implements BehaviorScene {
             if (east.shieldUp()) shieldUpTicks++;
             if (westDownTick < 0 && west.destroyed()) westDownTick = tick;
             if (eastDownTick < 0 && east.destroyed()) eastDownTick = tick;
+            for (Warship ship : List.of(west, east)) {
+                for (Warship.Mount m : ship.mounts()) {
+                    if (!m.knockedOut()) continue;
+                    Integer at = shotsAtKnockOut.putIfAbsent(m, m.shotsFired);
+                    if (at != null && m.shotsFired > at) {
+                        shotsAfterKnockOut += m.shotsFired - at;
+                        shotsAtKnockOut.put(m, m.shotsFired);
+                    }
+                }
+            }
             for (Warship ship : List.of(west, east)) {
                 if (ship.plating() != null && !snapshots.containsKey(ship) && ship.hullFraction() <= SNAPSHOT_HULL) {
                     snapshots.put(ship, take(ship, tick));
