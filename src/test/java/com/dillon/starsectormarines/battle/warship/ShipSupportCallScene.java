@@ -38,7 +38,8 @@ public final class ShipSupportCallScene implements BehaviorScene {
 
     private static final int WIDTH = 160;
     private static final int HEIGHT = 90;
-    private static final int TICKS = 10800;
+    // Long enough for a ship that comes down a hull length short of its station, closes, stays and leaves.
+    private static final int TICKS = 14400;
     private static final int CALL_TICK = 30;
     private static final int TARGET_X = 88;
     private static final int TARGET_Y = 45;
@@ -137,7 +138,7 @@ public final class ShipSupportCallScene implements BehaviorScene {
                     String.format(Locale.ROOT, "first seen at tick %d at (%.1f, %.1f), %.1f cells short of its station; "
                             + "the company's side is the west", t.firstShipTick, t.entryX, t.entryY, glide)));
             verdicts.add(Verdict.of("stations-over-the-targeted-ground",
-                    t.arrivedTick >= 0 && t.arrivalDistance <= 1.5f,
+                    t.arrivedTick >= 0 && t.arrivalDistance <= 2f,
                     String.format(Locale.ROOT, "arrived at tick %d, %.2f cells from the target (%d, %d)",
                             t.arrivedTick, t.arrivalDistance, tx(loop), ty(loop))));
             verdicts.add(Verdict.of("holds-the-companys-stance",

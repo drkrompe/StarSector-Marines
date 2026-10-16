@@ -47,6 +47,13 @@ public final class WarshipDuelHelm {
     static final float CONVERGE_SHARE = 0.25f;
     /** The station is kept this many cells plus half the hull inside the map edge. */
     static final float EDGE_MARGIN_CELLS = 3f;
+    /**
+     * How far beyond its charge's hull an escort fighting a hull may stand, as a share of its own reach. A screen
+     * fights beside the ship it screens: let out to its whole reach, the Hound nearest the Wolfs over Black Sluice ran
+     * out ahead of the Greyhook and was shot down alone, before its own guns bore, while its partner was still a
+     * hundred cells behind; held to a quarter, the Greyhook's guns join the fight with it.
+     */
+    static final float ESCORT_LEASH_REACH_SHARE = 0.25f;
 
     /** The reach, in cells, of the ship's strongest weapon that may fire at a hull; zero when it has none. */
     public static float reach(Warship ship) {
@@ -104,7 +111,7 @@ public final class WarshipDuelHelm {
         float margin = EDGE_MARGIN_CELLS + 0.5f * ship.lengthCells;
         for (int i = 0; i < BOW_BEARINGS; i++) {
             double a = 2.0 * Math.PI * i / BOW_BEARINGS;
-            at[i] = airspace.clamp(tx + (float) Math.cos(a) * range, ty + (float) Math.sin(a) * range, margin);
+            at[i] = airspace.settle(tx + (float) Math.cos(a) * range, ty + (float) Math.sin(a) * range, margin);
             float x = at[i][0];
             float y = at[i][1];
             threat[i] = WarshipShipRules.firepowerAt(target, target.facingDegrees, x, y);
@@ -157,6 +164,6 @@ public final class WarshipDuelHelm {
         }
         float x = targetX + bx * range + ax * range * CONVERGE_SHARE;
         float y = targetY + by * range + ay * range * CONVERGE_SHARE;
-        return airspace.clamp(x, y, EDGE_MARGIN_CELLS + halfLength);
+        return airspace.settle(x, y, EDGE_MARGIN_CELLS + halfLength);
     }
 }

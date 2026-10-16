@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.warship.HullAirspace;
 import com.dillon.starsectormarines.battle.warship.HullFireHold;
 import com.dillon.starsectormarines.battle.warship.Warship;
+import com.dillon.starsectormarines.battle.warship.WarshipDuelHelm;
 import com.dillon.starsectormarines.battle.warship.WarshipDuelLedger;
 import com.dillon.starsectormarines.battle.world.gen.BlackSluice;
 import com.fs.starfarer.api.Global;
@@ -18,10 +19,13 @@ import java.util.Locale;
  * The duel over Black Sluice ({@code warship-behaviours.md}, ship against ship). The <i>Greyhook</i>, Voss's Venture,
  * sits landed on the berths south of the ridge with her two Hound (P) escorts from the start, quiet: they fire at
  * nothing on the ground, and the battle's hull fire is held until Voss's withdrawal beat ({@link HullFireHold#untilBeat}).
- * When Voss orders the site abandoned, the <i>Greyhook</i> lifts and climbs out west over the southern ground,
- * answering what comes into reach as she goes; the hold lets the Hounds loose to screen and brawl; and two of Rusk's
- * Wolf (H) arrive through the cloud deck on a visit nobody can command. The hull fight is kept over the southern
- * ground ({@link HullAirspace}), in sight of the ground battle and off it. It stays gun against gun: the Venture's
+ * When Voss orders the site abandoned, the <i>Greyhook</i> lifts and fights a withdrawal: she flies a wide circuit
+ * over the basin, turns her broadside on the Wolfs when they come, and her Hounds screen her; and two of Rusk's Wolf
+ * (H) come down through the cloud deck at the west edge, on a heading east, on a visit nobody can command. She climbs
+ * as she fights ({@link #climb}): slowly while a Wolf has her in reach, faster with a Hound left to screen her, at
+ * her best while nothing is shooting. She breaks for the deck only once she has made her height, or when she is
+ * crippled, or when nothing is left to stop her; her escape is the fight's to give, not a clock's. The hull fight is
+ * kept over the middle of the southern ground ({@link HullAirspace}), in sight of the ground battle and off it. It stays gun against gun: the Venture's
  * fitting carries no wing, and a warship over a ground battle never launches one from its bay. Every hull fights
  * hulls by the ordinary default; no hull of the duel ever fires at the ground. Nothing is scripted after the order:
  * who escapes, breaks off or falls is the ships' own doing, and the debrief reads it from the
@@ -48,22 +52,43 @@ public final class BlackSluiceDuel implements SmallWarDuel {
     static final float RIG_X = BlackSluice.VENTURE_CRADLE.x(), RIG_Y = BlackSluice.VENTURE_CRADLE.y();
     static final List<BlackSluice.Berth> HOUND_BERTHS = BlackSluice.HOUND_BERTHS;
     /**
-     * Where the Wolfs drop through the cloud deck: at the far west of the southern ground, so the chase runs east
-     * toward the pads. At flight presence a pulse laser reaches about eighty cells, so nowhere on a three-hundred-cell
-     * map is out of reach for long: from here the Wolfs fly about half a minute before the western Hound is in their
-     * reach. Dropped seventy-five cells east of the pads they were on the eastern Hound as it lifted, and both Hounds
-     * fell within fifteen seconds of the order having fired almost nothing; dropped eighty cells west of the western
-     * berth, the same in twelve.
+     * Where the Wolfs come down through the cloud deck: at the west edge of the southern ground, half a hull in, on a
+     * heading east ({@link #WOLF_HEADING}), so the whole approach over the basin is in sight before a gun bears. At
+     * flight presence a pulse laser reaches about eighty cells; dropped seventy-five cells east of the pads they were
+     * on the eastern Hound as it lifted, and both Hounds fell within fifteen seconds of the order.
      */
-    static final float[][] WOLF_ENTRIES = {{RIG_X - 176f, RIG_Y + 26f}, {RIG_X - 176f, RIG_Y - 14f}};
-    /**
-     * The Greyhook's way out: off her cradle nose first, round to the south and over the south edge. A Venture in
-     * atmosphere makes under a cell a second, so the west edge, two hundred cells off, was most of five minutes; the
-     * south edge is two and a half, under the Wolfs' guns for most of it.
-     */
-    static final float[][] CLIMB_ROUTE = {{RIG_X - 24f, RIG_Y - 18f}, {RIG_X - 40f, RIG_Y - 70f}};
+    static final float[][] WOLF_ENTRIES = {{14f, 0.5f * BlackSluice.AIRSPACE_TOP + 14f},
+            {14f, 0.5f * BlackSluice.AIRSPACE_TOP - 14f}};
+    /** The Wolfs' entry heading: due east, in the hull-facing convention. */
+    static final float WOLF_HEADING = 270f;
     /** The southern ground the hull fight is kept over: the whole width, below the ridge that shuts off the north. */
     static final HullAirspace AIRSPACE = new HullAirspace(0f, 0f, BlackSluice.WIDTH, BlackSluice.AIRSPACE_TOP);
+    /**
+     * The Greyhook's climbing circuit, flown whenever no Wolf is hers to fight: an ellipse over the middle of the basin,
+     * flown so that from the cradle she first heads west along its southern side, toward the Wolfs.
+     */
+    static final float CIRCUIT_X = 0.5f * BlackSluice.WIDTH, CIRCUIT_Y = 0.5f * BlackSluice.AIRSPACE_TOP,
+            CIRCUIT_RX = 60f, CIRCUIT_RY = 14f;
+    /** How far round the circuit, in degrees, her station is kept ahead of her. */
+    static final float CIRCUIT_LEAD_DEGREES = 35f;
+    /** Seconds of steady climbing, with nothing shooting at her, before the Greyhook has made her height. */
+    static final float CLIMB_SECONDS = 80f;
+    /** The share of that rate she keeps while a Wolf has her in reach and a Hound is still screening her. */
+    static final float CLIMB_SCREENED = 0.5f;
+    /** The share she keeps while a Wolf has her in reach and no Hound is left to screen her. */
+    static final float CLIMB_ALONE = 0.25f;
+    /** Below this share of her hull the Greyhook stops fighting for height and runs for the deck as she is. */
+    static final float CRIPPLED_HULL = 0.35f;
+    /** A Wolf this many times its own reach from a Greyhook hull is closing: the radio says so. */
+    static final float CLOSING_REACH_SHARE = 1.25f;
+
+    /** Why the Greyhook broke for the deck. */
+    public enum BreakOff { NONE, CLIMBED, CRIPPLED, UNOPPOSED }
+
+    /** The story beats the duel publishes for the radio. */
+    public static final String WOLVES_SIGHTED_BEAT = "small_war.wolves_sighted",
+            WOLVES_CLOSING_BEAT = "small_war.wolves_closing",
+            FIRST_HULL_FIRE_BEAT = "small_war.first_hull_fire";
     /** Seconds without a hostile hull over the battle before the Wolfs leave. */
     static final float WOLF_DWELL_SECONDS = 10f;
 
@@ -72,6 +97,10 @@ public final class BlackSluiceDuel implements SmallWarDuel {
     private final List<Warship> wolves = new ArrayList<>();
     private WarshipDuelLedger ledger;
     private boolean ordered;
+    private float climb;
+    private BreakOff breakOff = BreakOff.NONE;
+    private int breakTick = -1;
+    private boolean sighted, closing, fired;
 
     /** Puts the rig and its escorts on their pads, quiet, before the first tick. */
     public void stage(BattleSimulation sim) {
@@ -116,18 +145,20 @@ public final class BlackSluiceDuel implements SmallWarDuel {
     public void withdrawalOrdered(BattleSimulation sim) {
         if (ordered || rig == null) return;
         ordered = true;
-        rig.climbOut(CLIMB_ROUTE, BlackSluice.WIDTH, BlackSluice.HEIGHT);
-        // The escorts lift out of their berths and take up their screen.
+        // She lifts round onto her circuit and fights from it; her escorts lift out of their berths to screen her.
+        // No doctrine: she does not leave on her own judgement, only when the climb says she may (advance).
+        float[] first = circuitStation(rig.x, rig.y);
+        rig.lift(first[0], first[1]);
         for (Warship hound : hounds) {
-            hound.lift(CLIMB_ROUTE[0][0], CLIMB_ROUTE[0][1]);
+            hound.lift(first[0], first[1]);
             quiet(hound).escort(rig);
         }
         try {
             for (float[] entry : WOLF_ENTRIES) {
                 Warship wolf = quiet(Warship.fit(WOLF_HULL, WOLF_VARIANT, Faction.ALLY,
-                        entry[0], entry[1], 0f));
-                // Out of the deck already pointed at the Greyhook's group, closing under its own handling.
-                wolf.arriveFromAbove(RIG_X, RIG_Y);
+                        entry[0], entry[1], WOLF_HEADING));
+                // Out of the deck already on its heading over the basin, closing under its own handling.
+                wolf.arriveFromAboveOnHeading(WOLF_HEADING);
                 wolf.visit(WOLF_DWELL_SECONDS);
                 wolves.add(wolf);
             }
@@ -141,17 +172,99 @@ public final class BlackSluiceDuel implements SmallWarDuel {
     @Override
     public void advance(BattleSimulation sim) {
         if (!ordered || rig == null) return;
+        radio(sim);
+        boolean wolfOver = false;
+        for (Warship wolf : wolves) wolfOver |= over(wolf);
+        if (over(rig) && !rig.departing()) fightForHeight(sim, wolfOver);
         // An escort with no lead left and nobody to fight goes home after it: one finite visit for Greyhook too.
         boolean leadGone = rig.destroyed() || rig.departed();
-        boolean wolfOver = false;
-        for (Warship wolf : wolves) wolfOver |= !wolf.destroyed() && !wolf.departed();
         if (!leadGone || wolfOver) return;
         for (Warship hound : hounds) {
-            if (!hound.destroyed() && !hound.departing() && !hound.departed()) {
-                hound.climbOut(CLIMB_ROUTE, BlackSluice.WIDTH, BlackSluice.HEIGHT);
-            }
+            if (over(hound) && !hound.departing()) hound.climbThroughDeck(BlackSluice.WIDTH, BlackSluice.HEIGHT);
         }
     }
+
+    private static boolean over(Warship ship) {
+        return !ship.destroyed() && !ship.departed();
+    }
+
+    /**
+     * One tick of the Greyhook's withdrawal: she climbs at the rate the fight allows her, flies her circuit while no
+     * Wolf is hers to fight (her duel helm has her broadside on one when it is), and breaks for the deck once she has
+     * made her height, is crippled, or has nobody left to stop her.
+     */
+    private void fightForHeight(BattleSimulation sim, boolean wolfOver) {
+        boolean engaged = false;
+        for (Warship wolf : wolves) {
+            engaged |= over(wolf) && !wolf.descending()
+                    && rig.distanceTo(wolf.centerX(), wolf.centerY()) <= WarshipDuelHelm.reach(wolf);
+        }
+        boolean screened = false;
+        for (Warship hound : hounds) screened |= over(hound) && !hound.departing();
+        climb += BattleSimulation.TICK_DT / CLIMB_SECONDS * climbShare(engaged, screened);
+        if (rig.hullTarget() == null && !rig.liftRunning() && !rig.berthed()) {
+            float[] at = circuitStation(rig.x, rig.y);
+            rig.stationTo(at[0], at[1]);
+        }
+        BreakOff why = climb >= 1f ? BreakOff.CLIMBED
+                : rig.hullFraction() < CRIPPLED_HULL ? BreakOff.CRIPPLED
+                : !wolves.isEmpty() && !wolfOver ? BreakOff.UNOPPOSED
+                : BreakOff.NONE;
+        if (why == BreakOff.NONE) return;
+        breakOff = why;
+        breakTick = sim.getSimTickIndex();
+        rig.climbThroughDeck(BlackSluice.WIDTH, BlackSluice.HEIGHT);
+    }
+
+    /** The share of a clear climb's rate the Greyhook makes: all of it unengaged, less under a Wolf's guns. */
+    static float climbShare(boolean engaged, boolean screened) {
+        if (!engaged) return 1f;
+        return screened ? CLIMB_SCREENED : CLIMB_ALONE;
+    }
+
+    /** The point on the circuit {@link #CIRCUIT_LEAD_DEGREES} ahead of where {@code (x, y)} stands on it. */
+    static float[] circuitStation(float x, float y) {
+        double a = Math.atan2((y - CIRCUIT_Y) / CIRCUIT_RY, (x - CIRCUIT_X) / CIRCUIT_RX);
+        a -= Math.toRadians(CIRCUIT_LEAD_DEGREES);
+        return new float[]{CIRCUIT_X + CIRCUIT_RX * (float) Math.cos(a), CIRCUIT_Y + CIRCUIT_RY * (float) Math.sin(a)};
+    }
+
+    /** The approach on the radio: the Wolfs sighted out of the deck, closing on the Greyhook, the first hull fire. */
+    private void radio(BattleSimulation sim) {
+        if (!sighted) {
+            for (Warship wolf : wolves) sighted |= !wolf.descending();
+            if (sighted) sim.emitStoryBeat(WOLVES_SIGHTED_BEAT);
+        }
+        if (!closing) {
+            for (Warship wolf : wolves) {
+                if (!over(wolf) || wolf.descending()) continue;
+                float near = WarshipDuelHelm.reach(wolf) * CLOSING_REACH_SHARE;
+                for (Warship ours : greyhookSide()) {
+                    closing |= over(ours) && ours.distanceTo(wolf.centerX(), wolf.centerY()) <= near;
+                }
+            }
+            if (closing) sim.emitStoryBeat(WOLVES_CLOSING_BEAT);
+        }
+        if (!fired) {
+            for (Warship hull : hulls()) {
+                for (Warship.Mount m : hull.mounts()) fired |= !m.pointDefence() && m.shotsFired > 0;
+            }
+            if (fired) sim.emitStoryBeat(FIRST_HULL_FIRE_BEAT);
+        }
+    }
+
+    private List<Warship> greyhookSide() {
+        List<Warship> out = new ArrayList<>(hounds);
+        out.add(rig);
+        return out;
+    }
+
+    /** How far the Greyhook has climbed toward her height: zero at the order, one when she may break. */
+    public float climb() { return climb; }
+    /** Why she broke for the deck, or {@link BreakOff#NONE} while she is still fighting for height. */
+    public BreakOff breakOff() { return breakOff; }
+    /** The tick she broke for the deck, or -1. */
+    public int breakTick() { return breakTick; }
 
     /** The Greyhook, Voss's Venture, or {@code null} when none could be fitted. */
     public Warship greyhook() { return rig; }
