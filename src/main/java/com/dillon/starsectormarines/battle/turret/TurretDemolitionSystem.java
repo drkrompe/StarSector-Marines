@@ -155,6 +155,12 @@ public final class TurretDemolitionSystem {
             }
             if (aliveAtSpec) return;
         }
+        // The whole post is down: its concrete emplacement, if it has one, shows as a wreck. A one-cell mount's ring is
+        // its neighbours; a three-by-three body's is one cell further out.
+        for (DefensePost.TurretSpec spec : owner.turrets) {
+            StructureDef structure = TurretCatalogRegistry.requireStructure(spec.structureId);
+            mapEditor.wreckEmplacementAround(spec.cellX, spec.cellY, structure.isMultiCell() ? 2 : 1);
+        }
         for (Squad squad : roster.getSquads()) {
             if (squad.defensePost != owner) continue;
             squad.defensePost = null;

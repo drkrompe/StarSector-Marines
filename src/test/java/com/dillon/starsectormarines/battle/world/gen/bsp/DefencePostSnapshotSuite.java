@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.EmplacementWreck;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
@@ -68,6 +69,15 @@ public final class DefencePostSnapshotSuite implements SnapshotSuite {
             List<SnapshotArtifact> out = new ArrayList<>();
             out.add(new SnapshotArtifact("defence-posts-row.png", wide.render(sim, "defence posts / nest, medium, large")));
             out.add(new SnapshotArtifact("defence-post-medium-close.png", close.render(sim, "defence posts / medium post, close")));
+            for (String state : new String[]{"damaged", "destroyed"}) {
+                List<Doodad> shown = new ArrayList<>(doodads);
+                if (state.equals("damaged")) EmplacementWreck.damageAround(shown, 60, 30, 1);
+                else EmplacementWreck.destroyAround(shown, 60, 30, 1);
+                BattleSimulation stateSim = SceneBuilder.over(grid, topology).posts(posts).missionCompletion(false).build().sim();
+                for (Doodad doodad : shown) stateSim.addDoodad(doodad);
+                out.add(new SnapshotArtifact("defence-post-medium-" + state + ".png",
+                        close.render(stateSim, "defence posts / medium post, " + state)));
+            }
             return out;
         } finally {
             TurretSlotResolver.useHullSpecs(null);
