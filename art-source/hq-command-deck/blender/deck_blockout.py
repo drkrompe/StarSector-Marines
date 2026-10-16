@@ -23,9 +23,11 @@ Writes beside the script's folder:
   deck-guide-v5.png          grey guide for ImageGen (no people)
   deck-guide-v5-people.png   the same with stand-ins at their stands, for proportions
   deck-guide-v5.layout.json  camera, room, props and projected markers
+  masks/<stand>.occluder.png with `-- --masks`: what stands in front of each person
 """
 import json
 import math
+import sys
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -689,11 +691,41 @@ def main():
     render_settings()
     check_camera(cam)
     sc = bpy.context.scene
+    if "--masks" in sys.argv:
+        people.hide_render = True
+        occluder_masks()
+        return
     for hidden, name in ((True, "deck-guide-v5.png"), (False, "deck-guide-v5-people.png")):
         people.hide_render = hidden
         sc.render.filepath = str(OUT / name)
         bpy.ops.render.render(write_still=True)
     layout()
+
+
+# Room surfaces that never stand between the camera and a person.
+SURFACES = ("floor", "command island", "back wall", "left wall", "right wall", "ceiling", "stringer",
+            "beam", "side ", "tier deck", "back ")
+
+
+def occluder_masks():
+    """Per stand, white where geometry nearer than that person covers the frame: the matte a
+    figure card is cut with when it is composited into the plate. Run with `-- --masks`."""
+    sc = bpy.context.scene
+    sh = sc.display.shading
+    sh.light, sh.color_type, sh.single_color = "FLAT", "SINGLE", (1, 1, 1)
+    sh.show_cavity = sh.show_shadows = False
+    sc.world = sc.world or bpy.data.worlds.new("matte")
+    sc.world.color = (0, 0, 0)
+    sc.display.render_aa = "8"
+    out = OUT / "masks"
+    out.mkdir(exist_ok=True)
+    meshes = [o for o in bpy.data.objects if o.type == "MESH" and not o.name.startswith("stand-in")]
+    for pid, (x, z, h, floor) in PEOPLE.items():
+        for ob in meshes:
+            near = min((ob.matrix_world @ Vector(c)).y for c in ob.bound_box)
+            ob.hide_render = near >= z or ob.name.startswith(SURFACES)
+        sc.render.filepath = str(out / f"{pid}.occluder.png")
+        bpy.ops.render.render(write_still=True)
 
 
 main()

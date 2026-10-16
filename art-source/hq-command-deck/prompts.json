@@ -75,6 +75,17 @@
         "art-source/hq-command-deck/deck-plate-v2.master.png": "Material, palette, brushwork and lighting only; not layout or camera"
       },
       "guide": "blender/deck_blockout.py renders deck-guide-v5.png; markers and stands come from deck-guide-v5.layout.json, since the plate registers on the guide at zero offset"
+    },
+    {
+      "id": "castle-v2",
+      "order": 2,
+      "prompt": "Full-length standing figure card of Castle for a layered illustration. She will be placed into the command-centre painting given as reference 2, standing on the far side of its glowing plotting table, facing the viewer across it.\n\nShe is the same person as reference 1: a woman in her early fifties, warm pale olive skin, lived-in face with fine expression lines, steady grey-green eyes, dark brown hair with silver at the temples tied back in a short practical bun, worn charcoal-olive high-collared duty jacket over a faded undershirt, dark work trousers and boots, small earpiece with a short boom microphone.\n\nPose: standing square to the viewer, weight on one leg, shoulders very slightly turned toward the viewer's left. She holds a battered data slate up at chest height in both hands, glancing up from it toward the viewer with a restrained knowing half-smile. Both hands and the slate sit above her waist; her arms do not reach down or forward. Whole body in frame from the top of her head to her boots, natural adult proportions, small clearance around the figure.\n\nViewpoint matches the painting: a level camera about one metre above her head height and about eight and a half metres away, so she is seen from very slightly above, with no tilt or perspective lean: vertical lines of her body stay vertical.\n\nLighting matches reference 2: a warm pale amber-green glow rising from below and in front of her (the plotting table she stands behind), lighting the underside of her chin, the slate and the front of her jacket; a soft warm downlight from a lamp ring above; dim amber rim light from the console screens behind her. Low, moody, the edges of the figure falling into shadow. Same matte-painted brushwork and palette as reference 2.\n\nTrue transparent background, including negative spaces between arms and body; no ground, floor, cast shadow slab, table, border, text or other people.",
+      "supersedes": "castle (lit and posed for the v2 office plate)",
+      "references": {
+        "art-source/portraits/castle/castle-master.png": "Identity only: face, hair, age and jacket. Not pose, framing or background.",
+        "art-source/hq-command-deck/deck-plate-v3.master.png": "Lighting direction, colour and painting style only. Not layout; include none of its background."
+      },
+      "placement": "compose.py scales the card to the castle stand in deck-guide-v5.layout.json and cuts it with masks/castle.occluder.png"
     }
   ],
   "liveOverlays": "Screens and the chart-table top are painted blank so SVG/live effects (readouts, blinking lamps, a live plot, motion) can be drawn over them; stations stay in fixed bands so they can later become their own layers.",
