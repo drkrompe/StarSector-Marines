@@ -1,8 +1,9 @@
 # Mech locational damage
 
-Status: PLANNED — design draft; open questions below need an owner answer before
-slice 2.
+Status: IN PROGRESS — slice 1 (body plan refactor) shipped; slice 2 (mech plan
+and section pools) is next. Campaign consequences are decided below.
 Written: 2026-10-16
+Updated: 2026-10-16 — slice 1 shipped; owner decided after-battle consequences.
 
 Models: `mechs-nouns.md`, `combat-durability-nouns.md`, `body-part-cover.md`
 (marine body parts, cover per part, wounds). Prior art for sectioned machines:
@@ -54,31 +55,33 @@ apart, and a fitting choice (where the plating goes) matters.
 
 ## Slices
 
-1. **Body plan refactor**, behaviour-preserving for infantry: plan-driven parts,
-   shares, multipliers and cover rows replace the closed `BodyPart` enum and the
-   ordinal-indexed tables. Existing infantry tests and `body-part-cover`
-   evidence are unchanged.
+1. **Body plan refactor** (shipped 2026-10-16). `BodyPlan` replaces the closed
+   `BodyPart` enum and the ordinal-indexed cover tables; a unit type declares
+   its plan through `UnitType.bodyPlan()`, and the infantry plan reproduces the
+   old numbers exactly. A `loadoutMatchup` control (open field and trench, two
+   seeds, 276 fights) was identical before and after. The seam slice 2 builds
+   on: a part's `consequence` (only `LIMB_WOUND` today; crippling, mount loss
+   and sensor loss join it), separate band and part order, and the
+   per-plan expected-interception readings. Combat telemetry's part tallies
+   still count infantry parts only.
 2. **Mech plan and section pools:** rolls, per-section durability, spill to
    torso, torso-only death. Mount destruction and leg crippling. HUD paper-doll.
 3. **Cover rows, presentation and AI.** Mech cover by section, destroyed-mount
    visuals, and doctrine that accounts for a crippled or disarmed mech (fall
    back, become a turret, withdraw).
-4. **Campaign consequences** (needs the answer below): what a damaged or
-   destroyed section costs after the battle.
+4. **Campaign consequences**: what a damaged or destroyed section costs after
+   the battle, as decided below.
 
-## Open questions
+## Decisions
 
-- **After the battle:** does a destroyed mount lose its assembly from stores
-  (a real loss, feeding the fabrication economy), or come back damaged and
-  repairable for materials? Does section damage carry over as repair time like
-  boats (`boat-condition-and-repairs.md`)? The recommendation is that a destroyed
-  mount loses its assembly, everything else is repaired for materials and time,
-  and a destroyed torso loses the chassis.
-- **Can the player aim at a section** in direct control (aim height), or is the
-  roll always the ballistic height? The recommendation is to keep the roll only;
-  aimed sections are a later, separate feature.
-- **Should legs-only damage ever kill?** The recommendation is no. Crippled is a
-  state the enemy has to finish through the torso.
+- **After the battle** (owner, 2026-10-16): a destroyed mount loses its
+  assembly from stores, a real loss that feeds the fabrication economy. Every
+  other damaged section comes back repairable for materials and time, as boats
+  do (`boat-condition-and-repairs.md`). A destroyed torso loses the chassis.
+- **Aimed sections:** no. The roll is always the ballistic height; aiming at a
+  section in direct control is a later, separate feature.
+- **Legs-only kills:** no. Crippled is a state the enemy has to finish through
+  the torso.
 
 ## Acceptance
 
