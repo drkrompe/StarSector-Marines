@@ -14,7 +14,7 @@ import math
 import bpy
 import bmesh
 import sw_kit
-from sw_hull import LOWER, armor_patch, citadel, prism, union
+from sw_hull import armor_patch, prism, union
 
 # Vanilla warhound.ship / Cerberus engineSlots: exact XY and width ratios.
 # Four fixed nozzles, two lateral pairs, all at Z=0 and pointed aft (-X).
@@ -24,13 +24,8 @@ ENGINES = [(-41,31,12),(-39,24,8),(-39,-24,8),(-41,-31,12)]
 BELL_R = {12:3.9, 8:2.6}
 FACE_GAP = .6  # bell lip stands this far aft of the housing face
 
-# Centre aft body (mirror False) and the low pylon tying each pod to it (True).
+# The low pylon tying each pod to the centre body (sw_aft_deck).
 BLOCKS = [
-    ('Central aft body', False, LOWER,
-     [(-28,-12),(4,-12),(4,12),(-28,12)]),
-    # Flat deck plateau at main-deck height for |y|<9 between the pods.
-    ('Aft centreline deck', False, citadel(7.5),
-     [(-28,-11.2),(-1,-11.2),(-1,11.2),(-28,11.2)]),
     # The pylon stays below the waist deck: a dark valley separates every
     # pod from the centre body in plan, bridged only by feed lines.
     ('Drive pod pylon', True, [(1,-6.5),(0,-5),(0,6.8),(.8,7.6)],
@@ -210,21 +205,6 @@ def build_feeds(kit, s):
         kit.cylinder('Fuel feed trunk', (-11,s*y,8.1), .5, 22, kit.steel, 'X', 16, .05)
 
 
-def build_stern(kit):
-    # The stern notch carries a dark machinery frame, low between the pods:
-    # a cross girder at the notch mouth, side rails short of each housing
-    # and the plant housing at the apex.
-    kit.box('Notch plant housing',(-29.2,0,1),(2.4,13,13),kit.steel,.6)
-    kit.box('Plant access recess',(-30.5,0,0),(.4,9,9.5),kit.dark,.1)
-    for y in (-3,0,3):
-        kit.box('Plant housing rib',(-30.8,y,0),(.8,.7,11),kit.steel,.15)
-    kit.box('Notch cross girder',(-35.5,0,1.5),(1.6,36,2.2),kit.steel,.3)
-    for s in (1,-1):
-        kit.box('Notch side rail',(-32.5,s*16.5,1.5),(7,1.4,2.2),kit.steel,.3)
-        kit.box('Notch machinery bay',(-33,s*12.8,0),(4.6,6,7),kit.dark,.2)
-        kit.cylinder('Notch feed line',(-31.5,s*9.5,3.4),.6,7,kit.steel,'X',16,.05)
-
-
 def build_details(kit):
     red = sw_kit.material('Drive warning light', (.6,.05,.03), emission=(1,.08,.04))
     for s in (1,-1):
@@ -232,7 +212,6 @@ def build_details(kit):
         build_sink(kit, s)
         build_housing(kit, s, red)
         build_feeds(kit, s)
-    build_stern(kit)
 
 
 def ring(kit, name, x0, x1, y, r_in, r_out, mat, n=32):
