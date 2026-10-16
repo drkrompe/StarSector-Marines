@@ -1580,7 +1580,7 @@ public final class BattleSetup {
                 mission.cycleLoadouts[cycle] = InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle), rng);
             mission.marineLoadout = mission.cycleLoadouts[0];
         }
-        for (int[] guard : new int[][]{{68,75},{86,42}}) {
+        for (int[] guard : LowQuay.GUARD_POSTS) {
             var post = openingDefenseNode(guard[0], guard[1], Faction.DEFENDER, map.grid);
             spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, guard[0], guard[1], 4), Faction.DEFENDER, "Drent Haulage store guard", post, rng);
         }
