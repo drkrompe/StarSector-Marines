@@ -373,6 +373,23 @@ proposal to let anything else raise a band — a mission reward, a training
 facility, a battlefield promotion — is proposing a second authority, and has to
 retire this one rather than sit beside it.
 
+**Lethality is settled from measured output, not from a described play
+impression.** `TtkReportTest` and the `loadoutMatchup` ladder are the instruments.
+Their standing readings: a service pulse rifle in a Regular's hands kills an
+unarmored marine in the open in about three and a half seconds, so movement and
+target priority stay actionable; cover is the strongest single lever, roughly
+doubling time-to-kill behind light cover, nearly tripling it behind solid cover
+and multiplying it about sixfold behind hard cover, while every baseline
+engagement still resolves. The compound arc holds: an endgame Elite with a
+Masterwork weapon kills an opening Green-with-Surplus marine about thirty times
+faster than the reverse kills the endgame marine in power-suit armor. The preserved
+fauna and swarm exchanges still serve their scenes: a swarm runner carries a
+little more structure than one rifle round, which keeps the second shooter's
+choice meaningful. The bottom edge is harsher than intended. Surplus rifles
+cannot hurt powered armor at all, which pirate rosters field at medium and high
+risk; that floor is contracted as `surplus-floor-against-powered-armor.md` rather
+than retuned through the grade ladder.
+
 Rank-and-file marines are otherwise interchangeable, and the company's growth is
 what the Armory has collected and can issue rather than a per-marine ladder.
 Enlisted stripes follow the same source: a squad leader wears sergeant's stripes

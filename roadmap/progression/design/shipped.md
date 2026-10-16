@@ -2,7 +2,7 @@
 
 Status: ACTIVE
 Written: 2026-08-23
-Updated: 2026-10-15 — folded the Restricted tier, military warrants, market listings, arc issue cards, the Hegemony auxiliary warrant, warrant obligations and the Junction reward.
+Updated: 2026-10-15 — folded the Restricted tier, military warrants, market listings, arc issue cards, the Hegemony auxiliary warrant, warrant obligations, the Junction reward and the S1 lethality verification.
 
 | Story | Shipped | Commit(s) | Fold destination |
 | --- | --- | --- | --- |
@@ -35,3 +35,4 @@ Updated: 2026-10-15 — folded the Restricted tier, military warrants, market li
 | `hegemony-auxiliary-warrant.md` | 2026-10-15 | this commit | `progression-nouns.md` — Kit and armory gains the authored Hegemony auxiliary warrant: offer gate, correspondence terms and limits, two stages, the Hegemony Auxiliary Section and declining; `a-small-war.md` owns its offer trigger; warrant obligations own its stage two. |
 | `warrant-obligations.md` | 2026-10-15 | this commit | `progression-nouns.md` — Kit and armory gains warrant obligations: service and loyalty terms, the 90-day period, service calls, suspension squeezing new fitting, restoration, revocation at hostile with standing regrant, the fitting-gate location and the HQ record's standing. |
 | `junction-trench-clearing-reward.md` | 2026-10-15 | this commit | `progression-nouns.md` — Kit and armory, arc issue cards: the won Junction hands over one Trench-Clearing Issue card, once, never a duplicate. |
+| `s1-lethality-feel-pass.md` | 2026-10-15 | this commit | Closed by measurement: `progression-nouns.md` — Aptitude and experience gains the standing lethality readings (tempo, cover, compound arc, swarm); the surplus-against-powered-armor floor is contracted as `surplus-floor-against-powered-armor.md`. |
