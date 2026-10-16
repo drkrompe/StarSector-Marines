@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines;
 
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
+import com.dillon.starsectormarines.ops.AgreusArcCampaign;
 import com.dillon.starsectormarines.ops.CompanyManagementGuide;
 import com.dillon.starsectormarines.campaign.start.CompanyProloguePresenter;
 import com.dillon.starsectormarines.battle.audio.CompanyOfficer;
@@ -152,6 +153,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         ensureMarineRoster();
         repairEquipmentCollectionProgression();
         deliverPendingPatronEquipmentRewards();
+        deliverPendingAgreusAwards();
         ensureCaptainDiscoverySalvageListener();
         ensureCompanyShipLossListener();
         ensureFactionEquipmentMarketStock();
@@ -266,6 +268,12 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
             LOG.info("Starsector Marines: delivered " + granted
                     + " pending patron equipment reward(s)");
         }
+    }
+
+    /** A recorded Boarding Jack entitlement waits for its art; the first load after it ships delivers it, once. */
+    private static void deliverPendingAgreusAwards() {
+        if (AgreusArcCampaign.deliverPendingBoardingJack())
+            LOG.info("Starsector Marines: delivered the recorded Boarding Jack section card");
     }
 
     private static void repairEquipmentCollectionProgression() {

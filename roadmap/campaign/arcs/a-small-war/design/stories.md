@@ -4,10 +4,10 @@ Status: ACTIVE
 
 Written: 2026-10-13
 
-Updated: 2026-10-15 — Chapter 5 needs ship-versus-ship fighting in atmosphere.
+Updated: 2026-10-16 — all five chapters built headlessly; live acceptance, art and the duel remain.
 
 Read `a-small-war-arc.md`, `agreus-latchkey.md` and `early-operation-nouns.md` first.
 
 | Story | Status | Outcome |
 | --- | --- | --- |
-| `a-small-war.md` | IN PROGRESS | Referral and first three chapters connect actual Shepherd handover to both recovered-suit cards. Map/encounter fidelity for the three playable chapters, live transition, mixed-suit/save acceptance, Chapters 4–5, Boarding Jack, yard agreement and later military-source gating remain. Chapter 5 depends on an atmospheric frigate duel (two Wolf (H) against two Hound (P) escorting the Greyhook salvage rig) that the engine cannot yet fight. |
+| `a-small-war.md` | IN PROGRESS | All five chapters, the handover decision, Boarding Jack data and District Escort built with detached evidence. Open: live campaign acceptance, Boarding Jack art (card gated until declared), the Chapter 5 frigate duel (`atmospheric-frigate-duel.md`), and an encounter pass on noted readings. |

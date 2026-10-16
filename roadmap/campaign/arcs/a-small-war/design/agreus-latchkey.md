@@ -4,7 +4,7 @@ Status: DRAFT — original local setting direction on an existing vanilla world 
 
 Written: 2026-10-13
 
-Updated: 2026-10-16 — connected compounds for Latchkey, Low Quay and North Weir; who posts the district escort work under each agreement.
+Updated: 2026-10-16 — the Terms of Protection visit (constables' post, rig tooling, terrace mortar pit); connected compounds; who posts the district escort work; Black Sluice's causeway, galleries, fuel control, tank farm and service road.
 
 ## Scope and provenance
 
@@ -134,10 +134,16 @@ other door open; holding both approaches and getting a living technician to the
 calibration room are competing uses of the same squads.
 
 **Returning in Terms of Protection.** The fourth chapter revisits this map rather
-than a new one. The handover bay at dispatch is its signing point; the Cinder Steps
-lane and gate are the approach the estate guards hold under House Custody and the
-second prize-crew party takes. The secured entrance and the inspection work stay
-visible on that visit. Nothing in the third chapter depends on that visit.
+than a new one: the same ground at the same seed, with what the inspection left
+standing. The operator entrance is now a constables' sandbagged post on the service
+road; the calibration room holds the captured Greyhook rig tooling on its benches,
+where commissioning is done; the nave keeps the inspection's stock. The handover bay
+at dispatch is the signing point and the employer's records carrier comes in by the
+west road to it. The Cinder Steps lane and gate are the approach the estate guards
+hold under House Custody, and the way the second prize-crew party comes. On the
+terraces beyond the wall a dug pit faces the yard, with its back to the lane: it is a
+place a mortar can be set up and found from, not a marker that one is there. Nothing
+in the third chapter depends on that visit.
 
 **The Cinder Steps** are old furnace terraces between yard and reclamation plant.
 Workers occupy sealed galleries and pressure habitats beside processing sheds,
@@ -163,6 +169,17 @@ tanks, a customs causeway and transfer records link district cargo to outbound
 tenders. Greyhook exploits this commercial infrastructure to move prizes and
 sustain levies; losing it breaks a local operation without destroying its fleet.
 The retained dockside names are local industrial usage, not evidence of a sea.
+
+The causeway is the one transfer road across the outer basin. It runs between
+walled settling beds of silt, so anyone on it is in the open; sealed service
+galleries run through the bed field to the north and south, entered through
+pressure vestibules, and are how people cross under cover; the north gallery
+comes out behind the fuel-control house, out of the road gun's sight. The customs block
+stands at the causeway's landward end beside a working bay where a tender can
+set down a rear position. The sheltered fuel-control house stands at the seaward
+end, with the marked tank farm behind it and a support-gun position on the road
+in front of it. Dispatch occupies the pier beyond. A separate service road leaves
+the apron to the east: the way Greyhook's crews come and go, and the way out.
 
 Open yards are airless and cold. Exterior workers and combatants use appropriate
 pressure protection; occupied interiors have life support. Tactical art, equipment

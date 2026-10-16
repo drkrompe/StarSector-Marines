@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — District Escort, the recurring Low Quay escort after A Small War; Latchkey counterattack lanes.
+Updated: 2026-10-16 — Terms of Protection (frozen signed route, handover facts, Berth Four, deferred Boarding Jack entitlement); A Small War at Black Sluice (the split, handover, once-only settlement); District Escort.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -299,9 +299,77 @@ ratification; the compact forgoes it. The route names the later district-escort
 contact (Rusk's office or Lenna's association), and under the compact Rusk records
 the company as an independent counterparty. These are records and disclosed
 payments only: no hidden virtue score, combat modifier or access penalty. Signing
-puts Terms of Protection in preparation, with Sera Voss's attributable warning; it
-is not deployable until that chapter exists. Chapters 4–5 and their acceptance
-belong to `a-small-war.md`.
+opens **Terms of Protection** for Rusk at Latchkey.
+
+Terms of Protection is the signed route carried out on the ground. The route is
+frozen on the mobilization at launch, so a reload, a defeat or a replacement attempt
+fights under the agreement that was signed and never the other. Both routes bring the
+same employer core: two named representatives, two utilities technicians and a
+records carrier that moves only under company escort and stops when it has none or
+sees a threat. House Custody adds Rusk's estate guards on the Cinder Steps lane, the
+weak post of that route; the Yard Compact adds Lenna's fitters, who stay at the hall
+benches. Four constables hold the operator post on either route. The chapter's facts
+are separate and physical: the party **delivered** to the handover bay, the handover
+**signed** there by a living representative over a dispatch the company holds
+uncontested, the captured rig tooling **commissioned** by a living technician in the
+calibration room for 75 accumulated seconds with company infantry in the hall and no
+hostile inside it, every committed Greyhook assault **resolved**, and **ratification**
+by a representative still at the bay. Proximity signs nothing, interrupted work
+pauses rather than restarts, and the end of an attack ratifies nothing.
+
+Pell's Berth Four commit once commissioning is under way: two sections along the
+south road, each led by a crude powered rig on Boarding Jack numbers, and a mortar
+team that sets up in the terrace pit and shells the hall. The mortar is a findable
+position with an infantry approach, so counter-battery is a real answer; it withdraws
+once no assault it supports is alive. A second finite prize-crew party follows down
+the Cinder Steps lane. Warnings exist only from reports and sightings the player
+actually has: the first round landing, a member seen, a rig seen, the guards in
+contact. Losing the company, both representatives or the carrier fails the attempt,
+as does losing both technicians before the work is done; employer losses are
+recorded, never hidden. Withdrawal fails it too, and the signed route stands for a
+replacement mobilization with its confirmed losses stated in the brief.
+
+Victory pays 32,000 credits once, ratifies the launched route and records a
+once-only **Boarding Jack section entitlement** on either route. While the Boarding
+Jack pattern's presentation is pending its card is not issued at all: the
+entitlement is disclosed before launch as a deferred delivery and is placed in
+cargo once, at settlement or at a later game load, only after that presentation is
+declared. A card already held consumes it; sale or discard never renews it. The
+debrief records Rusk's account, the witnesses to the handover and the lead on Mika
+Drent's dispatch order that opens Chapter 5. Voss's warning and Rusk's family
+correspondence are text only. Chapter 5 and its acceptance belong to
+`a-small-war.md`.
+
+**A Small War** at Black Sluice is offered only under a ratified route, and its
+ground fight never depends on the frigate duel overhead: the duel, when it exists,
+is told when Voss gives her order and reports what happened, and nothing it does
+is read by the ground referee. Three full squads are recommended, with the same
+two-squad minimum, fitted lift, owned tender and optional employer heavy lift for
+an owned mech. The company takes the causeway customs block and builds a real
+tender-built rear position beside it; then fuel control, then dispatch. Each site
+is held only by uncontested company infantry and can be lost again, so a lost site
+must be reclaimed. Twelve holders take only sites the company has actually held.
+Victory requires all three held together, the marked tank farm standing and a
+living custody party (Rusk's custodians or the joint party, by route) completing
+fifteen protected seconds of handover inside fuel control with company infantry
+present. Destroyed tanks or the whole custody party fail the attempt.
+
+Greyhook's strength is a finite authored table: starting posts, plus two reserves
+each with a named ingress and a commitment condition (customs falling; fuel
+control falling). Player strength never changes it. **The split** happens once,
+when fuel control first actually falls: Voss orders the site abandoned on an open
+channel, Drent Haulage and one prize crew walk out along the service road and
+leave the map through its gate, which removes their strength without killing it,
+and Berth Four with the other prize crew refuses and holds dispatch. Departures
+are counted as withdrawn, not killed.
+
+Settlement accepts only the active attempt's frozen receipt and pays 44,000
+credits once, plus the ratified House Custody premium; it is the one writer of the
+settled flag that sends the Hegemony auxiliary warrant offer. Defeat records
+custody-party, holder and fuel-installation losses and opens a disclosed
+replacement mobilization. The closed dossier names the route; the debrief states
+company and employer losses before Castle's closing assessment and carries Voss's
+last line as unvoiced text.
 
 **District Escort** is the arc's recurring job. It is offered only once *A Small
 War* has settled (Chapter 5) under a ratified agreement, and only by that route's

@@ -70,21 +70,54 @@ public final class LatchkeyYard {
             new Place("heating-bench", "Heating-service bench / Cinder Steps circulators", 105, 83),
             new Place("clinic-bench", "Shared inspection bench / Low Quay clinic sterilizer parts", 93, 59));
 
+    /** Which chapter's visit to the yard is being generated. Both share every wall, door and site. */
+    public enum Visit {
+        /** The Yard's Owners: Greyhook holds the yard and the inspection has not happened. */
+        INSPECTION,
+        /**
+         * Terms of Protection: the same yard after the inspection. The operator entrance is a
+         * constables' post, the inspected calibration bay carries the captured rig tooling being
+         * commissioned, and a mortar pit stands dug on the Cinder Steps terraces.
+         */
+        TERMS_OF_PROTECTION
+    }
+
+    /** Calibration room interior (inside its own walls): where the commissioning work is done. */
+    public static final int CALIBRATION_LEFT = 103, CALIBRATION_BOTTOM = 57, CALIBRATION_RIGHT = 111, CALIBRATION_TOP = 66;
+    /** Where the commissioning technicians stand to work, inside the calibration room. */
+    public static final Place COMMISSIONING = new Place("commissioning", "Captured rig tooling / commissioning", 106, 64);
+    /** Inside the Cinder Steps gate: the post Rusk's estate guards hold under House Custody. */
+    public static final Place GUARD_POST = new Place("guard-post", "Estate guards' post / Cinder Steps gate", 123, 43);
+    /**
+     * Dug pit on the Cinder Steps terraces, within a field mortar's reach of the tooling hall and
+     * out of sight from inside the yard wall. Reached on foot from the lane past the Cinder Steps gate.
+     */
+    public static final Place MORTAR_POST = new Place("mortar-post", "Mortar pit / Cinder Steps terraces", 140, 64);
+    /** Where a custody party forms up on the apron before moving in under escort. */
+    public static final Place PARTY_START = new Place("party-start", "Custody party / boat apron", 8, 56);
+
     private static final String YARD_WALL = "installation.dark-concrete-wall";
     private static final String SHOP_WALL = "colony.olive-wall";
     private static final String LOCK_WALL = "installation.light-concrete-wall";
 
     private LatchkeyYard() { }
 
-    public static MapResult generate(long seed, TargetProfile profile) {
+    public static MapResult generate(long seed, TargetProfile profile) { return generate(seed, profile, Visit.INSPECTION); }
+
+    public static MapResult generate(long seed, TargetProfile profile, Visit visit) {
         var c = new GenContext(new NavigationGrid(WIDTH, HEIGHT), new CellTopology(WIDTH, HEIGHT),
                 new Random(seed), WIDTH, HEIGHT, seed);
         c.put(BspKeys.MARKET_PROFILE, profile == null ? TargetProfile.NEUTRAL : profile);
-        new GenRecipe("Latchkey Yard", List.of(LatchkeyYard::grounds, LatchkeyYard::structures,
-                LatchkeyYard::frontage, LatchkeyYard::equipment, LatchkeyYard::cinderSteps,
-                new FinalizeStage(), new OutdoorLandscapeStage(LANDING_X, LANDING_Y, 58, 70, 93, 71, 88, 29,
-                        HANDOVER.x(), HANDOVER.y(), CINDER_LANE.x(), CINDER_LANE.y(), SOUTH_ROAD.x(), SOUTH_ROAD.y(),
-                        CINDER_GATE.x(), CINDER_GATE.y(), 158, 100))).run(c);
+        boolean terms = visit == Visit.TERMS_OF_PROTECTION;
+        List<GenStage> stages = new ArrayList<>(List.of(LatchkeyYard::grounds, LatchkeyYard::structures,
+                LatchkeyYard::frontage, LatchkeyYard::equipment, LatchkeyYard::cinderSteps));
+        if (terms) stages.add(LatchkeyYard::afterInspection);
+        stages.add(new FinalizeStage());
+        stages.add(new OutdoorLandscapeStage(LANDING_X, LANDING_Y, 58, 70, 93, 71, 88, 29,
+                HANDOVER.x(), HANDOVER.y(), CINDER_LANE.x(), CINDER_LANE.y(), SOUTH_ROAD.x(), SOUTH_ROAD.y(),
+                CINDER_GATE.x(), CINDER_GATE.y(), 158, 100, MORTAR_POST.x(), MORTAR_POST.y(),
+                GUARD_POST.x(), GUARD_POST.y(), PARTY_START.x(), PARTY_START.y()));
+        new GenRecipe(terms ? "Latchkey Yard / Terms of Protection" : "Latchkey Yard", stages).run(c);
         var map = new MapResult(c.grid, c.topology, LANDING_X, LANDING_Y, CINDER_LANE.x(), CINDER_LANE.y(),
                 c.pois, c.doodads, new TacticalMap(List.of()), c.get(BspKeys.BUILDINGS), List.of(), null, c.landingPads);
         for (var pad : map.landingPads)
@@ -93,6 +126,8 @@ public final class LatchkeyYard {
         for (var place : List.of(HANDOVER, FREIGHT_GATE, CINDER_GATE, CINDER_LANE, SOUTH_ROAD, HEATING))
             requireRoute(map, place.x(), place.y(), place.label());
         for (var poi : map.pointsOfInterest) requireRoute(map, poi.interiorAnchorX, poi.interiorAnchorY, "building");
+        if (terms) for (var place : List.of(GUARD_POST, MORTAR_POST, PARTY_START, COMMISSIONING))
+            requireRoute(map, place.x(), place.y(), place.label());
         return map;
     }
 
@@ -306,6 +341,43 @@ public final class LatchkeyYard {
             yard.prop(at[0], at[1], "industrial-reactor-housing", 0);
     }
 
+    /**
+     * The yard as the third chapter left it, for Terms of Protection. Nothing the inspection
+     * established is erased: the operator entrance is now a constables' sandbagged post on the
+     * service road, the inspected calibration room holds the captured Greyhook rig tooling on its
+     * benches for commissioning, and the nave keeps the inspection's cable runs and crates. On the
+     * Cinder Steps terraces a dug pit faces the yard; it is a place, not an enemy.
+     */
+    private static void afterInspection(GenContext c) {
+        var yard = new StoryServiceYard(c);
+        // Constables' post outside the outer pressure door, either side of the threshold.
+        for (int x = 82; x <= 85; x++) yard.prop(x, 12, "sandbag-straight-s", 0);
+        for (int x = 91; x <= 94; x++) yard.prop(x, 12, "sandbag-straight-s", 0);
+        // The inspection's work left in place: captured rig tooling on the calibration-room benches.
+        var f = new Fixtures(c);
+        f.near(109, 58, "machine-shop.assembly-bench", 0, CALIBRATION_LEFT, CALIBRATION_BOTTOM, CALIBRATION_RIGHT, CALIBRATION_TOP,
+                COMMISSIONING.x(), COMMISSIONING.y());
+        f.near(104, 62, "auto-shop.tool-chest", 0, CALIBRATION_LEFT, CALIBRATION_BOTTOM, CALIBRATION_RIGHT, CALIBRATION_TOP,
+                COMMISSIONING.x(), COMMISSIONING.y());
+        // Inspection stock along the nave's south side, clear of both doors and the handover bay.
+        f.near(98, 69, "doodad.industrial-pallet-stack", 0, 92, 66, 101, 71, HANDOVER.x(), HANDOVER.y());
+        f.near(78, 70, "doodad.stores-bin-rack", 0, 72, 66, 84, 71, HANDOVER.x(), HANDOVER.y());
+        // The mortar pit on the terraces: a sandbag wall facing the yard, open to the lane behind it.
+        // The terrace scrap already standing in the pit's line serves as its wall where it lies.
+        for (int y = MORTAR_POST.y() - 2; y <= MORTAR_POST.y() + 2; y++) pitBag(c, yard, MORTAR_POST.x() - 3, y, "sandbag-straight-w");
+        pitBag(c, yard, MORTAR_POST.x() - 2, MORTAR_POST.y() - 3, "sandbag-straight-s");
+        pitBag(c, yard, MORTAR_POST.x() - 2, MORTAR_POST.y() + 3, "sandbag-straight-n");
+    }
+
+    private static void pitBag(GenContext c, StoryServiceYard yard, int x, int y, String id) {
+        if (c.grid.isWalkable(x, y) && !c.topology.isFixture(x, y)) yard.prop(x, y, id, 0);
+    }
+
+    /** Whether a cell lies inside the calibration room's own walls, where commissioning is done. */
+    public static boolean insideCalibrationRoom(int x, int y) {
+        return x >= CALIBRATION_LEFT && x <= CALIBRATION_RIGHT && y >= CALIBRATION_BOTTOM && y <= CALIBRATION_TOP;
+    }
+
     public static boolean inside(CellTopology topology, int x, int y, int index) {
         var site = SITES.get(index);
         return x >= site.left() && x <= site.right() && y >= site.bottom() && y <= site.top()
@@ -400,6 +472,33 @@ public final class LatchkeyYard {
     private static final class Fixtures {
         private final GenContext c;
         Fixtures(GenContext c) { this.c = c; }
+
+        /**
+         * Places equipment at the legal cell nearest the preferred one inside the given bounds, for a
+         * later visit whose room was already furnished by an earlier stage; the cell kept free stays free.
+         */
+        void near(int x, int y, String id, int turns, int left, int bottom, int right, int top, int keepX, int keepY) {
+            var def = TileRegistry.installed().doodad(id);
+            if (def == null) throw new IllegalStateException("Missing Latchkey asset: " + id);
+            for (int radius = 0; radius <= Math.max(right - left, top - bottom); radius++)
+                for (int yy = y - radius; yy <= y + radius; yy++) for (int xx = x - radius; xx <= x + radius; xx++) {
+                    if (Math.max(Math.abs(xx - x), Math.abs(yy - y)) != radius) continue;
+                    var prop = new Doodad(xx, yy, def, turns);
+                    if (xx < left || yy < bottom || xx + prop.footprintCellsX - 1 > right || yy + prop.footprintCellsY - 1 > top) continue;
+                    if (keepX >= xx - 1 && keepX <= xx + prop.footprintCellsX && keepY >= yy - 1 && keepY <= yy + prop.footprintCellsY) continue;
+                    if (fits(prop)) { put(xx, yy, id, turns); return; }
+                }
+            throw new IllegalStateException("No room for Latchkey fixture " + id + " near " + x + "," + y);
+        }
+
+        private boolean fits(Doodad prop) {
+            for (int yy = prop.cellY; yy < prop.cellY + prop.footprintCellsY; yy++) for (int xx = prop.cellX; xx < prop.cellX + prop.footprintCellsX; xx++) {
+                if (!c.grid.inBounds(xx, yy) || !c.grid.isWalkable(xx, yy) || c.topology.isFixture(xx, yy)) return false;
+                for (Direction side : Direction.CARDINALS)
+                    if (c.grid.inBounds(xx + side.dx, yy + side.dy) && c.grid.isDoorway(xx + side.dx, yy + side.dy)) return false;
+            }
+            return true;
+        }
 
         void put(int x, int y, String id, int turns) {
             var def = TileRegistry.installed().doodad(id);

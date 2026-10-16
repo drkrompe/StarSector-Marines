@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
+import com.dillon.starsectormarines.battle.story.TermsOfProtectionProgress;
+import com.dillon.starsectormarines.marine.LoadoutCard;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -28,6 +30,8 @@ final class MissionDebriefConversation {
     }
 
     static String title(MissionOutcome outcome) {
+        if (smallWar(outcome)) return "BLACK SLUICE / CASTLE, RUSK & VOSS";
+        if (termsOfProtection(outcome)) return "LATCHKEY HANDOVER / CASTLE, RUSK & THE PARTY";
         if (yardOwners(outcome)) return "LATCHKEY / CASTLE, RUSK & LENNA";
         if (limitedWarrant(outcome)) return "LIMITED WARRANT / CASTLE & RUSK";
         if (waterUnderSeal(outcome)) return "NORTH WEIR / CASTLE & RUSK";
@@ -39,6 +43,8 @@ final class MissionDebriefConversation {
     }
 
     static List<WaylineNarration.Line> lines(MissionOutcome outcome, WaylineNarration catalog) {
+        if (smallWar(outcome)) return smallWarLines(outcome);
+        if (termsOfProtection(outcome)) return termsLines(outcome);
         if (yardOwners(outcome)) return yardLines(outcome);
         if (limitedWarrant(outcome)) return warrantLines(outcome);
         if (waterUnderSeal(outcome)) return weirLines(outcome);
@@ -93,6 +99,87 @@ final class MissionDebriefConversation {
                 .filter(Objects::nonNull).toList();
     }
 
+    private static boolean smallWar(MissionOutcome o) {
+        return o != null && o.missionSource == MissionSource.STORY && AgreusArcProgress.smallWar(o.missionId) && o.smallWar != null;
+    }
+    /**
+     * Chapter 5's debrief: the selected agreement, confirmed losses and delivered rewards, read only
+     * from the frozen outcome. The duel overhead is not reported here until it exists and reports.
+     */
+    static List<WaylineNarration.Line> smallWarLines(MissionOutcome o) {
+        var r = o.smallWar;
+        String route = r.houseCustody() ? "House Custody" : "the Yard Compact";
+        String cost = "Company casualties: " + o.marinesLost + ". Custody party lost: " + r.custodiansLost()
+                + ". Holders lost: " + r.holdersLost() + ".";
+        if (!o.victory) return List.of(
+                sluiceLine("withdrawal", "CASTLE", (r.infrastructureLost() ? "The marked fuel storage was destroyed; the handover cannot stand on a burned depot. "
+                        : r.custodiansLost() >= 3 ? "The whole custody party is dead; there is nobody left to take the site. "
+                        : "The handover was not completed. ") + cost),
+                sluiceLine("replacement", "RUSK", "No completion fee is paid. A new mobilization will bring a replacement custody party and holders"
+                        + (r.infrastructureLost() ? " and refitted fuel controls" : "") + ". This loss stays on the account; the ratified agreement stands."));
+        int premium = r.houseCustody() ? 12000 : 0;
+        String paid = NumberFormat.getIntegerInstance().format(o.payoutEarned + premium);
+        String withdrawn = r.greyhookWithdrawn() > 0
+                ? r.greyhookWithdrawn() + " of Greyhook's people walked off along the service road on Voss's order; Berth Four held dispatch until we took it."
+                : "Nobody we saw made it out along the service road; Berth Four held dispatch until we took it.";
+        String lead = o.marinesLost > 0
+                ? "We paid for that pier: " + o.marinesLost + (o.marinesLost == 1 ? " of ours is" : " of ours are") + " on the roll that won't come home. "
+                : "Everyone we put down at Black Sluice is coming home. ";
+        return List.of(
+                sluiceLine("handover", "CASTLE", "Customs, fuel control and dispatch are held, the marked fuel storage is intact, and the custody party signed the handover in the control room under " + route + ". " + withdrawn),
+                sluiceLine("award", "RUSK", "Your invoice is settled: " + paid + " credits" + (premium > 0
+                        ? ", the 44,000 fee and the 12,000 premium House Custody promised." : ", the full 44,000 fee. The compact forwent the premium, as written.")
+                        + " Black Sluice's surface facility and its levy route are out of Greyhook's hands. That is all I will claim for it."),
+                sluiceLine("cost", "CASTLE", cost),
+                AgreusArcCampaign.VOSS_LAST,
+                sluiceLine("closing", "CASTLE", lead + "Rusk is asking what it would take to keep us here. He wasn't asking that when we arrived."));
+    }
+    private static WaylineNarration.Line sluiceLine(String beat, String speaker, String text) {
+        return new WaylineNarration.Line("small-war-debrief-" + beat, "story_agreus_small_war", "debrief.small_war." + beat, text, 12f, 10, 15f, List.of(),
+                speaker.equals("CASTLE") ? "CASTLE / COMPANY OPERATIONS" : "BARONET ELIAN RUSK / HOUSE RUSK",
+                speaker.equals("CASTLE") ? CompanyManagementGuide.portrait() : OpeningBroker.CREST, false, false);
+    }
+    private static boolean termsOfProtection(MissionOutcome o) {
+        return o != null && o.missionSource == MissionSource.STORY && AgreusArcProgress.termsOfProtection(o.missionId) && o.termsOfProtection != null;
+    }
+    private static List<WaylineNarration.Line> termsLines(MissionOutcome o) {
+        var r = o.termsOfProtection;
+        boolean custody = r.route() == TermsOfProtectionProgress.Route.HOUSE_CUSTODY;
+        String cost = "Company casualties: " + o.marinesLost + ". Representatives lost: " + r.representativesLost()
+                + ". Technicians lost: " + r.techniciansLost() + ". " + (custody ? "Estate guards lost: " + r.guardsLost()
+                : "Fitters lost: " + r.fittersLost()) + ". Constables lost: " + r.constablesLost() + ".";
+        if (!o.victory) {
+            String why = r.carrierLost() ? "The records carrier was destroyed. "
+                    : r.representativesLost() >= TermsOfProtectionProgress.REPRESENTATIVES ? "Every custody representative was killed. "
+                    : !r.commissioned() && r.techniciansLost() >= TermsOfProtectionProgress.TECHNICIANS ? "Both technicians were killed before the tooling was commissioned. "
+                    : "The handover was not ratified. ";
+            return List.of(
+                    termsLine("withdrawal", "CASTLE", why + cost),
+                    termsLine("replacement", "RUSK", "No fee and no ratification. The signed agreement stands; a new mobilization brings a replacement party and carrier. These losses stay on the account."));
+        }
+        var card = LoadoutCard.parse(AgreusArcProgress.BOARDING_JACK_CARD);
+        boolean pending = card == null || !card.presentationDeclared();
+        // Whoever can actually speak to the work explains it; a dead witness is not quoted.
+        var witness = r.techniciansLost() < TermsOfProtectionProgress.TECHNICIANS
+                ? termsLine("dossier", "LATCHKEY UTILITIES CREW", "The captured tooling is commissioned. With Greyhook's own service records we can rebuild their Boarding Jack properly: a light section, two rigs in twelve, and nothing in it you have not seen across the yard today.")
+                : termsLine("dossier", "CASTLE", "Neither technician who did the work came back. Their log and the commissioned tooling still make the Boarding Jack dossier; I am reading it from what they left.");
+        return List.of(
+                termsLine("ratified", custody ? "HOUSE RUSK / CUSTODY RECORD" : "LATCHKEY YARD ASSOCIATION / JOINT CUSTODY RECORD", custody
+                        ? "Ratified under House Custody. Bench access passes to Rusk's office; association workshops operate on new leases with debt deductions. The 12,000-credit premium is payable only on Chapter 5 victory."
+                        : "Ratified under the Yard Compact. Inspected common-service access continues under the signed repayment schedule; Rusk appoints security and records the company as an independent counterparty. No premium is owed."),
+                termsLine("award", "RUSK", "Thirty-two thousand credits. The handover is ratified. The debt and the duty against Greyhook are unchanged."),
+                witness,
+                termsLine("issue", "CASTLE", pending
+                        ? "The Boarding Jack section card is recorded to the company. Its issue pattern is not ready to print; the card goes to fleet cargo once, when it is. Nobody is refitted automatically."
+                        : "Learn the Boarding Jack card from fleet cargo. Fitting it is an explicit Armory choice; nobody is refitted automatically."),
+                AgreusArcCampaign.RUSK_FAMILY,
+                termsLine("drent", "RECOVERED LEVY FILE / DRENT HAULAGE", AgreusArcCampaign.DRENT_LEAD),
+                termsLine("cost", "CASTLE", cost + " Rusk names no ship and no date in that letter, and I will not guess at either."));
+    }
+    private static WaylineNarration.Line termsLine(String beat, String speaker, String text) {
+        return new WaylineNarration.Line("terms-debrief-" + beat, "story_agreus_terms_of_protection", "debrief.terms_of_protection." + beat, text, 12f, 10, 15f, List.of(),
+                speaker, speaker.equals("CASTLE") ? CompanyManagementGuide.portrait() : OpeningBroker.CREST, false, false);
+    }
     private static boolean yardOwners(MissionOutcome o) {
         return o != null && o.missionSource == MissionSource.STORY && AgreusArcProgress.yardOwners(o.missionId) && o.yardOwners != null;
     }

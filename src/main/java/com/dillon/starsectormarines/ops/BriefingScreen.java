@@ -1043,6 +1043,23 @@ public class BriefingScreen implements Screen {
 
     private List<BriefingViewModel.InfoRow> retainedEmployerRows(Mission mission) {
         List<BriefingViewModel.InfoRow> rows = new ArrayList<>();
+        if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.smallWar(mission.id)) return List.of(
+                BriefingViewModel.info("sluice-holders","Local holders","Twelve / occupy only sites the company has taken",""),
+                BriefingViewModel.info("sluice-custody","Custody party","Three / escort into fuel control; one must finish the handover",""),
+                BriefingViewModel.info("sluice-support","Company support","Working tender builds the rear position; employer heavy lift for your owned active mech lance",""),
+                BriefingViewModel.info("sluice-preserve","Preserve fuel storage","Four marked tanks / no bombardment or fighter strikes",""));
+        if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.termsOfProtection(mission.id)) {
+            boolean custody = AgreusArcCampaign.custodyRoute(mission);
+            return List.of(
+                    BriefingViewModel.info("terms-party", custody ? "Rusk's custodial party" : "Joint custody party",
+                            (custody ? "Two custodians" : "Rusk's custodian and the association's delegate") + " / records carrier / one must ratify at dispatch", ""),
+                    BriefingViewModel.info("terms-technicians", "Utilities crew", "Two technicians / one must finish commissioning in the calibration room", ""),
+                    BriefingViewModel.info("terms-route", custody ? "Rusk's estate guards" : "Lenna's fitters",
+                            custody ? "Four militia / hold the Cinder Steps gate; their post is the weak point"
+                                    : "Three fitters / stay at the hall benches under fire", ""),
+                    BriefingViewModel.info("terms-constables", "Rusk's constables", "Four militia / hold the secured operator entrance", ""),
+                    BriefingViewModel.info("terms-support", "Company support", "Working tender required; employer heavy lift for your owned active mech lance", ""));
+        }
         if (DistrictEscortCampaign.isBattle(mission)) return List.of(
                 BriefingViewModel.info("escort-constables", "District constables", "Four militia / hold the western apron", ""),
                 BriefingViewModel.info("escort-party", "Handover party", "Two people / one must reach the apron with the load", ""),
