@@ -11,11 +11,11 @@ class MechHeatTest {
         heat.commit(10f);
         assertFalse(heat.permits(18f, true));
         assertTrue(heat.permits(18f, false), "player can spend the remaining burst reserve");
-        heat.advance(4f);
+        heat.advance(39f / MechHeat.COOLING_PER_SECOND);
         assertFalse(heat.permits(18f, true), "hysteresis prevents single-tick AI trigger chatter");
-        heat.advance(1f);
+        heat.advance(1f / MechHeat.COOLING_PER_SECOND);
         assertTrue(heat.permits(18f, true));
-        assertEquals(40f, heat.value());
+        assertEquals(40f, heat.value(), .001f);
     }
 
     @Test void thermalInterlockRecoversWithoutDamageOrNegativeHeat() {
@@ -24,9 +24,9 @@ class MechHeatTest {
         assertTrue(heat.venting());
         assertFalse(heat.permits(1f, false));
         assertThrows(IllegalStateException.class, () -> heat.commit(18f));
-        heat.advance(5f);
+        heat.advance(42f / MechHeat.COOLING_PER_SECOND);
         assertTrue(heat.venting());
-        heat.advance(.5f);
+        heat.advance(1.5f / MechHeat.COOLING_PER_SECOND);
         assertFalse(heat.venting());
         assertTrue(heat.permits(28f, false));
         heat.advance(100f);

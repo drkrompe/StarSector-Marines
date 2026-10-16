@@ -8,6 +8,34 @@ model has to produce every condition with the same parts, the same scars in
 the same places and the same paint. This doc fixes how the pieces fit; each
 package's own README says how it is built.
 
+## Scale
+
+The model is built in vanilla hull units (one sprite pixel is one unit) and
+has **one** real-world scale: **0.65 m per unit**, published as
+`metres_per_unit` in each state's `geometry.json` (`METRES_PER_UNIT` in
+`build_reference.py`). The ship is about 66 m long, 51 m across the pods and
+14 m from keel to main deck (four decks); a 1.8 m person is 2.8 units tall.
+
+The figure comes from what she has to carry, not from the sprite. The game's
+Cerberus crews 20 to 50 with 100 cargo; the mod's deck program
+(`DeckSizing.programFor`, one cell a metre) asks such a frigate for about
+3,600 m² of deck, or roughly 11,500 m³ of habitable space. Taking about 55% of
+the pressure hull as usable, the model's main hull (about 77,000 cubic units)
+needs about 0.64 m per unit. The modelled boat bay then comes out 15 m long
+with 5.9 m clear height, against the program's 16 x 10 m boat bay. The
+plausible range is 0.55 (cramped, 56 m) to 0.75 (roomy, 76 m). 150 m is many
+times the volume she needs. The battle-map landed-ship convention
+(`landed-ships-true-scale.md`, about 26 m for this sprite) serves tactical
+readability and holds about a dozen people.
+
+**Every metric value reads this number; nothing hard-codes metres.** VFX plume
+lengths, particle sizes and speeds, lamp falloff and soft sizes, camera
+distances, depth of field, flight speeds, plate framing and texel density are
+all expressed in hull units or derived from `metres_per_unit`. A cinematic
+that sizes the ship in metres derives that length from it too
+(`length_units x metres_per_unit`), so a later rescale is a single edit and a
+re-render.
+
 ## Condition states
 
 The hull's life is one sequence. Each state is a build of the same model.
@@ -51,7 +79,8 @@ Rules that keep the layers composable:
 
 ## Surfacing
 
-From the projection spike (`second-wind-projection-spike/README.md`):
+From the projection spike (`second-wind-projection-spike/README.md`); the
+first real package is the port-flank pilot (`second-wind-surface/README.md`):
 
 - **Base skin, part by part.** Major armour parts are rendered alone and
   square-on, reskinned by Codex (`tools/codex_imagegen.py`, the

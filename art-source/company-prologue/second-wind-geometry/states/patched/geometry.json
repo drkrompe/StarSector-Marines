@@ -5,7 +5,8 @@
     "+Y": "port",
     "+Z": "dorsal"
   },
-  "units": "Vanilla hull-space units; no canonical metre scale asserted",
+  "units": "Vanilla hull-space units (1 sprite px = 1 unit); multiply by metres_per_unit for metres",
+  "metres_per_unit": 0.65,
   "revision": "V3 detail: segmented sprite-measured hull, whole engine pods, spine command deck, port grapple, naval turrets",
   "thickness_profile": {
     "method": "Flat deck plateaus (x0, x1, deck z) over single-chamfer sections; level keel",

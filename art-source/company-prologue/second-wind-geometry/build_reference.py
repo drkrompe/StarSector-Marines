@@ -37,6 +37,9 @@ import bpy
 from mathutils import Vector
 
 HERE = Path(__file__).resolve().parent
+# The one shared real-world scale (second-wind-pipeline.md, Scale): about
+# 66 m overall. Everything metric reads this; nothing hard-codes metres.
+METRES_PER_UNIT = 0.65
 sys.path.insert(0, str(HERE))
 import sw_kit, sw_hull, sw_aft_deck, sw_engines, sw_bridge, sw_turrets, sw_port_module, sw_damage
 for module in (sw_kit, sw_hull, sw_aft_deck, sw_engines, sw_bridge, sw_turrets, sw_port_module, sw_damage):
@@ -150,7 +153,8 @@ if not args.no_save:
     manifest={
         'status':'Proposed geometry reference; no scene art or gameplay changes',
         'axes':{'+X':'bow','+Y':'port','+Z':'dorsal'},
-        'units':'Vanilla hull-space units; no canonical metre scale asserted',
+        'units':'Vanilla hull-space units (1 sprite px = 1 unit); multiply by metres_per_unit for metres',
+        'metres_per_unit':METRES_PER_UNIT,
         'revision':'V3 detail: segmented sprite-measured hull, whole engine pods, spine command deck, port grapple, naval turrets',
         'thickness_profile':{'method':'Flat deck plateaus (x0, x1, deck z) over single-chamfer sections; level keel', 'stations':sw_hull.THICKNESS_STATIONS, 'deck_datum':0, 'attachments':'Engine centres unchanged from V2'},
         'engine_source':'starsector-core/data/hulls/warhound.ship engineSlots',
