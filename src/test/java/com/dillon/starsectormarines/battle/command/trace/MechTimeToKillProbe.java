@@ -29,6 +29,8 @@ public final class MechTimeToKillProbe {
         int firstSeen;
         int firstDamaged = -1;
         int died = -1;
+        float structureLeft = 1f;
+        float armorLeft = 1f;
         final Map<MechSection, Integer> lost = new LinkedHashMap<>();
 
         Track(String variant, String faction, int firstSeen) {
@@ -56,6 +58,8 @@ public final class MechTimeToKillProbe {
             boolean damaged = world.hp(id) < world.maxHp(id)
                     || world.hasArmor(id) && world.armor(id) < world.maxArmor(id);
             if (damaged && t.firstDamaged < 0) t.firstDamaged = tick;
+            t.structureLeft = world.maxHp(id) > 0f ? world.hp(id) / world.maxHp(id) : 0f;
+            t.armorLeft = world.hasArmor(id) && world.maxArmor(id) > 0f ? world.armor(id) / world.maxArmor(id) : 0f;
             MechSections sections = loadout.sections();
             if (sections == null) continue;
             for (MechSection section : MechSection.values()) {
@@ -74,6 +78,7 @@ public final class MechTimeToKillProbe {
             for (Map.Entry<MechSection, Integer> e : t.lost.entrySet()) lost.put(e.getKey().name(), e.getValue());
             mechs.put(new JSONObject().put("variant", t.variant).put("faction", t.faction)
                     .put("firstSeen", t.firstSeen).put("firstDamaged", t.firstDamaged).put("died", t.died)
+                    .put("structureLeft", t.structureLeft).put("armorLeft", t.armorLeft)
                     .put("sectionsLost", lost));
             if (t.died >= 0 && t.firstDamaged >= 0) ttk.add(t.died - t.firstDamaged);
         }
