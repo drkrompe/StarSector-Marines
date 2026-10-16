@@ -38,7 +38,6 @@ public final class AbsentDefenceResolution {
      * A Garrison defence is a {@code RiskLevel.HIGH} mission when it is fought, so its
      * wounded recover on the same clock whether or not the player commanded it.
      */
-    private static final float WIA_DAYS = 18f;
 
     /** Reputation the employer takes off for a garrison that fought the raid and lost. */
     private static final int OVERRUN_HOUSE_DELTA = -1;
@@ -241,7 +240,7 @@ public final class AbsentDefenceResolution {
         }
         // No battle ran, so there is no telemetry to fold into a career record; the
         // deployment itself is all this defence honestly knows about each marine.
-        roster.applySoldierOutcome(manifest, day, WIA_DAYS, Collections.emptyMap(), victory);
+        roster.applySoldierOutcome(manifest, day, MarineRoster.WIA_RECOVERY_DAYS, Collections.emptyMap(), victory);
         return fates;
     }
 

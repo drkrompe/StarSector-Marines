@@ -1299,6 +1299,9 @@ public class MarineRoster implements Serializable {
         refreshLeadership();
     }
 
+    /** Campaign days a WIA marine spends recovering aboard ship before returning to duty. */
+    public static final float WIA_RECOVERY_DAYS = 1f;
+
     /** Shortens an existing wounded timer without changing status, kit or billet. */
     public void shortenWoundedRecovery(String soldierId, float untilDay) {
         MarineSoldier soldier = soldierById(soldierId);
