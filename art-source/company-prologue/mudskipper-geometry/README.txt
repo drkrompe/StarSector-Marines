@@ -6,7 +6,7 @@ second-wind-geometry/ serves the Second Wind. It follows the passes in the
 ship-model-pipeline skill (.claude/skills/ship-model-pipeline/SKILL.md):
   pass 1 blockout             accepted; snapshot in reference-history/v1-blockout/
   pass 2 plausible detailing  built here; awaiting the owner's review (pass 3)
-  pass 4 real-world scale     see Scale below
+  pass 4 real-world scale     0.85 m per unit (see Scale below)
 No damage states or texturing yet. This is source art only. It changes no
 runtime art or gameplay.
 All views render the SAME mesh objects; only the active camera changes.
@@ -30,9 +30,34 @@ Variants: mudskipper_Standard (a light dual machine gun in WS 003),
 Coordinates
 +X = bow; +Y = port; +Z = dorsal. 1 unit = 1 sprite pixel about the .ship
 centre, so sprite pixel (c, r), counted from the top-left, covers hull
-X 44-r..45-r and Y 31-c..32-c. No metre scale is claimed. XY comes from the
-game; every Z (deck heights, drive axes, thicknesses) is art interpretation.
-Model extent: X -36.5..42.5, Y -29.6..30.6, Z -8.5..13.
+X 44-r..45-r and Y 31-c..32-c. XY comes from the game; every Z (deck
+heights, drive axes, thicknesses) is art interpretation. Model extent
+79.1 x 60.1 units in plan; keel z -8.5 to hull top about 13, mast tip 21.
+
+Scale (pass 4)
+One real-world scale: 0.85 m per unit, published as metres_per_unit in
+geometry.json and METRES_PER_UNIT in build_reference.py. Every metric value
+(VFX sizes and speeds, lamp falloff, cameras, depth of field, flight speeds,
+texel density) derives from it; nothing hard-codes metres. She is about 67 m
+long, 51 m across the sponsons and 15 m from keel to deck.
+Derived from what she carries, by the Second Wind's method (scale_check.py):
+  - The mod's deck program (DeckSizing.programFor; printed by
+    .claude/skills/ship-model-pipeline/DeckProgramProbe.java) reads her
+    designation "Civilian Transport" as a LINER frigate. With crew 5-100 and
+    cargo 70 she owes 3,329 m2 of rooms. That includes three 16 x 10 m boat
+    bays, for the 95 people she carries beyond her working crew. x1.40
+    circulation (DeckSizing.CIRCULATION) x 3.2 m deck height = 14,914 m3.
+  - The main pressure hull measures 44,608 cubic units. At 55% usable,
+    (14,914 / (0.55 x 44,608))^(1/3) = 0.847 m per unit.
+  - Plausible range 0.76 to 0.91. The low end counts the sponsons, cabin hood
+    and cockpit as pressure space too, at 65% usable (cramped). The high end
+    is the main hull alone at 45% usable (roomy). That is 60 to 72 m long.
+Cross-checks at 0.85: the cargo bay door opening (16.8 x 8.4 units) is
+14.3 x 7.1 m, which fits the program's 16 x 10 m boat bay. The crew hatch is
+1.15 x 2.3 m, and a 1.8 m person is 2.1 units tall. Keel to deck is about
+14.9 m: four 3.2 m decks plus structure.
+The battle map's landed-ship convention (landed-ships-true-scale.md) sizes
+hulls for tactical readability and is a different number.
 
 Weapon slots (exactly mudskipper.ship; the model invents no others)
   id      mount   size   type        location  angle  arc  model
