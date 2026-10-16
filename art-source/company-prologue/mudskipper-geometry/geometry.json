@@ -1,8 +1,9 @@
 {
-  "status": "Pass 2 (plausible detailing) awaiting owner review (pass 3). No damage states or textures.",
+  "status": "Pass 3 (owner review) round 1 awaiting review. No damage states or textures.",
   "passes": {
     "1 blockout": "accepted; snapshot in reference-history/v1-blockout",
-    "2 plausible detailing": "built; awaiting review (pass 3)",
+    "2 plausible detailing": "built",
+    "3 review": "round 1: waist/aft-hull junction broken up with structure; awaiting review",
     "4 real-world scale": "metres_per_unit published"
   },
   "hull": {
@@ -434,6 +435,42 @@
         1920,
         1080
       ]
+    },
+    {
+      "name": "junction-detail",
+      "position": [
+        30,
+        70,
+        45
+      ],
+      "target": [
+        -2,
+        18,
+        2
+      ],
+      "orthographic_scale": 40,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "junction-starboard",
+      "position": [
+        30,
+        -70,
+        45
+      ],
+      "target": [
+        -2,
+        -18,
+        2
+      ],
+      "orthographic_scale": 40,
+      "resolution": [
+        1920,
+        1080
+      ]
     }
   ],
   "top_view_mapping": {
@@ -447,10 +484,10 @@
   },
   "mesh_authority": "All views render the same objects; later surface art is subordinate to this geometry.",
   "silhouette": {
-    "iou": 0.9434,
+    "iou": 0.9426,
     "pixels_per_unit": 16,
     "alpha_threshold": 128,
-    "model_only_area_units2": 165.0,
-    "sprite_only_area_units2": 69.6
+    "model_only_area_units2": 168.6,
+    "sprite_only_area_units2": 69.3
   }
 }

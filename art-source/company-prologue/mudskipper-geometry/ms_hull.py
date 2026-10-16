@@ -271,12 +271,114 @@ def build_underside(kit):
               elev=-55, lift=.28)
 
 
+def build_junction(kit):
+    """The joint between the cargo waist and the aft hull, built rather than
+    bevelled (owner review, pass 3). Across the top the waist deck runs into
+    the aft hull's forward shoulder chamfer as one long V-groove; on each
+    flank the aft hull steps out past the waist in a full-height corner
+    bevel. Both read as a single clean diagonal, so each is broken up with
+    structure that varies along its length and between the two sides: no two
+    neighbouring bays carry the same fitting."""
+    fx = AFT_PLAN[3][0]                     # aft hull forward face, x -1
+    ws = WAIST_PLAN[-1][1]                  # waist half-beam, 22.5
+    corner = (AFT_PLAN[4], AFT_PLAN[3])     # port corner bevel (-4,28.5)-(-1,27)
+    # Shoulder chamfer across the top: from the wall top (fx, 5) up to the
+    # aft deck at fx-2.5; tilt of a plate lying on it.
+    sx0, sz0, sx1, sz1 = fx, 5.0, fx-2.5, AFT_DECK
+    tilt = math.atan2(sx0-sx1, sz1-sz0)     # plate normal leans forward
+    mid_x, mid_z = (sx0+sx1)/2, (sz0+sz1)/2
+    nrm = (math.cos(tilt), math.sin(tilt))  # (x, z) outward normal of the chamfer
+
+    # --- Top, port to starboard ------------------------------------------
+    # Port outer bay (y 13.5..20): a louvred vent bank standing in the groove.
+    kit.box('Junction vent bank housing', (fx-1.3, 16.75, 7.6), (2.8, 6.5, 3.2), kit.steel, .12)
+    kit.box('Junction vent bank grille', (fx+.12, 16.75, 7.6), (.12, 5.7, 2.3), kit.dark, 0)
+    for k in range(4):
+        kit.box('Junction vent bank louvre', (fx+.22, 16.75, 6.75+k*.58), (.16, 5.5, .18), kit.steel, 0)
+    kit.box('Junction vent bank cap', (fx-1.4, 16.75, 9.3), (3.2, 6.9, .3), kit.steel, .06)
+    # Port inner bay (y 9..11): two feed conduits crossing the joint from the
+    # waist deck onto the aft deck, on saddles, into a junction box aft.
+    for y in (9.3, 10.5):
+        kit.cylinder('Junction feed conduit', (fx-.5, y, 9.95), .32, 9.6, kit.steel, 'X', 12, .03)
+    for x, z0 in ((3.0, WAIST_DECK), (fx-3.6, AFT_DECK)):
+        kit.box('Junction conduit saddle', (x, 9.9, (z0+9.75)/2), (.7, 2.4, 9.75-z0), kit.dark, .03)
+    kit.box('Junction conduit box', (fx-5.6, 9.9, AFT_DECK+.7), (1.6, 2.6, 1.4), kit.tan, .08)
+    # Port of centre (y 4.6..8.2): a low collar segment bridging the groove.
+    kit.box('Junction collar beam', (fx-1.2, 6.4, 7.3), (2.4, 3.6, 2.0), kit.steel, .1)
+    # Centre (|y| < 3.8): the stepped collar proper, a heavier frame beam
+    # with a stepped cap and bolts.
+    kit.box('Junction collar beam', (fx-1.4, 0, 7.4), (2.8, 7.6, 2.4), kit.steel, .12)
+    kit.box('Junction collar cap', (fx-1.5, 0, 8.85), (2.0, 6.8, .7), kit.steel, .08)
+    for y in (-2.8, -1.0, 1.0, 2.8):
+        kit.cylinder('Junction collar bolt', (fx-1.5, y, 9.25), .18, .14, kit.dark, 'Z', 6, 0)
+    # Starboard inner bay (y -12..-5.4): a recessed seam with two bolted
+    # service plates lying on the chamfer, unequal widths.
+    kit.box('Junction service seam', (mid_x+nrm[0]*.02, -8.7, mid_z+nrm[1]*.02), (.1, 6.8, 5.0), kit.dark, 0
+            ).rotation_euler = (0, -tilt, 0)
+    for yc, wy in ((-10.4, 3.0), (-6.85, 2.8)):
+        p = kit.box('Junction service plate', (mid_x+nrm[0]*.16, yc, mid_z+nrm[1]*.16), (.22, wy, 4.2), kit.plate, .05)
+        p.rotation_euler = (0, -tilt, 0)
+        for dy in (-wy/2+.4, wy/2-.4):
+            for dz in (-1.6, 1.6):
+                kit.cylinder('Junction service plate bolt',
+                             (mid_x+nrm[0]*.3+math.sin(tilt)*dz, yc+dy, mid_z+nrm[1]*.3+math.cos(tilt)*dz),
+                             .14, .1, kit.dark, 'X', 6, 0).rotation_euler = (0, math.pi/2-tilt, 0)
+    # Starboard outer bay (y -20..-14): gusset buttresses straddling the
+    # groove, at uneven spacing.
+    for y in (-14.4, -16.6, -19.6):
+        verts = [(1.3, WAIST_DECK), (fx-.4, 6.0), (fx-2.6, AFT_DECK), (fx-2.6, AFT_DECK+.9), (fx-.6, AFT_DECK+.9)]
+        v = [(x, y-.35, z) for x, z in verts] + [(x, y+.35, z) for x, z in verts]
+        n = len(verts)
+        faces = [tuple(reversed(range(n))), tuple(range(n, 2*n))]
+        faces += [(i, (i+1) % n, n+(i+1) % n, n+i) for i in range(n)]
+        kit.mesh('Junction gusset', v, faces, kit.steel, bevel=.06)
+
+    # --- Flanks: the corner bevel and the forward face outboard of the waist
+    for s, label in SIDES:
+        p0, p1 = [(x, s*y) for x, y in corner]
+        # A frame band over the crease between forward face and bevel.
+        kit.box(f'{label} junction frame band', (fx+.1, s*26.75, -.7), (.3, .9, 11.0), kit.steel, .05)
+        # A stepped frame band following the aft hull's forward profile: up
+        # the forward face, over the shoulder chamfer and onto the aft deck,
+        # at a different station on each side.
+        y = s*(24.4 if s > 0 else 25.2)
+        kit.box(f'{label} junction profile band', (fx+.12, y, -.45), (.24, 1.3, 11.1), kit.steel, .05)
+        kit.box(f'{label} junction profile band', (mid_x+nrm[0]*.2, y, mid_z+nrm[1]*.2), (.4, 1.3, 5.4), kit.steel, .06
+                ).rotation_euler = (0, -tilt, 0)
+        kit.box(f'{label} junction profile band', (fx-3.7, y, AFT_DECK+.2), (2.7, 1.3, .4), kit.steel, .06)
+        kit.box(f'{label} junction profile band step', (fx+.3, y, -.45), (.14, .7, 10.3), kit.steel, .03)
+        # Knee gussets in the inside corner between waist wall and forward face.
+        knees = (1.0, -5.9) if s > 0 else (1.0,)
+        for z in knees:
+            tri = [(fx, s*ws), (.1, s*ws), (fx, s*(ws+1.5))]
+            v = [(x, y, z) for x, y in tri] + [(x, y, z+.8) for x, y in tri]
+            kit.mesh(f'{label} junction knee', v, [(2,1,0),(3,4,5),(0,1,4,3),(1,2,5,4),(2,0,3,5)], kit.steel, bevel=.05)
+        if s > 0:
+            # Port bevel, under the aft running light: a vent bank and a
+            # lifting hardpoint below it.
+            plate(kit, f'{label} junction bevel vent housing', p0, p1, .5, -.45, -.6, 2.5, 2.8, .6, kit.steel, bevel=.08)
+            for k in range(3):
+                plate(kit, f'{label} junction bevel vent slat', p0, p1, .5, .15, -1.4+k*.8, 2.1, .28, .12, kit.dark)
+            plate(kit, f'{label} junction hardpoint', p0, p1, .45, -.35, -4.6, 1.6, 1.8, .7, kit.steel, bevel=.1)
+            plate(kit, f'{label} junction hardpoint eye', p0, p1, .45, .35, -4.6, .5, 1.0, .5, kit.dark)
+        else:
+            # Starboard bevel: a bolted service plate and a conduit running
+            # down it into a junction box.
+            plate(kit, f'{label} junction bevel service plate', p0, p1, .4, 0, -1.6, 1.9, 2.6, .22, kit.plate, bevel=.05)
+            px, py, nx, ny, ang, _ = _frame(p0, p1, .78)
+            kit.cylinder(f'{label} junction bevel conduit', (px+nx*.15, py+ny*.15, -.6), .28, 10.0, kit.steel, 'Z', 12, .03)
+            for z in (3.6, -.6, -4.4):
+                plate(kit, f'{label} junction conduit clamp', p0, p1, .78, -.15, z, .9, .35, .55, kit.dark)
+            plate(kit, f'{label} junction conduit box', p0, p1, .78, -.45, -6.0, 1.3, 1.3, .9, kit.tan, bevel=.06)
+
+
 def build_flanks(kit):
     _materials(kit)
     build_bay_doors(kit)
     build_aft_flanks(kit)
     build_sponson_detail(kit)
     build_underside(kit)
+    build_junction(kit)
 
 
 def build(kit):
