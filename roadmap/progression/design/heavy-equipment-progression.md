@@ -5,7 +5,7 @@ mech bay and heavy lift have shipped; internal fittings and the drop choice are
 planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-16 — weight classes set the ladder; vehicles share the mech bay; drops become a per-call choice bounded by lift.
+Updated: 2026-10-16 — vehicles progress by fixed variants, not fittings.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -132,6 +132,37 @@ machine. The progression is that a company reaches Light drops through its own
 boats early, and Heavy only through a Valkyrie or a ship refit — the expensive,
 late step.
 
+## Vehicles: variants, not fittings
+
+Mechs are the customization system; vehicles are a short chain of fixed
+variants. A second fitting system would double the lab, the save model and the
+balance surface while making the two kinds the same decision in different art.
+The split gives the player a real choice instead:
+
+- **A mech is flexible and demanding.** Sockets, heat, an engine budget, a build
+  to plan and parts to lose.
+- **A vehicle is cheap, sturdy and good at one job.** No heat, no sockets, no
+  build. It costs less material and lift for the armor it brings, and it does
+  things no mech does: an APC carries marines.
+
+Progression on a vehicle line is learning a better **variant**, each its own
+pattern card at its own tier, then fabricating it and retiring the old one. The
+decision is which variant fits this mission's lift and role, never how to tune
+one. Lines and their first variants:
+
+| Line | Variants (light → heavy, or sidegrade) |
+| --- | --- |
+| Technical | Militia technical — Common filler for a small lift budget |
+| APC | Heavy APC (troop carrier) → up-armored APC (more armor, slower) → fire-support APC (a mortar or autocannon instead of seats) |
+| Tank | Breakthrough tank → heavy-gun tank, or a dozer-blade breaching sidegrade |
+
+Faction variants (a Hegemony APC, a Tri-Tachyon tank) arrive as Prestige or
+Restricted cards weighted by faction, as faction mech weapons are.
+
+One later, optional depth step: a single **overhaul** per vehicle (an up-armor
+or engine kit bought with materials, one decision, no socket grid), reusing the
+internals vocabulary without the doll.
+
 ## Stories
 
 | Story | Owns |
@@ -141,6 +172,7 @@ late step.
 | Heavy lift (shipped; `air-nouns.md`, Lift) | Lift class and rating; the boat lift slot; drops flown by real company carriers. |
 | Vehicles in the bay (shipped; `mechs-nouns.md`) | Vehicle patterns; a bay space holds a mech or a vehicle; losses write back. |
 | `armor-drop-selection.md` | Pick which bay spaces come down per call; cooldown between calls; lift caps armor per mission. |
+| `vehicle-variant-ladder.md` | Fixed vehicle variants per line, each a pattern card; faction variants; no vehicle fitting. |
 
 Order: pattern cards first (they license existing weapons and chassis at once),
 then internals, then lift; vehicles in the bay and the drop choice follow lift.
