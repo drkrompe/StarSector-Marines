@@ -37,6 +37,7 @@ com.dillon.starsectormarines.battle.warship.FrigateMissilesScene
 com.dillon.starsectormarines.battle.warship.FrigateDoctrineScene
 com.dillon.starsectormarines.battle.warship.FrigateClimbOutScene
 com.dillon.starsectormarines.battle.warship.FrigateVisitScene
+com.dillon.starsectormarines.battle.warship.FrigateLedgerScene
 com.dillon.starsectormarines.battle.warship.WarshipPilotScene
 com.dillon.starsectormarines.battle.tender.TenderBuildScene
 com.dillon.starsectormarines.battle.tender.TenderStanceScene

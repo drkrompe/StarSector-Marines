@@ -87,6 +87,7 @@ com.dillon.starsectormarines.battle.warship.FrigateMissilesSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.FrigateDoctrineSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.FrigateClimbOutSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.FrigateVisitSceneSnapshotSuite
+com.dillon.starsectormarines.battle.warship.FrigateLedgerSceneSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.CompoundPropDamageSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.FurnishingDamageSnapshotSuite
 com.dillon.starsectormarines.ops.DebugMissionSnapshotSuite

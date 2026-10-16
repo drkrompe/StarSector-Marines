@@ -1,10 +1,10 @@
 # Story — Atmospheric frigate duel
 
-Status: ACTIVE — slices 1-6 built (hulls as targets for direct fire, stray rounds, falling wreckage, skins; duel helm and variant flux fittings; missiles at hulls; doctrine for duels except `AUTO`; the rig's climb-out and vanilla missile magazines; one finite visit nobody commands); slice 7 (the duel ledger) next
+Status: ACTIVE — slices 1-6 built (hulls as targets for direct fire, stray rounds, falling wreckage, skins; duel helm and variant flux fittings; missiles at hulls; doctrine for duels except `AUTO`; the rig's climb-out and vanilla missile magazines; one finite visit nobody commands; the duel ledger); slice 8 (the whole duel) next, waiting on the Black Sluice chapter
 
 Written: 2026-10-16
 
-Updated: 2026-10-16 — slice 6 built (a mission's visit, closed player gates, crash and cook-off kept off hulls) with its readings.
+Updated: 2026-10-16 — slice 7 built (the duel ledger) with its readings.
 
 Read `air-nouns.md` (**Overhead ships**, **Standing laws**), `warship-behaviours.md`
 (the posture model, Classes, Decided: escort, gap G4), `ship-support.md` and
@@ -159,7 +159,7 @@ ion cannon's arcs (not modelled; the ion cannon fires as an energy projectile).
    deck, leaves through the ordinary departure once no hostile hull has been over the
    battle for a dwell, and is not selectable by remote ship command, direct control
    or any power: an allied hull belongs to its mission, not the player.
-7. **The duel ledger.** Per hull: escaped, departed, broke off, or destroyed (when and
+7. **The duel ledger** (built). Per hull: escaped, departed, broke off, or destroyed (when and
    where it fell); ground casualties by side from stray rounds and from wreckage. A
    read-only record for a debrief; nothing on the ground objective reads it.
 8. **The whole duel.** The `frigate-duel` scene grown to the chapter's shape: ground
@@ -397,6 +397,46 @@ Wolfs with no visit). 2400 ticks.
   left.
 - All 43 ship, tender and fort scenes run (176 loops) pass; `fort-air-defence` was
   failing before this story (`no such live entity: 0`).
+
+## Slice 7 as built: what the scene reads
+
+`frigate-ledger` (`sceneEvidence -Pscene=frigate-ledger`; GIFs under
+`createSnapshots -Psnapshot=frigate-ledger`) is one fight in which each outcome
+happens once. The Salvage Rig climbs out over the east edge. A Hound (P) at 20% hull,
+out of reach, is withdrawn by its doctrine. A second Hound fights the two Wolf (H),
+which are on a visit. Unarmed ground units stand under the whole fight. No hull may
+fire at the ground, so everything the ground suffers comes from the duel. Loops:
+`ledger`, and `empty-ground` (the same fight with only the two far-corner units).
+2700 ticks.
+
+- **The ledger** (`WarshipSystem.duelLedger`, `WarshipDuelLedger`) records a line
+  for every hull that was ever over the battle:
+  - `ESCAPED`: it left by a climb-out and was carried off the map.
+  - `BROKE_OFF`: the doctrine withdrew it, and it left.
+  - `DEPARTED`: any other leaving.
+  - `DESTROYED`: when and where it burst, and where its wreck struck.
+  - `OVER_THE_BATTLE`: still there.
+  Why a hull began to leave is why it left. A hull destroyed while leaving counts as
+  destroyed.
+- **Ground casualties** are kept by side and by cause: a stray round (one that
+  missed every hull) or wreckage (the crash and the skid). A unit is counted when its
+  hit points fell across that landing.
+- `ledger`:
+  - The rig escaped at 14.5 s, and the out-of-reach Hound broke off at 6.3 s.
+  - The fighting Hound was destroyed at 2.8 s; its wreck struck about 20 cells
+    further on.
+  - The Wolfs ended their visit at about 32 s.
+  - Nine ground units were killed: six defenders by stray rounds (the Wolfs fire
+    east, so their misses land there) and three marines by the wreck. Not one was hurt without being killed;
+    these units are bare.
+  - The scene's own count matches the ledger exactly.
+- `empty-ground`: every hull has the same outcome, and the ledger counts no
+  casualties.
+- Building it found that the wreck's crush is wider than the hull. The crash
+  machinery crushes up to eight cells. The ledger therefore looks ten cells around a
+  wreck for whose hit points fell, rather than at the hull's radius, which first
+  missed four of six wreck deaths.
+- All 44 ship, tender and fort scenes pass (178 loops).
 
 ## Acceptance
 

@@ -174,10 +174,17 @@ public final class WarshipSystem {
         ship.doctrineClock = DOCTRINE_PERIOD_SECONDS - 0.1f * (ships.size() % 10);
         if (ship.serial() < 0) ship.serial(nextSerial++);
         ships.add(ship);
+        ledger.register(ship);
         if (ship.supportSource() != null && !called.contains(ship)) called.add(ship);
     }
 
     private final List<Warship> called = new ArrayList<>();
+    private final WarshipDuelLedger ledger = new WarshipDuelLedger();
+
+    /** What became of every hull over the battle and what the fight between hulls cost the ground; read-only. */
+    public WarshipDuelLedger duelLedger() {
+        return ledger;
+    }
     private final List<Warship> calledView = Collections.unmodifiableList(called);
 
     /**
@@ -348,6 +355,10 @@ public final class WarshipSystem {
             }
             float departingBefore = ship.departing() ? ship.departingSeconds() : -1f;
             depart(dt, sim, ship);
+            if (ship.departing()) {
+                ledger.leaving(ship, ship.posture() == WarshipPosture.WITHDRAW, ship.climbingOut());
+            }
+            if (ship.departed()) ledger.gone(ship, clock, ship.physicallyDeparted());
             departureCues(ship, departingBefore);
             direct(dt, sim, ship);
             tickShield(dt, sim, ship);
@@ -1018,6 +1029,7 @@ public final class WarshipSystem {
      * ground beneath it) and starts to fall. Its guns, shield and point defence are gone with it.
      */
     private void startWreck(BattleSimulation sim, Warship ship) {
+        ledger.destroyed(ship, clock, ship.x, ship.y);
         sim.spawnHeavyImpact(ship.x, ship.y, Math.max(6f, ship.lengthCells * 0.5f));
         wrecks.add(new WarshipWreck(ship, WRECK_KEY_BASE - ship.serial()));
     }
@@ -1036,14 +1048,19 @@ public final class WarshipSystem {
                     }
                 }
                 case STRUCK -> {
+                    ledger.struck(ship, ship.x, ship.y);
                     if (onMap(sim, ship.x, ship.y)) {
+                        Map<Long, Float> under = groundNear(sim, ship.x, ship.y, WRECK_TALLY_RADIUS_CELLS);
                         sim.crashWreck(wreck.key, ship.x, ship.y, ship.faction, radius, ship.velocityX, ship.velocityY);
+                        tallyGround(sim, under, WarshipDuelLedger.Cause.WRECKAGE);
                         cue(WarshipSoundCue.Kind.IMPACT, ARRIVAL_SETTLE_SOUND, ship.x, ship.y);
                     }
                 }
                 case SKIDDING, CAME_TO_REST -> {
                     if (onMap(sim, ship.x, ship.y)) {
+                        Map<Long, Float> under = groundNear(sim, ship.x, ship.y, WRECK_TALLY_RADIUS_CELLS);
                         sim.skidWreck(wreck.key, ship.x, ship.y, step == WarshipWreck.Step.CAME_TO_REST);
+                        tallyGround(sim, under, WarshipDuelLedger.Cause.WRECKAGE);
                     }
                 }
                 default -> { }
@@ -1092,6 +1109,41 @@ public final class WarshipSystem {
             }
         }
         return false;
+    }
+
+    /** Cells beyond a blast's own radius within which the duel ledger looks for whom it hurt. */
+    private static final float GROUND_TALLY_MARGIN_CELLS = 1.5f;
+
+    /**
+     * How far from a wreck the duel ledger looks for whom its strike or skid hurt. The crash machinery's own crush is
+     * wider than the hull (up to eight cells) and its skid sweeps the ground covered since the last tick, so this
+     * is a generous bound; only units whose hit points actually fell across the call are counted.
+     */
+    private static final float WRECK_TALLY_RADIUS_CELLS = 10f;
+
+    /** The live ground units within {@code radius} of {@code (x, y)}, with their hit points, for the duel ledger. */
+    private static Map<Long, Float> groundNear(BattleSimulation sim, float x, float y, float radius) {
+        Map<Long, Float> out = new LinkedHashMap<>();
+        World world = sim.world();
+        float r2 = radius * radius;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long id = sim.liveUnitAt(i);
+            float dx = world.x(id) - x;
+            float dy = world.y(id) - y;
+            if (dx * dx + dy * dy <= r2) out.put(id, world.hp(id));
+        }
+        return out;
+    }
+
+    /** Counts into the duel ledger whom a landing just hurt or killed, by comparing with {@link #groundNear}. */
+    private void tallyGround(BattleSimulation sim, Map<Long, Float> before, WarshipDuelLedger.Cause cause) {
+        for (Map.Entry<Long, Float> e : before.entrySet()) {
+            long id = e.getKey();
+            boolean alive = sim.getRoster().isAliveById(id);
+            if (alive && sim.world().hp(id) >= e.getValue()) continue;
+            Faction side = sim.identity().faction(id);
+            if (side != null) ledger.ground(cause, side, !alive);
+        }
     }
 
     private static boolean onMap(BattleSimulation sim, float x, float y) {
@@ -1182,6 +1234,12 @@ public final class WarshipSystem {
                     shells.add(shell.carryOn());
                     continue;
                 }
+            } else if (shell.stray()) {
+                // A round that missed the hulls it was fired at: what it does to the ground goes in the duel ledger.
+                Map<Long, Float> before = groundNear(sim, landing.endpointX, landing.endpointY,
+                        landing.aoeRadius + GROUND_TALLY_MARGIN_CELLS);
+                sim.detonateNow(landing);
+                tallyGround(sim, before, WarshipDuelLedger.Cause.STRAY_ROUND);
             } else {
                 sim.detonateNow(landing);
             }

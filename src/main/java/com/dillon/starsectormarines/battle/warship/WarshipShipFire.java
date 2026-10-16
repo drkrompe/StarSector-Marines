@@ -593,6 +593,6 @@ public final class WarshipShipFire {
         MissilePath leg = MissilePath.straight(strike.aimX, strike.aimY, strike.strayX(), strike.strayY(), speed);
         return new WarshipShell(strike.weapon, strike.faction, strike.shooter, strike.aimX, strike.aimY,
                 strike.strayX(), strike.strayY(), leg, strike.visualCells, det.damage, det.penetration,
-                det.aoeRadius, null, null, 0f, null, 0f).directFire();
+                det.aoeRadius, null, null, 0f, null, 0f).directFire().markStray();
     }
 }
