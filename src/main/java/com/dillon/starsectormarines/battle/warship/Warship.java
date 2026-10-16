@@ -1210,12 +1210,29 @@ public final class Warship {
     }
 
     /**
-     * Marks the ship as arriving from above: it drops through the cloud deck from
-     * this moment, and presentation reads {@link #entrySeconds()} to draw the
-     * descent. Nothing in the simulation reads the clock.
+     * Brings the ship in through the cloud deck from where it stands, already pointed at {@code (towardX, towardY)}:
+     * its first objective or the hostiles it is coming for. A ship never appears at its station or on the wrong
+     * heading; it breaks out of the deck pointed where it is going and closes under its own handling, so the approach
+     * is part of the fight. The descent lasts {@link WarshipAtmosphere#DESCENT_SECONDS}, during which it fires nothing
+     * and its helm takes no station ({@link #descending}); presentation reads {@link #entrySeconds()} and draws the
+     * shadow, glow and descent along the heading.
      */
-    public void arriveFromAbove() {
+    public void arriveFromAbove(float towardX, float towardY) {
+        float dx = towardX - x;
+        float dy = towardY - y;
+        arriveFromAboveOnHeading(dx * dx + dy * dy < 1e-6f ? facingDegrees : AirBody.facingToward(dx, dy));
+    }
+
+    /** As {@link #arriveFromAbove(float, float)}, on a heading the mission names ({@code facingDegrees}' convention). */
+    public void arriveFromAboveOnHeading(float headingDegrees) {
+        facingDegrees = headingDegrees;
+        desiredHeading = headingDegrees;
         entrySeconds = 0f;
+    }
+
+    /** Whether the ship is still coming down through the cloud deck: it fires nothing and takes no duel station yet. */
+    public boolean descending() {
+        return entrySeconds >= 0f && entrySeconds < WarshipAtmosphere.DESCENT_SECONDS;
     }
 
     private float visitDwellSeconds = Float.NaN;
@@ -1336,6 +1353,28 @@ public final class Warship {
         flyRoute(route, false);
     }
 
+    private boolean throughDeck;
+
+    /**
+     * Leaves the battle straight up through the cloud deck, the reverse of {@link #arriveFromAbove}: a departure with
+     * way kept on along the present heading, the hull drawn climbing ({@link #climbSeconds}) and gone from the battle
+     * once it is into the deck ({@link WarshipAtmosphere#CLIMB_SECONDS}), not over a map edge. For a hull that has
+     * already made its height over the battle, so its escape does not drag the fight to the map's edge. It counts as a
+     * climb-out: gone this way it has escaped. Until it is into the deck it can still be hit.
+     */
+    public void climbThroughDeck(float mapWidth, float mapHeight) {
+        if (departing || departed || destroyed()) return;
+        departForward(mapWidth, mapHeight);
+        climbingOut = true;
+        climbLength = 1f;
+        throughDeck = true;
+    }
+
+    /** Whether the ship left, or is leaving, up through the cloud deck ({@link #climbThroughDeck}). */
+    public boolean throughDeck() {
+        return throughDeck;
+    }
+
     /** Whether the ship is leaving along a climb-out route and has not yet gone. */
     public boolean climbingOut() {
         return climbingOut && !departed;
@@ -1346,7 +1385,7 @@ public final class Warship {
      * the share of its route flown, as seconds of {@link WarshipAtmosphere#CLIMB_SECONDS}.
      */
     public float climbSeconds() {
-        if (!climbingOut || route == null) return departingSeconds;
+        if (!climbingOut || route == null || throughDeck) return departingSeconds;
         float left = 0f;
         float px = x;
         float py = y;

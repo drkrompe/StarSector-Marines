@@ -1,0 +1,319 @@
+{
+  "status": "Blockout: silhouette, sections, mass and slots. No fine detail, damage or textures.",
+  "hull": {
+    "hullId": "mudskipper",
+    "hullName": "Mudskipper",
+    "hullSize": "FRIGATE",
+    "style": "LOW_TECH",
+    "designation": "Civilian Transport",
+    "builtInMods": [
+      "civgrade"
+    ],
+    "builtInWeapons": [],
+    "system": "maneuveringjets",
+    "source": "starsector-core/data/hulls/mudskipper.ship, ship_data.csv",
+    "sprite": "starsector-core/graphics/ships/mudskipper/mudskipper.png (64x84, centre 32,39 from bottom-left)",
+    "skins": [
+      {
+        "skinHullId": "mudskipper2",
+        "hullName": "Mudskipper Mk.II",
+        "sprite": "graphics/ships/mudskipper/mudskipper2.png",
+        "changes": "removes WS 003; WS 002 becomes a LARGE BALLISTIC HARDPOINT; built-ins ill_advised, comp_storage"
+      }
+    ],
+    "no_variant_hulls": "No (A), (D) or other hull variants exist; Mk.II is a skin, not modelled here."
+  },
+  "axes": {
+    "+X": "bow",
+    "+Y": "port",
+    "+Z": "dorsal"
+  },
+  "units": "Vanilla sprite pixels about the .ship centre; no metre scale asserted",
+  "dimensions": {
+    "min": [
+      -36.45,
+      -29.55,
+      -8.5
+    ],
+    "max": [
+      42.5,
+      30.55,
+      13.0
+    ],
+    "size": [
+      78.95,
+      60.1,
+      21.5
+    ],
+    "game_bounds_polygon": [
+      [
+        -33,
+        28
+      ],
+      [
+        34,
+        23
+      ],
+      [
+        41,
+        0
+      ],
+      [
+        35,
+        -22
+      ],
+      [
+        -33,
+        -28
+      ]
+    ],
+    "collisionRadius": 71
+  },
+  "decks": [
+    {
+      "x0": -16.0,
+      "x1": -1,
+      "z": 9.5
+    },
+    {
+      "x0": -2,
+      "x1": 19.5,
+      "z": 8.5
+    },
+    {
+      "x0": 18.5,
+      "x1": 39.5,
+      "z": 9.0
+    },
+    {
+      "x0": 6,
+      "x1": 25,
+      "z": 13.0
+    },
+    {
+      "x0": 26,
+      "x1": 42.5,
+      "z": 12.0
+    }
+  ],
+  "weapon_slots": [
+    {
+      "id": "WS 003",
+      "mount": "TURRET",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "location": [
+        -9,
+        0
+      ],
+      "angle": 180,
+      "arc": 120,
+      "seat_z": 9.5
+    },
+    {
+      "id": "WS 002",
+      "mount": "HIDDEN",
+      "size": "LARGE",
+      "type": "DECORATIVE",
+      "location": [
+        17,
+        0
+      ],
+      "angle": 0,
+      "arc": 5,
+      "seat_z": 8.5
+    }
+  ],
+  "engines": [
+    {
+      "object_prefix": "Engine 1",
+      "location": [
+        -36,
+        0
+      ],
+      "z": 0,
+      "angle": 180,
+      "width": 24,
+      "bell_mouth_radius": 7.44,
+      "exhaust_direction": [
+        -1.0,
+        0.0,
+        0
+      ],
+      "role": "main drive"
+    },
+    {
+      "object_prefix": "Engine 2",
+      "location": [
+        -36,
+        25
+      ],
+      "z": 0,
+      "angle": 180,
+      "width": 8,
+      "bell_mouth_radius": 2.48,
+      "exhaust_direction": [
+        -1.0,
+        0.0,
+        0
+      ],
+      "role": "port pod drive"
+    },
+    {
+      "object_prefix": "Engine 3",
+      "location": [
+        -36,
+        -23
+      ],
+      "z": 0,
+      "angle": 180,
+      "width": 8,
+      "bell_mouth_radius": 2.48,
+      "exhaust_direction": [
+        -1.0,
+        0.0,
+        0
+      ],
+      "role": "starboard pod drive"
+    },
+    {
+      "object_prefix": "Engine 4",
+      "location": [
+        19,
+        29
+      ],
+      "z": 2,
+      "angle": 150,
+      "width": 8,
+      "bell_mouth_radius": 1.6,
+      "exhaust_direction": [
+        -0.866,
+        0.5,
+        0
+      ],
+      "role": "port maneuvering jet"
+    },
+    {
+      "object_prefix": "Engine 5",
+      "location": [
+        19,
+        -28
+      ],
+      "z": 2,
+      "angle": 210,
+      "width": 8,
+      "bell_mouth_radius": 1.6,
+      "exhaust_direction": [
+        -0.866,
+        -0.5,
+        0
+      ],
+      "role": "starboard maneuvering jet"
+    }
+  ],
+  "cameras": [
+    {
+      "name": "top",
+      "position": [
+        3,
+        0,
+        100
+      ],
+      "target": null,
+      "orthographic_scale": 120,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "port-side",
+      "position": [
+        3,
+        150,
+        1
+      ],
+      "target": [
+        3,
+        0,
+        1
+      ],
+      "orthographic_scale": 100,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "bow",
+      "position": [
+        150,
+        0,
+        1
+      ],
+      "target": [
+        3,
+        0,
+        1
+      ],
+      "orthographic_scale": 100,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "port-quarter",
+      "position": [
+        95,
+        110,
+        75
+      ],
+      "target": [
+        3,
+        0,
+        0
+      ],
+      "orthographic_scale": 118,
+      "resolution": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "name": "stern-quarter",
+      "position": [
+        -100,
+        85,
+        60
+      ],
+      "target": [
+        -3,
+        0,
+        0
+      ],
+      "orthographic_scale": 118,
+      "resolution": [
+        1920,
+        1080
+      ]
+    }
+  ],
+  "top_view_mapping": {
+    "pixels_per_unit": 16.0,
+    "centre": [
+      3,
+      0
+    ],
+    "bow": "left",
+    "port": "down"
+  },
+  "mesh_authority": "All views render the same objects; later surface art is subordinate to this geometry.",
+  "silhouette": {
+    "iou": 0.9352,
+    "pixels_per_unit": 16,
+    "alpha_threshold": 128,
+    "model_only_area_units2": 144.8,
+    "sprite_only_area_units2": 122.4
+  }
+}

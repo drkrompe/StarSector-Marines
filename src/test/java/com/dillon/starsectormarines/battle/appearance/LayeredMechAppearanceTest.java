@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.appearance;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
@@ -38,7 +39,7 @@ public class LayeredMechAppearanceTest {
         assertTrue(sim.getEntityWorld().has(mech, c.MECH_GAIT_STATE));
         assertEquals(550f, sim.world().hp(mech), 0.001f);
         assertEquals(550f, sim.world().maxHp(mech), 0.001f);
-        assertEquals(950f, sim.world().armor(mech), 0.001f);
+        assertEquals(MechVariant.BULWARK.armorCapacity, sim.world().armor(mech), 0.001f);
         assertEquals(18f, sim.world().armorRating(mech), 0.001f);
         assertEquals(12, WeaponRegistry.require(WeaponRegistry.MECH_CHAINGUN_ID).burstCount);
         assertEquals(30f, WeaponRegistry.require(WeaponRegistry.MECH_CHAINGUN_ID).range,

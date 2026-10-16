@@ -8,7 +8,9 @@ package com.dillon.starsectormarines.battle.warship;
  *
  * <p>It shapes where a ship chooses to stand, not where it may fly: a hull entering, climbing out, on a route or under
  * a pilot crosses it freely, and a ship standing outside it flies in to its next station. Ships are kept clear of its
- * edges by their own half-length, as they are kept clear of the map's.
+ * edges by their own half-length, as they are kept clear of the map's, and a station chosen near an edge is eased
+ * back toward the interior ({@link #settle}): a fight that drifts toward the edge turns back over the middle of its
+ * ground instead of running along the boundary.
  *
  * @param minX west edge, in cells
  * @param minY south edge, in cells
@@ -48,9 +50,39 @@ public record HullAirspace(float minX, float minY, float maxX, float maxY) {
         return new float[]{clampAxis(x, minX, maxX, margin), clampAxis(y, minY, maxY, margin)};
     }
 
+    /**
+     * How deep the soft band inside each edge is, in cells, at most: a station in it is eased inward
+     * ({@link #settle}). It is never more than a quarter of the room left once the hard margin is taken.
+     */
+    public static final float SOFT_EDGE_CELLS = 24f;
+
+    /**
+     * Where a ship fighting hulls takes its station: {@code (x, y)} brought inside with {@code margin} to spare as
+     * {@link #clamp} does, then eased off the edges. Within the soft band ({@link #SOFT_EDGE_CELLS}, or a quarter of the
+     * room left) a point's depth into the band is halved toward its inner side, so no station is chosen closer than
+     * half the band to the hard margin and a point past the band is untouched. The ease is continuous: two stations
+     * either side of the band's inner line stay side by side.
+     *
+     * @return {@code [x, y]}
+     */
+    public float[] settle(float x, float y, float margin) {
+        return new float[]{settleAxis(x, minX, maxX, margin), settleAxis(y, minY, maxY, margin)};
+    }
+
     /** Whether {@code (x, y)} lies inside the airspace. */
     public boolean contains(float x, float y) {
         return x >= minX && x <= maxX && y >= minY && y <= maxY;
+    }
+
+    private static float settleAxis(float v, float lo, float hi, float margin) {
+        float c = clampAxis(v, lo, hi, margin);
+        float a = lo + margin;
+        float b = hi - margin;
+        if (b <= a) return c;
+        float band = Math.min(SOFT_EDGE_CELLS, 0.25f * (b - a));
+        if (c < a + band) return a + band - 0.5f * (a + band - c);
+        if (c > b - band) return b - band + 0.5f * (c - (b - band));
+        return c;
     }
 
     private static float clampAxis(float v, float lo, float hi, float margin) {
