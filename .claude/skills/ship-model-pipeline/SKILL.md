@@ -199,9 +199,17 @@ Report the plausible range. 55% usable is a freighter's share. A heavily
 armoured warship (armour rating in the thousands, many barbettes and their
 magazines) plausibly has less, about 35-45%; report the usable share the
 published scale implies beside the 55% solve, rather than quietly changing
-either. When a hull must match a scale another shot already assumes (the
-Legion was asked to keep Second Wind's 0.65 so relative sizes hold in
-frame), keep it and report the gap. Note that the battle-map landed-ship convention
+either.
+
+**Every hull gets its own real-life scale (owner, 2026-10-16).** Never borrow
+another hull's `metres_per_unit` to keep sprite proportions: vanilla sprites
+are not drawn to one scale, and a military carrier is meant to be massive
+beside a small freighter. Shots that put hulls together derive each length
+from that hull's own `geometry.json` and re-solve their framing when a figure
+changes. Fighters follow the same rule, sized from their cockpit (one or two
+seated 1.8 m figures with canopy clearance), weapons and engines, and
+sanity-checked against real aircraft of 12-22 m. Note that the battle-map
+landed-ship convention
 (`landed-ships-true-scale.md`) is about readability on the tactical map and
 is a different number.
 
