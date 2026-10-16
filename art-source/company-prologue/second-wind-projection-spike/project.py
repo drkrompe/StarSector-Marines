@@ -31,7 +31,8 @@ Pixels no projector saw show a neutral fallback.
 Writes build/review/NAME-<view>.png for each review view, in a light rig that
 adds a key sun the guides did not have, so baked lighting is exposed;
 build/review/NAME-coverage60.png with a magenta fallback;
-build/review/NAME-seams-<view>.png marking projector hand-overs; and
+build/review/NAME-seams-<view>.png marking projector hand-overs;
+build/review/NAME-disagreement-<view>.png for the first two projectors; and
 review/NAME-projection.json. Measurements come from flat emission passes of
 every projector's weight and colour, recombined exactly as the shader does:
   coverage   textured share of each view's visible hull
@@ -313,6 +314,16 @@ for v in REVIEW_VIEWS:
             'overlap_share_of_visible_hull': float(both.sum() / hull.sum()),
             'mean_abs_srgb_diff_0_255': float(diff.mean()),
             'mean_luminance_offset_0_255': float(((cols[i] - cols[j])[both] @ np.array([0.2126, 0.7152, 0.0722])).mean())}
+    if len(projectors) >= 2:
+        # Heat image of where the first two projectors disagree, for the review sheet.
+        both = hull & (wts[0] > 0) & (wts[1] > 0)
+        heat = np.zeros((H, W, 4), np.float32); heat[..., 3] = 1
+        heat[hull, :3] = 0.12
+        diff = np.abs(cols[0] - cols[1]).mean(-1) / 255
+        heat[both, 0] = np.clip(diff[both] * 3, 0, 1); heat[both, 1] = np.clip(diff[both] * 3 - 0.5, 0, 1)
+        heat[both, 2] = 0
+        im = bpy.data.images.new('heat', W, H); im.colorspace_settings.name = 'Non-Color'; im.pixels[:] = heat.ravel()
+        im.filepath_raw = str(STILLS / f'{tag}-disagreement-{label}.png'); im.file_format = 'PNG'; im.save()
     stats['views'][label] = {
         'pixel_coverage_of_visible_hull': float(textured.sum() / hull.sum()),
         'dominant_share': {projectors[k].view: float((dominant[hull] == k).sum() / hull.sum()) for k in range(len(projectors))},

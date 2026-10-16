@@ -25,7 +25,7 @@
       "stretch_share_over_1_5": 0.2060074746313788,
       "handover_pixels_share_of_textured": 0.0,
       "handover_step_mean_0_255": null,
-      "same_projector_step_mean_0_255": 6.051353454589844,
+      "same_projector_step_mean_0_255": 5.3542351722717285,
       "pairs": {}
     },
     "quarter30": {
@@ -37,7 +37,7 @@
       "stretch_share_over_1_5": 0.28366228070175437,
       "handover_pixels_share_of_textured": 0.0,
       "handover_step_mean_0_255": null,
-      "same_projector_step_mean_0_255": 7.099672317504883,
+      "same_projector_step_mean_0_255": 6.288443088531494,
       "pairs": {}
     },
     "quarter60": {
@@ -49,7 +49,7 @@
       "stretch_share_over_1_5": 0.42998226078142004,
       "handover_pixels_share_of_textured": 0.0,
       "handover_step_mean_0_255": null,
-      "same_projector_step_mean_0_255": 8.404491424560547,
+      "same_projector_step_mean_0_255": 7.357519626617432,
       "pairs": {}
     },
     "high45": {
@@ -61,7 +61,7 @@
       "stretch_share_over_1_5": 0.3965224509595852,
       "handover_pixels_share_of_textured": 0.0,
       "handover_step_mean_0_255": null,
-      "same_projector_step_mean_0_255": 9.349274635314941,
+      "same_projector_step_mean_0_255": 8.322500228881836,
       "pairs": {}
     }
   },
