@@ -107,7 +107,15 @@ class Context:
             c[name] = float(default)
             ui = c.id_properties_ui(name)
             ui.update(min=lo, max=hi, soft_min=lo, soft_max=hi, description=description)
+            # A prop set from Python does not re-tag the evaluated copy; without
+            # this a driver built on it can read nothing and stay invalid.
+            c.update_tag()
         return f'["{name}"]'
+
+    def set(self, name, value):
+        """Set a knob from Python and re-tag the controls so drivers see it."""
+        self.controls[name] = float(value)
+        self.controls.update_tag()
 
     def key(self, name, frame, value, interpolation=None):
         c = self.controls
@@ -144,6 +152,26 @@ class Context:
             v.targets[0].data_path = data_path
         d.expression = expression
         return fc
+
+
+def refresh_drivers(scene):
+    """Re-evaluate the controls and clear every driver's sticky invalid flag,
+    so drivers built on knobs created this session read them (found by the
+    lighting pass on cached ship blends). swfx.apply calls this last."""
+    c = bpy.data.objects.get(CONTROLS)
+    if c is not None:
+        c.update_tag()
+    bpy.context.view_layer.update()
+    stores = (bpy.data.objects, bpy.data.lights, bpy.data.materials, bpy.data.worlds,
+              bpy.data.scenes, bpy.data.node_groups, bpy.data.meshes, bpy.data.cameras)
+    for store in stores:
+        for idb in store:
+            for owner in (idb, getattr(idb, 'node_tree', None)):
+                ad = getattr(owner, 'animation_data', None) if owner is not None else None
+                if ad:
+                    for fc in ad.drivers:
+                        fc.driver.is_valid = True
+    scene.frame_set(scene.frame_current)
 
 
 def collection(name, parent):
@@ -265,6 +293,9 @@ def setup_render(scene, engine='CYCLES', samples=64, res=(1920, 1080), fps=FPS):
     c.samples = samples
     c.use_denoising = True
     c.volume_bounces = 1
+    # Keeps BVH and shader compilation between animation frames (measured by
+    # the guns pass: ~25 s -> ~6 s a frame uncontended).
+    r.use_persistent_data = True
     c.device = 'CPU'
     try:
         prefs = bpy.context.preferences.addons['cycles'].preferences

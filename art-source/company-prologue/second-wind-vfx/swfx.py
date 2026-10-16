@@ -40,9 +40,10 @@ def clear():
                         break
     for coll in [*root.children_recursive, root]:
         bpy.data.collections.remove(coll)
-    for m in list(bpy.data.materials):
-        if m.name.startswith('SWFX') and m.users == 0:
-            bpy.data.materials.remove(m)
+    for store in (bpy.data.materials, bpy.data.node_groups, bpy.data.meshes, bpy.data.lights):
+        for block in list(store):
+            if block.name.startswith('SWFX') and block.users == 0:
+                store.remove(block)
 
 
 def apply(state='patched', groups=GROUPS, preset=None, scene=None, **options):
@@ -61,4 +62,5 @@ def apply(state='patched', groups=GROUPS, preset=None, scene=None, **options):
         if group == 'lighting' and preset:
             kwargs['preset'] = preset
         ctx.records[group] = mod.build(ctx, **kwargs)
+    swfx_core.refresh_drivers(scene)
     return ctx
