@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.GarrisonDefensePayload;
+import com.dillon.starsectormarines.campaign.RaidShape;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
@@ -51,6 +52,21 @@ class VanillaRaidGarrisonSystemTest {
         assertEquals(51L, payload.eventKey);
         assertEquals(312.5f, payload.attackerStrength, 0.001f);
         assertEquals("pirates", payload.attackerFactionKey);
+    }
+
+    /** The report can only name a punitive expedition if the payload remembers it was one. */
+    @Test
+    void theRaidShapeSurvivesOntoThePayload() {
+        CampaignState state = new CampaignState();
+        long contractId = garrisonAt(state, 7);
+        VanillaRaidGarrisonSystem system = new VanillaRaidGarrisonSystem(s ->
+                Collections.singletonList(new VanillaRaidGarrisonSystem.RaidThreat(
+                        52L, 7, 9, 100f, RaidShape.PUNITIVE_EXPEDITION)));
+
+        system.tick(state, 12);
+
+        assertEquals(RaidShape.PUNITIVE_EXPEDITION,
+                GarrisonDefensePayload.from(state, contractId).raidShape);
     }
 
     @Test

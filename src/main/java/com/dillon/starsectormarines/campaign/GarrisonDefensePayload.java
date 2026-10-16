@@ -19,6 +19,8 @@ public final class GarrisonDefensePayload {
     public final int attackerFactionId;
     /** Attacker ground strength in vanilla's raid-strength units; 0 when unestimated. */
     public final float attackerStrength;
+    /** Kind of vanilla raid this defence was armed from; UNKNOWN for the mod's own triggers. */
+    public final RaidShape raidShape;
     /** Attacking faction id as vanilla knows it, or null when the slot is unset. */
     public final String attackerFactionKey;
     public final String captainId;
@@ -35,8 +37,10 @@ public final class GarrisonDefensePayload {
                                    float attackerStrength, String attackerFactionKey,
                                    String captainId, int committedMarines,
                                    List<String> fireteamIds, int activeSeats,
-                                   byte salvageBaseline, byte salvageNegotiated) {
+                                   byte salvageBaseline, byte salvageNegotiated,
+                                   RaidShape raidShape) {
         this.contractId = contractId;
+        this.raidShape = raidShape;
         this.eventKey = eventKey;
         this.triggerType = triggerType;
         this.triggeredDay = triggeredDay;
@@ -88,6 +92,7 @@ public final class GarrisonDefensePayload {
                 state.contractDefenseAttackerHouseId[row], attackerSlot,
                 state.contractDefenseAttackerStrength[row], attackerFactionKey, captainId,
                 state.contractMarinesCommitted[row], fireteamIds, activeSeats,
-                state.contractSalvageBaseline[row], state.contractSalvageNegotiated[row]);
+                state.contractSalvageBaseline[row], state.contractSalvageNegotiated[row],
+                RaidShape.fromByte(state.contractDefenseRaidShape[row]));
     }
 }

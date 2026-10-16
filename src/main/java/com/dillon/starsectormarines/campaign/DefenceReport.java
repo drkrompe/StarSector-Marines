@@ -68,7 +68,7 @@ public final class DefenceReport {
                         List<String> killed, List<String> missing, int wounded,
                         int unnamedLost, int seatsStood, int seatsLiving,
                         float stationedStrength, float attackerStrength,
-                        int goneToGroundDays) {
+                        int goneToGroundDays, RaidShape raidShape) {
     }
 
     private DefenceReport() {}
@@ -88,8 +88,7 @@ public final class DefenceReport {
                 ? text.apply("defenceReportUnknownPlace")
                 : place.systemName() == null ? place.marketName()
                 : format(text.apply("defenceReportPlace"), place.marketName(), place.systemName());
-        lines.add(format(text.apply(facts.landed() ? "defenceReportOpenLanded"
-                : "defenceReportOpenTurned"), attacker, where, facts.day()));
+        lines.add(format(text.apply(openingKey(facts)), attacker, where, facts.day()));
         lines.add(pick(text.apply("defenceReportColour" + place.climate().name()), seed));
 
         String squads = String.join(", ", facts.squadNames());
@@ -142,6 +141,18 @@ public final class DefenceReport {
         lines.add(pick(text.apply("defenceReportCloser"
                 + (facts.landed() ? facts.outcome().name() : "TURNED")), seed));
         return String.join(" ", lines);
+    }
+
+    /**
+     * The opening names the kind of raid when it is known: a punitive expedition and a
+     * raiding fleet read differently from a base's raiders. A plain or unrecorded raid
+     * uses the generic line.
+     */
+    static String openingKey(Facts facts) {
+        String key = facts.landed() ? "defenceReportOpenLanded" : "defenceReportOpenTurned";
+        RaidShape shape = facts.raidShape() != null ? facts.raidShape() : RaidShape.UNKNOWN;
+        return shape == RaidShape.PUNITIVE_EXPEDITION || shape == RaidShape.FLEET_GROUP
+                ? key + shape.name() : key;
     }
 
     /** One line of a pool, chosen by the seed. A single-line pool is its own answer. */
