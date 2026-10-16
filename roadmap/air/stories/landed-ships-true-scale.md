@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-10-16
 
-Updated: 2026-10-16 — berth body, eased lift, remastered Venture and Hound (P) art and the Black Sluice docking compound built; the duel still flies the salvage rig until the ships-of-the-line Venture swap lands.
+Updated: 2026-10-16 — round 2 on owner review: concrete pads instead of grating, a motion-carried lift run instead of an in-place shrink, and the berths moved to a southern pad field below a ridge, reached only through the berth gate.
 
 Read `air-nouns.md` (**Overhead ships**, the low-hover paragraph), `tender-ship.md`
 (**Vulnerability**), `warship-behaviours.md` and `a-small-war-arc.md` (Chapter 5)
@@ -55,23 +55,33 @@ For comparison, airborne hulls are drawn at `HULL_PRESENCE` times the shared
 density: 2 on `main` today (Venture 17 cells, Hound 6.5), and 4 in the
 ships-of-the-line pass (Venture 34, Hound 13).
 
-## Liftoff: one body, eased between two regimes
+## Liftoff: a run that carries the body to flight scale
 
-**Decision.** A landed ship is drawn at **berth presence** (the 5.8 above). From the
-moment it lifts, its drawn body eases continuously to the airborne presence over
-the lift (`LIFT_SECONDS`, a few seconds, smoothstep), while the same lift progress
-carries its shadow out from under it and its downwash raises dust off the berth. The
-size factor is read as a ratio to whatever `HULL_PRESENCE` is when it flies, so the
-ships-of-the-line pass can re-dial flight presence and the transition stays
-continuous; were flight presence ever to reach berth presence, the ease would be
-the identity.
+**Decision.** A landed ship is drawn at **berth presence** (the 5.8 above). When it
+lifts it flies a **lift run** (`LandedScale.liftRun`): a leg ahead off the berth
+(0.4 landed lengths), a climbing turn of half a landed length's radius (eight cells
+at least) toward where it is going, and a leg out along that bearing (0.5 lengths).
+Its drawn body eases by smoothstep to the airborne presence **with the share of the
+run flown**, and the same progress draws its shadow out and away and fades the
+downwash, so the size change is carried by travel and reads as altitude and
+distance. The target of the turn is a point the mission names (`lift(x, y)`), the
+first waypoint of a climb-out (`climbOut` lifts toward it), or the middle of the
+battle. The run is flown before any route or station the mission gave; a hull
+given nothing newer holds where its run comes out. A hull held, piloted or blocked
+mid-run is through its lift by time (`LIFT_FALLBACK_SECONDS`), so it can never stay
+at berth size. The factor is a ratio to whatever `HULL_PRESENCE` is when it flies,
+so the ships-of-the-line pass can re-dial flight presence (it is going to 6, which
+puts flight within a few percent of berth size) and nothing jumps.
 
-At flight presence 4 the shrink is to 69% over the lift, about a tenth of a percent
-per frame at 60 frames a second: below a pop, read together with the shadow
-separating and the dust as a ship lifting off its cradle.
+Owner, 2026-10-16, on the first version (a six-second ease where the ship sat):
+the shrinking looked weird and wanted motion, the ships moving ahead and cycling
+around. The lift run is that motion; flight presence is the ships-of-the-line
+pass's dial.
 
 **Rejected.**
 
+- *Ease over a fixed time where the hull stands.* Ships are slow in atmosphere, so
+  the shrink happened in place and read as a hull shrinking on its pad.
 - *Keep the berth size in flight.* The Hounds lift into a fight with two Wolfs that
   arrive at flight presence; two scales in one dogfight break the ladder between
   frigates.
@@ -107,62 +117,76 @@ so slot, nozzle and armour-grid fractions read off the vanilla `.ship` stay wher
 they were. The remaster is the hull's ground-battle art in **both** regimes, so
 detail does not change at liftoff either; the fleet-combat sprite is untouched.
 
-## Black Sluice docking compound
+## Black Sluice: a southern pad field behind the berth gate
 
-The 42 by 33-cell pier cannot hold a fifty-cell cruiser and two escorts. The map
-widens east and the pier becomes the landward apron of a walled **docking compound**:
+The 42 by 33-cell pier cannot hold a fifty-cell cruiser and two escorts, and the
+owner did not want the ships' fight overhead the buildings the marines are
+fighting over (2026-10-16): the pads belong on a southern part of the facility,
+with inaccessible terrain preventing direct access. The map grows to 300 by 232
+and splits in two:
 
-- a **Venture cradle**: a sunken, see-through, unwalkable berth well a few cells
-  larger than the hull, its nose to the east and its climb-out;
-- **two Hound berths** flanking it north and south;
-- **gantries**: boarding arms out over the well to the hulls' flanks, and gantry
-  tower bases on the rim;
-- **fuel and cargo lines**: pipe runs from the fuel side to each berth, cargo stacks,
-  loaders and pallets on the aprons;
-- **service galleries**: sealed walled corridors along the compound, and **pressure
-  vestibules** (doorways) in its walls, because Agreus is airless;
-- **infantry approaches**: the apron from the dispatch house, aisles between the
-  wells, and the galleries as covered routes.
+- the **northern band** is the ground fight, unchanged in layout (customs, the
+  causeway between the settling beds, the galleries, fuel control and its tanks,
+  dispatch on the pier, the service road and its vehicle lock);
+- east of dispatch, the walled **berth yard** (warehouses either side of a
+  concourse, fuel mains, sealed galleries, pressure vestibules) ends in the
+  **berth gate**, a pressure lock through its east wall;
+- a broken, knolled **ridge** runs the width of the map below the band and a **rock
+  massif** fills the south-west; a retaining wall carries the yard's east wall down
+  onto the ridge, so the only way south is the gate and the **berth road** down the
+  east side;
+- the **pad field** below holds the **Venture cradle** and **two Hound berths**,
+  noses west: plain concrete slabs, open to sight and closed to feet, with a painted
+  border, a walkable kerb, hazard-marked tie-downs, floor drains, deck hatches and
+  engine-wash scorch at the sterns (the owner rejected the first version's blue
+  grating), gantry arms from the kerbs to the hulls, a pad shed, a pad-control
+  house and fuel points between the pads.
 
-**Invariants kept.** The three objective sites (customs, fuel control, dispatch)
-keep their footprints and the dispatch house stays the dispatch objective; the
-marked tanks are untouched; the split, Berth Four's hold and the reserves keep
-their triggers; Drent's withdrawal keeps its service road. One defender post moves:
-the four-strong pier prize crew stands watch at the Venture's stern gantry, beside
-the ship it crews, rather than on the open pier; it still holds dispatch after
-Voss's order. The road's gate at the
-old east edge becomes a **tunnel portal** under the compound wall, so its region,
-its distance from the fight and the physical take-off at the gate are unchanged.
-Reserves keep their named ingresses (the service-road gate is the portal mouth; the
-pier stair is the compound's landward vestibule). The duel's staging moves with the
-ships: the rig and Hound posts become berths, and the Wolfs' entry keeps its tuned
-distance from the rig.
+The generator proves the shape: every gantry arm's root is reachable from the
+landing, and with the gate's lock shut nothing in the band reaches the pads.
+
+**Objective semantics.** Unchanged except where stated. Customs, fuel control and
+dispatch keep their footprints (every coordinate moves north by 104 with the band);
+dispatch stays the dispatch house on the pier, and the pads are its southern berths,
+not a site. The marked tanks, the split, Berth Four's hold, the reserves, their
+named ingresses and Drent's service-road withdrawal are unchanged. One post moves:
+the four-strong pier prize crew, which round one stood at the Venture's stern,
+now holds the **berth gate**, eight cells inside the yard's east lock; it still
+holds after Voss's order, so a company that clears the band walks the yard to it.
+
+**The duel.** The ships fight over the southern ground (`BlackSluice.AIRSPACE_TOP`,
+every row below 88). The rig climbs out west over the massif and the Hounds lift
+toward the same first waypoint; the Wolfs enter east of the pads at the tuned
+seventy-seven cells. The ships-of-the-line pass owns the duel's tuning and is
+adding a mission airspace clamp (`HullAirspace`) that Black Sluice will set to
+that rectangle.
 
 ## Acceptance
 
-- The Venture and both Hounds stand in their berths at true scale from the first
-  frame, with infantry beside them, in `createSnapshots -Psnapshot=black-sluice` at
-  1920x1080 / 100% (whole-map overview and a dock close view).
-- On Voss's order they lift without a pop (a frame strip across the lift) and the
-  duel proceeds as before.
+- The Venture and both Hounds stand on their pads at true scale from the first
+  frame in `createSnapshots -Psnapshot=black-sluice` at 1920x1080 / 100%
+  (whole-map overview, pad, stern, Hound and berth-gate close views).
+- On Voss's order they lift on runs, moving off the pads and round before they are
+  at flight scale (a frame strip across the lift), and the duel is flown over the
+  south.
 - Every existing `black-sluice` verdict stays green; any change of objective
   semantics is reported explicitly.
-- A unit test pins the body factor: berth presence, the ease's endpoints and its
-  monotonicity, and the identity case.
-- `createSnapshots -Psnapshot=landed-ships` shows a Venture and both Hounds in the
-  production dock with Greyhook's prize crew at the stern gantry, and the lift as a
-  frame every 1.5 s, independent of which hull the duel flies.
+- Unit tests pin the body factor (endpoints, monotonicity toward flight scale, no
+  jump, the identity) and the lift run (ahead first, the exit leg on the bearing it
+  turned to, a curve rather than a pivot, a minimum radius, progress from nought to
+  one).
+- `createSnapshots -Psnapshot=landed-ships` shows a Venture and both Hounds on the
+  production pads and the lift run as a frame every two seconds, asserting that the
+  hull travelled more than half its flight length before reaching flight scale.
 
 ## State
 
-Built: the berth body and eased lift, the remastered Venture and Hound (P), the
-docking compound, the duel staging in berths, and both suites' evidence (all
-`black-sluice` verdicts green). Waiting on the ships-of-the-line pass: the
+Built: the berth body, the remastered Venture and Hound (P), round two's concrete
+pads, lift run and southern pad field, the duel's staging and climb-out moved
+south, and both suites' evidence. Waiting on the ships-of-the-line pass: the
 production duel still fits the salvage rig in the cradle until its Venture swap
-lands, and that merge must keep the berth staging (`BlackSluiceDuel.stage` berths
-every hull and `withdrawalOrdered` lifts the Hounds) and re-read its tuned Wolf
-entry and climb-out against the cradle, which sits about sixty cells east of the old
-pier post.
+lands; it takes the map, berths, lift run and `AIRSPACE_TOP` from here, and owns
+the Wolf entries, the climb-out tuning at presence 6 and the airspace clamp.
 
 ## Plan
 
@@ -170,8 +194,8 @@ pier post.
 2. Up-rez the Venture and Hound (P) through Codex ImageGen; pack and ship.
 3. Warship berth state and body factor; renderer, shadow and dust follow it;
    ground art override for the remastered hulls.
-4. Rebuild the Black Sluice east end as the docking compound; stage the ships in
-   their berths.
+4. Black Sluice's ships on concrete pads in a southern pad field behind a ridge,
+   reached through the berth gate; the lift run; the duel over the south.
 5. Evidence and frames; fold into `air-nouns.md` and the arc docs.
 
 ## Open

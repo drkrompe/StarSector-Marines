@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.ops.battleview;
 
-import com.dillon.starsectormarines.battle.warship.LandedScale;
 import com.dillon.starsectormarines.battle.warship.LowPass;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipAtmosphere;
@@ -66,7 +65,7 @@ final class ShipAtmosphereFx {
         if (lifting(ship)) wash = Math.max(wash, 1f - ship.liftProgress());
         float[] cx = centre(ship);
         float length = ship.lengthCells * ship.bodyScale();
-        float t = Math.max(entry, 0f) + departing + (lifting(ship) ? ship.liftProgress() * LandedScale.LIFT_SECONDS : 0f);
+        float t = Math.max(entry, 0f) + departing + (lifting(ship) ? ship.liftSeconds() : 0f);
         float[] dust = tint.dust();
         if (wash > 0.01f) {
             for (int i = 0; i < WASH_PUFFS; i++) {
@@ -182,7 +181,7 @@ final class ShipAtmosphereFx {
         double rad = Math.toRadians(ship.facingDegrees);
         float nx = (float) -Math.sin(rad);
         float ny = (float) Math.cos(rad);
-        float t = Math.max(entry, 0f) + departing + (lifting(ship) ? ship.liftProgress() * LandedScale.LIFT_SECONDS : 0f);
+        float t = Math.max(entry, 0f) + departing + (lifting(ship) ? ship.liftSeconds() : 0f);
         if (cover > 0.01f) drawWisps(out, cam, cellPx, alpha, ship, tint, soft, cx, nx, ny, cover, t);
         float heat = Math.max(glow, 0.8f * trail);
         if (heat > 0.01f) drawHeat(out, cam, cellPx, alpha, ship, tint, soft, cx, nx, ny, glow, trail);

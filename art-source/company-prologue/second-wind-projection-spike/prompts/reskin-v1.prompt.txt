@@ -1,0 +1,10 @@
+Use case: precise-object-edit / texture reskin of a technical render.
+INPUT 1 is an orthographic PORT-SIDE render of a 3D spacecraft model (bow at left, stern engines at right) on a flat light grey background. INPUT 2 is a material reference only: use its surface finish, never its composition, views, layout or shapes.
+
+Repaint INPUT 1 as the SAME spacecraft with a realistic gritty industrial weathered hull surface. This image will be projected back onto the 3D model as a texture, so geometry must not move:
+- Keep the exact outline, size, position and framing of the ship in the canvas. Do not zoom, crop, shift, rotate, enlarge or shrink it. The ship occupies exactly the same pixels as in INPUT 1.
+- Keep every feature at its exact pixel position and size: every panel edge, seam, step, chamfer, the open rectangular bay with its dark interior, the two cream hatches, the vent grilles, the finned engine band, the turrets and barrels, the dorsal command housing, the grapple arm and winch at the bow. Do not add, remove, merge or move any part. No new turrets, antennas, engines, greebles or protrusions beyond the outline.
+- Reinterpret only the surface: worn chalky cream and faded oxide-orange armour paint, dark gunmetal machinery, welded seams, fasteners, scuffed and chipped plate edges, grime streaks, soot near the engines, a few mismatched repair plates, stencil-free. Keep the colour layout of INPUT 1 (which plates are cream, orange or grey) recognisable.
+- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no directional light, no gradients across large plates.
+- Background: the same plain flat uniform light grey as INPUT 1, edge to edge, with no floor, shadow, vignette, text, labels or border.
+Output: one landscape 16:9 image, same composition as INPUT 1.

@@ -4,7 +4,7 @@ Status: ACTIVE — sponsored paramilitary direction; the first three chapters ar
 
 Written: 2026-10-13
 
-Updated: 2026-10-15 — Rusk as an Eventide cadet; the kit ceiling; two Wolfs against two Hounds over Black Sluice.
+Updated: 2026-10-16 — the Greyhook is Voss's Venture, with Voss aboard, against two Wolfs over the southern pads.
 
 ## Premise, place and cast
 
@@ -70,12 +70,13 @@ by radio. Drent Haulage takes the order and pulls out along the service road; Be
 Four refuses and holds out of grudge. The company watches its own pressure split
 Greyhook. Voss survives and says so in one line; nothing pretends her fleet is gone.
 
-**The family answers overhead.** As Greyhook's salvage rig tries to climb out from
-the pier, escorted by two Hound (P) frigates, the pair of Wolf (H) frigates Rusk's
+**The family answers overhead.** As the *Greyhook*, Voss's Venture with Voss aboard,
+lifts from the pads south of the ridge and tries to climb out, escorted by two Hound
+(P) frigates, the pair of Wolf (H) frigates Rusk's
 family has lent from Citadel Arcadia comes in low over the basin. Two against two,
-they slug it out in atmosphere at close range while the ground fight continues
-beneath them: fast, shielded hunters working as a pack against tough, unshielded
-brawlers defending a ship that cannot defend itself. The player's fleet stays out
+they slug it out in atmosphere over the southern ground while the ground fight
+continues beside them: fast, shielded hunters working as a pack against tough,
+unshielded brawlers defending a heavy ship that cannot turn to fight. The player's fleet stays out
 of the sky; the Wolfs are the family's ships, not the company's support. A pair,
 not one, is the point: it checks two audiences at once, the Eventide house saving
 face over a cadet's failure and the Hegemony showing an Independent colony what it

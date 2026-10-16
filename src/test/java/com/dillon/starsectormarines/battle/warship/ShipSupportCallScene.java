@@ -38,7 +38,7 @@ public final class ShipSupportCallScene implements BehaviorScene {
 
     private static final int WIDTH = 160;
     private static final int HEIGHT = 90;
-    private static final int TICKS = 7200;
+    private static final int TICKS = 10800;
     private static final int CALL_TICK = 30;
     private static final int TARGET_X = 88;
     private static final int TARGET_Y = 45;

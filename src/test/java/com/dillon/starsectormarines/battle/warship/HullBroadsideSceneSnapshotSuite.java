@@ -18,6 +18,7 @@ public final class HullBroadsideSceneSnapshotSuite extends BehaviorSceneSnapshot
 
     /** Close on the eastern hull, the one the GIF is about. */
     @Override protected float[] closeView(String loopId) {
-        return new float[]{HullBroadsideScene.MID_X + 17f, HullBroadsideScene.MID_Y, 44f};
+        return new float[]{HullBroadsideScene.MID_X + 17f * WarshipScale.HULL_PRESENCE / 4f, HullBroadsideScene.MID_Y,
+                44f * WarshipScale.HULL_PRESENCE / 4f};
     }
 }

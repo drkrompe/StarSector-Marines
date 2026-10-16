@@ -33,12 +33,18 @@ import java.util.Set;
  */
 public final class FrigateMissilesScene implements BehaviorScene {
 
-    private static final int WIDTH = 80;
-    private static final int HEIGHT = 68;
-    private static final float WOLF_X = 16f;
-    private static final float TARGET_X = 54f;
-    private static final float MID_Y = 34f;
-    private static final int TICKS = 1500;
+    /**
+     * The scene's ground grows with hull reach, so the gap between gun reach and missile reach stays the same share
+     * of the stand-off at any {@code battle.warship.hullPresence}; laid out at a reach multiplier of two.
+     */
+    private static final float K = WarshipScale.HULL_REACH_MULTIPLIER / 2f;
+    private static final int WIDTH = Math.round(110 * K);
+    private static final int HEIGHT = Math.round(68 * K);
+    private static final float WOLF_X = 16f * K;
+    private static final float TARGET_X = 86f * K;
+    private static final float MID_Y = HEIGHT / 2f;
+    private static final float CROSS = 16f * K;
+    private static final int TICKS = Math.round(1500 * K);
     private static final int FRAME_EVERY = 3;
     /** A split's warheads are aimed at the hull when their centre lies this close to the hull's led centre. */
     private static final float AIMED_CELLS = 1.5f;
@@ -68,8 +74,8 @@ public final class FrigateMissilesScene implements BehaviorScene {
     private Run playOne(String loop, FrameSink frames) throws Exception {
         SceneBuilder builder = SceneBuilder.openGround(WIDTH, HEIGHT).missionCompletion(false);
         // One unarmed bystander a side keeps the battle ticking; the ships are the subject.
-        builder.squad("west-ground").faction(Faction.MARINE).size(4).at(4, 62).unarmed().stationary().done();
-        builder.squad("east-ground").faction(Faction.DEFENDER).size(4).at(76, 62).unarmed().stationary().done();
+        builder.squad("west-ground").faction(Faction.MARINE).size(4).at(4, HEIGHT - 6).unarmed().stationary().done();
+        builder.squad("east-ground").faction(Faction.DEFENDER).size(4).at(WIDTH - 4, HEIGHT - 6).unarmed().stationary().done();
         SceneWorld world = builder.build();
         BattleSimulation sim = world.sim();
         sim.random().setSeed(20261016L);
@@ -81,10 +87,15 @@ public final class FrigateMissilesScene implements BehaviorScene {
         Warship target;
         if (loop.equals("harpoon")) {
             target = ship("brawler", "brawler_Elite", Faction.DEFENDER, TARGET_X, MID_Y, 180f, order);
+            // A Harpoon is a finisher, held for a hull already worn or overloaded; an overloaded Wolf has no point
+            // defence, so the Wolf starts battered and the Harpoons come while its lasers can still answer them.
+            while (!wolf.destroyed() && wolf.hullFraction() > MissilePacing.FINISHER_HULL - 0.05f) {
+                wolf.takeDamage(100f, 100f);
+            }
         } else if (loop.equals("crossing")) {
-            target = ship("hound_d_pirates", "hound_d_pirates_Standard", Faction.DEFENDER, TARGET_X, MID_Y - 16f,
+            target = ship("hound_d_pirates", "hound_d_pirates_Standard", Faction.DEFENDER, TARGET_X, MID_Y - CROSS,
                     180f, order);
-            target.flyRoute(new float[][]{{TARGET_X, MID_Y - 16f}, {TARGET_X, MID_Y + 16f}}, true);
+            target.flyRoute(new float[][]{{TARGET_X, MID_Y - CROSS}, {TARGET_X, MID_Y + CROSS}}, true);
         } else {
             target = ship("hound_d_pirates", "hound_d_pirates_Standard", Faction.DEFENDER, TARGET_X, MID_Y, 180f,
                     order);

@@ -134,7 +134,15 @@ public final class WarshipShipRules {
         for (int i = 0; i < coarse; i++) candidates.add(-180f + i * HEADING_STEP_DEGREES);
         float toTarget = WarshipFacing.bearing(ship.x, ship.y, tx, ty);
         for (Warship.Mount m : ship.mounts()) {
-            if (gunAtHull(m.weapon) && !m.knockedOut()) candidates.add(WarshipFacing.wrap(toTarget - m.slot.angleDegrees()));
+            if (!gunAtHull(m.weapon) || m.knockedOut()) continue;
+            // Laid from the mount, not the hull's centre: a hardpoint set off the centreline misses by its offset.
+            float h = WarshipFacing.wrap(toTarget - m.slot.angleDegrees());
+            for (int k = 0; k < 2; k++) {
+                float mx = Warship.mountX(ship.x, m.slot, h);
+                float my = Warship.mountY(ship.y, m.slot, h);
+                h = WarshipFacing.wrap(WarshipFacing.bearing(mx, my, tx, ty) - m.slot.angleDegrees());
+            }
+            candidates.add(h);
         }
         // A heading's firepower is what still bears a little either side of it, so a heavy hull that settles a degree
         // or two off its order, or a target that drifts, does not take a gun off the target: the broadside rule below
@@ -143,8 +151,7 @@ public final class WarshipShipRules {
         float most = 0f;
         for (int i = 0; i < power.length; i++) {
             float h = candidates.get(i);
-            power[i] = Math.min(firepowerAt(ship, h, tx, ty),
-                    Math.min(firepowerAt(ship, h - SETTLE_DEGREES, tx, ty), firepowerAt(ship, h + SETTLE_DEGREES, tx, ty)));
+            power[i] = settledFirepowerAt(ship, h, tx, ty);
             most = Math.max(most, power[i]);
         }
         if (most <= 0f) {
@@ -158,15 +165,21 @@ public final class WarshipShipRules {
         // nearly abeam: a broadside where the guns allow one, and the nose only where they do not. Between two
         // broadsides it prefers the side with more plate left, so a ship whose engaged side is stripped wears round
         // to fight on its fresh one, as a ship of the line does, rather than taking every round on the same plate.
+        // A bow ship (WarshipDuelHelm.bowFighter) does not trade guns for a beam: of the headings that keep nearly
+        // all of its battery on the target, it takes the one with the most, then the least turn.
         WarshipPlating plating = ship.plating();
+        boolean bow = WarshipDuelHelm.bowFighter(ship);
+        float band = bow ? BOW_SHARE : BROADSIDE_SHARE;
         float best = ship.facingDegrees;
         float bestScore = Float.NEGATIVE_INFINITY;
         for (int i = 0; i < power.length; i++) {
-            if (power[i] < most * BROADSIDE_SHARE) continue;
+            if (power[i] < most * band) continue;
             float h = candidates.get(i);
             float abeam = (float) Math.abs(Math.sin(Math.toRadians(WarshipFacing.wrap(toTarget - h))));
             float turn = Math.abs(WarshipFacing.wrap(h - ship.facingDegrees));
-            float score = abeam - TURN_PENALTY * turn / 180f + POWER_PREFERENCE * power[i] / most
+            float score = bow
+                    ? power[i] / most - TURN_PENALTY * turn / 180f
+                    : abeam - TURN_PENALTY * turn / 180f + POWER_PREFERENCE * power[i] / most
                     + FRESH_SIDE_PREFERENCE * abeam * plateFacing(plating, WarshipFacing.wrap(toTarget - h));
             if (score > bestScore) {
                 best = h;
@@ -195,14 +208,46 @@ public final class WarshipShipRules {
         return plating.plateLeft(side > 0f ? WarshipPlating.Section.PORT : WarshipPlating.Section.STARBOARD);
     }
 
-    /** A heading that brings at least this share of the most anti-ship firepower to bear may be chosen for a broadside. */
-    static final float BROADSIDE_SHARE = 0.85f;
+    /**
+     * A heading that brings at least this share of the most anti-ship firepower to bear may be chosen for a
+     * broadside. A ship of the line gives up some of its bow guns to lay its side on the target; a ship that cannot
+     * keep this much abeam is a bow ship.
+     */
+    static final float BROADSIDE_SHARE = 0.6f;
+    /** A bow ship keeps headings with at least this share of its most firepower on the target. */
+    static final float BOW_SHARE = 0.85f;
     /** How much laying the target fully abeam is worth against a half-circle of turning. */
     static final float TURN_PENALTY = 0.15f;
-    /** How far either side of a heading its guns must still bear for the heading to count their firepower. */
+    /**
+     * How far either side of a heading its guns must still bear for the heading to count their firepower: this, or
+     * a quarter of the mount's own arc where that is narrower, so a hardpoint laid on the target still counts.
+     */
     static final float SETTLE_DEGREES = 2f;
     /** How much the last of the firepower inside the broadside band is worth against laying the target abeam. */
     static final float POWER_PREFERENCE = 0.5f;
+
+    /**
+     * {@link #firepowerAt}, counting a gun only if it also bears its settle either side of {@code heading}
+     * ({@link #SETTLE_DEGREES}, or a quarter of its arc where that is narrower).
+     */
+    static float settledFirepowerAt(Warship ship, float heading, float tx, float ty) {
+        float total = 0f;
+        for (Warship.Mount m : ship.mounts()) {
+            if (!gunAtHull(m.weapon) || m.knockedOut()) continue;
+            float settle = Math.min(SETTLE_DEGREES, 0.25f * m.slot.arcDegrees());
+            if (bearsAt(ship, m, heading, tx, ty) && bearsAt(ship, m, heading - settle, tx, ty)
+                    && bearsAt(ship, m, heading + settle, tx, ty)) {
+                total += firepower(m.weapon);
+            }
+        }
+        return total;
+    }
+
+    private static boolean bearsAt(Warship ship, Warship.Mount m, float heading, float tx, float ty) {
+        float mx = Warship.mountX(ship.x, m.slot, heading);
+        float my = Warship.mountY(ship.y, m.slot, heading);
+        return Warship.bears(m, heading, mx, my, tx, ty, UNBOUNDED_REACH);
+    }
 
     static float firepowerAt(Warship ship, float heading, float tx, float ty) {
         float total = 0f;

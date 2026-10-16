@@ -1839,8 +1839,8 @@ public final class BattleSetup {
      * Black Sluice, the chapter-five foothold. Greyhook's groups are the finite authored table in
      * {@link SmallWarForces}; holders and the custody party are the employer's. {@code houseCustody}
      * names who walks the handover (Rusk's custodians or the joint party); it changes no strength.
-     * The duel overhead ({@link BlackSluiceDuel}) is installed: Greyhook's rig and escorts over the pier
-     * from the start, and two lent Wolf (H) once Voss orders the withdrawal.
+     * The duel overhead ({@link BlackSluiceDuel}) is installed: Greyhook's rig and escorts on their berths
+     * south of the ridge from the start, and two lent Wolf (H) once Voss orders the withdrawal.
      */
     public static BattleSimulation createSmallWar(long seed, List<ShuttleAssignment> manifest, TargetProfile profile, boolean houseCustody) {
         return createSmallWar(seed, manifest, profile, houseCustody, true);
@@ -1895,7 +1895,7 @@ public final class BattleSetup {
         List<Integer> holders = new ArrayList<>();
         for (int duty = 0; duty < 3; duty++) {
             int squad = sim.mintSquad(Faction.ALLY, UnitType.MILITIA);
-            for (int[] cell : pickSpawnCluster(map.grid, 34 + 4 * duty, 52, 4))
+            for (int[] cell : pickSpawnCluster(map.grid, 34 + 4 * duty, BlackSluice.LANDING_Y - 7, 4))
                 sim.spawn(makeOpeningMilitia(houseCustody ? "Rusk estate guard" : "Black Sluice constable", Faction.ALLY, cell[0], cell[1], rng)
                         .squad(squad).role(UnitRole.PATROL));
             sim.getSquad(squad).originalSize = 4;
@@ -1903,7 +1903,7 @@ public final class BattleSetup {
             holders.add(squad);
         }
         int custody = sim.mintSquad(Faction.ALLY, UnitType.TECHNICIAN);
-        for (int[] cell : pickSpawnCluster(map.grid, 28, 52, SmallWarProgress.CUSTODIANS))
+        for (int[] cell : pickSpawnCluster(map.grid, 28, BlackSluice.LANDING_Y - 7, SmallWarProgress.CUSTODIANS))
             sim.spawn(new EntitySpec(houseCustody ? "House Rusk appointed custodian" : "Joint custody party member",
                     Faction.ALLY, UnitType.TECHNICIAN, cell[0], cell[1]).squad(custody).role(UnitRole.PATROL));
         sim.getSquad(custody).originalSize = SmallWarProgress.CUSTODIANS;

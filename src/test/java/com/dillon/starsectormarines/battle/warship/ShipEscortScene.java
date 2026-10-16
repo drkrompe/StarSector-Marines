@@ -49,11 +49,11 @@ public final class ShipEscortScene implements BehaviorScene {
 
     private static final int WIDTH = 200;
     /** Tall enough for a screen a capital's half-length and an escort's out on either beam. */
-    private static final int HEIGHT = 110;
+    private static final int HEIGHT = Math.round(160 * WarshipScale.HULL_PRESENCE / 4f);
     private static final int TICKS = 2400;
-    private static final int AUTO_TICKS = 900;
+    private static final int AUTO_TICKS = 1800;
     private static final float LEAD_X = 110f;
-    private static final float LEAD_Y = 55f;
+    private static final float LEAD_Y = HEIGHT / 2f;
     private static final float ESCORT_HOME_X = 70f;
     private static final float ESCORT_HOME_Y = 20f;
     private static final float LEAD_STAY_SECONDS = 25f;
@@ -89,7 +89,7 @@ public final class ShipEscortScene implements BehaviorScene {
         builder.unit("far-marine", Faction.MARINE, UnitType.MARINE, 5, 100);
         builder.unit("far-defender", Faction.DEFENDER, UnitType.MARINE, 195, 6);
         for (int i = 0; i < 4; i++) {
-            builder.unit("edge-" + i, Faction.DEFENDER, UnitType.MARINE, 196 + (i % 2), 63 + i * 3);
+            builder.unit("edge-" + i, Faction.DEFENDER, UnitType.MARINE, 196 + (i % 2), Math.round(LEAD_Y) - 17 + i * 3);
         }
         SceneWorld world = builder.build();
         BattleSimulation sim = world.sim();

@@ -90,6 +90,20 @@ public final class VanillaWeapons {
         }
     }
 
+    /**
+     * The weapon table's {@code primaryRoleStr} column for a weapon ({@code "Finisher"}, {@code "Anti Shield"} and so
+     * on), trimmed; empty when the weapon is unknown or has none.
+     */
+    public static String role(String weaponId) {
+        try {
+            Map<String, String> row = table().get(weaponId);
+            String v = row == null ? null : row.get("primaryRoleStr");
+            return v == null ? "" : v.trim();
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
     private static Map<String, Map<String, String>> table() throws Exception {
         Map<String, Map<String, String>> t = rows;
         if (t == null) {

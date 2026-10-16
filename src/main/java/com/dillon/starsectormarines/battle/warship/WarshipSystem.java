@@ -278,6 +278,9 @@ public final class WarshipSystem {
 
     private final List<HullFireHold> hullFireHolds = new ArrayList<>();
 
+    /** The ground the mission keeps the hull fight over, or {@code null} for the whole map. */
+    private HullAirspace hullAirspace;
+
     /**
      * Holds hull fire for this battle until {@code hold} is released: no ship under {@link ShipFireOrder#AUTO} fires
      * at a hull while any hold is pending. Returns the hold, so the mission can release it by hand.
@@ -286,6 +289,19 @@ public final class WarshipSystem {
         if (hold == null) throw new IllegalArgumentException("a hull-fire hold is needed");
         hullFireHolds.add(hold);
         return hold;
+    }
+
+    /**
+     * Keeps this battle's hull fight over {@code airspace}: ships fighting hulls choose their stations inside it
+     * ({@link HullAirspace}). {@code null} gives the whole map back.
+     */
+    public void keepHullFightOver(HullAirspace airspace) {
+        this.hullAirspace = airspace;
+    }
+
+    /** The airspace the hull fight is kept over on a {@code width} by {@code height} map: the mission's, or the map. */
+    public HullAirspace hullAirspace(float width, float height) {
+        return hullAirspace == null ? HullAirspace.wholeMap(width, height) : hullAirspace.within(width, height);
     }
 
     /** Releases every pending hold named {@code name}; a name nothing holds by is ignored. */
@@ -382,12 +398,13 @@ public final class WarshipSystem {
         tickWrecks(dt, sim);
         shipFire.held(hullFireHeld(sim));
         for (Warship ship : ships) {
+            ship.tickMissileGate(dt);
             doctrine(dt, sim, ship);
             shipFire.chooseTarget(ship, ships);
             duelHelm(sim, ship);
             float entryBefore = ship.entrySeconds();
             ship.addEntrySeconds(dt);
-            ship.addLiftSeconds(dt);
+            ship.addLiftSeconds(dt, 0.5f * sim.getGrid().getWidth(), 0.5f * sim.getGrid().getHeight());
             entryCues(ship, entryBefore);
             if (ship.tickVisit(dt, hostileHullOver(ship))) {
                 // The visit is over: nothing hostile in the air for the dwell, so it leaves the ordinary way.
@@ -761,7 +778,9 @@ public final class WarshipSystem {
         float sx = origin != null ? origin[0] : ship.hasStation() ? ship.stationX() : ship.x;
         float sy = origin != null ? origin[1] : ship.hasStation() ? ship.stationY() : ship.y;
         boolean moved = false;
-        float clear = standoffClearance(marginScale, ship.lengthCells);
+        // The station is where the hull's pivot hovers; its bow or stern may sit a pivot's offset further out.
+        float clear = standoffClearance(marginScale,
+                ship.lengthCells + 2f * (float) Math.hypot(ship.pivotX, ship.pivotY));
         List<CapitalHazard> all = new ArrayList<>();
         if (declared) all.addAll(hazards);
         if (batteries) all.addAll(batteryEnvelopes.values());
@@ -1004,6 +1023,11 @@ public final class WarshipSystem {
 
     /** Chooses the heading an unpiloted ship wants: the one that brings its guns to bear, or along its route. */
     private static void chooseHeading(Warship ship) {
+        if (ship.liftRunning() && Math.hypot(ship.velocityX, ship.velocityY) > 0.05f) {
+            // Off the berth and round the climbing turn, the nose follows the run before anything else claims it.
+            ship.desiredHeading = AirBody.facingToward(ship.velocityX, ship.velocityY);
+            return;
+        }
         List<Warship.Held> held = ship.held();
         boolean bring = !held.isEmpty() && held.get(0).area.bringGunsToBear();
         Warship hull = ship.hullTarget();
@@ -1067,6 +1091,16 @@ public final class WarshipSystem {
      * ({@link WarshipPlating}). NaN for a round with no source.
      */
     boolean strikeHulls(PendingDetonation det, float fromX, float fromY) {
+        return strikeHulls(det, fromX, fromY, null);
+    }
+
+    /**
+     * {@link #strikeHulls(PendingDetonation, float, float)} for a round one hull fired at another, of the game's
+     * {@code damageType}: it meets the shield and the armour as the base game's damage types do
+     * ({@link #shieldMultiplier}, {@link #armourMultiplier}), with the armour rule at the base game's own reduction
+     * rather than the ground's penetration scale. {@code null} is any other round, which keeps that scale.
+     */
+    boolean strikeHulls(PendingDetonation det, float fromX, float fromY, String damageType) {
         boolean reached = false;
         strikeX = Float.NaN;
         strikeY = Float.NaN;
@@ -1082,13 +1116,15 @@ public final class WarshipSystem {
             reached = true;
             if (ship.shieldCoversFrom(fromX, fromY, det.endpointX, det.endpointY)) {
                 // The shield takes the hit as flux; the hull takes nothing.
-                ship.shieldModel().absorb(det.damage, ship.fluxPool());
+                ship.shieldModel().absorb(damageType == null ? det.damage
+                        : det.damage * shieldMultiplier(damageType), ship.fluxPool());
                 if (Float.isNaN(strikeX)) noteShieldStrike(ship, fromX, fromY, det.endpointX, det.endpointY);
                 continue;
             }
             int cell = ship.entryCell(fromX, fromY, det.endpointX, det.endpointY);
             int breachesBefore = ship.plating() == null ? 0 : ship.plating().breachCount();
-            ship.takeHit(cell, det.damage, det.penetration, clock);
+            if (damageType == null) ship.takeHit(cell, det.damage, det.penetration, clock);
+            else ship.takeHit(cell, det.damage * armourMultiplier(damageType), 1f, clock);
             // A gun stands on the plate it was bolted to: a slot holed through takes its mount with it.
             if (ship.plating() != null && ship.plating().breachCount() != breachesBefore) ship.knockOutBreachedMounts();
             if (Float.isNaN(strikeX) && cell >= 0) {
@@ -1185,9 +1221,18 @@ public final class WarshipSystem {
      */
     private static void duelHelm(BattleSimulation sim, Warship ship) {
         Warship target = ship.hullTarget();
-        // An escort with a live lead holds its ring on the threat side and fights from there: interposing is its helm.
+        Warship lead = WarshipEscort.liveLead(ship);
         boolean free = !ship.piloted() && !ship.departing() && !ship.isPassingThrough() && ship.lowPass() == null
-                && ship.remoteOrder() == Warship.RemoteOrder.NONE && WarshipEscort.liveLead(ship) == null;
+                && ship.remoteOrder() == Warship.RemoteOrder.NONE;
+        if (lead != null) {
+            // An escort screens by fighting: with a hull to fight it takes its own duel station, held on a leash to
+            // its charge; with none, its place in the screen line (kept by the posture tick) stands.
+            if (target != null && ship.duelHelm() && free) {
+                float[] at = duelStation(sim, ship, target, lead);
+                ship.stationTo(at[0], at[1]);
+            }
+            return;
+        }
         if (target == null || !ship.duelHelm() || !free) {
             float[] home = ship.duelHome();
             if (home != null) {
@@ -1200,14 +1245,25 @@ public final class WarshipSystem {
             ship.duelHome(ship.hasStation() ? new float[]{ship.stationX(), ship.stationY()}
                     : new float[]{Float.NaN, Float.NaN});
         }
+        float[] at = duelStation(sim, ship, target, null);
+        ship.stationTo(at[0], at[1]);
+    }
+
+    /** The duel station: a bow ship's quiet quarter or a broadside ship's beam, at the standoff law's range. */
+    private static float[] duelStation(BattleSimulation sim, Warship ship, Warship target, Warship lead) {
         float mine = WarshipDuelHelm.reach(ship);
         float theirs = WarshipDuelHelm.reach(target);
         float range = WarshipDuelHelm.preferredRange(mine, theirs, 0.5f * ship.lengthCells, 0.5f * target.lengthCells);
+        HullAirspace airspace = sim.warships().hullAirspace(sim.getGrid().getWidth(), sim.getGrid().getHeight());
         // Which beam a ship dead ahead or astern takes is the hull's own, by its serial, so a pair does not mirror.
-        float[] at = WarshipDuelHelm.station(ship.x, ship.y, target.centerX(), target.centerY(),
-                WarshipEscort.noseBearingDegrees(target), range, ship.serial() % 2 == 0,
-                0.5f * ship.lengthCells, sim.getGrid().getWidth(), sim.getGrid().getHeight());
-        ship.stationTo(at[0], at[1]);
+        float[] at = WarshipDuelHelm.bowFighter(ship)
+                ? WarshipDuelHelm.bowStation(ship, target, range, airspace)
+                : WarshipDuelHelm.station(ship.x, ship.y, target.centerX(), target.centerY(),
+                        WarshipEscort.noseBearingDegrees(target), range, ship.serial() % 2 == 0,
+                        0.5f * ship.lengthCells, airspace);
+        if (lead == null) return at;
+        float[] held = WarshipDuelHelm.leashed(at, lead.centerX(), lead.centerY(), 0.5f * lead.lengthCells + mine);
+        return airspace.clamp(held[0], held[1], WarshipDuelHelm.EDGE_MARGIN_CELLS + 0.5f * ship.lengthCells);
     }
 
     /** Whether a hostile hull is over the battle for {@code ship}: alive and not yet gone, a climbing one included. */
@@ -1348,7 +1404,7 @@ public final class WarshipSystem {
             PendingDetonation landing = shell.landing();
             if (landing == null) continue;
             if (shell.hullOnly()) {
-                boolean struck = strikeHulls(landing, shell.fromX, shell.fromY);
+                boolean struck = strikeHulls(landing, shell.fromX, shell.fromY, hullDamageType(shell.weapon));
                 if (shell.hullTarget() != null) shipFire.noteLanding(struck);
                 if (!struck && shell.straysOnMiss()) {
                     // It passed the hull it was fired at: it carries on and comes down on the ground.
@@ -1421,7 +1477,7 @@ public final class WarshipSystem {
             PendingDetonation det = strike.detonation();
             if (strike.hullTarget() != null) {
                 // A warhead aimed at a hull lands on hulls alone; one that reached none carries on to the ground.
-                boolean struck = strikeHulls(det, strike.releaseX, strike.releaseY);
+                boolean struck = strikeHulls(det, strike.releaseX, strike.releaseY, hullDamageType(strike.weapon));
                 shipFire.noteWarhead(struck);
                 if (!struck) {
                     shells.add(WarshipShipFire.carryOn(strike));
@@ -2066,6 +2122,41 @@ public final class WarshipSystem {
                 /*spawnDustOnWallBreak*/ true,
                 /*friendlyFireImmune*/ false,
                 /*authoredAftermath*/ heavy).asShipGrade();
+    }
+
+    /**
+     * The base game's multiplier on a round's damage against a shield, by damage type: kinetic doubled, high
+     * explosive halved, fragmentation quartered, energy as it is.
+     */
+    static float shieldMultiplier(String damageType) {
+        return switch (damageType == null ? "" : damageType) {
+            case "KINETIC" -> 2f;
+            case "HIGH_EXPLOSIVE" -> 0.5f;
+            case "FRAGMENTATION" -> 0.25f;
+            default -> 1f;
+        };
+    }
+
+    /**
+     * The base game's multiplier on a round's damage against armour, by damage type: high explosive doubled,
+     * kinetic halved, fragmentation quartered, energy as it is. Fed through the armour rule at a penetration of one,
+     * {@code d * d / (d + armour)} is the base game's own armour reduction.
+     */
+    static float armourMultiplier(String damageType) {
+        return switch (damageType == null ? "" : damageType) {
+            case "KINETIC" -> 0.5f;
+            case "HIGH_EXPLOSIVE" -> 2f;
+            case "FRAGMENTATION" -> 0.25f;
+            default -> 1f;
+        };
+    }
+
+    /** The damage type a round of {@code w} strikes with: a carrier's warheads', or the weapon's own. */
+    static String hullDamageType(VanillaWeapon w) {
+        if (w == null) return null;
+        MissileFlightSpec flight = w.flight();
+        if (flight != null && flight.mirv() != null) return flight.mirv().damageType();
+        return w.damageType();
     }
 
     public static float penetration(String damageType) {

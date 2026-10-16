@@ -25,20 +25,20 @@ public final class SmallWarForces {
 
     public static final List<Group> GROUPS = List.of(
             new Group("customs-watch", "Drent Haulage customs watch", Outfit.DRENT_HAULAGE, 4,
-                    58, 69, "customs block", Commitment.AT_START, -1, SplitSide.WITHDRAWS),
+                    58, 173, "customs block", Commitment.AT_START, -1, SplitSide.WITHDRAWS),
             new Group("road-crew", "Drent Haulage transfer-road crew", Outfit.DRENT_HAULAGE, 4,
-                    116, 60, "causeway at the support gun", Commitment.AT_START, -1, SplitSide.WITHDRAWS),
+                    116, 164, "causeway at the support gun", Commitment.AT_START, -1, SplitSide.WITHDRAWS),
             new Group("fuel-crew", "Drent Haulage fuel crew", Outfit.DRENT_HAULAGE, 4,
-                    123, 70, "fuel-control house", Commitment.AT_START, -1, SplitSide.WITHDRAWS),
+                    123, 174, "fuel-control house", Commitment.AT_START, -1, SplitSide.WITHDRAWS),
             new Group("service-picket", "Drent Haulage service-road picket", Outfit.DRENT_HAULAGE, 4,
-                    150, 23, "service road", Commitment.AT_START, -1, SplitSide.WITHDRAWS),
+                    150, 127, "service road", Commitment.AT_START, -1, SplitSide.WITHDRAWS),
             new Group("dispatch-hold", "Berth Four dispatch hold", Outfit.BERTH_FOUR, 6,
-                    166, 56, "dispatch house", Commitment.AT_START, -1, SplitSide.HOLDS),
+                    166, 160, "dispatch house", Commitment.AT_START, -1, SplitSide.HOLDS),
             new Group("prize-crew-gate", "Prize crew, dispatch gate", Outfit.PRIZE_CREW, 4,
-                    155, 60, "dispatch gate", Commitment.AT_START, -1, SplitSide.WITHDRAWS),
-            // The pier crew stand watch at the Venture's stern gantry in the docking compound, beside the prize ship.
+                    155, 164, "dispatch gate", Commitment.AT_START, -1, SplitSide.WITHDRAWS),
+            // The pier crew hold the berth gate at the end of the berth yard: the one way down to the prize ship.
             new Group("prize-crew-pier", "Prize crew, pier", Outfit.PRIZE_CREW, 4,
-                    205, 65, "Venture's stern gantry", Commitment.AT_START, -1, SplitSide.HOLDS),
+                    BlackSluice.GATE_X - 8, BlackSluice.GATE_Y, "berth gate", Commitment.AT_START, -1, SplitSide.HOLDS),
             new Group("drent-reserve", "Drent Haulage transfer reserve", Outfit.DRENT_HAULAGE, 4,
                     BlackSluice.SERVICE_INGRESS_X, BlackSluice.SERVICE_INGRESS_Y, "service-road gate",
                     Commitment.CUSTOMS_FALLS, 1, SplitSide.WITHDRAWS),

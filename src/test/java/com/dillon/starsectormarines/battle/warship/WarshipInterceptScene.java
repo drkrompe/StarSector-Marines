@@ -140,10 +140,17 @@ public final class WarshipInterceptScene implements BehaviorScene {
                 verdicts.add(Verdict.of("lands-with-the-boat",
                         t.firstRoundNearLzLanding >= 0 && t.firstRoundNearLzLanding - t.touchdownTick >= -45 && t.firstRoundNearLzLanding - t.touchdownTick <= 30,
                         "first zone round lands at tick " + t.firstRoundNearLzLanding + ", touchdown " + t.touchdownTick));
-                verdicts.add(Verdict.of("fewer-marines-than-the-density-director",
-                        t.marinesAt(checkTick) < density.trace().marinesAt(density.trace().touchdownTick + WATCH_TICKS),
-                        t.marinesAt(checkTick) + " alive against " + density.trace().marinesAt(
-                                density.trace().touchdownTick + WATCH_TICKS) + " five seconds after touchdown"));
+                // Read as marine-seconds on the ground over the five seconds after touchdown rather than the count
+                // left at the end of them: a capital whose nearer guns reach the zone clears it within the window
+                // either way, and the question is whether the timed rounds were there first.
+                int deniedTicks = t.marineTicks(t.touchdownTick, checkTick);
+                int densityTicks = density.trace().marineTicks(density.trace().touchdownTick,
+                        density.trace().touchdownTick + WATCH_TICKS);
+                verdicts.add(Verdict.of("fewer-marines-than-the-density-director", deniedTicks < densityTicks,
+                        String.format(Locale.ROOT, "%.1f marine-seconds on the ground against %.1f in the five seconds "
+                                + "after touchdown (%d alive at the end against %d)", deniedTicks / 30f,
+                                densityTicks / 30f, t.marinesAt(checkTick), density.trace().marinesAt(
+                                        density.trace().touchdownTick + WATCH_TICKS))));
                 verdicts.add(Verdict.of("fewer-marines-than-no-ship", t.marinesAt(checkTick) < none.trace().marinesAt(
                                 none.trace().touchdownTick + WATCH_TICKS),
                         t.marinesAt(checkTick) + " alive against " + none.trace().marinesAt(
@@ -234,6 +241,13 @@ public final class WarshipInterceptScene implements BehaviorScene {
 
         int marinesAt(int tick) {
             return marines[Math.max(0, Math.min(tick, TICKS + 1))];
+        }
+
+        /** Marines alive summed over the ticks from {@code from} up to {@code to}: marine-ticks on the ground. */
+        int marineTicks(int from, int to) {
+            int n = 0;
+            for (int tick = Math.max(0, from); tick < to; tick++) n += marinesAt(tick);
+            return n;
         }
     }
 }

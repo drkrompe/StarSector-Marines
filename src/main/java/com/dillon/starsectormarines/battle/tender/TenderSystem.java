@@ -167,7 +167,7 @@ public final class TenderSystem {
         for (Long id : new ArrayList<>(t.defenders)) {
             if (sim.resolveUnit(id) == 0L) t.lostDefender(id);
         }
-        flight.scan(sim, t.faction(), t.anchorX(), t.anchorY());
+        flight.scan(sim, t.faction(), t.anchorX(), t.anchorY(), t.anchorHalfLengthCells());
         World world = sim.world();
         flight.publishEscort(t.defenders, world);
         flight.trackBay(t.bayX(), t.bayY(), dt);

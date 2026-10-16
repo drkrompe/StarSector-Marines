@@ -22,7 +22,7 @@ import java.util.Map;
 
 /**
  * Slice 2 of the frigate duel ({@code warship-behaviours.md}, ship against ship): the duel helm and the variant's flux fittings. Two Wolf (H) and two
- * Hound (P) start eighty cells apart, far out of reach, under {@link ShipFireOrder#ALL} and nothing else.
+ * Hound (P) start a hundred and twenty cells apart, far out of reach, under {@link ShipFireOrder#ALL} and nothing else.
  *
  * <p>Loops: {@code helm} (the helm flies them: each finds a hull, the outranged Hounds close and the outranging
  * Wolfs hold off between the two reaches and slide) and {@code held} (the same with the helm off: nobody leaves
@@ -32,12 +32,14 @@ import java.util.Map;
  */
 public final class FrigateDuelHelmScene implements BehaviorScene {
 
-    private static final int WIDTH = 120;
-    private static final int HEIGHT = 68;
-    private static final float WOLF_X = 20f;
-    private static final float HOUND_X = 100f;
-    private static final float[] LANES = {26f, 42f};
-    private static final int TICKS = 1800;
+    /** The ground grows with hull reach; laid out at a reach multiplier of two. */
+    private static final float K = WarshipScale.HULL_REACH_MULTIPLIER / 2f;
+    private static final int WIDTH = Math.round(160 * K);
+    private static final int HEIGHT = Math.round(68 * K);
+    private static final float WOLF_X = 20f * K;
+    private static final float HOUND_X = 140f * K;
+    private static final float[] LANES = {26f * K, 42f * K};
+    private static final int TICKS = Math.round(2700 * K);
     private static final int FRAME_EVERY = 6;
     /** A strongest gun must be on its target for at least this share of the ticks the target is in its reach. */
     private static final float ON_TARGET_SHARE = 0.5f;
@@ -113,7 +115,7 @@ public final class FrigateDuelHelmScene implements BehaviorScene {
             boolean houndsFired = t.houndIn == 0 || byWeapon.getOrDefault("chaingun", 0) > 0;
             boolean bothFired = closed && t.wolfIn + t.houndIn > 0 && wolvesFired && houndsFired;
             verdicts.add(Verdict.of("ships-find-each-other-and-fire", bothFired,
-                    String.format(Locale.ROOT, "closest approach %.1f cells from 80; rounds %s", t.closest, byWeapon)));
+                    String.format(Locale.ROOT, "closest approach %.1f cells from 120; rounds %s", t.closest, byWeapon)));
             // A side that never had its target in reach has nothing to measure; at least one side must have.
             boolean wolfOn = t.wolfIn == 0 || t.share(t.wolfOn, t.wolfIn) >= ON_TARGET_SHARE;
             boolean houndOn = t.houndIn == 0 || t.share(t.houndOn, t.houndIn) >= ON_TARGET_SHARE;
@@ -234,7 +236,7 @@ public final class FrigateDuelHelmScene implements BehaviorScene {
             if (strongest == null) return false;
             float[] aim = WarshipShipRules.aimPoint(ship, target);
             return Warship.bears(strongest, ship.facingDegrees, ship.mountX(strongest), ship.mountY(strongest),
-                    aim[0], aim[1]);
+                    aim[0], aim[1], WarshipScale.HULL_REACH_MULTIPLIER);
         }
 
         float share(int on, int in) {

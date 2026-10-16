@@ -1,0 +1,47 @@
+{
+  "cream": {
+    "wrap_seam_ratio_x": 2.143380641937256,
+    "wrap_seam_ratio_y": 2.384230136871338,
+    "edge_quarter_mean_diff_x_0_255": 1.70513916015625,
+    "edge_quarter_mean_diff_y_0_255": 7.5564727783203125,
+    "mean_srgb": [
+      203.4268798828125,
+      182.84133911132812,
+      155.14588928222656
+    ]
+  },
+  "oxide-orange": {
+    "wrap_seam_ratio_x": 1.9249072074890137,
+    "wrap_seam_ratio_y": 2.754819393157959,
+    "edge_quarter_mean_diff_x_0_255": 2.8824450969696045,
+    "edge_quarter_mean_diff_y_0_255": 2.4578704833984375,
+    "mean_srgb": [
+      186.81419372558594,
+      101.9318618774414,
+      54.220035552978516
+    ]
+  },
+  "gunmetal": {
+    "wrap_seam_ratio_x": 1.8724699020385742,
+    "wrap_seam_ratio_y": 1.3563587665557861,
+    "edge_quarter_mean_diff_x_0_255": 2.046931028366089,
+    "edge_quarter_mean_diff_y_0_255": 4.1419525146484375,
+    "mean_srgb": [
+      72.7351303100586,
+      69.08564758300781,
+      66.652099609375
+    ]
+  },
+  "soot-steel": {
+    "wrap_seam_ratio_x": 1.9137428998947144,
+    "wrap_seam_ratio_y": 1.8238074779510498,
+    "edge_quarter_mean_diff_x_0_255": 4.218302249908447,
+    "edge_quarter_mean_diff_y_0_255": 11.705406188964844,
+    "mean_srgb": [
+      94.80842590332031,
+      86.1540298461914,
+      79.97537231445312
+    ]
+  },
+  "method": "ratio = mean |last - first| column (row) / mean |neighbour difference| inside the tile; tile inset 2px from the quadrant edge"
+}

@@ -150,7 +150,9 @@ public record VanillaWeapon(
                 number(row, "range", 0f),
                 Math.max(1, (int) number(row, "burst size", 1f)),
                 number(row, "burst delay", 0f),
-                number(row, "chargedown", 1f),
+                // A shot cycles through its charge-up and its charge-down: a Pulse Laser charges a third of a second
+                // and has no charge-down, so it fires three times a second, not at whatever floor a caller sets.
+                number(row, "chargeup", 0f) + number(row, "chargedown", 1f),
                 number(row, "proj speed", 600f),
                 number(row, "min spread", 0f),
                 number(row, "turn rate", 0f),
