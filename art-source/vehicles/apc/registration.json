@@ -1,0 +1,9 @@
+{
+  "sourceSize": [2048, 768],
+  "outputSize": [1536, 576],
+  "scale": 0.6666666666666666,
+  "frames": [
+    {"sourceRect": [0, 0, 1200, 768], "sourceCenter": [603, 375], "targetCenter": [384, 288], "sourceBearing": [530, 375]},
+    {"sourceRect": [1200, 0, 848, 768], "sourceCenter": [1774, 394], "targetCenter": [1152, 288], "sourceMuzzles": [[1303, 303], [1303, 485]]}
+  ]
+}

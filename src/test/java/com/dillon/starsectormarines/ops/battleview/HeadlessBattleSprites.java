@@ -151,7 +151,10 @@ final class HeadlessBattleSprites extends BattleSprites {
         natureFrames = slice(TileManifest.NATURE_SHEET);
         loadInfantry();
         loadHulls();
-        for (VehicleType type : VehicleType.values()) vehicles.put(type, new UnitSpriteCache(sprite(type.spritePath), slice(type.spritePath)));
+        for (VehicleType type : VehicleType.values()) {
+            vehicles.put(type, new UnitSpriteCache(sprite(type.spritePath),
+                    type.registeredSpriteFrames(slice(type.spritePath))));
+        }
         for (var structure : TurretCatalogRegistry.installed().structures()) {
             loadWholeSprite(turretBases, structure.id, structure.mount.spritePath);
             loadWholeSprite(turretBarrels, structure.id, structure.mount.recoilSpritePath);
