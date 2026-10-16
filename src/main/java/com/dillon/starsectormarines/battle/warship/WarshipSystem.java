@@ -388,6 +388,7 @@ public final class WarshipSystem {
             duelHelm(sim, ship);
             float entryBefore = ship.entrySeconds();
             ship.addEntrySeconds(dt);
+            ship.addLiftSeconds(dt);
             entryCues(ship, entryBefore);
             if (ship.tickVisit(dt, hostileHullOver(ship))) {
                 // The visit is over: nothing hostile in the air for the dwell, so it leaves the ordinary way.

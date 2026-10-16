@@ -16,6 +16,8 @@ All commands below run from the root of the session worktree required by
 | Talon Two (`TALON TWO / WAYLINE AIR`) | `air_comms` | −1 semitone; tempo unchanged |
 | Infantry Kestrel Two and ordinary radio transmissions | `comms` | Original pitch and tempo |
 | Clean dialogue exchanges | `dialogue` | Original pitch and tempo; loudness matching |
+| Jangala Approach, Hegemony traffic control (`jangala_arrival_hail_*`) | `orbital_comms` | Original pitch and tempo |
+| Castle on the open cabin intercom in the same exchange | `comms` | Original pitch and tempo |
 
 Talon Two currently uses Liam (`TX3LPaxmHKxFdv7VOQHJ`), also used by infantry
 Kestrel Two. Retain the source voice, delivery direction and per-line metadata
@@ -62,6 +64,27 @@ highpass=f=280:p=2,lowpass=f=3600:p=2,acompressor=threshold=0.125:ratio=3:attack
 
 This retains original pitch and timing with a wider 280–3600 Hz band and
 gentler compression/saturation. It is the comparison treatment for infantry.
+
+### Orbital traffic control: `orbital_comms`
+
+Proposed 2026-10-16 for the Jangala arrival hail (`storyboard-v3.md`); awaiting
+the owner's audition.
+
+```text
+aformat=channel_layouts=stereo,highpass=f=500:p=2,lowpass=f=2200:p=2,acompressor=threshold=0.05:ratio=8:attack=2:release=60:makeup=3,asoftclip=type=tanh:threshold=0.3:oversample=4,acrusher=bits=10:mode=log:aa=1,aeval='val(0)+0.012*(random(0)*2-1)|val(1)+0.012*(random(1)*2-1)':c=stereo,volume=3,highpass=f=500:p=2,lowpass=f=2200:p=2,alimiter=limit=0.85:level=false:latency=true
+```
+
+A station across orbit rather than a nearby gunship: a 500–2200 Hz band
+(narrower than `air_comms`), harder compression and saturation, a 10-bit
+logarithmic crusher for digital grit, and a constant seeded noise floor. Gain `3`
+makes up the energy the narrow band removes, so treated lines land near
+−19 LUFS, beside Castle's `comms` lines. The second band-pass keeps the grit and
+the noise floor inside the radio band. There is no pitch change.
+
+The noise is written per channel on a fixed stereo layout. A single shared
+`aeval` expression (`c=same`) using `random()` crashes FFmpeg 8.1 on real takes,
+although it passes on a synthetic tone. Squelch is not baked in: key-up and
+key-down bursts are placed by the scene's timeline.
 
 Radio clips with `kind: "ui"` encode as stereo, 44100 Hz, Ogg Vorbis quality 5,
 with artwork and metadata removed (`-vn -map_metadata -1 -ac 2 -ar 44100

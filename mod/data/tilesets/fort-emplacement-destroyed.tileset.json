@@ -1,0 +1,112 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "description": "Collar piece s (destroyed).",
+      "name": "doodad.fort-emplacement-destroyed-s",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "Collar piece n (destroyed).",
+      "name": "doodad.fort-emplacement-destroyed-n",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "Collar piece e (destroyed).",
+      "name": "doodad.fort-emplacement-destroyed-e",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "Collar piece w (destroyed).",
+      "name": "doodad.fort-emplacement-destroyed-w",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "Collar piece inner-se (destroyed).",
+      "name": "doodad.fort-emplacement-destroyed-inner-se",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "Collar piece inner-sw (destroyed).",
+      "name": "doodad.fort-emplacement-destroyed-inner-sw",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "Collar piece inner-ne (destroyed).",
+      "name": "doodad.fort-emplacement-destroyed-inner-ne",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "Collar piece inner-nw (destroyed).",
+      "name": "doodad.fort-emplacement-destroyed-inner-nw",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.1,
+      "col": 0,
+      "cover": "none",
+      "id": "doodad.fort-emplacement-destroyed-s",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.1,
+      "col": 1,
+      "cover": "none",
+      "id": "doodad.fort-emplacement-destroyed-n",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.1,
+      "col": 2,
+      "cover": "none",
+      "id": "doodad.fort-emplacement-destroyed-e",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.1,
+      "col": 3,
+      "cover": "none",
+      "id": "doodad.fort-emplacement-destroyed-w",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.1,
+      "col": 4,
+      "cover": "none",
+      "id": "doodad.fort-emplacement-destroyed-inner-se",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.1,
+      "col": 5,
+      "cover": "none",
+      "id": "doodad.fort-emplacement-destroyed-inner-sw",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.1,
+      "col": 6,
+      "cover": "none",
+      "id": "doodad.fort-emplacement-destroyed-inner-ne",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.1,
+      "col": 7,
+      "cover": "none",
+      "id": "doodad.fort-emplacement-destroyed-inner-nw",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/doodads/fort-emplacement-destroyed.png"
+}

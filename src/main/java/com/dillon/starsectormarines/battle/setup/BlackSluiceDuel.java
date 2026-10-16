@@ -35,19 +35,24 @@ public final class BlackSluiceDuel implements SmallWarDuel {
     static final String GREYHOOK_HULL = "venture", GREYHOOK_VARIANT = "venture_Greyhook";
     /** Rusk's Wolfs and their fitting. */
     static final String WOLF_HULL = "wolf_hegemony", WOLF_VARIANT = "wolf_hegemony_Rusk";
-    /** Where the Greyhook stands over the pier, and where her escorts stand off her landward flanks. */
-    static final float RIG_X = 172f, RIG_Y = 56f;
-    static final float[][] HOUND_POSTS = {{148f, 36f}, {148f, 76f}};
+    /**
+     * Where the Greyhook and her escorts sit: landed in the docking compound at true scale
+     * ({@code landed-ships-true-scale.md}), the Greyhook in the cradle and a Hound in each berth beside it. They lift
+     * when Voss orders the withdrawal, and their bodies ease to flight scale as they climb.
+     */
+    static final float RIG_X = BlackSluice.VENTURE_CRADLE.x(), RIG_Y = BlackSluice.VENTURE_CRADLE.y();
+    static final List<BlackSluice.Berth> HOUND_BERTHS = BlackSluice.HOUND_BERTHS;
     /**
      * Where the Wolfs drop through the cloud deck: inland of the pier, over the company's side of the basin, about
      * half a minute's run at atmospheric speed from where the Greyhook's guns begin to reach.
      */
-    static final float[][] WOLF_ENTRIES = {{80f, 30f}, {80f, 86f}};
+    static final float[][] WOLF_ENTRIES = {{RIG_X - 92f, RIG_Y - 26f}, {RIG_X - 92f, RIG_Y + 30f}};
     /**
-     * The Greyhook's way out: she comes off the pier southward and works along the coast before she can climb away
-     * over the east edge. A Venture in atmosphere is slow, so this is a long minute and more under the Wolfs' guns.
+     * The Greyhook's way out: up out of her cradle and south along the compound before she can climb away over the
+     * east edge. A Venture in atmosphere is slow, so this is a long minute and more under the Wolfs' guns.
      */
-    static final float[][] CLIMB_ROUTE = {{168f, 84f}, {182f, 108f}, {BlackSluice.WIDTH + 4f, 116f}};
+    static final float[][] CLIMB_ROUTE = {{RIG_X - 4f, RIG_Y - 28f}, {RIG_X + 10f, RIG_Y - 50f},
+            {BlackSluice.WIDTH + 4f, RIG_Y - 58f}};
     /** Seconds without a hostile hull over the battle before the Wolfs leave. */
     static final float WOLF_DWELL_SECONDS = 10f;
 
@@ -61,11 +66,17 @@ public final class BlackSluiceDuel implements SmallWarDuel {
     public void stage(BattleSimulation sim) {
         if (rig != null) throw new IllegalStateException("The duel is staged once");
         try {
-            rig = quiet(Warship.fit(GREYHOOK_HULL, GREYHOOK_VARIANT, Faction.DEFENDER, RIG_X, RIG_Y, 90f));
-            for (float[] post : HOUND_POSTS) {
-                Warship hound = quiet(Warship.fit("hound_d_pirates", "hound_d_pirates_Standard", Faction.DEFENDER,
-                        post[0], post[1], 90f));
-                hound.escort(rig);
+            rig = Warship.fit(GREYHOOK_HULL, GREYHOOK_VARIANT, Faction.DEFENDER, RIG_X, RIG_Y,
+                    BlackSluice.VENTURE_CRADLE.facing());
+            rig.berth(RIG_X, RIG_Y);
+            rig.limitFlux();
+            rig.groundFire(Warship.GroundFire.HOLD);
+            for (BlackSluice.Berth berth : HOUND_BERTHS) {
+                Warship hound = Warship.fit("hound_d_pirates", "hound_d_pirates_Standard", Faction.DEFENDER,
+                        berth.x(), berth.y(), berth.facing());
+                hound.berth(berth.x(), berth.y());
+                hound.limitFlux();
+                hound.groundFire(Warship.GroundFire.HOLD);
                 hounds.add(hound);
             }
         } catch (Exception e) {
@@ -94,6 +105,11 @@ public final class BlackSluiceDuel implements SmallWarDuel {
         if (ordered || rig == null) return;
         ordered = true;
         rig.climbOut(CLIMB_ROUTE, BlackSluice.WIDTH, BlackSluice.HEIGHT);
+        // The escorts lift out of their berths and take up their screen.
+        for (Warship hound : hounds) {
+            hound.lift();
+            quiet(hound).escort(rig);
+        }
         try {
             for (float[] entry : WOLF_ENTRIES) {
                 Warship wolf = quiet(Warship.fit(WOLF_HULL, WOLF_VARIANT, Faction.ALLY,

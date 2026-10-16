@@ -216,7 +216,7 @@ public final class BatteryFort {
         List<int[]> out = new ArrayList<>();
         for (int i : bastions) {
             int[] b = BASTIONS[i];
-            out.add(BastionSites.pocket(OX + b[0], OY + b[1], b[2], b[3], BATTERY_POCKET_STEPS));
+            out.add(BastionSites.pocketClearOfWall(OX + b[0], OY + b[1], b[2], b[3], BATTERY_POCKET_STEPS, BatteryFort::isWall));
         }
         return List.copyOf(out);
     }
