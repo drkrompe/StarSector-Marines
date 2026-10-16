@@ -13,11 +13,11 @@ from sw_hull import LOWER, MAIN_DECK, armor_patch, citadel, facet, plane_cut, pr
 
 POD_DECK = 16  # nacelles stand proud of the main deck: the bulkiest masses
 
-# Centre aft body (mirror False) and the neck tying each pod to it (True).
 # Vanilla warhound.ship / Cerberus engineSlots: exact XY and width ratios.
 # Four fixed nozzles, two lateral pairs, all at Z=0 and pointed aft (-X).
 ENGINES = [(-41,31,12),(-39,24,8),(-39,-24,8),(-41,-31,12)]
 
+# Centre aft body (mirror False) and the neck tying each pod to it (True).
 BLOCKS = [
     ('Central aft body', False, LOWER,
      [(-28,-12),(4,-12),(4,12),(-28,12)]),
