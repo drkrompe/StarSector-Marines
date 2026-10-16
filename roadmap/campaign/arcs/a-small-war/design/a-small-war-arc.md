@@ -4,7 +4,7 @@ Status: ACTIVE — sponsored paramilitary direction; the first three chapters ar
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — First three chapters and both recovered rewards are ready for live campaign acceptance.
+Updated: 2026-10-15 — story spine: the creditor rhyme with Junction, Voss's escalation, the Chapter 4 turn and the coalition break.
 
 ## Premise, place and cast
 
@@ -25,6 +25,55 @@ This folder keeps those plans alongside orientation. Its design board lists open
 stories; temporary work documents in its stories folder are folded and deleted
 when shipped.
 
+## Story spine
+
+The arc asks what the company becomes when it is paid to keep order where the
+state will not. It is deliberately grey: nobody here is the villain the captain
+was hired to find, and the answer carries into later work.
+
+**The creditor rhyme.** The campaign opens on Jangala with the company breaking
+a creditor's hold on Wayline's road, while the civil authority calls a lien a
+civil matter and stays out. On Agreus the creditor is paying. Rusk's
+repossession is lawful too, and Ko Combine's administration stays out for the same
+reason. The player should recognize the shoe on the other foot. Lenna names it in
+the Chapter 3 debrief: Mara has told her what the company did for Wayline, and
+she asks whose side the lien is on this time.
+
+**Voss answers each loss.** Greyhook is not scenery waiting for the finale. After
+each victory Voss sends one attributable message that names a practical cost to
+her, and her next move follows from her flaw: refusal is a posture that pressure
+will cure.
+
+| After | Voss's answer |
+|---|---|
+| Water Under Seal | A dry note to Rusk, copied to the company: the weir has become expensive. |
+| Limited Warrant | She raises the levy on the crews least able to pay; Nadi's next shortage list shows it. |
+| The Yard's Owners | Her prize crews' counterattack is her reply; afterward she warns the company about Pell. |
+
+**Chapter 4 is the turn.** Daro Pell's Berth Four raid the signing to protect
+their levy, against Voss's wishes, as she warned they would. It is the first time
+the company sees the coalition act against itself. Greyhook mortar fire on the
+commissioning work also puts the coalition's crude powered rigs across the line,
+the kit the company will soon wear in its own rebuilt form. The signed agreement
+shapes the problem, not the difficulty: under House Custody, Rusk's estate guards
+hold one approach on his terms; under the Yard Compact, Lenna's fitters refuse to
+leave the tools and need cover where they work.
+
+**Chapter 5 breaks the coalition.** Mid-battle, Voss orders Black Sluice abandoned
+by radio. Drent Haulage takes the order and pulls out along the service road; Berth
+Four refuses and holds out of grudge. The company watches its own pressure split
+Greyhook. Voss survives and says so in one line; nothing pretends her fleet is gone.
+
+**The ending opens the next question.** Rusk asks what it would take to keep the
+company on Agreus, and the Hegemony auxiliary warrant follows. The company that
+began by standing between a creditor and a cooperative is now the private order
+that a state leans on. That is the hook a later arc can pull.
+
+**Voices stay text for now.** Rusk, Lenna, Voss, Edek, Nadi, Pell and Drent are new
+speakers. The ElevenLabs account is at its voice limit, so their radio and
+correspondence ship as readable text (`voiced: false`). Casting waits until a voice
+slot is free; Castle and Mara keep their existing voices.
+
 ## Entry and chapter sequence
 
 Working Passage's actual Morrow handover receipt gates the optional referral.
@@ -38,8 +87,8 @@ Missing or incompatible Agreus access pauses the work without replacing a world.
 | Water Under Seal | North Weir: escort repair cargo, reopen switching rooms, build a road gun and complete handover | 26,000 credits; sponsorship and Limited Warrant offer, no suit pattern | Implemented; live transition and settlement acceptance remain |
 | Limited Warrant | Low Quay: recover service archive and calibration kit under readable procurement terms | 30,000 credits and Recovered Specter cargo card | Implemented; live learning/fitting and save acceptance remain |
 | The Yard's Owners | Latchkey: secure dispatch, tooling hall and operator entrance for inspection | 36,000 credits and Recovered Arbalest cargo card | Implemented; live inspection, mixed fitting and save acceptance remain |
-| Terms of Protection | Latchkey/Cinder Steps: escort the signed custody party and defend commissioning work | Planned 32,000 credits and Boarding Jack card on either agreement | Planned; Boarding Jack remains proposed |
-| A Small War | Black Sluice: seize fuel-dispatch sites and hand them to local holders | Planned 44,000 credits, completed settlement and later procurement lead | Planned |
+| Terms of Protection | Latchkey/Cinder Steps: deliver the signed custody party and hold the commissioning work against Berth Four's raid | Planned 32,000 credits and Boarding Jack card on either agreement | Planned; Boarding Jack remains proposed |
+| A Small War | Black Sluice: seize fuel-dispatch sites while Greyhook splits, and hand them to local holders | Planned 44,000 credits, completed settlement and the Hegemony auxiliary warrant offer | Planned |
 
 Recommendations are two squads for the first two chapters, then three with
 construction support. Planned fees and equipment are design targets, not

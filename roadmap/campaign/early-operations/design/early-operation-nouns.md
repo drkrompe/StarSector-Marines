@@ -243,7 +243,7 @@ the approach and one supplier technician authenticates the calibration work.
 Company infantry must secure the records office, protect eight uninterrupted
 seconds of work there and in the separate calibration cage, then escort the
 physical, vulnerable calibration carrier to the western apron. The cage also
-requires the living technician. A finite Cask Runner rearguard contests the exit;
+requires the living technician. A finite Drent Haulage rearguard contests the exit;
 killing every raider is not the victory condition. Return requires the archive,
 kit and surviving company presence. Loss of the load, or the technician before
 kit recovery, fails the attempt.

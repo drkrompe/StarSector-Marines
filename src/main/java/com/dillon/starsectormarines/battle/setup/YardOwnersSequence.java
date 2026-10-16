@@ -66,7 +66,7 @@ public final class YardOwnersSequence implements Objective {
             int squad = sim.mintSquad(Faction.DEFENDER,UnitType.MILITIA);
             for (var member : group) sim.spawn(member.squad(squad));
             sim.getSquad(squad).originalSize = group.size();
-            sim.claimSquadCommand(squad,CommandAuthority.MISSION_COMMAND,YardOwnersCommand.issuer(Faction.DEFENDER),"Committed Hookhand counterattack");
+            sim.claimSquadCommand(squad,CommandAuthority.MISSION_COMMAND,YardOwnersCommand.issuer(Faction.DEFENDER),"Committed prize crew counterattack");
         }
         log.emitOnce(sim.getSimTickIndex(),"yard_owners.reserve",StoryBeatLog.Audience.OBSERVER_ONLY);
     }
