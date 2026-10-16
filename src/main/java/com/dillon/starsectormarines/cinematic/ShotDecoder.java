@@ -1,13 +1,8 @@
 package com.dillon.starsectormarines.cinematic;
 
 import org.jcodec.codecs.h264.H264Decoder;
-import org.jcodec.common.DemuxerTrackMeta;
-import org.jcodec.common.io.SeekableByteChannel;
 import org.jcodec.common.model.ColorSpace;
-import org.jcodec.common.model.Packet;
 import org.jcodec.common.model.Picture;
-import org.jcodec.containers.mp4.demuxer.AbstractMP4DemuxerTrack;
-import org.jcodec.containers.mp4.demuxer.MP4Demuxer;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
@@ -44,7 +39,7 @@ public final class ShotDecoder implements AutoCloseable {
     }
 
     private final Callable<byte[]> source;
-    private byte[] bytes;
+    private Mp4Index index;
     private final int frameCount;
     private final int width;
     private final int height;
@@ -127,17 +122,15 @@ public final class ShotDecoder implements AutoCloseable {
         for (Thread t : threads) t.interrupt();
         synchronized (lock) {
             Arrays.fill(slots, null);
-            bytes = null;
+            index = null;
             pool.clear();
         }
     }
 
     private void work() {
-        try (SeekableByteChannel channel = new MemoryChannel(bytes())) {
-            MP4Demuxer demuxer = MP4Demuxer.createMP4Demuxer(channel);
-            AbstractMP4DemuxerTrack track = (AbstractMP4DemuxerTrack) demuxer.getVideoTrack();
-            DemuxerTrackMeta meta = track.getMeta();
-            H264Decoder decoder = H264Decoder.createH264DecoderFromCodecPrivate(meta.getCodecPrivate());
+        try {
+            Mp4Index index = index();
+            H264Decoder decoder = new H264Decoder();
             int alignedHeight = (height + 15) & ~15;
             while (!closed) {
                 int group;
@@ -145,14 +138,13 @@ public final class ShotDecoder implements AutoCloseable {
                     if (nextGroup * GOP >= frameCount) return;
                     group = nextGroup++;
                 }
-                track.gotoFrame(group * GOP);
+                if (!index.isSync(group * GOP)) throw new IOException("group " + group + " does not start on a sync frame");
                 for (int k = 0; k < GOP && group * GOP + k < frameCount && !closed; k++) {
-                    int index = group * GOP + k;
-                    Packet packet = track.nextFrame();
-                    if (packet == null) throw new IOException("video ends at frame " + index + " of " + frameCount);
+                    int frameNumber = group * GOP + k;
+                    if (frameNumber >= index.frames()) throw new IOException("video ends at frame " + frameNumber + " of " + frameCount);
                     byte[][] target = acquire(width, alignedHeight);
-                    Picture picture = decoder.decodeFrame(packet.getData(), target);
-                    publish(index, new Frame(picture.getData(), picture.getWidth(), picture.getWidth() / 2));
+                    Picture picture = decoder.decodeFrame(index.annexB(frameNumber), target);
+                    publish(frameNumber, new Frame(picture.getData(), picture.getWidth(), picture.getWidth() / 2));
                 }
             }
         } catch (InterruptedException interrupted) {
@@ -167,10 +159,10 @@ public final class ShotDecoder implements AutoCloseable {
         }
     }
 
-    private byte[] bytes() throws Exception {
+    private Mp4Index index() throws Exception {
         synchronized (this) {
-            if (bytes == null) bytes = source.call();
-            return bytes;
+            if (index == null) index = Mp4Index.parse(source.call());
+            return index;
         }
     }
 
