@@ -32,7 +32,7 @@
       "catalog": {
         "displayName": "@gearCatalogWeaponTankTwinCannonDisplayName",
         "modelName": "@gearCatalogWeaponTankTwinCannonModelName",
-        "designation": "TBC",
+        "designation": "BC",
         "designationTiered": false
       },
       "sim": {

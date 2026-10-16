@@ -99,7 +99,7 @@ public class ShotFxTest {
             } else if (TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID.equals(structure.id)) {
                 assertTracerTail(fx, weapon, 0.55f, "heavy MG");
             } else if (TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID.equals(structure.id)) {
-                assertTracerTail(fx, weapon, 0.9f, "tank twin cannon");
+                assertTracerTail(fx, weapon, 0.9f, "tank cannon");
             } else {
                 assertNull(fx.tracerTail(), "turret has no authored tracer tail: " + structure.id);
             }

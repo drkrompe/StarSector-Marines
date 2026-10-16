@@ -1,4 +1,4 @@
-# Two 768x768 registered frames. Left-facing hull and twin-cannon turret.
+# Two 768x768 registered frames. Left-facing hull and single-cannon turret.
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 $image = [System.Drawing.Bitmap]::new(1536,768)
@@ -67,13 +67,11 @@ Rect '#747d62' 1104 344 98 80
 Oval '#394438' 1152 341 38 38
 Oval '#91967b' 1157 346 28 28
 Rect '#303f3b' 1122 397 28 16
-# Long paired cannons; source muzzles (844,366),(844,402), no hull attached.
-Rect '#525b49' 1051 351 54 66
-foreach ($y in @(366,402)) {
-    Rect '#454e43' 844 ($y-5) 221 10
-    Rect '#9a9877' 844 ($y-9) 25 18
-    Rect '#777d65' 937 ($y-8) 48 16
-}
+# Short single cannon centered on bearing; tip (940,384), no hull attached.
+Rect '#525b49' 1051 359 54 50
+Rect '#454e43' 940 379 125 10
+Rect '#777d65' 1005 377 24 14
+Rect '#626953' 940 378 12 12
 $g.Dispose()
 $image.Save((Join-Path $PSScriptRoot 'guide.png'),[System.Drawing.Imaging.ImageFormat]::Png)
 $image.Dispose()
