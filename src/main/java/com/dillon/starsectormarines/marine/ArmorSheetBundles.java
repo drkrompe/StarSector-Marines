@@ -55,6 +55,9 @@ final class ArmorSheetBundles {
                     "armor.scout", "armor.combat", "armor.aegis-composite"},
             {SquadEquipmentDoctrines.HEGEMONY_ARBALEST_SECTION_ARMOR, "armor.arbalest-recovered",
                     "armor.pathfinder", "armor.line"},
+            // The same section in approved suits: stage one of the Hegemony auxiliary warrant.
+            {SquadEquipmentDoctrines.HEGEMONY_AUXILIARY_SECTION_ARMOR, "armor.arbalest",
+                    "armor.pathfinder", "armor.line"},
             {SquadEquipmentDoctrines.SALVAGE_ASSISTED_ARMOR, "armor.specter-recovered",
                     "armor.arbalest-recovered", "armor.scout", "armor.militia"}
     };

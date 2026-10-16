@@ -157,6 +157,7 @@ final class CompanyHqViewModel {
                 ? "hq-wings console-action" : "hidden");
         props.put("wingsClasses", SecondhandWingsCampaign.available(rosterScript == null ? null : rosterScript.roster())
                 ? "hq-wings console-action" : "hidden");
+        props.put("auxiliary", AuxiliaryWarrantDesk.hidden());
         props.put("shipAction", openShipTransfer);
         props.put("shipLabel", shipLabel());
         props.put("shipViewAction", openShipView);
@@ -305,6 +306,13 @@ final class CompanyHqViewModel {
         return new CompanyHqViewModel(props);
     }
 
+    /** {@link #preview()} with the Hegemony auxiliary warrant's correspondence open at {@code page}. */
+    static CompanyHqViewModel auxiliaryWarrantPreview(AuxiliaryWarrantDesk.Page page) {
+        Map<String, Object> props = preview().props();
+        props.put("auxiliary", AuxiliaryWarrantDesk.preview(page));
+        return new CompanyHqViewModel(props);
+    }
+
     /** Rich deterministic fixture used by the retained UI evidence suite. */
     static CompanyHqViewModel preview() {
         Map<String, Object> props = new LinkedHashMap<>();
@@ -313,6 +321,7 @@ final class CompanyHqViewModel {
         props.put("openingGuide", OpeningWorkGuide.from(null));
         props.put("firstRefitClasses", "hidden");
         props.put("wingsClasses", "hidden");
+        props.put("auxiliary", AuxiliaryWarrantDesk.hidden());
         props.put("purpose", Strings.get("openingCompanyHqFlagshipBridgeCommandNetwork"));
         props.put("shipAction", (Runnable) () -> { });
         props.put("shipLabel", Strings.get("openingCompanyHqValkyrieChangeShip"));
