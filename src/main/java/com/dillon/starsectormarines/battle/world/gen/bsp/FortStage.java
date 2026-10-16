@@ -729,6 +729,7 @@ public final class FortStage implements GenStage {
             }
         }
         paveGates(ctx, plan, at);
+        if (air) stampAirMounts(ctx, plan, at, fortId);
         dressInterior(ctx, plan, at, lane, air);
         garrisonRooms(ctx, specs, at);
         stampBelt(ctx, plan, at, fortId, ground);
@@ -1050,13 +1051,22 @@ public final class FortStage implements GenStage {
             emitStructure(ctx, plan.coreStructureId(FortAspect.AIR_DEFENCE), at.cell(yard.consoleCentre()[0], yard.consoleCentre()[1]), tag);
             FortRoomFurnisher.furnish(ctx, placed.get(0), yard.room());
         });
+        return placed;
+    }
+
+    /**
+     * The anti-air aspect's missile mounts on the bastions. They are stood after the yard has been dressed, because a
+     * sealed footprint is not walkable and {@code InstallationGround.dress} leaves such cells as they were: mounts
+     * stamped earlier stood on a hard-edged square of undressed ground in the middle of the bastion's floor.
+     */
+    private static void stampAirMounts(GenContext ctx, FortPlan plan, CompoundLayout.Placement at, int fortId) {
+        FortTag tag = new FortTag(fortId, FortAspect.AIR_DEFENCE, at.x(), at.y(), at.pose().quarterTurns());
         for (int[] battery : plan.airBatteries()) {
             emitStructure(ctx, TurretCatalogRegistry.AA_LOCUST_STRUCTURE_ID, at.cell(battery[0], battery[1]), tag);
         }
         for (int[] tower : plan.airTowers()) {
             emitStructure(ctx, TurretCatalogRegistry.AA_SWARMER_STRUCTURE_ID, at.cell(tower[0], tower[1]), tag);
         }
-        return placed;
     }
 
     private static void emitStructure(GenContext ctx, String structureId, int[] centre, FortTag tag) {
