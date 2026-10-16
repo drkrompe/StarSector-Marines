@@ -1,0 +1,27 @@
+{
+  "movie_sha256": "cc3a50ebf080cb75cabc03a7972f6c7eba0925682d0d8cab1486348e3517533c",
+  "browser_playback": {
+    "player": "Codex in-app browser on localhost",
+    "rate": 1,
+    "duration_seconds": 12,
+    "presented_frames": 288,
+    "frame_callbacks": 288,
+    "dropped_frames": 0,
+    "completed": true
+  },
+  "cuts_seconds": [
+    4,
+    8
+  ],
+  "findings": [
+    "Forest retains the upward/rightward Atlas lift; accepted farmland continues rightward freight travel.",
+    "Bright green/blue daylight and worn cabin materials connect the three excerpts.",
+    "Closer port structures retain geometry-based parallax and occlusion."
+  ],
+  "limits": [
+    "Forest uses wider, warmer orange/ivory cabin framing; farmland and port use closer grey framing. This remains a visible palette and framing change.",
+    "Cuts skip source travel intervals and do not constitute a continuous twelve-second descent.",
+    "Port is a first textured motion study; repeated sheds, clear buffer and plain cargo props remain.",
+    "Silent review only, with no atmosphere-entry, exterior landing or runtime integration."
+  ]
+}

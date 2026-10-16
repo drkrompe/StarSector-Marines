@@ -14,6 +14,7 @@ This is a review of surfacing and motion, not a finished arrival sequence.
 - [Blockout comparison](review/contact-sheet.jpg)
 - [Editable scene](managed-land-realism.blend) and [scene manifest](scene-manifest.json)
 - [Preceding Atlas lift study](../parallax-window/review/atlas-lift/README.md), retained separately in the earlier painted style
+- [Forest reveal in the matching realistic style](../forest-reveal-realism/README.md) and [three-shot continuity review](../sequence-review/README.md)
 
 The output contains 96 actual evaluations at 24 fps. Output index `i=0..95` maps
 to source frame `240 + 0.5*i` at the original 12 fps, preserving four seconds of

@@ -1,0 +1,51 @@
+{
+  "passed": true,
+  "movie": "jangala-approach-continuity.mp4",
+  "sha256": "cc3a50ebf080cb75cabc03a7972f6c7eba0925682d0d8cab1486348e3517533c",
+  "bytes": 7624158,
+  "dimensions": [
+    1920,
+    1080
+  ],
+  "fps": 24,
+  "frames": 288,
+  "seconds": 12,
+  "audio": false,
+  "full_decode": "FFmpeg -xerror exit 0",
+  "cuts": [
+    {
+      "title": "Forest reveal / Atlas lift",
+      "movie": "../forest-reveal-realism/review/jangala-forest-reveal-realism.mp4",
+      "sha256": "5dd48e721ea17dcf1e9ec9e1a15aac64151c294658a8147a51be118550135fcc",
+      "sequence_start_seconds": 0,
+      "source_frames": [
+        120,
+        167.5
+      ],
+      "mapping": "source_start + 0.5*i, i=0..95; source12fps, output24fps"
+    },
+    {
+      "title": "Managed land / Atlas passage",
+      "movie": "../managed-land-realism/review/jangala-managed-land-realism.mp4",
+      "sha256": "692e4374db2acb7320af1fb277c6fba719af55b897f20be6cb5ce6660a066f64",
+      "sequence_start_seconds": 4,
+      "source_frames": [
+        240,
+        287.5
+      ],
+      "mapping": "source_start + 0.5*i, i=0..95; source12fps, output24fps"
+    },
+    {
+      "title": "Working port abeam",
+      "movie": "../port-approach-realism/review/jangala-port-approach-realism.mp4",
+      "sha256": "9a9a090f4a504df63763d7e2606d5e681c54e6fe61437a7040579a419249c190",
+      "sequence_start_seconds": 8,
+      "source_frames": [
+        400,
+        447.5
+      ],
+      "mapping": "source_start + 0.5*i, i=0..95; source12fps, output24fps"
+    }
+  ],
+  "limits": "Three representative excerpts with time ellipses; no entry, exterior landing, narration or runtime playback. Re-encoded from reviewed H.264 shots."
+}

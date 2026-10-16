@@ -1,0 +1,33 @@
+{
+  "scene_sha256": "0b737777f455809e3127a3895ff201faeb93d397d5f6b66c4de27bc1c20ae8e3",
+  "movie_sha256": "9a9a090f4a504df63763d7e2606d5e681c54e6fe61437a7040579a419249c190",
+  "native_frames_reviewed": [
+    0,
+    48,
+    95
+  ],
+  "native_resolution": [
+    1920,
+    1080
+  ],
+  "browser_playback": {
+    "player": "Codex in-app browser on localhost",
+    "rate": 1,
+    "duration_seconds": 4,
+    "presented_frames": 96,
+    "frame_callbacks": 96,
+    "dropped_frames": 0,
+    "completed": true
+  },
+  "findings": [
+    "Full window scenery coverage at reviewed endpoints and midpoint.",
+    "No missing textures, visible atlas quadrant bleed, detached fixtures or new occlusion defect in sampled frames.",
+    "Corrected ground color and removed distant water overlay eliminate the earlier stretched-canopy and straight-line artifacts."
+  ],
+  "limits": [
+    "Broad cleared buffer and repeated shed family remain early layout choices.",
+    "Abrupt vegetation strip along slab perimeter and plain cargo props need further refinement.",
+    "Main river geometry is retained but effectively obscured in this view; this is not a visible river reveal.",
+    "Playback telemetry and sampled frames do not prove absence of every transient artifact."
+  ]
+}

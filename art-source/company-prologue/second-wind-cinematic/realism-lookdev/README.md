@@ -20,6 +20,10 @@ records the reusable style, parallax and geometry-controlled reskinning workflow
 Both masters were generated with the built-in ImageGen tool, not a CLI image API.
 The review copies use FFmpeg Lanczos resampling for 1080p presentation; this does
 not add native detail. Existing layered Blender scenes and movies remain unchanged.
+The separate [forest reveal derivative](../forest-reveal-realism/README.md) applies
+these masters to layered motion while retaining the Atlas lift. The
+[approach continuity review](../sequence-review/README.md) places it beside the
+managed-land and working-port excerpts.
 
 ## What defines this look
 

@@ -1,0 +1,12 @@
+{
+  "saved_source_derived_motion_max_matrix_error": 0.0,
+  "sample_count": 96,
+  "unchanged_ship_mesh_count": 171,
+  "ship_mesh_vertex_topology_hashes_match": true,
+  "all96_ship_mesh_world_transforms_match": true,
+  "ship_motion_sha256": "2e1f5db1d0f307e57d039dca6e67946a37acc6790d9ee19dd0b9be6e6c80413f",
+  "missing_image_paths": [],
+  "camera_root_atlas_unchanged": true,
+  "format": "source12fps; 96half-frame evaluations delivered24fps",
+  "limits": "Checks retained transform equality and texture availability, not artistic acceptance."
+}

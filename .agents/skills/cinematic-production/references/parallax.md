@@ -66,6 +66,13 @@ contains a river or field where opaque woodland completion is needed, generate
 that missing content or change the layer plan. Judge the composite through the
 whole move rather than treating extraction as automatically faithful.
 
+Preserve existing shoreline masks when replacing ground color. Assigning a new
+material to whole coarse triangles by their center can extend opaque ground
+across water. A camera-facing woodland card can also reach much closer than its
+origin suggests: inspect transformed vertex bounds and clip its lower geometry
+behind the physical bank while retaining UVs. Check distant water and plantation
+proxies separately; an old overlay can draw a straight seam across a new plate.
+
 ## Diagnose jitter before adding shake
 
 Distinguish texture sampling shimmer from surfaces switching in depth. Broad
@@ -126,6 +133,12 @@ Read the relevant implementation and manifest before adapting it:
 - [Managed-land realism study](../../../../art-source/company-prologue/second-wind-cinematic/managed-land-realism/README.md): orthographic ground detail,
   distant canopy layers, geometry-guided cabin materials and a four-second proof
   using the next-scenes camera. Includes retained rejected extraction variants.
+- [Forest reveal realism](../../../../art-source/company-prologue/second-wind-cinematic/forest-reveal-realism/README.md): preserves the existing lift and camera while
+  replacing three canopy depths and the cabin finish. Uses approved-master RGB
+  where registration permits and generated color where hidden scenery needs completion.
+- [Port approach realism](../../../../art-source/company-prologue/second-wind-cinematic/port-approach-realism/README.md): close industrial surfaces mapped onto retained
+  geometry, with separate distant landscape layers. Treat its material atlas as
+  neutral surface art, not a complete camera projection or a seamless texture set.
 
 Layer depths, cloud/traffic speeds, Atlas canvas width, overscan and haze in these
 studies are compositing choices, not canonical geography, hull dimensions or flight

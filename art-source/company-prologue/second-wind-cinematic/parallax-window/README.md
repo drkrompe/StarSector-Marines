@@ -11,6 +11,9 @@ plan through managed land, the working port, exterior approach and cradle contac
 The [naturalistic look study](../realism-lookdev/README.md) revises the surface
 direction toward the current campaign stills while preserving bright daylight.
 Its new images are style proofs; this retained movie still uses the earlier paint.
+The [forest reveal realism derivative](../forest-reveal-realism/README.md) now
+applies that direction to this camera and the later Atlas lift, preserving this
+earlier painted study as a motion reference.
 
 ## Motion and rendering method
 
