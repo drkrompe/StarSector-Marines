@@ -8,7 +8,7 @@ matte (`blender/deck_blockout.py -- --masks`) so the table and anything else nea
 than the person covers them as it should.
 
 With one figure, writes <figure>-v2.composite-review.png and a 3x crop around it; with
-several (the default is every card), writes deck-v4.composite-review.png.
+several (the default is every card), writes deck-v<plate>.composite-review.png.
 """
 import json
 import sys
@@ -18,8 +18,8 @@ import numpy as np
 from PIL import Image
 
 HERE = Path(__file__).resolve().parent
-PLATE = "deck-plate-v4.master.png"
-LAYOUT = "deck-guide-v6.layout.json"
+PLATE = "deck-plate-v5.master.png"
+LAYOUT = "deck-guide-v7.layout.json"
 # card, and where its lowest painted pixels sit in metres above the stand's floor: 0 for
 # soles; a seated figure seen from behind shows no feet, so its bottom is the seat.
 CARDS = {
@@ -63,13 +63,18 @@ def place(plate, card, stand, matte, bottom_m):
 def main(names):
     layout = json.loads((HERE / LAYOUT).read_text(encoding="utf-8"))
     plate = Image.open(HERE / PLATE)
+    # ImageGen sometimes returns a pixel short of the guide; the stands are in the guide's frame
+    if list(plate.size) != layout["size"]:
+        print("plate", plate.size, "stretched to the guide's", layout["size"])
+        plate = plate.resize(tuple(layout["size"]), Image.LANCZOS)
     for name in names:
         path, bottom_m = CARDS[name]
         card = Image.open(HERE / path).convert("RGBA")
         matte = Image.open(HERE / "masks" / f"{name}.occluder.png")
         plate, (ox, oy, w, h), scale = place(plate, card, layout["people"][name], matte, bottom_m)
         print(name, "box", ox, oy, w, h, "scale", round(scale, 4))
-    out = HERE / ("deck-v4.composite-review.png" if len(names) > 1 else f"{names[0]}-v2.composite-review.png")
+    whole = PLATE.replace("-plate-", "-").replace(".master.png", ".composite-review.png")
+    out = HERE / (whole if len(names) > 1 else f"{names[0]}-v2.composite-review.png")
     plate.save(out)
     if len(names) > 1:
         return

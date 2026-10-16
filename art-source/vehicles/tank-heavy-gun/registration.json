@@ -1,0 +1,20 @@
+{
+  "outputSize": [3072, 768],
+  "frameCells": 7.789194,
+  "frames": [
+    {"copy": "../../../mod/graphics/battle/vehicles/army-tank.png", "frame": 0,
+     "note": "Live hull, verbatim from the breakthrough sheet (art-source/vehicles/tank master.png, bearing (508,451), scale 0.73)."},
+    {"source": "turret-raw.png", "sourceSize": [1774, 887],
+     "shorten": [[1180, 44], [990, 65]],
+     "alphaFloor": 8,
+     "scale": 0.7, "sourceCenter": [1498, 454], "targetCenter": [1152, 384],
+     "sourceMuzzles": [[1012, 454]]},
+    {"copy": "../../../mod/graphics/battle/vehicles/army-tank.png", "frame": 2,
+     "note": "Wreck hull, verbatim from the breakthrough sheet (art-source/vehicles/tank wreck-master.png, bearing (448,443), scale 0.835)."},
+    {"source": "wreck-raw.png", "sourceSize": [1774, 887],
+     "shorten": [[1105, 25], [995, 30]],
+     "alphaFloor": 8,
+     "scale": 0.855, "sourceCenter": [1344, 447], "targetCenter": [2688, 384],
+     "sourceMuzzles": [[941, 447]]}
+  ]
+}

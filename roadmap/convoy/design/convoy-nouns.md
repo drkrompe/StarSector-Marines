@@ -639,6 +639,18 @@ permanent wreck. The tank-specific emitters expire by 90 seconds. These effects
 use the shared presentation drains and cause no secondary damage, cover,
 concealment or navigation changes.
 
+The tank's two variants each draw from their own sheet with the same four
+registered slots. The heavy-gun tank keeps the breakthrough hull exactly and
+swaps the turret for the same angular housing carrying one long, thick gun with
+a fume-extractor collar and muzzle brake; its ballistic hardpoint follows that
+longer barrel. The dozer breacher is the breakthrough hull with a broad blade on
+push arms ahead of the glacis; its longer footprint frame draws the hull at the
+same on-screen size, so its tread bands are the tank's scaled about the frame
+center. In place of the cannon turret it carries the APC's twin roof MG at the APC's
+own registration, sitting on the empty turret ring. Both keep authored wreck
+frames; the dozer's blade buckles and tears with its hull
+(`art-source/vehicles/tank-heavy-gun/`, `art-source/vehicles/tank-dozer/`).
+
 An industrial freight hauler has no passenger or turret payload; its long chassis
 and slower handling distinguish cargo from the armed escort. Reinforced story
 escorts have their own durability profile rather than changing every ordinary

@@ -1,0 +1,10 @@
+Edit the first reference image (the edit target). It is a strict top-down orthographic sprite of a tracked tank on a transparent background, nose pointing LEFT. In front of the nose a dozer blade and its two push arms and two hydraulic rams are blocked in as flat grey placeholder shapes.
+
+Render ONLY those grey placeholder shapes as a finished heavy steel bulldozer blade assembly, seen exactly from directly above, in the same painted, slightly gritty top-down game-sprite style, lighting and resolution as the tank:
+- the wide moldboard: thick steel plate, its top edge and the reinforcing ribs on its back visible from above, painted the same faded khaki / olive-grey military paint as the tank hull, chipped and worn, with dust, scuffs and rust streaks;
+- the light strip on its leading (left) edge is the cutting edge: scraped bare, polished and scratched steel where it has been ground against rock and rubble;
+- optional subdued, worn yellow-black hazard striping on the two wing ends only, mostly scraped off;
+- the push arms are heavy box-section steel beams in the same paint; the rams are hydraulic cylinders with a dull chrome rod section.
+
+Keep the exact silhouette, position, size and curvature of every grey shape; do not move, extend or resize them. Keep every pixel of the tank itself (tracks, hull, panels, hatch, markings) exactly unchanged. Same top-down camera, no perspective, no tilt.
+True transparent background everywhere outside the tank and blade, including the gaps between the arms and between the blade and the hull. No ground, no drop shadow slab, no border, no text, no smoke.
