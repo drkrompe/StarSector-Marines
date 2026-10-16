@@ -86,7 +86,8 @@ standing between a creditor and a cooperative has made itself useful to the junt
 next door. That is the hook a later arc can pull.
 
 **Kit stays a taste.** A loadout card prescribes all twelve billets of a squad;
-the player picks the card, never the mix. Every armor card this arc awards is a
+the player learns and picks the card, never a suit and never the mix. Building and
+outfitting a whole powered section is beyond anybody without a licence for it. Every armor card this arc awards is a
 section of regular marines with at most four powered billets, worn in recovered,
 tier-III rebuilds. The player tastes powered fighting without wielding it. All-suit
 cards and military patterns belong to the Hegemony auxiliary warrant and later.
@@ -107,17 +108,18 @@ Missing or incompatible Agreus access pauses the work without replacing a world.
 | Chapter | Place and objective | Fee and lasting result | Delivery state |
 |---|---|---|---|
 | Water Under Seal | North Weir: escort repair cargo, reopen switching rooms, build a road gun and complete handover | 26,000 credits; sponsorship and Limited Warrant offer, no suit pattern | Implemented; live transition and settlement acceptance remain |
-| Limited Warrant | Low Quay: recover service archive and calibration kit under readable procurement terms | 30,000 credits and Recovered Specter cargo card | Implemented; live learning/fitting and save acceptance remain |
-| The Yard's Owners | Latchkey: secure dispatch, tooling hall and operator entrance for inspection | 36,000 credits and Recovered Arbalest cargo card | Implemented; live inspection, mixed fitting and save acceptance remain |
-| Terms of Protection | Latchkey/Cinder Steps: deliver the signed custody party and hold the commissioning work against Berth Four's raid | Planned 32,000 credits and Boarding Jack card on either agreement | Planned; Boarding Jack remains proposed |
+| Limited Warrant | Low Quay: recover service archive and calibration kit under readable procurement terms | 30,000 credits and the Tri-Tachyon Specter Section card (two suits in twelve) | Implemented; live learning/fitting and save acceptance remain |
+| The Yard's Owners | Latchkey: secure dispatch, tooling hall and operator entrance for inspection | 36,000 credits and the Salvage-assisted Section card (four suits in twelve) | Implemented; live inspection, mixed fitting and save acceptance remain |
+| Terms of Protection | Latchkey/Cinder Steps: deliver the signed custody party and hold the commissioning work against Berth Four's raid | Planned 32,000 credits and a Boarding Jack section card on either agreement | Planned; Boarding Jack remains proposed |
 | A Small War | Black Sluice: seize fuel-dispatch sites while Greyhook splits, and hand them to local holders | Planned 44,000 credits, completed settlement and the Hegemony auxiliary warrant offer | Planned |
 
 Recommendations are two squads for the first two chapters, then three with
 construction support. Planned fees and equipment are design targets, not
 accepted encounter balance. North Weir opens the warrant offer; Limited Warrant
-victory awards Specter and opens The Yard's Owners. Its protected inspection awards
-Arbalest. Explicit learning of both cards exposes the mixed section; Armory fitting
-remains a separate player action. Inspection signs no yard agreement and opens no
+victory awards the Specter section card and opens The Yard's Owners. Its protected
+inspection awards the Salvage-assisted Section card. Each card is learned
+explicitly and brings its whole section; Armory fitting remains a separate player
+action. Inspection signs no yard agreement and opens no
 fourth chapter.
 
 ## Planned agreement and continuation

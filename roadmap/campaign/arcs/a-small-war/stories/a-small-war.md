@@ -4,7 +4,7 @@ Status: IN PROGRESS — post-Shepherd referral, first three chapters through The
 
 Written: 2026-10-13
 
-Updated: 2026-10-15 — Rusk as an Eventide cadet, the four-in-twelve kit ceiling, and the Chapter 5 frigate duel.
+Updated: 2026-10-15 — rewards are whole-section loadout cards, not learned suits; Rusk as an Eventide cadet; the Chapter 5 frigate duel.
 
 Read `early-operation-nouns.md`, `campaign-nouns.md`, `meta-progression.md`,
 `narrative-nouns.md`, `mission-tier-nouns.md`, `progression-nouns.md`,
@@ -113,7 +113,7 @@ Its readable terms precede acceptance of Limited Warrant:
 The player accepts an identified contract, not an unbounded oath to Rusk. Wording
 and acquired cards make the restricted access tangible. There is no revocable
 software license, equipment lockout, per-suit inventory or new fitting charge.
-Later disagreement can change offered work; already learned patterns remain learned.
+Later disagreement can change offered work; already learned cards remain learned.
 
 ## Chapter and reward schedule
 
@@ -123,10 +123,10 @@ Equipment rewards are guaranteed story cards, separate from random recovery.
 
 | Chapter | Place and tactical promise | Recommended company | Credit fee | Equipment / lasting result |
 | --- | --- | --- | ---: | --- |
-| 1. Water Under Seal | North Weir: escort a repair load and reopen the switching rooms | 2 squads, regular issue sufficient | 26,000 | Rusk's sponsorship and the warrant offer; no suit pattern |
-| 2. Limited Warrant | Low Quay bonded stores: recover the service archive and sealed calibration kit | 2 squads, regular issue sufficient | 30,000 | Recovered Specter card; the first powered assault role |
-| 3. The Yard's Owners | Latchkey: take the dispatch house, tooling hall and safe operator entrance | 3 squads; recovered Specter useful | 36,000 | Recovered Arbalest card; the existing eight-regular/four-suit section becomes available once both cards are learned |
-| 4. Terms of Protection | Latchkey and the Cinder Steps approach: defend the signed handover while technicians commission captured rig tooling | 3 squads; mixed sections recommended | 32,000 | Boarding Jack card, regardless of the chosen yard agreement; agreement ratified only on victory |
+| 1. Water Under Seal | North Weir: escort a repair load and reopen the switching rooms | 2 squads, regular issue sufficient | 26,000 | Rusk's sponsorship and the warrant offer; no powered card |
+| 2. Limited Warrant | Low Quay bonded stores: recover the service archive and sealed calibration kit | 2 squads, regular issue sufficient | 30,000 | Tri-Tachyon Specter Section card: two recovered Specter breachers in twelve |
+| 3. The Yard's Owners | Latchkey: take the dispatch house, tooling hall and safe operator entrance | 3 squads; recovered Specter useful | 36,000 | Salvage-assisted Section card: two Specter breachers and two Arbalest gunners in twelve |
+| 4. Terms of Protection | Latchkey and the Cinder Steps approach: defend the signed handover while technicians commission captured rig tooling | 3 squads; mixed sections recommended | 32,000 | A Boarding Jack section card, regardless of the chosen yard agreement; agreement ratified only on victory |
 | 5. A Small War | Black Sluice on the outer Silt Basin: seize the fuel-dispatch foothold and hand it to local holders | 3 squads plus construction; Hound optional | 44,000 | Completed local settlement, a separate recurring escort offer, and a future procurement introduction; no military suit card |
 
 Base completion fees total **168,000 credits** across the arc. House Custody can
@@ -215,10 +215,11 @@ package fails the attempt; the next commission explicitly funds replacement
 calibration material from the supplier, while the recovered records stay recorded.
 It never pays twice or pretends destroyed stock was intact.
 
-The victory delivers **Recovered Specter** technology. Its patched composite,
-worn actuators and short breach window explain why this is suitable for a small
-security contractor. Castle points to the card and ordinary Armory fitting; no
-marine changes equipment automatically.
+The victory delivers the **Tri-Tachyon Specter Section** card: ten marines in
+ordinary kit and two recovered Specter breachers. The suits' patched composite,
+worn actuators and short breach window explain why a small security contractor may
+field them. Castle points to the card and ordinary Armory fitting; no marine
+changes equipment automatically.
 
 **Rusk, signed warrant:** “The schedule names the patterns. The guarantee is mine.
 If a supplier offers you anything beyond it, you are negotiating with them.”
@@ -256,9 +257,10 @@ still apply. Losing the marked required tooling fails the handover; a replacemen
 inspection/refit is a disclosed new attempt, not a successful pristine-yard report.
 
 The inspection validates a locally rebuilt **Recovered Arbalest** package already
-listed in the warrant. The mission rewards its card. After both recovered roles
-are learned, Castle recommends **Salvage-assisted Section**: eight regular
-billets, two powered assault billets and two powered support billets.
+listed in the warrant, and the mission rewards the **Salvage-assisted Section**
+card that issues it: eight regular billets, two Specter breachers and two Arbalest
+support gunners. The card brings the whole section; nothing has to be learned
+first.
 
 During debrief, show the lease-arbitration order under Combine administration,
 arrears schedule, proposed new leases and Lenna's counterproposal as attributable
@@ -450,9 +452,9 @@ that a state leans on, and a later arc can ask what that costs.
 
 | Pattern | Authored identity / status | Role and initial protection | Capability and limit |
 | --- | --- | --- | --- |
-| Recovered Specter | Existing `armor.specter-recovered`; chapter-2 card `equipment-template:armor.specter-recovered` | Tier III POWER_SUIT ASSAULT; capacity 36, rating 8, movement x0.90 | Existing Service Predictive Breach, 1.5-second window and 18-second cooldown; below military Specter's 55 capacity / 10 rating |
-| Recovered Arbalest | Existing `armor.arbalest-recovered`; chapter-3 card `equipment-template:armor.arbalest-recovered` | Tier III POWER_SUIT SUPPORT; capacity 34, rating 9, movement x0.80 | Existing Service shoulder battery: two finite salvos, six-cell standoff and shared 1.5-second squad cadence; military carries four salvos and 50 capacity / 11 rating |
-| Boarding Jack | Proposed `armor.boarding-jack`; chapter-4 card `equipment-template:armor.boarding-jack` | Tier III POWER_SUIT ASSAULT, pirate provenance; trial capacity 40, rating 6, movement x0.82, incoming accuracy x1.04 | Surplus **Latch Assist**, using existing breacher-assist behavior: trial 2-second window, 22-second cooldown, movement x1.15, directional soak 4 over 100 degrees. No new melee damage, infinite shield or failure lottery. |
+| Recovered Specter | Existing `armor.specter-recovered`; worn in the chapter-2 card `loadout-card:sheet:armor:corporate-specter-section` | Tier III POWER_SUIT ASSAULT; capacity 36, rating 8, movement x0.90 | Existing Service Predictive Breach, 1.5-second window and 18-second cooldown; below military Specter's 55 capacity / 10 rating |
+| Recovered Arbalest | Existing `armor.arbalest-recovered`; worn in the chapter-3 card `loadout-card:sheet:armor:salvage-assisted` | Tier III POWER_SUIT SUPPORT; capacity 34, rating 9, movement x0.80 | Existing Service shoulder battery: two finite salvos, six-cell standoff and shared 1.5-second squad cadence; military carries four salvos and 50 capacity / 11 rating |
+| Boarding Jack | Proposed `armor.boarding-jack`; worn in a proposed chapter-4 section card | Tier III POWER_SUIT ASSAULT, pirate provenance; trial capacity 40, rating 6, movement x0.82, incoming accuracy x1.04 | Surplus **Latch Assist**, using existing breacher-assist behavior: trial 2-second window, 22-second cooldown, movement x1.15, directional soak 4 over 100 degrees. No new melee damage, infinite shield or failure lottery. |
 
 The Boarding Jack is a rebuilt loading/boarding frame: compact pressure helmet,
 welded mismatched plate, visible joint backing, guarded hoses and manual service
@@ -471,13 +473,18 @@ with disciplined fire and appropriate anti-armor equipment should overmatch thes
 rigs in exposed combat. Good terrain and supporting tactics can still matter;
 there is no automatic faction-versus-faction defeat modifier.
 
-The two recovered suits are ordinary Advanced early templates, a tier below their
-military patterns, offered through faction pools like any other. The Agreus rewards
-are ordinary tactic-sheet cards built around them: the Specter section (two powered
-breachers in a section of regular marines) and the Salvage-assisted section (two
-breachers and two support gunners). A new pirate suit follows the same shape: an
-ordinary template plus a light mixed sheet, with its complete pattern, template and
-presentation declaration before it can be awarded.
+**What the player learns is a card.** A loadout card is the technology: the
+knowledge and the licence to build and outfit one particular twelve-person
+section. There is no learning a suit. Outfitting all twelve marines in powered
+armour is simply not something an ordinary contractor in this sector can do
+without a licence that says so, and the company does not have one yet.
+
+The Agreus rewards are section cards built around two recovered suits a tier below
+their military patterns: the Tri-Tachyon Specter Section (two powered breachers
+among ten regular marines) and the Salvage-assisted Section (two breachers and two
+support gunners among eight). A new pirate suit follows the same shape. The
+Boarding Jack arrives inside its own light section card, and its complete pattern
+and presentation must be declared before the card can be awarded.
 
 Each award delivers its validated loadout card through ordinary cargo learning.
 Learning is explicit and permanent; fitting is an explicit free Armory transaction.
@@ -489,16 +496,12 @@ granting another card or silently changing named kit.
 
 **A loadout card prescribes the whole squad.** The player chooses one weapon card
 and one armor card per squad of twelve, and each card fixes what every billet
-receives. The player never picks the mix inside a card. Mixed equipment therefore
-means a card whose billets differ: the Salvage-assisted Section prescribes eight
-regular billets, two powered assault and two powered support, and becomes usable
-once both chapter rewards are learned. Learning a suit template lets it fill the
-powered billets of any card that prescribes them; it never adds powered billets to
-a card.
+receives. The player never picks the mix inside a card, and a card never borrows
+kit from another. Mixed equipment therefore means a card whose billets differ.
 
 **The arc's kit ceiling.** Agreus lets the player taste powered fighting, not
 wield it. Every armor card the arc awards or depends on is a section card with at
-most four powered billets in twelve, filled by recovered tier-III rebuilds.
+most four powered billets in twelve, worn as recovered tier-III rebuilds.
 All-suit cards, which prescribe twelve powered billets, stay behind the Restricted
 tier and the Hegemony auxiliary warrant that this arc's ending sends. If an
 all-suit card is reachable earlier through another source, that is a gap in the shared
@@ -646,12 +649,12 @@ military equipment to compensate for a harder map.
 3. Live-test Limited Warrant's readable terms, named roster/fitted boats, physical
    recovery and first card. Verify leaving the offer, retreat, replacement
    mobilization, duplicate result and save/reload, including an existing completed
-   North Weir save. Learn the cargo card, explicitly fit Tri-Tachyon Specter
-   Protection, then deploy those same named people. Detached battle and reward
+   North Weir save. Learn the cargo card, explicitly fit the Tri-Tachyon Specter
+   Section, then deploy those same named people. Detached battle and reward
    checks do not substitute for live host persistence acceptance.
 4. Live-test The Yard's Owners and its once-only Arbalest card, including losses,
-   replacement attempts and save/reload. Learn both cards and explicitly fit the
-   mixed section to surviving named marines. Detached regular, Specter and earned
+   replacement attempts and save/reload. Learn the card and explicitly fit the
+   Salvage-assisted Section to surviving named marines. Detached regular, Specter and earned
    mixed-roster replays cover inspection and fitting; live host acceptance remains.
    Preserve ordinary lift costs and the unsigned custody agreement.
 5. Build and validate Boarding Jack's data, layered visuals and existing-system

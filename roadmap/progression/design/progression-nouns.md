@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — Cordon/surplus starting issue and both Agreus recovered-suit rewards with explicit mixed fitting.
+Updated: 2026-10-15 — a company learns cards, never suits.
 
 ## Purpose
 
@@ -462,9 +462,12 @@ only the Shock, with real weapons, opens a line held by regulars. `loadoutMatchu
 `trench-vulcans` scenario is the instrument that places a card on this ladder.
 
 **Knowing a tactic sheet is separate from being able to fill its billets.** A
-new company knows only Watchman's Kit. Learning a suit specification can teach
-its explicitly associated formations; it does not teach every faction sheet
-that could substitute that suit. Janus teaches Tri-Tachyon recon, for example,
+new company knows only Watchman's Kit. What a company learns is a card: the
+knowledge and licence to build and outfit one twelve-person section. There is no
+learning a suit. Outfitting all twelve in powered armour is beyond an ordinary
+contractor without a licence for it, so a suit reaches the company only as the
+billets of a card it knows, and learning one card never teaches another sheet that
+uses the same suit. Janus teaches Tri-Tachyon recon, for example,
 without granting Hegemony or Sindrian formations. Wayline's accepted refit teaches
 its own formation, and the alternative becomes usable when its offered technology
 has been learned. These are permanent company permissions, not another consumable
@@ -473,7 +476,7 @@ sheet's own patterns, which learning its card always provides. A role the sheet 
 not cover falls back to its line kit; fallback never establishes knowledge of a sheet.
 
 Older companies retain formations already assigned to squads or saved in profiles,
-along with learned specifications and materialized equipment. Other sheets are
+along with learned cards and materialized equipment. Other sheets are
 inferred only from their explicit acquisition requirements. Reloading never grants
 the whole sheet catalog or refits personnel automatically.
 
