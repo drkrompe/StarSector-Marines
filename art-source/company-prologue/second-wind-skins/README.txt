@@ -59,12 +59,20 @@ the authority for this condition. Medical is not an authored sealed wreck.
 Normal hull repair is distinct from these saved interior restoration receipts.
 
 Visual continuity
-Keep the same three readable exterior scars between states: a patched impact
-cluster above the forward port pod / under the armor collar; a scarred port aft
-shoulder; and scorched waist service covers. These exterior locations are ART
-INTERPRETATION, not an assertion of precise named compartment positions.
-Preserve silhouette, all four turrets, engine count/positions, bay opening and
-horizontal side pod. Earlier studies kept damage to coatings and thin covers;
+Keep the same three readable exterior scars between states. These skins were
+painted on the V2/V3 blockout, whose port side pod no longer exists; on the
+current geometry the scars are: a patched impact cluster on the forward port
+flank around the grapple sponson and the port bow cheek above it; a scarred
+port aft shoulder, the cowl of the port engine pod (dead and capped at
+arrival); and scorched waist service covers (the waist service lines and
+port trunks). These exterior locations are ART INTERPRETATION, not an
+assertion of precise named compartment positions. Preserve silhouette, all
+four turrets, engine count/positions, bay opening and the port grapple.
+Modeled damage geometry for these states now exists:
+../second-wind-geometry/states/derelict/ (the parts-bin hulk before the escape)
+and ../second-wind-geometry/states/patched/ (the arrival condition these skins
+paint: only the starboard pod's two engines work, on the salvaged drive coil;
+the port pod is dead and blanked). See ../second-wind-geometry/README.txt. Earlier studies kept damage to coatings and thin covers;
 the current heavy-arrival direction also deforms local outer armor.
 No active fire, catastrophic pressure holes, new engines, missing guns, launched
 boats, exposed occupied rooms or people. No mapping named interior rooms to

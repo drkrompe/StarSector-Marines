@@ -87,6 +87,48 @@ trained to its slot's angle: the aft pair broadside to port and starboard,
 the forward pair 30 degrees outboard. Turret 3 stands on a taller barbette
 so its resting line fires over the stowed port grapple arm.
 
+Damage states (sw_damage.py, --state derelict|patched)
+The committed guide above is always the clean ship. Two campaign condition
+states are real geometry layered on it after the clean build finishes, so
+the clean renders stay pixel-identical. Damage never moves or removes the
+bays, the four turret slots, the four engine centres, the grapple module or
+the silhouette, and adds no open breach into occupied space, fire or engine.
+Placement is data (tables of basins, strike clusters, spalls, gouges, torn
+and buckled plates) resolved by ray casts against the clean ship, so it
+follows hull edits. Cuts are live Boolean modifiers over each part's own
+bevel; the faces they open are dark spalled backing.
+derelict: nearly a decade tethered in the belt as an unpowered parts bin.
+  Faceted impact basins with crushed-lip shards; clustered small strikes
+  rather than uniform pockmarks; star-shaped spalls through outer armour;
+  gouges dragged across plate seams; deck plates torn away to a jagged
+  remnant over dark backing and stringers; buckled plates; bent heat-sink
+  fins; the sensor mast sheared to a stub with its scanner bar fallen; the
+  port outer engine can smashed; turbopumps stripped off both housing decks
+  and the port pod's feed pipes and access panels gone; the port bay's
+  forward frame jamb bowed aft into the opening. All lamps dead. The four
+  turrets remain (canon: stripped, then reinstalled for the escape).
+patched: derelict plus the emergency work that made the escape, kept to
+  real-world proportions: thin salvage sheet squared to the hull's lines,
+  brake-bent onto the original skin line and fillet-welded all round
+  (crushed lips dressed flat first; the big shoulder crater takes four
+  lapped sheets of one stock); emergency backing in craters left open with
+  flat straps bolted across; bolted pressure patches over small strikes;
+  gouges run full of weld or strapped; straps bolted across buckled plates; the bowed bay frame shored with yellow cargo rail (a
+  sister rail clamped to the coamings and a raking shore off the floor);
+  a split clamp sleeve on the burst service line; a jury whip lashed to the
+  mast stub; external cable runs. Only the starboard pod runs, on a cased
+  salvaged drive coil (copper showing in its cooling windows) clamped on saddles to its housing deck with leads into
+  both cans; its throats glow. The port pod is dead, stripped and capped
+  with bolted blanking plates and strongbacks, its warning lights dark.
+Continuity scars from ../second-wind-skins/README.txt, remapped onto this
+geometry (the old teal side pod no longer exists): the impact cluster on the
+forward port flank sits on the grapple sponson and the port bow cheek above
+it; the scarred port aft shoulder is the dead port pod's cowl; the scorched
+waist service covers are the waist service lines and port trunks.
+Each state writes review renders, a .blend and geometry.json (with a damage
+record) to states/<state>/; compose_guide.py --state <state> writes the
+1920x1080 review sheet states/<state>/second-wind-<state>.reference.png.
+
 Conforming armor plates, reinforcement bands, exposed protected conduits,
 vents, bay buttresses and flank maintenance housings supply structural depth
 for the surface interpretation. Detailed plating and hardware in the ImageGen
@@ -104,6 +146,9 @@ build_reference.py: deterministic scene and camera construction; runs in Blender
   sw_port_module.py: one module per area, so
   separate passes do not edit the same file; sw_kit.py holds shared materials
   and primitives; sw_port_module.py builds the port grapple.
+sw_damage.py: the derelict and patched damage states (see Damage states).
+states/derelict/, states/patched/: review renders, .blend, geometry.json and
+  review sheet per damage state; never the guide sent to ImageGen.
 geometry.json: coordinates and provenance for the proposed layout.
 port-quarter.png, top.png, port-side.png, stern.png: direct Blender guide renders.
 compose_guide.py: Pillow composition of those untouched renders into a guide.
@@ -122,10 +167,15 @@ engineering and a production-ready surface mesh are not represented.
 Rebuild from this folder
 blender --background --factory-startup --python build_reference.py
 For review renders that leave the committed guide alone, append
-  -- --out <dir> --no-save --views port-quarter,bridge-detail
+  -- --out <dir> --no-save --views port-quarter,bridge-detail --res 1920x1080
   --cam NAME:PX,PY,PZ:TX,TY,TZ:ORTHOSCALE
 python compose_guide.py
-The second command uses Pillow. Blender is not a runtime mod dependency.
+Damage states (about 20 s each), then their review sheets:
+blender --background --factory-startup --python build_reference.py -- --state derelict
+blender --background --factory-startup --python build_reference.py -- --state patched
+python compose_guide.py --state derelict
+python compose_guide.py --state patched
+The compose commands use Pillow. Blender is not a runtime mod dependency.
 Do not use scene generation against a user's unsaved live Blender session.
 
 Shipping

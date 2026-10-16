@@ -1,0 +1,17 @@
+Asset: ONE sprite sheet of FOUR separate small civilian spacecraft cutouts for a compositing layer in a grounded, photographic science-fiction cinematic (Starsector, orbit of the busy Hegemony world Jangala). Wide landscape canvas (widest available), highest resolution, true transparent RGBA background.
+
+Arrange exactly four ships in a loose 2x2 grid, each one fully isolated with wide empty transparent space between them (no ship touches or overlaps another or the canvas edge). Every ship is in the SAME pose and lighting so they can be cut out as individual cards.
+
+Identity references (Starsector base-game top-down sprites, hull plan, proportion and livery ONLY; bow at top, engines at bottom in the sprites):
+- Image 1: Tarsus, a medium freighter: twin forward prongs/forks at the bow around a central bay, cylindrical tanks along the body, sandy tan and olive-yellow livery with dark machinery.
+- Image 2: Buffalo, a light cargo hauler: narrow central spine with a short cross-bar at the bow and a wider boxy aft section, rusty red-brown and grey livery.
+- Image 3: Mule, a stubby armed freighter: rounded bulky beige/cream hull, broad shoulders, chunky aft engines.
+Ship four: a small plain civilian shuttle/tender (no reference), compact boxy hull with a short engine pair, faded grey and ochre, clearly smaller than the others.
+
+Pose (identical for all four): seen from ABOVE and slightly BEHIND, the camera high above the orbital plane looking down at about 30-40 degrees; BOW POINTS TO SCREEN RIGHT and slightly away, engines at the LEFT nearest the camera, real perspective foreshortening. Not top-down sprites; real 3D volumes.
+
+Lighting (identical): hard direct sunlight from the UPPER LEFT, crisp highlights on upper surfaces, shadows falling lower right, very faint cool blue fill only on downward faces. Engines running: small hot blue-white glow inside the nozzles, very short soft exhaust glow, no long trails, no lens flares.
+
+Material: photoreal, weathered working civilian spacecraft, faded chipped paint, grime, worn steel, small scale details (hatches, tiny lit windows, antennae). Not toy-like, not low-poly, not cartoon, not glossy CG, not painterly.
+
+Only the four isolated ships on actual transparent empty background, including negative spaces. No stars, planet, station, sky, ground, shadow slab, halo, smoke, grid lines, border, text, labels or logos.
