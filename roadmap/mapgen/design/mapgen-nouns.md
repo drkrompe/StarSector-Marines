@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 - shared working yards include medical receiving and transfer courts, with purpose-furnished supply annexes.
+Updated: 2026-10-15 - shared ground installations organize workshop, armory and utility equipment around working aisles, with matching damage states.
 
 Earlier 2026-10-13 — reversible authored damage layers give Relief a worn checkpoint without changing its landing contract; Relief rear working courts preserve the expanded landing and assembly apron.
 
@@ -1401,6 +1401,16 @@ the main lane continues through the shop to the vehicle entrance. A smaller
 room uses a smaller complete work group rather than shrinking machinery or
 scattering loose props into the remaining cells. Reused equipment retains its
 registered damaged and destroyed states.
+
+Ground armories put an issue counter between the courtyard apron and the
+armourer's work area. Ready-use lockers, a weapon repair bench, ammunition
+cabinets and loaded rifle racks occupy separate runs linked by staff aisles.
+Compact generator houses put a full plant skid opposite switchgear, monitoring
+and spares, with a two-cell service aisle between them. Door approaches take
+precedence over equipment, and small rooms retain complete electrical or repair
+stations instead of miniature machinery. These kits carry full-footprint damage
+states; when a rack or bench collapses, its supported rifles, frame and tools
+collapse with it. Debris preserves the original floor and releases obstruction.
 
 A stage that replaces what an earlier stage built owns everything the earlier one
 recorded, not only what it drew: decorative placements, points of interest,

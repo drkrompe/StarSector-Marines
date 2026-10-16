@@ -184,6 +184,8 @@ public final class RoomFittings {
     public static RoomFitting forInstallation(RoomPurpose purpose) {
         if (purpose == null) return null;
         return switch (purpose) {
+            case ENGINE_ROOM -> new InstallationUtilityFitting();
+            case ARMORY -> new InstallationArmoryFitting();
             case CIVIC_OFFICE -> new InstallationOfficeFitting();
             case PARTS_CAGE -> new InstallationWorkshopFitting();
             case VEHICLE_BAY -> VehicleBayFitting.installation();
