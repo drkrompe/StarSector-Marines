@@ -74,8 +74,10 @@ public final class ParagonSweepScene implements BehaviorScene {
         sim.random().setSeed(20261011L);
         Trace trace = new Trace(world, List.of("low", "mid", "high", "own", "off-area"));
         if (sweep) {
-            Warship ship = Warship.fit("paragon", "paragon_Elite", Faction.MARINE, SHIP_X, SHIP_Y, -90f);
-            ship.order(new WarshipOrder.FireOnArea(AREA_X, AREA_Y, AREA_RADIUS, true));
+            // Broadside on, its starboard lance toward the area: the bow guns of a hull this size would otherwise reach
+            // the area before the lance lights, and the question is the lance.
+            Warship ship = Warship.fit("paragon", "paragon_Elite", Faction.MARINE, SHIP_X, SHIP_Y, 0f);
+            ship.order(new WarshipOrder.FireOnArea(AREA_X, AREA_Y, AREA_RADIUS, false));
             sim.addWarship(ship);
         }
         SceneRun.of(world).observe(trace)

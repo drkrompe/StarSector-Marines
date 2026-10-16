@@ -111,4 +111,28 @@ class WarshipShipRulesTest {
         float my = Warship.mountY(hound.y, chaingun.slot, heading);
         assertTrue(Warship.bears(chaingun, heading, mx, my, 50f, 20f, 10f), "heading " + heading);
     }
+
+    @Test
+    void aShipWhoseEngagedBroadsideIsStrippedWearsRoundToItsFreshSide() throws Exception {
+        Warship ship = Warship.fit("onslaught", "onslaught_Standard", Faction.ALLY, 0f, 0f, 0f);
+        WarshipPlating plating = ship.plating();
+        assertTrue(plating != null, "the capital carries an armour grid");
+        // A hull to port, abeam: the bearing straight off the nose's counter-clockwise side.
+        float tx = -40f;
+        float ty = 0f;
+        float fresh = WarshipShipRules.bestHeading(ship, tx, ty);
+        float toTarget = WarshipFacing.bearing(0f, 0f, tx, ty);
+        assertTrue(Math.sin(Math.toRadians(toTarget - fresh)) > 0.5, "with both sides whole it keeps port engaged: " + fresh);
+        for (int r = 0; r < plating.rows; r++) {
+            for (int c = 0; c < plating.cols; c++) {
+                if (plating.isPlated(c, r) && plating.section(c, r) == WarshipPlating.Section.PORT) {
+                    for (int k = 0; k < 6; k++) plating.hit(r * plating.cols + c, 2000f, 12f, 0f);
+                }
+            }
+        }
+        assertTrue(WarshipShipRules.plateFacing(plating, 90f) < 0.5f, "port is stripped");
+        assertEquals(1f, WarshipShipRules.plateFacing(plating, 0f), 1e-6f, "the nose is not a broadside");
+        float worn = WarshipShipRules.bestHeading(ship, tx, ty);
+        assertTrue(Math.sin(Math.toRadians(toTarget - worn)) < -0.5, "it wears round to fight starboard: " + worn);
+    }
 }

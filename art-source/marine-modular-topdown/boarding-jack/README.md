@@ -23,13 +23,24 @@ No incidental guns, spikes, skulls, chains or machinery promising unowned mechan
   shoulders, inner-hinge pivots `[0.2653,0.3499]` / `[0.7347,0.3499]`, mastering
   scale 1.12, 72x69 helmet and 38x52 foot canvases, so the existing shell pose
   tracks articulate the rig;
-- a deliberately mismatched pair: a larger square welded slab on the left, a smaller
+- a deliberately mismatched pair: a long welded boarding shield on the left, a smaller
   rounded cargo cap on the right;
 - material regions: casing (the only paintable region), bare steel, joint backing,
   hoses, service labels and at most one indicator lamp per part;
-- Latch Assist's actuator/screen assembly is a separate 136x120 carrier layer
-  (`equipment/latch-screen.png`, 0.34 x 0.30 shoulder widths) on the left shoulder,
-  shown while carried like the Specter's emitter and pushed forward while in use.
+- the left part is a **boarding shield**: a long crude welded loading-frame plate on
+  the left hinge with a forward lip (a donor plate) standing ahead of the chest, and the
+  Latch Assist ram block and twin rams bolted to its face. It is wider and longer than
+  the right cap on purpose. The shield turns with the torso: the armor master applies
+  `LayeredArmorFamily.leftShoulderTurnGain` (1.0), so for every degree the shared pose
+  track turns the torso away from neutral the shield turns one more about its hinge.
+  At rest and on the walk (torso at 0 and +/-4 degrees) it sits on the shoulder; in aim,
+  fire and brace (torso about -18 to -35 degrees) the lip sweeps forward across the
+  left of the chest and the helmet's front. The right cap and every other shell keep
+  the authored track;
+- Latch Assist is that shield, not a separate layer. Its existing directional soak
+  (4 over 100 degrees) already belongs to this side of the rig, and a separate screen
+  on top of a shield read as two shields; the system's running halo still marks it
+  while active. Values are unchanged;
 
 `python art-source/marine-modular-topdown/boarding-jack/make_guide.py` writes the
 1920x1080 review sheet `art-source/templates/boarding-jack-guide.png`, one flat
@@ -46,7 +57,7 @@ and retains the untouched result as `raw/<part>.raw.png`. The torso was generate
 first with no reference; every other part passed `raw/torso.raw.png` as the material
 reference so the set shares one paint, wear and finish. All raws came back with real
 alpha: torso 1576x998, left shoulder 1211x1299, right shoulder 1293x1216, helmet
-1281x1227, foot 1072x1467, Latch screen 1335x1178.
+1281x1227, foot 1072x1467; the boarding shield, regenerated against its own guide, 1371x1148.
 
 ## Export
 
@@ -73,9 +84,7 @@ crew-applied red (a slashed chest stripe, a band and tally slashes on the slab, 
 rail panel, a crooked dome stripe, a red-painted instep). The exporter registers
 `raw/pirate-<part>.raw.png` like any raw, composites it over the soot export and then
 takes the default export's alpha, so the pirate paint has exactly the shared
-silhouette. The Latch screen gets the same pass (`pirate-latch-screen`, exported to
-`equipment/latch-screen-pirate.png`); `LayeredArmorFamily.repaintedCarrier` swaps it in
-for the pirate family only, so the issue keeps the rust-orange screen.
+silhouette, the shield included.
 `GreyhookRigIssue` draws raiders in `BOARDING_JACK_PIRATE`
 (`armor-master-boarding-jack-pirate`, the same transforms as the issue master); the
 company's issue keeps `BOARDING_JACK`.

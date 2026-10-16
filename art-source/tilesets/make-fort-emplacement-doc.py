@@ -19,6 +19,12 @@ entries = []
 for slot, (c, r) in slots.items():
     entries.append({'id': 'fort.emplacement.' + slot, 'block': 'fort.emplacement', 'slot': slot, 'included': True,
                     'cover': 'none', 'footprintCells': [1, 1], 'rect': [22 + c * 181, 11 + r * 181, 181, 181]})
+# The same four edge cuts again as doodads (CoverPropDamage family ids), which is what the stamper places.
+for slot in ('n', 'e', 's', 'w'):
+    c, r = slots[slot]
+    entries.append({'id': 'doodad.fort-emplacement-' + slot, 'included': True, 'cover': 'heavy',
+                    'ballisticHalfHeight': 0.5, 'footprintCells': [1, 1],
+                    'rect': [22 + c * 181, 11 + r * 181, 181, 181], 'note': 'Parapet edge piece, exterior ' + slot + '.'})
 for i, (x, note) in enumerate(((770, 'Plain slab with hairline cracks.'),
                                (985, 'Four tie-down plates and a central drain.'),
                                (1200, 'Worn square bearing recess.'))):

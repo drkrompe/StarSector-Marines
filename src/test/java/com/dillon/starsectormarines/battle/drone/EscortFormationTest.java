@@ -69,4 +69,12 @@ class EscortFormationTest {
         float[] b = EscortFormation.station(0f, 0f, 0f, 0, 1, 3f, 0.4f, true);
         assertTrue(distance(a, b[0], b[1]) > 0.2f);
     }
+
+    @Test
+    void aLongerHullPushesTheRingOutByItsExtraLength() {
+        float[] small = EscortFormation.station(0f, 0f, 0f, 0, 1, 3f, 0.2f, true);
+        float[] large = EscortFormation.station(0f, 0f, 0f, 0, 1, 3f, 0.2f, true,
+                EscortFormation.REFERENCE_HALF_LENGTH + 2f);
+        assertEquals(distance(small, 0f, 0f) + 2f, distance(large, 0f, 0f), 1e-3f);
+    }
 }

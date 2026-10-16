@@ -36,7 +36,7 @@ public final class WarshipPointDefenceScene implements BehaviorScene {
     private static final int WIDTH = 160;
     private static final int HEIGHT = 80;
     private static final int TICKS = 600;
-    private static final float HOSTILE_X = 62f;
+    private static final float HOSTILE_X = 50f;
     private static final float HOSTILE_Y = 40f;
     /** Forward is (-sin h, cos h), so the cluster due east is a bearing of -90; the barrage turns the hull on its own. */
     private static final float HOSTILE_HEADING = -90f;
@@ -46,6 +46,12 @@ public final class WarshipPointDefenceScene implements BehaviorScene {
     private static final String[] CLUSTER = {"m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8"};
     private static final int[][] CLUSTER_AT = {
             {98, 38}, {99, 41}, {100, 37}, {101, 40}, {102, 43}, {100, 44}, {103, 38}, {97, 42}};
+
+    /**
+     * An Onslaught carries its point defence in its bow, about this far ahead of its centre at the hull's size, so the
+     * friendly ship hangs south of the marines with its bow over them.
+     */
+    private static final float BOW_PD_CELLS = 14f;
 
     private float controlLandedShare = 1f;
 
@@ -84,7 +90,7 @@ public final class WarshipPointDefenceScene implements BehaviorScene {
         Warship friendly = null;
         if (defended) {
             friendly = Warship.fit("onslaught", "onslaught_Standard", Faction.MARINE,
-                    TARGET_X - 4f, TARGET_Y, 0f);
+                    TARGET_X - 4f, TARGET_Y - BOW_PD_CELLS, 0f);
             sim.addWarship(friendly);
             // The question is the friendly ship's point defence, not the two hulls fighting each other.
             sim.warships().holdHullFire(HullFireHold.untilReleased("scene: point defence, not ship against ship"));

@@ -53,15 +53,14 @@ public enum LayeredArmorFamily {
      * with its own feet, rather than one body plate over the shared infantry boots.
      */
     /**
-     * A painted family's own copy of a shared integral-system carrier, or {@code null} to draw the
-     * shared one. Greyhook's paint carries its own Latch screen so a raider's shield matches its rig.
+     * How far the left shoulder layer turns about its hinge for each degree the torso turns away
+     * from the neutral pose. The Boarding Jack's left slab is a hinged boarding shield that leads
+     * with the torso, so it sweeps across the chest in aim, fire and brace; every other shell keeps
+     * the authored shoulder track unchanged.
      */
-    public String repaintedCarrier(String spritePath) {
-        if (this != BOARDING_JACK_PIRATE || spritePath == null || !spritePath.endsWith(LATCH_SCREEN)) return null;
-        return spritePath.substring(0, spritePath.length() - ".png".length()) + "-pirate.png";
+    public float leftShoulderTurnGain() {
+        return this == BOARDING_JACK || this == BOARDING_JACK_PIRATE ? 1f : 0f;
     }
-
-    private static final String LATCH_SCREEN = "/equipment/latch-screen.png";
 
     public boolean articulatedShoulders() {
         return this == SPECTER_HEAVY || this == ARBALEST_HEAVY || this == BOARDING_JACK

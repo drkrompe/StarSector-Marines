@@ -283,6 +283,27 @@ class UnitLayerLayoutsTest {
         }
     }
 
+    @Test
+    void theBoardingShieldLeadsTheTorsoTurnAndRestsOnTheShoulderOtherwise() throws Exception {
+        UnitLayerLayouts layouts = load();
+        LayerPose idle = layouts.clip("marine-line", "rifle", "idle").sample(0f);
+        LayerPose firing = layouts.clip("marine-line", "rifle", "firing").sample(0f);
+        LayeredArmorFamily jack = LayeredArmorFamily.BOARDING_JACK;
+        LayeredArmorFamily specter = LayeredArmorFamily.SPECTER_HEAVY;
+        // At rest the shield sits on the shoulder exactly as the shared shell track places it.
+        assertEquals(layouts.applyArmorMastering(idle, specter, specter).layer("left-shoulder").angleDegrees(),
+                layouts.applyArmorMastering(idle, jack, jack).layer("left-shoulder").angleDegrees(), 1e-3f);
+        // Firing turns the torso; the shield turns that much further about its hinge.
+        float torsoTurn = firing.layer("body").angleDegrees() - idle.layer("body").angleDegrees();
+        assertNotEquals(0f, torsoTurn);
+        assertEquals(layouts.applyArmorMastering(firing, specter, specter).layer("left-shoulder").angleDegrees() + torsoTurn,
+                layouts.applyArmorMastering(firing, jack, jack).layer("left-shoulder").angleDegrees(), 1e-3f);
+        // The right cap and every other shell keep the authored track.
+        assertEquals(layouts.applyArmorMastering(firing, specter, specter).layer("right-shoulder").angleDegrees(),
+                layouts.applyArmorMastering(firing, jack, jack).layer("right-shoulder").angleDegrees(), 1e-3f);
+        assertEquals(0f, specter.leftShoulderTurnGain());
+    }
+
     private static UnitLayerLayouts load() throws Exception {
         Path path = Path.of("mod/data/appearance/unit-layer-layouts.appearance.json");
         return UnitLayerLayouts.parse(new JSONObject(Files.readString(path)));

@@ -65,8 +65,8 @@ class WarshipFittingTest {
         List<WarshipSlot> slots = WarshipSlot.parse(new JSONObject(HULL));
         WarshipSlot hardpoint = slots.get(0);
         assertTrue(hardpoint.hardpoint());
-        assertEquals(100f * AirScale.METERS_PER_PX, hardpoint.localY(), 1e-5, "forward runs along local Y");
-        assertEquals(-10f * AirScale.METERS_PER_PX, hardpoint.localX(), 1e-5, "port is negative local X");
+        assertEquals(WarshipScale.hullCells(100f), hardpoint.localY(), 1e-5, "forward runs along local Y");
+        assertEquals(WarshipScale.hullCells(-10f), hardpoint.localX(), 1e-5, "port is negative local X");
         assertFalse(slots.get(1).hardpoint());
         assertEquals(220f, slots.get(1).arcDegrees());
     }

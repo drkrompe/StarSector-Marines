@@ -593,7 +593,7 @@ public final class DefensePostStamper implements GenStage {
             int x = cx + offset.x();
             int y = cy + offset.y();
             Doodad concrete = cell.appearance() == DefensePostLayoutDef.BarrierAppearance.CONCRETE
-                    ? TileManifest.emplacementTightParapet(x, y, cell.facing().x(), cell.facing().y(), Doodad.COVER_HEAVY)
+                    ? TileManifest.emplacementTightParapet(x, y, cell.facing().x(), cell.facing().y())
                     : null;
             if (concrete != null) {
                 stampRingDoodad(grid, topology, doodads, x, y, concrete);

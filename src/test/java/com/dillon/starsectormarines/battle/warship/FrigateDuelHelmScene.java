@@ -105,11 +105,20 @@ public final class FrigateDuelHelmScene implements BehaviorScene {
         List<Verdict> verdicts = new ArrayList<>();
         Map<String, Integer> byWeapon = fire.roundsByWeapon();
         if (loop.equals("helm")) {
-            boolean bothFired = byWeapon.getOrDefault("chaingun", 0) > 0 && byWeapon.getOrDefault("pulselaser", 0) > 0;
+            // Mechanics, not who wins: they close from far out of reach to inside the longer reach, and a side whose
+            // strongest gun had its target in reach fired it. Whether the outranged Hounds live long enough to get
+            // their own chainguns into reach against a heavy Wolf holding off is the duel's reading.
+            boolean closed = t.closest <= Math.max(WarshipDuelHelm.reach(t.wolves.get(0)), WarshipDuelHelm.reach(t.hounds.get(0)));
+            boolean wolvesFired = t.wolfIn == 0 || byWeapon.getOrDefault("pulselaser", 0) > 0;
+            boolean houndsFired = t.houndIn == 0 || byWeapon.getOrDefault("chaingun", 0) > 0;
+            boolean bothFired = closed && t.wolfIn + t.houndIn > 0 && wolvesFired && houndsFired;
             verdicts.add(Verdict.of("ships-find-each-other-and-fire", bothFired,
                     String.format(Locale.ROOT, "closest approach %.1f cells from 80; rounds %s", t.closest, byWeapon)));
+            // A side that never had its target in reach has nothing to measure; at least one side must have.
+            boolean wolfOn = t.wolfIn == 0 || t.share(t.wolfOn, t.wolfIn) >= ON_TARGET_SHARE;
+            boolean houndOn = t.houndIn == 0 || t.share(t.houndOn, t.houndIn) >= ON_TARGET_SHARE;
             verdicts.add(Verdict.of("the-strongest-gun-is-on-the-target",
-                    t.share(t.wolfOn, t.wolfIn) >= ON_TARGET_SHARE && t.share(t.houndOn, t.houndIn) >= ON_TARGET_SHARE,
+                    t.wolfIn + t.houndIn > 0 && wolfOn && houndOn,
                     String.format(Locale.ROOT, "Wolfs %.0f%% of %d ticks in reach, Hounds %.0f%% of %d",
                             100f * t.share(t.wolfOn, t.wolfIn), t.wolfIn, 100f * t.share(t.houndOn, t.houndIn), t.houndIn)));
         } else {

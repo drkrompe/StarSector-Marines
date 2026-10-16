@@ -70,18 +70,20 @@ class WarshipEscortTest {
     }
 
     @Test
-    void escortsFanAboutTheThreatSideOnTheLeadsRing() {
-        float[] only = WarshipEscort.station(50f, 30f, 20f, 0f, 0, 1);
+    void escortsScreenInLineBesideTheLeadOnTheThreatBeam() {
+        // The lead at (50, 30) sailing north (bearing 90); the threat to the east (bearing 0).
+        float[] only = WarshipEscort.station(50f, 30f, 90f, 20f, 0f, 0, 1, 10f);
         assertEquals(70f, only[0], 1e-3f);
         assertEquals(30f, only[1], 1e-3f);
+        float[] west = WarshipEscort.station(50f, 30f, 90f, 20f, 170f, 0, 1, 10f);
+        assertEquals(30f, west[0], 1e-3f, "the beam the threat is on");
 
-        float[] first = WarshipEscort.station(50f, 30f, 20f, 0f, 0, 2);
-        float[] second = WarshipEscort.station(50f, 30f, 20f, 0f, 1, 2);
-        assertEquals(20f, Math.hypot(first[0] - 50f, first[1] - 30f), 1e-3f, "on the ring");
-        assertEquals(20f, Math.hypot(second[0] - 50f, second[1] - 30f), 1e-3f);
-        assertEquals(first[0], second[0], 1e-3f, "mirror images about the threat axis");
-        assertEquals(first[1] - 30f, 30f - second[1], 1e-3f);
-        assertTrue(Math.hypot(first[0] - second[0], first[1] - second[1]) > 5f, "not stacked");
+        float[] first = WarshipEscort.station(50f, 30f, 90f, 20f, 30f, 0, 2, 10f);
+        float[] second = WarshipEscort.station(50f, 30f, 90f, 20f, 30f, 1, 2, 10f);
+        assertEquals(70f, first[0], 1e-3f, "one line parallel to the lead's course");
+        assertEquals(70f, second[0], 1e-3f);
+        assertEquals(25f, first[1], 1e-3f, "spaced along it, centred on the lead");
+        assertEquals(35f, second[1], 1e-3f);
     }
 
     @Test

@@ -407,7 +407,8 @@ public final class DroneSwarmAction implements Action {
                                       BattleView sim, float[] sep, float dt) {
         float seconds = sim.getSimTickIndex() * BattleSimulation.TICK_DT;
         float[] station = EscortFormation.station(anchor.anchorX(), anchor.anchorY(), anchor.anchorHeadingDegrees(),
-                slotIdx, slotCount, seconds, DroneHash.unit(member, PHASE_SALT), anchor.threatened());
+                slotIdx, slotCount, seconds, DroneHash.unit(member, PHASE_SALT), anchor.threatened(),
+                anchor.anchorHalfLengthCells());
         AirSteeringSystem.steer(body, station[0] + sep[0], station[1] + sep[1], SteeringMode.BRAKE_TO_STATION,
                 Drone.HANDLING, dt);
     }

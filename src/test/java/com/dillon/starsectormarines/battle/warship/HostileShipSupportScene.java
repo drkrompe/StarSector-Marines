@@ -181,9 +181,11 @@ public final class HostileShipSupportScene implements BehaviorScene {
                             && t.nearestAtWarning <= HostileShipSupport.THREAT_RADIUS_CELLS + 4f,
                     String.format(Locale.ROOT, "warned at tick %d with the nearest marine %.1f cells from the command post "
                             + "(radius %.0f)", t.warnTick, t.nearestAtWarning, HostileShipSupport.THREAT_RADIUS_CELLS)));
+            // With the company's hull already over the battle the defender's ship never settles: it comes in fighting
+            // and flies its duel helm, so its arrival is when it is first seen.
+            boolean settled = loop.equals("both-ships") || t.arrivedTick > t.firstShipTick;
             verdicts.add(Verdict.of("warns-before-it-arrives",
-                    t.warned && t.markerAtWarning && t.firstShipTick - t.warnTick >= warningTicks - 2
-                            && t.arrivedTick > t.firstShipTick,
+                    t.warned && t.markerAtWarning && t.firstShipTick - t.warnTick >= warningTicks - 2 && settled,
                     String.format(Locale.ROOT, "beat at tick %d with the marker up (%s), ship called at tick %d (%.1f s later), "
                             + "settled at tick %d", t.warnTick, t.markerAtWarning, t.firstShipTick,
                             (t.firstShipTick - t.warnTick) / tps, t.arrivedTick)));

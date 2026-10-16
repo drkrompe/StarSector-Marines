@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.warship;
 
-import com.dillon.starsectormarines.battle.air.AirScale;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -27,12 +26,12 @@ public record WarshipSlot(
         float angleDegrees,
         float arcDegrees) {
 
-    /** Reads every slot a hull spec lists, converting its pixel offsets to cells. */
+    /** Reads every slot a hull spec lists, converting its pixel offsets to cells at the hull's own size ({@link WarshipScale#hullCells}). */
     public static List<WarshipSlot> parse(JSONObject hull) throws JSONException {
         List<WarshipSlot> out = new ArrayList<>();
         JSONArray slots = hull.optJSONArray("weaponSlots");
         if (slots == null) return out;
-        float k = AirScale.METERS_PER_PX / AirScale.METERS_PER_CELL;
+        float k = WarshipScale.hullCells(1f);
         for (int i = 0; i < slots.length(); i++) {
             JSONObject slot = slots.getJSONObject(i);
             JSONArray loc = slot.optJSONArray("locations");

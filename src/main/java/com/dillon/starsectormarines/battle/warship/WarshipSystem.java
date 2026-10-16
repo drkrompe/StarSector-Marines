@@ -671,7 +671,7 @@ public final class WarshipSystem {
         }
         if (ship.remoteOrder() != Warship.RemoteOrder.NONE) return;
         if (lead != null) {
-            keepStation(ship, lead, picture);
+            keepStation(ship, lead, picture, sim.getGrid().getWidth(), sim.getGrid().getHeight());
         } else if (ship.profile().standoff()) {
             float[] station = standoffStation(ship, ship.profile().standoffScale(), true, true);
             if (station != null) ship.standoffTo(station[0], station[1]);
@@ -709,8 +709,8 @@ public final class WarshipSystem {
         }
     }
 
-    /** Stations an escort on its lead's ring, on the side the lead's threats come from, fanned from its fellow escorts. */
-    private void keepStation(Warship ship, Warship lead, AirThreatPicture picture) {
+    /** Stations an escort in line beside its lead, on the beam the lead's threats come from, beside its fellow escorts. */
+    private void keepStation(Warship ship, Warship lead, AirThreatPicture picture, float mapWidth, float mapHeight) {
         if (ship.departing()) return;
         if (picture.hasThreatAxis()) {
             ship.escortAngle(WarshipEscort.bearingDegrees(picture.threatX() - lead.centerX(),
@@ -720,9 +720,13 @@ public final class WarshipSystem {
         }
         List<Warship> mates = WarshipEscort.escortsOf(lead, ships);
         int slot = Math.max(0, mates.indexOf(ship));
-        float[] station = WarshipEscort.station(lead.centerX(), lead.centerY(), WarshipEscort.ringRadius(lead, ship),
-                ship.escortAngle(), slot, Math.max(1, mates.size()));
-        ship.escortTo(station[0], station[1]);
+        float[] station = WarshipEscort.station(lead.centerX(), lead.centerY(), WarshipEscort.noseBearingDegrees(lead),
+                WarshipEscort.ringRadius(lead, ship), ship.escortAngle(), slot, Math.max(1, mates.size()),
+                WarshipEscort.lineSpacing(ship));
+        // The screen stays over the battle: a lead flying off the edge is followed out only once it has gone.
+        float margin = 0.5f * ship.lengthCells + WarshipDuelHelm.EDGE_MARGIN_CELLS;
+        ship.escortTo(Math.max(margin, Math.min(mapWidth - margin, station[0])),
+                Math.max(margin, Math.min(mapHeight - margin, station[1])));
     }
 
     private boolean autoEscort;
@@ -962,6 +966,9 @@ public final class WarshipSystem {
      * it accelerates toward the turn, cruises at its maximum and brakes in time
      * to stop on the heading rather than swinging through it.
      */
+    /** A wanted heading moving more than this in one tick is a fresh choice, not a drift a helm leads. */
+    static final float MAX_LED_DRIFT_DEGREES_PER_TICK = 1f;
+
     private static void turnHull(float dt, Warship ship) {
         if (ship.lowHovering()) return;
         if (ship.piloted()) {
@@ -972,14 +979,23 @@ public final class WarshipSystem {
         LowPass pass = ship.lowPass();
         if (pass != null && pass.active()) ship.desiredHeading = passHeading(pass, ship);
         float error = WarshipFacing.wrap(ship.desiredHeading - ship.facingDegrees);
-        float wanted = Math.signum(error)
-                * Math.min(ship.maxTurnDegPerSec, (float) Math.sqrt(2f * ship.turnAccelDegPerSec2 * Math.abs(error)));
+        // A heavy hull settles onto a heading slowly, so a heading that drifts steadily (a target sliding across the
+        // bow) is led: the helm adds the drift's own rate, or the hull would trail it by more than a hardpoint's arc.
+        // A heading that jumps (a fresh choice) is not a drift and is not led.
+        float drift = 0f;
+        if (!Float.isNaN(ship.previousDesiredHeading)) {
+            float moved = WarshipFacing.wrap(ship.desiredHeading - ship.previousDesiredHeading);
+            if (Math.abs(moved) <= MAX_LED_DRIFT_DEGREES_PER_TICK) drift = moved / dt;
+        }
+        ship.previousDesiredHeading = ship.desiredHeading;
+        float wanted = Math.max(-ship.maxTurnDegPerSec, Math.min(ship.maxTurnDegPerSec, drift + Math.signum(error)
+                * (float) Math.sqrt(2f * ship.turnAccelDegPerSec2 * Math.abs(error))));
         float step = ship.turnAccelDegPerSec2 * dt;
         ship.turnVelocity += Math.max(-step, Math.min(step, wanted - ship.turnVelocity));
         float move = ship.turnVelocity * dt;
-        if (Math.abs(error) <= Math.abs(move) && Math.abs(ship.turnVelocity) < step * 2f) {
+        if (Math.abs(error) <= Math.abs(move) && Math.abs(ship.turnVelocity - drift) < step * 2f) {
             ship.facingDegrees = ship.desiredHeading;
-            ship.turnVelocity = 0f;
+            ship.turnVelocity = Math.max(-ship.maxTurnDegPerSec, Math.min(ship.maxTurnDegPerSec, drift));
         } else {
             ship.facingDegrees = WarshipFacing.wrap(ship.facingDegrees + move);
         }
@@ -1013,6 +1029,9 @@ public final class WarshipSystem {
                 && Math.hypot(ship.velocityX, ship.velocityY) > 0.05f) {
             // Flying a route with no instruction to bring guns to bear, it points along its travel.
             ship.desiredHeading = AirBody.facingToward(ship.velocityX, ship.velocityY);
+        } else if (!bring && WarshipEscort.liveLead(ship) != null) {
+            // A screen with nothing to fight keeps its charge's course, in line beside it.
+            ship.desiredHeading = WarshipEscort.liveLead(ship).facingDegrees;
         }
     }
 
@@ -1054,7 +1073,7 @@ public final class WarshipSystem {
             if (ship.destroyed() || !ship.faction.hostileTo(det.shooterFaction)) continue;
             float gap = ship.distanceTo(det.endpointX, det.endpointY);
             if (ship.hasShield() && gap <= det.aoeRadius + WarshipShield.THREAT_MARGIN_CELLS
-                    && threatens(ship, det.damage, det.penetration, det.endpointX, det.endpointY)) {
+                    && threatens(ship, det.damage, det.penetration, fromX, fromY, det.endpointX, det.endpointY)) {
                 // A landing this close is itself the warning: the shield rises for the next one.
                 ship.shieldModel().noteThreat();
             }
@@ -1159,8 +1178,8 @@ public final class WarshipSystem {
     }
 
     /**
-     * Flies a ship fighting a hull: its station moves to the range its guns want ({@link WarshipDuelHelm}), sliding
-     * round the target if it holds off. The mission's station is kept and given back when the fight ends (no hull
+     * Flies a ship fighting a hull: its station moves alongside the target, on its beam at the range its guns want
+     * ({@link WarshipDuelHelm}). The mission's station is kept and given back when the fight ends (no hull
      * to fight, the order withdrawn) or the ship is taken over (piloted, departing, on a route or a low pass).
      */
     private static void duelHelm(BattleSimulation sim, Warship ship) {
@@ -1182,11 +1201,10 @@ public final class WarshipSystem {
         }
         float mine = WarshipDuelHelm.reach(ship);
         float theirs = WarshipDuelHelm.reach(target);
-        float range = WarshipDuelHelm.preferredRange(mine, theirs);
-        // Which way round it slides is the hull's own, by its serial, so a pair does not mirror each other.
-        float slide = WarshipDuelHelm.holdsOff(mine, theirs)
-                ? (ship.serial() % 2 == 0 ? 1f : -1f) * WarshipDuelHelm.SLIDE_LEAD_DEGREES : 0f;
-        float[] at = WarshipDuelHelm.station(ship.x, ship.y, target.centerX(), target.centerY(), range, slide,
+        float range = WarshipDuelHelm.preferredRange(mine, theirs, 0.5f * ship.lengthCells, 0.5f * target.lengthCells);
+        // Which beam a ship dead ahead or astern takes is the hull's own, by its serial, so a pair does not mirror.
+        float[] at = WarshipDuelHelm.station(ship.x, ship.y, target.centerX(), target.centerY(),
+                WarshipEscort.noseBearingDegrees(target), range, ship.serial() % 2 == 0,
                 0.5f * ship.lengthCells, sim.getGrid().getWidth(), sim.getGrid().getHeight());
         ship.stationTo(at[0], at[1]);
     }
@@ -1242,7 +1260,19 @@ public final class WarshipSystem {
 
     /** Whether a round of this strength landing at {@code (px, py)} would hurt the hull and comes from inside the shield's arc. */
     private static boolean threatens(Warship ship, float damage, float penetration, float px, float py) {
-        return Warship.effectiveDamage(damage, penetration, ship.armour) > 0f && ship.arcCovers(px, py);
+        return threatens(ship, damage, penetration, Float.NaN, Float.NaN, px, py);
+    }
+
+    /**
+     * Whether a round fired from {@code (fromX, fromY)} (NaN when it has no source) that lands at {@code (px, py)}
+     * would hurt the hull from inside the shield's arc. Asked of the side it came from, as absorption is: a round
+     * aimed at a hull's sprite centre lands ahead of a capital's shield centre whichever side it was fired from,
+     * and judged by the landing every round read as head-on and kept a front shield raised against fire from astern.
+     */
+    private static boolean threatens(Warship ship, float damage, float penetration, float fromX, float fromY,
+                                     float px, float py) {
+        return Warship.effectiveDamage(damage, penetration, ship.armour) > 0f
+                && ship.arcCoversFrom(fromX, fromY, px, py);
     }
 
     /**
@@ -1272,7 +1302,7 @@ public final class WarshipSystem {
             PendingDetonation d = s.landing();
             if (d == null) continue;
             if (nearHull(ship, s.toX, s.toY, s.blastCells())
-                    && threatens(ship, d.damage, d.penetration, s.toX, s.toY)) return true;
+                    && threatens(ship, d.damage, d.penetration, s.fromX, s.fromY, s.toX, s.toY)) return true;
         }
         for (WarheadStrike s : strikes) {
             if (s.intercepted || !ship.faction.hostileTo(s.faction)) continue;

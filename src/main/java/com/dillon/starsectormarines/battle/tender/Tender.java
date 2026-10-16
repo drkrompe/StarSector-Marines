@@ -253,6 +253,10 @@ public final class Tender implements DroneAnchor {
         return grounded ? groundHostAlive : !ship.destroyed() && !ship.departed();
     }
 
+    @Override public float anchorHalfLengthCells() {
+        return ship.lengthCells * 0.5f;
+    }
+
     @Override public float anchorHeadingDegrees() {
         return ship.facingDegrees;
     }

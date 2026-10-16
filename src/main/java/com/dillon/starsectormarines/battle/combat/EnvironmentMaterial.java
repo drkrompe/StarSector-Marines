@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.gen.nature.NaturalPropShape;
 import com.dillon.starsectormarines.battle.world.model.CoverPropDamage;
 import com.dillon.starsectormarines.battle.world.model.PropDamage;
 import com.dillon.starsectormarines.battle.world.model.RockDamage;
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
 
 import java.util.Set;
 
@@ -90,6 +91,7 @@ public enum EnvironmentMaterial {
         if (definitionId.startsWith("doodad.sandbag-") || definitionId.startsWith("doodad.fort-sandbag-")) {
             return SANDBAG;
         }
+        if (definitionId.startsWith(TileManifest.EMPLACEMENT_PIECE_PREFIX)) return MASONRY;
         if (PropDamage.BARRELS.contains(definitionId)) return DRUM;
         if (PropDamage.EQUIPMENT.containsKey(definitionId) || PropDamage.DECORATIONS.contains(definitionId)) {
             return FURNITURE.contains(definitionId) ? WOOD : MACHINERY;

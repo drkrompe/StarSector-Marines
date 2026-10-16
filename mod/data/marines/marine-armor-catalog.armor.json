@@ -934,18 +934,6 @@
         "incomingAccuracyMult": 1.04,
         "integralSystem": {
           "id": "system.latch-assist",
-          "presentation": {
-            "carrierLayer": {
-              "sprite": "graphics/battle/marine-modular-topdown/variants/equipment/latch-screen.png",
-              "attachment": "left-shoulder",
-              "widthShoulders": 0.34,
-              "heightShoulders": 0.30,
-              "pivot": [0.5, 0.5],
-              "carried": { "offsetShoulders": [-0.14, 0.03], "angleDegrees": 0.0, "occlusion": "over-body" },
-              "using": { "offsetShoulders": [-0.14, 0.07], "angleDegrees": 0.0, "occlusion": "over-body" },
-              "visibleWhileCarried": true
-            }
-          },
           "grade": "surplus",
           "displayName": "@gearCatalogSystemLatchAssistDisplayName",
           "description": "@gearCatalogSystemLatchAssistDescription",

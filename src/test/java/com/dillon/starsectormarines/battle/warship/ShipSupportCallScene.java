@@ -129,11 +129,11 @@ public final class ShipSupportCallScene implements BehaviorScene {
                     "target seen " + t.targetSeen + ", charges left " + charges + ", supplies " + resources.supplies
                             + " of " + SUPPLIES));
             // A called ship breaks out of the clouds a short glide short of its station, on the
-            // company's side of it, rather than at the map edge (ShipStationing.callIn).
+            // company's side of it, rather than at the map edge (ShipStationing.callIn): the glide and half the hull.
             float glide = (float) Math.hypot(tx(loop) + 0.5f - t.entryX, ty(loop) + 0.5f - t.entryY);
             verdicts.add(Verdict.of("comes-in-from-the-companys-side-a-short-glide-out",
                     t.firstShipTick >= 0 && t.entryX < tx(loop) && glide >= ShipStationing.CALL_SHORT_CELLS - 1f
-                            && glide <= ShipStationing.CALL_SHORT_CELLS + 15f,
+                            && glide <= ShipStationing.CALL_SHORT_CELLS + t.entryHalfLength + 3f,
                     String.format(Locale.ROOT, "first seen at tick %d at (%.1f, %.1f), %.1f cells short of its station; "
                             + "the company's side is the west", t.firstShipTick, t.entryX, t.entryY, glide)));
             verdicts.add(Verdict.of("stations-over-the-targeted-ground",
@@ -191,6 +191,7 @@ public final class ShipSupportCallScene implements BehaviorScene {
         int departingTick = -1;
         int departedTick = -1;
         float entryX;
+        float entryHalfLength;
         float entryY;
         float arrivalDistance = Float.MAX_VALUE;
         int garrisonSize;
@@ -219,6 +220,7 @@ public final class ShipSupportCallScene implements BehaviorScene {
                 ship = sim.warships().ships().get(0);
                 firstShipTick = tick;
                 entryX = ship.x;
+                entryHalfLength = 0.5f * ship.lengthCells;
                 entryY = ship.y;
                 stance = ship.stance();
                 if (loop.equals("tender")) tender = sim.tenders().of(ship);

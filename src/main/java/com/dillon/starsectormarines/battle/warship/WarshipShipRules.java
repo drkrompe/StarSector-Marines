@@ -119,34 +119,90 @@ public final class WarshipShipRules {
     /**
      * The heading that brings the most anti-ship firepower to bear on {@code (tx, ty)}, ignoring reach so a ship
      * still closing turns first: every gun that may fire at a hull counts its firepower when the target is inside
-     * its slot's arc at that heading. Ties go to the smaller turn; with nothing able to bear at any heading the ship
-     * points its nose at the target.
+     * its slot's arc at that heading. Among the headings that keep at least {@link #BROADSIDE_SHARE} of the best
+     * firepower on it, the ship takes the one that lays the target most nearly abeam, less a little for a longer
+     * turn: ships of the line, not fighters, so a hull whose battery can fight broadside does, and one whose guns are
+     * all in its bow turns its nose in. With nothing able to bear at any heading the ship points its nose at the
+     * target.
      */
     public static float bestHeading(Warship ship, float tx, float ty) {
-        float best = ship.facingDegrees;
-        float bestPower = firepowerAt(ship, ship.facingDegrees, tx, ty);
-        float bestTurn = 0f;
-        // The coarse sweep, and then each anti-ship mount's own exact heading: a hardpoint's arc is narrower than the
-        // sweep's step, so the heading that lays it on the target has to be tried by name.
+        // The coarse sweep, the ship's own heading, and then each anti-ship mount's own exact heading: a hardpoint's
+        // arc is narrower than the sweep's step, so the heading that lays it on the target has to be tried by name.
         int coarse = (int) (360f / HEADING_STEP_DEGREES);
-        List<Float> candidates = new ArrayList<>(coarse + ship.mounts().size());
+        List<Float> candidates = new ArrayList<>(coarse + ship.mounts().size() + 1);
+        candidates.add(ship.facingDegrees);
         for (int i = 0; i < coarse; i++) candidates.add(-180f + i * HEADING_STEP_DEGREES);
         float toTarget = WarshipFacing.bearing(ship.x, ship.y, tx, ty);
         for (Warship.Mount m : ship.mounts()) {
             if (gunAtHull(m.weapon) && !m.knockedOut()) candidates.add(WarshipFacing.wrap(toTarget - m.slot.angleDegrees()));
         }
-        for (float h : candidates) {
-            float power = firepowerAt(ship, h, tx, ty);
-            float turn = Math.abs(WarshipFacing.wrap(h - ship.facingDegrees));
-            if (power > bestPower * 1.0001f || (power > 0f && power >= bestPower * 0.9999f && turn < bestTurn)) {
-                best = h;
-                bestPower = power;
-                bestTurn = turn;
+        // A heading's firepower is what still bears a little either side of it, so a heavy hull that settles a degree
+        // or two off its order, or a target that drifts, does not take a gun off the target: the broadside rule below
+        // would otherwise pick the very edge of a hardpoint's arc.
+        float[] power = new float[candidates.size()];
+        float most = 0f;
+        for (int i = 0; i < power.length; i++) {
+            float h = candidates.get(i);
+            power[i] = Math.min(firepowerAt(ship, h, tx, ty),
+                    Math.min(firepowerAt(ship, h - SETTLE_DEGREES, tx, ty), firepowerAt(ship, h + SETTLE_DEGREES, tx, ty)));
+            most = Math.max(most, power[i]);
+        }
+        if (most <= 0f) {
+            for (int i = 0; i < power.length; i++) {
+                power[i] = firepowerAt(ship, candidates.get(i), tx, ty);
+                most = Math.max(most, power[i]);
             }
         }
-        if (bestPower <= 0f) return WarshipFacing.bearing(ship.x, ship.y, tx, ty);
+        if (most <= 0f) return toTarget;
+        // Of the headings that keep nearly all of that firepower on the target, the one that lays the target most
+        // nearly abeam: a broadside where the guns allow one, and the nose only where they do not. Between two
+        // broadsides it prefers the side with more plate left, so a ship whose engaged side is stripped wears round
+        // to fight on its fresh one, as a ship of the line does, rather than taking every round on the same plate.
+        WarshipPlating plating = ship.plating();
+        float best = ship.facingDegrees;
+        float bestScore = Float.NEGATIVE_INFINITY;
+        for (int i = 0; i < power.length; i++) {
+            if (power[i] < most * BROADSIDE_SHARE) continue;
+            float h = candidates.get(i);
+            float abeam = (float) Math.abs(Math.sin(Math.toRadians(WarshipFacing.wrap(toTarget - h))));
+            float turn = Math.abs(WarshipFacing.wrap(h - ship.facingDegrees));
+            float score = abeam - TURN_PENALTY * turn / 180f + POWER_PREFERENCE * power[i] / most
+                    + FRESH_SIDE_PREFERENCE * abeam * plateFacing(plating, WarshipFacing.wrap(toTarget - h));
+            if (score > bestScore) {
+                best = h;
+                bestScore = score;
+            }
+        }
         return best;
     }
+
+    /**
+     * How much the plate left on the side a heading turns toward the target is worth, scaled by how nearly abeam
+     * it lays it. Against {@link #TURN_PENALTY} a half-circle wear is worth it once the engaged side has about half
+     * its plate less than the other, and a ship that has worn round does not turn back.
+     */
+    static final float FRESH_SIDE_PREFERENCE = 0.3f;
+
+    /**
+     * The plate left on the side of the hull a target at {@code relative} degrees off the nose would strike: port
+     * when it lies counter-clockwise of the nose. One for a hull without a grid, and for a target nearer the nose
+     * or stern than the beam, so the preference only ever chooses between broadsides.
+     */
+    static float plateFacing(WarshipPlating plating, float relative) {
+        if (plating == null) return 1f;
+        float side = (float) Math.sin(Math.toRadians(relative));
+        if (Math.abs(side) < 0.5f) return 1f;
+        return plating.plateLeft(side > 0f ? WarshipPlating.Section.PORT : WarshipPlating.Section.STARBOARD);
+    }
+
+    /** A heading that brings at least this share of the most anti-ship firepower to bear may be chosen for a broadside. */
+    static final float BROADSIDE_SHARE = 0.85f;
+    /** How much laying the target fully abeam is worth against a half-circle of turning. */
+    static final float TURN_PENALTY = 0.15f;
+    /** How far either side of a heading its guns must still bear for the heading to count their firepower. */
+    static final float SETTLE_DEGREES = 2f;
+    /** How much the last of the firepower inside the broadside band is worth against laying the target abeam. */
+    static final float POWER_PREFERENCE = 0.5f;
 
     static float firepowerAt(Warship ship, float heading, float tx, float ty) {
         float total = 0f;
