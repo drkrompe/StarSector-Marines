@@ -26,7 +26,7 @@ class EmplacementDamageTest {
 
     private static TileRegistry registry() throws Exception {
         TileRegistry registry = new TileRegistry();
-        for (String sheet : new String[]{"fort-emplacement", "fort-emplacement-damage", "fort-emplacement-corners"}) {
+        for (String sheet : new String[]{"fort-emplacement", "fort-emplacement-damaged", "fort-emplacement-destroyed"}) {
             registry.ingestSheet(new JSONObject(Files.readString(Path.of("mod/data/tilesets/" + sheet + ".tileset.json"))));
         }
         return registry;

@@ -1,0 +1,112 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "description": "Collar piece s (damaged).",
+      "name": "doodad.fort-emplacement-damaged-s",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "Collar piece n (damaged).",
+      "name": "doodad.fort-emplacement-damaged-n",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "Collar piece e (damaged).",
+      "name": "doodad.fort-emplacement-damaged-e",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "Collar piece w (damaged).",
+      "name": "doodad.fort-emplacement-damaged-w",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "Collar piece inner-se (damaged).",
+      "name": "doodad.fort-emplacement-damaged-inner-se",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "Collar piece inner-sw (damaged).",
+      "name": "doodad.fort-emplacement-damaged-inner-sw",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "Collar piece inner-ne (damaged).",
+      "name": "doodad.fort-emplacement-damaged-inner-ne",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "Collar piece inner-nw (damaged).",
+      "name": "doodad.fort-emplacement-damaged-inner-nw",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 0,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-damaged-s",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 1,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-damaged-n",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 2,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-damaged-e",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 3,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-damaged-w",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 4,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-damaged-inner-se",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 5,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-damaged-inner-sw",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 6,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-damaged-inner-ne",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 7,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-damaged-inner-nw",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/doodads/fort-emplacement-damaged.png"
+}

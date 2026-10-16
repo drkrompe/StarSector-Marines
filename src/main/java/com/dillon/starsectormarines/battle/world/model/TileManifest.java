@@ -169,8 +169,6 @@ public final class TileManifest {
                 TURRET_BOW_COL_ORIGIN, TURRET_BOW_ROW_ORIGIN);
     }
 
-    /** The prepared concrete gun-emplacement block: raised parapet round a flat platform. */
-    public static final String EMPLACEMENT_BLOCK = "fort.emplacement";
     /** Id prefix of the emplacement pieces' {@link CoverPropDamage} family (intact, {@code damaged-} and {@code destroyed-}). */
     public static final String EMPLACEMENT_PIECE_PREFIX = "doodad.fort-emplacement-";
 
