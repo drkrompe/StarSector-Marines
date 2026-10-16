@@ -1,10 +1,10 @@
 # A Small War
 
-Status: IN PROGRESS — all five chapters, the handover decision and District Escort implemented with detached evidence; Chapter 5's frigate duel, Boarding Jack art and all live campaign acceptance remain.
+Status: IN PROGRESS — all five chapters, the handover decision and District Escort implemented with detached evidence; Boarding Jack art and all live campaign acceptance remain.
 
 Written: 2026-10-13
 
-Updated: 2026-10-16 — map fidelity pass, handover decision, Boarding Jack data, Chapters 4–5 ground and District Escort built; implementation state under acceptance.
+Updated: 2026-10-16 — all five chapters, the frigate duel, handover decision, Boarding Jack data and District Escort built; implementation state under acceptance.
 
 Read `early-operation-nouns.md`, `campaign-nouns.md`, `meta-progression.md`,
 `narrative-nouns.md`, `mission-tier-nouns.md`, `progression-nouns.md`,
@@ -433,8 +433,8 @@ fighters into a fight meant to stay gun against gun.
 - Two frigates, one finite visit. Rusk's letter after Chapter 4 explains their
   arrival; they leave when the engagement ends. Their presence is a warning to the
   Combine and to Agreus, not Hegemony protection of the district.
-- Ship-versus-ship fighting in atmosphere is new engine work. The chapter is not
-  ready to build until that capability exists.
+- Ship-versus-ship fighting is built (`air-nouns.md`, Overhead ships): hull fire
+  is opted in for the duel's five hulls only, and none of them may fire at the ground.
 
 Sera Voss coordinates through transmissions from outside the battle. No invulnerable
 boss avatar or mandatory escape is needed. Her last line on the channel tells the
@@ -697,8 +697,12 @@ Still open inside this story:
   route and delivers on settlement or a later load once art is declared. The
   enemy rigs draw a disclosed Specter stand-in meanwhile. Guides and prompts are
   under `art-source/marine-modular-topdown/boarding-jack/`.
-- **The duel overhead.** Engine work is `atmospheric-frigate-duel.md`; Chapter 5
-  exposes an absent-by-default duel seam, and the ground referee never reads it.
+- **The duel overhead** is built and installed in Chapter 5 (`air-nouns.md`,
+  Overhead ships; `warship-behaviours.md`, Decided: ship against ship). The
+  ground referee never reads it; a duel-off control wins the same seed. It is
+  lopsided — the rig escapes and both Hounds fall on every seed — because hull
+  damage uses the ground penetration scale, an open question recorded in
+  `warship-behaviours.md`.
 - **Encounter readings to revisit:** Chapter 3's Specter fixture lost 12 rather
   than 5 on the rebuilt yard; Chapter 4's mortar withdraws before the company
   reaches its pit, so counter-battery is unexercised, and House Custody's estate
