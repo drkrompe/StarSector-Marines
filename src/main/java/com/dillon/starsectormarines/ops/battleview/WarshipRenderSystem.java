@@ -95,6 +95,8 @@ public final class WarshipRenderSystem implements RenderSystem {
     private final BattleSprites sprites;
     /** Seconds the flicker has run, fed from the host clock or accumulated frame time. */
     private float engineClockSeconds;
+    /** The warships' own clock this frame, which a hull's plating dates its breaches on. */
+    private float battleSeconds;
     /** Whether this frame's framing is close enough for a swarm body's flame and contrail to read. */
     private boolean swarmDetail = true;
     /** How many puffs of smoke a missile draws behind it this frame. */
@@ -131,6 +133,7 @@ public final class WarshipRenderSystem implements RenderSystem {
                 ? ctx.animationTimeSeconds
                 : engineClockSeconds + Math.max(0f, ctx.realDt);
         sprites.ensureEngineFxSprites();
+        battleSeconds = ctx.sim.warships().clock();
         for (Warship ship : ctx.sim.warships().ships()) {
             // The dust a ship's wash kicks and the ring its arrival sends out lie on the ground, under it.
             atmosphereFx.ground(out, cam, cellPx, ctx.alphaMult, ship, tint);
@@ -258,8 +261,13 @@ public final class WarshipRenderSystem implements RenderSystem {
         if (ship.lowHoverWidth() > 0f) { hx = ship.x; hy = ship.y; }
         float pxH = (ship.lowHoverWidth() > 0f ? ship.lowHoverWidth() : ship.lengthCells) * cellPx;
         float pxW = ship.lowHoverWidth() > 0f ? ship.lowHoverHeight() * cellPx : pxH * hull.aspect;
-        // A battered hull darkens toward charcoal as its hit points go.
-        float tint = 0.4f + 0.6f * ship.hullFraction();
+        // A hull with an armour grid shows its damage where it took it: stripped, scorched, cut away.
+        if (ship.lowHoverWidth() <= 0f && WarshipHullDamageRenderer.draw(out, cam, sprites, hull, ship, hx, hy, pxW, pxH,
+                alpha, battleSeconds, engineClockSeconds)) {
+            return;
+        }
+        // A hull with no grid (the control) darkens toward charcoal as its hit points go; an untouched grid is clean.
+        float tint = ship.plating() != null ? 1f : 0.4f + 0.6f * ship.hullFraction();
         out.addSprite(RenderLayer.SHUTTLES, hull.sprite,
                 cam.cellToScreenX(hx), cam.cellToScreenY(hy),
                 pxW, pxH, ship.facingDegrees,
@@ -284,6 +292,11 @@ public final class WarshipRenderSystem implements RenderSystem {
         float pxW = pxH * hull.aspect;
         boolean down = wreck.phase() != WarshipWreck.Phase.FALLING;
         float tint = down ? 0.22f : 0.3f;
+        // A hull that was holed falls and lies holed: the same cut, burnt.
+        if (WarshipHullDamageRenderer.draw(out, down ? RenderLayer.VEHICLES : RenderLayer.SHUTTLES, cam, sprites, hull,
+                ship, hx, hy, pxW, pxH, alpha, tint * 1.6f, battleSeconds, engineClockSeconds)) {
+            return;
+        }
         out.addSprite(down ? RenderLayer.VEHICLES : RenderLayer.SHUTTLES, hull.sprite,
                 cam.cellToScreenX(hx), cam.cellToScreenY(hy), pxW, pxH, ship.facingDegrees,
                 tint, tint * 0.9f, tint * 0.85f, alpha);

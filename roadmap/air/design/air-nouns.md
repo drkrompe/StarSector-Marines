@@ -1845,8 +1845,12 @@ of plate and structure is **breached** and a round's line passes through it, but
 **section** (bow, port, starboard, stern) gives way only once the hull has lost a quarter of
 its hit points through it, and the core is holed only from an open neighbour: a side is
 stripped, then opens, and then the core takes rounds nearly whole. Hull hit points stay the
-one authority on when the ship dies. `-Dbattle.warship.platingGrid=false` restores the flat
-rule.
+one authority on when the ship dies. The hull is drawn from the plating, the game's own sprite
+cut on the grid as a broken aircraft is: stripped plate darkens and takes the base game's burn,
+crack and hole decals, a breached plate cell is cut away to charred frames, a breached core cell
+is cut through to the ground, a fresh breach glows and an open one burns, and a round's blast is
+drawn where it met the hull or its shield. A wreck keeps its cut. `-Dbattle.warship.platingGrid=false`
+restores the flat rule and the old whole-hull darkening.
 
 **A hostile hull is a target for a ship's guns, in any mission.** Warships of
 opposing sides overhead fight each other by default, in an ordinary or generated

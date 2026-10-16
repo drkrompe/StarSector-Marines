@@ -1,6 +1,6 @@
 # Story — Warship hull damage: plating, sections and the core
 
-Status: ACTIVE — slice 1 (plating and hit place) built; slice 2 (visible damage) in progress
+Status: ACTIVE — slices 1 (plating and hit place) and 2 (visible damage) built; 3 (degraded mounts, fires) next
 
 Written: 2026-10-16
 
@@ -130,6 +130,15 @@ the game's own hull sprite on the plating lattice, never by editing art.
   breach throws a short burst of debris and sparks. Breached sections burn (slice 3).
 - The whole-hull charcoal tint is retired in favour of the cells; the shadow is the hull's own sprite as before
   (a holed shadow is a candidate later).
+- A round's blast, its impact sound and a beam's end are drawn where it met the hull (or its shield bubble, on the
+  side it came from), not at the hull's middle it was aimed at. Before this every hit on a hull burst over its
+  centre, which hid whatever the plating did.
+- A falling and fallen wreck keeps its cut, burnt darker.
+
+Built (slice 2), read in `hull-broadside`'s close GIF: the struck side darkens and scorches over the first twenty
+seconds, gives way as a dark gash of exposed frames, and the waist is cut through to the ground by the end, with
+breaches glowing as they open and burning after. Not yet: turrets over a breach are still drawn (slice 3 knocks
+them out), and the base game's decals are faint once the GIF palette has had them.
 
 Every frame is a pure function of the ship's plating state and the animation clock, so a review frame and the game
 draw the same thing.

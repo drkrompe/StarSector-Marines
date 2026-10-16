@@ -493,7 +493,8 @@ public final class WarshipShipFire {
             boolean onHull = system.strikeHulls(WarshipSystem.detonation(ship.faction, target.centerX(),
                     target.centerY(), damage, penetration, blast), mx, my);
             noteLanding(onHull);
-            tracers.trace(ship, w, mx, my, target.centerX(), target.centerY(), onHull);
+            // The beam ends where it met the hull or its shield.
+            tracers.trace(ship, w, mx, my, system.strikeX(target.centerX()), system.strikeY(target.centerY()), onHull);
             return;
         }
         float dx = aim[0] - mx;
