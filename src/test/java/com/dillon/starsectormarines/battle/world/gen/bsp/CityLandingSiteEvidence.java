@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -12,7 +13,11 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * The city gets a small airbase, and only one.
+ * Evidence, not a test: the city gets a small airbase, and only one.
+ *
+ * <p>Ten whole Conquest cities cost ~50 s inside {@code :test}; the promotion rule
+ * itself is pinned on hand-cut leaves by {@code AirbasePadSeedStageTest}. Run with
+ * {@code gradlew.bat generatedSpaceEvidence}.
  *
  * <p>Two properties, and the second is the one that bites. An airbase is a
  * landmark: one per city reads as a place the city has, and several read as a
@@ -25,7 +30,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * the same one. The block was assigned and then overwritten on every seed, with
  * nothing to see and nothing to report.
  */
-class CityLandingSiteTest {
+@Tag("generated-space-evidence")
+class CityLandingSiteEvidence {
 
     /** Sites on one generated Conquest city. */
     private static List<PointOfInterest> sitesOn(long seed) {

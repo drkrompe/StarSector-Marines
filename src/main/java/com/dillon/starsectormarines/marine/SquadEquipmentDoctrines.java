@@ -16,6 +16,11 @@ public final class SquadEquipmentDoctrines {
     public static final String ASSAULT_WEAPONS = "weapons:assault";
     public static final String FIRE_SUPPORT_WEAPONS = "weapons:fire-support";
     public static final String TRENCH_CLEARING_WEAPONS = "weapons:trench-clearing";
+    // Arc issue cards: each stocked by the arc beat that teaches it (ArcIssueListings).
+    public static final String CHECKPOINT_WEAPONS = "weapons:checkpoint";
+    public static final String CONVOY_ESCORT_WEAPONS = "weapons:convoy-escort";
+    public static final String COUNTER_BATTERY_WEAPONS = "weapons:counter-battery";
+    public static final String BUILDERS_GUARD_WEAPONS = "weapons:builders-guard";
 
     public static final String FIELD_FATIGUES_ARMOR = "armor:field-fatigues";
     public static final String SINDRIAN_SECURITY_ARMOR = "armor:sindrian-security";
@@ -178,7 +183,97 @@ public final class SquadEquipmentDoctrines {
                             weapon("Anti-Armor", WeaponRegistry.STARTER_PRIMARY_ID,
                                     SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
                             weapon("Grenadier", WeaponRegistry.STARTER_PRIMARY_ID,
-                                    SpecialEquipmentRegistry.FRAG_GRENADE_ID))));
+                                    SpecialEquipmentRegistry.FRAG_GRENADE_ID))),
+            // Wayline opening (Relief): holding a road, not taking one. No rockets on purpose.
+            weaponDoctrine(CHECKPOINT_WEAPONS, "Checkpoint Issue",
+                    "Service rifles that dig in and hold: three Rampart revetments to make a post and smoke to cover the men who build it.",
+                    team(
+                            weapon("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.SMOKE_GRENADE_ID),
+                            weapon("Sapper", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.FIELD_REVETMENT_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID)),
+                    team(
+                            weapon("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.SMOKE_GRENADE_ID),
+                            weapon("Sapper", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.FIELD_REVETMENT_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID)),
+                    team(
+                            weapon("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.SMOKE_GRENADE_ID),
+                            weapon("Sapper", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.FIELD_REVETMENT_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID))),
+            // Broken Supply Route (Thunder Run).
+            weaponDoctrine(CONVOY_ESCORT_WEAPONS, "Convoy Escort Issue",
+                    "A screen that keeps rockets off the trucks: a rocket tube in every team and one Palisade pod to stand over the column.",
+                    team(
+                            weapon("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Anti-Armor", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
+                            weapon("Point Defence", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.POINT_DEFENCE_EMPLACEMENT_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID)),
+                    team(
+                            weapon("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Anti-Armor", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID)),
+                    team(
+                            weapon("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Anti-Armor", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID))),
+            // Corvus Account (A Cold Account): Advanced kit and no Restricted kit, so no warrant.
+            weaponDoctrine(COUNTER_BATTERY_WEAPONS, "Counter-Battery Issue",
+                    "Hegemony issue for living under mortar fire: two Arrestor interceptor packs to stop the rounds and an anti-materiel rifle for the tube.",
+                    team(
+                            weapon("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Interceptor", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.POINT_DEFENCE_PACK_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID)),
+                    team(
+                            weapon("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Heavy Marksman", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID)),
+                    team(
+                            weapon("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Interceptor", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.POINT_DEFENCE_PACK_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID))),
+            // Shepherd recovery (Working Passage).
+            weaponDoctrine(BUILDERS_GUARD_WEAPONS, "Builder's Guard",
+                    "Holding a construction site out of the Shepherd yard stores: three revetments and two Palisade pods over the plots.",
+                    team(
+                            weapon("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Sapper", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.FIELD_REVETMENT_ID),
+                            weapon("Point Defence", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.POINT_DEFENCE_EMPLACEMENT_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID)),
+                    team(
+                            weapon("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Sapper", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.FIELD_REVETMENT_ID),
+                            weapon("Point Defence", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.POINT_DEFENCE_EMPLACEMENT_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID)),
+                    team(
+                            weapon("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Sapper", WeaponRegistry.STARTER_PRIMARY_ID,
+                                    SpecialEquipmentRegistry.FIELD_REVETMENT_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID))));
 
     /**
      * The authored armour intent, one entry per named section. Each says what

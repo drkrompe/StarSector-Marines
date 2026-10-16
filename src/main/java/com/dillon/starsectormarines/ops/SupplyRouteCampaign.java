@@ -130,7 +130,16 @@ public final class SupplyRouteCampaign {
         BrokenSupplyRouteProgress p = current();
         return p == null ? 0 : p.payment(m.id, victory, rescue, cargo);
     }
-    static int settle(MissionOutcome outcome) { return settle(current(), outcome); }
+    static int settle(MissionOutcome outcome) {
+        BrokenSupplyRouteProgress p = current();
+        int paid = settle(p, outcome);
+        if (paid >= 0) {
+            OpeningBroker.Destination site = destination();
+            ArcIssueListings.afterLive(ArcIssueListings.Beat.THUNDER_RUN, p.successful(),
+                    site == null ? null : site.planet());
+        }
+        return paid;
+    }
     static int settle(BrokenSupplyRouteProgress p, MissionOutcome outcome) {
         if (p == null || !p.readable() || outcome == null || outcome.missionSource != (p.job() > 0 ? MissionSource.RECURRING : MissionSource.STORY)
                 || !p.planetName().equals(outcome.targetPlanetName)

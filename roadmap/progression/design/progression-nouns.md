@@ -639,6 +639,23 @@ or carries the card and returns if it stops doing so; nothing else expires it.
 Creating one restocks the markets at once, so the debrief's promise is on the shelf
 now. The card's tooltip names the event that stocked it. Settlement code owns
 once-only; listing the same card at the same place twice changes nothing. This is global reachability, not universal faction availability.
+
+**Arc issue cards are how the early arcs pay in ways of fighting.** Four weapon
+cards carry the kit no older card fielded, each stocked by the arc beat that
+teaches its lesson. *Checkpoint Issue* (Rampart revetments and smoke) is listed at
+the Wayline broker's market once Relief settles. It is bought beside *A Proper
+Issue*'s free choice, never offered as one of its paths. *Convoy Escort Issue*
+(rocket tubes and one Palisade pod) is listed at the route employer's market once
+Thunder Run opens the road. *Counter-Battery Issue* (two Arrestor packs and an
+anti-materiel rifle) is listed at every Hegemony open market once *A Cold Account*
+settles: Kord's nod, Advanced kit and no warrant. *Builder's Guard* (revetments and
+Palisade pods) is listed at Asharu once the Morrow's Working Passage settles. Each
+listing comes from the arc's own once-only settlement and is laid only on a won
+beat; a settlement that cannot place it logs and moves on rather than unwinding a
+payment. The cards also circulate like any other, because a card's pool weight is
+its templates' weight: Counter-Battery Issue reaches a Hegemony licence through the
+Arrestor pack, the others reach independent markets and licences. The listing is
+the guaranteed route; the pools are the fallback.
 It lets add-ons keep faction identity while ensuring that a newly collectible
 family, grade, suit, or special item cannot be stranded by an omitted or
 permanently ineligible source.

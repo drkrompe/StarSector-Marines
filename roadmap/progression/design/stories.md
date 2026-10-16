@@ -2,7 +2,7 @@
 
 Status: ACTIVE — open progression implementation and acceptance work
 Written: 2026-08-23
-Updated: 2026-10-15 — Restricted tier and market listings shipped; arc issue cards planned.
+Updated: 2026-10-15 — Restricted tier, market listings and arc issue cards shipped.
 
 Read `progression-nouns.md` before changing a progression story, and
 `role-and-access.md` before changing anything about which patterns exist or how
@@ -25,4 +25,3 @@ rather than settled.
 | `squad-medic.md` | In progress | Field Medicine specialty, channelled health/armor treatment, short-leash medic AI, planted and keep-moving modes, battle and squad-card presentation, and the `squad-medic` scene are in. The balance pass that settles the movement default, the billet choice and the specialty copy remain. |
 | `hegemony-auxiliary-warrant.md` | Planned | Builds on the shipped Restricted tier (`progression-nouns.md`, Kit and armory). The authored procurement route after *A Small War*: military Arbalest at enrolment, XIV after the first honoured obligation period. |
 | `warrant-obligations.md` | Planned | Builds on the shipped Restricted tier. Service and loyalty terms. Suspension stops new fitting and replacement of warranted suits; nothing learned is revoked. |
-| `arc-issue-cards.md` | Planned | Builds on shipped market listings (`progression-nouns.md`). Checkpoint Issue, Convoy Escort Issue, Counter-Battery Issue and Builder's Guard, finally fielding the revetment, Palisade pod and Arrestor pack; each stocked by its arc's settlement. |
