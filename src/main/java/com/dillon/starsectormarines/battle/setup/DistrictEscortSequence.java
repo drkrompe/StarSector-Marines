@@ -28,8 +28,6 @@ import java.util.Locale;
 public final class DistrictEscortSequence implements Objective {
     /** Company and party within this distance of the apron count as arrived. */
     static final double APRON_RADIUS = 14;
-    /** How far along the lane, from the loading lane, the committed raiders wait. */
-    public static final float AMBUSH_SHARE = .65f;
     private final DistrictEscortProgress progress = new DistrictEscortProgress();
     private final int party, constables;
     private final long carrier;
@@ -37,7 +35,7 @@ public final class DistrictEscortSequence implements Objective {
     private final float[] routeX, routeY;
     private final StoryBeatLog log;
     private boolean initialized, released;
-    private int reserveSquad = -1, escortX, escortY, cargoX, cargoY;
+    private int reserveSquad = -1, escortX, escortY, cargoX, cargoY, trailX, trailY;
 
     public DistrictEscortSequence(int party, int constables, long carrier, List<EntitySpec> reserve,
                                   float[] routeX, float[] routeY, StoryBeatLog log) {
@@ -46,7 +44,7 @@ public final class DistrictEscortSequence implements Objective {
         this.party = party; this.constables = constables; this.carrier = carrier;
         this.reserve = List.copyOf(reserve); this.log = log;
         this.routeX = routeX.clone(); this.routeY = routeY.clone();
-        escortX = cargoX = Math.round(routeX[0]); escortY = cargoY = Math.round(routeY[0]);
+        escortX = cargoX = trailX = Math.round(routeX[0]); escortY = cargoY = trailY = Math.round(routeY[0]);
     }
 
     /**
@@ -71,16 +69,33 @@ public final class DistrictEscortSequence implements Objective {
     /** Where the company should be: the carrier at link-up, a point ahead of it in escort. */
     public int targetX() { return escortX; }
     public int targetY() { return escortY; }
+    /**
+     * The lane's heading at the company's point, as a unit step {@code [dx, dy]}; squads stand
+     * either side of it so the carrier is never driving into its own escort.
+     */
+    public float[] laneHeading() {
+        int nearest = 0; double best = Double.MAX_VALUE;
+        for (int i = 0; i < routeX.length; i++) {
+            double distance = Math.hypot(routeX[i] - escortX, routeY[i] - escortY);
+            if (distance < best) { best = distance; nearest = i; }
+        }
+        int from = Math.max(0, nearest - 3), to = Math.min(routeX.length - 1, nearest + 3);
+        float dx = routeX[to] - routeX[from], dy = routeY[to] - routeY[from];
+        float length = (float) Math.hypot(dx, dy);
+        return length < 1e-3f ? new float[]{-1, 0} : new float[]{dx / length, dy / length};
+    }
+    /** Where the handover party walks: behind the carrier on its own route, never in its path. */
+    public int trailX() { return trailX; }
+    public int trailY() { return trailY; }
     /** The carrier's cell as of the last advance; disclosed to the company and its allies only. */
     public int cargoX() { return cargoX; }
     public int cargoY() { return cargoY; }
     /**
-     * The raiders' ambush ground on the lane's western stretch: what they know, never the
+     * The raiders' ambush ground, the lane's exposed crossing: what they know, never the
      * carrier's live position or the company's.
      */
-    public int ambushX() { return Math.round(routeX[ambushIndex()]); }
-    public int ambushY() { return Math.round(routeY[ambushIndex()]); }
-    private int ambushIndex() { return Math.round((routeX.length - 1) * AMBUSH_SHARE); }
+    public int ambushX() { return LowQuay.CROSS_X; }
+    public int ambushY() { return LowQuay.CROSS_Y; }
 
     public DistrictEscortProgress.Report report(BattleSimulation sim) {
         return progress.report(DistrictEscortProgress.PARTY - sim.squadMemberCount(party),
@@ -122,10 +137,11 @@ public final class DistrictEscortSequence implements Objective {
                 double distance = Math.hypot(routeX[i] - body.x, routeY[i] - body.y);
                 if (distance < best) { best = distance; nearest = i; }
             }
-            int ahead = Math.min(routeX.length - 1, nearest + 8);
+            int ahead = Math.min(routeX.length - 1, nearest + 12), behind = Math.max(0, nearest - 5);
             escortX = Math.round(routeX[ahead]); escortY = Math.round(routeY[ahead]);
+            trailX = Math.round(routeX[behind]); trailY = Math.round(routeY[behind]);
         } else {
-            escortX = Math.round(body.x); escortY = Math.round(body.y);
+            escortX = trailX = Math.round(body.x); escortY = trailY = Math.round(body.y);
         }
         boolean companyInPlay = ObjectiveFactionPresence.anyInPlay(sim, Faction.MARINE, id -> isCompany(sim, id));
         boolean cargoAtEgress = Math.hypot(body.x - LowQuay.LANDING_X, body.y - LowQuay.LANDING_Y) < 4;

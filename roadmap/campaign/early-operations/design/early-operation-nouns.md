@@ -311,8 +311,10 @@ differ in letterhead, voice and the handover party's title; support, terms and f
 are identical. Each posting is a finite two-squad escort on the Low Quay freight
 lane: the company links up with a fresh consignment and its two-person handover
 party at the loading lane, then covers both to the western apron, where four
-constables hold. Two raider pickets sit on the lane and one finite raider group
-commits when the company comes down. Delivery needs the carrier, a living party
+constables hold. Two raider pickets sit on the lane, and one finite raider group
+commits when the company comes down, through the north freight gate to the lane's
+crossing. The company screens either side of the lane rather than on it, and the
+party walks behind its load. Delivery needs the carrier, a living party
 member and company infantry together at the apron under cover; enemy casualties
 never stand in for it, and an absent company cannot win through the constables.
 Losing the load or both of the party, or withdrawing, ends the attempt unpaid.

@@ -1665,11 +1665,8 @@ public final class BattleSetup {
         sim.getSquad(party).originalSize = DistrictEscortProgress.PARTY;
         sim.claimSquadCommand(party, CommandAuthority.MISSION_COMMAND, DistrictEscortCommand.issuer(Faction.ALLY), "Consignment handover party");
         List<EntitySpec> reserve = new ArrayList<>();
-        // The committed group comes in off the north edge above the lane's western stretch, clear of the
-        // loading lane, from the nearest edge ground that can actually walk to its ambush.
-        int ambush = Math.round((routeX.length - 1) * DistrictEscortSequence.AMBUSH_SHARE);
-        int[] ingress = escortIngress(map.grid, Math.round(routeX[ambush]), Math.round(routeY[ambush]));
-        for (int[] cell : pickSpawnCluster(map.grid, ingress[0], ingress[1], 6))
+        // The committed group is the quarter's own: it comes through the north freight gate to the crossing.
+        for (int[] cell : pickSpawnCluster(map.grid, LowQuay.RESERVE_X, LowQuay.RESERVE_Y, 6))
             reserve.add(makeOpeningMilitia("Freight-lane raider " + reserve.size(), Faction.DEFENDER, cell[0], cell[1], rng).role(UnitRole.PATROL));
         long carrier = sim.convoy().spawn(VehicleType.CARGO_CARRIER, Faction.ALLY, VehicleMission.deployed(LowQuay.LOAD_X, LowQuay.LOAD_Y));
         sim.convoy().body(carrier).teleport(LowQuay.LOAD_X, LowQuay.LOAD_Y, (float) Math.PI);
@@ -1678,19 +1675,6 @@ public final class BattleSetup {
             sim.setAutonomousCommander(faction, new DistrictEscortCommand(faction), DistrictEscortCommand.disclosure(sim.getDistrictEscort()));
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(DistrictEscortCommand.issuer(Faction.MARINE), "Company escort support"));
         return sim;
-    }
-
-    /** North-edge ingress west of the loading lane with a direct walking route to the ambush; the reserve corner otherwise. */
-    private static int[] escortIngress(NavigationGrid grid, int ambushX, int ambushY) {
-        int y = grid.getHeight() - 8;
-        for (int step = 0; step < grid.getWidth(); step += 4) for (int x : new int[]{ambushX - step, ambushX + step}) {
-            if (x < 2 || x >= LowQuay.LOAD_X - 20 || !grid.isWalkable(x, y)) continue;
-            int[] path = GridPathfinder.findPath(grid, x, y, ambushX, ambushY);
-            // A direct approach, not a long way round a perimeter fence it would only shoot through.
-            if (path != null && path.length > 0 && path.length / 2 <= 1.2 * Math.hypot(x - ambushX, y - ambushY) + 4)
-                return new int[]{x, y};
-        }
-        return new int[]{LowQuay.RESERVE_X, LowQuay.RESERVE_Y};
     }
 
     /** Latchkey territorial inspection with preserved tooling and optional owned support. */

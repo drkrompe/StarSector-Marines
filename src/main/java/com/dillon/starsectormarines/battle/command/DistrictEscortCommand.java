@@ -14,13 +14,18 @@ import java.util.List;
 public final class DistrictEscortCommand implements AutonomousMissionCommand<DistrictEscortCommand.Frame, String> {
     /** Constables hold this far east of the apron, covering the lane's last stretch. */
     static final int APRON_HOLD_OFFSET = 4;
+    /** Company squads stand this far either side of the lane's centre line. */
+    static final int LANE_SIDE_OFFSET = 3;
 
     public static final class Frame extends CommandFrame {
         final Phase phase;
-        final int x, y, party, cargoX, cargoY;
-        public Frame(CommandFrame base, Phase phase, int x, int y, int party, int cargoX, int cargoY) {
+        final int x, y, party, cargoX, cargoY, trailX, trailY;
+        final float headingX, headingY;
+        public Frame(CommandFrame base, Phase phase, int x, int y, int party, int cargoX, int cargoY,
+                     int trailX, int trailY, float headingX, float headingY) {
             super(base.tick(), base.perspective(), base.squads(), base.influence(), base.topology(), base.assignments());
             this.phase = phase; this.x = x; this.y = y; this.party = party; this.cargoX = cargoX; this.cargoY = cargoY;
+            this.trailX = trailX; this.trailY = trailY; this.headingX = headingX; this.headingY = headingY;
         }
     }
 
@@ -32,7 +37,10 @@ public final class DistrictEscortCommand implements AutonomousMissionCommand<Dis
             int x = raider ? sequence.ambushX() : sequence.targetX();
             int y = raider ? sequence.ambushY() : sequence.targetY();
             int cargoX = raider ? x : sequence.cargoX(), cargoY = raider ? y : sequence.cargoY();
-            return new Frame(base, sequence.progress().phase(), x, y, sequence.partySquadId(), cargoX, cargoY);
+            int trailX = raider ? x : sequence.trailX(), trailY = raider ? y : sequence.trailY();
+            float[] heading = raider ? new float[]{0, 0} : sequence.laneHeading();
+            return new Frame(base, sequence.progress().phase(), x, y, sequence.partySquadId(), cargoX, cargoY,
+                    trailX, trailY, heading[0], heading[1]);
         };
     }
 
@@ -54,7 +62,10 @@ public final class DistrictEscortCommand implements AutonomousMissionCommand<Dis
             int x = frame.x, y = frame.y, radius = 3;
             boolean advance = faction == Faction.DEFENDER;
             if (faction == Faction.MARINE) {
-                x += squad.squadId() % 2 == 0 ? -2 : 1;
+                // Either side of the lane, never on it: the carrier does not drive through its escort.
+                int side = squad.squadId() % 2 == 0 ? 1 : -1;
+                x += Math.round(-frame.headingY * LANE_SIDE_OFFSET * side);
+                y += Math.round(frame.headingX * LANE_SIDE_OFFSET * side);
                 if (frame.influence() != null) {
                     var threat = WorkingPassageCommand.constructionThreat(frame.influence().contacts(), frame.x, frame.y);
                     if (threat != null) {
@@ -67,9 +78,12 @@ public final class DistrictEscortCommand implements AutonomousMissionCommand<Dis
                 else if (frame.phase == Phase.ESCORT) {
                     // The party walks with its consignment and signs it over at the apron.
                     boolean nearApron = Math.hypot(frame.cargoX - LowQuay.LANDING_X, frame.cargoY - LowQuay.LANDING_Y) < 10;
-                    x = nearApron ? LowQuay.LANDING_X : frame.cargoX; y = nearApron ? LowQuay.LANDING_Y : frame.cargoY;
+                    x = nearApron ? LowQuay.LANDING_X : frame.trailX; y = nearApron ? LowQuay.LANDING_Y : frame.trailY;
                     advance = true; radius = 2;
-                } else { x = Math.round(squad.centroidX()); y = Math.round(squad.centroidY()); }
+                } else {
+                    // Until the company links up, the party waits a few cells behind its load, not wherever it drifted.
+                    x = Math.round(frame.trailX - frame.headingX * 5); y = Math.round(frame.trailY - frame.headingY * 5);
+                }
             }
             int best = Integer.MAX_VALUE, bx = Math.round(squad.centroidX()), by = Math.round(squad.centroidY());
             for (int cy = y - 5; cy <= y + 5; cy++) for (int cx = x - 5; cx <= x + 5; cx++) {
