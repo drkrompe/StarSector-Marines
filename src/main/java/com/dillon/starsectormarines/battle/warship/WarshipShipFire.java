@@ -105,16 +105,18 @@ public final class WarshipShipFire {
     }
 
     /**
-     * Chooses the hull the ship turns its guns on, once per tick: the nearest hostile hull within
-     * {@link #NOTICE_REACH_SHARE} of its longest anti-ship reach, kept while it is still a hostile hull in that
-     * range. Ties go to the earlier-added hull.
+     * Chooses the hull the ship turns its guns on, once per tick: the nearest hostile hull over the battle for a
+     * ship whose duel helm is on, else the nearest within {@link #NOTICE_REACH_SHARE} of its longest anti-ship
+     * reach; kept while it is still a hostile hull in that range. Ties go to the earlier-added hull.
      */
     void chooseTarget(Warship ship, List<Warship> ships) {
         if (!looksAtHulls(ship)) {
             ship.hullTarget(null);
             return;
         }
-        float notice = longestReach(ship) * NOTICE_REACH_SHARE;
+        // A ship free to manoeuvre goes to find the hull wherever it is over the battle; one holding its station
+        // turns only toward a hull that is nearly in reach.
+        float notice = ship.duelHelm() ? Float.MAX_VALUE : longestReach(ship) * NOTICE_REACH_SHARE;
         Warship current = ship.hullTarget();
         if (current != null && hostileHull(ship, current) && gap(ship, current) <= notice) return;
         Warship best = null;

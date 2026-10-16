@@ -338,6 +338,7 @@ public final class WarshipSystem {
         for (Warship ship : ships) {
             doctrine(dt, sim, ship);
             shipFire.chooseTarget(ship, ships);
+            duelHelm(sim, ship);
             float entryBefore = ship.entrySeconds();
             ship.addEntrySeconds(dt);
             entryCues(ship, entryBefore);
@@ -930,7 +931,8 @@ public final class WarshipSystem {
         Warship hull = ship.hullTarget();
         if (hull != null && !bring) {
             // Fighting a hull: the nose goes where the anti-ship guns bear on it, re-chosen as it moves.
-            ship.desiredHeading = WarshipShipRules.bestHeading(ship, hull.centerX(), hull.centerY());
+            float[] aim = WarshipShipRules.aimPoint(ship, hull);
+            ship.desiredHeading = WarshipShipRules.bestHeading(ship, aim[0], aim[1]);
             return;
         }
         if (bring && (!ship.headingChosen() || Math.hypot(ship.x - ship.headingChosenAtX,
@@ -1030,6 +1032,38 @@ public final class WarshipSystem {
                 default -> { }
             }
         }
+    }
+
+    /**
+     * Flies a ship fighting a hull: its station moves to the range its guns want ({@link WarshipDuelHelm}), sliding
+     * round the target if it holds off. The mission's station is kept and given back when the fight ends (no hull
+     * to fight, the order withdrawn) or the ship is taken over (piloted, departing, on a route or a low pass).
+     */
+    private static void duelHelm(BattleSimulation sim, Warship ship) {
+        Warship target = ship.hullTarget();
+        boolean free = !ship.piloted() && !ship.departing() && !ship.isPassingThrough() && ship.lowPass() == null
+                && ship.remoteOrder() == Warship.RemoteOrder.NONE;
+        if (target == null || !ship.duelHelm() || !free) {
+            float[] home = ship.duelHome();
+            if (home != null) {
+                ship.duelHome(null);
+                if (free && !Float.isNaN(home[0])) ship.stationTo(home[0], home[1]);
+            }
+            return;
+        }
+        if (!ship.manoeuvring()) {
+            ship.duelHome(ship.hasStation() ? new float[]{ship.stationX(), ship.stationY()}
+                    : new float[]{Float.NaN, Float.NaN});
+        }
+        float mine = WarshipDuelHelm.reach(ship);
+        float theirs = WarshipDuelHelm.reach(target);
+        float range = WarshipDuelHelm.preferredRange(mine, theirs);
+        // Which way round it slides is the hull's own, by its serial, so a pair does not mirror each other.
+        float slide = WarshipDuelHelm.holdsOff(mine, theirs)
+                ? (ship.serial() % 2 == 0 ? 1f : -1f) * WarshipDuelHelm.SLIDE_LEAD_DEGREES : 0f;
+        float[] at = WarshipDuelHelm.station(ship.x, ship.y, target.centerX(), target.centerY(), range, slide,
+                0.5f * ship.lengthCells, sim.getGrid().getWidth(), sim.getGrid().getHeight());
+        ship.stationTo(at[0], at[1]);
     }
 
     private static boolean onMap(BattleSimulation sim, float x, float y) {

@@ -74,6 +74,9 @@ final class WarshipFlux {
     private float overloadSecondsRemaining;
     private int overloads;
     private boolean dissipationHeld;
+    private float fittedCapacity;
+    private float fittedDissipation;
+    private boolean fittingsApplied;
 
     WarshipFlux(float baseCapacity, float baseDissipation) {
         this.baseCapacity = baseCapacity;
@@ -135,11 +138,22 @@ final class WarshipFlux {
     }
 
     float capacity() {
-        return baseCapacity * scale;
+        return (baseCapacity + (fittingsApplied ? fittedCapacity : 0f)) * scale;
     }
 
     float dissipation() {
-        return baseDissipation * scale;
+        return (baseDissipation + (fittingsApplied ? fittedDissipation : 0f)) * scale;
+    }
+
+    /** What the variant's capacitors and vents add to capacity and dissipation, applied only while {@link #applyFittings} says so. */
+    void fittings(float capacity, float dissipation) {
+        this.fittedCapacity = Math.max(0f, capacity);
+        this.fittedDissipation = Math.max(0f, dissipation);
+    }
+
+    /** Whether the variant's capacitors and vents count: the base game's figures, for a ship fighting ships. */
+    void applyFittings(boolean on) {
+        this.fittingsApplied = on;
     }
 
     float flux() {

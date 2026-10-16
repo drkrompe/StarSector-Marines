@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — a hostile hull is a target for a ship's direct-fire guns by mission order, misses fall on the ground, and a lost hull falls as wreckage (`atmospheric-frigate-duel.md`, slice 1); a fort's anti-air yard stands Locust and Swarmer towers instead of Ridgewatch and flak; earlier: Missile AA joins ordinary heavy defense posts; all six supported carrier wings use the shared commitment flow.
+Updated: 2026-10-16 — a hostile hull is a target for a ship's direct-fire guns by mission order, misses fall on the ground, a lost hull falls as wreckage, and a ship fighting hulls manoeuvres by its reach against theirs with its variant's capacitors and vents (`atmospheric-frigate-duel.md`, slices 1-2); a fort's anti-air yard stands Locust and Swarmer towers instead of Ridgewatch and flak; earlier: Missile AA joins ordinary heavy defense posts; all six supported carrier wings use the shared commitment flow.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1850,6 +1850,17 @@ them. A ship with a hull to fight and no ground to bring its guns to bear on tur
 the heading that puts the most anti-ship firepower on it, re-chosen as it moves. A
 vanilla skin (a Wolf (H), a Hound (P)) is fitted as its base hull under its own
 sprite. See `atmospheric-frigate-duel.md`.
+
+**A ship fighting a hull manoeuvres by the two reaches.** Its **duel helm** moves the
+station it flies to, never its speed or turn: a ship whose strongest anti-ship gun
+outranges the target's holds off between the two reaches and slides across the
+target's nose; one that is outranged or even closes well inside its own reach. The
+heading puts its strongest gun on where the target will be. A ship being piloted,
+departing, passing low or under a remote order is not steered by it, and the
+mission station returns when no hull is left to fight. While a ship's fire order
+allows hull fire, its variant's flux capacitors and vents count as the base game
+counts them; otherwise the hull table's flux stands, as ground bombardment was tuned
+against it.
 
 **A warship's stay and its magazine can both be bounded.** Station time is counted
 down only while the ship is on its station, not while it travels to it; when it

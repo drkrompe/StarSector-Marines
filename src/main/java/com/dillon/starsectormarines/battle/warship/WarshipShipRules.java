@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.warship;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * The ship-versus-ship rules, as pure functions: which weapons may fire at a hull, where a round thrown off by its
  * cone goes, where a round that missed comes down, and which heading brings a ship's anti-ship guns to bear.
@@ -55,6 +58,35 @@ public final class WarshipShipRules {
         return new float[]{px + dx / travelled * carry, py + dy / travelled * carry};
     }
 
+    /** The ship's strongest mount that may fire at a hull, by firepower; {@code null} when it has none. */
+    public static Warship.Mount strongest(Warship ship) {
+        Warship.Mount best = null;
+        float power = 0f;
+        for (Warship.Mount m : ship.mounts()) {
+            if (!mayFireAtHull(m.weapon)) continue;
+            float p = firepower(m.weapon);
+            if (p > power) {
+                power = p;
+                best = m;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Where the ship's strongest anti-ship gun must point to hit {@code target}: the hull's centre led by its
+     * velocity over that gun's flight time. A hardpoint's arc is a few degrees, so a hull that points at a moving
+     * target's centre rather than its lead point never brings the hardpoint to bear.
+     *
+     * @return {@code [x, y]}
+     */
+    public static float[] aimPoint(Warship ship, Warship target) {
+        Warship.Mount m = strongest(ship);
+        if (m == null) return new float[]{target.centerX(), target.centerY()};
+        return WarshipAirRules.leadPoint(ship.mountX(m), ship.mountY(m), target.centerX(), target.centerY(),
+                target.velocityX, target.velocityY, m.weapon);
+    }
+
     /** Roughly the damage per second a weapon puts into a hull: a beam's rating, or a gun's bursts over its cycle. */
     static float firepower(VanillaWeapon w) {
         if (w.beam()) return w.damagePerSecond();
@@ -72,7 +104,16 @@ public final class WarshipShipRules {
         float best = ship.facingDegrees;
         float bestPower = firepowerAt(ship, ship.facingDegrees, tx, ty);
         float bestTurn = 0f;
-        for (float h = -180f; h < 180f; h += HEADING_STEP_DEGREES) {
+        // The coarse sweep, and then each anti-ship mount's own exact heading: a hardpoint's arc is narrower than the
+        // sweep's step, so the heading that lays it on the target has to be tried by name.
+        int coarse = (int) (360f / HEADING_STEP_DEGREES);
+        List<Float> candidates = new ArrayList<>(coarse + ship.mounts().size());
+        for (int i = 0; i < coarse; i++) candidates.add(-180f + i * HEADING_STEP_DEGREES);
+        float toTarget = WarshipFacing.bearing(ship.x, ship.y, tx, ty);
+        for (Warship.Mount m : ship.mounts()) {
+            if (mayFireAtHull(m.weapon)) candidates.add(WarshipFacing.wrap(toTarget - m.slot.angleDegrees()));
+        }
+        for (float h : candidates) {
             float power = firepowerAt(ship, h, tx, ty);
             float turn = Math.abs(WarshipFacing.wrap(h - ship.facingDegrees));
             if (power > bestPower * 1.0001f || (power > 0f && power >= bestPower * 0.9999f && turn < bestTurn)) {

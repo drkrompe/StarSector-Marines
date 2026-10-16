@@ -70,6 +70,7 @@ class WarshipLoadoutTest {
                     case "getHullSpec" -> spec;
                     case "getFittedWeaponSlots" -> fitted.keySet();
                     case "getWeaponId" -> fitted.get((String) args[0]);
+                    case "getNumFluxCapacitors", "getNumFluxVents" -> 0;
                     default -> throw new UnsupportedOperationException(method.getName());
                 });
     }

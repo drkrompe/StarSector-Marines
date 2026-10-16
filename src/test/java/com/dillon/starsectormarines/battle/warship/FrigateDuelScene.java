@@ -126,6 +126,8 @@ public final class FrigateDuelScene implements BehaviorScene {
         ship.stationTo(x, y);
         ship.limitFlux();
         ship.shipFire(loop.equals("control") ? ShipFireOrder.OFF : ShipFireOrder.ALL);
+        // This scene is the stationary slugging match; the duel helm's own evidence is frigate-duel-helm.
+        ship.duelHelm(false);
         return ship;
     }
 

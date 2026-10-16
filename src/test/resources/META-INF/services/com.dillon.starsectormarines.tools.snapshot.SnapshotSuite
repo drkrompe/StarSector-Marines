@@ -82,6 +82,7 @@ com.dillon.starsectormarines.battle.warship.WarshipVsAirSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipAirStrikeSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.ShipEscortSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.FrigateDuelSceneSnapshotSuite
+com.dillon.starsectormarines.battle.warship.FrigateDuelHelmSceneSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.CompoundPropDamageSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.FurnishingDamageSnapshotSuite
 com.dillon.starsectormarines.ops.DebugMissionSnapshotSuite

@@ -1512,6 +1512,9 @@ public final class Warship {
         if (order == null) throw new IllegalArgumentException("a ship-fire order is needed");
         this.shipFire = order;
         if (order == ShipFireOrder.OFF) hullTarget = null;
+        // Ship against ship keeps the base game's balance, so a ship ordered to fight hulls carries its variant's
+        // capacitors and vents; a ship bombarding ground keeps the hull table's rhythm its postures were tuned to.
+        flux.applyFittings(order != ShipFireOrder.OFF);
     }
 
     public ShipFireOrder shipFire() {
@@ -1525,6 +1528,35 @@ public final class Warship {
 
     void hullTarget(Warship target) {
         this.hullTarget = target;
+    }
+
+    private boolean duelHelm = true;
+    /** The station the mission gave the ship before it began manoeuvring against a hull; restored when the fight ends. */
+    private float[] duelHome;
+
+    /**
+     * Whether a ship fighting a hull manoeuvres for it ({@link WarshipDuelHelm}); on by default, so a ship ordered to
+     * fight hulls fights them. Off holds the mission's station whatever happens.
+     */
+    public void duelHelm(boolean on) {
+        this.duelHelm = on;
+    }
+
+    public boolean duelHelm() {
+        return duelHelm;
+    }
+
+    /** Whether the helm is flying this ship against a hull now. */
+    public boolean manoeuvring() {
+        return duelHome != null;
+    }
+
+    float[] duelHome() {
+        return duelHome;
+    }
+
+    void duelHome(float[] station) {
+        this.duelHome = station;
     }
 
     /** The order this hull was added to its battle in, a stable identity for hashes; -1 until it is added. */
@@ -1756,6 +1788,8 @@ public final class Warship {
         Warship ship = new Warship(hullId, sprite, h * k, pivotX, pivotY,
                 handling, w * k, toughness[0], toughness[1], faction, x, y, facingDegrees, mounts,
                 fluxFigures(hullId), WarshipShield.read(hull, row));
+        ship.flux.fittings(FLUX_PER_CAPACITOR * Math.max(0, loadout.fluxCapacitors()),
+                DISSIPATION_PER_VENT * Math.max(0, loadout.fluxVents()));
         if (row != null) {
             ship.shipClass = ShipClass.classify(hull.optString("hullSize", null), row.get("designation"),
                     row.get("hints"), row.get("fighter bays"), row.get("shield type"),
@@ -1776,6 +1810,11 @@ public final class Warship {
         }
         return null;
     }
+
+    /** Flux capacity one fitted capacitor adds, the base game's figure for every hull size. */
+    public static final float FLUX_PER_CAPACITOR = 200f;
+    /** Flux dissipation, per second, one fitted vent adds, the base game's figure for every hull size. */
+    public static final float DISSIPATION_PER_VENT = 10f;
 
     private static final float DEFAULT_FLUX_CAPACITY = 10000f;
     private static final float DEFAULT_FLUX_DISSIPATION = 500f;
