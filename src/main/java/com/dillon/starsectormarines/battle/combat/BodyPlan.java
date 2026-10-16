@@ -13,9 +13,14 @@ import java.util.List;
  * the parts' own order ({@link #parts()}, which their {@link BodyPart#index()} follows) are
  * separate: the infantry plan lists head, arms, torso, legs, and stacks legs, torso, arms, head.
  *
- * <p>Infantry ({@link #INFANTRY}) is the only plan today. A mech plan is the next one
- * ({@code mech-locational-damage.md}): sections rather than limbs, a lateral split of a band, and
- * per-section pools. See {@code body-part-cover.md}.
+ * <p>Infantry ({@link #INFANTRY}) is the person's plan; each mech chassis has its own
+ * ({@code MechBodyPlan}), whose parts are its sections' height bands. See {@code body-part-cover.md}.
+ *
+ * <p>A plan says how cover finds its height ({@link #coverFromGround}). A man's cover is gated by
+ * the cover's catch band in the target plane, which is sized for a man; a mech is twice his height,
+ * and that band, centred on the body, would hide its torso and leave its legs in the open. A mech's
+ * rows therefore own the height: they say how far up from the ground each cover level reaches, so a
+ * berm hides the legs and leaves the shoulders exposed.
  */
 public final class BodyPlan {
 
@@ -28,12 +33,21 @@ public final class BodyPlan {
     private final BodyPart[] parts;
     private final BodyPart[] upTheBody;
     private final List<BodyPart> partList;
+    private final boolean coverFromGround;
 
     /**
      * @param parts every part, each at its own {@link BodyPart#index()}
      * @param upTheBody the same parts, bottom band first
      */
     public BodyPlan(String id, BodyPart[] parts, BodyPart[] upTheBody) {
+        this(id, parts, upTheBody, false);
+    }
+
+    /**
+     * @param coverFromGround whether the parts' cover rows alone say how far up the body cover
+     *        reaches ({@link #coverFromGround})
+     */
+    public BodyPlan(String id, BodyPart[] parts, BodyPart[] upTheBody, boolean coverFromGround) {
         if (parts.length == 0 || upTheBody.length != parts.length) {
             throw new IllegalArgumentException(id + ": bands must cover every part once");
         }
@@ -52,6 +66,16 @@ public final class BodyPlan {
         this.parts = parts.clone();
         this.upTheBody = upTheBody.clone();
         this.partList = List.of(this.parts);
+        this.coverFromGround = coverFromGround;
+    }
+
+    /**
+     * Whether cover reaching this body is decided by its parts' rows alone, read from the ground
+     * up: a cover level hides what its rows say it hides, and the cover's target-plane catch band,
+     * sized for a man's silhouette, is not consulted. True for a mech; a person keeps the band.
+     */
+    public boolean coverFromGround() {
+        return coverFromGround;
     }
 
     public String id() {

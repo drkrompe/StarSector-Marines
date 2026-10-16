@@ -101,8 +101,7 @@ public final class BodyPart {
 
     /**
      * A part with no cover rows of its own: cover meets the body it belongs to with the flat
-     * whole-body chance and damage cut, exactly as it meets a body without parts. A mech section
-     * is one until its plan authors cover by section ({@code mech-locational-damage.md}).
+     * whole-body chance and damage cut, exactly as it meets a body without parts.
      */
     public BodyPart(String name, int index, float share, float damageMultiplier, Consequence consequence) {
         this(name, index, share, damageMultiplier, consequence, null, null, null);

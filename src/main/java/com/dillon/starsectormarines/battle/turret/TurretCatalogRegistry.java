@@ -48,6 +48,8 @@ public final class TurretCatalogRegistry {
     public static final String HEAVY_MG_STRUCTURE_ID = "structure.turret-heavy-mg";
 
     public static final String TANK_CANNON_STRUCTURE_ID = "structure.tank-twin-cannon";
+    /** The heavy-gun tank's single long gun: more reach and penetration, a slower cycle. */
+    public static final String TANK_HEAVY_GUN_STRUCTURE_ID = "structure.tank-heavy-gun";
 
     private static volatile TurretCatalogRegistry installed;
 

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.mech.CompanyMechLedger;
 import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
 import com.dillon.starsectormarines.battle.setup.ColdStartSequence;
@@ -205,6 +206,7 @@ import com.dillon.starsectormarines.battle.nav.AsyncDefendTrackRoutes;
 import com.dillon.starsectormarines.battle.nav.PathRequestStatus;
 import com.dillon.starsectormarines.battle.mech.MechLocomotionSystem;
 import com.dillon.starsectormarines.battle.mech.MechTurretSystem;
+import com.dillon.starsectormarines.battle.mech.MechSectionFxSystem;
 import com.dillon.starsectormarines.battle.breach.WallBreachSystem;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -452,6 +454,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final MechGaitSystem mechGaitSystem;
     /** Simulation-authoritative upper-torso traverse; gates mech weapons as well as their render heading. */
     private final MechTurretSystem mechTurretSystem;
+    private final MechSectionFxSystem mechSectionFx;
     /** Mech-wreck system — death-event handler that drops a smoking wreck on a dead chassis unit's cell (replaces the former HeavyWeapons per-tick scan). Subscribed to {@link #deathDispatcher} in the constructor. */
     private final com.dillon.starsectormarines.battle.mech.MechWreckSystem mechWreckSystem;
     /** Broad by-id entity-access facade over {@link #entityWorld}; focused component owners remain separate Services. */
@@ -1217,6 +1220,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 entityWorld, battleComponents, rosterService);
         this.mechWreckSystem = new com.dillon.starsectormarines.battle.mech.MechWreckSystem(effects, rosterService);
         deathDispatcher.subscribe(mechWreckSystem::onDeath);
+        this.mechSectionFx = new MechSectionFxSystem(entityWorld, battleComponents, effects);
         this.squadFallback = new com.dillon.starsectormarines.battle.squad.SquadFallbackSystem(
                 navigation, rosterService, this::clearPath);
         this.squadAlert = new com.dillon.starsectormarines.battle.squad.SquadAlertSystem(
@@ -1495,6 +1499,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
     /** The convoy-vehicle data owner — by-id reads of the {@code GROUND_IDENTITY} / {@code GROUND_KINEMATICS} / {@code GROUND_TURRET} / {@code VEHICLE_MISSION} columns for the render / picking / debug passes. Service-direct, not via {@link #world()} ({@code World} is deprecated for migrated state). */
     public ConvoyService convoy() { return rosterService.convoy(); }
+
+    /** The company's own mechs on this field, whose section damage writes back after it. */
+    public CompanyMechLedger companyMechs() { return rosterService.companyMechs(); }
     /** Who is riding in what — the data owner for {@code RIDING}, and the gate a pass consults to skip a passenger. */
     public VehicleTransportService transport() { return transport; }
     public VehicleRepulsionSystem vehicleRepulsion() { return vehicleRepulsion; }
@@ -3106,6 +3113,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // Lingering smoke plumes parked at HE impact sites — same per-frame
         // puff drain as the wrecks, just on a shorter, fire-less timer.
         effects.tickPlumes(TICK_DT);
+        // A crippled mech's leg smoke and a lost section's burst and smoulder: presentation
+        // events into the same per-frame queues, read off settled section state.
+        mechSectionFx.tick(simTickIndex);
         tickProfile.lap(TickProfile.Phase.PLUMES);
         // Compound capture state machine — updates DEFENDER_HELD / CONTESTED /
         // MARINE_HELD state. Runs before resource production and reinforcement

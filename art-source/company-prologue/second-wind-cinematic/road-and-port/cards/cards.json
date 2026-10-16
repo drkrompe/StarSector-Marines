@@ -1,0 +1,70 @@
+{
+ "hauler-loaded-0.png": {
+  "kind": "hauler",
+  "variant": "loaded",
+  "length_m": 32.0,
+  "px_per_m": 8.40625,
+  "source": "c4-haulers-v1.png"
+ },
+ "hauler-loaded-1.png": {
+  "kind": "hauler",
+  "variant": "loaded",
+  "length_m": 32.0,
+  "px_per_m": 8.40625,
+  "source": "c4-haulers-v1.png"
+ },
+ "hauler-loaded-2.png": {
+  "kind": "hauler",
+  "variant": "loaded",
+  "length_m": 32.0,
+  "px_per_m": 8.40625,
+  "source": "c4-haulers-v1.png"
+ },
+ "hauler-loaded-3.png": {
+  "kind": "hauler",
+  "variant": "loaded",
+  "length_m": 32.0,
+  "px_per_m": 8.40625,
+  "source": "c4-haulers-v1.png"
+ },
+ "hauler-loaded-4.png": {
+  "kind": "hauler",
+  "variant": "loaded",
+  "length_m": 32.0,
+  "px_per_m": 8.40625,
+  "source": "c4-haulers-v1.png"
+ },
+ "hauler-empty-5.png": {
+  "kind": "hauler",
+  "variant": "empty",
+  "length_m": 32.0,
+  "px_per_m": 8.40625,
+  "source": "c4-haulers-v1.png"
+ },
+ "hauler-empty-6.png": {
+  "kind": "hauler",
+  "variant": "empty",
+  "length_m": 32.0,
+  "px_per_m": 8.40625,
+  "source": "c4-haulers-v1.png"
+ },
+ "hauler-empty-7.png": {
+  "kind": "hauler",
+  "variant": "empty",
+  "length_m": 32.0,
+  "px_per_m": 8.40625,
+  "source": "c4-haulers-v1.png"
+ },
+ "lifter.png": {
+  "kind": "lifter",
+  "length_m": 220.0,
+  "px_per_m": 1.3636363636363635,
+  "source": "c4-air-v1.png"
+ },
+ "tender.png": {
+  "kind": "tender",
+  "span_m": 24.0,
+  "px_per_m": 43.583333333333336,
+  "source": "c4-air-v1.png"
+ }
+}
