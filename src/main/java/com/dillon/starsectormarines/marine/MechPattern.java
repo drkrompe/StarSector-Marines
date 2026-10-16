@@ -18,6 +18,8 @@ public record MechPattern(Kind kind, String definitionId) {
 
     public enum Kind { CHASSIS, WEAPON }
 
+    public enum WeightClass { LIGHT, MEDIUM, HEAVY }
+
     public static final String PREFIX = "mech-pattern:";
 
     /** Authored access bands. Starter patterns are listed but are never offered as cards. */
@@ -77,6 +79,16 @@ public record MechPattern(Kind kind, String definitionId) {
 
     public EquipmentAccessTier accessTier() {
         return kind == Kind.CHASSIS ? CHASSIS_TIERS.get(variant()) : WEAPON_TIERS.get(component());
+    }
+
+    /** Chassis weight class; null for a weapon pattern. */
+    public WeightClass weightClass() {
+        if (kind != Kind.CHASSIS) return null;
+        switch (variant()) {
+            case HOUND: return WeightClass.LIGHT;
+            case SIROCCO: return WeightClass.MEDIUM;
+            default: return WeightClass.HEAVY;
+        }
     }
 
     public boolean starter() {
