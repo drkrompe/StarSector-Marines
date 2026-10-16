@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.LatchkeyYard;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -22,6 +23,7 @@ public final class YardOwnersSequence implements Objective {
     private final List<Integer> constables;
     private final List<List<EntitySpec>> reserves;
     private final StoryBeatLog log;
+    private final List<Integer> reserveSquads = new ArrayList<>();
     private boolean initialized, released;
     public YardOwnersSequence(int technicians, List<Integer> constables, List<List<EntitySpec>> reserves, StoryBeatLog log) {
         this.technicians = technicians; this.constables = List.copyOf(constables);
@@ -30,6 +32,8 @@ public final class YardOwnersSequence implements Objective {
     public YardOwnersProgress progress() { return progress; }
     public int technicianSquadId() { return technicians; }
     public List<Integer> constableSquadIds() { return constables; }
+    /** Committed counterattack squads, in {@link LatchkeyYard#RESERVE_INGRESS} order; empty until released. */
+    public List<Integer> reserveSquadIds() { return List.copyOf(reserveSquads); }
     public int pendingMembers() { return released || progress.terminal() ? 0 : reserves.stream().mapToInt(List::size).sum(); }
     public YardOwnersProgress.Report report(BattleSimulation sim) {
         return progress.report(2 - sim.squadMemberCount(technicians), 8 - constables.stream().mapToInt(sim::squadMemberCount).sum());
@@ -66,6 +70,7 @@ public final class YardOwnersSequence implements Objective {
             int squad = sim.mintSquad(Faction.DEFENDER,UnitType.MILITIA);
             for (var member : group) sim.spawn(member.squad(squad));
             sim.getSquad(squad).originalSize = group.size();
+            reserveSquads.add(squad);
             sim.claimSquadCommand(squad,CommandAuthority.MISSION_COMMAND,YardOwnersCommand.issuer(Faction.DEFENDER),"Committed prize crew counterattack");
         }
         log.emitOnce(sim.getSimTickIndex(),"yard_owners.reserve",StoryBeatLog.Audience.OBSERVER_ONLY);

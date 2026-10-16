@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — Junction victory waits out a fifteen-second hold of every site.
+Updated: 2026-10-16 — Latchkey counterattack commits by the Cinder Steps lane and the south road.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -261,6 +261,10 @@ reward. No equipment is automatically issued. Victory opens **The Yard's Owners*
 At Latchkey Yard, company infantry captures the dispatch house, tooling hall and
 operator entrance. These gains can be recaptured. Eight employer constables take
 separate holding duties after company gains; two technicians support the inspection.
+When dispatch first falls, Voss's finite counterattack commits two groups: one by
+the Cinder Steps lane for the tooling hall's freight doors, one by the south
+service road for the operator entrance. The hall's only other door is the sealed
+gallery from that entrance (`agreus-latchkey.md`, The yard on the ground).
 Victory requires all three sites held together, the marked calibration machine
 surviving ordinary prop damage, and a living technician completing twelve protected
 seconds at the tooling with company infantry present. Eliminating all raiders does
