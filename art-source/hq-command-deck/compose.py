@@ -1,4 +1,4 @@
-"""Place figure cards into deck plate v3 at their stands from the Blender layout.
+"""Place figure cards into the deck plate at their stands from the Blender layout.
 
 Run from the repository root:  python -I art-source/hq-command-deck/compose.py castle
 
@@ -18,8 +18,8 @@ import numpy as np
 from PIL import Image
 
 HERE = Path(__file__).resolve().parent
-PLATE = "deck-plate-v3.master.png"
-LAYOUT = "deck-guide-v5.layout.json"
+PLATE = "deck-plate-v4.master.png"
+LAYOUT = "deck-guide-v6.layout.json"
 CARDS = {"castle": "castle-v2.master.png"}
 
 
