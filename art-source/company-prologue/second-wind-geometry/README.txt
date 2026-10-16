@@ -79,7 +79,13 @@ Weapons
 Four raised turrets at the vanilla mount XY: three small single-gun houses of
 one family and one medium twin. Each is a faceted barbette seated on the deck,
 a gun house with a sloped glacis, a mantlet, stepped barrels with muzzle
-brakes, and a rear bustle with ammunition feed and vents.
+brakes, and a rear bustle with ammunition feed and vents. These are exactly
+warhound.ship's four weapon slots (WS 001-004: small ballistic turrets at
+(-11,20), (-11,-20) and (41,11), medium at (36,-16)); the model invents no
+other gun positions and the hull has no built-in weapons. Each turret rests
+trained to its slot's angle: the aft pair broadside to port and starboard,
+the forward pair 30 degrees outboard. Turret 3 stands on a taller barbette
+so its resting line fires over the stowed port grapple arm.
 
 Conforming armor plates, reinforcement bands, exposed protected conduits,
 vents, bay buttresses and flank maintenance housings supply structural depth
