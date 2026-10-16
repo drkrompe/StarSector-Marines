@@ -4,13 +4,16 @@ Status: ACTIVE — direct freight recovery sequence; live campaign acceptance re
 
 Written: 2026-10-13
 
-Updated: 2026-10-13 — Junction leads directly to Thunder Run; evacuation reserved for later use.
+Updated: 2026-10-15 — Junction framed as Varro's lien on Wayline's freight.
 
 ## Premise, place and cast
 
 After Wayline, Mara Venn introduces dispatch coordinator Iona Serr and a broken
-freight junction. The company opens the junction and escorts the cooperative's
-freight through the corridor. Castle presents the company's commitment and
+freight junction. A debt-recovery outfit, Varro, holds it against paper bought
+from Wayline's hull sales. Varro tolls the drivers and has impounded the
+cooperative's contracted loads. Jangala's civil authority calls that a civil lien
+and stays out. The company opens the junction and escorts the freed freight
+through the corridor. Castle presents the company's commitment and
 confirmed losses.
 
 The introduction uses Mara's accessible office. Opening the Junction dossier

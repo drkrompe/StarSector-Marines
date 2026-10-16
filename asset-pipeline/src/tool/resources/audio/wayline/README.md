@@ -61,7 +61,7 @@ Thunder Run's seven `wayline_thunder_run_gunship_*` clips use the existing
 Talon Two/Liam voice (`TX3LPaxmHKxFdv7VOQHJ`) and Castle command voice
 (`cuwCdnt9CKAB9XrTA1j0`) with Eleven v4. Clean source takes and generation
 receipts are retained here; the audio manifest applies AIR_COMMS to Talon Two's
-ten Junction/Thunder Run transmissions, while other speakers keep COMMS.
+eleven Junction/Thunder Run transmissions, while other speakers keep COMMS.
 Arrival, committed pass, actual missile launch, damage, loss, station
 and return each have their own trigger. A loss supersedes obsolete pending
 calls; the launch warning and survivor lines never imply a guaranteed crash.

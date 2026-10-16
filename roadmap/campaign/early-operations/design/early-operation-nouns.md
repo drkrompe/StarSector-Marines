@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — Junction's two counterattacks wait for a second gain and can retake ground.
+Updated: 2026-10-15 — Junction lore: Varro's lien, the impounded loads and the civil authority's stance.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -867,22 +867,52 @@ resource production, open-ended reinforcement layer or free garrison sorties.
 This is a mission-scoped exception, not a lower risk setting for a large siege.
 
 **Open the Junction** begins Broken Supply Route.
+Its opponent is **Varro**, a debt-recovery outfit that bought part of what Wayline
+owed when it sold its freighters. Varro holds the junction as security for that
+paper. It tolls Wayline's drivers at the Weigh Station and has impounded three
+months of contracted loads: heavy machinery for the upcountry waterworks, and
+stores for the settlements past Rill. Jangala's civil authority treats a lien
+between two freight companies as a civil matter, and its security covers the
+port, not a cooperative's road. That is why the cooperative hires its own answer.
+It is a stance, not an absence: the state acts later in Corvus, once the evidence
+shows piracy rather than debt. Each site has a meaning:
+
+- the Weigh Station is the toll;
+- the Freight Yard holds the bond office that releases the warehouse;
+- Junction Dispatch is the route board.
+
+At Dispatch the company finds this week's Wayline schedule sheets, which no one
+outside the cooperative should have. Mara remarks on it once, as the arc's single
+unexplained hint, and Varro's trenches and reserves suggest someone is funding the
+collection. The freed loads are the cargo that Thunder Run carries out.
+
 Its western turnout, Weigh Station, Freight Yard and Junction Dispatch are the
 four required territories. Dispatch is the canonical command post. Decorative
 warehouses and the roads toward Rill and Relay Nine add no capture requirements.
+Across the road from the sites stand the bonded warehouse, its hall stocked with
+the impounded machinery and crates, and a fenced impound lot holding four of
+Wayline's haulers. They are scenery. The haulers are civilian, so nobody targets
+them, and nothing there needs taking or guarding.
 Those roads add no campaign decision. The weigh-house has a
 T-shaped service wing; offset freight rooms face the maintenance access, and
 an L-shaped depot encloses a northern loading recess. The broad central
 warehouse still screens long sightlines, and the maintenance reserve retains
-its separate building behind the perimeter.
+its separate building behind the perimeter. Two manned trench lines cross the
+company's way in, one west of the Freight Yard and one west of Dispatch. Each
+holds its own squad on the trench itself, not in the site behind it.
 
 Recovering the depot lets Wayline afford hired close air support. The Junction
 briefing introduces **Talon Two**, a contracted Mudskipper gunship and crew under
 employer control, as a concrete sign of the cooperative recovering its strength.
 Talon Two is the aviation callsign, separate from infantry radio actor Kestrel Two.
-It enters as the company approaches the first site, works that position, then
-covers the militia settling onto captured ground before following the company's
-advance. It has a bounded visit and uses the ordinary gunship weapons and flight
+It enters as the company approaches the first site and works that position.
+It does not linger over captured ground. When the Weigh Station falls, Wayline
+sends it ahead to the trench in front of Dispatch, which it works while the
+company is still taking the Freight Yard. Once the Freight Yard falls, it makes
+one last pass and leaves. Its circle over that trench also reaches the edge of
+Dispatch. The trenches are where the company most needs it: without Talon Two
+the same matrix loses whole companies. It
+has a bounded visit and uses the ordinary gunship weapons and flight
 rules. It adds no player power card, supply bill, personnel requirement or owned
 boat; the company still captures the rooms and the militia still hold them.
 
@@ -890,18 +920,18 @@ The company takes the first outstanding site in approach order, returning to
 lost ground when needed. Employer militia initially cover the landing, then
 move to hold the first confirmed gain and retain that duty through reversals.
 They remain a separate allied force. Site guards retain garrison authority and
-grow from the Weigh Station to Dispatch. Two finite counterattacks wait until a
-second site is confirmed captured: by then the company is committed further on,
-Talon Two has followed it, and the militia hold the first gain alone. The
-maintenance reserve then approaches that first gain along a screened service
-route, strong enough to take it back from the militia, while a column waiting on
-the road from Rill marches on the second gain, which nobody holds once the
-company leaves. Committing either earlier walked it into the company and the
-gunship, and it died without ever threatening a site. A reversal sends the
+grow from the Weigh Station to Dispatch. Two finite counterattacks wait. The
+maintenance reserve goes in once the company is fighting for a second site. It
+takes a screened service route to the first gain, which the militia hold alone,
+and it is strong enough to take it back. Its route passes the western landing
+ground. Sent at the first capture, it met the company's later boats coming ashore
+and died there. Sent at the second capture, it arrived after Dispatch had fallen.
+A column waiting on the road from Rill marches on the second gain once it is
+confirmed. Nobody holds that site once the company leaves it. A reversal sends the
 company back to retake lost ground before Dispatch. No repeated capture creates
 additional raiders. A counterattack killed before commitment cannot produce an
 announcement that it counterattacked. The fight stays well short of Thunder Run:
-a finite forty raiders against the freight finale's ninety.
+a finite fifty-eight raiders, trench squads included, against the freight finale's ninety.
 
 Command reads frozen territory state and own-force reports, never live opposing
 positions. Local contact, survival and cohesion remain squad decisions. External

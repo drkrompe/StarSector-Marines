@@ -97,7 +97,7 @@ class IndustrialFacilityFloorPlanTest {
     }
 
     @Test
-    void undersizedIndustrialLotsRetainLegacyWarehousePlan() {
+    void undersizedIndustrialLotsUseCompactStorageBays() {
         BlockLeaf leaf = new BlockLeaf(3, 3, 15, 11, false); // 13x9
         NavigationGrid grid = openGrid();
         CellTopology topology = new CellTopology(W, H);
@@ -108,11 +108,12 @@ class IndustrialFacilityFloorPlanTest {
 
         for (int y = leaf.top + 1; y < leaf.bottom; y++) {
             for (int x = leaf.left + 1; x < leaf.right; x++) {
-                assertNull(topology.getRoomPurpose(x, y), "legacy warehouse remains unlabeled");
+                if(grid.isWalkable(x,y)&&!grid.isDoorway(x,y)&&x>leaf.left&&x<leaf.right&&y>leaf.top&&y<leaf.bottom)
+                    assertNotNull(topology.getRoomPurpose(x, y), "compact workshop rooms have a job");
             }
         }
-        assertTrue(doodads.stream().noneMatch(d -> topology.isFixture(d.cellX, d.cellY)),
-                "legacy warehouse props remain visual-only");
+        assertTrue(doodads.stream().anyMatch(d -> topology.isFixture(d.cellX, d.cellY)),
+                "compact warehouse stock uses real fitted footprints");
     }
 
     @Test

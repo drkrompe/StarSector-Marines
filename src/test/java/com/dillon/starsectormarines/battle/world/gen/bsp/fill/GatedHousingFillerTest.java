@@ -94,7 +94,7 @@ class GatedHousingFillerTest {
         assertEquals(2, outerGateCells, "compound receives one two-cell public gate");
         assertTrue(courtyardPlanters >= 4,
                 "shared courtyard and its two-cell apron receive distributed planter cover");
-        assertTrue(count(fixture.ctx.doodads, "doodad.desk-dam") >= 2,
+        assertTrue(count(fixture.ctx.doodads, "mess-galley.stool") >= 2,
                 "shared domestic space receives more than tactical cover");
         assertAllWalkableCellsConnected(fixture.grid);
 
@@ -346,6 +346,8 @@ class GatedHousingFillerTest {
             RoomPurpose purpose = fixture.topology.getRoomPurpose(doodad.cellX, doodad.cellY);
             if (purpose != RoomPurpose.BEDROOM && purpose != RoomPurpose.APARTMENT_LIVING) continue;
             if (!apartment.contains(doodad.cellX, doodad.cellY)) continue;
+            if (!doodad.definitionId().startsWith("doodad.residential-bed-")
+                    && !doodad.definitionId().startsWith("doodad.residential-sofa-")) continue;
             furniture++;
             assertEquals(2, doodad.footprintCellsX * doodad.footprintCellsY,
                     "beds and sofas occupy two cells");

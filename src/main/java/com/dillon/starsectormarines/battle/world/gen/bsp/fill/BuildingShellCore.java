@@ -103,7 +103,8 @@ final class BuildingShellCore {
                        BuildingKind buildingKind,
                        RoomPurpose[] chamberPurposesByAnchorDistance) {
             this(interiorGround, doodadPoolId, poiKind, layoutRecipe, buildingKind,
-                    chamberPurposesByAnchorDistance, BinaryPartitionStrategy.DEFAULT);
+                    chamberPurposesByAnchorDistance, layoutRecipe == BuildingLayouts.LayoutRecipe.HOME
+                            ? NeighborhoodPartitionStrategy.HOME : BinaryPartitionStrategy.DEFAULT);
         }
 
         BuildingConfig(GroundKind interiorGround,
@@ -240,7 +241,7 @@ final class BuildingShellCore {
         stampExteriorWindows(grid, topology, bl, bt, br, bb,
                 config.layoutRecipe, config.buildingKind);
 
-        // Doodad/fixture layout — TINY buildings get sparse scatter (shed),
+        // Doodad/fixture layout — TINY buildings get fitted compact work groups,
         // LARGE buildings apply the per-type recipe. Purpose-aware commercial
         // layouts consume the room labels and partition plan written above.
         BuildingLayouts.applyLayout(grid, topology, layout, bl, bt, br, bb,
@@ -249,6 +250,8 @@ final class BuildingShellCore {
         BuildingStyle style = BuildingStyle.pick(config.buildingKind, rng);
         if (style != null) style.paintShell(grid, topology, bl, bt, br, bb);
 
+        // A fitted desk or stock bay may occupy the provisional center chosen before furnishing.
+        interior = findInteriorAnchor(grid, cx, cy, bl, bt, br, bb);
         return new PointOfInterest(config.poiKind, bl, bt, br, bb,
                 anchor[0], anchor[1], interior[0], interior[1]);
     }

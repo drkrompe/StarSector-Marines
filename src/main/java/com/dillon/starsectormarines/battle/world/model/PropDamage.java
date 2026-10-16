@@ -17,6 +17,12 @@ public final class PropDamage {
     public record Profile(Effect damaged, Effect destroyed) {}
     /** Adding a family requires matching full-footprint damaged/destroyed catalog entries. */
     public static final Map<String, Profile> EQUIPMENT = Map.ofEntries(
+            Map.entry("colony-furnishings.case", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("colony-furnishings.locker", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("colony-furnishings.desk", new Profile(Effect.SMOKE, Effect.DUST)),
+            Map.entry("colony-furnishings.utility", new Profile(Effect.SMOKE, Effect.DUST)),
+            Map.entry("colony-furnishings.galley", new Profile(Effect.NONE, Effect.DUST)),
+            Map.entry("colony-furnishings.shelf", new Profile(Effect.NONE, Effect.DUST)),
             Map.entry("doodad.industrial-generator", new Profile(Effect.SMOKE, Effect.FIRE)),
             Map.entry("doodad.military-radar-dish", new Profile(Effect.NONE, Effect.DUST)),
             Map.entry("doodad.industrial-machine-tool", new Profile(Effect.SMOKE, Effect.DUST)),

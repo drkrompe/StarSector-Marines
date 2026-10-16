@@ -171,7 +171,9 @@ Do not run builds or leave generated task files there.
   Junction's default matrix flies the lift a company has at that point in the
   campaign: three interiors with two Hermes making three four-seat trips (24),
   one Hermes making six, and one Hermes making three (12, understrength), plus
-  militia-held-at-landing and absent-player controls. `-PsnapshotEveryTicks=N`
+  militia-held-at-landing and absent-player controls.
+  `-Dbattle.junction.talonTwo=false` is the no-gunship control for the trenches.
+  `-PsnapshotEveryTicks=N`
   records a whole-map `review.gif`; add `-PsnapshotFocus=x,y,cellsAcross` for a
   close view instead (the Weigh Station is about `72,50`). `-Pmission=junction`
   replays the production finite territorial factory; it does not create a campaign
@@ -1210,6 +1212,8 @@ The discovered suite ids and default output directories are:
 
 | Suite | Evidence | Output |
 |-------|----------|--------|
+| `apc` | Registered overhead APC hulls at four headings and battle scale, plus a full independent twin-MG rotation with ballistic muzzle marks; controlled art poses at 1920x1080/100%, not traverse timing or combat acceptance | `build/snapshots/apc/` |
+| `tank` | Registered tracked hull and twin-cannon turret at four headings and battle scale, full posed rotation with ballistic muzzle marks, and real autonomous-fire recoil; 1920x1080/100% art evidence, not mission acceptance | `build/snapshots/tank/` |
 | `shepherd-basin` | Three recovery-map visits at 1920×1080, authored night lighting, detailed grounded Shepherd and scrap, cargo/infantry access and clear construction plots across palettes and seeds; controlled player observation verifies lit hull surfaces and hidden hostiles, not full mission play or campaign settlement | `build/snapshots/shepherd-basin/` |
 | `ship-command-ui` | Production ship selector and contextual build tray at 1920×1080/100%, remote Move/Hold/Auto, physical turret construction, takeover handback and Cold Start's grounded power gate; controlled fixtures, not Working Passage or campaign ownership acceptance | `build/snapshots/ship-command-ui/` |
 | `working-passage` | Production departure mission with named companies and fitted boats, full-size low-hover Morrow, two construction stops, militia holds and physical climb-out; absent arrival, withheld construction, withdrawal/retry and disabled-ship controls. 1920×1080/100%, detached playback rather than live campaign acceptance; report in `build/reports/working-passage/playback.txt` | `build/snapshots/working-passage/` |

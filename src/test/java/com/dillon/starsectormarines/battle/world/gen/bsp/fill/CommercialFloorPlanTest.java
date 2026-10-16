@@ -67,7 +67,10 @@ class CommercialFloorPlanTest {
                     assertFalse(grid.isWalkable(x, y), "fixture blocks movement at " + x + "," + y);
                     assertTrue(grid.isSeeThrough(x, y), "shelf preserves lines of fire at " + x + "," + y);
                     assertFalse(nearDoorway(grid, x, y), "fixture invades doorway clearance at " + x + "," + y);
-                    assertTrue(hasHeavyDoodadAt(doodads, x, y), "fixture carries heavy shelf cover");
+                    if (purpose == RoomPurpose.SHOP_FLOOR)
+                        assertTrue(hasHeavyDoodadAt(doodads, x, y), "sales fixtures carry heavy shelf cover");
+                    else assertTrue(hasCoverDoodadAt(doodads, x, y),
+                            "stock fixtures carry physical cargo cover");
                 }
             }
             assertTrue(shopCells >= 40, "seed " + seed + " sales floor cells=" + shopCells);
@@ -99,16 +102,25 @@ class CommercialFloorPlanTest {
     }
 
     @Test
-    void neighborhoodStoreBelowThresholdKeepsNonBlockingFurniture() {
+    void mediumNeighborhoodStoreHasSeparatedStockAndFittedShelves() {
         BlockLeaf leaf = new BlockLeaf(3, 3, 11, 10, false); // 9x8
         NavigationGrid grid = openGrid();
         CellTopology topology = new CellTopology(W, H);
         BuildingShellCore.carve(leaf, grid, topology, new ArrayList<>(), new Random(4), CONFIG);
+        int fixtures = 0, sales = 0, stock = 0;
         for (int y = leaf.top; y <= leaf.bottom; y++) {
             for (int x = leaf.left; x <= leaf.right; x++) {
-                assertFalse(topology.isFixture(x, y), "small stores should not receive blocking racks");
+                if (topology.getRoomPurpose(x,y) == RoomPurpose.SHOP_FLOOR) sales++;
+                if (topology.getRoomPurpose(x,y) == RoomPurpose.STOCKROOM) stock++;
+                if(topology.isFixture(x,y)) {
+                    fixtures++;
+                    assertFalse(grid.isWalkable(x,y));
+                    assertFalse(nearDoorway(grid,x,y));
+                }
             }
         }
+        assertTrue(fixtures > 0);
+        assertTrue(sales > 0 && stock > 0);
     }
 
     @Test
@@ -173,6 +185,10 @@ class CommercialFloorPlanTest {
             }
         }
         return false;
+    }
+
+    private static boolean hasCoverDoodadAt(List<Doodad> doodads, int x, int y) {
+        return doodads.stream().anyMatch(d -> d.cover > 0 && d.occupiesCell(x, y));
     }
 
     private static boolean hasHeavyDoodadAt(List<Doodad> doodads, int x, int y) {

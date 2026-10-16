@@ -2366,9 +2366,9 @@
       "id": "marines_mara_junction_briefing",
       "missionId": "story_supply_route_junction",
       "event": "briefing",
-      "text": "Getting the depot back has put Wayline on its feet again, Commander. We've scraped together enough to hire close air support: Talon Two, a Mudskipper gunship and crew. They'll cover your company's advance under our direction. Both outlying roads are still cut. Capture Weigh Station, Freight Yard, and Junction Dispatch, and keep the western turnout secure. Six militia will hold your gains while you push forward. You're paid on success. Then we decide which stranded crew we can support. Let's get that junction working for us.",
-      "synthesisText": "Getting the depot back has put Wayline on its feet again, Commander. We've scraped together enough to hire close air support: Talon Two, a Mudskipper gunship and crew. They'll cover your company's advance under our direction. Both outlying roads are still cut. Capture Weigh Station, Freight Yard, and Junction Dispatch, and keep the western turnout secure. Six militia will hold your gains while you push forward. You're paid on success. Then we decide which stranded crew we can support. Let's get that junction working for us.",
-      "durationSeconds": 33.2,
+      "text": "Getting the depot back has put Wayline on its feet again, Commander, but our freight is still stuck at the junction. When we sold the freighters, a debt-recovery outfit called Varro bought part of what we owed. They've taken the junction as security. They charge our drivers a toll at the Weigh Station, and they've impounded three months of contracted loads in the bonded warehouse: pump sets and turbines for the upcountry waterworks, and stores for the settlements past Rill. The civil authority on Jangala calls it a lien between two freight companies, which makes it a civil matter. Port security covers the port, not our road. So we're paying for our own answer. Talon Two, a contracted Mudskipper gunship, will work the trenches ahead of your company. Take the Weigh Station, the Freight Yard and its bond office, and Junction Dispatch, and keep the western turnout secure. Six militia will hold what you take. You're paid on success, and then we run those loads out on Thunder Run.",
+      "synthesisText": "Getting the depot back has put Wayline on its feet again, Commander, but our freight is still stuck at the junction. When we sold the freighters, a debt-recovery outfit called Varro bought part of what we owed. They've taken the junction as security. They charge our drivers a toll at the Weigh Station, and they've impounded three months of contracted loads in the bonded warehouse: pump sets and turbines for the upcountry waterworks, and stores for the settlements past Rill. The civil authority on Jangala calls it a lien between two freight companies, which makes it a civil matter. Port security covers the port, not our road. So we're paying for our own answer. Talon Two, a contracted Mudskipper gunship, will work the trenches ahead of your company. Take the Weigh Station, the Freight Yard and its bond office, and Junction Dispatch, and keep the western turnout secure. Six militia will hold what you take. You're paid on success, and then we run those loads out on Thunder Run.",
+      "durationSeconds": 61.12,
       "priority": 10,
       "expiresSeconds": 25,
       "supersedes": []
@@ -2377,9 +2377,9 @@
       "id": "marines_mara_junction_started",
       "missionId": "story_supply_route_junction",
       "event": "supply_route.junction.started",
-      "text": "Mara here. Open the junction, Captain. Keep the western turnout secure as you advance.",
-      "synthesisText": "Mara here. Open the junction, Captain. Keep the western turnout secure as you advance.",
-      "durationSeconds": 5.76,
+      "text": "Mara here. Varro will call this a debt collection. They're on our road with rifles. Open the junction, Captain.",
+      "synthesisText": "Mara here. Varro will call this a debt collection. They're on our road with rifles. Open the junction, Captain.",
+      "durationSeconds": 7.44,
       "priority": 10,
       "expiresSeconds": 25,
       "supersedes": []
@@ -2423,9 +2423,9 @@
       "id": "marines_mara_junction_weigh_station_secured",
       "missionId": "story_supply_route_junction",
       "event": "supply_route.junction.weigh_station_secured",
-      "text": "Weigh Station is ours. Keep it covered as you move on.",
-      "synthesisText": "Weigh Station is ours. Keep it covered as you move on.",
-      "durationSeconds": 4.0,
+      "text": "Weigh Station is ours. That's the end of their toll. Keep it covered as you move on.",
+      "synthesisText": "Weigh Station is ours. That's the end of their toll. Keep it covered as you move on.",
+      "durationSeconds": 5.92,
       "priority": 20,
       "expiresSeconds": 25,
       "supersedes": []
@@ -2434,9 +2434,9 @@
       "id": "marines_mara_junction_freight_yard_secured",
       "missionId": "story_supply_route_junction",
       "event": "supply_route.junction.freight_yard_secured",
-      "text": "Freight Yard is ours. Keep the approach open.",
-      "synthesisText": "Freight Yard is ours. Keep the approach open.",
-      "durationSeconds": 3.36,
+      "text": "Freight Yard is ours, and the bond office with it. Those are our loads in the warehouse across the road. Keep the approach open.",
+      "synthesisText": "Freight Yard is ours, and the bond office with it. Those are our loads in the warehouse across the road. Keep the approach open.",
+      "durationSeconds": 8.32,
       "priority": 20,
       "expiresSeconds": 25,
       "supersedes": []
@@ -2445,9 +2445,9 @@
       "id": "marines_mara_junction_dispatch_secured",
       "missionId": "story_supply_route_junction",
       "event": "supply_route.junction.dispatch_secured",
-      "text": "Junction Dispatch is ours. Hold it, and make sure the other sites stay ours.",
-      "synthesisText": "Junction Dispatch is ours. Hold it, and make sure the other sites stay ours.",
-      "durationSeconds": 5.84,
+      "text": "Junction Dispatch is ours. Hold it, and keep the other sites. Captain, the schedule sheets on their board are this week's. Nobody outside Wayline should have those.",
+      "synthesisText": "Junction Dispatch is ours. Hold it, and keep the other sites. Captain, the schedule sheets on their board are this week's. Nobody outside Wayline should have those.",
+      "durationSeconds": 10.8,
       "priority": 20,
       "expiresSeconds": 25,
       "supersedes": []
@@ -3648,8 +3648,8 @@
       "id": "wayline_junction_gunship_inbound",
       "missionId": "story_supply_route_junction",
       "event": "supply_route.junction.gunship_inbound",
-      "text": "Talon Two to ground team. Wayline sent us ahead. Keep moving; we will work the next position.",
-      "durationSeconds": 5.36,
+      "text": "Talon Two to ground team, inbound from the west. We'll work the Weigh Station with you, then Wayline wants us out ahead.",
+      "durationSeconds": 6.16,
       "priority": 12,
       "expiresSeconds": 30,
       "supersedes": [],
@@ -3657,7 +3657,7 @@
       "portrait": "graphics/portraits/talon-two.png",
       "voiced": true,
       "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
-      "synthesisText": "[steady, focused voice] Talon Two to ground team. Wayline sent us ahead. Keep moving; we will work the next position."
+      "synthesisText": "[steady, focused voice] Talon Two to ground team, inbound from the west. We'll work the Weigh Station with you, then Wayline wants us out ahead."
     },
     {
       "id": "wayline_junction_gunship_on_station",
@@ -3675,19 +3675,19 @@
       "synthesisText": "[steady, focused voice] Talon Two, on station. We have the road. Your militia can move up behind the company."
     },
     {
-      "id": "wayline_junction_gunship_covering_militia",
+      "id": "wayline_junction_gunship_working_trench",
       "missionId": "story_supply_route_junction",
-      "event": "supply_route.junction.gunship_covering_militia",
-      "text": "Talon Two is staying over the militia while they settle in. Push on when your people are ready.",
-      "durationSeconds": 5.36,
-      "priority": 10,
+      "event": "supply_route.junction.gunship_working_trench",
+      "text": "Talon Two moving ahead. There's a trench line dug across the road in front of Dispatch. We'll work it while you take the yard.",
+      "durationSeconds": 6.72,
+      "priority": 12,
       "expiresSeconds": 30,
       "supersedes": [],
-      "speaker": "MARA VENN / WAYLINE",
-      "portrait": "graphics/portraits/mara-venn.png",
+      "speaker": "TALON TWO / WAYLINE AIR",
+      "portrait": "graphics/portraits/talon-two.png",
       "voiced": true,
-      "voiceId": "YHcCpa6SBWnKDaCPZJQR",
-      "synthesisText": "[steady, conversational voice] Talon Two is staying over the militia while they settle in. Push on when your people are ready."
+      "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
+      "synthesisText": "[steady, focused voice] Talon Two moving ahead. There's a trench line dug across the road in front of Dispatch. We'll work it while you take the yard."
     },
     {
       "id": "wayline_junction_gunship_hit",
@@ -3717,7 +3717,7 @@
         "supply_route.junction.gunship_inbound",
         "supply_route.junction.gunship_on_station",
         "supply_route.junction.gunship_hit",
-        "supply_route.junction.gunship_covering_militia"
+        "supply_route.junction.gunship_working_trench"
       ],
       "speaker": "CASTLE / COMPANY COMMAND",
       "portrait": "graphics/portraits/castle.png",
@@ -3730,8 +3730,8 @@
       "id": "wayline_junction_gunship_returned",
       "missionId": "story_supply_route_junction",
       "event": "supply_route.junction.gunship_returned",
-      "text": "Talon Two is heading home. Good work down there.",
-      "durationSeconds": 2.96,
+      "text": "Talon Two, heading home. I flew Wayline freight before they sold the hulls. Get that junction open for them.",
+      "durationSeconds": 6.32,
       "priority": 10,
       "expiresSeconds": 30,
       "supersedes": [],
@@ -3739,7 +3739,7 @@
       "portrait": "graphics/portraits/talon-two.png",
       "voiced": true,
       "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
-      "synthesisText": "[steady, focused voice] Talon Two is heading home. Good work down there."
+      "synthesisText": "[steady, warm voice] Talon Two, heading home. I flew Wayline freight before they sold the hulls. Get that junction open for them."
     },
     {
       "id": "wayline_thunder_run_gunship_inbound",

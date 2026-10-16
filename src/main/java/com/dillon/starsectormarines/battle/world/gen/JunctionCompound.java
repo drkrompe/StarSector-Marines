@@ -31,6 +31,23 @@ import java.util.Random;
 /** Authored small territorial profile. Decoration never adds capture requirements. */
 public final class JunctionCompound {
     public static final int WIDTH = 192, HEIGHT = 112;
+    /**
+     * The two trench lines dug across the company's way in, each {x, top y, bottom y}: one west of the
+     * Freight Yard and one west of Dispatch. A rifle squad that walks into a manned trench pays for it;
+     * they are where Talon Two goes ahead to work while the company is still taking the site behind.
+     */
+    public static final List<int[]> TRENCHES = List.of(new int[]{95, 38, 49}, new int[]{133, 43, 54});
+    /** The middle cell of trench {@code i}, where its squad is posted and Talon Two circles. */
+    public static int[] trenchCentre(int i) {
+        int[] t = TRENCHES.get(i);
+        return new int[]{t[0], (t[1] + t[2]) / 2};
+    }
+    /**
+     * Wayline's impounded haulers, parked nose-north in the lot between the bonded warehouse and the
+     * depot wing, each {x, y} of its centre. Scenery: civilian hulls nobody is sent to fight over.
+     */
+    public static final List<float[]> IMPOUNDED_HAULERS = List.of(new float[]{130.5f, 71f},
+            new float[]{134.5f, 71f}, new float[]{130.5f, 81f}, new float[]{134.5f, 81f});
     /** Where the second counterattack waits, just inside the map on the road from Rill. */
     public static final int RILL_ROAD_X = 174, RILL_ROAD_Y = 4;
     public static final List<String> SITE_NAMES = List.of("Western turnout", "Weigh Station", "Freight Yard", "Junction Dispatch");
@@ -47,6 +64,7 @@ public final class JunctionCompound {
                 JunctionCompound::buildings, JunctionCompound::perimeter, JunctionCompound::cargo,
                 finished -> RoadRasterizer.clearReplacedSurfaces(finished.topology, finished.width, finished.height),
                 JunctionCompound::yardSurfaces, JunctionCompound::serviceYards, JunctionCompound::terrain,
+                JunctionCompound::trenches,
                 new FinalizeStage(), new OutdoorLandscapeStage(21, 56, 148, 55))).run(c);
         List<TacticalNode> sites = new ArrayList<>();
         sites.add(new TacticalNode(TacticalNode.Kind.BEACHHEAD, 21, 56,
@@ -55,7 +73,7 @@ public final class JunctionCompound {
         for (int i = 0; i < 3; i++) {
             PointOfInterest p = c.pois.get(i);
             sites.add(new TacticalNode(kinds[i], p.interiorAnchorX, p.interiorAnchorY,
-                    p.left, p.top, p.right, p.bottom, Faction.DEFENDER, 50 + i * 10, 6 + 2 * i));
+                    p.left, p.top, p.right, p.bottom, Faction.DEFENDER, 50 + i * 10, 6 + 4 * i));
         }
         MapResult map = new MapResult(c.grid, c.topology, 21, 56, 148, 55,
                 c.pois, c.doodads, new TacticalMap(sites), c.get(BspKeys.BUILDINGS),
@@ -129,7 +147,9 @@ public final class JunctionCompound {
         shell(c, 137, 41, 160, 53, Frontage.BOTTOM); // Dispatch overlooking the junction.
         shell(c, 42, 28, 53, 49, Frontage.BOTTOM); // Screens shield the apron from the gate.
         BuildingStamp.OFFSET_DEPOT.place(c, 44, 69, 1); // Smaller service annex above the apron.
-        shell(c, 94, 66, 119, 85, Frontage.TOP); // Warehouse blocks a map-wide firing corridor.
+        // The bonded warehouse holds the loads impounded against Wayline's debt; it also blocks a
+        // map-wide firing corridor across the north apron.
+        shell(c, 92, 65, 126, 87, Frontage.TOP);
         BuildingStamp.FREIGHT_L.place(c, 139, 68, 0); // Depot wing encloses an outdoor loading court.
         shell(c, 92, 8, 115, 17, Frontage.BOTTOM); // Maintenance staging beside the reserve road.
     }
@@ -151,6 +171,35 @@ public final class JunctionCompound {
         yard.cargo(150, 82);
         yard.prop(150, 79, "stores-roller-conveyor", 0);
         yard.prop(156, 80, "stores-cargo-loader", 1);
+        // Impounded hauler lot between the bonded warehouse and the depot wing, fenced, its gate on the road.
+        yard.perimeter(new int[]{132, 66}, 128, 66, 137, 66, 137, 87, 128, 87);
+        for (float[] h : IMPOUNDED_HAULERS)
+            yard.bay(Math.round(h[0] - 1.5f), Math.round(h[1] - 3), Math.round(h[0] + 1.5f), Math.round(h[1] + 3));
+        // The bonded hall's floor holds the impounded loads in two rows with aisles between: crated
+        // supplies, and the heavy machinery Wayline was hauling when the junction was taken. The hall's
+        // own fitting varies by seed, so a load whose place it has taken is left out.
+        Object[][] goods = {
+                {105, 71, "industrial-turbine-set"},
+                {115, 71, "industrial-turbine-set"},
+                {114, 75, "industrial-turbine-set"},
+                {111, 75, "industrial-reactor-housing"},
+                {120, 75, "industrial-reactor-housing"},
+                {105, 75, "industrial-crate-stack"}, {106, 75, "industrial-crate-stack"}, {105, 76, "industrial-crate-stack"}, {106, 76, "industrial-crate-stack"},
+                {111, 71, "industrial-crate-stack"}, {112, 71, "industrial-crate-stack"}, {113, 71, "industrial-crate-stack"}, {111, 72, "industrial-crate-stack"}, {112, 72, "industrial-crate-stack"}, {113, 72, "industrial-crate-stack"},
+                {121, 71, "industrial-crate-stack"}, {122, 71, "industrial-crate-stack"}, {123, 71, "industrial-crate-stack"}, {121, 72, "industrial-crate-stack"}, {122, 72, "industrial-crate-stack"}, {123, 72, "industrial-crate-stack"},
+                {107, 69, "stores-rack-run"},
+                {111, 69, "stores-rack-run"},
+                {119, 69, "stores-rack-run"},
+                {108, 73, "stores-cargo-loader"}};
+        PointOfInterest warehouse = c.pois.get(5);
+        for (Object[] g : goods) yard.stock((Integer) g[0], (Integer) g[1], (String) g[2], 0,
+                warehouse.interiorAnchorX, warehouse.interiorAnchorY);
+        // Machinery waiting outside the loading doors, two loads already on flatbeds. The doors are seeded
+        // too, so a load that would block one is left out.
+        Object[][] staged = {{92, 89, "parked-flatbed-truck"}, {103, 89, "industrial-turbine-set"},
+                {109, 89, "industrial-reactor-housing"}, {118, 89, "industrial-pipe-bundle"}, {123, 89, "parked-flatbed-truck"}};
+        for (Object[] g : staged) yard.stock((Integer) g[0], (Integer) g[1], (String) g[2], 0,
+                warehouse.interiorAnchorX, warehouse.interiorAnchorY);
         // Apron service annex: generator and spares stand on their own made ground.
         yard.gravel(44, 84, 54, 91);
         yard.prop(46, 87, "industrial-turbine-set", 0);
@@ -165,6 +214,14 @@ public final class JunctionCompound {
     private static void pave(GenContext c, int l, int t, int r, int b, GroundKind kind) {
         for (int y = t; y <= b; y++) for (int x = l; x <= r; x++) {
             c.grid.setWalkableFloor(x, y); c.topology.setGroundKind(x, y, kind);
+        }
+    }
+    private static void trenches(GenContext c) {
+        for (int[] t : TRENCHES) {
+            List<int[]> line = new ArrayList<>();
+            for (int y = t[1]; y <= t[2]; y++)
+                if (!c.topology.isFixture(t[0], y)) line.add(new int[]{t[0], y});
+            PreparedGround.trenchLine(c, line);
         }
     }
     private static void perimeter(GenContext c) {
