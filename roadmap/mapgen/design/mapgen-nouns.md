@@ -309,7 +309,13 @@ sides of an interior partition and concave joins remain coherent without an
 art-defined inside/outside direction.
 
 Ordinary hollow building shells place shared-edge windows on facade runs
-belonging to tactically usable rooms. The former facade wall cell becomes a
+belonging to tactically usable rooms. Homes and office workrooms receive daylight
+alongside public rooms: bedrooms and workrooms use paired panes, living and
+meeting rooms wider bays, and shops or reception areas may use four-cell glazed
+runs. Smaller domestic rooms narrow the glazing to retain bed and sofa wall
+support. Bays stop at room divisions and door jambs and retain solid corner piers.
+Each pane remains an ordinary independently destructible shared edge, so a break
+opens only that section. The former facade wall cell becomes a
 walkable, building-hinted firing recess; only its outside transition is closed,
 and that recess is retained as the barrier's structural-owner side. Secured
 storage and infrastructure rooms may deliberately remain opaque. Compound
@@ -331,7 +337,7 @@ than a single symbolic prop: command rooms organize console banks around a
 planning focus, server rooms organize repeated racks around a service aisle,
 and both retain doorway, firing-position, and room-connectivity obligations.
 Ground command chambers and their operations annexes, industrial control rooms,
-clinic monitoring stations and civic server rooms use connected, capped
+clinic monitoring stations use connected, capped
 console runs against real supporting walls. Compact rooms retain their old
 single station when a complete bank cannot fit. Each bank keeps two walkable rows on
 its operator side, avoids firing recesses and doorway approaches, and is
@@ -425,13 +431,12 @@ Civic headquarters follow the same authored-program rule as ship mech labs:
 their two-cell spine, opposing entrances, room depths, and fixture groups are
 designed as one floor-plan family rather than discovered by random door and
 prop placement. A qualifying headquarters lot is at least 15 by 13 cells. Each
-office must fit its workstation-and-records group, each reception wing its
-counter, the conference room its central table, and the server room repeated
-racks around a service aisle. Multi-cell fixtures rotate at placement time so
-their backs meet supporting walls, their working faces meet open room cells,
-and centerpieces are centered by their complete footprint. On the compact
-footprint, office facade windows yield to that required room capacity;
-reception and conference facades retain the building's firing apertures.
+office fits modern terminals, operator seating and record storage; reception
+combines staffed desks and waiting seats, the conference room has a meeting
+table with seating, and the server room has opaque cabinets around a service
+aisle. Whole furniture groups rotate with their protected working space.
+Public and office facades receive glazed bays before furnishing; secure server
+rooms remain opaque. Furnishing keeps the windows' inward approaches open.
 
 Thunder Run owns a wider, elongated freight corridor with three roadside
 objectives and two staging stops. Dispatch uses an L-shaped depot and office
@@ -1376,6 +1381,15 @@ firing windows along its facades, and a packed one that does not is a building
 its garrison can only shoot out of through the door. A window is a shared-edge
 barrier on a standable cell rather than a see-through wall cell, which is what
 lets one feature describe itself identically to movement, sight, fire and cover.
+
+Ground installations share the modern bunk, mess and clinical furniture kits
+with ships, but keep their own room programs and do not inherit ship layout
+overrides. Dispatch offices group seated desks, meeting space and records
+storage around clear circulation. Occupied support rooms can carry adjacent
+window panes along a clear facade; guard rooms and vehicle sheds retain their
+spaced defensive apertures. Every pane keeps an accessible inward approach,
+solid corner and doorway piers, and its own shared-edge barrier. A wider bay
+does not join the building's interior to the yard or change mission ownership.
 
 A stage that replaces what an earlier stage built owns everything the earlier one
 recorded, not only what it drew: decorative placements, points of interest,

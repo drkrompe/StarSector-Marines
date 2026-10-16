@@ -16,6 +16,8 @@ public final class SmokingWreck {
 
     public final int cellX;
     public final int cellY;
+    /** Exact emitter position for registered vehicle damage; legacy cell emitters use centers. */
+    public final float x, y;
     public final float totalLifetime;
     public final float effectScale;
     public final float burnDuration;
@@ -31,10 +33,17 @@ public final class SmokingWreck {
 
     public SmokingWreck(int cellX, int cellY, float totalLifetime, float firstPuffDelay,
                         float effectScale, float burnDuration) {
+        this(cellX + .5f, cellY + .5f, totalLifetime, firstPuffDelay, effectScale, burnDuration);
+    }
+
+    public SmokingWreck(float x, float y, float totalLifetime, float firstPuffDelay,
+                        float effectScale, float burnDuration) {
         this.effectScale = effectScale;
         this.burnDuration = burnDuration;
-        this.cellX = cellX;
-        this.cellY = cellY;
+        this.cellX = (int) Math.floor(x);
+        this.cellY = (int) Math.floor(y);
+        this.x = x;
+        this.y = y;
         this.totalLifetime = totalLifetime;
         this.remainingLifetime = totalLifetime;
         this.nextPuffTimer = firstPuffDelay;

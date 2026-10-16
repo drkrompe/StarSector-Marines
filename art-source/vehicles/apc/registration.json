@@ -1,9 +1,9 @@
 {
-  "sourceSize": [2048, 768],
-  "outputSize": [1536, 576],
-  "scale": 0.6666666666666666,
+  "outputSize": [3072, 576],
   "frames": [
-    {"sourceRect": [0, 0, 1200, 768], "sourceCenter": [603, 375], "targetCenter": [384, 288], "sourceBearing": [530, 375]},
-    {"sourceRect": [1200, 0, 848, 768], "sourceCenter": [1774, 394], "targetCenter": [1152, 288], "sourceMuzzles": [[1303, 303], [1303, 485]]}
+    {"source": "master.png", "sourceSize": [2048, 768], "scale": 0.6666666666666666, "sourceRect": [0, 0, 1200, 768], "sourceCenter": [603, 375], "targetCenter": [384, 288], "sourceBearing": [530, 375]},
+    {"source": "master.png", "sourceSize": [2048, 768], "scale": 0.6666666666666666, "sourceRect": [1200, 0, 848, 768], "sourceCenter": [1774, 394], "targetCenter": [1152, 288], "sourceMuzzles": [[1303, 303], [1303, 485]]},
+    {"source": "wreck-master.png", "sourceSize": [2048, 768], "scale": 0.7, "sourceRect": [0, 0, 1150, 768], "sourceCenter": [552.524, 363.5], "targetCenter": [1920, 288], "sourceBearing": [483, 363.5]},
+    {"source": "wreck-master.png", "sourceSize": [2048, 768], "scale": 0.7, "sourceRect": [1150, 0, 898, 768], "sourceCenter": [1690, 375], "targetCenter": [2688, 288]}
   ]
 }

@@ -55,6 +55,8 @@ import java.util.Objects;
  * @param fireMission       a fire mission the squad's crew-served tubes serve: a map cell and radius on which they fire
  *                          whatever the side knows to stand there, in place of only what the section itself has seen,
  *                          or {@code null}. A cell of the map, never a hostile identity
+ * @param screenMission     a smoke screen the squad's grenadiers throw: a map cell to put a cloud on, or {@code null}. Own-force
+ *                          ground chosen between a nest and a route, never a hostile identity or position
  */
 public record ObjectiveAssignment(
         int squadId,
@@ -69,7 +71,8 @@ public record ObjectiveAssignment(
         int occupyRunId,
         int breachCellX,
         int breachCellY,
-        FireMission fireMission) {
+        FireMission fireMission,
+        ScreenMission screenMission) {
 
     /**
      * A fire mission: the ground a squad's tubes are told to fire on. The commander names a place, never a body, and the
@@ -83,6 +86,37 @@ public record ObjectiveAssignment(
         public FireMission {
             if (radiusCells < 1) throw new IllegalArgumentException("radiusCells must be positive");
         }
+    }
+
+    /**
+     * A smoke screen: the ground a squad's grenadiers are told to put a cloud on, from where they stand within their throw.
+     *
+     * @param cellX centre of the cloud
+     * @param cellY centre of the cloud
+     */
+    public record ScreenMission(int cellX, int cellY) { }
+
+    /** The assignment that serves no smoke screen. */
+    public ObjectiveAssignment(int squadId, AssignmentKind kind,
+                               int targetZoneId, TacticalNode targetNode,
+                               int objectiveId, int targetCellX,
+                               int targetCellY, int targetRadiusCells,
+                               boolean wreckAuthorised, int occupyRunId,
+                               int breachCellX, int breachCellY, FireMission fireMission) {
+        this(squadId, kind, targetZoneId, targetNode, objectiveId, targetCellX, targetCellY, targetRadiusCells,
+                wreckAuthorised, occupyRunId, breachCellX, breachCellY, fireMission, null);
+    }
+
+    /** The same order, told also to throw smoke on this ground (or none, with {@code null}). */
+    public ObjectiveAssignment withScreen(ScreenMission screen) {
+        return Objects.equals(screenMission, screen) ? this : new ObjectiveAssignment(squadId, kind,
+                targetZoneId, targetNode, objectiveId, targetCellX, targetCellY, targetRadiusCells, wreckAuthorised,
+                occupyRunId, breachCellX, breachCellY, fireMission, screen);
+    }
+
+    /** Whether this order tells its squad's grenadiers to throw a smoke screen. */
+    public boolean screens() {
+        return screenMission != null;
     }
 
     /** The assignment that serves no fire mission. */
@@ -128,21 +162,21 @@ public record ObjectiveAssignment(
     /** The same order with the permission to wreck the fort aspect at its target cell given or withdrawn. */
     public ObjectiveAssignment withWreckAuthorised(boolean authorised) {
         return wreckAuthorised == authorised ? this : new ObjectiveAssignment(squadId, kind, targetZoneId, targetNode,
-                objectiveId, targetCellX, targetCellY, targetRadiusCells, authorised, occupyRunId, breachCellX, breachCellY, fireMission);
+                objectiveId, targetCellX, targetCellY, targetRadiusCells, authorised, occupyRunId, breachCellX, breachCellY, fireMission, screenMission);
     }
 
     /** The same order, told also to open the wall at this cell (or none, with {@code -1}) when in reach of it. */
     public ObjectiveAssignment withBreach(int cellX, int cellY) {
         return breachCellX == cellX && breachCellY == cellY ? this : new ObjectiveAssignment(squadId, kind,
                 targetZoneId, targetNode, objectiveId, targetCellX, targetCellY, targetRadiusCells, wreckAuthorised,
-                occupyRunId, cellX, cellY, fireMission);
+                occupyRunId, cellX, cellY, fireMission, screenMission);
     }
 
     /** The same order, told also to serve a fire mission on this ground (or none, with {@code null}). */
     public ObjectiveAssignment withFireMission(FireMission mission) {
         return Objects.equals(fireMission, mission) ? this : new ObjectiveAssignment(squadId, kind,
                 targetZoneId, targetNode, objectiveId, targetCellX, targetCellY, targetRadiusCells, wreckAuthorised,
-                occupyRunId, breachCellX, breachCellY, mission);
+                occupyRunId, breachCellX, breachCellY, mission, screenMission);
     }
 
     /** Whether this order tells its squad's tubes to serve a fire mission. */

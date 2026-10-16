@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
 import com.dillon.starsectormarines.battle.world.gen.fit.ConsoleBankLayout.Cell;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPose;
@@ -30,6 +31,12 @@ final class BuildingWorkGroups {
 
     BuildingWorkGroups(NavigationGrid grid, CellTopology topology, List<Doodad> doodads) {
         this.grid = grid; this.topology = topology; this.doodads = doodads;
+        for (var barrier : grid.getEdgeBarriers()) if (barrier.kind() == SharedEdgeBarrier.Kind.WINDOW) {
+            int x = barrier.structureCellX(), y = barrier.structureCellY();
+            var outward = x == barrier.cellX() && y == barrier.cellY()
+                    ? barrier.direction() : barrier.direction().opposite();
+            access.add(new Cell(x - outward.dx, y - outward.dy));
+        }
         for (Doodad d : doodads) if (d.definitionId() != null && d.definitionId().startsWith("console-bank.") && !d.definitionId().endsWith("corner")) {
             int dx = d.definitionId().endsWith("end-left") ? 1 : d.definitionId().endsWith("end-right") ? -1 : 0;
             int dy = dx == 0 ? -1 : 0;

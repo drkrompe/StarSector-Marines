@@ -27,7 +27,7 @@ public enum VehicleType {
      * carry the same 1.42-cell gun frame to match the shared ballistic muzzles.
      */
     HEAVY_APC(
-            "graphics/battle/vehicles/army-apc.png", /*spriteFrame*/ 0, /*frameCount*/ 2,
+            "graphics/battle/vehicles/army-apc.png", /*spriteFrame*/ 0, /*frameCount*/ 4,
             /*spriteFacingOffsetDeg*/ -90f,
             /*capacity*/ 4, /*visualLengthCells*/ 2.4f, /*visualWidthCells*/ 1.4f,
             /*maxSpeed*/ 2.8f, /*accel*/ 1.8f, /*brakingAccel*/ 3.5f,
@@ -46,7 +46,7 @@ public enum VehicleType {
         }
     },
     /** Reinforced local convoy escort. Ordinary reinforcement APCs keep their lighter profile. */
-    ESCORT_APC("graphics/battle/vehicles/army-apc.png", 0, 2, -90f,
+    ESCORT_APC("graphics/battle/vehicles/army-apc.png", 0, 4, -90f,
             0, 3.2f, 1.8f, 3.4f, 1.8f, 3.5f, .8f, 2.8f,
             1, 0f, .20277778f, 0f, 0f, 1.42f, -90f,
             TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 620f, 420f, 24f, 1.25f, .9f) {
@@ -55,7 +55,7 @@ public enum VehicleType {
         }
     },
     /** Heavy convoy spearhead. Uses conservative rolling turns; neutral track pivot is not modeled. */
-    BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 2, -90f,
+    BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 4, -90f,
             0, 4.3f, 3.9f, 3.1f, 1.0f, 3.0f, .8f, 3.0f,
             1, 0f, 0f, 0f, 0f, 7.789194f, -90f,
             TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID, 1100f, 850f, 36f, 1.4f, 1.1f) {
@@ -88,6 +88,11 @@ public enum VehicleType {
 
     /** Visual recoil from actual recent shots; does not change the ballistic hardpoint. */
     public float turretRecoilCells() { return 0f; }
+
+    public boolean isApc() { return this == HEAVY_APC || this == ESCORT_APC; }
+
+    /** Registered hull/turret damage pair and exposed distance-driven tread material. */
+    public boolean hasTreadAndWreckArt() { return isApc() || this == BREAKTHROUGH_TANK; }
 
     /** Keep authored vehicle bearings; legacy sheets still use detected content bounds. */
     public SpriteSheetFrames registeredSpriteFrames(SpriteSheetFrames detected) {

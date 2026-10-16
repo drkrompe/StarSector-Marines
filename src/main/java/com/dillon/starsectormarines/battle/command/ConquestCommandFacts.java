@@ -37,17 +37,19 @@ public final class ConquestCommandFacts {
     private final List<DefenceStructureFact> structures;
     private final GarrisonableRegistry garrisonables;
     private final AirSupportFacts airSupport;
+    private final List<SmokeCloudFact> smokeClouds;
 
     private ConquestCommandFacts(List<Compound> compounds) {
-        this(compounds, List.of(), null, AirSupportFacts.NONE);
+        this(compounds, List.of(), null, AirSupportFacts.NONE, List.of());
     }
 
     private ConquestCommandFacts(List<Compound> compounds, List<DefenceStructureFact> structures,
-                                 GarrisonableRegistry garrisonables, AirSupportFacts airSupport) {
+                                 GarrisonableRegistry garrisonables, AirSupportFacts airSupport, List<SmokeCloudFact> smokeClouds) {
         this.compounds = List.copyOf(compounds);
         this.structures = List.copyOf(structures);
         this.garrisonables = garrisonables;
         this.airSupport = airSupport;
+        this.smokeClouds = List.copyOf(smokeClouds);
     }
 
     /**
@@ -69,7 +71,7 @@ public final class ConquestCommandFacts {
                     && sim.structureSighted(structure.seenCellX(), structure.seenCellY());
             if (isDisclosed(ours, seen, remembered)) known.add(structure);
         }
-        return new ConquestCommandFacts(base.compounds, known, sim.garrisonables(), airOver(sim, perspective, known));
+        return new ConquestCommandFacts(base.compounds, known, sim.garrisonables(), airOver(sim, perspective, known), smokeOver(sim));
     }
 
     /**
@@ -129,7 +131,7 @@ public final class ConquestCommandFacts {
                     record.captureCellX, record.captureCellY, captureZone,
                     garrison.stream().mapToInt(Integer::intValue).toArray()));
         }
-        return new ConquestCommandFacts(facts, List.of(), null, AirSupportFacts.NONE);
+        return new ConquestCommandFacts(facts, List.of(), null, AirSupportFacts.NONE, List.of());
     }
 
     /**
@@ -146,6 +148,21 @@ public final class ConquestCommandFacts {
             }
         }
         return AirSupportFacts.of(live, perspective, cells);
+    }
+
+    /** The clouds of smoke standing on the field; none for a view that is not a live battle. */
+    private static List<SmokeCloudFact> smokeOver(BattleView sim) {
+        if (!(sim instanceof BattleSimulation live)) return List.of();
+        List<SmokeCloudFact> clouds = new ArrayList<>();
+        for (var field : live.smokeFields().activeFields()) {
+            clouds.add(new SmokeCloudFact(field.x(), field.y(), field.radius(), field.remaining()));
+        }
+        return clouds;
+    }
+
+    /** The clouds of smoke standing when the facts were frozen. */
+    public List<SmokeCloudFact> smokeClouds() {
+        return smokeClouds;
     }
 
     /** What the side's air can do for a plan; {@link AirSupportFacts#NONE} when it holds no pool. */
