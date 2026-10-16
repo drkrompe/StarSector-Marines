@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.combat.BodyPart;
-import com.dillon.starsectormarines.battle.mech.MechHardpointGeometry.Point;
-import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
+import com.dillon.starsectormarines.battle.mech.MechHardpointGeometry.LocalPoint;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -85,13 +85,13 @@ class MechBodyPlanTest {
 
     @Test
     void aLonePodOnAHoundIsCentredSoEitherSideHitsIt() {
-        MechLoadoutComponent hound = MechVariant.HOUND.createLoadout(null);
-        MechSections sections = new MechSections(HOUND, hound.mounts(), 350f, 350f, 375f, 375f);
+        // The Hound's real fit: nose gun and one SRM pod on the left shoulder, the right empty.
+        boolean[] houndFit = fitted(true, true, false);
         BodyPart shoulders = band(HOUND, 0.8f);
 
         assertTrue(HOUND.centresLonePod());
-        assertEquals(MechSection.LEFT_SHOULDER, sections.sectionFor(shoulders, true, 0.5f));
-        assertEquals(MechSection.LEFT_SHOULDER, sections.sectionFor(shoulders, false, 0.5f),
+        assertEquals(MechSection.LEFT_SHOULDER, HOUND.section(shoulders, true, 0.5f, houndFit));
+        assertEquals(MechSection.LEFT_SHOULDER, HOUND.section(shoulders, false, 0.5f, houndFit),
                 "a right-side round meets the centred left pod, there being nothing on the right");
     }
 
@@ -118,14 +118,25 @@ class MechBodyPlanTest {
 
     @Test
     void fromLeftAgreesWithWhereTheLeftAndRightShouldersAreDrawn() {
-        MechLoadoutComponent bulwark = MechVariant.BULWARK.createLoadout(null);
+        // A two-pod chassis's pods in its own frame, turned by the torso the way the muzzle is.
+        LocalPoint left = MechHardpointGeometry.podMuzzle(LayeredMechAppearance.CHASSIS_CLEAN,
+                LayeredMechAppearance.POD_SRM, LayeredMechAppearance.POD_SRM, true, LayeredMechAppearance.POD_SRM);
+        LocalPoint right = MechHardpointGeometry.podMuzzle(LayeredMechAppearance.CHASSIS_CLEAN,
+                LayeredMechAppearance.POD_SRM, LayeredMechAppearance.POD_SRM, false, LayeredMechAppearance.POD_SRM);
         for (float facing : new float[] {0f, 90f, 215f, 330f}) {
-            Point left = MechHardpointGeometry.muzzle(0f, 0f, 0f, 0f, facing, bulwark,
-                    bulwark.mount(MechMountSlot.LEFT_SHOULDER), 0);
-            Point right = MechHardpointGeometry.muzzle(0f, 0f, 0f, 0f, facing, bulwark,
-                    bulwark.mount(MechMountSlot.RIGHT_SHOULDER), 0);
-            assertTrue(MechSections.fromLeft(facing, left.x(), left.y()), "left pod at facing " + facing);
-            assertFalse(MechSections.fromLeft(facing, right.x(), right.y()), "right pod at facing " + facing);
+            float[] l = turned(left, facing);
+            float[] r = turned(right, facing);
+            assertTrue(MechSections.fromLeft(facing, l[0], l[1]), "left pod at facing " + facing);
+            assertFalse(MechSections.fromLeft(facing, r[0], r[1]), "right pod at facing " + facing);
         }
+    }
+
+    /** The rotation {@link MechHardpointGeometry#muzzle} applies to a local point. */
+    private static float[] turned(LocalPoint p, float facingDegrees) {
+        double radians = Math.toRadians(facingDegrees);
+        float cos = (float) Math.cos(radians);
+        float sin = (float) Math.sin(radians);
+        return new float[] {p.xHullWidths() * cos - p.yHullWidths() * sin,
+                p.xHullWidths() * sin + p.yHullWidths() * cos};
     }
 }
