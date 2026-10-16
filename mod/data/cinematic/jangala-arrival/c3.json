@@ -23,11 +23,11 @@
  ],
  "speakers": {
   "approach": {
-   "label": "JANGALA APPROACH",
+   "label_key": "jangalaArrivalSpeakerApproach",
    "color": "hegemony"
   },
   "castle": {
-   "label": "CASTLE  /  SECOND WIND",
+   "label_key": "jangalaArrivalSpeakerCastle",
    "color": "player"
   }
  }

@@ -14,9 +14,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ArrivalCinematicTest {
     private static final String SHOT = """
             {"id":"%s","video":"cinematic/%s.mp4","fps":24,"width":1920,"height":1080,"frames":48,"duration":2.0,
-             "speakers":{"approach":{"label":"A","color":"hegemony"}},
-             "captions":[{"t_in":0.5,"t_out":1.5,"speaker":"approach","text":"hello"}],
-             "overlays":[{"kind":"lock","t_in":0.2,"t_out":1.0,"title":"X","detail":[{"text":"Y","color":"player"}],
+             "speakers":{"approach":{"label_key":"A","color":"hegemony"}},
+             "captions":[{"t_in":0.5,"t_out":1.5,"speaker":"approach","key":"hello"}],
+             "overlays":[{"kind":"lock","t_in":0.2,"t_out":1.0,"title_key":"X","detail":[{"key":"Y","color":"player"}],
                           "track":[[0.2,10,20,30],[1.9,11,21,31]]},{"kind":"unknown"}],
              "cues":[{"t":0.0,"sound":"bed","volume":0.5,"until":2.0,"fade_in":1.0},{"t":1.0,"sound":"hail"}]}""";
 
