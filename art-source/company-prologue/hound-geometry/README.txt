@@ -24,7 +24,30 @@ Coordinates
 +X = bow, +Y = port, +Z = dorsal. One sprite pixel is one unit about the .ship
 centre, so slot and engine XY from hound.ship are used unchanged. Sprite
 column c, row r covers X 44-r..45-r and Y 30-c..31-c. Heights are proposed
-art; the game gives none. No metre scale is claimed.
+art; the game gives none.
+
+Scale (pass 4): 0.88 m per unit
+One real-world scale, METRES_PER_UNIT in build_hound.py and metres_per_unit
+in geometry.json. Every metric value (VFX sizes and speeds, lamp falloff,
+cameras, depth of field, flight speeds, texel density) reads it; nothing
+hard-codes metres. She is about 61 m long, 53 m across the pods and 18 m
+from keel to mast top; a 1.8 m person is 2.05 units tall.
+The figure comes from what she carries, by the Second Wind method. The mod's
+deck program for a FRIGATE "Combat Freighter" with 10-40 crew and 75 cargo
+(.claude/skills/ship-model-pipeline/DeckProgramProbe.java) is 2,427 m2 of
+rooms; x1.40 circulation x3.2 m deck height = 10,873 m3. The pressure hull
+(body, deckhouse, spar, bridge capsule and the drive pods' casings, as the
+Second Wind's unioned hull counted its pods) measures about 28,960 cubic
+units; the build re-measures it and records the solved value. At 55% usable
+that needs 0.88 m per unit. Plausible range: 0.83 (65% usable, cramped) to
+1.07 (pods hold no crew space). Fittings agree at 0.88: the bridge airlock
+hatch is 1.7 x 2.1 m, viewports about 0.9 x 1.0 m, the stern cargo doors
+9.7 x 4.8 m (wide enough for the program's 16 x 10 m boat bay's gig), and
+the body 9.7 m keel to deck, three 3.2 m decks. She carries the same
+program as the Cerberus and comes out a little smaller than the Second Wind
+(66 m), as a frigate should. The battle-map landed-ship convention
+(landed-ships-true-scale.md) serves tactical readability and is a different,
+smaller number.
 Model extent: see geometry.json "dimensions" (about 69 x 60 x 21 units).
 
 Slots (verified against the installed hound.ship on every build)

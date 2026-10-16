@@ -31,6 +31,7 @@ import importlib
 import json
 import math
 import sys
+import bmesh
 import bpy
 from mathutils import Vector
 
@@ -44,6 +45,26 @@ GAME = Path(r'C:\Program Files (x86)\Fractal Softworks\Starsector\starsector-cor
 SHIP = 'data/hulls/hound.ship'
 SKIN = 'data/hulls/skins/hound_hegemony.skin'
 SPRITE = 'graphics/ships/hound/hound_hegemony.png'
+
+# Real-world scale (pipeline pass 4). One number; every metric value -
+# VFX sizes and speeds, lamp falloff, cameras, depth of field, flight speeds,
+# texel density - reads it. Derived from what the ship carries, not from the
+# sprite: the mod's deck program for a FRIGATE "Combat Freighter" with 10-40
+# crew and 75 cargo (DeckProgramProbe) is 2,427 m2 of rooms, x1.40
+# circulation = 3,398 m2, x3.2 m deck height = 10,873 m3. The pressure
+# hull (body, deckhouse, spar, bridge capsule and the drive pods' casings,
+# measured below on every build) is about 28,960 cubic units; 55% usable
+# gives 0.88 m per unit. Plausible range 0.83 (65% usable) to 1.07 (pods
+# hold no crew space). Fittings agree: the bridge airlock hatch is
+# 1.7 x 2.1 m, viewports about 0.9 x 1.0 m, the stern cargo doors
+# 9.7 x 4.8 m, the body 9.7 m keel to deck (three 3.2 m decks).
+METRES_PER_UNIT = 0.88
+REQUIRED_M3 = 10873
+USABLE = .55
+PRESSURE_HULL = ['Hull cargo body', 'Hull shielded hold deckhouse', 'Hull engine spar',
+                 'Bridge capsule hull', 'Bridge capsule nose'] + [
+    f'Engine {i} {side} {part}' for i, side in ((1, 'port'), (2, 'starboard'))
+    for part in ('intake cap', 'forward casing', 'armour collar', 'aft casing', 'thrust housing')]
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--out')
@@ -176,6 +197,28 @@ if not args.no_save:
                 w = ob.matrix_world @ Vector(c)
                 lo = Vector(map(min, lo, w))
                 hi = Vector(map(max, hi, w))
+    def scale_record(lo, hi):
+        volume = 0.0
+        for name in PRESSURE_HULL:
+            bm = bmesh.new()
+            ob = bpy.data.objects[name]
+            bm.from_object(ob, dg)
+            bm.transform(ob.matrix_world)
+            volume += abs(bm.calc_volume())
+            bm.free()
+        solve = lambda usable: (REQUIRED_M3/(usable*volume))**(1/3)
+        return {
+            'method': 'deck program (DeckProgramProbe FRIGATE "Combat Freighter" 10 40 75): 2427 m2 rooms '
+                      'x1.40 circulation x3.2 m deck height = required m3; solved against usable pressure-hull volume',
+            'required_m3': REQUIRED_M3, 'pressure_hull_units3': round(volume), 'usable_fraction': USABLE,
+            'solved_metres_per_unit': round(solve(USABLE), 3),
+            'range': {'cramped_65pct_usable': round(solve(.65), 2), 'pods_not_crewed': 1.07},
+            'size_m': [round((b-a)*METRES_PER_UNIT, 1) for a, b in zip(lo, hi)],
+            'cross_checks_m': {'bridge airlock hatch': [1.7, 2.1], 'bridge viewport glass': [0.9, 1.0],
+                               'stern cargo doors': [9.7, 4.8], 'body keel to deck': 9.7, 'person 1.8 m in units': round(1.8/METRES_PER_UNIT, 2)},
+            'not_this': 'landed-ships-true-scale.md (battle-map readability) is a different, smaller number',
+        }
+
     manifest = {
         'status': 'Blockout: silhouette, sections, mass and slots. No fine detail, damage or textures.',
         'hull': {
@@ -189,7 +232,9 @@ if not args.no_save:
         },
         'provenance': provenance,
         'axes': {'+X': 'bow', '+Y': 'port', '+Z': 'dorsal'},
-        'units': 'One sprite pixel per unit about the .ship centre; no metre scale asserted',
+        'units': 'One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres',
+        'metres_per_unit': METRES_PER_UNIT,
+        'scale': scale_record(lo, hi),
         'sprite': {'size': [62, 72], 'center': [31, 27],
                    'pixel_to_model': 'col c, row r covers X 44-r..45-r, Y 30-c..31-c'},
         'dimensions': {'min': [round(v, 2) for v in lo], 'max': [round(v, 2) for v in hi],
