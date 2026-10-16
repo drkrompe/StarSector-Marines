@@ -11,6 +11,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EffectsServiceTest {
 
+    @Test void tankFireCoolsIntoSmokeAndBothEmittersExpire() {
+        var effects = new EffectsService(new Random(17));
+        effects.spawnTankWreck(10, 10, 0);
+        assertEquals(1, effects.getHeavyImpactsThisFrame().size());
+        assertEquals(8.9f, effects.getSmokingWrecks().get(1).y, .001f);
+        effects.beginFrame();
+        effects.tickWrecks(20);
+        assertTrue(effects.getFireBurstsThisFrame().isEmpty());
+        assertFalse(effects.getSmokePuffsThisFrame().isEmpty());
+        effects.beginFrame();
+        effects.tickWrecks(71);
+        assertTrue(effects.getSmokingWrecks().isEmpty());
+        assertTrue(effects.getSmokePuffsThisFrame().isEmpty());
+    }
+
     @Test void crashFanFollowsTheHullAndFillsItsCentreWithJitteredMovingBlasts() {
         var effects = new EffectsService(new Random(17));
         var replay = new EffectsService(new Random(17));

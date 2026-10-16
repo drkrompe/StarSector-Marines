@@ -88,7 +88,11 @@ public final class VehicleControlSystem {
             s.leg = leg;
         }
 
+        float previousX = body.x, previousY = body.y, previousFacing = body.facingDegrees;
         advance(mission, body, type, s, xs, ys, dt, leg);
+        if (type == VehicleType.BREAKTHROUGH_TANK) {
+            body.recordVisualTravel(previousX, previousY, previousFacing);
+        }
     }
 
     /** Clear route/recovery state without changing the chassis pose, speed or wheel angle. */
@@ -113,6 +117,9 @@ public final class VehicleControlSystem {
         bicycle.tickManual(throttle, steering, dt);
         if (dt == 0f) return;
         boolean blocked = applySweep(body, type, prevX, prevY, prevFacing, false);
+        if (type == VehicleType.BREAKTHROUGH_TANK) {
+            body.recordVisualTravel(prevX, prevY, prevFacing);
+        }
         VehicleControlComponent s = convoy.control(id);
         s.wallStuckTime = blocked ? s.wallStuckTime + dt : 0f;
     }

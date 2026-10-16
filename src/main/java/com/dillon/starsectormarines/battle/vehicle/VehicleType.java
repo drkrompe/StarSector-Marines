@@ -55,7 +55,7 @@ public enum VehicleType {
         }
     },
     /** Heavy convoy spearhead. Uses conservative rolling turns; neutral track pivot is not modeled. */
-    BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 2, -90f,
+    BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 4, -90f,
             0, 4.3f, 3.9f, 3.1f, 1.0f, 3.0f, .8f, 3.0f,
             1, 0f, 0f, 0f, 0f, 7.789194f, -90f,
             TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID, 1100f, 850f, 36f, 1.4f, 1.1f) {

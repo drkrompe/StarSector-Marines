@@ -21,6 +21,31 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class VehicleDurabilityIntegrationTest {
 
+    @Test void tankDestructionFreezesBothPosesAndQueuesItsEffectsOnlyOnce() {
+        try (var sim = openArena()) {
+            long tank = sim.convoy().spawn(VehicleType.BREAKTHROUGH_TANK, Faction.ALLY,
+                    VehicleMission.deployed(12, 7));
+            var body = sim.convoy().body(tank);
+            body.teleport(12, 7, 90);
+            body.speed = 2;
+            sim.convoy().turret(tank).facingDeg = 35;
+            sim.applyDamage(tank, 10000, 10000);
+            assertEquals(VehicleState.WRECKED, sim.convoy().mission(tank).state);
+            assertEquals(0, body.speed);
+            assertEquals(90, body.facingDegrees);
+            assertEquals(35, sim.convoy().turret(tank).facingDeg);
+            assertEquals(1, sim.getHeavyImpactsThisFrame().size());
+            assertEquals(2, sim.getSmokingWrecks().size());
+            var engine = sim.getSmokingWrecks().get(1);
+            assertEquals(13.1f, engine.x, .001f);
+            assertEquals(7f, engine.y, .001f);
+            sim.applyDamage(tank, 10000, 10000);
+            assertEquals(1, sim.getHeavyImpactsThisFrame().size());
+            assertEquals(2, sim.getSmokingWrecks().size());
+            assertTrue(sim.getGrid().isWalkable(12, 7));
+        }
+    }
+
     private static BattleSimulation openArena() {
         NavigationGrid grid = new NavigationGrid(24, 14);
         for (int y = 0; y < grid.getHeight(); y++) {
