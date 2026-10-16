@@ -25,6 +25,7 @@ import com.dillon.starsectormarines.campaign.systems.KingmakerTestamentSystem;
 import com.dillon.starsectormarines.campaign.systems.MoralCompassSystem;
 import com.dillon.starsectormarines.campaign.systems.NamedStationingRepairSystem;
 import com.dillon.starsectormarines.campaign.systems.PatronEquipmentRewardSystem;
+import com.dillon.starsectormarines.campaign.systems.StandingWarrantSystem;
 import com.dillon.starsectormarines.campaign.systems.PolityRosterSystem;
 import com.dillon.starsectormarines.campaign.systems.RelationshipInteractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtractionSystem;
@@ -105,6 +106,8 @@ public class CampaignStateScript implements EveryFrameScript {
                 new StationingLapseSystem(),
                 new GarrisonMarketLossSystem(),
                 new ContractLifecycleSystem(),
+                // Before patron rewards, so a warrant earned today can be issued against today.
+                new StandingWarrantSystem(),
                 new PatronEquipmentRewardSystem(),
                 new CivilWarParticipationSystem(),
                 new CivilWarPlayerConsequenceSystem(),

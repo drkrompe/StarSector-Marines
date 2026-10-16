@@ -3,12 +3,12 @@
 > A military warrant is Capability bought with Standing, and it has to keep
 > costing something or it is just a bigger unlock.
 
-Status: PLANNED — depends on `restricted-equipment-warrants.md`.
+Status: PLANNED — builds on the shipped Restricted tier (`progression-nouns.md`).
 `hegemony-auxiliary-warrant.md` uses its "honoured period" for its second stage.
 Written: 2026-10-15
 
 Read `meta-progression.md` (the growth rule and the four currencies),
-`restricted-equipment-warrants.md` and `campaign-kit-arc.md` before
+`progression-nouns.md` (Kit and armory) and `campaign-kit-arc.md` before
 implementing.
 
 ## Problem
@@ -57,7 +57,7 @@ permanently until a new warrant is granted. An authored warrant is not
 re-offered; the standing rule may grant a fresh one later.
 
 **Grandfathered suits are outside this.** A save that learned a Restricted
-suit before `restricted-equipment-warrants.md` shipped holds it without a
+suit before the Restricted tier shipped holds it without a
 warrant. Those suits can be fitted freely and carry no obligations. That is
 the compatibility promise, not a loophole to close later.
 

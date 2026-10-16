@@ -27,7 +27,9 @@ final class EquipmentCollectionCurve {
                     WeaponRegistry.SMG_ID, EquipmentGrade.MASTERWORK),
             EquipmentTemplateCatalog.primaryId(
                     WeaponRegistry.SQUAD_AUTOMATIC_ID, EquipmentGrade.MASTERWORK),
-            EquipmentTemplateCatalog.armorId(MarineArmorPattern.RED_ELITE),
+            // Line combat armour, not the XIV battlesuit this slot once held: approved
+            // military issue is Restricted and a safety net never grants it.
+            EquipmentTemplateCatalog.armorId("armor.combat"),
             EquipmentTemplateCatalog.primaryId(
                     WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.MASTERWORK),
             EquipmentTemplateCatalog.primaryId(
@@ -86,6 +88,8 @@ final class EquipmentCollectionCurve {
             if (collected >= target) break;
             if (effectiveCollection.contains(templateId)
                     || !EquipmentTemplateCatalog.contains(templateId)
+                    || EquipmentTemplateCatalog.require(templateId).accessTier()
+                            == EquipmentAccessTier.RESTRICTED
                     || !armory.acquireEquipmentTemplate(templateId)) {
                 continue;
             }

@@ -1,12 +1,11 @@
 # Campaign kit arc
 
-Status: ACTIVE — the hard Restricted tier and military warrants are decided and
-planned as `restricted-equipment-warrants.md`, `hegemony-auxiliary-warrant.md` and
-`warrant-obligations.md`. The arc card map remains a proposal. Nothing here is
-implemented.
+Status: ACTIVE — the hard Restricted tier and standing military warrants have shipped
+(`progression-nouns.md`, Kit and armory). `hegemony-auxiliary-warrant.md` and
+`warrant-obligations.md` remain planned. The arc card map remains a proposal.
 
 Written: 2026-10-15
-Updated: 2026-10-15 — Restricted tier chosen; Restricted set corrected to the six approved tier-4 suits.
+Updated: 2026-10-15 — the Restricted tier and standing warrants shipped.
 
 Read `campaign-overview.md` for the route, `meta-progression.md` for the stages and
 the growth rule, `role-and-access.md` for how a card fills a squad, and
@@ -116,9 +115,7 @@ Even after Agreus, most of the catalog stays ahead of the company:
 
 ## Work this implies
 
-1. **Restricted tier and military warrants**: `restricted-equipment-warrants.md`.
-   The tier, the warrant record, standing warrants, the gated channels, the audit
-   and save compatibility. It also moves the six suits into the tier.
+1. **Restricted tier and military warrants**: shipped; see `progression-nouns.md`.
 2. **The first authored warrant**: `hegemony-auxiliary-warrant.md`.
 3. **The counter-pressure**: `warrant-obligations.md`.
 4. **New cards** (not yet stories). Checkpoint Issue, Convoy Escort Issue, Counter-Battery Issue,

@@ -2,7 +2,7 @@
 
 Status: ACTIVE — open progression implementation and acceptance work
 Written: 2026-08-23
-Updated: 2026-10-15 — the Restricted tier and military warrants are planned as three stories.
+Updated: 2026-10-15 — the Restricted tier shipped; the authored Hegemony warrant and warrant obligations remain.
 
 Read `progression-nouns.md` before changing a progression story, and
 `role-and-access.md` before changing anything about which patterns exist or how
@@ -23,6 +23,5 @@ rather than settled.
 | `s9-in-battle-quality-conveyance.md` | Ready | Requires shipped telemetry; coordinate its person-driven signal with S7. |
 | `s10-trait-mechanics.md` | Planned | Follows S8 so traits are readable before new mechanics or acquisition. |
 | `squad-medic.md` | In progress | Field Medicine specialty, channelled health/armor treatment, short-leash medic AI, planted and keep-moving modes, battle and squad-card presentation, and the `squad-medic` scene are in. The balance pass that settles the movement default, the billet choice and the specialty copy remain. |
-| `restricted-equipment-warrants.md` | Planned | The approved tier-4 suits become Restricted, acquirable only under a military warrant. Standing warrants keep every suit reachable, so the gate can close without stranding anything. Direction: `campaign-kit-arc.md`. |
-| `hegemony-auxiliary-warrant.md` | Planned | Depends on the Restricted tier. The authored procurement route after *A Small War*: military Arbalest at enrolment, XIV after the first honoured obligation period. |
-| `warrant-obligations.md` | Planned | Depends on the Restricted tier. Service and loyalty terms. Suspension stops new fitting and replacement of warranted suits; nothing learned is revoked. |
+| `hegemony-auxiliary-warrant.md` | Planned | Builds on the shipped Restricted tier (`progression-nouns.md`, Kit and armory). The authored procurement route after *A Small War*: military Arbalest at enrolment, XIV after the first honoured obligation period. |
+| `warrant-obligations.md` | Planned | Builds on the shipped Restricted tier. Service and loyalty terms. Suspension stops new fitting and replacement of warranted suits; nothing learned is revoked. |
