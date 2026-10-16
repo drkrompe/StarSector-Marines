@@ -97,7 +97,20 @@ increasing an encounter's total armored threat.
   access ladder: Hound (light) Common, Sirocco (medium) Advanced, Bulwark (heavy)
   Prestige; weapons and internals carry their own authored tier. Vehicle patterns follow the same ladder — heavy APC light/Common,
   escort APC and militia technical medium/Advanced, breakthrough tank
-  heavy/Prestige — and no vehicle is a starter: a company earns its first hull. A **mech pattern card** is the cargo item that teaches one
+  heavy/Prestige — and no vehicle is a starter: a company earns its first hull.
+  A vehicle line climbs by **variants**, each its own pattern card and bill, never
+  by fitting the hull it has: the heavy APC's up-armored APC (twice the plate, slower,
+  Medium lift) and fire-support APC (a heavy mortar where the troop bay was, no seats,
+  Medium lift) are Advanced; the breakthrough tank's heavy-gun tank and dozer
+  breacher are Prestige and Heavy lift. A variant earns its place by a trade —
+  among fabricable hulls on the same lift with the same gun, none is at least as good
+  at everything — and costs more than the hull it improves on. A faction weights up
+  the variant it is known for (Hegemony the up-armored APC, the Lion's Guard the
+  fire-support APC, Tri-Tachyon the heavy-gun tank, the Luddic Path the dozer).
+  **A variant whose hull or turret art is missing is not offerable**, exactly as a
+  loadout card whose presentation is pending is not: it keeps its stats, pattern and
+  bill, but no channel draws it and no card for it can become cargo
+  (`VehicleType.presentationDeclared`). A **mech pattern card** is the cargo item that teaches one
   pattern; learning writes only to the mech bay and is consumed only when it
   teaches something new. Cards arrive through the same market, licence, patron and
   recovery channels and access gates as loadout cards (`progression-nouns.md`),
@@ -186,9 +199,9 @@ increasing an encounter's total armored threat.
   across the sections by authored shares, so the totals are what frame and
   plating set; the armor rating stays per chassis. A mount the mech deployed
   without has no section and its share is the torso's. Each section is resolved
-  by the shared durability calculation; structure a section cannot hold spills
-  into the torso's structure, and a hit on a section already at zero goes
-  through to the torso. The chassis health and armor columns carry the
+  by the shared durability calculation; what a section cannot hold carries on
+  into the torso, which meets it with its own armor before its structure, and
+  a hit on a section already at zero goes through the hole to the torso's plate. The chassis health and armor columns carry the
   sections' totals, so whole-chassis readers see one body.
 - **Section loss** is a capability before it is the machine. Legs at zero
   **cripple** the mech: no walking speed, autonomous or manual, while it still

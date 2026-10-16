@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.intel.CompanyFoundingIntel;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.Script;
+import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
@@ -39,19 +40,23 @@ public final class CerberusCompanyStart implements Script {
         sector.getPersistentData().put(SHIP_KEY, ship.getId());
         FoundingReserve.issue(sector.getPersistentData());
         CompanyPrologue.begin(sector.getPersistentData());
-        PlanetAPI planet = destination();
-        if (planet != null) {
-            if (fleet.getContainingLocation() != planet.getContainingLocation()) {
-                fleet.getContainingLocation().removeEntity(fleet);
-                planet.getContainingLocation().addEntity(fleet);
-            }
-            fleet.setLocation(planet.getLocation().x + planet.getRadius() + 1800, planet.getLocation().y);
-            sector.getCampaignUI().layInCourseForNextStep(planet);
-        }
+        approachDestination(fleet);
         fleet.setTransponderOn(true);
         fleet.getFleetData().setSyncNeeded();
         sector.getIntelManager().addIntel(new CompanyFoundingIntel());
         CompanyProloguePresenter.install();
+    }
+
+    /** Puts the fleet a short flight out from the yard it must reach first, with the course laid in. */
+    public static void approachDestination(CampaignFleetAPI fleet) {
+        PlanetAPI planet = destination();
+        if (planet == null) return;
+        if (fleet.getContainingLocation() != planet.getContainingLocation()) {
+            fleet.getContainingLocation().removeEntity(fleet);
+            planet.getContainingLocation().addEntity(fleet);
+        }
+        fleet.setLocation(planet.getLocation().x + planet.getRadius() + 1800, planet.getLocation().y);
+        Global.getSector().getCampaignUI().layInCourseForNextStep(planet);
     }
 
     public static String startingShipId() {

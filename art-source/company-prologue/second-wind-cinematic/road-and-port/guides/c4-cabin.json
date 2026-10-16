@@ -1,0 +1,21 @@
+{
+  "source": "../forest-reveal-realism/forest-reveal-realism.blend (opened read-only, never saved)",
+  "source_camera": "02 REVEAL / near glass",
+  "source_pitch_deg": -19.29,
+  "pitch_deg": 0.0,
+  "lens_mm": 26.0,
+  "sensor_mm": 36.0,
+  "focal_px_at_1920": 1386.7,
+  "shift_y": -0.1875,
+  "horizon_y_px": 180.0,
+  "eye_location": [
+    72.7039,
+    30.0627,
+    4.92
+  ],
+  "projector_shift": [
+    0.0,
+    0.0
+  ],
+  "unpainted_fraction": 0.0704
+}

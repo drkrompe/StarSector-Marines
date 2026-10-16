@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a1468a-057b-77f0-b43b-6b9e4078e7db",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1468a-057b-77f0-b43b-6b9e4078e7db\\exec-742ae335-27ca-4854-bbc7-d7a0ba894bfc.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\road-and-port\\assets\\c4-haulers-v1.png",
+    "sha256": "2fb9a673de04d63bcce511242d87dd5314c94993a7416a97e9df7ff95cb2455b",
+    "dimensions": [
+      1886,
+      834
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\road-and-port\\prompts\\c4-haulers-v1.txt",
+  "promptSha256": "91b7ad427ffefa784d30169cd38a3d31607edb5d8b084ae6b694476b28a8a558",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Silhouette and layout authority: eight road-train silhouettes on chroma green; fill exactly\nImage 2: Identity only: the game's freight hauler seen from directly above; carry its design onto the side view; not pose or layout\n\nGrounded, photographic science-fiction film. A sheet of eight vehicle cards for compositing: heavy freight road trains of the Wayline drivers' cooperative on a tropical colony world, seen side-on from the left side and a little from above (about 13 degrees down), so each shows its whole side face and a thin sliver of its roof. Every vehicle faces RIGHT (cab at the right end).\n\nImage 1 is the SILHOUETTE AND LAYOUT AUTHORITY: eight flat grey silhouettes on flat chroma green, two columns by four rows. Fill each silhouette exactly: same position, length, height, cab shape, wheel positions and view angle. Do not move, resize, rotate or add vehicles.\nImage 2 is the IDENTITY reference: the game's own freight hauler, seen from directly above (a top-down sprite, not a pose). Carry its design onto the side view: a blunt, chamfered armoured olive-grey cab with a dark windscreen band and amber marker lights; a dark machinery saddle behind the cab; long freight modules with dirty off-white ribbed panels, beveled rust-orange shoulder rails along the top edges, black-and-amber hazard chevrons at the ends, steel corner castings and tie-downs; heavy covered side skirts over big black tyres. Industrial, rugged, retro-futuristic, NOT a present-day semi-truck, NOT a lorry with a bonnet, no chrome, no exhaust stacks.\n\nRows 1-3 and the left of row 3 are LOADED road trains: cab, saddle and two coupled freight modules. Give them mixed owner liveries as a cooperative of independent drivers would: off-white modules with orange rails, one faded blue-grey, one rust-red, one sand-yellow; every cab shares one small matching marking, an orange stripe across the cab door. Weathered, dusty, lived-in.\nThe four vehicles with bare flat decks and upright stanchions are EMPTY road trains returning: the same cabs pulling two empty steel flatbed frames with no cargo, so the green shows between the stanchions.\n\nLight: one sun high (about 50 degrees) behind the viewer's left shoulder: the side faces are lit flat and bright, roofs brightest, small dark shadow line under the skirts. \nBackground: keep the flat chroma green exactly, plain and uniform, everywhere outside the vehicles, including between stanchions and under the chassis. No ground, no road, no cast shadow on the green, no dust, no text, no logos, no labels.\nStyle: photographic realism, like a telephoto photograph of real vehicles. Not a toy, model, cartoon or painting.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\road-and-port\\guides\\cards\\c4-haulers-guide.png",
+      "sha256": "7796cfe905cb6940fa2725d1e7057dd97c63b183a998e9a663faf81c1041e835",
+      "dimensions": [
+        1886,
+        834
+      ],
+      "mode": "RGB",
+      "role": "Silhouette and layout authority: eight road-train silhouettes on chroma green; fill exactly"
+    },
+    {
+      "path": "art-source\\vehicles\\hauler\\master.png",
+      "sha256": "5ba1148332164f094f49715ee2e391e9e65636fc16c2898017bdbb4f7718a0c9",
+      "dimensions": [
+        2048,
+        768
+      ],
+      "mode": "RGBA",
+      "role": "Identity only: the game's freight hauler seen from directly above; carry its design onto the side view; not pose or layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the guide for the exact layout and the hauler reference for its design."
+  ],
+  "usage": {
+    "input_tokens": 45660,
+    "cached_input_tokens": 37248,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 739,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 70.4
+}
