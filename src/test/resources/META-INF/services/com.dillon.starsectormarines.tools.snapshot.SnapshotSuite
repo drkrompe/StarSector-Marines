@@ -204,3 +204,4 @@ com.dillon.starsectormarines.battle.setup.GreyhookDuelSceneSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechLocationalDamageSceneSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechHullDownSceneSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.FireSupportApcSceneSnapshotSuite
+com.dillon.starsectormarines.ops.TankVariantsSnapshotSuite

@@ -70,3 +70,11 @@ One row per scar id; the same id is the same scar in every state.
 | sp-turret-4 | spine | turret | open | patched | patched | faded |
 | sp-waist-line-cut | spine | torch | open | patched | patched | faded |
 | sp-waist-trunk-cut | spine | torch | open | patched | replaced | faded |
+| rcs-bow-port | rcs | rcs | open | gone | gone | gone |
+| rcs-bow-stbd | rcs | rcs | open | patched | patched | gone |
+| rcs-pod-port | rcs | rcs | open | patched | patched | gone |
+| rcs-pod-stbd | rcs | rcs | open | gone | gone | gone |
+| rcs-stern-port | rcs | rcs | open | open | open | gone |
+| rcs-stern-stbd | rcs | rcs | open | gone | gone | gone |
+| rcs-dorsal | rcs | rcs | open | patched | replaced | gone |
+| rcs-ventral | rcs | rcs | open | gone | gone | gone |

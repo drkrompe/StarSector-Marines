@@ -9,39 +9,27 @@
  "captions": [
   {
    "t_in": 3.1,
-   "t_out": 9.754,
-   "speaker": "approach",
-   "text": "Cerberus on the inbound lane, this is Jangala Approach. Your transponder reads a decommissioned mining escort."
-  },
-  {
-   "t_in": 9.754,
    "t_out": 12.25,
    "speaker": "approach",
-   "text": "State your business in Corvus."
+   "key": "jangalaArrivalHail01"
   },
   {
    "t_in": 12.62,
-   "t_out": 18.921,
-   "speaker": "castle",
-   "text": "Jangala Approach, this is Second Wind. Civilian. Crew and families aboard, nothing for sale."
-  },
-  {
-   "t_in": 18.921,
    "t_out": 23.55,
    "speaker": "castle",
-   "text": "We're expected at Greywater Down, private cradle Kilo Nine."
+   "key": "jangalaArrivalHail02"
   },
   {
    "t_in": 23.8,
    "t_out": 32.15,
    "speaker": "approach",
-   "text": "Corvus is under Hegemony customs. Declare any AI cores, harvested organs, recreational drugs or heavy armaments."
+   "key": "jangalaArrivalHail03"
   },
   {
    "t_in": 32.52,
    "t_out": 37.7,
    "speaker": "castle",
-   "text": "Nothing to declare, Approach. Ore dust and tired people."
+   "key": "jangalaArrivalHail04"
   }
  ],
  "overlays": [
@@ -53,14 +41,14 @@
    "out_seconds": 0.9,
    "arc_degrees": 16.0,
    "leader": 46.0,
-   "title": "JANGALA",
+   "title_key": "jangalaArrivalLockTitle",
    "detail": [
     {
-     "text": "CORVUS  /  ",
+     "key": "jangalaArrivalLockDetailSystem",
      "color": "player"
     },
     {
-     "text": "HEGEMONY",
+     "key": "jangalaArrivalLockDetailFaction",
      "color": "hegemony"
     }
    ],
@@ -474,11 +462,11 @@
  ],
  "speakers": {
   "approach": {
-   "label": "JANGALA APPROACH",
+   "label_key": "jangalaArrivalSpeakerApproach",
    "color": "hegemony"
   },
   "castle": {
-   "label": "CASTLE  /  SECOND WIND",
+   "label_key": "jangalaArrivalSpeakerCastle",
    "color": "player"
   }
  }
