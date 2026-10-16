@@ -17,7 +17,9 @@ import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 import java.util.function.LongConsumer;
 
@@ -63,6 +65,9 @@ public final class ConvoyService implements BodyCarrier {
 
     /** Setup-time cycle break: {@code GroundSystem} is constructed after the damage service. */
     private LongConsumer destructionSink;
+
+    /** Entity id to the mech-bay vehicle it realizes; only company vehicles are here. */
+    private final Map<Long, String> companyVehicles = new LinkedHashMap<>();
 
     public ConvoyService(UnitRosterService roster) {
         this.roster = roster;
@@ -135,6 +140,24 @@ public final class ConvoyService implements BodyCarrier {
      * One {@code destroy} drops all its columns. No-op on {@code 0L} (never adopted) or an
      * already-destroyed id.
      */
+    /** Marks {@code id} as the company's own vehicle {@code campaignId}, so its loss writes back. */
+    public void tagCompanyVehicle(long id, String campaignId) {
+        if (id != 0L && campaignId != null) companyVehicles.put(id, campaignId);
+    }
+
+    /**
+     * Campaign ids of company vehicles wrecked on this field, in deployment order. A
+     * vehicle that never landed (its carrier still aloft or downed) is not here.
+     */
+    public List<String> lostCompanyVehicleIds() {
+        List<String> lost = new ArrayList<>();
+        for (Map.Entry<Long, String> entry : companyVehicles.entrySet()) {
+            VehicleMission mission = mission(entry.getKey());
+            if (mission != null && mission.state == VehicleState.WRECKED) lost.add(entry.getValue());
+        }
+        return lost;
+    }
+
     public void despawn(long id) {
         if (id == 0L) return;
         roster.unindexVehicle(id);

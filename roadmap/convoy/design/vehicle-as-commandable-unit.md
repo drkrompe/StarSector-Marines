@@ -107,9 +107,11 @@ Two consequences, and they are the actual design work:
 
 Delivered, like the mech lance it shares a carrier with: an **Armour Support**
 command power flies a heavy transport to a chosen landing zone and sets one
-`HEAVY_APC` down. That reuses the whole shuttle lifecycle — the carrier is
-exposed on the way in and can be shot down with the vehicle aboard — and needs
-no new campaign plumbing beyond the hull that already grants the mech lance.
+vehicle down. That reuses the whole shuttle lifecycle — the carrier is
+exposed on the way in and can be shot down with the vehicle aboard. What it
+carries is the company's own: a vehicle standing on a mech-bay gantry, frozen at
+launch, and lost to the company if it is wrecked (`mechs-nouns.md`, gantries).
+Only a launch with no bay sets down an unowned `HEAVY_APC`.
 
 What comes off the ramp is not a squad. It is a chassis in the `DEPLOYED` state
 with nothing to do, which is exactly the thing the rest of this document was

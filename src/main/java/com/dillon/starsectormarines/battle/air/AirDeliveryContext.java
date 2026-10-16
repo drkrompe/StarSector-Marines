@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 import java.util.ArrayDeque;
@@ -143,6 +144,13 @@ public final class AirDeliveryContext {
         VehicleMission mission = VehicleMission.deployed(x, y);
         long id = roster.convoy().spawn(type, faction, mission);
         roster.convoy().body(id).teleport(x, y, facingDeg);
+        return id;
+    }
+
+    /** As above, for a frozen company vehicle whose loss writes back to its gantry. */
+    public long deployVehicle(VehicleDeploymentSpec spec, float x, float y, float facingDeg) {
+        long id = deployVehicle(spec.type(), x, y, facingDeg);
+        roster.convoy().tagCompanyVehicle(id, spec.campaignId());
         return id;
     }
 

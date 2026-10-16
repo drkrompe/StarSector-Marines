@@ -189,6 +189,24 @@ public enum ShuttleType implements AirHandling, Airframe {
         return name.charAt(0) + name.substring(1).toLowerCase(Locale.ROOT);
     }
 
+    /**
+     * Whether this is a bus-class hull — a heavy freighter or dedicated
+     * transport with a hold a lift cradle can be built into.
+     */
+    public boolean busClass() {
+        return handling == Profiles.BUS;
+    }
+
+    /**
+     * The pattern's own lift, before any fitting: a Valkyrie carries Heavy
+     * machines as built, and every other boat none. A bus-class boat earns
+     * Light or Medium lift through a cradle ({@code BoatFittingSlot.LIFT}).
+     */
+    @Override
+    public LiftRating liftRating() {
+        return this == VALKYRIE ? LiftRating.HEAVY : LiftRating.NONE;
+    }
+
     @Override public String spritePath()              { return spritePath; }
     @Override public int hardpoints()                 { return hardpoints; }
     /** Transports shoot from mounts if at all; none of them makes attack runs. */
