@@ -216,7 +216,8 @@ def fighter_pose(fighter, kind, t, geom):
         return pos, (0.25 if t < t0 else min(1.0, 0.25 + tau / 0.6))
     tau = t0 - t                              # recovery: counts down to the mouth crossing
     mouth = deck["mouth"]["centre"]
-    a = (-d[0], -d[1])                        # recovery approach: the launch vector reversed
+    n = deck["mouth"]["normal"]
+    a = (-n[0], -n[1])                        # straight in along the mouth's own axis
     if tau > RECOVERY_APPROACH_S + 0.5:
         return None
     if tau >= 0:
@@ -228,6 +229,16 @@ def fighter_pose(fighter, kind, t, geom):
     u = smooth(-tau / 1.6)                     # on deck: roll from the mouth to its spot, easing to a stop
     pos = tuple(m + (l - m) * u for m, l in zip(mouth, lp))
     return pos, 0.35 * (1.0 - u)
+
+
+def recovery_roll(fighter, t, fighter_span_m):
+    """Bank (radians) a recovering fighter holds to thread a mouth narrower than its span:
+    the horizontal extent of a span s rolled by r is s cos r. Rolled in over the last
+    1.5 s of the approach, held through the mouth, 15% clearance."""
+    deck = next(d for d in LEGION_GEOM["flight_decks"] if d["slot"] == fighter[1])
+    width = deck["mouth"]["width"] * M_PER_UNIT
+    need = 0.0 if fighter_span_m * 1.15 <= width else math.acos(min(1.0, width / (fighter_span_m * 1.15)))
+    return need * smooth((t - (fighter[3] - 1.5)) / 1.2)
 
 
 # ---------------------------------------------------------------- timing

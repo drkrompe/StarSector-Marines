@@ -263,8 +263,11 @@ Production decisions that supersede the plan above:
 - **Fighters.** These are the Broadsword cinematic model (`broadsword-geometry`), each at
   its own `metres_per_unit`, in the same render and banking into their turns. Two
   launch from the forward hangar WS 013 at 4.10 and 4.75 s and accelerate out ahead.
-  Two recover into the aft hangar WS 011 at 9.85 and 10.75 s, coming up from aft. The
-  aft hangars recover only, because their mouths face aft. No Hoplon model exists yet.
+  Two recover into the aft hangar WS 011 at 9.85 and 10.75 s, coming straight in from
+  aft along the mouth's axis. A fighter whose span does not clear the mouth with 15%
+  margin rolls just enough to thread it (`c2_core.recovery_roll`; about 34 degrees at
+  Legion 0.61 and Broadsword 0.50). The aft hangars recover only, because their mouths
+  face aft. No Hoplon model exists yet.
 - **Running lights** are the hull's own `running_lights` from geometry.json.
 - **Planet drift** is per row at the true ground rate (about 7 px/s at the horizon,
   21 at the sill), not two translating cards.

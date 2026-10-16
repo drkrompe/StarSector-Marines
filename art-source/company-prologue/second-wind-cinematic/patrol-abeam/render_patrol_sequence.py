@@ -87,6 +87,9 @@ def plan(opts):
     lo, hi = scrutiny["angle"] - scrutiny["arc"] / 2, scrutiny["angle"] + scrutiny["arc"] / 2
     rel0, rel1 = C.SCRUTINY_RELEASE
     cold = mount_rest(scrutiny)
+    bw = json.loads((C.BROADSWORD_DIR / "geometry.json").read_text(encoding="utf-8"))
+    fighter_mpu = float(bw["metres_per_unit"])
+    fighter_span_m = bw["dimensions"]["size"][1] * fighter_mpu
     samples = []
     for i in range(frames + 1):        # one past the end so motion blur has a key to read
         t = i / C.FPS
@@ -99,7 +102,8 @@ def plan(opts):
         for kind, group in (("launch", C.LAUNCHES), ("recover", C.RECOVERIES)):
             for j, f in enumerate(group):
                 pose = C.fighter_pose(f, kind, t, geom)
-                fighters.append(None if pose is None else {"pos": list(pose[0]), "throttle": pose[1]})
+                roll = C.recovery_roll(f, t, fighter_span_m) if kind == "recover" else 0.0
+                fighters.append(None if pose is None else {"pos": list(pose[0]), "throttle": pose[1], "roll": roll})
         samples.append({"index": i, "t": t, "origin": list(o), "scrutiny_deg": track + (cold - track) * u,
                         "fighters": fighters})
     p = {
@@ -113,8 +117,7 @@ def plan(opts):
                                   next(d for d in geom["flight_decks"] if d["slot"] == f[1])["launch_direction"]]}
                      for kind, group in (("launch", C.LAUNCHES), ("recover", C.RECOVERIES)) for f in group],
         "broadsword_blend": str(C.BROADSWORD_BLEND),
-        "fighter_scale": float(json.loads((C.BROADSWORD_DIR / "geometry.json").read_text(encoding="utf-8"))
-                               ["metres_per_unit"]) / C.M_PER_UNIT,
+        "fighter_mpu": fighter_mpu, "legion_mpu": C.M_PER_UNIT,
         "running_lights": geom.get("running_lights", []),
         "samples": samples, "cycles_samples": opts["samples"], "only": opts["only"], "resume": opts["resume"],
         "out": str(OUT),
@@ -223,13 +226,18 @@ def blender_main(argv):
             clone(ch, c)
         return c
 
+    # Scale is per hull: both models in metres. The fighter's root carries its own figure.
+    fighter_mpu = float(proto_root.get("metres_per_unit", plan_["fighter_mpu"]))
+    if abs(fighter_mpu - plan_["fighter_mpu"]) > 1e-6:
+        raise RuntimeError("Broadsword root says %s m/unit, geometry.json %s" % (fighter_mpu, plan_["fighter_mpu"]))
+    fighter_scale = fighter_mpu / plan_["legion_mpu"]       # fighter units -> hull units
     flights = []
     for k, f in enumerate(plan_["fighters"]):
         body = clone(proto_root, None)
         body.name = "C2 | Broadsword %d" % k
         body.parent = hull
         body.matrix_parent_inverse = Matrix.Identity(4)
-        body.scale = (plan_["fighter_scale"],) * 3
+        body.scale = (fighter_scale,) * 3
         body.rotation_mode = "QUATERNION"
         mat, node = emission(bpy, "C2 | Broadsword %d flame" % k, *FIGHTER_FLAME)
         for ch in body.children_recursive:
@@ -316,7 +324,7 @@ def blender_main(argv):
                 h0, h1 = (here - a_).normalized(), (b_ - here).normalized()
                 turn = h0.cross(h1).z * plan_["fps"]          # rad/s about +Z (left turn positive)
             bank = max(-0.9, min(0.9, -turn * 3.0))
-            q = tangent.to_track_quat("X", "Z") @ Quaternion((1, 0, 0), bank)
+            q = tangent.to_track_quat("X", "Z") @ Quaternion((1, 0, 0), bank + f.get("roll", 0.0))
             if prev_q[k] is not None and prev_q[k].dot(q) < 0:
                 q.negate()
             prev_q[k] = q
