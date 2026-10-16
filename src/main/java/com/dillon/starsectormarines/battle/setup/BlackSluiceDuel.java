@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.warship.HullAirspace;
 import com.dillon.starsectormarines.battle.warship.HullFireHold;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipDuelLedger;
@@ -15,14 +16,16 @@ import java.util.Locale;
 
 /**
  * The duel over Black Sluice ({@code warship-behaviours.md}, ship against ship). The <i>Greyhook</i>, Voss's Venture,
- * stands over the pier with her two Hound (P) escorts from the start, quiet: they fire at nothing on the ground, and
- * the battle's hull fire is held until Voss's withdrawal beat ({@link HullFireHold#untilBeat}). When Voss orders the
- * site abandoned, the <i>Greyhook</i> climbs out along the coast, answering what comes into reach as she goes; the
- * hold lets the Hounds loose to screen and brawl; and two of Rusk's Wolf (H) arrive through the cloud deck on a visit
- * nobody can command. It stays gun against gun: the Venture's fitting carries no wing, and a warship over a ground
- * battle never launches one from its bay. Every hull fights hulls by the ordinary default; no hull of the duel ever
- * fires at the ground. Nothing is scripted after the order: who escapes, breaks off or falls is the ships' own doing,
- * and the debrief reads it from the {@link WarshipDuelLedger}.
+ * sits landed on the berths south of the ridge with her two Hound (P) escorts from the start, quiet: they fire at
+ * nothing on the ground, and the battle's hull fire is held until Voss's withdrawal beat ({@link HullFireHold#untilBeat}).
+ * When Voss orders the site abandoned, the <i>Greyhook</i> lifts and climbs out west over the southern ground,
+ * answering what comes into reach as she goes; the hold lets the Hounds loose to screen and brawl; and two of Rusk's
+ * Wolf (H) arrive through the cloud deck on a visit nobody can command. The hull fight is kept over the southern
+ * ground ({@link HullAirspace}), in sight of the ground battle and off it. It stays gun against gun: the Venture's
+ * fitting carries no wing, and a warship over a ground battle never launches one from its bay. Every hull fights
+ * hulls by the ordinary default; no hull of the duel ever fires at the ground. Nothing is scripted after the order:
+ * who escapes, breaks off or falls is the ships' own doing, and the debrief reads it from the
+ * {@link WarshipDuelLedger}.
  *
  * <p>The ground referee reads nothing here. Stray rounds and falling wreckage are real on the ground, which is the
  * one way the duel can touch the fight below.
@@ -36,23 +39,31 @@ public final class BlackSluiceDuel implements SmallWarDuel {
     /** Rusk's Wolfs and their fitting. */
     static final String WOLF_HULL = "wolf_hegemony", WOLF_VARIANT = "wolf_hegemony_Rusk";
     /**
-     * Where the Greyhook and her escorts sit: landed in the docking compound at true scale
-     * ({@code landed-ships-true-scale.md}), the Greyhook in the cradle and a Hound in each berth beside it. They lift
-     * when Voss orders the withdrawal, and their bodies ease to flight scale as they climb.
+     * Where the Greyhook and her escorts sit: landed on the southern pad field at true scale
+     * ({@code landed-ships-true-scale.md}), the Greyhook in the cradle and a Hound in each berth beside it, noses
+     * west. They lift when Voss orders the withdrawal and fly their lift runs, their bodies easing to flight scale as
+     * they go. The whole duel is kept over the southern ground below {@link BlackSluice#AIRSPACE_TOP}, off the ground
+     * fight.
      */
     static final float RIG_X = BlackSluice.VENTURE_CRADLE.x(), RIG_Y = BlackSluice.VENTURE_CRADLE.y();
     static final List<BlackSluice.Berth> HOUND_BERTHS = BlackSluice.HOUND_BERTHS;
     /**
-     * Where the Wolfs drop through the cloud deck: inland of the pier, over the company's side of the basin, about
-     * half a minute's run at atmospheric speed from where the Greyhook's guns begin to reach.
+     * Where the Wolfs drop through the cloud deck: at the far west of the southern ground, so the chase runs east
+     * toward the pads. At flight presence a pulse laser reaches about eighty cells, so nowhere on a three-hundred-cell
+     * map is out of reach for long: from here the Wolfs fly about half a minute before the western Hound is in their
+     * reach. Dropped seventy-five cells east of the pads they were on the eastern Hound as it lifted, and both Hounds
+     * fell within fifteen seconds of the order having fired almost nothing; dropped eighty cells west of the western
+     * berth, the same in twelve.
      */
-    static final float[][] WOLF_ENTRIES = {{RIG_X - 92f, RIG_Y - 26f}, {RIG_X - 92f, RIG_Y + 30f}};
+    static final float[][] WOLF_ENTRIES = {{RIG_X - 176f, RIG_Y + 26f}, {RIG_X - 176f, RIG_Y - 14f}};
     /**
-     * The Greyhook's way out: up out of her cradle and south along the compound before she can climb away over the
-     * east edge. A Venture in atmosphere is slow, so this is a long minute and more under the Wolfs' guns.
+     * The Greyhook's way out: off her cradle nose first, round to the south and over the south edge. A Venture in
+     * atmosphere makes under a cell a second, so the west edge, two hundred cells off, was most of five minutes; the
+     * south edge is two and a half, under the Wolfs' guns for most of it.
      */
-    static final float[][] CLIMB_ROUTE = {{RIG_X - 4f, RIG_Y - 28f}, {RIG_X + 10f, RIG_Y - 50f},
-            {BlackSluice.WIDTH + 4f, RIG_Y - 58f}};
+    static final float[][] CLIMB_ROUTE = {{RIG_X - 24f, RIG_Y - 18f}, {RIG_X - 40f, RIG_Y - 70f}};
+    /** The southern ground the hull fight is kept over: the whole width, below the ridge that shuts off the north. */
+    static final HullAirspace AIRSPACE = new HullAirspace(0f, 0f, BlackSluice.WIDTH, BlackSluice.AIRSPACE_TOP);
     /** Seconds without a hostile hull over the battle before the Wolfs leave. */
     static final float WOLF_DWELL_SECONDS = 10f;
 
@@ -62,7 +73,7 @@ public final class BlackSluiceDuel implements SmallWarDuel {
     private WarshipDuelLedger ledger;
     private boolean ordered;
 
-    /** Puts the rig and its escorts over the pier, quiet, before the first tick. */
+    /** Puts the rig and its escorts on their pads, quiet, before the first tick. */
     public void stage(BattleSimulation sim) {
         if (rig != null) throw new IllegalStateException("The duel is staged once");
         try {
@@ -89,6 +100,7 @@ public final class BlackSluiceDuel implements SmallWarDuel {
         sim.addWarship(rig);
         for (Warship hound : hounds) sim.addWarship(hound);
         sim.warships().holdHullFire(HullFireHold.untilBeat(SmallWarSequence.VOSS_ABANDON_BEAT));
+        sim.warships().keepHullFightOver(AIRSPACE);
         ledger = sim.warships().duelLedger();
     }
 
@@ -107,7 +119,7 @@ public final class BlackSluiceDuel implements SmallWarDuel {
         rig.climbOut(CLIMB_ROUTE, BlackSluice.WIDTH, BlackSluice.HEIGHT);
         // The escorts lift out of their berths and take up their screen.
         for (Warship hound : hounds) {
-            hound.lift();
+            hound.lift(CLIMB_ROUTE[0][0], CLIMB_ROUTE[0][1]);
             quiet(hound).escort(rig);
         }
         try {
@@ -170,10 +182,10 @@ public final class BlackSluiceDuel implements SmallWarDuel {
         WarshipDuelLedger.Entry e = ledger.entry(rig);
         WarshipDuelLedger.Outcome o = e == null ? WarshipDuelLedger.Outcome.OVER_THE_BATTLE : e.outcome();
         return switch (o) {
-            case ESCAPED -> "the Greyhook got away over the sea, " + state(rig) + ".";
+            case ESCAPED -> "the Greyhook got away, " + state(rig) + ".";
             case DESTROYED -> "the Greyhook was shot down onto the basin.";
             case BROKE_OFF, DEPARTED -> "the Greyhook left the field, " + state(rig) + ".";
-            case OVER_THE_BATTLE -> "the Greyhook was still over the pier when we finished.";
+            case OVER_THE_BATTLE -> "the Greyhook was still over the berths when we finished.";
         };
     }
 

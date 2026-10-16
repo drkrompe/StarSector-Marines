@@ -66,7 +66,7 @@ def squelch_source(kind, index):
     fade = ("afade=t=out:st=0.03:d=%.2f" % (length - 0.03) if kind == "open"
             else "afade=t=in:d=0.01,afade=t=out:st=0.02:d=%.2f" % (length - 0.02))
     return ("anoisesrc=d=%.2f:c=white:a=0.5:seed=%d:r=44100,highpass=f=500:p=2,lowpass=f=2200:p=2,"
-            "%s,volume=0.35,aformat=channel_layouts=stereo" % (length, 41 + index, fade))
+            "%s,volume=0.15,aformat=channel_layouts=stereo" % (length, 41 + index, fade))
 
 
 def mix(lines, folder, suffix, bed, name):

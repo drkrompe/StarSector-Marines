@@ -244,6 +244,16 @@ public final class Warship {
     private boolean berthed;
     /** Seconds since the hull lifted out of its berth; negative while berthed or for a hull never berthed. */
     private float liftSeconds = -1f;
+    /** Where a lifting hull's run turns toward; NaN until somebody names it (the system then picks the map centre). */
+    private float liftTowardX = Float.NaN, liftTowardY = Float.NaN;
+    /** The lift run being flown, or {@code null} before it is planned and once it is through. */
+    private float[][] liftRun;
+    private int liftIndex;
+    private float liftRunLength;
+    /** Share of the lift flown so far; it only grows, so a hull pushed back a cell never looks lower again. */
+    private float liftDone = 1f;
+    /** The station {@link #berth} set, so a lift run that ends with nothing newer does not fly back to the pad. */
+    private float berthStationX = Float.NaN, berthStationY = Float.NaN;
 
     /**
      * Sits the hull in a berth, its drawn body centred on {@code (centreX, centreY)} at its current facing: drawn at
@@ -255,19 +265,35 @@ public final class Warship {
         berthed = true;
         berthFactor = LandedScale.berthFactor();
         liftSeconds = -1f;
+        liftRun = null;
+        liftDone = 0f;
         // The body grows about the centre of gravity, so the sprite's centre sits a scaled pivot away from it.
         double r = Math.toRadians(facingDegrees);
         x = centreX - berthFactor * (pivotX * (float) Math.cos(r) - pivotY * (float) Math.sin(r));
         y = centreY - berthFactor * (pivotX * (float) Math.sin(r) + pivotY * (float) Math.cos(r));
         desiredHeading = facingDegrees;
         stationTo(x, y);
+        berthStationX = x;
+        berthStationY = y;
     }
 
-    /** Lifts a berthed hull: from now its body eases to flight scale over {@link LandedScale#LIFT_SECONDS}. */
+    /**
+     * Lifts a berthed hull on the ordinary lift run ({@link LandedScale#liftRun}): ahead off the berth and round in a
+     * climbing turn toward the middle of the battle, its body easing to flight scale as it flies.
+     */
     public void lift() {
+        lift(Float.NaN, Float.NaN);
+    }
+
+    /** {@link #lift()}, the climbing turn coming round toward {@code (towardX, towardY)}. */
+    public void lift(float towardX, float towardY) {
         if (!berthed) return;
         berthed = false;
         liftSeconds = 0f;
+        liftTowardX = towardX;
+        liftTowardY = towardY;
+        liftRun = null;
+        liftDone = 0f;
     }
 
     /** Whether the hull is sitting in a berth and has not lifted. */
@@ -275,17 +301,49 @@ public final class Warship {
 
     /** How far through its lift the hull is: zero berthed, one lifted or never berthed. */
     public float liftProgress() {
-        return berthed ? 0f : liftSeconds < 0f ? 1f : LandedScale.liftProgress(liftSeconds);
+        return berthed ? 0f : liftDone;
     }
+
+    /** Seconds since the hull lifted; zero while berthed or never berthed. */
+    public float liftSeconds() { return Math.max(0f, liftSeconds); }
+
+    /** Whether the hull is flying its lift run: off the berth and not yet through the turn. */
+    public boolean liftRunning() { return liftRun != null; }
 
     /** The factor the hull's body is drawn at against its flight size: the berth's, easing to one as it lifts. */
     public float bodyScale() {
         if (berthed) return berthFactor;
-        return liftSeconds < 0f ? 1f : LandedScale.bodyFactor(berthFactor, liftSeconds);
+        return LandedScale.bodyFactor(berthFactor, liftDone);
     }
 
-    void addLiftSeconds(float dt) {
-        if (liftSeconds >= 0f && liftSeconds < LandedScale.LIFT_SECONDS) liftSeconds += dt;
+    /**
+     * Advances a lift: plans the run the first tick after {@link #lift()} (turning toward the named point, or toward
+     * {@code (defaultX, defaultY)} when none was named), then measures the share flown. A lift still incomplete after
+     * {@link LandedScale#LIFT_FALLBACK_SECONDS} is finished by time.
+     */
+    void addLiftSeconds(float dt, float defaultX, float defaultY) {
+        if (berthed || liftSeconds < 0f || liftDone >= 1f) return;
+        liftSeconds += dt;
+        if (liftRun == null) {
+            float tx = Float.isNaN(liftTowardX) ? defaultX : liftTowardX;
+            float ty = Float.isNaN(liftTowardY) ? defaultY : liftTowardY;
+            liftRun = LandedScale.liftRun(x, y, facingDegrees + 90f, tx, ty, lengthCells * berthFactor);
+            liftIndex = 0;
+            liftRunLength = Math.max(1f, LandedScale.runLength(x, y, liftRun));
+        }
+        float flown = LandedScale.runProgress(x, y, liftRun, liftIndex, liftRunLength);
+        liftDone = Math.max(liftDone, Math.max(flown, liftSeconds / LandedScale.LIFT_FALLBACK_SECONDS));
+        if (liftDone >= 1f) endLiftRun();
+    }
+
+    private void endLiftRun() {
+        // A hull that was given nowhere else to go holds where its run came out, not back over the empty berth.
+        if (liftRun != null && route == null && hasStation && stationX == berthStationX && stationY == berthStationY) {
+            float[] end = liftRun[liftRun.length - 1];
+            stationTo(end[0], end[1]);
+        }
+        liftDone = 1f;
+        liftRun = null;
     }
 
     public boolean lowHovering() { return lowHoverWidth > 0f && !departing; }
@@ -1076,6 +1134,7 @@ public final class Warship {
 
     /** Whether the ship is still on legs it passes through rather than stops at. */
     public boolean isPassingThrough() {
+        if (liftRun != null) return true;
         return route != null && (routeLoops || routeIndex < route.length - 1);
     }
 
@@ -1086,6 +1145,13 @@ public final class Warship {
 
     /** Moves on to the next waypoint once the ship is within {@code radius} cells of this one. */
     void advanceRoute(float radius) {
+        if (liftRun != null) {
+            // The lift run is flown first; the mission's own route and station wait untouched behind it.
+            float lx = liftRun[liftIndex][0] - x, ly = liftRun[liftIndex][1] - y;
+            if (lx * lx + ly * ly > radius * radius) return;
+            if (++liftIndex >= liftRun.length) endLiftRun();
+            return;
+        }
         if (!isPassingThrough()) return;
         float dx = route[routeIndex][0] - x;
         float dy = route[routeIndex][1] - y;
@@ -1095,15 +1161,16 @@ public final class Warship {
     }
 
     public boolean hasStation() {
-        return hasStation;
+        return hasStation || liftRun != null;
     }
 
+    /** Where the hull is flying to: the next point of its lift run while it flies one, else its station. */
     public float stationX() {
-        return stationX;
+        return liftRun != null ? liftRun[liftIndex][0] : stationX;
     }
 
     public float stationY() {
-        return stationY;
+        return liftRun != null ? liftRun[liftIndex][1] : stationY;
     }
 
     /** Whether the ship is still travelling to its station. */
@@ -1242,7 +1309,8 @@ public final class Warship {
     public void climbOut(float[][] waypoints, float mapWidth, float mapHeight) {
         if (departing || departed || destroyed()) return;
         if (waypoints == null || waypoints.length == 0) throw new IllegalArgumentException("a climb-out needs a route");
-        lift();
+        // From a berth, the lift run turns toward the way out before the route takes over.
+        lift(waypoints[0][0], waypoints[0][1]);
         beginDeparture();
         float[] last = waypoints[waypoints.length - 1];
         float[] before = waypoints.length > 1 ? waypoints[waypoints.length - 2] : new float[]{x, y};

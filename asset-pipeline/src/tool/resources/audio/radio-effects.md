@@ -71,12 +71,13 @@ Proposed 2026-10-16 for the Jangala arrival hail (`storyboard-v3.md`); awaiting
 the owner's audition.
 
 ```text
-aformat=channel_layouts=stereo,highpass=f=500:p=2,lowpass=f=2200:p=2,acompressor=threshold=0.05:ratio=8:attack=2:release=60:makeup=3,asoftclip=type=tanh:threshold=0.3:oversample=4,acrusher=bits=10:mode=log:aa=1,aeval='val(0)+0.012*(random(0)*2-1)|val(1)+0.012*(random(1)*2-1)':c=stereo,volume=3,highpass=f=500:p=2,lowpass=f=2200:p=2,alimiter=limit=0.85:level=false:latency=true
+aformat=channel_layouts=stereo,highpass=f=500:p=2,lowpass=f=2200:p=2,acompressor=threshold=0.05:ratio=8:attack=2:release=60:makeup=3,asoftclip=type=tanh:threshold=0.3:oversample=4,acrusher=bits=10:mode=log:aa=1,aeval='val(0)+0.003*(random(0)*2-1)|val(1)+0.003*(random(1)*2-1)':c=stereo,volume=3,highpass=f=500:p=2,lowpass=f=2200:p=2,alimiter=limit=0.85:level=false:latency=true
 ```
 
 A station across orbit rather than a nearby gunship: a 500–2200 Hz band
 (narrower than `air_comms`), harder compression and saturation, a 10-bit
-logarithmic crusher for digital grit, and a constant seeded noise floor. Gain `3`
+logarithmic crusher for digital grit, and a faint constant seeded noise floor
+(amplitude 0.003, a quarter of the first proposal, which the owner found annoying). Gain `3`
 makes up the energy the narrow band removes, so treated lines land near
 −19 LUFS, beside Castle's `comms` lines. The second band-pass keeps the grit and
 the noise floor inside the radio band. There is no pitch change.
