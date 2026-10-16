@@ -319,7 +319,7 @@ public class GroundSystem {
         turrets.cancelQueuedFire(id);
         resolveOnboardPassengers(id, mission, type, body);
         resolveOnboardRiders(id, body);
-        if (type == VehicleType.BREAKTHROUGH_TANK) {
+        if (type.isTank()) {
             effects.spawnTankWreck(body.x, body.y, body.facingDegrees);
         } else if (type.isApc()) {
             effects.spawnApcWreck(body.x, body.y, body.facingDegrees, type.visualLengthCells);

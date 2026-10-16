@@ -128,6 +128,9 @@ public final class GreyhookDuelScene implements BehaviorScene {
                 sighted >= 0 && (closing < 0 || closing >= sighted) && (fired < 0 || (closing >= 0 && fired >= closing)),
                 String.format(Locale.ROOT, "sighted %.1fs, closing %.1fs, first hull fire %.1fs after the order",
                         t.seconds(sighted), t.seconds(closing), t.seconds(fired))));
+        verdicts.add(Verdict.of("friendly-hulls-do-not-overlap", t.worstFriendlyExcess <= 0.05f,
+                String.format(Locale.ROOT, "least friendly gap %.1f cells (%s), %d ticks touching", t.minFriendlyGap,
+                        t.closestFriends, t.friendlyOverlapTicks)));
         verdicts.add(Verdict.of("no-wing-launches", t.defenderAircraft == 0,
                 t.defenderAircraft + " Greyhook aircraft over the battle"));
 
@@ -249,6 +252,10 @@ public final class GreyhookDuelScene implements BehaviorScene {
         private int lastGreyhookShots;
         /** The least gap, in cells, between two friendly hulls' footprints over the battle; negative is overlap. */
         float minFriendlyGap = Float.MAX_VALUE;
+        /** Which friendly pair came closest, and when after the order. */
+        String closestFriends = "";
+        /** The most two friends lay in each other beyond the pair's contact tolerance. */
+        float worstFriendlyExcess = Float.NEGATIVE_INFINITY;
         int friendlyOverlapTicks;
         /** Per Wolf, ticks with its hull target the Greyhook, the first Hound, the second Hound, or none. */
         final Map<Warship, int[]> targetTicks = new LinkedHashMap<>();
@@ -333,14 +340,19 @@ public final class GreyhookDuelScene implements BehaviorScene {
             lastGreyhookShots = shots;
             if (duel.ordered()) {
                 List<Warship> live = new ArrayList<>();
-                for (Warship s : all) if (!s.destroyed() && !s.departed() && !s.descending() && !s.berthed() && !s.liftRunning()) live.add(s);
+                for (Warship s : all) if (WarshipSpacing.inContact(s)) live.add(s);
                 boolean overlap = false;
                 for (int i = 0; i < live.size(); i++) {
                     for (int j = i + 1; j < live.size(); j++) {
                         Warship a = live.get(i), b = live.get(j);
                         if (a.faction != b.faction) continue;
                         float g = WarshipSpacing.gap(a, b);
-                        minFriendlyGap = Math.min(minFriendlyGap, g);
+                        worstFriendlyExcess = Math.max(worstFriendlyExcess, -g - WarshipSpacing.contactTolerance(a, b));
+                        if (g < minFriendlyGap) {
+                            minFriendlyGap = g;
+                            closestFriends = String.format(Locale.ROOT, "%s/%s at %.0fs", a.hullId, b.hullId,
+                                    (tick - orderTick) / 30f);
+                        }
                         overlap |= g < 0f;
                     }
                 }

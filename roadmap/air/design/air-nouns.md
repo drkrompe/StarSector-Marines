@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — machines have lift classes and carriers lift ratings; a cradled company boat flies machine-only sorties and flies Mech/Armour Support drops (Lift). Earlier the same day: warships brought in mid-battle come down at a distance on an entry heading, hull-fight stations eased off airspace edges, escorts screening beside their charge, a climb up through the deck, the Greyhook fighting a withdrawal against Wolfs from the west; ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at six times the shared density and slower in atmosphere, a declared airspace for the hull fight, point defence tracking what is inbound, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture, landed on the pads south of the ridge and fighting over that southern ground; a landed ship is drawn at true scale and lifts on a run (ahead off the berth, round a climbing turn) that carries it to flight presence (rationale in `warship-behaviours.md`).
+Updated: 2026-10-16 — warships are in soft contact (fighters exempt), fly hull fights in group manoeuvres with interposing escorts, on a hull-fight clock. Earlier the same day: machines have lift classes and carriers lift ratings; a cradled company boat flies machine-only sorties and flies Mech/Armour Support drops (Lift). Earlier the same day: warships brought in mid-battle come down at a distance on an entry heading, hull-fight stations eased off airspace edges, escorts screening beside their charge, a climb up through the deck, the Greyhook fighting a withdrawal against Wolfs from the west; ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at six times the shared density and slower in atmosphere, a declared airspace for the hull fight, point defence tracking what is inbound, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture, landed on the pads south of the ridge and fighting over that southern ground; a landed ship is drawn at true scale and lifts on a run (ahead off the berth, round a climbing turn) that carries it to flight presence (rationale in `warship-behaviours.md`).
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1724,28 +1724,54 @@ for one mission:
   are in reach; a ship held on station keeps launching at the missile's own reach. A
   **finisher** (the base game's role for a Harpoon) is held for a hull already worn to
   three fifths or overloaded, as the base game's own fleets hold it.
-- **Rounds between hulls keep their gun's cadence.** A round fired at a hull is followed
-  by the next after the weapon's charge-up and charge-down, so a pulse laser fires about
-  three times a second, as in the base game, and not at the floor of the tick.
+- **A hull fight runs on its own clock** (`warship-tactics.md`). A round fired at a hull
+  is followed by the next after the weapon's charge-up and charge-down, not at the floor
+  of the tick, and that whole cycle, the missile ripple, and on the duel footing flux
+  dissipation, shield upkeep and overload run at one over the **hull-fight tempo**. The
+  tempo is derived, not tuned: a round between hulls flies three times the base game's
+  distance at its speed, so at a tempo of three the rounds in the air and the share of a
+  fight spent crossing are the base game's. Damage, armour, shields and hit points are
+  untouched, so every matchup keeps the base game's balance and only takes longer; a
+  weapon built for alpha (an Antimatter Blaster, a Harpoon) still kills a frigate in one
+  or two blows. Ground fire, air fire and point defence keep their own clocks.
 - **A mission may keep the hull fight over its own ground.** It declares an
   **airspace** (`HullAirspace`), and ships fighting hulls choose their stations inside
   it, in sight of the ground battle and not over it; entering, climbing out and routes
   cross it freely. With none declared the whole map is the airspace. A station chosen near
   an airspace edge is eased back toward the interior over a soft band, so a fight that
   drifts toward an edge turns back over the middle rather than running along the boundary.
-- **An escort screens beside its charge.** Fighting a hull, an escort takes its own duel
-  station but stands no further beyond its charge's hull than a quarter of its own reach,
-  so a screen and the ship it screens meet the enemy together rather than one at a time.
-- **Hulls are bodies and never pass through one another** (`warship-tactics.md`). Two
-  hulls whose footprints overlap are pushed apart along the line between them, friend or
-  foe, the smaller giving more way, and their closing speed along that line is spent; a
-  hull its mission holds in place (on a station, a route or an order, with no helm of its
-  own flying it) gives no way, and two such hulls a mission lays over each other are left
-  where it put them. Nothing is damaged: ramming is not modelled. A ship fighting hulls or
-  escorting keeps the screen line's gap of open air from every friendly hull: its station
-  is moved clear of a friend's position and station, and its course is bent away from a
-  friend it would close inside that gap within a few seconds. An escort's screen is a
-  formation spaced by its own geometry, so within it only an actual touch is refused.
+- **An escort screens beside its charge.** Fighting a hull, an escort interposes: it
+  stands in line between its charge and the threat, just clear of the charge's side that
+  faces it, its fellow escorts spaced square to the threat, so a screen and the ship it
+  screens meet the enemy together, the screen first.
+- **Warships are bodies and do not pass through one another** (`warship-tactics.md`).
+  Every pair of hulls frigate-sized and up, friend or foe, is in contact on its real
+  footprint; fighters, bombers, drones and boats fly over a capital freely, and falling
+  wrecks, hulls in the cloud deck, berthed or in a low hover are out of contact. Contact
+  is soft: overlapping hulls are eased apart over seconds along the line between them,
+  the smaller giving more way, momentum kept, with a positional correction only for a
+  deep overlap. A hull at rest on a mission station gives no way, so two a mission lays
+  over each other stay where it put them. Nothing is damaged: ramming is not modelled.
+  Contact is the backstop; the behaviour is **avoidance**: a ship fighting hulls,
+  escorting or leaving bends its course (and, on a manoeuvre, its bow) away from any
+  hull it would close inside the screen line's gap, looking as far ahead as its handling
+  needs, and keeps its station clear of friends. An escort's screen keeps a narrower gap
+  within itself and carries its charge's way.
+- **A hull fight is flown in manoeuvres, decided for the group** (`warship-tactics.md`).
+  Once a second each side's hunters (ships fighting hulls with their duel helm, not
+  escorts) are given a **role** and a target: against a charge with escorts one hunter
+  **flanks** round to the charge while the others **pin** the escorts; otherwise each
+  takes the hull cheapest for it, with a penalty for a hull a friend already holds, so
+  two ships share a hull only by decision (the last hull, or one worn under a third), and
+  then from opposite sides; broadside ships on one target form a **line** (a lead and
+  seconds in its wake). Each ship then flies a **manoeuvre**, an intent held for tens of
+  seconds with its own end conditions: approach on an oblique course, an attack run
+  (bow ships) or a broadside run (broadside ships) at the standoff, extend away, come
+  about through a fixed side to unmask fresh guns, flank, line ahead. On a manoeuvre a
+  ship travels along its nose, so range opens and closes as a ship's course does rather
+  than a hover holding a ring. An escort fighting hulls **interposes** between its charge
+  and the threat. A mission that flies its own circuit (the Greyhook's fighting
+  withdrawal) is a manoeuvre of the same kind, owned by the mission.
 
 What the ground-support manoeuvres (a gun run, close air support, a low pass, a shelling)
 take from this is described with each: they inherit the slower handling through the

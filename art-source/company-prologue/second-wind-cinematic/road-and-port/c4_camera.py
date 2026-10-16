@@ -21,16 +21,30 @@ BASE = Path(__file__).resolve().parent
 
 OUT_W, OUT_H, FPS = 1920, 1080, 24
 PLATE_SCALE = 2                     # plates are painted at 2x output density (2160 tall)
-DURATION = 20.0                     # seconds; reset to the measured Castle take (about 20-22 s)
+ROOT = BASE.parents[3]
+CATALOG = ROOT / "mod/data/marines/jangala_arrival_hail.json"
+VOICE_ID = "jangala_arrival_nessa"  # Castle's Nessa memory, in the cabin, unprocessed (dialogue)
+VOICE_IN = 1.0                      # s of fields before she speaks
+TAIL = 1.5                          # s held on the port after "Let me talk first."
+
+
+def voice_seconds():
+    lines = json.loads(CATALOG.read_text(encoding="utf-8"))["lines"]
+    return next(l for l in lines if l["id"] == VOICE_ID)["durationSeconds"]
+
+
+# The shot is as long as the take: lead-in, the line, a short hold. Rounded up to whole frames.
+DURATION = math.ceil((VOICE_IN + voice_seconds() + TAIL) * 24) / 24
 ALTITUDE = 220.0                    # m above the plain, held level for the whole shot
 SPEED = 62.0                        # m/s ground speed along +X (about 220 km/h on final approach)
 HFOV_DEG = 50.0                     # through-the-window horizontal field of view at 1920 wide
 F_PX = (OUT_W / 2) / math.tan(math.radians(HFOV_DEG / 2))   # 2059 px at output scale
 LENS_MM = F_PX * 36.0 / OUT_W      # 38.6 mm on a 36 mm sensor
 HORIZON_Y = 180.0                   # output px from the top: level axis, lens shifted down
-SILL_Y = 712.0                      # bottom edge of the window opening at output scale
+SILL_Y = 860.0                      # bottom edge of the glass in the orange cabin (c4_cabin_render.py)
+GLASS_X = (211.0, 1708.0)           # its jambs; the head is above the frame
 MARGIN_PX = 96.0                    # output px of overscan either side of the travel
-X_START = 0.0                       # camera X at t = 0
+X_START = 296.0                     # camera X at t = 0: the port fills the window as "Let me talk first." lands
 
 # Sun: one star, shared with every window shot and the landing yard ("Shared sun | all shots"
 # in landing-wreck-pass.blend). Unit vector toward the sun: astern, a little to starboard
@@ -44,6 +58,7 @@ LAYERS = [
     dict(id="L2-port", name="Port district and distant farmland", y_band=(1700.0, 3800.0), d_rep=2500.0, haze=0.30),
     dict(id="L3-mid", name="Mid fields, farmstead, freight terminal", y_band=(1100.0, 1700.0), d_rep=1350.0, haze=0.16),
     dict(id="L4-near", name="Near fields and the freight road", y_band=(840.0, 1100.0), d_rep=950.0, haze=0.08),
+    dict(id="L4f-fore", name="Foreground fields under the sill", y_band=(640.0, 840.0), d_rep=730.0, haze=0.05),
     dict(id="L5-frame", name="Cabin window frame (fixed)", y_band=(0.6, 0.6), d_rep=math.inf, haze=0.0),
 ]
 
