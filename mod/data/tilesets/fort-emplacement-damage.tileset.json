@@ -1,0 +1,135 @@
+{
+  "blocks": [
+    {
+      "fillRgb": "0x969690",
+      "id": "fort.emplacement-damaged",
+      "layout": "wall-3x3",
+      "origin": [
+        0,
+        0
+      ]
+    },
+    {
+      "fillRgb": "0x969690",
+      "id": "fort.emplacement-destroyed",
+      "layout": "wall-3x3",
+      "origin": [
+        3,
+        0
+      ]
+    }
+  ],
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "description": "exterior on the north and west",
+      "name": "fort.emplacement-damaged nw",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "exterior on the north",
+      "name": "fort.emplacement-damaged n",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "exterior on the north and east",
+      "name": "fort.emplacement-damaged ne",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "description": "exterior on the west",
+      "name": "fort.emplacement-damaged w",
+      "row": 1
+    },
+    {
+      "col": 1,
+      "description": "enclosed \u2014 no exterior on any side",
+      "name": "fort.emplacement-damaged center",
+      "row": 1
+    },
+    {
+      "col": 2,
+      "description": "exterior on the east",
+      "name": "fort.emplacement-damaged e",
+      "row": 1
+    },
+    {
+      "col": 0,
+      "description": "exterior on the south and west",
+      "name": "fort.emplacement-damaged sw",
+      "row": 2
+    },
+    {
+      "col": 1,
+      "description": "exterior on the south",
+      "name": "fort.emplacement-damaged s",
+      "row": 2
+    },
+    {
+      "col": 2,
+      "description": "exterior on the south and east",
+      "name": "fort.emplacement-damaged se",
+      "row": 2
+    },
+    {
+      "col": 3,
+      "description": "exterior on the north and west",
+      "name": "fort.emplacement-destroyed nw",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "exterior on the north",
+      "name": "fort.emplacement-destroyed n",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "exterior on the north and east",
+      "name": "fort.emplacement-destroyed ne",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "exterior on the west",
+      "name": "fort.emplacement-destroyed w",
+      "row": 1
+    },
+    {
+      "col": 4,
+      "description": "enclosed \u2014 no exterior on any side",
+      "name": "fort.emplacement-destroyed center",
+      "row": 1
+    },
+    {
+      "col": 5,
+      "description": "exterior on the east",
+      "name": "fort.emplacement-destroyed e",
+      "row": 1
+    },
+    {
+      "col": 3,
+      "description": "exterior on the south and west",
+      "name": "fort.emplacement-destroyed sw",
+      "row": 2
+    },
+    {
+      "col": 4,
+      "description": "exterior on the south",
+      "name": "fort.emplacement-destroyed s",
+      "row": 2
+    },
+    {
+      "col": 5,
+      "description": "exterior on the south and east",
+      "name": "fort.emplacement-destroyed se",
+      "row": 2
+    }
+  ],
+  "doodads": [],
+  "sheet": "graphics/tilesets/fort-emplacement-damage.png"
+}

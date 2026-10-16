@@ -1,0 +1,330 @@
+{
+  "alphaMin": 16,
+  "blocks": [
+    {
+      "fillRgb": "0x969690",
+      "id": "fort.emplacement-damaged",
+      "layout": "wall-3x3"
+    },
+    {
+      "fillRgb": "0x969690",
+      "id": "fort.emplacement-destroyed",
+      "layout": "wall-3x3"
+    }
+  ],
+  "cellPx": 128,
+  "entries": [
+    {
+      "block": "fort.emplacement-damaged",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement-damaged.nw",
+      "included": true,
+      "rect": [
+        19,
+        11,
+        185,
+        189
+      ],
+      "slot": "nw"
+    },
+    {
+      "block": "fort.emplacement-damaged",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement-damaged.n",
+      "included": true,
+      "rect": [
+        204,
+        11,
+        185,
+        189
+      ],
+      "slot": "n"
+    },
+    {
+      "block": "fort.emplacement-damaged",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement-damaged.ne",
+      "included": true,
+      "rect": [
+        389,
+        11,
+        185,
+        189
+      ],
+      "slot": "ne"
+    },
+    {
+      "block": "fort.emplacement-damaged",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement-damaged.w",
+      "included": true,
+      "rect": [
+        19,
+        200,
+        185,
+        189
+      ],
+      "slot": "w"
+    },
+    {
+      "block": "fort.emplacement-damaged",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement-damaged.center",
+      "included": true,
+      "rect": [
+        204,
+        200,
+        185,
+        189
+      ],
+      "slot": "center"
+    },
+    {
+      "block": "fort.emplacement-damaged",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement-damaged.e",
+      "included": true,
+      "rect": [
+        389,
+        200,
+        185,
+        189
+      ],
+      "slot": "e"
+    },
+    {
+      "block": "fort.emplacement-damaged",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement-damaged.sw",
+      "included": true,
+      "rect": [
+        19,
+        389,
+        185,
+        189
+      ],
+      "slot": "sw"
+    },
+    {
+      "block": "fort.emplacement-damaged",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement-damaged.s",
+      "included": true,
+      "rect": [
+        204,
+        389,
+        185,
+        189
+      ],
+      "slot": "s"
+    },
+    {
+      "block": "fort.emplacement-damaged",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement-damaged.se",
+      "included": true,
+      "rect": [
+        389,
+        389,
+        185,
+        189
+      ],
+      "slot": "se"
+    },
+    {
+      "block": "fort.emplacement-destroyed",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement-destroyed.nw",
+      "included": true,
+      "rect": [
+        768,
+        11,
+        193,
+        189
+      ],
+      "slot": "nw"
+    },
+    {
+      "block": "fort.emplacement-destroyed",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement-destroyed.n",
+      "included": true,
+      "rect": [
+        961,
+        11,
+        193,
+        189
+      ],
+      "slot": "n"
+    },
+    {
+      "block": "fort.emplacement-destroyed",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement-destroyed.ne",
+      "included": true,
+      "rect": [
+        1154,
+        11,
+        193,
+        189
+      ],
+      "slot": "ne"
+    },
+    {
+      "block": "fort.emplacement-destroyed",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement-destroyed.w",
+      "included": true,
+      "rect": [
+        768,
+        200,
+        193,
+        189
+      ],
+      "slot": "w"
+    },
+    {
+      "block": "fort.emplacement-destroyed",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement-destroyed.center",
+      "included": true,
+      "rect": [
+        961,
+        200,
+        193,
+        189
+      ],
+      "slot": "center"
+    },
+    {
+      "block": "fort.emplacement-destroyed",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement-destroyed.e",
+      "included": true,
+      "rect": [
+        1154,
+        200,
+        193,
+        189
+      ],
+      "slot": "e"
+    },
+    {
+      "block": "fort.emplacement-destroyed",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement-destroyed.sw",
+      "included": true,
+      "rect": [
+        768,
+        389,
+        193,
+        189
+      ],
+      "slot": "sw"
+    },
+    {
+      "block": "fort.emplacement-destroyed",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement-destroyed.s",
+      "included": true,
+      "rect": [
+        961,
+        389,
+        193,
+        189
+      ],
+      "slot": "s"
+    },
+    {
+      "block": "fort.emplacement-destroyed",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement-destroyed.se",
+      "included": true,
+      "rect": [
+        1154,
+        389,
+        193,
+        189
+      ],
+      "slot": "se"
+    }
+  ],
+  "gridCols": 8,
+  "gridRows": 4,
+  "idPrefix": "doodad.fort-emplacement-damage",
+  "note": "Damage states of fort.emplacement. Built-in ImageGen reskin of templates/fort-emplacement-damage-guide.png (fort-emplacement-damage-guide.py, with the intact patch as material reference); exact prompt retained (fort-emplacement-damage.prompt.txt), raw retained unmodified, 1536x1024 RGBA. ImageGen did not hold the 192px pitch, so the rects here are measured and authoritative. Blocks fort.emplacement-damaged (left patch) and fort.emplacement-destroyed (right patch) use the intact block's wall-3x3 slots. They are swapped in by code (EmplacementWreck), not by CoverPropDamage: concrete parapets carry no wall health. New sheet, shares no id with a shipped tileset.",
+  "sheet": "art-source/tilesets/fort-emplacement-damage.raw.png",
+  "sheetName": "fort-emplacement-damage"
+}

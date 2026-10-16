@@ -40,14 +40,21 @@ public enum LayeredArmorFamily {
      * Pirate rebuilt boarding frame: welded mismatched plate on the shell registration Specter
      * established, so the same pose tracks articulate it. Appended for ordinal stability.
      */
-    BOARDING_JACK;
+    BOARDING_JACK,
+    /**
+     * The same rig in Greyhook's own paint: soot plate, scraped and scorched, with crude red crew
+     * markings. Raiders wear it; the company's issue keeps {@link #BOARDING_JACK}. Appended for
+     * ordinal stability.
+     */
+    BOARDING_JACK_PIRATE;
 
     /**
      * Whether this family is a powered shell cut into a torso and two hinged shoulder layers
      * with its own feet, rather than one body plate over the shared infantry boots.
      */
     public boolean articulatedShoulders() {
-        return this == SPECTER_HEAVY || this == ARBALEST_HEAVY || this == BOARDING_JACK;
+        return this == SPECTER_HEAVY || this == ARBALEST_HEAVY || this == BOARDING_JACK
+                || this == BOARDING_JACK_PIRATE;
     }
 
     public static LayeredArmorFamily spawnDefault(UnitType type) {

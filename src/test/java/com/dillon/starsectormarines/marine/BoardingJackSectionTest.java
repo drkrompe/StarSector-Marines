@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.setup.GreyhookRigIssue;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -38,6 +39,8 @@ class BoardingJackSectionTest {
         assertTrue(jack.armorCapacity() < foundry.armorCapacity() / 2f);
         assertNotEquals(foundry.appearanceFamily(), jack.appearanceFamily());
         assertEquals(LayeredArmorFamily.BOARDING_JACK, jack.appearanceFamily());
+        // Greyhook's raiders wear their own paint on the same pattern; the company's issue does not.
+        assertEquals(LayeredArmorFamily.BOARDING_JACK_PIRATE, GreyhookRigIssue.drawnFamily(jack));
     }
 
     @Test
