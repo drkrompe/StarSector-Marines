@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.evacuation.PickupManifest;
@@ -114,6 +115,11 @@ public final class ShuttleMission {
      * owns chassis, doctrine, and installed subsystem for each deboard slot.
      */
     public MechDeploymentSpec[] mechDeployments;
+    /**
+     * Frozen company vehicle carried by an Armour Support sortie. Null for a debug or
+     * bay-less grant, which sets down the payload's standard hull.
+     */
+    public VehicleDeploymentSpec vehicleDeployment;
     /** Ordered rescue-perimeter points patrolled by a delivered pickup mech. */
     public int[] rescuePatrolCells;
     /** Fixed perimeter anchor assigned to the militia squad when it deboards. */

@@ -50,7 +50,7 @@ public interface CompanyMeans {
                 if (roster == null) return 0;
                 int machines = 0;
                 for (CampaignMechSquad squad : roster.mechBay().squads()) {
-                    machines += squad.mechs().size();
+                    machines += squad.occupied();
                 }
                 return machines;
             }

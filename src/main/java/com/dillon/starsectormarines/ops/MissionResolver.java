@@ -410,6 +410,7 @@ public final class MissionResolver {
                 .boatsLost(boatsLost)
                 .marinesLostAboard(marinesLostAboard)
                 .shipsCalled(ShipSupportResult.allOf(sim.warships().called()))
+                .vehiclesLost(sim.convoy().lostCompanyVehicleIds())
                 .survivingSoldierIds(survivingSoldierIds)
                 .fallenSoldierIds(fallenSoldierIds)
                 .deployedFireteamIds(deployedFireteamIds)
@@ -528,6 +529,7 @@ public final class MissionResolver {
         ShipSupportSettlement.settle(outcome.shipsCalled);
 
         MarineRoster roster = applyPersonnelOutcome(outcome);
+        if (roster != null) roster.mechBay().loseVehicles(outcome.vehiclesLost);
         if (outcome.contractId != -1L) {
             applyContractBridge(outcome, roster);
             CampaignStateScript campaign = CampaignStateScript.getInstance();

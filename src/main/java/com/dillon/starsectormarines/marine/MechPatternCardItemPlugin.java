@@ -60,14 +60,24 @@ public final class MechPatternCardItemPlugin extends BaseSpecialItemPlugin {
             addCostLabel(tooltip, pad, transferHandler, stackSource);
             return;
         }
-        boolean chassis = pattern.kind() == MechPattern.Kind.CHASSIS;
-        tooltip.addPara(MessageFormat.format(Strings.get(chassis
-                        ? "mechPatternCardChassisUnlockFmt" : "mechPatternCardWeaponUnlockFmt"),
+        MechPattern.Kind kind = pattern.kind();
+        String unlockKey = switch (kind) {
+            case CHASSIS -> "mechPatternCardChassisUnlockFmt";
+            case WEAPON -> "mechPatternCardWeaponUnlockFmt";
+            case INTERNAL -> "mechPatternCardInternalUnlockFmt";
+            case VEHICLE -> "mechPatternCardVehicleUnlockFmt";
+        };
+        String kindKey = switch (kind) {
+            case CHASSIS -> "mechPatternCardKindChassis";
+            case WEAPON -> "mechPatternCardKindWeapon";
+            case INTERNAL -> "mechPatternCardKindInternal";
+            case VEHICLE -> "mechPatternCardKindVehicle";
+        };
+        tooltip.addPara(MessageFormat.format(Strings.get(unlockKey),
                 pattern.displayName()), pad, Misc.getHighlightColor(), pattern.displayName());
         tooltip.addPara(MessageFormat.format(Strings.get("mechPatternCardKindFmt"),
-                Strings.get(chassis ? "mechPatternCardKindChassis" : "mechPatternCardKindWeapon")),
-                pad);
-        if (chassis) {
+                Strings.get(kindKey)), pad);
+        if (pattern.weightClass() != null) {
             tooltip.addPara(MessageFormat.format(Strings.get("mechPatternCardWeightFmt"),
                     Strings.get("mechPatternCardWeight" + pattern.weightClass().name())), 0f);
         }

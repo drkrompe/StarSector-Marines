@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.air.LiftClass;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
@@ -113,5 +114,17 @@ public enum MechVariant {
             max = Math.max(max, rightShoulder.weaponDef().range);
         }
         return max;
+    }
+
+    /**
+     * What this chassis asks of the aircraft that drops it: the weight class
+     * seen from the air. Separate from {@link #relativeMass}, which is inertia.
+     */
+    public LiftClass liftClass() {
+        return switch (this) {
+            case HOUND -> LiftClass.LIGHT;
+            case SIROCCO -> LiftClass.MEDIUM;
+            case BULWARK -> LiftClass.HEAVY;
+        };
     }
 }

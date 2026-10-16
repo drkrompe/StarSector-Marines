@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.power.EmergencyResupply;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
 import com.dillon.starsectormarines.battle.power.MarineInsertion;
 import com.dillon.starsectormarines.battle.power.VehicleSupport;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.power.ShipOnStation;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
@@ -83,6 +84,56 @@ public final class PowerCatalog {
     /** Resolve powers and, when sourced, configure Mech Support from campaign inventory. */
     public static List<CommandPower> resolve(List<FleetMemberAPI> committedShips, Mission m,
                                              List<MechDeploymentSpec> configuredMechs) {
+        return resolve(committedShips, m, configuredMechs, null);
+    }
+
+    /**
+     * As above, plus the mech bay's frozen vehicles for Armour Support. {@code null}
+     * vehicles means no bay was consulted (debug, detached fixtures): a sourced Armour
+     * Support keeps its fallback hull. An empty list means the bay holds no vehicle, and
+     * Armour Support has nothing to bring down.
+     */
+    public static List<CommandPower> resolve(List<FleetMemberAPI> committedShips, Mission m,
+                                             List<MechDeploymentSpec> configuredMechs,
+                                             List<VehicleDeploymentSpec> configuredVehicles) {
+        return withBayVehicles(resolveSourced(committedShips, m, configuredMechs),
+                arrangedHeavyLift(m), configuredVehicles);
+    }
+
+    /**
+     * Story battles whose employer arranges the heavy lift grant Armour Support whenever
+     * the bay holds a vehicle, as they grant Mech Support for its mechs; elsewhere it
+     * stays sourced by a committed Valkyrie.
+     */
+    private static List<CommandPower> withBayVehicles(List<CommandPower> powers, boolean arrangedLift,
+                                                      List<VehicleDeploymentSpec> vehicles) {
+        if (vehicles == null) return powers;
+        List<CommandPower> out = new ArrayList<>(powers.size() + 1);
+        boolean sourced = false;
+        for (CommandPower power : powers) {
+            if (power instanceof VehicleSupport) {
+                sourced = true;
+                if (!vehicles.isEmpty()) out.add(VehicleSupport.configured(vehicles));
+            } else {
+                out.add(power);
+            }
+        }
+        if (!sourced && arrangedLift && !vehicles.isEmpty()) out.add(VehicleSupport.configured(vehicles));
+        return List.copyOf(out);
+    }
+
+    /** The story battles whose employer lifts the company's own armour; see {@link #resolveSourced}. */
+    private static boolean arrangedHeavyLift(Mission m) {
+        if (AgreusArcCampaign.isBattle(m)) {
+            return AgreusArcProgress.yardOwners(m.id) || AgreusArcProgress.termsOfProtection(m.id)
+                    || AgreusArcProgress.smallWar(m.id);
+        }
+        return SupplyRouteCampaign.isBattle(m) || CorvusWaylineCampaign.isBattle(m)
+                || ShepherdRecoveryCampaign.isBattle(m) || DistrictEscortCampaign.isBattle(m);
+    }
+
+    private static List<CommandPower> resolveSourced(List<FleetMemberAPI> committedShips, Mission m,
+                                                     List<MechDeploymentSpec> configuredMechs) {
         if (AgreusArcCampaign.isBattle(m)) {
             // A Small War has no construction step, so it offers no tender call.
             var tenders = AgreusArcCampaign.requiresConstructionTender(m) ? AgreusConstructionSupport.sources(committedShips) : List.<ShipSupportSource>of();
@@ -164,6 +215,20 @@ public final class PowerCatalog {
     public static CommandPower restore(String id,
                                        List<MechDeploymentSpec> mechDeployments,
                                        List<ShipSupportSource> ships) {
+        return restore(id, mechDeployments, ships, List.of());
+    }
+
+    /** As above, plus the frozen company vehicles an Armour Support commitment carries. */
+    public static CommandPower restore(String id,
+                                       List<MechDeploymentSpec> mechDeployments,
+                                       List<ShipSupportSource> ships,
+                                       List<VehicleDeploymentSpec> vehicleDeployments) {
+        if (vehicleDeployments != null && !vehicleDeployments.isEmpty()) {
+            if (!VehicleSupport.ID.equals(id)) {
+                throw new IllegalArgumentException("Power '" + id + "' cannot carry vehicles");
+            }
+            return VehicleSupport.configured(vehicleDeployments);
+        }
         Objects.requireNonNull(id, "id");
         List<MechDeploymentSpec> deployments = mechDeployments == null
                 ? List.of() : List.copyOf(mechDeployments);

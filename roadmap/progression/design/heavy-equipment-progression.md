@@ -1,7 +1,8 @@
 # Heavy equipment progression
 
-Status: DRAFT — the stock-frame baseline and learned mech patterns have shipped;
-internal fittings, heavy lift and the vehicle bay are planned direction.
+Status: DRAFT — the stock-frame baseline, learned mech patterns and vehicles in
+the mech bay have shipped; internal fittings, heavy lift and the drop choice are
+planned direction.
 
 Written: 2026-10-16
 Updated: 2026-10-16 — weight classes set the ladder; vehicles share the mech bay; drops become a per-call choice bounded by lift.
@@ -138,7 +139,7 @@ late step.
 | Mech patterns (shipped; `mechs-nouns.md`) | Learned patterns replace the starter-pattern gate; pattern cards through every existing source. |
 | `mech-internal-systems.md` | Engine, plating and cooler/loader internals; engine budget; tier-scaled footprints; per-loadout heat. |
 | `heavy-lift-fittings.md` | Lift class and rating; the boat lift slot; heavy drops flown by real company carriers. |
-| `mech-bay-vehicles.md` | Vehicle patterns; a bay space holds a mech or a vehicle; losses write back. |
+| Vehicles in the bay (shipped; `mechs-nouns.md`) | Vehicle patterns; a bay space holds a mech or a vehicle; losses write back. |
 | `armor-drop-selection.md` | Pick which bay spaces come down per call; cooldown between calls; lift caps armor per mission. |
 
 Order: pattern cards first (they license existing weapons and chassis at once),
