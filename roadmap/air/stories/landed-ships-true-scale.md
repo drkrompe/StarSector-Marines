@@ -4,6 +4,8 @@ Status: IN PROGRESS
 
 Written: 2026-10-16
 
+Updated: 2026-10-16 — berth body, eased lift, remastered Venture and Hound (P) art and the Black Sluice docking compound built; the duel still flies the salvage rig until the ships-of-the-line Venture swap lands.
+
 Read `air-nouns.md` (**Overhead ships**, the low-hover paragraph), `tender-ship.md`
 (**Vulnerability**), `warship-behaviours.md` and `a-small-war-arc.md` (Chapter 5)
 before changing this story.
@@ -125,7 +127,10 @@ widens east and the pier becomes the landward apron of a walled **docking compou
 **Invariants kept.** The three objective sites (customs, fuel control, dispatch)
 keep their footprints and the dispatch house stays the dispatch objective; the
 marked tanks are untouched; the split, Berth Four's hold and the reserves keep
-their triggers; Drent's withdrawal keeps its service road. The road's gate at the
+their triggers; Drent's withdrawal keeps its service road. One defender post moves:
+the four-strong pier prize crew stands watch at the Venture's stern gantry, beside
+the ship it crews, rather than on the open pier; it still holds dispatch after
+Voss's order. The road's gate at the
 old east edge becomes a **tunnel portal** under the compound wall, so its region,
 its distance from the fight and the physical take-off at the gate are unchanged.
 Reserves keep their named ingresses (the service-road gate is the portal mouth; the
