@@ -1847,8 +1847,9 @@ its hit points through it, and the core is holed only from an open neighbour: a 
 stripped, then opens, and then the core takes rounds nearly whole. Hull hit points stay the
 one authority on when the ship dies. The hull is drawn from the plating, the game's own sprite
 cut on the grid as a broken aircraft is: stripped plate darkens and takes the base game's burn,
-crack and hole decals, a breached plate cell is cut away to charred frames, a breached core cell
-is cut through to the ground, a fresh breach glows and an open one burns, and a round's blast is
+crack and hole decals, a breached cell shows the ship's insides (torn frames under the plating,
+gutted compartments in the core, tinted to the builder's metal) rimmed with torn plate, never the
+ground, which only a hull breaking apart shows, a fresh breach glows and an open one burns, and a round's blast is
 drawn where it met the hull or its shield. A wreck keeps its cut. A mount stands on the cell
 under its slot: when that cell is breached the mount is knocked out for the rest of the battle
 (no repair in a ground battle), and a hull's heading choice counts only the guns it has left. `-Dbattle.warship.platingGrid=false`
