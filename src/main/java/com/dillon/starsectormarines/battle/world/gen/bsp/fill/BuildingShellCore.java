@@ -103,7 +103,8 @@ final class BuildingShellCore {
                        BuildingKind buildingKind,
                        RoomPurpose[] chamberPurposesByAnchorDistance) {
             this(interiorGround, doodadPoolId, poiKind, layoutRecipe, buildingKind,
-                    chamberPurposesByAnchorDistance, BinaryPartitionStrategy.DEFAULT);
+                    chamberPurposesByAnchorDistance, layoutRecipe == BuildingLayouts.LayoutRecipe.HOME
+                            ? NeighborhoodPartitionStrategy.HOME : BinaryPartitionStrategy.DEFAULT);
         }
 
         BuildingConfig(GroundKind interiorGround,

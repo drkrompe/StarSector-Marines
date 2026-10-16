@@ -771,7 +771,7 @@
     {"id": "marines_castle_thunder_advance_load_clear", "source": "wayline/marines_castle_thunder_advance_load_clear.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms"},
     {"id": "wayline_junction_gunship_inbound", "source": "wayline/wayline_junction_gunship_inbound.mp3", "kind": "ui", "out": "story/wayline", "processing": "air_comms"},
     {"id": "wayline_junction_gunship_on_station", "source": "wayline/wayline_junction_gunship_on_station.mp3", "kind": "ui", "out": "story/wayline", "processing": "air_comms"},
-    {"id": "wayline_junction_gunship_covering_militia", "source": "wayline/wayline_junction_gunship_covering_militia.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms"},
+    {"id": "wayline_junction_gunship_working_trench", "source": "wayline/wayline_junction_gunship_working_trench.mp3", "kind": "ui", "out": "story/wayline", "processing": "air_comms"},
     {"id": "wayline_junction_gunship_hit", "source": "wayline/wayline_junction_gunship_hit.mp3", "kind": "ui", "out": "story/wayline", "processing": "air_comms"},
     {"id": "wayline_junction_gunship_lost", "source": "wayline/wayline_junction_gunship_lost.mp3", "kind": "ui", "out": "story/wayline", "processing": "comms"},
     {"id": "wayline_junction_gunship_returned", "source": "wayline/wayline_junction_gunship_returned.mp3", "kind": "ui", "out": "story/wayline", "processing": "air_comms"}

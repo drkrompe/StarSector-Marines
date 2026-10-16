@@ -124,6 +124,33 @@ public final class StoryServiceYard {
         c.doodads.add(prop);
     }
 
+    /**
+     * Loose goods on a room floor or beside a seeded building, filling around whatever its own fitting
+     * already put there: a load whose footprint is taken, or that would crowd a threshold or {@code keepClearX, keepClearY}
+     * (the room's anchor, which must stay reachable), is skipped rather than refused. Yard props are refused
+     * inside a building; stored goods are allowed there. Returns whether the load was placed.
+     */
+    public boolean stock(int x, int y, String id, int turns, int keepClearX, int keepClearY) {
+        var def = TileRegistry.installed().doodad("doodad." + id);
+        if (def == null) throw new IllegalStateException("Missing service-yard asset: " + id);
+        Doodad prop = new Doodad(x, y, def, turns);
+        for (int yy = y; yy < y + prop.footprintCellsY; yy++)
+            for (int xx = x; xx < x + prop.footprintCellsX; xx++) {
+                if (!c.grid.inBounds(xx, yy) || !c.grid.isWalkable(xx, yy) || c.topology.isFixture(xx, yy)
+                        || Math.abs(xx - keepClearX) <= 1 && Math.abs(yy - keepClearY) <= 1) return false;
+                for (int ty = yy - 2; ty <= yy + 2; ty++) for (int tx = xx - 2; tx <= xx + 2; tx++)
+                    if (c.grid.inBounds(tx, ty) && c.grid.isDoorway(tx, ty)) return false;
+            }
+        for (int yy = y; yy < y + prop.footprintCellsY; yy++)
+            for (int xx = x; xx < x + prop.footprintCellsX; xx++) {
+                c.grid.setWalkable(xx, yy, false);
+                c.grid.setSeeThrough(xx, yy, true);
+                c.topology.setFixture(xx, yy, true);
+            }
+        c.doodads.add(prop);
+        return true;
+    }
+
     private void requireOpen(int x, int y) {
         if (!c.grid.inBounds(x, y) || !c.grid.isWalkable(x, y)
                 || c.topology.hasBuildingKindHint(x, y)

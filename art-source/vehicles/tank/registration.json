@@ -1,0 +1,7 @@
+{
+  "outputSize": [1536, 768],
+  "frames": [
+    {"source": "master.png", "sourceSize": [1774, 887], "sourceRect": [0, 0, 1020, 887], "scale": 0.73, "sourceCenter": [508, 451], "targetCenter": [384, 384]},
+    {"source": "turret-master.png", "sourceSize": [1774, 887], "sourceRect": [1020, 0, 754, 887], "scale": 0.7, "sourceCenter": [1498, 454], "targetCenter": [1152, 384], "sourceMuzzles": [[1182, 454]]}
+  ]
+}

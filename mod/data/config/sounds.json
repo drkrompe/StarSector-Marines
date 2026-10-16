@@ -966,7 +966,7 @@
 	"marines_castle_thunder_advance_load_clear": [{"file": "sounds/story/wayline/marines_castle_thunder_advance_load_clear.ogg", "pitch": 1, "volume": 1.0}],
 	"wayline_junction_gunship_inbound": [{"file": "sounds/story/wayline/wayline_junction_gunship_inbound.ogg", "pitch": 1, "volume": 1.0}],
 	"wayline_junction_gunship_on_station": [{"file": "sounds/story/wayline/wayline_junction_gunship_on_station.ogg", "pitch": 1, "volume": 1.0}],
-	"wayline_junction_gunship_covering_militia": [{"file": "sounds/story/wayline/wayline_junction_gunship_covering_militia.ogg", "pitch": 1, "volume": 1.0}],
+	"wayline_junction_gunship_working_trench": [{"file": "sounds/story/wayline/wayline_junction_gunship_working_trench.ogg", "pitch": 1, "volume": 1.0}],
 	"wayline_junction_gunship_hit": [{"file": "sounds/story/wayline/wayline_junction_gunship_hit.ogg", "pitch": 1, "volume": 1.0}],
 	"wayline_junction_gunship_lost": [{"file": "sounds/story/wayline/wayline_junction_gunship_lost.ogg", "pitch": 1, "volume": 1.0}],
 	"wayline_junction_gunship_returned": [{"file": "sounds/story/wayline/wayline_junction_gunship_returned.ogg", "pitch": 1, "volume": 1.0}],
