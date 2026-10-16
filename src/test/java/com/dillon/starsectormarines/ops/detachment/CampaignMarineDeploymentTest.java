@@ -24,6 +24,7 @@ import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.battle.infantry.ExperienceTier;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -38,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class CampaignMarineDeploymentTest {
 
+    @Tag("generated-space-evidence")
     @Test
     void pairedConquestLoadsEveryConfiguredPairBeforeAdvancingToTheNextWave() {
         MarineRoster roster = new MarineRoster();

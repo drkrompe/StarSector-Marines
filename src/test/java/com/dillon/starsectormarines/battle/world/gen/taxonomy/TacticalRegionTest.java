@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.taxonomy;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.EnumSet;
@@ -23,6 +24,7 @@ public class TacticalRegionTest {
     private static final long[] LEGACY_SEEDS = { 1L, 42L, 100L, 777L, 1234L, 9999L };
     private static final long[] CONQUEST_SEEDS = { 1L, 42L, 100L, 777L };
 
+    @Tag("generated-space-evidence")
     @Test
     void partitionsWalkableSpaceExactly() {
         BspCityGenerator gen = new BspCityGenerator();
@@ -62,6 +64,7 @@ public class TacticalRegionTest {
                 () -> "seed " + seed + ": region areas (" + areaSum + ") != walkable cells (" + walkableTotal + ")");
     }
 
+    @Tag("generated-space-evidence")
     @Test
     void attributesInRangeAndNoIslands() {
         BspCityGenerator gen = new BspCityGenerator();

@@ -5,36 +5,37 @@ import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 // Compound, DistrictMap, BiomeMap, StationGraph live in the bsp sub-package (same as this test).
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import org.junit.jupiter.api.Test;
+import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 
-import javax.imageio.ImageIO;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Dev tool dressed as a test. Generates a small batch of maps from
+ * Dev tool, formerly dressed as a test. Generates a small batch of maps from
  * {@link BspCityGenerator} and renders each {@link MapResult} to a PNG so a
  * human can eyeball the segmentation shape, the block-kind labels, and the
  * overlays (walls / doodads / POIs / spawn anchors) without launching the
  * game. Also asserts basic connectivity — every walkable cell must be
  * reachable from any other walkable cell via 4-neighbor traversal.
  *
- * <p>Output: {@code build/map-previews/seed-NNNN.png} (one per seed) plus
- * a 3×2 contact sheet at {@code build/map-previews/contact.png}. Run via:
+ * <p>Output: {@code seed-NNNN.png} (one per seed) plus a 3×2 contact sheet
+ * {@code contact.png}, and the Conquest and station batches beside them. A
+ * partitioned map fails the suite. Run via:
  * <pre>
- *   gradlew :test --tests "*BspMapPreviewTest*"
+ *   gradlew createSnapshots -Psnapshot=bsp-map-previews
  * </pre>
  * Re-run after editing fillers to see the visual delta.
  *
@@ -43,7 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * {@link MapPreviewRenderer}, shared with other preview tests so the color
  * scheme and overlay logic aren't duplicated per test class.
  */
-public class BspMapPreviewTest {
+public final class BspMapPreviewSnapshotSuite implements SnapshotSuite {
 
     private static final int GRID_W = 80;
     private static final int GRID_H = 80;
@@ -55,7 +56,23 @@ public class BspMapPreviewTest {
     private static final int CONQUEST_CELL_PX = 5;
     private static final long[] CONQUEST_SEEDS = { 1L, 42L, 100L, 777L };
 
-    private static final Path OUT_DIR = Paths.get("build/map-previews");
+    @Override public String id() { return "bsp-map-previews"; }
+    @Override public String label() { return "BSP city and station maps in flat preview colours"; }
+
+    @Override
+    public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
+        TileRegistryTestInstaller.install(context.projectRoot());
+        List<SnapshotArtifact> artifacts = new ArrayList<>();
+        renderConquestBatch(artifacts);
+        renderPreviewBatch(artifacts);
+        renderStationBatch(artifacts);
+        renderConcentricStationBatch(artifacts);
+        renderDiamondStationBatch(artifacts);
+        renderDiamondRolesBatch(artifacts);
+        renderConcentricRolesBatch(artifacts);
+        renderStationRolesBatch(artifacts);
+        return artifacts;
+    }
 
     /**
      * Conquest-mode preview. Generates 240×160 maps with a
@@ -64,22 +81,18 @@ public class BspMapPreviewTest {
      * The contact sheet shows the four-biome banding and where the marine
      * spawn lands (south beach) vs. the defender (north fortress).
      */
-    @Test
-    void renderConquestBatch() throws Exception {
-        Files.createDirectories(OUT_DIR);
+    private static void renderConquestBatch(List<SnapshotArtifact> artifacts) {
         BspCityGenerator gen = new BspCityGenerator();
 
         BufferedImage[] perSeed = new BufferedImage[CONQUEST_SEEDS.length];
-        java.util.List<String> failures = new java.util.ArrayList<>();
+        List<String> failures = new ArrayList<>();
         for (int i = 0; i < CONQUEST_SEEDS.length; i++) {
             long seed = CONQUEST_SEEDS[i];
             MapResult map = gen.generate(CONQUEST_W, CONQUEST_H, seed, TraversalAxis.SOUTH_TO_NORTH);
             BufferedImage img = MapPreviewRenderer.renderMap(map, captionFor(map, seed), null, gen.getLastBiomeMap(),
                     gen.getLastCompounds(), gen.getLastTacticalMap(), CONQUEST_CELL_PX);
             perSeed[i] = img;
-            Path out = OUT_DIR.resolve(String.format("conquest-seed-%04d.png", (int) seed));
-            ImageIO.write(img, "PNG", out.toFile());
-            System.out.println("  wrote " + out.toAbsolutePath());
+            artifacts.add(new SnapshotArtifact(String.format("conquest-seed-%04d.png", (int) seed), img));
             try {
                 assertConnected(map, seed);
             } catch (AssertionError ae) {
@@ -90,27 +103,21 @@ public class BspMapPreviewTest {
             throw new AssertionError(String.join("\n", failures));
         }
         BufferedImage contact = MapPreviewRenderer.composeContactSheet(perSeed, 2);
-        Path contactPath = OUT_DIR.resolve("conquest-contact.png");
-        ImageIO.write(contact, "PNG", contactPath.toFile());
-        System.out.println("  wrote " + contactPath.toAbsolutePath());
+        artifacts.add(new SnapshotArtifact("conquest-contact.png", contact));
     }
 
-    @Test
-    void renderPreviewBatch() throws Exception {
-        Files.createDirectories(OUT_DIR);
+    private static void renderPreviewBatch(List<SnapshotArtifact> artifacts) {
         BspCityGenerator gen = new BspCityGenerator();
 
         BufferedImage[] perSeed = new BufferedImage[SEEDS.length];
-        List<String> failures = new java.util.ArrayList<>();
+        List<String> failures = new ArrayList<>();
         for (int i = 0; i < SEEDS.length; i++) {
             long seed = SEEDS[i];
             MapResult map = gen.generate(GRID_W, GRID_H, seed);
             BufferedImage img = MapPreviewRenderer.renderMap(map, captionFor(map, seed), gen.getLastDistrictMap(), null,
                     gen.getLastCompounds(), gen.getLastTacticalMap(), CELL_PX);
             perSeed[i] = img;
-            Path out = OUT_DIR.resolve(String.format("seed-%04d.png", (int) seed));
-            ImageIO.write(img, "PNG", out.toFile());
-            System.out.println("  wrote " + out.toAbsolutePath());
+            artifacts.add(new SnapshotArtifact(String.format("seed-%04d.png", (int) seed), img));
             try {
                 assertConnected(map, seed);
             } catch (AssertionError ae) {
@@ -122,9 +129,7 @@ public class BspMapPreviewTest {
         }
 
         BufferedImage contact = MapPreviewRenderer.composeContactSheet(perSeed, 3);
-        Path contactPath = OUT_DIR.resolve("contact.png");
-        ImageIO.write(contact, "PNG", contactPath.toFile());
-        System.out.println("  wrote " + contactPath.toAbsolutePath());
+        artifacts.add(new SnapshotArtifact("contact.png", contact));
     }
 
     /**
@@ -136,22 +141,18 @@ public class BspMapPreviewTest {
      * alternates visible. Connectivity is hard-asserted (same oracle as the city
      * batches).
      */
-    @Test
-    void renderStationBatch() throws Exception {
-        Files.createDirectories(OUT_DIR);
+    private static void renderStationBatch(List<SnapshotArtifact> artifacts) {
         BspCityGenerator gen = new BspCityGenerator();
 
         BufferedImage[] perSeed = new BufferedImage[SEEDS.length];
-        List<String> failures = new java.util.ArrayList<>();
+        List<String> failures = new ArrayList<>();
         for (int i = 0; i < SEEDS.length; i++) {
             long seed = SEEDS[i];
             MapResult map = gen.generateStation(GRID_W, GRID_H, seed);
             BufferedImage img = MapPreviewRenderer.renderMap(map, captionFor(map, seed), null, null,
                     gen.getLastCompounds(), gen.getLastTacticalMap(), CELL_PX);
             perSeed[i] = img;
-            Path out = OUT_DIR.resolve(String.format("station-seed-%04d.png", (int) seed));
-            ImageIO.write(img, "PNG", out.toFile());
-            System.out.println("  wrote " + out.toAbsolutePath());
+            artifacts.add(new SnapshotArtifact(String.format("station-seed-%04d.png", (int) seed), img));
             try {
                 assertConnected(map, seed);
             } catch (AssertionError ae) {
@@ -163,9 +164,7 @@ public class BspMapPreviewTest {
         }
 
         BufferedImage contact = MapPreviewRenderer.composeContactSheet(perSeed, 3);
-        Path contactPath = OUT_DIR.resolve("station-contact.png");
-        ImageIO.write(contact, "PNG", contactPath.toFile());
-        System.out.println("  wrote " + contactPath.toAbsolutePath());
+        artifacts.add(new SnapshotArtifact("station-contact.png", contact));
     }
 
     /**
@@ -175,22 +174,18 @@ public class BspMapPreviewTest {
      * marine spawn (green) in the outer ring and the defender (red) in the core,
      * and the inward spiral of gates. Connectivity hard-asserted.
      */
-    @Test
-    void renderConcentricStationBatch() throws Exception {
-        Files.createDirectories(OUT_DIR);
+    private static void renderConcentricStationBatch(List<SnapshotArtifact> artifacts) {
         BspCityGenerator gen = new BspCityGenerator();
 
         BufferedImage[] perSeed = new BufferedImage[SEEDS.length];
-        List<String> failures = new java.util.ArrayList<>();
+        List<String> failures = new ArrayList<>();
         for (int i = 0; i < SEEDS.length; i++) {
             long seed = SEEDS[i];
             MapResult map = gen.generateConcentricStation(GRID_W, GRID_H, seed);
             BufferedImage img = MapPreviewRenderer.renderMap(map, captionFor(map, seed), null, null,
                     gen.getLastCompounds(), gen.getLastTacticalMap(), CELL_PX);
             perSeed[i] = img;
-            Path out = OUT_DIR.resolve(String.format("concentric-%04d.png", (int) seed));
-            ImageIO.write(img, "PNG", out.toFile());
-            System.out.println("  wrote " + out.toAbsolutePath());
+            artifacts.add(new SnapshotArtifact(String.format("concentric-%04d.png", (int) seed), img));
             try {
                 assertConnected(map, seed);
             } catch (AssertionError ae) {
@@ -202,9 +197,7 @@ public class BspMapPreviewTest {
         }
 
         BufferedImage contact = MapPreviewRenderer.composeContactSheet(perSeed, 3);
-        Path contactPath = OUT_DIR.resolve("concentric-contact.png");
-        ImageIO.write(contact, "PNG", contactPath.toFile());
-        System.out.println("  wrote " + contactPath.toAbsolutePath());
+        artifacts.add(new SnapshotArtifact("concentric-contact.png", contact));
     }
 
     /**
@@ -213,22 +206,18 @@ public class BspMapPreviewTest {
      * edge-midpoints, straight cardinal corridors spoking inward to a connective
      * ring, then the core. Connectivity hard-asserted.
      */
-    @Test
-    void renderDiamondStationBatch() throws Exception {
-        Files.createDirectories(OUT_DIR);
+    private static void renderDiamondStationBatch(List<SnapshotArtifact> artifacts) {
         BspCityGenerator gen = new BspCityGenerator();
 
         BufferedImage[] perSeed = new BufferedImage[SEEDS.length];
-        List<String> failures = new java.util.ArrayList<>();
+        List<String> failures = new ArrayList<>();
         for (int i = 0; i < SEEDS.length; i++) {
             long seed = SEEDS[i];
             MapResult map = gen.generateDiamondStation(GRID_W, GRID_H, seed);
             BufferedImage img = MapPreviewRenderer.renderMap(map, captionFor(map, seed), null, null,
                     gen.getLastCompounds(), gen.getLastTacticalMap(), CELL_PX);
             perSeed[i] = img;
-            Path out = OUT_DIR.resolve(String.format("diamond-%04d.png", (int) seed));
-            ImageIO.write(img, "PNG", out.toFile());
-            System.out.println("  wrote " + out.toAbsolutePath());
+            artifacts.add(new SnapshotArtifact(String.format("diamond-%04d.png", (int) seed), img));
             try {
                 assertConnected(map, seed);
             } catch (AssertionError ae) {
@@ -240,15 +229,11 @@ public class BspMapPreviewTest {
         }
 
         BufferedImage contact = MapPreviewRenderer.composeContactSheet(perSeed, 3);
-        Path contactPath = OUT_DIR.resolve("diamond-contact.png");
-        ImageIO.write(contact, "PNG", contactPath.toFile());
-        System.out.println("  wrote " + contactPath.toAbsolutePath());
+        artifacts.add(new SnapshotArtifact("diamond-contact.png", contact));
     }
 
     /** Diamond station topological-roles preview — radial depth gradient (green ports → red core), spoke + port bridges, the single connective-ring loop. */
-    @Test
-    void renderDiamondRolesBatch() throws Exception {
-        Files.createDirectories(OUT_DIR);
+    private static void renderDiamondRolesBatch(List<SnapshotArtifact> artifacts) {
         BspCityGenerator gen = new BspCityGenerator();
 
         BufferedImage[] perSeed = new BufferedImage[SEEDS.length];
@@ -257,21 +242,15 @@ public class BspMapPreviewTest {
             MapResult map = gen.generateDiamondStation(GRID_W, GRID_H, seed);
             BufferedImage img = renderStationRoles(map, gen.getLastStationGraph(), seed, CELL_PX);
             perSeed[i] = img;
-            Path out = OUT_DIR.resolve(String.format("diamond-roles-%04d.png", (int) seed));
-            ImageIO.write(img, "PNG", out.toFile());
-            System.out.println("  wrote " + out.toAbsolutePath());
+            artifacts.add(new SnapshotArtifact(String.format("diamond-roles-%04d.png", (int) seed), img));
         }
 
         BufferedImage contact = MapPreviewRenderer.composeContactSheet(perSeed, 3);
-        Path contactPath = OUT_DIR.resolve("diamond-roles-contact.png");
-        ImageIO.write(contact, "PNG", contactPath.toFile());
-        System.out.println("  wrote " + contactPath.toAbsolutePath());
+        artifacts.add(new SnapshotArtifact("diamond-roles-contact.png", contact));
     }
 
     /** Concentric station topological-roles preview — radial depth gradient (green outer ring → red core), gate bridges, ring loops. */
-    @Test
-    void renderConcentricRolesBatch() throws Exception {
-        Files.createDirectories(OUT_DIR);
+    private static void renderConcentricRolesBatch(List<SnapshotArtifact> artifacts) {
         BspCityGenerator gen = new BspCityGenerator();
 
         BufferedImage[] perSeed = new BufferedImage[SEEDS.length];
@@ -280,15 +259,11 @@ public class BspMapPreviewTest {
             MapResult map = gen.generateConcentricStation(GRID_W, GRID_H, seed);
             BufferedImage img = renderStationRoles(map, gen.getLastStationGraph(), seed, CELL_PX);
             perSeed[i] = img;
-            Path out = OUT_DIR.resolve(String.format("concentric-roles-%04d.png", (int) seed));
-            ImageIO.write(img, "PNG", out.toFile());
-            System.out.println("  wrote " + out.toAbsolutePath());
+            artifacts.add(new SnapshotArtifact(String.format("concentric-roles-%04d.png", (int) seed), img));
         }
 
         BufferedImage contact = MapPreviewRenderer.composeContactSheet(perSeed, 3);
-        Path contactPath = OUT_DIR.resolve("concentric-roles-contact.png");
-        ImageIO.write(contact, "PNG", contactPath.toFile());
-        System.out.println("  wrote " + contactPath.toAbsolutePath());
+        artifacts.add(new SnapshotArtifact("concentric-roles-contact.png", contact));
     }
 
     /**
@@ -301,9 +276,7 @@ public class BspMapPreviewTest {
      * spawn, bridges should sit on the obvious chokepoints, and loops should be
      * the visibly redundant connections.
      */
-    @Test
-    void renderStationRolesBatch() throws Exception {
-        Files.createDirectories(OUT_DIR);
+    private static void renderStationRolesBatch(List<SnapshotArtifact> artifacts) {
         BspCityGenerator gen = new BspCityGenerator();
 
         BufferedImage[] perSeed = new BufferedImage[SEEDS.length];
@@ -312,15 +285,11 @@ public class BspMapPreviewTest {
             MapResult map = gen.generateStation(GRID_W, GRID_H, seed);
             BufferedImage img = renderStationRoles(map, gen.getLastStationGraph(), seed, CELL_PX);
             perSeed[i] = img;
-            Path out = OUT_DIR.resolve(String.format("station-roles-%04d.png", (int) seed));
-            ImageIO.write(img, "PNG", out.toFile());
-            System.out.println("  wrote " + out.toAbsolutePath());
+            artifacts.add(new SnapshotArtifact(String.format("station-roles-%04d.png", (int) seed), img));
         }
 
         BufferedImage contact = MapPreviewRenderer.composeContactSheet(perSeed, 3);
-        Path contactPath = OUT_DIR.resolve("station-roles-contact.png");
-        ImageIO.write(contact, "PNG", contactPath.toFile());
-        System.out.println("  wrote " + contactPath.toAbsolutePath());
+        artifacts.add(new SnapshotArtifact("station-roles-contact.png", contact));
     }
 
     /** Bottom-strip label text shared by every {@link MapPreviewRenderer#renderMap} call in this class. */

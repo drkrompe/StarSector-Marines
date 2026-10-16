@@ -35,7 +35,7 @@ draws an authored perimeter — towers, gates, kill-zone bunkers, an outer ward 
 around whatever the ordinary city fill happened to put inside it. The enclosure
 is designed and its interior is leftovers, so the climax of a Conquest mission is
 a very good wall with a district behind it rather than a fortress.
-`FortressPreviewTest` renders the band: freestanding rectangles on a road grid,
+`FortressPreviewSnapshotSuite` renders the band: freestanding rectangles on a road grid,
 one walled compound, and nothing that would read as a fortress if the wall were
 taken away.
 

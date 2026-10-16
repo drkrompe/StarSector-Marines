@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.tools.mcp.McpToolContext;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -253,6 +254,7 @@ class ProjectTilesetToolsTest {
 
     // ------------------------------------------------------------ map preview
 
+    @Tag("generated-space-evidence")
     @Test
     void previewingACandidateOverAShippedIdRepaintsTheMapItWouldReplaceItOn(@TempDir Path root)
             throws Exception {

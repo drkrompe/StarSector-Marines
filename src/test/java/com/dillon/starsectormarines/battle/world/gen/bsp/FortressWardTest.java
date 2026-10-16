@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.EnumMap;
@@ -43,6 +44,7 @@ class FortressWardTest {
             RoomPurpose.MESS_HALL, RoomPurpose.KEEP_ENTRY, RoomPurpose.CONTROL_ROOM };
 
     /** The ward's buildings are furnished, and its vehicle sheds hold real berths. */
+    @Tag("generated-space-evidence")
     @Test
     void thePackedWardIsFurnished() {
         for (long seed : new long[] { 1L, 9L, 777L }) {
@@ -60,6 +62,7 @@ class FortressWardTest {
         }
     }
 
+    @Tag("generated-space-evidence")
     @Test
     void everyCanonicalConquestMapPacksItsFortressWard() {
         for (TraversalAxis axis : TraversalAxis.values()) {

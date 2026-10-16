@@ -21,9 +21,10 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleMapRenderer;
-import org.json.JSONObject;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 
 import javax.imageio.ImageIO;
 import java.awt.Color;
@@ -32,16 +33,13 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 /**
- * Bridge between {@link BspMapPreviewTest} (real BSP generator, flat-color
+ * Bridge between {@link BspMapPreviewSnapshotSuite} (real BSP generator, flat-color
  * per-{@link GroundKind} render) and {@link
  * com.dillon.starsectormarines.battle.world.tiles.StreetZonePreviewTest} (hand-
  * built topology, production sprite-picker render). Runs the real
@@ -58,17 +56,17 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * art is legible (vs. the 8px-per-cell color-block preview); the seed set
  * is correspondingly smaller to keep PNG sizes reasonable.
  *
- * <p>Outputs: {@code build/map-previews/sprite-seed-NNNN.png} (one per
- * seed), plus close generated-compound crops at
- * {@code build/map-previews/sprite-conquest-military-compound.png} and
- * {@code build/map-previews/sprite-gated-housing-compound.png}, and a generated
- * administrative interior at
- * {@code build/map-previews/sprite-civic-headquarters.png}. The authored
- * shared-edge firing windows receive their own close production-path crop at
- * {@code build/map-previews/sprite-forward-bunker-window.png}. Re-run via
- * {@code gradlew :test --tests "*BspMapSpritePreviewTest*"}.
+ * <p>Outputs {@code sprite-seed-NNNN.png} (one per seed), close
+ * generated-compound crops ({@code sprite-conquest-military-compound.png},
+ * {@code sprite-gated-housing-compound.png}), a generated administrative
+ * interior ({@code sprite-civic-headquarters.png}), the authored shared-edge
+ * firing windows ({@code sprite-forward-bunker-window.png}) and the civilian
+ * spaceport views. Re-run via
+ * {@code gradlew createSnapshots -Psnapshot=bsp-sprite-previews}; it was a
+ * JUnit test until generating seven cities made it the slowest preview in
+ * {@code :test}.
  */
-public class BspMapSpritePreviewTest {
+public final class BspMapSpritePreviewSnapshotSuite implements SnapshotSuite {
 
     private static final int GRID_W = 80;
     private static final int GRID_H = 80;
@@ -76,7 +74,6 @@ public class BspMapSpritePreviewTest {
     private static final int CELL_PX = 24;
     private static final long[] SEEDS = { 1L, 42L, 777L };
 
-    private static final Path OUT_DIR       = Paths.get("build/map-previews");
     private static final Color LABEL_BG    = new Color(0, 0, 0, 200);
     private static final Color LABEL_FG    = new Color(0xE0, 0xE8, 0xF4);
     private static final Color MARINE_FG   = new Color(80, 220, 100);
@@ -84,44 +81,43 @@ public class BspMapSpritePreviewTest {
     private static final Color MED_COVER_FG = new Color(255, 210, 70, 225);
     private static final Color HEAVY_COVER_FG = new Color(255, 75, 205, 235);
 
-    private static HeadlessBattleMapRenderer battleMaps;
+    private HeadlessBattleMapRenderer battleMaps;
 
-    @BeforeAll
-    static void installRegistry() throws Exception {
-        // NatureZoneFiller reads TileRegistry.installed() during gen. Install a
-        // disk-loaded registry so overlays are stamped (not silently skipped).
-        TileRegistry reg = new TileRegistry();
-        for (String path : TileRegistry.BUILTIN_TILESETS) {
-            String text = Files.readString(Paths.get("mod/" + path));
-            reg.ingestSheet(new JSONObject(text));
-        }
-        reg.validateReferences();
-        TileRegistry.install(reg);
-        battleMaps = new HeadlessBattleMapRenderer(Paths.get("mod"));
+    @Override public String id() { return "bsp-sprite-previews"; }
+    @Override public String label() { return "Generated BSP maps through the battle renderer"; }
+
+    @Override
+    public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
+        // NatureZoneFiller reads TileRegistry.installed() during gen; without the
+        // disk catalogs overlays are silently skipped rather than stamped.
+        TileRegistryTestInstaller.install(context.projectRoot());
+        battleMaps = new HeadlessBattleMapRenderer(context.modRoot());
+        List<SnapshotArtifact> out = new ArrayList<>();
+        renderSpriteBatch(out);
+        renderConquestCompound(out);
+        renderForwardBunkerWindow(out);
+        renderGatedHousingCompound(out);
+        renderCivicHeadquarters(out);
+        renderCivilianSpaceportDistrict(out);
+        renderOccupiedCivilianSpaceport(out, context);
+        return out;
     }
 
-    @Test
-    void renderSpriteBatch() throws Exception {
-        Files.createDirectories(OUT_DIR);
-
+    private void renderSpriteBatch(List<SnapshotArtifact> artifacts) {
         BspCityGenerator gen = new BspCityGenerator();
         for (long seed : SEEDS) {
             MapResult map = gen.generate(GRID_W, GRID_H, seed);
             BufferedImage img = renderMapSprites(map, seed);
-            Path out = OUT_DIR.resolve(String.format("sprite-seed-%04d.png", (int) seed));
-            ImageIO.write(img, "PNG", out.toFile());
-            System.out.println("  wrote " + out.toAbsolutePath());
+            artifacts.add(new SnapshotArtifact(String.format("sprite-seed-%04d.png", (int) seed), img));
         }
     }
 
     /**
      * Close production-path render of a generated Conquest compound. The crop
      * changes only the evidence framing; every visible cell comes from the
-     * same complete-map draw-command stream used by {@link #renderSpriteBatch()}.
+     * same complete-map draw-command stream used by {@link #renderSpriteBatch}.
      */
-    @Test
-    void renderConquestCompound() throws Exception {
-        Files.createDirectories(OUT_DIR);
+    private void renderConquestCompound(List<SnapshotArtifact> artifacts) {
         long seed = 1L;
         BspCityGenerator generator = new BspCityGenerator();
         MapResult map = generator.generate(240, 160, seed,
@@ -136,15 +132,11 @@ public class BspMapSpritePreviewTest {
         BufferedImage full = battleMaps.render(map, seed, cellPx);
         BufferedImage crop = cropCompound(full, map, compound, cellPx, 4);
 
-        Path out = OUT_DIR.resolve("sprite-conquest-military-compound.png");
-        ImageIO.write(crop, "PNG", out.toFile());
-        System.out.println("  wrote " + out.toAbsolutePath());
+        artifacts.add(new SnapshotArtifact("sprite-conquest-military-compound.png", crop));
     }
 
     /** Close production-path render of the shared-edge windows on a forward bunker. */
-    @Test
-    void renderForwardBunkerWindow() throws Exception {
-        Files.createDirectories(OUT_DIR);
+    private void renderForwardBunkerWindow(List<SnapshotArtifact> artifacts) {
         // Whichever of these seeds lays down a bunker. A fixed seed pins this
         // render to one map's luck: not every Conquest seed has a forward
         // bunker on it, so a resize that shuffles the layout fails the test for
@@ -177,15 +169,11 @@ public class BspMapSpritePreviewTest {
         BufferedImage crop = battleMaps.renderView(map, seed,
                 centerX, centerY, widthCells, heightCells, 40);
 
-        Path out = OUT_DIR.resolve("sprite-forward-bunker-window.png");
-        ImageIO.write(crop, "PNG", out.toFile());
-        System.out.println("  wrote " + out.toAbsolutePath());
+        artifacts.add(new SnapshotArtifact("sprite-forward-bunker-window.png", crop));
     }
 
     /** Production-path crop of the first deterministic generated housing compound. */
-    @Test
-    void renderGatedHousingCompound() throws Exception {
-        Files.createDirectories(OUT_DIR);
+    private void renderGatedHousingCompound(List<SnapshotArtifact> artifacts) {
         BspCityGenerator generator = new BspCityGenerator();
         MapResult map = null;
         Compound compound = null;
@@ -209,15 +197,11 @@ public class BspMapSpritePreviewTest {
         int cellPx = 20;
         BufferedImage full = battleMaps.render(map, previewSeed, cellPx);
         BufferedImage crop = cropCompound(full, map, compound, cellPx, 4);
-        Path out = OUT_DIR.resolve("sprite-gated-housing-compound.png");
-        ImageIO.write(crop, "PNG", out.toFile());
-        System.out.println("  wrote " + out.toAbsolutePath());
+        artifacts.add(new SnapshotArtifact("sprite-gated-housing-compound.png", crop));
     }
 
     /** Production-path crop of a generated civic headquarters and its room equipment. */
-    @Test
-    void renderCivicHeadquarters() throws Exception {
-        Files.createDirectories(OUT_DIR);
+    private void renderCivicHeadquarters(List<SnapshotArtifact> artifacts) {
         BspCityGenerator generator = new BspCityGenerator();
         MapResult map = null;
         PointOfInterest headquarters = null;
@@ -243,9 +227,7 @@ public class BspMapSpritePreviewTest {
         BufferedImage crop = cropBounds(full, map,
                 headquarters.left, headquarters.top,
                 headquarters.right, headquarters.bottom, cellPx, 4);
-        Path out = OUT_DIR.resolve("sprite-civic-headquarters.png");
-        ImageIO.write(crop, "PNG", out.toFile());
-        System.out.println("  wrote " + out.toAbsolutePath());
+        artifacts.add(new SnapshotArtifact("sprite-civic-headquarters.png", crop));
     }
 
     private static BufferedImage cropCompound(BufferedImage full, MapResult map,
@@ -270,9 +252,7 @@ public class BspMapSpritePreviewTest {
     }
 
     /** Full-map look at the campaign-backed civilian port district and its authored berths. */
-    @Test
-    void renderCivilianSpaceportDistrict() throws Exception {
-        Files.createDirectories(OUT_DIR);
+    private void renderCivilianSpaceportDistrict(List<SnapshotArtifact> artifacts) {
         TargetProfile profile = new TargetProfile(5, 6, 1, 1, "independent",
                 EnumSet.of(EconomicFunction.HABITATION, EconomicFunction.SPACEPORT),
                 SurfacePalette.ROCK, SettlementLink.ROAD);
@@ -280,21 +260,16 @@ public class BspMapSpritePreviewTest {
         BufferedImage img = renderMapSprites(map, 42L);
 
         gMarkLandingPads(img, map);
-        Path out = OUT_DIR.resolve("civilian-spaceport-district.png");
-        ImageIO.write(img, "PNG", out.toFile());
-        System.out.println("  wrote " + out.toAbsolutePath());
+        artifacts.add(new SnapshotArtifact("civilian-spaceport-district.png", img));
 
         BufferedImage cover = copyOf(img);
         drawDoodadCoverOverlay(cover, map.doodads, map.grid.getHeight());
-        Path coverOut = OUT_DIR.resolve("civilian-spaceport-district-cover.png");
-        ImageIO.write(cover, "PNG", coverOut.toFile());
-        System.out.println("  wrote " + coverOut.toAbsolutePath());
+        artifacts.add(new SnapshotArtifact("civilian-spaceport-district-cover.png", cover));
     }
 
     /** Final setup preview: three marine berths reserved, surplus civilian craft parked. */
-    @Test
-    void renderOccupiedCivilianSpaceport() throws Exception {
-        Files.createDirectories(OUT_DIR);
+    private void renderOccupiedCivilianSpaceport(List<SnapshotArtifact> artifacts,
+                                                 SnapshotContext context) throws Exception {
         TargetProfile profile = new TargetProfile(5, 6, 1, 1, "independent",
                 EnumSet.of(EconomicFunction.HABITATION, EconomicFunction.SPACEPORT),
                 SurfacePalette.ROCK, SettlementLink.ROAD);
@@ -308,31 +283,24 @@ public class BspMapSpritePreviewTest {
                 0, 0, sim.getGrid().getWidth() - 1, sim.getGrid().getHeight() - 1,
                 List.of(), sim.getDoodads());
         BufferedImage img = renderMapSprites(finalMap, 42L, false);
-        drawParkedAircraft(img, sim.getParkedAircraft(), sim.getGrid().getHeight());
+        drawParkedAircraft(img, sim.getParkedAircraft(), sim.getGrid().getHeight(),
+                context.starsectorCore());
 
-        Path out = OUT_DIR.resolve("civilian-spaceport-occupied.png");
-        ImageIO.write(img, "PNG", out.toFile());
-        System.out.println("  wrote " + out.toAbsolutePath());
+        artifacts.add(new SnapshotArtifact("civilian-spaceport-occupied.png", img));
 
         BufferedImage cover = copyOf(img);
         drawDoodadCoverOverlay(cover, finalMap.doodads, finalMap.grid.getHeight());
-        Path coverOut = OUT_DIR.resolve("civilian-spaceport-occupied-cover.png");
-        ImageIO.write(cover, "PNG", coverOut.toFile());
-        System.out.println("  wrote " + coverOut.toAbsolutePath());
+        artifacts.add(new SnapshotArtifact("civilian-spaceport-occupied-cover.png", cover));
     }
 
     private static void drawParkedAircraft(BufferedImage img,
                                            List<ParkedAircraft> aircraft,
-                                           int gridH) throws Exception {
-        String install = System.getProperty("starsectorDir");
-        assertNotNull(install, "starsectorDir is required for vanilla hull previews");
+                                           int gridH, Path starsectorCore) throws Exception {
         Graphics2D g = img.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                 RenderingHints.VALUE_INTERPOLATION_BICUBIC);
         for (ParkedAircraft parked : aircraft) {
-            Path hullPath = Paths.get(install, "starsector-core")
-                    .resolve(parked.type.spritePath);
-            BufferedImage hull = ImageIO.read(Files.newInputStream(hullPath));
+            BufferedImage hull = ImageIO.read(starsectorCore.resolve(parked.type.spritePath).toFile());
             float lengthCells = hull.getHeight() * AirScale.METERS_PER_PX;
             int drawH = Math.max(CELL_PX, Math.round(lengthCells * CELL_PX));
             int drawW = Math.max(CELL_PX,

@@ -25,6 +25,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.ops.ConquestArrivalConfig;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.EnumSet;
@@ -83,6 +84,7 @@ class PrecinctLandingAreaStageTest {
      * of them asks for — {@code conquestArrivalSlots} throws when the map
      * authored fewer areas than the mission's drop-zone count.
      */
+    @Tag("generated-space-evidence")
     @Test
     void aStatedApproachSeatsItsBeachhead() {
         MapResult map = map(MapPlacement.NORTH, MapPlacement.SOUTH);
@@ -122,6 +124,7 @@ class PrecinctLandingAreaStageTest {
      * no axis here, so the only thing that can say which way the shuttles come
      * in is which edge the attacker's own region sits against.
      */
+    @Tag("generated-space-evidence")
     @Test
     void theApproachIsTheEdgeTheRegionSitsAgainst() {
         MapResult map = map(MapPlacement.EAST, MapPlacement.WEST);
@@ -145,6 +148,7 @@ class PrecinctLandingAreaStageTest {
      * asserting is that they land in the same place: the corner the spawn stage
      * chose holds both the marine spawn and every berth authored for it.
      */
+    @Tag("generated-space-evidence")
     @Test
     void anUnstatedAttackerLandsWhereItSpawns() {
         Generated generated = generate(MapPlacement.NORTH_EAST, null);

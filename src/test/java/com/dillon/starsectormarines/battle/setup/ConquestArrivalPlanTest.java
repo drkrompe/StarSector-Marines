@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.ops.ConquestArrivalConfig;
 import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Tag("generated-space-evidence")
 class ConquestArrivalPlanTest {
 
     @Test
