@@ -34,7 +34,7 @@ apart, and a fitting choice (where the plating goes) matters.
   across sections, so the totals stay what the stock frame and plating set and
   time-to-kill stays comparable. Armor rating stays per chassis.
   `DurabilityModel` resolves each section exactly as it resolves a body today.
-  Plating fittings (`mech-internal-systems.md`) may later shift capacity between
+  Plating fittings (`mechs-nouns.md`, internal) may later shift capacity between
   sections, which is the fitting decision this enables.
 - **Consequences:**
   - Legs at zero: crippled. The mech cannot walk but can pivot, turn its torso and

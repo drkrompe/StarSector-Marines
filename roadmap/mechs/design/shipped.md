@@ -12,3 +12,4 @@ Written: 2026-08-23
 | `mech-tactical-move-order.md` | 2026-08-31 | this change | `mechs-nouns.md` — exact-Mech reachable move, moving fire, and automatic handback. |
 | `mech-pattern-cards.md` | 2026-10-16 | `cb73029c9`, `80a1b4121`, `a2dab1951` | `mechs-nouns.md` — mech patterns and pattern cards; `heavy-equipment-progression.md` — weight-class ladder. |
 | `mech-bay-vehicles.md` | 2026-10-16 | `6fa854971`, `c8b55d3e6`, this change | `mechs-nouns.md` — gantries hold a mech or a vehicle, vehicle patterns, Armour Support from the bay, loss writeback; `vehicle-as-commandable-unit.md`. Drop-scene acceptance moves to `armor-drop-selection.md`. |
+| `mech-internal-systems.md` | 2026-10-16 | `857c5de01` | `mechs-nouns.md` — internals, loader, engine budget, frame values, per-loadout heat; `heavy-equipment-progression.md` — internal ladder and refit ceilings. |

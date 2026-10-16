@@ -87,18 +87,11 @@
       </div>
       <div id="barracks-formation-board" class="{command.formationClasses}">
         <div id="barracks-board-title" class="label heading board-title">{command.title}</div>
-        <div id="barracks-board-tools" class="board-tools">
-          <div id="barracks-search-label" class="label search-label">{i18n.openingUiShipboardBarracksSearch}</div>
-          <input id="barracks-search" class="roster-search" value="{command.search}" maxlength="64" oninput="{command.editSearch}" />
-          <button id="barracks-attention" class="tool-button console-action" onclick="{command.attention}">{command.attentionLabel}</button>
-          <button id="barracks-profile-filter" class="profile-filter console-action" onclick="{command.filter}">{command.filterLabel}</button>
-        </div>
         <div id="barracks-selection-tools" class="selection-tools">
           <div id="barracks-scope-count" class="label muted scope-count">{command.scopeSummary}</div>
           <button id="barracks-select-all" class="select-all console-action" onclick="{command.selectAll}">{i18n.openingUiShipboardBarracksSelectAllInView}</button>
           <button id="barracks-clear" class="clear-selection console-action" onclick="{command.clear}">{i18n.openingUiShipboardBarracksClear}</button>
         </div>
-        <div id="barracks-column-key" class="label muted column-key">{command.selectionMode}</div>
         <div id="barracks-empty" class="label muted wrap empty-message">{command.empty}</div>
         <div id="barracks-formation-list" class="formation-list">
           <div each="squad in command.squads" key="{squad.id}" id="{squad.id}" class="{squad.classes}">
@@ -337,14 +330,10 @@
   .formation-board { flex-direction: column; width: 0px; flex-grow: 1; padding: 10px; gap: 7px; border-width: 1px; overflow: hidden; }
   .board-title { height: 26px; color: #dfc588; }
   .board-tools, .selection-tools, .page-tools { flex-direction: row; align-items: center; height: 40px; gap: 6px; }
-  .search-label { width: 65px; height: 20px; color: #a5b0a9; }
-  .roster-search { width: 0px; flex-grow: 1; height: 24px; padding: 3px 6px; border-width: 1px; background-color: #111814; }
   .tool-button { white-space: normal; width: 126px; height: 36px; padding: 0px 4px; text-align: center; font-family: heading; }
-  .profile-filter { width: 192px; height: 26px; padding: 0px 4px; text-align: center; }
   .scope-count { width: 0px; flex-grow: 1; height: 20px; }
   .select-all { width: 174px; height: 26px; padding: 0px 4px; text-align: center; font-family: heading; }
   .clear-selection { width: 66px; height: 26px; padding: 0px 4px; text-align: center; }
-  .column-key { height: 17px; }
   .formation-list { display: grid; height: 0px; flex-grow: 1; gap: 10px; overflow: scroll; }
   .formation { flex-direction: column; width: 260px; height: 220px; gap: 6px; padding: 8px; border-width: 2px; border-color: #586154; background-color: #202922; }
   .formation.selected { border-color: #dfc588; background-color: #383c2d; }
