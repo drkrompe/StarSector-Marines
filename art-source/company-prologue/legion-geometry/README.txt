@@ -101,13 +101,15 @@ Scale check (pass 4, warship form; geometry.json 'scale')
   ship spaces: deck program CAPITAL "Battlecarrier" (CARRIER) crew 700-1500
   cargo 300 is 30,827 m2 of rooms; less its notional 3.2 m HANGAR rooms
   (2,160 m2), x1.40 circulation x3.2 m = 128,428 m3 habitable.
-  Habitable share about a third: fighter stowage for the Elite complement
-  (6 Broadswords, 4 Hoplons, a spare per wing, servicing room, 25% for
-  ordnance handling) measures 24.5% of the pressure hull in model
-  units (fighters share the carrier's pixel scale, so this holds at any
-  metres scale); armour 15%, reactors/flux/drives 12%, barbettes and
-  magazines 5%, tanks and structure 10% are judged. Budget habitable share
-  33.5%; published at 33%.
+  Habitable share: the requested warship share is 30-35%; 33% is
+  published. The itemised budget is looser. Fighter stowage for the Elite
+  complement (6 Broadswords, 4 Hoplons, a spare per wing, servicing room,
+  25% for ordnance handling) at the fighters' own 0.50 m/px scales
+  (fighters-geometry) is about 52,700 m3, 13.5% of the hull at 0.61; armour
+  15%, reactors/flux/drives 12%, barbettes and magazines 5%, tanks and
+  structure 10% are judged. That leaves 44.5% habitable, which alone would
+  solve to about 0.55. 0.61 stands on the warship share; whether the
+  Legion should read bigger or smaller than that is the owner's call.
   Pressure hull (union of torso, spines, dome, arms and hangar pods) about
   1.72 M cubic units, re-measured on every build: solves to
   0.609 m/unit (0.597-0.629 for 35-30% habitable; a freighter's 55%
@@ -118,8 +120,8 @@ Scale check (pass 4, warship form; geometry.json 'scale')
   as it is long, so it encloses supercarrier-class volume for under a third
   of a Nimitz's crew. The geometry sets the answer: a deeper torso lowers it.
   Fittings at 0.61: a 1.8 m person is 2.95 units; doors and hatches 3.4,
-  rails 1.8. Fighters come out at about 20 m (Broadsword, Piranha) and 22 m
-  (Hoplon), and the hangar tunnels are sized in units to clear them.
+  rails 1.8. Fighters at their own scales are about 16-18 m (31 Legion
+  units of span for a Hoplon-sized craft), inside the hangar tunnels.
 
 Status
   Pass 1 blockout, reworked after the owner's first review (deep torso, wing

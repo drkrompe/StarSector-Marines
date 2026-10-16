@@ -33,7 +33,8 @@ class MechPatternTest {
             assertTrue(starter.starter());
             assertFalse(MechPattern.offerable().contains(starter), starter.id());
         }
-        assertEquals(MechPattern.all().size() - MechPattern.STARTER.size(),
+        long pending = MechPattern.all().stream().filter(p -> !p.presentationDeclared()).count();
+        assertEquals(MechPattern.all().size() - MechPattern.STARTER.size() - pending,
                 MechPattern.offerable().size());
     }
 
@@ -65,7 +66,7 @@ class MechPatternTest {
         assertEquals(EquipmentAccessTier.PRESTIGE, parse("mech-pattern:vehicle:breakthrough_tank").accessTier());
         assertNull(MechPattern.parse("mech-pattern:vehicle:cargo_carrier"));
         for (MechPattern pattern : MechPattern.all()) {
-            if (pattern.kind() == MechPattern.Kind.VEHICLE) {
+            if (pattern.kind() == MechPattern.Kind.VEHICLE && pattern.presentationDeclared()) {
                 assertTrue(MechPattern.offerable().contains(pattern), pattern.id());
             }
         }
