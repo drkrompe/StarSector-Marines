@@ -7,10 +7,16 @@ and a stepped barrel ending in a muzzle brake. A rear bustle carries the
 ammunition feed and vents. Silhouette first; greebles stay sparse.
 """
 import math
+import bpy
+from mathutils import Matrix
 
-# Vanilla warhound.ship weapon slot XY positions, mount scale, medium flag.
-# Small mounts are one family; turret 4 is the medium twin-gun house.
-MOUNTS = [(-11,20,1.0,False),(-11,-20,1.0,False),(41,11,1.0,False),(36,-16,1.3,True)]
+# Vanilla warhound.ship weapon slots WS 001..004: XY, resting angle (degrees
+# CCW from the bow, so +90 faces port), mount scale, medium flag. Small
+# mounts are one family; turret 4 is the medium twin-gun house.
+MOUNTS = [(-11,20,90,1.0,False),(-11,-20,-90,1.0,False),(41,11,30,1.0,False),(36,-16,-30,1.3,True)]
+# Extra barbette height per mount. Turret 3's resting line crosses the port
+# grapple arm stowed beside it, so it stands superfiring over the arm.
+LIFT = {3: 2.2}
 
 # Turret-house plan (scaled), counter-clockwise from above: chamfered nose
 # at the bottom ring, glacis and raked sides pulled in at the roof ring.
@@ -57,15 +63,19 @@ def barrel(kit, i, tag, ox, oy, z, s, heavy):
 
 
 def build(kit):
-    for i,(x,y,s,heavy) in enumerate(MOUNTS,1):
+    for i,(x,y,angle,s,heavy) in enumerate(MOUNTS,1):
         R = 3.1*s
         zmax,zmin = seat(kit,i,x,y,R)
+        zmax += LIFT.get(i,0)
         # Barbette: a faceted foot sunk into the slope, an armoured collar
         # proud of the highest ground, and a dark traverse gap above it.
         kit.cylinder(f'Turret {i} barbette foot',(x,y,(zmin-.4+zmax+.25)/2),R+.45*s,zmax+.65-zmin,kit.steel,'Z',12,.12)
         kit.cylinder(f'Turret {i} armoured collar',(x,y,zmax+.6*s),R,.9*s,kit.steel,'Z',12,.1)
         kit.cylinder(f'Turret {i} traverse gap',(x,y,zmax+1.15*s),R-.35*s,.3*s,kit.dark,'Z',24,0)
         zb = zmax+1.25*s
+        # Everything above the traverse gap is built bow-facing, then trained
+        # about the mount centre to the slot's resting angle.
+        fixed = set(bpy.data.objects)
         P = lambda pts,dx=0: [(x+(px+dx)*s,y+py*s) for px,py in pts]
         bustle = 1.6 if heavy else 1.0
         loft(kit,f'Turret {i} gun house',P(HOUSE_BASE),P(HOUSE_ROOF),zb,zb+HOUSE_H*s,kit.steel)
@@ -95,3 +105,6 @@ def build(kit):
             for side in (1,-1):
                 kit.box(f'Turret {i} rangefinder window',(x-.6*s,y+side*2.31*s,zb+HOUSE_H*s+.18*s),(.45*s,.06,.24*s),kit.glass,0)
             kit.box(f'Turret {i} starboard optics blister',(x-.2*s,y-ox*s,zb+HOUSE_H*s+.3*s),(1.5*s,.8*s,.6*s),kit.steel,.18*s)
+        train = Matrix.Translation((x,y,0)) @ Matrix.Rotation(math.radians(angle),4,'Z') @ Matrix.Translation((-x,-y,0))
+        for obj in set(bpy.data.objects)-fixed:
+            obj.matrix_world = train @ obj.matrix_world

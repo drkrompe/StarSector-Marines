@@ -4,7 +4,7 @@ Status: DRAFT. Image-first replacement for `storyboard-v2.txt`, which it superse
 
 Written: 2026-10-16
 
-Updated: 2026-10-16 — hail recorded and treated; moving-element rules added; the hail runs longer than C1–C2.
+Updated: 2026-10-16 — hail revised after audition: customs beat, Greywater Down, lines 5–6 cut, static lowered.
 
 ## What changed from v2
 
@@ -69,11 +69,11 @@ is not part of this pass.
 
 ## Arrival shot list
 
-The arrival runs about 60 seconds. It plays once, the first time the player docks
+The arrival runs about 90 seconds, most of it the space section that carries the hail. It plays once, the first time the player docks
 at Jangala, and it can be skipped. Starts that use a fallback port never see it.
 Timings are targets until the voice takes are measured.
 
-### C1 — CORVUS (about 16 s)
+### C1 — CORVUS (about 35 s, set by the hail)
 
 **Picture.** Jangala fills the right two thirds of the frame, with seas, canopy
 and a storm system. Jangala Station sits in orbit at mid-depth. A Hegemony
@@ -96,7 +96,7 @@ and the story's first contrast: an unlicensed wreck among warships and working
 freighters. It pays off P6's "Hegemony patrols crawling across the navigation
 display".
 
-### C2 — PATROL ABEAM (about 6 s)
+### C2 — PATROL ABEAM (about 12 s)
 
 **Picture.** The crew window, from inside, while a Hegemony patrol ship slides
 past close enough that its hull fills most of the glass. Jangala lies beyond it.
@@ -182,30 +182,46 @@ Following owner call 6, no line names money or a contract figure.
 
 | # | Speaker | Line | Over |
 |---|---|---|---|
-| 1 | Jangala Approach | Cerberus-class on the inbound lane, this is Jangala Approach. Your transponder reads a mining escort, decommissioned. Identify yourself and state your business in Corvus. | C1 |
-| 2 | Castle | Jangala Approach, this is Second Wind. Civilian. Crew and families aboard, nothing for sale. We have a surface berth waiting at Venn's yard. | C1 |
-| 3 | Jangala Approach | Second Wind isn't on any register I have. | C1 |
-| 4 | Castle | No. It's newer than the paint. | C1 |
-| 5 | Jangala Approach | You're showing point-defence mounts. Are they live? | C1 → C2 |
-| 6 | Castle | They're bolted on, Approach. Nothing aboard is live but the crew. | C2 |
-| 7 | Jangala Approach | Second Wind, you're cleared to descend on civilian corridor four. Keep those mounts cold and don't leave the corridor. Patrol has your signature. | C2 |
+| 1 | Jangala Approach | Cerberus on the inbound lane, this is Jangala Approach. Your transponder reads a decommissioned mining escort. State your business in Corvus. | C1 |
+| 2 | Castle | Jangala Approach, this is Second Wind. Civilian. Crew and families aboard, nothing for sale. We're expected at Greywater Down, private cradle Kilo Nine. | C1 |
+| 3 | Jangala Approach | Corvus is under Hegemony customs. Declare any AI cores, harvested organs, recreational drugs or heavy armaments. | C1 |
+| 4 | Castle | Nothing to declare, Approach. Ore dust and tired people. | C1 |
+| 7 | Jangala Approach | Second Wind, you're cleared to Greywater Down on civilian corridor four. Keep your mounts cold and stay in the corridor. Patrol has your signature. | C2 |
 | 8 | Castle | Corridor four, mounts cold. Thank you, Approach. | C2 |
 | 9 | Castle (off channel) | Well. Somebody knows we're here. | Into the entry transition |
 
+Line IDs stay stable, so the numbering skips 5 and 6.
+
 **Notes on the lines.**
 
-- Line 1: the transponder still reports the Claim's old escort registry, because
-  the crew painted the name over it (P5) but never re-registered the ship.
-- Line 4: dry understatement in Castle's register. The name was painted on at
-  the locks.
-- Lines 5–6: the point-defence mounts Sabine's section carried aboard (P4) are
-  visible from outside. Castle's answer is the truth: they work, nobody is aiming
-  them.
-- Line 9: the emotional turn. The operator abandoned these people and nobody was
-  counting them. Being tracked by a Hegemony patrol is the first time in years
-  anyone official has noticed they exist.
-- Keys follow the existing `openingArrival…` naming. Each line also needs a
-  subtitle, so the exchange reads in full with voice off.
+- **Approach is routine.** A Hegemony controller sees armed hulls all day. The
+  voice is relaxed and professional throughout, never alarmed; the scrutiny
+  comes from the procedure, not the tone.
+- **Line 1:** the transponder still reports the Claim's old escort registry,
+  because the crew painted the name over it (P5) but never re-registered the
+  ship.
+- **Line 2, Greywater Down:** traffic control knows ports, not every private
+  dock on the planet, so Castle gives an address it can route.
+  **Greywater Down** is the authored name of the surface port district, and
+  Nessa's yard is the private cradle **Kilo Nine** there. Both are mod
+  inventions, not vanilla canon. Future Jangala-yard text should use them.
+- **Lines 3–4, customs:** the Hegemony's banned goods in Corvus are vanilla's own
+  list for the faction (`hegemony.faction` `illegalCommodities`: drugs, organs,
+  heavy armaments, AI cores), read off like a checklist. It sells the universe:
+  this is a policed Hegemony system. Castle's answer is literally true; the
+  company has no armaments *for sale*. Sabine's twelve and their rifles sit
+  unspoken under it.
+- **Line 7:** the mounts are mentioned in passing as a condition of clearance.
+  That is how a professional handles an armed civilian hull.
+- **Line 9:** the emotional turn. The operator abandoned these people and nobody
+  was counting them. Being tracked by a Hegemony patrol is the first time in
+  years anyone official has noticed they exist.
+- **Cut after the first audition:** the register joke ("Second Wind isn't on any
+  register I have." / "No. It's newer than the paint.") gave way to the customs
+  beat. The point-defence challenge ("Are they live?" / "Nothing aboard is live
+  but the crew.") read as alarm a controller would not show. Both pairs can
+  return if the space section needs more.
+- Each line also needs a subtitle, so the exchange reads in full with voice off.
 
 ## Voices and radio treatment
 
@@ -262,7 +278,7 @@ rationale live in `radio-effects.md`. In short:
   cabin rumble. If the masking costs intelligibility, ease the crusher first,
   then the saturation, and keep the narrow band.
 
-**Recordings.** All nine lines are recorded clean
+**Recordings.** All seven lines are recorded clean
 (`asset-pipeline/src/tool/resources/audio/jangala-arrival/`, with receipts). The
 catalog is `mod/data/marines/jangala_arrival_hail.json`. They are encoded to
 `mod/sounds/story/jangala-arrival/`, but they are not yet registered in
@@ -270,13 +286,17 @@ catalog is `mod/data/marines/jangala_arrival_hail.json`. They are encoded to
 `arrival-audio/build_hail_preview.py` builds the audition mixes (`cabin`,
 `radio` and `clean`) under `build/audio-previews/jangala-hail/`.
 
-**The hail is longer than the shots it was written for.** The nine takes total
-about 51 seconds of speech, and about 58 seconds with squelch and gaps between
-turns. C1 and C2 were budgeted at 22 seconds. Either the space section grows,
-since it is the Hegemony-and-traffic payoff and can hold about 45 seconds once it
-has moving elements (below), or the exchange is cut: lines 3–4 (the register
-joke) save about 7 seconds. Even both together do not fit the original budget.
-The owner decides after the audition.
+Line 9's take repeated the whole line. It is clipped at 2.72 s and its receipt
+records the edit and the generated original's hash. ElevenLabs sometimes
+repeats a phrase like this, so check every take for repeats before accepting it.
+
+**The hail is longer than the shots it was written for.** The seven takes total
+about 47 seconds of speech, and about 53 seconds with squelch and gaps. C1 and
+C2 were budgeted at 22 seconds. The space section is the Hegemony-and-traffic
+payoff and can carry more time, provided it has moving elements to fill it
+(below): roughly C1 at 35 seconds and C2 at 12, with line 9 landing on the entry
+transition. If that is still too long, line 8's read-back is the next cut,
+about 5 seconds.
 
 ## Salvage from the current work
 

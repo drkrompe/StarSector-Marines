@@ -6,8 +6,8 @@ The vanilla engine XY positions and relative widths are retained; Z and hull
 depth are proposed art geometry, not canonical game dimensions.
 
 Detail lives in one module per area so separate passes do not collide:
-sw_hull (forebody shell, bow facets, bays, armor), sw_engines (aft engine pods
-and stern), sw_bridge (dorsal casings, command deck, spine), sw_turrets; sw_kit holds the
+sw_hull (forebody shell, bow facets, bays, armor), sw_aft_deck (centre aft
+deck and stern notch), sw_engines (aft engine pods), sw_bridge (dorsal casings, command deck, spine), sw_turrets; sw_kit holds the
 shared materials and primitives; sw_port_module builds the port grapple.
 
 Review options, after a literal "--":
@@ -32,8 +32,8 @@ from mathutils import Vector
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-import sw_kit, sw_hull, sw_engines, sw_bridge, sw_turrets, sw_port_module
-for module in (sw_kit, sw_hull, sw_engines, sw_bridge, sw_turrets, sw_port_module):
+import sw_kit, sw_hull, sw_aft_deck, sw_engines, sw_bridge, sw_turrets, sw_port_module
+for module in (sw_kit, sw_hull, sw_aft_deck, sw_engines, sw_bridge, sw_turrets, sw_port_module):
     importlib.reload(module)
 
 parser = argparse.ArgumentParser()
@@ -53,10 +53,12 @@ kit = sw_kit.Kit()
 # Order matters: bow facets are cut before the engine pods join the hull,
 # and the bay apertures after, so neither cut reaches the wrong part.
 sw_hull.build_shell(kit)
+sw_aft_deck.build_body(kit)
 sw_engines.build_pods(kit)
 sw_hull.build_bays(kit)
 sw_hull.build_details(kit)
 sw_engines.build_details(kit)
+sw_aft_deck.build_details(kit)
 sw_bridge.build(kit)
 sw_port_module.build(kit)
 

@@ -20,54 +20,39 @@
       "id": "jangala_arrival_hail_01",
       "speaker": "Jangala Approach",
       "voiceId": "lh03wW2cCRf05ksqPizq",
-      "text": "Cerberus-class on the inbound lane, this is Jangala Approach. Your transponder reads a mining escort, decommissioned. Identify yourself and state your business in Corvus.",
-      "synthesisText": "[flat, procedural, routine radio voice] Cerberus-class on the inbound lane, this is Jangala Approach. Your transponder reads a mining escort, decommissioned. Identify yourself, and state your business in Corvus.",
-      "durationSeconds": 10.56
+      "text": "Cerberus on the inbound lane, this is Jangala Approach. Your transponder reads a decommissioned mining escort. State your business in Corvus.",
+      "synthesisText": "[relaxed, professional air-traffic controller] Cerberus on the inbound lane, this is Jangala Approach. Your transponder reads a decommissioned mining escort. State your business in Corvus.",
+      "durationSeconds": 8.64
     },
     {
       "id": "jangala_arrival_hail_02",
       "speaker": "Castle",
-      "text": "Jangala Approach, this is Second Wind. Civilian. Crew and families aboard, nothing for sale. We have a surface berth waiting at Venn's yard.",
-      "synthesisText": "[steady, careful voice] Jangala Approach, this is Second Wind. Civilian. Crew and families aboard, nothing for sale. We have a surface berth waiting at Venn's yard.",
-      "durationSeconds": 9.2
+      "text": "Jangala Approach, this is Second Wind. Civilian. Crew and families aboard, nothing for sale. We're expected at Greywater Down, private cradle Kilo Nine.",
+      "synthesisText": "[steady, careful voice] Jangala Approach, this is Second Wind. Civilian. Crew and families aboard, nothing for sale. We're expected at Greywater Down, private cradle Kilo Nine.",
+      "durationSeconds": 10.48
     },
     {
       "id": "jangala_arrival_hail_03",
       "speaker": "Jangala Approach",
       "voiceId": "lh03wW2cCRf05ksqPizq",
-      "text": "Second Wind isn't on any register I have.",
-      "synthesisText": "[dry, unimpressed voice] Second Wind isn't on any register I have.",
-      "durationSeconds": 3.44
+      "text": "Corvus is under Hegemony customs. Declare any AI cores, harvested organs, recreational drugs or heavy armaments.",
+      "synthesisText": "[relaxed, professional air-traffic controller, reading a routine checklist] Corvus is under Hegemony customs. Declare any A.I. cores, harvested organs, recreational drugs, or heavy armaments.",
+      "durationSeconds": 7.84
     },
     {
       "id": "jangala_arrival_hail_04",
       "speaker": "Castle",
-      "text": "No. It's newer than the paint.",
-      "synthesisText": "[dry, understated voice] No... It's newer than the paint.",
-      "durationSeconds": 3.04
-    },
-    {
-      "id": "jangala_arrival_hail_05",
-      "speaker": "Jangala Approach",
-      "voiceId": "lh03wW2cCRf05ksqPizq",
-      "text": "You're showing point-defence mounts. Are they live?",
-      "synthesisText": "[sharper, alert voice] You're showing point-defence mounts. Are they live?",
-      "durationSeconds": 3.04
-    },
-    {
-      "id": "jangala_arrival_hail_06",
-      "speaker": "Castle",
-      "text": "They're bolted on, Approach. Nothing aboard is live but the crew.",
-      "synthesisText": "[calm, plain voice] They're bolted on, Approach. Nothing aboard is live but the crew.",
-      "durationSeconds": 4.08
+      "text": "Nothing to declare, Approach. Ore dust and tired people.",
+      "synthesisText": "[dry, tired, understated voice] Nothing to declare, Approach. Ore dust, and tired people.",
+      "durationSeconds": 4.88
     },
     {
       "id": "jangala_arrival_hail_07",
       "speaker": "Jangala Approach",
       "voiceId": "lh03wW2cCRf05ksqPizq",
-      "text": "Second Wind, you're cleared to descend on civilian corridor four. Keep those mounts cold and don't leave the corridor. Patrol has your signature.",
-      "synthesisText": "[procedural, final radio voice] Second Wind, you're cleared to descend on civilian corridor four. Keep those mounts cold, and don't leave the corridor. Patrol has your signature.",
-      "durationSeconds": 8.24
+      "text": "Second Wind, you're cleared to Greywater Down on civilian corridor four. Keep your mounts cold and stay in the corridor. Patrol has your signature.",
+      "synthesisText": "[relaxed, professional air-traffic controller] Second Wind, you're cleared to Greywater Down on civilian corridor four. Keep your mounts cold, and stay in the corridor. Patrol has your signature.",
+      "durationSeconds": 8.48
     },
     {
       "id": "jangala_arrival_hail_08",
@@ -81,7 +66,7 @@
       "speaker": "Castle",
       "text": "Well. Somebody knows we're here.",
       "synthesisText": "[quiet, half to herself, softly amused] Well. Somebody knows we're here.",
-      "durationSeconds": 5.52
+      "durationSeconds": 2.72
     }
   ]
 }
