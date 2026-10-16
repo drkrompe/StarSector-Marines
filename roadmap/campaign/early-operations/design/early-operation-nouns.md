@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — Junction lore: Varro's lien, the impounded loads and the civil authority's stance.
+Updated: 2026-10-15 — Junction victory waits out a fifteen-second hold of every site.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -937,8 +937,11 @@ Command reads frozen territory state and own-force reports, never live opposing
 positions. Local contact, survival and cohesion remain squad decisions. External
 player duties are preserved. Company boats fly their committed fitted airframes;
 employer lift is separately identified. Victory requires all four territories
-held together and a company participant in play, including committed inbound
-personnel. Killing every raider alone does not close the mission.
+held together for fifteen seconds, with a company participant in play, including
+committed inbound personnel. Losing any site restarts the count. A last-second
+capture is not a hold, and the window lets a counterattack contest the final
+gain. It also leaves time for Dispatch's report to be heard, since completion
+discards routine speech that has not yet played. Killing every raider alone does not close the mission.
 
 **Relay Nine** is the battlefield for recurring Route Security and detached
 authoring fixtures. It is not a required story chapter between Junction and Thunder Run. Its western apron, Power Yard,

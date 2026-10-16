@@ -1799,6 +1799,9 @@ public final class BattleSetup {
     }
 
     /** Finite territorial prototype; deliberately bypasses the generic siege production/airfield profile. */
+    /** Fifteen seconds of holding every Junction site together before the win is confirmed. */
+    static final int JUNCTION_CONFIRM_TICKS = 15 * 30;
+
     public static BattleSimulation createJunction(long seed, List<ShuttleAssignment> playerManifest, TargetProfile profile) {
         if (playerManifest == null || playerManifest.isEmpty() || playerManifest.size() > 4)
             throw new IllegalArgumentException("Junction requires one to four committed player boats");
@@ -1807,7 +1810,9 @@ public final class BattleSetup {
         BattleSimulation sim = buildMap(map, List.of(), List.of(), List.of(), seed).sim();
         sim.setSurface(surfaceOf(profile));
         sim.getBattleResources().disableCompoundProduction();
-        sim.addObjective(new ConquestObjective(sim.getCompoundService()));
+        // The sites must be held together briefly before the junction counts as open: a last-second
+        // capture is not a hold, and Dispatch's report has time to be heard before the outcome.
+        sim.addObjective(new ConquestObjective(sim.getCompoundService(), JUNCTION_CONFIRM_TICKS));
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
         Random rng = new Random(seed);
         List<ShuttleAssignment> assignments = new ArrayList<>();
