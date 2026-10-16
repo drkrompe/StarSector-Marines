@@ -1,0 +1,82 @@
+{
+  "master": "../realism-lookdev/landscape-realism-v1.png",
+  "extractions": "../forest-reveal-realism/assets/{far,mid,near}-realism-v1.png",
+  "registration_px": {
+    "near": {
+      "dx": -2,
+      "dy": 0,
+      "score": 0.404
+    },
+    "mid": {
+      "dx": -1,
+      "dy": -1,
+      "score": 0.57
+    },
+    "far": {
+      "dx": -1,
+      "dy": -1,
+      "score": 0.519
+    }
+  },
+  "band_area_px": {
+    "sky": 335887,
+    "mountains": 72607,
+    "far": 96215,
+    "mid": 588538,
+    "near": 480105
+  },
+  "mist_px": 14770,
+  "plate": {
+    "scale": 1.2,
+    "x0": 100.0,
+    "y0": 80.4
+  },
+  "lean_m": 0.05,
+  "bands": {
+    "mountains": {
+      "distance_m": 40000.0,
+      "truck_px_over_shot": 8.3,
+      "rise_px_over_shot": 0.8,
+      "needed_master_px": 61727,
+      "behind_nearer_px": 1255,
+      "continued_by_salvage_px": 0,
+      "hole_px": 1255,
+      "beyond_canvas_px": 0,
+      "beyond_canvas_bbox": null
+    },
+    "far": {
+      "distance_m": 7000.0,
+      "truck_px_over_shot": 47.5,
+      "rise_px_over_shot": 4.8,
+      "needed_master_px": 84505,
+      "behind_nearer_px": 12846,
+      "continued_by_salvage_px": 12846,
+      "hole_px": 0,
+      "beyond_canvas_px": 0,
+      "beyond_canvas_bbox": null
+    },
+    "mid": {
+      "distance_m": 1800.0,
+      "truck_px_over_shot": 184.9,
+      "rise_px_over_shot": 18.5,
+      "needed_master_px": 508745,
+      "behind_nearer_px": 9925,
+      "continued_by_salvage_px": 9925,
+      "hole_px": 0,
+      "beyond_canvas_px": 0,
+      "beyond_canvas_bbox": null
+    },
+    "near": {
+      "distance_m": 1000.0,
+      "truck_px_over_shot": 332.8,
+      "rise_px_over_shot": 33.3,
+      "needed_master_px": 210545,
+      "behind_nearer_px": 0,
+      "continued_by_salvage_px": 0,
+      "hole_px": 0,
+      "beyond_canvas_px": 0,
+      "beyond_canvas_bbox": null
+    }
+  },
+  "inpaint_legend": "green: needed behind a nearer band, continued by the salvaged extraction; magenta: needed, nothing exists (Codex fill); cyan: needed beyond the master canvas (pad 400 px each side shown)"
+}

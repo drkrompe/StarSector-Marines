@@ -2312,6 +2312,17 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         effects.spawnBurningSmokePlume(x, y);
     }
 
+    /**
+     * A falling warship strikes the ground at true landed scale: the crash's crush over {@code crushRadius}, the
+     * drawn wreck's own extent rather than an aircraft's capped one, then a skid sweeping {@code skidRadius} (its
+     * drawn beam). {@code key} identifies the wreck to the crash machinery.
+     */
+    public void crashHullWreck(long key, float x, float y, Faction faction, float crushRadius, float skidRadius,
+                               float vx, float vy) {
+        airframeCookOff.crashHull(key, x, y, faction, crushRadius, skidRadius, vx, vy);
+        effects.spawnBurningSmokePlume(x, y);
+    }
+
     /** A crashed warship skids: the crash's crush along the ground it covers this tick. */
     public void skidWreck(long key, float x, float y, boolean stopped) {
         airframeCookOff.skid(key, x, y, stopped);

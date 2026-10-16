@@ -14,7 +14,11 @@ deckhouse, spar, stern skids), hd_engines (the two drive pods), hd_bridge
 Options after a literal "--":
   --out DIR      write renders, .blend and geometry.json to DIR
   --views a,b    render only these cameras (top, port-side, front,
-                 three-quarter, stern)
+                 three-quarter, stern, plus the close-ups bow-detail,
+                 bridge-detail, fork-detail, turret-detail, engine-detail,
+                 stern-detail; 'details' names all close-ups)
+  --cam NAME:PX,PY,PZ:TX,TY,TZ:SCALE   add an ad-hoc ortho review camera
+                 (repeatable) and render it as NAME.png
   --samples N    Cycles samples (default 24)
   --res WxH      render size (default 1920x1080)
   --no-save      skip the .blend and geometry.json
@@ -47,6 +51,7 @@ parser.add_argument('--views', default='top,port-side,front,three-quarter,stern'
 parser.add_argument('--res', default='1920x1080')
 parser.add_argument('--samples', type=int, default=24)
 parser.add_argument('--no-save', action='store_true')
+parser.add_argument('--cam', action='append', default=[])
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 OUT = Path(args.out or HERE).resolve()
 OUT.mkdir(parents=True, exist_ok=True)
@@ -115,6 +120,29 @@ CAMERAS = [  # name, position, orthographic scale
     ('three-quarter', (95, 110, 70), 112),
     ('stern', (-150, 0, .5), 82),
 ]
+# Close-ups, rendered only when named: (name, position, target, ortho scale).
+CLOSEUPS = [
+    ('bow-detail', (80, 45, 40), (30, 0, 2), 52),
+    ('bridge-detail', (62, 58, 34), (30, 9, 2), 28),
+    ('fork-detail', (78, -36, 40), (34, -7, 2), 30),
+    ('turret-detail', (24, 40, 40), (-3, 3, 7), 22),
+    ('engine-detail', (14, 82, 34), (-5, 22, 0), 46),
+    ('stern-detail', (-78, 42, 34), (-20, 0, 0), 46),
+]
+for spec in args.cam:
+    n, p, t, sc = spec.split(':')
+    CLOSEUPS.append((n, tuple(map(float, p.split(','))), tuple(map(float, t.split(','))), float(sc)))
+wanted = []
+for v in [v for v in args.views.split(',') if v]:
+    wanted += [c[0] for c in CLOSEUPS[:6]] if v == 'details' else [v]
+wanted += [spec.split(':')[0] for spec in args.cam]
+for name, pos, target, scale in CLOSEUPS:
+    bpy.ops.object.camera_add(location=pos)
+    cam = bpy.context.object
+    cam.name = 'Camera '+name
+    cam.data.type = 'ORTHO'
+    cam.data.ortho_scale = scale
+    cam.rotation_euler = (Vector(target)-cam.location).to_track_quat('-Z', 'Y').to_euler()
 for name, pos, scale in CAMERAS:
     bpy.ops.object.camera_add(location=pos)
     cam = bpy.context.object
@@ -126,7 +154,7 @@ for name, pos, scale in CAMERAS:
         cam.rotation_euler = (0, 0, math.pi)  # bow left, port below
     else:
         cam.rotation_euler = (TARGET-cam.location).to_track_quat('-Z', 'Y').to_euler()
-for name in [v for v in args.views.split(',') if v]:
+for name in wanted:
     scene.camera = bpy.data.objects['Camera '+name]
     # The top view is rendered with a transparent film so its alpha is the
     # model's silhouette; compose_review.py measures IoU from it.

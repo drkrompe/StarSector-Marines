@@ -20,8 +20,8 @@ Review options, after a literal "--":
   --no-save        skip the .blend and geometry.json
   --cam NAME:PX,PY,PZ:TX,TY,TZ:SCALE   add an ad-hoc ortho review camera
                    (repeatable) and render it; written as NAME.png
-  --state S        clean (default), derelict or patched: sw_damage layers
-                   that damage state onto the finished clean ship. A damaged
+  --state S        clean (default), derelict, patched, refit or restored:
+                   sw_damage.apply layers that condition state onto the finished clean ship. A damaged
                    state writes to states/<S>/ unless --out is given, and by
                    default also renders starboard-quarter and the damage
                    close-ups; the committed guide is always the clean ship.
@@ -49,7 +49,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--out')
 parser.add_argument('--views')
 parser.add_argument('--res', default='960x440')
-parser.add_argument('--state', choices=('clean','derelict','patched'), default='clean')
+parser.add_argument('--state', choices=('clean','derelict','patched','refit','restored'), default='clean')
 parser.add_argument('--samples', type=int, default=24)
 parser.add_argument('--no-save', action='store_true')
 parser.add_argument('--cam', action='append', default=[])
@@ -79,7 +79,8 @@ sw_port_module.build(kit)
 
 sw_engines.build_nozzles(kit)
 sw_turrets.build(kit)
-damage = sw_damage.build(kit, args.state) if args.state != 'clean' else None
+# Scars are the last phase: everything above is the clean ship.
+damage = sw_damage.apply(kit, args.state) if args.state != 'clean' else None
 
 scene=bpy.context.scene
 scene.render.engine='CYCLES'
