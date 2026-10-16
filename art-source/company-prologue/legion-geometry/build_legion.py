@@ -7,9 +7,10 @@ one unit about the .ship centre (150, 149), so slot, bay and engine locations
 from legion.ship are model XY unchanged. Heights are proposed art.
 
 One module per area so later passes do not collide: lg_hull (bodies, spines,
-armour belts and bow blades), lg_bridge (the command dome), lg_wings (the sponsons and their
-four flight decks), lg_engines (engine block and the ten drive units),
-lg_turrets (the sixteen turrets on named pivots); lg_kit holds the helpers.
+armour belts and bow blades), lg_bridge (the command dome), lg_fittings (masts, sensors
+and running lights), lg_wings (the wing arms and the
+four hangars under them), lg_engines (engine block and the ten drive units),
+lg_turrets (the fifteen turrets on named pivots); lg_kit holds the helpers.
 
 Options after a literal "--":
   --out DIR      write renders, .blend and geometry.json to DIR
@@ -37,8 +38,8 @@ from mathutils.bvhtree import BVHTree
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-import lg_kit, lg_hull, lg_bridge, lg_wings, lg_engines, lg_turrets
-for module in (lg_kit, lg_hull, lg_bridge, lg_wings, lg_engines, lg_turrets):
+import lg_kit, lg_hull, lg_bridge, lg_wings, lg_engines, lg_fittings, lg_turrets
+for module in (lg_kit, lg_hull, lg_bridge, lg_wings, lg_engines, lg_fittings, lg_turrets):
     importlib.reload(module)
 # C2's shared camera, sun and track model (read only; pure standard library).
 sys.path.insert(0, str(HERE.parent/'second-wind-cinematic'/'patrol-abeam'))
@@ -60,8 +61,9 @@ VARIANTS = ['data/variants/legion/legion_xiv_Elite.variant', 'data/variants/legi
 METRES_PER_UNIT = 0.65
 REQUIRED_M3 = 138105
 USABLE = .55
-PRESSURE_HULL = ['Hull fore body', 'Hull aft body', 'Hull dorsal spine', 'Hull tail spine', 'Bridge command dome',
-                 'Wing port sponson', 'Wing starboard sponson']
+PRESSURE_HULL = ['Hull fore body', 'Hull aft body', 'Hull ventral keel', 'Hull dorsal spine', 'Hull tail spine', 'Bridge command dome',
+                 'Wing port sponson', 'Wing starboard sponson'] + [
+    f'Flight deck WS 01{i} hangar' for i in range(4)]
 MACHINERY = ['Hull engine block', 'Hull port engine housing', 'Hull starboard engine housing']
 
 parser = argparse.ArgumentParser()
@@ -117,6 +119,7 @@ lg_hull.build(kit)
 lg_bridge.build(kit)
 lg_wings.build(kit)
 lg_engines.build(kit)
+lg_fittings.build(kit)
 lg_turrets.build(kit)
 
 scene = bpy.context.scene
@@ -310,9 +313,9 @@ def scale_record():
         'published_vs_solved': round(METRES_PER_UNIT/solve(USABLE, hull), 3),
         'size_m': [round((b-a)*METRES_PER_UNIT, 1) for a, b in zip(LO, HI)],
         'cross_checks_m': {'forward flight deck mouth w x h': [round(lg_wings.DECKS['forward']['mouth_width']*S, 1),
-                                                                 round(lg_wings.DECKS['forward']['mouth_h']*S, 1)],
+                                                                 round((lg_wings.ROOF-lg_wings.FLOOR)*S, 1)],
                            'aft flight deck mouth w x h': [round(lg_wings.DECKS['aft']['mouth_width']*S, 1),
-                                                             round(lg_wings.DECKS['aft']['mouth_h']*S, 1)],
+                                                             round((lg_wings.ROOF-lg_wings.FLOOR)*S, 1)],
                            'hull keel to crown': round((HI.z-LO.z)*S, 1),
                            'person 1.8 m in units': round(1.8/S, 2),
                            'C2 targets: hatch 2 m / small dome 8 m / engine bell 26 m in units':
@@ -357,14 +360,17 @@ if not args.no_save:
         'flight_decks': [lg_wings.deck_record(s) for s in lg_wings.LAUNCH_BAYS],
         'weapon_slots': lg_turrets.records(),
         'engines': lg_engines.records(),
+        'running_lights': lg_fittings.records(),
         'object_names': {'Hull ...': 'fore and aft body, dorsal and tail spines, engine block and housings',
                          'Bridge command dome': 'the bone-white command dome',
                          'Armour <side> ...': 'bow blade, outer belt, inner belt',
-                         'Wing <side> sponson': 'the outboard sponsons, carrying the flight decks',
-                         'Flight deck <slot> ...': 'deck plate, red light strips, hood (forward decks), '
+                         'Wing <side> sponson': 'the wing arms held out from the torso; the hangars hang beneath them',
+                         'Flight deck <slot> ...': 'hangar pod under the wing arm, deck plate, red light strips, '
                                                    'mouth and launch-point anchors (empties)',
                          'Engine <i> ...': 'drive can, aft-facing bell, mouth lip, dark throat, exhaust anchor',
-                         'Weapon <slot> ...': 'barbette (fixed) and pivot (empty) with its trainable house and barrels'},
+                         'Weapon <slot> ...': 'barbette (fixed) and pivot (empty) with its trainable house and barrels',
+                         'Fitting <side> ...': 'masts, sensor arrays and radomes',
+                         'Light <side> <where> <k>': 'running lights; positions, colours and blink in running_lights'},
         'c2': {
             'layout': 'second-wind-cinematic/patrol-abeam/c2-layout.md',
             'note': 'Model axes are C2 world axes: the patrol flies bow first along +X with starboard toward the cabin.',
