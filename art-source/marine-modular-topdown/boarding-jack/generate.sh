@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Usage: generate.sh <part> [reference.png ...]
-#   part: torso | left-shoulder | right-shoulder | head | foot | latch-screen, or pirate-<body part>
+#   part: torso | left-shoulder | right-shoulder | head | foot, or pirate-<part>
 # Sends prompts/<part>.prompt.txt plus art-source/templates/boarding-jack-<part>-guide.png (written by
 # make_guide.py) to the Codex CLI built-in image generation and retains the untouched result as
 # raw/<part>.raw.png. Extra images are material references only (an accepted earlier part).

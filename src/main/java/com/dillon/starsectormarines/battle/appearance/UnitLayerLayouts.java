@@ -80,7 +80,8 @@ public final class UnitLayerLayouts {
         if (body == null && head == null) return pose;
         return pose.withArmorMastering(body, head,
                 armorMaster(bodyFamily, "left-shoulder"),
-                armorMaster(bodyFamily, "right-shoulder"), neutralMarinePose());
+                armorMaster(bodyFamily, "right-shoulder"), neutralMarinePose(),
+                bodyFamily != null ? bodyFamily.leftShoulderTurnGain() : 0f);
     }
 
     private LayerPose neutralMarinePose() {
@@ -261,7 +262,8 @@ public final class UnitLayerLayouts {
                                              LayerTransform headMaster,
                                              LayerTransform leftShoulderMaster,
                                              LayerTransform rightShoulderMaster,
-                                             LayerPose neutralPose) {
+                                             LayerPose neutralPose,
+                                             float leftShoulderTurnGain) {
             Map<String, LayerTransform> combined = new LinkedHashMap<>(layers);
             LayerTransform originalBody = layer("body");
             applyMaster(combined, "body", bodyMaster,
@@ -269,9 +271,9 @@ public final class UnitLayerLayouts {
             applyMaster(combined, "head", headMaster,
                     MASTER_HEAD_OFFSET_X, MASTER_HEAD_OFFSET_Y);
             applyShoulderMaster(combined, "left-shoulder", leftShoulderMaster,
-                    bodyMaster, originalBody, combined.get("body"), neutralPose);
+                    bodyMaster, originalBody, combined.get("body"), neutralPose, leftShoulderTurnGain);
             applyShoulderMaster(combined, "right-shoulder", rightShoulderMaster,
-                    bodyMaster, originalBody, combined.get("body"), neutralPose);
+                    bodyMaster, originalBody, combined.get("body"), neutralPose, 0f);
             return new LayerPose(Collections.unmodifiableMap(combined));
         }
 
@@ -281,7 +283,8 @@ public final class UnitLayerLayouts {
                                                 LayerTransform bodyMaster,
                                                 LayerTransform originalBody,
                                                 LayerTransform masteredBody,
-                                                LayerPose neutralPose) {
+                                                LayerPose neutralPose,
+                                                float turnGain) {
             if (master == null || bodyMaster == null || originalBody == null
                     || masteredBody == null || neutralPose == null) return;
             LayerTransform animated = target.get(layerId);
@@ -308,7 +311,10 @@ public final class UnitLayerLayouts {
                     master.scaleX, master.scaleY,
                     masteredBody.angleDegrees + animated.angleDegrees - originalBody.angleDegrees
                             - (neutral.angleDegrees - neutralBody.angleDegrees)
-                            + master.angleDegrees - bodyMaster.angleDegrees,
+                            + master.angleDegrees - bodyMaster.angleDegrees
+                            // A hinged shield leads with the torso: it turns further about its own
+                            // hinge by a share of the torso's turn away from the neutral pose.
+                            + turnGain * (originalBody.angleDegrees - neutralBody.angleDegrees),
                     master.pivotX, master.pivotY, master.z,
                     animated.visible && master.visible));
         }

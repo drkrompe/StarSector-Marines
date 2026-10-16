@@ -484,9 +484,8 @@ final class HeadlessBattleSprites extends BattleSprites {
             for (MarineArmorCatalogDef armor : armorRegistry.all()) {
                 IntegralSystemDef system = armor.integralSystem();
                 if (system != null && system.carrierLayer() != null) {
-                    String path = system.carrierLayer().spritePath();
-                    String repainted = family.repaintedCarrier(path);
-                    loaded.registerIntegralSystem(system.id(), layer(repainted != null ? repainted : path));
+                    loaded.registerIntegralSystem(system.id(),
+                            layer(system.carrierLayer().spritePath()));
                 }
             }
         }

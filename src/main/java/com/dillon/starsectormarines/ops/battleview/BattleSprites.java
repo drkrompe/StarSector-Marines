@@ -991,10 +991,7 @@ public class BattleSprites {
             assets.registerSpecialEquipment(entry.getKey(), entry.getValue());
         }
         for (Map.Entry<String, LayeredSpriteCache> entry : integralSystemLayers.entrySet()) {
-            LayeredSpriteCache carrier = entry.getValue();
-            String repainted = familyId.repaintedCarrier(carrier.sourcePath);
-            LayeredSpriteCache own = repainted != null ? loadLayeredSprite(repainted) : null;
-            assets.registerIntegralSystem(entry.getKey(), own != null ? own : carrier);
+            assets.registerIntegralSystem(entry.getKey(), entry.getValue());
         }
         layeredUnitSprites.put(familyId, assets);
     }
