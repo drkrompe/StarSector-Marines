@@ -7,11 +7,37 @@ this package edits the geometry build; it appends onto whatever ship is in
 the scene, found by the stable object names the pipeline guarantees
 (`second-wind-pipeline.md`).
 
-Coordinates are hull-local: +X bow, +Y port, +Z dorsal; vanilla hull units,
-no metre scale (the ship is about 90 units bow to stern, a bell mouth 2.6-3.9).
+Coordinates are hull-local: +X bow, +Y port, +Z dorsal, in vanilla hull
+units. The real-world scale is metres_per_unit from geometry.json (0.65 m at
+writing: the ship ~100 units / ~66 m, a bell mouth 2.6-3.9 units); physical
+sizes, speeds and falloffs are derived through units(), never hard-coded.
 """
 import bpy
 from mathutils import Vector
+
+import json
+from pathlib import Path
+
+GEOMETRY_JSON = Path(__file__).resolve().parent.parent / 'second-wind-geometry' / 'geometry.json'
+
+
+def metres_per_unit():
+    """The ship's one real-world scale, read from the geometry build's
+    manifest (second-wind-pipeline.md, Scale). Never hard-code metres: author
+    in hull units, or convert with units(m) so a rescale is one edit there."""
+    try:
+        return float(json.loads(GEOMETRY_JSON.read_text(encoding='utf-8'))['metres_per_unit'])
+    except Exception:
+        return 0.65  # the published figure, if the manifest is unreadable
+
+
+METRES_PER_UNIT = metres_per_unit()
+
+
+def units(metres):
+    """Metres -> hull units (e.g. a 1.8 m person is units(1.8) ~ 2.8 units)."""
+    return metres / METRES_PER_UNIT
+
 
 ROOT = 'SWFX'
 CONTROLS = 'SWFX controls'
