@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — warships are in soft contact (fighters exempt) and fly hull fights in group manoeuvres. Earlier the same day: machines have lift classes and carriers lift ratings; a cradled company boat flies machine-only sorties and flies Mech/Armour Support drops (Lift). Earlier the same day: warships brought in mid-battle come down at a distance on an entry heading, hull-fight stations eased off airspace edges, escorts screening beside their charge, a climb up through the deck, the Greyhook fighting a withdrawal against Wolfs from the west; ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at six times the shared density and slower in atmosphere, a declared airspace for the hull fight, point defence tracking what is inbound, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture, landed on the pads south of the ridge and fighting over that southern ground; a landed ship is drawn at true scale and lifts on a run (ahead off the berth, round a climbing turn) that carries it to flight presence (rationale in `warship-behaviours.md`).
+Updated: 2026-10-16 — warships are in soft contact (fighters exempt), fly hull fights in group manoeuvres with interposing escorts, on a hull-fight clock. Earlier the same day: machines have lift classes and carriers lift ratings; a cradled company boat flies machine-only sorties and flies Mech/Armour Support drops (Lift). Earlier the same day: warships brought in mid-battle come down at a distance on an entry heading, hull-fight stations eased off airspace edges, escorts screening beside their charge, a climb up through the deck, the Greyhook fighting a withdrawal against Wolfs from the west; ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at six times the shared density and slower in atmosphere, a declared airspace for the hull fight, point defence tracking what is inbound, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture, landed on the pads south of the ridge and fighting over that southern ground; a landed ship is drawn at true scale and lifts on a run (ahead off the berth, round a climbing turn) that carries it to flight presence (rationale in `warship-behaviours.md`).
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1724,18 +1724,26 @@ for one mission:
   are in reach; a ship held on station keeps launching at the missile's own reach. A
   **finisher** (the base game's role for a Harpoon) is held for a hull already worn to
   three fifths or overloaded, as the base game's own fleets hold it.
-- **Rounds between hulls keep their gun's cadence.** A round fired at a hull is followed
-  by the next after the weapon's charge-up and charge-down, so a pulse laser fires about
-  three times a second, as in the base game, and not at the floor of the tick.
+- **A hull fight runs on its own clock** (`warship-tactics.md`). A round fired at a hull
+  is followed by the next after the weapon's charge-up and charge-down, not at the floor
+  of the tick, and that whole cycle, the missile ripple, and on the duel footing flux
+  dissipation, shield upkeep and overload run at one over the **hull-fight tempo**. The
+  tempo is derived, not tuned: a round between hulls flies three times the base game's
+  distance at its speed, so at a tempo of three the rounds in the air and the share of a
+  fight spent crossing are the base game's. Damage, armour, shields and hit points are
+  untouched, so every matchup keeps the base game's balance and only takes longer; a
+  weapon built for alpha (an Antimatter Blaster, a Harpoon) still kills a frigate in one
+  or two blows. Ground fire, air fire and point defence keep their own clocks.
 - **A mission may keep the hull fight over its own ground.** It declares an
   **airspace** (`HullAirspace`), and ships fighting hulls choose their stations inside
   it, in sight of the ground battle and not over it; entering, climbing out and routes
   cross it freely. With none declared the whole map is the airspace. A station chosen near
   an airspace edge is eased back toward the interior over a soft band, so a fight that
   drifts toward an edge turns back over the middle rather than running along the boundary.
-- **An escort screens beside its charge.** Fighting a hull, an escort takes its own duel
-  station but stands no further beyond its charge's hull than a quarter of its own reach,
-  so a screen and the ship it screens meet the enemy together rather than one at a time.
+- **An escort screens beside its charge.** Fighting a hull, an escort interposes: it
+  stands in line between its charge and the threat, just clear of the charge's side that
+  faces it, its fellow escorts spaced square to the threat, so a screen and the ship it
+  screens meet the enemy together, the screen first.
 - **Warships are bodies and do not pass through one another** (`warship-tactics.md`).
   Every pair of hulls frigate-sized and up, friend or foe, is in contact on its real
   footprint; fighters, bombers, drones and boats fly over a capital freely, and falling
