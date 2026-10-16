@@ -59,26 +59,31 @@
     "pressure_hull": [
       "Hull fore body",
       "Hull aft body",
+      "Hull ventral keel",
       "Hull dorsal spine",
       "Hull tail spine",
       "Bridge command dome",
       "Wing port sponson",
-      "Wing starboard sponson"
+      "Wing starboard sponson",
+      "Flight deck WS 010 hangar",
+      "Flight deck WS 011 hangar",
+      "Flight deck WS 012 hangar",
+      "Flight deck WS 013 hangar"
     ],
-    "pressure_hull_units3": 1369148,
-    "machinery_units3": 64007,
+    "pressure_hull_units3": 1722294,
+    "machinery_units3": 43133,
     "usable_fraction": 0.55,
-    "solved_metres_per_unit": 0.568,
+    "solved_metres_per_unit": 0.526,
     "range": {
-      "cramped_65pct_usable": 0.537,
-      "roomy_45pct_usable": 0.607,
-      "engine_block_crewed_too": 0.56
+      "cramped_65pct_usable": 0.498,
+      "roomy_45pct_usable": 0.563,
+      "engine_block_crewed_too": 0.522
     },
-    "published_vs_solved": 1.144,
+    "published_vs_solved": 1.235,
     "size_m": [
       191.7,
       191.1,
-      32.8
+      49.0
     ],
     "cross_checks_m": {
       "forward flight deck mouth w x h": [
@@ -87,9 +92,9 @@
       ],
       "aft flight deck mouth w x h": [
         14.3,
-        10.4
+        7.8
       ],
-      "hull keel to crown": 32.8,
+      "hull keel to crown": 49.0,
       "person 1.8 m in units": 2.77,
       "C2 targets: hatch 2 m / small dome 8 m / engine bell 26 m in units": [
         3.1,
@@ -114,17 +119,17 @@
     "min": [
       -137.93,
       -147.0,
-      -20.0
+      -44.0
     ],
     "max": [
       156.96,
       147.0,
-      30.5
+      31.44
     ],
     "size": [
       294.9,
       294.0,
-      50.5
+      75.44
     ]
   },
   "flight_decks": [
@@ -149,22 +154,22 @@
         [
           -27,
           103,
-          -5.5
+          -20.5
         ],
         [
           -35,
           91,
-          -5.5
+          -20.5
         ],
         [
           -44,
           105,
-          -5.5
+          -20.5
         ],
         [
           -51,
           92,
-          -5.5
+          -20.5
         ]
       ],
       "launch_point_anchors": [
@@ -178,7 +183,7 @@
         "centre": [
           -64.0,
           99.0,
-          2.0
+          -15.0
         ],
         "normal": [
           -1,
@@ -186,22 +191,24 @@
           0
         ],
         "width": 22.0,
-        "height": 16.0,
-        "note": "open above as well over deck.open_above_x; fighters may leave either way"
+        "height": 12.0,
+        "note": "the hangar is under the wing arm; fighters leave through this mouth"
       },
       "deck": {
-        "floor_z": -6.0,
+        "floor_z": -21.0,
+        "roof_z": -9.0,
         "x": [
-          -76,
-          -14
+          -66,
+          -16
         ],
         "y": [
           88,
           110
         ],
-        "open_above_x": [
-          -64,
-          -14
+        "under_wing": true,
+        "elevator_well_x": [
+          -60,
+          -16
         ]
       }
     },
@@ -226,22 +233,22 @@
         [
           -35,
           -90,
-          -5.5
+          -20.5
         ],
         [
           -26,
           -102,
-          -5.5
+          -20.5
         ],
         [
           -50,
           -92,
-          -5.5
+          -20.5
         ],
         [
           -40,
           -104,
-          -5.5
+          -20.5
         ]
       ],
       "launch_point_anchors": [
@@ -255,7 +262,7 @@
         "centre": [
           -64.0,
           -99.0,
-          2.0
+          -15.0
         ],
         "normal": [
           -1,
@@ -263,22 +270,24 @@
           0
         ],
         "width": 22.0,
-        "height": 16.0,
-        "note": "open above as well over deck.open_above_x; fighters may leave either way"
+        "height": 12.0,
+        "note": "the hangar is under the wing arm; fighters leave through this mouth"
       },
       "deck": {
-        "floor_z": -6.0,
+        "floor_z": -21.0,
+        "roof_z": -9.0,
         "x": [
-          -76,
-          -14
+          -66,
+          -16
         ],
         "y": [
           -110,
           -88
         ],
-        "open_above_x": [
-          -64,
-          -14
+        "under_wing": true,
+        "elevator_well_x": [
+          -60,
+          -16
         ]
       }
     },
@@ -303,22 +312,22 @@
         [
           47,
           104,
-          -5.5
+          -20.5
         ],
         [
           59,
           92,
-          -5.5
+          -20.5
         ],
         [
           63,
           105,
-          -5.5
+          -20.5
         ],
         [
           72,
           90,
-          -5.5
+          -20.5
         ]
       ],
       "launch_point_anchors": [
@@ -332,7 +341,7 @@
         "centre": [
           88.0,
           104.0,
-          0.0
+          -15.0
         ],
         "normal": [
           0.83,
@@ -341,19 +350,21 @@
         ],
         "width": 36.0,
         "height": 12.0,
-        "note": "open above as well over deck.open_above_x; fighters may leave either way"
+        "note": "the hangar is under the wing arm; fighters leave through this mouth"
       },
       "deck": {
-        "floor_z": -6.0,
+        "floor_z": -21.0,
+        "roof_z": -9.0,
         "x": [
-          46,
+          48,
           118
         ],
         "y": [
           88,
           120
         ],
-        "open_above_x": [
+        "under_wing": true,
+        "elevator_well_x": [
           46,
           80
         ]
@@ -380,22 +391,22 @@
         [
           59,
           -92,
-          -5.5
+          -20.5
         ],
         [
           48,
           -104,
-          -5.5
+          -20.5
         ],
         [
           72,
           -90,
-          -5.5
+          -20.5
         ],
         [
           64,
           -105,
-          -5.5
+          -20.5
         ]
       ],
       "launch_point_anchors": [
@@ -409,7 +420,7 @@
         "centre": [
           88.0,
           -104.0,
-          0.0
+          -15.0
         ],
         "normal": [
           0.83,
@@ -418,19 +429,21 @@
         ],
         "width": 36.0,
         "height": 12.0,
-        "note": "open above as well over deck.open_above_x; fighters may leave either way"
+        "note": "the hangar is under the wing arm; fighters leave through this mouth"
       },
       "deck": {
-        "floor_z": -6.0,
+        "floor_z": -21.0,
+        "roof_z": -9.0,
         "x": [
-          46,
+          48,
           118
         ],
         "y": [
           -120,
           -88
         ],
-        "open_above_x": [
+        "under_wing": true,
+        "elevator_well_x": [
           46,
           80
         ]
@@ -486,7 +499,7 @@
       "location": [
         13,
         107,
-        12.09
+        7.59
       ],
       "mount": "TURRET",
       "ring_radius": 9.5,
@@ -505,7 +518,7 @@
       "location": [
         13,
         -107,
-        12.09
+        7.59
       ],
       "mount": "TURRET",
       "ring_radius": 9.5,
@@ -524,7 +537,7 @@
       "location": [
         80,
         34,
-        12.09
+        16.59
       ],
       "mount": "TURRET",
       "ring_radius": 9.5,
@@ -562,7 +575,7 @@
       "location": [
         80,
         -34,
-        12.09
+        16.59
       ],
       "mount": "TURRET",
       "ring_radius": 9.5,
@@ -581,7 +594,7 @@
       "location": [
         -58,
         130,
-        15.71
+        10.21
       ],
       "mount": "TURRET",
       "ring_radius": 5.5,
@@ -600,7 +613,7 @@
       "location": [
         -58,
         -130,
-        15.71
+        10.21
       ],
       "mount": "TURRET",
       "ring_radius": 5.5,
@@ -619,7 +632,7 @@
       "location": [
         -8,
         118,
-        11.21
+        5.21
       ],
       "mount": "TURRET",
       "ring_radius": 5.5,
@@ -638,7 +651,7 @@
       "location": [
         -8,
         -118,
-        11.21
+        5.21
       ],
       "mount": "TURRET",
       "ring_radius": 5.5,
@@ -657,7 +670,7 @@
       "location": [
         36,
         91,
-        15.71
+        9.5
       ],
       "mount": "TURRET",
       "ring_radius": 5.5,
@@ -676,7 +689,7 @@
       "location": [
         36,
         -91,
-        15.71
+        9.5
       ],
       "mount": "TURRET",
       "ring_radius": 5.5,
@@ -695,7 +708,7 @@
       "location": [
         76,
         60,
-        17.21
+        17.22
       ],
       "mount": "TURRET",
       "ring_radius": 5.5,
@@ -714,7 +727,7 @@
       "location": [
         76,
         -60,
-        17.21
+        17.22
       ],
       "mount": "TURRET",
       "ring_radius": 5.5,
@@ -840,7 +853,7 @@
         0,
         0
       ],
-      "mouth_radius": 11.28,
+      "mouth_radius": 8.88,
       "bell": "Engine 5 aft-facing bell",
       "lip": "Engine 5 mouth lip",
       "throat": "Engine 5 dark throat"
@@ -864,7 +877,7 @@
         0,
         0
       ],
-      "mouth_radius": 11.28,
+      "mouth_radius": 8.88,
       "bell": "Engine 6 aft-facing bell",
       "lip": "Engine 6 mouth lip",
       "throat": "Engine 6 dark throat"
@@ -966,27 +979,571 @@
       "throat": "Engine 10 dark throat"
     }
   ],
+  "running_lights": [
+    {
+      "name": "Light port mast head 1",
+      "position": [
+        73.5,
+        121.2,
+        17.97
+      ],
+      "colour": "red",
+      "rgb": [
+        1.0,
+        0.12,
+        0.06
+      ],
+      "role": "mast head (obstruction)",
+      "blink": {
+        "period_s": 2.4,
+        "phase_s": 0.0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard mast head 1",
+      "position": [
+        73.5,
+        -121.2,
+        17.97
+      ],
+      "colour": "red",
+      "rgb": [
+        1.0,
+        0.12,
+        0.06
+      ],
+      "role": "mast head (obstruction)",
+      "blink": {
+        "period_s": 2.4,
+        "phase_s": 1.2,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light port bow blade tip 1",
+      "position": [
+        145.5,
+        33.5,
+        3.83
+      ],
+      "colour": "red",
+      "rgb": [
+        1.0,
+        0.12,
+        0.06
+      ],
+      "role": "bow-blade tip (extremity)",
+      "blink": {
+        "period_s": 2.4,
+        "phase_s": 0.3,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light port sponson tail 1",
+      "position": [
+        -69.0,
+        144.5,
+        3.88
+      ],
+      "colour": "red",
+      "rgb": [
+        1.0,
+        0.12,
+        0.06
+      ],
+      "role": "sponson tail corner (extremity)",
+      "blink": {
+        "period_s": 2.4,
+        "phase_s": 0.6,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light port forward pod 1",
+      "position": [
+        64.8,
+        122.0,
+        6.17
+      ],
+      "colour": "red",
+      "rgb": [
+        1.0,
+        0.12,
+        0.06
+      ],
+      "role": "forward hangar corner (obstruction)",
+      "blink": {
+        "period_s": 2.4,
+        "phase_s": 0.9,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light port deck edge 1",
+      "position": [
+        46.0,
+        126.5,
+        3.55
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "deck-edge position light",
+      "blink": {
+        "period_s": 1.6,
+        "phase_s": 0.0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light port deck edge 2",
+      "position": [
+        20.0,
+        135.5,
+        4.04
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "deck-edge position light",
+      "blink": {
+        "period_s": 1.6,
+        "phase_s": 0.4,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light port deck edge 3",
+      "position": [
+        -20.0,
+        136.5,
+        4.2
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "deck-edge position light",
+      "blink": {
+        "period_s": 1.6,
+        "phase_s": 0.8,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light port deck edge 4",
+      "position": [
+        -45.0,
+        139.5,
+        4.2
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "deck-edge position light",
+      "blink": {
+        "period_s": 1.6,
+        "phase_s": 1.2,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light port flank 1",
+      "position": [
+        40.06,
+        100.19,
+        4.0
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "flank strake position light",
+      "blink": {
+        "period_s": 1.6,
+        "phase_s": 0.2,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light port flank 2",
+      "position": [
+        10.12,
+        98.76,
+        4.0
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "flank strake position light",
+      "blink": {
+        "period_s": 1.6,
+        "phase_s": 0.6,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light port flank 3",
+      "position": [
+        -24.94,
+        118.06,
+        4.0
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "flank strake position light",
+      "blink": {
+        "period_s": 1.6,
+        "phase_s": 1.0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light port flank 4",
+      "position": [
+        -47.93,
+        125.58,
+        4.0
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "flank strake position light",
+      "blink": {
+        "period_s": 1.6,
+        "phase_s": 1.4,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light port flank tail 1",
+      "position": [
+        -69.92,
+        134.67,
+        4.0
+      ],
+      "colour": "red",
+      "rgb": [
+        1.0,
+        0.12,
+        0.06
+      ],
+      "role": "sponson flank extremity",
+      "blink": {
+        "period_s": 2.4,
+        "phase_s": 0.6,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard bow blade tip 1",
+      "position": [
+        145.5,
+        -33.5,
+        3.83
+      ],
+      "colour": "red",
+      "rgb": [
+        1.0,
+        0.12,
+        0.06
+      ],
+      "role": "bow-blade tip (extremity)",
+      "blink": {
+        "period_s": 2.4,
+        "phase_s": 1.5,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard sponson tail 1",
+      "position": [
+        -69.0,
+        -144.5,
+        3.88
+      ],
+      "colour": "red",
+      "rgb": [
+        1.0,
+        0.12,
+        0.06
+      ],
+      "role": "sponson tail corner (extremity)",
+      "blink": {
+        "period_s": 2.4,
+        "phase_s": 1.8,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard forward pod 1",
+      "position": [
+        64.8,
+        -122.0,
+        6.17
+      ],
+      "colour": "red",
+      "rgb": [
+        1.0,
+        0.12,
+        0.06
+      ],
+      "role": "forward hangar corner (obstruction)",
+      "blink": {
+        "period_s": 2.4,
+        "phase_s": 2.1,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard deck edge 1",
+      "position": [
+        46.0,
+        -126.5,
+        3.55
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "deck-edge position light",
+      "blink": {
+        "period_s": 1.6,
+        "phase_s": 0.0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard deck edge 2",
+      "position": [
+        20.0,
+        -135.5,
+        4.04
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "deck-edge position light",
+      "blink": {
+        "period_s": 1.6,
+        "phase_s": 0.4,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard deck edge 3",
+      "position": [
+        -20.0,
+        -136.5,
+        4.2
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "deck-edge position light",
+      "blink": {
+        "period_s": 1.6,
+        "phase_s": 0.8,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard deck edge 4",
+      "position": [
+        -45.0,
+        -139.5,
+        4.2
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "deck-edge position light",
+      "blink": {
+        "period_s": 1.6,
+        "phase_s": 1.2,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard flank 1",
+      "position": [
+        40.06,
+        -100.19,
+        4.0
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "flank strake position light",
+      "blink": {
+        "period_s": 1.6,
+        "phase_s": 0.2,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard flank 2",
+      "position": [
+        10.12,
+        -98.76,
+        4.0
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "flank strake position light",
+      "blink": {
+        "period_s": 1.6,
+        "phase_s": 0.6,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard flank 3",
+      "position": [
+        -24.94,
+        -118.06,
+        4.0
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "flank strake position light",
+      "blink": {
+        "period_s": 1.6,
+        "phase_s": 1.0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard flank 4",
+      "position": [
+        -47.93,
+        -125.58,
+        4.0
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "flank strake position light",
+      "blink": {
+        "period_s": 1.6,
+        "phase_s": 1.4,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light starboard flank tail 1",
+      "position": [
+        -69.92,
+        -134.67,
+        4.0
+      ],
+      "colour": "red",
+      "rgb": [
+        1.0,
+        0.12,
+        0.06
+      ],
+      "role": "sponson flank extremity",
+      "blink": {
+        "period_s": 2.4,
+        "phase_s": 1.8,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light centre tail spike 1",
+      "position": [
+        -133.0,
+        0.0,
+        6.17
+      ],
+      "colour": "white",
+      "rgb": [
+        1.0,
+        0.95,
+        0.88
+      ],
+      "role": "stern light",
+      "blink": {
+        "period_s": 2.4,
+        "phase_s": 0.0,
+        "duty": 0.18
+      }
+    }
+  ],
   "object_names": {
     "Hull ...": "fore and aft body, dorsal and tail spines, engine block and housings",
     "Bridge command dome": "the bone-white command dome",
     "Armour <side> ...": "bow blade, outer belt, inner belt",
-    "Wing <side> sponson": "the outboard sponsons, carrying the flight decks",
-    "Flight deck <slot> ...": "deck plate, red light strips, hood (forward decks), mouth and launch-point anchors (empties)",
+    "Wing <side> sponson": "the wing arms held out from the torso; the hangars hang beneath them",
+    "Flight deck <slot> ...": "hangar pod under the wing arm, deck plate, red light strips, mouth and launch-point anchors (empties)",
     "Engine <i> ...": "drive can, aft-facing bell, mouth lip, dark throat, exhaust anchor",
-    "Weapon <slot> ...": "barbette (fixed) and pivot (empty) with its trainable house and barrels"
+    "Weapon <slot> ...": "barbette (fixed) and pivot (empty) with its trainable house and barrels",
+    "Fitting <side> ...": "masts, sensor arrays and radomes",
+    "Light <side> <where> <k>": "running lights; positions, colours and blink in running_lights"
   },
   "c2": {
     "layout": "second-wind-cinematic/patrol-abeam/c2-layout.md",
     "note": "Model axes are C2 world axes: the patrol flies bow first along +X with starboard toward the cabin.",
     "patrol_centre_y_m": 200.55,
-    "model_origin_z_m": -22.82,
+    "model_origin_z_m": -23.44,
     "cameras": {
       "c2-entry": {
         "time_s": 3.0,
         "position_units": [
           215.38,
           -308.54,
-          35.12
+          36.06
         ]
       },
       "c2-abeam": {
@@ -994,7 +1551,7 @@
         "position_units": [
           -0.0,
           -308.54,
-          35.12
+          36.06
         ]
       },
       "c2-exit": {
@@ -1002,7 +1559,7 @@
         "position_units": [
           -146.46,
           -308.54,
-          15.18
+          16.12
         ]
       }
     },
@@ -1080,9 +1637,9 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9739,
-    "sprite_uncovered": 0.0108,
-    "model_outside_sprite": 0.0157,
+    "iou": 0.9749,
+    "sprite_uncovered": 0.0102,
+    "model_outside_sprite": 0.0154,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.31 px per unit"
   },
   "c2_frame": {
@@ -1090,25 +1647,25 @@
       "bbox_px": [
         0,
         96,
-        692,
-        415
+        693,
+        513
       ],
       "size_px": [
-        693,
-        320
+        694,
+        418
       ],
       "touches_frame_edge": true
     },
     "c2-abeam": {
       "bbox_px": [
-        197,
+        191,
         96,
-        1717,
-        471
+        1716,
+        522
       ],
       "size_px": [
-        1521,
-        376
+        1526,
+        427
       ],
       "touches_frame_edge": false
     },
@@ -1117,11 +1674,11 @@
         999,
         0,
         1919,
-        311
+        405
       ],
       "size_px": [
         921,
-        312
+        406
       ],
       "touches_frame_edge": true
     }

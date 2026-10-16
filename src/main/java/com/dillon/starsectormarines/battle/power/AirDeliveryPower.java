@@ -71,7 +71,17 @@ abstract class AirDeliveryPower extends CommandPower {
                                int supplyCost, int slotWeight, ShuttleType carrier,
                                AirDeliveryPayload payload, int minimumClearance,
                                FittedBoat companyCarrier, boolean syntheticLift) {
-        super(id, displayName, cpCost, 0f, maxCharges, supplyCost, slotWeight);
+        this(id, displayName, cpCost, 0f, maxCharges, supplyCost, slotWeight, carrier,
+                payload, minimumClearance, companyCarrier, syntheticLift);
+    }
+
+    /** As above, paced by a cooldown between calls as well as (or instead of) charges. */
+    protected AirDeliveryPower(String id, String displayName, float cpCost,
+                               float cooldownSeconds, int maxCharges,
+                               int supplyCost, int slotWeight, ShuttleType carrier,
+                               AirDeliveryPayload payload, int minimumClearance,
+                               FittedBoat companyCarrier, boolean syntheticLift) {
+        super(id, displayName, cpCost, cooldownSeconds, maxCharges, supplyCost, slotWeight);
         if (companyCarrier == null && !syntheticLift) {
             throw new IllegalArgumentException(id + " needs a company carrier or synthetic lift");
         }
@@ -127,7 +137,8 @@ abstract class AirDeliveryPower extends CommandPower {
         return true;
     }
 
-    private boolean companyAvailable(BattleView battle) {
+    /** Whether the company boat is home and unlost, so it can fly the next call. */
+    protected boolean companyAvailable(BattleView battle) {
         if (companyCarrier == null) return false;
         if (companySortie != 0L && battle.world().isAlive(companySortie)) return false;
         for (AirLoss loss : battle.getAirLosses()) {
@@ -154,31 +165,44 @@ abstract class AirDeliveryPower extends CommandPower {
     }
 
     @Override
-    public final void resolve(int cellX, int cellY, CommandPowerService service,
-                              BattleControl battle) {
+    public void resolve(int cellX, int cellY, CommandPowerService service,
+                        BattleControl battle) {
         int[] lz = landingZoneNear(cellX, cellY, battle);
         if (lz == null) return;
+        Airframe frame = carrierFor(service, battle);
+        if (frame == null) return;
+        ShuttleMission mission = launch(frame, lz, payload, battle);
+        configureMission(mission, frame,
+                frame instanceof FittedBoat boat ? boat.pattern() : carrier, service);
+    }
+
+    /**
+     * Puts {@code frame} in the air toward the landing cell {@code lz} carrying
+     * {@code cargo}, and returns its mission for the caller to load. {@code frame} is the
+     * company boat (whose sortie is then tracked, so it does not fly twice at once) or
+     * the synthetic pattern.
+     */
+    protected final ShuttleMission launch(Airframe frame, int[] lz, AirDeliveryPayload cargo,
+                                          BattleControl battle) {
         float lzX = lz[0] + 0.5f;
         float lzY = lz[1] + 0.5f;
         float[] route = routeFromNearestEdge(lzX, lzY, battle.getGrid());
-        Airframe frame = carrierFor(service, battle);
-        if (frame == null) return;
         long shuttle;
-        ShuttleType pattern;
         if (frame instanceof FittedBoat boat) {
-            pattern = boat.pattern();
-            shuttle = battle.spawnShuttle(pattern, boat, Faction.MARINE,
+            shuttle = battle.spawnShuttle(boat.pattern(), boat, Faction.MARINE,
                     lzX, lzY, route[0], route[1], route[2], route[3], 0f, 1);
-            loadCarrier(battle.world().mission(shuttle), pattern, payload,
+            loadCarrier(battle.world().mission(shuttle), boat.pattern(), cargo,
                     battle.playerSupportCommandClaim());
             companySortie = shuttle;
         } else {
-            pattern = carrier;
-            shuttle = dispatchCarrier(battle, carrier, Faction.MARINE, payload,
+            shuttle = dispatchCarrier(battle, (ShuttleType) frame, Faction.MARINE, cargo,
                     lzX, lzY, route, battle.playerSupportCommandClaim());
         }
-        configureMission(battle.world().mission(shuttle), frame, pattern, service);
+        return battle.world().mission(shuttle);
     }
+
+    /** The synthetic pattern that flies calls the company does not lift. */
+    protected final ShuttleType syntheticCarrier() { return carrier; }
 
     /**
      * Puts one single-sortie carrier carrying {@code payload} in the air and returns its id. The one place the
@@ -224,7 +248,8 @@ abstract class AirDeliveryPower extends CommandPower {
     /** Payload-specific mission setup after the physical carrier is spawned. */
     protected void configureMission(ShuttleMission mission, ShuttleType carrier) {}
 
-    private int[] landingZoneNear(int cellX, int cellY, BattleView battle) {
+    /** The scored landing cell near the target, or {@code null} when nowhere there will do. */
+    protected int[] landingZoneNear(int cellX, int cellY, BattleView battle) {
         if (battle == null || !battle.getGrid().inBounds(cellX, cellY)) return null;
         return new LandingZoneScorer(battle.getGrid(), battle.getTopology())
                 .bestNear(cellX, cellY, LZ_SEARCH_RADIUS, minimumClearance);

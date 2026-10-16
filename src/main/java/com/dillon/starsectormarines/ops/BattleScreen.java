@@ -926,7 +926,9 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (retainedPowerOverlay == null) {
             retainedPowerOverlay = new BattlePowerOverlay(
                     this::toggleCommandPowerTargeting,
-                    commandPowerTargeting::targetingPowerId);
+                    commandPowerTargeting::targetingPowerId,
+                    commandPowerTargeting::pickerRows,
+                    commandPowerTargeting::togglePick);
         }
         retainedPowerOverlay.attach(position, sim);
         if (retainedOrderOverlay == null) {

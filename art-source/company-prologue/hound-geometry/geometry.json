@@ -34,9 +34,9 @@
   "scale": {
     "method": "deck program (DeckProgramProbe FRIGATE \"Combat Freighter\" 10 40 75): 2427 m2 rooms x1.40 circulation x3.2 m deck height = required m3; solved against usable pressure-hull volume",
     "required_m3": 10873,
-    "pressure_hull_units3": 28958,
+    "pressure_hull_units3": 28751,
     "usable_fraction": 0.55,
-    "solved_metres_per_unit": 0.881,
+    "solved_metres_per_unit": 0.883,
     "range": {
       "cramped_65pct_usable": 0.83,
       "pods_not_crewed": 1.07
@@ -44,7 +44,7 @@
     "size_m": [
       60.8,
       52.8,
-      18.4
+      21.0
     ],
     "cross_checks_m": {
       "bridge airlock hatch": [
@@ -84,12 +84,12 @@
     "max": [
       43.1,
       30.01,
-      13.48
+      16.4
     ],
     "size": [
       69.1,
       60.02,
-      20.91
+      23.83
     ]
   },
   "weapon_slots": [

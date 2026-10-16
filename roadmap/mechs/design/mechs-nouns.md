@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — internals under an engine budget; gantries hold a mech or a vehicle; vehicle patterns.
+Updated: 2026-10-16 — armor drop: the bay is a frozen manifest, each call picks from it, a cooldown paces calls and mission lift caps what lands; internals under an engine budget.
 
 ## Purpose
 
@@ -114,13 +114,32 @@ increasing an encounter's total armored threat.
   the same four gantries and the same restored berths, fabricate from the same
   material currency against a learned pattern, and a save from before vehicles
   keeps every gantry a mech.
-- **Armour Support** brings the active squad's vehicles down, one per charge in
-  gantry order, frozen at launch exactly as Mech Support freezes its mechs; the
-  frozen value carries the vehicle's campaign id and survives the launch-fixture
-  seam. It is sourced as before (a committed Valkyrie), and story battles whose
-  employer arranges the heavy lift add it whenever the bay holds a vehicle. A
-  campaign bay with no vehicle has nothing to call; only a debug grant or a
-  launch with no bay sets down the unowned fallback APC.
+- The **bay manifest** is the active squad's bay spaces frozen at launch: its
+  mechs in gantry order, then its vehicles, each with chassis or hull, weight
+  class and callsign. Vehicles carry their campaign id across the launch-fixture
+  seam as mechs carry theirs. Armour Support is sourced as before (a committed
+  Valkyrie, or a story battle whose employer arranges the heavy lift while the
+  bay holds a vehicle). Where Mech Support and Armour Support would both be in
+  the roster and the bay was read, Mech Support carries the whole manifest and
+  Armour Support leaves the roster: one bay, one picker. Armour Support alone (a
+  vehicle source with no mech source) still brings vehicles one per charge; only
+  a debug grant or a launch with no bay sets down its unowned fallback APC.
+- An **armor drop** is one call of Mech Support. The player arms the card, picks
+  which manifest entries come down this time (the picker starts on every machine
+  aboard that lift allows, up to a lance), then clicks the landing ground. Only
+  the picked machines fly; the rest stay aboard for a later call. A cooldown
+  spaces the calls in place of one charge per lance, and the card counts the
+  machines still aboard, reading spent when none are.
+- The **lift budget** is the mission's armor lift, carrier by carrier: a cradled
+  company boat flies two machine lifts at its rating, and the synthetic heavy
+  carrier a hull, ship, employer or story arranges lifts the whole bay. Each
+  picked machine spends one lift from the lowest-rated carrier that admits it
+  (`air-nouns.md`, Lift), so a Heavy machine spends Heavy lift. Spent lift stays
+  spent for the mission whether or not the carrier came home: better boats mean
+  more armor on the ground, not faster calls. An entry the budget cannot lift is
+  shown disabled with its reason (no lift of its class, lift spent, or its only
+  carrier away), and a call the budget refuses stays armed and spends nothing.
+  A call split between the company boat and the synthetic carrier flies both.
 - **A vehicle wrecked on the field is lost to the company**: settlement takes it
   off its gantry, which stands empty for a new one. Only a vehicle that landed
   and was wrecked writes back — one still aboard a carrier is not tracked as
@@ -596,6 +615,12 @@ becomes part of the deterministic roster and therefore another four-chassis-or-l
 support sortie, subject only to practical runtime resources.
 
 ## Laws
+
+- **The picker chooses; it never edits.** An armor drop selects from the frozen
+  manifest. It cannot change a fit, add a machine, or bring a machine twice: one
+  already called (landed, lost, or still in the air) is not aboard again this
+  mission. The AI commander's mech-drop allowance is a separate ledger and is
+  untouched by the player's picks.
 
 - **A field works produces from work done, never from elapsed time.** Its
   progress is the work of technicians actually at a servicing point in that bay —

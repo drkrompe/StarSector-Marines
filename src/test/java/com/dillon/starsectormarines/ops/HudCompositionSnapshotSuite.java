@@ -2,12 +2,15 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
+import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.power.CloseAirSupport;
+import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.EmergencyResupply;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
@@ -18,16 +21,20 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.tender.Tender;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
+import com.dillon.starsectormarines.battle.ui.panel.CommandPowerTargetingPanel;
 import com.dillon.starsectormarines.battle.ui.panel.ShipOrderTargetingPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadOrderTargetingPanel.Mode;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.ops.battleview.BattleRenderHostProfile;
 import com.dillon.starsectormarines.ops.battleview.BattleSceneFrame;
 import com.dillon.starsectormarines.ops.battleview.BattleSceneHostPass;
@@ -89,8 +96,9 @@ public final class HudCompositionSnapshotSuite implements SnapshotSuite {
                 sim.addObjective(new ChargeSiteObjective(72, 20, 8, "communications", "Communications relay"));
                 sim.addObjective(new ChargeSiteObjective(82, 36, 8, "generator", "Compound power generator"));
                 sim.addObjective(new ChargeSiteObjective(70, 50, 8, "stores", "Fortified ammunition stores"));
-                sim.getCommandPowerService().setPowers(List.of(new ReconPing(), new EmergencyResupply(),
-                        new OrbitalBarrage(), new MechSupport(), new CloseAirSupport()));
+                List<CommandPower> standardPowers = List.of(new ReconPing(), new EmergencyResupply(),
+                        new OrbitalBarrage(), new MechSupport(), new CloseAirSupport());
+                sim.getCommandPowerService().setPowers(standardPowers);
                 Tender tender = Tender.fit(Faction.MARINE, 26, 24, -90);
                 sim.tenders().add(sim, tender);
                 sim.advance(BattleSimulation.TICK_DT);
@@ -101,6 +109,7 @@ public final class HudCompositionSnapshotSuite implements SnapshotSuite {
                 frames.add(frame(context, sim, selection, "03-infantry-retreat-confirm", true));
                 selection.selectUnit(world.squadId("lance"), world.members("lance")[0]);
                 frames.add(frame(context, sim, selection, "04-mech-powers-orders", false));
+                frames.add(pickerFrame(context, sim, selection, standardPowers));
                 selection.selectWarship(tender.ship());
                 frames.add(frame(context, sim, selection, "05-mobile-ship", false));
                 selection.selectUnit(world.squadId("infantry"), world.members("infantry")[0]);
@@ -127,8 +136,43 @@ public final class HudCompositionSnapshotSuite implements SnapshotSuite {
         return frames;
     }
 
+    /**
+     * Mech Support armed over a cradled Buffalo's bay with no ship lift behind it: a named
+     * Hound picked, a Bulwark refused for want of heavy lift, and a second Hound and a Heavy
+     * APC available. The real targeting panel owns the pick.
+     */
+    private static SnapshotArtifact pickerFrame(SnapshotContext context, BattleSimulation sim,
+                                                Selection selection, List<CommandPower> restore) throws Exception {
+        FittedBoat buffalo = new FittedBoat(ShuttleType.BUFFALO, BoatFitting.STANDARD_PLATING,
+                BoatFitting.STANDARD_DRIVE, BoatFitting.LIFT_CRADLE, "buffalo-1");
+        MechDeploymentSpec hound = MechDeploymentSpec.standard(MechVariant.HOUND);
+        MechDeploymentSpec rook = new MechDeploymentSpec(hound.variant(), hound.role(),
+                hound.missileReplenisher(), hound.arms(), hound.leftShoulder(), hound.rightShoulder(), "Rook");
+        MechSupport bay = MechSupport.configured(
+                List.of(rook, MechDeploymentSpec.standard(MechVariant.BULWARK), hound),
+                List.of(new VehicleDeploymentSpec(null, "Mule", VehicleType.HEAVY_APC)), buffalo, false);
+        sim.getCommandPowerService().setPowers(List.of(new ReconPing(), new EmergencyResupply(),
+                new OrbitalBarrage(), bay, new CloseAirSupport()));
+        try {
+            CommandPowerTargetingPanel panel = new CommandPowerTargetingPanel(uiContext(sim, selection, null, null));
+            panel.toggle(MechSupport.ID);
+            require(MechSupport.ID.equals(panel.targetingPowerId()), "Mech Support arms for the picker frame");
+            panel.togglePick(2);
+            require(List.of(0).equals(panel.selection()), "Picker frame shows only the Rook picked");
+            return frame(context, sim, selection, "04b-mech-support-picker", false, panel);
+        } finally {
+            sim.getCommandPowerService().setPowers(restore);
+        }
+    }
+
     private static SnapshotArtifact frame(SnapshotContext context, BattleSimulation sim,
                                           Selection selection, String name, boolean confirm) throws Exception {
+        return frame(context, sim, selection, name, confirm, null);
+    }
+
+    private static SnapshotArtifact frame(SnapshotContext context, BattleSimulation sim,
+                                          Selection selection, String name, boolean confirm,
+                                          CommandPowerTargetingPanel picker) throws Exception {
         PositionAPI position = position();
         BattleCamera camera = new BattleCamera(sim.getGrid().getWidth(), sim.getGrid().getHeight());
         camera.setViewport(0, 0, 1920, 1080, 1920f / (sim.getColdStart() == null ? 85 : 120));
@@ -140,7 +184,10 @@ public final class HudCompositionSnapshotSuite implements SnapshotSuite {
         BattleHudOverlay hud = new BattleHudOverlay(ignored -> {}, camera);
         BattleSquadOverlay squad = new BattleSquadOverlay(selection);
         BattleMechOverlay mech = new BattleMechOverlay(selection);
-        BattlePowerOverlay powers = new BattlePowerOverlay(powerTarget::set, powerTarget::get);
+        BattlePowerOverlay powers = picker == null
+                ? new BattlePowerOverlay(powerTarget::set, powerTarget::get)
+                : new BattlePowerOverlay(picker::toggle, picker::targetingPowerId,
+                        picker::pickerRows, picker::togglePick);
         BattleOrderOverlay orders = new BattleOrderOverlay(selection, () -> Mode.NONE, ignored -> {});
         ShipOrderTargetingPanel targeter = new ShipOrderTargetingPanel(ui, (x, y) -> false);
         BattleShipCommandController controller = new BattleShipCommandController(() -> sim, selection, targeter,

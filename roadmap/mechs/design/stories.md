@@ -6,13 +6,12 @@ cleanup remain.
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — vehicles in the mech bay and mech internals shipped; drop selection next.
+Updated: 2026-10-16 — vehicles in the mech bay, mech internals and armor drop selection shipped.
 
 Read `mechs-nouns.md` before changing the live story.
 
 | Story | State | Scope |
 | --- | --- | --- |
-| `armor-drop-selection.md` | Planned | Pick which bay spaces come down per call; cooldown between calls; lift caps armor per mission. |
 | `vehicle-variant-ladder.md` | Planned | Fixed vehicle variants per line (APC, tank, technical), each a pattern card; upgrading is fabricating the better variant, not fitting. |
 | `mech-locational-damage.md` | In progress — slices 1 (body plan) and 2 (mech plan, section pools, paper-doll) shipped; slice 3 (cover rows, presentation, AI) next | Mechs take damage by section (legs, torso, arm and shoulder mounts, head) through a body plan generalised from marine body parts; mounts can be shot off, legs crippled; torso kills. Campaign consequences decided (slice 4). |
 | `mech-battle-doctrine-overrides.md` | In progress | Layer a lance-wide Form on Lead / Free Reign order beneath mission authority and above each deployed mech's battle-local Brawler, Frontline Support, Long-Range Support, or Balanced override. |

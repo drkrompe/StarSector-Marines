@@ -1,0 +1,46 @@
+{
+ "part": "bay-floor-port",
+ "regions": {
+  "gunmetal": {
+   "pixels": 262860,
+   "share_as_declared": 0.893,
+   "share_in_declared_family": 0.998,
+   "came_back_as": {
+    "gunmetal": 0.893,
+    "dark": 0.078,
+    "pale": 0.028
+   },
+   "swap": false,
+   "before_mean_lab": [
+    42.72,
+    0.47,
+    1.05
+   ],
+   "after_mean_lab": [
+    46.45,
+    1.05,
+    1.83
+   ],
+   "gain_L_a_b": [
+    1.33,
+    1.337,
+    1.372
+   ],
+   "dE_to_palette_before": 3.86,
+   "forced_back_to_declared": false
+  }
+ },
+ "planes": [
+  {
+   "pixels": 267344,
+   "ramp_span_L_removed": 1.28,
+   "ramp_dL_per_100px": [
+    -0.12,
+    0.1
+   ],
+   "edge_band_dL_after": 1.77
+  }
+ ],
+ "ramp_span_L_removed_max": 1.28,
+ "edge_band_dL_after_mean": 1.77
+}

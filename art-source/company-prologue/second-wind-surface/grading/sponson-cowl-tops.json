@@ -3,10 +3,10 @@
  "regions": {
   "gunmetal": {
    "pixels": 82757,
-   "share_as_declared": 0.963,
-   "share_in_declared_family": 0.982,
+   "share_as_declared": 0.951,
+   "share_in_declared_family": 0.985,
    "came_back_as": {
-    "gunmetal": 0.963
+    "gunmetal": 0.951
    },
    "swap": false,
    "before_mean_lab": [
