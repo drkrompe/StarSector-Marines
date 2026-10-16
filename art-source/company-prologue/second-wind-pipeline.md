@@ -79,7 +79,8 @@ Rules that keep the layers composable:
 
 ## Surfacing
 
-From the projection spike (`second-wind-projection-spike/README.md`):
+From the projection spike (`second-wind-projection-spike/README.md`); the
+first real package is the port-flank pilot (`second-wind-surface/README.md`):
 
 - **Base skin, part by part.** Major armour parts are rendered alone and
   square-on, reskinned by Codex (`tools/codex_imagegen.py`, the

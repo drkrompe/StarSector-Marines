@@ -1,0 +1,59 @@
+{
+ "part": "pod-bands-port",
+ "sheet": "fittings",
+ "tile": 2,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9834,
+ "raw_iou": 0.9192,
+ "best_fit": "identity",
+ "fitted_iou": 0.9192,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9192
+  },
+  "bounds_affine": {
+   "scale": [
+    1.02,
+    1.00907
+   ],
+   "offset_px": [
+    -8.12,
+    -2.33
+   ],
+   "iou": 0.9042
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.019,
+    1.00957
+   ],
+   "offset_px": [
+    -7.12,
+    -2.08
+   ],
+   "iou": 0.906
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 1.21,
+  "p95_px": 3.0,
+  "max_px": 3.16
+ },
+ "boundary_fitted_px": {
+  "mean_px": 1.21,
+  "p95_px": 3.0,
+  "max_px": 3.16
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}
