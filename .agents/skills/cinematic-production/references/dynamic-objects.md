@@ -47,9 +47,25 @@ without replacing the rest of the hull's accepted materials.
 The [Second Wind surface proof](../../../../art-source/company-prologue/second-wind-cinematic/second-wind-surface-proof/README.md)
 extends this to the actual hull: physical armor and repair details, neutral
 material tiles, and guide-camera UVs stored on near-side mesh faces. It is a
-bounded side-view study. Registered multiangle hull textures, complete hidden-side
-coverage and a finished cinematic have **not yet been demonstrated**. The original
-four-view skins remain concept sheets, not coherent UV atlases.
+bounded side-view study. Its camera paint does not establish hidden-side coverage.
+The original four-view skins remain concept sheets, not coherent UV atlases.
+
+For free rotation, the [all-face surface asset](../../../../art-source/company-prologue/second-wind-cinematic/second-wind-full-surface/README.md)
+replaces the layered camera RGB chains with neutral tile albedo on explicit
+mesh-corner UVs and stored rest-coordinate wear masks. Roughness, exposed metal
+and fine normal relief respond to scene lighting. Append its single complete
+collection, including the packed images; appending just the parent object is not
+equivalent to bringing its children. Its structure and appendability are checked
+separately from the six-view and physical-turn review.
+
+This is a reusable Blender material representation, not a uniquely packed PBR
+atlas or a complete close-up model. Repeated tile UVs are intentional. The source
+bow, stern and underside remain geometrically simple, and deep damage remains
+asymmetric. Removing lit projections also removes their invented fine fixtures;
+do not promise identical photographic detail from every angle. Keep model and
+surface work distinct, and judge the resulting master at the shot's actual
+screen footprint. Use the full-turn review to select camera travel and identify
+any geometry that needs further work before a close shot.
 
 For a side-view projection, retain the exact immutable guide and camera, start
 with normalized registration, and measure any correction rather than fitting

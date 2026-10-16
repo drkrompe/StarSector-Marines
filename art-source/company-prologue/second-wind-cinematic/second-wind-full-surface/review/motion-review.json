@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "asset_sha256": "f6471f8293a83421e508742fa93d9638cc35cfcd68c64a05a8c0e9404ae50699",
+  "movie": "second-wind-full-surface-turn.mp4",
+  "movie_sha256": "64f956ee575a3e4ccb981bff79705cc1f625f44c504cf96f3c4308448ec8c885",
+  "numerical_media_receipt": "media-validation.json",
+  "stills_inspected_at_native_resolution": [
+    "starboard.png", "port.png", "bow-quarter.png", "stern-quarter.png", "top.png", "underside.png"
+  ],
+  "motion_samples_inspected": {
+    "frames": [49, 97, 145, 192],
+    "source": "Original 1920x1080 PNG frames from the motion render, bound by motion-manifest.json; raw sequence is in ignored build/motion-frames."
+  },
+  "browser_playback": {
+    "environment": "Codex in-app browser, local HTTP preview",
+    "ended": true,
+    "currentTime": 8,
+    "duration": 8,
+    "playbackRate": 1,
+    "width": 1920,
+    "height": 1080,
+    "elapsedMs": 8010.5999999940395,
+    "frameCallbacks": 192,
+    "totalFramesDelta": 188,
+    "droppedFramesDelta": 0,
+    "error": null,
+    "scope": "Complete playback receipt, not continuous human observation of every frame. Browser total-frame delta differs from callback count; ffprobe independently verifies 192 encoded frames. Local preview seek returned to zero, so visual motion samples were inspected from source PNGs instead."
+  },
+  "findings": [
+    "No missing textures, exposed guide imagery, doubled painted structures or obvious projected-detail mismatch in inspected views.",
+    "Cream/oxide/metal weathering is consistent across flanks, top, bow and engines; physical starboard crater backing and torn rims remain readable.",
+    "Stored surface coordinates and original geometry remain invariant under the independent transform checks recorded in asset-validation.json.",
+    "Stern and underside have more regular, flatter painted cells than the physical armor above; coarse turret housings, fixtures and raised armor rims remain visible. Deep modeled craters remain concentrated on starboard."
+  ],
+  "disposition": "Reusable first all-face Blender material master. No blocking mapping issue observed in sampled views. Further art direction may refine broad shell surfaces and close-up geometry. No final cinematic style acceptance, exhaustive frame review or updated space-shot claim."
+}
