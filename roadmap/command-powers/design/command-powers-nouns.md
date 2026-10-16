@@ -80,7 +80,10 @@ commitment.
   mech lance through the ordinary air-delivery and landed-roster paths.
   Valkyries and ground-support fittings are production sources. The production
   power remains Bulwark-only; mixed specialist lances are explicitly debug
-  iteration support. A **commander-called mech drop** is the same delivery paid from a mission allowance instead
+  iteration support. Sources decide who may call; lift decides who flies: a
+  committed cradled company boat that lifts the call flies it in place of the
+  synthetic Valkyrie when a fleet ship is the source, while employer and story
+  lift stay synthetic. Armour Support flies the same way (`air-nouns.md`, Lift). A **commander-called mech drop** is the same delivery paid from a mission allowance instead
   of command points: see `mechs-nouns.md` and `reinforcement-nouns.md`; it is not a command power and the player's
   power is unchanged.
 - **Emergency Resupply** calls a vulnerable utility shuttle that leaves a

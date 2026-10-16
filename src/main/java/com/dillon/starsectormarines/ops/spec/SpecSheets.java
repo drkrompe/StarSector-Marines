@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechHeat;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.power.CommandPower;
+import com.dillon.starsectormarines.ops.LiftReadout;
 import com.dillon.starsectormarines.battle.power.ReconPing;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.EmergencyResupply;
@@ -114,7 +115,15 @@ public final class SpecSheets {
                         stat("Cooldown", Strings.format("gearSeconds", oneDecimal(power.cooldownSeconds))),
                         stat("Uses per battle", power.maxCharges == 0
                                 ? Strings.get("gearUnlimited") : Integer.toString(power.maxCharges))),
-                List.of(effect, Strings.get("gearPowerActivation")));
+                powerNotes(effect, power));
+    }
+
+    private static List<String> powerNotes(String effect, CommandPower power) {
+        List<String> notes = new ArrayList<>();
+        notes.add(effect);
+        notes.add(Strings.get("gearPowerActivation"));
+        notes.addAll(LiftReadout.lines(power));
+        return List.copyOf(notes);
     }
 
     /**

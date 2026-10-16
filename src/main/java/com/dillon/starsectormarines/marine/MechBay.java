@@ -10,9 +10,12 @@ import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -38,6 +41,7 @@ public final class MechBay implements Serializable {
     private Map<String, Integer> ownedInternals = new HashMap<>();
     private String activeSquadId;
     private int nextFabricatedSerial = 1;
+    private int nextVehicleSerial = 1;
     /**
      * Save-model marker. Old serialized bays do not contain this field and
      * therefore deserialize false; those saves retain their original starter
@@ -59,6 +63,10 @@ public final class MechBay implements Serializable {
 
     public boolean canFabricate(MechVariant variant) {
         return variant != null && knowsPattern(MechPattern.of(variant).id());
+    }
+
+    public boolean canFabricate(VehicleType type) {
+        return type != null && knowsPattern(MechPattern.of(type).id());
     }
 
     public boolean canFabricate(MechInternal internal) {
@@ -171,6 +179,60 @@ public final class MechBay implements Serializable {
         return null;
     }
 
+    public CampaignVehicle vehicleById(String vehicleId) {
+        if (vehicleId == null) return null;
+        for (CampaignMechSquad squad : squads) {
+            CampaignVehicle vehicle = squad.vehicleById(vehicleId);
+            if (vehicle != null) return vehicle;
+        }
+        return null;
+    }
+
+    /** Acquisition seam for a vehicle; it takes a vacant gantry and nothing else. */
+    public boolean addVehicle(String squadId, CampaignVehicle vehicle) {
+        CampaignMechSquad squad = squadById(squadId);
+        return squad != null && vehicle != null && vehicleById(vehicle.id()) == null
+                && mechById(vehicle.id()) == null && squad.add(vehicle);
+    }
+
+    /** Builds one vehicle onto a vacant gantry in the selected lance. */
+    public CampaignVehicle fabricateVehicle(String squadId, VehicleType type) {
+        if (type == null || !canAddMech(squadId)) return null;
+        int serial = Math.max(1, nextVehicleSerial);
+        while (vehicleById(vehicleId(serial)) != null) serial++;
+        String number = String.format(Locale.ROOT, "%02d", serial);
+        CampaignVehicle vehicle = new CampaignVehicle(vehicleId(serial),
+                CampaignVehicle.typeName(type) + " " + number, type);
+        if (!addVehicle(squadId, vehicle)) return null;
+        nextVehicleSerial = serial + 1;
+        return vehicle;
+    }
+
+    /**
+     * Battle loss writeback: each destroyed vehicle leaves its gantry for good. Unknown
+     * ids (a debug vehicle, one already written off) are ignored.
+     *
+     * @return how many vehicles left the bay
+     */
+    public int loseVehicles(Collection<String> vehicleIds) {
+        if (vehicleIds == null) return 0;
+        int lost = 0;
+        for (String vehicleId : vehicleIds) {
+            for (CampaignMechSquad squad : squads) {
+                CampaignVehicle vehicle = squad.vehicleById(vehicleId);
+                if (vehicle != null && squad.remove(vehicle)) {
+                    lost++;
+                    break;
+                }
+            }
+        }
+        return lost;
+    }
+
+    private static String vehicleId(int serial) {
+        return "support_vehicle_" + String.format(Locale.ROOT, "%02d", serial);
+    }
+
     /** Acquisition seam: a chassis arrives with its currently installed subsystem. */
     public boolean addMech(String squadId, CampaignMech mech) {
         CampaignMechSquad squad = squadById(squadId);
@@ -184,7 +246,7 @@ public final class MechBay implements Serializable {
 
     public boolean canAddMech(String squadId) {
         CampaignMechSquad squad = squadById(squadId);
-        return squad != null && squad.mechs().size() < CampaignMechSquad.CAPACITY;
+        return squad != null && squad.occupied() < CampaignMechSquad.CAPACITY;
     }
 
     /** Retains a recovered chassis even when the existing gantries are full. */
@@ -451,6 +513,17 @@ public final class MechBay implements Serializable {
         return Collections.unmodifiableList(deployment);
     }
 
+    /** Frozen vehicles on the active squad's gantries, in gantry order. */
+    public List<VehicleDeploymentSpec> activeVehicleDeployment() {
+        CampaignMechSquad squad = activeSquad();
+        if (squad == null) return List.of();
+        List<VehicleDeploymentSpec> deployment = new ArrayList<>();
+        for (CampaignVehicle vehicle : squad.vehicles()) {
+            deployment.add(vehicle.freezeForDeployment());
+        }
+        return Collections.unmodifiableList(deployment);
+    }
+
     private void ensureSupportSquad() {
         if (squadById(STARTER_SQUAD_ID) != null) return;
         CampaignMechSquad squad = new CampaignMechSquad(
@@ -540,6 +613,7 @@ public final class MechBay implements Serializable {
         }
         if (labLesson == 0 && mechById(WaylineHound.ID) != null) beginLabLesson();
         nextFabricatedSerial = Math.max(1, nextFabricatedSerial);
+        nextVehicleSerial = Math.max(1, nextVehicleSerial);
         return this;
     }
     public boolean moveWeapon(String mechId, MechMountSlot source, MechMountSlot target) {

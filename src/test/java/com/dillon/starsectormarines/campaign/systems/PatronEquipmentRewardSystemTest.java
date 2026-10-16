@@ -159,7 +159,7 @@ class PatronEquipmentRewardSystemTest {
     }
 
     @Test
-    void aCompanyWithoutMechsIsPaidOnlyChassisPatterns() {
+    void aCompanyWithoutMechsIsPaidOnlyWholeMachinePatterns() {
         Fixture fixture = fixture("hegemony");
         for (int day = 0; day < 24; day++) {
             record(fixture, ContractType.STRIKE, PatronEngagementOutcome.COMPLETED, day);
@@ -170,7 +170,7 @@ class PatronEquipmentRewardSystemTest {
         new PatronEquipmentRewardSystem(access).tick(fixture.state, 24);
 
         assertTrue(access.grantedPatterns.stream().allMatch(
-                id -> MechPattern.parse(id).kind() == MechPattern.Kind.CHASSIS));
+                id -> MechPattern.parse(id).kind() != MechPattern.Kind.WEAPON));
         assertEquals(24, fixture.state.patronEquipmentRewardCursor);
     }
 

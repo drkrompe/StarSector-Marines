@@ -54,6 +54,23 @@ class MechPatternTest {
         }
     }
 
+    @Test
+    void vehicleWeightClassesFollowTheirAccessBandAndNoneIsAStarter() {
+        assertEquals(MechPattern.WeightClass.LIGHT, parse("mech-pattern:vehicle:heavy_apc").weightClass());
+        assertEquals(EquipmentAccessTier.COMMON, parse("mech-pattern:vehicle:heavy_apc").accessTier());
+        assertEquals(MechPattern.WeightClass.MEDIUM, parse("mech-pattern:vehicle:escort_apc").weightClass());
+        assertEquals(MechPattern.WeightClass.MEDIUM, parse("mech-pattern:vehicle:militia_technical").weightClass());
+        assertEquals(EquipmentAccessTier.ADVANCED, parse("mech-pattern:vehicle:escort_apc").accessTier());
+        assertEquals(MechPattern.WeightClass.HEAVY, parse("mech-pattern:vehicle:breakthrough_tank").weightClass());
+        assertEquals(EquipmentAccessTier.PRESTIGE, parse("mech-pattern:vehicle:breakthrough_tank").accessTier());
+        assertNull(MechPattern.parse("mech-pattern:vehicle:cargo_carrier"));
+        for (MechPattern pattern : MechPattern.all()) {
+            if (pattern.kind() == MechPattern.Kind.VEHICLE) {
+                assertTrue(MechPattern.offerable().contains(pattern), pattern.id());
+            }
+        }
+    }
+
     private static MechPattern parse(String id) {
         MechPattern pattern = MechPattern.parse(id);
         assertNotNull(pattern, id);

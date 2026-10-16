@@ -6,7 +6,9 @@ import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.CampaignMech;
+import com.dillon.starsectormarines.marine.CampaignVehicle;
 import com.dillon.starsectormarines.marine.MechBay;
 import com.dillon.starsectormarines.marine.MechFrameBudget;
 import com.dillon.starsectormarines.marine.MechInternal;
@@ -297,6 +299,110 @@ class MechLabViewModelTest {
         assertEquals(2, bay.activeSquad().mechs().size());
         assertEquals(MechVariant.HOUND, viewModel.selectedVariant());
         assertTrue(viewModel.feedbackText().get().contains("standard roll-out fit"));
+    }
+
+    @Test
+    void vehicleGantryShowsReadOnlyHullWithoutFittingControls() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        CampaignVehicle vehicle = new CampaignVehicle(
+                "support_vehicle_01", "Mule 01", VehicleType.ESCORT_APC);
+        assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, vehicle));
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay);
+
+        MechLabViewModel.GantryRow row = viewModel.gantryRows().get().get(1);
+        assertFalse(row.disabled());
+        assertEquals("Mule 01", row.name());
+        assertTrue(row.detail().contains("Escort APC"));
+        assertTrue(viewModel.gantryRows().get().get(2).disabled());
+        assertEquals("2 / 4 assets", viewModel.squadRows().get().get(0).strength());
+        assertTrue(viewModel.mechRows().get().stream()
+                .anyMatch(mechRow -> mechRow.name().equals("Mule 01")));
+
+        row.select().run();
+        assertEquals(1, viewModel.selectedGantryIndex());
+        assertEquals("Mule 01", viewModel.selectedMechName().get());
+        assertTrue(viewModel.selectedMechIdentity().get().contains("Escort APC"));
+        assertTrue(viewModel.selectedMechIdentity().get().contains("VEHICLE"));
+        assertEquals(VehicleType.ESCORT_APC.hasTurretWeapon(),
+                viewModel.selectedMechDoctrine().get().startsWith("TURRET"));
+        assertFalse(viewModel.activeGantryLabel().get().contains("VACANT"));
+
+        assertFalse(viewModel.performanceClasses().get().contains("hidden"));
+        List<String> meters = viewModel.performanceMeters().get().stream()
+                .map(MechLabViewModel.PerformanceMeter::label).toList();
+        assertEquals(List.of("STRUCTURE", "ARMOR", "MOBILITY", "PASSENGERS"), meters);
+        assertEquals(VehicleType.ESCORT_APC.capacity + " SEATS",
+                viewModel.performanceMeters().get().get(3).value());
+        assertTrue(viewModel.selectedSlotRule().get().contains("NO HEAT"));
+
+        assertNull(viewModel.selectedVariant());
+        assertEquals(1, viewModel.gantryDeployments().size());
+        assertTrue(viewModel.slotRows().get().isEmpty());
+        assertTrue(viewModel.slotRackClasses().get().contains("hidden"));
+        assertTrue(viewModel.catalogRows().get().isEmpty());
+        assertTrue(viewModel.categoryFilterPills().get().isEmpty());
+        assertNull(viewModel.installedWeapon(SocketId.ARMS));
+        assertNull(viewModel.socketDefinition(SocketId.ARMS));
+        assertFalse(viewModel.canDropCatalogWeapon(MechWeaponComponent.SRM_5, SocketId.LEFT_SHOULDER));
+        assertFalse(viewModel.dropCatalogWeapon(MechWeaponComponent.SRM_5, SocketId.LEFT_SHOULDER));
+
+        assertFalse(viewModel.callSignEditorClasses().get().contains("hidden"));
+        viewModel.editCallSignAction().accept("Packhorse");
+        assertFalse(viewModel.callSignRenameDisabled().get());
+        viewModel.renameCallSignAction().run();
+        assertEquals("Packhorse", vehicle.displayName());
+        assertEquals("Packhorse", viewModel.gantryRows().get().get(1).name());
+    }
+
+    @Test
+    void vacantGantryFabricatesAKnownVehiclePattern() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        TestResources resources = TestResources.stocked(2_000);
+        AtomicInteger changes = new AtomicInteger();
+        MechLabViewModel viewModel = new MechLabViewModel(
+                new Reactor(), bay, resources, changes::incrementAndGet);
+        viewModel.nextGantryAction().run();
+
+        MechLabViewModel.CatalogRow apc = viewModel.catalogRows().get().stream()
+                .filter(row -> row.name().equals("Escort APC"))
+                .findFirst().orElseThrow();
+        assertEquals("VEHICLE", apc.badge());
+        assertFalse(apc.actionDisabled());
+        assertEquals(4, apc.materials().size());
+        apc.action().run();
+
+        assertEquals(1, bay.activeSquad().vehicles().size());
+        assertEquals(2, bay.activeSquad().occupied());
+        CampaignVehicle built = bay.activeSquad().vehicles().get(0);
+        assertEquals(VehicleType.ESCORT_APC, built.type());
+        assertEquals(built.displayName(), viewModel.selectedMechName().get());
+        assertEquals(1, viewModel.selectedGantryIndex());
+        assertTrue(viewModel.feedbackText().get().contains("fabricated"));
+        assertTrue(resources.available(Commodities.METALS) < 2_000);
+        assertEquals(1, changes.get());
+        assertTrue(viewModel.catalogRows().get().isEmpty());
+    }
+
+    @Test
+    void unknownVehiclePatternIsNotOfferedAndIsRefused() {
+        MechBay bay = new MechBay();
+        TestResources resources = TestResources.stocked(2_000);
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, resources);
+        viewModel.selectGantryAction(0).run();
+
+        assertTrue(viewModel.catalogRows().get().stream()
+                .noneMatch(row -> row.name().equals("Escort APC")));
+        assertFalse(viewModel.fabricateVehicle(VehicleType.ESCORT_APC));
+        assertEquals("This fabrication pattern has not been acquired.",
+                viewModel.feedbackText().get());
+        assertTrue(viewModel.feedbackClasses().get().contains("tone-danger"));
+        assertEquals(0, bay.activeSquad().occupied());
+        assertEquals(2_000, resources.available(Commodities.METALS));
+
+        assertTrue(bay.learnPattern(MechPattern.of(VehicleType.ESCORT_APC).id()));
+        viewModel.selectGantryAction(0).run();
+        assertTrue(viewModel.catalogRows().get().stream()
+                .anyMatch(row -> row.name().equals("Escort APC")));
     }
 
     @Test

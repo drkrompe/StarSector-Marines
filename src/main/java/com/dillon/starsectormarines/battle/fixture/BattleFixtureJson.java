@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.fixture;
 
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.ArmorClass;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
@@ -700,6 +702,20 @@ public final class BattleFixtureJson {
                 ships.put(frozen);
             }
             encoded.put("ships", ships);
+            if (!commitment.vehicleDeployments().isEmpty()) {
+                JSONArray vehicles = new JSONArray();
+                for (VehicleDeploymentSpec vehicle : commitment.vehicleDeployments()) {
+                    JSONObject frozen = new JSONObject();
+                    frozen.put("type", vehicle.type().name());
+                    putNullable(frozen, "campaignId", vehicle.campaignId());
+                    putNullable(frozen, "callsign", vehicle.callsign());
+                    vehicles.put(frozen);
+                }
+                encoded.put("vehicleDeployments", vehicles);
+            }
+            if (commitment.companyCarrier() != null) {
+                encoded.put("companyCarrier", boatToJson(commitment.companyCarrier()));
+            }
             powers.put(encoded);
         }
         return powers;
@@ -760,10 +776,40 @@ public final class BattleFixtureJson {
                         frozen.getString("shipName"), frozen.getBoolean("tender"), weapons,
                         frozen.has("memberId") && !frozen.isNull("memberId") ? frozen.getString("memberId") : null));
             }
+            List<VehicleDeploymentSpec> vehicles = new ArrayList<>();
+            JSONArray encodedVehicles = encoded.optJSONArray("vehicleDeployments");
+            for (int j = 0; encodedVehicles != null && j < encodedVehicles.length(); j++) {
+                JSONObject frozen = encodedVehicles.getJSONObject(j);
+                vehicles.add(new VehicleDeploymentSpec(
+                        frozen.isNull("campaignId") ? null : frozen.optString("campaignId", null),
+                        frozen.isNull("callsign") ? null : frozen.optString("callsign", null),
+                        enumValue(VehicleType.class, frozen.getString("type"), "vehicle type")));
+            }
+            JSONObject carrier = encoded.optJSONObject("companyCarrier");
             powers.add(new CommandPowerCommitment(
-                    encoded.getString("id"), deployments, ships));
+                    encoded.getString("id"), deployments, ships, vehicles,
+                    carrier != null ? boatFromJson(carrier) : null));
         }
         return List.copyOf(powers);
+    }
+
+    private static JSONObject boatToJson(FittedBoat boat) throws Exception {
+        JSONObject encoded = new JSONObject();
+        encoded.put("type", boat.pattern().name());
+        encoded.put("platingId", boat.plating().id());
+        encoded.put("driveId", boat.drive().id());
+        encoded.put("liftId", boat.lift().id());
+        if (boat.boatId() != null) encoded.put("boatId", boat.boatId());
+        return encoded;
+    }
+
+    private static FittedBoat boatFromJson(JSONObject encoded) throws Exception {
+        return new FittedBoat(
+                enumValue(ShuttleType.class, encoded.getString("type"), "shuttle type"),
+                BoatFitting.resolve(encoded.optString("platingId", null), BoatFittingSlot.PLATING),
+                BoatFitting.resolve(encoded.optString("driveId", null), BoatFittingSlot.DRIVE),
+                BoatFitting.resolve(encoded.optString("liftId", null), BoatFittingSlot.LIFT),
+                encoded.optString("boatId", null));
     }
 
     private static void putNullable(JSONObject object, String key, String value)

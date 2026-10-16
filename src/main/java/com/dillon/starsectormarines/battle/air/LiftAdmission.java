@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.air;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
  * Whether one carrier can lift one machine, and if not, why.
  *
@@ -37,5 +40,40 @@ public record LiftAdmission(LiftClass payload, LiftRating rating, Refusal refusa
     /** Payload class against an airframe's own rating ({@link Airframe#liftRating}). */
     public static LiftAdmission check(LiftClass payload, Airframe carrier) {
         return check(payload, carrier == null ? LiftRating.NONE : carrier.liftRating());
+    }
+
+    /** How many of {@code load} {@code carrier} admits. */
+    public static int admittedCount(List<LiftClass> load, Airframe carrier) {
+        int admitted = 0;
+        for (LiftClass payload : load) {
+            if (payload != null && check(payload, carrier).admitted()) admitted++;
+        }
+        return admitted;
+    }
+
+    /**
+     * The company boat best suited to fly {@code load}: among machine-only
+     * (cradled) boats not in {@code taken}, the one that admits the most of it,
+     * then the lightest rating that does (a better cradle is kept for a heavier
+     * call), then the first committed. {@code null} when none admits any of it.
+     */
+    public static FittedBoat bestCarrier(List<FittedBoat> boats, List<LiftClass> load,
+                                         Collection<FittedBoat> taken) {
+        if (boats == null || load == null || load.isEmpty()) return null;
+        FittedBoat best = null;
+        int bestCount = 0;
+        for (FittedBoat boat : boats) {
+            if (boat == null || !boat.machineOnly()) continue;
+            if (taken != null && taken.contains(boat)) continue;
+            int count = admittedCount(load, boat);
+            if (count == 0) continue;
+            if (best == null || count > bestCount
+                    || (count == bestCount
+                    && boat.liftRating().ordinal() < best.liftRating().ordinal())) {
+                best = boat;
+                bestCount = count;
+            }
+        }
+        return best;
     }
 }

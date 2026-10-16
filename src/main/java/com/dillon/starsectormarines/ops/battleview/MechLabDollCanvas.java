@@ -84,6 +84,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private final Supplier<List<Gantry>> berths;
     private final IntSupplier workSite;
     private final DoubleSupplier elapsedSeconds;
+    /** Pads holding a mech or a vehicle; the doll draws mechs only, so this can exceed the lance. */
+    private IntSupplier occupiedGantries;
     private final Supplier<MechWeaponComponent> candidateWeapon;
     private List<VacantGantryTarget> vacantGantryTargets = List.of();
     private List<SocketDropTarget> lastSocketTargets = List.of();
@@ -222,7 +224,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
         drawTechnicianFx(context, sceneCamera, host[0],
                 workingPoses(aboard, workSite.getAsInt()), time,
                 weldingTorch.get(), weldingSparks.get());
-        drawVacantGantryActions(context, sceneCamera, host[0], standing, lance.size());
+        drawVacantGantryActions(context, sceneCamera, host[0], standing,
+                Math.max(lance.size(), occupiedGantries != null ? occupiedGantries.getAsInt() : 0));
         if (selected != null && fittingOverlaysVisible.getAsBoolean()) {
             drawSocketOverlays(context, MechFittingLayout.forVariant(selectedVariant),
                     selected, selectedSocket.get(), projection, candidateWeapon.get(),
@@ -230,6 +233,12 @@ public final class MechLabDollCanvas implements CanvasProducer {
         } else {
             lastSocketTargets = List.of();
         }
+    }
+
+    /** Pads past the mech lance that hold a vehicle are not vacant; the host says how many are taken. */
+    public MechLabDollCanvas withOccupiedGantries(IntSupplier occupied) {
+        this.occupiedGantries = occupied;
+        return this;
     }
 
     /** Records hover over the physical vacant-pad actions drawn during the last frame. */

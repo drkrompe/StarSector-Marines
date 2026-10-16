@@ -222,6 +222,27 @@ things:
    armour belts and sponsons, built from the sprite's outline, not solidified from the
    crown.
 
+## Owner decisions (2026-10-16)
+
+- **The patrol is a Hegemony Legion (XIV livery), not the Dominator.** It is a
+  battlecarrier, so fighters launching and recovering around its flight decks are
+  part of the pass. Fighters are small beside the hull and fly as sprite cards; the
+  hull itself is a real 3D model built through the ship pipeline (the "Ship detail
+  refinement" session's Legion blockout). It carries named deck and launch-bay
+  openings for the fighter cards and a keyable turret. C2's render waits on that
+  model; the Dominator numbers below are its stand-in until it lands. At 0.65 m
+  per hull unit the Legion is about 195 m by 200 m, close to the planned envelope.
+- **C2 runs 15.0 s** to carry hail lines 7 and 8. Accepted.
+- **The one window is the orange-and-cream cabin** of `forest-reveal-realism/` and
+  `entry-window/`, not the grey `realism-lookdev` frame. It matches the cabin model,
+  so C2's frame is rendered from that model at C2's camera (`first-open-sky/`'s
+  `c3_cabin_guide.py` and `c3_cabin_render.py` show the method) and its painted
+  surface relit into the space, glow and cloud states. The glass measurements and
+  `guides/window-mask*` here were taken off the grey frame and must be re-derived
+  from the model before production. This settles question 8.
+- **Second Wind is being rebuilt**, so every space shot showing it is re-rendered
+  when the new model lands.
+
 ## Open questions for the owner
 
 1. **C2 runs 15.0 s, not about 12.** The hail sets it: line 7 starts at 38.16 and line 8

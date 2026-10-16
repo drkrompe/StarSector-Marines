@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.marine;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import java.util.function.IntSupplier;
 
 /** Atomic campaign authority for Mech Lab fabrication and fitting. */
@@ -113,7 +114,7 @@ public final class MechWorkshop {
     public Result fabricateChassis(String squadId, MechVariant variant) {
         if (variant == null || bay.squadById(squadId) == null) return Result.of(Status.INVALID);
         if (!bay.canFabricate(variant)) return Result.of(Status.PATTERN_LOCKED);
-        if (!bay.canAddMech(squadId) || bay.squadById(squadId).mechs().size() >= workingBerths.getAsInt())
+        if (!bay.canAddMech(squadId) || bay.squadById(squadId).occupied() >= workingBerths.getAsInt())
             return Result.of(Status.LANCE_FULL);
         MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.chassis(variant);
         if (recipe == null || !resources.spend(resources.quote(recipe.cost()))) {
@@ -126,6 +127,23 @@ public final class MechWorkshop {
         return new Result(Status.CHASSIS_FABRICATED, mech);
     }
 
+    /** Builds a vehicle onto a vacant gantry: the same berth and material rules as a chassis. */
+    public Result fabricateVehicle(String squadId, VehicleType type) {
+        if (type == null || bay.squadById(squadId) == null) return Result.of(Status.INVALID);
+        if (!bay.canFabricate(type)) return Result.of(Status.PATTERN_LOCKED);
+        if (!bay.canAddMech(squadId) || bay.squadById(squadId).occupied() >= workingBerths.getAsInt())
+            return Result.of(Status.LANCE_FULL);
+        MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.vehicle(type);
+        if (recipe == null || !resources.spend(resources.quote(recipe.cost()))) {
+            return Result.of(Status.INSUFFICIENT_MATERIALS);
+        }
+        CampaignVehicle vehicle = bay.fabricateVehicle(squadId, type);
+        if (vehicle == null) {
+            throw new IllegalStateException("validated vehicle could not enter its vacant gantry");
+        }
+        return new Result(Status.VEHICLE_FABRICATED, null, vehicle);
+    }
+
     public enum Status {
         ALREADY_INSTALLED,
         INSTALLED_FROM_STORES,
@@ -135,6 +153,7 @@ public final class MechWorkshop {
         STRIPPED,
         ALREADY_STRIPPED,
         CHASSIS_FABRICATED,
+        VEHICLE_FABRICATED,
         INCOMPATIBLE,
         /** The fit would weigh more than the engine can carry. */
         OVER_BUDGET,
@@ -144,8 +163,9 @@ public final class MechWorkshop {
         INVALID
     }
 
-    public record Result(Status status, CampaignMech mech) {
-        private static Result of(Status status) { return new Result(status, null); }
+    public record Result(Status status, CampaignMech mech, CampaignVehicle vehicle) {
+        public Result(Status status, CampaignMech mech) { this(status, mech, null); }
+        private static Result of(Status status) { return new Result(status, null, null); }
         public boolean succeeded() {
             return status == Status.ALREADY_INSTALLED
                     || status == Status.INSTALLED_FROM_STORES
@@ -153,7 +173,8 @@ public final class MechWorkshop {
                     || status == Status.MOVED
                     || status == Status.STRIPPED
                     || status == Status.ALREADY_STRIPPED
-                    || status == Status.CHASSIS_FABRICATED;
+                    || status == Status.CHASSIS_FABRICATED
+                    || status == Status.VEHICLE_FABRICATED;
         }
     }
 }

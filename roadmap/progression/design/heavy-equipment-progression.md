@@ -1,7 +1,8 @@
 # Heavy equipment progression
 
-Status: DRAFT — the stock frame, learned mech patterns and internal fittings have
-shipped; heavy lift and the vehicle bay are planned direction.
+Status: DRAFT — the stock-frame baseline, learned mech patterns, internal fittings,
+vehicles in the mech bay and heavy lift have shipped; the drop choice is planned
+direction.
 
 Written: 2026-10-16
 Updated: 2026-10-16 — internals shipped: engine budget, plating, heat sinks, cooler; refit ceilings tabled.
@@ -156,8 +157,8 @@ late step.
 | --- | --- |
 | Mech patterns (shipped; `mechs-nouns.md`) | Learned patterns replace the starter-pattern gate; pattern cards through every existing source. |
 | Mech internals (shipped; `mechs-nouns.md`) | Engine, plating, heat sink and cooler internals; engine budget; tier-scaled footprints; per-loadout heat. |
-| `heavy-lift-fittings.md` | Lift class and rating; the boat lift slot; heavy drops flown by real company carriers. |
-| `mech-bay-vehicles.md` | Vehicle patterns; a bay space holds a mech or a vehicle; losses write back. |
+| Heavy lift (shipped; `air-nouns.md`, Lift) | Lift class and rating; the boat lift slot; drops flown by real company carriers. |
+| Vehicles in the bay (shipped; `mechs-nouns.md`) | Vehicle patterns; a bay space holds a mech or a vehicle; losses write back. |
 | `armor-drop-selection.md` | Pick which bay spaces come down per call; cooldown between calls; lift caps armor per mission. |
 
 Order: pattern cards first (they license existing weapons and chassis at once),
@@ -170,8 +171,6 @@ then internals, then lift; vehicles in the bay and the drop choice follow lift.
   that, and needs no recorded dialogue until the rules settle.
 - Should an over-budget fit be refused, or allowed at a speed penalty? Refusal is
   the recommendation: it is legible in the lab and needs no new movement rule.
-- Does a lift cradle displace seats on the same sortie, or make the boat a
-  machine-only sortie? Machine-only is simpler and keeps deboarding single-kind.
 - Is the per-mission lift cap a budget spent across calls, or a per-call cap with
   the cooldown doing the rest? The draft (`armor-drop-selection.md`) uses a
   mission budget, so better boats mean more armor on the ground, not faster.

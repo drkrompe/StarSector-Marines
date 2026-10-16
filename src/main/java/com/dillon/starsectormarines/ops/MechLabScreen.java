@@ -160,7 +160,8 @@ public final class MechLabScreen implements Screen {
                             this::berths,
                             this::currentBayId,
                             () -> previewSeconds,
-                            viewModel::hoveredWeapon);
+                            viewModel::hoveredWeapon)
+                    .withOccupiedGantries(viewModel::occupiedGantries);
             dollCanvas.installedInternals(viewModel::installedInternal);
             built.canvases().set(dollElement, dollCanvas);
             inventoryDropElement = candidate.requireElement("mech-component-catalog");

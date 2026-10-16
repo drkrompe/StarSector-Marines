@@ -72,8 +72,8 @@ public final class WarshipVsAirScene implements BehaviorScene {
      * a unit of presence) over a presence of four, keeping its bow, and the point defence beside it, where the scene
      * was laid.
      */
-    private static final float SHIP_X = 120f + (WarshipScale.HULL_PRESENCE - 4f) * WarshipScale.cells(150f);
-    private static final float SHIP_Y = 32f;
+    static final float SHIP_X = 120f + (WarshipScale.HULL_PRESENCE - 4f) * WarshipScale.cells(150f);
+    static final float SHIP_Y = 32f;
     private static final float LZ_X = 70.5f;
     private static final float LZ_Y = 32.5f;
     private static final float BOAT_DELAY_SECONDS = 3f;
