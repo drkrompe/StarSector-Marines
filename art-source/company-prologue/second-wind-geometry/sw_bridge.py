@@ -10,6 +10,7 @@ service trunks. Wings stay inside |y| < 8.5, well inboard of turrets 1 and 2
 """
 import math
 import sw_kit
+from sw_hull import WAIST_DECK
 
 
 def plan(x0, x1, hw, cf, ca=.6):
@@ -145,3 +146,9 @@ def build(kit):
     dish=kit.cylinder('Roof comms dish',(-11.6,-2.5,z+.9),1.1,.25,kit.steel,'Z',24,.08)
     dish.rotation_euler=(.6,0,-.7)
     kit.cylinder('Roof beacon',(-11.6,2.2,z+.2),.3,.4,amber,'Z',12,.05)
+    # The waist service spine: exposed trunks in a recessed bed amidships.
+    kit.box('Recessed central service bed',(9,0,WAIST_DECK+.55),(20,10,1.5),kit.dark,.5)
+    for y in (-3,0,3):
+        kit.cylinder('Exposed longitudinal service trunk',(9,y,WAIST_DECK+1.8),.9,19,kit.steel,'X')
+    for x in (2,9,16):
+        kit.box('Service trunk support hoop',(x,0,WAIST_DECK+2.4),(1.1,10,1.2),kit.cream,.3)

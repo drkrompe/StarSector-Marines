@@ -1,10 +1,13 @@
-"""Main pressure hull, flank bays, layered armor and dorsal service spine.
+"""Forebody pressure hull, bow facets, keel, flank bays and forebody armor.
 
-Owns the planform outline and the stepped deck heights. Locked features
+Owns the forward planform, its faceted bow and the stepped deck heights; the
+aft engine pods are sw_engines and the dorsal spine is sw_bridge. Locked features
 (engines, port pod, the four mount XY positions and both bay openings) are
 placed elsewhere and must stay supported by this shell.
 """
+import math
 import bpy
+from mathutils import Vector
 
 # The hull is a union of chamfered prismatic blocks, not one lofted skin: each
 # block keeps vertical walls, flat decks and fixed-width chines, so the outline
@@ -39,26 +42,6 @@ BLOCKS = [
      [(42,-11),(57,-11),(61,-7),(61,7),(57,11),(42,11)]),
     ('Ventral keel', False, [(1.6,-13),(0,-11.8),(0,-9)],
      [(-25,-6.5),(44,-6.5),(44,6.5),(-25,6.5)]),
-    ('Engine room ventral strake', True, [(1.6,-12.4),(0,-11.4),(0,-9)],
-     [(-32,19),(-2,19),(-2,28),(-32,28)]),
-    # Central aft body between the engine rooms stops well short of the
-    # sponson sterns: the Cerberus stern notch, open from deck to keel.
-    ('Central aft body', False, LOWER,
-     [(-28,-12),(4,-12),(4,12),(-28,12)]),
-    # Engine rooms repeat the forebody's language: a lower hull with an
-    # outboard ledge, a raised engine-room citadel and a low thrust step aft.
-    ('Engine room lower hull', True, LOWER,
-     [(-30,10),(2,10),(2,34),(0,36),(-30,36)]),
-    # The bridge deck on the centreline ends at the notch apex; each engine
-    # room keeps its own citadel past it, split from the bridge deck by a
-    # deck-height groove so the two sponsons read separately from above.
-    ('Aft centreline deck', False, citadel(7.5),
-     [(-28,-11.2),(-1,-11.2),(-1,11.2),(-28,11.2)]),
-    ('Engine room citadel', True, citadel(7.5),
-     [(-32,13),(-1,13),(-1,29.5),(-3,31.5),(-32,31.5)]),
-    # The thrust step stands slightly proud of the sponson: a stern collar.
-    ('Engine room thrust collar', True, side_profile(8, 5, .4),
-     [(-36,10),(-26,10),(-26,36),(-33,36),(-36,33)]),
 ]
 # Deck plateaus aft to fore, for the manifest: (x0, x1, deck z).
 THICKNESS_STATIONS = [(-36,-32,8),(-32,-1,MAIN_DECK),
@@ -104,6 +87,58 @@ def union(hull, other):
     bpy.data.objects.remove(other, do_unlink=True)
 
 
+def facet(name, point, down, angle, span=None):
+    # A flat armour face through `point` that falls away along plan direction
+    # `down` at `angle` degrees below horizontal: (name, point, outward
+    # normal, optional X span of the cut).
+    a = math.radians(angle)
+    dx, dy = down
+    length = (dx*dx+dy*dy)**.5
+    normal = Vector((dx/length*math.sin(a), dy/length*math.sin(a), math.cos(a)))
+    return name, Vector(point), normal, span
+
+
+# The Cerberus forebody is a faceted shield, not a flat-topped box: the deck
+# falls to the nose in a glacis, the bow shoulders are cut back by raked
+# cheek faces, and the chin rakes up under the nose. Each is one plane
+# sliced through the hull, so the faces stay flat and crisp.
+# Cheeks hold clear of turrets 3 and 4 and stay above the port pod.
+BOW_FACETS = [
+    facet('Bow glacis', (46,0,MAIN_DECK), (1,0), 24),
+    facet('Bow glacis lower course', (56,0,WAIST_DECK+.6), (1,0), 40),
+    facet('Nose rake', (62,0,4), (1,0), 62),
+    facet('Port bow cheek', (48,17.5,MAIN_DECK), (.81,.58), 38),
+    facet('Starboard bow cheek', (48,-17.5,MAIN_DECK), (.81,-.58), 38),
+    facet('Chin rake', (50,0,KEEL-1), (1,0), 147),
+    # Forebody citadel flanks slope outboard like the sprite's armoured
+    # shoulders; limited to the forebody so the engine pods keep their walls.
+    facet('Port forebody shoulder', (0,21.5,MAIN_DECK), (0,1), 48, (-2,64)),
+    facet('Starboard forebody shoulder', (0,-21.5,MAIN_DECK), (0,-1), 48, (-2,64)),
+]
+
+
+def plane_cut(hull, name, point, normal, span=None):
+    # Remove everything on the normal side of the plane with a large box.
+    # `span` (x0, x1) limits the cut along X; only for normals with no X part,
+    # whose cutter keeps its local X on world X.
+    normal = normal.normalized()
+    centre = point+normal*200
+    bpy.ops.mesh.primitive_cube_add(size=1, location=centre)
+    cutter = bpy.context.object
+    cutter.name = 'Temporary '+name+' cutter'
+    cutter.scale = ((span[1]-span[0]) if span else 400, 400, 400)
+    if span:
+        cutter.location.x = (span[0]+span[1])/2
+    cutter.rotation_euler = normal.to_track_quat('Z','Y').to_euler()
+    bpy.context.view_layer.objects.active = hull
+    mod = hull.modifiers.new(name, 'BOOLEAN')
+    mod.operation = 'DIFFERENCE'
+    mod.object = cutter
+    mod.solver = 'MANIFOLD'
+    bpy.ops.object.modifier_apply(modifier=mod.name)
+    bpy.data.objects.remove(cutter, do_unlink=True)
+
+
 def build_shell(kit):
     hull = None
     for name, mirror, profile, plan in BLOCKS:
@@ -114,6 +149,8 @@ def build_shell(kit):
                 hull = block
             else:
                 union(hull, block)
+    for name, point, normal, span in BOW_FACETS:
+        plane_cut(hull, name, point, normal, span)
     hull.name = 'Main hull - level datum Z0'
     kit.hull = hull
     return hull
@@ -183,56 +220,21 @@ def armor_patch(kit,name,x0,x1,y0,y1,mat,offset=.22):
     return ob
 
 
-def build_armor_and_spine(kit):
+def build_armor(kit):
     # Layered plates sit on the flat decks, clear of the bridge strip |y|<7.
     for x in (21,29,37):
         for y in (7.5,14):
             for side in (1,-1):
                 armor_patch(kit,'Forebody replaceable armor',x,x+7,side*y,side*(y+5.5),kit.cream if (x+y*side)%3>1 else kit.orange)
-    for x in (-27,-19.5,-10.5):
-        for y in (15.5,22.3):
-            for side in (1,-1):
-                armor_patch(kit,'Engine room armored shoulder',x,x+6.3,side*y,side*(y+6.3),kit.cream if x==-19 else kit.orange)
     for x in (28.1,36.1):
         for side in (-1,1):
             armor_patch(kit,'Forebody reinforcing band',x,x+1.1,side*7.5,side*20,kit.steel,.7)
-    for x in (-24.5,-16.5):
-        for side in (-1,1):
-            armor_patch(kit,'Engine room reinforcing band',x,x+1.1,side*13.5,side*36,kit.steel,.7)
 
-    # A stepped service spine: lower exposed machinery amidships. Both dorsal
-    # casings, and the aft bridge standing on one, belong to sw_bridge.
-    kit.box('Recessed central service bed',(9,0,WAIST_DECK+.55),(20,10,1.5),kit.dark,.5)
-    for y in (-3,0,3):
-        kit.cylinder('Exposed longitudinal service trunk',(9,y,WAIST_DECK+1.8),.9,19,kit.steel,'X')
-    for x in (2,9,16):
-        kit.box('Service trunk support hoop',(x,0,WAIST_DECK+2.4),(1.1,10,1.2),kit.cream,.3)
     for side in (-1,1):
         # Keep these reinforcements clear of the existing bay aperture and pod.
         for x in (1,27):
             kit.box('Bay structural buttress',(x,side*23,-.5),(2,3.5,14),kit.steel,.5)
-        for x in (-25,-15,-5):
-            kit.box('Aft flank access housing',(x,side*35.9,0),(6,1.4,6),kit.cream,.5)
         kit.cylinder('Protected waist service line',(14,side*24.2,7.2),.7,21,kit.steel,'X')
-
-
-def build_stern(kit):
-    # Machinery architecture at the stern: thrust frames boxing each nozzle
-    # pair, radiator grilles on the stepped engine-room bulkheads and the
-    # exposed plant at the apex of the open stern notch.
-    for s in (1,-1):
-        kit.box('Thrust bulkhead recess',(-36.55,s*27.5,0),(.5,15,10),kit.dark,.1)
-        for z in (-5.7,5.7):
-            kit.box('Thrust frame rail',(-37.1,s*27.6,z),(1.6,17.2,1.4),kit.steel,.3)
-        for y in (19.5,35.6):
-            kit.box('Thrust frame post',(-37.1,s*y,0),(1.6,1.4,12.8),kit.steel,.3)
-        kit.box('Engine room radiator grille',(-32.3,s*22,11.2),(.8,15,3.6),kit.dark,.15)
-        for y in range(16,30,2):
-            kit.box('Radiator louver',(-32.75,s*y,11.2),(.3,.35,3.4),kit.steel,.05)
-    kit.box('Notch plant housing',(-29.2,0,.5),(2.4,13,14),kit.steel,.6)
-    kit.box('Plant access recess',(-30.5,0,0),(.4,9,9.5),kit.dark,.1)
-    for y in (-3,0,3):
-        kit.box('Plant housing rib',(-30.8,y,0),(.8,.7,11),kit.steel,.15)
 
 
 def build_bow(kit):
@@ -241,12 +243,8 @@ def build_bow(kit):
         kit.box('Bow shoulder intake',(51.5,s*13,WAIST_DECK+.3),(6,4.4,.8),kit.dark,.2)
         for dx in (-2,-1,0,1,2):
             kit.box('Intake louver',(51.5+dx,s*13,WAIST_DECK+.8),(.3,4,.25),kit.steel,.05)
-    kit.box('Nose armour cap',(63.9,0,10.2),(1.6,9,6.4),kit.steel,.4)
 
 
-def build(kit):
-    build_shell(kit)
-    build_bays(kit)
-    build_armor_and_spine(kit)
-    build_stern(kit)
+def build_details(kit):
+    build_armor(kit)
     build_bow(kit)
