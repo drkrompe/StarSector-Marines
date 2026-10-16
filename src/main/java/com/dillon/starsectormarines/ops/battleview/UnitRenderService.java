@@ -35,6 +35,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef.LayerClips;
@@ -261,6 +262,21 @@ public final class UnitRenderService implements RenderSystem {
     private final Stratum bars = new Stratum();
 
     /**
+     * Whether every cell under a turret's body carries an authored ground surface (the concrete a prepared position is
+     * paved with). The flat road-coloured pad exists to seat a structure on bare ground; over a drawn surface it would
+     * paint a blue-grey square across the concrete instead.
+     */
+    private static boolean standsOnSurface(CellTopology topology, int minX, int minY, int spanX, int spanY) {
+        if (topology == null) return false;
+        for (int x = minX; x < minX + spanX; x++) {
+            for (int y = minY; y < minY + spanY; y++) {
+                if (topology.getSurfaceId(x, y) == null) return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Ground pads under every live map turret + drone hub, emitted first so they
      * sit under all bodies. Faithful port of the two inline {@code ROAD_FILL}
      * footprint fills (one per structure type), now one {@code SOLID_RECT} per
@@ -301,6 +317,7 @@ public final class UnitRenderService implements RenderSystem {
                         w, h, 0f, 1f, 1f, 1f, alphaMult);
                 continue;
             }
+            if (standsOnSurface(ctx.sim.getTopology(), cx, cy, spanX, spanY)) continue;
             float x0 = cam.cellToScreenX(cx);
             float y0 = cam.cellToScreenY(cy);
             if (spanX == 1 && spanY == 1) {
