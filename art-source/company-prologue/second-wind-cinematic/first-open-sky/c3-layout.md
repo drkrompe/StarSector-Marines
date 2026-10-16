@@ -220,7 +220,9 @@ realism plates) and the reveal's 3D scenery.
 
 - **The 9-degree tilt is accepted.** Rework the entry transition as needed to hide
   the tilt change from C2's 18.6 degrees.
-- **The shared window frame is undecided.** See question 2.
+- **The one window is the orange-and-cream cabin**: this shot's own model-matched
+  cabin, which settles question 2. Keep its geometry and palette; repaint the head
+  strip with the window rim drawn into the edit image (question 3).
 
 ## Open questions
 
