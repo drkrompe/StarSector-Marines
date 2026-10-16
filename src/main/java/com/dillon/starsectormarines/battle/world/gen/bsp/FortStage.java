@@ -48,6 +48,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RockDamage;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
 
 import org.apache.log4j.Logger;
 
@@ -1092,6 +1093,13 @@ public final class FortStage implements GenStage {
                 if (!ctx.grid.inBounds(x, y) || ctx.topology.isWall(x, y) || ctx.topology.isFixture(x, y)
                         || !ctx.grid.isWalkable(x, y) || ctx.grid.isDoorway(x, y)) continue;
                 pave(ctx, x, y);
+                if (Math.max(Math.abs(dx), Math.abs(dy)) == reach) {
+                    // The pad's rim stands as the concrete parapet, its exterior side outward. Ground and cover are the
+                    // paving's: a unit still walks across it, so the parapet carries no cover of its own.
+                    Doodad parapet = TileManifest.emplacementParapet(x, y, Integer.signum(dx), Integer.signum(dy),
+                            Doodad.COVER_NONE);
+                    if (parapet != null) ctx.doodads.add(parapet);
+                }
             }
         }
     }

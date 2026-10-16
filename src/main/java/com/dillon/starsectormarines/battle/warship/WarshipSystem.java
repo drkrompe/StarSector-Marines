@@ -276,6 +276,39 @@ public final class WarshipSystem {
         return shipFire;
     }
 
+    private final List<HullFireHold> hullFireHolds = new ArrayList<>();
+
+    /**
+     * Holds hull fire for this battle until {@code hold} is released: no ship under {@link ShipFireOrder#AUTO} fires
+     * at a hull while any hold is pending. Returns the hold, so the mission can release it by hand.
+     */
+    public HullFireHold holdHullFire(HullFireHold hold) {
+        if (hold == null) throw new IllegalArgumentException("a hull-fire hold is needed");
+        hullFireHolds.add(hold);
+        return hold;
+    }
+
+    /** Releases every pending hold named {@code name}; a name nothing holds by is ignored. */
+    public void releaseHullFire(String name) {
+        for (HullFireHold hold : hullFireHolds) if (hold.name().equals(name)) hold.release();
+    }
+
+    /** The mission's holds on hull fire, released or not, in the order they were set. */
+    public List<HullFireHold> hullFireHolds() {
+        return Collections.unmodifiableList(hullFireHolds);
+    }
+
+    /** Whether a mission hold is keeping {@link ShipFireOrder#AUTO} ships off hulls, as of the last tick. */
+    public boolean hullFireHeld() {
+        return shipFire.held();
+    }
+
+    private boolean hullFireHeld(BattleSimulation sim) {
+        boolean held = false;
+        for (HullFireHold hold : hullFireHolds) held |= hold.holds(sim);
+        return held;
+    }
+
     /** Hulls taken to nothing this battle, falling, skidding or down, in the order they were lost. */
     public List<WarshipWreck> wrecks() {
         return wrecksView;
@@ -342,6 +375,7 @@ public final class WarshipSystem {
         for (Warship ship : ships) if (ship.destroyed() && wrecked.add(ship)) startWreck(sim, ship);
         ships.removeIf(Warship::destroyed);
         tickWrecks(dt, sim);
+        shipFire.held(hullFireHeld(sim));
         for (Warship ship : ships) {
             doctrine(dt, sim, ship);
             shipFire.chooseTarget(ship, ships);

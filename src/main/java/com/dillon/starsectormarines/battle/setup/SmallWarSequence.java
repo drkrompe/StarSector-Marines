@@ -50,6 +50,8 @@ public final class SmallWarSequence implements Objective {
     private final Map<SmallWarForces.Outfit, Integer> withdrawnByOutfit = new HashMap<>();
     private final Set<Long> turretIds = new HashSet<>();
     private final StoryBeatLog log;
+    /** The story beat raised when Voss orders Black Sluice abandoned. */
+    public static final String VOSS_ABANDON_BEAT = "small_war.voss_abandon";
     private SmallWarDuel duel;
     private Tender tender;
     private boolean initialized, constructionExhausted;
@@ -165,7 +167,7 @@ public final class SmallWarSequence implements Objective {
     }
 
     private void split(BattleSimulation sim) {
-        log.emitOnce(sim.getSimTickIndex(), "small_war.voss_abandon", StoryBeatLog.Audience.PLAYER);
+        log.emitOnce(sim.getSimTickIndex(), VOSS_ABANDON_BEAT, StoryBeatLog.Audience.PLAYER);
         for (var entry : squadGroups.entrySet())
             if (entry.getValue().split() == SplitSide.WITHDRAWS) withdrawing.add(entry.getKey());
         release(sim, Commitment.FUEL_CONTROL_FALLS);

@@ -86,6 +86,8 @@ public final class WarshipPointDefenceScene implements BehaviorScene {
             friendly = Warship.fit("onslaught", "onslaught_Standard", Faction.MARINE,
                     TARGET_X - 4f, TARGET_Y, 0f);
             sim.addWarship(friendly);
+            // The question is the friendly ship's point defence, not the two hulls fighting each other.
+            sim.warships().holdHullFire(HullFireHold.untilReleased("scene: point defence, not ship against ship"));
         }
         Trace trace = new Trace(world, List.of(CLUSTER));
         SceneRun.of(world).observe(trace)

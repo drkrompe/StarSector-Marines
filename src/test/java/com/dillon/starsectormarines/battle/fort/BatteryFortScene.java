@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.warship.AirFireOrder;
+import com.dillon.starsectormarines.battle.warship.HullFireHold;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
@@ -198,6 +199,8 @@ public final class BatteryFortScene implements BehaviorScene {
         ship.shieldAuto(false);
         ship.raiseShield(false);
         sim.addWarship(ship);
+        // The battery is the question: the late ship is here to be fired at by the fort's new holders, not to duel.
+        sim.warships().holdHullFire(HullFireHold.untilReleased("scene: the battery's fire, not ship against ship"));
         Warship late = null;
         if (loop.equals("fort-taken-turns")) {
             late = Warship.fit("onslaught", "onslaught_Standard", Faction.DEFENDER,
