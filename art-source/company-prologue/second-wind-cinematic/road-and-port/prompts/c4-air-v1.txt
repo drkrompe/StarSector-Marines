@@ -1,0 +1,10 @@
+Grounded, photographic science-fiction film. Two separate compositing cards on one sheet, on flat chroma green.
+
+Image 1 is the SILHOUETTE AND LAYOUT AUTHORITY: two flat grey silhouettes on flat chroma green. Fill each silhouette exactly: same position, size, proportions and view angle. Do not move, resize or rotate them and add nothing else.
+
+Left: an Atlas-class bulk cargo lifter standing on its tail, nose straight up, seen exactly side-on, as it climbs vertically out of a launch cradle. Image 2 is its IDENTITY reference (the same ship lying horizontally): a long rectangular open-frame hull packed with stacked cargo containers in faded green, rust-red, ochre and blue, grey structural frames and longitudinal girders, a blunt white-grey bridge section at the nose (top) and a heavy cluster of round engine nozzles at the tail (bottom). Here it is vertical, nose up, engines down. Paint only the hull: no exhaust flame, no plume, no smoke, no launch tower (those are separate layers). Lit by a high sun from the upper left: the left edges catch light.
+
+Right: a hovering agricultural crop tender seen from its left side and a little from above (about 13 degrees down), travelling right: a sturdy sand-yellow utility body, a big white reagent tank on top, two ducted lift-fan pods at the front and rear (dark grey, with a hint of the fan rings), and a long thin spray boom slung beneath it on a hanger with a row of small drip nozzles. Worn, practical farm machinery of a colony world, not a toy. No spray, mist or dust (a separate layer).
+
+Light: one high sun from the upper left behind the viewer. Background: keep the flat chroma green exactly, plain and uniform everywhere outside the two objects. No ground, no shadow on the green, no text, logos or labels.
+Style: photographic realism. Not a model, toy, cartoon or painting.

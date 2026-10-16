@@ -1,9 +1,9 @@
 # Story — Warship tactics: fleet manoeuvres, spacing and a fight worth watching
 
-Status: ACTIVE — slices 1 (spacing and soft hull contact) and 2 (group roles and manoeuvres) built; slice 3 (durability calibration) in progress
+Status: ACTIVE — slices 1 (spacing and soft hull contact) and 2 (group roles and manoeuvres) built; slice 3 (hull-fight tempo, D1) built; D2 deferred
 
 Written: 2026-10-16
-Updated: 2026-10-16 — soft contact, group manoeuvres built and measured
+Updated: 2026-10-16 — soft contact, group manoeuvres and the hull-fight tempo built and measured
 
 Read `air-nouns.md` (**Overhead ships**) and `warship-behaviours.md` (all Decided sections, especially ship against
 ship, ships of the line and round two) first. Vocabulary (warship, mount, duel helm, standoff law, bow and broadside
@@ -229,6 +229,32 @@ a manoeuvre of the same kind, owned by its mission rather than by the group.
 `frigate-climb-out` was re-laid: at flight presence six its Hounds were staged inside the rig and on a map too short
 to hold them abreast it. A hull on its lift run obstructs (its escorts keep clear of it) but does not yield: a Hound
 circling over the berthed Greyhook was found inside her when her lift ended.
+
+### Slice 3 measured: the hull-fight tempo
+
+D1 is built at its derived value of three (`WarshipScale.HULL_TEMPO`; `-Dbattle.warship.hullTempo=1` is the control).
+Read with the manoeuvres of slice 2 in place:
+
+| | tempo 1 | tempo 2 | tempo 3 (shipped) |
+| --- | --- | --- | --- |
+| Wolf kills Hound (victim's 90-degree turn 11.9s) | 9.0s | 11.9s | 57.8s |
+| Venture kills Wolf (victim's turn 13.7s) | 21.6s | 35.6s | 51.7s |
+| Enforcer mirror (turn 17.7s) | 78.2s | 82.2s | 131.6s |
+| Wolf mirror, Hound mirror, Eagle mirror, Onslaught mirror | unresolved | unresolved | unresolved |
+| Black Sluice fight, first hit to end | 155-169s | 151-183s | 110-175s |
+| Black Sluice losses (Hounds / Wolfs) | 1 / 1 every seed | 1 / 0-1 | 1 / 0-1 |
+| first Hound down after the first hit | 8.4-9.1s | 7.8-13.1s | 8.3-13.1s |
+
+The asymmetric frigate and destroyer matchups now take at least three of the victim's turns, which is the target.
+The Hounds are not saved by the clock: the Rusk Wolf's Antimatter Blaster (2,400 energy in one shot) and its two
+Harpoons (750 each) against a Hound's 2,000 hull and 400 armour is the base game's alpha, and a tempo changes how often
+that blow lands, not what it does. Mirrors of shielded equals do not resolve in the window at any tempo: with
+manoeuvres a ship fires only on its runs, extends and comes about on time, and an equal's shield dissipates between
+passes. That is the finding to take forward, not a reason to pad hit points.
+
+D2 (a mount silenced, not destroyed, by the first breach) is deferred: with slices 1 and 2 in place the Hound's bow
+gun survives long enough to fire (9 to 66 rounds per seed at tempo 3 against 0 to 84 before), and its loss is the
+alpha above, not the plating.
 
 ## Slices
 

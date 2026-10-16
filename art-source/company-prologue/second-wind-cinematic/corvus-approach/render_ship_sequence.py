@@ -52,9 +52,10 @@ OUT = BASE / "layers" / "second-wind-seq"
 BLENDER = Path(r"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe")
 
 # ---------------------------------------------------------------- the swappable model
-SHIP_BLEND = BASE.parent / "second-wind-full-surface" / "second-wind-full-surface.blend"
-SHIP_ROOT = "SECOND WIND | flight root"
-NOZZLE_PATTERN = r"^Engine \d+ mouth rim$"
+# The surfaced patched state (second-wind-surface/README.md builds it; a gitignored output).
+SHIP_BLEND = BASE.parents[1] / "second-wind-surface" / "build" / "skinned-patched.blend"
+SHIP_ROOT = ""                # none: the geometry models are unparented; a root is made at load
+NOZZLE_PATTERN = r"^Engine \d+ mouth lip$"
 # Arrival is the patched state (second-wind-pipeline.md): only the starboard pod, engines 3 and 4,
 # runs on the salvaged drive coil. The port pod (1 and 2) is dead and stays cold.
 THROAT_PATTERN = r"^Engine [34] dark throat$"
@@ -121,9 +122,20 @@ def blender_main(argv):
 
     bpy.ops.wm.open_mainfile(filepath=plan["blend"])
     scene = bpy.context.scene
-    root = bpy.data.objects.get(plan["root"])
-    if root is None:
+    root = bpy.data.objects.get(plan["root"]) if plan["root"] else None
+    if root is None and plan["root"]:
         raise RuntimeError("Missing ship root %r in %s" % (plan["root"], plan["blend"]))
+    if root is None:
+        # Models from second-wind-geometry have no root: every part sits unparented in the
+        # scene. Gather them under one empty so the ship moves and scales as a body; cameras
+        # and lights belong to the model's review rig, not to the ship.
+        root = bpy.data.objects.new("C1 | ship root", None)
+        bpy.context.scene.collection.objects.link(root)
+        for obj in list(bpy.data.objects):
+            if obj is not root and obj.parent is None and obj.type not in {"CAMERA", "LIGHT"}:
+                mw = obj.matrix_world.copy()
+                obj.parent = root
+                obj.matrix_world = mw
     ship = {root, *root.children_recursive}
     for obj in list(bpy.data.objects):
         if obj not in ship:
