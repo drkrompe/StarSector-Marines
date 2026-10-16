@@ -523,12 +523,13 @@ def overlays():
 
 
 def audio_cues():
-    """(t, sound_id, volume[, until]). Sound ids are built by processAudio from audio.json."""
+    """(t, sound_id, volume[, until, fade_in, fade_out]). Sound ids are built by processAudio from
+    audio.json and registered in mod/data/config/sounds.json."""
     return [
-        (0.0, "jangala_arrival_cabin_bed", 0.30, 1.0),       # C4's cabin rumble, out within the first second
+        (0.0, "jangala_arrival_cabin_bed", 0.30, 1.0, 0.0, 0.9),   # C4's cabin rumble, out within the first second
         (0.0, "c5_yard_spool_down", 0.55),
-        (0.0, "c5_yard_jungle_bed", 0.40, DURATION),
-        (0.0, "c5_yard_steam_vent", 0.45, DURATION),
+        (0.0, "c5_yard_jungle_bed", 0.40, DURATION, 0.6, 0.0),
+        (0.0, "c5_yard_steam_vent", 0.45, DURATION, 0.4, 0.0),
         (1.0, "c5_yard_winch", 0.22),
         (0.4, "c5_yard_hull_ticks", 0.50),
         (1.7, "c5_yard_radio_chatter", 0.20),
@@ -559,12 +560,19 @@ def mix_cues(path):
     for cue in audio_cues():
         t, sid, vol = cue[:3]
         until = cue[3] if len(cue) > 3 else None
+        fade_in = cue[4] if len(cue) > 4 else 0.0
+        fade_out = cue[5] if len(cue) > 5 else 0.0
         x = _decoded(sid)
         a = int(t * 44100)
         if until is not None:
             x = x[: int((until - t) * 44100)].copy()
-            tail = min(len(x), int(0.25 * 44100))
-            x[len(x) - tail:] *= np.linspace(1, 0, tail)[:, None]
+        x = x.copy()
+        for n, ramp in ((int(fade_in * 44100), np.linspace(0, 1, max(1, int(fade_in * 44100)))),):
+            if n:
+                x[:n] *= ramp[: len(x[:n]), None]
+        n = min(len(x), int(fade_out * 44100))
+        if n:
+            x[len(x) - n:] *= np.linspace(1, 0, n)[:, None]
         e = min(n, a + len(x))
         mix[a:e] += x[: e - a] * vol
     mix /= max(1.0, np.abs(mix).max() / 0.9)
