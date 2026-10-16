@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a1466d-709d-74f3-b858-dda7ab6929ff",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1466d-709d-74f3-b858-dda7ab6929ff\\exec-2ff8afc5-d2ca-4170-8241-472cba2a4e18.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\first-open-sky\\assets\\c3-cabin-top-v2.png",
+    "sha256": "90af372faac9d92fbfcb926730898e05bf5372049e2a4e7050b1b1325186e675",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\first-open-sky\\prompts\\c3-cabin-top-v2.txt",
+  "promptSha256": "c0adfcdd62949ca4ea0142e0fd018be3598c334db106f467abad7123876116e2",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Exact edit target and geometry authority: every line already drawn; finished paint below y=213 of 1080 is kept; only the detail of the band above it is repainted\nImage 2: Material and palette reference only; not layout or perspective\n\nUse case: finishing the top band of an existing painted frame, for a grounded, photographic science-fiction cinematic (Starsector). Full 16:9 landscape canvas, same framing as image 1.\n\nImage 1 is the EXACT EDIT TARGET and geometry authority: the inside of a worn spacecraft passenger cabin looking out of one large side window. Everything in it is already drawn in the right place. Keep every line where it is: the window opening (flat pale grey glass), the dark rubber seal and rounded steel rim all the way round it, including the head of the window frame along the top of the opening, the oxide-orange and cream painted steel side jambs, the gunmetal sill, and the heavy header plate above the window. Below one fifth of the way down the canvas (y = 213 of 1080) the paint is finished and approved: keep it pixel for pixel.\n\nAbove that line the band is a rough draft made by copying and mirroring the finished paint, so it is geometrically right but its detail is wrong: bolts and grime repeat as mirror images, and the window head and header plate were copied from the sill, so their light is upside down. Repaint the detail of that band only, keeping its lines exactly: the window head's dark rubber seal and rounded steel rim at the same height and thickness, turning both upper corners into the side rims with a rounded corner like the lower corners; the side jambs continuing upward with their oxide-orange and cream plates, bolts and fastener strips, now without mirror-repeated bolts; and the gunmetal header plate above the head, with a few plausible bolts along it.\n\nLight: bright daylight from outside, from the upper left, coming in through the window. The window head's underside and the inner face of the upper rim are in soft open shadow; the upper parts of the left jamb catch some light. Believable matte worn metal; readable midtones.\n\nImage 2 is MATERIAL AND PALETTE REFERENCE ONLY (the same cabin painted from a lower viewpoint): match its paint chips, worn edges, grime following seams, bolted strips and rubber seals. Do not copy its layout or perspective.\n\nThe glass inside the opening stays flat pale grey, exactly filling the opening; no sky, landscape, clouds, reflections. No new openings, vents, screens, lights, signage, text, logos or border. No broad painted brush texture, no glossy toy finish, no lens effects. Do not change the camera, perspective, the opening's outline or anything below y = 213.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\first-open-sky\\guides\\c3-cabin-edit-target-v2.png",
+      "sha256": "b78fe03717cff6041b3bd64a3aab4bd2d667d01a56db4c81d404d2ded978348d",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Exact edit target and geometry authority: every line already drawn; finished paint below y=213 of 1080 is kept; only the detail of the band above it is repainted"
+    },
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\forest-reveal-realism\\assets\\cabin-realism-v1.png",
+      "sha256": "1e8bf6c2045ccaa891ea907bdb3aa3bc3eb84a58261b310961b27b9be2152521",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material and palette reference only; not layout or perspective"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to repaint only the top band, preserving Image 1’s geometry and the finished area below y = 213.\n"
+  ],
+  "usage": {
+    "input_tokens": 45720,
+    "cached_input_tokens": 25728,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 569,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 58.0
+}

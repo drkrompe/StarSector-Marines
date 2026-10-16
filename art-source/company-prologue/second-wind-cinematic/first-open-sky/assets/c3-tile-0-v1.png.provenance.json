@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a1466d-7214-7273-9802-da57642d08be",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1466d-7214-7273-9802-da57642d08be\\exec-e4fb9ab5-db37-46d4-85b3-786718e1ff26.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\first-open-sky\\assets\\c3-tile-0-v1.png",
+    "sha256": "71ef9cd9e2f98b497ffd56bb1e3e51c754ad4a14a94e3f9913a05f23164aa5a7",
+    "dimensions": [
+      2048,
+      768
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\first-open-sky\\prompts\\c3-tile-v1.txt",
+  "promptSha256": "adba145b6f8470a213d98bd0762a4a05c6876cc5eb19c819b511438785793fe6",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Exact edit target and layout authority: keep every ridge, crown, bank and the skyline in place; repaint only the grey patches and add detail\nImage 2: Colour and light reference only; the same tile before the mist was removed; do not copy its mist\n\nUse case: resolution pass and local cleanup of one tile of an approved photographic landscape plate, for a grounded science-fiction cinematic. Output the same wide landscape canvas as image 1 (2048x768 or the nearest wide size), same framing, no crop, no border.\n\nImage 1 is the EXACT EDIT TARGET and layout authority: an aerial view of tropical rainforest hills and a river on the planet Jangala, seen from an aircraft about 400 m up, mid-morning. It is an upscale of a finished, approved painting, so it is soft. Redraw it at full photographic resolution with crisp natural detail: individual tree crowns, branch gaps, leaf texture, shadows between crowns, river ripples and bank vegetation. Every ridge line, crown position, hill silhouette, river bank, field edge and the skyline stays exactly where it is in image 1, to the pixel; do not move, add or delete any hill, ridge, river bend, large tree or field. Keep the same colours, haze, aerial perspective and light: sun out of frame to the upper left, crowns lit on their upper-left faces, shadows falling to the right; distant ridges paler and bluer.\n\nThe flat mid-grey patches in image 1 are holes where morning valley mist was removed. Paint each grey patch as whatever lies beneath and around it: continuous forest canopy matching the neighbouring crowns, or river water where it lies on the river. No mist, fog, cloud or white haze inside the patches; the result must show clear canopy there, consistent with its surroundings, with no visible patch outline.\n\nImage 2 is the same tile before the mist was removed: reference for colour and light only. Do not copy its mist.\n\nPhotographic realism, natural lens, no painterly brush texture, no oversharpening halos, no HDR look, no tilt-shift. No aircraft, ships, birds, buildings, roads, text, logos, watermark or border. Leave the sky above the skyline exactly as in image 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\first-open-sky\\guides\\c3-tile-0-target.png",
+      "sha256": "88fb6233a91d9fd75b259e1f25c5d54b7bb80724c92ba60791eb9b445440d915",
+      "dimensions": [
+        2048,
+        768
+      ],
+      "mode": "RGB",
+      "role": "Exact edit target and layout authority: keep every ridge, crown, bank and the skyline in place; repaint only the grey patches and add detail"
+    },
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\first-open-sky\\guides\\c3-tile-0-master.png",
+      "sha256": "60790a1e322deb17c7a8540253e279e5631ae6ec287eb5b3faf29f4bbed4c62c",
+      "dimensions": [
+        2048,
+        768
+      ],
+      "mode": "RGB",
+      "role": "Colour and light reference only; the same tile before the mist was removed; do not copy its mist"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to fill the grey patches and refine the forest detail, preserving the target’s framing, terrain, lighting, and sky."
+  ],
+  "usage": {
+    "input_tokens": 44276,
+    "cached_input_tokens": 25728,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 642,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 62.5
+}
