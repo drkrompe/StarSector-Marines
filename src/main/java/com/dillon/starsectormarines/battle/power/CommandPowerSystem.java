@@ -31,9 +31,9 @@ public final class CommandPowerSystem {
         for (PendingActivation req : service.drainPending()) {
             CommandPower power = service.getPower(req.powerId);
             if (!service.canActivate(power)) continue; // not affordable / on cooldown — drop
-            if (!power.canTarget(req.cellX, req.cellY, battle)) continue;
+            if (!power.canTarget(req.cellX, req.cellY, battle, req.selection)) continue;
             if (!service.commit(power)) continue;
-            power.resolve(req.cellX, req.cellY, service, battle);
+            power.resolve(req.cellX, req.cellY, service, battle, req.selection);
         }
         service.regenCommandPoints(dt);
         service.tickCooldowns(dt);

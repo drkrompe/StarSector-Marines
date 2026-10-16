@@ -718,8 +718,8 @@ use the same cost vocabulary and point to the stock display in the relevant room
 
 ## Shipboard Barracks
 
-Barracks leads with **Preparation**: consolidate survivors, fill vacancies, then
-restore assigned equipment. **Profiles** holds saved loadout and tactic-sheet
+Barracks leads with **Preparation**: fill vacancies, then restore assigned
+equipment. **Profiles** holds saved loadout and tactic-sheet
 pairings. These are separate explicit orders, not a button that silently spends
 all available resources. Current billet counts state ready, wounded and vacant
 separately. A squad card's **Loadout** opens that squad's exact Armory equipment
@@ -730,17 +730,10 @@ command has a slot the tile is disabled and says why, so the officers' combined
 command caps are the company's force limit for raising. Its bill reads as one line
 of commodity icons and counts, each marked when the stores fall short.
 
-**Consolidation** transfers ready named marines from explicitly marked donor
-squads into true vacancies of separately selected receiving squads. The preview
-shows every selected formation's before/after ready and vacant counts alongside
-its wounded. Only Apply Transfers commits; a changed roster invalidates the
-reviewed order before any move. Both sets follow roster order. Wounded retain
-their billets, historical casualties stay on their original rolls, and stationed
-formations cannot participate. Marines carry their identity, actual kit and career;
-formation identity, career, home command and desired profile remain with the
-formation, including an emptied donor. Consolidation consumes no cargo and does
-not assert equipment conformance. Reserves and cargo enter only through the
-separate vacancy-filling order.
+Barracks has no order that moves marines between squads. A squad gets its
+strength back by waiting for its wounded, who return after one day of ship time,
+or by filling true vacancies from reserves and cargo. The room header counts down
+the whole hours until every line squad's wounded are back on duty.
 
 After an operation, Prepare Company opens Barracks once salvage has been settled.
 When a claim remains, that route first opens the normal salvage picker; it never
@@ -755,7 +748,7 @@ She is pragmatic and matriarchal: warm, observant and firm as the moment needs,
 with occasional dry humor rather than a fixed dry tone. The guide highlights the
 next real preparation control and moves beside it. A dim backdrop leaves openings
 around the lesson's declared controls and readouts: formations with filters and
-paging, donor/transfer review, or the current resource order with its availability.
+paging, or the current resource order with its availability.
 Only those regions and the portrait callout accept pointer and keyboard input;
 scrolling stays available for the relevant pane. Openings track the live layout,
 and dismissal immediately restores the full screen. Successful selection and preparation orders advance

@@ -294,11 +294,13 @@ class MechPointFireTest {
         arms.cycleRemaining = 2f;
         f.fire(NORTH);
         assertEquals(1, f.roster.telemetry().roundsFired(f.shooter), "ready SRM can fire beside cycling gun");
-        assertEquals(28f - 8f * BattleSimulation.TICK_DT, f.loadout.heat.value(), .001f);
+        assertEquals(28f - f.loadout.heat.coolingPerSecond() * BattleSimulation.TICK_DT,
+                f.loadout.heat.value(), .001f);
         assertEquals(5, srm.ammo);
         for (int i = 0; i < 10; i++) f.weapons.tick(f.shooter, NORTH, false);
         assertEquals(2, f.roster.telemetry().roundsFired(f.shooter));
-        assertEquals(28f - 8f * 11 * BattleSimulation.TICK_DT, f.loadout.heat.value(), .001f,
+        assertEquals(28f - f.loadout.heat.coolingPerSecond() * 11 * BattleSimulation.TICK_DT,
+                f.loadout.heat.value(), .001f,
                 "continuation does not charge a second salvo's heat");
         f.loadout.clearQueuedFire();
         assertTrue(f.loadout.heat.value() > 0f);

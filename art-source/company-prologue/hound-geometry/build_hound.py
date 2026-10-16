@@ -16,7 +16,8 @@ Options after a literal "--":
   --views a,b    render only these cameras (top, port-side, front,
                  three-quarter, stern, plus the close-ups bow-detail,
                  bridge-detail, fork-detail, turret-detail, engine-detail,
-                 stern-detail; 'details' names all close-ups)
+                 stern-detail, wheelhouse-detail, underside-aft; 'details'
+                 names all close-ups)
   --cam NAME:PX,PY,PZ:TX,TY,TZ:SCALE   add an ad-hoc ortho review camera
                  (repeatable) and render it as NAME.png
   --samples N    Cycles samples (default 24)
@@ -37,8 +38,8 @@ from mathutils import Vector
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-import hd_kit, hd_hull, hd_engines, hd_bridge, hd_fork, hd_mounts
-for module in (hd_kit, hd_hull, hd_engines, hd_bridge, hd_fork, hd_mounts):
+import hd_kit, hd_hull, hd_wheelhouse, hd_engines, hd_bridge, hd_fork, hd_mounts
+for module in (hd_kit, hd_hull, hd_wheelhouse, hd_engines, hd_bridge, hd_fork, hd_mounts):
     importlib.reload(module)
 
 GAME = Path(r'C:\Program Files (x86)\Fractal Softworks\Starsector\starsector-core')
@@ -73,6 +74,10 @@ parser.add_argument('--res', default='1920x1080')
 parser.add_argument('--samples', type=int, default=24)
 parser.add_argument('--no-save', action='store_true')
 parser.add_argument('--cam', action='append', default=[])
+parser.add_argument('--ramp-open', type=float, default=0.0,
+                    help='lower the aft ventral ramp by this many degrees (review renders)')
+parser.add_argument('--figure', action='store_true',
+                    help='add a 1.8 m scale figure on the bridge walkway (review renders)')
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 OUT = Path(args.out or HERE).resolve()
 OUT.mkdir(parents=True, exist_ok=True)
@@ -105,10 +110,15 @@ bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
 kit = hd_kit.Kit()
 hd_hull.build(kit)
+hd_wheelhouse.build(kit)
 hd_fork.build(kit)
 hd_bridge.build(kit)
 hd_engines.build(kit)
 hd_mounts.build(kit)
+if args.figure:
+    hd_wheelhouse.scale_figure(kit)
+if args.ramp_open:
+    bpy.data.objects['Hull aft ventral ramp hinge'].rotation_euler[1] = -math.radians(args.ramp_open)
 
 scene = bpy.context.scene
 scene.render.engine = 'CYCLES'
@@ -149,13 +159,15 @@ CLOSEUPS = [
     ('turret-detail', (24, 40, 40), (-3, 3, 7), 22),
     ('engine-detail', (14, 82, 34), (-5, 22, 0), 46),
     ('stern-detail', (-78, 42, 34), (-20, 0, 0), 46),
+    ('wheelhouse-detail', (46, 48, 30), (11, 1, 8), 30),
+    ('underside-aft', (-62, 40, -40), (-11, 0, -4), 52),
 ]
 for spec in args.cam:
     n, p, t, sc = spec.split(':')
     CLOSEUPS.append((n, tuple(map(float, p.split(','))), tuple(map(float, t.split(','))), float(sc)))
 wanted = []
 for v in [v for v in args.views.split(',') if v]:
-    wanted += [c[0] for c in CLOSEUPS[:6]] if v == 'details' else [v]
+    wanted += [c[0] for c in CLOSEUPS[:8]] if v == 'details' else [v]
 wanted += [spec.split(':')[0] for spec in args.cam]
 for name, pos, target, scale in CLOSEUPS:
     bpy.ops.object.camera_add(location=pos)

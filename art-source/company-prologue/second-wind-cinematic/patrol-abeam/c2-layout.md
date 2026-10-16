@@ -229,9 +229,13 @@ things:
   part of the pass. Fighters are small beside the hull and fly as sprite cards; the
   hull itself is a real 3D model built through the ship pipeline (the "Ship detail
   refinement" session's Legion blockout). It carries named deck and launch-bay
-  openings for the fighter cards and a keyable turret. C2's render waits on that
-  model; the Dominator numbers below are its stand-in until it lands. At 0.65 m
-  per hull unit the Legion is about 195 m by 200 m, close to the planned envelope.
+  openings for the fighter cards and a keyable turret. The blockout has landed:
+  `art-source/company-prologue/legion-geometry/legion-geometry.blend`, with the C2
+  placement, flight-deck mouths and launch points, and turret pivots in its
+  `geometry.json` (WS 007 is the turret flagged to train on Second Wind). At
+  0.65 m per hull unit it is about 192 m long, 191 m in beam and 33 m keel to
+  crown; abeam it is 1521x376 px against the Dominator stand-in's 1636x418. The
+  Dominator numbers below are superseded by that file wherever they differ.
 - **C2 runs 15.0 s** to carry hail lines 7 and 8. Accepted.
 - **The one window is the orange-and-cream cabin** of `forest-reveal-realism/` and
   `entry-window/`, not the grey `realism-lookdev` frame. It matches the cabin model,
