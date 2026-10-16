@@ -1,0 +1,426 @@
+{
+  "plate": "deck-plate-v2.master.png",
+  "size": [
+    2172,
+    724
+  ],
+  "frame": "World metres: origin on the deck below the centre of the chart table's front face; x right, y up, z away from the viewer. Pixels: plate master, origin top-left.",
+  "camera": {
+    "focalPx": 1229.8,
+    "horizontalFovDeg": 82.9,
+    "model": "level pinhole, shifted frame: optical-centre row is the horizon; verticals parallel",
+    "opticalCentrePx": [
+      1077.0,
+      -70.1
+    ],
+    "horizonY": -70.1,
+    "depthVanishingPoint": [
+      1077.0,
+      -70.1
+    ],
+    "up": [
+      0.0,
+      -1.0
+    ],
+    "positionM": [
+      0.37,
+      2.36,
+      -4.68
+    ],
+    "assumptions": {
+      "monitorCasingM": 0.42,
+      "tableAspect": 1.8
+    },
+    "derived": {
+      "deskHeightM": 0.66,
+      "tableHeightM": 0.49
+    },
+    "uncertainty": "Painting, not render. Horizon/VP within ~15 px. Focal length rests on the table aspect and scale on the ledger monitor; absolute distances are the weakest values, ratios near the table the strongest."
+  },
+  "chartTable": {
+    "widthM": 2.26,
+    "depthM": 1.14,
+    "heightM": 0.49,
+    "topQuadPx": [
+      [
+        753.2,
+        319.0
+      ],
+      [
+        1224.3,
+        319.0
+      ],
+      [
+        1277.2,
+        412.0
+      ],
+      [
+        693.4,
+        412.0
+      ]
+    ],
+    "occluderPx": [
+      [
+        765.0,
+        307.0
+      ],
+      [
+        1217.0,
+        307.0
+      ],
+      [
+        1292.0,
+        425.0
+      ],
+      [
+        1277.0,
+        552.0
+      ],
+      [
+        675.0,
+        552.0
+      ],
+      [
+        660.0,
+        425.0
+      ]
+    ],
+    "occludes": [
+      "castle"
+    ]
+  },
+  "figures": [
+    {
+      "id": "castle",
+      "feetPx": [
+        1093.4,
+        409.2
+      ],
+      "headPx": [
+        1093.4,
+        170.1
+      ],
+      "heightPx": 239.1,
+      "heightM": 1.68,
+      "figureScale": 0.7
+    },
+    {
+      "id": "commander",
+      "feetPx": [
+        878.7,
+        579.8
+      ],
+      "headPx": [
+        878.7,
+        228.6
+      ],
+      "heightPx": 351.2,
+      "heightM": 1.82,
+      "figureScale": 0.7
+    }
+  ],
+  "anchors": [
+    {
+      "id": "table-top-back-left",
+      "kind": "table-corner",
+      "px": [
+        753.2,
+        319.0
+      ],
+      "world": [
+        -1.18,
+        0.49,
+        1.22
+      ],
+      "pxPerMetre": 208.5,
+      "up": [
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "id": "table-top-back-right",
+      "kind": "table-corner",
+      "px": [
+        1224.3,
+        319.0
+      ],
+      "world": [
+        1.08,
+        0.49,
+        1.22
+      ],
+      "pxPerMetre": 208.5,
+      "up": [
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "id": "table-top-front-right",
+      "kind": "table-corner",
+      "px": [
+        1277.2,
+        412.0
+      ],
+      "world": [
+        1.14,
+        0.49,
+        0.08
+      ],
+      "pxPerMetre": 258.3,
+      "up": [
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "id": "table-top-front-left",
+      "kind": "table-corner",
+      "px": [
+        693.4,
+        412.0
+      ],
+      "world": [
+        -1.12,
+        0.49,
+        0.08
+      ],
+      "pxPerMetre": 258.3,
+      "up": [
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "id": "table-top-centre",
+      "kind": "table-centre",
+      "px": [
+        987.2,
+        360.5
+      ],
+      "world": [
+        -0.02,
+        0.49,
+        0.65
+      ],
+      "pxPerMetre": 230.7,
+      "up": [
+        0.0,
+        -1.0
+      ],
+      "note": "Origin for a live plot on the table."
+    },
+    {
+      "id": "comms-chair-left",
+      "kind": "floor-contact",
+      "px": [
+        196.0,
+        521.0
+      ],
+      "world": [
+        -3.14,
+        0.0,
+        0.22
+      ],
+      "pxPerMetre": 250.7,
+      "up": [
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "id": "comms-chair-right",
+      "kind": "floor-contact",
+      "px": [
+        402.0,
+        445.0
+      ],
+      "world": [
+        -2.72,
+        0.0,
+        0.95
+      ],
+      "pxPerMetre": 218.5,
+      "up": [
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "id": "ledger-desk-front",
+      "kind": "floor-contact",
+      "px": [
+        1600.0,
+        448.0
+      ],
+      "world": [
+        2.75,
+        0.0,
+        0.91
+      ],
+      "pxPerMetre": 219.8,
+      "up": [
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "id": "hatch-threshold",
+      "kind": "floor-contact",
+      "px": [
+        1905.0,
+        440.0
+      ],
+      "world": [
+        4.2,
+        0.0,
+        1.0
+      ],
+      "pxPerMetre": 216.4,
+      "up": [
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "id": "castle-feet",
+      "kind": "figure-stand",
+      "px": [
+        1093.4,
+        409.2
+      ],
+      "world": [
+        0.45,
+        0.0,
+        1.37
+      ],
+      "pxPerMetre": 203.3,
+      "up": [
+        0.0,
+        -1.0
+      ],
+      "note": "At the far edge of the table, right of centre, facing the viewer."
+    },
+    {
+      "id": "castle-head",
+      "kind": "figure-head",
+      "px": [
+        1093.4,
+        170.1
+      ],
+      "world": [
+        0.45,
+        1.18,
+        1.37
+      ],
+      "pxPerMetre": 203.3,
+      "up": [
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "id": "commander-feet",
+      "kind": "figure-stand",
+      "px": [
+        878.7,
+        579.8
+      ],
+      "world": [
+        -0.35,
+        0.0,
+        -0.22
+      ],
+      "pxPerMetre": 275.7,
+      "up": [
+        0.0,
+        -1.0
+      ],
+      "note": "Front of the table, left of centre, seen from behind."
+    },
+    {
+      "id": "commander-head",
+      "kind": "figure-head",
+      "px": [
+        878.7,
+        228.6
+      ],
+      "world": [
+        -0.35,
+        1.27,
+        -0.22
+      ],
+      "pxPerMetre": 275.7,
+      "up": [
+        0.0,
+        -1.0
+      ]
+    }
+  ],
+  "screens": [
+    {
+      "id": "screen-1",
+      "box": [
+        36,
+        244,
+        109,
+        299
+      ]
+    },
+    {
+      "id": "screen-2",
+      "box": [
+        140,
+        226,
+        173,
+        263
+      ]
+    },
+    {
+      "id": "screen-3",
+      "box": [
+        148,
+        276,
+        177,
+        301
+      ]
+    },
+    {
+      "id": "screen-4",
+      "box": [
+        274,
+        210,
+        335,
+        255
+      ]
+    },
+    {
+      "id": "screen-5",
+      "box": [
+        354,
+        194,
+        385,
+        227
+      ]
+    },
+    {
+      "id": "screen-6",
+      "box": [
+        410,
+        202,
+        445,
+        227
+      ]
+    },
+    {
+      "id": "screen-7",
+      "box": [
+        1488,
+        208,
+        1549,
+        253
+      ]
+    }
+  ]
+}

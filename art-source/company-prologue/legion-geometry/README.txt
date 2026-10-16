@@ -34,6 +34,7 @@ Modules (one per area; each later-pass agent edits only its own)
                  spines, bow blades, outer and inner armour belts
   lg_bridge.py   the command dome
   lg_wings.py    the two wing arms and the four hangars slung under them
+  lg_droop.py    the arms' anhedral: a shear applied after lg_wings builds
   lg_engines.py  engine block, outer housings, the ten drive units
   lg_fittings.py masts, sensors, radomes and the running lights
   lg_turrets.py  fifteen turrets: fixed barbette + trainable part on a pivot
@@ -41,8 +42,8 @@ Modules (one per area; each later-pass agent edits only its own)
 Axes and units
   +X bow, +Y port, +Z dorsal. One sprite pixel per unit about the .ship
   centre, so every slot location is model XY unchanged.
-  metres_per_unit = 0.65 (the shared Second Wind scale the cinematic uses):
-  about 192 m long, 191 m beam, 49 m keel to crown.
+  metres_per_unit = 0.61, derived for this hull (see Scale check): about
+  179.9 m long, 179.3 m beam, 46.0 m keel to crown.
 
 Object names (stable identifiers; later passes key off them)
   Hull ...                  fore body, aft body, ventral keel, dorsal spine,
@@ -67,8 +68,10 @@ Object names (stable identifiers; later passes key off them)
 
 Hangars (geometry.json 'flight_decks')
   The owner's first review asked for a thicker torso with wing-like arms and
-  the hangar bays under the wings. Each wing arm (deck z 4, a 6-unit step
-  below the torso's z 10) carries two hangar pods slung beneath it. The
+  the hangar bays under the wings, then for the arms to taper and angle down.
+  Each wing arm (deck z 4 at the root, a 6-unit step below the torso's z 10)
+  thins outboard and angles down at 10 degrees from the torso wall (|Y| 80);
+  it carries two hangar pods slung beneath it, which go down with it. The
   sprite's red-lit recesses are elevator wells through the arm into them.
   WS 012 port forward, WS 013 starboard forward: the hangar runs forward to a
   mouth in the pod's angled front under the arm's leading edge, facing
@@ -76,7 +79,8 @@ Hangars (geometry.json 'flight_decks')
   WS 010 port aft, WS 011 starboard aft: closed at the head, mouth facing aft
   onto the notch behind the arm. Slot angle 170/190.
   Each record gives launch_direction (from the slot angle), the four launch
-  points on the hangar floor (z -20.5; the .ship's own XY), the mouth centre,
+  points on the hangar floor (the .ship's own XY, heights carried down by the
+  anhedral), the mouth centre,
   normal, width and height, and the hangar's extent. Fighter cards leave
   through the mouths.
 
@@ -92,19 +96,36 @@ C2 (geometry.json 'c2')
   eye level. The c2-* cameras are c2_core's cabin camera at C2 3.0 / 8.0 /
   11.4 s; c2-* renders use c2_core.SUN, planet-shine and no ambient.
 
-Scale check (pass 4; geometry.json 'scale')
-  Deck program CAPITAL "Battlecarrier" (CARRIER) crew 700-1500 cargo 300:
-  30,827 m2 rooms x1.40 x3.2 m = 138,105 m3. Pressure hull (union of the
-  torso, spines, dome, wing arms and hangar pods) about 1.72 M cubic units,
-  re-measured on every build. At the skill's 55% usable that solves to
-  0.53 m/unit (0.50-0.56 for 65-45%). 0.65 implies about 29% usable. It is
-  kept, because it is the shared Second Wind scale that every hull is
-  compared at in shot (confirmed by the C2 cinematic session); the gap is
-  reported, not hidden.
+Scale check (pass 4, warship form; geometry.json 'scale')
+  Each hull gets its own scale from what it is (owner, 2026-10-16). Crew and
+  ship spaces: deck program CAPITAL "Battlecarrier" (CARRIER) crew 700-1500
+  cargo 300 is 30,827 m2 of rooms; less its notional 3.2 m HANGAR rooms
+  (2,160 m2), x1.40 circulation x3.2 m = 128,428 m3 habitable.
+  Habitable share: the requested warship share is 30-35%; 33% is
+  published. The itemised budget is looser. Fighter stowage for the Elite
+  complement (6 Broadswords, 4 Hoplons, a spare per wing, servicing room,
+  25% for ordnance handling) at the fighters' own 0.50 m/px scales
+  (fighters-geometry) is about 52,700 m3, 13.5% of the hull at 0.61; armour
+  15%, reactors/flux/drives 12%, barbettes and magazines 5%, tanks and
+  structure 10% are judged. That leaves 44.5% habitable, which alone would
+  solve to about 0.55. 0.61 stands on the warship share; whether the
+  Legion should read bigger or smaller than that is the owner's call.
+  Pressure hull (union of torso, spines, dome, arms and hangar pods) about
+  1.72 M cubic units, re-measured on every build: solves to
+  0.609 m/unit (0.597-0.629 for 35-30% habitable; a freighter's 55%
+  would give 0.514). Published 0.61.
+  Real-world check: 183 m long and 179 m wide, 391k m3 enclosed for 700-1500 crew; about 261 m3 per
+  person at max crew. A Nimitz is 333 m with about 5,000 crew; fleet and
+  light carriers run 200-260 m. The Legion is shorter than those but as wide
+  as it is long, so it encloses supercarrier-class volume for under a third
+  of a Nimitz's crew. The geometry sets the answer: a deeper torso lowers it.
+  Fittings at 0.61: a 1.8 m person is 2.95 units; doors and hatches 3.4,
+  rails 1.8. Fighters at their own scales are about 16-18 m (31 Legion
+  units of span for a Hoplon-sized craft), inside the hangar tunnels.
 
 Status
   Pass 1 blockout, reworked after the owner's first review (deep torso, wing
-  arms, under-wing hangars). Engines, turrets, bridge and fittings have had
+  arms, under-wing hangars, anhedral). Engines, turrets, bridge and fittings have had
   their pass-2 detail. Hull and wings pass 2 next. Top silhouette IoU 0.975.
   reference-history/v1-blockout is the first, flat blockout;
   reference-history/v2-blockout is the reworked one, and pass 2's

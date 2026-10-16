@@ -115,6 +115,11 @@ it is a second plan through the same seam, not a second hit system.
   *because* of a wound (today he chooses on health and armour, and a wound
   needs structure lost, so the wounded are usually also the hurt), wound
   presentation on the body, and AI reading wounds.
+- **Mech plans** (shipped). A mech chassis has a body plan too: four height
+  bands (legs, torso, shoulders, head) whose parts are its sections' bands
+  (`mechs-nouns.md`). They carry no cover rows yet, so cover meets a mech with
+  the flat whole-body chance and damage cut and their multiplier is one; the
+  height still decides the section. Cover by section is the next step there.
 - **Area exposure.** A blast asks which parts it can reach rather than rolling
   a hit: a shell bursting outside a trench reaches only what shows above it, a
   grenade landing in the trench reaches everything. That retires the last use of

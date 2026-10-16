@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.MechGaitState;
 import com.dillon.starsectormarines.battle.mech.MechHardpointGeometry;
+import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
@@ -151,7 +152,7 @@ public class HeavyWeapons {
         Faction shooterFaction = roster.identity().faction(shooter);
         float distance = RangeFalloff.dist(world.x(shooter), world.y(shooter), aim.x(), aim.y());
         float spread = RangeFalloff.spread(weapon.hitSpread, distance, weapon.range);
-        boolean hit = rng.nextFloat() < weapon.accuracy;
+        boolean hit = rng.nextFloat() < weapon.accuracy * sensorAccuracy(loadout);
         ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(aim.x(), aim.y(), hit, spread, rng);
         roster.telemetry().recordRoundFired(shooter);
         launchArc(shooter, weapon, ep, hit, muzzle.x(), muzzle.y(), shooterFaction, roster.moraleImpact(shooter));
@@ -201,6 +202,12 @@ public class HeavyWeapons {
                 muzzle.x(), muzzle.y());
     }
 
+    /** What a lost head leaves of a chassis's aim; whole while its sensors stand. */
+    private static float sensorAccuracy(MechLoadoutComponent loadout) {
+        MechSections sections = loadout.sections();
+        return sections != null && sections.sensorsLost() ? MechSections.SENSOR_LOSS_ACCURACY : 1f;
+    }
+
     /** The barrel cannot put its source through structural terrain, including its own end cell. */
     public boolean canFireMechMount(long shooter, MechWeaponMount mount) {
         World world = roster.world();
@@ -217,6 +224,8 @@ public class HeavyWeapons {
     private void fireMechWeaponAt(long shooter, long target, WeaponDef weapon,
                                   float accuracyMult, float fromX, float fromY) {
         roster.telemetry().recordRoundFired(shooter);
+        World world = roster.world();
+        if (world.hasMechLoadout(shooter)) accuracyMult *= sensorAccuracy(world.mechLoadout(shooter));
         if (weapon.arcHeight <= 0f) {
             fireDirectRound(shooter, target, weapon, accuracyMult, fromX, fromY);
             return;
@@ -259,7 +268,8 @@ public class HeavyWeapons {
         // Mech mounts retain their own accuracy contract; no infantry training or stance factor.
         float spread = RangeFalloff.spread(weapon.hitSpread, weapon.range, weapon.range);
         BallisticResolver.Resolution resolution = resolver.resolvePoint(source, aim.x(), aim.y(),
-                weapon.accuracy, spread, weapon.roundVelocity, weapon.range, weapon.bodyPenetrations, rng);
+                weapon.accuracy * sensorAccuracy(loadout), spread, weapon.roundVelocity, weapon.range,
+                weapon.bodyPenetrations, rng);
         roster.telemetry().recordRoundFired(shooter);
         deliverDirectRound(shooter, weapon, resolution, muzzle.x(), muzzle.y());
         return true;

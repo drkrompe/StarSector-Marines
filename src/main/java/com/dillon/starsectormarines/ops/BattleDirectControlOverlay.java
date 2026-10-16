@@ -63,6 +63,8 @@ final class BattleDirectControlOverlay {
     private boolean helpPointerKnown;
     private float helpPointerX, helpPointerY;
     private boolean visible;
+    private BattleMechSectionPlate sectionPlate;
+    private UiViewport sectionViewport;
 
     private boolean activeMode;
     private boolean dockTop;
@@ -105,6 +107,7 @@ final class BattleDirectControlOverlay {
             helpMarkup = helpLoader.reloadAndBuild(reactor, BattleDirectControlHelpPlate.COMPONENT,
                     helpPlate.props());
             helpDocument = document(helpMarkup);
+            sectionPlate = new BattleMechSectionPlate();
         }
         update(0f, sim, speedMultiplier);
     }
@@ -191,6 +194,12 @@ final class BattleDirectControlOverlay {
             var status = BattleDirectControlStatus.snapshot(sim);
             helpCarrier = status.carrier();
             actionModel.update(status, sim.directControl().selectedWeapon(), speedMultiplier == 0f);
+            if (sectionPlate != null) {
+                sectionPlate.update(status.carrier() == Carrier.MECH
+                        ? sim.world().mechLoadout(status.entityId()) : null);
+            }
+        } else if (sectionPlate != null) {
+            sectionPlate.update(null);
         }
         updateHelp(dt, active);
         if (markup != null) markup.flush();
@@ -207,9 +216,11 @@ final class BattleDirectControlOverlay {
                 viewport = next;
                 current.layout(viewport.documentWidth(), viewport.documentHeight());
                 input = new StarsectorUiInputAdapter(current, viewport);
+                placeSections();
             }
         }
         if (current != null) current.advance(dt);
+        if (active && sectionPlate != null && sectionPlate.visible()) sectionPlate.document().advance(dt);
         if (active && position != null && actionsDocument != null) {
             UiViewport next = actionsViewport(position);
             if (!next.equals(actionsViewport) || actionsInput == null) {
@@ -270,6 +281,7 @@ final class BattleDirectControlOverlay {
         UiDocument current = currentDocument();
         if (visible && current != null) current.render(viewport, alpha);
         if (visible && activeMode && actionsDocument != null) actionsDocument.render(actionsViewport, alpha);
+        if (visible && activeMode && sectionPlate != null) sectionPlate.render(sectionViewport, alpha);
         if (visible && activeMode && helpDocument != null && helpViewport != null) helpDocument.render(helpViewport, alpha);
     }
 
@@ -279,11 +291,16 @@ final class BattleDirectControlOverlay {
         if (currentDocument() != null && viewport != null) result.add(new BattleHudSurface(currentDocument(), viewport));
         if (activeMode && actionsDocument != null && actionsViewport != null) result.add(new BattleHudSurface(actionsDocument, actionsViewport));
         if (activeMode && helpDocument != null && helpViewport != null) result.add(new BattleHudSurface(helpDocument, helpViewport));
+        if (activeMode && sectionPlate != null) {
+            BattleHudSurface sections = sectionPlate.surface(sectionViewport);
+            if (sections != null) result.add(sections);
+        }
         return List.copyOf(result);
     }
 
     boolean blocksWorldPointer(float x, float y) {
         return visible && (contains(viewport, x, y) || activeMode && contains(actionsViewport, x, y)
+                || activeMode && sectionPlate != null && sectionPlate.visible() && contains(sectionViewport, x, y)
                 || activeMode && helpLayout != null && helpHover.blocks(true, x, y, helpLayout));
     }
 
@@ -310,6 +327,13 @@ final class BattleDirectControlOverlay {
         viewport = next;
         actionDocument.layout(next.documentWidth(), next.documentHeight());
         input = new StarsectorUiInputAdapter(actionDocument, next);
+        placeSections();
+    }
+
+    /** The section paper-doll stands left of the control HUD, level with whichever edge it docks to. */
+    private void placeSections() {
+        sectionViewport = !activeMode || viewport == null ? null
+                : dockTop ? BattleMechSectionPlate.leftOfTop(viewport) : BattleMechSectionPlate.leftOf(viewport);
     }
 
     static UiViewport actionViewport(PositionAPI position, float screenX, float screenY, float screenRadius) {

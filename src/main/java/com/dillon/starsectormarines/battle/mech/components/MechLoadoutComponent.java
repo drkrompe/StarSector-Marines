@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.mech.ManualMechDrive;
 import com.dillon.starsectormarines.battle.mech.MechFrame;
 import com.dillon.starsectormarines.battle.mech.MechHeat;
 import com.dillon.starsectormarines.battle.mech.MechRouteIntent;
+import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
@@ -56,6 +57,8 @@ public final class MechLoadoutComponent {
 
     public final MechVariant variant;
     private final MechWeaponMount[] mounts = new MechWeaponMount[MechMountSlot.values().length];
+    /** Per-section armor and structure; created on the first hit. */
+    private MechSections sections;
     private MissileReplenisherComponent missileReplenisher =
             MissileReplenisherComponent.STANDARD;
 
@@ -308,6 +311,42 @@ public final class MechLoadoutComponent {
 
     public MechWeaponMount[] mounts() {
         return mounts;
+    }
+
+    /**
+     * The chassis's sections, or null until the first hit divides its pools
+     * ({@link #sectionsFor}). A mech nobody has hit is intact in every section.
+     */
+    public MechSections sections() {
+        return sections;
+    }
+
+    /**
+     * The chassis's sections, dividing its pools as they stand now on first use. Called by the
+     * serialized damage path, which is the only writer; the deployed mounts decide which
+     * mount sections exist.
+     */
+    public MechSections sectionsFor(float structure, float maxStructure, float armor, float maxArmor) {
+        if (sections == null) {
+            sections = new MechSections(variant.bodyPlan(), mounts, structure, maxStructure, armor, maxArmor);
+        }
+        return sections;
+    }
+
+    /**
+     * Destroys the weapon on {@code slot}: the mount goes silent and empty, which every reader
+     * already treats as a first-class absent mount (the appearance drops its layer, targeting and
+     * fire skip it). Queued rounds go with it. Recorded on the sections for campaign writeback.
+     *
+     * @return the weapon that was lost, or null if the slot was already empty
+     */
+    public MechWeaponComponent destroyMount(MechMountSlot slot) {
+        MechWeaponMount mount = mounts[slot.ordinal()];
+        if (mount == null) return null;
+        mount.clearBurst();
+        mounts[slot.ordinal()] = null;
+        if (sections != null) sections.recordLostMount(slot, mount.component);
+        return mount.component;
     }
 
     /** Installed onboard missile-replenishment subsystem. */

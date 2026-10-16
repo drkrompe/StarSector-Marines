@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.marine;
 import com.dillon.starsectormarines.battle.mech.FactionMechLoadouts;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -21,7 +22,7 @@ import java.util.Set;
  * tier there ({@link EquipmentAcquisitionEligibility}), exactly as a loadout card's scarcest
  * template is gated. Every faction may offer every offerable pattern at a modest base weight;
  * a faction weights up the hardware it actually issues to its own mechs
- * ({@link FactionMechLoadouts}). A faction that offers no loadout cards through a channel
+ * ({@link FactionMechLoadouts}) and the vehicle variant it is known for. A faction that offers no loadout cards through a channel
  * (an explicit no-player-equipment faction) offers no patterns there either.
  */
 public final class MechPatternPicker {
@@ -34,15 +35,19 @@ public final class MechPatternPicker {
             FactionMechLoadouts.TRI_TACHYON_ID, Set.of(
                     MechPattern.of(MechVariant.BULWARK),
                     MechPattern.of(MechWeaponComponent.DUAL_PULSE_LASERS),
-                    MechPattern.of(MechWeaponComponent.SHOULDER_LASER_CANNON)),
+                    MechPattern.of(MechWeaponComponent.SHOULDER_LASER_CANNON),
+                    MechPattern.of(VehicleType.HEAVY_GUN_TANK)),
             FactionMechLoadouts.HEGEMONY_ID, Set.of(
                     MechPattern.of(MechVariant.BULWARK),
-                    MechPattern.of(MechWeaponComponent.DUAL_BASTION_AUTOCANNONS)),
+                    MechPattern.of(MechWeaponComponent.DUAL_BASTION_AUTOCANNONS),
+                    MechPattern.of(VehicleType.UP_ARMORED_APC)),
             FactionMechLoadouts.LUDDIC_PATH_ID, Set.of(
-                    MechPattern.of(MechWeaponComponent.DEMOLITION_CANNON)),
+                    MechPattern.of(MechWeaponComponent.DEMOLITION_CANNON),
+                    MechPattern.of(VehicleType.DOZER_BREACHER)),
             FactionMechLoadouts.LIONS_GUARD_ID, Set.of(
                     MechPattern.of(MechVariant.SIROCCO),
-                    MechPattern.of(MechWeaponComponent.THERMAL_LANCE)));
+                    MechPattern.of(MechWeaponComponent.THERMAL_LANCE),
+                    MechPattern.of(VehicleType.FIRE_SUPPORT_APC)));
 
     private MechPatternPicker() {}
 
