@@ -20,6 +20,7 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -33,7 +34,8 @@ public final class CompanyHqScreen implements Screen {
 
     private final Reactor reactor = new Reactor();
     private final CompanyHqNewsDesk newsDesk = new CompanyHqNewsDesk(reactor);
-    private final CompanyIntelTerminal intelTerminal = new CompanyIntelTerminal(newsDesk);
+    private final CompanyIntelTerminal intelTerminal = new CompanyIntelTerminal(newsDesk,
+            CommandDeckLayout.parse(loadText(CommandDeckLayout.PATH)));
     private final MarkupLoader markup = new MarkupLoader(
             path -> Global.getSettings().loadText(path), COMPONENT_PATHS);
 
@@ -79,6 +81,7 @@ public final class CompanyHqScreen implements Screen {
             installDocument();
         } else {
             document.layout(viewport.documentWidth(), viewport.documentHeight());
+            if (intelTerminal.place()) document.layout(viewport.documentWidth(), viewport.documentHeight());
         }
         if (preparationGuide != null) preparationGuide.update();
         if (AgreusArcCampaign.current() != null)
@@ -110,6 +113,7 @@ public final class CompanyHqScreen implements Screen {
         newsDesk.put(props);
         auxiliary.put(props);
         handover.put(props);
+        intelTerminal.put(props);
         MarkupInstance candidate = markup.reloadAndBuild(
                 reactor, ROOT_COMPONENT, props);
         UiDocument built;
@@ -121,6 +125,7 @@ public final class CompanyHqScreen implements Screen {
             intelTerminal.bind(built, candidate);
             if (viewport != null) {
                 built.layout(viewport.documentWidth(), viewport.documentHeight());
+                if (intelTerminal.place()) built.layout(viewport.documentWidth(), viewport.documentHeight());
             }
         } catch (RuntimeException failure) {
             candidate.close();
@@ -142,7 +147,7 @@ public final class CompanyHqScreen implements Screen {
                 "company-hq-root", "marine-ops-page-nav", "page-nav-return",
                 "page-nav-hq", "page-nav-barracks",
                 "page-nav-mech-lab", "page-nav-boats",
-                "company-hq-assessment",
+                "company-hq-deck", "company-hq-deck-caption",
                 "company-hq-main", "company-hq-sidebar", "company-hq-force",
                 "company-hq-ship", "company-hq-ship-view",
                 "company-hq-ship-view-track", "company-hq-ship-view-fill",
@@ -240,11 +245,20 @@ public final class CompanyHqScreen implements Screen {
             if (preparationGuide != null) preparationGuide.update();
             input = new StarsectorUiInputAdapter(document, viewport);
         }
+        if (intelTerminal.place() && viewport != null) document.layout(viewport.documentWidth(), viewport.documentHeight());
         intelTerminal.advance(dt);
         if (markupInstance != null) markupInstance.flush();
         if (context != null) MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.HQ, context::roomAboard, CompanyNotices.current());
         if (document != null) document.advance(dt);
         if (preparationGuide != null) preparationGuide.update();
+    }
+
+    private static String loadText(String path) {
+        try {
+            return Global.getSettings().loadText(path);
+        } catch (IOException failure) {
+            throw new IllegalStateException("Could not read " + path, failure);
+        }
     }
 
     private static int campaignHour() {

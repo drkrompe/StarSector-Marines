@@ -1496,6 +1496,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         Map<String, Object> hqProps = viewModel.props();
         desk.put(hqProps);
         desk.choose(channel);
+        CompanyIntelTerminal terminal = new CompanyIntelTerminal(desk, CommandDeckLayout.parse(
+                Files.readString(context.modRoot().resolve(CommandDeckLayout.PATH))));
+        terminal.put(hqProps);
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), COMPANY_HQ_COMPONENTS);
         loader.reload();
@@ -1505,11 +1508,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            CompanyIntelTerminal terminal = new CompanyIntelTerminal(desk);
             terminal.bind(document, instance);
             terminal.advance(0f);
             terminal.advance(1f);
             BufferedImage frame = renderRelative(renderer, document, width, height, uiScale);
+            if (terminal.place()) frame = renderRelative(renderer, document, width, height, uiScale);
             if (hqProps.get("openingGuide") instanceof OpeningWorkGuide guide && guide.visible()) {
                 Rect panel = instance.requireElement("company-hq-opening-guide").box().borderBox();
                 for (String id : List.of("company-hq-opening-heading", "company-hq-opening-mission",
