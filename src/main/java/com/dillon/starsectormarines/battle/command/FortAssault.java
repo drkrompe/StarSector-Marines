@@ -526,6 +526,8 @@ final class FortAssault {
         final Map<Integer, int[]> baseOfFire = new TreeMap<>();
         /** Breach roles taken from squads that lost the kit behind them before they were let go. */
         int breachersLost;
+        /** What became of the breach roles that lost their kit, and of the squads that took them over, as sentences. */
+        final List<String> breachLog = new ArrayList<>();
         /** The readings of the last pulse the breachers were held, as a sentence, for the evidence report. */
         String lastReadings = "";
         /** Pulses on which an open nest had nothing the company could answer it with. */
@@ -1766,6 +1768,7 @@ final class FortAssault {
                 lost = true;
                 satchelRecord.breachersLost++;
                 notes.add("squad " + id + " no longer carries what opens the wall; it is taken off the breach");
+                satchelRecord.breachLog.add("tick " + tick + ": squad " + id + " lost its kit before it was let go");
             }
             if (capable || !lost) return false;
             for (int id : members) {
@@ -1773,6 +1776,7 @@ final class FortAssault {
                 if (roles.get(id) != Role.ASSAULT || !carriesBreachKit(body)) continue;
                 roles.put(id, Role.BREACH);
                 notes.add("squad " + id + " carries the kit and takes over the breach");
+                satchelRecord.breachLog.add("tick " + tick + ": squad " + id + " takes over the breach");
                 return false;
             }
             return changeApproach(tick, byId, notes, null);

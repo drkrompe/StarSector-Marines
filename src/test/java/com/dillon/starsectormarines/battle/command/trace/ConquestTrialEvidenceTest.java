@@ -19,7 +19,9 @@ import com.dillon.starsectormarines.battle.command.compound.CompoundService.Comp
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
+import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
 import com.dillon.starsectormarines.battle.setup.DefenderRoster;
 import com.dillon.starsectormarines.battle.setup.GroundRosterRegistry;
 import com.dillon.starsectormarines.battle.setup.ShuttleArrivalPlan;
@@ -46,7 +48,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Locale;
@@ -71,7 +75,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * a JSON array of objects; every field but {@code id} is optional: {@code seed}, {@code placement}
  * ({@code ON_PATH}/{@code OFFSET}), {@code offset}, {@code shuttleType}, {@code shuttles}, {@code seats},
  * {@code cycles}, {@code elites}, {@code militia}, {@code patrolSize}, {@code objectiveGarrison}, {@code keepGarrison}
- * {@code risk}, and {@code airDefence} (true stamps the fort's optional anti-air yard; absent none).
+ * {@code risk}, and {@code airDefence} (true stamps the fort's optional anti-air yard; absent none). Two fields exist so a close breach is planned
+ * rather than hoped for: {@code fortFacing} ({@code LANDING} default, or {@code NORTH}/{@code EAST}/{@code WEST}) turns the main gate, so the lane
+ * squads meet another face of the works and the gate's nests are not worn down before the company commits; and {@code launcherEvery} N keeps
+ * the factory rocket launcher on every Nth squad only (0 none; absent leaves the rolls alone), because a company that all carry launchers
+ * can open a wall from range and never needs a sapper. The sapper and screener periods ({@code satchelEvery}, {@code smokeEvery} in
+ * {@code supportKit}) are honoured on this factory force as on a named company.
  * {@code -PsnapshotEveryTicks=N} renders review frames and a {@code visuals/<fixture>/review.gif}.
  *
  * <p>The phased-assault fields are additive and, when omitted, leave production defaults alone: {@code muster} (false declares the
@@ -89,6 +98,8 @@ class ConquestTrialEvidenceTest {
     private static final String PREFIX = "conquest.trial.evidence";
     /** Within this many cells of the fort's centre a marine is "at the fort" for the readings: about its belt. */
     private static final float FORT_REACH = 45f;
+    /** A cloud thrown to stand at least this long (seconds) is a pot's, not a hand grenade's. */
+    private static final float POT_SECONDS = 45f;
 
     @Test
     void playsTheTrialMatrix() throws Exception {
@@ -328,6 +339,8 @@ class ConquestTrialEvidenceTest {
             int firstAtFort = -1;
             int peakAtFort = 0;
             int marineSamplesAtFort = 0;
+            Set<Long> wallCharges = new HashSet<>();
+            Set<Long> screenClouds = new HashSet<>();
             CompoundService compounds = sim.getCompoundService();
             while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                 sim.advance(BattleSimulation.TICK_DT);
@@ -338,6 +351,12 @@ class ConquestTrialEvidenceTest {
                 fireSupport.sample(sim);
                 contested.sample(sim);
                 bunkerProbe.sample(sim);
+                for (SatchelChargeService.ChargeView charge : sim.satchelCharges().activeCharges()) {
+                    if (charge.targetId() == 0L) wallCharges.add(charge.id());
+                }
+                for (SmokeFieldService.SmokeFieldView cloud : sim.smokeFields().activeFields()) {
+                    if (cloud.totalDuration() >= POT_SECONDS) screenClouds.add(cloud.id());
+                }
                 peakMarines = Math.max(peakMarines, count(sim, Faction.MARINE));
                 if (objectiveTaken < 0 && held(compounds, ground.objective())) objectiveTaken = tick;
                 if (keepTaken < 0 && held(compounds, ground.keep())) keepTaken = tick;
@@ -376,6 +395,7 @@ class ConquestTrialEvidenceTest {
                     + f.optString("airPool", "-") + "\n"
                     + String.format(Locale.ROOT, "- fort wall cells opened: %d (of which %d at the start)%n",
                             wallOpenAtEnd, wallOpenAtStart)
+                    + String.format(Locale.ROOT, "- satchel charges set on walls: %d; smoke pot clouds stood: %d%n", wallCharges.size(), screenClouds.size())
                     + String.format(Locale.ROOT, "- companies (marine trace notes): formed %d, committed %d, broken %d, "
                             + "stood down %d, dissolved %d, recruits released %d, strikes asked %d%n",
                             life[0], life[1], life[2], life[3], life[4], life[5], life[6])
@@ -401,6 +421,8 @@ class ConquestTrialEvidenceTest {
                             .put("marine", sim.airPool().callsFromForts(Faction.MARINE)))
                     .put("skyNotes", skyNotes(trace))
                     .put("bunker", bunkerProbe.json())
+                    .put("wallChargesSet", wallCharges.size())
+                    .put("potCloudsStood", screenClouds.size())
                     .put("sectionsOpened", sim.fieldMortars().sections().opened())
                     .put("sectionsExpired", sim.fieldMortars().sections().expired())
                     .put("sectionsAbandoned", sim.fieldMortars().sections().abandoned())
