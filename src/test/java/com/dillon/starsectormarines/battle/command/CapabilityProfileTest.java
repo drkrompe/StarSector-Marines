@@ -93,4 +93,14 @@ class CapabilityProfileTest {
     void nothingAliveIsNothing() {
         assertEquals("nothing", CapabilityProfile.of(List.of(), 0, 0).describe());
     }
+
+    @Test
+    void aSmokeGrenadeIsAScreenWithAsManyThrowsAsGrenadesAndNothingElse() {
+        Armament smoke = new Armament(Delivery.SCREEN, 8f, 1, 0.8f, 0f, 0f, 0, 2);
+        CapabilityProfile profile = CapabilityProfile.of(List.of(smoke), 6, 6);
+        assertTrue(profile.has(AssaultCapability.SMOKE_SCREEN));
+        assertEquals(2f, profile.reserve(AssaultCapability.SMOKE_SCREEN));
+        assertFalse(profile.has(AssaultCapability.SUPPRESSION), "a cloud does not suppress");
+        assertFalse(profile.canBreach());
+    }
 }

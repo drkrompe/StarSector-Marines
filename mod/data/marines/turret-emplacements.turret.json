@@ -9,7 +9,7 @@
         "sprite": "graphics/structures/ridge-aa-mount.png" } },
     { "id": "mount.tank-twin-cannon", "weapon": "weapon.tank-twin-cannon",
       "sim": { "ammoCapacity": 48, "turnRateDegPerSec": 55.0 },
-      "render": { "visualCells": 4.5, "muzzleOffsetCells": 3.21, "muzzleLateralOffsetCells": 0.19 } },
+      "render": { "visualCells": 4.5, "muzzleOffsetCells": 2.2434501, "muzzleLateralOffsetCells": 0.0 } },
     {
       "id": "mount.turret-vulcan", "weapon": "weapon.turret-vulcan",
       "sim": { "ammoCapacity": 120, "turnRateDegPerSec": 120.0 },

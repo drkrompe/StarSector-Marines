@@ -20,7 +20,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
  */
 public final class BuildingCommercialFiller implements BlockFiller {
 
-    private static final BuildingShellCore.BuildingConfig CONFIG = new BuildingShellCore.BuildingConfig(
+    static final BuildingShellCore.BuildingConfig CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.TILE,
             "COMMERCIAL",
             PointOfInterest.Kind.RESIDENTIAL,
@@ -34,8 +34,10 @@ public final class BuildingCommercialFiller implements BlockFiller {
 
     @Override
     public void fill(BlockLeaf leaf, GenContext ctx) {
+        BuildingPlacement.Side front=BuildingResidentialFiller.streetFrontage(leaf,ctx);
+        if (LotYardTemplate.tryPlace(leaf,ctx,CONFIG,front)) return;
         if (BuildingStamp.tryPlace(leaf, ctx, BuildingKind.COMMERCIAL)) return;
-        PointOfInterest poi = BuildingShellCore.carve(leaf, ctx.grid, ctx.topology, ctx.doodads, ctx.rng, CONFIG);
+        PointOfInterest poi = BuildingShellCore.carve(leaf, ctx.grid, ctx.topology, ctx.doodads, ctx.rng, CONFIG, new BuildingPlacement(front,true));
         if (poi != null) ctx.pois.add(poi);
     }
 }

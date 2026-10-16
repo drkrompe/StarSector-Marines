@@ -103,7 +103,8 @@ final class BuildingShellCore {
                        BuildingKind buildingKind,
                        RoomPurpose[] chamberPurposesByAnchorDistance) {
             this(interiorGround, doodadPoolId, poiKind, layoutRecipe, buildingKind,
-                    chamberPurposesByAnchorDistance, BinaryPartitionStrategy.DEFAULT);
+                    chamberPurposesByAnchorDistance, layoutRecipe == BuildingLayouts.LayoutRecipe.HOME
+                            ? NeighborhoodPartitionStrategy.HOME : BinaryPartitionStrategy.DEFAULT);
         }
 
         BuildingConfig(GroundKind interiorGround,
@@ -269,7 +270,7 @@ final class BuildingShellCore {
                 BuildingPlacement.Side.RIGHT, recipe, buildingKind);
     }
 
-    /** Stamps one centered aperture per contiguous living/bedroom run on a facade. */
+    /** Fits glazed bays within each room facade, retaining corner piers and door jambs. */
     private static void stampWindowRuns(NavigationGrid grid, CellTopology topology,
                                         int bl, int bt, int br, int bb,
                                         BuildingPlacement.Side side,
@@ -277,19 +278,27 @@ final class BuildingShellCore {
                                         BuildingKind buildingKind) {
         boolean horizontal = side == BuildingPlacement.Side.TOP
                 || side == BuildingPlacement.Side.BOTTOM;
-        int min = horizontal ? bl + 1 : bt + 1;
-        int max = horizontal ? br - 1 : bb - 1;
+        int min = horizontal ? bl + 2 : bt + 2;
+        int max = horizontal ? br - 2 : bb - 2;
         int runStart = -1;
         boolean inRun = false;
         RoomPurpose runPurpose = null;
         for (int along = min; along <= max + 1; along++) {
             RoomPurpose purpose = along <= max
                     ? inwardPurpose(topology, bl, bt, br, bb, side, along) : null;
-            boolean eligible = along <= max && supportsWindow(recipe, purpose);
+            boolean eligible = along <= max && supportsWindow(recipe, purpose)
+                    && canStampWindow(grid, bl, bt, br, bb, side, along);
             if (eligible && inRun && purpose == runPurpose) continue;
             if (inRun) {
-                stampWindow(grid, topology, bl, bt, br, bb, side,
-                        (runStart + along - 1) / 2, buildingKind);
+                int available = along - runStart;
+                int panes = Math.min(windowBayWidth(recipe, runPurpose), available);
+                // Small domestic rooms still need two-cell wall support for beds and sofas.
+                if (runPurpose == RoomPurpose.BEDROOM || runPurpose == RoomPurpose.APARTMENT_LIVING
+                        || runPurpose == RoomPurpose.HOME_KITCHEN)
+                    panes = Math.min(panes, Math.max(1, available - 2));
+                int start = runStart + (available - panes) / 2;
+                for (int pane = start; pane < start + panes; pane++)
+                    stampWindow(grid, topology, bl, bt, br, bb, side, pane, buildingKind);
             }
             runStart = eligible ? along : -1;
             inRun = eligible;
@@ -313,12 +322,37 @@ final class BuildingShellCore {
             case BARRACKS -> purpose == RoomPurpose.BARRACKS;
             case VEHICLE_BAY -> purpose == RoomPurpose.VEHICLE_BAY;
             case CIVIC_HEADQUARTERS -> purpose == RoomPurpose.CIVIC_RECEPTION
-                    || purpose == RoomPurpose.CONFERENCE_ROOM;
+                    || purpose == RoomPurpose.CIVIC_OFFICE || purpose == RoomPurpose.CONFERENCE_ROOM;
             case MEDICAL_CLINIC -> purpose == RoomPurpose.TREATMENT_ROOM
                     || purpose == RoomPurpose.PATIENT_WARD;
             case DENSE_TENEMENT -> purpose == RoomPurpose.BEDROOM;
-            case SHED, HOME, ARMORY, MEDICAL_SUPPORT -> false;
+            case HOME -> purpose == RoomPurpose.BEDROOM || purpose == RoomPurpose.HOME_KITCHEN
+                    || purpose == RoomPurpose.APARTMENT_LIVING;
+            case SHED, ARMORY, MEDICAL_SUPPORT -> false;
         };
+    }
+
+    private static int windowBayWidth(BuildingLayouts.LayoutRecipe recipe, RoomPurpose purpose) {
+        if (recipe == BuildingLayouts.LayoutRecipe.COMMAND_CENTER
+                || recipe == BuildingLayouts.LayoutRecipe.BARRACKS
+                || recipe == BuildingLayouts.LayoutRecipe.VEHICLE_BAY) return 1;
+        if (purpose == RoomPurpose.SHOP_FLOOR || purpose == RoomPurpose.CIVIC_RECEPTION) return 4;
+        if (purpose == RoomPurpose.APARTMENT_LIVING || purpose == RoomPurpose.CONFERENCE_ROOM) return 3;
+        return 2;
+    }
+
+    private static boolean canStampWindow(NavigationGrid grid, int bl, int bt, int br, int bb,
+                                          BuildingPlacement.Side side, int along) {
+        int x = side == BuildingPlacement.Side.LEFT ? bl : side == BuildingPlacement.Side.RIGHT ? br : along;
+        int y = side == BuildingPlacement.Side.TOP ? bt : side == BuildingPlacement.Side.BOTTOM ? bb : along;
+        Direction out = outwardDirection(side);
+        if (grid.isWalkable(x,y) || grid.isDoorway(x-out.dx,y-out.dy)) return false;
+        // Keep solid jambs around public and service thresholds.
+        for (Direction d : Direction.CARDINALS)
+            if (grid.inBounds(x+d.dx,y+d.dy) && grid.isDoorway(x+d.dx,y+d.dy)) return false;
+        return grid.isWalkable(x-out.dx,y-out.dy) && grid.inBounds(x+out.dx,y+out.dy)
+                && grid.isWalkable(x+out.dx,y+out.dy) && grid.getEdgeBarrier(x,y,out) == null
+                && grid.isEdgePassable(x+out.dx,y+out.dy,out.opposite());
     }
 
     private static RoomPurpose inwardPurpose(CellTopology topology,

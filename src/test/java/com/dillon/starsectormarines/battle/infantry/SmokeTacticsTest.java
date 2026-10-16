@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -63,6 +64,49 @@ class SmokeTacticsTest {
                 UnitType.HEAVY_MECH, 12, 5));
 
         assertFalse(InfantryUnitPrep.tryOpportunitySpecial(carrier, sim));
+        assertEquals(0f, sim.world().secondaryActionTimer(carrier));
+    }
+
+    @Test
+    void aSquadToldToScreenACellThrowsFromACarrierInRangeAndNotFromOneOutOfIt() {
+        BattleSimulation sim = openArena(40, 12);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        long carrier = sim.spawn(new EntitySpec("smoke", Faction.MARINE, UnitType.MARINE, 5, 5)
+                .squad(squadId)
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID),
+                        SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID).startingAmmo()));
+        Squad squad = sim.getSquad(squadId);
+        squad.centroidX = 5.5f;
+        squad.centroidY = 5.5f;
+        squad.assignedObjective = ObjectiveAssignment.attackMove(squadId, 5, 5)
+                .withScreen(new ObjectiveAssignment.ScreenMission(30, 5));
+        SmokeTactics.serveScreens(sim);
+        assertEquals(0L, squad.smokeCarrierId, "thirty cells is beyond the throw: nothing is reserved");
+        squad.assignedObjective = ObjectiveAssignment.attackMove(squadId, 5, 5)
+                .withScreen(new ObjectiveAssignment.ScreenMission(11, 5));
+        SmokeTactics.serveScreens(sim);
+        assertEquals(carrier, squad.smokeCarrierId, "six cells is inside the throw");
+        assertTrue(sim.world().secondaryActionTimer(carrier) > 0f, "the throw is under way");
+    }
+
+    @Test
+    void aScreenAlreadyStandingIsNotThrownTwice() {
+        BattleSimulation sim = openArena(40, 12);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        long carrier = sim.spawn(new EntitySpec("smoke", Faction.MARINE, UnitType.MARINE, 5, 5)
+                .squad(squadId)
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID),
+                        SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID).startingAmmo()));
+        Squad squad = sim.getSquad(squadId);
+        squad.centroidX = 5.5f;
+        squad.centroidY = 5.5f;
+        sim.smokeFields().launch(carrier, Faction.MARINE, 5.5f, 5.5f, 11.5f, 5.5f,
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID).smokeGrenadeSpec());
+        sim.smokeFields().tick(2f);
+        squad.assignedObjective = ObjectiveAssignment.attackMove(squadId, 5, 5)
+                .withScreen(new ObjectiveAssignment.ScreenMission(11, 5));
+        SmokeTactics.serveScreens(sim);
+        assertEquals(0L, squad.smokeCarrierId);
         assertEquals(0f, sim.world().secondaryActionTimer(carrier));
     }
 

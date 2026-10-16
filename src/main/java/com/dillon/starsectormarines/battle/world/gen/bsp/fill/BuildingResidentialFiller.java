@@ -11,16 +11,16 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 
 /**
  * {@link BlockFiller} for {@link BlockKind#BUILDING_RESIDENTIAL} leaves. Carves
- * a compact home on ordinary lots. Lots large enough for infantry-scale
- * circulation instead reuse the apartment plan: street-facing lobby, clear
- * two-cell hall, four private rooms, opposed rear exit, and firing windows.
+ * domestic room plans on ordinary lots. Medium and large homes separate sleep,
+ * cooking/dining and living space; fitting large lots may keep a medium home
+ * inside a fenced garden instead. Apartment compounds retain their common halls.
  *
  * <p>Fitting lots also draw from {@link BuildingStamp}'s rotated authored plans.
  * The procedural alternatives are carved by {@link BuildingShellCore}.
  */
 public final class BuildingResidentialFiller implements BlockFiller {
 
-    private static final BuildingShellCore.BuildingConfig HOME_CONFIG = new BuildingShellCore.BuildingConfig(
+    static final BuildingShellCore.BuildingConfig HOME_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.INDOOR,
             "RESIDENTIAL",
             PointOfInterest.Kind.RESIDENTIAL,
@@ -42,12 +42,11 @@ public final class BuildingResidentialFiller implements BlockFiller {
 
     @Override
     public void fill(BlockLeaf leaf, GenContext ctx) {
+        BuildingPlacement.Side front=streetFrontage(leaf,ctx);
+        if (LotYardTemplate.tryPlace(leaf,ctx,HOME_CONFIG,front)) return;
         if (BuildingStamp.tryPlace(leaf, ctx, BuildingKind.RESIDENTIAL)) return;
-        boolean apartment = qualifiesForApartment(leaf);
-        BuildingShellCore.BuildingConfig config = apartment ? APARTMENT_CONFIG : HOME_CONFIG;
-        BuildingPlacement placement = apartment
-                ? new BuildingPlacement(streetFrontage(leaf, ctx), true)
-                : BuildingPlacement.DEFAULT;
+        BuildingShellCore.BuildingConfig config = HOME_CONFIG;
+        BuildingPlacement placement = new BuildingPlacement(front, true);
         PointOfInterest poi = BuildingShellCore.carve(
                 leaf, ctx.grid, ctx.topology, ctx.doodads, ctx.rng, config, placement);
         if (poi != null) ctx.pois.add(poi);

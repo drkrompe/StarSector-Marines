@@ -1213,7 +1213,7 @@ The discovered suite ids and default output directories are:
 | Suite | Evidence | Output |
 |-------|----------|--------|
 | `apc` | Registered overhead APC hulls at four headings and battle scale, plus a full independent twin-MG rotation with ballistic muzzle marks; controlled art poses at 1920x1080/100%, not traverse timing or combat acceptance | `build/snapshots/apc/` |
-| `tank` | Registered tracked hull and twin-cannon turret at four headings and battle scale, full posed rotation with ballistic muzzle marks, and real autonomous-fire recoil; 1920x1080/100% art evidence, not mission acceptance | `build/snapshots/tank/` |
+| `tank` | Registered tracked hull and short single-cannon turret at four headings, full posed rotation with muzzle marks, real autonomous-fire recoil, and the production Thunder Run staging column alongside APCs, a technical and freight haulers; 1920x1080/100% art evidence, not mission acceptance | `build/snapshots/tank/` |
 | `shepherd-basin` | Three recovery-map visits at 1920×1080, authored night lighting, detailed grounded Shepherd and scrap, cargo/infantry access and clear construction plots across palettes and seeds; controlled player observation verifies lit hull surfaces and hidden hostiles, not full mission play or campaign settlement | `build/snapshots/shepherd-basin/` |
 | `ship-command-ui` | Production ship selector and contextual build tray at 1920×1080/100%, remote Move/Hold/Auto, physical turret construction, takeover handback and Cold Start's grounded power gate; controlled fixtures, not Working Passage or campaign ownership acceptance | `build/snapshots/ship-command-ui/` |
 | `working-passage` | Production departure mission with named companies and fitted boats, full-size low-hover Morrow, two construction stops, militia holds and physical climb-out; absent arrival, withheld construction, withdrawal/retry and disabled-ship controls. 1920×1080/100%, detached playback rather than live campaign acceptance; report in `build/reports/working-passage/playback.txt` | `build/snapshots/working-passage/` |
@@ -1316,7 +1316,7 @@ and drains the same simulation lists `BattleScreen.advance` does.
 | Missile and projectile contrails (`ContrailFxService`) | Drawn as flat-coloured ribbon segments through the shared `RibbonBatch` geometry; additive plume styles draw as ordinary blends |
 | Lingering beams and delivered-ordnance traces (falling bombs, gun-run streaks) | Drawn |
 | Weapon `fx` blocks: launch, muzzle, trail, impact, aftermath; heavy blasts, rolling blasts, wall dust, wreck smoke and fire; point-defence intercept bursts | Drawn from the real `ImpactFx` fed per tick, painted over the frame |
-| Smoke clouds, shield domes, point-defence bubbles, demolition packs, tender sites | Drawn (shield domes by the CPU model of their shader, in blocks) |
+| Smoke clouds, shield domes, point-defence engagement marks, demolition packs, tender sites | Drawn (shield domes by the CPU model of their shader, in blocks) |
 | Night lighting pools | Drawn. Muzzle, impact and fire lights (`GroundLightService`) are not fed, so a night battle's shots do not light the ground |
 | Capture-point rings and ticks, objective annuli | Drawn |
 | Objective, compound and fort **text** labels (GL bitmap font runnables) | Not drawn; reviews name places with `ReviewAnnotations`. Mission-marker and salvage cards are drawn as labels but the mission layer is left out on purpose |

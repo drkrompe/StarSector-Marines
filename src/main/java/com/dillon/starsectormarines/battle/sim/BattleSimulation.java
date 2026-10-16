@@ -2950,6 +2950,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         fieldMortars.tick(TICK_DT, this);
         // A squad whose march has brought something worth a tube into its band halts its crew and leashes the rest.
         MortarTactics.openSections(this);
+        // A squad told to screen a nest off with smoke throws its grenade once it is within range of the cell.
+        SmokeTactics.serveScreens(this);
         // Shield domes drain, recover and change hands here, ahead of the detonation passes that read them.
         shieldDomes.tick(TICK_DT, rosterService);
         // Cover screens build, age, and retire here. Nothing downstream of

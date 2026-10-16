@@ -346,6 +346,8 @@ class GatedHousingFillerTest {
             RoomPurpose purpose = fixture.topology.getRoomPurpose(doodad.cellX, doodad.cellY);
             if (purpose != RoomPurpose.BEDROOM && purpose != RoomPurpose.APARTMENT_LIVING) continue;
             if (!apartment.contains(doodad.cellX, doodad.cellY)) continue;
+            if (!doodad.definitionId().startsWith("doodad.residential-bed-")
+                    && !doodad.definitionId().startsWith("doodad.residential-sofa-")) continue;
             furniture++;
             assertEquals(2, doodad.footprintCellsX * doodad.footprintCellsY,
                     "beds and sofas occupy two cells");

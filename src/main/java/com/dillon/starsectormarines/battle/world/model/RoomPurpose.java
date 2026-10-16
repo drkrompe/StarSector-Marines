@@ -149,4 +149,6 @@ public enum RoomPurpose {
      * however similar the word for them is.
      */
     BRIDGE,
+    /** Domestic cooking and dining area; distinct from a ship mess. */
+    HOME_KITCHEN,
 }

@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
 import com.dillon.starsectormarines.battle.nav.Direction;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import java.util.Random;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
@@ -10,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
@@ -24,19 +27,19 @@ import java.util.List;
  */
 public enum BuildingStamp {
     CORNER_HOME("Corner home", BuildingKind.RESIDENTIAL, BuildingStyle.SANDSTONE,
-            "###n###    ",
+            "##nnn##    ",
             "#h....#    ",
             "#.....e    ",
             "#b....#    ",
             "#..####    ",
             "#..#       ",
-            "#..####n###",
+            "#..###nn###",
             "#..+,,,,h.#",
             "w..#,,,,..e",
             "#..#b,,,..#",
             "##+####s###"),
     COURT_HOUSE("Court house", BuildingKind.RESIDENTIAL, BuildingStyle.TENEMENT,
-            "##n######n###",
+            "##nn#####nn##",
             "#h..#...#..h#",
             "#...+...+...#",
             "#b..#...#..b#",
@@ -47,18 +50,18 @@ public enum BuildingStamp {
             "#...#   #...#",
             "##+##   ##+##"),
     CORNER_SHOP("Corner shop", BuildingKind.COMMERCIAL, BuildingStyle.ARCADE,
-            "###n###    ",
+            "##nnn##    ",
             "#kk...#    ",
             "#.....e    ",
             "#.....#    ",
             "#..####    ",
-            "#..####n###",
+            "#..###nn###",
             "#..+,,,,cc#",
             "w..#,,,,..e",
             "#d.#,,,,..#",
             "##+####+###"),
     MARKET_HALL("Market hall", BuildingKind.COMMERCIAL, BuildingStyle.SANDSTONE,
-            "###n####n####",
+            "##nn###nn####",
             "#kk..#cc..cc#",
             "#....+......#",
             "#....#......e",
@@ -273,7 +276,14 @@ public enum BuildingStamp {
                         }
                     }
                 }
-                String propId = prop(cell);
+                if (kind == BuildingKind.RESIDENTIAL && cell != '#') {
+                    RoomPurpose purpose = this == CORNER_HOME
+                            ? (x < 3 && y < 6 ? RoomPurpose.RESIDENTIAL_HALL : y >= 5 ? RoomPurpose.BEDROOM
+                                : x < 7 ? RoomPurpose.HOME_KITCHEN : RoomPurpose.APARTMENT_LIVING)
+                            : x < 4 ? RoomPurpose.BEDROOM : x > 8 ? RoomPurpose.APARTMENT_LIVING : RoomPurpose.HOME_KITCHEN;
+                    if (cell != '+') ctx.topology.setRoomPurpose(wx,wy,purpose);
+                }
+                String propId = kind == BuildingKind.RESIDENTIAL ? null : prop(cell);
                 if (propId != null) {
                     DoodadDef def = TileRegistry.installed().doodad(propId);
                     if (def == null || def.footprintCellsX != 1 || def.footprintCellsY != 1) {
@@ -305,6 +315,36 @@ public enum BuildingStamp {
                 } catch (IllegalArgumentException ex) {
                     throw new IllegalArgumentException(name() + " turn " + turns
                             + " window " + x + "," + y, ex);
+                }
+            }
+        }
+        if (kind == BuildingKind.RESIDENTIAL || kind == BuildingKind.COMMERCIAL) {
+            if (turns == 0) {
+                if (kind == BuildingKind.RESIDENTIAL)
+                    NeighborhoodFurnishing.furnish(ctx.grid,ctx.topology,left,bottom,left+width-1,bottom+height-1,ctx.doodads);
+                else {
+                    var groups = new BuildingWorkGroups(ctx.grid,ctx.topology,ctx.doodads);
+                    groups.reserveDoorSurrounds(left,bottom,left+width-1,bottom+height-1);
+                    groups.fit(left,bottom,left+width-1,bottom+height-1,null,CompactBuildingFurnishing.pair("shelf","shelf"),1);
+                }
+            } else {
+                // Fit in the authored frame once, then rotate whole groups with the building.
+                NavigationGrid grid=new NavigationGrid(width+4,height+4);
+                for(int y=0;y<height+4;y++)for(int x=0;x<width+4;x++)grid.setWalkableFloor(x,y);
+                GenContext local=new GenContext(grid,new CellTopology(width+4,height+4),new Random(0),width+4,height+4,0);
+                place(local,2,2,0);
+                for(Doodad d:local.doodads) {
+                    int lx=d.cellX-2,ly=d.cellY-2;
+                    // One-cell authored commercial fixtures have already been stamped above.
+                    if(kind==BuildingKind.COMMERCIAL && prop(cell(lx,ly))!=null)continue;
+                    int[] a=posed(lx,ly,turns),b=posed(lx+d.footprintCellsX-1,ly+d.footprintCellsY-1,turns);
+                    Doodad placed=new Doodad(left+Math.min(a[0],b[0]),bottom+Math.min(a[1],b[1]),
+                            TileRegistry.installed().doodad(d.definitionId()),(d.quarterTurns+turns)%4);
+                    ctx.doodads.add(placed);
+                    if(!grid.isWalkable(d.cellX,d.cellY)) for(int y=placed.cellY;y<placed.cellY+placed.footprintCellsY;y++)
+                        for(int x=placed.cellX;x<placed.cellX+placed.footprintCellsX;x++) {
+                            ctx.grid.setWalkable(x,y,false);ctx.grid.setSeeThrough(x,y,true);ctx.topology.setFixture(x,y,true);
+                        }
                 }
             }
         }

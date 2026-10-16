@@ -52,7 +52,7 @@ final class IndustrialPartitionStrategy implements PartitionStrategy {
         int height = bb - bt + 1;
         if (Math.max(width, height) < MIN_LONG_DIM
                 || Math.min(width, height) < MIN_SHORT_DIM) {
-            return BinaryPartitionStrategy.DEFAULT.partition(
+            return NeighborhoodPartitionStrategy.WORKSHOP.partition(
                     grid, topology, bl, bt, br, bb, rng, interiorGround, placement);
         }
 

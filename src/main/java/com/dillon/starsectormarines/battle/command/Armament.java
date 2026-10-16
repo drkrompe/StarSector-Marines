@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.CommsKitSpec;
 import com.dillon.starsectormarines.marine.SatchelChargeSpec;
+import com.dillon.starsectormarines.marine.SmokeGrenadeSpec;
 import com.dillon.starsectormarines.marine.SpecialAiPolicy;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 
@@ -46,6 +47,8 @@ public record Armament(Delivery delivery, float range, int roundsPerTrigger, flo
          * fire mission, and cannot be aimed at a wall cell, so it is anti-structure fire and suppression but never a breacher.
          */
         EMPLACED,
+        /** A grenade thrown to stand a cloud of smoke on ground: no damage, an obstruction to sight. */
+        SCREEN,
         /** A radio that directs the side's air onto ground: not a weapon, the means to ask for one. */
         CALLED,
         /** A tool used standing at the target (a cutter). */
@@ -123,6 +126,10 @@ public record Armament(Delivery delivery, float range, int roundsPerTrigger, flo
                 int rounds = ammo > 0 || !item.usesAmmunition() ? Math.max(1, structure.mount.ammoCapacity) : 0;
                 return new Armament(Delivery.EMPLACED, weapon.range, 1, Math.max(0.1f, weapon.cooldown), weapon.damage,
                         weapon.penetration, weapon.wallDamage, rounds);
+            }
+            case UTILITY_SMOKE -> {
+                SmokeGrenadeSpec spec = item.smokeGrenadeSpec();
+                return new Armament(Delivery.SCREEN, spec.throwRange(), 1, Math.max(0.1f, spec.throwDuration()), 0f, 0f, 0, triggers);
             }
             case UTILITY_COMMS -> {
                 CommsKitSpec spec = item.commsKitSpec();

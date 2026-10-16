@@ -7,10 +7,13 @@ import com.dillon.starsectormarines.render2d.PolyMesh;
 import com.dillon.starsectormarines.render2d.PolyTess;
 
 /**
- * Draws what a placed point-defence emplacement is doing: the bubble it
- * covers, how much of its magazine is left, and — the part that matters — one
- * readable mark per engagement, drawn differently for a warhead it stopped and
- * one it fired at and lost.
+ * Draws what point defence is doing: one readable mark per engagement, drawn
+ * differently for a warhead it stopped and one it fired at and lost.
+ *
+ * <p>The ground a mount covers is deliberately not drawn. A ring at the
+ * intercept radius around every pod and every marine wearing a pack was a
+ * standing circle on the field that said nothing a player acts on; what the
+ * mechanic needs to be legible is the moment it acts.
  *
  * <p>Without those marks the mechanic is invisible in the worst possible way.
  * A stopped round is deleted mid-air, which on screen is indistinguishable from
@@ -26,7 +29,6 @@ import com.dillon.starsectormarines.render2d.PolyTess;
  */
 public final class PointDefenseRenderSystem implements RenderSystem {
 
-    private static final int RING_SEGMENTS = 64;
     private static final int MARK_SEGMENTS = 20;
     /** Radius of an engagement mark, in cells. Sized to read at review-GIF scale without swamping the round it replaces. */
     private static final float MARK_CELLS = 0.75f;
@@ -44,24 +46,6 @@ public final class PointDefenseRenderSystem implements RenderSystem {
         BattleCamera camera = ctx.camera;
         float cellPx = camera.cellPxSize();
         PointDefenseService pointDefense = ctx.sim.pointDefense();
-
-        for (PointDefenseService.EmplacementView pod : pointDefense.activeEmplacements()) {
-            if (!isKnown(ctx, pod.faction(), pod.x(), pod.y())) continue;
-            float screenX = camera.cellToScreenX(pod.x());
-            float screenY = camera.cellToScreenY(pod.y());
-            float radius = pod.interceptRadius() * cellPx;
-            float life = pod.totalLifetime() > 0f
-                    ? clamp01(pod.remainingLifetime() / pod.totalLifetime()) : 0f;
-            // The bubble itself: faint, so it reads as an area of cover rather
-            // than an objective marker.
-            PolyTess.appendAnnulus(mesh, screenX, screenY, radius - 1.5f, radius,
-                    RING_SEGMENTS, 0.55f, 0.86f, 1f, 0.18f * ctx.alphaMult);
-            // A short arc of the same ring drains with the pod's clock, so
-            // "this thing is about to stop working" is legible from the field
-            // rather than only from an after-action.
-            PolyTess.appendArc(mesh, screenX, screenY, radius - 5f, radius - 2.5f,
-                    life, RING_SEGMENTS, 0.62f, 0.92f, 1f, 0.5f * ctx.alphaMult);
-        }
 
         for (PointDefenseService.EngagementView shot : pointDefense.recentEngagements()) {
             if (!isKnown(ctx, shot.faction(), shot.x(), shot.y())) continue;
@@ -95,9 +79,5 @@ public final class PointDefenseRenderSystem implements RenderSystem {
     private static boolean isKnown(RenderContext ctx, Faction faction, float x, float y) {
         return Allegiance.of(faction).friendly()
                 || ctx.sim.getFogOfWar().isCellRevealed((int) Math.floor(x), (int) Math.floor(y));
-    }
-
-    private static float clamp01(float v) {
-        return v < 0f ? 0f : Math.min(v, 1f);
     }
 }

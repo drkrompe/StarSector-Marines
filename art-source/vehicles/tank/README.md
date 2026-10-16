@@ -1,42 +1,47 @@
-# Breakthrough tank and twin cannon
+# Breakthrough tank and single cannon
 
-Generated with built-in ImageGen from `guide.png` and `prompt.txt`, using
-`../apc/master.png` as the material reference. `guide.ps1` retains the geometry:
-a projecting wedge nose, sloped glacis, layered shoulder armor, continuous
-track tops and a squared rear engine deck. The independent turret has thick
-forward cheeks, a raised crown and a rear bustle. Broad plane values and bevels
-imply volume from strict overhead, so front and rear remain readable at any
-hull or gun bearing.
+Built-in ImageGen produced the approved Abrams/Type 10-inspired hull and armor
+from the original prompt in `prompt.txt`. The current `guide.ps1` / `guide.png`
+retain that flat-fronted chassis and angular turret, with a shorter single cannon.
+The exposed tube is roughly half its previous length, with one modest collar
+and a plain muzzle. The compact armor cheeks and squared rear bustle still
+carry the silhouette. Faded khaki/olive-gray paint, ochre remnants and replacement
+panels suggest maintained, century-old Hegemony salvage. This provenance is
+Marine Operations art direction, not vanilla canon.
 
-`master.png` is the unmodified 1774x887 generated result. ImageGen changed the
-guide's component scale and placement. `registration.json` records the measured
-rectangles, centers and uniform scales. `pack.ps1` preserves source alpha and
-proportions while registering two full 768x768 slots into
-`mod/graphics/battle/vehicles/army-tank.png`. The previous unused third component
-is gone. Reproduce the guide and packed output with:
+`master.png` is the unmodified 1774x887 original generation and remains the
+hull source. `turret-master.png` is the unmodified 1774x887 ImageGen edit made
+with `turret-prompt.txt`, using the original master as the edit target and
+the updated guide as the barrel geometry reference. Only its turret is used;
+the approved hull pixels are retained exactly.
+
+`registration.json` names the source, measured rectangle, bearing and uniform
+scale for each component. `pack.ps1` preserves alpha and proportions while
+registering two full 768x768 slots into
+`mod/graphics/battle/vehicles/army-tank.png`. Reproduce with:
 
 ```powershell
 & art-source/vehicles/tank/guide.ps1
 & art-source/vehicles/tank/pack.ps1
 ```
 
-The hull's opaque bearing is centered at source (507,461), and the independent
-turret at (1530,465). Both land on the centers of their output frames; mount
-and pivot compensation are zero. The registered-frame loader retains alpha
-margins in production and in the headless review, rather than auto-trimming
-the gun's long barrel and shifting its pivot.
+The hull bearing remains (508,451), scaled by 0.73. The new turret bearing is
+(1498,454), scaled by 0.7; its muzzle is (1182,454). Both components land on
+their output frame centers, with zero mount/pivot compensation. The unchanged
+4.3-cell hull frame and 7.789194-cell turret frame retain their alpha margins.
+The new centered muzzle is 2.2434501 cells forward, down from 3.21, with zero
+lateral offset. These are measured art registration values, not balance tuning.
 
-Hull art uses the existing 4.3-cell frame length. The gun's mostly transparent
-frame is 7.789194 cells wide, placing the visible muzzle tips 3.21 cells ahead
-of its bearing. This is a frame size, not the turret's physical width. Source
-tips at (1108,441) and (1108,490), uniformly reduced by 0.75, give lateral
-offsets +0.18256 and -0.19017 cells. Both lie within 0.008 cells of the shared
-paired-cannon hardpoints (+/-0.19). The weapon's damage, ammunition, cadence,
-range, chassis footprint, movement and existing visual recoil remain unchanged.
+The existing two-round burst, damage, ammunition, range and recoil remain.
+Both rounds now leave the same barrel. The visible catalog name is Breach
+Cannon; internal `tank-twin-cannon` ids and localization keys remain stable
+for compatibility with existing references.
 
-Review using `gradlew createSnapshots -Psnapshot=tank`. The suite renders
-four hull headings with independent gun bearings, a battle-scale still, a
-full posed turret rotation with crosses on both ballistic muzzles, and actual
-autonomously fired paired shots through the existing recoil renderer. All artifacts
-are 1920x1080 at 100% UI; close views change only the camera. Rotation poses
-are art evidence, not traverse timing or mission acceptance.
+Run `gradlew createSnapshots -Psnapshot=tank` for headings, battle scale,
+marked muzzle rotation and actual autonomous firing/recoil. The suite also
+builds Thunder Run seed 9301 through its production campaign factory and renders
+`campaign-context.png` and `campaign-comparison.png`: the actual starting
+tank, two APC escorts, technical and three cargo haulers. Initial positions and
+terrain are untouched; turret bearings are posed forward for visual comparison.
+All artifacts are 1920x1080 at 100% UI; close views change only camera zoom.
+This is pre-combat art evidence, not a mission balance or live-save acceptance run.

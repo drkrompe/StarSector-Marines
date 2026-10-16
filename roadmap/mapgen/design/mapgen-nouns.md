@@ -309,7 +309,13 @@ sides of an interior partition and concave joins remain coherent without an
 art-defined inside/outside direction.
 
 Ordinary hollow building shells place shared-edge windows on facade runs
-belonging to tactically usable rooms. The former facade wall cell becomes a
+belonging to tactically usable rooms. Homes and office workrooms receive daylight
+alongside public rooms: bedrooms and workrooms use paired panes, living and
+meeting rooms wider bays, and shops or reception areas may use four-cell glazed
+runs. Smaller domestic rooms narrow the glazing to retain bed and sofa wall
+support. Bays stop at room divisions and door jambs and retain solid corner piers.
+Each pane remains an ordinary independently destructible shared edge, so a break
+opens only that section. The former facade wall cell becomes a
 walkable, building-hinted firing recess; only its outside transition is closed,
 and that recess is retained as the barrier's structural-owner side. Secured
 storage and infrastructure rooms may deliberately remain opaque. Compound
@@ -331,7 +337,7 @@ than a single symbolic prop: command rooms organize console banks around a
 planning focus, server rooms organize repeated racks around a service aisle,
 and both retain doorway, firing-position, and room-connectivity obligations.
 Ground command chambers and their operations annexes, industrial control rooms,
-clinic monitoring stations and civic server rooms use connected, capped
+clinic monitoring stations use connected, capped
 console runs against real supporting walls. Compact rooms retain their old
 single station when a complete bank cannot fit. Each bank keeps two walkable rows on
 its operator side, avoids firing recesses and doorway approaches, and is
@@ -345,13 +351,33 @@ Their outside cuts, window recesses and interior anchors remain usable.
 This treatment follows room purpose and available working space rather than
 turning residential or shop footprints into control rooms.
 
-Small ordinary buildings use compact work groups instead of random pool scatter:
-homes fit a sleeping nook and kitchenette, shops display stock beside a counter,
-storage buildings fit aligned case bays or full stocked racks, and utility huts
-fit service cabinets. Groups reserve their working side and refuse doorway or
-window approaches and placements that strand floor. A one-cell module is the
-fallback when its paired group cannot fit; empty circulation is preferable to
-blocking an entrance. The shell refreshes its interior anchor after furnishing.
+Ordinary buildings fit activity groups **per connected room**. Medium homes
+separate bedrooms, cooking/dining and living areas; larger homes divide the rear
+into two bedrooms, and long shallow homes use serial rooms along their long
+axis. Tables, seating, personal storage and work nooks accompany the core room
+fixtures. Beds retain a wall-supported head and clear foot; sofas retain their
+back wall and clear seat edge. Apartment compounds keep their shared halls and
+receive the same richer domestic groups in their existing rooms. Authored
+residential plans label their own spaces and rotate whole furniture arrangements
+with the footprint. Tiny rooms retain compact fallbacks.
+
+Medium shops now divide sales and stock before fitting shelves and a checkout.
+Compact workshops separate work/repair space from stores; smaller offices split
+public reception from work rooms. Large factory and civic plans retain their
+specialized multi-room programs. Placement reserves working space, doorway and
+window approaches, rejects stranded floor, and refreshes the interior anchor
+from the furnished result.
+
+**Lot yards** are an alternative to expanding a building across its whole
+parcel. A fitting ordinary residential, commercial, industrial or civic lot
+can retain a medium shell behind a garden/patio, display forecourt, cargo yard
+or public seating court. The local variant owns only its leaf: fences sit inside
+its boundary, every real door receives a three-cell paved approach, side gates
+retain circulation, and the POI bounds and interior anchor remain the building's.
+The public anchor is on the actual front approach. Existing roads, reserved
+lanes, berths, barriers and occupied ground refuse a yard before mutation; a
+refused lot consumes no variant-selection draw. Eligible lots choose the yard
+one third of the time, keeping full-size buildings and authored shapes in the mix.
 
 The `colony-furnishings` family supplies compact metal cases, personal lockers,
 desks, utility cabinets, kitchenette worktops and retail shelving. Normal pools
@@ -405,13 +431,12 @@ Civic headquarters follow the same authored-program rule as ship mech labs:
 their two-cell spine, opposing entrances, room depths, and fixture groups are
 designed as one floor-plan family rather than discovered by random door and
 prop placement. A qualifying headquarters lot is at least 15 by 13 cells. Each
-office must fit its workstation-and-records group, each reception wing its
-counter, the conference room its central table, and the server room repeated
-racks around a service aisle. Multi-cell fixtures rotate at placement time so
-their backs meet supporting walls, their working faces meet open room cells,
-and centerpieces are centered by their complete footprint. On the compact
-footprint, office facade windows yield to that required room capacity;
-reception and conference facades retain the building's firing apertures.
+office fits modern terminals, operator seating and record storage; reception
+combines staffed desks and waiting seats, the conference room has a meeting
+table with seating, and the server room has opaque cabinets around a service
+aisle. Whole furniture groups rotate with their protected working space.
+Public and office facades receive glazed bays before furnishing; secure server
+rooms remain opaque. Furnishing keeps the windows' inward approaches open.
 
 Thunder Run owns a wider, elongated freight corridor with three roadside
 objectives and two staging stops. Dispatch uses an L-shaped depot and office

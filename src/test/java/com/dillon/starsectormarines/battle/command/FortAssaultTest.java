@@ -423,8 +423,17 @@ class FortAssaultTest {
         return orders.values().stream().anyMatch(o -> o.reason() == reason);
     }
 
+    /** Every nest of the fort seen alive and then gone under a witness: the whole defence is believed dead. */
+    private static void killEveryNest(Picture p) {
+        List<int[]> alive = new ArrayList<>(p.works.nests);
+        List<int[]> witness = new ArrayList<>();
+        for (int[] nest : p.works.nests) witness.add(new int[] {nest[0] - 12, nest[1] - 12});
+        p.belief.update(p.works, alive, witness);
+        p.belief.update(p.works, List.of(), witness);
+    }
+
     @Test
-    void aCloseBreacherWaitsWithTheAssaultWhileTheNestsCoveringTheWallAreStillAnsweringThenIsLetGo() {
+    void aCloseBreacherIsNotLetGoByTheSuppressionWindowWhileNestsThatSeeItsRouteAreOpen() {
         Picture p = new Picture();
         FortAssault.Way breach = p.works.ways.stream().filter(w -> w.variant() == Variant.BREACH).findFirst().orElseThrow();
         p.execution = new FortAssault.Execution(p.works, p.belief, new FortAssault.Defence(breach, 0, 0, 0f, FortAssault.BreachMeans.CLOSE, null), 0);
@@ -435,27 +444,34 @@ class FortAssaultTest {
         int tick = FortAssault.POSITION_TIMEOUT_TICKS;
         p.execution.run(tick, M, p.objective, p.members, p.bodies, walled, p.notes);
         assertEquals(FortAssault.Step.SUPPRESS, p.execution.step());
-        Map<Integer, Order> suppressing = p.execution.run(tick + FortAssault.SUPPRESS_MAX_TICKS - 1, M, p.objective, p.members, p.bodies, walled, p.notes);
-        assertFalse(anyOrder(suppressing, AssignmentReason.ASSAULT_BREACH), "still inside the suppression window");
-        Map<Integer, Order> released = p.execution.run(tick + FortAssault.SUPPRESS_MAX_TICKS, M, p.objective, p.members, p.bodies, walled, p.notes);
-        assertTrue(anyOrder(released, AssignmentReason.ASSAULT_BREACH), "the window served, the breacher goes to the wall");
-        for (Order order : released.values()) {
-            if (order.reason() == AssignmentReason.ASSAULT_BREACH) assertTrue(order.assignment().breaches());
-        }
+        Map<Integer, Order> afterWindow = p.execution.run(tick + FortAssault.SUPPRESS_MAX_TICKS + 30, M, p.objective, p.members, p.bodies,
+                walled, p.notes);
+        assertFalse(anyOrder(afterWindow, AssignmentReason.ASSAULT_BREACH),
+                "the old window is gone: a sapper is not walked into guns that are still open");
+    }
+
+    @Test
+    void aCompanyThatCannotMakeTheApproachSurvivableChangesApproachRatherThanSendTheSappers() {
+        Picture p = new Picture();
+        FortAssault.Way breach = p.works.ways.stream().filter(w -> w.variant() == Variant.BREACH).findFirst().orElseThrow();
+        p.execution = new FortAssault.Execution(p.works, p.belief, new FortAssault.Defence(breach, 0, 0, 0f, FortAssault.BreachMeans.CLOSE, null), 0);
+        CommandTopology walled = walledAt(breach.mouthX() - breach.outX(), breach.mouthY() - breach.outY());
+        p.execution.run(0, M, p.objective, p.members, p.bodies, walled, p.notes);
+        p.execution.run(FortAssault.POSITION_TIMEOUT_TICKS, M, p.objective, p.members, p.bodies, walled, p.notes);
+        assertEquals(Variant.BREACH, p.execution.way().variant(), "still on the wall before the patience is spent");
+        Map<Integer, Order> orders = p.execution.run(SatchelApproach.PATIENCE_TICKS + FortAssault.POSITION_TIMEOUT_TICKS + 30, M, p.objective,
+                p.members, p.bodies, walled, p.notes);
+        assertTrue(p.execution.way().variant() != Variant.BREACH, "the company took a gate: " + p.notes);
+        assertFalse(anyOrder(orders, AssignmentReason.ASSAULT_BREACH), "nobody is ordered to a wall that is no longer the way in");
+        assertTrue(p.execution.satchelRecord().approachChangedTick >= 0);
+        assertEquals(0, p.execution.breachSquads(), "the sappers go in with the assault");
     }
 
     @Test
     void aCloseBreacherIsLetGoAtOnceWhenNoCoveringNestIsBelievedLive() {
         Picture p = new Picture();
         FortAssault.Way breach = p.works.ways.stream().filter(w -> w.variant() == Variant.BREACH).findFirst().orElseThrow();
-        List<int[]> alive = new ArrayList<>();
-        List<int[]> witness = new ArrayList<>();
-        for (int i : breach.covering()) {
-            alive.add(p.works.nests.get(i));
-            witness.add(new int[] {p.works.nests.get(i)[0] - 12, p.works.nests.get(i)[1] - 12});
-        }
-        p.belief.update(p.works, alive, witness);
-        p.belief.update(p.works, List.of(), witness);
+        killEveryNest(p);
         p.execution = new FortAssault.Execution(p.works, p.belief, new FortAssault.Defence(breach, 0, 0, 0f, FortAssault.BreachMeans.CLOSE, null), 0);
         CommandTopology walled = walledAt(breach.mouthX() - breach.outX(), breach.mouthY() - breach.outY());
         Map<Integer, Order> orders = p.execution.run(0, M, p.objective, p.members, p.bodies, walled, p.notes);
@@ -466,14 +482,7 @@ class FortAssaultTest {
     void theWallIsGivenItsTimeFromABreacherArrivingNotFromTheStepStarting() {
         Picture p = new Picture();
         FortAssault.Way breach = p.works.ways.stream().filter(w -> w.variant() == Variant.BREACH).findFirst().orElseThrow();
-        List<int[]> alive = new ArrayList<>();
-        List<int[]> witness = new ArrayList<>();
-        for (int i : breach.covering()) {
-            alive.add(p.works.nests.get(i));
-            witness.add(new int[] {p.works.nests.get(i)[0] - 12, p.works.nests.get(i)[1] - 12});
-        }
-        p.belief.update(p.works, alive, witness);
-        p.belief.update(p.works, List.of(), witness);
+        killEveryNest(p);
         p.execution = new FortAssault.Execution(p.works, p.belief, new FortAssault.Defence(breach, 0, 0, 0f, FortAssault.BreachMeans.CLOSE, null), 0);
         CommandTopology walled = walledAt(breach.mouthX() - breach.outX(), breach.mouthY() - breach.outY());
         p.execution.run(0, M, p.objective, p.members, p.bodies, walled, p.notes);
