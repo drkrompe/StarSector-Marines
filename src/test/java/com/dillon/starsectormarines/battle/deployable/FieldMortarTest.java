@@ -37,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class FieldMortarTest {
 
     /** The nests a fort stamps (FortStage.NEST_STRUCTURES); their weapons set the reach a mortar must outrange. */
-    private static final String[] NEST_STRUCTURES = {"structure.turret-heavy-mg", "structure.turret-dual-flak"};
+    private static final String[] NEST_STRUCTURES = {"structure.turret-heavy-mg", "structure.turret-hephaestus", "structure.turret-vulcan"};
     private static final String RIFLE = "weapon.field-rifle";
     private static final int MAP = 120;
     private static final int ROW = 40;

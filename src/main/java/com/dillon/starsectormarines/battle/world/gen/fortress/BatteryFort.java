@@ -74,6 +74,9 @@ public final class BatteryFort {
     /** Which bastions (indices of {@link #NESTS}) stand a Locust missile battery when the fort carries the anti-air aspect: the two farthest from the main gate. */
     private static final int[] AIR_BASTIONS = {1, 3};
 
+    /** Which bastions stand a Swarmer missile tower: the two nearest the main gate, so all four corners carry anti-air. */
+    private static final int[] SWARMER_BASTIONS = {0, 2};
+
     /** How far from a bastion's centre, toward its tip, its missile battery's middle stands. */
     private static final int BATTERY_POCKET_STEPS = 2;
 
@@ -197,14 +200,18 @@ public final class BatteryFort {
         @Override public FortAspect centrepieceAspect() { return null; }
         @Override public AirDefenceYard airDefence() { return AIR_DEFENCE; }
         @Override public List<int[]> airBatteries() { return AIR_BATTERIES; }
+        @Override public List<int[]> airTowers() { return AIR_TOWERS; }
     };
 
     /** The Locust batteries' middles: in the pocket behind the nest of each of the {@link #AIR_BASTIONS}. */
-    private static final List<int[]> AIR_BATTERIES = airBatteries();
+    private static final List<int[]> AIR_BATTERIES = pockets(AIR_BASTIONS);
 
-    private static List<int[]> airBatteries() {
+    /** The Swarmer towers' middles: in the pocket of each of the {@link #SWARMER_BASTIONS}. */
+    private static final List<int[]> AIR_TOWERS = pockets(SWARMER_BASTIONS);
+
+    private static List<int[]> pockets(int[] bastions) {
         List<int[]> out = new ArrayList<>();
-        for (int i : AIR_BASTIONS) {
+        for (int i : bastions) {
             int[] b = BASTIONS[i];
             out.add(BastionSites.pocket(OX + b[0], OY + b[1], b[2], b[3], BATTERY_POCKET_STEPS));
         }

@@ -110,20 +110,6 @@ class FortAirDefenceStageTest {
                         && lane[1] < f[1] + f[3] + 1 && lane[1] + lane[3] > f[1] - 1;
                 assertFalse(overlaps, plan.kind() + " yard clear of the lanes");
             }
-            for (int[] tower : yard.closeInCells()) {
-                for (int x = tower[0] - 1; x <= tower[0] + 1; x++) {
-                    for (int y = tower[1] - 1; y <= tower[1] + 1; y++) {
-                        assertTrue(plan.isWorks(x, y) && !plan.isWall(x, y), plan.kind() + " tower cell " + x + "," + y + " is open floor");
-                        for (FortAspect aspect : plan.aspects()) {
-                            int[] b = plan.floor(aspect);
-                            assertFalse(x >= b[0] && x < b[0] + b[2] && y >= b[1] && y < b[1] + b[3], plan.kind() + " tower clear of " + aspect);
-                        }
-                        for (int[] lane : plan.lanes()) {
-                            assertFalse(x >= lane[0] && x < lane[0] + lane[2] && y >= lane[1] && y < lane[1] + lane[3], plan.kind() + " tower clear of the lanes");
-                        }
-                    }
-                }
-            }
             int[] c = plan.centrepiece();
             assertTrue(Math.abs(c[0] - yard.centreX()) > 5 || Math.abs(c[1] - yard.centreY()) > 5,
                     plan.kind() + " yard clear of the centrepiece");

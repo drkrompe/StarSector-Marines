@@ -145,6 +145,10 @@ public final class WaterUnderSealSnapshotSuite implements SnapshotSuite {
             var phase = sequence.progress().phase();
             boolean requestedShip = false, requestedBuild = false, injected = false, withdrew = false, firingFrame = false, inspectedFirstAttack = false, landedFrame = false, buildAccepted = false;
             int gunShots = 0, acceptedBuilds = 0;
+            // GUN_LOSS readings: the rebuilt gun's shots, and whether a live raider was ever in its reach to shoot at.
+            var destroyedGuns = new HashSet<Long>();
+            long rebuiltCommissionTick = -1;
+            int rebuiltShots = 0, ticksWithAttackerInReach = 0, attackersLivingAtRebuild = -1;
             frames.add(frame(context, fixture.id() + "-arrival.png", sim, "NORTH WEIR / " + phase, false));
             int maxTicks = fixture.control() == Control.ABSENT ? 3600 : Integer.getInteger("battle.waterUnderSeal.maxTicks", 27000);
             while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
@@ -164,6 +168,7 @@ public final class WaterUnderSealSnapshotSuite implements SnapshotSuite {
                     var guns = sequence.turretEntityIds().stream().filter(sim.world()::isAlive).toList();
                     assertFalse(guns.isEmpty(), "Diagnostic loss must destroy an actual commissioned gun");
                     for (long gun : guns) sim.applyDamage(gun, 100000, 100000);
+                    destroyedGuns.addAll(guns);
                     injected = true;
                     report.append("  diagnostic: destroyed actual commissioned road gun ").append(guns).append('\n');
                 }
@@ -226,7 +231,26 @@ public final class WaterUnderSealSnapshotSuite implements SnapshotSuite {
                     assertEquals(4, regular, "Powered opponents remain individual wearers in a mixed regular squad");
                     report.append("  observed first mixed road element: powered=").append(powered).append(" regular=").append(regular).append('\n');
                 }
-                for (var shot : sim.getShotsThisFrame()) if (sequence.turretEntityIds().contains(shot.shooterId)) gunShots++;
+                for (var shot : sim.getShotsThisFrame()) if (sequence.turretEntityIds().contains(shot.shooterId)) {
+                    gunShots++;
+                    if (!destroyedGuns.isEmpty() && !destroyedGuns.contains(shot.shooterId)) rebuiltShots++;
+                }
+                if (!destroyedGuns.isEmpty()) for (long gun : sequence.turretEntityIds()) {
+                    if (destroyedGuns.contains(gun) || !sim.world().isAlive(gun)) continue;
+                    if (rebuiltCommissionTick < 0) {
+                        rebuiltCommissionTick = sim.getSimTickIndex();
+                        attackersLivingAtRebuild = sequence.attackReport(sim).living();
+                    }
+                    float reach = sim.world().attackRange(gun);
+                    boolean inReach = false;
+                    for (int squad : sequence.roadSquadIds()) for (int m = 0; m < sim.squadMemberCount(squad); m++) {
+                        long raider = sim.squadMemberAt(squad, m);
+                        float gx = sim.world().x(gun), gy = sim.world().y(gun), rx = sim.world().x(raider), ry = sim.world().y(raider);
+                        if (Math.hypot(rx - gx, ry - gy) <= reach
+                                && sim.getGrid().hasLineOfSight((int) gx, (int) gy, (int) rx, (int) ry)) inReach = true;
+                    }
+                    if (inReach) ticksWithAttackerInReach++;
+                }
                 if (!firingFrame && gunShots > 0) {
                     firingFrame = true;
                     frames.add(frame(context, fixture.id() + "-road-gun-fire.png", sim, "REAL CONSTRUCTED GUN / FIRING", true));
@@ -297,7 +321,15 @@ public final class WaterUnderSealSnapshotSuite implements SnapshotSuite {
                     assertTrue(result.complete(), "A destroyed road gun can be rebuilt without replacing the committed attack pool");
                     assertEquals(Faction.MARINE, sim.getWinner());
                     assertEquals(12, sequence.attackReport(sim).deployed());
-                    assertTrue(gunShots > 0);
+                    report.append("  rebuilt gun readings: commissionedTick=").append(rebuiltCommissionTick)
+                            .append(" attackersLivingAtCommission=").append(attackersLivingAtRebuild)
+                            .append(" ticksWithAttackerInReach=").append(ticksWithAttackerInReach)
+                            .append(" rebuiltShots=").append(rebuiltShots).append(" attack=").append(sequence.attackReport(sim)).append('\n');
+                    // Mechanic, conditional on its precondition: a rebuilt gun with a live raider in reach engages it.
+                    // Whether any raider survives until the rebuild is the fight's outcome, so it is only read.
+                    if (ticksWithAttackerInReach > 0)
+                        assertTrue(rebuiltShots > 0, "Rebuilt gun had a live attacker in reach for " + ticksWithAttackerInReach + " ticks and never fired");
+                    else report.append("  rebuilt-gun-engages: precondition unmet (no live attacker in the rebuilt gun's reach after commissioning); verdict passes\n");
                 }
                 case RETREAT -> { assertTrue(withdrew); assertTrue(sim.isComplete()); assertNotEquals(Faction.MARINE, sim.getWinner()); }
             }

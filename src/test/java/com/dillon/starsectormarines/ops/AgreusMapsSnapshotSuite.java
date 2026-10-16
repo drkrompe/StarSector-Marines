@@ -4,11 +4,14 @@ import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.world.gen.LatchkeyYard;
+import com.dillon.starsectormarines.battle.world.gen.LowQuay;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
+import com.dillon.starsectormarines.ops.battleview.ReviewAnnotation;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
 import com.dillon.starsectormarines.ops.battleview.ReviewStyle;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
@@ -41,34 +44,55 @@ public final class AgreusMapsSnapshotSuite implements SnapshotSuite {
             add(context, frames, sim, "01-north-weir", "WATER UNDER SEAL / NORTH WEIR / seed 15301", 87, 57,
                     ReviewAnnotations.builder()
                             .box(14, 44, 36, 84, "SERVICE APRON / COMPANY LIFT", ReviewStyle.LANDING)
-                            .label(64, 59, "1 / DELIVER REPAIR LOAD", ReviewStyle.OBJECTIVE)
+                            .box(57, 56, 69, 62, "1 / ISOLATION BAY", ReviewStyle.OBJECTIVE)
                             .box(74, 68, 86, 78, "2 / NORTH SWITCH", ReviewStyle.OBJECTIVE)
                             .box(74, 35, 86, 45, "2 / SOUTH SWITCH", ReviewStyle.OBJECTIVE)
+                            .box(92, 67, 122, 80, "INTAKE PUMPS (NORTH SWITCH)", ReviewStyle.NOTE)
+                            .box(92, 33, 122, 50, "SETTLING TANKS (SOUTH SWITCH)", ReviewStyle.NOTE)
+                            .label(101, 57, "COVERED CONDUIT / CROSSINGS", ReviewStyle.NOTE)
                             .box(103, 84, 114, 94, "3 / CONSTRUCT ROAD GUN", ReviewStyle.KEEP)
-                            .arrow(35, 59, 61, 59, "ESCORT", ReviewStyle.APPROACH)
-                            .arrow(164, 90, 118, 90, "FINITE ROAD ATTACK", ReviewStyle.ROUTE).build());
+                            .arrow(35, 59, 56, 59, "ESCORT", ReviewStyle.APPROACH)
+                            .arrow(164, 90, 118, 90, "FINITE ROAD ATTACK", ReviewStyle.ROUTE)
+                            .arrow(150, 102, 118, 102, "FLANK TRACK", ReviewStyle.ROUTE).build());
         }
         try (var sim = BattleSetup.createLimitedWarrant(15302, lift, profile, false)) {
-            add(context, frames, sim, "02-low-quay", "LIMITED WARRANT / LOW QUAY / seed 15302", 81, 59,
+            add(context, frames, sim, "02-low-quay", "LIMITED WARRANT / LOW QUAY / seed 15302", 82, 58,
                     ReviewAnnotations.builder()
                             .box(14, 44, 36, 84, "LIFT / RETURN CALIBRATION LOAD", ReviewStyle.LANDING)
-                            .box(63, 68, 75, 78, "1 / AUTHENTICATE RECORDS", ReviewStyle.OBJECTIVE)
-                            .box(81, 35, 93, 45, "2 / TECHNICIAN CALIBRATION", ReviewStyle.OBJECTIVE)
-                            .box(86, 53, 102, 63, "3 / RECOVER CARRIER", ReviewStyle.KEEP)
-                            .arrow(85, 58, 38, 58, "ESCORT BACK TO APRON", ReviewStyle.APPROACH)
-                            .arrow(135, 94, 111, 76, "FINITE REARGUARD", ReviewStyle.ROUTE).build());
+                            .label(44, 66, "SECURE GATE", ReviewStyle.NOTE)
+                            .box(66, 68, 80, 84, "1 / ARCHIVE: AUTHENTICATE RECORDS", ReviewStyle.OBJECTIVE)
+                            .box(86, 26, 108, 50, "2 / CALIBRATION SHOP + CAGE", ReviewStyle.OBJECTIVE)
+                            .box(104, 54, 120, 64, "3 / LOAD COURT", ReviewStyle.KEEP)
+                            .box(80, 68, 104, 88, "BONDED WAREHOUSE", ReviewStyle.NOTE)
+                            .box(44, 36, 61, 50, "DIVERTED CLINIC CONSIGNMENTS", ReviewStyle.NOTE)
+                            .label(64, 47, "GALLERY", ReviewStyle.NOTE)
+                            .label(63, 92, "GALLERY", ReviewStyle.NOTE)
+                            .label(LowQuay.CROSS_X + 4, LowQuay.CROSS_Y, "CROSSING", ReviewStyle.APPROACH)
+                            .arrow(104, 59, 40, 59, "CARRIER LANE TO APRON", ReviewStyle.APPROACH)
+                            .polyline(List.of(new ReviewAnnotation.Point(73, 106), new ReviewAnnotation.Point(73, 94),
+                                    new ReviewAnnotation.Point(64, 94), new ReviewAnnotation.Point(64, 66)),
+                                    "FINITE REARGUARD VIA NORTH GALLERY", ReviewStyle.ROUTE).build());
         }
         try (var sim = BattleSetup.createYardOwners(15303, lift, profile)) {
-            add(context, frames, sim, "03-latchkey-yard", "THE YARD'S OWNERS / LATCHKEY / seed 15303", 82, 58,
-                    ReviewAnnotations.builder()
-                            .box(14, 44, 36, 84, "COMPANY LIFT", ReviewStyle.LANDING)
-                            .box(51, 65, 63, 75, "1 / DISPATCH + FREIGHT GATE", ReviewStyle.OBJECTIVE)
-                            .box(85, 61, 103, 79, "2 / TOOLING + INSPECTION", ReviewStyle.KEEP)
-                            .box(81, 35, 93, 45, "3 / OPERATOR ENTRANCE", ReviewStyle.OBJECTIVE)
-                            .label(98, 59, "PRESERVE CALIBRATION MACHINE", ReviewStyle.KEEP)
-                            .label(140, 119, "SEPARATE FRONTAGE / NO CAPTURE DUTY", ReviewStyle.NOTE)
-                            .arrow(39, 69, 49, 69, "TAKE / HAND OFF", ReviewStyle.APPROACH)
-                            .arrow(148, 74, 119, 69, "FINITE COUNTERATTACK", ReviewStyle.ROUTE).build());
+            var dispatch = LatchkeyYard.SITES.get(0); var hall = LatchkeyYard.SITES.get(1); var entrance = LatchkeyYard.SITES.get(2);
+            var marks = ReviewAnnotations.builder()
+                    .box(14, 44, 36, 84, "COMPANY LIFT", ReviewStyle.LANDING)
+                    .box(dispatch.left(), dispatch.bottom(), dispatch.right(), dispatch.top(), "1 / DISPATCH + FREIGHT GATE", ReviewStyle.OBJECTIVE)
+                    .box(hall.left(), hall.bottom(), hall.right(), hall.top(), "2 / TOOLING HALL + INSPECTION", ReviewStyle.KEEP)
+                    .box(entrance.left(), entrance.bottom(), entrance.right(), entrance.top(), "3 / OPERATOR ENTRANCE + LOCK", ReviewStyle.OBJECTIVE)
+                    .label(LatchkeyYard.TOOL_X, LatchkeyYard.TOOL_Y - 4, "PRESERVE CALIBRATION MACHINE", ReviewStyle.KEEP)
+                    .label(LatchkeyYard.HANDOVER.x(), LatchkeyYard.HANDOVER.y() - 4, "HANDOVER BAY", ReviewStyle.NOTE)
+                    .label(LatchkeyYard.HALL_FREIGHT_DOORS.x(), LatchkeyYard.HALL_FREIGHT_DOORS.y() + 3, "FREIGHT DOORS", ReviewStyle.NOTE)
+                    .label(LatchkeyYard.HALL_GALLERY_DOOR.x() + 9, 46, "SERVICE GALLERY", ReviewStyle.NOTE)
+                    .label(104, 124, "HOMES + DISTRICT HEATING / NO CAPTURE DUTY", ReviewStyle.NOTE)
+                    .label(152, 92, "CINDER STEPS", ReviewStyle.NOTE)
+                    .arrow(38, 56, 52, 56, "FREIGHT GATE", ReviewStyle.APPROACH)
+                    .arrow(LatchkeyYard.CINDER_LANE.x(), LatchkeyYard.CINDER_LANE.y(), LatchkeyYard.CINDER_GATE.x() + 2, LatchkeyYard.CINDER_GATE.y(), "COUNTERATTACK / CINDER LANE", ReviewStyle.ROUTE)
+                    .arrow(LatchkeyYard.SOUTH_ROAD.x(), LatchkeyYard.SOUTH_ROAD.y(), LatchkeyYard.VESTIBULE.x() + 10, LatchkeyYard.SOUTH_ROAD.y(), "COUNTERATTACK / SOUTH ROAD", ReviewStyle.ROUTE);
+            // Short forms of Lenna's machine labels; the battle markers carry the full attribution.
+            marks.label(79, 77, "WEIR PUMP LATHE", ReviewStyle.NOTE).label(107, 77, "HEATING BENCH", ReviewStyle.NOTE)
+                    .label(91, 63, "CLINIC PARTS BENCH", ReviewStyle.NOTE);
+            add(context, frames, sim, "03-latchkey-yard", "THE YARD'S OWNERS / LATCHKEY / seed 15303", 93, 64, marks.build());
         }
         return frames;
     }

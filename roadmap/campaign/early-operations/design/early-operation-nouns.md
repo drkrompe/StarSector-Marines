@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — District Escort: the recurring Low Quay escort after A Small War.
+Updated: 2026-10-16 — District Escort, the recurring Low Quay escort after A Small War; Latchkey counterattack lanes.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -243,7 +243,8 @@ the approach and one supplier technician authenticates the calibration work.
 Company infantry must secure the records office, protect eight uninterrupted
 seconds of work there and in the separate calibration cage, then escort the
 physical, vulnerable calibration carrier to the western apron. The cage also
-requires the living technician. A finite Drent Haulage rearguard contests the exit;
+requires the living technician. A finite Drent Haulage rearguard contests the lane
+crossing every route out passes;
 killing every raider is not the victory condition. Return requires the archive,
 kit and surviving company presence. Loss of the load, or the technician before
 kit recovery, fails the attempt.
@@ -261,6 +262,10 @@ reward. No equipment is automatically issued. Victory opens **The Yard's Owners*
 At Latchkey Yard, company infantry captures the dispatch house, tooling hall and
 operator entrance. These gains can be recaptured. Eight employer constables take
 separate holding duties after company gains; two technicians support the inspection.
+When dispatch first falls, Voss's finite counterattack commits two groups: one by
+the Cinder Steps lane for the tooling hall's freight doors, one by the south
+service road for the operator entrance. The hall's only other door is the sealed
+gallery from that entrance (`agreus-latchkey.md`, The yard on the ground).
 Victory requires all three sites held together, the marked calibration machine
 surviving ordinary prop damage, and a living technician completing twelve protected
 seconds at the tooling with company infantry present. Eliminating all raiders does
