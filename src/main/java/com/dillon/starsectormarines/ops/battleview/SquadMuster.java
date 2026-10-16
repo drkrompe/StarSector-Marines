@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.OfficerSpecialty;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -108,6 +109,22 @@ public record SquadMuster(String squadId, String squadName, boolean stationed,
         return new SquadMuster(squad.id(), squad.name(), squad.stationed(), billets,
                 ready, wounded, MarineSquad.CAPACITY - ready - wounded,
                 missing, killed, earliest);
+    }
+
+    /**
+     * Whole campaign hours until every wounded billet across {@code musters} is back
+     * on duty, rounded up so a timer never reads zero while somebody is still WIA;
+     * zero when nobody is wounded.
+     */
+    public static int hoursUntilFullHeal(Collection<SquadMuster> musters) {
+        float latest = 0f;
+        for (SquadMuster muster : musters) {
+            if (muster == null) continue;
+            for (Billet billet : muster.billets()) {
+                if (billet.state() == State.WOUNDED) latest = Math.max(latest, billet.recoveryDays());
+            }
+        }
+        return latest <= 0f ? 0 : Math.max(1, (int) Math.ceil(latest * 24f - 1e-3f));
     }
 
     /**

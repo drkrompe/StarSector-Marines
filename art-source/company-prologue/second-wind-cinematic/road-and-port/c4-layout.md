@@ -246,6 +246,17 @@ It also shows that the port reads a little too much like Earth: a flat, empty
 apron. Final plates should ask for denser yard clutter, Hegemony livery on the
 cranes and tower, and more futurist structure (lattice cradles, mast arrays).
 
+## Owner decisions (2026-10-16)
+
+- **Castle is in the room, so her voice is unprocessed** in C4: no intercom
+  treatment.
+- **The window is the orange-and-cream cabin** shared with C3 and the entry, rendered
+  from the cabin model at C4's camera. It replaces the grey `realism-lookdev` frame
+  named in the rig and salvage tables below.
+- **Consider showing her.** Castle at the window, looking out, gives the Nessa memory a
+  face. That needs real thought about the cabin interior beyond the window frame, so
+  it is a direction to design rather than an approved shot.
+
 ## Open questions
 
 1. **Recording and length.** Record the Nessa memory clean (`eleven_v4`, Castle's

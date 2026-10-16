@@ -234,6 +234,7 @@ public final class BarracksCommandModel {
         bind(reactor, "editorClasses", () -> editing ? "order-body" : "order-body hidden");
         bind(reactor, "title", this::title);
         bind(reactor, "summary", () -> Strings.format("openingBarracksCommandSquadsReadyPersonnelReserves", lineSquads().size(), roster.lineReadySoldiers().size(), roster.readyReserveCount()));
+        bind(reactor, "healTimer", this::healTimer);
         bind(reactor, "scopeSummary", () -> Strings.format("openingBarracksCommandSquadsInViewSelected", filtered().size(), selected.size()));
         bind(reactor, "empty", () -> filtered().isEmpty() ? Strings.get("openingBarracksCommandNoSquadsMatchThisViewChooseRaise") : "");
         bind(reactor, "pageLabel", () -> Strings.format("openingBarracksCommandPage", (pageNumber() + 1), pages()));
@@ -734,6 +735,14 @@ public final class BarracksCommandModel {
         feedback = applied ? Strings.format("openingBarracksCommandSquadsAssignedIssueEquipmentSeparatelyWhenReady", selected.size())
                 : Strings.get("openingBarracksCommandSelectAProfileAndAvailableSquadsStationed");
         refresh();
+    }
+    /** Company-wide countdown until every line squad's wounded are back on duty. */
+    private String healTimer() {
+        List<SquadMuster> musters = lineSquads().stream().map(s -> muster(s.id())).toList();
+        int hours = SquadMuster.hoursUntilFullHeal(musters);
+        if (hours == 0) return Strings.get("openingBarracksCommandFullHealNone");
+        int wounded = musters.stream().filter(Objects::nonNull).mapToInt(SquadMuster::woundedCount).sum();
+        return Strings.format("openingBarracksCommandFullHealHours", hours, wounded);
     }
     private int vacancies() {
         return lineSquads().stream().filter(s -> selected.contains(s.id()) && !s.stationed()).mapToInt(roster::vacancies).sum();

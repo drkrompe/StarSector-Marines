@@ -71,7 +71,8 @@ public final class DetachmentResolver {
                 || DistrictEscortCampaign.isBattle(m) ? FlybyRoster.EMPTY
                 : FlybyRoster.combine(m.clientFighterSupport, committedWings);
         List<CommandPower> powers = PowerCatalog.resolve(
-                committedPowerSources, m, campaignMechDeployment(), campaignVehicleDeployment());
+                committedPowerSources, m, campaignMechDeployment(), campaignVehicleDeployment(),
+                committedShuttles);
         return new Detachment(manifest, marineWings, powers);
     }
 
@@ -119,8 +120,23 @@ public final class DetachmentResolver {
         return Math.min(m.employerShuttles, EMPLOYER_PHYSICAL_CAP);
     }
 
+    /**
+     * The committed boats that seat marines. A cradled boat flies machine-only
+     * sorties, so it is lift for Mech Support or Armour Support and never part
+     * of the infantry manifest.
+     */
+    public static List<FittedBoat> seatedBoats(List<FittedBoat> boats) {
+        if (boats == null || boats.isEmpty()) return boats;
+        List<FittedBoat> seated = new ArrayList<>(boats.size());
+        for (FittedBoat boat : boats) {
+            if (boat != null && !boat.machineOnly()) seated.add(boat);
+        }
+        return seated.size() == boats.size() ? boats : List.copyOf(seated);
+    }
+
     /** Player boats can cycle; employer support must cover every drop if flying alone. */
     public static boolean hasRequiredTransport(Mission mission, List<FittedBoat> boats) {
+        boats = seatedBoats(boats);
         if (mission.source == MissionSource.STATIONING
                 || mission.marineArrivalPolicy == MarineArrivalPolicy.SECURED_GROUND) return true;
         if (boats != null && !boats.isEmpty()) return true;
@@ -148,6 +164,7 @@ public final class DetachmentResolver {
      * own or fit them.
      */
     public static List<ShuttleAssignment> buildShuttleManifest(Mission m, List<FittedBoat> playerShuttles) {
+        playerShuttles = seatedBoats(playerShuttles);
         List<ShuttleAssignment> out = new ArrayList<>();
         int employerPhysical = employerPhysicalShipCount(m);
         if (employerPhysical > 0) {
@@ -211,6 +228,7 @@ public final class DetachmentResolver {
         if (!usesSelectedPersonnel(m)) {
             return buildShuttleManifest(m, playerShuttles);
         }
+        playerShuttles = seatedBoats(playerShuttles);
         if ((SupplyRouteCampaign.isBattle(m) || CorvusWaylineCampaign.isBattle(m) || ShepherdRecoveryCampaign.isBattle(m) || AgreusArcCampaign.isBattle(m)
                 || DistrictEscortCampaign.isBattle(m)) && playerShuttles != null && playerShuttles.size() > 4)
             playerShuttles = playerShuttles.subList(0, 4);
