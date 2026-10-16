@@ -1,0 +1,160 @@
+{
+  "projectors": [
+    {
+      "view": "part-deck",
+      "image": "build/parts/part-deck.png",
+      "fit": "iou_refined_affine",
+      "scale": [
+        1.0028095238095238,
+        0.996
+      ],
+      "offset_px": [
+        -0.9571428571428555,
+        0.0
+      ],
+      "generated_texels_per_model_unit": 6.5636363636363635
+    },
+    {
+      "view": "part-turret",
+      "image": "build/parts/part-turret.png",
+      "fit": "moments_similarity",
+      "scale": [
+        1.0042762383334118,
+        1.0042762383334118
+      ],
+      "offset_px": [
+        -2.6396523432837284,
+        -1.2705522405949807
+      ],
+      "generated_texels_per_model_unit": 24.066666666666666
+    },
+    {
+      "view": "part-pod",
+      "image": "build/parts/part-pod.png",
+      "fit": "iou_refined_affine",
+      "scale": [
+        1.0013571428571428,
+        1.002079002079002
+      ],
+      "offset_px": [
+        0.0,
+        0.0
+      ],
+      "generated_texels_per_model_unit": 9.417391304347825
+    },
+    {
+      "view": "part-bow",
+      "image": "build/parts/part-bow.png",
+      "fit": "iou_refined_affine",
+      "scale": [
+        1.001,
+        1.001953125
+      ],
+      "offset_px": [
+        0.0,
+        0.0
+      ],
+      "generated_texels_per_model_unit": 8.664
+    }
+  ],
+  "views": {
+    "guide": {
+      "pixel_coverage_of_visible_hull": 0.4178856965911931,
+      "dominant_share": {
+        "part-deck": 0.0019922325315903165,
+        "part-turret": 0.0029640987759335324,
+        "part-pod": 0.26123055801164746,
+        "part-bow": 0.1516988072720218
+      },
+      "stretch_mean": 1.4733843803405762,
+      "stretch_share_over_1_5": 0.26295302672517307,
+      "handover_pixels_share_of_textured": 0.0,
+      "handover_step_mean_0_255": null,
+      "same_projector_step_mean_0_255": 6.704658031463623,
+      "pairs": {}
+    },
+    "quarter30": {
+      "pixel_coverage_of_visible_hull": 0.36189354526481354,
+      "dominant_share": {
+        "part-deck": 0.03129064456610508,
+        "part-turret": 0.005004007743262455,
+        "part-pod": 0.13682284262424005,
+        "part-bow": 0.18877605033120595
+      },
+      "stretch_mean": 1.4454766511917114,
+      "stretch_share_over_1_5": 0.3038138669926293,
+      "handover_pixels_share_of_textured": 0.0,
+      "handover_step_mean_0_255": null,
+      "same_projector_step_mean_0_255": 8.49808120727539,
+      "pairs": {
+        "part-deck vs part-bow": {
+          "overlap_share_of_visible_hull": 0.00942197755663773,
+          "mean_abs_srgb_diff_0_255": 24.495893478393555,
+          "mean_luminance_offset_0_255": 6.507801128501954
+        }
+      }
+    },
+    "quarter60": {
+      "pixel_coverage_of_visible_hull": 0.31533681454646845,
+      "dominant_share": {
+        "part-deck": 0.06966936675954002,
+        "part-turret": 0.006460131088791437,
+        "part-pod": 0.05805302186931714,
+        "part-bow": 0.18115429482881984
+      },
+      "stretch_mean": 1.457905650138855,
+      "stretch_share_over_1_5": 0.35429006104974353,
+      "handover_pixels_share_of_textured": 0.0,
+      "handover_step_mean_0_255": null,
+      "same_projector_step_mean_0_255": 8.556483268737793,
+      "pairs": {
+        "part-deck vs part-bow": {
+          "overlap_share_of_visible_hull": 0.01428978536619369,
+          "mean_abs_srgb_diff_0_255": 22.566104888916016,
+          "mean_luminance_offset_0_255": 3.916355859386931
+        }
+      }
+    },
+    "high45": {
+      "pixel_coverage_of_visible_hull": 0.2593371932250259,
+      "dominant_share": {
+        "part-deck": 0.10333131697200139,
+        "part-turret": 0.0064523562622421935,
+        "part-pod": 0.05175279410070285,
+        "part-bow": 0.0978007258900795
+      },
+      "stretch_mean": 1.421381950378418,
+      "stretch_share_over_1_5": 0.29361945541282775,
+      "handover_pixels_share_of_textured": 0.0,
+      "handover_step_mean_0_255": null,
+      "same_projector_step_mean_0_255": 8.893630027770996,
+      "pairs": {
+        "part-deck vs part-bow": {
+          "overlap_share_of_visible_hull": 0.013260456273764258,
+          "mean_abs_srgb_diff_0_255": 23.527395248413086,
+          "mean_luminance_offset_0_255": 0.680892244852795
+        }
+      }
+    }
+  },
+  "facing_cosine": 0.25,
+  "depth_tolerance_units": 0.35,
+  "review_views": {
+    "guide": "build_reference port-side camera",
+    "quarter30": [
+      30,
+      12,
+      150
+    ],
+    "quarter60": [
+      60,
+      24,
+      170
+    ],
+    "high45": [
+      45,
+      50,
+      170
+    ]
+  }
+}

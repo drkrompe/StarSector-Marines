@@ -11,13 +11,59 @@
       "offset_px": [
         -107.71325016857722,
         -46.137373737373764
-      ]
+      ],
+      "generated_texels_per_model_unit": 12.666666666666666
     }
   ],
-  "pixel_coverage_of_visible_hull": {
-    "guide": 0.9673035095377199,
-    "quarter30": 0.5517074498654003,
-    "quarter60": 0.27506504210053695
+  "views": {
+    "guide": {
+      "pixel_coverage_of_visible_hull": 0.9673035095377199,
+      "dominant_share": {
+        "port-side": 0.9673035095377199
+      },
+      "stretch_mean": 1.3718584775924683,
+      "stretch_share_over_1_5": 0.2060074746313788,
+      "handover_pixels_share_of_textured": 0.0,
+      "handover_step_mean_0_255": null,
+      "same_projector_step_mean_0_255": 6.051353454589844,
+      "pairs": {}
+    },
+    "quarter30": {
+      "pixel_coverage_of_visible_hull": 0.5517074498654003,
+      "dominant_share": {
+        "port-side": 0.5517074498654003
+      },
+      "stretch_mean": 1.5015166997909546,
+      "stretch_share_over_1_5": 0.28366228070175437,
+      "handover_pixels_share_of_textured": 0.0,
+      "handover_step_mean_0_255": null,
+      "same_projector_step_mean_0_255": 7.099672317504883,
+      "pairs": {}
+    },
+    "quarter60": {
+      "pixel_coverage_of_visible_hull": 0.27506504210053695,
+      "dominant_share": {
+        "port-side": 0.27506504210053695
+      },
+      "stretch_mean": 1.7559573650360107,
+      "stretch_share_over_1_5": 0.42998226078142004,
+      "handover_pixels_share_of_textured": 0.0,
+      "handover_step_mean_0_255": null,
+      "same_projector_step_mean_0_255": 8.404491424560547,
+      "pairs": {}
+    },
+    "high45": {
+      "pixel_coverage_of_visible_hull": 0.1900161308906556,
+      "dominant_share": {
+        "port-side": 0.1900161308906556
+      },
+      "stretch_mean": 1.7348449230194092,
+      "stretch_share_over_1_5": 0.3965224509595852,
+      "handover_pixels_share_of_textured": 0.0,
+      "handover_step_mean_0_255": null,
+      "same_projector_step_mean_0_255": 9.349274635314941,
+      "pairs": {}
+    }
   },
   "facing_cosine": 0.25,
   "depth_tolerance_units": 0.35,
@@ -31,6 +77,11 @@
     "quarter60": [
       60,
       24,
+      170
+    ],
+    "high45": [
+      45,
+      50,
       170
     ]
   }
