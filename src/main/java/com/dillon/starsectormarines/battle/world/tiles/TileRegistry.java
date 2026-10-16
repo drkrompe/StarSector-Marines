@@ -99,6 +99,7 @@ public final class TileRegistry {
             "data/tilesets/main-stores-damage.tileset.json",
             "data/tilesets/armory-workshop-damage.tileset.json",
             "data/tilesets/installation-utility-damage.tileset.json",
+            "data/tilesets/command-plot-damage.tileset.json",
             "data/tilesets/factory-machines.tileset.json",
             "data/tilesets/colony-furnishings.tileset.json",
             "data/tilesets/factory-conveyors.tileset.json",
