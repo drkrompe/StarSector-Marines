@@ -1,0 +1,259 @@
+{
+  "status": "Blockout (pass 1): silhouette, sections, mass, slots and engines. No detail, damage or textures.",
+  "hull": {
+    "name": "Longbow",
+    "hullId": "longbow",
+    "size": "FIGHTER",
+    "style": "HIGH_TECH",
+    "source": {
+      "ship": "data/hulls/longbow.ship",
+      "sprite": "graphics/ships/longbow_intg.png",
+      "shape_reference": "art-source/aircraft/fighter-upres/longbow/master-v2.png",
+      "variant": "data/variants/fighters/longbow_Support.variant (WS 001 pdburst, WS 002 sabot_fighter)"
+    }
+  },
+  "provenance": "verified against the installed data/hulls/longbow.ship",
+  "axes": {
+    "+X": "nose",
+    "+Y": "port",
+    "+Z": "dorsal"
+  },
+  "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
+  "metres_per_unit": 0.45,
+  "scale": {
+    "summary": "Single-seat support bomber: X-frame, emitter housing to port, missile rack to starboard, twin drive pods",
+    "method": "Crew 1 (ship_data min/max crew 1). The cockpit dome is about 5.9 units long and 2.5 wide at the sill; a single-seat canopy of 2.6-3.0 m by 1.1 m gives 0.44-0.5 m/unit. At 0.45 the seated 1.8 m proxy clears the glass, each 8-unit drive pod is 3.6 m across around a 1.4 m nozzle (the class of a single fighter turbofan), the starboard rack is a 1.5 m-wide missile cell and the airframe is 15 m long by 14.4 m across the arms, a light strike aircraft. Below 0.4 the canopy shrinks under 2.4 m and the 1.8 m pilot loses head room; above 0.55 the fuselage passes 18 m on a fighter-class bomber launched in numbers from a carrier.",
+    "range": [
+      0.4,
+      0.55
+    ],
+    "cross_checks_m": {
+      "length_overall": 15.1,
+      "span_across_arms": 14.4,
+      "canopy_length": 2.65,
+      "canopy_sill_width": 1.1,
+      "drive_pod_width": 3.6,
+      "nozzle_bell_diameter": 1.2,
+      "starboard_missile_rack_width": 1.5,
+      "A-4 Skyhawk (length, span)": [
+        12.2,
+        8.4
+      ],
+      "F-16 length": 15.0,
+      "Su-25 (length, span)": [
+        15.5,
+        14.4
+      ]
+    },
+    "size_m": [
+      15.0,
+      14.4,
+      2.5
+    ],
+    "canopy": {
+      "length_m": 2.66,
+      "width_m": 1.12,
+      "top_z_units": 3.5
+    },
+    "cockpit_fit": [
+      {
+        "seat": [
+          9.2,
+          0.0
+        ],
+        "head_clearance_under_canopy_m": 0.14
+      }
+    ]
+  },
+  "sprite": {
+    "size": [
+      34,
+      35
+    ],
+    "center": [
+      17,
+      14
+    ],
+    "pixel_to_model": "col c, row r (from top) covers X 20-r..21-r, Y 16-c..17-c"
+  },
+  "dimensions": {
+    "min": [
+      -13.0,
+      -16.0,
+      -2.1
+    ],
+    "max": [
+      20.4,
+      16.0,
+      3.5
+    ],
+    "size": [
+      33.4,
+      32.0,
+      5.6
+    ]
+  },
+  "root": {
+    "name": "Longbow root",
+    "location": [
+      0,
+      0,
+      0
+    ],
+    "note": "the .ship centre: the game's rotation pivot"
+  },
+  "collections": {
+    "model": "LONGBOW | geometry",
+    "review_rig": "LONGBOW | review rig"
+  },
+  "weapon_slots": [
+    {
+      "id": "WS 001",
+      "location": [
+        14,
+        12
+      ],
+      "angle": 0,
+      "arc": 90,
+      "mount": "HIDDEN",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "anchor": "Weapon WS 001 anchor"
+    },
+    {
+      "id": "WS 002",
+      "location": [
+        9,
+        -11
+      ],
+      "angle": 0,
+      "arc": 5,
+      "mount": "HIDDEN",
+      "size": "SMALL",
+      "type": "MISSILE",
+      "anchor": "Weapon WS 002 anchor"
+    }
+  ],
+  "engines": [
+    {
+      "index": 1,
+      "slot_location": [
+        -13,
+        9
+      ],
+      "width": 8,
+      "angle": 180,
+      "parts": [
+        "Engine 1 mouth lip",
+        "Engine 1 aft-facing bell",
+        "Engine 1 dark throat"
+      ],
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 2,
+      "slot_location": [
+        -13,
+        -8
+      ],
+      "width": 8,
+      "angle": 180,
+      "parts": [
+        "Engine 2 mouth lip",
+        "Engine 2 aft-facing bell",
+        "Engine 2 dark throat"
+      ],
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ]
+    }
+  ],
+  "anchors": {
+    "Engine 1 port exhaust anchor": [
+      -12.5,
+      11.5,
+      -0.05
+    ],
+    "Engine 2 starboard exhaust anchor": [
+      -12.5,
+      -11.0,
+      -0.05
+    ],
+    "Weapon WS 001 anchor": [
+      14.0,
+      12.0,
+      0.25
+    ],
+    "Weapon WS 001 muzzle": [
+      20.4,
+      11.3,
+      0.25
+    ],
+    "Weapon WS 002 anchor": [
+      9.0,
+      -11.0,
+      0.05
+    ],
+    "Weapon WS 002 muzzle": [
+      13.13,
+      -11.0,
+      0.05
+    ]
+  },
+  "anchor_convention": "ARROWS empties; local +X points along the slot angle (0 = nose, 180 = aft)",
+  "notes": [
+    "The sprite is symmetric about Y = 0 except for its launchers, which are unequal on purpose (master v2 restores them): a pointed emitter housing on the port arm, a boxed rack on the starboard arm.",
+    "WS 001 (pdburst, HIDDEN) anchors exactly at (14, 12) in the port housing; the housing's pointed emitter runs forward on the sprite's spike axis Y 11.3 with its muzzle at the tip (20.4, 11.3).",
+    "WS 002 (sabot_fighter, HIDDEN) anchors exactly at (9, -11) inside the starboard rack; its muzzle is on the rack's open front face (13.1, -11).",
+    "Engine slots (-13, 9) and (-13, -8) straddle the even-width sprite's centre line; the drive pods are modelled symmetric on the sprite's pods at Y +-9 (8 units wide = slot width).",
+    "The visible bells sit at the master's painted nozzles, slot + renderEngineOffsetsNativePx = (-12.5, 11.5) and (-12.5, -11), outboard in each pod and recessed 0.5 into its aft face (-13); exhaust anchors are at those bells.",
+    "The master's long pointed nose and outboard pods are not followed: the sprite ends the fuselage at X 13 between two forward sensor prongs and centres its pods on Y +-9."
+  ],
+  "cameras": {
+    "top": {
+      "position": [
+        3.5,
+        0.0,
+        140.0
+      ],
+      "orthographic_scale": 67.69777777777779
+    },
+    "port-side": {
+      "position": [
+        3.5,
+        140.0,
+        0.0
+      ],
+      "orthographic_scale": 45.083332856496185
+    },
+    "front": {
+      "position": [
+        143.5,
+        0.0,
+        0.0
+      ],
+      "orthographic_scale": 44.2
+    },
+    "three-quarter": {
+      "position": [
+        94.5,
+        101.5,
+        70.0
+      ],
+      "orthographic_scale": 50.75
+    }
+  },
+  "silhouette": {
+    "iou": 0.9514,
+    "sprite_uncovered": 0.0119,
+    "model_outside_sprite": 0.0386,
+    "sprite": "longbow_intg.png",
+    "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 28.36 px per unit"
+  }
+}
