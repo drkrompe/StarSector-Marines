@@ -61,11 +61,30 @@ are never painted. The rust-orange default is the raw paint; `paints/hull-grey`,
 `paints/oxide-green` and `paints/soot` run the Specter v1 luminance ramp through the
 mask, so every paint shares one silhouette and alpha.
 
+## Pirate paint (Greyhook's raiders)
+
+A luminance ramp can recolour plate but cannot scrape, scorch or daub it, so the
+`pirate` paint has hand-made detail of its own. `python export_assets.py
+--pirate-bases` writes each body part at edit-target resolution in the soot paint to
+`pirate/<part>-base.png`. `bash generate.sh pirate-<part>` sends that base, with
+`prompts/pirate-<part>.prompt.txt`, through the same Codex call: the soot base is kept,
+and the pass adds scrapes to bare steel, chipped edges, dents, scorching, and crude
+crew-applied red (a slashed chest stripe, a band and tally slashes on the slab, a red
+rail panel, a crooked dome stripe, a red-painted instep). The exporter registers
+`raw/pirate-<part>.raw.png` like any raw, composites it over the soot export and then
+takes the default export's alpha, so the pirate paint has exactly the shared
+silhouette. The Latch screen gets the same pass (`pirate-latch-screen`, exported to
+`equipment/latch-screen-pirate.png`); `LayeredArmorFamily.repaintedCarrier` swaps it in
+for the pirate family only, so the issue keeps the rust-orange screen.
+`GreyhookRigIssue` draws raiders in `BOARDING_JACK_PIRATE`
+(`armor-master-boarding-jack-pirate`, the same transforms as the issue master); the
+company's issue keeps `BOARDING_JACK`.
+
 Mastering lives in `unit-layer-layouts.appearance.json` (`armor-master-boarding-jack`):
 the Specter's body and shoulder transforms, and a helmet at scale 0.8 offset to the
 measured socket (centre 0.421 of the canvas height, so offset -0.004 shoulder widths),
 which keeps the chest, neck ring and hoses visible between the slab and the cap.
 
 Review: `gradlew.bat createSnapshots -Psnapshot=boarding-jack-layers` (1920x1080,
-100%): separate parts, the rig beside the Specter, articulated poses, the four
-paints, world scale and Greyhook's raider issue.
+100%): separate parts, the rig beside the Specter and in Greyhook paint,
+articulated poses, all five paints, world scale and Greyhook's raiders in their paint.

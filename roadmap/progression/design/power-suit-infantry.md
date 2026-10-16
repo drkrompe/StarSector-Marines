@@ -222,7 +222,11 @@ art is worn rust-orange welded plate over dark joint backing with a bare-steel p
 pack: warm and patched where the Specter is cool, faceted and lit. Its helmet is
 mastered smaller than the Specter's into a lower socket, so the chest and hoses stay
 visible between the slab and the cap. Paint variants (rust-orange default, hull-grey,
-oxide-green, soot) recolor only the warm casing plate. Guides, prompts, the retained
+oxide-green, soot) recolor only the warm casing plate. Greyhook's raiders wear a
+fifth, `pirate`: the soot plate scraped to bare steel, dented and scorched, with
+rough crew-applied red stripes and daubs. It has hand-made detail of its own rather
+than a ramp, keeps the shared silhouette, and is a separate appearance family
+(`BOARDING_JACK_PIRATE`) so the company's issue stays rust-orange. Guides, prompts, the retained
 raws and the mechanical exporter live under
 `art-source/marine-modular-topdown/boarding-jack/`; `createSnapshots
 -Psnapshot=boarding-jack-layers` is the review.

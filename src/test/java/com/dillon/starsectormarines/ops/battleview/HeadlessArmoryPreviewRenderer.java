@@ -285,6 +285,7 @@ public final class HeadlessArmoryPreviewRenderer {
                 case SPECTER_HEAVY -> "specter-heavy";
                 case ARBALEST_HEAVY -> "specter-heavy/paints/olive";
                 case BOARDING_JACK -> "boarding-jack";
+                case BOARDING_JACK_PIRATE -> "boarding-jack/paints/pirate";
                 case BULWARK_HEAVY -> "bulwark-heavy";
                 case RELIQUARY_HEAVY -> "reliquary-heavy";
                 case LIONS_MANTLE -> "lions-mantle";

@@ -105,6 +105,7 @@ public final class UnitLayerLayouts {
             case SPECTER_HEAVY -> "armor-master-specter-heavy";
             case ARBALEST_HEAVY -> "armor-master-arbalest-heavy";
             case BOARDING_JACK -> "armor-master-boarding-jack";
+            case BOARDING_JACK_PIRATE -> "armor-master-boarding-jack-pirate";
             case BULWARK_HEAVY -> "armor-master-bulwark-heavy";
             case RELIQUARY_HEAVY -> "armor-master-reliquary-heavy";
             case LIONS_MANTLE -> "armor-master-lions-mantle";
