@@ -228,7 +228,8 @@ public final class BackstopAssignedSquad implements Action {
             if (!candidate.availableToPlan(member, sim)) continue;
             MechLoadoutComponent loadout = sim.world().mechLoadout(member);
             if (loadout != null
-                    && loadout.effectiveRole() != MechRole.ARMORED_SUPPORT) {
+                    && loadout.effectiveRole() != MechRole.ARMORED_SUPPORT
+                    && MechDamageDoctrine.postureOf(loadout).anchorsOthers()) {
                 return true;
             }
         }
