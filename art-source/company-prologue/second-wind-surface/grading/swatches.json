@@ -1,0 +1,296 @@
+{
+ "sheet": "generated/sheet-swatch.png",
+ "sheet_size": [
+  1672,
+  941
+ ],
+ "size": 1024,
+ "tiling": "offset cross-fade, band 0.18 of the square; periodic, so seamless under MIRROR too",
+ "classes": {
+  "cream": {
+   "source_square": "cream",
+   "expected_box": [
+    219.5,
+    33.1,
+    631.4,
+    445.2
+   ],
+   "found_box": [
+    220,
+    33,
+    631,
+    445
+   ],
+   "crop_px": 379,
+   "before_mean_lab": [
+    75.64,
+    2.8,
+    14.13
+   ],
+   "before_std_lab": [
+    7.5,
+    1.38,
+    2.6
+   ],
+   "ramp_span_L_removed": 0.22,
+   "ramp_dL_per_100px": [
+    -0.0,
+    0.05
+   ],
+   "gain_L_a_b": [
+    1.33,
+    0.585,
+    0.807
+   ],
+   "after_mean_lab": [
+    78.8,
+    1.6,
+    11.39
+   ],
+   "after_std_lab": [
+    8.82,
+    0.79,
+    1.88
+   ],
+   "palette_mean_lab": [
+    77.97,
+    1.64,
+    11.4
+   ],
+   "dE_to_palette_before": 3.77,
+   "dE_to_palette_after": 0.84,
+   "wrap_step_over_interior_step": {
+    "before_tiling": 6.878,
+    "after": 1.109
+   }
+  },
+  "oxide": {
+   "source_square": "oxide",
+   "expected_box": [
+    1041.5,
+    33.1,
+    1453.4,
+    445.2
+   ],
+   "found_box": [
+    1041,
+    32,
+    1453,
+    445
+   ],
+   "crop_px": 380,
+   "before_mean_lab": [
+    53.32,
+    24.6,
+    37.62
+   ],
+   "before_std_lab": [
+    3.92,
+    5.03,
+    7.62
+   ],
+   "ramp_span_L_removed": 1.17,
+   "ramp_dL_per_100px": [
+    -0.28,
+    0.02
+   ],
+   "gain_L_a_b": [
+    1.33,
+    0.769,
+    0.738
+   ],
+   "after_mean_lab": [
+    51.59,
+    19.02,
+    27.95
+   ],
+   "after_std_lab": [
+    5.0,
+    3.82,
+    5.54
+   ],
+   "palette_mean_lab": [
+    51.17,
+    18.92,
+    27.77
+   ],
+   "dE_to_palette_before": 11.57,
+   "dE_to_palette_after": 0.47,
+   "wrap_step_over_interior_step": {
+    "before_tiling": 5.046,
+    "after": 1.378
+   }
+  },
+  "gunmetal": {
+   "source_square": "gunmetal",
+   "expected_box": [
+    219.5,
+    495.8,
+    631.4,
+    907.9
+   ],
+   "found_box": [
+    220,
+    495,
+    631,
+    908
+   ],
+   "crop_px": 379,
+   "before_mean_lab": [
+    45.78,
+    1.24,
+    2.12
+   ],
+   "before_std_lab": [
+    4.29,
+    1.62,
+    2.72
+   ],
+   "ramp_span_L_removed": 1.41,
+   "ramp_dL_per_100px": [
+    -0.11,
+    -0.27
+   ],
+   "gain_L_a_b": [
+    1.33,
+    1.083,
+    1.242
+   ],
+   "after_mean_lab": [
+    46.85,
+    0.97,
+    1.69
+   ],
+   "after_std_lab": [
+    5.53,
+    1.45,
+    2.79
+   ],
+   "palette_mean_lab": [
+    46.45,
+    1.05,
+    1.83
+   ],
+   "dE_to_palette_before": 0.75,
+   "dE_to_palette_after": 0.43,
+   "wrap_step_over_interior_step": {
+    "before_tiling": 4.799,
+    "after": 1.049
+   }
+  },
+  "dark": {
+   "source_square": "dark",
+   "expected_box": [
+    1041.5,
+    495.8,
+    1453.4,
+    907.9
+   ],
+   "found_box": [
+    1041,
+    495,
+    1453,
+    908
+   ],
+   "crop_px": 380,
+   "before_mean_lab": [
+    21.01,
+    0.11,
+    1.28
+   ],
+   "before_std_lab": [
+    3.26,
+    0.83,
+    1.22
+   ],
+   "ramp_span_L_removed": 1.12,
+   "ramp_dL_per_100px": [
+    -0.05,
+    -0.24
+   ],
+   "gain_L_a_b": [
+    1.33,
+    0.746,
+    0.82
+   ],
+   "after_mean_lab": [
+    19.26,
+    0.06,
+    -0.39
+   ],
+   "after_std_lab": [
+    4.06,
+    0.65,
+    0.97
+   ],
+   "palette_mean_lab": [
+    18.79,
+    0.08,
+    -0.29
+   ],
+   "dE_to_palette_before": 2.72,
+   "dE_to_palette_after": 0.48,
+   "wrap_step_over_interior_step": {
+    "before_tiling": 5.02,
+    "after": 0.94
+   }
+  },
+  "pale": {
+   "source_square": "gunmetal",
+   "expected_box": [
+    219.5,
+    495.8,
+    631.4,
+    907.9
+   ],
+   "found_box": [
+    220,
+    495,
+    631,
+    908
+   ],
+   "crop_px": 379,
+   "before_mean_lab": [
+    45.78,
+    1.24,
+    2.12
+   ],
+   "before_std_lab": [
+    4.29,
+    1.62,
+    2.72
+   ],
+   "ramp_span_L_removed": 1.41,
+   "ramp_dL_per_100px": [
+    -0.11,
+    -0.27
+   ],
+   "gain_L_a_b": [
+    1.33,
+    1.083,
+    1.242
+   ],
+   "after_mean_lab": [
+    74.35,
+    0.97,
+    1.68
+   ],
+   "after_std_lab": [
+    5.43,
+    1.45,
+    2.78
+   ],
+   "palette_mean_lab": [
+    73.97,
+    1.05,
+    1.83
+   ],
+   "dE_to_palette_before": 28.19,
+   "dE_to_palette_after": 0.42,
+   "wrap_step_over_interior_step": {
+    "before_tiling": 4.842,
+    "after": 1.007
+   }
+  }
+ }
+}

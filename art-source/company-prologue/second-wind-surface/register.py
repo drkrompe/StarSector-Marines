@@ -65,4 +65,6 @@ for name in NAMES:
             'scale': rep['fits'][best]['scale'], 'boundary_p95_px': rep['boundary_fitted_px']['p95_px']}
         print(f"{part:26s} raw IoU {rep['raw_iou']:.3f} -> {best} {rep['fitted_iou']:.3f} scale {rep['fits'][best]['scale']} "
               f"boundary mean/p95 {after['mean_px']:.1f}/{after['p95_px']:.1f}px")
-(OUT / 'summary.json').write_text(json.dumps(summary, indent=1) + '\n')
+for g in sorted({P.PART_GROUP[p] for p in summary}):
+    rows = {p: v for p, v in summary.items() if P.PART_GROUP[p] == g}
+    (OUT / f'summary-{g}.json').write_text(json.dumps(rows, indent=1) + '\n')

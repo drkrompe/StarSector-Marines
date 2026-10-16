@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a14641-15a4-7ae2-8de7-d774088e8e78",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a14641-15a4-7ae2-8de7-d774088e8e78\\exec-109bffbc-129c-4341-b4fa-8c72837a3719.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-surface\\generated\\sheet-swatch.png",
+    "sha256": "308ee7f25e07af20f50f30237b771f310af5f77e4d6f2cf4fd87d22c2f0ef224",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-surface\\prompts\\sheet-swatch.prompt.txt",
+  "promptSha256": "497af69c37951d55aa9bf41d7db96eecd63389e29a661dc7b337115dc9aa1075",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: geometry/layout authority. Exact square positions, sizes and per-square colour; fill in, never move.\nImage 2: INPUT 2: material/finish reference only (paint, wear density, chipping, fasteners); not layout, view or shapes.\n\nUse case: texture map generation / material swatch sheet for a 3D model.\nINPUT 1 is a layout sheet of FOUR flat-coloured squares on a plain light grey background. Each square is one hull material of a single 3D spacecraft (a battered industrial freighter), to be painted as a flat, square-on texture sample of that material:\ntop-left square: chalked cream armour paint;\ntop-right square: faded oxide-orange armour paint;\nbottom-left square: gunmetal grey steel armour;\nbottom-right square: the recess and machinery material, near-black dull steel.\nINPUT 2 is the SAME ship's port side, already painted: it is the finish to match. Use its paint colours, wear density, fine chipping, grime and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each square as a texture swatch of its material. Each square will be cut out and tiled many times across the model's small fittings, so:\n- Keep the four squares exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Each square is filled edge to edge with its material, right up to its straight edges, with nothing drawn outside it.\n- Each square is a flat, seen-square-on sample of worn industrial armour plate: a fine, even, all-over surface. Only sparse, small detail: a few thin, faint plate seams and a few small scattered fasteners, light even scuffing and fine chipping, a thin even film of grime. The detail is small and evenly distributed over the whole square, with no single dominant feature: no large rivet rows, no seam or panel line across the middle, no hatches, panels, grilles, labels, stripes or markings, nothing centred.\n- Keep each square's colour: cream stays chalked cream, oxide-orange stays faded oxide-orange, gunmetal stays mid gunmetal grey steel, the near-black square stays near-black dull steel. No colour changes, no repair patches, no different-coloured plates.\n- Weathering is light and even across each whole square. No soot, scorch marks, burns, rust streaks, impact damage, dents, holes, large stains or any concentrated area of wear.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no vignette, no directional light, no gradient across a square, no bright border or chipped edge line round a square.\n- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\second-wind-surface\\guide\\sheet-swatch-guide.png",
+      "sha256": "0d3b51b0d882572543bd495eba3fd2b6fcb2a49bb62060c18b2b3db59f87832c",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: geometry/layout authority. Exact square positions, sizes and per-square colour; fill in, never move."
+    },
+    {
+      "path": "art-source\\company-prologue\\second-wind-surface\\reference\\finish-reference.png",
+      "sha256": "cee363a918c8013b9aee282642caca6d825349e8b09adedcd5ad74f0926f76d7",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: material/finish reference only (paint, wear density, chipping, fasteners); not layout, view or shapes."
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one swatch sheet using the imagegen skill, preserving Image 1’s layout and matching Image 2’s surface finish."
+  ],
+  "usage": {
+    "input_tokens": 86930,
+    "cached_input_tokens": 68864,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 701,
+    "reasoning_output_tokens": 17
+  },
+  "elapsedSeconds": 51.8
+}

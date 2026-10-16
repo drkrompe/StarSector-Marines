@@ -61,7 +61,12 @@ for part in MINE:
         # The generated sheet comes back 1672 px wide: one tile is TILE/SHEET of it.
         'native_texels_per_unit': round(1672 * P.TILE[0] / P.SHEET[0] / cam[2], 1),
     }
-(HERE / 'part-list.json').write_text(json.dumps(listing, indent=1) + '\n')
+for g in sorted({P.PART_GROUP[p] for p in listing}):
+    rows = {p: v for p, v in listing.items() if P.PART_GROUP[p] == g}
+    path = HERE / 'part-list' / f'{g}.json'
+    if ONLY and path.exists():  # a partial run keeps the group's other rows
+        rows = json.loads(path.read_text()) | rows
+    path.write_text(json.dumps(rows, indent=1) + '\n')
 for p, v in listing.items():
     print('SURF', f"{p:26s} faces {v['face_count']:4d} area {v['area_units2']:8.1f} extent {v['extent_units']} t/u {v['native_texels_per_unit']}")
 

@@ -103,7 +103,7 @@ def swatch_group(cls):
         tex.image = load_image(path, f'Swatch {cls}')
         tex.projection = 'BOX'
         tex.projection_blend = 0.3
-        tex.extension = 'MIRROR'
+        tex.extension = 'REPEAT'  # swatches are made periodic by swatches.py
         g.links.new(tc.outputs['Object'], mp.inputs['Vector'])
         g.links.new(mp.outputs['Vector'], tex.inputs['Vector'])
         g.links.new(tex.outputs['Color'], out.inputs['Color'])
@@ -193,6 +193,12 @@ def swatch_material(base):
     return m
 
 
+def overridden(ob, k):
+    """A damage state's object-level material override (sw_damage `scar_override`,
+    e.g. primer gun houses) on slot k: its faces keep the override, unskinned."""
+    return k < len(ob.material_slots) and ob.material_slots[k].link == 'OBJECT'
+
+
 def slot_of(me, mat):
     k = me.materials.find(mat.name)
     if k < 0:
@@ -221,9 +227,11 @@ for part, per in selection.items():
             raise SystemExit(f'{name}: no UV layer slot left for skin')
         for i in idx:
             poly = me.polygons[i]
+            if overridden(ob, poly.material_index):
+                continue
             for li in poly.loop_indices:
                 layer.data[li].uv = P.project_uv(part, cam, mw @ me.vertices[me.loops[li].vertex_index].co)
-            base = ob.material_slots[poly.material_index].material if ob.material_slots else None
+            base = me.materials[poly.material_index] if me.materials else None
             poly.material_index = slot_of(me, skin_material(part, base))
             skinned_faces.setdefault(name, set()).add(i)
             face_part[(name, i)] = part
@@ -260,7 +268,7 @@ for ob in bpy.context.scene.objects:
     me = ob.data
     remap = {}
     for k, m in enumerate(list(me.materials)):
-        if m is None or m.name.startswith(('Skin ', 'Swatch ', 'Unskinned ')):
+        if m is None or m.name.startswith(('Skin ', 'Swatch ', 'Unskinned ')) or overridden(ob, k):
             continue
         cls = class_of(m)
         if cls is None:

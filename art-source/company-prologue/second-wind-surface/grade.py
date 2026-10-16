@@ -9,8 +9,10 @@ Per part, in guide tile pixel space (the texture space the UVs address):
    SWAP_SHARE is a colour-layout swap (the spike's grey turret painted orange):
    it is flagged, and the grade below forces it back to its declared class.
 2. De-light. Pixels are grouped into planes by their flat world normal
-   (build/tiles/<part>-normal.png). On each plane a least-squares linear ramp
-   of L is fitted (robustly) and removed about the plane's mean: the top-light
+   (build/<group>/tiles/<part>-normal.png). On each plane a least-squares linear ramp
+   of L is fitted (robustly, with one intercept per declared material class on
+   the plane, so a two-material plane's colour split is not taken for light)
+   and removed: the top-light
    gradient Codex bakes in. Recorded: the ramp's span before. What a linear
    ramp cannot remove is measured and left: the bright/dark band Codex paints
    along plate outlines (edge_band_dL), and plate-to-plate brightness steps.
@@ -108,21 +110,26 @@ for sheet in P.sheets_in(GROUPS):
             core = region & inner
             if core.sum() < 1500:
                 continue
-            X = np.stack([np.ones(core.sum()), xx[core] - xx[core].mean(), yy[core] - yy[core].mean()], 1)
+            # One light ramp per plane, but one intercept per material class on
+            # it: a plane holding cream and oxide must not read their colour
+            # split as a top-to-bottom light gradient (the bow rake did, +18 L).
+            onehot = [regions[c][core] for c in regions if regions[c][core].sum() >= 200]
+            onehot = onehot or [np.ones(core.sum(), bool)]
+            X = np.stack([*[o.astype(np.float64) for o in onehot], xx[core] - xx[core].mean(), yy[core] - yy[core].mean()], 1)
             L = lab[..., 0][core]
             keep = np.ones(len(L), bool)
             for _ in range(3):
                 coef, *_ = np.linalg.lstsq(X[keep], L[keep], rcond=None)
                 res = L - X @ coef
                 keep = np.abs(res) < 2.5 * res[keep].std() + 1e-6
-            ramp = coef[1] * (xx - xx[core].mean()) + coef[2] * (yy - yy[core].mean())
+            ramp = coef[-2] * (xx - xx[core].mean()) + coef[-1] * (yy - yy[core].mean())
             span = float(ramp[core].max() - ramp[core].min())
             lab[..., 0][region] -= ramp[region]
             band = region & ~I.erode(region, 4) & mask & I.erode(mask, 1)
             mid = I.erode(region, 12)
             edge_dl = float(lab[..., 0][band].mean() - lab[..., 0][mid].mean()) if band.sum() and mid.sum() > 200 else None
             rep['planes'].append({'pixels': int(region.sum()), 'ramp_span_L_removed': round(span, 2),
-                                  'ramp_dL_per_100px': [round(float(coef[1] * 100), 2), round(float(coef[2] * 100), 2)],
+                                  'ramp_dL_per_100px': [round(float(coef[-2] * 100), 2), round(float(coef[-1] * 100), 2)],
                                   'edge_band_dL_after': None if edge_dl is None else round(edge_dl, 2)})
 
         # 3. grade per declared material region
@@ -177,4 +184,8 @@ for c in CLASSES:
                  'L_range_before': [round(min(b[0] for b in before), 1), round(max(b[0] for b in before), 1)],
                  'L_range_after': [round(min(a[0] for a in after), 1), round(max(a[0] for a in after), 1)]}
 print(json.dumps(spread, indent=1))
-(HERE / 'grading' / 'summary.json').write_text(json.dumps({'tone_spread_across_parts': spread, 'parts': summary}, indent=1) + '\n')
+for g in sorted({P.PART_GROUP[p] for p in summary}):
+    rows = {p: v for p, v in summary.items() if P.PART_GROUP[p] == g}
+    (HERE / 'grading' / f'summary-{g}.json').write_text(json.dumps({'parts': rows}, indent=1) + '\n')
+if GROUPS is None:
+    (HERE / 'grading' / 'tone-spread.json').write_text(json.dumps(spread, indent=1) + '\n')
