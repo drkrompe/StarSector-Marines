@@ -52,6 +52,10 @@ public final class WholeCompoundSnapshotSuite implements SnapshotSuite {
                     BufferedImage image=renderer.renderView(map,42+turn,centre[0],centre[1],160,90,12);
                     label(image,"WHOLE MAINTENANCE OUTPOST / "+turn*90+" DEGREES / EXTRA MAGAZINE");
                     frames.add(new SnapshotArtifact("outpost-turn-"+turn+".png",image));
+                    int[] staff = site.placement().cell(51,30);
+                    var staffView = renderer.renderView(map,42+turn,staff[0],staff[1],80,45,24);
+                    label(staffView,"OUTPOST STAFF BUILDINGS / "+turn*90+" DEGREES / GAME-SCALE DETAIL");
+                    frames.add(new SnapshotArtifact("outpost-staff-turn-"+turn+".png",staffView));
                 }
             }
         for (int turn=0;turn<4;turn++) {
