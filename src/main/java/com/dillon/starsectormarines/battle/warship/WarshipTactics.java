@@ -24,9 +24,13 @@ import java.util.Map;
  * seconds and ends on its own conditions, never on a timer alone and never re-chosen from scratch each tick:
  * approach out of reach on an oblique course; a bow ship's attack run to its standoff with its guns on; a broadside
  * ship's run parallel to the target with its broadside laid; extend to open the range; come about through a fixed
- * turn back onto the target; flank wide round a charge's escorts; line ahead in a lead's wake. Which follows which is
- * read off where the ship's guns bear (a bow or broadside ship), the range against both reaches, the flux, and the
- * role. The standoff law still sets how close a run goes. Outcomes are the fight's own.
+ * turn back onto the target; flank wide round a charge's escorts; line ahead in a lead's wake. A front-shielded bow
+ * ship never turns its back in reach: its run gives way to a <b>standoff</b>, a drift astern and to one side with its
+ * nose, guns and shield still on the target, which opens past the target's reach when its own pool has filled
+ * (venting) and otherwise ends in another run. A run is held on while the target is near its flux limit. A bow ship
+ * with no front to keep (an omni shield or none) comes about instead. Which follows which is read off where the ship's
+ * guns bear (a bow or broadside ship), its shield, the range against both reaches, both pools, and the role. The
+ * standoff law still sets how close a run goes. Outcomes are the fight's own.
  *
  * <p>A ship flying a manoeuvre travels along its nose ({@link #alongNose}): it can drift sideways and astern only at
  * a fraction of its speed, so its motion reads as a course, not a hover. {@code -Dbattle.warship.tactics=false} is the
@@ -93,6 +97,27 @@ public final class WarshipTactics {
     static final float LATERAL_SHARE = 0.3f;
     /** Astern way a ship on a manoeuvre may make, as a share of its top speed. */
     static final float ASTERN_SHARE = 0.25f;
+    /** A target's pool this full (or overloaded) is pressed: a run is not broken off while the target is near its limit. */
+    static final float PRESS_FLUX = 0.6f;
+    /** A bow ship's run gives way to a standoff once its own pool is this full. */
+    static final float STANDOFF_FLUX = 0.5f;
+    /** A standoff lasts at least this long, in seconds. */
+    static final float STANDOFF_MIN_SECONDS = 8f;
+    /** And at most this long, unless the ship is venting a full pool. */
+    static final float STANDOFF_MAX_SECONDS = 30f;
+    /** A ship standing off to vent turns back in once its pool is down to this. */
+    static final float VENTED_FLUX = 0.3f;
+    /** How far round its target, per standoff, a ship drifts as it opens the range, in degrees. */
+    static final float STANDOFF_SLIDE_DEGREES = 30f;
+    /** A standoff opens the range to this share of the way from the standoff range to the ship's own reach. */
+    static final float STANDOFF_OPEN_SHARE = 0.7f;
+    /** A venting standoff opens to this share of the target's longest reach: just past it. */
+    static final float VENT_CLEAR_SHARE = 1.05f;
+    /**
+     * How far round the target a clearing drift slides: wider than an ordinary standoff's, since the ship sidesteps
+     * faster than it backs and has to get out of reach rather than merely open it.
+     */
+    static final float VENT_SLIDE_DEGREES = 60f;
 
     private float nextPlan;
 
@@ -320,17 +345,46 @@ public final class WarshipTactics {
                 }
             }
             case ATTACK_RUN -> {
-                boolean close = range <= standoff * 1.1f && seconds >= RUN_MIN_SECONDS;
-                boolean flux = ship.fluxFraction() >= RUN_FLUX_LIMIT;
-                if (close || flux || seconds >= RUN_MAX_SECONDS) {
-                    m.begin(Kind.EXTEND, now, WarshipFacing.wrap(toTarget + m.side * EXTEND_TURN_DEGREES));
+                // A front-shielded ship never turns its back in reach: its run gives way to a standoff, shield and
+                // guns still on. It presses while its target is near its limit, and breaks off only for its own pool.
+                // A hull with no front to keep (an omni shield, or none) has nothing to lose by coming about, so it
+                // turns away across the target's bow, opens the range and comes back for another run.
+                boolean front = frontShielded(ship) || !UNSHIELDED_COME_ABOUT;
+                boolean full = ship.fluxFraction() >= RUN_FLUX_LIMIT;
+                boolean pressing = pressed(target) && !full;
+                boolean close = range <= standoff * 1.1f && seconds >= RUN_MIN_SECONDS
+                        && (!front || ship.fluxFraction() >= STANDOFF_FLUX);
+                if (full || (!pressing && (close || seconds >= RUN_MAX_SECONDS))) {
+                    m.side = -m.side;
+                    if (front) {
+                        m.begin(Kind.STANDOFF, now, Float.NaN);
+                        m.venting = full;
+                    } else {
+                        m.begin(Kind.EXTEND, now, WarshipFacing.wrap(toTarget + m.side * EXTEND_TURN_DEGREES));
+                    }
+                }
+            }
+            case STANDOFF -> {
+                float open = standoffRange(standoff, reach);
+                // A pool that fills during the drift turns it into a vent: out past the target's reach until it is low.
+                if (ship.fluxFraction() >= RUN_FLUX_LIMIT) m.venting = true;
+                boolean vented = ship.fluxFraction() <= VENTED_FLUX;
+                boolean done = m.venting ? vented
+                        : seconds >= STANDOFF_MIN_SECONDS && (range >= open * 0.95f || pressed(target)
+                        || seconds >= STANDOFF_MAX_SECONDS);
+                if (done) {
+                    Kind next = range > reach * IN_REACH_SHARE ? Kind.APPROACH : Kind.ATTACK_RUN;
+                    m.begin(next, now, Float.NaN);
                 }
             }
             case BROADSIDE_RUN -> {
                 float relative = Math.abs(WarshipFacing.wrap(toTarget - ship.facingDegrees));
                 boolean passed = seconds >= RUN_MIN_SECONDS && (relative > 140f || relative < 40f);
                 boolean flux = ship.fluxFraction() >= RUN_FLUX_LIMIT;
-                if (passed || flux || seconds >= BROADSIDE_RUN_SECONDS) {
+                if (flux) {
+                    // A full pool: open the range across the target's bow or stern before coming about to vent.
+                    m.begin(Kind.EXTEND, now, WarshipFacing.wrap(toTarget + m.side * EXTEND_TURN_DEGREES));
+                } else if (passed || seconds >= BROADSIDE_RUN_SECONDS) {
                     // Wear round: turn away from the target, through the stern, onto the other broadside.
                     m.side = -m.side;
                     m.begin(Kind.COME_ABOUT, now, Float.NaN);
@@ -421,6 +475,18 @@ public final class WarshipTactics {
                 m.heading = m.course;
                 return ahead(ship, m.course, cruise, airspace, margin);
             }
+            case STANDOFF -> {
+                // Astern and to one side, round the target, the nose left to the guns: a drift, not a turn away.
+                // Venting, it opens past the target's own reach; otherwise it stays inside its own and keeps firing.
+                boolean clear = m.venting;
+                float open = clear ? Math.max(standoffRange(standoff, reach),
+                        WarshipShipFire.longestReach(target) * VENT_CLEAR_SHARE) : standoffRange(standoff, reach);
+                float round = WarshipFacing.bearing(target.centerX(), target.centerY(), ship.centerX(), ship.centerY());
+                float at = round + m.side * (clear ? VENT_SLIDE_DEGREES : STANDOFF_SLIDE_DEGREES);
+                float[] p = airspace.settle(target.centerX() + nx(at) * open, target.centerY() + ny(at) * open, margin);
+                m.heading = Float.NaN;
+                return cog(ship, p);
+            }
             case COME_ABOUT -> {
                 float want = bow ? toTarget : broadsideCourse(ship, toTarget, m);
                 float left = WarshipFacing.wrap(want - ship.facingDegrees);
@@ -434,6 +500,28 @@ public final class WarshipTactics {
                 return null;
             }
         }
+    }
+
+    /**
+     * {@code -Dbattle.warship.unshieldedComeAbout=false} is the control: a bow ship with no front shield ends its run in
+     * a standoff, as a front-shielded one does, instead of coming about.
+     */
+    static final boolean UNSHIELDED_COME_ABOUT =
+            !"false".equalsIgnoreCase(System.getProperty("battle.warship.unshieldedComeAbout"));
+
+    /** Whether {@code ship} carries a front shield, the one kind of hull that must keep its bow to the enemy. */
+    static boolean frontShielded(Warship ship) {
+        return "front".equals(ship.shieldType());
+    }
+
+    /** Whether {@code target} is near its limit: overloaded, or its pool at least {@link #PRESS_FLUX} full. */
+    static boolean pressed(Warship target) {
+        return target.overloaded() || target.fluxFraction() >= PRESS_FLUX;
+    }
+
+    /** The range a standoff opens to: most of the way from the standoff range out to the ship's own reach. */
+    static float standoffRange(float standoff, float reach) {
+        return standoff + STANDOFF_OPEN_SHARE * Math.max(0f, reach - standoff);
     }
 
     /** Whether turning {@code c} by a positive bend turns it toward {@code toTarget} (+1) or away (-1). */
