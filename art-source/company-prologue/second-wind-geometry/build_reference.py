@@ -60,29 +60,7 @@ sw_engines.build_details(kit)
 sw_bridge.build(kit)
 sw_port_module.build(kit)
 
-# Vanilla warhound.ship / Cerberus engineSlots: exact XY and width ratios.
-# Four fixed nozzles, two lateral pairs, all at Z=0 and pointed aft (-X).
-engines = [(-41,31,12),(-39,24,8),(-39,-24,8),(-41,-31,12)]
-for i,(x,y,width) in enumerate(engines,1):
-    # Engine-slot width describes a 2D effect, not a solid nozzle diameter.
-    # Preserve the 3:2 ratio while leaving clearance between solid collars.
-    radius = width*.31
-    kit.cylinder(f'Engine {i} body', (x+6,y,0), radius, 8, kit.steel, 'X')
-    # A genuine open nozzle mesh: large aft mouth and narrower dark throat.
-    ev=[]
-    for ex,rr in ((x-2,radius),(x+2,radius*.66)):
-        ev += [(ex,y+rr*math.cos(t*math.tau/48),rr*math.sin(t*math.tau/48)) for t in range(48)]
-    ef=[(t,(t+1)%48,48+(t+1)%48,48+t) for t in range(48)]
-    em=bpy.data.meshes.new(f'Engine {i} nozzle mesh')
-    em.from_pydata(ev,[],ef)
-    em.update()
-    eo=bpy.data.objects.new(f'Engine {i} aft-facing nozzle',em)
-    bpy.context.collection.objects.link(eo)
-    eo.data.materials.append(kit.dark)
-    kit.cylinder(f'Engine {i} dark throat', (x+1.95,y,0), radius*.66,.1,kit.dark,'X')
-    bpy.ops.mesh.primitive_torus_add(major_radius=radius,minor_radius=.25,major_segments=48,minor_segments=10,location=(x-2,y,0),rotation=(0,math.pi/2,0))
-    kit.finish(bpy.context.object,f'Engine {i} mouth rim',kit.steel)
-
+sw_engines.build_nozzles(kit)
 sw_turrets.build(kit)
 
 scene=bpy.context.scene
@@ -155,7 +133,7 @@ if not args.no_save:
         'revision':'V3 detail: sprite-measured faceted bow, separate engine nacelles, spine command deck, naval turrets',
         'thickness_profile':{'method':'Upper Z uses plateaus and linear chamfer transitions between stations; lower hull has uniform 1.25 depth multiplier for level keel', 'stations':sw_hull.THICKNESS_STATIONS, 'deck_datum':0, 'attachments':'Engine and port-pod coordinates unchanged from V2'},
         'engine_source':'starsector-core/data/hulls/warhound.ship engineSlots',
-        'engines':[{'location':[x,y,0],'width':w,'exhaust_direction':[-1,0,0]} for x,y,w in engines],
+        'engines':[{'location':[x,y,0],'width':w,'exhaust_direction':[-1,0,0]} for x,y,w in sw_engines.ENGINES],
         'pod':{'center':[37,33,1],'dimensions':[19,8,6],'long_axis':'+X','function':'Proposed service/airlock pod; not canonical lore'},
         'cameras':[{'name':name,'position':list(pos),'orthographic_scale':scale} for name,pos,scale in cameras],
         'bay_state':{'port':'open, empty cradle','starboard':'sealed, awaits repair'},

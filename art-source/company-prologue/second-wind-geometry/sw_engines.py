@@ -7,11 +7,17 @@ stepped engine housing that presents the nozzle mouths. Pod blocks are cut by
 their own facets before they join the hull, so neither bow nor pod planes
 reach the wrong part. The four nozzles are locked in build_reference.py.
 """
+import math
+import bpy
 from sw_hull import LOWER, MAIN_DECK, armor_patch, citadel, facet, plane_cut, prism, union
 
 POD_DECK = 16  # nacelles stand proud of the main deck: the bulkiest masses
 
 # Centre aft body (mirror False) and the neck tying each pod to it (True).
+# Vanilla warhound.ship / Cerberus engineSlots: exact XY and width ratios.
+# Four fixed nozzles, two lateral pairs, all at Z=0 and pointed aft (-X).
+ENGINES = [(-41,31,12),(-39,24,8),(-39,-24,8),(-41,-31,12)]
+
 BLOCKS = [
     ('Central aft body', False, LOWER,
      [(-28,-12),(4,-12),(4,12),(-28,12)]),
@@ -129,3 +135,25 @@ def build_stern(kit):
 def build_details(kit):
     build_armor(kit)
     build_stern(kit)
+
+
+def build_nozzles(kit):
+    for i,(x,y,width) in enumerate(ENGINES,1):
+        # Engine-slot width describes a 2D effect, not a solid nozzle diameter.
+        # Preserve the 3:2 ratio while leaving clearance between solid collars.
+        radius = width*.31
+        kit.cylinder(f'Engine {i} body', (x+6,y,0), radius, 8, kit.steel, 'X')
+        # A genuine open nozzle mesh: large aft mouth and narrower dark throat.
+        ev=[]
+        for ex,rr in ((x-2,radius),(x+2,radius*.66)):
+            ev += [(ex,y+rr*math.cos(t*math.tau/48),rr*math.sin(t*math.tau/48)) for t in range(48)]
+        ef=[(t,(t+1)%48,48+(t+1)%48,48+t) for t in range(48)]
+        em=bpy.data.meshes.new(f'Engine {i} nozzle mesh')
+        em.from_pydata(ev,[],ef)
+        em.update()
+        eo=bpy.data.objects.new(f'Engine {i} aft-facing nozzle',em)
+        bpy.context.collection.objects.link(eo)
+        eo.data.materials.append(kit.dark)
+        kit.cylinder(f'Engine {i} dark throat', (x+1.95,y,0), radius*.66,.1,kit.dark,'X')
+        bpy.ops.mesh.primitive_torus_add(major_radius=radius,minor_radius=.25,major_segments=48,minor_segments=10,location=(x-2,y,0),rotation=(0,math.pi/2,0))
+        kit.finish(bpy.context.object,f'Engine {i} mouth rim',kit.steel)
