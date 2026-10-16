@@ -278,6 +278,9 @@ public final class WarshipSystem {
 
     private final List<HullFireHold> hullFireHolds = new ArrayList<>();
 
+    /** The ground the mission keeps the hull fight over, or {@code null} for the whole map. */
+    private HullAirspace hullAirspace;
+
     /**
      * Holds hull fire for this battle until {@code hold} is released: no ship under {@link ShipFireOrder#AUTO} fires
      * at a hull while any hold is pending. Returns the hold, so the mission can release it by hand.
@@ -286,6 +289,19 @@ public final class WarshipSystem {
         if (hold == null) throw new IllegalArgumentException("a hull-fire hold is needed");
         hullFireHolds.add(hold);
         return hold;
+    }
+
+    /**
+     * Keeps this battle's hull fight over {@code airspace}: ships fighting hulls choose their stations inside it
+     * ({@link HullAirspace}). {@code null} gives the whole map back.
+     */
+    public void keepHullFightOver(HullAirspace airspace) {
+        this.hullAirspace = airspace;
+    }
+
+    /** The airspace the hull fight is kept over on a {@code width} by {@code height} map: the mission's, or the map. */
+    public HullAirspace hullAirspace(float width, float height) {
+        return hullAirspace == null ? HullAirspace.wholeMap(width, height) : hullAirspace.within(width, height);
     }
 
     /** Releases every pending hold named {@code name}; a name nothing holds by is ignored. */
@@ -1233,16 +1249,16 @@ public final class WarshipSystem {
         float mine = WarshipDuelHelm.reach(ship);
         float theirs = WarshipDuelHelm.reach(target);
         float range = WarshipDuelHelm.preferredRange(mine, theirs, 0.5f * ship.lengthCells, 0.5f * target.lengthCells);
-        float w = sim.getGrid().getWidth();
-        float h = sim.getGrid().getHeight();
+        HullAirspace airspace = sim.warships().hullAirspace(sim.getGrid().getWidth(), sim.getGrid().getHeight());
         // Which beam a ship dead ahead or astern takes is the hull's own, by its serial, so a pair does not mirror.
         float[] at = WarshipDuelHelm.bowFighter(ship)
-                ? WarshipDuelHelm.bowStation(ship, target, range, w, h)
+                ? WarshipDuelHelm.bowStation(ship, target, range, airspace)
                 : WarshipDuelHelm.station(ship.x, ship.y, target.centerX(), target.centerY(),
                         WarshipEscort.noseBearingDegrees(target), range, ship.serial() % 2 == 0,
-                        0.5f * ship.lengthCells, w, h);
+                        0.5f * ship.lengthCells, airspace);
         if (lead == null) return at;
-        return WarshipDuelHelm.leashed(at, lead.centerX(), lead.centerY(), 0.5f * lead.lengthCells + mine);
+        float[] held = WarshipDuelHelm.leashed(at, lead.centerX(), lead.centerY(), 0.5f * lead.lengthCells + mine);
+        return airspace.clamp(held[0], held[1], WarshipDuelHelm.EDGE_MARGIN_CELLS + 0.5f * ship.lengthCells);
     }
 
     /** Whether a hostile hull is over the battle for {@code ship}: alive and not yet gone, a climbing one included. */

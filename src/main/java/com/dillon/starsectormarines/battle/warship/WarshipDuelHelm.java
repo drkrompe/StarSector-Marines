@@ -93,9 +93,9 @@ public final class WarshipDuelHelm {
     /**
      * A bow ship's station: of {@link #BOW_BEARINGS} points round the target at {@code range}, the one where the
      * target's own anti-ship guns bear least, less {@link #BOW_TRAVEL_WEIGHT} for each range's worth of flying to get
-     * there; kept inside the map.
+     * there; kept inside {@code airspace}.
      */
-    public static float[] bowStation(Warship ship, Warship target, float range, float mapWidth, float mapHeight) {
+    public static float[] bowStation(Warship ship, Warship target, float range, HullAirspace airspace) {
         float tx = target.centerX();
         float ty = target.centerY();
         float most = 0f;
@@ -104,9 +104,9 @@ public final class WarshipDuelHelm {
         float margin = EDGE_MARGIN_CELLS + 0.5f * ship.lengthCells;
         for (int i = 0; i < BOW_BEARINGS; i++) {
             double a = 2.0 * Math.PI * i / BOW_BEARINGS;
-            float x = Math.max(margin, Math.min(mapWidth - margin, tx + (float) Math.cos(a) * range));
-            float y = Math.max(margin, Math.min(mapHeight - margin, ty + (float) Math.sin(a) * range));
-            at[i] = new float[]{x, y};
+            at[i] = airspace.clamp(tx + (float) Math.cos(a) * range, ty + (float) Math.sin(a) * range, margin);
+            float x = at[i][0];
+            float y = at[i][1];
             threat[i] = WarshipShipRules.firepowerAt(target, target.facingDegrees, x, y);
             most = Math.max(most, threat[i]);
         }
@@ -137,14 +137,14 @@ public final class WarshipDuelHelm {
 
     /**
      * Where the ship should be now: {@code range} out on the target's beam, on the side the ship is on, and
-     * {@link #CONVERGE_SHARE} of the range ahead along the target's course; kept inside the map. {@code targetNose}
+     * {@link #CONVERGE_SHARE} of the range ahead along the target's course; kept inside {@code airspace}. {@code targetNose}
      * is the bearing of the target's nose in the {@code atan2} convention. A ship dead ahead or astern of its target
-     * takes the beam {@code preferPort} names.
+     * takes the beam {@code preferPort} names. Kept inside {@code airspace}.
      *
      * @return {@code [x, y]}
      */
     public static float[] station(float shipX, float shipY, float targetX, float targetY, float targetNose,
-                                  float range, boolean preferPort, float halfLength, float mapWidth, float mapHeight) {
+                                  float range, boolean preferPort, float halfLength, HullAirspace airspace) {
         double nose = Math.toRadians(targetNose);
         float ax = (float) Math.cos(nose);
         float ay = (float) Math.sin(nose);
@@ -157,9 +157,6 @@ public final class WarshipDuelHelm {
         }
         float x = targetX + bx * range + ax * range * CONVERGE_SHARE;
         float y = targetY + by * range + ay * range * CONVERGE_SHARE;
-        float margin = EDGE_MARGIN_CELLS + halfLength;
-        x = Math.max(margin, Math.min(mapWidth - margin, x));
-        y = Math.max(margin, Math.min(mapHeight - margin, y));
-        return new float[]{x, y};
+        return airspace.clamp(x, y, EDGE_MARGIN_CELLS + halfLength);
     }
 }
