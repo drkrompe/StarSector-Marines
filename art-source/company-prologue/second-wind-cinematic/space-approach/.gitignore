@@ -1,0 +1,4 @@
+__pycache__/
+build/
+*.blend1
+review/*.log

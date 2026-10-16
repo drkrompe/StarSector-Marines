@@ -1,0 +1,158 @@
+{
+  "passed": true,
+  "path": "review/jangala-space-to-berth.mp4",
+  "sha256": "8eb67966ce363be10e02bd69a5776f91208d5055352e29a19728b16091ca7c5b",
+  "bytes": 13831725,
+  "duration_seconds": 28,
+  "dimensions": [
+    1920,
+    1080
+  ],
+  "fps": 24,
+  "decoded_frames": 672,
+  "audio": false,
+  "codec": "h264",
+  "pixel_format": "yuv420p",
+  "full_decode": "FFmpeg -xerror exit 0",
+  "sources": [
+    {
+      "title": "Space to Jangala",
+      "path": "../space-approach/review/jangala-space-approach.mp4",
+      "sha256": "4718bd257482720df730e820f185723ab790a36ffe7ddfd5186dc40e3849a3b3",
+      "start_seconds": 0,
+      "duration_seconds": 4,
+      "frames": 96
+    },
+    {
+      "title": "Atmospheric entry tail",
+      "path": "../entry-window/review/jangala-entry-window.mp4",
+      "sha256": "e2bbf53d866ff7fe9fa0f25ca3b912ada7ede2e5c6c8cd31b95a1e5d4cdb75da",
+      "start_seconds": 4,
+      "duration_seconds": 4,
+      "frames": 96
+    },
+    {
+      "title": "Forest reveal and Atlas lift",
+      "path": "../forest-reveal-realism/review/jangala-forest-reveal-realism.mp4",
+      "sha256": "5dd48e721ea17dcf1e9ec9e1a15aac64151c294658a8147a51be118550135fcc",
+      "start_seconds": 8,
+      "duration_seconds": 4,
+      "frames": 96
+    },
+    {
+      "title": "Managed fields and agriculture",
+      "path": "../managed-land-realism/review/jangala-managed-land-realism.mp4",
+      "sha256": "692e4374db2acb7320af1fb277c6fba719af55b897f20be6cb5ce6660a066f64",
+      "start_seconds": 12,
+      "duration_seconds": 4,
+      "frames": 96
+    },
+    {
+      "title": "Working port abeam",
+      "path": "../port-refinement/review/jangala-port-refined.mp4",
+      "sha256": "f79e73cb41ff7aa3d3bbe86571b6e8e77ec99dbe8ae9a827ef6215ef9bb80266",
+      "start_seconds": 16,
+      "duration_seconds": 4,
+      "frames": 96
+    },
+    {
+      "title": "Damaged Second Wind landing",
+      "path": "../landing-wreck-pass/review/jangala-damaged-landing.mp4",
+      "sha256": "ff1044f31714f11209bf3a94fd0d60f4592f26b53218a22148b058f814130d1f",
+      "start_seconds": 20,
+      "duration_seconds": 8,
+      "frames": 192
+    }
+  ],
+  "script_sha256": "dc8d48143c41eaeed5019c1a3c4507464cb4501620fbde90dcdd5d7e012207e4",
+  "probe": {
+    "streams": [
+      {
+        "index": 0,
+        "codec_name": "h264",
+        "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+        "profile": "High",
+        "codec_type": "video",
+        "codec_tag_string": "avc1",
+        "codec_tag": "0x31637661",
+        "mime_codec_string": "avc1.640028",
+        "width": 1920,
+        "height": 1080,
+        "coded_width": 1920,
+        "coded_height": 1088,
+        "has_b_frames": 2,
+        "sample_aspect_ratio": "1:1",
+        "display_aspect_ratio": "16:9",
+        "pix_fmt": "yuv420p",
+        "level": 40,
+        "color_range": "tv",
+        "color_transfer": "iec61966-2-1",
+        "color_primaries": "bt709",
+        "chroma_location": "left",
+        "field_order": "progressive",
+        "refs": 4,
+        "is_avc": "true",
+        "nal_length_size": "4",
+        "id": "0x1",
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "time_base": "1/12288",
+        "start_pts": 0,
+        "start_time": "0.000000",
+        "duration_ts": 344064,
+        "duration": "28.000000",
+        "bit_rate": "3949323",
+        "bits_per_raw_sample": "8",
+        "nb_frames": "672",
+        "nb_read_frames": "672",
+        "extradata_size": 51,
+        "disposition": {
+          "default": 1,
+          "dub": 0,
+          "original": 0,
+          "comment": 0,
+          "lyrics": 0,
+          "karaoke": 0,
+          "forced": 0,
+          "hearing_impaired": 0,
+          "visual_impaired": 0,
+          "clean_effects": 0,
+          "attached_pic": 0,
+          "timed_thumbnails": 0,
+          "non_diegetic": 0,
+          "captions": 0,
+          "descriptions": 0,
+          "metadata": 0,
+          "dependent": 0,
+          "still_image": 0,
+          "multilayer": 0
+        },
+        "tags": {
+          "language": "und",
+          "handler_name": "VideoHandler",
+          "encoder": "Lavc62.28.101 libx264"
+        }
+      }
+    ],
+    "format": {
+      "filename": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\arrival-sequence\\review\\jangala-space-to-berth.mp4",
+      "nb_streams": 1,
+      "nb_programs": 0,
+      "nb_stream_groups": 0,
+      "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+      "format_long_name": "QuickTime / MOV",
+      "start_time": "0.000000",
+      "duration": "28.000000",
+      "size": "13831725",
+      "bit_rate": "3951921",
+      "probe_score": 100,
+      "tags": {
+        "major_brand": "isom",
+        "minor_version": "512",
+        "compatible_brands": "isomiso2avc1mp41",
+        "encoder": "Lavf62.12.101"
+      }
+    }
+  },
+  "limits": "Six short editorial excerpts; elapsed travel between scales is implied. Entry and forest share one endpoint sample (1/24 s). No audio or game integration; normal-speed visual observations are recorded separately."
+}
