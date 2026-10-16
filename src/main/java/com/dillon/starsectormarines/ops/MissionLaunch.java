@@ -519,7 +519,8 @@ public final class MissionLaunch {
                 AgreusArcCampaign.requireCurrent(m);
                 if (!AgreusArcCampaign.atSite(ctx.planet))
                     throw new IllegalStateException("Travel to Agreus in Arcadia before deploying.");
-                AgreusConstructionSupport.requireLive(det.powers, liveResources.availableSupplies());
+                if (AgreusArcCampaign.requiresConstructionTender(m))
+                    AgreusConstructionSupport.requireLive(det.powers, liveResources.availableSupplies());
             }
             if ((CorvusWaylineCampaign.isBattle(m) || shepherd || agreus || escort)
                     && !SupplyRouteCampaign.forceReady(personnel == null ? null : personnel.roster(), ctx.getSelectedMarineSquadIds()))

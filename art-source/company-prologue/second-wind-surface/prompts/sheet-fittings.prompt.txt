@@ -1,0 +1,16 @@
+Use case: precise-object-edit / texture reskin of a technical render sheet.
+INPUT 1 is a sheet of FOUR separate orthographic renders of single armour faces of one 3D spacecraft (a battered industrial freighter), each face seen square-on and drawn alone as a flat-coloured shape on a plain light grey background:
+top-left: the gunmetal lower body of a machinery sponson box, side face;
+top-right: the gunmetal cowl of the same sponson box, side face;
+bottom-left: two narrow upright gunmetal barrel bands that clamp round an engine pod, side faces;
+bottom-right: a long gunmetal steel armour belt plate, side face.
+INPUT 2 is the SAME ship's port side, already painted: it is the finish to match. Use its paint colours, wear density, chipping, grime, seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.
+
+Paint each of the four faces in INPUT 1 as that worn industrial hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:
+- Keep the four tiles exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole in a shape stays plain background grey.
+- Each shape is a flat steel armour surface. Add painted surface detail inside its outline only: plate seams and welded joints, rows of fasteners and rivets, flush access panels, scuffed and lightly chipped paint, a thin even film of grime. Nothing may stand out from the surface or cross the outline.
+- Keep each shape's colour: oxide-orange shapes stay faded oxide-orange armour paint, gunmetal shapes stay dark gunmetal steel. Do not repaint any shape another colour, and do not add cream, white or different-coloured patches or repair plates.
+- Weathering is light and even across each whole shape. No soot, scorch marks, burns, rust streaks, impact damage, dents, holes, large stains or any single concentrated area of wear: those are added separately later.
+- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.
+- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, vignette, text, labels or borders.
+Output: one landscape 16:9 image, same composition as INPUT 1.

@@ -1919,8 +1919,12 @@ leave the battle: it **falls**. It keeps the momentum it had (a hovering hull sl
 off as its lift fails), turns as it goes, trails fire, and strikes the ground a few
 seconds later as the crash a downed aircraft makes, hurting whoever is under it on
 either side, then skids to rest and lies there as wreckage for the rest of the battle.
-The fall is a pure function of the hull's own state, so it lands the same way every
-play (`WarshipWreck`). The hit comes from the detonation pipeline itself, so any source
+A falling hull is coming down to the ground, so it eases back to its true landed
+size as it falls (the lift run read backwards, `LandedScale.fallFactor`) and strikes,
+skids and lies at that size: its crush is half its landed length, its skid half its
+beam, with no aircraft cap, because a hull is drawn at its true size on the ground
+and an airframe is not. The fall is a pure function of the hull's own state, so it
+lands the same way every play (`WarshipWreck`). The hit comes from the detonation pipeline itself, so any source
 that already lands a detonation is a counter without a ship-specific shortcut.
 
 **A hull's armour is a grid, and a hit has a place on it** (`warship-hull-damage.md`). The

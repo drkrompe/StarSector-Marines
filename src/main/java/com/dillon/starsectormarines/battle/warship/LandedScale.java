@@ -107,6 +107,17 @@ public final class LandedScale {
         return points.toArray(new float[0][]);
     }
 
+    /**
+     * The body factor of a hull falling out of the sky: {@code burstBody} (whatever it was drawn at when it burst,
+     * flight scale or part way through a lift) easing by smoothstep to {@code berthFactor}, true landed scale, over
+     * {@code fall} (nought at the burst, one at the strike). The lift run read backwards, keyed to the fall.
+     */
+    public static float fallFactor(float burstBody, float berthFactor, float fall) {
+        float t = Math.max(0f, Math.min(1f, fall));
+        float eased = t * t * (3f - 2f * t);
+        return burstBody + (berthFactor - burstBody) * eased;
+    }
+
     /** Length of a run flown from {@code (x, y)} through every waypoint in turn. */
     public static float runLength(float x, float y, float[][] run) {
         float total = 0f;
