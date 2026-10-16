@@ -63,7 +63,7 @@ public final class AgreusArcCampaign {
             + "This breaks one Greyhook surface foothold and its levy route; it is not a commission against every pirate in Arcadia. Deploying accepts these terms; the offer has no deadline.";
     public static final String SMALL_WAR_BRIEF = "Castle: The lead from the Latchkey handover holds. Pell's recovered levy files carry a Drent Haulage dispatch order signed by Mika Drent. Its load numbers match Nadi Orr's shortage report and name Black Sluice's transfer schedule; local pilots confirm the service approach. "
             + "Rusk offers 44,000 credits to take that foothold and hand it to local holders. "
-            + "Seize the causeway customs block first and build a rear position there with our tender; the holders occupy what we actually take. "
+            + "Seize the causeway customs block first; the holders occupy what we actually take, starting with customs the moment it is ours. "
             + "Then fuel control. The causeway runs between walled settling beds with no cover, and Drent Haulage works that transfer road. A support gun covers it; the sealed service galleries north and south are the way round. "
             + "Prize crews and Berth Four cover dispatch. Take it and its transfer records, reclaim anything we lose, then escort the custody party into fuel control and hold all three sites while they complete the handover. "
             + "The marked fuel tanks must survive ordinary fire. Agreus is airless: pressure protection outside the sealed halls. "
@@ -149,6 +149,8 @@ public final class AgreusArcCampaign {
     }
     public static boolean owns(String id) { return AgreusArcProgress.owns(id); }
     public static boolean isBattle(Mission m) { return m != null && m.source == MissionSource.STORY && owns(m.id); }
+    /** Whether this Agreus battle needs an owned working tender: every chapter but A Small War, which has no construction step. */
+    public static boolean requiresConstructionTender(Mission m) { return isBattle(m) && !AgreusArcProgress.smallWar(m.id); }
     public static boolean isContact(Client client) { return client != null && CONTACT_ID.equals(client.contactId); }
     public static OpeningBroker.Destination destination() { return current() == null ? null : resolve(Global.getSector()); }
     static OpeningBroker.Destination resolve(SectorAPI sector) {
@@ -237,7 +239,7 @@ public final class AgreusArcCampaign {
                 .type(MissionType.ASSAULT).tier(OperationTier.ESTABLISHED).risk(RiskLevel.MEDIUM)
                 .payout(AgreusArcProgress.SMALL_WAR_PAYMENT).targetPlanetName(planetName).defenderFactionOverride("pirates")
                 .flavor(SMALL_WAR_BRIEF + route + losses + "\n\n" + SMALL_WAR_TERMS)
-                .requirements("Three full squads recommended; minimum two selected squads with four ready marines each. Fitted boats and owned working tender required. "
+                .requirements("Three full squads recommended; minimum two selected squads with four ready marines each. Fitted boats required; no tender on this contract. "
                         + "Twelve " + (custody ? "estate guards" : "constables") + " and a three-person custody party; employer heavy lift for an owned active mech lance, optional. "
                         + "44,000 credits once on completed handover" + (custody ? ", plus the 12,000-credit House Custody premium." : ". No suit card."))
                 .requiredDrops(6).employerShuttles(0).marineArrivalPolicy(MarineArrivalPolicy.PAIRED_HALF_SQUAD)
@@ -303,7 +305,7 @@ public final class AgreusArcCampaign {
                 || !AgreusArcProgress.smallWar(o.missionId) || !p.acceptsTarget(o.targetPlanetName)) return -1;
         var r = o.smallWar;
         int total = p.settleSmallWar(o.missionId, "agreus", o.victory, o.payoutEarned, r.customsHeld(), r.fuelControlHeld(),
-                r.dispatchHeld(), r.rearPositionBuilt(), r.handedOver(), r.companyPresent(), r.infrastructureLost(),
+                r.dispatchHeld(), r.handedOver(), r.companyPresent(), r.infrastructureLost(),
                 r.custodiansLost(), r.holdersLost(), r.greyhookWithdrawn());
         if (total > o.payoutEarned) premium.accept(total - o.payoutEarned);
         return total;

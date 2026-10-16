@@ -1,10 +1,14 @@
-MUDSKIPPER - GEOMETRY BLOCKOUT (V1)
+MUDSKIPPER - CINEMATIC GEOMETRY (PASS 2: PLAUSIBLE DETAILING)
 
 Purpose
-An initial Blender blockout of the vanilla Mudskipper, for cinematics the way
-second-wind-geometry/ serves the Second Wind. It fixes the silhouette, the
-sections, the mass and the slots. There is no fine detail, damage or
-texturing yet. This is source art only. It changes no runtime art or gameplay.
+A scripted Blender model of the vanilla Mudskipper, for cinematics the way
+second-wind-geometry/ serves the Second Wind. It follows the passes in the
+ship-model-pipeline skill (.claude/skills/ship-model-pipeline/SKILL.md):
+  pass 1 blockout             accepted; snapshot in reference-history/v1-blockout/
+  pass 2 plausible detailing  built here; awaiting the owner's review (pass 3)
+  pass 4 real-world scale     see Scale below
+No damage states or texturing yet. This is source art only. It changes no
+runtime art or gameplay.
 All views render the SAME mesh objects; only the active camera changes.
 
 Hull identity (read from the read-only game install, 0.98a-RC8)
@@ -56,6 +60,45 @@ are separate casings bolted behind the aft hull. A dark drive-bay core shows
 through the seams between the units and stops short of the two stern
 notches, so the notches stay open.
 
+Pass 2: plausible detailing
+Detail is inferred from the sprite at 4-12x and from lore (a rugged low-tech
+civilian ferry, LINER-hinted, "generous bay doors", a rear point-defence
+turret). One Opus subagent per module did the work, since Sol 6.1 (CLAUDE.md)
+is not offered in this harness; each wrote only its own module and the
+integration was checked so that no agent changed another's file.
+  ms_hull     segmented flank armour on dark seams, deck-edge lips, keel
+              plating and strakes; the cargo bay doors as real doors (sliding
+              leaves on an overhead track, jambs, hazard sill, work lights)
+              with a crew hatch beside them; sponson armour modules, belts,
+              passenger ports, vents and trim; flank locker doors; four
+              landing pads, drain grilles, chin armour, running lights.
+  ms_bridge   a segmented armoured command cab on an armoured base: a raked
+              viewport band behind heavy mullions under a visor brow, side
+              windows, a mast with yard and whips, comm dish, sensor blister,
+              nav and anticollision lamps, the sprite's two yellow lamps, a
+              docking collar and tow-eye well on the nose; bolted docking
+              bumpers with lamps for the bow fenders.
+  ms_deck     the cabin hood in three modules with roof plates, an arched
+              studded brow, a dorsal airlock, grab rails, beacon and antenna;
+              passenger skylights and outer-band vents; the cargo hatch as a
+              coaming with 2x3 slatted grille leaves; the tan turret-well
+              coaming; ported two-leaf aft hatches; fore-deck vent grilles and
+              mooring winches beside the cockpit.
+  ms_engines  the main drive as a flanged, banded drum with gimbal waist,
+              actuators, coolant lines and a sunk bell; each pod a faceted
+              lofted drive unit with dark seams, tan thrust collar and nozzle
+              can, pump/valve housing (the sprite's red box), access hatch,
+              radiator bay and flank panels; feed manifold and cross pipes in
+              the valley; faceted RCS housings with puff nozzles for the jets.
+  ms_turrets  Turret 1 as a small point-defence mount: faceted barbette and
+              bolted collar, a gun house with glacis, trunnion mantlet, twin
+              jacketed light MGs with flash hiders, ammunition cans and feed
+              chutes, tracking director and search dish. A BVH overlap test
+              found no clash at rest or at either end of its 120 degree arc.
+Close-ups (bow, bridge, turret, waist, stern, engine) before and after are
+side by side in closeups-before-after.reference.png. Top-view IoU rose from
+0.935 to 0.943 (the engine actuators fill the sprite's dark stern columns).
+
 Construction (lessons carried over from the Second Wind)
 Flat-shaded plate prisms, each section one keel chamfer, one vertical wall
 and one shoulder chamfer, with a one-segment crisp edge chamfer. Hull blocks
@@ -76,39 +119,52 @@ the sprite.
 
 Silhouette check
 compose_review.py lays the sprite over the transparent top render at
-16 px/unit and measures alpha IoU (threshold 128): 0.935. In units^2, 145
-are model-only (mostly the jet housings and bow fenders) and 122 are
-sprite-only (the sprite's soft pod corners and part-alpha flank pixels). The
-figure is also stored under "silhouette" in geometry.json.
+16 px/unit and measures alpha IoU (threshold 128): 0.943 after pass 2
+(0.935 for the blockout). In units^2, 165 are model-only (mostly the jet
+housings, bow fenders and door fittings) and 70 are sprite-only (the
+sprite's soft pod corners and part-alpha flank pixels). The figure is also
+stored under "silhouette" in geometry.json.
 
 Files
 build_reference.py   scene construction, cameras, renders, .blend, geometry.json
 ms_kit.py            materials and primitives (copied from the Second Wind
                      kit; this package does not import second-wind-geometry)
-ms_hull.py           hull blocks, bow facets, sponsons, cockpit, hood, doors
+ms_hull.py           hull blocks, bow facets, sponsons, flanks, doors, underside
+ms_bridge.py         command cab, viewport, mast and sensors, bow fenders
+ms_deck.py           cabin hood, skylights, stripes, hatches, turret-well coaming
 ms_engines.py        main drive, pod drives, maneuvering jets, nozzles
 ms_turrets.py        WS 003 turret and the WS 002 hidden marker
 compose_review.py    sprite overlay, IoU and review sheet (Pillow)
+scale_check.py       pass 4: measures hull volume and derives metres_per_unit
 mudskipper-geometry.blend           saved Blender 5.2 scene with cameras
 geometry.json                       hull identity, slots, engines, dimensions,
                                     cameras, decks, silhouette IoU
 renders/*.png                       1920x1080 renders: top (transparent),
                                     top-composited, top-sprite-overlay,
-                                    port-side, bow, port-quarter, stern-quarter
+                                    port-side, bow, port-quarter, stern-quarter,
+                                    and the six *-detail close-ups
+closeups-before-after.reference.png pass 2 close-ups against the blockout
+reference-history/v1-blockout/      the accepted blockout's renders
 mudskipper-geometry.reference.png   1920x1080 review sheet of four views
 
 Stable names
 Later damage, surfacing and VFX layers key off object names. Use these:
 'Main hull - level datum Z0', 'Engine {n} ...' (n = engine slot index above),
-'Turret 1 WS 003 ...', 'Mount WS 002 ...', and the '{Port|Starboard} ...'
-prefixed parts. Repeated small fittings (stripes, fenders, hatch panels)
+'Turret 1 WS 003 ...', 'Mount WS 002 ...', 'Bow cockpit block', 'Cockpit
+forward glazing', 'Bridge ...', 'Hood ...', 'Dorsal cargo hatch ...', 'Aft
+dorsal hatch ...', 'Fore deck ...', 'Keel ...', 'Ventral ...', and the
+'{Port|Starboard} ...' prefixed parts (cargo bay door, crew hatch, sponson,
+flank locker). Repeated small fittings (stripes, fenders, hatch panels)
 carry Blender's .001 suffixes and are not keys.
 
 Rebuild from this folder
 "/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" --background --factory-startup --python build_reference.py
-  options after "--": --views top,bow  --samples N  --no-save
+  options after "--": --views top,bow  --samples N  --no-save  --out DIR
+  --cam NAME:PX,PY,PZ:TX,TY,TZ:SCALE; close-ups render only when named
+  (bow-detail, bridge-detail, turret-detail, waist-detail, stern-detail,
+  engine-detail)
 python compose_review.py
-About 40 s at 32 samples. Do not run the build against a user's unsaved live
+About 3 minutes for all eleven views at 32 samples. Do not run the build against a user's unsaved live
 Blender session.
 
 Open for the owner

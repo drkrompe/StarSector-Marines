@@ -1,0 +1,63 @@
+{
+ "part": "sponson-cowl",
+ "regions": {
+  "gunmetal": {
+   "pixels": 253201,
+   "share_as_declared": 0.708,
+   "share_in_declared_family": 1.0,
+   "came_back_as": {
+    "gunmetal": 0.708,
+    "dark": 0.292
+   },
+   "swap": false,
+   "before_mean_lab": [
+    34.87,
+    0.54,
+    0.32
+   ],
+   "after_mean_lab": [
+    46.45,
+    1.05,
+    1.83
+   ],
+   "gain_L_a_b": [
+    1.33,
+    1.5,
+    1.5
+   ],
+   "dE_to_palette_before": 11.69,
+   "forced_back_to_declared": false
+  }
+ },
+ "planes": [
+  {
+   "pixels": 35535,
+   "ramp_span_L_removed": 1.84,
+   "ramp_dL_per_100px": [
+    -0.74,
+    0.32
+   ],
+   "edge_band_dL_after": 0.13
+  },
+  {
+   "pixels": 43526,
+   "ramp_span_L_removed": 2.64,
+   "ramp_dL_per_100px": [
+    -0.2,
+    1.81
+   ],
+   "edge_band_dL_after": 3.62
+  },
+  {
+   "pixels": 178365,
+   "ramp_span_L_removed": 0.73,
+   "ramp_dL_per_100px": [
+    -0.09,
+    -0.08
+   ],
+   "edge_band_dL_after": -1.53
+  }
+ ],
+ "ramp_span_L_removed_max": 2.64,
+ "edge_band_dL_after_mean": 0.74
+}

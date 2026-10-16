@@ -1197,25 +1197,27 @@ public final class WarshipSystem {
             float before = wreck.seconds();
             WarshipWreck.Step step = wreck.advance(dt);
             Warship ship = wreck.ship;
-            float radius = 0.5f * Math.max(ship.lengthCells, ship.widthCells);
+            float tally = wreck.crushRadius() + GROUND_TALLY_MARGIN_CELLS;
             switch (step) {
                 case FALLING -> {
                     if ((int) (before / WRECK_FIRE_PERIOD_SECONDS) != (int) (wreck.seconds() / WRECK_FIRE_PERIOD_SECONDS)) {
-                        sim.spawnFallingWreckFire(ship.x, ship.y, Math.max(2f, radius * 0.6f));
+                        float drawn = 0.5f * Math.max(ship.lengthCells, ship.widthCells) * wreck.bodyScale();
+                        sim.spawnFallingWreckFire(ship.x, ship.y, Math.max(2f, drawn * 0.6f));
                     }
                 }
                 case STRUCK -> {
                     ledger.struck(ship, ship.x, ship.y);
                     if (onMap(sim, ship.x, ship.y)) {
-                        Map<Long, Float> under = groundNear(sim, ship.x, ship.y, WRECK_TALLY_RADIUS_CELLS);
-                        sim.crashWreck(wreck.key, ship.x, ship.y, ship.faction, radius, ship.velocityX, ship.velocityY);
+                        Map<Long, Float> under = groundNear(sim, ship.x, ship.y, tally);
+                        sim.crashHullWreck(wreck.key, ship.x, ship.y, ship.faction, wreck.crushRadius(), wreck.skidRadius(),
+                                ship.velocityX, ship.velocityY);
                         tallyGround(sim, under, WarshipDuelLedger.Cause.WRECKAGE);
                         cue(WarshipSoundCue.Kind.IMPACT, ARRIVAL_SETTLE_SOUND, ship.x, ship.y);
                     }
                 }
                 case SKIDDING, CAME_TO_REST -> {
                     if (onMap(sim, ship.x, ship.y)) {
-                        Map<Long, Float> under = groundNear(sim, ship.x, ship.y, WRECK_TALLY_RADIUS_CELLS);
+                        Map<Long, Float> under = groundNear(sim, ship.x, ship.y, tally);
                         sim.skidWreck(wreck.key, ship.x, ship.y, step == WarshipWreck.Step.CAME_TO_REST);
                         tallyGround(sim, under, WarshipDuelLedger.Cause.WRECKAGE);
                     }
@@ -1290,13 +1292,6 @@ public final class WarshipSystem {
 
     /** Cells beyond a blast's own radius within which the duel ledger looks for whom it hurt. */
     private static final float GROUND_TALLY_MARGIN_CELLS = 1.5f;
-
-    /**
-     * How far from a wreck the duel ledger looks for whom its strike or skid hurt. The crash machinery's own crush is
-     * wider than the hull (up to eight cells) and its skid sweeps the ground covered since the last tick, so this
-     * is a generous bound; only units whose hit points actually fell across the call are counted.
-     */
-    private static final float WRECK_TALLY_RADIUS_CELLS = 10f;
 
     /** The live ground units within {@code radius} of {@code (x, y)}, with their hit points, for the duel ledger. */
     private static Map<Long, Float> groundNear(BattleSimulation sim, float x, float y, float radius) {

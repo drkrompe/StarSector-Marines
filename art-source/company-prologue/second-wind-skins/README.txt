@@ -68,12 +68,13 @@ arrival); and scorched waist service covers (the waist service lines and
 port trunks). These exterior locations are ART INTERPRETATION, not an
 assertion of precise named compartment positions. Preserve silhouette, all
 four turrets, engine count/positions, bay opening and the port grapple.
-Modeled damage geometry for these states now exists:
-../second-wind-geometry/states/derelict/ (the parts-bin hulk before the escape)
-and ../second-wind-geometry/states/patched/ (the arrival condition these skins
+Modeled condition geometry now exists for the whole ladder:
+../second-wind-geometry/states/{derelict,patched,refit,restored}/, built from
+one scar table (../second-wind-geometry/states/scar-table.md) so each scar id
+is the same scar in every state. Patched is the arrival condition these skins
 paint: only the starboard pod's two engines work, on the salvaged drive coil;
 the port pod is dead and cold, its coil cradle empty and feed lines
-blind-flanged; the starboard bay door is welded shut). See ../second-wind-geometry/README.txt. Earlier studies kept damage to coatings and thin covers;
+blind-flanged; the starboard bay door is welded shut. See ../second-wind-geometry/README.txt. Earlier studies kept damage to coatings and thin covers;
 the current heavy-arrival direction also deforms local outer armor.
 No active fire, catastrophic pressure holes, new engines, missing guns, launched
 boats, exposed occupied rooms or people. No mapping named interior rooms to
