@@ -13,16 +13,16 @@ import java.util.Random;
  * a 0.3-cell-radius marine fits single-file in one cell, while two cells let
  * a pair maneuver without constant separation pressure.
  *
- * <p>Smaller shops retain the established optional binary partition and
- * non-blocking furniture recipe. This keeps neighborhood storefronts compact
- * while reserving the tactical aisle treatment for lots that can support it.
+ * <p>Medium shops also separate sales from stock, with compact fitted shelving.
+ * Only the largest floors receive the full tactical aisle treatment; the
+ * smallest shells retain an optional binary partition.
  */
 final class CommercialPartitionStrategy implements PartitionStrategy {
 
     static final CommercialPartitionStrategy DEFAULT = new CommercialPartitionStrategy();
 
-    static final int MIN_LONG_DIM = 10;
-    static final int MIN_SHORT_DIM = 9;
+    static final int MIN_LONG_DIM = 9;
+    static final int MIN_SHORT_DIM = 7;
     private static final int FULL_AISLE_LONG_DIM = 13;
     private static final int FULL_AISLE_SHORT_DIM = 10;
 

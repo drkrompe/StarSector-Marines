@@ -345,13 +345,33 @@ Their outside cuts, window recesses and interior anchors remain usable.
 This treatment follows room purpose and available working space rather than
 turning residential or shop footprints into control rooms.
 
-Small ordinary buildings use compact work groups instead of random pool scatter:
-homes fit a sleeping nook and kitchenette, shops display stock beside a counter,
-storage buildings fit aligned case bays or full stocked racks, and utility huts
-fit service cabinets. Groups reserve their working side and refuse doorway or
-window approaches and placements that strand floor. A one-cell module is the
-fallback when its paired group cannot fit; empty circulation is preferable to
-blocking an entrance. The shell refreshes its interior anchor after furnishing.
+Ordinary buildings fit activity groups **per connected room**. Medium homes
+separate bedrooms, cooking/dining and living areas; larger homes divide the rear
+into two bedrooms, and long shallow homes use serial rooms along their long
+axis. Tables, seating, personal storage and work nooks accompany the core room
+fixtures. Beds retain a wall-supported head and clear foot; sofas retain their
+back wall and clear seat edge. Apartment compounds keep their shared halls and
+receive the same richer domestic groups in their existing rooms. Authored
+residential plans label their own spaces and rotate whole furniture arrangements
+with the footprint. Tiny rooms retain compact fallbacks.
+
+Medium shops now divide sales and stock before fitting shelves and a checkout.
+Compact workshops separate work/repair space from stores; smaller offices split
+public reception from work rooms. Large factory and civic plans retain their
+specialized multi-room programs. Placement reserves working space, doorway and
+window approaches, rejects stranded floor, and refreshes the interior anchor
+from the furnished result.
+
+**Lot yards** are an alternative to expanding a building across its whole
+parcel. A fitting ordinary residential, commercial, industrial or civic lot
+can retain a medium shell behind a garden/patio, display forecourt, cargo yard
+or public seating court. The local variant owns only its leaf: fences sit inside
+its boundary, every real door receives a three-cell paved approach, side gates
+retain circulation, and the POI bounds and interior anchor remain the building's.
+The public anchor is on the actual front approach. Existing roads, reserved
+lanes, berths, barriers and occupied ground refuse a yard before mutation; a
+refused lot consumes no variant-selection draw. Eligible lots choose the yard
+one third of the time, keeping full-size buildings and authored shapes in the mix.
 
 The `colony-furnishings` family supplies compact metal cases, personal lockers,
 desks, utility cabinets, kitchenette worktops and retail shelving. Normal pools

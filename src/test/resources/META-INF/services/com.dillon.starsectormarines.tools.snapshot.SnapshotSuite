@@ -173,3 +173,5 @@ com.dillon.starsectormarines.battle.world.gen.bsp.fill.MedicalCampusSnapshotSuit
 com.dillon.starsectormarines.ops.ApcSnapshotSuite
 
 com.dillon.starsectormarines.battle.world.gen.bsp.fill.CompactBuildingSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.bsp.fill.NeighborhoodLotSnapshotSuite
+com.dillon.starsectormarines.ops.TankSnapshotSuite
