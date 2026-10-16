@@ -74,11 +74,11 @@ public final class ShieldFort {
 
     /**
      * Each round tower's centre (footprint frame), the diagonal its missile battery stands toward, and the axis its nest
-     * looks along, in nest order. A nest stands at the tower's vertex on the axis that points at the nearest gate, so it sees
+     * looks along, in nest order. The four look along mirrored axes, a pair each way, so the nests stand symmetric about the works. A nest stands at the tower's vertex on its axis, so it sees
      * nearly all the ground outside the works and enfilades the way in.
      */
     private static final int[][] BASTIONS = {
-            {OX + 6, OY + 6, -1, -1, -1, 0}, {OX + 39, OY + 6, 1, -1, 1, 0}, {OX + 6, OY + 39, -1, 1, 0, 1}, {OX + 39, OY + 39, 1, 1, 0, 1}};
+            {OX + 6, OY + 6, -1, -1, 0, -1}, {OX + 39, OY + 6, 1, -1, 0, -1}, {OX + 6, OY + 39, -1, 1, 0, 1}, {OX + 39, OY + 39, 1, 1, 0, 1}};
 
     /**
      * Nest cells, one in an embrasure on the outer face of each round tower, where it can fire out of the works (a nest at
