@@ -8,7 +8,7 @@ whose forward end carries the command deck, a low armoured superstructure
 with recessed viewport slits under a visor brow, looking forward over the
 trunk. Raised access trunks, roof hatches and a small sensor fit stand along
 it. The waist service trunks run exposed along the housing flanks. The aft
-centre deck is plain deck with one low hatch. Nothing exceeds z ~21 except
+centre deck beyond the housing belongs to sw_aft_deck. Nothing exceeds z ~21 except
 the short sensor mast; everything stays inboard of the four barbettes.
 """
 import math
@@ -220,8 +220,8 @@ def build(kit):
     for s in (1,-1):
         cupola(kit,'Forward access trunk',20.6,s*12.8,1.5,.7)
         cupola(kit,'Aft access trunk',-3.8,s*12.6,1.7,.8)
-    # Aft centre deck: plain deck now, with one low round access hatch
-    # over the engine room where the sprite shows a ring behind the spine.
+    # One low round access hatch over the engine room, where the sprite shows
+    # a ring behind the spine; sw_aft_deck recesses its deck plate around it.
     cupola(kit,'Engine room access hatch',-9.6,0,2.3,.35)
 
     # --- Waist service trunks: still exposed, now run along the housing

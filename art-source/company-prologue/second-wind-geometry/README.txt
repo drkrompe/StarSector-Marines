@@ -43,15 +43,27 @@ raked chin.
 
 Engine pods
 Each aft mound is a whole drive unit bolted to the ship, not hull with
-nozzles poking out of it: an intake cap, an armoured cowl over a steel lower
-casing (carrying the turret platform), reinforcing bands around a recessed
-heat-sink section with fins, and a two-bay thrust housing whose aft faces
-are the exhausts, with the bells sunk into them. Every section is separated
-by a seam over a dark core. A low pylon with coolant and fuel lines ties each
-pod to the centre body; the stern notch between them holds an open machinery
-frame. Smooth and inflated experiments looked organic and were rejected; no
-Gaussian or spline swelling is used. The four engine centres and the bay
-thresholds retain their V2 coordinates.
+nozzles poking out of it. Its sections are faceted engine forms rather than
+boxes: rounded-rectangle sections whose corners are cut into flat facets,
+lofted so they taper between stations. An intake cap narrows to a raked
+intake; an armoured cowl over a steel lower casing carries the turret
+platform; proud barrel bands frame a finned heat-sink cylinder; a short
+thrust housing ends in two twelve-sided engine cans with the bells sunk into
+them. Every section is separated by a seam over a dark core. A low pylon
+with coolant and fuel lines ties each pod to the centre body. Smooth and
+inflated experiments looked organic and were rejected; facets stay flat and
+edges crisp. The four engine centres and the bay thresholds retain their V2
+coordinates.
+
+Centre aft deck and stern notch
+The deck between the pods is the engine-room roof, read off the sprite's
+structural lines (those common to every paint scheme): separate armour
+plates and vent grilles on a seamed skin, a two-leaf reactor lift-out hatch,
+fore-aft rails carrying a parked hoist bridge over an open plant-access
+well, and a bolted girder on the aft edge over the engine-room bulkhead and
+door. The stern notch holds a docking/tow cradle: a cross beam with arms
+ending in clamp jaws, flanked by armoured prongs carrying winch bays and
+bolted to the pods' aft bands.
 
 Command deck
 Following the sprite's central capsule, the command deck stands on the
@@ -82,7 +94,8 @@ repaired, and no runtime art or gameplay is changed by this source reference.
 Files
 second-wind-geometry.blend: saved editable Blender 5.2 scene, cameras and objects.
 build_reference.py: deterministic scene and camera construction; runs in Blender.
-  sw_hull.py, sw_engines.py, sw_bridge.py, sw_turrets.py, sw_port_module.py: one module per area, so
+  sw_hull.py, sw_aft_deck.py, sw_engines.py, sw_bridge.py, sw_turrets.py,
+  sw_port_module.py: one module per area, so
   separate passes do not edit the same file; sw_kit.py holds shared materials
   and primitives; sw_port_module.py builds the port grapple.
 geometry.json: coordinates and provenance for the proposed layout.

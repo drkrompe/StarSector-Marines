@@ -6,8 +6,8 @@ The vanilla engine XY positions and relative widths are retained; Z and hull
 depth are proposed art geometry, not canonical game dimensions.
 
 Detail lives in one module per area so separate passes do not collide:
-sw_hull (forebody shell, bow facets, bays, armor), sw_engines (aft engine pods
-and stern), sw_bridge (dorsal casings, command deck, spine), sw_turrets; sw_kit holds the
+sw_hull (forebody shell, bow facets, bays, armor), sw_aft_deck (centre aft
+deck and stern notch), sw_engines (aft engine pods), sw_bridge (dorsal casings, command deck, spine), sw_turrets; sw_kit holds the
 shared materials and primitives; sw_port_module builds the port grapple.
 
 Review options, after a literal "--":
