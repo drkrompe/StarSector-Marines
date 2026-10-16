@@ -46,9 +46,12 @@ Conventions (every fighter)
 - Placing beside another hull: scale the root by this metres_per_unit /
   that hull's, read from its geometry.json. The Legion's is 0.61 (local
   main 496340563): root scales Broadsword, Wasp, Dagger 0.82; Talon 0.90;
-  Longbow, Thunder 0.74. The widest span here (Longbow, 14.4 m) is about 24
-  Legion units, inside its hangar tunnels (being widened to about 40
-  forward and 46 aft for the Hoplon).
+  Longbow, Thunder 0.74. The Legion has one fly-through hangar tunnel
+  under each wing arm ("Wing <side> hangar", local main 8115783f5; figures
+  in its geometry.json flight_decks[].hangar): 13 units high, at least 42
+  clear wide. The widest span here (Longbow, 14.4 m) is about 24 Legion
+  units and the tallest (Broadsword, 3.3 m) about 5.4, so every fighter
+  clears every section.
 
 Scale: each hull its own (owner policy)
 Every crewed fighter is scaled from its cockpit, guns and drives, with
