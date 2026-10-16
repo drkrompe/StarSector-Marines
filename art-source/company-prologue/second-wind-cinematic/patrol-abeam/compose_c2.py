@@ -78,11 +78,25 @@ def _hail():
 SPEAKER_IDS = {"Jangala Approach": "approach", "Castle": "castle"}   # runtime-contract speaker ids
 
 
-def captions_between(t0, t1):
-    """(t_in, t_out, speaker_id, text) for every hail line starting in [t0, t1) on the hail
-    clock, shot-relative. Paging, reading tail and speaker ids are C1's (c1_overlay):
-    a line is split at sentences into pages of at most two rows, each held for its share
-    of the take; speaker_id is the contract's id ('approach' or 'castle')."""
+def takes_between(t0, t1):
+    """(t_in, t_out, speaker_id, catalog_line_id), one per hail line starting in [t0, t1),
+    shot-relative, over the whole take (first word in, reading tail out). No text: the
+    exporter turns the id into a strings.json key and the player pages it."""
+    import c1_overlay
+    lines = _hail()
+    out = []
+    for i, (line, start, end) in enumerate(lines):
+        if not t0 <= start < t1:
+            continue
+        nxt = lines[i + 1][1] if i + 1 < len(lines) else math.inf
+        release = min(end + c1_overlay.TAIL, nxt - 0.05, t1)
+        out.append((round(start - t0, 3), round(release - t0, 3), SPEAKER_IDS[line["speaker"]], line["id"]))
+    return out
+
+
+def review_pages_between(t0, t1):
+    """(t_in, t_out, speaker_id, text) pages for the burnt-in review movie only, English. The
+    shipped player pages from strings.json itself (CaptionPager); this approximates it."""
     import c1_overlay
     out = []
     lines = _hail()
@@ -120,7 +134,7 @@ SENTENCE_STARTS = {str(["Patrol", "has", "your"]): C.HAIL["line7_patrol"][0],
 
 
 def captions():
-    return captions_between(C.C2_START, C.ENTRY_START)
+    return takes_between(C.C2_START, C.ENTRY_START)
 
 
 def overlays():
@@ -357,7 +371,7 @@ def main():
         "legion": {"blend": meta.get("blend"), "key": meta.get("key"), "samples": meta.get("samples")}}, indent=1),
         encoding="utf-8")
     contact_sheet(OUT / "frames", n, OUT / "contact-sheet.png", label="C2")
-    review_movie(OUT / "frames", n, caps, audio_cues(), DURATION, OUT / (SHOT + ".mp4"), bed_from=C.C2_START)
+    review_movie(OUT / "frames", n, review_pages_between(C.C2_START, C.ENTRY_START), audio_cues(), DURATION, OUT / (SHOT + ".mp4"), bed_from=C.C2_START)
     print("Wrote", (OUT / (SHOT + ".mp4")).relative_to(ROOT))
 
 

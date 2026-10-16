@@ -59,7 +59,7 @@ def duration():
 
 
 def captions():
-    return K.captions_between(C.ENTRY_START, C.ENTRY_START + DURATION)
+    return K.takes_between(C.ENTRY_START, C.ENTRY_START + DURATION)
 
 
 def overlays():
@@ -234,7 +234,7 @@ def main():
         "captions": caps, "overlays": overlays(), "audio_cues": audio_cues(),
         "last_frame_vs_c3_frame0_mean_abs_8bit": round(seam, 3)}, indent=1), encoding="utf-8")
     K.contact_sheet(OUT / "frames", n, OUT / "contact-sheet.png", cols=6, rows=4, label="ENTRY")
-    K.review_movie(OUT / "frames", n, caps, audio_cues(), DURATION, OUT / (SHOT + ".mp4"), bed_from=C.ENTRY_START)
+    K.review_movie(OUT / "frames", n, K.review_pages_between(C.ENTRY_START, C.ENTRY_START + DURATION), audio_cues(), DURATION, OUT / (SHOT + ".mp4"), bed_from=C.ENTRY_START)
     print("Entry: last frame vs C3 frame 0, mean |diff| %.2f / 255" % seam)
 
 
