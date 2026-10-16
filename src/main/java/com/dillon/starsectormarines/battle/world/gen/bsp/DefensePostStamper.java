@@ -604,22 +604,12 @@ public final class DefensePostStamper implements GenStage {
         for (DefensePostLayoutDef.TurretPlacement turret : layout.turrets) {
             turretPads.add(turret.offset());
         }
-        boolean concreteRing = false;
-        for (DefensePostLayoutDef.Cell cell : layout.cells) {
-            concreteRing |= cell.kind() == DefensePostLayoutDef.CellKind.BARRIER
-                    && cell.appearance() == DefensePostLayoutDef.BarrierAppearance.CONCRETE;
-        }
         for (DefensePostLayoutDef.Cell cell : layout.cells) {
             if (cell.kind() != DefensePostLayoutDef.CellKind.PAD) continue;
             int x = cx + cell.offset().x();
             int y = cy + cell.offset().y();
             if (turretPads.contains(cell.offset())) stampTurretCenter(grid, topology, x, y);
             else sealInnerCell(grid, topology, x, y);
-            if (concreteRing && grid.inBounds(x, y)) {
-                // The platform the parapet is built round: slab under the mount, drawn beneath it.
-                Doodad platform = TileManifest.emplacementPlatform(x, y, x * 31 + y * 17);
-                if (platform != null) doodads.add(platform);
-            }
         }
 
         List<DefensePost.TurretSpec> turrets = new ArrayList<>(layout.turrets.size());

@@ -128,11 +128,11 @@ class FortStageTest {
             }
         }
         assertTrue(stood > 0 && stood <= fenceCells, "the belt stands a fence line on open ground");
-        assertTrue(ctx.doodads.stream().noneMatch(d -> d.definitionId().startsWith("doodad.fort-wire")), "no wire is stamped");
+        assertTrue(ctx.doodads.stream().noneMatch(d -> d.definitionId() != null && d.definitionId().startsWith("doodad.fort-wire")), "no wire is stamped");
         CoverPropDamage damage = new CoverPropDamage(ctx.grid, ctx.doodads);
         for (int i = 0; i < ctx.doodads.size(); i++) {
             Doodad d = ctx.doodads.get(i);
-            if (d.definitionId().startsWith("doodad.industrial-fence-")) {
+            if (d.definitionId() != null && d.definitionId().startsWith("doodad.industrial-fence-")) {
                 assertFalse(damage.register(i, d, TileRegistry.installed()), "a closed fence is breached through wall health");
             }
         }
