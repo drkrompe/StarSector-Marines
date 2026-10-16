@@ -29,8 +29,15 @@ public final class GroundWreck {
 
     /** Which hull this is — its sprite, its size, and the tear pattern it comes apart along. */
     public final Airframe airframe;
+    /** Original airborne crash contact; null for ordinary grounded losses. */
+    public final AirCrashImpact crashImpact;
 
     public GroundWreck(float x, float y, float facingDegrees, Airframe airframe) {
+        this(x, y, facingDegrees, airframe, null);
+    }
+
+    public GroundWreck(float x, float y, float facingDegrees, Airframe airframe, AirCrashImpact crashImpact) {
+        this.crashImpact = crashImpact;
         this.x = x;
         this.y = y;
         this.facingDegrees = facingDegrees;

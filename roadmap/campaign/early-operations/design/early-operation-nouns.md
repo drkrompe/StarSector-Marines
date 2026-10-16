@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — Junction victory waits out a fifteen-second hold of every site.
+Updated: 2026-10-16 — Latchkey counterattack commits by the Cinder Steps lane and the south road.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -261,6 +261,10 @@ reward. No equipment is automatically issued. Victory opens **The Yard's Owners*
 At Latchkey Yard, company infantry captures the dispatch house, tooling hall and
 operator entrance. These gains can be recaptured. Eight employer constables take
 separate holding duties after company gains; two technicians support the inspection.
+When dispatch first falls, Voss's finite counterattack commits two groups: one by
+the Cinder Steps lane for the tooling hall's freight doors, one by the south
+service road for the operator entrance. The hall's only other door is the sealed
+gallery from that entrance (`agreus-latchkey.md`, The yard on the ground).
 Victory requires all three sites held together, the marked calibration machine
 surviving ordinary prop damage, and a living technician completing twelve protected
 seconds at the tooling with company infantry present. Eliminating all raiders does
@@ -276,8 +280,27 @@ card under the same once-only ownership rules. Learning both recovered roles
 exposes Salvage-assisted Section: eight regular, two powered assault and two
 powered support billets within the same named squad. Fitting remains explicit.
 The debrief presents the Combine order, Rusk's proposed leases and Lenna's
-counterproposal as attributed claims. It signs no custody agreement and opens no
-fourth chapter; the agreements and remaining arc belong to `a-small-war.md`.
+counterproposal as attributed claims, with Lenna Saye's two letters as text-only
+correspondence. The inspection itself signs no custody agreement.
+
+The **handover decision** follows a settled inspection victory. At Company HQ the
+captain reads two written agreements, **House Custody** and the **Yard Compact**,
+each stating its undertaking, benefit and cost, and may ask Castle to compare them
+or leave and return. Reading, comparing and closing commit nothing. Only an explicit,
+confirmed signature commits a route, once: the other closes, and neither defeat nor
+reload reopens it. Before signing the company may instead decline further Latchkey
+work, keeping completed fees and cards; that answer is also final. A signed route
+stands until a **Terms of Protection** victory ratifies it; ratification accepts only
+the route that chapter launched under. Both routes keep the title, the debt, the
+same core equipment rewards and the duty against Greyhook. House Custody discloses a
+12,000-credit premium owed only on Chapter 5 victory and paid once after
+ratification; the compact forgoes it. The route names the later district-escort
+contact (Rusk's office or Lenna's association), and under the compact Rusk records
+the company as an independent counterparty. These are records and disclosed
+payments only: no hidden virtue score, combat modifier or access penalty. Signing
+puts Terms of Protection in preparation, with Sera Voss's attributable warning; it
+is not deployable until that chapter exists. Chapters 4–5, the escort job and their
+acceptance belong to `a-small-war.md`.
 
 A **story arc** is a finite sequence of authored operations for a named contact,
 with a problem, a resolution, and a visible completed record. A **chapter** is

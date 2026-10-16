@@ -199,6 +199,15 @@
       "lore": "@gearCatalogArmorHegemonyShockLore"
     },
     {
+      "id": "armor:boarding-jack-section",
+      "kind": "ARMOR",
+      "tier": 3,
+      "rarity": "UNCOMMON",
+      "provenance": "@gearCatalogBoardingJackSectionProvenance",
+      "factionLogo": "graphics/factions/pirates.png",
+      "lore": "@gearCatalogBoardingJackSectionLore"
+    },
+    {
       "id": "armor:corporate-specter-section",
       "kind": "ARMOR",
       "tier": 3,

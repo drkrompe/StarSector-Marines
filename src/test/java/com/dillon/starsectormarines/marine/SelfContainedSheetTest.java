@@ -13,7 +13,8 @@ class SelfContainedSheetTest {
     private static final List<String> SECTIONS = List.of(
             SquadEquipmentDoctrines.CORPORATE_SPECTER_SECTION_ARMOR,
             SquadEquipmentDoctrines.HEGEMONY_ARBALEST_SECTION_ARMOR,
-            SquadEquipmentDoctrines.SALVAGE_ASSISTED_ARMOR);
+            SquadEquipmentDoctrines.SALVAGE_ASSISTED_ARMOR,
+            SquadEquipmentDoctrines.BOARDING_JACK_SECTION_ARMOR);
 
     private static MarineArmory armoryHolding(String sheetId) {
         MarineArmory armory = new MarineArmory();
@@ -61,6 +62,8 @@ class SelfContainedSheetTest {
                 SquadEquipmentDoctrines.armorPlanById(SECTIONS.get(1)))));
         assertEquals(4, powerSuits(armoryHolding(SECTIONS.get(2)).issue(
                 SquadEquipmentDoctrines.armorPlanById(SECTIONS.get(2)))));
+        assertEquals(2, powerSuits(armoryHolding(SECTIONS.get(3)).issue(
+                SquadEquipmentDoctrines.armorPlanById(SECTIONS.get(3)))));
     }
 
     @Test

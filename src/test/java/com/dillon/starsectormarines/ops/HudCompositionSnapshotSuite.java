@@ -236,7 +236,7 @@ public final class HudCompositionSnapshotSuite implements SnapshotSuite {
                         new HighlightOverlay(), selection, BattleRenderHostProfile.EMBEDDED_SCENE),
                         EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS, RenderLayer.VEHICLES,
                                 RenderLayer.HIGHLIGHTS, RenderLayer.UNIT_SHADOWS, RenderLayer.UNITS,
-                                RenderLayer.DRONES, RenderLayer.SHUTTLES, RenderLayer.NIGHT_LIGHTING));
+                                RenderLayer.DRONES, RenderLayer.SHUTTLES, RenderLayer.AIRCRAFT_LIGHTS, RenderLayer.NIGHT_LIGHTING));
             }
             @Override public void draw(CanvasHostViewport viewport, float alpha) { throw new IllegalStateException("Headless only"); }
         }, 1920, 1080);

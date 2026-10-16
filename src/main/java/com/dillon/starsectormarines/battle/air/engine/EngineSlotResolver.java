@@ -7,6 +7,7 @@ import org.json.JSONObject;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Lazy cache of engine slot data, keyed by vanilla hull id. First lookup
@@ -42,6 +43,14 @@ public final class EngineSlotResolver {
     private static final Map<String, EngineSlotData[]> CACHE_BY_HULL =
             new ConcurrentHashMap<>();
 
+    private static volatile Function<String, JSONObject> hullSpecs;
+
+    /** Pure tool source consulted only when loaded game resolution fails. Null restores game-only lookup. */
+    public static synchronized void useHullSpecs(Function<String, JSONObject> source) {
+        hullSpecs = source;
+        CACHE_BY_HULL.clear();
+    }
+
     private EngineSlotResolver() {}
 
     /**
@@ -56,7 +65,7 @@ public final class EngineSlotResolver {
      *                          pairs with the spec's {@code height} pixel
      *                          value to fix the pixel-to-cell ratio
      */
-    public static EngineSlotData[] resolve(String hullId, float visualLengthCells) {
+    public static synchronized EngineSlotData[] resolve(String hullId, float visualLengthCells) {
         if (hullId == null || hullId.isEmpty()) return EMPTY;
         return CACHE_BY_HULL.computeIfAbsent(
                 hullId, id -> doResolve(id, visualLengthCells));
@@ -87,6 +96,15 @@ public final class EngineSlotResolver {
             JSONObject spec = Global.getSettings().loadJSON(path);
             return ShipSpecEngineParser.parse(spec, visualLengthCells);
         } catch (Exception e) {
+            Function<String, JSONObject> source = hullSpecs;
+            if (source != null) {
+                try {
+                    JSONObject spec = source.apply(hullId);
+                    if (spec != null) return ShipSpecEngineParser.parse(spec, visualLengthCells);
+                } catch (Exception ignored) {
+                    // Missing/malformed tool specs retain the live path's empty fallback.
+                }
+            }
             LOG.warn("EngineSlotResolver: " + hullId + " (" + path + ") — "
                     + e.getClass().getSimpleName() + ": " + e.getMessage());
             return EMPTY;

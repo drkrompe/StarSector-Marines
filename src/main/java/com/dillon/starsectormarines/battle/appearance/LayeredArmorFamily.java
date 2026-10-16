@@ -35,7 +35,13 @@ public enum LayeredArmorFamily {
     SHIP_MEDICAL,
     SHIP_SERVICE,
     /** Articulated support shell; appended to preserve persisted appearance ordinals. */
-    ARBALEST_HEAVY;
+    ARBALEST_HEAVY,
+    /**
+     * Pirate rebuilt boarding frame. Declared ahead of its grounded layered art, which is not
+     * produced yet: nothing loads assets for it, so an actor wearing it keeps the legacy sheet
+     * and its pattern declares {@code presentationPending}. Appended for ordinal stability.
+     */
+    BOARDING_JACK;
 
     public static LayeredArmorFamily spawnDefault(UnitType type) {
         switch (type) {

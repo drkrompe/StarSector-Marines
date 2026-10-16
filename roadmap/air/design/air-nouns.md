@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — Gunships fly a worked ring: a turning oval with pace, height and hover bob that follow it.
+Updated: 2026-10-16 — A fort's anti-air yard stands Locust and Swarmer towers instead of Ridgewatch and flak; earlier: Missile AA joins ordinary heavy defense posts; all six supported carrier wings use the shared commitment flow.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -98,6 +98,22 @@ present, who owns it, and what it can do in the battle.
 altitude. It is not a second physics body. Visual scale, offset, and engine
 intensity are derived from that state and the body, keeping the simulation and
 the rendered craft anchored to the same actor.
+
+Replacement battle artwork is registered to the original hull frame. Texture
+resolution does not change the aircraft's physical size, centre of gravity or
+weapon locations. When reconstructed art places an engine nozzle differently,
+its appearance may offset the visible plume in that same hull frame; engine
+geometry for flight and thrust demand stays authoritative and unchanged.
+
+An engine's visible burn follows its realized work: a compact idle, a restrained
+sustaining flame at steady speed, and a longer, brighter plume while accelerating.
+Individual nozzles also respond to turning demand, with smooth attack and decay
+on the simulation clock. Night missions retain self-lit nozzle and exhaust masks
+at the same hull hardpoints. A little of that light catches the adjoining hull
+plating, retaining its painted detail and transparent gaps; the rest of the
+airframe keeps its environmental shade. Reflected light follows each nozzle's
+burn, including asymmetric turning demand. Engine light neither reveals fog nor
+changes the craft's motion or detection.
 
 A craft's drawn size is `AirAppearance.GROUND_SCALE` on the ground rising to
 `GROUND_SCALE × ALTITUDE_SCALE_GAIN` at altitude — the gain is factored out as
@@ -529,8 +545,8 @@ and burns like anything else out there, which is the same reason the crossing
 is worth attacking at all.
 
 **The wreck stays on the ground.** What the fire leaves is the aircraft's own
-hull, charred and in three pieces, lying at the place and bearing it was
-destroyed, for the rest of the battle. The smoke that marks a fresh kill burns
+hull, charred and in three pieces, remaining where its sections settle
+for the rest of the battle. The smoke that marks a fresh kill burns
 out in half a minute, and with nothing permanent behind it a burned field looks
 exactly like a field whose aircraft happen to be away, which is precisely the
 question a raider walked over there to settle.
@@ -552,8 +568,12 @@ has no hulk sitting on its own pad to show for it.
 An aircraft lost at altitude carries its horizontal momentum while falling,
 trailing fire and smoke. A slow or hovering craft loses stability, tips toward
 one side and builds lateral speed through the fall instead of receiving an
-instant kick. A fast craft keeps its existing travel. Ground contact dissipates
-that velocity in a skid before the wreck settles. Its passengers and sortie are
+instant kick. A fast craft keeps its existing travel. The hull stays whole
+and retains its original colors during the fall, then chars and separates at
+ground contact. Fighters and utility craft such as the Mudskipper share this
+same crash appearance. The sections inherit the hull's travel, spin about
+their own centres and skid apart with diminishing speed
+before settling. Its passengers and sortie are
 lost immediately; its guns stop firing.
 Ground impact is a separate physical event: a hull-sized explosion damages
 nearby units of either side and structures, then leaves the same charred,
@@ -563,6 +583,8 @@ Rolling fuel explosions follow the sliding hull and spread across the ground
 in a filled fan, including a hot centre. Position, size and outward motion vary
 between bursts; the fan is an irregular expanding mass, not two straight arms.
 Each released blast keeps moving independently, slowing and billowing outward.
+Short sparks and small tumbling metal chips scatter with those bursts and
+dissipate while the three main hull sections remain.
 This is the visual aftermath of the impact; it does not repeatedly apply the
 impact blast's damage.
 The physical impact breaches walls, roofs and destructible natural props before
@@ -582,15 +604,16 @@ wreckage is an external impact, not a shortcut for raiders clearing a flight lin
 
 **A hull comes apart along a V.** The nose section separates as a wedge and
 what is left splits down the spine, both tears walked so the edges are ragged
-and ragged differently for every hull on the field. The pieces shift and turn a
-little where they lie — far enough that the tears open and the wreck reads as
-three things, near enough that it still reads as one aircraft, and never far
-enough to be debris thrown across the apron. This is drawn out of the
-aircraft's own sprite rather than from wreck art, because these are the game's
-hulls and nothing may edit them; the tear follows a lattice for the same
-reason, since a lattice boundary is addressable as ordinary source rectangles
-and a curve would need per-pixel masking that is not available. See
-`HullBreakup`.
+and ragged differently for every hull on the field. Grounded kills leave a
+slightly separated, turned arrangement. Airborne kills open those same tears
+through motion, with bounded spread that preserves the aircraft's recognizable
+shape. First ground contact fixes the pose and tear pattern for the rest of
+the crash. The moving sections and permanent wreck share that same history:
+removing the destroyed aircraft never repositions, reseeds or replaces its
+pieces. Their motion follows battle time, so pausing or looking away cannot
+change where they settle. This is drawn from the current aircraft sprite,
+including upgraded art, without requiring separate wreck textures. The tear
+follows a lattice addressable as ordinary source rectangles. See `HullBreakup`.
 
 A hardstand or taxiing wreck is an obstacle, and **only** an obstacle. Nobody walks through it;
 everybody sees and shoots straight across it. A non-walkable cell is opaque
@@ -1402,6 +1425,85 @@ infantry and do not also apply the older abstract turret threat drain. Destroyin
 the emplacement removes its future fire; a mission must not script a shoot-down
 regardless of whether the guns survived.
 
+**Missile anti-air families.** Dedicated Locust, Swarmer and Proximity Charge emplacements are aircraft-only
+weapons. They acquire hostile airborne craft through the ordinary anti-air
+mount authority, and every released round has one physical flight shared by
+collision, effects and sound. They neither engage overhead ships nor add missile
+hit points, interception targets or a new point-defence model. Existing mission
+batteries, including Ridgewatch, and the ground-artillery Locust retain their
+own established behavior; these are additional catalog choices.
+
+Ordinary heavy defense posts may select any of the three missile towers alongside
+their gun layouts. Each tower uses one existing post allocation and reserves its
+full foundation; selection does not add a second defense budget. Dedicated fort
+aspects and authored mission batteries keep their explicitly chosen composition.
+
+The Swarmer releases four missiles at 0.2-second intervals; the Locust releases
+thirty at 0.1-second intervals. Both wait five seconds after the last round
+before starting another salvo. A committed salvo completes even if its original
+target is lost. Each missile accelerates, leads moving craft and turns within
+its finite powered flight. It may switch to a closer eligible hostile aircraft
+while its previous target still lives. Contact with a hostile aircraft applies
+one direct payload, without invented blast damage or friendly collision. Their
+orange motor flame and smoke follow the physical body and stop when its flight
+ends; losing the launcher does not erase a released missile.
+
+A fighter can react to a real, closing guided missile that is pursuing it. Its
+sortie owns a short, bounded warning delay and a brief forward-moving lateral
+jink with an opposite correction, flown through the same hull-limited steering as its
+ordinary task. The forward direction dominates the lateral and away components,
+so a head-on warning does not ask the fighter to reverse and brake away its
+speed. The maneuver temporarily replaces ordinary strike advancement, then returns
+the unchanged sortie to normal flight. Cover duty's station, rest and chase
+clocks keep running, and spent or aborted work still ends. Nose guns may take
+an ordinary opportunity if their real firing cone still holds; the break adds
+no special firing prohibition. It never moves
+the craft twice, changes its durability or supplies a missed-hit roll. A spent,
+receding or distant round is no warning. Transports, gunships and ground or
+landing procedures keep their existing flight owners. An evidence fixture may
+disable the reaction on its own fighters to compare the same attack with and
+without evasion. Whether the break buys an escape remains a consequence of
+speed, geometry, missile fuel and contact: both bodies' movement is swept over
+the same tick so fast crossings cannot masquerade as dodges between samples.
+A fighter crossing the map boundary retains its final physical segment until
+contacts resolve; only surviving exits complete their departure afterward.
+
+A Proximity Charge is an unguided drifting charge, launched once every two
+seconds within a twenty-degree full cone (the atmospheric interpretation is
+plus or minus ten degrees). Automatic fire keeps a ten-cell minimum stand-off,
+outside its 7.5-cell blast radius, so the mount does not routinely launch into
+its own blast envelope; this is a ground-emplacement adaptation rather than a
+vanilla minimum range. It leaves quickly and slows during its four-second
+flight. The emplacement leads its observed target at launch, accounting for
+that slowdown and the target's current horizontal velocity. Traverse and launch
+elevation use the same predicted point; once released, the charge never steers.
+A turn or speed change can defeat that prediction, and a target beyond the
+charge's finite reach supplies no promised interception. Its purple glow and
+launch smoke are unpowered presentation: it has no
+continuous rocket exhaust. Missile distances use twenty native game units per
+cell; guided linear motion is additionally calibrated for the faster atmospheric
+fighter handling, with Locust and Swarmer cruise speeds of forty and thirty
+cells per second. Guided angular speed is separately calibrated against fighter
+handling so a fast missile still has a turn it must physically fly, leaving a
+lateral break a physical escape window rather than a missed-hit roll.
+The charge retains the unpowered distance/speed conversion,
+so its forty-unit hostile proximity fuse is two cells,
+its 150-unit blast radius is 7.5 cells and its seventy-five-unit full-damage core
+is 3.75 cells. Physical contact with an airborne craft or blocking terrain also detonates the charge. Outside the core,
+damage falls to zero at the outer radius. The blast can catch friendly aircraft
+and exposed ground bodies, including the launcher: altitude and body extent
+must actually bring them inside its volume, while intact roofs and intervening
+structure protect ground occupants. Neither fuel expiry nor leaving the map
+creates a detonation at an invented endpoint.
+
+These atmospheric mounts, tower proportions, speeds and damage remain an
+initial calibration. The damage mapping preserves a qualitative distinction:
+Locust fragmentation uses zero penetration and struggles against armor;
+Swarmer and Proximity Charge use penetration sixteen and twenty-four as an
+explicit initial mapping of their high-explosive identity. Those figures are
+mod choices, not a claim that the ground durability model reproduces vanilla
+damage-type arithmetic.
+
 An authored fixed AA mount may stand entirely on a terrain summit. Its air
 firing line clears the continuous supporting hill from that origin, then
 resumes ordinary structural obstruction: a separate ridge or intervening
@@ -1454,6 +1556,12 @@ overlay is gone; what remains under `battle.flyby` is the roster.
 Wing composition, air-to-air, and formation are still future capabilities. What
 a wing is today is a commitment: a profile, a side, and how many sorties arrive
 when.
+
+The player's fitted Talon, Wasp, Broadsword, Thunder, Longbow and Dagger wings
+all contribute through the same opt-in carrier commitment. Each supported bay
+keeps its own battle airframe and ordnance and uses the shared finite, staggered
+sortie schedule. Unsupported wings contribute nothing; bomber bays do not grant
+an extra air-support pool or bypass commitment.
 
 ### Air cover, and where a sortie is from
 
@@ -2165,7 +2273,7 @@ A side may hold a **pool** of bombers and fighters that ground forces direct. Th
 - **Cover (CAP).** The commander (`ConquestCommand`, from a company's muster and assault stages) or the director (when a hostile armed aircraft is seen near its units) asks for cover over a point through the comms operator, as any call; the director keeps one fighter back for strafes and refuses a second patrol within forty cells of a standing one. The fighter flies the ring a gunship does (`GunshipOrbit`) for a bounded station time. From the ring it chases a hostile armed aircraft inside a hundred and ten cells of its cover (attackers of the covered ground first; one over anti-air the side has sighted is left alone, and a chase that carries the prey over such guns is dropped), in the `INTERCEPT` phase, with `AirToAirFire`: nose guns with a firing window of sixteen cells and a narrow cone, a rolled hit chance falling with range and angle, damage through the one aimed-damage path every body takes, losses recorded as "air-to-air". **The chase is a tail chase** (`AirIntercept`): met head-on the two craft close at the sum of their speeds and the guns hold the prey for about half a second, so a fighter that is clearly the faster flies lead pursuit from ahead or beside (which also turns it in behind once it has gone by) and, from the prey's rear quarter, steers for a slot eight cells behind the prey, braking onto it, where the cone holds for as long as the station does. Against a prey it cannot outrun it flies plain lead pursuit and takes what window the geometry gives. A cover patrol therefore flies the Talon airframe (`AirPoolKind.coverProfile`), faster than the Dagger it hunts; a strafe or bomb sortie keeps the Broadsword or Dagger. A cover gun pass holds its rounds while a friendly stands within the blast and a margin of the aim. On a ring centred on the covered ground a bomber is, in the sweeps, downed during or after its stick rather than before it: the fighter on the far side of its ring cannot turn and catch an inbound bomber inside the second and a half before release. Placing the patrol forward of the ground is the open lever. Secondarily it takes a gun pass at the densest group of hostile combatants the side has sighted near its cover, only with no friendly within eight cells and the AA risk under the ceiling. Symmetric: a defender with a fighter stock does the same over its own ground. The cover fighter's rounds and time are finite; it goes home when they run out.
 - **Where it comes from.** A sortie crosses the map edge nearest its side's home ground: the landing zone for the side that landed, the keep for the side that holds one. It comes in over its own side and its stick runs on toward the enemy. Home was once the centre of the side's live force, which moves with the advance: with the marines gathered short of the keep near the far edge, a marine bomber came in from the enemy's rear and laid its stick back through them, killing seventeen in one pass.
 - **Danger close.** The director does not place a strike with any of its own combatants within ten cells of the aim point.
-- **Anti-air.** The area drain over a turret cluster and real AA positions both hurt a pass, and a believed-defended point is judged by `AaRisk` from the guns the side has actually sighted: a strike is declined when the expected loss is more than an airframe. A fort's massed guns are left to the ground force; a lone nest is bombed out. An unsighted gun is a surprise. A fort may also carry an optional **anti-air yard** (`forts.md`): a guided battery and flak whose real reach, not the fourteen-cell bubble, is what the estimate counts once the fort's works are sighted. It shoots only aircraft, never hulls; its console wrecked, its fort's power lost or the yard taken changes what it does and what the officer believes. The command layer treats a yard that shuts the sky as the first work of a plan that wants an air strike (`AirSupportFacts.blocked`). Sorties are declined over a known yard, not routed around it.
+- **Anti-air.** The area drain over a turret cluster and real AA positions both hurt a pass, and a believed-defended point is judged by `AaRisk` from the guns the side has actually sighted: a strike is declined when the expected loss is more than an airframe. A fort's massed guns are left to the ground force; a lone nest is bombed out. An unsighted gun is a surprise. A fort may also carry an optional **anti-air yard** (`forts.md`): Locust batteries and Swarmer towers on the bastions whose real reach, not the fourteen-cell bubble, is what the estimate counts once the fort's works are sighted. It shoots only aircraft, never hulls; its console wrecked, its fort's power lost or the yard taken changes what it does and what the officer believes. The command layer treats a yard that shuts the sky as the first work of a plan that wants an air strike (`AirSupportFacts.blocked`). Sorties are declined over a known yard, not routed around it.
 - **On screen.** The player's battle HUD carries an air plate under the top-right command rail whenever the player's side holds a pool, and nothing when it does not: airframes available against the establishment for each kind, how many are in the air and on what errand (strike, strafe or cover), the clock to the next replacement, and what has been lost, with the last minute's losses called out. Fair knowledge only: it shows the player side's own pool, never the enemy's. It reads an immutable `AirPoolView` taken from the pool and changes nothing; a sortie's errand comes from the one place the pool names it, so a new mission type shows on the plate by being recorded there.
 - **Reading.** The capability profile reads availability and risk from `AirStrikeCapability`, so a plan may name an air strike as an asset; roles are matched in `phased-assault.md`.
 

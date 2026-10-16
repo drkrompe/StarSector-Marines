@@ -68,12 +68,14 @@ public enum RenderLayer {
     COMPOUND,
     /** Convoy trucks + turrets (+ docking/selected-vehicle debug overlays). Just under shuttles. */
     CONVOY,
-    /** Aircraft hulls + turrets + engine FX. */
+    /** Aircraft hulls + turrets; their self-lit engine masks follow night shading. */
     SHUTTLES,
     /** Authored outdoor light pools over world contents, below luminous shots and impact effects. */
     NIGHT_LIGHTING,
     /** Interior-only light pools and fixture glow over deck contents, below exterior effects. */
     DECK_LIGHTING,
+    /** Aircraft nozzle, exhaust and localized hull reflection, above environmental shade. */
+    AIRCRAFT_LIGHTS,
     /** Contrails, hitscan tracers, projectile sprites. */
     SHOTS,
     /** Sparks / dust / smoke at shot endpoints. */

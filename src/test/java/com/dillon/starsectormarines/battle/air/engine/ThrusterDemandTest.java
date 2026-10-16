@@ -59,6 +59,23 @@ class ThrusterDemandTest {
     }
 
     @Test
+    void actualAccelerationDominatesCruiseWhileCruiseStillTracksSpeed() {
+        EngineSlotData[] slots = { main(0f, -1f) };
+        float idle = ThrusterDemand.compute(slots, body(0, 0, 0, 0, 0, 0), H)[0];
+        float slow = ThrusterDemand.compute(slots, body(0, 2, 0, 0, 0, 0), H)[0];
+        float cruise = ThrusterDemand.compute(slots, body(0, 10, 0, 0, 0, 0), H)[0];
+        float accelerating = ThrusterDemand.compute(slots, body(0, 10, 0, 10, 0, 0), H)[0];
+        float braking = ThrusterDemand.compute(slots, body(0, 10, 0, -10, 0, 0), H)[0];
+        assertEquals(0, idle);
+        assertTrue(slow > idle && cruise > slow);
+        assertTrue(cruise < accelerating * .35f, "cruise reserves a substantial acceleration bloom");
+        assertTrue(braking <= cruise, "braking cannot request forward acceleration bloom");
+        assertEquals(1, accelerating, 1e-5);
+        float rotated = ThrusterDemand.compute(slots, body(-10, 0, -10, 0, 90, 0), H)[0];
+        assertEquals(accelerating, rotated, 1e-5, "response follows actual hull facing");
+    }
+
+    @Test
     void brakingDimsTheForwardMain() {
         EngineSlotData[] slots = { main(0f, -1f) };
         // Moving forward but decelerating: accel points aft, against the thrust

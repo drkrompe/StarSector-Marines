@@ -4,7 +4,7 @@ Status: DRAFT — original local setting direction on an existing vanilla world 
 
 Written: 2026-10-13
 
-Updated: 2026-10-16 — North Weir described as a two-circuit reclamation plant with a screened isolation bay.
+Updated: 2026-10-16 — Latchkey Yard and North Weir ground described: walled yard and homes frontage; two-circuit reclamation plant with a screened isolation bay.
 
 ## Scope and provenance
 
@@ -65,6 +65,57 @@ quarter. It repairs small commercial hulls and manufactures replacement assembli
 from recovered stock. A workers' association operates its leased machinery and
 shared service spaces. Rusk holds a secured district claim under the Combine's
 administration; the crews have the knowledge that makes possession valuable.
+
+### The yard on the ground
+
+Latchkey is one walled working yard, not a scatter of workshops on open concrete.
+The boat apron lies west of the wall. A **freight gate** opens from it onto a
+freight road that runs past the **dispatch house** (gate office, dispatch floor,
+records room) and round to the tooling hall's north doors. The marked **handover
+bay** at the dispatch house's yard door is where a custody party stops and signs.
+The yard's courts stay open: assembly ground inside the gate, lay-down stock and an
+inbound truck at the edges, lanes wide enough for boats' passengers, constables and
+an employer-lifted mech to move as formations.
+
+The **tooling hall** is the yard's middle: machine bays either side of a working
+nave, a tool crib, and a walled **calibration room** at its east end where the
+marked calibration machine stands on a painted plinth. The hall has exactly **two
+ways in**: its north **freight doors** off the yard, and the south door of the
+**service gallery**, a covered sealed corridor from the **operator entrance**.
+The operator entrance stands in the south wall on the service road: an outer and
+an inner pressure door with the suit room and pressurisation plant beside the lock,
+then the shift lobby. Pressure doors, the sealed gallery and the heat main sell the
+airless moon; nobody counts oxygen.
+
+East of the wall, the **Cinder Steps** terraces drop away in broken lines of
+furnace scrap and cold furnace housings. Their **service lane** crosses them to
+the yard's **Cinder Steps gate** and sends a spur north to the homes. The homes and
+the **district heating service** stand on their own street north of the wall; the
+heat main runs between them and the yard. They are lived-in frontage with no
+capture duty and are never a battlefield objective.
+
+The benches show whose work stops if the hall is lost. Lenna's machine labels name
+the association lathe that turns North Weir's pump impellers, the heating-service
+bench rebuilding the Steps' circulators, and the shared inspection bench where Low
+Quay's clinic sterilizer parts are checked. They are attributable labels on ordinary
+props with ordinary damage; the calibration machine is the only one the inspection
+requires.
+
+**The choice the ground makes.** The company takes dispatch and the gate in the
+open, the hall through its freight doors or by the operator entrance and gallery,
+and the entrance from outside or from the hall behind it. When dispatch first
+falls, Voss commits her finite counterattack in two groups: one down the Cinder
+Steps lane for the hall's freight doors, the other along the south road for the
+operator entrance and the gallery behind it. Because the hall has only those two
+doors, a company that has gathered at one end to escort the inspection finds the
+other door open; holding both approaches and getting a living technician to the
+calibration room are competing uses of the same squads.
+
+**Returning in Terms of Protection.** The fourth chapter revisits this map rather
+than a new one. The handover bay at dispatch is its signing point; the Cinder Steps
+lane and gate are the approach the estate guards hold under House Custody and the
+second prize-crew party takes. The secured entrance and the inspection work stay
+visible on that visit. Nothing in the third chapter depends on that visit.
 
 **The Cinder Steps** are old furnace terraces between yard and reclamation plant.
 Workers occupy sealed galleries and pressure habitats beside processing sheds,

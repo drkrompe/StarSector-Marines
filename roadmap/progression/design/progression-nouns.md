@@ -385,10 +385,11 @@ Masterwork weapon kills an opening Green-with-Surplus marine about thirty times
 faster than the reverse kills the endgame marine in power-suit armor. The preserved
 fauna and swarm exchanges still serve their scenes: a swarm runner carries a
 little more structure than one rifle round, which keeps the second shooter's
-choice meaningful. The bottom edge is harsher than intended. Surplus rifles
-cannot hurt powered armor at all, which pirate rosters field at medium and high
-risk; that floor is contracted as `surplus-floor-against-powered-armor.md` rather
-than retuned through the grade ladder.
+choice meaningful. The bottom edge is deliberately harsh. Surplus rifles cannot hurt powered armor
+at all, and pirate rosters field it at medium and high risk. That wall is left
+standing on purpose: a company still on starter issue that late in the campaign
+has not kept up, and the answer is better kit from the Armory, not a stronger
+starter card or a briefing warning.
 
 Rank-and-file marines are otherwise interchangeable, and the company's growth is
 what the Armory has collected and can issue rather than a per-marine ladder.
@@ -617,7 +618,13 @@ every collectible card must be starter-owned, appear in at least one faction
 pool through a channel that can eventually admit its access tier, or reserve an
 explicit named story source. A story-only armor template declares that owner
 through `storySource`; it cannot also enter a faction pool or starter issue.
-The declaration does not prove that the story reward is implemented. An Advanced
+The declaration does not prove that the story reward is implemented.
+**A card is not awardable until its presentation is declared.** A pattern may be
+authored, inspected and calibrated before its art exists; it then states why in
+`presentationPending`. No cargo payload can be made for a card carrying such a
+pattern, and the ordinary card list omits it, so neither a story award nor any
+other channel can hand out a suit that would deploy wearing nobody's art (or,
+worse, another suit's). Explicit development learning still reaches it. An Advanced
 or Prestige card authored only for the Common-only open market is therefore
 still stranded. A Restricted template's owner is a warrant rule instead: it must
 be offered by its issuing tradition's own pool, through licence or patron only.
@@ -742,7 +749,7 @@ Issue*'s free choice, never offered as one of its paths. *Convoy Escort Issue*
 (rocket tubes and one Palisade pod) is listed at the route employer's market once
 Thunder Run opens the road. *Counter-Battery Issue* (two Arrestor packs and an
 anti-materiel rifle) is listed at every Hegemony open market once *A Cold Account*
-settles: Kord's nod, Advanced kit and no warrant. *Builder's Guard* (revetments and
+settles: Advanced kit, no warrant. *Builder's Guard* (revetments and
 Palisade pods) is listed at Asharu once the Morrow's Working Passage settles. Each
 listing comes from the arc's own once-only settlement and is laid only on a won
 beat; a settlement that cannot place it logs and moves on rather than unwinding a
@@ -750,6 +757,12 @@ payment. The cards also circulate like any other, because a card's pool weight i
 its templates' weight: Counter-Battery Issue reaches a Hegemony licence through the
 Arrestor pack, the others reach independent markets and licences. The listing is
 the guaranteed route; the pools are the fallback.
+**A card's identity is not about the company.** Its name and lore describe the kit
+as the wider sector knows it, typically an old licensed pattern or a schedule that
+is simply scarce, not a thank-you, a souvenir, or a record of the player's own
+battles. An arc unlocking a listing is a market event (a depot clears its shelves,
+a licence reaches the stalls) rather than a gift, and kit may appear that nobody on
+either side of a fight has worn.
 *Trench-Clearing Issue* (service rifles, rocket tubes and grenades) is the one arc
 card handed over rather than stocked: a won *Open the Junction*, the first assault
 on a dug-in position, puts one card in fleet cargo from Wayline's militia stores,
@@ -771,6 +784,11 @@ Learning both recovered roles exposes Salvage-assisted Section, with eight regul
 two powered assault and two powered support billets. Explicit fitting preserves
 the named squad and ordinary lift seats. Development test controls remain available. Neither A Cold Account completion nor the grounded
 Shepherd's repair automatically learns either pattern.
+The pirate Boarding Jack is the third recovered-rung assault suit, worn by two
+assault billets in the Boarding Jack Section card. Its template is story-only
+(`storySource` names *A Small War*), so no market, patron, licence, recovery or
+milestone route can reach it, and no card carrying it is awarded until its
+presentation is declared.
 Existing military patterns retain their acquisition channels and prior ownership.
 The pattern owns its explicit armor class and the deployed armor capacity, rating, movement modifier, and
 incoming-accuracy tradeoff; `combat-durability-nouns.md` owns how battle damage

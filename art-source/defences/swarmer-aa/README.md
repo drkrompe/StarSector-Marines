@@ -10,5 +10,6 @@ four forward tubes, red housing, pale painted marking and asymmetric side detail
   turret sprite; `swarmer.wpn` records weapon id `swarmer` and its original mounts.
 
 See the [family documentation](../missile-aa/README.md) for references, preview
-registration and export instructions. The center pivot is provisional art
-placement; gameplay and firing origins are not authored by this pass.
+registration, runtime packaging and export instructions. The center pivot
+supplies initial runtime placement; the mount catalog authors four tube mouths.
+See [effects and behavior](../missile-aa/effects/README.md) for the simulation review.

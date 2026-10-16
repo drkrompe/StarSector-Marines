@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.command.objective;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.AutonomousMissionCommand;
 import com.dillon.starsectormarines.battle.setup.ColdStartSequence;
+import com.dillon.starsectormarines.battle.setup.MissileAaTestSetup.LaneObjective;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.setup.WaterUnderSealSequence;
 import com.dillon.starsectormarines.battle.setup.LimitedWarrantSequence;
 import com.dillon.starsectormarines.battle.setup.YardOwnersSequence;
@@ -49,7 +51,12 @@ public final class MissionObjectiveProjection {
         for (Objective objective : sim.getObjectives()) {
             if (objective.owningFaction() != Faction.MARINE) continue;
             index++;
-            if (objective instanceof ExtractionPayloadObjective payload)
+            if (objective instanceof LaneObjective lane)
+                items.add(MissionObjectiveFamilies.at("missile-aa-" + lane.lane.id(), lane.displayName(),
+                        State.ACTIVE, Strings.get("missileAaTestPhase"), "",
+                        Strings.get("missileAaTestInstruction"), lane.measure(sim), -1, "",
+                        lane.lane.x(), lane.lane.y()));
+            else if (objective instanceof ExtractionPayloadObjective payload)
                 items.add(payload(payload, sim.getCivilianEvacuationProgress()));
             else if (objective instanceof ChargeSiteObjective site) items.add(MissionObjectiveFamilies.charge(site));
             else if (objective instanceof RaidObjective raid) {

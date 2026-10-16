@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "status": "GUIDE ONLY - no accepted raw art exists; nothing here is exported or shipped",
+  "facing": "north",
+  "registration_source": "../specter-v2/geometry.json",
+  "registration": "Reuse the Specter v2 export canvases and inner-hinge pivots so the existing shell pose tracks drive the rig. Every body part keeps the complete canvas; never trim or recenter a shoulder.",
+  "export_canvas": [150, 95],
+  "head_canvas": [72, 69],
+  "foot_canvas": [38, 52],
+  "body_master": {"scale": 1.12, "offset": [0.0, -0.06], "pivot": [0.5, 0.5]},
+  "layers": {
+    "torso": {
+      "export_name": "body.png",
+      "slab": [[0.335, 0.20], [0.665, 0.20], [0.69, 0.30], [0.68, 0.80], [0.60, 0.88], [0.40, 0.88], [0.32, 0.80], [0.31, 0.30]],
+      "helmet_socket": {"center": [0.5, 0.42], "radii": [0.105, 0.17]},
+      "power_pack": [[0.39, 0.70], [0.61, 0.70], [0.61, 0.93], [0.39, 0.93]],
+      "joint_backing": "dark flexible backing continuous under both shoulder cuts, 40 source px overlap at the master's resolution"
+    },
+    "left-shoulder": {
+      "export_name": "shoulder-left.png",
+      "note": "the larger, squarer welded slab; the mismatch is deliberate",
+      "slab": [[0.05, 0.20], [0.30, 0.17], [0.34, 0.27], [0.33, 0.66], [0.24, 0.72], [0.07, 0.68], [0.03, 0.45]],
+      "pivot": [0.2653061224489796, 0.34987593052109184],
+      "mastered_offset": [-0.26285714285714284, 0.04648800661703886],
+      "mastered_scale": 1.12
+    },
+    "right-shoulder": {
+      "export_name": "shoulder-right.png",
+      "note": "a smaller rounded cargo-frame cap from a different donor",
+      "slab": [[0.67, 0.25], [0.86, 0.24], [0.93, 0.36], [0.92, 0.58], [0.84, 0.64], [0.69, 0.60], [0.66, 0.40]],
+      "pivot": [0.7346938775510204, 0.34987593052109184],
+      "mastered_offset": [0.26285714285714284, 0.04648800661703886],
+      "mastered_scale": 1.12
+    },
+    "head": {
+      "export_name": "head.png",
+      "shape": "compact pressure helmet: low oval dome inside the socket, flat welded brow plate forward, two guarded hose ports aft",
+      "dome": {"center": [0.5, 0.52], "radii": [0.36, 0.40]},
+      "brow": [[0.24, 0.16], [0.76, 0.16], [0.72, 0.30], [0.28, 0.30]]
+    },
+    "foot": {
+      "export_name": "foot.png",
+      "shape": "broad flat cargo boot with toe plate forward and a heel latch; two walking feet, no tracks or claws",
+      "sole": [[0.18, 0.06], [0.82, 0.06], [0.90, 0.30], [0.86, 0.94], [0.14, 0.94], [0.10, 0.30]]
+    },
+    "weapon": {
+      "note": "Handheld weapons stay the shared swappable infantry layers. The rig adds no weapon art and no extra gun."
+    },
+    "latch-assist-carrier": {
+      "export_name": "graphics/battle/marine-modular-topdown/variants/equipment/latch-screen.png",
+      "note": "Integral-system carrier layer: a bolted actuator/screen plate on the left shoulder, visible while carried, like the Specter's screen emitter. A narrow screen, not a dome and not a ram.",
+      "attachment": "left-shoulder",
+      "proposed_size_shoulders": [0.34, 0.30],
+      "proposed_offset_shoulders": [-0.14, 0.03]
+    }
+  },
+  "materials": {
+    "casing": {"paintable": true, "guide_rgb": [196, 120, 52], "note": "welded replacement plate; paint masks recolor this only"},
+    "bare_steel": {"paintable": false, "guide_rgb": [150, 156, 160]},
+    "joint_backing": {"paintable": false, "guide_rgb": [44, 44, 50]},
+    "hoses": {"paintable": false, "guide_rgb": [92, 70, 120], "note": "guarded hose runs in armored sleeves"},
+    "service_labels": {"paintable": false, "guide_rgb": [232, 210, 80], "note": "hand-lettered panels with no readable text"},
+    "indicator": {"paintable": false, "guide_rgb": [80, 220, 230], "note": "at most one tiny lamp per part"}
+  },
+  "palettes": ["rust-orange", "hull-grey", "oxide-green", "soot"],
+  "coordinate_note": "Normalized canvas coordinates, origin top-left, Y down; up is forward (north)."
+}

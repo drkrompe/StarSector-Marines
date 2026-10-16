@@ -53,6 +53,9 @@ final class ArmorSheetBundles {
             // The early mixed sections: a few recovered power suits among ordinary kit.
             {SquadEquipmentDoctrines.CORPORATE_SPECTER_SECTION_ARMOR, "armor.specter-recovered",
                     "armor.scout", "armor.combat", "armor.aegis-composite"},
+            // The pirate rung: two rebuilt boarding frames among a raider section in plain kit.
+            {SquadEquipmentDoctrines.BOARDING_JACK_SECTION_ARMOR, "armor.boarding-jack",
+                    "armor.scout", "armor.outlaw", "armor.packframe"},
             {SquadEquipmentDoctrines.HEGEMONY_ARBALEST_SECTION_ARMOR, "armor.arbalest-recovered",
                     "armor.pathfinder", "armor.line"},
             // The same section in approved suits: stage one of the Hegemony auxiliary warrant.

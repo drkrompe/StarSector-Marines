@@ -41,6 +41,10 @@ public final class TurretCatalogRegistry {
     public static final String FORT_AIR_CONTROL_STRUCTURE_ID = "structure.fort-air-control";
     public static final String ANTI_AIR_STRUCTURE_ID = "structure.turret-anti-air-flak";
     public static final String RIDGE_AA_STRUCTURE_ID = "structure.ridge-aa";
+    /** The fort anti-air aspect's bastion batteries: long-reach, thirty-round missile salvos. */
+    public static final String AA_LOCUST_STRUCTURE_ID = "structure.aa-locust";
+    /** The fort anti-air aspect's close-in towers at the control room door: guided four-round salvos. */
+    public static final String AA_SWARMER_STRUCTURE_ID = "structure.aa-swarmer";
     public static final String HEAVY_MG_STRUCTURE_ID = "structure.turret-heavy-mg";
 
     public static final String TANK_CANNON_STRUCTURE_ID = "structure.tank-twin-cannon";

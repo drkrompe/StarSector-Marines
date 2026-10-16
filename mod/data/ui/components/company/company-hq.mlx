@@ -1,4 +1,4 @@
-<template props="auxiliary,firstRefitClasses,wingsClasses,debugAction,debugClasses,openingGuide,newsDesk,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,shipAction,shipLabel,shipViewAction,shipView">
+<template props="auxiliary,handover,firstRefitClasses,wingsClasses,debugAction,debugClasses,openingGuide,newsDesk,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,shipAction,shipLabel,shipViewAction,shipView">
   <div id="company-hq-root" class="company-hq-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{purpose}" />
 
@@ -18,6 +18,7 @@
     <button id="company-hq-first-refit" class="{firstRefitClasses}" onclick="{barracksAction}">{i18n.openingUiCompanyHqAProperIssueChooseOneFreeWayline}</button>
     <button id="company-hq-wings" class="{wingsClasses}" onclick="{boatsAction}">{i18n.openingUiCompanyHqSecondhandWingsCastleHasALeadOn}</button>
     <button id="company-hq-auxiliary" class="{auxiliary.resumeClasses}" onclick="{auxiliary.open}">{auxiliary.resumeLabel}</button>
+    <button id="company-hq-handover" class="{handover.resumeClasses}" onclick="{handover.open}">{handover.resumeLabel}</button>
 
     <div id="company-hq-main" class="company-hq-main">
       <div id="company-hq-sidebar" class="company-hq-sidebar">
@@ -204,6 +205,35 @@
       </div>
       <div id="aux-space-below" class="aux-space" />
     </div>
+    <div id="handover-modal" class="{handover.classes}">
+      <div id="handover-space-above" class="aux-space" />
+      <div id="handover-letter" class="handover-letter console-readout">
+        <div id="handover-heading" class="aux-heading">
+          <img id="handover-crest" class="aux-crest" src="{handover.crest}" />
+          <div id="handover-heading-copy" class="aux-heading-copy">
+            <div id="handover-title" class="label heading tone-edge aux-title">{handover.title}</div>
+            <div id="handover-from" class="label tone-muted aux-from">{handover.from}</div>
+          </div>
+        </div>
+        <div id="handover-tabs" class="{handover.tabClasses}">
+          <button id="handover-custody" class="{handover.custodyTabClasses}" onclick="{handover.custody}">{handover.custodyTabLabel}</button>
+          <button id="handover-compact" class="{handover.compactTabClasses}" onclick="{handover.compact}">{handover.compactTabLabel}</button>
+          <button id="handover-compare" class="{handover.compareTabClasses}" onclick="{handover.compare}">{handover.compareTabLabel}</button>
+        </div>
+        <div id="handover-record" class="label aux-part">{handover.record}</div>
+        <div id="handover-undertaking" class="{handover.termsClasses}">{handover.undertaking}</div>
+        <div id="handover-benefit" class="{handover.partClasses}">{handover.benefit}</div>
+        <div id="handover-cost" class="{handover.partClasses}">{handover.cost}</div>
+        <div id="handover-letter-copy" class="{handover.letterClasses}">{handover.letter}</div>
+        <div id="handover-fill" class="aux-space" />
+        <div id="handover-controls" class="aux-controls">
+          <button id="handover-primary" class="{handover.primaryClasses}" onclick="{handover.primary}">{handover.primaryLabel}</button>
+          <button id="handover-secondary" class="{handover.secondaryClasses}" onclick="{handover.secondary}">{handover.secondaryLabel}</button>
+          <button id="handover-close" class="aux-action console-action" onclick="{handover.close}">{handover.closeLabel}</button>
+        </div>
+      </div>
+      <div id="handover-space-below" class="aux-space" />
+    </div>
   </div>
 </template>
 
@@ -221,6 +251,8 @@
   .aux-part { height: auto; white-space: normal; }
   .aux-grants { padding: 8px; border-width: 1px; border-color: #8c815d; background-color: #26302b; }
   .aux-controls { flex-direction: row; height: 34px; gap: 12px; }
+  .handover-letter { width: 1120px; height: 500px; padding: 20px; gap: 12px; flex-direction: column; border-width: 2px; border-color: #c9b77a; background-color: #1c2826; }
+  .handover-tab-current { border-color: #e6d28c; background-color: #34402f; }
   .aux-action { width: 0px; flex-grow: 1; height: 26px; padding: 4px 8px; border-width: 2px; font-family: heading; text-align: center; }
   .hq-wings { height: 30px; width: 100%; text-align: left; padding: 4px 12px; font-family: heading; }
 .hq-debug { width: 168px; height: 34px; text-align: center; font-family: heading; border-width: 2px; }

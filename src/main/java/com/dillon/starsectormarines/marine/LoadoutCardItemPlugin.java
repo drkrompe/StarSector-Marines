@@ -29,8 +29,13 @@ public final class LoadoutCardItemPlugin extends BaseSpecialItemPlugin {
 
     /** Validated cargo payload for market stock, patron rewards and salvage. */
     public static SpecialItemData itemData(String cardId) {
-        if (LoadoutCard.parse(cardId) == null) {
+        LoadoutCard card = LoadoutCard.parse(cardId);
+        if (card == null) {
             throw new IllegalArgumentException("Unknown loadout card id '" + cardId + "'");
+        }
+        if (!card.presentationDeclared()) {
+            throw new IllegalArgumentException("Loadout card '" + cardId
+                    + "' carries a pattern whose presentation is still pending; it is not awardable");
         }
         return new SpecialItemData(ITEM_ID, cardId);
     }

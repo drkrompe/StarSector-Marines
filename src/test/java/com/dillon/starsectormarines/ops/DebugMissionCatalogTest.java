@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.ops.loot.LootGenerator;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.loot.LootManifest;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
@@ -95,7 +96,7 @@ class DebugMissionCatalogTest {
     }
     @Test void locationGroupsKeepStoryOrderAndSeparateShelvedConcepts() {
         var catalog = DebugMissionCatalog.missions(null);
-        assertEquals(List.of("Jangala", "Unfixed site", "Asharu", "Warion", "Garnir"), DebugMissionScreen.locations(catalog, 0));
+        assertEquals(List.of("Jangala", "Unfixed site", "Asharu", "Warion", "Garnir", Strings.get("missileAaTestLocation")), DebugMissionScreen.locations(catalog, 0));
         var jangala = DebugMissionScreen.visible(catalog, 0, "Jangala");
         assertEquals(List.of("01", "02", "03", "MAP", "04", "R1", "R2", "R3"),
                 jangala.stream().map(m -> DebugMissionCatalog.scenario(m).sequence()).toList());
