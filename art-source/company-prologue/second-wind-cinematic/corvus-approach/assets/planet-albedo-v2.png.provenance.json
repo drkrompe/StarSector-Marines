@@ -1,0 +1,32 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a145da-db65-7510-bec3-4e3af2c34860",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a145da-db65-7510-bec3-4e3af2c34860\\exec-774c2fac-102d-4725-a953-959ee3651d18.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\assets\\planet-albedo-v2.png",
+    "sha256": "ac7dd1ecb8e5ed761ec75de5d468124c72f0b4cd6df684839f35373a47988057",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\prompts\\planet-albedo-v2.txt",
+  "promptSha256": "caeb6b8484a9711558eb089ac5faea66b43163241075fd92c605e820749f3868",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAsset: an equirectangular (2:1, plate carree) true-colour surface albedo map of Jangala, an alien jungle and agricultural world, for wrapping onto a 3D sphere in Blender. Exactly 2:1 landscape canvas, highest resolution available, full bleed, flat orthographic map projection, nothing else in the frame.\nLook: a real cloud-free satellite mosaic in the manner of NASA's Blue Marble Next Generation, calibrated true colour, NOT a fantasy or game map. Restrained, slightly muted photographic colour as orbital photographs actually record it. No clouds, no haze, no shading, no relief lighting, no shadows, no specular glints, no night side.\nLand (about 40% of the map): dark, desaturated rainforest, deep olive and blackish green as real tropical forest looks from orbit, broken by natural variation. Large continents with ragged fractal coastlines plus a few long archipelagos; avoid ring-shaped or rosette islands and avoid uniform blob islands. Within the forest: wide meandering river systems with braided channels, pale tan floodplains and dendritic tributary networks; broad lighter olive and khaki agricultural tracts of patchwork fields along the big rivers and coastal lowlands; grey-brown and rust highland ranges and plateaus with eroded ridges; one or two dry interior basins of ochre savanna and small sandy desert in a rain-shadow; green-brown mangrove deltas with muddy sediment plumes spreading into the sea.\nOceans (about 60%): very dark, deep navy-black open ocean as real ocean appears from space, with only subtle large-scale variation; narrow continental shelves of muted teal and slate blue only along some coasts and in shallow inner seas, never a bright turquoise halo around every island; tan-green river sediment plumes at the big deltas. Small, thin polar sea ice only on the very top and very bottom rows.\nProjection: equirectangular, features stretch horizontally only near the top and bottom rows; no globe curvature, no vignette. The left and right edges must continue seamlessly into each other (wrap-around tileable horizontally). The landmasses must look alien: absolutely no Earth continents or recognisable Earth geography.\nNo text, labels, grid lines, borders, legend, compass, frame or watermark.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one image using your specifications, then stop."
+  ],
+  "usage": {
+    "input_tokens": 37367,
+    "cached_input_tokens": 30464,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 557,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 78.6
+}

@@ -180,6 +180,20 @@ public final class FrigateDuelScene implements BehaviorScene {
         }
         verdicts.add(Verdict.of("a-lost-hull-falls-before-it-strikes", fell,
                 wrecks.isEmpty() ? "no hull was lost" : falls.toString()));
+        // A hull coming down comes back to its true landed size, and crushes what that size covers.
+        boolean trueScale = true;
+        StringBuilder sizes = new StringBuilder();
+        for (WarshipWreck w : wrecks) {
+            if (w.phase() == WarshipWreck.Phase.FALLING) continue;
+            float drawn = w.ship.lengthCells * w.bodyScale();
+            float landed = w.ship.lengthCells * LandedScale.berthFactor();
+            trueScale &= Math.abs(drawn - landed) < 1e-3f && Math.abs(w.crushRadius() - 0.5f
+                    * Math.max(w.ship.lengthCells, w.ship.widthCells) * LandedScale.berthFactor()) < 1e-3f;
+            sizes.append(String.format(Locale.ROOT, "%s lies %.1f cells long (flight %.1f), crush %.1f; ",
+                    w.ship.hullId, drawn, w.ship.lengthCells, w.crushRadius()));
+        }
+        verdicts.add(Verdict.of("a-wreck-lies-at-true-scale", trueScale,
+                sizes.length() == 0 ? "no wreck on the ground" : sizes.toString()));
         if (loop.equals("wreck")) {
             boolean crashNear = t.crashNearGround;
             verdicts.add(Verdict.of("the-crash-hurts-what-it-lands-on", !crashNear || t.hurtByCrash > 0,

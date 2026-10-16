@@ -1,9 +1,12 @@
 package com.dillon.starsectormarines.battle.fixture;
 
+import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.ShipOnStation;
+import com.dillon.starsectormarines.battle.power.VehicleSupport;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.ops.detachment.PowerCatalog;
 
@@ -14,13 +17,19 @@ import java.util.Objects;
  * Immutable launch value for one ordered command-power commitment.
  *
  * <p>Fixed power tuning remains in {@link PowerCatalog}; only Mech Support's
- * campaign-configured deployment payload and Ship on Station's frozen ships
- * cross the fixture boundary.
+ * campaign-configured deployment payload, Ship on Station's frozen ships and
+ * Armour Support's frozen company vehicles cross the fixture boundary, with
+ * the company boat a drop power flies with.
+ *
+ * @param companyCarrier the committed company boat a drop power flies with, or
+ *     {@code null} for the synthetic carrier alone
  */
 public record CommandPowerCommitment(
         String id,
         List<MechDeploymentSpec> mechDeployments,
-        List<ShipSupportSource> ships) {
+        List<ShipSupportSource> ships,
+        List<VehicleDeploymentSpec> vehicleDeployments,
+        FittedBoat companyCarrier) {
 
     public CommandPowerCommitment {
         if (id == null || id.isBlank()) {
@@ -29,6 +38,19 @@ public record CommandPowerCommitment(
         mechDeployments = mechDeployments == null
                 ? List.of() : List.copyOf(mechDeployments);
         ships = ships == null ? List.of() : List.copyOf(ships);
+        vehicleDeployments = vehicleDeployments == null
+                ? List.of() : List.copyOf(vehicleDeployments);
+    }
+
+    public CommandPowerCommitment(String id, List<MechDeploymentSpec> mechDeployments,
+                                  List<ShipSupportSource> ships,
+                                  List<VehicleDeploymentSpec> vehicleDeployments) {
+        this(id, mechDeployments, ships, vehicleDeployments, null);
+    }
+
+    public CommandPowerCommitment(String id, List<MechDeploymentSpec> mechDeployments,
+                                  List<ShipSupportSource> ships) {
+        this(id, mechDeployments, ships, List.of());
     }
 
     public CommandPowerCommitment(String id, List<MechDeploymentSpec> mechDeployments) {
@@ -42,11 +64,18 @@ public record CommandPowerCommitment(
                 ? mechSupport.deployments() : List.of();
         List<ShipSupportSource> ships = power instanceof ShipOnStation shipPower
                 ? shipPower.sources() : List.of();
-        return new CommandPowerCommitment(power.id, deployments, ships);
+        List<VehicleDeploymentSpec> vehicles = power instanceof VehicleSupport vehicleSupport
+                ? vehicleSupport.deployments() : List.of();
+        FittedBoat carrier = power instanceof MechSupport mechSupport
+                ? mechSupport.companyCarrier()
+                : power instanceof VehicleSupport vehicleSupport
+                ? vehicleSupport.companyCarrier() : null;
+        return new CommandPowerCommitment(power.id, deployments, ships, vehicles, carrier);
     }
 
     /** Rebuilds a fresh runtime power through the production catalog. */
     public CommandPower toPower() {
-        return PowerCatalog.restore(id, mechDeployments, ships);
+        return PowerCatalog.restore(id, mechDeployments, ships, vehicleDeployments,
+                companyCarrier);
     }
 }

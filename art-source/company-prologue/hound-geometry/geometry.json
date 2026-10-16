@@ -29,7 +29,41 @@
     "+Y": "port",
     "+Z": "dorsal"
   },
-  "units": "One sprite pixel per unit about the .ship centre; no metre scale asserted",
+  "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
+  "metres_per_unit": 0.88,
+  "scale": {
+    "method": "deck program (DeckProgramProbe FRIGATE \"Combat Freighter\" 10 40 75): 2427 m2 rooms x1.40 circulation x3.2 m deck height = required m3; solved against usable pressure-hull volume",
+    "required_m3": 10873,
+    "pressure_hull_units3": 28958,
+    "usable_fraction": 0.55,
+    "solved_metres_per_unit": 0.881,
+    "range": {
+      "cramped_65pct_usable": 0.83,
+      "pods_not_crewed": 1.07
+    },
+    "size_m": [
+      60.8,
+      52.8,
+      18.4
+    ],
+    "cross_checks_m": {
+      "bridge airlock hatch": [
+        1.7,
+        2.1
+      ],
+      "bridge viewport glass": [
+        0.9,
+        1.0
+      ],
+      "stern cargo doors": [
+        9.7,
+        4.8
+      ],
+      "body keel to deck": 9.7,
+      "person 1.8 m in units": 2.05
+    },
+    "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
+  },
   "sprite": {
     "size": [
       62,
@@ -44,18 +78,18 @@
   "dimensions": {
     "min": [
       -26.0,
-      -30.0,
-      -7.1
+      -30.01,
+      -7.43
     ],
     "max": [
       43.1,
-      30.0,
-      10.1
+      30.01,
+      13.48
     ],
     "size": [
       69.1,
-      60.0,
-      17.2
+      60.02,
+      20.91
     ]
   },
   "weapon_slots": [
@@ -82,7 +116,7 @@
       "location": [
         -4,
         4,
-        8.75
+        9.8
       ],
       "angle": 145,
       "arc": 290,
@@ -199,9 +233,9 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9405,
-    "sprite_uncovered": 0.0208,
-    "model_outside_sprite": 0.0411,
+    "iou": 0.9416,
+    "sprite_uncovered": 0.0167,
+    "model_outside_sprite": 0.0443,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 15.36 px per unit"
   }
 }

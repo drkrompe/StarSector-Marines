@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.combat.Interceptable;
@@ -204,6 +205,15 @@ public interface BattleControl extends BattleView, SquadDirectiveControl {
     long spawnShuttle(ShuttleType type, Faction faction,
                       float lzX, float lzY, float entryX, float entryY,
                       float exitX, float exitY, float pendingDelay);
+
+    /**
+     * As above, flying as {@code frame} — one of the company's own fitted boats,
+     * so a loss is that boat's loss at settlement.
+     */
+    long spawnShuttle(ShuttleType type, Airframe frame, Faction faction,
+                      float lzX, float lzY, float entryX, float entryY,
+                      float exitX, float exitY, float pendingDelay,
+                      int seatsPerSortie);
 
     /**
      * Spawn a gunship: an armed {@code type} craft that flies in from {@code (entryX, entryY)}, circles

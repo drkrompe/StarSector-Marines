@@ -378,8 +378,12 @@ public final class BoatDeckViewModel {
                         fitted.maxSpeed(),
                         pattern.maxSpeed() * bestFactor(pattern, BoatFittingSlot.DRIVE,
                                 BoatFitting::speedFactor)),
-                meter("seats", Strings.get("openingBoatDeckSeats"), Strings.format("openingBoatDeckSeats2", pattern.capacity),
-                        pattern.capacity, pattern.capacity),
+                fitted.machineOnly()
+                        ? meter("seats", Strings.get("openingBoatDeckSeats"),
+                                Strings.format("boatDeckMachineOnly", LiftReadout.ratingName(fitted.liftRating())),
+                                0f, pattern.capacity)
+                        : meter("seats", Strings.get("openingBoatDeckSeats"), Strings.format("openingBoatDeckSeats2", pattern.capacity),
+                                pattern.capacity, pattern.capacity),
                 meter("hardpoints", Strings.get("openingBoatDeckHardpoints"), Strings.format("openingBoatMounts", pattern.hardpoints()),
                         pattern.hardpoints(), pattern.hardpoints()));
     }
@@ -390,6 +394,8 @@ public final class BoatDeckViewModel {
         if (boat == null) return List.of();
         List<SlotRow> rows = new ArrayList<>(BoatFittingSlot.values().length);
         for (BoatFittingSlot slot : BoatFittingSlot.values()) {
+            // A small boat never lifts a machine, so its hold is not a choice.
+            if (slot == BoatFittingSlot.LIFT && !liftable(boat.pattern())) continue;
             BoatFitting fitting = boat.fittingIn(slot);
             String base = "boat-slot:" + slot.name().toLowerCase(Locale.ROOT);
             rows.add(new SlotRow(base, base + ":name", base + ":fitting", base + ":tier",
@@ -598,6 +604,9 @@ public final class BoatDeckViewModel {
         if (fitting.slot() == BoatFittingSlot.PLATING) {
             return Strings.format("openingBoatDeckHull2", factor(fitting.hullFactor()));
         }
+        if (fitting.slot() == BoatFittingSlot.LIFT) {
+            return Strings.format("boatDeckLiftEffect", LiftReadout.ratingName(fitting.liftRating()));
+        }
         return Strings.format("openingBoatDeckSpeedAccel", factor(fitting.speedFactor()), factor(fitting.accelFactor()));
     }
 
@@ -610,14 +619,29 @@ public final class BoatDeckViewModel {
     }
 
     private static String slotLabel(BoatFittingSlot slot) {
-        return slot == BoatFittingSlot.DRIVE ? Strings.get("openingBoatDeckDrive") : Strings.get("openingBoatDeckPlating");
+        return switch (slot) {
+            case DRIVE -> Strings.get("openingBoatDeckDrive");
+            case LIFT -> Strings.get("boatDeckLift");
+            case PLATING -> Strings.get("openingBoatDeckPlating");
+        };
     }
 
     private static String slotCopy(BoatFittingSlot slot) {
-        return slot == BoatFittingSlot.DRIVE
-                ? Strings.get("openingBoatDeckWhatGetsHerOffTheDeckAnd")
-                : Strings.get("openingBoatDeckWhatAnAntiAirGunHasTo");
+        return switch (slot) {
+            case DRIVE -> Strings.get("openingBoatDeckWhatGetsHerOffTheDeckAnd");
+            case LIFT -> Strings.get("boatDeckLiftCopy");
+            case PLATING -> Strings.get("openingBoatDeckWhatAnAntiAirGunHasTo");
+        };
     }
+
+    private static boolean liftable(ShuttleType pattern) {
+        for (BoatFitting fitting : BoatFitting.catalog(BoatFittingSlot.LIFT)) {
+            if (!fitting.standard() && fitting.supports(pattern)) return true;
+        }
+        return false;
+    }
+
+
 
     private static String berthLabel(int index) {
         return String.format(Locale.ROOT, Strings.get("openingBoatDeckBerthD"), index + 1);

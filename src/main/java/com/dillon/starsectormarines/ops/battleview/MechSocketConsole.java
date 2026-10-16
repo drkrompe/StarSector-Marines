@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 
@@ -20,9 +21,14 @@ final class MechSocketConsole {
 
     private MechSocketConsole() { }
 
+    /**
+     * @param internal the engine, heat sink or cooler fitted in this well, drawn as its
+     *                 footprint on the socket grid and named in the caption; null otherwise
+     */
     static void draw(CanvasContext c, MechLabDollCanvas.SocketDropTarget t,
                      SocketDef socket, MechWeaponComponent installed,
-                     MechWeaponComponent preview, MissileReplenisherComponent replenisher, LayeredMechAssets assets,
+                     MechWeaponComponent preview, MissileReplenisherComponent replenisher,
+                     MechInternal internal, LayeredMechAssets assets,
                      boolean selected, boolean hovered, boolean compatible,
                      boolean rejected, boolean draggingHere, double time) {
         boolean fixed = socket.factoryLocked();
@@ -49,14 +55,29 @@ final class MechSocketConsole {
             float cell = Math.min(iw / socket.gridColumns(), ih / socket.gridRows());
             float gx = x + w * .5f - cell * socket.gridColumns() * .5f;
             float gy = iy + ih * .5f - cell * socket.gridRows() * .5f;
+            // An internal's footprint, in the orientation the socket accepts it, is filled in.
+            int fillColumns = 0;
+            int fillRows = 0;
+            if (internal != null && preview == null && installed == null) {
+                boolean upright = internal.footprintColumns <= socket.gridColumns()
+                        && internal.footprintRows <= socket.gridRows();
+                fillColumns = Math.min(socket.gridColumns(), upright ? internal.footprintColumns : internal.footprintRows);
+                fillRows = Math.min(socket.gridRows(), upright ? internal.footprintRows : internal.footprintColumns);
+            }
             for (int row = 0; row < socket.gridRows(); row++) {
                 for (int col = 0; col < socket.gridColumns(); col++) {
+                    if (col < fillColumns && row < fillRows) {
+                        c.fillRect(gx + col * cell, gy + row * cell, cell - 2, cell - 2,
+                                new Color(0x2c, 0x36, 0x2e));
+                    }
                     c.strokeRect(gx + col * cell, gy + row * cell, cell - 2, cell - 2,
                             new Color(0x303b32), 1f);
                 }
             }
             MechWeaponComponent shown = preview != null ? preview : installed;
-            if (shown != null && assets != null) {
+            if (shown == null && internal != null) {
+                internalGlyph(c, internal.role, x + w * .5f, iy + ih * .5f - 4, SILVER);
+            } else if (shown != null && assets != null) {
                 LayeredSpriteCache sprite = MechEquipmentGridCanvas.spriteFor(assets, shown);
                 if (sprite != null) {
                     float scale = Math.min((iw - 12) / sprite.pxWidth, (ih - 8) / sprite.pxHeight);
@@ -73,11 +94,12 @@ final class MechSocketConsole {
                         x + w * .5f, y + h - 40, MUTED);
             }
             String caption = draggingHere ? rejected ? "CANNOT FIT" : "RELEASE TO FIT"
+                    : internal != null ? internal.displayName()
                     : socket.type() == SocketType.UTILITY ? "SELECT TO REFIT"
                     : installed != null ? installed.displayName() : socket.type().label() + " / "
                     + socket.gridColumns() + "x" + socket.gridRows();
             c.text(Fonts.ORBITRON_12_BOLD, fit(caption, w - 23), x + 12, y + h - 20f + (20f - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f,
-                    draggingHere ? accent : installed != null ? SILVER : AMBER);
+                    draggingHere ? accent : installed != null || internal != null ? SILVER : AMBER);
         }
         if (selected || hovered || compatible || rejected) {
             float pulse = (float) (.5 + .5 * Math.sin(time * 3.5));
@@ -112,6 +134,24 @@ final class MechSocketConsole {
             c.strokeRect(x - 18, y - 10, 36, 20, color, 1.3f);
             c.line(x - 7, y - 18, x - 7, y + 18, color, 2f);
             c.line(x + 7, y - 18, x + 7, y + 18, color, 2f);
+        }
+    }
+
+    /** A line drawing per role: a turbine, a fin stack, or a fan, so the well reads as fitted. */
+    private static void internalGlyph(CanvasContext c, MechInternal.Role role, float x, float y, Color color) {
+        switch (role) {
+            case ENGINE -> {
+                c.strokeRect(x - 20, y - 12, 40, 24, color, 1.4f);
+                c.line(x - 20, y, x + 20, y, color, 1.2f);
+                for (int i = -1; i <= 1; i++) c.line(x + i * 10, y - 12, x + i * 10, y + 12, color, 1f);
+                c.fillRect(x - 3, y - 3, 6, 6, AMBER);
+            }
+            case HEAT_SINK, COOLER -> {
+                for (int i = -2; i <= 2; i++) c.line(x + i * 7, y - 12, x + i * 7, y + 12, color, 1.6f);
+                c.line(x - 18, y + 12, x + 18, y + 12, color, 1.4f);
+                if (role == MechInternal.Role.COOLER) c.strokeRect(x - 6, y - 6, 12, 12, GREEN, 1.2f);
+            }
+            case PLATING -> c.strokeRect(x - 18, y - 12, 36, 24, color, 2f);
         }
     }
 

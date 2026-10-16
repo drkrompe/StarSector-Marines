@@ -96,6 +96,21 @@ public final class WarshipShipRules {
     }
 
     /**
+     * Whether {@code ship}'s strongest anti-ship gun has {@code target} now: -1 when it has no such gun or the target is
+     * beyond that gun's hull reach, 0 when in reach but outside the gun's arc at the hull's heading, 1 when it bears.
+     * A reading for evidence and for the tactics layer, not a firing rule.
+     */
+    public static int strongestGunOn(Warship ship, Warship target) {
+        Warship.Mount m = strongest(ship);
+        if (m == null) return -1;
+        float mx = ship.mountX(m);
+        float my = ship.mountY(m);
+        float range = (float) Math.hypot(target.centerX() - mx, target.centerY() - my);
+        if (range > WarshipScale.hullReach(m.weapon.rangePx())) return -1;
+        return Warship.bears(m, ship.facingDegrees, mx, my, target.centerX(), target.centerY(), UNBOUNDED_REACH) ? 1 : 0;
+    }
+
+    /**
      * Where the ship's strongest anti-ship gun must point to hit {@code target}: the hull's centre led by its
      * velocity over that gun's flight time. A hardpoint's arc is a few degrees, so a hull that points at a moving
      * target's centre rather than its lead point never brings the hardpoint to bear.

@@ -10,12 +10,18 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parent
 STATES = {
-    'derelict': ('SECOND WIND / DERELICT - DAMAGE STATE GEOMETRY',
-                 'NEARLY A DECADE IN THE BELT  |  UNPOWERED PARTS BIN  |  IMPACT BASINS, TORN PLATES, SHEARED MAST, SMASHED PORT CAN',
-                 'Review render of real damage geometry over the clean V3 guide. No lights; every pod dead. Silhouette, bays, mounts and engine centres unchanged.'),
-    'patched': ('SECOND WIND / PATCHED - DAMAGE STATE GEOMETRY',
-                'EMERGENCY ESCAPE REPAIRS  |  WELDED SALVAGE PLATES, SPLINTS, CARGO-RAIL SHORE  |  STARBOARD POD ON A SALVAGED DRIVE COIL',
-                'Review render of real damage geometry. Port pod dead, stripped and blanked; starboard pod runs on the bolted-on coil. No fire, no breaches.'),
+    'derelict': ('SECOND WIND / DERELICT - CONDITION STATE GEOMETRY',
+                 'NEARLY A DECADE IN THE BELT  |  UNPOWERED PARTS BIN  |  WINDWARD STRIKES, SALVAGE STRIPPING, BOTH PODS DEAD',
+                 'Scar table over the clean V3 guide (sw_damage.py). No power. Silhouette, bays, mounts and engine centres unchanged.'),
+    'patched': ('SECOND WIND / PATCHED - CONDITION STATE GEOMETRY',
+                'THE ESCAPE  |  ONLY WHAT THE FLIGHT NEEDED  |  STARBOARD POD ON A JURY-RIGGED SALVAGED COIL',
+                'Same scar ids as derelict. Port pod dead and cold, feed lines capped. No fire, no breaches.'),
+    'refit': ('SECOND WIND / REFIT - CONDITION STATE GEOMETRY',
+              'LIMITED BERTHING / COMMAND CONVERSION  |  A FEW PATCHES REPLACED BY PROPER PLATES',
+              'Same scar ids. Heavy craters and the dead port pod remain; fresh primer plates and seams mark the new work.'),
+    'restored': ('SECOND WIND / RESTORED - CONDITION STATE GEOMETRY',
+                 'STRUCTURALLY WHOLE  |  BOTH PODS RUNNING  |  REPAINTED, NOT NEW',
+                 'Same scar ids. Replacement plates repainted near the hull colour; old seams and dents still read under the paint.'),
 }
 CLEAN_PANELS = [('port-quarter','PORT BOW QUARTER'), ('top','TOP / BOW LEFT - PORT BELOW'),
                 ('port-side','PORT SIDE / INNER ENGINES OCCLUDED'),

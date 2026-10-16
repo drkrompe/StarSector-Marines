@@ -52,14 +52,15 @@ public enum MechSupportPayload implements AirDeliveryPayload {
         EntitySpec spec = new EntitySpec(name, context.faction,
                 UnitType.HEAVY_MECH, point.cellX(), point.cellY())
                 .atPosition(point.x(), point.y())
-                .mechVariant(variant)
                 .role(context.mission.rescuePickupMechTransport
                         ? UnitRole.GARRISON : UnitRole.COMBATANT)
                 .squad(context.mission.squadId);
+        deployment.applyTo(spec);
         long mech = context.spawn(spec);
         MechLoadoutComponent loadout = new MechLoadoutComponent(variant,
                 deployment.arms(), deployment.leftShoulder(),
                 deployment.rightShoulder(), deployment.role());
+        loadout.applyFrame(deployment.frame());
         loadout.installMissileReplenisher(deployment.missileReplenisher());
         context.attachMechLoadout(mech, loadout);
         Squad squad = context.squad(context.mission.squadId);
@@ -70,9 +71,18 @@ public enum MechSupportPayload implements AirDeliveryPayload {
         return true;
     }
 
+    /**
+     * Which machine of the lance leaves next. A carrier that flies several
+     * sorties is a cradled boat lifting one machine per trip, so the trip
+     * number counts too; a single sortie unloads the lance in order.
+     */
+    static int machineIndex(ShuttleMission mission) {
+        return mission.currentCycle + mission.deboardedThisSortie;
+    }
+
     private static MechVariant variantForDeboard(ShuttleMission mission) {
         if (mission.mechVariants != null && mission.mechVariants.length > 0) {
-            int index = Math.min(mission.deboardedThisSortie,
+            int index = Math.min(machineIndex(mission),
                     mission.mechVariants.length - 1);
             MechVariant variant = mission.mechVariants[index];
             if (variant != null) return variant;
@@ -82,7 +92,7 @@ public enum MechSupportPayload implements AirDeliveryPayload {
 
     private static MechDeploymentSpec deploymentForDeboard(ShuttleMission mission) {
         if (mission.mechDeployments != null && mission.mechDeployments.length > 0) {
-            int index = Math.min(mission.deboardedThisSortie,
+            int index = Math.min(machineIndex(mission),
                     mission.mechDeployments.length - 1);
             MechDeploymentSpec deployment = mission.mechDeployments[index];
             if (deployment != null) return deployment;

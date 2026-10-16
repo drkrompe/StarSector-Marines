@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — warships brought in mid-battle come down at a distance on an entry heading, hull-fight stations eased off airspace edges, escorts screening beside their charge, a climb up through the deck, the Greyhook fighting a withdrawal against Wolfs from the west; ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at six times the shared density and slower in atmosphere, a declared airspace for the hull fight, point defence tracking what is inbound, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture, landed on the pads south of the ridge and fighting over that southern ground; a landed ship is drawn at true scale and lifts on a run (ahead off the berth, round a climbing turn) that carries it to flight presence (rationale in `warship-behaviours.md`).
+Updated: 2026-10-16 — machines have lift classes and carriers lift ratings; a cradled company boat flies machine-only sorties and flies Mech/Armour Support drops (Lift). Earlier the same day: warships brought in mid-battle come down at a distance on an entry heading, hull-fight stations eased off airspace edges, escorts screening beside their charge, a climb up through the deck, the Greyhook fighting a withdrawal against Wolfs from the west; ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at six times the shared density and slower in atmosphere, a declared airspace for the hull fight, point defence tracking what is inbound, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture, landed on the pads south of the ridge and fighting over that southern ground; a landed ship is drawn at true scale and lifts on a run (ahead off the berth, round a climbing turn) that carries it to flight presence (rationale in `warship-behaviours.md`).
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -382,10 +382,37 @@ fittings' factors applied, frozen at launch and read nowhere else. It is what a
 `ShuttleAssignment` carries and what an air entity's identity, durability and
 handling come from, so a refit in the middle of a mission is not a thing the sim
 has to have an opinion about. Only the numbers a fitting is about are touched —
-plating scales the hull, the drive scales forward speed and both accelerations —
-and turn rate, damping, seats, hardpoints, sprite and hull id are the pattern's
-and are delegated untouched. A better boat is faster and tougher, not a
-different aircraft.
+plating scales the hull, the drive scales forward speed and both accelerations,
+a lift cradle sets the lift rating — and turn rate, damping, hardpoints, sprite
+and hull id are the pattern's and are delegated untouched. A better boat is
+faster and tougher, not a different aircraft.
+
+**Lift.** Every machine a drop carries has a **lift class** — Light, Medium or
+Heavy, its weight class seen from the air (Hound and the heavy APC Light;
+Sirocco, the escort APC and the militia technical Medium; Bulwark and the
+breakthrough tank Heavy). It is not the machine's inertia, which manual driving
+reads separately. Every airframe has a **lift rating**, the heaviest class it
+takes: a Valkyrie lifts Heavy as built and every other pattern nothing. A
+bus-class boat (Buffalo, Tarsus, Mule, Nebula) earns Light or Medium lift
+through the third fitting slot, the hold: a **cradle** gives up every seat for
+the rating, so a cradled boat flies **machine-only sorties**, one machine a
+trip, and is never part of the infantry manifest. Deboarding stays one kind per
+sortie. Small boats never lift a machine. Whether one carrier takes one machine
+is a single pure check (`LiftAdmission`) that every consumer asks — the drop
+powers, the briefing and a per-mission lift budget — rather than comparing
+classes itself; a refusal is either *no lift* or *under-rated*.
+
+**Who flies a drop.** Lift changes who flies, never who may call: the powers'
+sources stay where `command-powers-nouns.md` puts them. Where the employer or a
+story mission supplies the lift, the drop flies the synthetic Valkyrie. Where a
+fleet ship grants the power, the company's lightest committed cradle that lifts
+the lance is handed to it (one boat per power, Mech Support first), and a call
+it can lift is flown by that boat itself — so a boat shot down with a machine
+aboard settles as that boat's loss like any other. A call the boat cannot lift,
+or made while the boat is lost or still in the air, falls back to the source's
+heavy lift. A drop power with no heavy lift behind its boat refuses a target it
+cannot fly before a charge is spent. The carrier crosses launch in the power's
+commitment like the rest of its payload.
 
 **Campaign overhaul survives tactical servicing.** An owned fitted boat retains the
 worst missing-hull fraction observed across its trips, including a final partial tick.
@@ -1709,6 +1736,16 @@ for one mission:
 - **An escort screens beside its charge.** Fighting a hull, an escort takes its own duel
   station but stands no further beyond its charge's hull than a quarter of its own reach,
   so a screen and the ship it screens meet the enemy together rather than one at a time.
+- **Hulls are bodies and never pass through one another** (`warship-tactics.md`). Two
+  hulls whose footprints overlap are pushed apart along the line between them, friend or
+  foe, the smaller giving more way, and their closing speed along that line is spent; a
+  hull its mission holds in place (on a station, a route or an order, with no helm of its
+  own flying it) gives no way, and two such hulls a mission lays over each other are left
+  where it put them. Nothing is damaged: ramming is not modelled. A ship fighting hulls or
+  escorting keeps the screen line's gap of open air from every friendly hull: its station
+  is moved clear of a friend's position and station, and its course is bent away from a
+  friend it would close inside that gap within a few seconds. An escort's screen is a
+  formation spaced by its own geometry, so within it only an actual touch is refused.
 
 What the ground-support manoeuvres (a gun run, close air support, a low pass, a shelling)
 take from this is described with each: they inherit the slower handling through the
@@ -1919,8 +1956,12 @@ leave the battle: it **falls**. It keeps the momentum it had (a hovering hull sl
 off as its lift fails), turns as it goes, trails fire, and strikes the ground a few
 seconds later as the crash a downed aircraft makes, hurting whoever is under it on
 either side, then skids to rest and lies there as wreckage for the rest of the battle.
-The fall is a pure function of the hull's own state, so it lands the same way every
-play (`WarshipWreck`). The hit comes from the detonation pipeline itself, so any source
+A falling hull is coming down to the ground, so it eases back to its true landed
+size as it falls (the lift run read backwards, `LandedScale.fallFactor`) and strikes,
+skids and lies at that size: its crush is half its landed length, its skid half its
+beam, with no aircraft cap, because a hull is drawn at its true size on the ground
+and an airframe is not. The fall is a pure function of the hull's own state, so it
+lands the same way every play (`WarshipWreck`). The hit comes from the detonation pipeline itself, so any source
 that already lands a detonation is a counter without a ship-specific shortcut.
 
 **A hull's armour is a grid, and a hit has a place on it** (`warship-hull-damage.md`). The

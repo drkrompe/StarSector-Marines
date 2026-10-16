@@ -1,0 +1,1129 @@
+{
+  "status": "Blockout: silhouette, sections, mass, slots and the four flight decks. No fine detail or textures. Damage-free: a well-kept Hegemony patrol.",
+  "hull": {
+    "name": "Legion (XIV)",
+    "skinHullId": "legion_xiv",
+    "baseHullId": "legion",
+    "size": "CAPITAL_SHIP",
+    "style": "LOW_TECH",
+    "tech": "XIV Battlegroup",
+    "designation": "Battlecarrier",
+    "source": {
+      "ship": "data/hulls/legion.ship",
+      "skin": "data/hulls/skins/legion_xiv.skin",
+      "sprite": "graphics/ships/legion/legion_xiv.png",
+      "sprite_fallback": "graphics/ships/legion/legion.png",
+      "variants": [
+        "data/variants/legion/legion_xiv_Elite.variant",
+        "data/variants/legion/legion_Strike.variant"
+      ],
+      "ship_data": "data/hulls/ship_data.csv (row id legion)"
+    },
+    "ship_data": {
+      "min_crew": 700,
+      "max_crew": 1500,
+      "cargo": 300,
+      "fuel": 300,
+      "fighter_bays": 4
+    },
+    "built_in_mods": [
+      "fourteenth"
+    ],
+    "built_in_weapons": [],
+    "ship_system": "burndrive",
+    "shield": "FRONT 180",
+    "wings_elite": [
+      "broadsword_wing",
+      "broadsword_wing",
+      "hoplon_wing",
+      "hoplon_wing"
+    ],
+    "wings_strike": [
+      "piranha_wing",
+      "piranha_wing",
+      "piranha_wing",
+      "piranha_wing"
+    ]
+  },
+  "provenance": "verified against the installed legion.ship and legion_xiv.skin",
+  "axes": {
+    "+X": "bow",
+    "+Y": "port",
+    "+Z": "dorsal"
+  },
+  "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
+  "metres_per_unit": 0.65,
+  "scale": {
+    "method": "deck program (DeckProgramProbe CAPITAL \"Battlecarrier\" 700 1500 300 -> CARRIER): 30827 m2 rooms x1.40 circulation x3.2 m deck height = required m3; solved against the usable share of the pressure hull, measured as the union of its solids on every build",
+    "required_m3": 138105,
+    "pressure_hull": [
+      "Hull fore body",
+      "Hull aft body",
+      "Hull dorsal spine",
+      "Hull tail spine",
+      "Bridge command dome",
+      "Wing port sponson",
+      "Wing starboard sponson"
+    ],
+    "pressure_hull_units3": 1369148,
+    "machinery_units3": 64007,
+    "usable_fraction": 0.55,
+    "solved_metres_per_unit": 0.568,
+    "range": {
+      "cramped_65pct_usable": 0.537,
+      "roomy_45pct_usable": 0.607,
+      "engine_block_crewed_too": 0.56
+    },
+    "published_vs_solved": 1.144,
+    "size_m": [
+      191.7,
+      191.1,
+      32.8
+    ],
+    "cross_checks_m": {
+      "forward flight deck mouth w x h": [
+        23.4,
+        7.8
+      ],
+      "aft flight deck mouth w x h": [
+        14.3,
+        10.4
+      ],
+      "hull keel to crown": 32.8,
+      "person 1.8 m in units": 2.77,
+      "C2 targets: hatch 2 m / small dome 8 m / engine bell 26 m in units": [
+        3.1,
+        12.3,
+        40.0
+      ]
+    },
+    "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
+  },
+  "sprite": {
+    "size": [
+      300,
+      308
+    ],
+    "center": [
+      150,
+      149
+    ],
+    "pixel_to_model": "col c, row r covers X 158-r..159-r, Y 149-c..150-c"
+  },
+  "dimensions": {
+    "min": [
+      -137.93,
+      -147.0,
+      -20.0
+    ],
+    "max": [
+      156.96,
+      147.0,
+      30.5
+    ],
+    "size": [
+      294.9,
+      294.0,
+      50.5
+    ]
+  },
+  "flight_decks": [
+    {
+      "slot": "WS 010",
+      "side": "port",
+      "end": "aft",
+      "objects": "Flight deck WS 010 ...",
+      "slot_angle": 170,
+      "arc": 180,
+      "launch_direction": [
+        -0.9848,
+        0.1736,
+        0.0
+      ],
+      "recovery_approach": [
+        0.9848,
+        -0.1736,
+        0.0
+      ],
+      "launch_points": [
+        [
+          -27,
+          103,
+          -5.5
+        ],
+        [
+          -35,
+          91,
+          -5.5
+        ],
+        [
+          -44,
+          105,
+          -5.5
+        ],
+        [
+          -51,
+          92,
+          -5.5
+        ]
+      ],
+      "launch_point_anchors": [
+        "Flight deck WS 010 launch point 1",
+        "Flight deck WS 010 launch point 2",
+        "Flight deck WS 010 launch point 3",
+        "Flight deck WS 010 launch point 4"
+      ],
+      "mouth": {
+        "anchor": "Flight deck WS 010 mouth",
+        "centre": [
+          -64.0,
+          99.0,
+          2.0
+        ],
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "width": 22.0,
+        "height": 16.0,
+        "note": "open above as well over deck.open_above_x; fighters may leave either way"
+      },
+      "deck": {
+        "floor_z": -6.0,
+        "x": [
+          -76,
+          -14
+        ],
+        "y": [
+          88,
+          110
+        ],
+        "open_above_x": [
+          -64,
+          -14
+        ]
+      }
+    },
+    {
+      "slot": "WS 011",
+      "side": "starboard",
+      "end": "aft",
+      "objects": "Flight deck WS 011 ...",
+      "slot_angle": 190,
+      "arc": 180,
+      "launch_direction": [
+        -0.9848,
+        -0.1736,
+        0.0
+      ],
+      "recovery_approach": [
+        0.9848,
+        0.1736,
+        0.0
+      ],
+      "launch_points": [
+        [
+          -35,
+          -90,
+          -5.5
+        ],
+        [
+          -26,
+          -102,
+          -5.5
+        ],
+        [
+          -50,
+          -92,
+          -5.5
+        ],
+        [
+          -40,
+          -104,
+          -5.5
+        ]
+      ],
+      "launch_point_anchors": [
+        "Flight deck WS 011 launch point 1",
+        "Flight deck WS 011 launch point 2",
+        "Flight deck WS 011 launch point 3",
+        "Flight deck WS 011 launch point 4"
+      ],
+      "mouth": {
+        "anchor": "Flight deck WS 011 mouth",
+        "centre": [
+          -64.0,
+          -99.0,
+          2.0
+        ],
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "width": 22.0,
+        "height": 16.0,
+        "note": "open above as well over deck.open_above_x; fighters may leave either way"
+      },
+      "deck": {
+        "floor_z": -6.0,
+        "x": [
+          -76,
+          -14
+        ],
+        "y": [
+          -110,
+          -88
+        ],
+        "open_above_x": [
+          -64,
+          -14
+        ]
+      }
+    },
+    {
+      "slot": "WS 012",
+      "side": "port",
+      "end": "forward",
+      "objects": "Flight deck WS 012 ...",
+      "slot_angle": 10,
+      "arc": 180,
+      "launch_direction": [
+        0.9848,
+        0.1736,
+        0.0
+      ],
+      "recovery_approach": [
+        -0.9848,
+        -0.1736,
+        0.0
+      ],
+      "launch_points": [
+        [
+          47,
+          104,
+          -5.5
+        ],
+        [
+          59,
+          92,
+          -5.5
+        ],
+        [
+          63,
+          105,
+          -5.5
+        ],
+        [
+          72,
+          90,
+          -5.5
+        ]
+      ],
+      "launch_point_anchors": [
+        "Flight deck WS 012 launch point 1",
+        "Flight deck WS 012 launch point 2",
+        "Flight deck WS 012 launch point 3",
+        "Flight deck WS 012 launch point 4"
+      ],
+      "mouth": {
+        "anchor": "Flight deck WS 012 mouth",
+        "centre": [
+          88.0,
+          104.0,
+          0.0
+        ],
+        "normal": [
+          0.83,
+          0.56,
+          0
+        ],
+        "width": 36.0,
+        "height": 12.0,
+        "note": "open above as well over deck.open_above_x; fighters may leave either way"
+      },
+      "deck": {
+        "floor_z": -6.0,
+        "x": [
+          46,
+          118
+        ],
+        "y": [
+          88,
+          120
+        ],
+        "open_above_x": [
+          46,
+          80
+        ]
+      }
+    },
+    {
+      "slot": "WS 013",
+      "side": "starboard",
+      "end": "forward",
+      "objects": "Flight deck WS 013 ...",
+      "slot_angle": -10,
+      "arc": 180,
+      "launch_direction": [
+        0.9848,
+        -0.1736,
+        0.0
+      ],
+      "recovery_approach": [
+        -0.9848,
+        0.1736,
+        0.0
+      ],
+      "launch_points": [
+        [
+          59,
+          -92,
+          -5.5
+        ],
+        [
+          48,
+          -104,
+          -5.5
+        ],
+        [
+          72,
+          -90,
+          -5.5
+        ],
+        [
+          64,
+          -105,
+          -5.5
+        ]
+      ],
+      "launch_point_anchors": [
+        "Flight deck WS 013 launch point 1",
+        "Flight deck WS 013 launch point 2",
+        "Flight deck WS 013 launch point 3",
+        "Flight deck WS 013 launch point 4"
+      ],
+      "mouth": {
+        "anchor": "Flight deck WS 013 mouth",
+        "centre": [
+          88.0,
+          -104.0,
+          0.0
+        ],
+        "normal": [
+          0.83,
+          -0.56,
+          0
+        ],
+        "width": 36.0,
+        "height": 12.0,
+        "note": "open above as well over deck.open_above_x; fighters may leave either way"
+      },
+      "deck": {
+        "floor_z": -6.0,
+        "x": [
+          46,
+          118
+        ],
+        "y": [
+          -120,
+          -88
+        ],
+        "open_above_x": [
+          46,
+          80
+        ]
+      }
+    }
+  ],
+  "weapon_slots": [
+    {
+      "id": "WS 000",
+      "angle": 30,
+      "arc": 160,
+      "size": "LARGE",
+      "type": "MISSILE",
+      "weapon": "squall",
+      "location": [
+        42,
+        56,
+        12.75
+      ],
+      "mount": "TURRET",
+      "ring_radius": 12.5,
+      "pivot": "Weapon WS 000 pivot",
+      "objects": "Weapon WS 000 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle",
+      "keyable_for_c2": false
+    },
+    {
+      "id": "WS 001",
+      "angle": -30,
+      "arc": 160,
+      "size": "LARGE",
+      "type": "MISSILE",
+      "weapon": "hurricane",
+      "location": [
+        42,
+        -56,
+        12.75
+      ],
+      "mount": "TURRET",
+      "ring_radius": 12.5,
+      "pivot": "Weapon WS 001 pivot",
+      "objects": "Weapon WS 001 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle",
+      "keyable_for_c2": false
+    },
+    {
+      "id": "WS 002",
+      "angle": 55,
+      "arc": 180,
+      "size": "MEDIUM",
+      "type": "BALLISTIC",
+      "weapon": "flak",
+      "location": [
+        13,
+        107,
+        12.09
+      ],
+      "mount": "TURRET",
+      "ring_radius": 9.5,
+      "pivot": "Weapon WS 002 pivot",
+      "objects": "Weapon WS 002 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle",
+      "keyable_for_c2": false
+    },
+    {
+      "id": "WS 003",
+      "angle": -55,
+      "arc": 180,
+      "size": "MEDIUM",
+      "type": "BALLISTIC",
+      "weapon": "flak",
+      "location": [
+        13,
+        -107,
+        12.09
+      ],
+      "mount": "TURRET",
+      "ring_radius": 9.5,
+      "pivot": "Weapon WS 003 pivot",
+      "objects": "Weapon WS 003 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle",
+      "keyable_for_c2": false
+    },
+    {
+      "id": "WS 004",
+      "angle": 20,
+      "arc": 160,
+      "size": "MEDIUM",
+      "type": "BALLISTIC",
+      "weapon": "heavyac",
+      "location": [
+        80,
+        34,
+        12.09
+      ],
+      "mount": "TURRET",
+      "ring_radius": 9.5,
+      "pivot": "Weapon WS 004 pivot",
+      "objects": "Weapon WS 004 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle",
+      "keyable_for_c2": false
+    },
+    {
+      "id": "WS 005",
+      "angle": 0,
+      "arc": 180,
+      "size": "MEDIUM",
+      "type": "BALLISTIC",
+      "weapon": "heavyac",
+      "location": [
+        104,
+        0,
+        19.59
+      ],
+      "mount": "TURRET",
+      "ring_radius": 9.5,
+      "pivot": "Weapon WS 005 pivot",
+      "objects": "Weapon WS 005 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle",
+      "keyable_for_c2": false
+    },
+    {
+      "id": "WS 007",
+      "angle": -20,
+      "arc": 160,
+      "size": "MEDIUM",
+      "type": "BALLISTIC",
+      "weapon": "heavyac",
+      "location": [
+        80,
+        -34,
+        12.09
+      ],
+      "mount": "TURRET",
+      "ring_radius": 9.5,
+      "pivot": "Weapon WS 007 pivot",
+      "objects": "Weapon WS 007 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle",
+      "keyable_for_c2": true
+    },
+    {
+      "id": "WS 008",
+      "angle": 90,
+      "arc": 180,
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "weapon": "vulcan",
+      "location": [
+        -58,
+        130,
+        15.71
+      ],
+      "mount": "TURRET",
+      "ring_radius": 5.5,
+      "pivot": "Weapon WS 008 pivot",
+      "objects": "Weapon WS 008 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle",
+      "keyable_for_c2": false
+    },
+    {
+      "id": "WS 009",
+      "angle": -90,
+      "arc": 180,
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "weapon": "vulcan",
+      "location": [
+        -58,
+        -130,
+        15.71
+      ],
+      "mount": "TURRET",
+      "ring_radius": 5.5,
+      "pivot": "Weapon WS 009 pivot",
+      "objects": "Weapon WS 009 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle",
+      "keyable_for_c2": false
+    },
+    {
+      "id": "WS 014",
+      "angle": 82,
+      "arc": 156,
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "weapon": "none in Elite",
+      "location": [
+        -8,
+        118,
+        11.21
+      ],
+      "mount": "TURRET",
+      "ring_radius": 5.5,
+      "pivot": "Weapon WS 014 pivot",
+      "objects": "Weapon WS 014 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle",
+      "keyable_for_c2": false
+    },
+    {
+      "id": "WS 015",
+      "angle": -82,
+      "arc": 156,
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "weapon": "none in Elite",
+      "location": [
+        -8,
+        -118,
+        11.21
+      ],
+      "mount": "TURRET",
+      "ring_radius": 5.5,
+      "pivot": "Weapon WS 015 pivot",
+      "objects": "Weapon WS 015 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle",
+      "keyable_for_c2": false
+    },
+    {
+      "id": "WS 018",
+      "angle": 24,
+      "arc": 100,
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "weapon": "vulcan",
+      "location": [
+        36,
+        91,
+        15.71
+      ],
+      "mount": "TURRET",
+      "ring_radius": 5.5,
+      "pivot": "Weapon WS 018 pivot",
+      "objects": "Weapon WS 018 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle",
+      "keyable_for_c2": false
+    },
+    {
+      "id": "WS 019",
+      "angle": -24,
+      "arc": 100,
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "weapon": "vulcan",
+      "location": [
+        36,
+        -91,
+        15.71
+      ],
+      "mount": "TURRET",
+      "ring_radius": 5.5,
+      "pivot": "Weapon WS 019 pivot",
+      "objects": "Weapon WS 019 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle",
+      "keyable_for_c2": false
+    },
+    {
+      "id": "WS 020",
+      "angle": 39,
+      "arc": 160,
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "weapon": "vulcan",
+      "location": [
+        76,
+        60,
+        17.21
+      ],
+      "mount": "TURRET",
+      "ring_radius": 5.5,
+      "pivot": "Weapon WS 020 pivot",
+      "objects": "Weapon WS 020 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle",
+      "keyable_for_c2": false
+    },
+    {
+      "id": "WS 021",
+      "angle": -39,
+      "arc": 160,
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "weapon": "vulcan",
+      "location": [
+        76,
+        -60,
+        17.21
+      ],
+      "mount": "TURRET",
+      "ring_radius": 5.5,
+      "pivot": "Weapon WS 021 pivot",
+      "objects": "Weapon WS 021 ...",
+      "trains": "rotate the pivot about its local Z; rest is the slot angle",
+      "keyable_for_c2": false
+    }
+  ],
+  "engines": [
+    {
+      "index": 1,
+      "objects": "Engine 1 ...",
+      "anchor": "Engine 1 exhaust anchor",
+      "location": [
+        -118,
+        62,
+        -4.0
+      ],
+      "width": 6,
+      "length": 24,
+      "contrailSize": 26,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 2.82,
+      "bell": "Engine 1 aft-facing bell",
+      "lip": "Engine 1 mouth lip",
+      "throat": "Engine 1 dark throat"
+    },
+    {
+      "index": 2,
+      "objects": "Engine 2 ...",
+      "anchor": "Engine 2 exhaust anchor",
+      "location": [
+        -118,
+        57,
+        -4.0
+      ],
+      "width": 6,
+      "length": 24,
+      "contrailSize": 26,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 2.82,
+      "bell": "Engine 2 aft-facing bell",
+      "lip": "Engine 2 mouth lip",
+      "throat": "Engine 2 dark throat"
+    },
+    {
+      "index": 3,
+      "objects": "Engine 3 ...",
+      "anchor": "Engine 3 exhaust anchor",
+      "location": [
+        -117,
+        -56,
+        -4.0
+      ],
+      "width": 6,
+      "length": 24,
+      "contrailSize": 26,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 2.82,
+      "bell": "Engine 3 aft-facing bell",
+      "lip": "Engine 3 mouth lip",
+      "throat": "Engine 3 dark throat"
+    },
+    {
+      "index": 4,
+      "objects": "Engine 4 ...",
+      "anchor": "Engine 4 exhaust anchor",
+      "location": [
+        -118,
+        -61,
+        -4.0
+      ],
+      "width": 6,
+      "length": 24,
+      "contrailSize": 26,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 2.82,
+      "bell": "Engine 4 aft-facing bell",
+      "lip": "Engine 4 mouth lip",
+      "throat": "Engine 4 dark throat"
+    },
+    {
+      "index": 5,
+      "objects": "Engine 5 ...",
+      "anchor": "Engine 5 exhaust anchor",
+      "location": [
+        -123,
+        44,
+        -4.0
+      ],
+      "width": 24,
+      "length": 100,
+      "contrailSize": 64,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 11.28,
+      "bell": "Engine 5 aft-facing bell",
+      "lip": "Engine 5 mouth lip",
+      "throat": "Engine 5 dark throat"
+    },
+    {
+      "index": 6,
+      "objects": "Engine 6 ...",
+      "anchor": "Engine 6 exhaust anchor",
+      "location": [
+        -124,
+        -44,
+        -4.0
+      ],
+      "width": 24,
+      "length": 100,
+      "contrailSize": 64,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 11.28,
+      "bell": "Engine 6 aft-facing bell",
+      "lip": "Engine 6 mouth lip",
+      "throat": "Engine 6 dark throat"
+    },
+    {
+      "index": 7,
+      "objects": "Engine 7 ...",
+      "anchor": "Engine 7 exhaust anchor",
+      "location": [
+        -128,
+        26,
+        -4.0
+      ],
+      "width": 16,
+      "length": 64,
+      "contrailSize": 40,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 7.52,
+      "bell": "Engine 7 aft-facing bell",
+      "lip": "Engine 7 mouth lip",
+      "throat": "Engine 7 dark throat"
+    },
+    {
+      "index": 8,
+      "objects": "Engine 8 ...",
+      "anchor": "Engine 8 exhaust anchor",
+      "location": [
+        -128,
+        -26,
+        -4.0
+      ],
+      "width": 16,
+      "length": 64,
+      "contrailSize": 40,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 7.52,
+      "bell": "Engine 8 aft-facing bell",
+      "lip": "Engine 8 mouth lip",
+      "throat": "Engine 8 dark throat"
+    },
+    {
+      "index": 9,
+      "objects": "Engine 9 ...",
+      "anchor": "Engine 9 exhaust anchor",
+      "location": [
+        -123,
+        13,
+        -4.0
+      ],
+      "width": 12,
+      "length": 32,
+      "contrailSize": 34,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 5.64,
+      "bell": "Engine 9 aft-facing bell",
+      "lip": "Engine 9 mouth lip",
+      "throat": "Engine 9 dark throat"
+    },
+    {
+      "index": 10,
+      "objects": "Engine 10 ...",
+      "anchor": "Engine 10 exhaust anchor",
+      "location": [
+        -123,
+        -12,
+        -4.0
+      ],
+      "width": 12,
+      "length": 32,
+      "contrailSize": 34,
+      "style": "LOW_TECH",
+      "angle": 180,
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "mouth_radius": 5.64,
+      "bell": "Engine 10 aft-facing bell",
+      "lip": "Engine 10 mouth lip",
+      "throat": "Engine 10 dark throat"
+    }
+  ],
+  "object_names": {
+    "Hull ...": "fore and aft body, dorsal and tail spines, engine block and housings",
+    "Bridge command dome": "the bone-white command dome",
+    "Armour <side> ...": "bow blade, outer belt, inner belt",
+    "Wing <side> sponson": "the outboard sponsons, carrying the flight decks",
+    "Flight deck <slot> ...": "deck plate, red light strips, hood (forward decks), mouth and launch-point anchors (empties)",
+    "Engine <i> ...": "drive can, aft-facing bell, mouth lip, dark throat, exhaust anchor",
+    "Weapon <slot> ...": "barbette (fixed) and pivot (empty) with its trainable house and barrels"
+  },
+  "c2": {
+    "layout": "second-wind-cinematic/patrol-abeam/c2-layout.md",
+    "note": "Model axes are C2 world axes: the patrol flies bow first along +X with starboard toward the cabin.",
+    "patrol_centre_y_m": 200.55,
+    "model_origin_z_m": -22.82,
+    "cameras": {
+      "c2-entry": {
+        "time_s": 3.0,
+        "position_units": [
+          215.38,
+          -308.54,
+          35.12
+        ]
+      },
+      "c2-abeam": {
+        "time_s": 8.0,
+        "position_units": [
+          -0.0,
+          -308.54,
+          35.12
+        ]
+      },
+      "c2-exit": {
+        "time_s": 11.4,
+        "position_units": [
+          -146.46,
+          -308.54,
+          15.18
+        ]
+      }
+    },
+    "sun": [
+      -0.622,
+      0.609,
+      0.492
+    ],
+    "planetshine": 0.05,
+    "scrutiny_turret": {
+      "slot": "WS 007",
+      "pivot": "Weapon WS 007 pivot"
+    }
+  },
+  "cameras": [
+    {
+      "name": "top",
+      "position": [
+        0,
+        0,
+        300
+      ],
+      "orthographic_scale": 580,
+      "rotation": "bow left, port below"
+    },
+    {
+      "name": "starboard-side",
+      "position": [
+        0,
+        -500,
+        0
+      ],
+      "orthographic_scale": 335,
+      "rotation": "looks at [0.0, 0.0, 0.0]"
+    },
+    {
+      "name": "port-side",
+      "position": [
+        0,
+        500,
+        0
+      ],
+      "orthographic_scale": 335,
+      "rotation": "looks at [0.0, 0.0, 0.0]"
+    },
+    {
+      "name": "front",
+      "position": [
+        500,
+        0,
+        0
+      ],
+      "orthographic_scale": 330,
+      "rotation": "looks at [0.0, 0.0, 0.0]"
+    },
+    {
+      "name": "three-quarter",
+      "position": [
+        330,
+        -390,
+        240
+      ],
+      "orthographic_scale": 420,
+      "rotation": "looks at [0.0, 0.0, 0.0]"
+    },
+    {
+      "name": "stern",
+      "position": [
+        -500,
+        0,
+        0
+      ],
+      "orthographic_scale": 330,
+      "rotation": "looks at [0.0, 0.0, 0.0]"
+    }
+  ],
+  "silhouette": {
+    "iou": 0.9739,
+    "sprite_uncovered": 0.0108,
+    "model_outside_sprite": 0.0157,
+    "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.31 px per unit"
+  },
+  "c2_frame": {
+    "c2-entry": {
+      "bbox_px": [
+        0,
+        96,
+        692,
+        415
+      ],
+      "size_px": [
+        693,
+        320
+      ],
+      "touches_frame_edge": true
+    },
+    "c2-abeam": {
+      "bbox_px": [
+        197,
+        96,
+        1717,
+        471
+      ],
+      "size_px": [
+        1521,
+        376
+      ],
+      "touches_frame_edge": false
+    },
+    "c2-exit": {
+      "bbox_px": [
+        999,
+        0,
+        1919,
+        311
+      ],
+      "size_px": [
+        921,
+        312
+      ],
+      "touches_frame_edge": true
+    }
+  }
+}

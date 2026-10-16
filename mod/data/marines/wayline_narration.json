@@ -4519,7 +4519,6 @@
       "supersedes": [
         "small_war.mobilization",
         "small_war.customs",
-        "small_war.rear_position",
         "small_war.fuel_control",
         "small_war.dispatch",
         "small_war.handover"
@@ -4533,13 +4532,12 @@
       "id": "small_war_mobilization",
       "missionId": "story_agreus_small_war",
       "event": "small_war.mobilization",
-      "text": "Customs first. Our tender builds the rear position behind it, and the holders take only what we actually hold.",
+      "text": "Customs first. The holders take only what we actually hold, and they move into customs the moment it is ours.",
       "durationSeconds": 10,
       "priority": 12,
       "expiresSeconds": 40,
       "supersedes": [
         "small_war.customs",
-        "small_war.rear_position",
         "small_war.fuel_control",
         "small_war.dispatch",
         "small_war.handover"
@@ -4559,27 +4557,6 @@
       "expiresSeconds": 40,
       "supersedes": [
         "small_war.mobilization",
-        "small_war.rear_position",
-        "small_war.fuel_control",
-        "small_war.dispatch",
-        "small_war.handover"
-      ],
-      "speaker": "CASTLE / COMPANY OPERATIONS",
-      "portrait": "graphics/portraits/castle.png",
-      "voiced": false,
-      "terminal": false
-    },
-    {
-      "id": "small_war_rear_position",
-      "missionId": "story_agreus_small_war",
-      "event": "small_war.rear_position",
-      "text": "Customs is ours. Bring the tender in and build the rear position in the marked bay south of the block.",
-      "durationSeconds": 10,
-      "priority": 12,
-      "expiresSeconds": 40,
-      "supersedes": [
-        "small_war.mobilization",
-        "small_war.customs",
         "small_war.fuel_control",
         "small_war.dispatch",
         "small_war.handover"
@@ -4593,14 +4570,13 @@
       "id": "small_war_fuel_control",
       "missionId": "story_agreus_small_war",
       "event": "small_war.fuel_control",
-      "text": "Fuel control next. Stay off the open causeway where the gun can see you; the service galleries come out beside it.",
+      "text": "Customs is ours and the holders are moving in. Fuel control next. Stay off the open causeway where the gun can see you; the service galleries come out beside it.",
       "durationSeconds": 10,
       "priority": 12,
       "expiresSeconds": 40,
       "supersedes": [
         "small_war.mobilization",
         "small_war.customs",
-        "small_war.rear_position",
         "small_war.dispatch",
         "small_war.handover"
       ],
@@ -4620,7 +4596,6 @@
       "supersedes": [
         "small_war.mobilization",
         "small_war.customs",
-        "small_war.rear_position",
         "small_war.fuel_control",
         "small_war.handover"
       ],
@@ -4640,7 +4615,6 @@
       "supersedes": [
         "small_war.mobilization",
         "small_war.customs",
-        "small_war.rear_position",
         "small_war.fuel_control",
         "small_war.dispatch"
       ],
@@ -4733,7 +4707,6 @@
       "supersedes": [
         "small_war.mobilization",
         "small_war.customs",
-        "small_war.rear_position",
         "small_war.fuel_control",
         "small_war.dispatch",
         "small_war.handover"
@@ -4754,28 +4727,6 @@
       "supersedes": [
         "small_war.mobilization",
         "small_war.customs",
-        "small_war.rear_position",
-        "small_war.fuel_control",
-        "small_war.dispatch",
-        "small_war.handover"
-      ],
-      "speaker": "CASTLE / COMPANY OPERATIONS",
-      "portrait": "graphics/portraits/castle.png",
-      "voiced": false,
-      "terminal": true
-    },
-    {
-      "id": "small_war_construction_exhausted",
-      "missionId": "story_agreus_small_war",
-      "event": "small_war.construction_exhausted",
-      "text": "The tender support is spent and the rear position is not built. Withdraw; a new mobilization is required.",
-      "durationSeconds": 10,
-      "priority": 30,
-      "expiresSeconds": 40,
-      "supersedes": [
-        "small_war.mobilization",
-        "small_war.customs",
-        "small_war.rear_position",
         "small_war.fuel_control",
         "small_war.dispatch",
         "small_war.handover"

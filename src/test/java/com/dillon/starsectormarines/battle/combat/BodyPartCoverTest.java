@@ -24,11 +24,11 @@ class BodyPartCoverTest {
     @Test
     void uniformHeightsLandOnEachPartInProportionToItsShare() {
         int n = 100_000;
-        int[] counts = new int[BodyPart.values().length];
-        for (int i = 0; i < n; i++) counts[BodyPart.atHeight((i + 0.5f) / n).ordinal()]++;
+        int[] counts = new int[BodyPlan.INFANTRY.size()];
+        for (int i = 0; i < n; i++) counts[BodyPart.atHeight((i + 0.5f) / n).index()]++;
         float total = 0f;
-        for (BodyPart part : BodyPart.values()) {
-            assertEquals(part.share, counts[part.ordinal()] / (float) n, 1e-3f, part.name());
+        for (BodyPart part : BodyPlan.INFANTRY.parts()) {
+            assertEquals(part.share, counts[part.index()] / (float) n, 1e-3f, part.name());
             total += part.share;
         }
         assertEquals(1f, total, 1e-6f);
@@ -36,7 +36,7 @@ class BodyPartCoverTest {
 
     @Test
     void moreCoverHidesAtLeastAsMuchOfEveryPart() {
-        for (BodyPart part : BodyPart.values()) {
+        for (BodyPart part : BodyPlan.INFANTRY.parts()) {
             for (int level = 1; level <= 3; level++) {
                 assertTrue(CoverProfile.edge(level, part) >= CoverProfile.edge(level - 1, part));
                 assertTrue(CoverProfile.occupant(level, part) >= CoverProfile.occupant(level - 1, part));
@@ -62,12 +62,12 @@ class BodyPartCoverTest {
             assertTrue(CoverProfile.crossed(level, BodyPart.TORSO) >= CoverProfile.crossed(level, BodyPart.ARMS));
             assertTrue(CoverProfile.crossed(level, BodyPart.ARMS) >= CoverProfile.crossed(level, BodyPart.HEAD));
             if (level > 0) {
-                for (BodyPart part : BodyPart.values()) {
+                for (BodyPart part : BodyPlan.INFANTRY.parts()) {
                     assertTrue(CoverProfile.crossed(level, part) >= CoverProfile.crossed(level - 1, part));
                 }
             }
         }
-        for (BodyPart part : BodyPart.values()) assertEquals(0f, CoverProfile.crossed(0, part));
+        for (BodyPart part : BodyPlan.INFANTRY.parts()) assertEquals(0f, CoverProfile.crossed(0, part));
         assertEquals(0f, CoverProfile.crossed(1, BodyPart.HEAD));
         assertEquals(0f, CoverProfile.crossed(2, BodyPart.HEAD));
     }

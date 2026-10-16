@@ -1,0 +1,22 @@
+{
+  "generator": "planet_maps.py (derived, no image generation)",
+  "inputs": {
+    "assets\\planet-albedo-v2.png": "ac7dd1ecb8e5ed761ec75de5d468124c72f0b4cd6df684839f35373a47988057"
+  },
+  "script": "planet_maps.py",
+  "scriptSha256": "62325d9428a14b7ed354d02749dddc829036493f4f1282a6a5ecaefe4010476b",
+  "parameters": {
+    "water": "smoothstep(0.03,0.10,B-R)*(1-smoothstep(0.5,0.7,lum))",
+    "blur": 0.7
+  },
+  "note": "Ocean and shelf mask for specular/sunglint; land and ice are 0.",
+  "output": {
+    "path": "assets\\planet-ocean-v2.png",
+    "sha256": "310f9c2ce577f428cefb44050ad6fa8540605faf0779472674fd52c8d0d34cb5",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "L"
+  }
+}

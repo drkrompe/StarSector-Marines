@@ -24,6 +24,7 @@ import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.mech.MechFrame;
 import com.dillon.starsectormarines.battle.mech.MechDropAllowance;
 import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
 import com.dillon.starsectormarines.battle.mech.MechRole;
@@ -448,6 +449,29 @@ class BattleFixtureJsonTest {
                 .getInt("schemaVersion"));
         assertEquals(fixture, decoded);
         assertEquals(encoded.toString(), BattleFixtureJson.toJson(decoded).toString());
+    }
+
+    @Test
+    void mechFrameRoundTripsAndAbsentFrameIsStock() throws Exception {
+        MechFrame frame = new MechFrame(321.5f, 2.25f, 140f, 8f);
+        MechDeploymentSpec framed = new MechDeploymentSpec(MechVariant.SIROCCO,
+                MechRole.LR_SUPPORT, MissileReplenisherComponent.STANDARD,
+                null, MechWeaponComponent.LRM_5, null, null, frame);
+        BattleLaunchFixture fixture = new BattleLaunchFixture(
+                canonicalFixture(), new BattleLaunchOverlay(
+                        0, List.of(), List.of(), List.of(),
+                        List.of(new CommandPowerCommitment(MechSupport.ID, List.of(framed))),
+                        0, FieldPresencePolicy.CAPTURE_TEAM));
+        JSONObject encoded = BattleFixtureJson.toJson(fixture);
+        BattleLaunchFixture decoded = (BattleLaunchFixture) BattleFixtureJson.fromJson(encoded);
+        assertEquals(frame, decoded.launch().commandPowers().get(0).mechDeployments().get(0).frame());
+        assertEquals(encoded.toString(), BattleFixtureJson.toJson(decoded).toString());
+
+        encoded.getJSONObject("launch").getJSONArray("commandPowers").getJSONObject(0)
+                .getJSONArray("mechDeployments").getJSONObject(0).remove("frame");
+        BattleLaunchFixture legacy = (BattleLaunchFixture) BattleFixtureJson.fromJson(encoded);
+        assertEquals(MechFrame.stock(MechVariant.SIROCCO),
+                legacy.launch().commandPowers().get(0).mechDeployments().get(0).frame());
     }
 
     @Test

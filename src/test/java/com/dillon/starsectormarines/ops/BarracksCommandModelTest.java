@@ -116,9 +116,8 @@ class BarracksCommandModelTest {
         action(model, "next");
         assertEquals("PAGE 2 / 2", value(model, "pageLabel"));
         assertEquals(12, model.selected().size());
-        action(model, "attention");
+        action(model, "clear");
         assertTrue(model.selected().isEmpty());
-        assertEquals("PAGE 1 / 1", value(model, "pageLabel"));
     }
 
     @Test void realPointerFlowSavesAndAssignsProfileThenInspectsAndReturns() throws Exception {
