@@ -428,6 +428,17 @@ public final class Warship {
         return facingDegrees;
     }
 
+    private int groundShots;
+
+    /** Rounds and lance sweeps this ship has fired at the ground, for evidence. */
+    public int groundShots() {
+        return groundShots;
+    }
+
+    void noteGroundShot() {
+        groundShots++;
+    }
+
     /** Hits the shield has absorbed, for evidence. */
     public int shieldHits() {
         return shield.hits();
@@ -1764,7 +1775,7 @@ public final class Warship {
         // the base's, the picture is the skin's.
         WarshipSkins.Skin skin = WarshipSkins.resolve(loadout.hullId());
         String hullId = skin.baseHullId();
-        JSONObject hull = VanillaData.json("data/hulls/" + hullId + ".ship");
+        JSONObject hull = VanillaData.json("data/hulls/" + WarshipSkins.hullFile(hullId) + ".ship");
         List<Mount> mounts = new ArrayList<>();
         for (WarshipSlot slot : WarshipSlot.parse(hull)) {
             VanillaWeapon weapon = VanillaWeapons.get(loadout.weaponInSlot(slot.id()));

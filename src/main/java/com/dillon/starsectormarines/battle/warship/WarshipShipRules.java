@@ -9,8 +9,9 @@ import java.util.List;
  *
  * <p>The base game decides who shoots at ships by the weapon, as it does for fighters
  * ({@link WarshipAirRules}): point-defence weapons engage missiles and fighters and never a ship; every other gun
- * may. A lance keeps its ground sweep. Missiles wait for a missile path that flies at a hull (story slice 3), so a
- * missile mount does not engage a hull yet.
+ * may. A lance keeps its ground sweep. A missile may, except a standoff missile, whose beam is a ground payload; but
+ * a magazine is not a sustained gun, so the hull's heading and the duel helm's reach are read from its guns alone
+ * ({@link #gunAtHull}), and a missile mount fires whenever its hull comes into its launch cone and reach.
  *
  * <p>Every random-looking quantity is a pure hash of who fired what ({@link WarshipAirRules#unit}), never a draw
  * from the shared random stream, so a duel cannot shift another gun's draws.
@@ -26,10 +27,31 @@ public final class WarshipShipRules {
     /** Headings are searched in steps this wide when bringing guns to bear on a hull. */
     static final float HEADING_STEP_DEGREES = 5f;
 
-    /** Whether a weapon may fire at a ship: anything but pure point defence, a missile (for now) or a lance. */
+    /** How far beyond its slot's arc a guided missile may be launched at a hull: it turns onto the hull after launch. */
+    static final float GUIDED_LAUNCH_DEGREES = 20f;
+
+    /** Whether a weapon may fire at a ship: anything but pure point defence, a lance or a standoff missile. */
     public static boolean mayFireAtHull(VanillaWeapon w) {
-        if (w == null || w.pointDefenceOnly() || w.missile()) return false;
+        if (w == null || w.pointDefenceOnly()) return false;
+        if (w.missile()) return w.flight() == null || w.flight().standoff() == null;
         return !(w.beam() && w.damagePerSecond() >= WarshipSystem.LANCE_MIN_DPS);
+    }
+
+    /** Whether a weapon is a gun that may fire at a ship: what the hull's heading and the duel helm are read from. */
+    public static boolean gunAtHull(VanillaWeapon w) {
+        return mayFireAtHull(w) && !w.missile();
+    }
+
+    /** Whether a missile is guided onto its target after launch, so its slot's arc does not have to hold the target. */
+    static boolean guided(VanillaWeapon w) {
+        MissileFlightSpec flight = w.missile() ? w.flight() : null;
+        return flight != null && flight.guidance() != MissileFlightSpec.Guidance.UNGUIDED;
+    }
+
+    /** The arc, in degrees either side of the slot's facing, inside which a mount may fire at a hull. */
+    static float hullArcHalfDegrees(Warship.Mount m) {
+        float half = Math.max(m.slot.arcDegrees(), 1f) * 0.5f;
+        return guided(m.weapon) ? half + GUIDED_LAUNCH_DEGREES : half;
     }
 
     /**
@@ -58,12 +80,12 @@ public final class WarshipShipRules {
         return new float[]{px + dx / travelled * carry, py + dy / travelled * carry};
     }
 
-    /** The ship's strongest mount that may fire at a hull, by firepower; {@code null} when it has none. */
+    /** The ship's strongest gun that may fire at a hull, by firepower; {@code null} when it has none. */
     public static Warship.Mount strongest(Warship ship) {
         Warship.Mount best = null;
         float power = 0f;
         for (Warship.Mount m : ship.mounts()) {
-            if (!mayFireAtHull(m.weapon)) continue;
+            if (!gunAtHull(m.weapon)) continue;
             float p = firepower(m.weapon);
             if (p > power) {
                 power = p;
@@ -96,7 +118,7 @@ public final class WarshipShipRules {
 
     /**
      * The heading that brings the most anti-ship firepower to bear on {@code (tx, ty)}, ignoring reach so a ship
-     * still closing turns first: every mount that may fire at a hull counts its firepower when the target is inside
+     * still closing turns first: every gun that may fire at a hull counts its firepower when the target is inside
      * its slot's arc at that heading. Ties go to the smaller turn; with nothing able to bear at any heading the ship
      * points its nose at the target.
      */
@@ -111,7 +133,7 @@ public final class WarshipShipRules {
         for (int i = 0; i < coarse; i++) candidates.add(-180f + i * HEADING_STEP_DEGREES);
         float toTarget = WarshipFacing.bearing(ship.x, ship.y, tx, ty);
         for (Warship.Mount m : ship.mounts()) {
-            if (mayFireAtHull(m.weapon)) candidates.add(WarshipFacing.wrap(toTarget - m.slot.angleDegrees()));
+            if (gunAtHull(m.weapon)) candidates.add(WarshipFacing.wrap(toTarget - m.slot.angleDegrees()));
         }
         for (float h : candidates) {
             float power = firepowerAt(ship, h, tx, ty);
@@ -129,7 +151,7 @@ public final class WarshipShipRules {
     static float firepowerAt(Warship ship, float heading, float tx, float ty) {
         float total = 0f;
         for (Warship.Mount m : ship.mounts()) {
-            if (!mayFireAtHull(m.weapon)) continue;
+            if (!gunAtHull(m.weapon)) continue;
             float mx = Warship.mountX(ship.x, m.slot, heading);
             float my = Warship.mountY(ship.y, m.slot, heading);
             if (Warship.bears(m, heading, mx, my, tx, ty, UNBOUNDED_REACH)) total += firepower(m.weapon);

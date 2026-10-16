@@ -1,10 +1,10 @@
 # A Small War
 
-Status: IN PROGRESS — post-Shepherd referral, first three chapters through The Yard's Owners implemented; live campaign acceptance and Chapters 4–5 remain.
+Status: IN PROGRESS — all five chapters, the handover decision and District Escort implemented with detached evidence; Chapter 5's frigate duel, Boarding Jack art and all live campaign acceptance remain.
 
 Written: 2026-10-13
 
-Updated: 2026-10-15 — whole-section loadout cards; Rusk as an Eventide cadet; two Wolf (H) against two Hound (P) over Black Sluice.
+Updated: 2026-10-16 — map fidelity pass, handover decision, Boarding Jack data, Chapters 4–5 ground and District Escort built; implementation state under acceptance.
 
 Read `early-operation-nouns.md`, `campaign-nouns.md`, `meta-progression.md`,
 `narrative-nouns.md`, `mission-tier-nouns.md`, `progression-nouns.md`,
@@ -678,6 +678,33 @@ military equipment to compensate for a harder map.
    The shared gate and the authored route have shipped (`progression-nouns.md`,
    Kit and armory); the route waits on Chapter 5 setting
    `AgreusArcProgress.smallWarSettled`.
+
+### Implementation state
+
+Built and evidenced headlessly (detached rosters, never a live save):
+`agreus-maps`, `water-under-seal`, `limited-warrant`, `yard-owners`,
+`terms-of-protection`, `black-sluice` and `district-escort` suites. Standing
+behaviour lives in `agreus-latchkey.md` and `early-operation-nouns.md`.
+
+Still open inside this story:
+
+- **Live acceptance**, items 1–4 and 6 above: nothing has been observed in the
+  game — travel, HQ correspondence, signing, save/reload, roofs on the new
+  hand-stamped buildings, Boarding Jack rigs at play scale.
+- **Boarding Jack art.** The pattern and its section card exist with trial
+  values supported by `loadoutMatchup`, but the card is `presentationPending`:
+  no cargo is made for it. Chapter 4 records a once-only entitlement on either
+  route and delivers on settlement or a later load once art is declared. The
+  enemy rigs draw a disclosed Specter stand-in meanwhile. Guides and prompts are
+  under `art-source/marine-modular-topdown/boarding-jack/`.
+- **The duel overhead.** Engine work is `atmospheric-frigate-duel.md`; Chapter 5
+  exposes an absent-by-default duel seam, and the ground referee never reads it.
+- **Encounter readings to revisit:** Chapter 3's Specter fixture lost 12 rather
+  than 5 on the rebuilt yard; Chapter 4's mortar withdraws before the company
+  reaches its pit, so counter-battery is unexercised, and House Custody's estate
+  guards died in both ordinary runs; Chapter 5's tender-built rear gun never
+  fired; District Escort is won in every ordinary run and needs an
+  encounter-design pass.
 
 All mission, choice and reward text starts as readable correspondence with Castle's
 fact-bound operational briefing. The sample lines above are unrecorded copy, not

@@ -8,6 +8,10 @@ import com.dillon.starsectormarines.battle.setup.WaterUnderSealSequence;
 import com.dillon.starsectormarines.battle.setup.LimitedWarrantSequence;
 import com.dillon.starsectormarines.battle.setup.DistrictEscortSequence;
 import com.dillon.starsectormarines.battle.setup.YardOwnersSequence;
+import com.dillon.starsectormarines.battle.setup.SmallWarForces;
+import com.dillon.starsectormarines.battle.setup.SmallWarSequence;
+import com.dillon.starsectormarines.battle.setup.TermsOfProtectionSequence;
+import com.dillon.starsectormarines.battle.story.TermsOfProtectionProgress;
 import com.dillon.starsectormarines.battle.setup.WorkingPassageSequence;
 
 import com.dillon.starsectormarines.battle.fixture.MarineSeatCommitment;
@@ -259,6 +263,7 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.function.Consumer;
 import com.dillon.starsectormarines.battle.power.HostileShipSupport;
@@ -552,11 +557,27 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
     private LimitedWarrantSequence limitedWarrant;
     private YardOwnersSequence yardOwners;
+    private SmallWarSequence smallWar;
+    public SmallWarSequence getSmallWar() { return smallWar; }
+    public void installSmallWar(int custody, List<Integer> holders, Map<Integer, SmallWarForces.Group> starting,
+                                Map<SmallWarForces.Group, List<EntitySpec>> reserves, long supportGun, boolean houseCustody) {
+        if (simTickIndex != 0 || smallWar != null) throw new IllegalStateException("Install Black Sluice once at setup");
+        smallWar = new SmallWarSequence(custody, holders, starting, reserves, supportGun, houseCustody, storyBeats);
+        addObjective(smallWar);
+    }
     public YardOwnersSequence getYardOwners() { return yardOwners; }
     public void installYardOwners(int technicians, List<Integer> constables, List<List<EntitySpec>> reserves) {
         if (simTickIndex != 0 || yardOwners != null) throw new IllegalStateException("Install Latchkey once at setup");
         yardOwners = new YardOwnersSequence(technicians,constables,reserves,storyBeats);
         addObjective(yardOwners);
+    }
+    private TermsOfProtectionSequence termsOfProtection;
+    public TermsOfProtectionSequence getTermsOfProtection() { return termsOfProtection; }
+    public void installTermsOfProtection(TermsOfProtectionProgress.Route route, long carrier,
+                                         TermsOfProtectionSequence.Parties parties, TermsOfProtectionSequence.Reserve reserve) {
+        if (simTickIndex != 0 || termsOfProtection != null) throw new IllegalStateException("Install the Latchkey handover once at setup");
+        termsOfProtection = new TermsOfProtectionSequence(route, carrier, parties, reserve, storyBeats);
+        addObjective(termsOfProtection);
     }
     public LimitedWarrantSequence getLimitedWarrant() { return limitedWarrant; }
     public void installLimitedWarrant(int technician, int constables, long carrier, List<EntitySpec> reserve, boolean records) {
@@ -854,6 +875,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 + (waterUnderSeal == null ? 0 : waterUnderSeal.pendingMembers())
                 + (limitedWarrant == null ? 0 : limitedWarrant.pendingMembers())
                 + (yardOwners == null ? 0 : yardOwners.pendingMembers())
+                + (smallWar == null ? 0 : smallWar.pendingMembers())
+                + (termsOfProtection == null ? 0 : termsOfProtection.pendingMembers())
                 + (districtEscort == null ? 0 : districtEscort.pendingMembers());
     }
 
@@ -3173,6 +3196,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (waterUnderSeal != null) waterUnderSeal.advance(this);
         if (limitedWarrant != null) limitedWarrant.advance(this);
         if (yardOwners != null) yardOwners.advance(this);
+        if (smallWar != null) smallWar.advance(this);
+        if (termsOfProtection != null) termsOfProtection.advance(this);
         if (districtEscort != null) districtEscort.advance(this);
         objectivesService.tick(o -> o.tick(this));
         // Delayed impacts and objective callbacks run after DEMOLISH and may

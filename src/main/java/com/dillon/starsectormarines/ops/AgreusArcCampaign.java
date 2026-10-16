@@ -15,9 +15,12 @@ import com.fs.starfarer.api.campaign.SectorAPI;
 import com.fs.starfarer.api.campaign.CargoAPI;
 import com.dillon.starsectormarines.marine.LoadoutCardInventory;
 import com.dillon.starsectormarines.marine.LoadoutCardItemPlugin;
+import com.dillon.starsectormarines.marine.LoadoutCard;
+import com.dillon.starsectormarines.battle.story.TermsOfProtectionProgress;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import java.util.List;
 import java.util.Set;
+import java.util.function.IntConsumer;
 
 /** House Rusk's authored concession beneath the existing Agreus administration. */
 public final class AgreusArcCampaign {
@@ -55,6 +58,16 @@ public final class AgreusArcCampaign {
             + "Agreus is cold and airless: our regular infantry use pressure protection outside the sealed halls. "
             + "Destroyed repair cargo or the loss of both technicians forces withdrawal. Rusk provides a new load and replacement party for a later mobilization. "
             + "This local security contract grants no planetary police commission or orbital-fire authority.";
+    public static final String SMALL_WAR_TERMS = "HANDOVER TERMS: Seize Black Sluice's customs block, fuel-control house and dispatch pier, and hand the site to the agreed local custody party at fuel control. "
+            + "The marked fuel storage is a preservation objective: its controls are a seizure target, not something to destroy. No bombardment or fighter strikes. "
+            + "This breaks one Greyhook surface foothold and its levy route; it is not a commission against every pirate in Arcadia. Deploying accepts these terms; the offer has no deadline.";
+    public static final String SMALL_WAR_BRIEF = "Castle: The lead from the Latchkey handover holds. Pell's recovered levy files carry a Drent Haulage dispatch order signed by Mika Drent. Its load numbers match Nadi Orr's shortage report and name Black Sluice's transfer schedule; local pilots confirm the service approach. "
+            + "Rusk offers 44,000 credits to take that foothold and hand it to local holders. "
+            + "Seize the causeway customs block first and build a rear position there with our tender; the holders occupy what we actually take. "
+            + "Then fuel control. The causeway runs between walled settling beds with no cover, and Drent Haulage works that transfer road. A support gun covers it; the sealed service galleries north and south are the way round. "
+            + "Prize crews and Berth Four cover dispatch. Take it and its transfer records, reclaim anything we lose, then escort the custody party into fuel control and hold all three sites while they complete the handover. "
+            + "The marked fuel tanks must survive ordinary fire. Agreus is airless: pressure protection outside the sealed halls. "
+            + "Losing the marked fuel infrastructure or the whole custody party fails the attempt; a later mobilization is a disclosed replacement and refit, with the loss kept on record. ";
     /** Shared by both agreements; neither text may imply otherwise. */
     public static final String AGREEMENT_COMMON = "Both agreements keep Rusk's secured title under Combine administration, the yard's enforceable debt, "
             + "the same core equipment rewards and the company's duty to remove Greyhook's coercive presence. "
@@ -87,6 +100,10 @@ public final class AgreusArcCampaign {
             "SERA VOSS / GREYHOOK FLOTILLA",
             "Pell collected his share from that yard. Your new agreement leaves him nothing. I've told him to leave it. Plan for him not listening.");
 
+    /** Voss's last line on the open channel; text only, never voiced. */
+    static final WaylineNarration.Line VOSS_LAST = correspondence("voss-last", "story_agreus_small_war", "correspondence.voss.last",
+            "SERA VOSS / OPEN CHANNEL", "Keep the pier. I've lost worse berths.");
+
     private static WaylineNarration.Line correspondence(String id, String missionId, String event, String speaker, String text) {
         return new WaylineNarration.Line(id, missionId, event, text, 12f, 10, 15f, List.of(), speaker, OpeningBroker.CREST, false, false);
     }
@@ -97,7 +114,8 @@ public final class AgreusArcCampaign {
         return switch (p.handoverStage()) {
             case NOT_REACHED -> List.of();
             case OPEN, DECLINED -> List.of(LENNA_GATE, LENNA_LIEN);
-            case SIGNED, RATIFIED -> List.of(LENNA_GATE, LENNA_LIEN, VOSS_WARNING);
+            case SIGNED -> List.of(LENNA_GATE, LENNA_LIEN, VOSS_WARNING);
+            case RATIFIED -> List.of(LENNA_GATE, LENNA_LIEN, VOSS_WARNING, RUSK_FAMILY);
         };
     }
 
@@ -151,12 +169,14 @@ public final class AgreusArcCampaign {
     public static boolean atSite(PlanetAPI planet) { var d = destination(); return planet != null && d != null && d.planetId().equals(planet.getId()); }
     public static List<Mission> offers(StoryEligibilityContext ctx) {
         var p = current();
-        if (p == null || p.yardCompleted() || ctx == null || ctx.roster == null || !isContact(ctx.client)
+        if (p == null || p.nextMissionId() == null || ctx == null || ctx.roster == null || !isContact(ctx.client)
                 || ctx.client.locked || ctx.client.patronHouseId != -1 || !atSite(ctx.planet)) return List.of();
         return List.of(offer(p, ctx.planet.getName()));
     }
     public static Mission offer(AgreusArcProgress p, String planetName) {
-        if (p == null || p.yardCompleted()) throw new IllegalArgumentException("No open Agreus contract");
+        if (p == null || p.nextMissionId() == null) throw new IllegalArgumentException("No open Agreus contract");
+        if (AgreusArcProgress.smallWar(p.nextMissionId())) return smallWarOffer(p, planetName);
+        if (AgreusArcProgress.termsOfProtection(p.nextMissionId())) return termsOffer(p, planetName);
         if (p.warrantCompleted()) return yardOffer(p, planetName);
         if (p.completed()) return warrantOffer(p, planetName);
         String losses = p.techniciansLost() + p.militiaLost() + p.repairLoadsLost() == 0 ? ""
@@ -206,6 +226,23 @@ public final class AgreusArcCampaign {
                 .requiredDrops(6).employerShuttles(0).marineArrivalPolicy(MarineArrivalPolicy.PAIRED_HALF_SQUAD)
                 .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED).battleSeed(15303L).build();
     }
+    private static Mission smallWarOffer(AgreusArcProgress p, String planetName) {
+        boolean custody = p.signedAgreement() == AgreusYardAgreement.HOUSE_CUSTODY;
+        String losses = p.smallWarCustodiansLost() + p.smallWarHoldersLost() + p.fuelInfrastructureLost() == 0 ? ""
+                : " Confirmed prior losses: " + p.smallWarCustodiansLost() + " custody-party members, " + p.smallWarHoldersLost()
+                + " holders and " + p.fuelInfrastructureLost() + " marked fuel installations. This mobilization brings a replacement custody party, holders and refitted controls; the losses stay on record.";
+        String route = custody ? " Ratified House Custody: Rusk's appointed custodians take the handover, and the disclosed 12,000-credit premium is paid once with this victory."
+                : " Ratified Yard Compact: a joint custody party takes the handover; the premium was forgone to fund the transition guarantee.";
+        return Mission.builder().id(p.nextMissionId()).name("A Small War").source(MissionSource.STORY)
+                .type(MissionType.ASSAULT).tier(OperationTier.ESTABLISHED).risk(RiskLevel.MEDIUM)
+                .payout(AgreusArcProgress.SMALL_WAR_PAYMENT).targetPlanetName(planetName).defenderFactionOverride("pirates")
+                .flavor(SMALL_WAR_BRIEF + route + losses + "\n\n" + SMALL_WAR_TERMS)
+                .requirements("Three full squads recommended; minimum two selected squads with four ready marines each. Fitted boats and owned working tender required. "
+                        + "Twelve " + (custody ? "estate guards" : "constables") + " and a three-person custody party; employer heavy lift for an owned active mech lance, optional. "
+                        + "44,000 credits once on completed handover" + (custody ? ", plus the 12,000-credit House Custody premium." : ". No suit card."))
+                .requiredDrops(6).employerShuttles(0).marineArrivalPolicy(MarineArrivalPolicy.PAIRED_HALF_SQUAD)
+                .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED).battleSeed(15305L).build();
+    }
     static TargetProfile profile(Mission m) { requireCurrent(m); return new TargetProfile(0, 0, 0, 0, "pirates", Set.of(),
             SurfaceZoning.forPlanetType(destination().planet().getTypeId()), SettlementLink.ROAD); }
     static void begin(Mission m) {
@@ -217,10 +254,20 @@ public final class AgreusArcCampaign {
         var p = current();
         if (p == null || o == null || o.missionSource != MissionSource.STORY || !owns(o.missionId)
                 || !p.acceptsTarget(o.targetPlanetName)) return -1;
+        if (AgreusArcProgress.smallWar(o.missionId)) {
+            if (o.smallWar == null || Global.getSector().getPlayerFleet() == null) return -1;
+            var credits = Global.getSector().getPlayerFleet().getCargo().getCredits();
+            return settleSmallWar(p, o, credits::add);
+        }
         if (AgreusArcProgress.yardOwners(o.missionId)) {
             if (o.yardOwners == null || MarineRosterScript.getInstance() == null) return -1;
             var unavailable = LoadoutCardInventory.playerUnavailableCardIds();
             return settleYard(p,o,Global.getSector().getPlayerFleet().getCargo(),unavailable);
+        }
+        if (AgreusArcProgress.termsOfProtection(o.missionId)) {
+            if (o.termsOfProtection == null || MarineRosterScript.getInstance() == null) return -1;
+            var unavailable = LoadoutCardInventory.playerUnavailableCardIds();
+            return settleTerms(p, o, Global.getSector().getPlayerFleet().getCargo(), unavailable);
         }
         if (AgreusArcProgress.limitedWarrant(o.missionId)) {
             if (o.limitedWarrant == null || MarineRosterScript.getInstance() == null) return -1;
@@ -246,6 +293,21 @@ public final class AgreusArcCampaign {
         if (payment > 0 && !unavailable.contains(AgreusArcProgress.SPECTER_CARD)) cargo.addSpecial(card, 1);
         return payment;
     }
+    /**
+     * Chapter 5's once-only settlement. The ordinary resolver credits the 44,000 fee from the
+     * outcome; a ratified House Custody premium is paid here through {@code premium}, once.
+     * Returns the total credits the receipt earned, or -1 for a refused receipt.
+     */
+    static int settleSmallWar(AgreusArcProgress p, MissionOutcome o, IntConsumer premium) {
+        if (p == null || o == null || premium == null || o.smallWar == null || o.missionSource != MissionSource.STORY
+                || !AgreusArcProgress.smallWar(o.missionId) || !p.acceptsTarget(o.targetPlanetName)) return -1;
+        var r = o.smallWar;
+        int total = p.settleSmallWar(o.missionId, "agreus", o.victory, o.payoutEarned, r.customsHeld(), r.fuelControlHeld(),
+                r.dispatchHeld(), r.rearPositionBuilt(), r.handedOver(), r.companyPresent(), r.infrastructureLost(),
+                r.custodiansLost(), r.holdersLost(), r.greyhookWithdrawn());
+        if (total > o.payoutEarned) premium.accept(total - o.payoutEarned);
+        return total;
+    }
     static int settleYard(AgreusArcProgress p, MissionOutcome o, CargoAPI cargo, Set<String> unavailable) {
         if (p == null || o == null || cargo == null || unavailable == null || o.yardOwners == null
                 || o.missionSource != MissionSource.STORY || !AgreusArcProgress.yardOwners(o.missionId)
@@ -258,4 +320,110 @@ public final class AgreusArcCampaign {
         return payment;
     }
 
+    // ---- Chapter 4: Terms of Protection ----
+
+    public static final String TERMS_BRIEF_COMMON = "Castle: Rusk pays 32,000 credits to see the signed handover done at Latchkey. "
+            + "Escort the party's carrier from the apron to the dispatch handover bay; it rolls only while our infantry is with it and nothing hostile has it in sight. "
+            + "The representatives sign at the bay once dispatch is held. Being nearby signs nothing. "
+            + "Then the utilities crew commissions the captured rig tooling in the calibration room: seventy-five seconds of work, paused, not restarted, while anyone hostile is inside the hall or our infantry is not. "
+            + "Ratification needs a living representative at dispatch after every committed attack is resolved. The end of an attack ratifies nothing. "
+            + "Losing both representatives, the records carrier, or both technicians before the work is done ends the attempt; other losses are recorded. "
+            + "Constables still hold the operator entrance we secured. Bring your working tender; Rusk funds heavy lift for an owned active mech lance. No bombardment or fighter strikes over the homes and benches. ";
+    public static final String TERMS_CUSTODY = "House Custody: Rusk's two appointed custodians ride with the custodial records carrier, with his utilities crew and four estate guards. "
+            + "The guards will hold the Cinder Steps gate on Rusk's terms. That frees one of our sections; their post is the weak point if anyone comes down the lane. ";
+    public static final String TERMS_COMPACT = "Yard Compact: the joint party, Rusk's custodian and the association's delegate, rides with the joint-party records carrier, with the utilities crew and three of Lenna's fitters. "
+            + "The fitters will not leave the benches while the tooling is commissioned, so the hall itself has to be held, not only its doors. ";
+    public static final String TERMS_AWARD = "Either route: the technicians' Boarding Jack refurbishment dossier is a once-only section-card entitlement recorded on victory. "
+            + "While the pattern's issue presentation is still being prepared, the card is held on the company's account and delivered to fleet cargo, once, when it is ready. Nothing is lost by the wait. ";
+    public static final String TERMS_UNKNOWN = "Voss says she told Pell to leave it. We have no count of his people and no time. The yard's approaches are the south service road and the Cinder Steps lane. ";
+
+    static final WaylineNarration.Line RUSK_FAMILY = correspondence("rusk-family", "story_agreus_terms_of_protection", "debrief.terms_of_protection.family",
+            "BARONET ELIAN RUSK",
+            "I have written to my family. I would rather not have. They will answer, and they will want to know why they had to.");
+    /**
+     * The place the arc's current or most recent chapter is fought at, for the contract-board
+     * header: each chapter names its own ground rather than the first chapter's.
+     */
+    static String chapterPlace(AgreusArcProgress p) {
+        if (p == null || !p.completed()) return "NORTH WEIR";
+        if (!p.warrantCompleted()) return "LOW QUAY";
+        if (!p.yardCompleted()) return "LATCHKEY YARD";
+        return switch (p.handoverStage()) {
+            case SIGNED -> "LATCHKEY HANDOVER";
+            case RATIFIED -> p.smallWarSettled() ? "LOW QUAY FREIGHT LANE" : "BLACK SLUICE";
+            default -> "LATCHKEY YARD";
+        };
+    }
+    static final String DRENT_LEAD = "Recovered levy file: a dispatch order signed by Mika Drent of Drent Haulage. Its load numbers match Nadi Orr's shortage lists "
+            + "and name Black Sluice's transfer schedule. The order is a document, not a sighting; it says where the loads went, not who will be waiting there.";
+
+    /** Which signed route a Terms of Protection offer was written for; its own briefing names it. */
+    public static boolean custodyRoute(Mission m) {
+        return m != null && AgreusArcProgress.termsOfProtection(m.id) && m.flavor != null && m.flavor.contains(TERMS_CUSTODY);
+    }
+
+    private static Mission termsOffer(AgreusArcProgress p, String planetName) {
+        var route = p.signedAgreement();
+        String losses = p.termsRepresentativesLost() + p.termsTechniciansLost() + p.termsEmployerLost() + p.recordsCarriersLost() == 0 ? ""
+                : " Confirmed prior losses: " + p.termsRepresentativesLost() + " representatives, " + p.termsTechniciansLost()
+                + " technicians, " + p.termsEmployerLost() + " other employer people and " + p.recordsCarriersLost()
+                + " records carriers. Rusk funds a replacement party and carrier for this mobilization; the signed agreement stands.";
+        return Mission.builder().id(p.nextMissionId()).name("Terms of Protection").source(MissionSource.STORY)
+                .type(MissionType.ASSAULT).tier(OperationTier.ESTABLISHED).risk(RiskLevel.MEDIUM)
+                .payout(AgreusArcProgress.TERMS_PAYMENT).targetPlanetName(planetName).defenderFactionOverride("pirates")
+                .flavor(TERMS_BRIEF_COMMON + (route == AgreusYardAgreement.HOUSE_CUSTODY ? TERMS_CUSTODY : TERMS_COMPACT)
+                        + TERMS_UNKNOWN + losses + "\n\n" + TERMS_AWARD)
+                .requirements("Three squads recommended, mixed sections useful; minimum two selected squads with four ready marines each. Fitted boats and owned working tender required. "
+                        + (route == AgreusYardAgreement.HOUSE_CUSTODY ? "Two custodians, two technicians, four estate guards" : "Two joint-party representatives, two technicians, three fitters")
+                        + " and one records carrier; four constables at the operator entrance. Employer heavy lift for an owned active mech lance, optional. "
+                        + "32,000 credits once and a Boarding Jack section entitlement on either route; victory ratifies the signed agreement.")
+                .requiredDrops(6).employerShuttles(0).marineArrivalPolicy(MarineArrivalPolicy.PAIRED_HALF_SQUAD)
+                .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED).battleSeed(15304L).build();
+    }
+
+    /** The battle's route identity for the signed agreement; the battle never chooses it. */
+    static TermsOfProtectionProgress.Route route(AgreusYardAgreement agreement) {
+        if (agreement == null) throw new IllegalStateException("Terms of Protection requires a signed agreement");
+        return agreement == AgreusYardAgreement.HOUSE_CUSTODY ? TermsOfProtectionProgress.Route.HOUSE_CUSTODY
+                : TermsOfProtectionProgress.Route.YARD_COMPACT;
+    }
+    static AgreusYardAgreement agreement(TermsOfProtectionProgress.Route route) {
+        if (route == null) return null;
+        return route == TermsOfProtectionProgress.Route.HOUSE_CUSTODY ? AgreusYardAgreement.HOUSE_CUSTODY : AgreusYardAgreement.YARD_COMPACT;
+    }
+
+    static int settleTerms(AgreusArcProgress p, MissionOutcome o, CargoAPI cargo, Set<String> unavailable) {
+        if (p == null || o == null || cargo == null || unavailable == null || o.termsOfProtection == null
+                || o.missionSource != MissionSource.STORY || !AgreusArcProgress.termsOfProtection(o.missionId)
+                || !p.acceptsTarget(o.targetPlanetName)) return -1;
+        var r = o.termsOfProtection;
+        int payment = p.settleTerms(o.missionId, "agreus", o.victory, o.payoutEarned, agreement(r.route()),
+                r.delivered(), r.signed(), r.commissioned(), r.assaultsResolved(), r.ratified(), r.companyPresent(), r.carrierLost(),
+                r.representativesLost(), r.techniciansLost(), r.fittersLost() + r.guardsLost() + r.constablesLost());
+        if (payment > 0) deliverBoardingJack(p, cargo, unavailable);
+        return payment;
+    }
+
+    /**
+     * Places the recorded Boarding Jack card once its presentation is declared. While the pattern
+     * is still pending, nothing is placed and the entitlement waits; an already learned or carried
+     * card satisfies it without a duplicate. Returns whether a card went into cargo.
+     */
+    static boolean deliverBoardingJack(AgreusArcProgress p, CargoAPI cargo, Set<String> unavailable) {
+        if (p == null || cargo == null || unavailable == null) return false;
+        var card = LoadoutCard.parse(AgreusArcProgress.BOARDING_JACK_CARD);
+        boolean ready = card != null && card.presentationDeclared();
+        if (!p.claimBoardingJackDelivery(ready)) return false;
+        if (unavailable.contains(AgreusArcProgress.BOARDING_JACK_CARD)) return false;
+        cargo.addSpecial(LoadoutCardItemPlugin.itemData(AgreusArcProgress.BOARDING_JACK_CARD), 1);
+        return true;
+    }
+
+    /** Game-load hook: a deferred Boarding Jack entitlement is delivered on the first load after its art ships. */
+    public static boolean deliverPendingBoardingJack() {
+        var p = current();
+        if (p == null || !p.boardingJackDeferred() || Global.getSector().getPlayerFleet() == null) return false;
+        var unavailable = LoadoutCardInventory.playerUnavailableCardIds();
+        return deliverBoardingJack(p, Global.getSector().getPlayerFleet().getCargo(), unavailable);
+    }
 }

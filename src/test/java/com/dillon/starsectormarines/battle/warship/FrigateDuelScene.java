@@ -151,8 +151,10 @@ public final class FrigateDuelScene implements BehaviorScene {
             verdicts.add(Verdict.of("ships-fire-on-hulls-with-ship-guns", fire.roundsFired() > 0 && onlyShipGuns,
                     fire.roundsFired() + " rounds by weapon " + byWeapon));
             int intercepts = run.sim().warships().pointDefence().intercepts();
-            verdicts.add(Verdict.of("point-defence-leaves-rounds-between-hulls-alone", intercepts == 0,
-                    intercepts + " rounds shot down; no missile was fired in this loop"));
+            // Point defence may stop a missile or its warheads (slice 3), never a direct-fire round between hulls.
+            int missilesStopped = fire.missilesShotDown() + fire.warheadsShotDown();
+            verdicts.add(Verdict.of("point-defence-leaves-rounds-between-hulls-alone", intercepts == missilesStopped,
+                    intercepts + " bodies shot down, " + missilesStopped + " of them missiles or warheads"));
             int houndRounds = byWeapon.getOrDefault("chaingun", 0);
             int shieldHits = t.shieldHits(run.wolves());
             verdicts.add(Verdict.of("a-front-shield-takes-hits-as-flux", houndRounds == 0 || shieldHits > 0,

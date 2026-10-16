@@ -1,0 +1,242 @@
+package com.dillon.starsectormarines.battle.setup;
+
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
+import com.dillon.starsectormarines.battle.command.SmallWarCommand;
+import com.dillon.starsectormarines.battle.command.objective.Objective;
+import com.dillon.starsectormarines.battle.command.objective.ObjectiveFactionPresence;
+import com.dillon.starsectormarines.battle.power.ShipOnStation;
+import com.dillon.starsectormarines.battle.setup.SmallWarForces.Commitment;
+import com.dillon.starsectormarines.battle.setup.SmallWarForces.Group;
+import com.dillon.starsectormarines.battle.setup.SmallWarForces.SplitSide;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
+import com.dillon.starsectormarines.battle.story.SmallWarProgress;
+import com.dillon.starsectormarines.battle.story.SmallWarProgress.Phase;
+import com.dillon.starsectormarines.battle.story.StoryBeatLog;
+import com.dillon.starsectormarines.battle.tender.Tender;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.gen.BlackSluice;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * Black Sluice referee and Greyhook's split. Sites, the rear position and the handover are read
+ * from physical presence; the split happens only when fuel control actually falls, and those who
+ * obey it walk off the map along the service road, so the withdrawal is strength Greyhook loses
+ * rather than a despawn. The optional {@link SmallWarDuel} hears the order; nothing here waits on it.
+ */
+public final class SmallWarSequence implements Objective {
+    /** One outfit's account: who stood or was committed, who is still here, and who walked out. */
+    public record ForceReport(int committed, int deployed, int living, int withdrawn) { }
+
+    private final SmallWarProgress progress = new SmallWarProgress();
+    private final int custody;
+    private final List<Integer> holders;
+    private final long supportGun;
+    private final boolean houseCustody;
+    private final Map<Integer, Group> squadGroups = new LinkedHashMap<>();
+    private final Map<Group, List<EntitySpec>> reserves;
+    private final Set<Group> released = new HashSet<>();
+    private final Set<Integer> withdrawing = new HashSet<>();
+    private final Set<Long> withdrawn = new HashSet<>();
+    private final Map<SmallWarForces.Outfit, Integer> withdrawnByOutfit = new HashMap<>();
+    private final Set<Long> turretIds = new HashSet<>();
+    private final StoryBeatLog log;
+    private SmallWarDuel duel;
+    private Tender tender;
+    private boolean initialized, constructionExhausted;
+
+    public SmallWarSequence(int custody, List<Integer> holders, Map<Integer, Group> startingSquads,
+                            Map<Group, List<EntitySpec>> reserves, long supportGun, boolean houseCustody, StoryBeatLog log) {
+        if (holders.size() != 3) throw new IllegalArgumentException("Black Sluice needs one holding detachment per site");
+        this.custody = custody; this.holders = List.copyOf(holders); this.supportGun = supportGun; this.houseCustody = houseCustody; this.log = log;
+        squadGroups.putAll(startingSquads);
+        var copy = new LinkedHashMap<Group, List<EntitySpec>>();
+        reserves.forEach((group, members) -> {
+            if (!group.reserve() || members.size() != group.size()) throw new IllegalArgumentException("Reserve must match its authored group");
+            copy.put(group, List.copyOf(members));
+        });
+        this.reserves = copy;
+    }
+
+    /** Install the duel overhead before the first tick. Absent by default. */
+    public void installDuel(SmallWarDuel value) {
+        if (initialized || duel != null) throw new IllegalStateException("Install the duel once at setup");
+        duel = value;
+    }
+    public SmallWarDuel duel() { return duel; }
+    public SmallWarProgress progress() { return progress; }
+    public int custodySquadId() { return custody; }
+    public List<Integer> holderSquadIds() { return holders; }
+    public long supportGunId() { return supportGun; }
+    public boolean houseCustody() { return houseCustody; }
+    public Map<Integer, Group> squadGroups() { return Map.copyOf(squadGroups); }
+    public Set<Integer> withdrawingSquads() { return Set.copyOf(withdrawing); }
+    public Set<Long> rearTurretIds() { return Set.copyOf(turretIds); }
+    public Tender tender() { return tender; }
+    public boolean constructionExhausted() { return constructionExhausted; }
+    public int pendingMembers() {
+        if (progress.terminal()) return 0;
+        int pending = 0;
+        for (var entry : reserves.entrySet()) if (!released.contains(entry.getKey())) pending += entry.getValue().size();
+        return pending;
+    }
+    public boolean tenderAvailable() {
+        return tender != null && tender.anchorAlive() && !tender.disabled() && !tender.ship().departing() && !tender.departed()
+                && tender.buildersLost() < tender.builderComplement();
+    }
+    public int buildX() { return BlackSluice.BUILD_X; }
+    public int buildY() { return BlackSluice.BUILD_Y; }
+
+    public SmallWarProgress.Report report(BattleSimulation sim) {
+        return progress.report(SmallWarProgress.CUSTODIANS - sim.squadMemberCount(custody),
+                SmallWarProgress.HOLDERS - holders.stream().mapToInt(sim::squadMemberCount).sum(), withdrawn.size(), houseCustody);
+    }
+
+    /** Per-outfit strength: what was committed, what actually reached the field, who lives and who left. */
+    public Map<SmallWarForces.Outfit, ForceReport> forceReport(BattleSimulation sim) {
+        var out = new LinkedHashMap<SmallWarForces.Outfit, ForceReport>();
+        for (var outfit : SmallWarForces.Outfit.values()) {
+            int committed = 0, deployed = 0, living = 0;
+            for (var group : SmallWarForces.GROUPS) if (group.outfit() == outfit) {
+                committed += group.size();
+                if (!group.reserve() || released.contains(group)) deployed += group.size();
+            }
+            for (var entry : squadGroups.entrySet()) if (entry.getValue().outfit() == outfit) living += sim.squadMemberCount(entry.getKey());
+            out.put(outfit, new ForceReport(committed, deployed, living, withdrawnByOutfit.getOrDefault(outfit, 0)));
+        }
+        return out;
+    }
+
+    public void advance(BattleSimulation sim) {
+        if (sim.isComplete() || progress.terminal()) return;
+        if (!initialized) { initialized = true; emit(sim, "mobilization"); }
+        for (Tender candidate : sim.tenders().tenders()) {
+            var source = candidate.ship().supportSource();
+            if (candidate.ship().faction == Faction.MARINE && !candidate.grounded() && source != null && source.tender()
+                    && source.memberId() != null && candidate.anchorAlive() && !candidate.disabled()
+                    && !candidate.ship().departing() && candidate.buildersLost() < candidate.builderComplement()) {
+                tender = candidate; break;
+            }
+        }
+        Phase before = progress.phase();
+        int company = 0, friendly = 0, contested = 0;
+        boolean custodyInRoom = false;
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            long id = sim.liveUnitAt(i);
+            Faction side = sim.identity().faction(id);
+            int cx = sim.world().cellX(id), cy = sim.world().cellY(id);
+            for (int site = 0; site < 3; site++) {
+                var place = BlackSluice.SITES.get(site);
+                boolean inside = BlackSluice.inside(sim.getTopology(), cx, cy, site);
+                if (inside && isCompany(sim, id)) company |= 1 << site;
+                if (inside && (isCompany(sim, id) || side == Faction.ALLY && sim.identity().type(id).combatant)) friendly |= 1 << site;
+                if (site == SmallWarProgress.FUEL_CONTROL && inside && sim.squad().hasSquad(id) && sim.squad().squadId(id) == custody) custodyInRoom = true;
+                if (Faction.MARINE.hostileTo(side) && sim.identity().type(id).combatant
+                        && (inside || Math.hypot(sim.world().x(id) - place.x(), sim.world().y(id) - place.y()) < 12)) contested |= 1 << site;
+            }
+            String name = sim.identity().name(id);
+            if (side == Faction.MARINE && name != null && name.startsWith("tender-turret-")
+                    && Math.hypot(sim.world().x(id) - buildX(), sim.world().y(id) - buildY()) < 12) turretIds.add(id);
+        }
+        // Only a completed site owned by the called, campaign-backed tender commissions the rear position.
+        boolean commissioned = tender != null && tender.completedSites().stream()
+                .anyMatch(site -> Math.hypot(site.siteX() - buildX(), site.siteY() - buildY()) < 12)
+                && turretIds.stream().anyMatch(sim.world()::isAlive);
+        boolean split = progress.advance(BattleSimulation.TICK_DT, companyInPlay(sim), infrastructureIntact(sim),
+                sim.squadMemberCount(custody) > 0, custodyInRoom, commissioned, company, friendly, contested);
+        if (progress.visited(SmallWarProgress.CUSTOMS)) release(sim, Commitment.CUSTOMS_FALLS);
+        if (split) split(sim);
+        if (progress.phase() == Phase.REAR_POSITION && tender != null && !tenderAvailable()
+                && sim.getCommandPowerService().getChargesRemaining(ShipOnStation.ID) <= 0) {
+            constructionExhausted = true; progress.fail(); emit(sim, "construction_exhausted");
+        }
+        observeExits(sim);
+        if (duel != null && progress.split()) duel.advance(sim);
+        if (before != progress.phase()) emit(sim, progress.phase().name().toLowerCase(Locale.ROOT));
+    }
+
+    private void split(BattleSimulation sim) {
+        log.emitOnce(sim.getSimTickIndex(), "small_war.voss_abandon", StoryBeatLog.Audience.PLAYER);
+        for (var entry : squadGroups.entrySet())
+            if (entry.getValue().split() == SplitSide.WITHDRAWS) withdrawing.add(entry.getKey());
+        release(sim, Commitment.FUEL_CONTROL_FALLS);
+        log.emitOnce(sim.getSimTickIndex(), "small_war.berth_four_refuses", StoryBeatLog.Audience.PLAYER);
+        if (duel != null) duel.withdrawalOrdered(sim);
+    }
+
+    private void release(BattleSimulation sim, Commitment trigger) {
+        for (var entry : reserves.entrySet()) {
+            var group = entry.getKey();
+            if (group.commitment() != trigger || !released.add(group)) continue;
+            int squad = sim.mintSquad(Faction.DEFENDER, UnitType.MILITIA);
+            for (var member : entry.getValue()) sim.spawn(member.squad(squad));
+            sim.getSquad(squad).originalSize = group.size();
+            sim.claimSquadCommand(squad, CommandAuthority.MISSION_COMMAND, SmallWarCommand.issuer(Faction.DEFENDER),
+                    group.name() + " committed from the " + group.ingress());
+            squadGroups.put(squad, group);
+            // A reserve committed after the order has already heard it.
+            if (progress.split() && group.split() == SplitSide.WITHDRAWS) withdrawing.add(squad);
+            log.emitOnce(sim.getSimTickIndex(), "small_war.reserve_" + group.id(), StoryBeatLog.Audience.OBSERVER_ONLY);
+        }
+    }
+
+    private void observeExits(BattleSimulation sim) {
+        var departing = new ArrayList<long[]>();
+        for (int squadId : withdrawing) {
+            for (int member = 0; member < sim.squadMemberCount(squadId); member++) {
+                long id = sim.squadMemberAt(squadId, member);
+                if (BlackSluice.atExit(sim.world().x(id), sim.world().y(id))) departing.add(new long[]{id, squadId});
+            }
+        }
+        for (long[] leaving : departing) {
+            if (!withdrawn.add(leaving[0])) continue;
+            withdrawnByOutfit.merge(squadGroups.get((int) leaving[1]).outfit(), 1, Integer::sum);
+            sim.takeOffTheField(leaving[0]);
+            log.emitOnce(sim.getSimTickIndex(), "small_war.withdrawn_" + leaving[0], StoryBeatLog.Audience.OBSERVER_ONLY);
+        }
+    }
+
+    /** Every marked tank still stands, intact or damaged; a destroyed tank is lost infrastructure. */
+    public static boolean infrastructureIntact(BattleSimulation sim) {
+        for (int[] tank : BlackSluice.TANKS) {
+            boolean standing = sim.getDoodads().stream().anyMatch(prop -> prop.cellX == tank[0] && prop.cellY == tank[1]
+                    && (BlackSluice.TANK_ID.equals(prop.definitionId()) || (BlackSluice.TANK_ID + "-damaged").equals(prop.definitionId())));
+            if (!standing) return false;
+        }
+        return true;
+    }
+
+    private static boolean companyInPlay(BattleSimulation sim) {
+        return ObjectiveFactionPresence.anyInPlay(sim, Faction.MARINE, id -> isCompany(sim, id));
+    }
+    static boolean isCompany(BattleSimulation sim, long id) {
+        return sim.identity().faction(id) == Faction.MARINE && switch (sim.identity().type(id)) {
+            case MARINE, MARINE_BLUE, MARINE_RED -> true; default -> false;
+        };
+    }
+    private void emit(BattleSimulation sim, String beat) { log.emitOnce(sim.getSimTickIndex(), "small_war." + beat, StoryBeatLog.Audience.PLAYER); }
+    public Faction owningFaction() { return Faction.MARINE; }
+    public void tick(BattleView ignored) { }
+    public boolean isComplete() { return progress.phase() == Phase.COMPLETE; }
+    public boolean isFailed() { return progress.phase() == Phase.FAILED; }
+    public String displayName() { return switch (progress.phase()) {
+        case CUSTOMS -> "Seize the causeway customs block";
+        case REAR_POSITION -> "Call the selected tender; build the rear position south of customs";
+        case FUEL_CONTROL -> "Take fuel control; the service galleries flank the exposed causeway";
+        case DISPATCH -> "Capture dispatch and its transfer records";
+        case HANDOVER -> "Hold all three sites; escort the custody party into fuel control";
+        case COMPLETE -> "Black Sluice handed over to its local holders";
+        case FAILED -> constructionExhausted ? "Construction support exhausted; withdraw for a new mobilization"
+                : progress.report(0, 0, 0, houseCustody).infrastructureLost() ? "Marked fuel infrastructure destroyed; the handover has failed"
+                : "Black Sluice handover failed; a new mobilization is required";
+    }; }
+}

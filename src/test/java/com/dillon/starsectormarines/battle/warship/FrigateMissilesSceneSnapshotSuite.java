@@ -1,0 +1,22 @@
+package com.dillon.starsectormarines.battle.warship;
+
+import com.dillon.starsectormarines.battle.scene.BehaviorSceneSnapshotSuite;
+
+/** The frigate missile loops (1920x1080), from the same run that produced their verdicts and readings. */
+public final class FrigateMissilesSceneSnapshotSuite extends BehaviorSceneSnapshotSuite {
+
+    public FrigateMissilesSceneSnapshotSuite() {
+        super(new FrigateMissilesScene(), 1920, 1080);
+    }
+
+    @Override protected boolean showImpactEffects() { return true; }
+
+    @Override protected boolean showUnitShadows() { return true; }
+
+    /** The close view is shown to people, so it is recorded at the full 1920x1080 too. */
+    @Override protected float closeViewScale() { return 1f; }
+
+    @Override protected float[] closeView(String loopId) {
+        return new float[]{35f, 34f, 48f};
+    }
+}

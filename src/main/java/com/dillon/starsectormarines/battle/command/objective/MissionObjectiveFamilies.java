@@ -26,8 +26,13 @@ import com.dillon.starsectormarines.battle.story.SalvageRightsProgress;
 import java.util.List;
 import java.util.ArrayList;
 import com.dillon.starsectormarines.battle.setup.YardOwnersSequence;
+import com.dillon.starsectormarines.battle.setup.TermsOfProtectionSequence;
+import com.dillon.starsectormarines.battle.story.TermsOfProtectionProgress;
 import com.dillon.starsectormarines.battle.story.YardOwnersProgress;
 import com.dillon.starsectormarines.battle.world.gen.LatchkeyYard;
+import com.dillon.starsectormarines.battle.setup.SmallWarSequence;
+import com.dillon.starsectormarines.battle.story.SmallWarProgress;
+import com.dillon.starsectormarines.battle.world.gen.BlackSluice;
 
 /** Read-only adapters. Negative progress means the current obligation has no measured clock. */
 public final class MissionObjectiveFamilies {
@@ -184,6 +189,76 @@ public final class MissionObjectiveFamilies {
                 p.terminal() ? -1 : inspecting ? p.inspection()/YardOwnersProgress.INSPECTION_SECONDS : p.capture(site)/YardOwnersProgress.CAPTURE_SECONDS,
                 p.terminal() ? "" : "Keep all sites clear and occupied by company or constables. Inspection needs a living technician and company infantry inside the tooling hall.",
                 markers, inspecting || p.terminal() ? "yard-tools" : "yard-site-"+site);
+    }
+    public static Item smallWar(SmallWarSequence sequence) {
+        var p = sequence.progress(); var state = state(sequence); var phase = p.phase();
+        var markers = new ArrayList<Marker>();
+        for (int i = 0; i < 3; i++) {
+            var site = BlackSluice.SITES.get(i);
+            markers.add(new Marker("sluice-site-" + i, site.name(), site.x(), site.y(),
+                    p.held(i) ? "HELD / KEEP CLEAR" : "SECURE / COMPANY REQUIRED", p.held(i) ? State.COMPLETE : state));
+        }
+        markers.add(new Marker("sluice-rear", "Rear position / build here", sequence.buildX(), sequence.buildY(),
+                p.rearPositionBuilt() ? "COMMISSIONED" : "BUILD HERE", p.rearPositionBuilt() ? State.COMPLETE : state, List.of(), 8));
+        for (int i = 0; i < BlackSluice.TANKS.size(); i++)
+            markers.add(new Marker("sluice-tank-" + i, "Marked fuel tank / preserve", BlackSluice.TANKS.get(i)[0], BlackSluice.TANKS.get(i)[1], "REQUIRED FUEL INFRASTRUCTURE", state));
+        boolean build = phase == SmallWarProgress.Phase.REAR_POSITION;
+        var order = sequence.tender() == null ? null : sequence.tender().current();
+        boolean building = build && order != null && Math.hypot(order.siteX() - sequence.buildX(), order.siteY() - sequence.buildY()) < 12;
+        boolean handover = phase == SmallWarProgress.Phase.HANDOVER;
+        int site = switch (phase) { case FUEL_CONTROL -> 1; case DISPATCH -> 2; default -> 0; };
+        String focus = build ? "sluice-rear" : handover || p.terminal() ? "sluice-site-1" : "sluice-site-" + site;
+        String blocker = p.terminal() ? "" : build && !sequence.tenderAvailable() ? "Call the selected owned tender using Ship on Station."
+                : build && !building ? "Select the tender, choose a turret, and place it in the marked rear bay south of customs."
+                : building && order.contested() ? "Clear known hostiles near the rear position and protect the builders."
+                : handover && !p.safeHandover() ? "Keep all three sites clear and occupied, company infantry in fuel control, and the living custody party inside it."
+                : handover ? "" : "Company infantry must hold the marked site uncontested. Preserve the marked fuel tanks.";
+        return new Item("small-war", "Black Sluice", state, phase.name(), "Customs > Rear position > Fuel control > Dispatch > Handover",
+                sequence.displayName(), handover ? timed("Protected handover", p.handover(), SmallWarProgress.HANDOVER_SECONDS)
+                        : building ? "Construction / " + Math.round(100 * order.fraction()) + "%"
+                        : build ? "Build the rear position" : timed("Secure site", p.capture(site), SmallWarProgress.CAPTURE_SECONDS),
+                p.terminal() ? -1 : handover ? p.handover() / SmallWarProgress.HANDOVER_SECONDS : building ? order.fraction()
+                        : build ? -1 : p.capture(site) / SmallWarProgress.CAPTURE_SECONDS,
+                blocker, markers, focus);
+    }
+    public static Item termsOfProtection(TermsOfProtectionSequence sequence) {
+        var p = sequence.progress(); var state = state(sequence);
+        var phase = p.phase();
+        boolean custody = sequence.route() == TermsOfProtectionProgress.Route.HOUSE_CUSTODY;
+        var markers = new ArrayList<Marker>();
+        if (phase == TermsOfProtectionProgress.Phase.ESCORT)
+            markers.add(new Marker("terms-escort", custody ? "Custodial records carrier / escort" : "Joint-party records carrier / escort",
+                    sequence.escortRallyX(), sequence.escortRallyY(), "ESCORT", state));
+        markers.add(new Marker("terms-handover", LatchkeyYard.HANDOVER.label(), LatchkeyYard.HANDOVER.x(), LatchkeyYard.HANDOVER.y(),
+                p.signed() ? p.ratified() ? "RATIFIED" : "SIGNED / RATIFY HERE" : p.delivered() ? "SIGNING / HOLD DISPATCH" : "DELIVER THE PARTY",
+                p.ratified() ? State.COMPLETE : state));
+        markers.add(new Marker("terms-commissioning", LatchkeyYard.COMMISSIONING.label(), LatchkeyYard.COMMISSIONING.x(), LatchkeyYard.COMMISSIONING.y(),
+                p.commissioned() ? "COMMISSIONED" : "PROTECTED WORK / HOLD THE HALL", p.commissioned() ? State.COMPLETE : state));
+        if (custody) markers.add(new Marker("terms-guards", LatchkeyYard.GUARD_POST.label(), LatchkeyYard.GUARD_POST.x(), LatchkeyYard.GUARD_POST.y(),
+                "ESTATE GUARDS / WEAK POINT", state));
+        else for (var bench : LatchkeyYard.WORKPLACES)
+            markers.add(new Marker("terms-" + bench.id(), bench.label(), bench.x(), bench.y(), "FITTERS STAY HERE", state));
+        // The mortar appears on the picture only as far as it has actually been observed.
+        if (sequence.mortarSighted())
+            markers.add(new Marker("terms-mortar", LatchkeyYard.MORTAR_POST.label(), LatchkeyYard.MORTAR_POST.x(), LatchkeyYard.MORTAR_POST.y(),
+                    "MORTAR SIGHTED / COUNTER-BATTERY", state));
+        else if (sequence.mortarReported())
+            markers.add(new Marker("terms-mortar", "Mortar fire reported from the Cinder Steps terraces", LatchkeyYard.CINDER_GATE.x(), LatchkeyYard.CINDER_GATE.y(),
+                    "TUBE UNLOCATED / EAST OF THE WALL", state));
+        String focus = switch (phase) {
+            case ESCORT -> "terms-escort";
+            case SIGNING, DEFENCE, COMPLETE -> "terms-handover";
+            default -> "terms-commissioning";
+        };
+        return new Item("terms-of-protection", "Latchkey handover", state, phase.name(),
+                "Escort > Sign at dispatch > Commission the tooling > Resolve the attacks > Ratify", sequence.displayName(),
+                phase == TermsOfProtectionProgress.Phase.SIGNING ? timed("Signing", p.signing(), TermsOfProtectionProgress.SIGNING_SECONDS)
+                        : timed("Commissioning", p.work(), TermsOfProtectionProgress.WORK_SECONDS),
+                p.terminal() ? -1 : phase == TermsOfProtectionProgress.Phase.SIGNING ? p.signing() / TermsOfProtectionProgress.SIGNING_SECONDS
+                        : p.work() / TermsOfProtectionProgress.WORK_SECONDS,
+                p.terminal() ? "" : sequence.fieldClear() ? "Every committed attack is resolved. A living representative at a held dispatch ratifies."
+                        : "Work pauses while anyone hostile is in the hall or no company infantry is there. Losing both representatives, the carrier or both technicians before commissioning fails.",
+                markers, focus);
     }
     public static Item districtEscort(DistrictEscortSequence sequence) {
         var p = sequence.progress(); var state = state(sequence);

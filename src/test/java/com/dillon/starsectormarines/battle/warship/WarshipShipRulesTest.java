@@ -39,11 +39,12 @@ class WarshipShipRulesTest {
     }
 
     @Test
-    void pointDefenceMissilesAndLancesDoNotFireAtAHull() {
+    void pointDefenceAndLancesDoNotFireAtAHullAndMissilesAreNotGuns() {
         assertTrue(WarshipShipRules.mayFireAtHull(gun(600f, 0f, false, 0f, false, false)));
         assertTrue(WarshipShipRules.mayFireAtHull(gun(600f, 0f, true, 200f, false, false)), "an anti-ship beam");
         assertFalse(WarshipShipRules.mayFireAtHull(gun(600f, 0f, false, 0f, false, true)), "point defence");
-        assertFalse(WarshipShipRules.mayFireAtHull(gun(600f, 0f, false, 0f, true, false)), "a missile, until slice 3");
+        assertTrue(WarshipShipRules.mayFireAtHull(gun(600f, 0f, false, 0f, true, false)), "a missile");
+        assertFalse(WarshipShipRules.gunAtHull(gun(600f, 0f, false, 0f, true, false)), "but not a gun");
         assertFalse(WarshipShipRules.mayFireAtHull(gun(600f, 0f, true, 1000f, false, false)), "a lance");
         assertFalse(WarshipShipRules.mayFireAtHull(null));
     }
@@ -59,6 +60,8 @@ class WarshipShipRulesTest {
         assertTrue(WarshipShipRules.mayFireAtHull(wolfGuns.get("pulselaser").weapon));
         assertTrue(WarshipShipRules.mayFireAtHull(wolfGuns.get("ioncannon").weapon));
         assertFalse(WarshipShipRules.mayFireAtHull(wolfGuns.get("pdlaser").weapon));
+        assertTrue(WarshipShipRules.mayFireAtHull(wolfGuns.get("sabot").weapon), "the Sabot fires at a hull");
+        assertFalse(WarshipShipRules.gunAtHull(wolfGuns.get("sabot").weapon), "but the heading is the guns'");
 
         Warship hound = Warship.fit("hound_d_pirates", "hound_d_pirates_Standard", Faction.DEFENDER, 0f, 0f, 0f);
         assertEquals("hound", hound.hullId);
