@@ -75,6 +75,14 @@ public final class LoadoutCardItemPlugin extends BaseSpecialItemPlugin {
             tooltip.addPara(MessageFormat.format(Strings.get("loadoutCardContentsFmt"), contents),
                     pad);
         }
+        for (String templateId : card.templateIds()) {
+            EquipmentTemplateCard template = EquipmentTemplateCatalog.require(templateId);
+            if (template.accessTier() == EquipmentAccessTier.RESTRICTED) {
+                // One issuer line is enough: a card's Restricted kit is one tradition's.
+                tooltip.addPara(MilitaryWarrants.restrictedRoute(template), pad);
+                break;
+            }
+        }
         tooltip.addPara(Strings.get("loadoutCardShipBoundary"), pad);
         addCostLabel(tooltip, pad, transferHandler, stackSource);
 

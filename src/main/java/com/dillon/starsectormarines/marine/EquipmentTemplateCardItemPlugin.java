@@ -75,6 +75,8 @@ public final class EquipmentTemplateCardItemPlugin extends BaseSpecialItemPlugin
                         access), pad, Misc.getHighlightColor(), access);
         if (EquipmentTemplateCatalog.installed().storySource(template.id()) != null) {
             tooltip.addPara(Strings.get("equipmentTemplateStorySourceRoute"), pad);
+        } else if (template.accessTier() == EquipmentAccessTier.RESTRICTED) {
+            tooltip.addPara(MilitaryWarrants.restrictedRoute(template), pad);
         } else if (template.accessTier() == EquipmentAccessTier.COMMON) {
             tooltip.addPara(Strings.get("equipmentTemplateAccessCommonRoute"), pad);
         } else {
@@ -161,6 +163,7 @@ public final class EquipmentTemplateCardItemPlugin extends BaseSpecialItemPlugin
             case COMMON -> "equipmentTemplateAccessCommon";
             case ADVANCED -> "equipmentTemplateAccessAdvanced";
             case PRESTIGE -> "equipmentTemplateAccessPrestige";
+            case RESTRICTED -> "equipmentTemplateAccessRestricted";
         });
     }
 }

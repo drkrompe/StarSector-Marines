@@ -14,7 +14,8 @@ import java.util.Set;
  * <p>A faction's authored pool still lists the equipment it fields; a card is on offer
  * through a channel when the faction fields part of what it bundles there, at the
  * heaviest weight of those entries, and the company's progress reaches the scarcest
- * bundled tier.
+ * bundled tier. Restricted kit inside a card additionally needs a military warrant and must
+ * be fielded by this faction itself.
  */
 public final class LoadoutCardPicker {
 
@@ -32,7 +33,8 @@ public final class LoadoutCardPicker {
         List<Candidate> candidates = new ArrayList<>();
         for (LoadoutCard card : LoadoutCards.all()) {
             if (unavailable.contains(card.id())
-                    || !EquipmentAcquisitionEligibility.allows(card.accessTier(), source, progress)) {
+                    || !EquipmentAcquisitionEligibility.allowsAll(card.templateIds(), source, progress)
+                    || !fieldsEveryRestricted(card, fielded)) {
                 continue;
             }
             int weight = 0;
@@ -56,6 +58,22 @@ public final class LoadoutCardPicker {
             }
         }
         return List.copyOf(selected);
+    }
+
+    /**
+     * Warranted equipment is issued only by the tradition that builds it, so a faction
+     * offers a card carrying Restricted kit only when it fields that kit itself: an
+     * independent licence that happens to field the card's scout suits does not thereby
+     * sell Hegemony military issue.
+     */
+    private static boolean fieldsEveryRestricted(LoadoutCard card, Map<String, Integer> fielded) {
+        for (String templateId : card.templateIds()) {
+            if (EquipmentTemplateCatalog.require(templateId).accessTier() == EquipmentAccessTier.RESTRICTED
+                    && !fielded.containsKey(templateId)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private record Candidate(String id, int weight) {}

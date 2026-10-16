@@ -1731,12 +1731,31 @@ rather than the code, and costs ninety world generations on every run by
 every concurrent session forever. The arithmetic hides: five times six times
 three reads like one test.
 
-A test runs in a second or two. That is a consequence rather than the rule —
-a test aimed at one unit is small because the unit is.
+**Every new test must complete in under one second.** This is a rule, not a
+consequence: the full `:test` suite now takes about ten minutes, which means
+nobody runs it, which means it protects nothing. A test aimed at one unit is
+small because the unit is; one that cannot finish in a second is asking a
+whole-system question and is in the wrong place. Measure it (the JUnit XML
+under `build/test-results/test/` records each test's time) before
+committing, and do not raise the bar for a test that misses it — move the
+question down to its unit, or move the test out of `test`.
+
+**Things that are not tests do not go in `test`:**
+
+- **Mission and battle runs** — anything that plays a simulation forward for
+  its outcome, stands up a mission, a world generator or a commander, or
+  replays a fixture. That is evidence: it belongs in `commanderEvidence`,
+  `sceneEvidence`, `loadoutMatchup` or a new opt-in task of the same shape.
+- **Snapshot and rendering work** — anything that renders a frame, a screen,
+  a GIF or a contact sheet, or compares pixels. That belongs in a
+  `SnapshotSuite` under `createSnapshots`, or in `shaderEvidence` /
+  `renderEvidence` when it needs a real driver.
 
 Measurement that genuinely needs the whole space is **evidence, not a
 test**, and belongs in an opt-in Gradle task excluded from `test`, the shape
-`commanderEvidence` and `createSnapshots` already use.
+`commanderEvidence` and `createSnapshots` already use. Existing slow tests are
+not grandfathered as a pattern to copy: when you touch one, move it out or cut
+it down rather than extending it.
 
 ## Mod layout
 

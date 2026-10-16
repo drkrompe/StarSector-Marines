@@ -3,17 +3,17 @@
 > The first military warrant a company can earn by story rather than by
 > standing: the Hegemony takes on a mercenary company it has watched fight.
 
-Status: PLANNED — depends on `restricted-equipment-warrants.md`. The second
-stage depends on `warrant-obligations.md`.
+Status: PLANNED — builds on the shipped Restricted tier (`progression-nouns.md`,
+Kit and armory). The second stage depends on `warrant-obligations.md`.
 Written: 2026-10-15
 
-Read `campaign-kit-arc.md`, `restricted-equipment-warrants.md`,
+Read `campaign-kit-arc.md`, `progression-nouns.md` (Kit and armory),
 `a-small-war.md` (its ending and its military-source gate) and
 `early-operation-nouns.md` (Cold Account and Kord) before implementing.
 
 ## Problem
 
-The standing-warrant rule in `restricted-equipment-warrants.md` makes every
+The standing-warrant rule (`progression-nouns.md`) makes every
 approved suit reachable. Its bar is deliberately high: Prestige band plus
 close faction standing. That is right for the Knights or the Lion's Guard,
 but it leaves the authored campaign without its own beat. `a-small-war.md`

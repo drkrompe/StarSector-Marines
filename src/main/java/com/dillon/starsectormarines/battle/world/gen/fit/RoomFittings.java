@@ -185,6 +185,8 @@ public final class RoomFittings {
         if (purpose == null) return null;
         return switch (purpose) {
             case CIVIC_OFFICE -> new InstallationOfficeFitting();
+            case PARTS_CAGE -> new InstallationWorkshopFitting();
+            case VEHICLE_BAY -> VehicleBayFitting.installation();
             case BARRACKS, CREW_QUARTERS -> BerthingFitting.shipboard(purpose);
             case MESS_HALL -> MessHallFitting.shipboard();
             case PATIENT_WARD -> SickBayFitting.shipboard();

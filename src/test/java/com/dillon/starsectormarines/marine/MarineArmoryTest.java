@@ -311,7 +311,9 @@ class MarineArmoryTest {
         }
 
         assertTrue(armory.ownsArmorTemplate(MarineArmorPattern.BLUE_SCOUT));
-        assertTrue(armory.ownsArmorTemplate(MarineArmorPattern.RED_ELITE));
+        assertTrue(armory.ownsEquipmentTemplate(EquipmentTemplateCatalog.armorId("armor.combat")));
+        assertFalse(armory.ownsArmorTemplate(MarineArmorPattern.RED_ELITE),
+                "the XIV battlesuit is Restricted; no safety net grants approved military issue");
         assertTrue(armory.ownsPrimaryTemplate(
                 WeaponRegistry.DMR_ID, EquipmentGrade.MASTERWORK));
         assertTrue(armory.equipmentTemplateCards().size() < EquipmentTemplateCatalog.all().size(),

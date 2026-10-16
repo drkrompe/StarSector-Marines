@@ -190,9 +190,16 @@ legibility.
   a template outside ordinary faction channels. Its declaration identifies who
   must implement the reward; it does not certify a playable mission or a completed
   reward path, and never grants technology by itself.
-- **Equipment access tier** — a card's authored Common, Advanced, or Prestige
-  campaign band. It is independent of grade, armor role, provenance and loadout collectible rarity; acquisition channels interpret it
-  through shared company-history and reputation gates.
+- **Equipment access tier** — a card's authored Common, Advanced, Prestige or
+  Restricted campaign band. It is independent of grade, armor role, provenance and loadout collectible rarity; acquisition channels interpret the
+  first three through shared company-history and reputation gates. Restricted is
+  not a fourth threshold: no reputation or victory count reaches it.
+- **Military warrant** — a named, persistent authorisation from one tradition
+  that makes the Restricted templates it lists acquirable through that
+  tradition's own licence and patron channels, and through nothing else. It
+  teaches nothing by itself. Always written in full: the Agreus contracts'
+  *civil-security procurement warrant* is a contract term that opens no access
+  tier, and neither noun stands for the other.
 - **Armory** — the persistent campaign authority for collected equipment
   templates and reusable squad definitions. Materialized marine kit persists on
   the marine; the Machine Shop fits learned technology for free.
@@ -574,7 +581,47 @@ explicit named story source. A story-only armor template declares that owner
 through `storySource`; it cannot also enter a faction pool or starter issue.
 The declaration does not prove that the story reward is implemented. An Advanced
 or Prestige card authored only for the Common-only open market is therefore
-still stranded. This is global reachability, not universal faction availability.
+still stranded. A Restricted template's owner is a warrant rule instead: it must
+be offered by its issuing tradition's own pool, through licence or patron only.
+Any other entry, whether another faction's pool, the open market or recovery, is an
+unwarranted route and fails the audit just as a stranded card does.
+
+**Restricted equipment is approved military issue.** The six approved tier-4 power
+suits are Restricted: the Hegemony XIV battlesuit and military Arbalest, and the
+Tri-Tachyon Specter, League Bulwark, Knights Reliquary and Lion's Guard Mantle. A
+template is Restricted because it is a tradition's current military issue, not
+because it is powerful. The pirate Foundry-Breaker stays Prestige and recoverable,
+as the crude road to powered armour that nobody warrants. The tier-3 recovered
+Specter and Arbalest stay Advanced. The **issuer** of a Restricted template is the
+tradition its armour catalog entry already declares; it is never authored a
+second time.
+
+Every channel refuses Restricted kit unless the company holds a military warrant
+naming it, and even then only that tradition's licence and patron channels offer
+it. A card bundling Restricted kit is offered only by a faction that fields that
+kit itself, so an independent licence that fields a card's scout suits does not
+thereby sell Hegemony military issue. The collection safety net and victory
+milestones never grant Restricted kit. Polity release never lists it: a warrant
+authorises the company, not whoever the company arms.
+
+A tradition grants its **standing warrant** once the company is at the Prestige
+reputation band and its relationship with that faction is Cooperative, well above
+the Favorable a licence needs. The standing warrant opens every Restricted
+template the tradition builds that no earlier warrant already opened. This is the
+route that keeps every approved suit reachable, so the open routes could close
+without stranding anything. Authored warrants (`hegemony-auxiliary-warrant.md`)
+arrive earlier through story beats, and a later standing grant completes them
+without rewriting them. Lion's Guard and Knights kit is therefore not "never". It
+is "only for a company that has become one of theirs", which most companies will
+not. A warrant is permanent once granted; what it costs to keep is
+`warrant-obligations.md`.
+
+The gate refuses new acquisition and revokes nothing. A save that learned an
+approved suit through the old open routes keeps it and fits it freely. Held
+warrants stand on the Company HQ record beside the company's employers, each
+naming its issuer, how many approved suits it opens and how it was earned. A Restricted card's own
+tooltip and spec sheet name the tradition that issues it, in place of the
+reputation and victory thresholds the other tiers show. This is global reachability, not universal faction availability.
 It lets add-ons keep faction identity while ensuring that a newly collectible
 family, grade, suit, or special item cannot be stranded by an omitted or
 permanently ineligible source.
