@@ -1,0 +1,8 @@
+Use case: texture / material swatch sheet for 3D surfacing.
+INPUT 1 is the finished port side of a battered industrial spacecraft. Extract its surface materials as flat, seamless, tileable albedo textures.
+Output one SQUARE 1:1 image divided into an exact 2x2 grid of four equal square tiles, each tile filling exactly one quarter of the canvas with no gaps, borders, labels, text or frames between them:
+- top-left: worn chalky CREAM armour paint over steel, chipped edges, light grime, fine weld seam and fasteners.
+- top-right: faded OXIDE-ORANGE armour paint over steel, chips and scrapes showing bare grey metal, rust bloom, grime streaks.
+- bottom-left: dark GUNMETAL machinery plate, scuffed, oily grime, a few fasteners.
+- bottom-right: soot and heat-stained grey steel as found near engines.
+Each tile must be independently SEAMLESS and TILEABLE: its left edge continues into its right edge and its top edge into its bottom edge with no visible seam when repeated. Orthographic, viewed straight on, flat even shadowless lighting like an albedo/diffuse map: no shadows, no highlights, no reflections, no perspective, no vignette, no large-scale gradients, no single dominant object. Detail scale suited to a large ship hull seen from a distance: plates and wear at metre scale, not tiny noise.

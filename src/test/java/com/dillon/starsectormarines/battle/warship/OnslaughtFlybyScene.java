@@ -31,13 +31,16 @@ import java.util.Map;
  */
 public final class OnslaughtFlybyScene implements BehaviorScene {
 
-    private static final int WIDTH = 200;
+    /** The pass lengthens with the hull's presence (laid out at four) so the hull starts clear of the first cluster. */
+    private static final float K = WarshipScale.HULL_PRESENCE / 4f;
+    private static final int WIDTH = Math.round(200 * K);
     private static final int HEIGHT = 100;
-    private static final int TICKS = 6000;
-    private static final float[][] ROUTE = {{15f, 20f}, {60f, 30f}, {120f, 30f}, {180f, 20f}};
+    private static final int TICKS = Math.round(12000 * K);
+    private static final float[][] ROUTE = {{15f * K, 20f}, {60f * K, 30f}, {120f * K, 30f}, {180f * K, 20f}};
     private static final String[][] CLUSTERS = {
             {"a1", "a2", "a3", "a4"}, {"b1", "b2", "b3", "b4"}, {"c1", "c2", "c3", "c4"}};
-    private static final int[][] CENTRES = {{55, 60}, {100, 64}, {150, 60}};
+    private static final int[][] CENTRES = {
+            {Math.round(55 * K), 60}, {Math.round(100 * K), 64}, {Math.round(150 * K), 60}};
 
     @Override public String id() { return "onslaught-flyby"; }
 
@@ -74,7 +77,7 @@ public final class OnslaughtFlybyScene implements BehaviorScene {
         Trace trace = new Trace(world, keys);
         if (flyby) {
             Warship ship = Warship.fit("onslaught", "onslaught_Standard", Faction.MARINE,
-                    ROUTE[0][0], ROUTE[0][1], 0f);
+                    ROUTE[0][0], ROUTE[0][1], 270f);
             ship.flyRoute(ROUTE, false);
             ship.direct(8f, false);
             sim.addWarship(ship);

@@ -34,16 +34,22 @@ import java.util.Map;
 public final class WarshipPointDefenceScene implements BehaviorScene {
 
     private static final int WIDTH = 160;
-    private static final int HEIGHT = 80;
+    /** Room north of the target for the friendly hull, whose bow sits over the cluster: grows with presence. */
+    private static final int HEIGHT = Math.round(80 * WarshipScale.HULL_PRESENCE / 4f);
     private static final int TICKS = 600;
-    private static final float HOSTILE_X = 50f;
-    private static final float HOSTILE_Y = 40f;
+    /**
+     * The hostile Onslaught lies bow east toward the cluster; it moves west by the growth of its half-length (taken as
+     * 6.75 cells a unit of presence) over a presence of four, so its bow stands where the scene was laid.
+     */
+    private static final float HOSTILE_X = 50f - (WarshipScale.HULL_PRESENCE - 4f) * WarshipScale.cells(150f);
+    private static final float HOSTILE_Y = HEIGHT / 2f;
     /** Forward is (-sin h, cos h), so the cluster due east is a bearing of -90; the barrage turns the hull on its own. */
     private static final float HOSTILE_HEADING = -90f;
     private static final float TARGET_X = 100f;
-    private static final float TARGET_Y = 40f;
+    private static final float TARGET_Y = HEIGHT / 2f;
     private static final float AREA_RADIUS = 10f;
     private static final String[] CLUSTER = {"m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8"};
+    /** Laid out round (100, 40); shifted with the target's row. */
     private static final int[][] CLUSTER_AT = {
             {98, 38}, {99, 41}, {100, 37}, {101, 40}, {102, 43}, {100, 44}, {103, 38}, {97, 42}};
 
@@ -51,7 +57,14 @@ public final class WarshipPointDefenceScene implements BehaviorScene {
      * An Onslaught carries its point defence in its bow, about this far ahead of its centre at the hull's size, so the
      * friendly ship hangs south of the marines with its bow over them.
      */
-    private static final float BOW_PD_CELLS = 14f;
+    private static final float BOW_PD_CELLS = 7f * WarshipScale.HULL_PRESENCE;
+    /**
+     * Where the friendly hull's centre stands along the lane: just short of the target at a presence of four, and
+     * further west as the hull grows (by one and a half times the growth of its half-length, taken as 6.75 cells a unit
+     * of presence), so its bow mounts, spread wider on a bigger hull, still lie under the rounds' last stretch.
+     */
+    private static final float FRIENDLY_X = TARGET_X - 4f
+            - 1.5f * (WarshipScale.HULL_PRESENCE - 4f) * WarshipScale.cells(150f);
 
     private float controlLandedShare = 1f;
 
@@ -76,7 +89,7 @@ public final class WarshipPointDefenceScene implements BehaviorScene {
         boolean defended = loop.equals("defended");
         SceneBuilder builder = SceneBuilder.openGround(WIDTH, HEIGHT).missionCompletion(false);
         for (int i = 0; i < CLUSTER.length; i++) {
-            builder.unit(CLUSTER[i], Faction.MARINE, UnitType.MARINE, CLUSTER_AT[i][0], CLUSTER_AT[i][1]);
+            builder.unit(CLUSTER[i], Faction.MARINE, UnitType.MARINE, CLUSTER_AT[i][0], CLUSTER_AT[i][1] + Math.round(TARGET_Y) - 40);
         }
         // Something on the hostile side to keep the simulation ticking, far from the guns.
         builder.unit("anchor", Faction.DEFENDER, UnitType.MARINE, 4, 4);
@@ -90,7 +103,7 @@ public final class WarshipPointDefenceScene implements BehaviorScene {
         Warship friendly = null;
         if (defended) {
             friendly = Warship.fit("onslaught", "onslaught_Standard", Faction.MARINE,
-                    TARGET_X - 4f, TARGET_Y - BOW_PD_CELLS, 0f);
+                    FRIENDLY_X, TARGET_Y - BOW_PD_CELLS, 0f);
             sim.addWarship(friendly);
             // The question is the friendly ship's point defence, not the two hulls fighting each other.
             sim.warships().holdHullFire(HullFireHold.untilReleased("scene: point defence, not ship against ship"));

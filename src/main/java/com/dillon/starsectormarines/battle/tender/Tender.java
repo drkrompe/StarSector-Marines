@@ -266,7 +266,7 @@ public final class Tender implements DroneAnchor {
     }
 
     @Override public float leashCells() {
-        return TenderFlight.LEASH_CELLS;
+        return TenderFlight.LEASH_CELLS + TenderFlight.beyondReference(anchorHalfLengthCells());
     }
 
     @Override public boolean threatened() {

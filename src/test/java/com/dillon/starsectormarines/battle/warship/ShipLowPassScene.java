@@ -44,7 +44,7 @@ public final class ShipLowPassScene implements BehaviorScene {
     static final int WIDTH = 230;
     static final int HEIGHT = 100;
     /** Long enough for a heavy hull to shed the burn and hover the whole line back to its station. */
-    private static final int TICKS_PASS = 5400;
+    private static final int TICKS_PASS = 11400;
     private static final int TICKS_CONTROL = 1800;
     /** Recorded ticks: long enough to show the run and the coast to a stop. */
     private static final int FRAME_TICKS = 900;
@@ -52,7 +52,7 @@ public final class ShipLowPassScene implements BehaviorScene {
     private static final int FRAME_EVERY_PASS = 10;
     private static final int FRAME_EVERY_CONTROL = 60;
     private static final int ORDER_AT = 20;
-    private static final float STAY_SECONDS = 90f;
+    private static final float STAY_SECONDS = 180f;
     private static final float STATION_X = 25f;
     private static final float STATION_Y = 50f;
     private static final float PASS_END_X = 165f;

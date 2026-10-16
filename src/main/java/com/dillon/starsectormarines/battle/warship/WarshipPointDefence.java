@@ -58,6 +58,13 @@ public final class WarshipPointDefence {
 
     /** A mount fires once its barrel is this close to the bearing of what it has chosen. */
     public static final float ALIGNED_DEGREES = 6f;
+
+    /**
+     * How far beyond its reach, as a multiple of it, a point-defence mount watches inbound ordnance. With nothing it
+     * can shoot yet, it lays its barrel on the nearest such round, so a fast missile that is inside its reach for only
+     * a few ticks meets a barrel already pointing at it rather than one still traversing from rest.
+     */
+    static final float TRACKING_REACH = 4f;
     /** The quickest a mount reselects and fires again, however short its weapon's own cooldown. */
     static final float MIN_ENGAGEMENT_SECONDS = 0.35f;
     /** A beam strikes where it points. */
@@ -205,9 +212,11 @@ public final class WarshipPointDefence {
             WarshipSystem.traverse(dt, ship, m, rest);
             return;
         }
-        Target target = nearest(sim, ship, m, mx, my, shells, strikes);
+        Target target = nearest(sim, ship, m, mx, my, shells, strikes, 1f);
         if (target == null) {
-            WarshipSystem.traverse(dt, ship, m, rest);
+            Target inbound = nearest(sim, ship, m, mx, my, shells, strikes, TRACKING_REACH);
+            WarshipSystem.traverse(dt, ship, m,
+                    inbound == null ? rest : AirBody.facingToward(inbound.x - mx, inbound.y - my));
             return;
         }
         float bearing = AirBody.facingToward(target.x - mx, target.y - my);
@@ -240,7 +249,7 @@ public final class WarshipPointDefence {
     /** Whether {@code m} has hostile ordnance to shoot at now; ordnance outranks aircraft for a point-defence mount. */
     boolean hasTarget(BattleSimulation sim, Warship ship, Warship.Mount m,
                       List<WarshipShell> shells, List<WarheadStrike> strikes) {
-        return nearest(sim, ship, m, ship.mountX(m), ship.mountY(m), shells, strikes) != null;
+        return nearest(sim, ship, m, ship.mountX(m), ship.mountY(m), shells, strikes, 1f) != null;
     }
 
     /** Draws a tracer for a shot at something that is not ordnance (an aircraft): same marks, same renderer. */
@@ -254,33 +263,36 @@ public final class WarshipPointDefence {
         marks.add(new LiveMark(faction, weapon, fromX, fromY, toX, toY, hit));
     }
 
-    /** The nearest hostile round in flight that the mount can reach and bear on. */
-    private static Target nearest(BattleSimulation sim, Warship ship, Warship.Mount m,
-                                  float mx, float my, List<WarshipShell> shells, List<WarheadStrike> strikes) {
+    /**
+     * The nearest hostile round in flight that the mount can bear on within {@code reachMultiplier} times its reach.
+     */
+    private static Target nearest(BattleSimulation sim, Warship ship, Warship.Mount m, float mx, float my,
+                                  List<WarshipShell> shells, List<WarheadStrike> strikes, float reachMultiplier) {
         Target best = new Target();
         for (Projectile p : sim.getActiveProjectiles()) {
             if (!p.pointDefenseTarget || p.intercepted || p.remainingTime <= 0f) continue;
             if (!ship.faction.hostileTo(p.shooterFaction)) continue;
-            consider(best, ship, m, mx, my, p.currentX(), p.currentY(), speedOf(p), 0f, p, null);
+            consider(best, ship, m, mx, my, p.currentX(), p.currentY(), speedOf(p), 0f, p, null, reachMultiplier);
         }
         for (WarshipShell s : shells) {
             if (s.intercepted || !s.canBeIntercepted() || !ship.faction.hostileTo(s.faction)) continue;
-            consider(best, ship, m, mx, my, s.x(), s.y(), s.speedCells(), s.hitpoints(), null, s);
+            consider(best, ship, m, mx, my, s.x(), s.y(), s.speedCells(), s.hitpoints(), null, s, reachMultiplier);
         }
         for (WarheadStrike s : strikes) {
             if (s.intercepted || !ship.faction.hostileTo(s.faction)) continue;
-            consider(best, ship, m, mx, my, s.x(), s.y(), s.speedCells(), s.hitpoints(), null, s);
+            consider(best, ship, m, mx, my, s.x(), s.y(), s.speedCells(), s.hitpoints(), null, s, reachMultiplier);
         }
         return best.projectile == null && best.body == null ? null : best;
     }
 
     private static void consider(Target best, Warship ship, Warship.Mount m, float mx, float my,
-                                 float x, float y, float speed, float hitpoints, Projectile p, Interceptable s) {
+                                 float x, float y, float speed, float hitpoints, Projectile p, Interceptable s,
+                                 float reachMultiplier) {
         float dx = x - mx;
         float dy = y - my;
         float d2 = dx * dx + dy * dy;
         if (d2 >= best.distanceSq) return;
-        if (!Warship.bears(m, ship.facingDegrees, mx, my, x, y)) return;
+        if (!Warship.bears(m, ship.facingDegrees, mx, my, x, y, reachMultiplier)) return;
         best.projectile = p;
         best.body = s;
         best.hitpoints = hitpoints;

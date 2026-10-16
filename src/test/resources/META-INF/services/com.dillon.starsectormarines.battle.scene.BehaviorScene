@@ -74,3 +74,4 @@ com.dillon.starsectormarines.battle.combat.SmallArmsWearScene
 com.dillon.starsectormarines.battle.air.MissileAaEffectsScene
 com.dillon.starsectormarines.battle.air.MissileAaFightersScene
 com.dillon.starsectormarines.battle.smoke.SmokeScreenScene
+com.dillon.starsectormarines.battle.setup.GreyhookDuelScene

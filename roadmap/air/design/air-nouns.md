@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — a landed ship is drawn at true scale and eases to flight presence as it lifts; earlier the same day hostile hulls fight each other by default in every mission (`ShipFireOrder.AUTO`), a mission may hold hull fire until a story beat or condition, and a ship takes its duel footing when it first turns on a hull; earlier the same day the ship-against-ship model shipped for a-small-war Chapter 5 (rationale in `warship-behaviours.md`).
+Updated: 2026-10-16 — ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at six times the shared density and slower in atmosphere, a declared airspace for the hull fight, point defence tracking what is inbound, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture, landed on the pads south of the ridge and fighting over that southern ground; a landed ship is drawn at true scale and lifts on a run (ahead off the berth, round a climbing turn) that carries it to flight presence (rationale in `warship-behaviours.md`).
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1650,27 +1650,60 @@ and yaw, and leaves. It never lands, never orbits and never flies a run.
 action (standing, owner, 2026-10-16).** This holds for every warship over a battle, not
 for one mission:
 
-- **Its body is large.** A hull is drawn, hit, shielded and fitted at twice the shared
-  density (`WarshipScale.HULL_PRESENCE`), so a frigate reads as a ship beside marines
-  and a capital dominates the sky. Only the body grows: a gun's reach, a round's speed
-  and a shell's blast stay on the shared density, so a hull is a bigger target and its
-  mounts sit further from its centre, but no weapon hits harder or further.
+- **Its body is large.** A hull is drawn, hit, shielded and fitted at six times the
+  shared density (`WarshipScale.HULL_PRESENCE`), within a few percent of its true size
+  against the ground, so a frigate is about twenty-five cells long, a destroyer forty to
+  fifty, a cruiser about sixty and a capital about a hundred, longer than a compound. Aircraft stay on the shared density: a fighter is a fighter beside
+  marines, and it is the ship that is out of the ordinary. Only the body grows against
+  the ground: a gun's reach at the ground or the air, a round's speed and a shell's blast
+  stay on the shared density, so no weapon hits the ground harder or further.
+- **Between hulls, reach is a hull's.** A gun fired at another hull reaches by the
+  atmospheric hull reach (`WarshipScale.hullReach`): half the body's scale, so a pulse
+  laser reaches about three Wolf lengths and the fight keeps its shape as the body grows. Ships are big and their guns reach a few of
+  their own lengths, as their base game's do; a gun's reach at the ground and the air is
+  unchanged, because those fights are measured against marines and aircraft, which did
+  not grow. A missile at a hull reaches by the same hull reach, from its own range.
 - **It handles like a ship of the line.** Its speed and turn are its table row's pulled
-  toward a battleship's (`AtmosphericHandling`): the ladder between hulls survives, so a
-  frigate still outruns and outturns a capital, but at a few times a battleship's pace
-  rather than many; and no hull gathers or sheds its way, or settles into or out of a
-  turn, faster than a fixed few seconds. Every hull carries momentum.
-- **Ships fight on parallel and converging lines.** A ship fighting a hull takes its
-  station on the target's beam, a little ahead along the target's course, and turns to
-  bring its battery to bear; it never runs nose-on at the target to pass it. Where a
-  hull's anti-ship guns are all forward (a Wolf (H)'s are), the same station turns its
-  nose in from the beam, so it fights on a converging line rather than a pass. Between two broadsides it
-  prefers the side with more plate left, so a ship whose engaged side has been stripped
-  wears round to fight on its fresh one.
-- **Escorts screen their charge in line**, abreast of it on the beam its threats come
-  from, on the lead's own course.
+  toward a battleship's and then halved (speed) or cut to three fifths (turn)
+  (`AtmosphericHandling`): the ladder between hulls survives, so a frigate still outruns
+  and outturns a capital, but a frigate crosses a hundred cells in over a minute; and no
+  hull gathers or sheds its way in under six seconds, or settles into or out of a turn in
+  under four. Every hull carries momentum.
+- **How a ship fights falls out of where its guns bear.** A **broadside ship** keeps
+  most of its anti-ship firepower on a target laid abeam (a Venture, a Conquest); a **bow
+  ship** does not, because its battery bears only ahead (a Wolf (H), a Hound (P), an
+  Onslaught, whose heavy guns are forward). Nothing names a hull either way: it is read
+  off the mounts every time it is asked, so a refit or a lost gun can change it.
+  A broadside ship takes its station on the target's beam, a little ahead along the
+  target's course, and lays the target abeam, so it fights on parallel and converging
+  lines; between two broadsides it prefers the side with more plate left, so a ship
+  whose engaged side has been stripped wears round to fight on its fresh one. A bow ship
+  hunts: it takes its station on the bearing round the target where the target's own
+  guns bear least, weighed against the flying to get there, and holds its nose on the
+  target, so it makes passes and works round to a quiet quarter rather than trading
+  broadsides.
+- **The standoff law.** A duelling ship's range comes from its guns and both hulls'
+  size, by one rule for every hull: a ship that outranges its target holds off between
+  the two reaches, one that does not closes well inside its own, and neither stands off
+  farther than three of the two hulls' mean length, nor nearer than the two hulls
+  and a clearance. Range advantage matters (the outranged ship has to close under fire)
+  but nobody holds off untouchable across the map: a ship's guns reach only a few of its
+  lengths, and the law will not let it stand farther off than that.
+- **Escorts screen by fighting, on a leash.** With no hull to fight, an escort holds its
+  place in the screen line abreast of its charge. With one, it takes its own duel
+  station by the same laws, pulled in to within its charge's half-length and its own
+  reach of the charge, so it brawls with what threatens the charge without leaving it.
 - **A ship free to manoeuvre fights with its guns.** Its missiles wait until its guns
-  are in reach; a ship held on station keeps launching at the missile's own reach.
+  are in reach; a ship held on station keeps launching at the missile's own reach. A
+  **finisher** (the base game's role for a Harpoon) is held for a hull already worn to
+  three fifths or overloaded, as the base game's own fleets hold it.
+- **Rounds between hulls keep their gun's cadence.** A round fired at a hull is followed
+  by the next after the weapon's charge-up and charge-down, so a pulse laser fires about
+  three times a second, as in the base game, and not at the floor of the tick.
+- **A mission may keep the hull fight over its own ground.** It declares an
+  **airspace** (`HullAirspace`), and ships fighting hulls choose their stations inside
+  it, in sight of the ground battle and not over it; entering, climbing out and routes
+  cross it freely. With none declared the whole map is the airspace.
 
 What the ground-support manoeuvres (a gun run, close air support, a low pass, a shelling)
 take from this is described with each: they inherit the slower handling through the
@@ -1910,25 +1943,28 @@ defence never does, a lance keeps its ground sweep, a standoff missile keeps its
 ground payload; everything else may. A round is aimed where the hull will be,
 thrown off by the weapon's cone as a hash of who fired what, and flies as an ordinary
 shell; on arrival it lands on whatever hostile hull its blast reaches, shield first
-and then the armour rule, and a round that reaches none carries on along its line and
+and then armour, each by the base game's damage types (kinetic doubled on shields and
+halved on armour, high explosive the reverse, fragmentation quartered on both, energy as
+it is) at the base game's own armour reduction rather than the ground's penetration
+scale; a multi-warhead carrier strikes with its warheads' type, and a round that reaches none carries on along its line and
 comes down on the ground as an ordinary detonation, so stray fire between ships is
 real below them. Rounds between hulls are direct fire and no point defence engages
 them. A ship with a hull to fight and no ground to bring its guns to bear on turns to
-the heading the broadside rule gives (below), re-chosen as it moves. A
+the heading the broadside or bow rule gives (below), re-chosen as it moves. A
 vanilla skin (a Wolf (H), a Hound (P)) is fitted as its base hull under its own
 sprite. Why it is shaped this way: `warship-behaviours.md`, Decided: ship against ship.
 
-**A ship fighting a hull manoeuvres by the two reaches.** Its **duel helm** moves the
-station it flies to, never its speed or turn. The range is decided by the reaches: a
-ship whose strongest anti-ship gun outranges the target's holds off between the two;
-one that is outranged or even closes well inside its own reach; and neither closes so
-far that the two hulls would not clear each other. The station is on the target's beam
-at that range, on the side the ship is already on, and a little ahead along the
-target's course, so two ships converge or run parallel rather than meeting nose-on.
-The heading is the broadside rule: of the headings that put nearly all the anti-ship
-firepower it can bring on the target (counting a gun only if it still bears a couple of
-degrees either side, and never a gun lost with its plating), the one that keeps the target
-most nearly abeam with the least turn, preferring the broadside with more plate left. A ship being piloted,
+**A ship fighting a hull manoeuvres by the standoff law.** Its **duel helm** moves the
+station it flies to, never its speed or turn. The range is the standoff law's (above).
+A broadside ship's station is on the target's beam at that range, on the side it is
+already on, and a little ahead along the target's course; a bow ship's is the target's
+quietest quarter at that range. The heading follows the same split. A broadside ship
+takes, of the headings that keep most of the anti-ship firepower it can bring on the
+target, the one that keeps the target most nearly abeam with the least turn, preferring
+the broadside with more plate left; a bow ship takes, of the headings that keep nearly
+all of it, the one with the most and the least turn. A gun counts only if it still bears
+a couple of degrees either side, laid from where its mount sits rather than the hull's
+centre, and never if it was lost with its plating. A ship being piloted,
 departing, passing low or under a remote order is not steered by it, and the
 mission station returns when no hull is left to fight. While a ship's fire order
 allows hull fire, its variant's flux capacitors and vents count as the base game
@@ -1944,14 +1980,22 @@ spec's arc, so the hull's size decides how many strike; each warhead that reache
 carries on to the ground. Missiles never set a ship's heading or its duel reach: those
 are its guns'. A ship steered by its duel helm holds its missiles until the target is
 within its guns' reach, so it does not spend its racks closing; a ship held on its
-station launches at the missile's own reach.
+station launches at the missile's own reach. A hull's tubes **ripple**: no two tubes on
+one hull start a volley within three quarters of a second of each other, and no tube
+launches the next round of its volley sooner than a quarter second, so a pair of
+launchers fires left, right, left. A missile's own damage, flight and warheads are its
+weapon's.
+
+**Point defence watches what is coming.** A point-defence mount with nothing in its reach
+lays its barrel on the nearest hostile round it bears on within four times its reach, so a
+fast missile that is inside the reach for a few ticks meets a barrel already on it.
 
 **A pack divides a hunt; an escort interposes.** When two or more ships of a side hunt
 hulls with their duel helm and a hostile hull is being escorted, the hunter nearest that
 **charge** runs it down and the others pin its escorts, re-decided as the fight changes
 with enough hysteresis that near equals do not trade roles. An escort with a live lead
-is not steered by the duel helm: it holds its place in the screen line on the side the hostile hulls are on
-and fights from there, and it saves itself by the ordinary withdraw rule. Ground fire
+holds its place in the screen line until it has a hull to fight, then brawls on its
+leash (above), and it saves itself by the ordinary withdraw rule. Ground fire
 `HOLD` keeps a duelling hull off the ground entirely. The first time a ship turns on a
 hull it takes the base game's **duel footing** for the rest of the battle: its variant's
 capacitors and vents, and its missiles' magazines from the weapon table (an `ALL` order
@@ -1967,7 +2011,8 @@ and an explicit `ALL` are not held, and it decides no outcome.
 **A hull leaving by a climb-out is still a hull until it is gone.** It flies an
 authored route over the map edge at its own speed, climbing by how much of the way it
 has flown, and it has escaped only when propulsion has carried the whole hull off the
-map. Until then it can be hit, and its escorts keep it as their lead and follow it out
+map. Until then it can be hit and it answers: a departing hull fires at hostile hulls in
+its guns' reach as it goes, though it takes on no new ground or air work, and its escorts keep it as their lead and follow it out
 once it has gone. Any other departure of a lead releases its escorts.
 
 **A mission's hull visits once and is nobody's to command.** A hull on a **visit**
@@ -1987,8 +2032,11 @@ the battle reads it, and a ground objective never does.
 stage a duel through an optional seam on its referee: hulls stand quiet under a
 hull-fire hold until the chapter's moment comes, the duel then runs on its own, and the debrief reads its
 ledger. The referee settles on nothing the duel does; stray rounds and wreckage are the
-only way it reaches the ground. Black Sluice is the first: Greyhook's rig and two
-Hounds over the pier, two lent Wolfs arriving when Voss orders the withdrawal.
+only way it reaches the ground. Black Sluice is the first: the *Greyhook*, Voss's Venture,
+and two Hound (P) landed on the pads south of the ridge, two of Rusk's Wolfs arriving when
+Voss orders the withdrawal, the fight kept over that southern ground by its airspace. A
+warship over a ground battle never launches a wing from its bays (bays only classify the
+hull), and the Greyhook's fitting carries none, so it stays gun against gun.
 
 **A warship's stay and its magazine can both be bounded.** Station time is counted
 down only while the ship is on its station, not while it travels to it; when it
@@ -2408,14 +2456,21 @@ cold ground object: no plume, guns stowed, drawn among the vehicles, its shadow
 tight under it, holding its berth. It is still a live warship with its flight
 fitting: hit shape, slots and shield stay at flight scale, which is sound only
 because nothing engages a berthed hull (infantry fire never reaches a hull, and a
-mission that lands ships holds hull fire until it lifts them). **Lifting is one
-body eased between two regimes**: from the lift, the drawn body eases by smoothstep
-to flight presence over a few seconds while the shadow draws out from under it,
-the berth's grit blows out and the guns run out, so a ship climbing out never
-changes size at once. The ease is a ratio to whatever `HULL_PRESENCE` is in force.
-A hull with a remaster (`art-source/ships/`) draws it in both regimes, so detail
-does not change at liftoff either; the berth itself (a sunken, see-through,
-unwalkable well) is the mission map's.
+mission that lands ships holds hull fire until it lifts them). **Lifting is a
+run, not a resize**: a lifted hull flies its **lift run**, a leg ahead off the
+berth, a climbing turn toward where it is going (a point the mission names, the
+first waypoint of a climb-out, or else the middle of the battle) and a leg out
+along that bearing, all scaled to its landed length. Its drawn body eases by
+smoothstep to flight presence with the share of that run flown, while the shadow
+draws out from under it, the berth's grit blows out and the guns run out, so the
+size change reads as altitude and distance carried by travel and never as a hull
+changing size where it sits. The run is flown before any route or station the
+mission has given; a hull given nothing newer holds where its run comes out, not
+over its empty berth, and a hull held or taken over mid-run is through its lift
+by time. The ease is a ratio to whatever `HULL_PRESENCE` is in force. A hull with
+a remaster (`art-source/ships/`) draws it in both regimes, so detail does not
+change at liftoff either; the berth itself (a concrete pad, see-through and
+unwalkable) is the mission map's.
 
 ### Authored structural bombardment
 

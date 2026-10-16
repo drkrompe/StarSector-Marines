@@ -47,7 +47,11 @@ public final class ShieldDomeScene implements BehaviorScene {
     private static final int KNOT_X = 90;
     private static final int KNOT_Y = 52;
     private static final int KNOT = 30;
-    private static final int DESTROY_TICK = 240;
+    /**
+     * Ticks after the dome takes its first round that the generator is destroyed: early enough that the dome has not
+     * yet overloaded, so any death after it is the generator's loss and not a gap.
+     */
+    private static final int DESTROY_AFTER_FIRST_HIT = 6;
 
     @Override public String id() { return "shield-dome"; }
 
@@ -90,7 +94,7 @@ public final class ShieldDomeScene implements BehaviorScene {
         sim.addWarship(ship);
         Trace trace = new Trace(world, generator);
         TickObserver script = (s, tick) -> {
-            if (loop.equals("destroyed") && tick == DESTROY_TICK) {
+            if (loop.equals("destroyed") && trace.firstHit >= 0 && tick == trace.firstHit + DESTROY_AFTER_FIRST_HIT) {
                 s.applyDamage(trace.generator, 1_000_000f, 3.5f, 0f);
             }
         };

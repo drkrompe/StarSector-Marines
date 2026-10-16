@@ -4,7 +4,7 @@ Status: DRAFT — original local setting direction on an existing vanilla world 
 
 Written: 2026-10-13
 
-Updated: 2026-10-16 — Black Sluice's docking compound for the landed Venture and Hounds. Earlier: the Terms of Protection visit (constables' post, rig tooling, terrace mortar pit); connected compounds; who posts the district escort work; Black Sluice's causeway, galleries, fuel control, tank farm and service road.
+Updated: 2026-10-16 — Black Sluice's ships moved to a southern pad field below a ridge, reached only through the berth gate, with the duel flown over it. Earlier: the Terms of Protection visit (constables' post, rig tooling, terrace mortar pit); connected compounds; who posts the district escort work; Black Sluice's causeway, galleries, fuel control, tank farm and service road.
 
 ## Scope and provenance
 
@@ -179,13 +179,22 @@ stands at the causeway's landward end beside a working bay where a tender can
 set down a rear position. The sheltered fuel-control house stands at the seaward
 end, with the marked tank farm behind it and a support-gun position on the road
 in front of it. Dispatch occupies the pier beyond. Past the pier is the walled
-docking compound where Greyhook's ships sit landed at their true size beside
-the people working them (`landed-ships-true-scale.md`): a sunken cradle for the
-Venture with a Hound berth either side of it, gantry arms out to the hulls, fuel
-and cargo lines along the aisles, sealed galleries along its north and south
-walls, and pressure vestibules through its landward wall. A separate service
-road runs east to a vehicle pressure lock under the compound wall: the way
+berth yard: warehouses either side of a concourse, fuel mains along it, sealed
+galleries along its north and south walls and pressure vestibules through its
+landward wall, ending in the **berth gate** through its east wall. A separate
+service road runs east to a vehicle pressure lock under the yard wall: the way
 Greyhook's crews come and go, and the way out.
+
+Dispatch's berths are not on the fight's ground. South of the band a broken ridge
+runs the width of the basin, and a rock massif fills the south-west; neither has
+a way through. Below them is the **pad field** where Greyhook's ships sit landed
+at their true size (`landed-ships-true-scale.md`): a concrete cradle for the
+Venture with a Hound berth either side, kerbs, painted borders, tie-downs, floor
+drains, deck hatches and engine-wash scorch, gantry arms out to the hulls, a pad
+shed and a pad-control house. The only way down is out of the berth gate and
+along the berth road down the east side. The ships' fight after Voss's order is
+flown over that southern ground: in sight of the people on the causeway, never on
+top of them.
 
 Open yards are airless and cold. Exterior workers and combatants use appropriate
 pressure protection; occupied interiors have life support. Tactical art, equipment

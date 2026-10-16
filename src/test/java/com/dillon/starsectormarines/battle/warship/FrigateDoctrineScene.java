@@ -145,8 +145,9 @@ public final class FrigateDoctrineScene implements BehaviorScene {
                     t.crippled > 0 && t.lateWithdrawals == 0,
                     String.format(Locale.ROOT, "%d hulls went under the withdraw line alive; %d were not leaving "
                             + "within %d ticks", t.crippled, t.lateWithdrawals, WITHDRAW_GRACE_TICKS)));
-            verdicts.add(Verdict.of("a-leaving-hull-fires-nothing-at-hulls", t.shotsWhileLeaving == 0,
-                    t.shotsWhileLeaving + " shots from hulls already leaving"));
+            // A leaving hull answers hulls in its guns' reach as it goes, but takes on no ground work.
+            verdicts.add(Verdict.of("a-leaving-hull-fires-nothing-at-the-ground", t.shotsWhileLeaving == 0,
+                    t.shotsWhileLeaving + " ground shots from hulls already leaving"));
         }
         verdicts.add(Verdict.of("nobody-leaves-the-map-except-by-departing", t.offMapUndeparted == 0,
                 t.offMapUndeparted + " ship-ticks off the map without departing"));
@@ -227,7 +228,7 @@ public final class FrigateDoctrineScene implements BehaviorScene {
                     if (!s.departing()) lateWithdrawals++;
                     crippledAt.put(s, -1);
                 }
-                int shots = shots(s);
+                int shots = s.groundShots();
                 if (s.departing()) {
                     Integer before = shotsAtDeparture.putIfAbsent(s, shots);
                     if (before != null && shots > before) {
@@ -287,12 +288,6 @@ public final class FrigateDoctrineScene implements BehaviorScene {
 
         private static boolean live(Warship s) {
             return !s.destroyed() && !s.departing() && !s.departed();
-        }
-
-        private static int shots(Warship s) {
-            int n = 0;
-            for (Warship.Mount m : s.mounts()) if (!m.pointDefence()) n += m.shotsFired;
-            return n;
         }
 
         int wolfGroundShots() {

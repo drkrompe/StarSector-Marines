@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.warship.HullFireHold;
 import com.dillon.starsectormarines.battle.warship.Warship;
+import com.dillon.starsectormarines.battle.warship.WarshipScale;
 import com.dillon.starsectormarines.battle.warship.WarshipLoadout;
 import com.dillon.starsectormarines.battle.warship.WarshipOrder;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
@@ -44,7 +45,11 @@ public final class TenderPointDefenceScene implements BehaviorScene {
     private static final int VOLLEY_TICK = 240;
     private static final float TENDER_X = 100f;
     private static final float TENDER_Y = 40f;
-    private static final float HOSTILE_X = 62f;
+    /**
+     * The launching Onslaught lies bow east toward the tender; it moves west by the growth of its half-length (192 px
+     * of a 384 px hull) over a presence of four, so its bow and its racks stand where the scene was laid.
+     */
+    private static final float HOSTILE_X = 62f - (WarshipScale.HULL_PRESENCE - 4f) * WarshipScale.cells(192f);
     private static final float HOSTILE_Y = 40f;
     private static final float SITE_X = 104.5f;
     private static final float SITE_Y = 40.5f;

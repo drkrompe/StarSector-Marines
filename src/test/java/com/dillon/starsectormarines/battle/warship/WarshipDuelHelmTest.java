@@ -27,8 +27,8 @@ class WarshipDuelHelmTest {
         float wolfReach = WarshipDuelHelm.reach(wolf);
         float houndReach = WarshipDuelHelm.reach(hound);
         // The pulse laser (600) outranges the chaingun (450): the game's own figures decide the shape of the duel.
-        assertEquals(WarshipScale.cells(600f), wolfReach, 1e-3f);
-        assertEquals(WarshipScale.cells(450f), houndReach, 1e-3f);
+        assertEquals(WarshipScale.hullReach(600f), wolfReach, 1e-3f);
+        assertEquals(WarshipScale.hullReach(450f), houndReach, 1e-3f);
         assertTrue(WarshipDuelHelm.holdsOff(wolfReach, houndReach));
         assertFalse(WarshipDuelHelm.holdsOff(houndReach, wolfReach));
         float wolfRange = WarshipDuelHelm.preferredRange(wolfReach, houndReach);
@@ -38,23 +38,51 @@ class WarshipDuelHelmTest {
 
     @Test
     void theStationIsAlongsideTheTargetOnItsBeamAndAheadSoTheLinesConverge() {
+        HullAirspace map = HullAirspace.wholeMap(200f, 100f);
         // The target at (100, 50) heading east (bearing 0); the ship north of it takes the north beam.
-        float[] north = WarshipDuelHelm.station(90f, 70f, 100f, 50f, 0f, 20f, true, 2f, 200f, 100f);
+        float[] north = WarshipDuelHelm.station(90f, 70f, 100f, 50f, 0f, 20f, true, 2f, map);
         assertArrayEquals(new float[]{100f + 20f * WarshipDuelHelm.CONVERGE_SHARE, 70f}, north, 1e-3f);
-        float[] south = WarshipDuelHelm.station(90f, 30f, 100f, 50f, 0f, 20f, true, 2f, 200f, 100f);
+        float[] south = WarshipDuelHelm.station(90f, 30f, 100f, 50f, 0f, 20f, true, 2f, map);
         assertArrayEquals(new float[]{100f + 20f * WarshipDuelHelm.CONVERGE_SHARE, 30f}, south, 1e-3f);
         // Dead ahead of the target: the beam the hull prefers, never a pass down its nose.
-        float[] ahead = WarshipDuelHelm.station(140f, 50f, 100f, 50f, 0f, 20f, false, 2f, 200f, 100f);
+        float[] ahead = WarshipDuelHelm.station(140f, 50f, 100f, 50f, 0f, 20f, false, 2f, map);
         assertEquals(30f, ahead[1], 1e-3f);
-        float[] edge = WarshipDuelHelm.station(10f, 95f, 50f, 90f, 0f, 20f, true, 2f, 200f, 100f);
+        float[] edge = WarshipDuelHelm.station(10f, 95f, 50f, 90f, 0f, 20f, true, 2f, map);
         assertEquals(100f - WarshipDuelHelm.EDGE_MARGIN_CELLS - 2f, edge[1], 1e-4f, "clamped inside the map edge");
+    }
+
+    @Test
+    void aDeclaredAirspaceKeepsTheStationOverItsGround() {
+        // The fight kept over the southern band y < 40: a station that would stand at y 70 comes down inside it.
+        HullAirspace south = new HullAirspace(0f, 0f, 200f, 40f);
+        float[] north = WarshipDuelHelm.station(90f, 70f, 100f, 50f, 0f, 20f, true, 2f, south);
+        assertEquals(40f - WarshipDuelHelm.EDGE_MARGIN_CELLS - 2f, north[1], 1e-4f);
+        assertEquals(100f + 20f * WarshipDuelHelm.CONVERGE_SHARE, north[0], 1e-3f);
+        // A band too narrow for the hull's margin puts it on the middle line.
+        assertArrayEquals(new float[]{50f, 5f}, new HullAirspace(0f, 0f, 100f, 10f).clamp(50f, 80f, 6f), 1e-4f);
+        // An airspace off the map gives the whole map back.
+        assertEquals(HullAirspace.wholeMap(100f, 50f), new HullAirspace(150f, 0f, 200f, 50f).within(100f, 50f));
     }
 
     @Test
     void bigHullsNeverCloseNearerThanTheirLengthsAndAClearance() {
         assertEquals(10f + 8f + WarshipDuelHelm.CLEARANCE_CELLS,
                 WarshipDuelHelm.preferredRange(10f, 20f, 10f, 8f), 1e-4f);
-        assertEquals(WarshipDuelHelm.CLOSE_SHARE * 60f, WarshipDuelHelm.preferredRange(60f, 70f, 2f, 2f), 1e-4f);
+        assertEquals(WarshipDuelHelm.CLOSE_SHARE * 60f, WarshipDuelHelm.preferredRange(60f, 70f, 15f, 15f), 1e-4f);
+    }
+
+    @Test
+    void noShipHoldsOffFartherThanAFewShipLengths() {
+        // Guns that reach 200 against 50 would hold off at 125; two hulls 20 cells long stand off at STANDOFF_LENGTHS of their length.
+        assertEquals(WarshipDuelHelm.STANDOFF_LENGTHS * 20f, WarshipDuelHelm.preferredRange(200f, 50f, 10f, 10f), 1e-4f);
+        // Inside the cap the guns decide.
+        assertEquals(0.5f * (60f + 40f), WarshipDuelHelm.preferredRange(60f, 40f, 15f, 15f), 1e-4f);
+    }
+
+    @Test
+    void anEscortsDuelStationIsHeldOnALeashToItsCharge() {
+        assertArrayEquals(new float[]{30f, 10f}, WarshipDuelHelm.leashed(new float[]{30f, 10f}, 10f, 10f, 25f), 1e-4f);
+        assertArrayEquals(new float[]{35f, 10f}, WarshipDuelHelm.leashed(new float[]{80f, 10f}, 10f, 10f, 25f), 1e-4f);
     }
 
     @Test
@@ -64,7 +92,7 @@ class WarshipDuelHelmTest {
         strongest.knockedOut = true;
         Warship.Mount next = WarshipShipRules.strongest(wolf);
         assertTrue(next != strongest);
-        float expected = next == null ? 0f : WarshipScale.cells(next.weapon.rangePx());
+        float expected = next == null ? 0f : WarshipScale.hullReach(next.weapon.rangePx());
         assertEquals(expected, WarshipDuelHelm.reach(wolf), 1e-4f);
     }
 

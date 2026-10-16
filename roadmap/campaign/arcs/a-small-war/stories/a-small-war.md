@@ -4,7 +4,7 @@ Status: IN PROGRESS — all five chapters, the handover decision, District Escor
 
 Written: 2026-10-13
 
-Updated: 2026-10-16 — Boarding Jack layered art shipped and its card made awardable; implementation state under acceptance.
+Updated: 2026-10-16 — the Greyhook is Voss's Venture, lifting from the southern pads with two Hounds; the duel over Black Sluice re-staged for ships in atmosphere, round two.
 
 Read `early-operation-nouns.md`, `campaign-nouns.md`, `meta-progression.md`,
 `narrative-nouns.md`, `mission-tier-nouns.md`, `progression-nouns.md`,
@@ -393,8 +393,8 @@ a seizure target, not an invitation to destroy the district's usable supply.
    infantry flank.
 3. **The split.** When fuel control falls, Voss orders Black Sluice abandoned on an
    open channel the company can hear. Drent Haulage takes the order: its surviving
-   crews withdraw physically along the service road and leave the map, and a
-   salvage rig lifts off from the pier. Berth Four refuses. Pell's people hold dispatch
+   crews withdraw physically along the service road and leave the map, and the
+   Greyhook lifts off from her pad south of the ridge. Berth Four refuses. Pell's people hold dispatch
    out of grudge, and the prize crews split between them. The withdrawal is real
    lost strength for Greyhook, not a scripted despawn of untouched troops, and it
    happens only once the company has actually taken fuel control.
@@ -406,21 +406,22 @@ a seizure target, not an invitation to destroy the district's usable supply.
    replacement/refit under the employer-loss policy below. Untouched pirates
    elsewhere in the system do not block resolution.
 
-**The duel overhead.** When Voss orders the withdrawal, Greyhook's salvage rig,
-the Greyhook herself, tries to climb out from the pier escorted by two Hound (P)
-frigates. The pair of Wolf (H) frigates Rusk's family has lent from Citadel
-Arcadia comes in low over the basin to stop her. What follows is a short slugging
-match in atmosphere, two against two at close range over the pier: plating torn
-away, hulls crippled and driven down, while the company's fight goes on beneath.
+**The duel overhead.** When Voss orders the withdrawal, the *Greyhook*, Voss's own
+Venture with Voss aboard, lifts from her cradle on the pads south of the ridge and
+tries to climb out with two Hound (P) frigates as her screen. The pair of Wolf (H)
+frigates Rusk's family has lent from Citadel Arcadia drops through the cloud deck to
+stop her. What follows is a slugging match of two to three minutes in atmosphere over
+that southern ground, in full view of the company's fight and off it: plating torn
+away, hulls crippled and driven down.
 
 The matchup is the drama. The Wolfs are fast, shielded high-tech hunters with
-light armour; the Hounds are tough, unshielded low-tech brawlers, quicker in a
-straight line; the rig is slow and nearly unarmed. Pack tactics give the fight a
-shape: one Wolf pins the escorts while the other runs down the rig as it climbs,
-and the Hounds must choose between guarding their charge and saving themselves. A
-larger opponent was considered and rejected: a Venture's heavy armour and hull
-outlast two Wolfs' energy guns over a short visit, and its flight deck would bring
-fighters into a fight meant to stay gun against gun.
+light armour and the longer guns; the Hounds are tough, unshielded low-tech
+brawlers that have to close; the Greyhook is a heavy, slow broadside ship that
+answers what comes into her reach as she goes but cannot turn to fight. Pack
+tactics give the fight a shape: one Wolf pins the escorts while the other runs
+down the Greyhook as she climbs, and the Hounds must choose between guarding their
+charge and saving themselves. Her fitting carries no wing and a warship over a
+ground battle never launches one, so the fight stays gun against gun.
 
 - The player's fleet stays out of the sky. The company has no air role in the
   duel and cannot order the Wolfs; they are the family's ships, not a support power.
@@ -428,13 +429,14 @@ fighters into a fight meant to stay gun against gun.
   answer no calls for fire and make no ground objective easier by existing. Stray
   fire and falling wreckage are real on the ground in both directions.
 - Nothing about the duel is scripted. A Wolf can be crippled or break off; a Hound
-  can be shot down onto the basin; the rig can escape. The debrief reports what
+  can be shot down onto the basin; the Greyhook can escape or be shot down. The debrief reports what
   actually happened, and ground victory never depends on it.
 - Two frigates, one finite visit. Rusk's letter after Chapter 4 explains their
   arrival; they leave when the engagement ends. Their presence is a warning to the
   Combine and to Agreus, not Hegemony protection of the district.
 - Ship-versus-ship fighting is built (`air-nouns.md`, Overhead ships): hull fire
-  is opted in for the duel's five hulls only, and none of them may fire at the ground.
+  is held until Voss's withdrawal beat, the fight is kept over the southern ground
+  by the chapter's airspace, and none of the duel's hulls fires at the ground.
 
 Sera Voss coordinates through transmissions from outside the battle. No invulnerable
 boss avatar or mandatory escape is needed. Her last line on the channel tells the
@@ -705,10 +707,10 @@ Still open inside this story:
   company's issue stays rust-orange. Still to observe: the rigs and the card in the live game.
 - **The duel overhead** is built and installed in Chapter 5 (`air-nouns.md`,
   Overhead ships; `warship-behaviours.md`, Decided: ship against ship). The
-  ground referee never reads it; a duel-off control wins the same seed. It is
-  lopsided — the rig escapes and both Hounds fall on every seed — because hull
-  damage uses the ground penetration scale, an open question recorded in
-  `warship-behaviours.md`.
+  ground referee never reads it; a duel-off control wins the same seed. Over five
+  seeds the Greyhook gets away about two and a half minutes after the order with 2
+  to 97 percent of her hull, one or both Hounds fall, and the Wolfs lose none, one
+  or both (`warship-behaviours.md`, Decided: ships in atmosphere, round two).
 - **Encounter readings to revisit:** Chapter 3's Specter fixture lost 12 rather
   than 5 on the rebuilt yard; Chapter 4's mortar withdraws before the company
   reaches its pit, so counter-battery is unexercised, and House Custody's estate

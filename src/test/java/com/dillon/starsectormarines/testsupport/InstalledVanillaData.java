@@ -21,13 +21,20 @@ import java.util.Map;
  */
 public final class InstalledVanillaData {
 
+    /** The shipped mod folder, read before the install for any file it carries. */
+    private static final Path MOD_ROOT = Paths.get(System.getProperty("user.dir"), "mod");
+
     private InstalledVanillaData() {}
 
     public static void install(Path starsectorCore) {
         if (starsectorCore == null) return;
         VanillaData.useSource(new VanillaData.Source() {
             @Override public JSONObject json(String path) throws Exception {
-                return new JSONObject(sanitize(Files.readString(starsectorCore.resolve(path))));
+                // The mod's own data first and the game's second, the order the game itself resolves files in, so
+                // a variant this mod authors is fitted headless exactly as it is in the game.
+                Path own = MOD_ROOT.resolve(path);
+                Path file = Files.isRegularFile(own) ? own : starsectorCore.resolve(path);
+                return new JSONObject(sanitize(Files.readString(file)));
             }
 
             @Override public List<Map<String, String>> csv(String path) throws Exception {

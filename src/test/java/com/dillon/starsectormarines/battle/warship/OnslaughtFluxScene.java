@@ -37,10 +37,17 @@ public final class OnslaughtFluxScene implements BehaviorScene {
     private static final int WIDTH = 160;
     private static final int HEIGHT = 80;
     private static final int TICKS = 3000;
-    private static final float SHIP_X = 38f;
+    private static final float SHIP_X = 26f;
     private static final float SHIP_Y = 40f;
     private static final float START_HEADING = -120f;
-    private static final float AREA_X = 68f;
+    /**
+     * How far east the target ground moves with the hull's presence: the bow, which points east-north-east at the
+     * start, reaches further by the growth of an Onslaught's half-length (taken as 6.75 cells a unit of presence) over
+     * a presence of four.
+     */
+    private static final int SHIFT = Math.round((float) Math.cos(Math.toRadians(30))
+            * (WarshipScale.HULL_PRESENCE - 4f) * WarshipScale.cells(150f));
+    private static final float AREA_X = 68f + SHIFT;
     private static final float AREA_Y = 40f;
     private static final float AREA_RADIUS = 14f;
     private static final int GRID = 24;
@@ -80,7 +87,7 @@ public final class OnslaughtFluxScene implements BehaviorScene {
         for (int row = 0; row < GRID; row++) {
             for (int col = 0; col < GRID; col++) {
                 builder.unit("d" + row + "-" + col, Faction.DEFENDER, UnitType.MARINE,
-                        56 + col, 29 + row);
+                        56 + SHIFT + col, 29 + row);
             }
         }
         builder.unit("far-enemy", Faction.DEFENDER, UnitType.MARINE, 150, 40);

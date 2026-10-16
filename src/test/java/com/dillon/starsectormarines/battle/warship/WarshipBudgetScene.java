@@ -34,7 +34,7 @@ public final class WarshipBudgetScene implements BehaviorScene {
 
     private static final int WIDTH = 160;
     private static final int HEIGHT = 80;
-    private static final int TICKS = 3600;
+    private static final int TICKS = 5400;
     private static final float SHIP_X = 38f;
     private static final float SHIP_Y = 40f;
     private static final float START_HEADING = -120f;

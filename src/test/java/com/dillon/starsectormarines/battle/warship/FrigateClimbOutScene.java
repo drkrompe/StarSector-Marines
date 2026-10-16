@@ -37,7 +37,7 @@ public final class FrigateClimbOutScene implements BehaviorScene {
     private static final float RIG_Y = 40f;
     private static final float[][] ROUTE = {{96f, 30f}, {139f, 26f}};
     private static final int CLIMB_TICK = 60;
-    private static final int TICKS = 2400;
+    private static final int TICKS = 5400;
     private static final int FRAME_EVERY = 8;
 
     @Override public String id() { return "frigate-climb-out"; }
