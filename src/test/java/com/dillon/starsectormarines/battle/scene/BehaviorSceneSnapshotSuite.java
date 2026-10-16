@@ -9,7 +9,6 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 
-import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -101,19 +100,6 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
         return new int[0];
     }
 
-    /**
-     * The frame without its alpha channel (the review frame is opaque). The suite then
-     * keeps it deflated in a {@link CompressedFrameList} until the runner encodes it.
-     */
-    private static BufferedImage compact(BufferedImage frame) {
-        BufferedImage opaque = new BufferedImage(frame.getWidth(), frame.getHeight(),
-                BufferedImage.TYPE_3BYTE_BGR);
-        Graphics2D graphics = opaque.createGraphics();
-        graphics.drawImage(frame, 0, 0, null);
-        graphics.dispose();
-        return opaque;
-    }
-
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         SceneRegistries.installArmoury(context.projectRoot());
@@ -132,7 +118,7 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
                 try {
                     ReviewImpactFx fx = impacts ? fxFor(loopId) : null;
                     byLoop.computeIfAbsent(loopId, id -> new CompressedFrameList())
-                            .add(compact(renderer.render(sim, caption, annotations(sim), fx)));
+                            .add(renderer.render(sim, caption, annotations(sim), fx));
                     BattleReviewFrameRenderer closeRenderer = closeRenderers.computeIfAbsent(loopId, id -> {
                         float[] close = closeView(id);
                         if (close == null) return null;
@@ -143,7 +129,7 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
                     });
                     if (closeRenderer != null) {
                         byLoop.computeIfAbsent(loopId + "-close", id -> new CompressedFrameList())
-                                .add(compact(closeRenderer.render(sim, caption, annotations(sim), fx)));
+                                .add(closeRenderer.render(sim, caption, annotations(sim), fx));
                     }
                 } catch (IOException failure) {
                     throw new UncheckedIOException(failure);

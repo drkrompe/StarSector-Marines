@@ -17,8 +17,10 @@ deck seams and the table's sides agree on a vanishing point ~70 px above the fra
 yet the vertical edges lean under 20 px across the whole height.
 
 So the model is a level pinhole whose optical-centre row is the horizon. Focal length
-comes from assuming the chart table's top is a 1.8:1 rectangle, scale from assuming it
-is 0.8 m high. Up is straight up in every pixel. Absolute distances are the
+comes from assuming the chart table's top is a 1.8:1 rectangle. Scale comes from the CRT
+monitor on the ledger desk (a 17" set, 0.42 m of casing), which makes the desk under it
+a normal ~0.7 m high. The chart table then measures about 0.5 m: a low plotting table,
+painted short relative to the desk, which is why people sized to the table read small. Up is straight up in every pixel. Absolute distances are the
 weakest numbers; overlays and figure placement depend only on the ratios.
 """
 import json
@@ -36,7 +38,13 @@ STEM = "deck-plate-v2"
 # --- Measured on the plate (pixels in the 2172x724 master) -------------------------
 DEPTH_VP = (1077.0, -70.1)       # Hough fit of receding deck seams; table sides give (1064, -78)
 TABLE_ASPECT = 1.8               # assumed width:depth of the plotting surface; fixes focal length
-TABLE_HEIGHT_M = 0.80            # assumed; 0.95 made the painted people read small beside the props
+
+# Scale reference: the CRT on the ledger desk, and the desk's front leg it sits above.
+MONITOR_CASING_M = 0.42          # assumed: a 17" CRT's casing width
+MONITOR_CASING_PX = (1471.7, 1559.3)
+MONITOR_SET_BACK_M = 0.30        # monitor sits this far behind the desk's front edge
+DESK_TOP_Y = 302.0               # front lip of the ledger desk
+DESK_FLOOR_Y = 448.0             # its front leg on the deck
 TABLE_FRONT_BASE_Y = 549.0       # front face meets the deck
 TABLE_FRONT_RIM_Y = 420.0        # top of the front rim
 TABLE_CENTRE_X = 980.0           # centre of the front face
@@ -59,10 +67,15 @@ FLOOR_CONTACTS = {
 
 # Where each figure stands, in world metres relative to the table (x right of the
 # table's centre line, z behind its front face). Chosen, not measured.
+# The painting's props do not share one scale: at the monitor's scale a real-height
+# person reads as a giant. Figures are drawn at this fraction of their real height,
+# chosen by eye against the desk and table. It applies to every figure alike.
+FIGURE_SCALE = 0.70
+
 FIGURE_STANDS = {
-    "castle": {"x": 0.95, "z_from_back": 0.15, "height_m": 1.68,
+    "castle": {"x": 0.45, "z_from_back": 0.15, "height_m": 1.68,
                "note": "At the far edge of the table, right of centre, facing the viewer."},
-    "commander": {"x": -0.55, "z": -0.45, "height_m": 1.82,
+    "commander": {"x": -0.35, "z": -0.30, "height_m": 1.82,
                   "note": "Front of the table, left of centre, seen from behind."},
 }
 
@@ -77,10 +90,19 @@ class Camera:
         self._fit_scale()
 
     def _fit_scale(self):
-        # Front face of the table: deck at TABLE_FRONT_BASE_Y, rim at TABLE_FRONT_RIM_Y,
-        # both at one distance. Rows below the horizon: y - cy = f * drop / distance.
+        # Rows below the horizon obey y - cy = f * drop / distance, so a vertical edge on
+        # the deck gives camera height in its own units. The desk's front leg is that edge;
+        # the monitor above it, a little further back, says how tall the leg is.
+        desk_base, desk_top = DESK_FLOOR_Y - self.cy, DESK_TOP_Y - self.cy
+        monitor_px = MONITOR_CASING_PX[1] - MONITOR_CASING_PX[0]
+        self.desk_height = 0.7
+        for _ in range(8):
+            self.height = self.desk_height * desk_base / (desk_base - desk_top)
+            desk_distance = self.f * self.height / desk_base
+            shrink = desk_distance / (desk_distance + MONITOR_SET_BACK_M)
+            self.desk_height = MONITOR_CASING_M * (desk_base - desk_top) / monitor_px * shrink
         base, rim = TABLE_FRONT_BASE_Y - self.cy, TABLE_FRONT_RIM_Y - self.cy
-        self.height = TABLE_HEIGHT_M * base / (base - rim)
+        self.table_height = self.height * (base - rim) / base
         self.table_distance = self.f * self.height / base
         self.x = -(TABLE_CENTRE_X - self.cx) * self.table_distance / self.f
         self.pos = np.array([self.x, self.height, -self.table_distance])
@@ -91,7 +113,7 @@ class Camera:
         for _ in range(60):
             self.f = (lo + hi) / 2
             self._fit_scale()
-            w = [self.on_plane(p, TABLE_HEIGHT_M) for p in quad]
+            w = [self.on_plane(p, self.table_height) for p in quad]
             width = np.linalg.norm(w[3] - w[2])
             depth = np.mean([w[0][2], w[1][2]]) - np.mean([w[2][2], w[3][2]])
             if width / depth > TABLE_ASPECT:
@@ -194,7 +216,7 @@ def main():
         return world
 
     quad_px = table_top_quad(rgb)
-    quad_world = [cam.on_plane(p, TABLE_HEIGHT_M) for p in quad_px]
+    quad_world = [cam.on_plane(p, cam.table_height) for p in quad_px]
     names = ["back-left", "back-right", "front-right", "front-left"]
     for name, p, w in zip(names, quad_px, quad_world):
         anchor(f"table-top-{name}", "table-corner", w, px=p)
@@ -210,11 +232,13 @@ def main():
     for fid, spec in FIGURE_STANDS.items():
         z = back_z + spec["z_from_back"] if "z_from_back" in spec else front_z + spec["z"]
         feet = anchor(f"{fid}-feet", "figure-stand", [spec["x"], 0.0, z], spec["note"])
-        head = cam.project(feet + [0.0, spec["height_m"], 0.0])
-        anchor(f"{fid}-head", "figure-head", feet + [0.0, spec["height_m"], 0.0])
+        drawn = spec["height_m"] * FIGURE_SCALE
+        head = cam.project(feet + [0.0, drawn, 0.0])
+        anchor(f"{fid}-head", "figure-head", feet + [0.0, drawn, 0.0])
         fx, fy = cam.project(feet)
         figures.append({"id": fid, "feetPx": r1((fx, fy)), "headPx": r1(head),
-                        "heightPx": round(fy - head[1], 1), "heightM": spec["height_m"]})
+                        "heightPx": round(fy - head[1], 1), "heightM": spec["height_m"],
+                        "figureScale": FIGURE_SCALE})
 
     table_w = float(np.linalg.norm(quad_world[3] - quad_world[2]))
     table_d = float(back_z - front_z)
@@ -232,13 +256,14 @@ def main():
             "depthVanishingPoint": list(DEPTH_VP),
             "up": [0.0, -1.0],
             "positionM": r2(cam.pos),
-            "assumptions": {"tableHeightM": TABLE_HEIGHT_M, "tableAspect": TABLE_ASPECT},
+            "assumptions": {"monitorCasingM": MONITOR_CASING_M, "tableAspect": TABLE_ASPECT},
+            "derived": {"deskHeightM": round(cam.desk_height, 2), "tableHeightM": round(cam.table_height, 2)},
             "uncertainty": "Painting, not render. Horizon/VP within ~15 px. Focal length rests on the "
-                           "table aspect and scale on the table height; absolute distances are the "
+                           "table aspect and scale on the ledger monitor; absolute distances are the "
                            "weakest values, ratios near the table the strongest.",
         },
         "chartTable": {"widthM": round(table_w, 2), "depthM": round(table_d, 2),
-                       "heightM": TABLE_HEIGHT_M, "topQuadPx": [r1(p) for p in quad_px],
+                       "heightM": round(cam.table_height, 2), "topQuadPx": [r1(p) for p in quad_px],
                        "occluderPx": [r1(p) for p in TABLE_OCCLUDER],
                        "occludes": ["castle"]},
         "figures": figures,
