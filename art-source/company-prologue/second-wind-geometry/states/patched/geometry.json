@@ -154,6 +154,626 @@
     "starboard": "sealed, awaits repair"
   },
   "mesh_authority": "All views render the same objects; generated surface art is subordinate to this geometry.",
+  "engine_anchors": [
+    {
+      "name": "Engine 1 exhaust anchor",
+      "position": [
+        -41.0,
+        31.0,
+        0.0
+      ],
+      "position_m": [
+        -26.65,
+        20.15,
+        0.0
+      ],
+      "exhaust_dir": [
+        -1.0,
+        -0.0,
+        0.0
+      ],
+      "engine": 1,
+      "radius": 3.9,
+      "radius_m": 2.535,
+      "running": false
+    },
+    {
+      "name": "Engine 2 exhaust anchor",
+      "position": [
+        -39.0,
+        24.0,
+        0.0
+      ],
+      "position_m": [
+        -25.35,
+        15.6,
+        0.0
+      ],
+      "exhaust_dir": [
+        -1.0,
+        -0.0,
+        0.0
+      ],
+      "engine": 2,
+      "radius": 2.6,
+      "radius_m": 1.69,
+      "running": false
+    },
+    {
+      "name": "Engine 3 exhaust anchor",
+      "position": [
+        -39.0,
+        -24.0,
+        0.0
+      ],
+      "position_m": [
+        -25.35,
+        -15.6,
+        0.0
+      ],
+      "exhaust_dir": [
+        -1.0,
+        -0.0,
+        0.0
+      ],
+      "engine": 3,
+      "radius": 2.6,
+      "radius_m": 1.69,
+      "running": true
+    },
+    {
+      "name": "Engine 4 exhaust anchor",
+      "position": [
+        -41.0,
+        -31.0,
+        0.0
+      ],
+      "position_m": [
+        -26.65,
+        -20.15,
+        0.0
+      ],
+      "exhaust_dir": [
+        -1.0,
+        -0.0,
+        0.0
+      ],
+      "engine": 4,
+      "radius": 3.9,
+      "radius_m": 2.535,
+      "running": true
+    }
+  ],
+  "rcs_anchors": [
+    {
+      "name": "RCS bow-port fore anchor",
+      "position": [
+        57.7703,
+        13.0687,
+        3.9475
+      ],
+      "position_m": [
+        37.5507,
+        8.4946,
+        2.5659
+      ],
+      "exhaust_dir": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "cluster": "bow-port",
+      "axis": "fore",
+      "radius_m": 0.3,
+      "working": true
+    },
+    {
+      "name": "RCS bow-port port anchor",
+      "position": [
+        55.968,
+        14.849,
+        3.9475
+      ],
+      "position_m": [
+        36.3792,
+        9.6518,
+        2.5659
+      ],
+      "exhaust_dir": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "cluster": "bow-port",
+      "axis": "port",
+      "radius_m": 0.3,
+      "working": true
+    },
+    {
+      "name": "RCS bow-port up anchor",
+      "position": [
+        56.023,
+        13.1017,
+        6.0823
+      ],
+      "position_m": [
+        36.4149,
+        8.5161,
+        3.9535
+      ],
+      "exhaust_dir": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "cluster": "bow-port",
+      "axis": "up",
+      "radius_m": 0.3,
+      "working": true
+    },
+    {
+      "name": "RCS bow-stbd fore anchor",
+      "position": [
+        57.7703,
+        -13.0687,
+        3.9475
+      ],
+      "position_m": [
+        37.5507,
+        -8.4946,
+        2.5659
+      ],
+      "exhaust_dir": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "cluster": "bow-stbd",
+      "axis": "fore",
+      "radius_m": 0.3,
+      "working": true
+    },
+    {
+      "name": "RCS bow-stbd stbd anchor",
+      "position": [
+        55.968,
+        -14.849,
+        3.9475
+      ],
+      "position_m": [
+        36.3792,
+        -9.6519,
+        2.5659
+      ],
+      "exhaust_dir": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "cluster": "bow-stbd",
+      "axis": "stbd",
+      "radius_m": 0.3,
+      "working": true
+    },
+    {
+      "name": "RCS bow-stbd up anchor",
+      "position": [
+        56.023,
+        -13.1017,
+        6.0823
+      ],
+      "position_m": [
+        36.4149,
+        -8.5161,
+        3.9535
+      ],
+      "exhaust_dir": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "cluster": "bow-stbd",
+      "axis": "up",
+      "radius_m": 0.3,
+      "working": true
+    },
+    {
+      "name": "RCS dorsal up-1 anchor",
+      "position": [
+        -28.4,
+        0.806,
+        17.5123
+      ],
+      "position_m": [
+        -18.46,
+        0.5239,
+        11.383
+      ],
+      "exhaust_dir": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "cluster": "dorsal",
+      "axis": "up-1",
+      "radius_m": 0.3,
+      "working": true
+    },
+    {
+      "name": "RCS dorsal up-2 anchor",
+      "position": [
+        -28.4,
+        -0.806,
+        17.5123
+      ],
+      "position_m": [
+        -18.46,
+        -0.5239,
+        11.383
+      ],
+      "exhaust_dir": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "cluster": "dorsal",
+      "axis": "up-2",
+      "radius_m": 0.3,
+      "working": false
+    },
+    {
+      "name": "RCS pod-port down anchor",
+      "position": [
+        -4.9721,
+        38.4074,
+        3.8677
+      ],
+      "position_m": [
+        -3.2319,
+        24.9648,
+        2.514
+      ],
+      "exhaust_dir": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "cluster": "pod-port",
+      "axis": "down",
+      "radius_m": 0.3,
+      "working": true
+    },
+    {
+      "name": "RCS pod-port fore anchor",
+      "position": [
+        -3.2748,
+        38.3274,
+        6.2
+      ],
+      "position_m": [
+        -2.1286,
+        24.9128,
+        4.03
+      ],
+      "exhaust_dir": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "cluster": "pod-port",
+      "axis": "fore",
+      "radius_m": 0.3,
+      "working": false
+    },
+    {
+      "name": "RCS pod-port port anchor",
+      "position": [
+        -5.1146,
+        40.0597,
+        6.2
+      ],
+      "position_m": [
+        -3.3245,
+        26.0388,
+        4.03
+      ],
+      "exhaust_dir": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "cluster": "pod-port",
+      "axis": "port",
+      "radius_m": 0.3,
+      "working": false
+    },
+    {
+      "name": "RCS pod-port up anchor",
+      "position": [
+        -4.9721,
+        38.4074,
+        8.5323
+      ],
+      "position_m": [
+        -3.2319,
+        24.9648,
+        5.546
+      ],
+      "exhaust_dir": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "cluster": "pod-port",
+      "axis": "up",
+      "radius_m": 0.3,
+      "working": true
+    },
+    {
+      "name": "RCS pod-stbd down anchor",
+      "position": [
+        -4.9721,
+        -38.4074,
+        3.8677
+      ],
+      "position_m": [
+        -3.2319,
+        -24.9648,
+        2.514
+      ],
+      "exhaust_dir": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "cluster": "pod-stbd",
+      "axis": "down",
+      "radius_m": 0.3,
+      "working": true
+    },
+    {
+      "name": "RCS pod-stbd fore anchor",
+      "position": [
+        -3.2748,
+        -38.3274,
+        6.2
+      ],
+      "position_m": [
+        -2.1286,
+        -24.9128,
+        4.03
+      ],
+      "exhaust_dir": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "cluster": "pod-stbd",
+      "axis": "fore",
+      "radius_m": 0.3,
+      "working": true
+    },
+    {
+      "name": "RCS pod-stbd stbd anchor",
+      "position": [
+        -5.1146,
+        -40.0597,
+        6.2
+      ],
+      "position_m": [
+        -3.3245,
+        -26.0388,
+        4.03
+      ],
+      "exhaust_dir": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "cluster": "pod-stbd",
+      "axis": "stbd",
+      "radius_m": 0.3,
+      "working": true
+    },
+    {
+      "name": "RCS pod-stbd up anchor",
+      "position": [
+        -4.9721,
+        -38.4074,
+        8.5323
+      ],
+      "position_m": [
+        -3.2319,
+        -24.9648,
+        5.546
+      ],
+      "exhaust_dir": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "cluster": "pod-stbd",
+      "axis": "up",
+      "radius_m": 0.3,
+      "working": true
+    },
+    {
+      "name": "RCS stern-port down anchor",
+      "position": [
+        -28.5,
+        38.833,
+        1.3109
+      ],
+      "position_m": [
+        -18.525,
+        25.2414,
+        0.8521
+      ],
+      "exhaust_dir": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "cluster": "stern-port",
+      "axis": "down",
+      "radius_m": 0.27,
+      "working": false
+    },
+    {
+      "name": "RCS stern-port port anchor",
+      "position": [
+        -28.5,
+        40.2991,
+        3.6
+      ],
+      "position_m": [
+        -18.525,
+        26.1944,
+        2.34
+      ],
+      "exhaust_dir": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "cluster": "stern-port",
+      "axis": "port",
+      "radius_m": 0.27,
+      "working": false
+    },
+    {
+      "name": "RCS stern-port up anchor",
+      "position": [
+        -28.5,
+        38.833,
+        5.8891
+      ],
+      "position_m": [
+        -18.525,
+        25.2414,
+        3.8279
+      ],
+      "exhaust_dir": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "cluster": "stern-port",
+      "axis": "up",
+      "radius_m": 0.27,
+      "working": false
+    },
+    {
+      "name": "RCS stern-stbd down anchor",
+      "position": [
+        -28.5,
+        -38.833,
+        1.3109
+      ],
+      "position_m": [
+        -18.525,
+        -25.2414,
+        0.8521
+      ],
+      "exhaust_dir": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "cluster": "stern-stbd",
+      "axis": "down",
+      "radius_m": 0.27,
+      "working": true
+    },
+    {
+      "name": "RCS stern-stbd stbd anchor",
+      "position": [
+        -28.5,
+        -40.2991,
+        3.6
+      ],
+      "position_m": [
+        -18.525,
+        -26.1944,
+        2.34
+      ],
+      "exhaust_dir": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "cluster": "stern-stbd",
+      "axis": "stbd",
+      "radius_m": 0.27,
+      "working": true
+    },
+    {
+      "name": "RCS stern-stbd up anchor",
+      "position": [
+        -28.5,
+        -38.833,
+        5.8891
+      ],
+      "position_m": [
+        -18.525,
+        -25.2414,
+        3.8279
+      ],
+      "exhaust_dir": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "cluster": "stern-stbd",
+      "axis": "up",
+      "radius_m": 0.27,
+      "working": true
+    },
+    {
+      "name": "RCS ventral down-1 anchor",
+      "position": [
+        44.2,
+        0.75,
+        -12.1523
+      ],
+      "position_m": [
+        28.73,
+        0.4875,
+        -7.899
+      ],
+      "exhaust_dir": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "cluster": "ventral",
+      "axis": "down-1",
+      "radius_m": 0.3,
+      "working": true
+    },
+    {
+      "name": "RCS ventral down-2 anchor",
+      "position": [
+        44.2,
+        -0.75,
+        -12.1523
+      ],
+      "position_m": [
+        28.73,
+        -0.4875,
+        -7.899
+      ],
+      "exhaust_dir": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "cluster": "ventral",
+      "axis": "down-2",
+      "radius_m": 0.3,
+      "working": true
+    }
+  ],
   "damage": {
     "state": "patched",
     "scars": [
@@ -611,6 +1231,62 @@
         "area": "sw_scars_spine",
         "status": "patched",
         "note": "Exposed waist trunk feeds the spine: the command conversion re-runs it with a new spool."
+      },
+      {
+        "id": "rcs-bow-port",
+        "kind": "rcs",
+        "area": "sw_scars_rcs",
+        "status": "gone",
+        "note": "Dead while unpowered; working as built from the escape on."
+      },
+      {
+        "id": "rcs-bow-stbd",
+        "kind": "rcs",
+        "area": "sw_scars_rcs",
+        "status": "patched",
+        "note": "stbd bell taken in the belt; refitted from salvage for the escape, reinstalled as built at restoration."
+      },
+      {
+        "id": "rcs-pod-port",
+        "kind": "rcs",
+        "area": "sw_scars_rcs",
+        "status": "patched",
+        "note": "All four bells stripped; the escape refitted salvaged up and down bells for the roll couple, port and fore stay blanked until restored."
+      },
+      {
+        "id": "rcs-pod-stbd",
+        "kind": "rcs",
+        "area": "sw_scars_rcs",
+        "status": "gone",
+        "note": "Dead while unpowered; working as built from the escape on."
+      },
+      {
+        "id": "rcs-stern-port",
+        "kind": "rcs",
+        "area": "sw_scars_rcs",
+        "status": "open",
+        "note": "Whole block unbolted off the port thrust housing; its feed blind-flanged for the escape. Not needed while the port pod is cold (the starboard drive already yaws the bow to port); reinstalled at restoration."
+      },
+      {
+        "id": "rcs-stern-stbd",
+        "kind": "rcs",
+        "area": "sw_scars_rcs",
+        "status": "gone",
+        "note": "Dead while unpowered; working as built from the escape on."
+      },
+      {
+        "id": "rcs-dorsal",
+        "kind": "rcs",
+        "area": "sw_scars_rcs",
+        "status": "patched",
+        "note": "up-2 taken in the belt and blanked for the escape; a new bell fitted at the refit."
+      },
+      {
+        "id": "rcs-ventral",
+        "kind": "rcs",
+        "area": "sw_scars_rcs",
+        "status": "gone",
+        "note": "Dead while unpowered; working as built from the escape on."
       }
     ],
     "hidden": {
@@ -641,6 +1317,13 @@
       "Pump drive drum.001": "pod-port-pumps",
       "Pump drive drum.002": "pod-starboard-pumps",
       "Pump drive drum.003": "pod-starboard-pumps",
+      "RCS dorsal up-2 nozzle": "rcs-dorsal",
+      "RCS pod-port fore nozzle": "rcs-pod-port",
+      "RCS pod-port port nozzle": "rcs-pod-port",
+      "RCS stern-port down nozzle": "rcs-stern-port",
+      "RCS stern-port housing": "rcs-stern-port",
+      "RCS stern-port port nozzle": "rcs-stern-port",
+      "RCS stern-port up nozzle": "rcs-stern-port",
       "Scanner turntable": "sp-mast",
       "Search radar scanner bar": "sp-mast",
       "Turbopump housing": "pod-port-pumps",
@@ -661,7 +1344,11 @@
     "overrides": [
       "Drive warning light: Scar dead lamp (pod-port-drive)",
       "Drive warning light.001: Scar dead lamp (pod-port-drive)",
+      "Engine 1 aft-facing bell: Scar cold scorched bell (pod-port-drive)",
+      "Engine 2 aft-facing bell: Scar cold scorched bell (pod-port-drive)",
+      "Engine 3 dark throat: Drive throat glow (pod-starboard-drive)",
       "Engine 3 aft-facing bell: Drive bell heat (pod-starboard-drive)",
+      "Engine 4 dark throat: Drive throat glow (pod-starboard-drive)",
       "Engine 4 aft-facing bell: Drive bell heat (pod-starboard-drive)",
       "Turret 1 gun house: Salvage plate grey-green primer (sp-turret-1)",
       "Turret 1 mantlet drum: Salvage plate grey-green primer (sp-turret-1)",
@@ -674,8 +1361,11 @@
       "Turret 3 mantlet face: Salvage plate grey-green primer (sp-turret-3)",
       "Turret 3 optics blister: Salvage plate grey-green primer (sp-turret-3)",
       "Turret 3 rear bustle: Salvage plate grey-green primer (sp-turret-3)",
-      "Turret 3 roof hatch: Salvage plate grey-green primer (sp-turret-3)"
+      "Turret 3 roof hatch: Salvage plate grey-green primer (sp-turret-3)",
+      "RCS bow-stbd stbd nozzle: Salvage plate bare steel (rcs-bow-stbd)",
+      "RCS pod-port down nozzle: Salvage plate bare steel (rcs-pod-port)",
+      "RCS pod-port up nozzle: Salvage plate bare steel (rcs-pod-port)"
     ],
-    "cut_objects": 97
+    "cut_objects": 96
   }
 }
