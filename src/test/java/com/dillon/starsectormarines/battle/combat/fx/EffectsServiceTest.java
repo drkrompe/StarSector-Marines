@@ -11,6 +11,73 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EffectsServiceTest {
 
+    @Test void pickupBurnIsShorterAndSmallerThanFreightBurnAndBothFollowTheHull() {
+        var pickup = new EffectsService(new Random(17));
+        var freight = new EffectsService(new Random(17));
+        pickup.spawnTechnicalWreck(10, 10, 90);
+        freight.spawnHaulerWreck(10, 10, 90);
+        assertEquals(1, pickup.getHeavyImpactsThisFrame().size());
+        assertEquals(1, freight.getHeavyImpactsThisFrame().size());
+        assertTrue(pickup.getHeavyImpactsThisFrame().get(0)[2] < freight.getHeavyImpactsThisFrame().get(0)[2]);
+        assertEquals(9.05f, pickup.getSmokingWrecks().get(0).x, .001);
+        assertEquals(8.45f, freight.getSmokingWrecks().get(0).x, .001);
+        assertEquals(10.75f, freight.getSmokingWrecks().get(1).x, .001);
+        pickup.beginFrame(); freight.beginFrame();
+        pickup.tickWrecks(8); freight.tickWrecks(8);
+        assertTrue(pickup.getFireBurstsThisFrame().isEmpty());
+        assertFalse(pickup.getSmokePuffsThisFrame().isEmpty());
+        pickup.beginFrame(); freight.beginFrame();
+        pickup.tickWrecks(28); freight.tickWrecks(28);
+        assertTrue(pickup.getSmokingWrecks().isEmpty());
+        assertFalse(freight.getSmokePuffsThisFrame().isEmpty());
+        assertTrue(freight.getFireBurstsThisFrame().isEmpty());
+        freight.beginFrame(); freight.tickWrecks(55);
+        assertTrue(freight.getSmokingWrecks().isEmpty());
+        assertTrue(freight.getSmokePuffsThisFrame().isEmpty());
+    }
+
+    @Test void apcEffectsFollowHullSizeAndExpireSoonerThanTankEffects() {
+        var tank = new EffectsService(new Random(17));
+        tank.spawnTankWreck(10, 10, 90);
+        float previousRadius = 0;
+        for (float hullSize : new float[]{2.4f, 3.2f}) {
+            var effects = new EffectsService(new Random(17));
+            effects.spawnApcWreck(10, 10, 90, hullSize);
+            float radius = effects.getHeavyImpactsThisFrame().get(0)[2];
+            assertTrue(radius > previousRadius);
+            assertTrue(radius < tank.getHeavyImpactsThisFrame().get(0)[2]);
+            previousRadius = radius;
+            assertEquals(2, effects.getSmokingWrecks().size());
+            assertEquals(10 + .55f * hullSize / 2.4f, effects.getSmokingWrecks().get(1).x, .001);
+            assertEquals(10, effects.getSmokingWrecks().get(1).y, .001);
+            assertTrue(effects.getSmokingWrecks().get(1).effectScale
+                    < tank.getSmokingWrecks().get(1).effectScale);
+            effects.beginFrame();
+            effects.tickWrecks(11);
+            assertTrue(effects.getFireBurstsThisFrame().isEmpty());
+            assertFalse(effects.getSmokePuffsThisFrame().isEmpty());
+            effects.beginFrame();
+            effects.tickWrecks(45);
+            assertTrue(effects.getSmokingWrecks().isEmpty());
+            assertTrue(effects.getSmokePuffsThisFrame().isEmpty());
+        }
+    }
+
+    @Test void tankFireCoolsIntoSmokeAndBothEmittersExpire() {
+        var effects = new EffectsService(new Random(17));
+        effects.spawnTankWreck(10, 10, 0);
+        assertEquals(1, effects.getHeavyImpactsThisFrame().size());
+        assertEquals(8.9f, effects.getSmokingWrecks().get(1).y, .001f);
+        effects.beginFrame();
+        effects.tickWrecks(20);
+        assertTrue(effects.getFireBurstsThisFrame().isEmpty());
+        assertFalse(effects.getSmokePuffsThisFrame().isEmpty());
+        effects.beginFrame();
+        effects.tickWrecks(71);
+        assertTrue(effects.getSmokingWrecks().isEmpty());
+        assertTrue(effects.getSmokePuffsThisFrame().isEmpty());
+    }
+
     @Test void crashFanFollowsTheHullAndFillsItsCentreWithJitteredMovingBlasts() {
         var effects = new EffectsService(new Random(17));
         var replay = new EffectsService(new Random(17));

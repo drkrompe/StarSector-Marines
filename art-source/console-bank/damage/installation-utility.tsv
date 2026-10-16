@@ -1,0 +1,3 @@
+ship-engineering.generator	mod/graphics/tilesets/ship-engineering.png	0	640	384	256	6	4	med	0.9
+ship-engineering.control	mod/graphics/tilesets/ship-engineering.png	384	640	192	64	3	1	med	0.65
+ship-engineering.switchgear	mod/graphics/tilesets/ship-engineering.png	832	640	192	128	3	2	med	0.9

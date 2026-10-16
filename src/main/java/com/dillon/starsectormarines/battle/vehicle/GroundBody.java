@@ -36,12 +36,24 @@ public abstract class GroundBody {
      */
     public float speed;
 
+    /** Accepted signed chassis travel for distance-driven tread UVs, never a render clock. */
+    public double visualTravelCells, visualYawRadians;
+
+    public void recordVisualTravel(float previousX, float previousY, float previousFacing) {
+        float yaw = ((facingDegrees - previousFacing + 540f) % 360f) - 180f;
+        double midpoint = Math.toRadians(previousFacing + yaw * .5f);
+        visualTravelCells += -(x - previousX) * Math.sin(midpoint)
+                + (y - previousY) * Math.cos(midpoint);
+        visualYawRadians += Math.toRadians(yaw);
+    }
+
     /** Snap pose with zero velocity. Use at spawn / respawn / teleport boundaries. */
     public void teleport(float px, float py, float facingDeg) {
         x = px;
         y = py;
         facingDegrees = facingDeg;
         speed = 0f;
+        visualTravelCells = visualYawRadians = 0;
         onTeleport();
     }
 

@@ -1212,8 +1212,9 @@ The discovered suite ids and default output directories are:
 
 | Suite | Evidence | Output |
 |-------|----------|--------|
-| `apc` | Registered overhead APC hulls at four headings and battle scale, plus a full independent twin-MG rotation with ballistic muzzle marks; controlled art poses at 1920x1080/100%, not traverse timing or combat acceptance | `build/snapshots/apc/` |
-| `tank` | Registered tracked hull and short single-cannon turret at four headings, full posed rotation with muzzle marks, real autonomous-fire recoil, and the production Thunder Run staging column alongside APCs, a technical and freight haulers; 1920x1080/100% art evidence, not mission acceptance | `build/snapshots/tank/` |
+| `apc` | Registered live/wreck APCs at four headings and both sizes, twin-MG muzzle rotation, distance-driven tire treads and compact destruction effects on Thunder Run beside the tank and freight; controlled 1920x1080/100% art/motion evidence, not mission acceptance | `build/snapshots/apc/` |
+| `tank` | Registered tracked hull and short single-cannon turret at four headings, full posed rotation with muzzle marks, real autonomous-fire recoil, the production Thunder Run staging column alongside APCs, a technical and freight haulers, controlled forward/brake/reverse tread motion, and registered destruction with roof/engine effects; 1920x1080/100% art evidence, not mission acceptance | `build/snapshots/tank/` |
+| `freight-vehicles` | Technical with covered wheel wells and silhouette-first industrial hauler: live/wreck cardinal poses, registered swaps and distinct destruction effects on the production Thunder Run apron beside tank/APCs; 1920x1080/100% controlled art/effect evidence, not mission acceptance | `build/snapshots/freight-vehicles/` |
 | `shepherd-basin` | Three recovery-map visits at 1920×1080, authored night lighting, detailed grounded Shepherd and scrap, cargo/infantry access and clear construction plots across palettes and seeds; controlled player observation verifies lit hull surfaces and hidden hostiles, not full mission play or campaign settlement | `build/snapshots/shepherd-basin/` |
 | `ship-command-ui` | Production ship selector and contextual build tray at 1920×1080/100%, remote Move/Hold/Auto, physical turret construction, takeover handback and Cold Start's grounded power gate; controlled fixtures, not Working Passage or campaign ownership acceptance | `build/snapshots/ship-command-ui/` |
 | `working-passage` | Production departure mission with named companies and fitted boats, full-size low-hover Morrow, two construction stops, militia holds and physical climb-out; absent arrival, withheld construction, withdrawal/retry and disabled-ship controls. 1920×1080/100%, detached playback rather than live campaign acceptance; report in `build/reports/working-passage/playback.txt` | `build/snapshots/working-passage/` |
@@ -1730,12 +1731,31 @@ rather than the code, and costs ninety world generations on every run by
 every concurrent session forever. The arithmetic hides: five times six times
 three reads like one test.
 
-A test runs in a second or two. That is a consequence rather than the rule —
-a test aimed at one unit is small because the unit is.
+**Every new test must complete in under one second.** This is a rule, not a
+consequence: the full `:test` suite now takes about ten minutes, which means
+nobody runs it, which means it protects nothing. A test aimed at one unit is
+small because the unit is; one that cannot finish in a second is asking a
+whole-system question and is in the wrong place. Measure it (the JUnit XML
+under `build/test-results/test/` records each test's time) before
+committing, and do not raise the bar for a test that misses it — move the
+question down to its unit, or move the test out of `test`.
+
+**Things that are not tests do not go in `test`:**
+
+- **Mission and battle runs** — anything that plays a simulation forward for
+  its outcome, stands up a mission, a world generator or a commander, or
+  replays a fixture. That is evidence: it belongs in `commanderEvidence`,
+  `sceneEvidence`, `loadoutMatchup` or a new opt-in task of the same shape.
+- **Snapshot and rendering work** — anything that renders a frame, a screen,
+  a GIF or a contact sheet, or compares pixels. That belongs in a
+  `SnapshotSuite` under `createSnapshots`, or in `shaderEvidence` /
+  `renderEvidence` when it needs a real driver.
 
 Measurement that genuinely needs the whole space is **evidence, not a
 test**, and belongs in an opt-in Gradle task excluded from `test`, the shape
-`commanderEvidence` and `createSnapshots` already use.
+`commanderEvidence` and `createSnapshots` already use. Existing slow tests are
+not grandfathered as a pattern to copy: when you touch one, move it out or cut
+it down rather than extending it.
 
 ## Mod layout
 

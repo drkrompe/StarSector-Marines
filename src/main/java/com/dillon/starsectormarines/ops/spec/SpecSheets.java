@@ -20,9 +20,12 @@ import com.dillon.starsectormarines.battle.power.VehicleSupport;
 import com.dillon.starsectormarines.battle.power.ShipOnStation;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.marine.ArmorTradition;
+import com.dillon.starsectormarines.marine.EquipmentAccessTier;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCard;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
+import com.dillon.starsectormarines.marine.MilitaryWarrants;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
@@ -336,6 +339,9 @@ public final class SpecSheets {
             case SPECIAL -> special(requireSpecial(card.equipmentId()));
         };
         String access = Strings.get("gearAccess" + card.accessTier().name());
+        ArmorTradition issuer = card.accessTier() == EquipmentAccessTier.RESTRICTED
+                ? MilitaryWarrants.issuerOf(card) : null;
+        if (issuer != null) access = Strings.format("gearAccessRestrictedIssuer", access, issuer.displayName());
         String lead = card.grade() != null
                 ? Strings.format("gearGradeIssue", access, card.grade().displayName())
                 : access;

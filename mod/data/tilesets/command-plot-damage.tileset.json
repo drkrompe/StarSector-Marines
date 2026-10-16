@@ -1,0 +1,40 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "name": "ship-bridge.plot-damaged",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "name": "ship-bridge.plot-destroyed",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 0,
+      "cover": "med",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "ship-bridge.plot-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "ship-bridge.plot-destroyed",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/tilesets/command-plot-damage.png"
+}

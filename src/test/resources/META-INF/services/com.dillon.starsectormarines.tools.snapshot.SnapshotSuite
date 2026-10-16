@@ -176,3 +176,4 @@ com.dillon.starsectormarines.battle.world.gen.bsp.fill.CompactBuildingSnapshotSu
 com.dillon.starsectormarines.battle.world.gen.bsp.fill.NeighborhoodLotSnapshotSuite
 com.dillon.starsectormarines.ops.TankSnapshotSuite
 com.dillon.starsectormarines.battle.smoke.SmokeScreenSceneSnapshotSuite
+com.dillon.starsectormarines.ops.FreightVehiclesSnapshotSuite

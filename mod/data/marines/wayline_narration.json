@@ -2391,7 +2391,7 @@
       "text": "Your people are down. Work through the junction and hold what you take.",
       "synthesisText": "Your people are down. Work through the junction and hold what you take.",
       "durationSeconds": 4.8,
-      "priority": 10,
+      "priority": 13,
       "expiresSeconds": 25,
       "supersedes": [
         "supply_route.junction.started"
@@ -2404,7 +2404,7 @@
       "text": "Wayline militia have landed. They'll help hold the ground your company takes.",
       "synthesisText": "Wayline militia have landed. They'll help hold the ground your company takes.",
       "durationSeconds": 4.88,
-      "priority": 10,
+      "priority": 13,
       "expiresSeconds": 25,
       "supersedes": []
     },

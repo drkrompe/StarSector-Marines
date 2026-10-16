@@ -34,6 +34,10 @@ import org.apache.log4j.Logger;
  * mistaken for absence. A fresh Conquest where every defender compound
  * somehow starts marine-held (degenerate; never expected in production) still
  * resolves cleanly.
+ *
+ * <p>A mission may ask for the sites to be <em>held together</em> for a while before the win is
+ * confirmed ({@code confirmTicks}). Losing any site during that window starts it over. With zero,
+ * the default, the win latches on the tick the last site falls.
  */
 public final class ConquestObjective implements Objective {
 
@@ -42,9 +46,17 @@ public final class ConquestObjective implements Objective {
     private final CompoundService compounds;
     private boolean complete = false;
     private boolean failed = false;
+    private final int confirmTicks;
+    private int heldTicks;
 
     public ConquestObjective(CompoundService compounds) {
+        this(compounds, 0);
+    }
+
+    /** @param confirmTicks consecutive objective ticks every site must stay marine-held before the win latches */
+    public ConquestObjective(CompoundService compounds, int confirmTicks) {
         this.compounds = compounds;
+        this.confirmTicks = Math.max(0, confirmTicks);
     }
 
     @Override
@@ -81,8 +93,9 @@ public final class ConquestObjective implements Objective {
             return;
         }
         for (CompoundService.Record r : compounds.getRecords()) {
-            if (r.state != CompoundService.CompoundState.MARINE_HELD) return;
+            if (r.state != CompoundService.CompoundState.MARINE_HELD) { heldTicks = 0; return; }
         }
+        if (heldTicks++ < confirmTicks) return;
 
         // Marine-survival precondition — see class doc. Mirrors the
         // alive-marine scan in EliminateFactionObjective so the two
@@ -105,6 +118,8 @@ public final class ConquestObjective implements Objective {
         for (CompoundService.Record r : compounds.getRecords()) {
             if (r.state == CompoundService.CompoundState.MARINE_HELD) captured++;
         }
+        if (captured == total && confirmTicks > 0)
+            return "Hold every supply hub (" + Math.max(0, (confirmTicks - heldTicks + 29) / 30) + "s)";
         return "Capture supply hubs (" + captured + " / " + total + ")";
     }
 }

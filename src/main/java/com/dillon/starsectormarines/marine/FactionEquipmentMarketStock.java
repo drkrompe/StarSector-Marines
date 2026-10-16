@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignClockAPI;
 import com.fs.starfarer.api.campaign.CargoAPI;
@@ -13,6 +14,8 @@ import com.fs.starfarer.api.campaign.econ.SubmarketAPI;
 import com.fs.starfarer.api.campaign.listeners.SubmarketUpdateListener;
 import com.fs.starfarer.api.impl.campaign.ids.Submarkets;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 /** Populates ordinary faction markets with rotating, collectible loadout cards. */
@@ -41,9 +44,17 @@ public final class FactionEquipmentMarketStock implements SubmarketUpdateListene
             unavailable = script != null
                     ? LoadoutCardInventory.knownCardIds(script.roster().armory()) : Set.of();
         }
+        CampaignStateScript campaign = CampaignStateScript.getInstance();
+        List<String> listed = new ArrayList<>();
+        if (campaign != null) {
+            for (MarketListings.Listing listing : MarketListings.at(
+                    campaign.state(), market.getId(), market.getFactionId())) {
+                listed.add(listing.cardId());
+            }
+        }
         replaceStock(submarket, market.getFactionId(), market.getId(), market.getSize(),
                 rotation, hasLicenseAccess, unavailable,
-                EquipmentAcquisitionEligibility.currentProgress());
+                EquipmentAcquisitionEligibility.currentProgress(), listed);
     }
 
     /** Seeds existing saves immediately; later rotations follow vanilla submarket refreshes. */
@@ -62,6 +73,15 @@ public final class FactionEquipmentMarketStock implements SubmarketUpdateListene
                              int marketSize, long rotation, boolean hasLicenseAccess,
                              Set<String> unavailableCardIds,
                              EquipmentAcquisitionEligibility.Progress progress) {
+        replaceStock(submarket, factionId, marketId, marketSize, rotation, hasLicenseAccess,
+                unavailableCardIds, progress, List.of());
+    }
+
+    static void replaceStock(SubmarketAPI submarket, String factionId, String marketId,
+                             int marketSize, long rotation, boolean hasLicenseAccess,
+                             Set<String> unavailableCardIds,
+                             EquipmentAcquisitionEligibility.Progress progress,
+                             List<String> listedCardIds) {
         CargoAPI cargo = submarket.getCargo();
         if (cargo == null) return;
         for (CargoStackAPI stack : cargo.getStacksCopy()) {
@@ -74,7 +94,7 @@ public final class FactionEquipmentMarketStock implements SubmarketUpdateListene
 
         FactionEquipmentMarketStockPlanner.StockPlan plan =
                 FactionEquipmentMarketStockPlanner.plan(factionId, marketId, marketSize,
-                        rotation, hasLicenseAccess, unavailableCardIds, progress);
+                        rotation, hasLicenseAccess, unavailableCardIds, progress, listedCardIds);
         for (String cardId : plan.allCardIds()) {
             cargo.addSpecial(LoadoutCardItemPlugin.itemData(cardId), 1f);
         }

@@ -139,6 +139,7 @@ public final class TankSnapshotSuite implements SnapshotSuite {
             artifacts.add(new SnapshotArtifact("campaign-comparison.png", renderer.refocus(24, 76, 44).render(sim,
                     "THUNDER RUN / tank, APCs, technical and freight / camera zoom only / 1920 x 1080, UI 100%",
                     labels.build())));
+            VehicleLifecycleSnapshots.collect(context, artifacts, sim, sim.getThunderRun().heavyLead(), "TANK", 12);
         }
     }
 

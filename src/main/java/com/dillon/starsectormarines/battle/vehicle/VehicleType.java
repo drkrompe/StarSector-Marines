@@ -27,7 +27,7 @@ public enum VehicleType {
      * carry the same 1.42-cell gun frame to match the shared ballistic muzzles.
      */
     HEAVY_APC(
-            "graphics/battle/vehicles/army-apc.png", /*spriteFrame*/ 0, /*frameCount*/ 2,
+            "graphics/battle/vehicles/army-apc.png", /*spriteFrame*/ 0, /*frameCount*/ 4,
             /*spriteFacingOffsetDeg*/ -90f,
             /*capacity*/ 4, /*visualLengthCells*/ 2.4f, /*visualWidthCells*/ 1.4f,
             /*maxSpeed*/ 2.8f, /*accel*/ 1.8f, /*brakingAccel*/ 3.5f,
@@ -46,7 +46,7 @@ public enum VehicleType {
         }
     },
     /** Reinforced local convoy escort. Ordinary reinforcement APCs keep their lighter profile. */
-    ESCORT_APC("graphics/battle/vehicles/army-apc.png", 0, 2, -90f,
+    ESCORT_APC("graphics/battle/vehicles/army-apc.png", 0, 4, -90f,
             0, 3.2f, 1.8f, 3.4f, 1.8f, 3.5f, .8f, 2.8f,
             1, 0f, .20277778f, 0f, 0f, 1.42f, -90f,
             TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 620f, 420f, 24f, 1.25f, .9f) {
@@ -55,7 +55,7 @@ public enum VehicleType {
         }
     },
     /** Heavy convoy spearhead. Uses conservative rolling turns; neutral track pivot is not modeled. */
-    BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 2, -90f,
+    BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 4, -90f,
             0, 4.3f, 3.9f, 3.1f, 1.0f, 3.0f, .8f, 3.0f,
             1, 0f, 0f, 0f, 0f, 7.789194f, -90f,
             TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID, 1100f, 850f, 36f, 1.4f, 1.1f) {
@@ -69,16 +69,16 @@ public enum VehicleType {
      * Workshop pickup with a pintle MG and welded plate, faction-neutral for authored local forces.
      * Its plate turns rifle fire, so it can stand in a road and draw it; crude rockets still get through.
      */
-    MILITIA_TECHNICAL("graphics/battle/vehicles/militia-technical.png", 0, 2, -90f,
+    MILITIA_TECHNICAL("graphics/battle/vehicles/militia-technical.png", 0, 4, -90f,
             0, 3.0f, 1.5f, 4.0f, 2.4f, 4.0f, .8f, 2.4f,
-            1, -.05f, -.92f, .23f, .015f, 1.15f, -90f,
+            1, 0f, -.9875f, 0f, 0f, 1.508943f, -90f,
             TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 480f, 180f, 9f, 1.3f, .65f) {
         @Override public GroundBody createBody() {
             return new BicycleBody(1.65f, 30f, 180f, accel, brakingAccel, maxSpeed);
         }
     },
     /** Long-wheelbase industrial container hauler; no passengers or roof weapon. */
-    CARGO_CARRIER("graphics/battle/vehicles/wayline-hauler.png", 0, 1, -90f,
+    CARGO_CARRIER("graphics/battle/vehicles/wayline-hauler.png", 0, 2, -90f,
             0, 4.8f, 1.65f, 2.4f, 1.2f, 3.0f, .8f, 3.2f,
             -1, 0, 0, 0, 0, 0, 0, null, 400f, 120f, 10f, 1.4f, .9f) {
         @Override public GroundBody createBody() {
@@ -89,9 +89,16 @@ public enum VehicleType {
     /** Visual recoil from actual recent shots; does not change the ballistic hardpoint. */
     public float turretRecoilCells() { return 0f; }
 
-    /** Keep authored vehicle bearings; legacy sheets still use detected content bounds. */
+    public boolean isApc() { return this == HEAVY_APC || this == ESCORT_APC; }
+
+    /** Only exposed tire/track tops scroll; covered technical/hauler wheels stay hidden. */
+    public boolean hasAnimatedTreads() { return isApc() || this == BREAKTHROUGH_TANK; }
+
+    public int wreckHullFrame() { return this == CARGO_CARRIER ? 1 : 2; }
+    public int wreckTurretFrame() { return turretFrame < 0 ? -1 : 3; }
+
+    /** Keep authored vehicle bearings and live/wreck registration for every chassis. */
     public SpriteSheetFrames registeredSpriteFrames(SpriteSheetFrames detected) {
-        if (this != HEAVY_APC && this != ESCORT_APC && this != BREAKTHROUGH_TANK) return detected;
         if (detected.sheetWidth % frameCount != 0) {
             throw new IllegalArgumentException("Registered vehicle sheet must contain equal horizontal frames");
         }

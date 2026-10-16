@@ -114,6 +114,56 @@ public final class EffectsService {
                 180f, .05f, scale, 24f));
     }
 
+    /** One bounded tank cook-off, a brief roof fire and a longer rear-engine burn. No damage. */
+    public void spawnTankWreck(float x, float y, float facingDeg) {
+        double angle = Math.toRadians(facingDeg);
+        float engineX = x + (float) Math.sin(angle) * 1.1f;
+        float engineY = y - (float) Math.cos(angle) * 1.1f;
+        spawnHeavyImpact(x, y, 1.6f);
+        fireBurstsThisFrame.add(new float[]{engineX, engineY, .65f});
+        smokingWrecks.add(new SmokingWreck(x, y, 35f, .05f, .8f, 6f));
+        smokingWrecks.add(new SmokingWreck(engineX, engineY, 90f, .12f, 1.15f, 18f));
+    }
+
+    /** Lighter carrier damage: brief roof flash and a contained rear compartment burn. */
+    public void spawnApcWreck(float x, float y, float facingDeg, float hullFrameCells) {
+        float scale = hullFrameCells / 2.4f;
+        double angle = Math.toRadians(facingDeg);
+        // Registered APC roof bearing is forward; the breached troop roof is aft.
+        float roofX = x - (float) Math.sin(angle) * .15208333f * scale;
+        float roofY = y + (float) Math.cos(angle) * .15208333f * scale;
+        float rearX = x + (float) Math.sin(angle) * .55f * scale;
+        float rearY = y - (float) Math.cos(angle) * .55f * scale;
+        spawnHeavyImpact(x, y, .72f * scale);
+        fireBurstsThisFrame.add(new float[]{rearX, rearY, .3f * scale});
+        smokingWrecks.add(new SmokingWreck(roofX, roofY, 20f, .05f, .4f * scale, 3f));
+        smokingWrecks.add(new SmokingWreck(rearX, rearY, 55f, .12f, .6f * scale, 10f));
+    }
+
+    /** Thin-skinned pickup: a small blast, front-engine fire and brief pintle/ammo flash. */
+    public void spawnTechnicalWreck(float x, float y, float facingDeg) {
+        double angle = Math.toRadians(facingDeg);
+        float sin = (float) Math.sin(angle), cos = (float) Math.cos(angle);
+        spawnHeavyImpact(x, y, .58f);
+        float engineX = x - sin * .95f, engineY = y + cos * .95f;
+        fireBurstsThisFrame.add(new float[]{engineX, engineY, .24f});
+        smokingWrecks.add(new SmokingWreck(engineX, engineY, 35f, .05f, .48f, 7f));
+        smokingWrecks.add(new SmokingWreck(x + sin * .9875f, y - cos * .9875f,
+                12f, .12f, .22f, 2f));
+    }
+
+    /** Freight loss: modest blast, cab fire and a longer contained cargo burn; no chain explosions. */
+    public void spawnHaulerWreck(float x, float y, float facingDeg) {
+        double angle = Math.toRadians(facingDeg);
+        float sin = (float) Math.sin(angle), cos = (float) Math.cos(angle);
+        spawnHeavyImpact(x, y, 1.1f);
+        float cargoX = x + sin * .75f, cargoY = y - cos * .75f;
+        fireBurstsThisFrame.add(new float[]{cargoX, cargoY, .42f});
+        smokingWrecks.add(new SmokingWreck(x - sin * 1.55f, y + cos * 1.55f,
+                45f, .05f, .55f, 9f));
+        smokingWrecks.add(new SmokingWreck(cargoX, cargoY, 90f, .12f, .9f, 18f));
+    }
+
     /** Emit a filled, irregular fan from the hull's current ground contact, including its centre. */
     public void spawnCrashBlastFan(float x, float y, float vx, float vy, float hullRadius) {
         float speed = (float) Math.hypot(vx, vy);
@@ -272,7 +322,7 @@ public final class EffectsService {
             if (w.nextPuffTimer <= 0f) {
                 float cooledFrac = Math.max(0.15f, w.remainingLifetime / w.totalLifetime);
                 float radius = (0.40f + cooledFrac * 0.45f) * w.effectScale;
-                smokePuffsThisFrame.add(new float[]{w.cellX + 0.5f, w.cellY + 0.5f, radius});
+                smokePuffsThisFrame.add(new float[]{w.x, w.y, radius});
                 w.nextPuffTimer = WRECK_PUFF_MIN_GAP
                         + rng.nextFloat() * (WRECK_PUFF_MAX_GAP - WRECK_PUFF_MIN_GAP);
             }
@@ -286,7 +336,7 @@ public final class EffectsService {
                             : 1f;
                     if (rng.nextFloat() < intensity) {
                         float fireRadius = (0.40f + rng.nextFloat() * 0.30f) * w.effectScale;
-                        fireBurstsThisFrame.add(new float[]{w.cellX + 0.5f, w.cellY + 0.5f, fireRadius});
+                        fireBurstsThisFrame.add(new float[]{w.x, w.y, fireRadius});
                     }
                     w.nextFireTimer = WRECK_FIRE_MIN_GAP
                             + rng.nextFloat() * (WRECK_FIRE_MAX_GAP - WRECK_FIRE_MIN_GAP);

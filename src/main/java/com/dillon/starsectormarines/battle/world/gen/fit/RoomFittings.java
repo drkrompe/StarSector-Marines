@@ -180,6 +180,23 @@ public final class RoomFittings {
         return purpose == null ? null : BY_PURPOSE.get(purpose);
     }
 
+    /** Ground installations reuse the modern material kits without importing ship layout overrides. */
+    public static RoomFitting forInstallation(RoomPurpose purpose) {
+        if (purpose == null) return null;
+        return switch (purpose) {
+            case KEEP_THRONE -> new InstallationCommandFitting();
+            case ENGINE_ROOM -> new InstallationUtilityFitting();
+            case ARMORY -> new InstallationArmoryFitting();
+            case CIVIC_OFFICE -> new InstallationOfficeFitting();
+            case PARTS_CAGE -> new InstallationWorkshopFitting();
+            case VEHICLE_BAY -> VehicleBayFitting.installation();
+            case BARRACKS, CREW_QUARTERS -> BerthingFitting.shipboard(purpose);
+            case MESS_HALL -> MessHallFitting.shipboard();
+            case PATIENT_WARD -> SickBayFitting.shipboard();
+            default -> forPurpose(purpose);
+        };
+    }
+
     /**
      * The fitting for a room of this purpose, footprint and refit level: an
      * authored layout where one exists, and otherwise the procedural fitting.

@@ -295,7 +295,7 @@ public class GroundSystem {
 
     /**
      * Once-only terminal transition invoked by the vehicle damage resolver.
-     * The entity remains present as a darkened chassis, but its mission, motion,
+     * The entity remains present as a wrecked chassis, but its mission, motion,
      * turret, targetability, and onboard payload all stop here.
      *
      * <p>The map is not touched. A wreck is a rendered chassis and nothing more:
@@ -319,7 +319,17 @@ public class GroundSystem {
         turrets.cancelQueuedFire(id);
         resolveOnboardPassengers(id, mission, type, body);
         resolveOnboardRiders(id, body);
-        effects.spawnVehicleWreck(body.x, body.y, type.visualLengthCells, type.visualWidthCells);
+        if (type == VehicleType.BREAKTHROUGH_TANK) {
+            effects.spawnTankWreck(body.x, body.y, body.facingDegrees);
+        } else if (type.isApc()) {
+            effects.spawnApcWreck(body.x, body.y, body.facingDegrees, type.visualLengthCells);
+        } else if (type == VehicleType.MILITIA_TECHNICAL) {
+            effects.spawnTechnicalWreck(body.x, body.y, body.facingDegrees);
+        } else if (type == VehicleType.CARGO_CARRIER) {
+            effects.spawnHaulerWreck(body.x, body.y, body.facingDegrees);
+        } else {
+            effects.spawnVehicleWreck(body.x, body.y, type.visualLengthCells, type.visualWidthCells);
+        }
     }
 
     /**

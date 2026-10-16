@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.fit.AisleFitting;
 import com.dillon.starsectormarines.battle.world.gen.fit.AisleFitting.FixtureGroup;
-import com.dillon.starsectormarines.battle.world.gen.fit.AisleFitting.FixtureGroup.Satellite;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
@@ -96,15 +95,15 @@ public final class FortressInterior {
      */
     private static final Set<RoomPurpose> WINDOWED = EnumSet.of(
             RoomPurpose.BARRACKS, RoomPurpose.MESS_HALL, RoomPurpose.CONTROL_ROOM,
-            RoomPurpose.KEEP_ENTRY, RoomPurpose.VEHICLE_BAY);
+            RoomPurpose.KEEP_ENTRY, RoomPurpose.VEHICLE_BAY, RoomPurpose.CIVIC_OFFICE,
+            RoomPurpose.CONFERENCE_ROOM, RoomPurpose.PATIENT_WARD, RoomPurpose.CREW_QUARTERS);
 
     /**
-     * Cells between one window and the next along a facade.
+     * Minimum pitch between windows or window bays along a facade.
      *
-     * <p>A rhythm rather than one aperture per wall. An ordinary building
-     * centres a single window on each run of eligible room, which suits a
-     * shopfront and reads as nothing at all on a barracks block forty cells
-     * long. The spacing also decides the fight, because every window is a
+     * <p>Occupied support rooms get wider bays where the whole inward approach
+     * is clear; defensive rooms keep spaced single apertures. The spacing
+     * also decides the fight, because every window is a
      * firing position: a facade of them is a defended building, and a blank one
      * is a box the garrison can only shoot out of through its door.
      */
@@ -312,12 +311,9 @@ public final class FortressInterior {
 
     private static void furnish(GenContext ctx, List<RoomPacker.Placed> placed, boolean authored) {
         for (RoomPacker.Placed room : placed) {
-            RoomFitting fitting = RoomFittings.forPurpose(room.purpose());
+            RoomFitting fitting = RoomFittings.forInstallation(room.purpose());
             if (fitting == null && authored) fitting = switch (room.purpose()) {
-                case CIVIC_OFFICE -> new AisleFitting(room.purpose(), FixtureGroup.of(
-                        "doodad.civic-workstation-bank", 4, 2,
-                        new Satellite("doodad.office-records-bank", 2, 0)));
-                case KEEP_THRONE, CONTROL_ROOM -> new AisleFitting(room.purpose(), FixtureGroup.of(
+                case CONTROL_ROOM -> new AisleFitting(room.purpose(), FixtureGroup.of(
                         "doodad.military-command-console", 2, 1));
                 default -> null;
             };
@@ -530,10 +526,16 @@ public final class FortressInterior {
         }
         for (List<int[]> facade : runs) {
             if (facade.size() < MIN_FACADE_RUN) continue;
-            int count = 1 + (facade.size() - 1) / WINDOW_PITCH;
-            int first = (facade.size() - 1 - (count - 1) * WINDOW_PITCH) / 2;
-            for (int i = 0; i < count; i++) {
-                int[] cell = facade.get(first + i * WINDOW_PITCH);
+            int panes = switch (room.purpose()) {
+                case CIVIC_OFFICE, CONFERENCE_ROOM, MESS_HALL -> Math.min(3, facade.size() - 2);
+                case PATIENT_WARD, CREW_QUARTERS -> Math.min(2, facade.size() - 2);
+                default -> 1;
+            };
+            int pitch = Math.max(WINDOW_PITCH, panes + 3);
+            int count = 1 + (facade.size() - panes) / pitch;
+            int first = (facade.size() - panes - (count - 1) * pitch) / 2;
+            for (int i = 0; i < count; i++) for (int pane = 0; pane < panes; pane++) {
+                int[] cell = facade.get(first + i * pitch + pane);
                 openWindow(ctx, cell[0], cell[1], outward);
             }
         }
