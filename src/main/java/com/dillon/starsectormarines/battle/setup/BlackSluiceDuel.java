@@ -125,8 +125,9 @@ public final class BlackSluiceDuel implements SmallWarDuel {
         try {
             for (float[] entry : WOLF_ENTRIES) {
                 Warship wolf = quiet(Warship.fit(WOLF_HULL, WOLF_VARIANT, Faction.ALLY,
-                        entry[0], entry[1], 270f));
-                wolf.arriveFromAbove();
+                        entry[0], entry[1], 0f));
+                // Out of the deck already pointed at the Greyhook's group, closing under its own handling.
+                wolf.arriveFromAbove(RIG_X, RIG_Y);
                 wolf.visit(WOLF_DWELL_SECONDS);
                 wolves.add(wolf);
             }

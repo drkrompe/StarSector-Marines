@@ -1210,12 +1210,29 @@ public final class Warship {
     }
 
     /**
-     * Marks the ship as arriving from above: it drops through the cloud deck from
-     * this moment, and presentation reads {@link #entrySeconds()} to draw the
-     * descent. Nothing in the simulation reads the clock.
+     * Brings the ship in through the cloud deck from where it stands, already pointed at {@code (towardX, towardY)}:
+     * its first objective or the hostiles it is coming for. A ship never appears at its station or on the wrong
+     * heading; it breaks out of the deck pointed where it is going and closes under its own handling, so the approach
+     * is part of the fight. The descent lasts {@link WarshipAtmosphere#DESCENT_SECONDS}, during which it fires nothing
+     * and its helm takes no station ({@link #descending}); presentation reads {@link #entrySeconds()} and draws the
+     * shadow, glow and descent along the heading.
      */
-    public void arriveFromAbove() {
+    public void arriveFromAbove(float towardX, float towardY) {
+        float dx = towardX - x;
+        float dy = towardY - y;
+        arriveFromAboveOnHeading(dx * dx + dy * dy < 1e-6f ? facingDegrees : AirBody.facingToward(dx, dy));
+    }
+
+    /** As {@link #arriveFromAbove(float, float)}, on a heading the mission names ({@code facingDegrees}' convention). */
+    public void arriveFromAboveOnHeading(float headingDegrees) {
+        facingDegrees = headingDegrees;
+        desiredHeading = headingDegrees;
         entrySeconds = 0f;
+    }
+
+    /** Whether the ship is still coming down through the cloud deck: it fires nothing and takes no duel station yet. */
+    public boolean descending() {
+        return entrySeconds >= 0f && entrySeconds < WarshipAtmosphere.DESCENT_SECONDS;
     }
 
     private float visitDwellSeconds = Float.NaN;

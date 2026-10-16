@@ -424,6 +424,11 @@ public final class WarshipSystem {
             turnHull(dt, ship);
             for (Warship.Mount mount : ship.mounts()) {
                 if (mount.knockedOut()) continue;
+                if (ship.descending()) {
+                    // Still in the cloud deck: nothing fires, point defence included, and the guns ride at rest.
+                    traverse(dt, ship, mount, ship.facingDegrees + mount.slot.angleDegrees());
+                    continue;
+                }
                 if (mount.pointDefence()) {
                     boolean ordnance = WarshipAirFire.scope(ship) != WarshipAirFire.Scope.NONE
                             && pointDefence.hasTarget(sim, ship, mount, shells, strikes);
@@ -1223,6 +1228,7 @@ public final class WarshipSystem {
         Warship target = ship.hullTarget();
         Warship lead = WarshipEscort.liveLead(ship);
         boolean free = !ship.piloted() && !ship.departing() && !ship.isPassingThrough() && ship.lowPass() == null
+                && !ship.descending()
                 && ship.remoteOrder() == Warship.RemoteOrder.NONE;
         if (lead != null) {
             // An escort screens by fighting: with a hull to fight it takes its own duel station, held on a leash to

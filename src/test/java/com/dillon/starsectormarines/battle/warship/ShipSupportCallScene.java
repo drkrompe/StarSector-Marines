@@ -128,12 +128,12 @@ public final class ShipSupportCallScene implements BehaviorScene {
                     t.targetSeen && charges == 0 && resources.supplies == SUPPLIES - ShipOnStation.SUPPLY_COST,
                     "target seen " + t.targetSeen + ", charges left " + charges + ", supplies " + resources.supplies
                             + " of " + SUPPLIES));
-            // A called ship breaks out of the clouds a short glide short of its station, on the
-            // company's side of it, rather than at the map edge (ShipStationing.callIn): the glide and half the hull.
+            // A called ship breaks out of the clouds at a distance on the company's side of its station,
+            // never on top of it (ShipStationing.callIn): the glide and a whole hull, or over the edge itself.
             float glide = (float) Math.hypot(tx(loop) + 0.5f - t.entryX, ty(loop) + 0.5f - t.entryY);
-            verdicts.add(Verdict.of("comes-in-from-the-companys-side-a-short-glide-out",
-                    t.firstShipTick >= 0 && t.entryX < tx(loop) && glide >= ShipStationing.CALL_SHORT_CELLS - 1f
-                            && glide <= ShipStationing.CALL_SHORT_CELLS + t.entryHalfLength + 3f,
+            verdicts.add(Verdict.of("comes-in-from-the-companys-side-at-a-distance",
+                    t.firstShipTick >= 0 && t.entryX < tx(loop) && glide >= Math.min(ShipStationing.CALL_SHORT_CELLS, tx(loop)) - 1f
+                            && glide <= ShipStationing.CALL_SHORT_CELLS + 2f * t.entryHalfLength + 3f,
                     String.format(Locale.ROOT, "first seen at tick %d at (%.1f, %.1f), %.1f cells short of its station; "
                             + "the company's side is the west", t.firstShipTick, t.entryX, t.entryY, glide)));
             verdicts.add(Verdict.of("stations-over-the-targeted-ground",
