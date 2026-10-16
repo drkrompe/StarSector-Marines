@@ -468,6 +468,46 @@ class FortAssaultTest {
     }
 
     @Test
+    void aBreacherThatLostItsKitBeforeBeingLetGoIsNotSentToTheWallAndTheCompanyChangesApproach() {
+        Picture p = new Picture();
+        FortAssault.Way breach = p.works.ways.stream().filter(w -> w.variant() == Variant.BREACH).findFirst().orElseThrow();
+        p.execution = new FortAssault.Execution(p.works, p.belief, new FortAssault.Defence(breach, 0, 0, 0f, FortAssault.BreachMeans.CLOSE, null), 0);
+        CommandTopology walled = walledAt(breach.mouthX() - breach.outX(), breach.mouthY() - breach.outY());
+        p.execution.run(0, M, p.objective, p.members, p.bodies, walled, p.notes);
+        assertEquals(1, p.execution.breachSquads(), "squad 5, the one with satchels, holds the breach role");
+        // The carrier falls: the squad is still there, its roster is not.
+        Body old = p.bodies.get(5);
+        p.bodies.put(5, new Body(5, old.anchorX(), old.anchorY(), 3, false, false, false, null));
+        killEveryNest(p);
+        Map<Integer, Order> orders = p.execution.run(30, M, p.objective, p.members, p.bodies, walled, p.notes);
+        assertFalse(anyOrder(orders, AssignmentReason.ASSAULT_BREACH), "no empty squad is sent to open a wall: " + p.notes);
+        assertEquals(1, p.execution.satchelRecord().breachersLost);
+        assertTrue(p.execution.way().variant() != Variant.BREACH, "no one else carries a charge, so the company took a gate: " + p.notes);
+    }
+
+    @Test
+    void aBreacherThatLostItsKitIsReplacedByAnotherSquadThatCarriesIt() {
+        Picture p = new Picture();
+        p.add(7, false, true);
+        FortAssault.Way breach = p.works.ways.stream().filter(w -> w.variant() == Variant.BREACH).findFirst().orElseThrow();
+        p.execution = new FortAssault.Execution(p.works, p.belief, new FortAssault.Defence(breach, 0, 0, 0f, FortAssault.BreachMeans.CLOSE, null), 0);
+        CommandTopology walled = walledAt(breach.mouthX() - breach.outX(), breach.mouthY() - breach.outY());
+        p.execution.run(0, M, p.objective, p.members, p.bodies, walled, p.notes);
+        int first = p.bodies.keySet().stream().filter(id -> p.bodies.get(id).demolition()).findFirst().orElseThrow();
+        int spare = p.bodies.keySet().stream().filter(id -> p.bodies.get(id).demolition() && id != first).findFirst().orElseThrow();
+        Body old = p.bodies.get(first);
+        p.bodies.put(first, new Body(first, old.anchorX(), old.anchorY(), 3, false, false, false, null));
+        killEveryNest(p);
+        Map<Integer, Order> orders = p.execution.run(30, M, p.objective, p.members, p.bodies, walled, p.notes);
+        assertEquals(Variant.BREACH, p.execution.way().variant(), "the wall is still the way in: " + p.notes);
+        assertFalse(orders.containsKey(first) && orders.get(first).reason() == AssignmentReason.ASSAULT_BREACH);
+        p.execution.run(60, M, p.objective, p.members, p.bodies, walled, p.notes);
+        assertTrue(p.execution.breachSquads() == 1, "the spare carrier holds the role now: " + p.notes);
+        assertTrue(anyOrder(p.execution.run(90, M, p.objective, p.members, p.bodies, walled, p.notes), AssignmentReason.ASSAULT_BREACH),
+                "and is the one sent (squad " + spare + ")");
+    }
+
+    @Test
     void aCloseBreacherIsLetGoAtOnceWhenNoCoveringNestIsBelievedLive() {
         Picture p = new Picture();
         FortAssault.Way breach = p.works.ways.stream().filter(w -> w.variant() == Variant.BREACH).findFirst().orElseThrow();

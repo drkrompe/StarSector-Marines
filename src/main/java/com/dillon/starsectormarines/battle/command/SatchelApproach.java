@@ -194,6 +194,27 @@ final class SatchelApproach {
     record Reliance(int nest, int[] nestCell, int[] from) { }
 
     /**
+     * One fire squad as the company holds it: the nest believed live that it was placed against (or -1), where the plan put it and
+     * where it stands now. A squad does not fire from the cell it was told to walk to, so its line to the nest is read from both.
+     */
+    record Placement(int nest, int[] nestCell, int[] planned, int[] actual) { }
+
+    /**
+     * The suppressions a screen must not cut: every placed fire squad's line to its nest, from where it was put and from where it
+     * stands, whether the nest is answered yet or not (a squad on its way to engage is still the company's fire, and a cloud laid
+     * across its line is laid before it gets there). A squad placed against no live nest relies on nothing.
+     */
+    static List<Reliance> reliances(List<Placement> placed) {
+        List<Reliance> out = new ArrayList<>();
+        for (Placement squad : placed) {
+            if (squad.nest() < 0) continue;
+            if (squad.planned() != null) out.add(new Reliance(squad.nest(), squad.nestCell(), squad.planned()));
+            if (squad.actual() != null) out.add(new Reliance(squad.nest(), squad.nestCell(), squad.actual()));
+        }
+        return out;
+    }
+
+    /**
      * Whether a screen may be laid, weighing both edges of it (`ai-nouns.md`, "Smoke screens partition the field"). The
      * screen blinds the nest it is laid against, but smoke blocks sight for everyone, so it is refused when it would:
      * <ul>

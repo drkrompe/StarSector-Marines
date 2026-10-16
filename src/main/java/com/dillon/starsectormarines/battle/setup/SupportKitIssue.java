@@ -67,6 +67,20 @@ public final class SupportKitIssue {
     }
 
     /**
+     * Issues a squad's sapper and screener items into the seats of a freshly rolled lift cycle, by the squad's ordinal across the
+     * force: a satchel charge when {@code kit.sapper(ordinal)}, a smoke pot when {@code kit.screener(ordinal)}, each into the first seat after
+     * the tube-holder and before the launcher that carries no special of its own. The factory squad roll issues only the tube and the
+     * radio, so a mission that declares sappers or smoke on a factory force must come through here or it declares them for nothing.
+     * Returns how many items were issued.
+     */
+    public static int issueBreachKit(MarineLoadout[] cycle, SquadSupportKit kit, int ordinal) {
+        int issued = 0;
+        if (kit.sapper(ordinal) && issueFirstFree(cycle, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID))) issued++;
+        if (kit.screener(ordinal) && issueFirstFree(cycle, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_POT_ID))) issued++;
+        return issued;
+    }
+
+    /**
      * Issues the declared kit into a company that starts on the ground, where there is no lift to count squads by: squads
      * are counted in the order their first seat was committed, and the seats are returned with the kit applied under the
      * same rules as {@link #issue} (a tube to the first unissued seat, a radio to the one before the last).

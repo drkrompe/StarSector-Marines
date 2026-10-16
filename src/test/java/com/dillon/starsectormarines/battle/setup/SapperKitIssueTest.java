@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.fixture.MarineSeatCommitment;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.infantry.SquadSupportDeclaration;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -69,6 +71,27 @@ class SapperKitIssueTest {
         assertEquals(SpecialEquipmentRegistry.COMMS_RADIO_ID, issued.get(7).specialEquipmentId(), "an issued item is never taken away");
         assertEquals(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID, issued.get(8).specialEquipmentId(), "the next free seat");
         assertEquals(SpecialEquipmentRegistry.SMOKE_POT_ID, issued.get(9).specialEquipmentId());
+    }
+
+    @Test
+    void aFactoryRolledCycleReceivesItsSapperAndScreenerItemsByOrdinal() {
+        SquadSupportKit kit = new SquadSupportKit(0, 0, 3, 2);
+        int charges = 0;
+        int pots = 0;
+        for (int ordinal = 0; ordinal < 6; ordinal++) {
+            MarineLoadout[] cycle = InfantryLoadoutRolls.playerSquad(6, new Random(ordinal), false, false);
+            int issued = SupportKitIssue.issueBreachKit(cycle, kit, ordinal);
+            assertEquals((kit.sapper(ordinal) ? 1 : 0) + (kit.screener(ordinal) ? 1 : 0), issued);
+            for (MarineLoadout seat : cycle) {
+                if (SpecialEquipmentRegistry.SATCHEL_CHARGE_ID.equals(seat.specialEquipmentId)) charges++;
+                if (SpecialEquipmentRegistry.SMOKE_POT_ID.equals(seat.specialEquipmentId)) pots++;
+            }
+            assertEquals(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, cycle[5].specialEquipmentId, "the launcher keeps the last seat");
+        }
+        assertEquals(2, charges);
+        assertEquals(3, pots);
+        MarineLoadout[] none = InfantryLoadoutRolls.playerSquad(6, new Random(1), false, false);
+        assertEquals(0, SupportKitIssue.issueBreachKit(none, SquadSupportKit.NONE, 2), "a kit with no sappers issues nothing");
     }
 
     @Test

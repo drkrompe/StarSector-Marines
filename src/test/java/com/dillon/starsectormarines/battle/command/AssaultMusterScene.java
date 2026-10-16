@@ -399,8 +399,9 @@ public final class AssaultMusterScene implements BehaviorScene {
                                 || s.lastHeldTick - s.lastProgressTick <= SatchelApproach.PATIENCE_TICKS + SATCHEL_PULSE_ALLOWANCE_TICKS,
                         s == null ? "no satchel record" : "held " + s.heldTicks() + " ticks, " + (s.lastHeldTick - s.lastProgressTick) + " since a further nest was answered (patience " + SatchelApproach.PATIENCE_TICKS
                                 + "), released at " + s.releasedTick + ", approach changed at " + s.approachChangedTick + " " + s.approachChange));
-                verdicts.add(Verdict.of("a-smoke-screen-asked-for-was-thrown",
-                        s == null || s.asked(SatchelApproach.Enabler.SMOKE) == 0 || !t.cloudsStood.isEmpty(),
+                verdicts.add(Verdict.of("a-smoke-screen-asked-for-was-thrown-or-ended-on-purpose",
+                        s == null || s.asked(SatchelApproach.Enabler.SMOKE) == 0 || !t.cloudsStood.isEmpty()
+                                || s.smokeLog.stream().anyMatch(line -> line.contains("withdrawn") || line.contains("retired")),
                         s == null ? "no satchel record" : s.asked(SatchelApproach.Enabler.SMOKE) + " screens ordered, " + t.cloudsStood.size()
                                 + " clouds stood (first at tick " + t.firstCloudTick + "); " + s.smokeLog));
                 verdicts.add(Verdict.of("a-held-sapper-is-waiting-on-an-action-or-has-none-available",
@@ -509,7 +510,10 @@ public final class AssaultMusterScene implements BehaviorScene {
         metrics.put("smokeCloudTicks", t.cloudTicks);
         metrics.put("ownFireOpenSamples", t.ownFireOpenSamples);
         metrics.put("ownFireBlindedSamples", t.ownFireBlindedSamples);
-        metrics.put("ownFireBlindedTicks", t.ownFireBlindedSamples * BLIND_SAMPLE_TICKS);
+        metrics.put("anyMarineBlindedTicks", t.ownFireBlindedSamples * BLIND_SAMPLE_TICKS);
+        metrics.put("baseOfFireOpenSamples", t.baseOfFireOpenSamples);
+        metrics.put("baseOfFireBlindedSamples", t.baseOfFireBlindedSamples);
+        metrics.put("ownFireBlindedTicks", t.baseOfFireBlindedSamples * BLIND_SAMPLE_TICKS);
         metrics.put("satchelReleasedBlinded", sr == null ? 0 : sr.answersAtRelease.getOrDefault(SatchelApproach.Answer.BLINDED, 0));
         metrics.put("smokeRefusedBlindsBase", sr == null ? 0 : sr.refused.getOrDefault(SatchelApproach.Refusal.BLINDS_BASE_OF_FIRE, 0));
         metrics.put("smokeRefusedStrandsSappers", sr == null ? 0 : sr.refused.getOrDefault(SatchelApproach.Refusal.STRANDS_SAPPERS, 0));
@@ -887,6 +891,9 @@ public final class AssaultMusterScene implements BehaviorScene {
         /** Marine-samples (every {@link #BLIND_SAMPLE_TICKS} ticks) with a live nest in reach and no wall between, and of those how many had smoke on the line. */
         int ownFireOpenSamples;
         int ownFireBlindedSamples;
+        /** As above for the plan's base of fire only, against the nest each fire squad is placed on. */
+        int baseOfFireOpenSamples;
+        int baseOfFireBlindedSamples;
         /** Whether a squad committed to the company ever carried a field mortar, or a forward observer's radio. */
         boolean companyCarriesTubes;
         boolean companyCarriesRadio;
@@ -955,6 +962,29 @@ public final class AssaultMusterScene implements BehaviorScene {
             }
         }
 
+        /**
+         * The base of fire's own sight: for each living member of a squad the plan has placed against a live nest, whether the line to
+         * that nest is open ground, and of those how many have smoke across it. This is the company's fire blinded by its own screen, and
+         * only that: a sapper walking inside a cloud, or an assault squad waiting behind one, is the screen doing what it was laid for.
+         */
+        private void sampleBaseOfFire(BattleSimulation sim) {
+            World w = sim.world();
+            FortAssault.SatchelRecord record = satchelRecord(this);
+            if (record == null) return;
+            for (Map.Entry<Integer, int[]> placed : record.baseOfFire.entrySet()) {
+                int count = sim.squadMemberCount(placed.getKey());
+                for (int i = 0; i < count; i++) {
+                    long member = sim.squadMemberAt(placed.getKey(), i);
+                    if (member == 0L || !w.isAlive(member)) continue;
+                    int[] nest = placed.getValue();
+                    if (Math.hypot(w.x(member) - nest[0], w.y(member) - nest[1]) > OWN_FIRE_REACH_CELLS) continue;
+                    if (sim.getGrid().firstWallOnLine(w.cellX(member), w.cellY(member), nest[0], nest[1]) != -1) continue;
+                    baseOfFireOpenSamples++;
+                    if (sim.getGrid().smokeDepthOnLine(w.x(member), w.y(member), nest[0] + 0.5f, nest[1] + 0.5f) > 0) baseOfFireBlindedSamples++;
+                }
+            }
+        }
+
         /** Records whether the committed squads carry the kit the fire-support verdicts are about. */
         private void noteCarriers(BattleSimulation sim, List<Integer> squadIds) {
             World w = sim.world();
@@ -1019,7 +1049,10 @@ public final class AssaultMusterScene implements BehaviorScene {
                 longestCloudSeconds = Math.max(longestCloudSeconds, cloud.totalDuration());
                 cloudTicks++;
             }
-            if (tick % BLIND_SAMPLE_TICKS == 0 && !sim.smokeFields().activeFields().isEmpty()) sampleOwnFire(sim);
+            if (tick % BLIND_SAMPLE_TICKS == 0 && !sim.smokeFields().activeFields().isEmpty()) {
+                sampleOwnFire(sim);
+                sampleBaseOfFire(sim);
+            }
             breach.observe(sim, tick);
             long core = fort.place(FortAspect.FIRE_CONTROL).coreId();
             float bx = sim.world().x(core);

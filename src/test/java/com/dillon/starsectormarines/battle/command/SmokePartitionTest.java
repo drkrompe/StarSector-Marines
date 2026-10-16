@@ -88,6 +88,32 @@ class SmokePartitionTest {
     }
 
     @Test
+    void aFireSquadIsReliedOnFromWhereItStandsNotOnlyWhereItWasToldToGo() {
+        // Told to fire from (4, 20), but standing at (4, 6): a cloud across the line from where it is would be missed by the planned cell alone.
+        int[] planned = {4, 20};
+        int[] actual = {4, 6};
+        List<Cloud> acrossActual = List.of(new Cloud(22.5f, 13.5f, 2.25f, LIFE));
+        List<SatchelApproach.Placement> placed = List.of(new SatchelApproach.Placement(1, SUPPRESSED_NEST, planned, actual));
+        List<Reliance> plannedOnly = SatchelApproach.reliances(
+                List.of(new SatchelApproach.Placement(1, SUPPRESSED_NEST, planned, null)));
+        assertNull(SatchelApproach.weigh(0, List.of(), acrossActual, plannedOnly, List.of(planned), List.of(), 24, OPEN, 0, 600),
+                "read from the planned cell alone the cloud looks harmless");
+        assertEquals(Refusal.BLINDS_BASE_OF_FIRE, SatchelApproach.weigh(0, List.of(), acrossActual, SatchelApproach.reliances(placed),
+                List.of(planned, actual), List.of(), 24, OPEN, 0, 600));
+    }
+
+    @Test
+    void aFireSquadOnItsWayToANestIsRelianceBeforeThatNestReadsSuppressed() {
+        // No reading is involved: the squad is merely placed against a nest believed live, and that is enough to be relied on.
+        List<Reliance> reliances = SatchelApproach.reliances(
+                List.of(new SatchelApproach.Placement(1, SUPPRESSED_NEST, BASE, BASE),
+                        new SatchelApproach.Placement(-1, null, BASE, BASE)));
+        assertEquals(2, reliances.size(), "the placed squad from its two cells; a squad placed on no live nest relies on nothing");
+        List<Cloud> across = List.of(new Cloud(22.5f, 20.5f, 2.25f, LIFE));
+        assertEquals(Refusal.BLINDS_BASE_OF_FIRE, SatchelApproach.weigh(0, List.of(), across, reliances, List.of(BASE), List.of(), 24, OPEN, 0, 600));
+    }
+
+    @Test
     void aScreenClearOfTheBaseOfFireIsLaid() {
         List<Cloud> clear = List.of(new Cloud(36.5f, 6.5f, 2.25f, LIFE));
         assertNull(SatchelApproach.weigh(0, List.of(), clear, RELIANCE, List.of(BASE), List.of(new int[] {30, 0}), 24, OPEN, 0, 600));
