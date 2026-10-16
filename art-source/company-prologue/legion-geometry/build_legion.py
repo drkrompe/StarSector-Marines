@@ -7,7 +7,7 @@ one unit about the .ship centre (150, 149), so slot, bay and engine locations
 from legion.ship are model XY unchanged. Heights are proposed art.
 
 One module per area so later passes do not collide: lg_hull (bodies, spines,
-command dome, armour belts and bow blades), lg_wings (the sponsons and their
+armour belts and bow blades), lg_bridge (the command dome), lg_wings (the sponsons and their
 four flight decks), lg_engines (engine block and the ten drive units),
 lg_turrets (the sixteen turrets on named pivots); lg_kit holds the helpers.
 
@@ -37,8 +37,8 @@ from mathutils.bvhtree import BVHTree
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-import lg_kit, lg_hull, lg_wings, lg_engines, lg_turrets
-for module in (lg_kit, lg_hull, lg_wings, lg_engines, lg_turrets):
+import lg_kit, lg_hull, lg_bridge, lg_wings, lg_engines, lg_turrets
+for module in (lg_kit, lg_hull, lg_bridge, lg_wings, lg_engines, lg_turrets):
     importlib.reload(module)
 # C2's shared camera, sun and track model (read only; pure standard library).
 sys.path.insert(0, str(HERE.parent/'second-wind-cinematic'/'patrol-abeam'))
@@ -114,6 +114,7 @@ bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
 kit = lg_kit.Kit()
 lg_hull.build(kit)
+lg_bridge.build(kit)
 lg_wings.build(kit)
 lg_engines.build(kit)
 lg_turrets.build(kit)
