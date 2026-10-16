@@ -405,6 +405,7 @@ public final class WarshipSystem {
             if (!lowPass(dt, sim, ship)) moveHull(dt, sim, ship);
             turnHull(dt, ship);
             for (Warship.Mount mount : ship.mounts()) {
+                if (mount.knockedOut()) continue;
                 if (mount.pointDefence()) {
                     boolean ordnance = WarshipAirFire.scope(ship) != WarshipAirFire.Scope.NONE
                             && pointDefence.hasTarget(sim, ship, mount, shells, strikes);
@@ -1066,7 +1067,10 @@ public final class WarshipSystem {
                 continue;
             }
             int cell = ship.entryCell(fromX, fromY, det.endpointX, det.endpointY);
+            int breachesBefore = ship.plating() == null ? 0 : ship.plating().breachCount();
             ship.takeHit(cell, det.damage, det.penetration, clock);
+            // A gun stands on the plate it was bolted to: a slot holed through takes its mount with it.
+            if (ship.plating() != null && ship.plating().breachCount() != breachesBefore) ship.knockOutBreachedMounts();
             if (Float.isNaN(strikeX) && cell >= 0) {
                 strikeX = ship.cellX(cell);
                 strikeY = ship.cellY(cell);

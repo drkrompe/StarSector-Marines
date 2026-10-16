@@ -56,6 +56,13 @@ public final class Warship {
         public float secondsSinceFired = 1000f;
         /** Rounds left in this mount's own magazine, or {@code -1} when it has none to run out of. */
         int ammoRemaining = UNLIMITED;
+        /** Whether the plating cell under this mount's slot has been holed through, taking the mount with it. */
+        boolean knockedOut;
+
+        /** Whether this mount was lost with the plating under it: it fires at nothing for the rest of the battle. */
+        public boolean knockedOut() {
+            return knockedOut;
+        }
 
         /** Rounds left in this mount's own magazine, or {@code -1} when it is unlimited. */
         public int ammoRemaining() {
@@ -809,6 +816,41 @@ public final class Warship {
         return taken;
     }
 
+    /** The plating cell a slot sits on, or -1 for a hull with no grid or a slot off the sprite's box. */
+    public int slotCell(WarshipSlot slot) {
+        if (plating == null) return -1;
+        // The slot is placed from the centre of gravity; the grid from the sprite's centre, the pivot away.
+        float u = 0.5f + (slot.localX() - pivotX) / widthCells;
+        float v = 0.5f - (slot.localY() - pivotY) / lengthCells;
+        return plating.cellAt(u, v);
+    }
+
+    /**
+     * Knocks out every mount whose slot cell has been breached, abandoning whatever it was doing; returns how many
+     * went. A mount knocked out stays out: there is no repair in a ground battle.
+     */
+    public int knockOutBreachedMounts() {
+        if (plating == null) return 0;
+        int lost = 0;
+        for (Mount m : mounts) {
+            if (m.knockedOut) continue;
+            int cell = slotCell(m.slot);
+            if (cell < 0 || !plating.breached(cell % plating.cols, cell / plating.cols)) continue;
+            m.knockedOut = true;
+            m.burstRemaining = 0;
+            m.aimed = false;
+            lost++;
+        }
+        return lost;
+    }
+
+    /** Mounts lost with their plating. */
+    public int mountsKnockedOut() {
+        int n = 0;
+        for (Mount m : mounts) if (m.knockedOut) n++;
+        return n;
+    }
+
     /** World X of a plating cell's centre. */
     public float cellX(int cell) {
         float lx = (plating.cellU(cell) - 0.5f) * widthCells;
@@ -1218,7 +1260,7 @@ public final class Warship {
 
     /** Whether {@code m} still has a round to spend, from its own magazine and the shared pool. */
     boolean hasOrdnance(Mount m) {
-        return !departing && ordnanceRemaining != 0 && m.ammoRemaining != 0;
+        return !departing && !m.knockedOut && ordnanceRemaining != 0 && m.ammoRemaining != 0;
     }
 
     /** Spends one round of {@code m}. */

@@ -209,7 +209,9 @@ public final class WarshipShipFire {
 
     /** Whether any of the ship's mounts carries a weapon that may fire at a ship. */
     static boolean armedAgainstHulls(Warship ship) {
-        for (Warship.Mount m : ship.mounts()) if (WarshipShipRules.mayFireAtHull(m.weapon)) return true;
+        for (Warship.Mount m : ship.mounts()) {
+            if (!m.knockedOut() && WarshipShipRules.mayFireAtHull(m.weapon)) return true;
+        }
         return false;
     }
 
@@ -324,7 +326,9 @@ public final class WarshipShipFire {
     static float longestReach(Warship ship) {
         float reach = 0f;
         for (Warship.Mount m : ship.mounts()) {
-            if (WarshipShipRules.gunAtHull(m.weapon)) reach = Math.max(reach, WarshipScale.cells(m.weapon.rangePx()));
+            if (WarshipShipRules.gunAtHull(m.weapon) && !m.knockedOut()) {
+                reach = Math.max(reach, WarshipScale.cells(m.weapon.rangePx()));
+            }
         }
         return reach;
     }

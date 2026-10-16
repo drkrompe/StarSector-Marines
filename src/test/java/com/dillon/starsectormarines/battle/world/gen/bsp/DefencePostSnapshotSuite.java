@@ -10,8 +10,10 @@ import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.world.MapEditor;
+import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
-import com.dillon.starsectormarines.battle.world.model.EmplacementWreck;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
@@ -69,18 +71,46 @@ public final class DefencePostSnapshotSuite implements SnapshotSuite {
             List<SnapshotArtifact> out = new ArrayList<>();
             out.add(new SnapshotArtifact("defence-posts-row.png", wide.render(sim, "defence posts / nest, medium, large")));
             out.add(new SnapshotArtifact("defence-post-medium-close.png", close.render(sim, "defence posts / medium post, close")));
-            for (String state : new String[]{"damaged", "destroyed"}) {
-                List<Doodad> shown = new ArrayList<>(doodads);
-                if (state.equals("damaged")) EmplacementWreck.damageAround(shown, 60, 30, 1);
-                else EmplacementWreck.destroyAround(shown, 60, 30, 1);
-                BattleSimulation stateSim = SceneBuilder.over(grid, topology).posts(posts).missionCompletion(false).build().sim();
-                for (Doodad doodad : shown) stateSim.addDoodad(doodad);
+            for (String state : new String[]{"worn", "damaged", "destroyed"}) {
                 out.add(new SnapshotArtifact("defence-post-medium-" + state + ".png",
-                        close.render(stateSim, "defence posts / medium post, " + state)));
+                        close.render(wornPost(state), "defence posts / medium post, " + state + " by structural hits")));
             }
             return out;
         } finally {
             TurretSlotResolver.useHullSpecs(null);
         }
+    }
+
+    /**
+     * A fresh medium post whose ring is hit through the ordinary structural channel ({@code MapEditor.damageWall}):
+     * every piece by 25 ("damaged"), by 100 ("destroyed"), or each by a different amount ("worn").
+     */
+    private BattleSimulation wornPost(String state) throws Exception {
+        NavigationGrid grid = new NavigationGrid(WIDTH, HEIGHT);
+        CellTopology topology = new CellTopology(WIDTH, HEIGHT);
+        for (int y = 0; y < HEIGHT; y++) {
+            for (int x = 0; x < WIDTH; x++) {
+                grid.setWalkableFloor(x, y);
+                topology.setGroundKind(x, y, GroundKind.DIRT);
+            }
+        }
+        List<Doodad> stamped = new ArrayList<>();
+        List<DefensePost> posts = new ArrayList<>();
+        posts.add(DefensePostStamper.stampPost(grid, topology, stamped, DefensePostKind.MEDIUM, null, 60, 30, new Random(1)));
+        DoodadService service = new DoodadService(grid);
+        for (Doodad doodad : stamped) service.addDoodad(doodad);
+        try (NavigationService navigation = new NavigationService(grid, topology, false)) {
+            MapEditor editor = new MapEditor(navigation);
+            editor.setDoodads(service);
+            int i = 0;
+            for (Doodad doodad : stamped) {
+                int amount = state.equals("damaged") ? 25 : state.equals("destroyed") ? 100 : new int[]{0, 25, 100, 25, 0, 100, 25, 0}[i % 8];
+                if (amount > 0) editor.damageWall(doodad.cellX, doodad.cellY, amount);
+                i++;
+            }
+        }
+        BattleSimulation sim = SceneBuilder.over(grid, topology).posts(posts).missionCompletion(false).build().sim();
+        for (Doodad doodad : service.getDoodads()) sim.addDoodad(doodad);
+        return sim;
     }
 }

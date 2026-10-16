@@ -17,7 +17,6 @@ import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
-import com.dillon.starsectormarines.battle.world.model.EmplacementWreck;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
@@ -132,16 +131,12 @@ public final class RenderParitySnapshotSuite implements SnapshotSuite {
                     nestCell[0] + 0.5f, nestCell[1] + 0.5f, 24f);
             artifacts.add(new SnapshotArtifact("fort-nest-close.png",
                     nestView.render(sim, "render-parity / bastion nest, 24 cells across / " + counts)));
-            for (String state : new String[]{"damaged", "destroyed"}) {
-                List<Doodad> shown = new ArrayList<>(fort.doodads());
-                if (state.equals("damaged")) EmplacementWreck.damageAround(shown, nestCell[0], nestCell[1], 1);
-                else EmplacementWreck.destroyAround(shown, nestCell[0], nestCell[1], 1);
-                BattleSimulation stateSim = SceneBuilder.over(fort.grid(), fort.topology()).posts(fort.posts())
-                        .missionCompletion(false).build().sim();
-                for (Doodad doodad : shown) stateSim.addDoodad(doodad);
-                artifacts.add(new SnapshotArtifact("fort-nest-" + state + ".png",
-                        nestView.render(stateSim, "render-parity / bastion nest, " + state)));
-            }
+            int[] mountCell = fort.placed().placement().cell(fort.placed().plan().airBatteries().get(0)[0],
+                    fort.placed().plan().airBatteries().get(0)[1]);
+            BattleReviewFrameRenderer mountView = new BattleReviewFrameRenderer(context.modRoot(), WIDTH_PX, HEIGHT_PX,
+                    mountCell[0] + 0.5f, mountCell[1] + 0.5f, 20f);
+            artifacts.add(new SnapshotArtifact("fort-aa-mount-close.png",
+                    mountView.render(sim, "render-parity / anti-air mount, 20 cells across / " + counts)));
             if (fence != null) {
                 BattleReviewFrameRenderer fenceView = new BattleReviewFrameRenderer(context.modRoot(), WIDTH_PX, HEIGHT_PX,
                         fence.cellX + 0.5f, fence.cellY + 0.5f, 56f);

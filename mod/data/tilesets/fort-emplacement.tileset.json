@@ -66,18 +66,42 @@
     },
     {
       "col": 3,
+      "description": "Parapet edge piece, exterior n.",
+      "name": "doodad.fort-emplacement-n",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "Parapet edge piece, exterior e.",
+      "name": "doodad.fort-emplacement-e",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "Parapet edge piece, exterior s.",
+      "name": "doodad.fort-emplacement-s",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "Parapet edge piece, exterior w.",
+      "name": "doodad.fort-emplacement-w",
+      "row": 0
+    },
+    {
+      "col": 7,
       "description": "Flat gun-platform cell. Plain slab with hairline cracks.",
       "name": "doodad.fort-emplacement-platform-0",
       "row": 0
     },
     {
-      "col": 4,
+      "col": 8,
       "description": "Flat gun-platform cell. Four tie-down plates and a central drain.",
       "name": "doodad.fort-emplacement-platform-1",
       "row": 0
     },
     {
-      "col": 5,
+      "col": 9,
       "description": "Flat gun-platform cell. Worn square bearing recess.",
       "name": "doodad.fort-emplacement-platform-2",
       "row": 0
@@ -85,19 +109,47 @@
   ],
   "doodads": [
     {
+      "ballisticHalfHeight": 0.5,
       "col": 3,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-n",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 4,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-e",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 5,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-s",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 6,
+      "cover": "heavy",
+      "id": "doodad.fort-emplacement-w",
+      "row": 0
+    },
+    {
+      "col": 7,
       "cover": "none",
       "id": "doodad.fort-emplacement-platform-0",
       "row": 0
     },
     {
-      "col": 4,
+      "col": 8,
       "cover": "none",
       "id": "doodad.fort-emplacement-platform-1",
       "row": 0
     },
     {
-      "col": 5,
+      "col": 9,
       "cover": "none",
       "id": "doodad.fort-emplacement-platform-2",
       "row": 0
