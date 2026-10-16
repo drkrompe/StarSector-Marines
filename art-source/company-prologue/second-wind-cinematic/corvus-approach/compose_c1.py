@@ -105,7 +105,10 @@ def frame_image(t, duration):
     u = t / duration
     cam = PUSH[0] + (PUSH[1] - PUSH[0]) * smooth(u)
     canvas = np.zeros((H, W, 3), np.float32)
-    for el in SCENE:
+    # Farthest first: a body's draw order follows its distance, so Second Wind passes behind
+    # nearer traffic once it has receded past it. Children share their parent's depth and the
+    # sort is stable, so glows and lights stay over their hull.
+    for el in sorted(SCENE, key=lambda e: e.depth_at(t)):
         if el.blink is not None and ((t + el.blink[1]) % el.blink[0]) > el.blink[0] * 0.18:
             continue
         cx, cy, s_el = el.place(t)

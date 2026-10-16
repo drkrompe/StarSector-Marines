@@ -18,9 +18,19 @@ FOCUS = (1000.0, 520.0)      # push centre, between the fleet and Jangala
 PLANET = (1290.0, 560.0)     # globe centre on the frame (interim disc and render target)
 PLANET_DIAMETER = 760.0
 TRUCK = 140.0                # pixels a depth-1.0 layer slides left over the shot
+FOCAL_PX = W * 50.0 / 36.0   # 2666.7 px: a 50 mm lens on a 36 mm sensor (render_planet.py)
+# Parallax for a body Z metres from the camera (c1-layout.md, "Scale and distance"): the camera pans
+# a little, which every body shares, and trucks about 9 m, which falls off as 1/Z.
+DEPTH_FLOOR = 0.04
+TRUCK_M = 171.4
 # Toward Corvus, in camera space (x right, y up, z toward the camera). render_planet.py's
 # SUN_IN_CAMERA; every lit layer, painted or rendered, takes its key from this.
 SUN_IN_CAMERA = (-0.62, 0.50, 0.50)
+
+
+def depth_for(z):
+    """Parallax rate of a body z metres away; Second Wind's 0.6 is at about 306 m."""
+    return DEPTH_FLOOR + TRUCK_M / z
 
 
 def latest(stem):

@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a145ef-3eb0-7e42-9a15-0131cf19fee9",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a145ef-3eb0-7e42-9a15-0131cf19fee9\\exec-456fd909-bdb9-4059-9174-55882954c7bb.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\road-and-port\\assets\\c4-looktest-v1.png",
+    "sha256": "a766e52e45d8f6ba6400d1c6e7d176e2f063772e0f5899a295f70acaf770d8b8",
+    "dimensions": [
+      1886,
+      834
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\road-and-port\\prompts\\c4-looktest-v1.txt",
+  "promptSha256": "7756e00ac42733a6dd3636125470daa7369924979e6e1ca0cd60f14594ec7fec",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: clay massing from the real C4 camera at t=15 s; keep every form, horizon and scale\nImage 2: Material/style only; approved realism look; not layout\n\nShot: a look test for a grounded, photographic science-fiction film. The view out of a descending ship's side window over the planet Jangala, late morning, about 220 metres above a flat river plain. This is one frame of a slow sideways travelling shot; the image is a single landscape plate with no window frame.\n\nImage 1 is the GEOMETRY AND LAYOUT AUTHORITY. It is a clay massing render from the real shot camera. Keep its horizon line, every band of land, the freight road, the field strips, the tree belts, the port's buildings, tanks, container stacks, cranes and towers, the launch-field tower and the climbing lifter exactly where they are, at exactly that size and that perspective. Do not move, add or remove large forms, do not change the camera, do not widen or crop. Repaint every clay surface as the real thing it stands for.\nImage 2 is MATERIAL AND STYLE REFERENCE ONLY (approved realism look for this film): natural tropical vegetation, humid daylight, atmospheric depth. Do not copy its layout, forest, river or framing.\n\nWhat the clay stands for, near to far:\n- Bottom band: crop fields in long strips parallel to the road, a two-lane freight road with worn asphalt and pale verges; heavy freight haulers (tractor plus two trailers, rust-red and grey) on the road; a dense mass of native jungle in the middle pressing against the edge of the port.\n- Right half: the freight terminal of a Hegemony-built spaceport: sawtooth-roofed freight warehouses, a truck apron with parked trailers, container stacks, light masts, a perimeter fence. Concrete is weathered and stained, roofs are corrugated metal, not pristine.\n- Middle distance: a working port district: white fuel tanks, three orange container gantry cranes, overhaul halls, a slim control tower, shuttle pads; more native growth belts between farms.\n- Far: hazy jungle plain, a launch field with lattice launch cradles, one cargo lifter climbing vertically on a bright engine plume, low blue ridges, a soft humid sky with scattered cumulus.\n\nLight: one sun, high (about 50 degrees) and BEHIND the viewer to the LEFT, so the scene is front-lit from the upper left; shadows fall to the right and away. Strong atmospheric perspective: contrast and saturation fall off and turn blue-grey with distance.\nScale: this is seen from a few hundred metres up, so trucks are small, people invisible, buildings modest. Real-world aerial photograph detail, futuristic but lived-in agricultural and industrial world.\nStyle: photographic, cinematic realism, natural colour, not a toy, miniature, tilt-shift, low-poly render, painting or cartoon. No text, labels, logos, borders, window frame or lens flares.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\road-and-port\\guides\\c4-looktest-t15-guide.png",
+      "sha256": "44f503c3290e4d4bf5eea23f530423a7a4cff9da899fb83b53be142111cf9c28",
+      "dimensions": [
+        1610,
+        712
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: clay massing from the real C4 camera at t=15 s; keep every form, horizon and scale"
+    },
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\realism-lookdev\\landscape-realism-v1.png",
+      "sha256": "c264cda903f255eabe8f1e3c12b5ad135fb4396a799d12c983a11bdd7279eadb",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material/style only; approved realism look; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the first reference for exact geometry and the second for materials and photographic style."
+  ],
+  "usage": {
+    "input_tokens": 44849,
+    "cached_input_tokens": 34176,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 727,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 64.9
+}

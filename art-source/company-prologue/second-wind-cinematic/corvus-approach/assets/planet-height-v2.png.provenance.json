@@ -1,0 +1,28 @@
+{
+  "generator": "planet_maps.py (derived, no image generation)",
+  "inputs": {
+    "assets\\planet-albedo-v2.png": "ac7dd1ecb8e5ed761ec75de5d468124c72f0b4cd6df684839f35373a47988057"
+  },
+  "script": "planet_maps.py",
+  "scriptSha256": "62325d9428a14b7ed354d02749dddc829036493f4f1282a6a5ecaefe4010476b",
+  "parameters": {
+    "interior_radii": [
+      3,
+      8,
+      20,
+      45
+    ],
+    "highland": "brown & rugged",
+    "ridge_gain": 6.0
+  },
+  "note": "Relief for the surface bump. Sea is 0; deserts stay low; ridges follow the painted ones.",
+  "output": {
+    "path": "assets\\planet-height-v2.png",
+    "sha256": "2553cc8720a76bdc4cb4da8c75c3b6620c81bb07867ab5abcb1e0e6ac563a39f",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "I;16"
+  }
+}

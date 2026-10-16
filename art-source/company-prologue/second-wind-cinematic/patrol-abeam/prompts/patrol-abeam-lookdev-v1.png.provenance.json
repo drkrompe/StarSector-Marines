@@ -1,0 +1,73 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a145eb-903b-7ff0-9f4b-64f43dbaaf13",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a145eb-903b-7ff0-9f4b-64f43dbaaf13\\exec-7d6e3ebf-8b76-43c1-b1d3-2671641795a9.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\patrol-abeam\\prompts\\patrol-abeam-lookdev-v1.png",
+    "sha256": "666470080d317b2ab97477eb5aeb3052f1a405de29950db0be8350f79829d862",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\patrol-abeam\\prompts\\patrol-abeam-lookdev-v1.txt",
+  "promptSha256": "b86e2fd6664f697ad999a29eb0f96fd03f0659fc04ef530087d5b153c2b146bd",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority: exact silhouette, pose, heading, placement and scale; fill in, never move\nImage 2: Light authority: which surfaces are sunlit and which are in deep shadow\nImage 3: Hull class identity only (top-down sprite); not the view\nImage 4: Same ship from the previous shot: materials, livery and detail only; not pose or framing\n\nUse case: sketch-to-render look test. Asset: one transparent compositing layer of a Hegemony warship passing very close beside a civilian ship's cabin window, for a grounded, photographic science-fiction cinematic (Starsector, the policed Jangala system). The camera is inside the cabin; the warship is about a hundred metres away and fills the view.\n\nImage 1 is the AUTHORITY for exact silhouette, pose, heading, placement and scale: a grey blockout hull on transparency, rendered through the shot's own camera. Fill it in. Do not move, rotate, resize, crop or re-frame it; output the SAME canvas framing and aspect as Image 1 with the hull at the same position and size, and keep every transparent area empty.\nImage 2 is the AUTHORITY for light: the same pose rendered with the shot's only light sources. Surfaces that are lit in Image 2 are lit; surfaces that are black in Image 2 stay in deep shadow.\nImage 3 identifies the hull class ONLY: the Hegemony Dominator-class heavy cruiser, a top-down game sprite (hull plan, three armoured bow lobes, barbettes, engine block). Do not copy its flat view or outlines.\nImage 4 is the SAME ship painted for an earlier shot: copy its materials, Hegemony livery (burnt orange and off-white armour plates over gunmetal structure), weathering and engineering detail ONLY; not its pose, size or framing.\n\nThe hull moves to the RIGHT, bow first: the bow lobes are at the right end, the engine block at the left end. We see its starboard broadside almost square-on and a little from above, so the near flank is a tall wall of stacked armour belts, sponsons, recessed hatches, docking hardpoints, sensor blisters and seams, and the deck above it carries turret barbettes with their barrels trained fore and aft. Real scale: the ship is 180 metres long; a hatch is two metres tall. Dense credible detail with a clear hierarchy, crisp at this close distance.\n\nLight: one sun, hard and white, from the upper left and slightly BEYOND the ship, so the deck tops, turret domes and upward-facing bevels blaze, and the near flank facing the camera is in deep shadow. In space there is no ambient light and no fill: the shadowed flank is near black, lifted only by faint cool blue light from the planet below (strongest on downward-facing surfaces), enough to make out the largest armour belts and a few pinpoint red and white running lights. Shadows are hard-edged and black. Small blue-white engine glow at the stern nozzles.\n\nStyle: photographic, cinematic gritty realism, as if shot on a real camera with a wide lens; tactile weathered metal; not a toy, game sprite, low-poly render or cartoon. No lens flares, bloom, motion streaks.\nTRUE TRANSPARENT background everywhere around the ship, including negative spaces. No planet, stars, space backdrop, window frame, cabin, other ships, labels, border or text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\patrol-abeam\\guides\\patrol-pose-abeam.png",
+      "sha256": "a138f2af64dd16a38d9a2ccae25167c4dc6c2078de794217d363be9f14f8cc4c",
+      "dimensions": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority: exact silhouette, pose, heading, placement and scale; fill in, never move"
+    },
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\patrol-abeam\\guides\\patrol-light-abeam.png",
+      "sha256": "8251ab1197461caa311ecff7199767f35794fb0bfa5c2283e7e6d76332f151db",
+      "dimensions": [
+        3840,
+        2160
+      ],
+      "mode": "RGBA",
+      "role": "Light authority: which surfaces are sunlit and which are in deep shadow"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Fractal Softworks\\Starsector\\starsector-core\\graphics\\ships\\dominator\\dominator_hegemony.png",
+      "sha256": "cee71841c3e7d1992915a1cf1766470266b205a37e706ad3a60c0a53f988b30f",
+      "dimensions": [
+        220,
+        180
+      ],
+      "mode": "RGBA",
+      "role": "Hull class identity only (top-down sprite); not the view"
+    },
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\assets\\heg-hero-v2.png",
+      "sha256": "233796ef9e1b447a433c00c0e042b7afa503fdd7bc0cd8f43639785a8ff1b607",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGBA",
+      "role": "Same ship from the previous shot: materials, livery and detail only; not pose or framing"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent render, keeping the first image’s geometry and framing and the second image’s lighting.\n"
+  ],
+  "usage": {
+    "input_tokens": 53849,
+    "cached_input_tokens": 38528,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 945,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 62.9
+}
