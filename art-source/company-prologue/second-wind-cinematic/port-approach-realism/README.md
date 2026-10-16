@@ -1,5 +1,9 @@
 # Port approach realism / shot 04
 
+The [refined working port](../port-refinement/README.md) supersedes this early
+architecture pass with a varied district, road traffic, Hound/Venture parallax
+cards and a joined terrain/pavement boundary. This source proof remains retained.
+
 A first textured motion study derived from `layered-next-scenes.blend`, using
 camera `04 PORT / side window`. The world remains rebased around the ship.
 Output index `i=0..95` samples source frame `400 + 0.5*i` at the original

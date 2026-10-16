@@ -1,0 +1,58 @@
+{
+  "scene_sha256": "4c5482c78e496ebd9d1b864489389491087d474b752a0c5a5255c6d9b0b10877",
+  "stage": "Textured working-port motion study with independent airborne Hound and Venture cards",
+  "movies": [
+    {
+      "file": "jangala-port-refined.mp4",
+      "sha256": "1ccbbfdfff7cf2a2c232c85a6502eb453559fb29ae0d94717ef9a547c69f83b4",
+      "duration": 4,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "playback_rate": 1,
+      "total_video_frames": 96,
+      "dropped_frames": 0,
+      "video_frame_callbacks": 96,
+      "last_presented_frame": 96,
+      "wall_milliseconds": 4038.1
+    },
+    {
+      "file": "jangala-approach-refined.mp4",
+      "sha256": "39dd31971e0dd54c3c6f9caf377785c278f385d34403e31351297050adc949bc",
+      "duration": 12,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "playback_rate": 1,
+      "total_video_frames": 288,
+      "dropped_frames": 0,
+      "video_frame_callbacks": 288,
+      "last_presented_frame": 288,
+      "wall_milliseconds": 12023.2
+    }
+  ],
+  "review_method": [
+    "Full-resolution 1920x1080 final scene frames at output indices 0,48,95 inspected.",
+    "Both encoded movies played at normal speed in the Codex in-app browser through a temporary loopback-only server; video-frame callbacks and browser playback quality recorded.",
+    "Browser screenshots sampled actual playback and completed playback. This is not a frame-by-frame perceptual inspection of all encoded frames."
+  ],
+  "findings": [
+    "Hound and deeper multi-deck Venture are visibly airborne, with support cradles removed and powered-flight cues.",
+    "Separate constant-orientation cards and independent linear source motion stay clear of buildings through the full sampled move.",
+    "The paved perimeter meets adjoining terrain without the former detached bright strip in reviewed frames; geometry and negative-control evidence are separate.",
+    "Near buildings, tanks, roads and three road vehicles provide distinct parallax depths; vehicle visibility is at least one readable throughout, at least two in85of96 samples.",
+    "Architecture finish is limited to fully covered near-object faces; whole-face material fallback avoids projected cabin fragments or an internal projection-edge seam."
+  ],
+  "rejected_studies": [
+    "Grounded v1/v2 cards passed midpoint foot-anchor arithmetic but failed moving-camera visual contact. They are not accepted ground-contact technique.",
+    "Architecture projection onto clipped or rear faces produced cabin-frame contamination and ship ghosts; final build limits whole-face coverage and source Y<=650."
+  ],
+  "limits": [
+    "Fixed-aspect ship imagery is not coherent rotating hull geometry, and does not establish landing or contact mechanics.",
+    "Large aprons, native-material building faces and simple distant structures retain a visible model-based study character; finer art direction remains reviewable.",
+    "Painted card lighting does not dynamically relight; background geography and vessel dimensions/speeds are authored.",
+    "Twelve-second cut contains editorial time gaps and retains the forest shot's warmer/wider cabin treatment; no narration, audio or game playback integration."
+  ]
+}

@@ -50,6 +50,39 @@ finish at their small screen footprint, but did not register internal panels.
 Record that distinction explicitly; do not promote a bounds-aligned projection
 to a coherent UV texture or use it as evidence for a rotating hero hull.
 
+## Supporting vessels at a fixed aspect
+
+A supporting vessel seen from nearly one aspect can use its own world-root
+parallax card. Guide the artwork with the vanilla silhouette for identity and a
+rough model for viewpoint and placement. Check the resulting hull itself: slab
+extrusion alone does not make a convincing large ship. Establish hull depth,
+vertical deck hierarchy and small human-scale doors, windows and service details.
+The [port refinement study](../../../../art-source/company-prologue/second-wind-cinematic/port-refinement/README.md)
+uses independently flying Hound and Venture cards with cradles removed; these
+do not establish grounded contact, rotating or multiangle hull coverage.
+
+Generated artwork can move silhouette bounds and support feet despite explicit
+preservation instructions. Measure actual alpha bounds, recalibrate projected
+width and any foot anchor in full-canvas coordinates. Calibration is necessary
+placement work, not acceptance of physical contact. Review every camera endpoint
+and intermediate structure occlusion. Inspect alpha values
+directly: soft field-colored RGB under alpha zero is transparent, not an opaque
+halo. Viewer backgrounds alone cannot establish a cutout defect.
+
+Keep the card at a deliberate physical depth under the scenery world root, with
+real foreground occlusion and correctly sorted transparency. A fixed orientation
+may suit this limited camera move; automatic look-at rotation every frame can
+make a ship swivel. Review the full move for exposed flatness and changing
+apparent scale before accepting the representation.
+
+Grounded cards in this study failed under camera travel: aligning one selected
+painted foot at the midpoint could not keep the depicted 3D support plane in
+contact as perspective changed. If contact matters, use grounded 3D geometry
+with a registered finish and verify the actual supports throughout the move.
+For fixed-aspect traffic, independently moving airborne cards avoid that false
+grounding claim; retain their actual depth, trajectories and limits as in the
+[air-traffic registration](../../../../art-source/company-prologue/second-wind-cinematic/port-refinement/airtraffic-registration.json).
+
 ## Second Wind identity and state
 
 | Source | Authority |

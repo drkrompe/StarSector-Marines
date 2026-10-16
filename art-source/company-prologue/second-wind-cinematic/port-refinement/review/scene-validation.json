@@ -1,0 +1,2418 @@
+{
+  "passed": true,
+  "checks": {
+    "saved_camera_is_retained_port_camera": true,
+    "no_camera_marker_override": true,
+    "all_file_images_exist": true,
+    "all_file_images_relative": true,
+    "actual_saved_ground_passes": true,
+    "actual_saved_traffic_passes": true,
+    "actual_saved_ship_card_contracts_pass": true,
+    "actual_saved_architecture_projector_pass": true,
+    "171_ship_meshes_compared": true,
+    "ship_mesh_geometry_identical_to_retained_source": true,
+    "ship_component_local_assembly_unchanged": true,
+    "camera_intrinsics_match_retained_source": true,
+    "all_96_camera_transforms_match_source": true,
+    "all_96_inverse_world_transforms_match_source": true,
+    "all_96_ship_root_transforms_match_source": true
+  },
+  "scene_sha256": "4c5482c78e496ebd9d1b864489389491087d474b752a0c5a5255c6d9b0b10877",
+  "source_scene": "../port-approach-realism/port-approach-realism.blend",
+  "source_sha256": "0b737777f455809e3127a3895ff201faeb93d397d5f6b66c4de27bc1c20ae8e3",
+  "timing": "Source frames 400+0.5i at12fps, i=0..95; actual half-frame animation sampled for24fps output",
+  "sample_count": 96,
+  "ship_meshes_compared": 171,
+  "ship_geometry_differences": {
+    "missing": [],
+    "added": [],
+    "changed": []
+  },
+  "max_matrix_errors": {
+    "04 PORT / side window": 0,
+    "LAYERED | inverse source flight": 0,
+    "SECOND WIND | flight root": 0
+  },
+  "camera_intrinsics": {
+    "lens": 26.0,
+    "sensor_width": 36.0,
+    "sensor_height": 24.0,
+    "sensor_fit": "AUTO",
+    "shift_x": 0.0,
+    "shift_y": 0.0,
+    "clip_start": 0.05999999865889549,
+    "clip_end": 60000.0
+  },
+  "images": [
+    {
+      "name": "cabin-realism-v2.png",
+      "path": "//..\\managed-land-realism\\assets\\cabin-realism-v2.png",
+      "relative": true,
+      "exists": true
+    },
+    {
+      "name": "environment-realism-v1.png",
+      "path": "//..\\managed-land-realism\\assets\\environment-realism-v1.png",
+      "relative": true,
+      "exists": true
+    },
+    {
+      "name": "field-detail-realism-v1.png",
+      "path": "//..\\managed-land-realism\\assets\\field-detail-realism-v1.png",
+      "relative": true,
+      "exists": true
+    },
+    {
+      "name": "fields-realism-v1.png",
+      "path": "//..\\managed-land-realism\\assets\\fields-realism-v1.png",
+      "relative": true,
+      "exists": true
+    },
+    {
+      "name": "hills-realism-v2.png.001",
+      "path": "//..\\managed-land-realism\\assets\\hills-realism-v2.png",
+      "relative": true,
+      "exists": true
+    },
+    {
+      "name": "hound-card-v3-flight.png",
+      "path": "//assets\\hound-card-v3-flight.png",
+      "relative": true,
+      "exists": true
+    },
+    {
+      "name": "hound-skin-v1.png",
+      "path": "//assets\\hound-skin-v1.png",
+      "relative": true,
+      "exists": true
+    },
+    {
+      "name": "industrial-materials-v1.png",
+      "path": "//..\\port-approach-realism\\assets\\industrial-materials-v1.png",
+      "relative": true,
+      "exists": true
+    },
+    {
+      "name": "managed-turf-v1.png",
+      "path": "//..\\port-approach-realism\\assets\\managed-turf-v1.png",
+      "relative": true,
+      "exists": true
+    },
+    {
+      "name": "port-architecture-finish-v1.png",
+      "path": "//assets\\port-architecture-finish-v1.png",
+      "relative": true,
+      "exists": true
+    },
+    {
+      "name": "secondary-materials-v1.png",
+      "path": "//assets\\secondary-materials-v1.png",
+      "relative": true,
+      "exists": true
+    },
+    {
+      "name": "sky-realism-v1.png",
+      "path": "//..\\managed-land-realism\\assets\\sky-realism-v1.png",
+      "relative": true,
+      "exists": true
+    },
+    {
+      "name": "venture-card-v3-flight.png",
+      "path": "//assets\\venture-card-v3-flight.png",
+      "relative": true,
+      "exists": true
+    },
+    {
+      "name": "venture-skin-v1.png",
+      "path": "//assets\\venture-skin-v1.png",
+      "relative": true,
+      "exists": true
+    },
+    {
+      "name": "woodland-realism-v1.png.001",
+      "path": "//..\\managed-land-realism\\assets\\woodland-realism-v1.png",
+      "relative": true,
+      "exists": true
+    }
+  ],
+  "ground": {
+    "passed": true,
+    "checks": {
+      "terrain_no_covered_faces": true,
+      "terrain_boundary_matches_top": true,
+      "top_area_matches_footprint": true,
+      "one_visible_ground_owner": true,
+      "grade_returns_to_original_elevation": true
+    },
+    "boundary_samples": 81,
+    "max_boundary_height_error": 5.960464455334602e-09,
+    "top_area": 5076000.0,
+    "expected_area": 5076000,
+    "interior_ray_samples": 323,
+    "ownership_failures": [],
+    "grade_return_samples": 88,
+    "max_grade_return_error": 0.0
+  },
+  "traffic": {
+    "status": "PASS",
+    "sample_count": 96,
+    "vehicle_count": 3,
+    "failures": [],
+    "clearance_method": "Conservative mesh bounds in source world; reserved road and supplied building envelopes. Visual contact/render review separate."
+  },
+  "parked_supports": {
+    "passed": true,
+    "parked_root_count": 2,
+    "foot_count": 16,
+    "feet": [
+      {
+        "object": "PARKED | venture | service support foot",
+        "render_visible": false,
+        "bottom_z": 0.4000000059604645,
+        "corner_gaps": [
+          3.662705421447754e-05,
+          -8.544325828552246e-05,
+          3.662705421447754e-05,
+          3.662705421447754e-05
+        ],
+        "passed": true
+      },
+      {
+        "object": "PARKED | venture | service support foot.001",
+        "render_visible": false,
+        "bottom_z": 0.4000000059604645,
+        "corner_gaps": [
+          9.766221046447754e-05,
+          3.662705421447754e-05,
+          -8.544325828552246e-05,
+          9.766221046447754e-05
+        ],
+        "passed": true
+      },
+      {
+        "object": "PARKED | venture | service support foot.002",
+        "render_visible": false,
+        "bottom_z": 0.4000000059604645,
+        "corner_gaps": [
+          -2.440810203552246e-05,
+          -8.544325828552246e-05,
+          -8.544325828552246e-05,
+          -2.440810203552246e-05
+        ],
+        "passed": true
+      },
+      {
+        "object": "PARKED | venture | service support foot.003",
+        "render_visible": false,
+        "bottom_z": 0.4000000059604645,
+        "corner_gaps": [
+          -2.440810203552246e-05,
+          3.662705421447754e-05,
+          -8.544325828552246e-05,
+          -2.440810203552246e-05
+        ],
+        "passed": true
+      },
+      {
+        "object": "PARKED | venture | maintenance platform grounded foot",
+        "render_visible": false,
+        "bottom_z": 0.4000000059604645,
+        "corner_gaps": [
+          -8.544325828552246e-05,
+          -8.544325828552246e-05,
+          -8.544325828552246e-05,
+          3.662705421447754e-05
+        ],
+        "passed": true
+      },
+      {
+        "object": "PARKED | venture | maintenance platform grounded foot.001",
+        "render_visible": false,
+        "bottom_z": 0.4000000059604645,
+        "corner_gaps": [
+          3.662705421447754e-05,
+          3.662705421447754e-05,
+          -8.544325828552246e-05,
+          3.662705421447754e-05
+        ],
+        "passed": true
+      },
+      {
+        "object": "PARKED | venture | maintenance platform grounded foot.002",
+        "render_visible": false,
+        "bottom_z": 0.4000000059604645,
+        "corner_gaps": [
+          3.662705421447754e-05,
+          3.662705421447754e-05,
+          -2.440810203552246e-05,
+          -2.440810203552246e-05
+        ],
+        "passed": true
+      },
+      {
+        "object": "PARKED | venture | maintenance platform grounded foot.003",
+        "render_visible": false,
+        "bottom_z": 0.4000000059604645,
+        "corner_gaps": [
+          3.662705421447754e-05,
+          3.662705421447754e-05,
+          3.662705421447754e-05,
+          -8.544325828552246e-05
+        ],
+        "passed": true
+      },
+      {
+        "object": "PARKED | hound | service support foot",
+        "render_visible": false,
+        "bottom_z": 0.4000000059604645,
+        "corner_gaps": [
+          3.662705421447754e-05,
+          -2.440810203552246e-05,
+          3.662705421447754e-05,
+          3.662705421447754e-05
+        ],
+        "passed": true
+      },
+      {
+        "object": "PARKED | hound | service support foot.001",
+        "render_visible": false,
+        "bottom_z": 0.4000000059604645,
+        "corner_gaps": [
+          3.662705421447754e-05,
+          -8.544325828552246e-05,
+          -2.440810203552246e-05,
+          3.662705421447754e-05
+        ],
+        "passed": true
+      },
+      {
+        "object": "PARKED | hound | service support foot.002",
+        "render_visible": false,
+        "bottom_z": 0.4000000059604645,
+        "corner_gaps": [
+          -8.544325828552246e-05,
+          -2.440810203552246e-05,
+          3.662705421447754e-05,
+          3.662705421447754e-05
+        ],
+        "passed": true
+      },
+      {
+        "object": "PARKED | hound | service support foot.003",
+        "render_visible": false,
+        "bottom_z": 0.4000000059604645,
+        "corner_gaps": [
+          3.662705421447754e-05,
+          3.662705421447754e-05,
+          3.662705421447754e-05,
+          -2.440810203552246e-05
+        ],
+        "passed": true
+      },
+      {
+        "object": "PARKED | hound | maintenance platform grounded foot",
+        "render_visible": false,
+        "bottom_z": 0.4000000059604645,
+        "corner_gaps": [
+          -2.440810203552246e-05,
+          -2.440810203552246e-05,
+          -2.440810203552246e-05,
+          -2.440810203552246e-05
+        ],
+        "passed": true
+      },
+      {
+        "object": "PARKED | hound | maintenance platform grounded foot.001",
+        "render_visible": false,
+        "bottom_z": 0.4000000059604645,
+        "corner_gaps": [
+          -2.440810203552246e-05,
+          3.662705421447754e-05,
+          3.662705421447754e-05,
+          3.662705421447754e-05
+        ],
+        "passed": true
+      },
+      {
+        "object": "PARKED | hound | maintenance platform grounded foot.002",
+        "render_visible": false,
+        "bottom_z": 0.4000000059604645,
+        "corner_gaps": [
+          -8.544325828552246e-05,
+          -8.544325828552246e-05,
+          3.662705421447754e-05,
+          3.662705421447754e-05
+        ],
+        "passed": true
+      },
+      {
+        "object": "PARKED | hound | maintenance platform grounded foot.003",
+        "render_visible": false,
+        "bottom_z": 0.4000000059604645,
+        "corner_gaps": [
+          -2.440810203552246e-05,
+          3.662705421447754e-05,
+          -8.544325828552246e-05,
+          3.662705421447754e-05
+        ],
+        "passed": true
+      }
+    ],
+    "max_source_stationary_error": 6.103515625e-05,
+    "evidence_scope": "Rejected grounded-study hidden guides only; no acceptance evidence for airborne cards.",
+    "limits": "Bottom-corner/ground contacts and stationary guide roots only; no complete structural-load, depicted card support contact, or hull-clearance proof."
+  },
+  "ship_cards": {
+    "present": true,
+    "representation": "Independent airborne source-motion cards",
+    "passed": true,
+    "cards": [
+      {
+        "object": "SHIP CARD | hound",
+        "id": "hound",
+        "passed": true,
+        "checks": {
+          "visible": true,
+          "source_world_parent": true,
+          "one_quad_four_vertices": true,
+          "actual_contract_matches_retained_registration": true,
+          "quad_dimensions_match_contract": true,
+          "unit_canvas_uvs": true,
+          "registered_canvas_dimensions": true,
+          "transparent_canvas_corners": true,
+          "registered_straight_alpha_material": true,
+          "rough_geometry_guides_hidden": true,
+          "linear_source_motion_all96": true,
+          "fixed_source_orientation_all96": true,
+          "full_quad_positive_source_altitude": true,
+          "above_overlapped_district_bounds": true,
+          "full_quad_in_clear_window_all96": true
+        },
+        "images": [
+          {
+            "path": "//assets\\hound-card-v3-flight.png",
+            "size": [
+              2048,
+              768
+            ],
+            "alpha_corners": [
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "max_linear_motion_error_metres": 6.103515625e-05,
+        "max_source_orientation_error": 0,
+        "min_full_quad_source_height_metres": 100.61537170410156,
+        "min_conservative_district_clearance_metres": null,
+        "nearest_overlapped_obstacle": null,
+        "samples": [
+          {
+            "frame": 400.0,
+            "bounds": [
+              0.6958605647087097,
+              0.7428845167160034,
+              0.7367693781852722,
+              0.7681186199188232
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 400.5,
+            "bounds": [
+              0.6948466897010803,
+              0.7419271469116211,
+              0.7368444204330444,
+              0.7682313323020935
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 401.0,
+            "bounds": [
+              0.6938303709030151,
+              0.7409675121307373,
+              0.7369195818901062,
+              0.7683443427085876
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 401.5,
+            "bounds": [
+              0.6928114891052246,
+              0.740005373954773,
+              0.7369949221611023,
+              0.7684575319290161
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 402.0,
+            "bounds": [
+              0.6917902827262878,
+              0.7390411496162415,
+              0.7370705008506775,
+              0.7685710787773132
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 402.5,
+            "bounds": [
+              0.6907665133476257,
+              0.7380744814872742,
+              0.7371461987495422,
+              0.7686848640441895
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 403.0,
+            "bounds": [
+              0.6897403001785278,
+              0.7371054887771606,
+              0.7372221350669861,
+              0.7687988877296448
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 403.5,
+            "bounds": [
+              0.6887115836143494,
+              0.7361341118812561,
+              0.7372982501983643,
+              0.768913209438324
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 404.0,
+            "bounds": [
+              0.6876804828643799,
+              0.7351604700088501,
+              0.737374484539032,
+              0.7690278887748718
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 404.5,
+            "bounds": [
+              0.6866466999053955,
+              0.7341843247413635,
+              0.7374509572982788,
+              0.769142746925354
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 405.0,
+            "bounds": [
+              0.6856105327606201,
+              0.7332059741020203,
+              0.7375276684761047,
+              0.7692579030990601
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 405.5,
+            "bounds": [
+              0.6845718026161194,
+              0.7322251796722412,
+              0.7376044988632202,
+              0.76937335729599
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 406.0,
+            "bounds": [
+              0.6835305094718933,
+              0.7312419414520264,
+              0.73768150806427,
+              0.7694891095161438
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 406.5,
+            "bounds": [
+              0.6824866533279419,
+              0.7302563190460205,
+              0.7377586960792542,
+              0.7696051001548767
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 407.0,
+            "bounds": [
+              0.6814404129981995,
+              0.7292683720588684,
+              0.7378361225128174,
+              0.7697214484214783
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 407.5,
+            "bounds": [
+              0.6803914308547974,
+              0.7282779216766357,
+              0.7379137277603149,
+              0.7698379755020142
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 408.0,
+            "bounds": [
+              0.6793399453163147,
+              0.7272850275039673,
+              0.737991452217102,
+              0.7699549198150635
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 408.5,
+            "bounds": [
+              0.6782858967781067,
+              0.7262898087501526,
+              0.738069474697113,
+              0.7700720429420471
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 409.0,
+            "bounds": [
+              0.6772292256355286,
+              0.7252920269966125,
+              0.7381476163864136,
+              0.7701894640922546
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 409.5,
+            "bounds": [
+              0.6761700510978699,
+              0.7242918610572815,
+              0.7382259964942932,
+              0.7703072428703308
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 410.0,
+            "bounds": [
+              0.6751081943511963,
+              0.7232892513275146,
+              0.7383045554161072,
+              0.7704252600669861
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 410.5,
+            "bounds": [
+              0.6740437150001526,
+              0.7222840785980225,
+              0.7383832931518555,
+              0.7705435156822205
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 411.0,
+            "bounds": [
+              0.6729766130447388,
+              0.7212764620780945,
+              0.7384622097015381,
+              0.7706621885299683
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 411.5,
+            "bounds": [
+              0.6719069480895996,
+              0.7202664613723755,
+              0.7385413646697998,
+              0.7707810401916504
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 412.0,
+            "bounds": [
+              0.670834481716156,
+              0.7192537784576416,
+              0.7386206984519958,
+              0.7709002494812012
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 412.5,
+            "bounds": [
+              0.6697595119476318,
+              0.7182387709617615,
+              0.7387002110481262,
+              0.7710197567939758
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 413.0,
+            "bounds": [
+              0.668681800365448,
+              0.717221200466156,
+              0.7387799620628357,
+              0.7711395025253296
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 413.5,
+            "bounds": [
+              0.6676014065742493,
+              0.7162010073661804,
+              0.7388598322868347,
+              0.7712595462799072
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 414.0,
+            "bounds": [
+              0.6665183305740356,
+              0.7151784300804138,
+              0.7389400005340576,
+              0.7713800072669983
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 414.5,
+            "bounds": [
+              0.6654326915740967,
+              0.7141531705856323,
+              0.7390202879905701,
+              0.7715006470680237
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 415.0,
+            "bounds": [
+              0.6643441915512085,
+              0.7131254076957703,
+              0.7391008138656616,
+              0.7716216444969177
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 415.5,
+            "bounds": [
+              0.6632530689239502,
+              0.7120950818061829,
+              0.7391815185546875,
+              0.7717428803443909
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 416.0,
+            "bounds": [
+              0.6621591448783875,
+              0.7110622525215149,
+              0.7392624616622925,
+              0.7718645334243774
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 416.5,
+            "bounds": [
+              0.661062479019165,
+              0.7100266814231873,
+              0.7393435835838318,
+              0.7719863653182983
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 417.0,
+            "bounds": [
+              0.6599631309509277,
+              0.7089886665344238,
+              0.7394248843193054,
+              0.7721086144447327
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 417.5,
+            "bounds": [
+              0.658860981464386,
+              0.7079479694366455,
+              0.7395064234733582,
+              0.7722311019897461
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 418.0,
+            "bounds": [
+              0.6577561497688293,
+              0.7069047093391418,
+              0.7395881414413452,
+              0.7723538875579834
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 418.5,
+            "bounds": [
+              0.6566484570503235,
+              0.7058587670326233,
+              0.7396700978279114,
+              0.7724769711494446
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 419.0,
+            "bounds": [
+              0.6555379629135132,
+              0.7048102617263794,
+              0.7397522926330566,
+              0.7726004123687744
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 419.5,
+            "bounds": [
+              0.6544246673583984,
+              0.7037590146064758,
+              0.7398346066474915,
+              0.7727241516113281
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 420.0,
+            "bounds": [
+              0.653308629989624,
+              0.7027052044868469,
+              0.7399171590805054,
+              0.7728482484817505
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 420.5,
+            "bounds": [
+              0.6521897315979004,
+              0.7016487121582031,
+              0.7399999499320984,
+              0.772972583770752
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 421.0,
+            "bounds": [
+              0.6510680317878723,
+              0.7005895972251892,
+              0.7400829195976257,
+              0.7730972766876221
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 421.5,
+            "bounds": [
+              0.6499435305595398,
+              0.6995276808738708,
+              0.7401661276817322,
+              0.7732222676277161
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 422.0,
+            "bounds": [
+              0.6488160490989685,
+              0.6984631419181824,
+              0.740249514579773,
+              0.7733475565910339
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 422.5,
+            "bounds": [
+              0.6476857662200928,
+              0.6973958611488342,
+              0.740333080291748,
+              0.7734731435775757
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 423.0,
+            "bounds": [
+              0.6465526223182678,
+              0.6963258981704712,
+              0.740416944026947,
+              0.7735991477966309
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 423.5,
+            "bounds": [
+              0.6454166173934937,
+              0.695253312587738,
+              0.7405009269714355,
+              0.7737253904342651
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 424.0,
+            "bounds": [
+              0.6442776918411255,
+              0.6941778659820557,
+              0.740585207939148,
+              0.7738519906997681
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 424.5,
+            "bounds": [
+              0.6431359052658081,
+              0.6930997371673584,
+              0.7406696677207947,
+              0.7739788889884949
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 425.0,
+            "bounds": [
+              0.641991138458252,
+              0.6920187473297119,
+              0.7407543659210205,
+              0.7741061449050903
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 425.5,
+            "bounds": [
+              0.640843391418457,
+              0.6909350752830505,
+              0.7408392429351807,
+              0.7742336988449097
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 426.0,
+            "bounds": [
+              0.6396927833557129,
+              0.6898485422134399,
+              0.7409244179725647,
+              0.7743616104125977
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 426.5,
+            "bounds": [
+              0.6385392546653748,
+              0.6887593865394592,
+              0.7410097122192383,
+              0.7744897603988647
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 427.0,
+            "bounds": [
+              0.6373827457427979,
+              0.6876673102378845,
+              0.7410953044891357,
+              0.7746183276176453
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 427.5,
+            "bounds": [
+              0.6362231969833374,
+              0.6865724921226501,
+              0.7411810755729675,
+              0.7747472524642944
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 428.0,
+            "bounds": [
+              0.635060727596283,
+              0.6854748129844666,
+              0.7412670850753784,
+              0.7748764157295227
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 428.5,
+            "bounds": [
+              0.633895218372345,
+              0.6843743324279785,
+              0.7413532733917236,
+              0.7750059962272644
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 429.0,
+            "bounds": [
+              0.632726788520813,
+              0.6832709312438965,
+              0.741439700126648,
+              0.77513587474823
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 429.5,
+            "bounds": [
+              0.6315552592277527,
+              0.6821647882461548,
+              0.7415263652801514,
+              0.7752660512924194
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 430.0,
+            "bounds": [
+              0.6303806304931641,
+              0.6810557246208191,
+              0.7416132688522339,
+              0.7753966450691223
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 430.5,
+            "bounds": [
+              0.6292030215263367,
+              0.6799437403678894,
+              0.7417003512382507,
+              0.7755275368690491
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 431.0,
+            "bounds": [
+              0.6280224323272705,
+              0.6788290143013,
+              0.7417877316474915,
+              0.7756587266921997
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 431.5,
+            "bounds": [
+              0.626838743686676,
+              0.6777112483978271,
+              0.7418752908706665,
+              0.775790274143219
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 432.0,
+            "bounds": [
+              0.6256519556045532,
+              0.676590621471405,
+              0.7419630289077759,
+              0.7759221792221069
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 432.5,
+            "bounds": [
+              0.6244620680809021,
+              0.6754670739173889,
+              0.7420510649681091,
+              0.7760545015335083
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 433.0,
+            "bounds": [
+              0.6232690215110779,
+              0.6743406057357788,
+              0.7421393394470215,
+              0.7761870622634888
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 433.5,
+            "bounds": [
+              0.6220729351043701,
+              0.6732111573219299,
+              0.7422277927398682,
+              0.7763199806213379
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 434.0,
+            "bounds": [
+              0.6208736896514893,
+              0.6720788478851318,
+              0.7423165440559387,
+              0.7764533162117004
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 434.5,
+            "bounds": [
+              0.6196713447570801,
+              0.670943558216095,
+              0.7424054741859436,
+              0.7765869498252869
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 435.0,
+            "bounds": [
+              0.618465781211853,
+              0.6698052287101746,
+              0.7424946427345276,
+              0.7767208814620972
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 435.5,
+            "bounds": [
+              0.6172571182250977,
+              0.6686639189720154,
+              0.7425840497016907,
+              0.7768552899360657
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 436.0,
+            "bounds": [
+              0.6160451769828796,
+              0.6675195693969727,
+              0.7426736950874329,
+              0.7769899368286133
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 436.5,
+            "bounds": [
+              0.6148301362991333,
+              0.6663722395896912,
+              0.7427635788917542,
+              0.7771250605583191
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 437.0,
+            "bounds": [
+              0.6136119365692139,
+              0.6652219891548157,
+              0.7428537011146545,
+              0.777260422706604
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 437.5,
+            "bounds": [
+              0.6123904585838318,
+              0.6640686392784119,
+              0.742944061756134,
+              0.7773962020874023
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 438.0,
+            "bounds": [
+              0.6111657619476318,
+              0.6629121899604797,
+              0.7430346608161926,
+              0.7775322794914246
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 438.5,
+            "bounds": [
+              0.6099377870559692,
+              0.6617527008056641,
+              0.7431254982948303,
+              0.777668833732605
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 439.0,
+            "bounds": [
+              0.608706533908844,
+              0.6605901122093201,
+              0.7432165741920471,
+              0.7778056859970093
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 439.5,
+            "bounds": [
+              0.6074720621109009,
+              0.6594244837760925,
+              0.7433079481124878,
+              0.7779428958892822
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 440.0,
+            "bounds": [
+              0.6062343716621399,
+              0.6582557559013367,
+              0.743399441242218,
+              0.778080403804779
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 440.5,
+            "bounds": [
+              0.6049933433532715,
+              0.6570839285850525,
+              0.7434912919998169,
+              0.7782183289527893
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 441.0,
+            "bounds": [
+              0.6037489771842957,
+              0.65590900182724,
+              0.7435833215713501,
+              0.778356671333313
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 441.5,
+            "bounds": [
+              0.6025013327598572,
+              0.6547309160232544,
+              0.7436756491661072,
+              0.7784953117370605
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 442.0,
+            "bounds": [
+              0.6012502908706665,
+              0.6535496711730957,
+              0.7437682151794434,
+              0.7786343693733215
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 442.5,
+            "bounds": [
+              0.5999959707260132,
+              0.6523652672767639,
+              0.7438609600067139,
+              0.778773844242096
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 443.0,
+            "bounds": [
+              0.5987382531166077,
+              0.651177704334259,
+              0.7439540028572083,
+              0.7789136171340942
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 443.5,
+            "bounds": [
+              0.5974771976470947,
+              0.6499869227409363,
+              0.7440472841262817,
+              0.7790537476539612
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 444.0,
+            "bounds": [
+              0.5962127447128296,
+              0.6487929821014404,
+              0.7441408634185791,
+              0.7791942954063416
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 444.5,
+            "bounds": [
+              0.5949448943138123,
+              0.6475957632064819,
+              0.7442346215248108,
+              0.7793352007865906
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 445.0,
+            "bounds": [
+              0.593673586845398,
+              0.6463953852653503,
+              0.7443286776542664,
+              0.7794765830039978
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 445.5,
+            "bounds": [
+              0.5923988819122314,
+              0.6451917886734009,
+              0.7444229125976562,
+              0.7796182036399841
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 446.0,
+            "bounds": [
+              0.591120719909668,
+              0.643984854221344,
+              0.7445175051689148,
+              0.7797603011131287
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 446.5,
+            "bounds": [
+              0.5898391008377075,
+              0.642774760723114,
+              0.7446123361587524,
+              0.7799027562141418
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 447.0,
+            "bounds": [
+              0.5885540246963501,
+              0.6415613293647766,
+              0.7447074055671692,
+              0.7800455689430237
+            ],
+            "source_bottom_z": 100.61537170410156
+          },
+          {
+            "frame": 447.5,
+            "bounds": [
+              0.5872654914855957,
+              0.6403446197509766,
+              0.744802713394165,
+              0.7801887392997742
+            ],
+            "source_bottom_z": 100.61537170410156
+          }
+        ]
+      },
+      {
+        "object": "SHIP CARD | venture",
+        "id": "venture",
+        "passed": true,
+        "checks": {
+          "visible": true,
+          "source_world_parent": true,
+          "one_quad_four_vertices": true,
+          "actual_contract_matches_retained_registration": true,
+          "quad_dimensions_match_contract": true,
+          "unit_canvas_uvs": true,
+          "registered_canvas_dimensions": true,
+          "transparent_canvas_corners": true,
+          "registered_straight_alpha_material": true,
+          "rough_geometry_guides_hidden": true,
+          "linear_source_motion_all96": true,
+          "fixed_source_orientation_all96": true,
+          "full_quad_positive_source_altitude": true,
+          "above_overlapped_district_bounds": true,
+          "full_quad_in_clear_window_all96": true
+        },
+        "images": [
+          {
+            "path": "//assets\\venture-card-v3-flight.png",
+            "size": [
+              2048,
+              768
+            ],
+            "alpha_corners": [
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "max_linear_motion_error_metres": 4.57763671875e-05,
+        "max_source_orientation_error": 0,
+        "min_full_quad_source_height_metres": 130.52745056152344,
+        "min_conservative_district_clearance_metres": 58.52745056152344,
+        "nearest_overlapped_obstacle": "DISTRICT | rear tank small valve",
+        "samples": [
+          {
+            "frame": 400.0,
+            "bounds": [
+              0.49952203035354614,
+              0.6165387034416199,
+              0.7608526349067688,
+              0.8388637900352478
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 400.5,
+            "bounds": [
+              0.4981730282306671,
+              0.6153414249420166,
+              0.7609545588493347,
+              0.839066743850708
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 401.0,
+            "bounds": [
+              0.4968205392360687,
+              0.6141408681869507,
+              0.761056661605835,
+              0.8392701745033264
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 401.5,
+            "bounds": [
+              0.4954645037651062,
+              0.612937331199646,
+              0.7611590623855591,
+              0.8394742012023926
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 402.0,
+            "bounds": [
+              0.4941049814224243,
+              0.6117306351661682,
+              0.7612617611885071,
+              0.8396787643432617
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 402.5,
+            "bounds": [
+              0.4927419126033783,
+              0.6105207204818726,
+              0.7613646388053894,
+              0.8398839235305786
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 403.0,
+            "bounds": [
+              0.491375207901001,
+              0.6093077659606934,
+              0.7614678740501404,
+              0.8400895595550537
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 403.5,
+            "bounds": [
+              0.4900050163269043,
+              0.6080915927886963,
+              0.7615713477134705,
+              0.840295672416687
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 404.0,
+            "bounds": [
+              0.4886311888694763,
+              0.6068722009658813,
+              0.7616750597953796,
+              0.8405024409294128
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 404.5,
+            "bounds": [
+              0.4872537851333618,
+              0.6056496500968933,
+              0.7617791295051575,
+              0.8407096862792969
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 405.0,
+            "bounds": [
+              0.4858728051185608,
+              0.6044239401817322,
+              0.7618834376335144,
+              0.8409174680709839
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 405.5,
+            "bounds": [
+              0.4844881594181061,
+              0.6031948924064636,
+              0.7619879841804504,
+              0.8411257863044739
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 406.0,
+            "bounds": [
+              0.48309987783432007,
+              0.601962685585022,
+              0.7620928287506104,
+              0.8413347005844116
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 406.5,
+            "bounds": [
+              0.48170799016952515,
+              0.6007272601127625,
+              0.7621979713439941,
+              0.8415441513061523
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 407.0,
+            "bounds": [
+              0.4803123474121094,
+              0.5994884967803955,
+              0.7623032927513123,
+              0.841754138469696
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 407.5,
+            "bounds": [
+              0.4789130687713623,
+              0.5982465744018555,
+              0.762408971786499,
+              0.8419646620750427
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 408.0,
+            "bounds": [
+              0.47751009464263916,
+              0.597001314163208,
+              0.7625149488449097,
+              0.8421757221221924
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 408.5,
+            "bounds": [
+              0.47610336542129517,
+              0.5957527160644531,
+              0.7626212239265442,
+              0.8423873782157898
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 409.0,
+            "bounds": [
+              0.4746929109096527,
+              0.5945008397102356,
+              0.7627277374267578,
+              0.842599630355835
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 409.5,
+            "bounds": [
+              0.47327879071235657,
+              0.5932456851005554,
+              0.7628345489501953,
+              0.8428124189376831
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 410.0,
+            "bounds": [
+              0.4718608558177948,
+              0.5919870734214783,
+              0.7629415988922119,
+              0.8430257439613342
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 410.5,
+            "bounds": [
+              0.4704391360282898,
+              0.5907252430915833,
+              0.7630489468574524,
+              0.8432396650314331
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 411.0,
+            "bounds": [
+              0.46901366114616394,
+              0.589460015296936,
+              0.7631565928459167,
+              0.8434541821479797
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 411.5,
+            "bounds": [
+              0.4675843417644501,
+              0.5881913900375366,
+              0.763264536857605,
+              0.8436692357063293
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 412.0,
+            "bounds": [
+              0.46615123748779297,
+              0.586919367313385,
+              0.7633727788925171,
+              0.8438848853111267
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 412.5,
+            "bounds": [
+              0.46471431851387024,
+              0.585644006729126,
+              0.7634812593460083,
+              0.844101071357727
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 413.0,
+            "bounds": [
+              0.4632734954357147,
+              0.5843651294708252,
+              0.7635900974273682,
+              0.8443178534507751
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 413.5,
+            "bounds": [
+              0.4618288278579712,
+              0.583082914352417,
+              0.7636991739273071,
+              0.844535231590271
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 414.0,
+            "bounds": [
+              0.46038031578063965,
+              0.5817972421646118,
+              0.7638086080551147,
+              0.8447532057762146
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 414.5,
+            "bounds": [
+              0.45892786979675293,
+              0.5805080533027649,
+              0.7639182806015015,
+              0.8449717164039612
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 415.0,
+            "bounds": [
+              0.4574715495109558,
+              0.579215407371521,
+              0.7640282511711121,
+              0.8451908826828003
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 415.5,
+            "bounds": [
+              0.4560113251209259,
+              0.5779193043708801,
+              0.7641385793685913,
+              0.8454105854034424
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 416.0,
+            "bounds": [
+              0.4545470178127289,
+              0.5766196250915527,
+              0.7642491459846497,
+              0.8456308841705322
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 416.5,
+            "bounds": [
+              0.45307883620262146,
+              0.5753165483474731,
+              0.7643600106239319,
+              0.8458517789840698
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 417.0,
+            "bounds": [
+              0.45160672068595886,
+              0.5740099549293518,
+              0.764471173286438,
+              0.8460733294487
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 417.5,
+            "bounds": [
+              0.45013055205345154,
+              0.5726996660232544,
+              0.7645826935768127,
+              0.8462954163551331
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 418.0,
+            "bounds": [
+              0.44865041971206665,
+              0.5713859796524048,
+              0.7646944522857666,
+              0.8465180993080139
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 418.5,
+            "bounds": [
+              0.4471662640571594,
+              0.5700686573982239,
+              0.7648065090179443,
+              0.8467414379119873
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 419.0,
+            "bounds": [
+              0.4456780254840851,
+              0.5687476992607117,
+              0.7649189233779907,
+              0.8469653725624084
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 419.5,
+            "bounds": [
+              0.44418570399284363,
+              0.5674231648445129,
+              0.765031635761261,
+              0.8471899032592773
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 420.0,
+            "bounds": [
+              0.44268935918807983,
+              0.5660950541496277,
+              0.7651445865631104,
+              0.847415030002594
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 420.5,
+            "bounds": [
+              0.4411889612674713,
+              0.5647633075714111,
+              0.7652579545974731,
+              0.8476408123970032
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 421.0,
+            "bounds": [
+              0.4396844208240509,
+              0.5634278655052185,
+              0.7653715014457703,
+              0.8478671908378601
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 421.5,
+            "bounds": [
+              0.4381757378578186,
+              0.5620888471603394,
+              0.7654854655265808,
+              0.8480942249298096
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 422.0,
+            "bounds": [
+              0.4366629123687744,
+              0.5607460737228394,
+              0.7655997276306152,
+              0.8483218550682068
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 422.5,
+            "bounds": [
+              0.43514591455459595,
+              0.5593996047973633,
+              0.7657142877578735,
+              0.8485500812530518
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 423.0,
+            "bounds": [
+              0.4336247742176056,
+              0.5580494403839111,
+              0.7658291459083557,
+              0.8487789630889893
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 423.5,
+            "bounds": [
+              0.43209946155548096,
+              0.5566956400871277,
+              0.7659443616867065,
+              0.8490084409713745
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 424.0,
+            "bounds": [
+              0.43056991696357727,
+              0.5553380250930786,
+              0.7660598754882812,
+              0.8492386341094971
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 424.5,
+            "bounds": [
+              0.42903614044189453,
+              0.5539767146110535,
+              0.7661756873130798,
+              0.8494693636894226
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 425.0,
+            "bounds": [
+              0.42749810218811035,
+              0.5526115894317627,
+              0.7662918567657471,
+              0.8497008085250854
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 425.5,
+            "bounds": [
+              0.42595577239990234,
+              0.5512426495552063,
+              0.7664083242416382,
+              0.849932849407196
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 426.0,
+            "bounds": [
+              0.42440924048423767,
+              0.5498698949813843,
+              0.766525149345398,
+              0.8501655459403992
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 426.5,
+            "bounds": [
+              0.42285841703414917,
+              0.5484934449195862,
+              0.7666422128677368,
+              0.8503988981246948
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 427.0,
+            "bounds": [
+              0.42130324244499207,
+              0.5471130609512329,
+              0.7667596936225891,
+              0.850632905960083
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 427.5,
+            "bounds": [
+              0.41974371671676636,
+              0.5457289218902588,
+              0.7668774724006653,
+              0.8508675694465637
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 428.0,
+            "bounds": [
+              0.41817983984947205,
+              0.5443408489227295,
+              0.7669955492019653,
+              0.851102888584137
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 428.5,
+            "bounds": [
+              0.41661161184310913,
+              0.5429489016532898,
+              0.7671140432357788,
+              0.8513388633728027
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 429.0,
+            "bounds": [
+              0.41503897309303284,
+              0.5415530800819397,
+              0.7672327160835266,
+              0.8515754342079163
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 429.5,
+            "bounds": [
+              0.41346195340156555,
+              0.5401533246040344,
+              0.7673518061637878,
+              0.8518127202987671
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 430.0,
+            "bounds": [
+              0.4118804633617401,
+              0.538749635219574,
+              0.7674713134765625,
+              0.8520507216453552
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 430.5,
+            "bounds": [
+              0.4102945327758789,
+              0.5373419523239136,
+              0.7675910592079163,
+              0.8522893190383911
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 431.0,
+            "bounds": [
+              0.4087042212486267,
+              0.5359304547309875,
+              0.7677111625671387,
+              0.8525286316871643
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 431.5,
+            "bounds": [
+              0.4071093499660492,
+              0.534514844417572,
+              0.7678316235542297,
+              0.85276859998703
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 432.0,
+            "bounds": [
+              0.40550997853279114,
+              0.5330953001976013,
+              0.7679523825645447,
+              0.8530092835426331
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 432.5,
+            "bounds": [
+              0.4039061367511749,
+              0.5316717624664307,
+              0.768073558807373,
+              0.8532505631446838
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 433.0,
+            "bounds": [
+              0.402297705411911,
+              0.5302441120147705,
+              0.7681949734687805,
+              0.8534925580024719
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 433.5,
+            "bounds": [
+              0.4006847143173218,
+              0.5288124680519104,
+              0.7683167457580566,
+              0.8537352681159973
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 434.0,
+            "bounds": [
+              0.399067223072052,
+              0.5273767709732056,
+              0.7684389352798462,
+              0.8539786338806152
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 434.5,
+            "bounds": [
+              0.39744505286216736,
+              0.525937020778656,
+              0.7685614824295044,
+              0.8542227745056152
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 435.0,
+            "bounds": [
+              0.3958182632923126,
+              0.5244930982589722,
+              0.7686843276023865,
+              0.854467511177063
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 435.5,
+            "bounds": [
+              0.3941868841648102,
+              0.5230451226234436,
+              0.7688074707984924,
+              0.854712963104248
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 436.0,
+            "bounds": [
+              0.3925507962703705,
+              0.5215929746627808,
+              0.7689310908317566,
+              0.8549591302871704
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 436.5,
+            "bounds": [
+              0.3909100592136383,
+              0.5201366543769836,
+              0.7690549492835999,
+              0.8552060127258301
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 437.0,
+            "bounds": [
+              0.38926467299461365,
+              0.518676221370697,
+              0.7691792249679565,
+              0.855453610420227
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 437.5,
+            "bounds": [
+              0.38761451840400696,
+              0.5172116160392761,
+              0.7693038582801819,
+              0.8557018637657166
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 438.0,
+            "bounds": [
+              0.3859596252441406,
+              0.5157427191734314,
+              0.7694288492202759,
+              0.8559508919715881
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 438.5,
+            "bounds": [
+              0.38429996371269226,
+              0.5142696499824524,
+              0.7695541381835938,
+              0.8562005758285522
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 439.0,
+            "bounds": [
+              0.3826355040073395,
+              0.5127923488616943,
+              0.7696799039840698,
+              0.8564510941505432
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 439.5,
+            "bounds": [
+              0.38096627593040466,
+              0.5113107562065125,
+              0.769805908203125,
+              0.8567022085189819
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 440.0,
+            "bounds": [
+              0.3792923092842102,
+              0.5098249316215515,
+              0.7699323296546936,
+              0.8569540977478027
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 440.5,
+            "bounds": [
+              0.3776134252548218,
+              0.5083348155021667,
+              0.7700591087341309,
+              0.8572067022323608
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 441.0,
+            "bounds": [
+              0.37592965364456177,
+              0.5068402886390686,
+              0.7701863050460815,
+              0.857460081577301
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 441.5,
+            "bounds": [
+              0.37424105405807495,
+              0.5053415298461914,
+              0.7703137993812561,
+              0.8577141165733337
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 442.0,
+            "bounds": [
+              0.3725474774837494,
+              0.5038384199142456,
+              0.7704417109489441,
+              0.8579689264297485
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 442.5,
+            "bounds": [
+              0.37084901332855225,
+              0.5023308396339417,
+              0.7705699801445007,
+              0.8582245111465454
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 443.0,
+            "bounds": [
+              0.36914563179016113,
+              0.5008189082145691,
+              0.770698606967926,
+              0.8584808111190796
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 443.5,
+            "bounds": [
+              0.3674372434616089,
+              0.49930262565612793,
+              0.7708276510238647,
+              0.8587378263473511
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 444.0,
+            "bounds": [
+              0.3657238781452179,
+              0.4977818429470062,
+              0.7709570527076721,
+              0.8589956760406494
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 444.5,
+            "bounds": [
+              0.36400550603866577,
+              0.49625664949417114,
+              0.7710868120193481,
+              0.8592541813850403
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 445.0,
+            "bounds": [
+              0.3622820973396301,
+              0.4947269856929779,
+              0.7712169289588928,
+              0.8595134615898132
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 445.5,
+            "bounds": [
+              0.3605535924434662,
+              0.4931928217411041,
+              0.7713475227355957,
+              0.8597736358642578
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 446.0,
+            "bounds": [
+              0.3588200509548187,
+              0.4916541576385498,
+              0.7714784145355225,
+              0.8600344657897949
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 446.5,
+            "bounds": [
+              0.35708141326904297,
+              0.49011096358299255,
+              0.7716097235679626,
+              0.8602960705757141
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 447.0,
+            "bounds": [
+              0.35533764958381653,
+              0.4885631799697876,
+              0.7717413306236267,
+              0.8605583906173706
+            ],
+            "source_bottom_z": 130.52745056152344
+          },
+          {
+            "frame": 447.5,
+            "bounds": [
+              0.353588730096817,
+              0.4870108962059021,
+              0.771873414516449,
+              0.860821545124054
+            ],
+            "source_bottom_z": 130.52745056152344
+          }
+        ]
+      }
+    ],
+    "independent_materials": 2,
+    "independent_textures": 2,
+    "window_failures": [],
+    "ground_contact_claim": false,
+    "limits": "Conservative full-quad bounds including transparent margin versus visible DISTRICT source-space AABBs at96 samples; no continuous-time collision or general alpha sorting proof. Window aperture is conservative normalized rectangle[.112,.865,.175,.965]. No landing/support contact claim."
+  },
+  "architecture": {
+    "present": true,
+    "passed": true,
+    "checks": {
+      "parented_to_source_world": true,
+      "reference_424_camera_matrix_matches": true,
+      "fixed_source_transform_all96": true,
+      "only_district_material_assignments": true,
+      "projected_image_assigned": true,
+      "projected_images_relative_and_present": true
+    },
+    "projector": "ARCHITECTURE FINISH | fixed source camera 424",
+    "reference_source_frame": 424,
+    "max_reference_camera_matrix_error": 7.62939453125e-06,
+    "max_source_stationary_error": 0,
+    "projected_object_count": 22,
+    "foreign_projected_objects": [],
+    "images": [
+      {
+        "name": "port-architecture-finish-v1.png",
+        "path": "//assets\\port-architecture-finish-v1.png",
+        "relative": true,
+        "exists": true
+      }
+    ],
+    "limits": "Actual fixed-projector transform/material assignment only; projected pixel registration, guard transitions, occlusion and new face reveals require rendered endpoint/motion review."
+  },
+  "limits": [
+    "Finite sampled animation, ground and conservative traffic envelopes; no continuous-time collision proof.",
+    "Ground helper covers one rectangular precinct with rectangular material cells; unrelated untagged overlays and sub-sample holes require visual review.",
+    "Parked support checks cover16 authored cradle/platform geometry feet; when hidden as card guides these do not establish visible support contact. Card grounding requires rendered QA.",
+    "Shader appearance, close occlusion, actual encoded movie cadence and playback require separate rendered review."
+  ]
+}

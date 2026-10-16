@@ -1,0 +1,21 @@
+{
+  "generator": "built-in image_gen.imagegen",
+  "file": "assets/secondary-materials-v1.png",
+  "prompt": "prompts/secondary-materials-v1.txt",
+  "input_roles": [],
+  "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-847b8496-3300-4a8e-8cf1-ce836a464cf8.png",
+  "dimensions": [
+    1254,
+    1254
+  ],
+  "mode": "RGB",
+  "bytes": 3373889,
+  "sha256": "a592f10b428c1a63024f969f4cbd54f1a53c2ff02b05b4bb48867918d0c48f5f",
+  "quadrants_top_left_origin": [
+    "slate roof metal",
+    "warm grey concrete",
+    "muted teal painted steel",
+    "tan repair panels"
+  ],
+  "limits": "Neutral diffuse material atlas with quadrant guard margins; no registered geometry or seamless tiling claim."
+}

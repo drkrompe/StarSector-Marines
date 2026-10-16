@@ -1,0 +1,69 @@
+{
+  "generator": "built-in image_gen.imagegen",
+  "raw_outputs_preserved": true,
+  "assets": [
+    {
+      "file": "assets/hound-skin-v1.png",
+      "dimensions": [
+        1165,
+        1350
+      ],
+      "mode": "RGBA",
+      "alpha_bounds": [
+        0,
+        9,
+        1151,
+        1350
+      ],
+      "sha256": "450564e5063cd07c19d166b27cab1e74e0034e46fed1eb4c908db0c177686435",
+      "bytes": 2382076,
+      "prompt": "prompts/hound-skin-v1.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-a6c792dc-36a3-4133-905e-03e78cdbd602.png",
+      "input": "references/hound_base.png",
+      "input_role": "Vanilla top-down sprite, silhouette/canvas/material reference; generated details may not register pixel exactly"
+    },
+    {
+      "file": "assets/venture-skin-v1.png",
+      "dimensions": [
+        1271,
+        1238
+      ],
+      "mode": "RGBA",
+      "alpha_bounds": [
+        0,
+        0,
+        1271,
+        1238
+      ],
+      "sha256": "aee13fc953ded1d54d3ead0703ebca43ba36c254718c05face7a3d9695954e06",
+      "bytes": 2607010,
+      "prompt": "prompts/venture-skin-v1.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-82bbfdc2-9b6f-4432-acc6-faacaaf0182f.png",
+      "input": "references/venture.png",
+      "input_role": "Vanilla top-down sprite, silhouette/canvas/material reference; generated details may not register pixel exactly"
+    }
+  ],
+  "references": [
+    {
+      "file": "references/hound.ship",
+      "sha256": "fab66977641ff4294f5f1457d09c080dabbbb1bf2d775f0f9571e58d55e6535c",
+      "origin": "Installed vanilla Starsector starsector-core, copied read-only for reproducible authoring"
+    },
+    {
+      "file": "references/hound_base.png",
+      "sha256": "714235cbc3d636c341f43356d3c9d9599965978f38feb0bbbd5629dedef2f3cf",
+      "origin": "Installed vanilla Starsector starsector-core, copied read-only for reproducible authoring"
+    },
+    {
+      "file": "references/venture.png",
+      "sha256": "098bbc5fe0c9a8cb4c3a00e90816d8e9dbc6c1975bf492f788ace2a6644f9279",
+      "origin": "Installed vanilla Starsector starsector-core, copied read-only for reproducible authoring"
+    },
+    {
+      "file": "references/venture.ship",
+      "sha256": "4a2b615ae6d0837a275a7a3f93023c87e6fd425eee47e6ddafe760f895aaec31",
+      "origin": "Installed vanilla Starsector starsector-core, copied read-only for reproducible authoring"
+    }
+  ],
+  "limits": "Generated top-down skins on geometry derived from vanilla plan bounds. Thickness, supports and scenario lengths are authored; not canonical ship dimensions or validated hero models."
+}

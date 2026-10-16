@@ -1,0 +1,23 @@
+{
+  "generator": "built-in image_gen.imagegen",
+  "file": "assets/port-architecture-finish-v1.png",
+  "prompt": "prompts/port-architecture-finish-v1.txt",
+  "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-694132ca-b86d-4634-aee1-8cac689a66ae.png",
+  "dimensions": [
+    1672,
+    941
+  ],
+  "mode": "RGB",
+  "bytes": 2892092,
+  "sha256": "87c61f83f934a20ff7aa5ab38e467a21aa9aabaaf9303711dfc775ef2b56d31b",
+  "input": {
+    "file": "guides/port-architecture-midpoint.png",
+    "dimensions": [
+      1920,
+      1080
+    ],
+    "role": "strict frame424 geometry/camera projection guide; generated output approximately retains composition"
+  },
+  "application": "Selected camera-visible static industrial faces, fixed source-world midpoint projector. Generated cabin/ground/ships/terrain are excluded.",
+  "limits": "Single-view finish for bounded camera travel, not complete registered UV coverage. Small generated silhouette embellishments cannot appear outside real geometry."
+}

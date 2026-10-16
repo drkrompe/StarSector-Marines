@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "movie": "jangala-port-refined.mp4",
+  "dimensions": [
+    1920,
+    1080
+  ],
+  "duration_seconds": 4,
+  "fps": 24,
+  "decoded_frames": 96,
+  "unique_source_frames": 96,
+  "source_frame_mapping": "400 + 0.5*i at source 12fps, i=0..95",
+  "scene_sha256": "4c5482c78e496ebd9d1b864489389491087d474b752a0c5a5255c6d9b0b10877",
+  "audio": false,
+  "codec": "h264",
+  "pixel_format": "yuv420p",
+  "bytes": 2592693,
+  "sha256": "1ccbbfdfff7cf2a2c232c85a6502eb453559fb29ae0d94717ef9a547c69f83b4",
+  "full_decode": "FFmpeg -xerror exit 0",
+  "adjacent_mean_absolute_pixel_change_0_to_255": {
+    "min": 4.018825713734568,
+    "max": 5.113041730967079,
+    "mean": 4.51976767753682
+  },
+  "limits": "Media integrity and cadence only; visual quality requires rendered review."
+}

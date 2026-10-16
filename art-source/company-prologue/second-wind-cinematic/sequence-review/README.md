@@ -1,5 +1,9 @@
 # Jangala approach continuity review
 
+The [refined sequence](../port-refinement/review/jangala-approach-refined.mp4)
+reuses these forest and farmland excerpts with the updated working-port shot.
+Its source and evidence are in the [port refinement](../port-refinement/README.md).
+
 Three four-second excerpts test the visual progression from the forest reveal
 through cultivated land to the working port. The cuts represent elapsed travel;
 this is not a twelve-second physical descent or the complete arrival cinematic.

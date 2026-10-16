@@ -20,7 +20,8 @@ shot with a larger production.
 - Read [style and reference authority](references/style.md) when creating or
   changing imagery. Inspect the actual reference images before art generation.
 - Read [parallax and compositing](references/parallax.md) for window views,
-  landscape layers, traffic cards, camera projection, or motion troubleshooting.
+  landscape layers, traffic cards, camera projection, ground joins and ownership,
+  or motion troubleshooting.
 - Read [dynamic objects](references/dynamic-objects.md) for ships, shuttles,
   cranes, landing mechanisms, and any object whose details must survive movement.
 
@@ -38,6 +39,8 @@ look as an already completed animation.
    with an unnamed crew member; it need not represent the Commander.
 2. Reuse accepted blocking when it already answers the shot. For new mechanics,
    block the camera, object scale, approach, supports and contact before painting.
+   For ground additions, verify both one visible surface owner and a continuous
+   height join; an overlap-free slab can still be detached from its surroundings.
    Use background Blender with `--factory-startup` and saved source scenes;
    do not overwrite a live unsaved Blender session.
 3. Choose the simplest representation that survives the entire camera move:

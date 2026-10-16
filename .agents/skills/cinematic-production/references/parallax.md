@@ -100,6 +100,37 @@ ownership alone cannot establish rendered visibility.
 An oblique ray can legitimately meet exposed ground behind a slab silhouette at
 a different plan footprint; do not mistake that ordinary occlusion for overlap. Compare consecutive rendered frames before blaming compression.
 
+## Ground ownership and physical joins
+
+Check ownership and contact separately. Removing an intersecting lower surface
+solves competing depth owners, but does not make a slab meet the surrounding
+land. The port example had a top at source Z=0.4 m beside terrain at 3.82–7.47 m;
+its straight exposed edge was an actual height gap. Inspect shared edge vertices
+and face interiors in source coordinates before changing textures or grading.
+
+For a flat developed site, cut the existing terrain at the actual footprint,
+make both sides of the shared boundary meet the same height, and grade the
+outer terrain back to its retained original elevations. Preserve the original
+triangulation before cutting nonplanar terrain. Subdivide the sole precinct top
+into material cells for roads, aprons and drainage. Thin lane markings belong
+in the owning material; a slightly lifted decal plane creates another depth
+owner. Keep building feet, wheel bottoms and support shoes on the resulting
+authored surface, and inspect their moving contact shadows through the shot.
+
+Verify more than total area or named objects. Probe visible upward-facing ground
+geometry for duplicate owners even when an added deck has an arbitrary name;
+sample holes, shared edge heights and the outer grade return. Retain deliberate
+failing regression cases for a raised join, a duplicate owner with an unrelated
+name, a missing cell and a raised outer grade. These catch detached surfaces that
+an otherwise successful ownership check can miss. Review grazing-angle renders
+and consecutive frames as well as geometric measurements.
+
+The [port ground repair](../../../../art-source/company-prologue/second-wind-cinematic/port-refinement/ground_surfaces.py)
+and [ground verifier](../../../../art-source/company-prologue/second-wind-cinematic/port-refinement/verify_ground.py)
+are bounded rectangular examples: the new footprint must contain the existing
+cutout, and shrinking it requires the original uncut terrain. They are not a
+universal mesh boolean or a substitute for inspecting other terrain topologies.
+
 In the first cabin study, world X near −12,000 produced about 3 pixels of
 projection error. Keeping the ship near the origin and moving scenery by inverse
 source displacement reduced the measured residual to about 0.023 pixels. There
