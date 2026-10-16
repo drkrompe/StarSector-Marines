@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — hostile hulls fight each other by default in every mission (`ShipFireOrder.AUTO`), a mission may hold hull fire until a story beat or condition, and a ship takes its duel footing when it first turns on a hull; earlier the same day the ship-against-ship model shipped for a-small-war Chapter 5 (rationale in `warship-behaviours.md`).
+Updated: 2026-10-16 — a landed ship is drawn at true scale and eases to flight presence as it lifts; earlier the same day hostile hulls fight each other by default in every mission (`ShipFireOrder.AUTO`), a mission may hold hull fire until a story beat or condition, and a ship takes its duel footing when it first turns on a hull; earlier the same day the ship-against-ship model shipped for a-small-war Chapter 5 (rationale in `warship-behaviours.md`).
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -2389,6 +2389,23 @@ Physical departure means propulsion carried that whole hull beyond the map;
 timeout removal is a separate ending and cannot satisfy a mission's departure
 award. `early-operation-nouns.md` owns Working Passage's company gates, militia
 holds, critical abort, recovery and once-only fleet transfer.
+
+A mission may instead **land** a warship in a berth (`landed-ships-true-scale.md`).
+A landed ship is drawn at **true scale** beside infantry, on the grounded Shepherd's
+convention of 0.26 cells per vanilla hull pixel (about 5.8 times the shared air
+density): a Hound is about nineteen cells long, a Venture about fifty. It is a
+cold ground object: no plume, guns stowed, drawn among the vehicles, its shadow
+tight under it, holding its berth. It is still a live warship with its flight
+fitting: hit shape, slots and shield stay at flight scale, which is sound only
+because nothing engages a berthed hull (infantry fire never reaches a hull, and a
+mission that lands ships holds hull fire until it lifts them). **Lifting is one
+body eased between two regimes**: from the lift, the drawn body eases by smoothstep
+to flight presence over a few seconds while the shadow draws out from under it,
+the berth's grit blows out and the guns run out, so a ship climbing out never
+changes size at once. The ease is a ratio to whatever `HULL_PRESENCE` is in force.
+A hull with a remaster (`art-source/ships/`) draws it in both regimes, so detail
+does not change at liftoff either; the berth itself (a sunken, see-through,
+unwalkable well) is the mission map's.
 
 ### Authored structural bombardment
 

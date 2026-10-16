@@ -140,16 +140,18 @@ public final class WarshipRenderSystem implements RenderSystem {
             // A ship in the cloud deck is seen through it.
             float seen = ctx.alphaMult * WarshipAtmosphere.hullVisibility(
                     ship.entrySeconds(), ship.climbSeconds(), ship.departing());
-            // Under the hull: the nozzles sit inside its outline and the flame trails out of it.
-            drawEngines(out, cam, cellPx, seen, ship);
+            // Under the hull: the nozzles sit inside its outline and the flame trails out of it. A berthed hull is cold.
+            if (!ship.berthed()) drawEngines(out, cam, cellPx, seen, ship);
             drawHull(out, cam, cellPx, seen, ship);
+            // A docked hull's guns are stowed; they run out as it lifts.
+            float armed = seen * ship.liftProgress();
             for (Warship.Mount m : ship.mounts()) {
                 // A mount lost with the plating under it is gone: the breach beneath is what shows.
-                if (m.knockedOut()) continue;
-                drawMount(out, cam, cellPx, seen, ship, m);
-                drawMuzzleFlash(out, cam, cellPx, seen, ship, m);
+                if (m.knockedOut() || armed <= 0f) continue;
+                drawMount(out, cam, cellPx, armed, ship, m);
+                drawMuzzleFlash(out, cam, cellPx, armed, ship, m);
             }
-            drawShield(out, cam, cellPx, seen, ship);
+            if (!ship.berthed()) drawShield(out, cam, cellPx, seen, ship);
             // Cloud and heat over the hull: the deck it is dropping through, the burn of coming down.
             atmosphereFx.sky(out, cam, cellPx, ctx.alphaMult, ship, tint);
         }
@@ -197,6 +199,7 @@ public final class WarshipRenderSystem implements RenderSystem {
         if (flame == null && glow == null) return;
         ShuttleSpriteCache soft = sprites.spriteByPath(GLOW);
         WarshipThrust.Demand demand = WarshipThrust.of(ship);
+        float body = ship.bodyScale();
         double rad = Math.toRadians(ship.facingDegrees);
         float c = (float) Math.cos(rad);
         float s = (float) Math.sin(rad);
@@ -210,16 +213,16 @@ public final class WarshipRenderSystem implements RenderSystem {
             float g = col.getGreen() / 255f;
             float b = col.getBlue() / 255f;
 
-            float wx = ship.x + e.localX() * c - e.localY() * s;
-            float wy = ship.y + e.localX() * s + e.localY() * c;
+            float wx = ship.x + body * (e.localX() * c - e.localY() * s);
+            float wy = ship.y + body * (e.localX() * s + e.localY() * c);
             float sx = cam.cellToScreenX(wx);
             float sy = cam.cellToScreenY(wy);
             double hr = Math.toRadians(heading);
             float dirX = (float) -Math.sin(hr);
             float dirY = (float) Math.cos(hr);
 
-            float lenPx = e.lengthCells() * cellPx * (ENGINE_LEN_FLOOR + ENGINE_LEN_RANGE * level);
-            float widthPx = e.widthCells() * cellPx * (ENGINE_WIDTH_FLOOR + ENGINE_WIDTH_RANGE * level);
+            float lenPx = body * e.lengthCells() * cellPx * (ENGINE_LEN_FLOOR + ENGINE_LEN_RANGE * level);
+            float widthPx = body * e.widthCells() * cellPx * (ENGINE_WIDTH_FLOOR + ENGINE_WIDTH_RANGE * level);
             float lit = alpha * (ENGINE_ALPHA_FLOOR + (1f - ENGINE_ALPHA_FLOOR) * level);
             float glowPx = Math.max(widthPx * ENGINE_GLOW_WIDTH_MULT, cellPx * 0.4f);
 
@@ -250,27 +253,32 @@ public final class WarshipRenderSystem implements RenderSystem {
     }
 
     private void drawHull(DrawList out, BattleCamera cam, float cellPx, float alpha, Warship ship) {
-        ShuttleSpriteCache hull = sprites.spriteByPath(ship.lowHoverWidth() > 0f
-                ? "graphics/tilesets/shepherd-recovery.png" : ship.spritePath);
+        ShuttleSpriteCache hull = ship.lowHoverWidth() > 0f
+                ? sprites.spriteByPath("graphics/tilesets/shepherd-recovery.png") : GroundHullArt.sprite(sprites, ship);
         if (hull == null) return;
         float rad = (float) Math.toRadians(ship.facingDegrees);
         float c = (float) Math.cos(rad);
         float s = (float) Math.sin(rad);
+        // A berthed hull is drawn at true landed scale, easing to its flight size as it lifts; the body grows
+        // about the centre of gravity, so the pivot, slots and nozzles grow with it.
+        float body = ship.bodyScale();
         // The sprite's centre sits at the authored pivot from the centre of
         // gravity, in the hull frame; the hull rotates about its CoG.
-        float hx = ship.x + (ship.pivotX * c - ship.pivotY * s);
-        float hy = ship.y + (ship.pivotX * s + ship.pivotY * c);
+        float hx = ship.x + body * (ship.pivotX * c - ship.pivotY * s);
+        float hy = ship.y + body * (ship.pivotX * s + ship.pivotY * c);
         if (ship.lowHoverWidth() > 0f) { hx = ship.x; hy = ship.y; }
-        float pxH = (ship.lowHoverWidth() > 0f ? ship.lowHoverWidth() : ship.lengthCells) * cellPx;
+        float pxH = (ship.lowHoverWidth() > 0f ? ship.lowHoverWidth() : ship.lengthCells * body) * cellPx;
         float pxW = ship.lowHoverWidth() > 0f ? ship.lowHoverHeight() * cellPx : pxH * hull.aspect;
+        // A landed hull is a ground object among the vehicles; it takes to the air layer as it lifts.
+        RenderLayer layer = ship.berthed() ? RenderLayer.VEHICLES : RenderLayer.SHUTTLES;
         // A hull with an armour grid shows its damage where it took it: stripped, scorched, cut away.
-        if (ship.lowHoverWidth() <= 0f && WarshipHullDamageRenderer.draw(out, cam, sprites, hull, ship, hx, hy, pxW, pxH,
-                alpha, battleSeconds, engineClockSeconds)) {
+        if (ship.lowHoverWidth() <= 0f && WarshipHullDamageRenderer.draw(out, layer, cam, sprites, hull, ship, hx, hy,
+                pxW, pxH, alpha, 1f, battleSeconds, engineClockSeconds)) {
             return;
         }
         // A hull with no grid (the control) darkens toward charcoal as its hit points go; an untouched grid is clean.
         float tint = ship.plating() != null ? 1f : 0.4f + 0.6f * ship.hullFraction();
-        out.addSprite(RenderLayer.SHUTTLES, hull.sprite,
+        out.addSprite(layer, hull.sprite,
                 cam.cellToScreenX(hx), cam.cellToScreenY(hy),
                 pxW, pxH, ship.facingDegrees,
                 tint, tint, tint, alpha);
@@ -282,7 +290,7 @@ public final class WarshipRenderSystem implements RenderSystem {
      */
     private void drawWreck(DrawList out, BattleCamera cam, float cellPx, float alpha, WarshipWreck wreck) {
         Warship ship = wreck.ship;
-        ShuttleSpriteCache hull = sprites.spriteByPath(ship.spritePath);
+        ShuttleSpriteCache hull = GroundHullArt.sprite(sprites, ship);
         if (hull == null) return;
         float rad = (float) Math.toRadians(ship.facingDegrees);
         float c = (float) Math.cos(rad);
@@ -309,11 +317,12 @@ public final class WarshipRenderSystem implements RenderSystem {
         String path = m.slot.hardpoint() ? m.weapon.hardpointSprite() : m.weapon.turretSprite();
         ShuttleSpriteCache art = sprites.spriteByPath(path);
         if (art == null) return;
-        // A mount is part of the hull's body, so it is drawn at the hull's size.
-        float w = WarshipScale.hullCells(art.pxW) * cellPx;
-        float h = WarshipScale.hullCells(art.pxH) * cellPx;
-        out.addSprite(RenderLayer.SHUTTLES, art.sprite,
-                cam.cellToScreenX(ship.mountX(m)), cam.cellToScreenY(ship.mountY(m)),
+        // A mount is part of the hull's body, so it is drawn at the hull's size, berthed or flying.
+        float body = ship.bodyScale();
+        float w = WarshipScale.hullCells(art.pxW) * body * cellPx;
+        float h = WarshipScale.hullCells(art.pxH) * body * cellPx;
+        out.addSprite(ship.berthed() ? RenderLayer.VEHICLES : RenderLayer.SHUTTLES, art.sprite,
+                cam.cellToScreenX(bodyX(ship, ship.mountX(m))), cam.cellToScreenY(bodyY(ship, ship.mountY(m))),
                 w, h, heading(ship, m), 1f, 1f, 1f, alpha);
     }
 
@@ -382,6 +391,16 @@ public final class WarshipRenderSystem implements RenderSystem {
         return from + (to - from) * t;
     }
 
+    /** A world point on the hull, moved out from the centre of gravity by the body's landed scale. */
+    private static float bodyX(Warship ship, float worldX) {
+        return ship.x + (worldX - ship.x) * ship.bodyScale();
+    }
+
+    /** See {@link #bodyX}. */
+    private static float bodyY(Warship ship, float worldY) {
+        return ship.y + (worldY - ship.y) * ship.bodyScale();
+    }
+
     /** A hardpoint is fixed to the hull; a turret points where its barrel does. */
     private static float heading(Warship ship, Warship.Mount m) {
         return m.slot.hardpoint() ? ship.facingDegrees + m.slot.angleDegrees() : m.headingDegrees;
@@ -397,8 +416,8 @@ public final class WarshipRenderSystem implements RenderSystem {
         double rad = Math.toRadians(heading(ship, m));
         // The flash sits a barrel's length out from the pivot, along the heading.
         float barrel = 1.2f * WarshipScale.HULL_PRESENCE;
-        float fx = ship.mountX(m) - (float) Math.sin(rad) * barrel;
-        float fy = ship.mountY(m) + (float) Math.cos(rad) * barrel;
+        float fx = bodyX(ship, ship.mountX(m)) - (float) Math.sin(rad) * barrel;
+        float fy = bodyY(ship, ship.mountY(m)) + (float) Math.cos(rad) * barrel;
         float size = Math.max(1.5f, WarshipScale.cells(m.weapon.muzzleLengthPx()) * 2f) * cellPx;
         out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite,
                 cam.cellToScreenX(fx), cam.cellToScreenY(fy), size, size, 0f,

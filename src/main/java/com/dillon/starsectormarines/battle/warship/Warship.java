@@ -221,6 +221,55 @@ public final class Warship {
         lowHoverHeight = height;
     }
 
+    /** Ratio of a berthed body to the same hull in flight; 1 for a ship never put in a berth. */
+    private float berthFactor = 1f;
+    private boolean berthed;
+    /** Seconds since the hull lifted out of its berth; negative while berthed or for a hull never berthed. */
+    private float liftSeconds = -1f;
+
+    /**
+     * Sits the hull in a berth, its drawn body centred on {@code (centreX, centreY)} at its current facing: drawn at
+     * true landed scale ({@link LandedScale}), cold and holding its place, until {@link #lift()}. Its fitted geometry
+     * (hit shape, slots, shield) stays at flight scale; a berthed hull is not something anything engages.
+     */
+    public void berth(float centreX, float centreY) {
+        if (departing || departed || destroyed()) throw new IllegalStateException("Only a ship present can berth");
+        berthed = true;
+        berthFactor = LandedScale.berthFactor();
+        liftSeconds = -1f;
+        // The body grows about the centre of gravity, so the sprite's centre sits a scaled pivot away from it.
+        double r = Math.toRadians(facingDegrees);
+        x = centreX - berthFactor * (pivotX * (float) Math.cos(r) - pivotY * (float) Math.sin(r));
+        y = centreY - berthFactor * (pivotX * (float) Math.sin(r) + pivotY * (float) Math.cos(r));
+        desiredHeading = facingDegrees;
+        stationTo(x, y);
+    }
+
+    /** Lifts a berthed hull: from now its body eases to flight scale over {@link LandedScale#LIFT_SECONDS}. */
+    public void lift() {
+        if (!berthed) return;
+        berthed = false;
+        liftSeconds = 0f;
+    }
+
+    /** Whether the hull is sitting in a berth and has not lifted. */
+    public boolean berthed() { return berthed; }
+
+    /** How far through its lift the hull is: zero berthed, one lifted or never berthed. */
+    public float liftProgress() {
+        return berthed ? 0f : liftSeconds < 0f ? 1f : LandedScale.liftProgress(liftSeconds);
+    }
+
+    /** The factor the hull's body is drawn at against its flight size: the berth's, easing to one as it lifts. */
+    public float bodyScale() {
+        if (berthed) return berthFactor;
+        return liftSeconds < 0f ? 1f : LandedScale.bodyFactor(berthFactor, liftSeconds);
+    }
+
+    void addLiftSeconds(float dt) {
+        if (liftSeconds >= 0f && liftSeconds < LandedScale.LIFT_SECONDS) liftSeconds += dt;
+    }
+
     public boolean lowHovering() { return lowHoverWidth > 0f && !departing; }
     public float lowHoverWidth() { return lowHoverWidth; }
     public float lowHoverHeight() { return lowHoverHeight; }
@@ -1170,6 +1219,7 @@ public final class Warship {
     public void climbOut(float[][] waypoints, float mapWidth, float mapHeight) {
         if (departing || departed || destroyed()) return;
         if (waypoints == null || waypoints.length == 0) throw new IllegalArgumentException("a climb-out needs a route");
+        lift();
         beginDeparture();
         float[] last = waypoints[waypoints.length - 1];
         float[] before = waypoints.length > 1 ? waypoints[waypoints.length - 2] : new float[]{x, y};

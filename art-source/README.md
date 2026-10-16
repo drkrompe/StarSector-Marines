@@ -22,6 +22,7 @@ work that cannot be redone mechanically.
 |-----------|-------|
 | `tilesets/` | Raw tileset sheets, their authoring documents, and the normalization and atlas-packing scripts. |
 | `forests/` | Reusable forest-brush plans and the overhead canopy authoring workflow. |
+| `ships/` | Remastered warship hull masters (Venture, Hound (P)) for ships drawn at true landed scale, their Codex CLI prompts, `generate.sh` and the mechanical `pack.py` exporter. |
 | `vehicles/` | Dedicated vehicle masters, built-in imagegen prompts and whole-frame PNG packing script. |
 | `aircraft/` | Fighter and bomber ImageGen masters, original hull registration references, exact prompts, comparison sheets and compact runtime PNG exporter. |
 | `portraits/` | Character portrait masters and built-in imagegen prompts. `pack.ps1` downsamples complete square frames to 256px PNGs for contacts and mission dialogue. |

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.warship.LandedScale;
 import com.dillon.starsectormarines.battle.warship.LowPass;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipAtmosphere;
@@ -39,7 +40,12 @@ final class ShipAtmosphereFx {
 
     /** Whether the ship has any atmosphere to draw this frame. */
     static boolean active(Warship ship) {
-        return ship.arrivedFromAbove() || ship.departing() || ship.lowPass() != null;
+        return ship.arrivedFromAbove() || ship.departing() || ship.lowPass() != null || lifting(ship);
+    }
+
+    /** A hull rising out of its berth, before the lift is through. */
+    private static boolean lifting(Warship ship) {
+        return !ship.berthed() && ship.liftProgress() < 1f;
     }
 
     /**
@@ -56,9 +62,11 @@ final class ShipAtmosphereFx {
         float departing = ship.departingSeconds();
         boolean leaving = ship.departing();
         float wash = WarshipAtmosphere.groundWash(entry, departing, leaving);
+        // Lifting off a cradle blows the berth's grit out from under the hull, fading as it climbs.
+        if (lifting(ship)) wash = Math.max(wash, 1f - ship.liftProgress());
         float[] cx = centre(ship);
-        float length = ship.lengthCells;
-        float t = Math.max(entry, 0f) + departing;
+        float length = ship.lengthCells * ship.bodyScale();
+        float t = Math.max(entry, 0f) + departing + (lifting(ship) ? ship.liftProgress() * LandedScale.LIFT_SECONDS : 0f);
         float[] dust = tint.dust();
         if (wash > 0.01f) {
             for (int i = 0; i < WASH_PUFFS; i++) {
@@ -174,7 +182,7 @@ final class ShipAtmosphereFx {
         double rad = Math.toRadians(ship.facingDegrees);
         float nx = (float) -Math.sin(rad);
         float ny = (float) Math.cos(rad);
-        float t = Math.max(entry, 0f) + departing;
+        float t = Math.max(entry, 0f) + departing + (lifting(ship) ? ship.liftProgress() * LandedScale.LIFT_SECONDS : 0f);
         if (cover > 0.01f) drawWisps(out, cam, cellPx, alpha, ship, tint, soft, cx, nx, ny, cover, t);
         float heat = Math.max(glow, 0.8f * trail);
         if (heat > 0.01f) drawHeat(out, cam, cellPx, alpha, ship, tint, soft, cx, nx, ny, glow, trail);
@@ -280,8 +288,8 @@ final class ShipAtmosphereFx {
         float c = (float) Math.cos(rad);
         float s = (float) Math.sin(rad);
         return new float[]{
-                ship.x + (ship.pivotX * c - ship.pivotY * s),
-                ship.y + (ship.pivotX * s + ship.pivotY * c)};
+                ship.x + ship.bodyScale() * (ship.pivotX * c - ship.pivotY * s),
+                ship.y + ship.bodyScale() * (ship.pivotX * s + ship.pivotY * c)};
     }
 
     private SpriteAPI soft() {
