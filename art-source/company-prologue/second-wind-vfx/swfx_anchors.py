@@ -170,6 +170,17 @@ def find(scene=None, coll=None):
     for i, (x, y, w) in enumerate(ENGINES, 1):
         lip = bpy.data.objects.get(f'Engine {i} mouth lip')
         throat = bpy.data.objects.get(f'Engine {i} dark throat')
+        declared = bpy.data.objects.get(f'Engine {i} exhaust anchor')
+        radius = BELL_R[w]
+        if declared is not None:
+            # The geometry build's own anchor: mouth plane, +X along the exhaust.
+            mw = declared.matrix_world
+            ob = place(f'SWFX anchor engine {i}', coll, declared, mw.translation.copy(),
+                       mw.to_3x3() @ Vector((1, 0, 0)), radius)
+            if 'radius_m' in declared.keys():
+                radius = float(declared['radius_m']) / swfx_core.METRES_PER_UNIT
+            a.engines.append(EngineAnchor(i, ob, radius, w))
+            continue
         if lip is not None:
             mouth = lip.matrix_world.translation.copy()
             axis = (mouth - throat.matrix_world.translation) if throat else Vector((-1, 0, 0))

@@ -55,21 +55,22 @@ STARBOARD_ENGINES = (3, 4)
 #              unstable, flickering, dirtier plume
 #   'clean'    a healthy drive
 # Canon (second-wind-skins/README.txt): at arrival no active fire and no
-# catastrophic venting; seal leaks stay a minor wisp.
+# catastrophic venting; seal leaks stay a minor wisp. Leaks come from the
+# borrowed seal gaskets, which only the patched build carries (the refit
+# replaced them), so refit has none.
 STATES = {
     'derelict': dict(engines={1: 'dead', 2: 'dead', 3: 'dead', 4: 'dead'}, powered=False,
                      guns=False, seal_wisps=False, geometry='derelict'),
     'patched':  dict(engines={1: 'capped', 2: 'capped', 3: 'salvaged', 4: 'salvaged'}, powered=True,
                      guns=True, seal_wisps=True, geometry='patched'),
     'refit':    dict(engines={1: 'capped', 2: 'capped', 3: 'salvaged', 4: 'salvaged'}, powered=True,
-                     guns=True, seal_wisps=True, geometry='patched'),
+                     guns=True, seal_wisps=False, geometry='refit'),
     'restored': dict(engines={1: 'clean', 2: 'clean', 3: 'clean', 4: 'clean'}, powered=True,
-                     guns=True, seal_wisps=False, geometry='clean'),
+                     guns=True, seal_wisps=False, geometry='restored'),
     'clean':    dict(engines={1: 'clean', 2: 'clean', 3: 'clean', 4: 'clean'}, powered=True,
                      guns=True, seal_wisps=False, geometry='clean'),
 }
-# 'geometry' is the build_reference.py --state that best stands in for the
-# condition until sw_damage grows refit/restored builds of its own.
+# 'geometry' is the build_reference.py --state that builds that condition.
 
 
 class Context:

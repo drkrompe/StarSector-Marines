@@ -6,8 +6,8 @@ Run:
 Options after a literal "--":
   --state S        derelict | patched (default) | refit | restored | clean
   --blend PATH     open an existing ship build instead of rebuilding it
-  --geometry G     build_reference.py --state to build (default: the state's
-                   stand-in from swfx_core.STATES)
+  --geometry G     build_reference.py --state to build (default: the same
+                   condition, swfx_core.STATES[state]['geometry'])
   --groups a,b     effect groups (default all: thrusters,smoke,guns,lighting)
   --preset P       lighting rig preset (see swfx_lighting.PRESETS)
   --review a,b     render each named group's review (stills + short movie)
@@ -48,7 +48,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--state', default='patched', choices=sorted(swfx_core.STATES))
     parser.add_argument('--blend')
-    parser.add_argument('--geometry', choices=('clean', 'derelict', 'patched'))
+    parser.add_argument('--geometry', choices=('clean', 'derelict', 'patched', 'refit', 'restored'))
     parser.add_argument('--groups', default=','.join(swfx.GROUPS))
     parser.add_argument('--preset')
     parser.add_argument('--review', default='')
