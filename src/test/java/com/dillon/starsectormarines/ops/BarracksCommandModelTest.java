@@ -102,7 +102,7 @@ class BarracksCommandModelTest {
         assertEquals(before, roster.squads().size(), "No stores, no squad");
     }
 
-    @Test void selectionSpansPagesButNotStationedSquadsAndFiltersDiscardIt() {
+    @Test void selectionSpansPagesButNotStationedSquadsAndClearDiscardsIt() {
         var roster = new MarineRoster();
         roster.bootstrapInitialComplement(13 * MarineSquad.CAPACITY);
         var captain = new MarineCaptain("Vale", null, Rank.CAPTAIN, 0f);
@@ -116,9 +116,8 @@ class BarracksCommandModelTest {
         action(model, "next");
         assertEquals("PAGE 2 / 2", value(model, "pageLabel"));
         assertEquals(12, model.selected().size());
-        action(model, "attention");
+        action(model, "clear");
         assertTrue(model.selected().isEmpty());
-        assertEquals("PAGE 1 / 1", value(model, "pageLabel"));
     }
 
     @Test void realPointerFlowSavesAndAssignsProfileThenInspectsAndReturns() throws Exception {
@@ -128,6 +127,7 @@ class BarracksCommandModelTest {
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
         var squad = roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow();
         roster.applySoldierOutcome(Map.of(squad.memberIds().get(0), MarineSoldierStatus.KIA), 0f, 0f);
+        roster.recruitToSquad(roster.reserveSquad().id(), 1); // so Fill Vacancies is a live, focusable order
         var vm = new BarracksViewModel(reactor, roster, () -> 1d);
         var model = vm.command();
         var props = new LinkedHashMap<String, Object>();
@@ -153,23 +153,23 @@ class BarracksCommandModelTest {
                 assertEquals(1, model.selected().size(), "Squad selection works while Castle is speaking");
                 assertTrue(model.guideVisible());
                 guide.update();
-                assertEquals("barracks-choose-donors", model.guideTargetId());
+                assertEquals("barracks-reinforce", model.guideTargetId());
                 var target = instance.requireElement(model.guideTargetId()).box().borderBox();
                 var panel = instance.requireElement("barracks-guide").box().borderBox();
                 assertEquals(0, panel.intersect(target).width() * panel.intersect(target).height());
-                document.requestFocus(instance.requireElement("barracks-select-all"), true);
-                assertEquals("barracks-select-all", document.focusedElement().id(), "Keyboard focus can reach a highlighted region");
+                document.requestFocus(instance.requireElement("barracks-reinforce"), true);
+                assertEquals("barracks-reinforce", document.focusedElement().id(), "Keyboard focus can reach a highlighted region");
                 assertThrows(IllegalArgumentException.class,
                         () -> document.requestFocus(instance.requireElement("barracks-organization"), true));
                 click(document, instance, "barracks-organization");
-                assertEquals("barracks-choose-donors", model.guideTargetId(), "Darkened organization controls do not activate");
+                assertEquals("barracks-reinforce", model.guideTargetId(), "Darkened organization controls do not activate");
                 document.keyPressed(UiKey.ESCAPE, Set.of(), false);
                 instance.flush(); document.advance(0f); guide.update();
                 assertFalse(model.guideVisible());
                 click(document, instance, "barracks-guide-help");
                 guide.update();
                 assertTrue(model.guideVisible());
-                assertEquals("barracks-choose-donors", model.guideTargetId(), "Reopening resumes the lesson");
+                assertEquals("barracks-reinforce", model.guideTargetId(), "Reopening resumes the lesson");
                 action(model, "guideNext");
                 action(model, "guideNext");
                 instance.flush(); document.advance(0f); guide.update();

@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.combat;
 
+import com.dillon.starsectormarines.battle.mech.MechBodyPlan;
+import com.dillon.starsectormarines.battle.mech.MechSection;
+import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
@@ -8,6 +11,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.squad.FireTeamMorale;
 import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
+import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.DeathDispatcher;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
@@ -76,6 +80,7 @@ public final class DamageResolver {
     private final IntSupplier simTick;
     private final Random rng;
     private final DurabilityModel.Resolution durability = new DurabilityModel.Resolution();
+    private final MechSections.Hit sectionHit = new MechSections.Hit();
 
     public DamageResolver(NavigationService navigation,
                           DoodadService doodads,
@@ -170,7 +175,7 @@ public final class DamageResolver {
         // say when it decided which parts it hid. Only a payload with no part — an area burst,
         // a strafe, a hull — still has its damage cut by the cover it hit.
         float dr = 0f;
-        if (part == null) {
+        if (part == null || !part.hasCoverRows()) {
             int targetCover = coverAgainst(world, targetId, attackerId, tcx, tcy);
             dr = Math.max(
                     COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)],
@@ -200,18 +205,44 @@ public final class DamageResolver {
             mitigationSoak = screens.soakAgainst(targetId, tx, ty,
                     world.x(attackerId), world.y(attackerId));
         }
-        DurabilityModel.resolveInto(postCoverDamage, penetration, mitigationSoak,
-                armorBefore, armorRating, hpBefore, durability);
-        // The pool is spent by exactly what the model said it absorbed, which is
-        // the step that lets massed fire beat a screen rather than wait it out.
-        // It may break here; that is the interesting way for a screen to end.
-        if (durability.mitigatedDamage() > 0f) {
-            screens.absorb(targetId, durability.mitigatedDamage());
+        MechLoadoutComponent mech = MechSections.ENABLED && world.hasMechLoadout(targetId)
+                ? world.mechLoadout(targetId) : null;
+        float armorDamage;
+        float structureDamage;
+        float newHp;
+        if (mech != null) {
+            // A mech is hit on a section: its own armor and structure, spill into the torso, and
+            // only the torso kills. The chassis columns keep the sections' totals, so every
+            // whole-chassis reader (health bar, morale thresholds, AI) sees the same body.
+            MechSections sections = mech.sectionsFor(hpBefore, world.maxHp(targetId),
+                    armorBefore, hasArmor ? world.maxArmor(targetId) : 0f);
+            MechSection section = sectionStruck(world, targetId, attackerId, mech, sections, part);
+            sections.resolve(section, postCoverDamage, penetration, mitigationSoak, armorRating,
+                    durability, sectionHit);
+            if (sectionHit.mitigatedDamage() > 0f) screens.absorb(targetId, sectionHit.mitigatedDamage());
+            armorDamage = sectionHit.armorDamage();
+            structureDamage = sectionHit.structureDamage();
+            if (hasArmor) world.setArmor(targetId, sections.totalArmor());
+            newHp = sections.torsoDestroyed() ? 0f : sections.totalStructure();
+            if (sectionHit.sectionDestroyed() && !sections.torsoDestroyed()) {
+                applySectionLoss(targetId, mech, section);
+            }
+        } else {
+            DurabilityModel.resolveInto(postCoverDamage, penetration, mitigationSoak,
+                    armorBefore, armorRating, hpBefore, durability);
+            // The pool is spent by exactly what the model said it absorbed, which is
+            // the step that lets massed fire beat a screen rather than wait it out.
+            // It may break here; that is the interesting way for a screen to end.
+            if (durability.mitigatedDamage() > 0f) {
+                screens.absorb(targetId, durability.mitigatedDamage());
+            }
+            if (hasArmor && durability.armorDamage() > 0f) {
+                world.setArmor(targetId, Math.max(0f, armorBefore - durability.armorDamage()));
+            }
+            armorDamage = durability.armorDamage();
+            structureDamage = durability.structureDamage();
+            newHp = hpBefore - structureDamage;
         }
-        if (hasArmor && durability.armorDamage() > 0f) {
-            world.setArmor(targetId, Math.max(0f, armorBefore - durability.armorDamage()));
-        }
-        float newHp = hpBefore - durability.structureDamage();
         world.setHp(targetId, newHp);
         boolean died = newHp <= 0f;   // wasAlive is guaranteed by the early return above
         // Telemetry runs here, at the one point in the sim that knows both what
@@ -220,15 +251,16 @@ public final class DamageResolver {
         // left, so overkill from a rocket doesn't read as output the shooter
         // produced. Both writes are safe on a target that is about to be
         // released: TELEMETRY is not in the corpse-remove mask.
-        float applied = durability.armorDamage() + (hpBefore - Math.max(0f, newHp));
+        float applied = armorDamage + structureDamage;
         CombatTelemetryService telemetry = roster.telemetry();
         telemetry.recordDamageTaken(targetId, applied);
-        if (part != null) recordPartConsequence(targetId, part, died, telemetry);
+        if (part != null && mech == null) recordPartConsequence(targetId, part, died, structureDamage, telemetry);
         // Its own quantity, never folded into armor: a screen that showed up as
         // smaller resolved damage would be a statistical rumour rather than a
         // capability the player can read. What the pool absorbed is attributable
         // exactly as the refused fraction used to be.
-        telemetry.recordDamageMitigated(targetId, durability.mitigatedDamage());
+        telemetry.recordDamageMitigated(targetId,
+                mech != null ? sectionHit.mitigatedDamage() : durability.mitigatedDamage());
         // Gated on isRecorded, not on the NO_ATTACKER sentinel alone: a convoy
         // vehicle's turret fires with the vehicle entity as the attacker, and a
         // vehicle carries GROUND_IDENTITY rather than IDENTITY, so the faction
@@ -311,14 +343,54 @@ public final class DamageResolver {
      * lived through it, leaves the wound ({@code body-part-cover.md}, Part consequences). A hit
      * the armour absorbed whole never reached the man, so it wounds nothing.
      */
-    private void recordPartConsequence(long targetId, BodyPart part, boolean died,
+    private void recordPartConsequence(long targetId, BodyPart part, boolean died, float structureDamage,
                                        CombatTelemetryService telemetry) {
         boolean known = roster.identity().has(targetId);
         Faction struck = known ? roster.identity().faction(targetId) : null;
         if (struck != null) telemetry.recordPartHit(struck, part);
-        if (died || !part.wounds() || durability.structureDamage() <= 0f) return;
-        roster.wounds().wound(targetId, part);
-        if (struck != null) telemetry.recordWound(struck, part);
+        if (died || structureDamage <= 0f) return;
+        switch (part.consequence) {
+            case LIMB_WOUND -> {
+                roster.wounds().wound(targetId, part);
+                if (struck != null) telemetry.recordWound(struck, part);
+            }
+            // A mech's sections answer at zero, not per hit: see applySectionLoss.
+            case NONE, CRIPPLE, MOUNT_LOSS, SENSOR_LOSS -> { }
+        }
+    }
+
+    /**
+     * The section a hit on a mech lands on. A modelled round brings the band of the height it
+     * arrived at; a payload with none (a blast, a strafe) is struck at a uniform height. A
+     * torso-height hit takes the arms mount with the chassis's lateral share; a shoulder-height
+     * hit takes the shoulder on the side it came from, read against the torso's facing.
+     */
+    private MechSection sectionStruck(World world, long targetId, long attackerId,
+                                      MechLoadoutComponent mech, MechSections sections, BodyPart part) {
+        MechBodyPlan plan = sections.plan();
+        BodyPart band = plan.owns(part) ? part : plan.bodyPlan().atHeight(rng.nextFloat());
+        boolean fromLeft;
+        if (attackerId != targetId && roster.isAliveById(attackerId)) {
+            fromLeft = MechSections.fromLeft(mech.torsoFacingDegrees,
+                    world.x(attackerId) - world.x(targetId), world.y(attackerId) - world.y(targetId));
+        } else {
+            fromLeft = rng.nextBoolean();
+        }
+        return sections.sectionFor(band, fromLeft, rng.nextFloat());
+    }
+
+    /**
+     * What a section at zero costs a mech that still stands ({@code mech-locational-damage.md}):
+     * a mount loses its weapon, the head its sensors. Crippled legs need nothing written here:
+     * the sections say so, and movement reads it through {@code MechSectionModifier}.
+     */
+    private void applySectionLoss(long targetId, MechLoadoutComponent mech, MechSection section) {
+        if (section.mount() != null) {
+            mech.destroyMount(section.mount());
+        } else if (section == MechSection.HEAD) {
+            VisionService vision = roster.vision();
+            vision.setVisionRange(targetId, vision.visionRange(targetId) * MechSections.SENSOR_LOSS_VISION);
+        }
     }
 
     /**

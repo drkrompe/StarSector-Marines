@@ -1,0 +1,42 @@
+{
+ "bay-door-stbd": {
+  "raw_iou": 0.9911,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9972,
+  "scale": [
+   1.00155,
+   1.0099
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "belt-fore-stbd": {
+  "raw_iou": 0.9877,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9911,
+  "scale": [
+   1.00333,
+   1.01222
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "bow-stbd-flank": {
+  "raw_iou": 0.992,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9991,
+  "scale": [
+   1.00472,
+   1.0028
+  ],
+  "boundary_p95_px": 1.0
+ },
+ "belt-bow-stbd": {
+  "raw_iou": 0.9872,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9947,
+  "scale": [
+   1.00333,
+   1.01563
+  ],
+  "boundary_p95_px": 1.0
+ }
+}

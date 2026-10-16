@@ -88,11 +88,18 @@ ramp: a shooter right behind cover is not caught by it. A trench keeps its
 shooter-distance ramp: a shooter standing over the lip sees the whole man. Both
 ramps scale the profile's coverage, so close in, every part is exposed.
 
-**Only people have parts.** Mechs, vehicles, emplacements, aircraft and
-creatures remain one whole-body contact and keep the flat model: vehicles and
-aircraft take no terrain cover, and the rest keep the flat catch and damage cut
-by level. A mech hit-location model is a separate question and is not assumed
-here.
+**A body plan says what parts a body has.** A unit type declares a body plan
+or none. The plan names its parts and stacks their height bands; each part
+carries its share, its damage multiplier, its cover columns (edge, occupant and
+crossed, by level) and its consequence. The four parts above are the infantry
+plan, which every kind of person has. Band order and part order are separate,
+so a later plan can stack sections without reshuffling its tables.
+
+**Only people have parts today.** Mechs, vehicles, emplacements, aircraft and
+creatures have no plan, remain one whole-body contact and keep the flat model:
+vehicles and aircraft take no terrain cover, and the rest keep the flat catch
+and damage cut by level. A mech plan of sections is `mech-locational-damage.md`;
+it is a second plan through the same seam, not a second hit system.
 
 ## Shipped and open
 
@@ -108,6 +115,11 @@ here.
   *because* of a wound (today he chooses on health and armour, and a wound
   needs structure lost, so the wounded are usually also the hurt), wound
   presentation on the body, and AI reading wounds.
+- **Mech plans** (shipped). A mech chassis has a body plan too: four height
+  bands (legs, torso, shoulders, head) whose parts are its sections' bands
+  (`mechs-nouns.md`). They carry no cover rows yet, so cover meets a mech with
+  the flat whole-body chance and damage cut and their multiplier is one; the
+  height still decides the section. Cover by section is the next step there.
 - **Area exposure.** A blast asks which parts it can reach rather than rolling
   a hit: a shell bursting outside a trench reaches only what shows above it, a
   grenade landing in the trench reaches everything. That retires the last use of
@@ -140,8 +152,8 @@ here.
   roll a body contact makes.
 - A body part is never a second hidden hit roll on the intended target: a round
   that hits and reaches an exposed part lands.
-- Part shares, part multipliers and cover profiles are data, read in one
-  place; nothing else re-derives them.
+- Part shares, part multipliers and cover profiles are data, held by the body
+  plan's parts and read in one place; nothing else re-derives them.
 - A wound is a unit modifier, and needs structure removed: a hit the armour
   absorbed whole never reached the man.
 

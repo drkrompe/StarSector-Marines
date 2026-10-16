@@ -1,0 +1,44 @@
+{
+ "part": "bow-nose-top",
+ "regions": {
+  "cream": {
+   "pixels": 122460,
+   "share_as_declared": 0.975,
+   "share_in_declared_family": 0.975,
+   "came_back_as": {
+    "cream": 0.975
+   },
+   "swap": false,
+   "before_mean_lab": [
+    86.92,
+    1.55,
+    12.0
+   ],
+   "after_mean_lab": [
+    77.97,
+    1.64,
+    11.4
+   ],
+   "gain_L_a_b": [
+    1.33,
+    1.055,
+    0.95
+   ],
+   "dE_to_palette_before": 8.97,
+   "forced_back_to_declared": false
+  }
+ },
+ "planes": [
+  {
+   "pixels": 126224,
+   "ramp_span_L_removed": 0.57,
+   "ramp_dL_per_100px": [
+    0.03,
+    0.2
+   ],
+   "edge_band_dL_after": -6.13
+  }
+ ],
+ "ramp_span_L_removed_max": 0.57,
+ "edge_band_dL_after_mean": -6.13
+}

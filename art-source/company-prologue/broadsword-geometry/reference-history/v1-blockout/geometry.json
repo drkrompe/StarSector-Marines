@@ -1,0 +1,369 @@
+{
+  "status": "Blockout (pass 1): silhouette, sections, slots and engines. No damage or textures.",
+  "hull": {
+    "name": "Broadsword",
+    "hullId": "broadsword",
+    "size": "FIGHTER",
+    "style": "LOW_TECH",
+    "designation": "Heavy Fighter",
+    "wing": "broadsword_wing (Legion XIV Elite carries two)",
+    "variant": "broadsword_Fighter: lightmg x2 (WS 001/002, linked); missile slots empty",
+    "ship_system": "flarelauncher_fighter (hidden SYSTEM slot WS 005)",
+    "shield": "NONE",
+    "crew": [
+      1,
+      1
+    ],
+    "source": {
+      "ship": "data/hulls/broadsword.ship",
+      "sprite": "graphics/ships/broadsword.png",
+      "ship_data": "data/hulls/ship_data.csv (row id broadsword)",
+      "detail_reference": "art-source/aircraft/fighter-upres/broadsword/master-v1.png",
+      "lights_layer": "none exists for this hull"
+    }
+  },
+  "provenance": "verified against the installed broadsword.ship",
+  "axes": {
+    "+X": "nose",
+    "+Y": "port",
+    "+Z": "dorsal"
+  },
+  "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
+  "metres_per_unit": 0.65,
+  "scale": {
+    "method": "carrier scale: no deck program applies to a one-crew fighter, and the game draws fighters and carriers at one pixel scale, so the value is the Legion's published 0.65 m/unit (legion-geometry/geometry.json, the Second Wind figure)",
+    "size_m": [
+      20.1,
+      18.3,
+      4.1
+    ],
+    "cross_checks_m": {
+      "length (comparable: 19-22 m twin-engine heavy fighters)": 20.1,
+      "span": 18.3,
+      "height keel to canopy": 4.1,
+      "single-seat canopy l x w": [
+        3.9,
+        2.5
+      ],
+      "exhaust bell mouth diameter": 2.34,
+      "person 1.8 m in units": 2.77
+    },
+    "range": {
+      "canopy-fit floor (3 m single-seat canopy)": 0.5,
+      "published": 0.65
+    },
+    "legion_deck_fit": "span 18.2 m fits the Legion forward deck mouth (23.4 x 7.8 m); it exceeds the aft mouth width (14.3 m), whose deck is open above, so aft launches leave upward",
+    "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
+  },
+  "sprite": {
+    "size": [
+      30,
+      33
+    ],
+    "center": [
+      15,
+      13
+    ],
+    "pixel_to_model": "col c, row r (from top) covers X 19-r..20-r, Y 14-c..15-c"
+  },
+  "dimensions": {
+    "min": [
+      -11.9,
+      -14.05,
+      -3.2
+    ],
+    "max": [
+      19.0,
+      14.05,
+      3.15
+    ],
+    "size": [
+      30.9,
+      28.1,
+      6.35
+    ]
+  },
+  "root": {
+    "name": "Broadsword root",
+    "location": [
+      0,
+      0,
+      0
+    ],
+    "note": "the .ship centre: the game's rotation pivot"
+  },
+  "collections": {
+    "model": "BROADSWORD | geometry",
+    "review_rig": "BROADSWORD | review rig"
+  },
+  "weapon_slots": [
+    {
+      "id": "WS 001",
+      "location": [
+        -5,
+        11
+      ],
+      "angle": 0,
+      "arc": 5,
+      "mount": "HIDDEN",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "anchor": "Weapon WS 001 anchor",
+      "anchor_location": [
+        -5,
+        11.5,
+        0.35
+      ],
+      "fitted": "lightmg",
+      "muzzle": "Weapon WS 001 muzzle"
+    },
+    {
+      "id": "WS 002",
+      "location": [
+        -5,
+        -10
+      ],
+      "angle": 0,
+      "arc": 5,
+      "mount": "HIDDEN",
+      "size": "SMALL",
+      "type": "BALLISTIC",
+      "anchor": "Weapon WS 002 anchor",
+      "anchor_location": [
+        -5,
+        -10.5,
+        0.35
+      ],
+      "fitted": "lightmg",
+      "muzzle": "Weapon WS 002 muzzle"
+    },
+    {
+      "id": "WS 003",
+      "location": [
+        -4,
+        7
+      ],
+      "angle": 0,
+      "arc": 5,
+      "mount": "HIDDEN",
+      "size": "SMALL",
+      "type": "MISSILE",
+      "anchor": "Weapon WS 003 anchor",
+      "anchor_location": [
+        -4,
+        7.5,
+        1.15
+      ],
+      "fitted": null
+    },
+    {
+      "id": "WS 004",
+      "location": [
+        -4,
+        -6
+      ],
+      "angle": 0,
+      "arc": 5,
+      "mount": "HIDDEN",
+      "size": "SMALL",
+      "type": "MISSILE",
+      "anchor": "Weapon WS 004 anchor",
+      "anchor_location": [
+        -4,
+        -6.5,
+        1.4
+      ],
+      "fitted": null
+    },
+    {
+      "id": "WS 005",
+      "location": [
+        -6,
+        0
+      ],
+      "angle": 180,
+      "arc": 5,
+      "mount": "HIDDEN",
+      "size": "SMALL",
+      "type": "SYSTEM",
+      "anchor": "Weapon WS 005 anchor",
+      "anchor_location": [
+        -6,
+        0.0,
+        1.57
+      ],
+      "fitted": null
+    }
+  ],
+  "engines": [
+    {
+      "index": 1,
+      "slot_location": [
+        -11,
+        6
+      ],
+      "width": 12,
+      "angle": 180,
+      "style": "LOW_TECH",
+      "objects": "Engine 1 ...",
+      "bell": "Engine 1 aft-facing bell",
+      "lip": "Engine 1 mouth lip",
+      "throat": "Engine 1 dark throat",
+      "anchor": "Engine 1 port exhaust anchor",
+      "anchor_location": [
+        -11.9,
+        5.5,
+        -0.7
+      ],
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "bell_radius": 1.8,
+      "lip_radius": 2.2
+    },
+    {
+      "index": 2,
+      "slot_location": [
+        -11,
+        -5
+      ],
+      "width": 12,
+      "angle": 180,
+      "style": "LOW_TECH",
+      "objects": "Engine 2 ...",
+      "bell": "Engine 2 aft-facing bell",
+      "lip": "Engine 2 mouth lip",
+      "throat": "Engine 2 dark throat",
+      "anchor": "Engine 2 starboard exhaust anchor",
+      "anchor_location": [
+        -11.9,
+        -5.5,
+        -0.7
+      ],
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ],
+      "bell_radius": 1.8,
+      "lip_radius": 2.2
+    }
+  ],
+  "slot_symmetry_note": "Integer .ship slots straddle the centre line of an even-width sprite (11/-10, 7/-6, 6/-5); the model and its anchors are symmetric at the mean (10.5, 6.5, 5.5).",
+  "anchors": {
+    "Engine 1 port exhaust anchor": [
+      -11.9,
+      5.5,
+      -0.7
+    ],
+    "Engine 2 starboard exhaust anchor": [
+      -11.9,
+      -5.5,
+      -0.7
+    ],
+    "Weapon WS 001 anchor": [
+      -5.0,
+      11.5,
+      0.35
+    ],
+    "Weapon WS 001 muzzle": [
+      9.1,
+      9.4,
+      0.35
+    ],
+    "Weapon WS 002 anchor": [
+      -5.0,
+      -10.5,
+      0.35
+    ],
+    "Weapon WS 002 muzzle": [
+      9.1,
+      -9.4,
+      0.35
+    ],
+    "Weapon WS 003 anchor": [
+      -4.0,
+      7.5,
+      1.15
+    ],
+    "Weapon WS 004 anchor": [
+      -4.0,
+      -6.5,
+      1.4
+    ],
+    "Weapon WS 005 anchor": [
+      -6.0,
+      0.0,
+      1.571
+    ]
+  },
+  "anchor_convention": "ARROWS empties; local +X points along the slot angle (0 = nose, 180 = aft)",
+  "object_names": {
+    "Hull ...": "nose, forward fuselage, aft spine and their plates",
+    "Canopy ...": "glass and frame",
+    "Wing <side> ...": "gun pod housings, blades, aft strakes",
+    "Weapon <slot id> ...": "gun geometry and slot anchors",
+    "Engine <i> ...": "nacelle, collar, mouth lip, aft-facing bell, dark throat",
+    "Flare launcher WS 005 ...": "the system launcher on the spine"
+  },
+  "cameras": [
+    {
+      "name": "top",
+      "position": [
+        3.5,
+        0,
+        60
+      ],
+      "orthographic_scale": 52,
+      "rotation": "nose left, port below"
+    },
+    {
+      "name": "port-side",
+      "position": [
+        3.5,
+        70,
+        0
+      ],
+      "orthographic_scale": 40,
+      "rotation": "looks at [3.5, 0.0, 0.0]"
+    },
+    {
+      "name": "front",
+      "position": [
+        70,
+        0,
+        0
+      ],
+      "orthographic_scale": 36,
+      "rotation": "looks at [3.5, 0.0, 0.0]"
+    },
+    {
+      "name": "stern",
+      "position": [
+        -70,
+        0,
+        0
+      ],
+      "orthographic_scale": 36,
+      "rotation": "looks at [3.5, 0.0, 0.0]"
+    },
+    {
+      "name": "three-quarter",
+      "position": [
+        45,
+        50,
+        34
+      ],
+      "orthographic_scale": 44,
+      "rotation": "looks at [3.5, 0.0, 0.0]"
+    }
+  ],
+  "silhouette": {
+    "iou": 0.9271,
+    "sprite_uncovered": 0.0474,
+    "model_outside_sprite": 0.0274,
+    "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 36.92 px per unit"
+  }
+}

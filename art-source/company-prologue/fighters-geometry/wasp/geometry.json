@@ -1,0 +1,237 @@
+{
+  "status": "Blockout (pass 1): silhouette, sections, mass, slots and engines. No detail, damage or textures.",
+  "hull": {
+    "name": "Wasp",
+    "hullId": "wasp",
+    "size": "FIGHTER",
+    "style": "HIGH_TECH",
+    "source": {
+      "ship": "data/hulls/wasp.ship",
+      "sprite": "graphics/ships/wasp_ftr.png",
+      "shape_reference": "art-source/aircraft/fighter-upres/wasp/master-v2.png",
+      "variant": "data/variants/fighters/wasp_Interceptor.variant (WS 001 pdlaser, WS 002 fragbomb)"
+    }
+  },
+  "provenance": "verified against the installed data/hulls/wasp.ship",
+  "axes": {
+    "+X": "nose",
+    "+Y": "port",
+    "+Z": "dorsal"
+  },
+  "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
+  "metres_per_unit": 0.5,
+  "scale": {
+    "summary": "Crewless interceptor drone: one PD emitter, two drive cans, four swept arms",
+    "method": "No crew (ship_data min/max crew 0), so no cockpit sets the scale. Sized from its parts: each 4-unit engine slot is a drive can about 2.8 units across with a 1.6-unit bell, which at 0.5 m/unit is a 1.4 m can around a 0.8 m nozzle, the class of small turbofan a 9-10 m unmanned combat aircraft carries; the PD emitter barrel is about 1.7 m; the airframe comes out 9.5 m long and 8 m across the arms, the size of current loyal-wingman drones and about two thirds of a 14-15 m crewed fighter, which suits a drone carriers launch in numbers. Below 0.4 the cans shrink under 0.65 m nozzles and the hub under 1 m deep, too small for a drive, reactor and emitter; above 0.65 it reaches crewed-fighter length with nobody aboard.",
+    "range": [
+      0.4,
+      0.65
+    ],
+    "cross_checks_m": {
+      "length_overall": 9.5,
+      "span_across_arm_tips": 8.0,
+      "drive_can_diameter": 1.4,
+      "nozzle_bell_diameter": 0.8,
+      "pd_emitter_barrel_length": 1.7,
+      "XQ-58A Valkyrie (length, span)": [
+        9.1,
+        8.2
+      ],
+      "MQ-28 Ghost Bat length": 11.7,
+      "F-16 length (crewed reference)": 15.0
+    },
+    "size_m": [
+      9.5,
+      8.0,
+      1.5
+    ],
+    "canopy": null,
+    "cockpit_fit": []
+  },
+  "sprite": {
+    "size": [
+      18,
+      21
+    ],
+    "center": [
+      9,
+      11
+    ],
+    "pixel_to_model": "col c, row r (from top) covers X 9-r..10-r, Y 8-c..9-c"
+  },
+  "dimensions": {
+    "min": [
+      -10.0,
+      -8.0,
+      -1.55
+    ],
+    "max": [
+      9.0,
+      8.0,
+      1.51
+    ],
+    "size": [
+      19.0,
+      16.0,
+      3.06
+    ]
+  },
+  "root": {
+    "name": "Wasp root",
+    "location": [
+      0,
+      0,
+      0
+    ],
+    "note": "the .ship centre: the game's rotation pivot"
+  },
+  "collections": {
+    "model": "WASP | geometry",
+    "review_rig": "WASP | review rig"
+  },
+  "weapon_slots": [
+    {
+      "id": "WS 001",
+      "location": [
+        1,
+        0
+      ],
+      "angle": 0,
+      "arc": 360,
+      "mount": "HIDDEN",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "anchor": "Weapon WS 001 anchor"
+    },
+    {
+      "id": "WS 002",
+      "location": [
+        -7,
+        0
+      ],
+      "angle": 180,
+      "arc": 360,
+      "mount": "HIDDEN",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "anchor": "Weapon WS 002 anchor"
+    }
+  ],
+  "engines": [
+    {
+      "index": 1,
+      "slot_location": [
+        -7,
+        4
+      ],
+      "width": 4,
+      "angle": 180,
+      "parts": [
+        "Engine 1 mouth lip",
+        "Engine 1 aft-facing bell",
+        "Engine 1 dark throat"
+      ],
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 2,
+      "slot_location": [
+        -7,
+        -4
+      ],
+      "width": 4,
+      "angle": 180,
+      "parts": [
+        "Engine 2 mouth lip",
+        "Engine 2 aft-facing bell",
+        "Engine 2 dark throat"
+      ],
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ]
+    }
+  ],
+  "anchors": {
+    "Engine 1 port exhaust anchor": [
+      -8.25,
+      2.0,
+      -0.25
+    ],
+    "Engine 2 starboard exhaust anchor": [
+      -8.25,
+      -2.0,
+      -0.25
+    ],
+    "Weapon WS 001 anchor": [
+      1.0,
+      0.0,
+      1.5
+    ],
+    "Weapon WS 001 muzzle": [
+      8.6,
+      0.0,
+      0.873
+    ],
+    "Weapon WS 002 anchor": [
+      -7.0,
+      0.0,
+      -0.25
+    ]
+  },
+  "anchor_convention": "ARROWS empties; local +X points along the slot angle (0 = nose, 180 = aft)",
+  "notes": [
+    "Crewless drone (crew 0): no canopy and no pilot seat; scale from engines, gun and size.",
+    "Sprite is symmetric about Y = 0 (even width, centre column boundary), as are both slots; engine slots (-7, +-4) are symmetric already.",
+    "Drive cans are centred at Y +-2.6 to cover the sprite's engine mounds (Y 1..4); the visible bells sit at the master's painted nozzles, slot + renderEngineOffsetsNativePx = (-8.25, +-2.0), not at the slot location (-7, +-4). Exhaust anchors are at those bells.",
+    "WS 001 (pdlaser, HIDDEN) anchors on the spine deck at (1, 0); the master draws its emitter barrel running out past the nose tip, modelled as Weapon WS 001 emitter barrel with its muzzle at the barrel tip.",
+    "WS 002 (fragbomb, HIDDEN, aft) anchors at (-7, 0) in the gap between the drive cans, where the sprite is empty; no visible launcher is modelled.",
+    "The master was registered on its gun tip, so its arm tips read about one unit inboard of the sprite's; the arms follow the sprite."
+  ],
+  "cameras": {
+    "top": {
+      "position": [
+        -0.5,
+        0.0,
+        84.0
+      ],
+      "orthographic_scale": 35.84
+    },
+    "port-side": {
+      "position": [
+        -0.5,
+        84.0,
+        0.0
+      ],
+      "orthographic_scale": 26.75
+    },
+    "front": {
+      "position": [
+        83.5,
+        0.0,
+        0.0
+      ],
+      "orthographic_scale": 23.400000000000002
+    },
+    "three-quarter": {
+      "position": [
+        54.099998474121094,
+        60.900001525878906,
+        42.0
+      ],
+      "orthographic_scale": 30.45
+    }
+  },
+  "silhouette": {
+    "iou": 0.9511,
+    "sprite_uncovered": 0.0211,
+    "model_outside_sprite": 0.0292,
+    "sprite": "wasp_ftr.png",
+    "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 53.57 px per unit"
+  }
+}

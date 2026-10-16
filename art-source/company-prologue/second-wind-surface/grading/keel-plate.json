@@ -1,0 +1,44 @@
+{
+ "part": "keel-plate",
+ "regions": {
+  "gunmetal": {
+   "pixels": 223541,
+   "share_as_declared": 0.97,
+   "share_in_declared_family": 0.999,
+   "came_back_as": {
+    "gunmetal": 0.97
+   },
+   "swap": false,
+   "before_mean_lab": [
+    47.36,
+    0.31,
+    0.21
+   ],
+   "after_mean_lab": [
+    46.45,
+    1.05,
+    1.83
+   ],
+   "gain_L_a_b": [
+    1.33,
+    1.153,
+    1.082
+   ],
+   "dE_to_palette_before": 2.0,
+   "forced_back_to_declared": false
+  }
+ },
+ "planes": [
+  {
+   "pixels": 227704,
+   "ramp_span_L_removed": 0.97,
+   "ramp_dL_per_100px": [
+    -0.08,
+    -0.15
+   ],
+   "edge_band_dL_after": -0.59
+  }
+ ],
+ "ramp_span_L_removed_max": 0.97,
+ "edge_band_dL_after_mean": -0.59
+}

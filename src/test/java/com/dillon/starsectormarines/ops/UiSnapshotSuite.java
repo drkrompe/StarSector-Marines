@@ -39,6 +39,8 @@ import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.MechBay;
+import com.dillon.starsectormarines.marine.MechInternal;
+import com.dillon.starsectormarines.marine.MechPattern;
 import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.FabricationCost;
 import com.dillon.starsectormarines.marine.FabricationResources;
@@ -1823,7 +1825,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 
     static List<SnapshotArtifact> renderBarracksCommand(SnapshotContext context) throws Exception {
         return renderBarracksCommand(context, List.of("dossier", "dossier-trained", "command", "profiles",
-                "empty", "large", "transfers", "guide", "guide-transfer", "guide-replenish",
+                "empty", "large", "guide", "guide-replenish",
                 "guide-equipment"), true, true);
     }
 
@@ -1895,22 +1897,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 viewModel.command().selectCommand(captain.id());
             }
             if (!state.startsWith("guide") && !state.equals("empty")) ((Runnable) viewModel.command().props().get("guideDismiss")).run();
-            if (state.equals("transfers")) {
-                viewModel.command().toggle(squads.get(2).id());
-                ((Runnable) viewModel.command().props().get("chooseDonors")).run();
-                viewModel.command().toggle(squads.get(1).id());
-                viewModel.command().reviewTransfers();
-            }
             if (state.startsWith("guide-")) {
+                // Selecting a squad opens the replenish lesson; equipment is the next one.
                 viewModel.command().toggle(squads.get(2).id());
-                if (state.equals("guide-transfer")) {
-                    ((Runnable) viewModel.command().props().get("chooseDonors")).run();
-                    viewModel.command().toggle(squads.get(1).id());
-                    viewModel.command().reviewTransfers();
-                } else {
-                    ((Runnable) viewModel.command().props().get("guideNext")).run();
-                    if (state.equals("guide-equipment")) ((Runnable) viewModel.command().props().get("guideNext")).run();
-                }
+                if (state.equals("guide-equipment")) ((Runnable) viewModel.command().props().get("guideNext")).run();
             }
             if (state.equals("profiles")) ((Runnable) viewModel.command().props().get("newProfile")).run();
             Map<String, Object> properties = new LinkedHashMap<>();
@@ -1930,7 +1920,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 bindings.update(document, instance, viewModel, hints);
                 images.add(new SnapshotArtifact("barracks-" + state + "-1920x1080.png",
                         renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
-                if (state.startsWith("dossier") || state.startsWith("guide") || state.equals("transfers")) {
+                if (state.startsWith("dossier") || state.startsWith("guide")) {
                     images.add(new SnapshotArtifact("barracks-" + state + "-150pct.png",
                             renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1.5f)));
                 }
@@ -2667,6 +2657,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderMechLab(context, renderer, 1920, 1080, 1f, true, false, false, false, null, "long-name")),
                 new SnapshotArtifact("mech-fitting-bulwark-1920x1080.png", heavy),
                 new SnapshotArtifact("mech-fitting-1920x1080.png", idle),
+                new SnapshotArtifact("mech-internal-engine-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "internal-engine")),
+                new SnapshotArtifact("mech-internal-plating-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "internal-plating")),
+                new SnapshotArtifact("mech-internal-heat-sink-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "internal-heat")),
                 new SnapshotArtifact("mech-fitting-valid-drop-1920x1080.png", frames.get(18)),
                 new SnapshotArtifact("mech-fitting-rejected-drop-1920x1080.png", frames.get(34)),
                 SnapshotArtifact.colorAnimation("mech-fitting-1920x1080.gif", frames, 100));
@@ -2746,6 +2742,25 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             viewModel.gantryRows().get().get(0).select().run();
         }
         if (weldingEvidence) viewModel.gantryRows().get().get(0).select().run();
+        // Internals: the engine socket with an uprated engine hovered, then frame plating
+        // with heavy plate hovered, so the budget line and meter ghosts show the trade.
+        if (materialHint != null && materialHint.startsWith("internal-")) {
+            for (MechInternal internal : MechInternal.values()) bay.learnPattern(MechPattern.of(internal).id());
+        }
+        if ("internal-engine".equals(materialHint)) {
+            viewModel.gantryRows().get().get(0).select().run();
+            viewModel.selectSlot(SocketId.CORE);
+            viewModel.hoverInternal(MechInternal.UPRATED_ENGINE);
+        }
+        if ("internal-plating".equals(materialHint)) {
+            viewModel.gantryRows().get().get(0).select().run();
+            viewModel.selectPlating();
+            viewModel.hoverInternal(MechInternal.HEAVY_PLATING);
+        }
+        if ("internal-heat".equals(materialHint)) {
+            viewModel.gantryRows().get().get(0).select().run();
+            viewModel.selectSlot(SocketId.AMMO_RESERVE);
+        }
         if (selectVacant) viewModel.previousGantryAction().run();
         if (pickerOpen) viewModel.openAssetPickerAction().run();
         // The lab is photographed aboard the same ship it is in game. There is
@@ -2784,6 +2799,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                             () -> ship.scene().berthsIn(vehicleBay), vehicleBay::id,
                             () -> seconds[0],
                             viewModel::hoveredWeapon);
+            fittingCanvas.installedInternals(viewModel::installedInternal);
             document.canvases().set(instance.requireElement("mech-doll-canvas"), fittingCanvas);
             for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
                 if (row.chassisPreview() != null) {
@@ -2813,7 +2829,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.layout(initialViewport.documentWidth(), initialViewport.documentHeight());
             guide.update();
             if (specSheet || materialHint != null && !"long-name".equals(materialHint)
-                    && !materialHint.startsWith("lesson-") && !materialHint.startsWith("resource-")) {
+                    && !materialHint.startsWith("lesson-") && !materialHint.startsWith("resource-")
+                    && !materialHint.startsWith("internal-")) {
                 SpecSheetBinder binder = new SpecSheetBinder(
                         document, SpecSheetLayer.install(document));
                 List<MechLabViewModel.CatalogRow> rows = viewModel.catalogRows().get();
@@ -3409,6 +3426,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("selectedMechIdentity", viewModel.selectedMechIdentity());
         props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());
         props.put("performanceMeters", viewModel.performanceMeters());
+        viewModel.putInternalProps(props);
         props.put("leftSlotRows", viewModel.leftSlotRows());
         props.put("rightSlotRows", viewModel.rightSlotRows());
         props.put("slotRows", viewModel.slotRows());

@@ -1,4 +1,4 @@
-"""Port-flank surfacing parts: what is skinned, from where, and which sheet it shares.
+"""Surfacing parts: what is skinned, from where, and which sheet it shares.
 
 Pure data at the top (importable by plain Python); the Blender helpers below
 it import bpy lazily, so sheets.py / grade.py can read PARTS without Blender.
@@ -19,79 +19,99 @@ deterministic for one build script.
 `skin_from` reuses another part's generation: the member is projected with its
 own camera fitted to its own face group, so its UVs land on the same
 normalised tile as the source part (identical / near-identical fittings).
+`mirror_u: True` with it flips the tile horizontally: a starboard face seen
+from starboard is the port face's mirror image, and the starboard camera's
+screen-right points the other way along the hull, so a mirrored reuse lines
+the port outline up with the starboard one.
+
+Optional per-part keys:
+  ray       visibility rays start this far out along the view direction
+            (default 300, i.e. outside the ship). A bay interior seen
+            through its opening sets it short enough to start inside.
+  square    |normal . dir| at and above which the skin is used unblended
+            (default SQUARE). Below it the material blends to the graded
+            swatch of the face's class, fully by SQUARE - SQUARE_BAND: the
+            chamfers and the bevel modifier's strips a square-on camera
+            would streak (pilot change 1).
+
+Per-part tone offsets come from variation.json (variation.py), applied in
+the part's material, so even two parts sharing one generation differ
+(pilot change 2).
 """
-from math import sqrt
+import importlib
+import sys
+from pathlib import Path
 
-HULL = 'Main hull - level datum Z0'
-PORT = (0.0, 1.0, 0.0)
-UP_Z = (0.0, 0.0, 1.0)
-DOWN_X = (1.0, 0.0, 0.0)   # screen-up for top views: bow at the top
-BOW_QUARTER = (sqrt(.5), sqrt(.5), 0.0)
-CHEEK = (0.50, 0.36, 0.79)  # sw_hull 'Port bow cheek': (.81, .58) at 38 deg below horizontal
+_HERE = Path(__file__).resolve().parent
+if str(_HERE) not in sys.path:
+    sys.path.insert(0, str(_HERE))
+from parts_common import *  # noqa: E402,F401,F403  direction constants
 
-# id: dict(members=[(object, seed)], dir, up, cone, material notes)
-PARTS = {
-    # Sheet A: the forebody and waist flank
-    'hull-waist-port': dict(members=[(HULL, (8, 23.2, 7))], dir=PORT, up=UP_Z, cone=.6,
-                            what='main hull port waist wall around the open bay'),
-    'bow-port-flank': dict(members=[('Forebody armour module.002', (52, 20, 2))], dir=BOW_QUARTER, up=UP_Z, cone=.6,
-                           what='bow shield module, port flank and forward rake'),
-    'fore-module-1': dict(members=[('Forebody armour module', (32, 31.5, 2))], dir=PORT, up=UP_Z, cone=.6,
-                          what='aft forebody armour module, port face (behind the grapple sponson)'),
-    'fore-module-2': dict(members=[('Forebody armour module.001', (42, 31.5, 2))], dir=PORT, up=UP_Z, cone=.6,
-                          what='forward forebody armour module, port face (behind the grapple sponson)'),
-    # Sheet B: the port engine pod's major casing, from port
-    'pod-cowl-port': dict(members=[(HULL, (-10, 38.5, 9))], dir=PORT, up=UP_Z, cone=.6,
-                          what='port pod armoured cowl, port face (part of the main hull object)'),
-    'pod-lower-casing-port': dict(members=[('Drive lower casing', (-10, 38, -2))], dir=PORT, up=UP_Z, cone=.6,
-                                  what='port pod steel lower casing'),
-    'pod-intake-cap-port': dict(members=[('Drive intake cap', (0, 36.5, 3))], dir=PORT, up=UP_Z, cone=.6,
-                                what='port pod intake cap'),
-    'pod-thrust-housing-port': dict(members=[('Thrust housing', (-30, 38, 2))], dir=PORT, up=UP_Z, cone=.6,
-                                    what='port pod thrust housing'),
-    # Sheet C: the grapple sponson boxes, the pod bands and the bow belt
-    'sponson-lower': dict(members=[('Grapple sponson aft lower body', (33, 34.3, 1))], dir=PORT, up=UP_Z, cone=.6,
-                          what='grapple sponson lower body; the forward body reuses it'),
-    'sponson-lower-fwd': dict(members=[('Grapple sponson forward lower body', (43, 34.3, 1))], dir=PORT, up=UP_Z, cone=.6,
-                              skin_from='sponson-lower', what='forward sponson lower body (shares sponson-lower)'),
-    'sponson-cowl': dict(members=[('Grapple sponson aft cowl', (33, 34.3, 8))], dir=PORT, up=UP_Z, cone=.6,
-                         what='grapple sponson cowl; the forward cowl reuses it'),
-    'sponson-cowl-fwd': dict(members=[('Grapple sponson forward cowl', (43, 34.3, 8))], dir=PORT, up=UP_Z, cone=.6,
-                             skin_from='sponson-cowl', what='forward sponson cowl (shares sponson-cowl)'),
-    'pod-bands-port': dict(members=[('Drive reinforcing band', (-17.8, 39, 4)), ('Drive reinforcing band.001', (-26.2, 39, 4))],
-                           dir=PORT, up=UP_Z, cone=.6, what='port pod barrel bands, both in one tile'),
-    'belt-bow-port': dict(members=[('Forebody armour belt plate.002', (50, 24, -1))], dir=BOW_QUARTER, up=UP_Z, cone=.5,
-                          what='steel belt plate on the bow module, port side'),
-    # Sheet D: tops and strips
-    'pod-cowl-top': dict(members=[(HULL, (-12, 33, 16))], dir=UP_Z, up=DOWN_X, cone=.6,
-                         what='port pod cowl top and turret seat (main hull object)'),
-    'sponson-cowl-tops': dict(members=[('Grapple sponson aft cowl', (33, 29, 12)), ('Grapple sponson forward cowl', (43, 29, 12))],
-                              dir=UP_Z, up=DOWN_X, cone=.6, what='both sponson cowl roofs in one tile'),
-    'bow-cheek-port': dict(members=[('Forebody armour module.002', (49, 18, 13))], dir=CHEEK, up=DOWN_X, cone=.85,
-                           what='raked port bow cheek'),
-    'deck-edge-lip-port': dict(members=[('Deck edge lip', (20, 28.5, 10)), ('Deck edge lip', (32, 32, 10)), ('Deck edge lip', (42, 30, 10))], dir=PORT, up=UP_Z, cone=.5,
-                               what='overhanging deck-edge lip, port run'),
-}
+# Each group owns one module, groups/<group>.py, defining PARTS and SHEETS.
+# The rollout fans out one session per group, so a group never edits another
+# group's rows; the aggregate below is what every script reads. A group that
+# fails to import (mid-edit by its owner) is skipped with a warning rather
+# than breaking every other group's run.
+GROUPS = ['port', 'starboard', 'bow', 'decks', 'turrets', 'arm', 'bay']
+PARTS, SHEETS, PART_GROUP, SHEET_GROUP = {}, {}, {}, {}
+for _g in GROUPS:
+    try:
+        _m = importlib.import_module(f'groups.{_g}')
+    except ModuleNotFoundError as _e:
+        if _e.name == f'groups.{_g}':
+            continue
+        print(f'SURF warning: group {_g} skipped: {_e!r}')
+        continue
+    except Exception as _e:  # a group mid-edit must not stop the others
+        print(f'SURF warning: group {_g} skipped: {_e!r}')
+        continue
+    for _p, _spec in _m.PARTS.items():
+        if _p in PARTS:
+            raise SystemExit(f'part {_p} defined by both {PART_GROUP[_p]} and {_g}')
+        PARTS[_p] = _spec
+        PART_GROUP[_p] = _g
+    for _s, _ps in _m.SHEETS.items():
+        if _s in SHEETS:
+            raise SystemExit(f'sheet {_s} defined by both {SHEET_GROUP[_s]} and {_g}')
+        SHEETS[_s] = _ps
+        SHEET_GROUP[_s] = _g
 
-# One Codex generation per sheet; reading order = tile order (2x2).
-SHEETS = {
-    'flank': ['hull-waist-port', 'bow-port-flank', 'fore-module-1', 'fore-module-2'],
-    'pod': ['pod-cowl-port', 'pod-lower-casing-port', 'pod-intake-cap-port', 'pod-thrust-housing-port'],
-    'fittings': ['sponson-lower', 'sponson-cowl', 'pod-bands-port', 'belt-bow-port'],
-    'tops': ['pod-cowl-top', 'sponson-cowl-tops', 'bow-cheek-port', 'deck-edge-lip-port'],
-}
+
+def group_arg(argv):
+    """`--group a,b` from a script's arguments (None = every group)."""
+    return argv[argv.index('--group') + 1].split(',') if '--group' in argv else None
+
+
+def parts_in(groups):
+    return [p for p in PARTS if groups is None or PART_GROUP[p] in groups]
+
+
+def sheets_in(groups):
+    return [s for s in SHEETS if groups is None or SHEET_GROUP[s] in groups]
+
+
+def tiles_dir(part):
+    """build/<group>/tiles: each group's scratch output is its own."""
+    d = _HERE / 'build' / PART_GROUP[part] / 'tiles'
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
 
 SHEET, TILE, GX, GY = (1920, 1080), (912, 513), 32, 18
 MARGIN = 0.07           # share of each tile left clear round the part, so segmentation sees background
 BACKGROUND = (214, 214, 214)
+SQUARE, SQUARE_BAND = 0.86, 0.10   # see `square` above: 30 deg off square-on is pure skin, 45 deg pure swatch
+SWATCH_UNITS = 8.0                  # hull units one swatch image spans (5.2 m at 0.65 m/unit)
 # Base materials -> palette class. Anything unlisted is not graded.
 MATERIAL_CLASS = {
     'Chalked cream armor': 'cream',
     'Oxide orange armor': 'oxide',
     'Engine collars': 'gunmetal',
     'Recess and machinery': 'dark',
+    'Grapple arm pale grey': 'pale',
 }
-CLASS_ID = {'cream': (255, 0, 0), 'oxide': (0, 255, 0), 'gunmetal': (0, 0, 255), 'dark': (255, 255, 0), 'other': (255, 0, 255)}
+CLASS_ID = {'cream': (255, 0, 0), 'oxide': (0, 255, 0), 'gunmetal': (0, 0, 255), 'dark': (255, 255, 0),
+            'pale': (0, 255, 255), 'other': (255, 0, 255)}
 
 
 def sheet_of(part):
@@ -144,7 +164,7 @@ def select_faces(part, objects=None):
         for t in me.loop_triangles:
             c = sum((verts[v] for v in t.vertices), Vector()) / 3
             total[t.polygon_index] = total.get(t.polygon_index, 0) + t.area
-            hit = bvh.ray_cast(c + d * 300, -d)
+            hit = bvh.ray_cast(c + d * spec.get('ray', 300), -d)
             if hit[0] is not None and abs((hit[0] - c).dot(d)) < 0.02:
                 seen[t.polygon_index] = seen.get(t.polygon_index, 0) + t.area
         ok = set()
@@ -206,11 +226,23 @@ def _adjacency(me, verts, faces, eps=1e-3):
     return adj
 
 
-def all_selections(objects=None):
-    """Every part's faces with overlaps resolved toward the squarer view."""
+def all_selections(objects=None, strict=None):
+    """Every part's faces with overlaps resolved toward the squarer view.
+
+    `strict` is the set of parts whose selection failure stops the run (default
+    every part). Another group's part that fails (a seed being authored by its
+    owner right now) is dropped with a warning, so it cannot stop this group;
+    the integrated run passes strict=None and fails on any of them."""
     import bpy
     from mathutils import Vector
-    sel = {p: select_faces(p, objects) for p in PARTS}
+    sel = {}
+    for p in PARTS:
+        try:
+            sel[p] = select_faces(p, objects)
+        except (SystemExit, KeyError) as e:
+            if strict is None or p in strict:
+                raise
+            print(f'SURF warning: {p} ({PART_GROUP[p]}) skipped: {e}')
     claims = {}
     for p, per in sel.items():
         d = Vector(PARTS[p]['dir']).normalized()
@@ -252,4 +284,5 @@ def project_uv(part, cam, point):
     x, y, _ = basis(PARTS[part])
     cu, cv, width = cam
     height = width * TILE[1] / TILE[0]
-    return (point.dot(x) - cu) / width + .5, (point.dot(y) - cv) / height + .5
+    u, v = (point.dot(x) - cu) / width + .5, (point.dot(y) - cv) / height + .5
+    return (1 - u if PARTS[part].get('mirror_u') else u), v
