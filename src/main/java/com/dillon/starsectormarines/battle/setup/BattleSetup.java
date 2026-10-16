@@ -127,6 +127,7 @@ import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.command.compound.CompoundGarrisonSystem;
 import com.dillon.starsectormarines.battle.vehicle.ConvoyPlanner;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadReservation;
@@ -1879,6 +1880,13 @@ public final class BattleSetup {
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(JunctionCommand.issuer(Faction.MARINE), "Company support joins the operation"));
         sim.installJunctionStoryHooks();
         // Control: -Dbattle.junction.talonTwo=false fights the junction with no gunship, so its trenches show their cost.
+        // Wayline's impounded haulers stand in their lot nose-north: civilian hulls, never a target.
+        for (float[] h : JunctionCompound.IMPOUNDED_HAULERS) {
+            VehicleMission parked = new VehicleMission(new float[]{h[0], h[0]}, new float[]{h[1], h[1] + 1},
+                    new float[]{h[0], h[0]}, new float[]{h[1], h[1] + 1}, 0f, 0);
+            parked.state = VehicleState.DEPLOYED;
+            sim.convoy().spawn(VehicleType.CARGO_CARRIER, Faction.CIVILIAN, parked);
+        }
         if (Boolean.parseBoolean(System.getProperty("battle.junction.talonTwo", "true"))) sim.installWaylineGunship(false);
         return sim;
     }

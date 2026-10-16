@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — unit modifiers include limb wounds (leg: speed, arm: accuracy).
+Updated: 2026-10-15 — a company breaching with satchels plans the approach as preconditions (nests dead, suppressed, blinded or out of sight) with enabling actions, see `phased-assault.md`.
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -1065,6 +1065,8 @@ without executable front work depart first; at least one executable actionable
 squad remains when possible. The published directive keeps the reason for its
 actual order and separately exposes whether a distant capture was deferred for
 front resistance, so selected-squad UI, dumps, and traces explain both facts.
+
+The company layer, not the squad GOAP, owns whether a satchel charge may be committed: its preconditions are facts about believed covering nests, and its enablers (engage, smoke screen through the `SMOKE_SCREEN` capability and a smoke order, air strike) are ordered by cost. Squad planning only executes the orders it is handed. See `phased-assault.md`.
 
 ## Assault command integration (summary)
 

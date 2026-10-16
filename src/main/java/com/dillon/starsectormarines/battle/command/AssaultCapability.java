@@ -26,5 +26,7 @@ public enum AssaultCapability {
      * Can direct an airframe from the side's pool onto ground: the squad carries a forward-observer radio. Operators, not damage:
      * what a strike does is the pool's and the aircraft's, and whether one is on offer is read from the side's air picture.
      */
-    AIR_DIRECTION
+    AIR_DIRECTION,
+    /** Can stand a cloud of smoke on ground within a short throw: grenades, not damage. Throws available (the reserve), one per cloud. */
+    SMOKE_SCREEN
 }

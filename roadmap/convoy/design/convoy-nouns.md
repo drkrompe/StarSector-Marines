@@ -586,7 +586,7 @@ lane polylines and lowers the mission's speed cap (Thunder Run's column driver,
 steering, footprint sweep and recovery remain the vehicle's own, and a route
 rebuilt mid-leg is an ordinary new corridor.
 A **heavy lead** is a story-support tank with finite armor, structure and a
-paired cannon magazine. Its independently traversing turret uses normal
+single-cannon magazine. Its independently traversing turret uses normal
 ballistic contact and blast payloads, so it can breach a gun line while lighter
 escorts screen infantry. It carries no passengers. The tracked silhouette uses
 a conservative rolling-turn envelope shared by route proof and body motion;
@@ -594,10 +594,11 @@ neutral pivot, track slip and player-owned tank logistics are not modeled.
 
 Its overhead hull has a broad, flat-fronted glacis between the tracks and a recessed
 engine deck at the rear, with continuous track tops and layered shoulder
-plates. The compact independent turret distinguishes its separate angular cheeks and narrow mantlet
-from the rear bustle. Both components retain their authored frame centers so
-traverse cannot move the bearing; paired visible muzzles follow the cannon's
-existing ballistic hardpoints. Armor volume comes from sloped planes and bevels,
+plates. The compact independent turret distinguishes its separate angular cheeks
+and narrow mantlet from the rear bustle. Both components retain their authored frame centers so
+traverse cannot move the bearing. A short, single barrel follows a centered
+ballistic hardpoint; its two-round autoloaded burst retains the existing damage
+and cadence. Armor volume comes from sloped planes and bevels,
 not a tilted camera or baked ground shadow. Its Abrams/Type 10-inspired shape, faded
 ochre paint and replacement panels depict scavenged, century-old Hegemony surplus.
 This provenance is Marine Operations art direction, not a claim about vanilla canon.
