@@ -1,0 +1,10 @@
+Edit the first reference image (the edit target). It is a strict top-down orthographic sprite of a destroyed, burned-out tracked tank wreck on a transparent background, nose pointing LEFT. In front of the nose a damaged dozer blade, its two push arms and its hydraulic rams are blocked in as flat grey placeholder shapes.
+
+Render ONLY those grey placeholder shapes as the wrecked steel bulldozer blade assembly of this same tank, seen exactly from directly above, in the same painted, gritty top-down game-sprite style, lighting and resolution as the wreck:
+- the moldboard is knocked askew, buckled and dented, with a torn, jagged rip where the notch is in its lower half and curled torn steel at the rip edges; the upper wing end plate is missing;
+- the leading-edge strip is the cutting edge: bare scratched steel, now chipped and gouged;
+- paint is the same faded khaki / olive-grey as the hull but heavily scorched and blistered, with soot, burned-through black areas and rust, matching the burned wreck panels; a few scraped bright-metal scratches;
+- the upper push arm is bent at the kink; the upper hydraulic ram is snapped, leaving a cylinder stub at the hull and a broken, bent chrome rod hanging off the blade; the lower arm and ram are intact but scorched and dirty.
+
+Keep the exact silhouette, position and size of every grey shape; do not extend beyond them. Keep every pixel of the tank wreck itself exactly unchanged. Same top-down camera, no perspective. No smoke, no fire, no flames, no glow.
+True transparent background everywhere outside the wreck and blade, including the gaps between the arms and between the blade and the hull. No ground, no shadow slab, no border, no text.

@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a146e9-69e8-7dc2-85b6-744eb7afd949",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a146e9-69e8-7dc2-85b6-744eb7afd949\\exec-8fd3a4eb-73e1-4830-aafd-c79db5561cfe.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\hq-command-deck\\deck-plate-v5.master.png",
+    "sha256": "e742cdab5058cbf568d99407f609613245bb339dd50852a5987fc3ff51e69fdb",
+    "dimensions": [
+      2171,
+      724
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\hq-command-deck\\deck-plate-v5.brief.txt",
+  "promptSha256": "6b1db165ba407e684db886f904b7ffab53c80431269cd73d9b807422b8fb0004",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: exact camera, silhouettes, placement and scale, including the seated crew mannequins; paint over it, never move anything\nImage 2: Material, palette, brushwork, lighting and crew costume only, from one side of this room; not layout\n\nUse case: sketch-to-render illustration, background plate. Asset type: wide landscape establishing illustration for Starsector Marines, a grounded mercenary ground-operations game; it becomes the background layer of a banner across the top of the company's headquarters screen.\n\nReference 1 is a grey 3D blockout rendered from the exact camera of this shot. It is the geometry and layout authority: keep every object where it is, at its size, with its silhouette, perspective and horizon. Paint over it; do not move, add, remove, resize or re-angle anything, and do not change the camera. Plain grey surfaces in it become painted materials; the near-white surfaces in it are lit screens and lamps. The smooth mid-grey seated mannequins at the side consoles are crew: paint each one as a person exactly where and how the mannequin sits.\nReference 2 is an earlier painting of this same room. It is material, palette, brushwork and lighting reference only; ignore its chairs, which were painted too large, and do not copy its layout where it differs from reference 1.\n\nScene: the company's combat information centre, a dim working warship CIC in the spirit of a classic battlestar's: a square plotting table glowing in the middle of a darker command island, a cluster of monitors hung over it from the beams, rows of watch consoles along both side walls with their screens facing in, a raised rear tier behind a handrail with a three-screen main display, two comms watch consoles at the back left and a quartermaster's ledger desk, crate and roster board at the back right, a wheeled hatch at the far right of the tier, heavy ceiling I-beams and conduit, free-standing glass plotting boards beside the tier. No windows anywhere. Grounded and used: worn metal, scuffed deck plate, patched paint, cable runs, hand-labelled panels with no legible text, clipped paper on the roster board.\n\nStyle: detailed late-1990s/early-2000s science-fiction strategy-game illustration, matte-painted cinematic industrial realism, visible restrained brush texture, the same painted family as the game's character portraits. Restrained olive, charcoal, umber and cream palette. Lighting, which the figure layers will match: low and moody; warm amber glow rising from the plotting table and console screens, pools of light from the ceiling lamps and the lamp ring under the hanging cluster, the corners and ceiling falling into shadow, faint haze in the air.\n\nLive effects will be drawn over this plate in the game, so paint every screen (side consoles, comms, the hanging cluster, the three main displays, the wall displays, the ledger monitor) as a simple rectangle with a dim, even amber or pale green glow and only faint texture, no readouts, graphs or maps. Paint the plotting table top as a flat, evenly lit pale-green radar surface with only the one faint ring and cross the reference shows. Small indicator lamps may be painted.\n\nThe watch is stood. Paint the six seated crew from the mannequins: men and women of a mercenary company's ship's company in worn charcoal-olive duty fatigues and headsets, sleeves rolled, seen from behind and in three-quarter back view, bent to their screens, hands on their keyboards, in varied ordinary postures (one turned a little to say something to a neighbour, one with a hand at an earpiece). Faces are mostly turned away and small; no portrait detail. Nobody looks at the viewer. The two empty side-console chairs stay empty.\n\nNo other people: the two comms chairs on the rear tier at the back left stay empty, and nobody stands anywhere on the deck, at the plotting table, on the tier or at the ledger desk. Those places are kept for figures painted as separate layers.\n\nConstraints: no text, lettering, numbers, logos, insignia, HUD elements, frames or watermark. No holograms, no blue neon, no floating screens, no windows or starfields, no weapons. Opaque, edge-to-edge painting. Use the widest landscape canvas available, as close to 3:1 as possible, matching the reference's framing edge to edge.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\hq-command-deck\\deck-guide-v7.png",
+      "sha256": "62521da4546960200a0eff69998ef353bf7be9f7cd2ce68a5867dad2bdebdd0f",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: exact camera, silhouettes, placement and scale, including the seated crew mannequins; paint over it, never move anything"
+    },
+    {
+      "path": "art-source\\hq-command-deck\\deck-plate-v4.style-crop.png",
+      "sha256": "ceaf7141183d36298ffbf6936e8ac1820dfcdf46d90704efe4b3ed3bf0883465",
+      "dimensions": [
+        932,
+        724
+      ],
+      "mode": "RGB",
+      "role": "Material, palette, brushwork, lighting and crew costume only, from one side of this room; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one painted image using Image 1’s exact layout and Image 2’s materials, palette, and lighting."
+  ],
+  "usage": {
+    "input_tokens": 42835,
+    "cached_input_tokens": 25728,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 873,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 82.4
+}
