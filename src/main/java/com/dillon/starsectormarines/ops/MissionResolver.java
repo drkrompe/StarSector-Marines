@@ -657,6 +657,10 @@ public final class MissionResolver {
                 && outcome.missionSource == MissionSource.STORY && outcome.missionId != null) {
             WaylineHoundAward.settle(roster, outcome);
             roster.markStoryComplete(outcome.missionId);
+            if (OpeningOperationKind.RELIEF.missionId.equals(outcome.missionId)) {
+                OpeningBroker.Destination site = OpeningBroker.current();
+                ArcIssueListings.afterLive(ArcIssueListings.Beat.RELIEF, true, site == null ? null : site.planet());
+            }
         }
     }
 
