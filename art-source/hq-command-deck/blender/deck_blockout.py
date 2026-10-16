@@ -20,9 +20,9 @@ Coordinates in this file are deck metres: x right, y up, z ahead of the camera. 
 become Blender's (X, Y, Z) = (x, z, y) in one place, `V`.
 
 Writes beside the script's folder:
-  deck-guide-v5.png          grey guide for ImageGen (no people)
-  deck-guide-v5-people.png   the same with stand-ins at their stands, for proportions
-  deck-guide-v5.layout.json  camera, room, props and projected markers
+  deck-guide-v7.png          grey guide for ImageGen: the room and its seated watch, no named figures
+  deck-guide-v7-people.png   the same with stand-ins at their stands, for proportions
+  deck-guide-v7.layout.json  camera, room, props and projected markers
   masks/<stand>.occluder.png with `-- --masks`: what stands in front of each person
 """
 import json
@@ -42,13 +42,14 @@ ROOM = {"halfWidth": 8.0, "near": 2.0, "back": 13.0, "ceiling": 4.4}
 TIER = {"front": 10.5, "height": 0.45}          # the raised rear tier, full width
 TABLE = (-1.9, 1.9, 5.8, 8.2)                   # x0, x1, z0, z1 of the plotting table
 
-# Feet (x, z), height above their own floor, and that floor. Seated figures are
+# Feet (x, z), height above their own floor, and that floor. A seated stand is the chair's
+# centre; seated figures are
 # measured to the top of the head.
 PEOPLE = {
-    "castle": (0.9, 8.65, 1.68, 0.0),
-    "commander": (-2.65, 6.9, 1.82, 0.0),
-    "comms-left": (-5.62, 12.0, 1.30, TIER["height"]),
-    "comms-right": (-3.92, 12.0, 1.30, TIER["height"]),
+    "castle": (0.9, 8.45, 1.68, 0.0),
+    "commander": (-2.4, 6.9, 1.82, 0.0),
+    "comms-left": (-6.35, 11.45, 1.30, TIER["height"]),
+    "comms-right": (-4.75, 11.45, 1.30, TIER["height"]),
     "quartermaster": (4.2, 11.95, 1.80, TIER["height"]),
 }
 
@@ -77,7 +78,7 @@ def materials():
         chair=mat("chair", .09), pipe=mat("conduit", .14), board=mat("roster board", .55),
         paper=mat("paper", .65), crate=mat("crate", .22), pane=mat("plotting glass", .42),
         rail=mat("handrail", .5), glow=mat("glow surface", .95), lamp=mat("light", .8),
-        person=mat("stand-in", .6),
+        person=mat("stand-in", .6), crew=mat("seated crew", .36),
     )
     M["person"].diffuse_color = (.8, .12, .1, 1)
 
@@ -393,28 +394,88 @@ def crt(name, xc, z_front, y0, w=0.55, h=0.42, depth=0.36):
 
 
 def swivel_chair(name, xc, zc):
-    """A desk chair facing +z (towards its console); its back is to the camera."""
+    """A desk chair facing +z (towards its console); its back is to the camera. Office-chair
+    proportions: cushion top 0.47 m, backrest top 0.95 m, armrests 0.65 m."""
     for k in range(5):
         a = k * 2 * math.pi / 5 + 0.3
         leg = box(f"{name} leg {k}", xc - 0.02, xc + 0.02, 0.05, 0.09, zc, zc + 0.32, M["chair"], 0.008)
         spin([leg], (xc, 0.0, zc), a)
         cylinder(f"{name} caster {k}", xc - 0.32 * math.sin(a), zc + 0.32 * math.cos(a), 0.0, 0.05, 0.03,
                  M["dark"], 12)
-    cylinder(f"{name} column", xc, zc, 0.07, 0.44, 0.035, M["metal"], 16)
-    box(f"{name} seat pan", xc - 0.2, xc + 0.2, 0.42, 0.46, zc - 0.2, zc + 0.2, M["metal"], 0.01)
-    box(f"{name} cushion", xc - 0.25, xc + 0.25, 0.46, 0.54, zc - 0.25, zc + 0.24, M["chair"], 0.035)
+    cylinder(f"{name} column", xc, zc, 0.07, 0.39, 0.035, M["metal"], 16)
+    box(f"{name} seat pan", xc - 0.2, xc + 0.2, 0.38, 0.41, zc - 0.2, zc + 0.2, M["metal"], 0.01)
+    box(f"{name} cushion", xc - 0.24, xc + 0.24, 0.41, 0.47, zc - 0.24, zc + 0.23, M["chair"], 0.035)
     zb = zc - 0.27
     prism(f"{name} back", xc - 0.23, xc + 0.23,
-          [(0.6, zb), (0.6, zb + 0.07), (1.08, zb + 0.02), (1.08, zb - 0.06)][::-1], M["chair"], 0.03)
-    box(f"{name} back strut", xc - 0.03, xc + 0.03, 0.5, 0.66, zb - 0.02, zb + 0.04, M["metal"], 0.008)
+          [(0.55, zb), (0.55, zb + 0.06), (0.95, zb + 0.02), (0.95, zb - 0.05)][::-1], M["chair"], 0.03)
+    box(f"{name} back strut", xc - 0.03, xc + 0.03, 0.44, 0.58, zb - 0.02, zb + 0.04, M["metal"], 0.008)
     for s in (-1, 1):
-        box(f"{name} arm {s}", xc + s * 0.27 - 0.03, xc + s * 0.27 + 0.03, 0.52, 0.72, zc - 0.05, zc - 0.01,
+        box(f"{name} arm {s}", xc + s * 0.27 - 0.03, xc + s * 0.27 + 0.03, 0.45, 0.62, zc - 0.05, zc - 0.01,
             M["metal"], 0.008)
-        box(f"{name} armrest {s}", xc + s * 0.27 - 0.04, xc + s * 0.27 + 0.04, 0.72, 0.75, zc - 0.2, zc + 0.12,
+        box(f"{name} armrest {s}", xc + s * 0.27 - 0.04, xc + s * 0.27 + 0.04, 0.62, 0.65, zc - 0.2, zc + 0.12,
             M["chair"], 0.015)
 
 
-def watch_bank(name, xc, zf, seats=2, rack=1.95, chairs=True):
+def limb(name, p0, p1, r, m, r2=None, verts=14):
+    """A tube between two deck points with an elliptical section: r across the body (x), r2 front to back."""
+    a, b = Vector(p0), Vector(p1)
+    axis = (b - a).normalized()
+    side = Vector((1.0, 0.0, 0.0))
+    u = (side - axis * side.dot(axis))
+    u = u.normalized() if u.length > 1e-6 else Vector((0.0, 0.0, 1.0))
+    v = axis.cross(u)
+    r2 = r if r2 is None else r2
+    ring = [u * (math.cos(2 * math.pi * i / verts) * r) + v * (math.sin(2 * math.pi * i / verts) * r2)
+            for i in range(verts)]
+    pts = [tuple(a + o) for o in ring] + [tuple(b + o) for o in ring]
+    faces = [tuple(reversed(range(verts))), tuple(range(verts, 2 * verts))]
+    faces += [(i, (i + 1) % verts, verts + (i + 1) % verts, verts + i) for i in range(verts)]
+    ob = solid(name, pts, faces, m)
+    for poly in ob.data.polygons:
+        poly.use_smooth = len(poly.vertices) == 4
+    return ob
+
+
+def ball(name, centre, r, m, rings=10, segments=16):
+    cx, cy, cz = centre
+    pts = [(cx, cy - r, cz)]
+    for i in range(1, rings):
+        t = math.pi * i / rings
+        for j in range(segments):
+            a = 2 * math.pi * j / segments
+            pts.append((cx + r * math.sin(t) * math.cos(a), cy - r * math.cos(t), cz + r * math.sin(t) * math.sin(a)))
+    pts.append((cx, cy + r, cz))
+    top = len(pts) - 1
+    faces = [(0, 1 + (j + 1) % segments, 1 + j) for j in range(segments)]
+    for i in range(rings - 2):
+        b0, b1 = 1 + i * segments, 1 + (i + 1) * segments
+        faces += [(b0 + j, b0 + (j + 1) % segments, b1 + (j + 1) % segments, b1 + j) for j in range(segments)]
+    last = 1 + (rings - 2) * segments
+    faces += [(last + j, last + (j + 1) % segments, top) for j in range(segments)]
+    ob = solid(name, pts, faces, m)
+    for poly in ob.data.polygons:
+        poly.use_smooth = True
+    return ob
+
+
+def seated_crew(name, xc, zc):
+    """A watch-stander sitting at the console in front of the chair (+z): torso a little forward,
+    forearms on the keyboard deck. A painter's mannequin, not a figure card: the plate paints it."""
+    m = M["crew"]
+    limb(f"{name} hips", (xc, 0.47, zc - 0.07), (xc, 0.62, zc - 0.06), 0.17, m, 0.12)
+    limb(f"{name} torso", (xc, 0.6, zc - 0.07), (xc, 1.08, zc + 0.02), 0.19, m, 0.12)
+    limb(f"{name} shoulders", (xc - 0.2, 1.04, zc + 0.01), (xc + 0.2, 1.04, zc + 0.01), 0.06, m)
+    limb(f"{name} neck", (xc, 1.06, zc + 0.02), (xc, 1.17, zc + 0.04), 0.05, m)
+    ball(f"{name} head", (xc, 1.26, zc + 0.05), 0.105, m)
+    for s in (-1, 1):
+        limb(f"{name} thigh {s}", (xc + s * 0.1, 0.52, zc - 0.04), (xc + s * 0.11, 0.53, zc + 0.38), 0.075, m)
+        limb(f"{name} shin {s}", (xc + s * 0.11, 0.51, zc + 0.38), (xc + s * 0.12, 0.08, zc + 0.43), 0.055, m)
+        box(f"{name} foot {s}", xc + s * 0.12 - 0.05, xc + s * 0.12 + 0.05, 0.0, 0.08, zc + 0.36, zc + 0.6, m, 0.02)
+        limb(f"{name} upper arm {s}", (xc + s * 0.21, 1.03, zc + 0.0), (xc + s * 0.22, 0.8, zc + 0.14), 0.05, m)
+        limb(f"{name} forearm {s}", (xc + s * 0.22, 0.8, zc + 0.14), (xc + s * 0.12, 0.84, zc + 0.56), 0.04, m)
+
+
+def watch_bank(name, xc, zf, seats=2, rack=1.95, chairs=True, crew=()):
     """A run of watch consoles, faces at z = zf looking towards -z; 1.0 m per seat.
     Desk, sloped keyboard deck, CRTs, a rack behind with repeaters and status lamps."""
     half = seats * 0.5
@@ -448,6 +509,8 @@ def watch_bank(name, xc, zf, seats=2, rack=1.95, chairs=True):
     if chairs:
         for k in range(seats):
             swivel_chair(f"{name} chair {k}", x0 + 0.5 + k, zf - 0.6)
+            if k in crew:
+                seated_crew(f"{name} crew {k}", x0 + 0.5 + k, zf - 0.6)
 
 
 def side_banks():
@@ -455,7 +518,10 @@ def side_banks():
     for side in (-1, 1):
         for j, zc in enumerate((7.0, 9.4)):
             xc = side * 6.6
-            parts = made(watch_bank, f"{'west' if side < 0 else 'east'} bank {j}", xc, zc - 0.375, seats=2)
+            # most of the watch is stood: one seat per side left empty
+            crew = (0, 1) if (side < 0) == (j == 0) else (1,)
+            parts = made(watch_bank, f"{'west' if side < 0 else 'east'} bank {j}", xc, zc - 0.375, seats=2,
+                         crew=crew)
             spin(parts, (xc, 0.0, zc), -side * math.pi / 2)
 
 
@@ -490,11 +556,11 @@ def foreground_consoles():
 
 
 def plotting_board():
-    """A free-standing glass plotting board, the kind written on from behind."""
-    for side in (-1, 1):
-        xc, zc = side * 4.6, 10.0
+    """Free-standing glass plotting boards, the kind written on from behind. The west one stands
+    by the tier steps rather than mirroring the east: further out it hid the comms watch."""
+    for xc, zc, turn in ((-2.2, 9.9, 0.35), (4.6, 10.0, -0.5)):
         parts = made(_plotting_board, xc, zc)
-        spin(parts, (xc, 0.0, zc), -side * 0.5)
+        spin(parts, (xc, 0.0, zc), turn)
 
 
 def _plotting_board(xc, zc):
@@ -507,9 +573,10 @@ def _plotting_board(xc, zc):
 
 
 def comms_bank():
-    """Back-left on the tier: the comms watch, two operators. Its back is the bulkhead."""
+    """Back-left on the tier: the comms watch, two operators. Its back is the bulkhead. Kept
+    left of the commander's stand so neither operator sits behind his head in the frame."""
     b = ROOM["back"]
-    for j, xc in enumerate((-5.62, -3.92)):
+    for j, xc in enumerate((-6.35, -4.75)):
         watch_bank(f"comms bank {j}", xc, b - 0.95, seats=1, rack=2.3)
 
 
@@ -663,7 +730,7 @@ def layout():
     doc = {"size": [W, H], "units": "metres; x right, y up, z ahead of the camera",
            "camera": CAM, "projection": "u = cx + focal*x/z, v = cy - focal*(y - height)/z",
            "room": ROOM, "tier": TIER, "table": TABLE, "props": props, "markers": markers, "people": people}
-    (OUT / "deck-guide-v5.layout.json").write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
+    (OUT / "deck-guide-v7.layout.json").write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
     for k, v in people.items():
         print(k, "height px", round(v["feetPx"][1] - v["headPx"][1]))
 
@@ -695,7 +762,7 @@ def main():
         people.hide_render = True
         occluder_masks()
         return
-    for hidden, name in ((True, "deck-guide-v5.png"), (False, "deck-guide-v5-people.png")):
+    for hidden, name in ((True, "deck-guide-v7.png"), (False, "deck-guide-v7-people.png")):
         people.hide_render = hidden
         sc.render.filepath = str(OUT / name)
         bpy.ops.render.render(write_still=True)

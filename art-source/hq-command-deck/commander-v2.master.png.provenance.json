@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a146cd-464d-7d61-8249-86ab1b7b9c8e",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a146cd-464d-7d61-8249-86ab1b7b9c8e\\exec-9c1e8d83-a382-4d72-b1ff-908850f7e52b.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\hq-command-deck\\commander-v2.master.png",
+    "sha256": "697c341d9ccb01c65ee330547784e7dee63f56b2669e3544b06dba3f0459eac5",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\hq-command-deck\\commander.brief.txt",
+  "promptSha256": "ca79043a137c0375dafe730fa18137e5f5ff9c4f35af075be24e5654fbc1e0dd",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Lighting direction, colour and painting style only. Not layout; include none of its background.\nImage 2: Figure-card finish only: rendering, brushwork, scale of detail and clean transparency. Not identity, pose or costume.\n\nFull-length standing figure card of the company commander for a layered illustration. He will be placed into the command-centre painting given as reference 1, standing at the left end of its glowing plotting table, studying it.\n\nThe commander is the player's character, so his face is never shown: he is seen from behind and to one side. A broad-shouldered man, close-cropped dark hair greying at the back of the neck, worn olive officer's field coat to mid-thigh with the collar up, dark trousers, scuffed boots.\n\nPose: standing, body turned three-quarters away from the viewer toward the right, as if facing a waist-high table that lies to his right and slightly ahead of him (the table is not drawn). He leans a little toward it, his right hand planted flat at hip height where the table's rim would be, his left hand resting on his belt. Head bowed slightly toward the table. Face not visible: only the back and side of his head, ear and jaw line at most. Whole body in frame from the top of his head to his boots, natural adult proportions, small clearance around the figure.\n\nViewpoint matches the painting: a level camera about a metre above his head height and about seven metres away, so he is seen from very slightly above, with no perspective lean: his vertical lines stay vertical.\n\nLighting matches reference 1: low and moody, warm amber glow from console screens and the pale green plotting table, pools of warm downlight from ceiling lamps, edges falling into shadow. Same matte-painted brushwork and palette as reference 1, and the same figure-card finish as reference 2. The table glow lights his right side, hand and the edge of his coat from below.\n\nTrue transparent background, including negative spaces between limbs and body; no ground, floor, cast shadow slab, furniture, border, text or other people.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\hq-command-deck\\deck-plate-v4.master.png",
+      "sha256": "1e27e8f97265457a33f59acbc9ff993fa79dc4c5a48628ebba6aada6d5f50aab",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "mode": "RGB",
+      "role": "Lighting direction, colour and painting style only. Not layout; include none of its background."
+    },
+    {
+      "path": "art-source\\hq-command-deck\\castle-v2.master.png",
+      "sha256": "65d0083f394a1a8521282540e9ad20effc87c3d991ad68616c0e184a20ef5525",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Figure-card finish only: rendering, brushwork, scale of detail and clean transparency. Not identity, pose or costume."
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent commander figure using the references for lighting and painted finish."
+  ],
+  "usage": {
+    "input_tokens": 44651,
+    "cached_input_tokens": 36864,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 594,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 75.2
+}
