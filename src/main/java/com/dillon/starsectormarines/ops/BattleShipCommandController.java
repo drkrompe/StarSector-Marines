@@ -94,7 +94,8 @@ final class BattleShipCommandController {
     }
 
     private static boolean selectable(Warship ship) {
-        return ship.faction == Faction.MARINE && !ship.destroyed() && !ship.departing() && !ship.departed();
+        return ship.faction == Faction.MARINE && !ship.missionOwned() && !ship.destroyed() && !ship.departing()
+                && !ship.departed();
     }
 
     private void select(Warship ship) {

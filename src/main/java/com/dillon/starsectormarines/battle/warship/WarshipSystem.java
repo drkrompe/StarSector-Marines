@@ -342,6 +342,10 @@ public final class WarshipSystem {
             float entryBefore = ship.entrySeconds();
             ship.addEntrySeconds(dt);
             entryCues(ship, entryBefore);
+            if (ship.tickVisit(dt, hostileHullOver(ship))) {
+                // The visit is over: nothing hostile in the air for the dwell, so it leaves the ordinary way.
+                ship.stayFor(0f);
+            }
             float departingBefore = ship.departing() ? ship.departingSeconds() : -1f;
             depart(dt, sim, ship);
             departureCues(ship, departingBefore);
@@ -966,8 +970,15 @@ public final class WarshipSystem {
      * reaches, through the hull's armour rule. A ship's own side never hurts it.
      * A hull taken to nothing goes up in a heavy blast and is removed from the
      * battle on the next tick, so it stops firing at once.
+     *
+     * <p>A ground event (a wreck striking and skidding, an airframe or a
+     * magazine going up: {@link PendingDetonation#isGroundEvent}) happens on the
+     * ground, not in the air above it, and never reaches a hull. Without this a
+     * falling hull's crash and skid ground into whatever hostile hull hovered
+     * over the place it came down.
      */
     public void onDetonation(PendingDetonation det, BattleSimulation sim) {
+        if (det.isGroundEvent()) return;
         strikeHulls(det);
     }
 
@@ -1071,6 +1082,16 @@ public final class WarshipSystem {
         float[] at = WarshipDuelHelm.station(ship.x, ship.y, target.centerX(), target.centerY(), range, slide,
                 0.5f * ship.lengthCells, sim.getGrid().getWidth(), sim.getGrid().getHeight());
         ship.stationTo(at[0], at[1]);
+    }
+
+    /** Whether a hostile hull is over the battle for {@code ship}: alive and not yet gone, a climbing one included. */
+    private boolean hostileHullOver(Warship ship) {
+        for (Warship other : ships) {
+            if (other != ship && !other.destroyed() && !other.departed() && ship.faction.hostileTo(other.faction)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean onMap(BattleSimulation sim, float x, float y) {

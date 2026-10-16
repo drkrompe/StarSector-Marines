@@ -1,10 +1,10 @@
 # Story — Atmospheric frigate duel
 
-Status: ACTIVE — slices 1-5 built (hulls as targets for direct fire, stray rounds, falling wreckage, skins; duel helm and variant flux fittings; missiles at hulls; doctrine for duels except `AUTO`; the rig's climb-out and vanilla missile magazines); slice 6 (one finite visit) next
+Status: ACTIVE — slices 1-6 built (hulls as targets for direct fire, stray rounds, falling wreckage, skins; duel helm and variant flux fittings; missiles at hulls; doctrine for duels except `AUTO`; the rig's climb-out and vanilla missile magazines; one finite visit nobody commands); slice 7 (the duel ledger) next
 
 Written: 2026-10-16
 
-Updated: 2026-10-16 — slice 5 built (climb-out, escorts follow a climbing lead, vanilla missile magazines under hull fire) with its readings; open question 3 (penetration scale between hulls) added.
+Updated: 2026-10-16 — slice 6 built (a mission's visit, closed player gates, crash and cook-off kept off hulls) with its readings.
 
 Read `air-nouns.md` (**Overhead ships**, **Standing laws**), `warship-behaviours.md`
 (the posture model, Classes, Decided: escort, gap G4), `ship-support.md` and
@@ -155,7 +155,7 @@ ion cannon's arcs (not modelled; the ion cannon fires as an energy projectile).
 5. **The rig climbs out** (built). A civilian hull leaving from the ground along a route to the
    map edge, climbing as departure does, hittable until it is gone; escaping is
    physically departing. Its escorts take it as their lead.
-6. **One finite visit, nobody's to command.** A duel ship arrives through the cloud
+6. **One finite visit, nobody's to command** (built). A duel ship arrives through the cloud
    deck, leaves through the ordinary departure once no hostile hull has been over the
    battle for a dwell, and is not selectable by remote ship command, direct control
    or any power: an allied hull belongs to its mission, not the player.
@@ -360,6 +360,43 @@ fire with the duel helm) and `held` (the control: the rig is not sent). 2400 tic
   too.
 - `held`: nobody left.
 - All 38 ship and tender scenes (145 loops) pass.
+
+## Slice 6 as built: what the scene reads
+
+`frigate-visit` (`sceneEvidence -Pscene=frigate-visit`; GIFs under
+`createSnapshots -Psnapshot=frigate-visit`) puts the two Wolf (H) on the player's own
+side on purpose. An allied hull is already outside every player gate by its side, so
+only a player-side hull can show that the mission's visit, not the side, keeps the
+player's hands off it. Loops: `visit` (the Wolfs arrive through the cloud deck on a
+ten-second visit and fight two Hound (P)), `outlasted` (a hostile Hound sits out of
+reach and climbs out at tick 900; nobody fires) and `own-ship` (the control: the same
+Wolfs with no visit). 2400 ticks.
+
+- **A visit** (`Warship.visit(dwell)`, usually with `arriveFromAbove`) makes the hull
+  the mission's. It leaves through the ordinary departure once no hostile hull has been
+  over the battle for the dwell on end. A climbing hull counts as over the battle until
+  it is gone. Remote ship command, piloting and the ship-command roster all refuse a
+  hull on a visit (`Warship.missionOwned`), whatever its side. The commandable command
+  powers in the code call ships in; none takes over one that is there.
+- **Ground events never reach a hull.** A falling hull's crash and skid crush, and an
+  airframe cooking off, went through the same detonation observer as a round, so they
+  ground into any hostile hull hovering over the spot. In `visit` the Wolfs went from
+  92% to 20% hull after the last Hound fell, and the doctrine withdrew them before the
+  dwell ran out. Those detonations are now marked as ground events
+  (`PendingDetonation.asGroundEvent`), and `WarshipSystem.onDetonation` leaves them to
+  the ground. This defect dates from slice 1. The slice 2 reading "Wolfs lost 2395
+  hull" in `frigate-duel-helm` `helm` was mostly wreckage; it is 600 now. A fort's
+  magazine blast is still unmarked (it belongs to the fort work).
+- `visit`: the last Hound fell at tick 168. Both Wolfs began leaving at tick 467, the
+  dwell exactly, at 80% hull, and both were carried off the map. In 544 live
+  Wolf-ticks the player could command or pilot neither.
+- `outlasted`: the hostile Hound was gone at tick 968. The Wolfs stayed throughout,
+  began leaving at 1268, and went off the map; 0 of 2536 live Wolf-ticks were open to
+  the player.
+- `own-ship`: all 4800 live Wolf-ticks were open to command and piloting, and nobody
+  left.
+- All 43 ship, tender and fort scenes run (176 loops) pass; `fort-air-defence` was
+  failing before this story (`no such live entity: 0`).
 
 ## Acceptance
 

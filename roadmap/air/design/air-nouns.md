@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — a hostile hull is a target for a ship's direct-fire guns by mission order, misses fall on the ground, a lost hull falls as wreckage, a ship fighting hulls manoeuvres by its reach against theirs with its variant's capacitors and vents, missiles fly at hulls with a Sabot's warheads aimed at the split, a pack splits on an escorted hull while its escorts interpose, and a hull can climb out along a route with its escorts (`atmospheric-frigate-duel.md`, slices 1-5); a fort's anti-air yard stands Locust and Swarmer towers instead of Ridgewatch and flak; earlier: Missile AA joins ordinary heavy defense posts; all six supported carrier wings use the shared commitment flow.
+Updated: 2026-10-16 — a hostile hull is a target for a ship's direct-fire guns by mission order, misses fall on the ground, a lost hull falls as wreckage, a ship fighting hulls manoeuvres by its reach against theirs with its variant's capacitors and vents, missiles fly at hulls with a Sabot's warheads aimed at the split, a pack splits on an escorted hull while its escorts interpose, a hull can climb out along a route with its escorts, and a mission's hull visits once and is nobody's to command (`atmospheric-frigate-duel.md`, slices 1-6); a fort's anti-air yard stands Locust and Swarmer towers instead of Ridgewatch and flak; earlier: Missile AA joins ordinary heavy defense posts; all six supported carrier wings use the shared commitment flow.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1887,6 +1887,13 @@ authored route over the map edge at its own speed, climbing by how much of the w
 has flown, and it has escaped only when propulsion has carried the whole hull off the
 map. Until then it can be hit, and its escorts keep it as their lead and follow it out
 once it has gone. Any other departure of a lead releases its escorts.
+
+**A mission's hull visits once and is nobody's to command.** A hull on a **visit**
+belongs to its mission: no remote ship command, piloting or power reaches it, whatever
+side it is on. It leaves through the ordinary departure once no hostile hull has been
+over the battle for the visit's dwell. A hull on a visit usually arrives through the
+cloud deck. A ground event (a wreck striking and skidding, an airframe going up) hurts
+the ground and never a hull hovering over it.
 
 **A warship's stay and its magazine can both be bounded.** Station time is counted
 down only while the ship is on its station, not while it travels to it; when it

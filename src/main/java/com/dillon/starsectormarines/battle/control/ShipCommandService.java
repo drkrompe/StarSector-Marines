@@ -41,7 +41,8 @@ public final class ShipCommandService {
 
     /** Eligibility is deliberately exact-side; allied mission assets do not become player assets. */
     public static Notice eligibility(Warship ship, Tender tender, Faction player) {
-        if (ship == null || ship.faction != player || ship.destroyed() || ship.departing() || ship.departed()
+        if (ship == null || ship.faction != player || ship.missionOwned() || ship.destroyed() || ship.departing()
+                || ship.departed()
                 || ship.posture() == WarshipPosture.WITHDRAW || ship.stationSecondsRemaining() <= 0) return Notice.UNAVAILABLE;
         if (tender != null && tender.grounded()) return Notice.GROUNDED;
         if (ship.piloted()) return Notice.PILOTED;

@@ -912,6 +912,41 @@ public final class Warship {
         entrySeconds = 0f;
     }
 
+    private float visitDwellSeconds = Float.NaN;
+    private float visitQuietSeconds;
+
+    /**
+     * Makes this ship's stay over the battle one finite visit that belongs to its mission: it leaves through the
+     * ordinary departure once no hostile hull has been over the battle for {@code dwellSeconds} on end, and from now
+     * on no player command reaches it (remote ship command, direct control, or a power), whatever side it is on.
+     * Arriving through the cloud deck is {@link #arriveFromAbove}, which a visit usually starts with.
+     */
+    public void visit(float dwellSeconds) {
+        if (!(dwellSeconds >= 0f)) throw new IllegalArgumentException("a visit's dwell cannot be negative");
+        visitDwellSeconds = dwellSeconds;
+        visitQuietSeconds = 0f;
+    }
+
+    /** Whether the ship is on a mission's visit and so belongs to the mission, not the player. */
+    public boolean missionOwned() {
+        return !Float.isNaN(visitDwellSeconds);
+    }
+
+    /** Seconds on end that no hostile hull has been over the battle, for a ship on a visit; zero otherwise. */
+    public float visitQuietSeconds() {
+        return visitQuietSeconds;
+    }
+
+    /**
+     * Counts a visit's quiet: reset while a hostile hull is over the battle, else run up. Returns whether the dwell
+     * has been reached, at which point the caller sends the ship away through the ordinary departure.
+     */
+    boolean tickVisit(float dt, boolean hostileHullOver) {
+        if (!missionOwned() || departing) return false;
+        visitQuietSeconds = hostileHullOver ? 0f : visitQuietSeconds + dt;
+        return visitQuietSeconds >= visitDwellSeconds;
+    }
+
     /** Whether the ship arrived through the cloud deck (see {@link #arriveFromAbove()}). */
     public boolean arrivedFromAbove() {
         return entrySeconds >= 0f;
