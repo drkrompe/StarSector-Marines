@@ -168,3 +168,4 @@ com.dillon.starsectormarines.battle.air.AircraftThrustersSnapshotSuite
 com.dillon.starsectormarines.battle.air.AircraftThrustersNightSnapshotSuite
 com.dillon.starsectormarines.ops.ApcSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.bsp.fill.CompactBuildingSnapshotSuite
+com.dillon.starsectormarines.ops.TankSnapshotSuite

@@ -6,11 +6,12 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class VehicleSpriteFramesTest {
-    @Test void apcRegistrationRetainsTransparentMarginsInsteadOfMovingThePivot() {
+    @Test void registeredVehiclesRetainTransparentMarginsInsteadOfMovingThePivot() {
         SpriteSheetFrames detected = new SpriteSheetFrames(1536, 576,
                 new SpriteSheetFrames.Frame[]{new SpriteSheetFrames.Frame(50, 90, 670, 390),
                         new SpriteSheetFrames.Frame(830, 170, 440, 230)});
-        for (VehicleType type : new VehicleType[]{VehicleType.HEAVY_APC, VehicleType.ESCORT_APC}) {
+        for (VehicleType type : new VehicleType[]{VehicleType.HEAVY_APC, VehicleType.ESCORT_APC,
+                VehicleType.BREAKTHROUGH_TANK}) {
             SpriteSheetFrames actual = type.registeredSpriteFrames(detected);
             assertEquals(2, actual.frames.length);
             assertEquals(0, actual.frames[0].x);
@@ -21,7 +22,6 @@ class VehicleSpriteFramesTest {
                 assertEquals(576, frame.h);
             }
         }
-        assertSame(detected, VehicleType.BREAKTHROUGH_TANK.registeredSpriteFrames(detected));
         assertSame(detected, VehicleType.MILITIA_TECHNICAL.registeredSpriteFrames(detected));
         assertSame(detected, VehicleType.CARGO_CARRIER.registeredSpriteFrames(detected));
     }
