@@ -1,8 +1,10 @@
 # Story — Atmospheric frigate duel
 
-Status: ACTIVE — slice 1 (hulls as targets for direct fire, stray rounds, falling wreckage) in progress
+Status: ACTIVE — slice 1 built (hulls as targets for direct fire, stray rounds, falling wreckage, skins); slice 2 (duel helm) next
 
 Written: 2026-10-16
+
+Updated: 2026-10-16 — slice 1 built and its scene readings recorded; variant flux capacitors and vents added to the plan.
 
 Read `air-nouns.md` (**Overhead ships**, **Standing laws**), `warship-behaviours.md`
 (the posture model, Classes, Decided: escort, gap G4), `ship-support.md` and
@@ -119,7 +121,7 @@ ion cannon's arcs (not modelled; the ion cannon fires as an energy projectile).
 
 ## Plan
 
-1. **Hulls as targets for direct fire, stray rounds, falling wreckage.**
+1. **Hulls as targets for direct fire, stray rounds, falling wreckage** (built).
    `WarshipShipFire` beside `WarshipAirFire`; `ShipFireOrder`; blast-reach hit on
    arrival, a miss carries on to the ground; direct-fire rounds between hulls are not
    point-defence targets; best heading on the hull target; skin fitting; the falling
@@ -134,8 +136,10 @@ ion cannon's arcs (not modelled; the ion cannon fires as an energy projectile).
    in its hardpoint arc, keeps a front shield toward the threat, and stays inside the
    map. A fast, handy hull (Wolf) holds range and slides across the target's nose; a
    hull quicker in a straight line (Hound) charges. Derived from the hull's own speed,
-   acceleration and turn rate; no per-hull script. Verdicts: range closes to reach,
-   the target spends most of the engagement inside the hardpoint arc.
+   acceleration and turn rate; no per-hull script. The fitting also reads the
+   variant's flux capacitors and vents (base-game figures), which the stationary duel
+   showed the Wolfs' shields need. Verdicts: range closes to reach, the target spends
+   most of the engagement inside the hardpoint arc.
 3. **Missiles at hulls.** A Sabot (or any missile) fired at a hull flies its own path
    to the led point; a multi-warhead missile splits short of the hull and its warheads
    converge on it; the target's point defence may shoot them.
@@ -163,6 +167,39 @@ ion cannon's arcs (not modelled; the ion cannon fires as an energy projectile).
    fight beneath, and a control without the duel showing the ground objective
    unaffected. The mission seam is handed to the chapter's builders; the chapter
    itself is not built here.
+
+## Slice 1 as built: what the scene reads
+
+`frigate-duel` (`sceneEvidence -Pscene=frigate-duel`; 1920x1080 GIFs, whole map and
+close, under `createSnapshots -Psnapshot=frigate-duel`) plays four loops of 1500 ticks
+with no order but `ShipFireOrder.ALL` and stations. Every verdict passes; the
+readings are findings, not targets:
+
+- `duel` (two against two, stations 22 cells apart): 167 rounds at hulls (pulse laser
+  63, ion cannon 44, chaingun 60), none from a point-defence weapon and none shot
+  down; 143 reached a hull and 24 came down on the ground. Both Hounds were lost (the
+  first at tick 416) and both fell 4.5 cells from where they burst; the Wolfs lost
+  2820 of 3000 hull. Their shields took 13 hits and their flux peaked at 91%, where
+  the automatic shield drops, so most chaingun rounds reached the plate.
+- `crossing` (one Hound flying back and forth 26 cells off): 4 of 32 Wolf rounds
+  missed as it turned and came down beyond it; the Hound's chaingun never reached;
+  it fell 15 cells along its track onto its own side's bystanders, six hurt.
+- `control` (ship fire off): no round at a hull, no hull lost.
+- `wreck` (a Hound set up at a tenth of its hull over its own squad): it burst at tick
+  71, struck three seconds later and hurt three of the squad under it.
+
+Findings for the next slices:
+
+- **A stationary slugging match favours the Hound.** Held on stations, the Wolfs
+  neither hold range nor keep their shields facing, and they drop their shields at
+  90% flux. That is what slice 2 (the duel helm) is for; it is not tuned here.
+- **Variant flux capacitors and vents are not read.** `wolf_hegemony_Assault` carries
+  seven capacitors and ten vents, which in the base game add capacity and dissipation;
+  the fitting reads only the hull table's flux. Reading them is vanilla data under the
+  balance law, and belongs with slice 2 (added to its scope).
+- **Bolts read as long bars.** The shell renderer draws a pulse-laser bolt as a bar
+  most of the gap long at the close view; a presentation question for the duel's
+  look, not a mechanic.
 
 ## Acceptance
 

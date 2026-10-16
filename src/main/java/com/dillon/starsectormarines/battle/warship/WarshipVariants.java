@@ -26,6 +26,11 @@ public final class WarshipVariants {
     public static Map<String, String> weaponsBySlot(String hullId, String variantId) {
         JSONObject variant = load("data/variants/" + hullId + "/" + variantId + ".variant");
         if (variant == null) variant = load("data/variants/" + variantId + ".variant");
+        if (variant == null) {
+            // A skin's variants sit in its base hull's folder (a Wolf (H) variant under wolf/).
+            String base = WarshipSkins.resolve(hullId).baseHullId();
+            if (!base.equals(hullId)) variant = load("data/variants/" + base + "/" + variantId + ".variant");
+        }
         Map<String, String> out = new LinkedHashMap<>();
         if (variant == null) return out;
         JSONArray groups = variant.optJSONArray("weaponGroups");
