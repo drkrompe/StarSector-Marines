@@ -23,8 +23,8 @@ the port fills the window, which closes the shot on the next problem: Nessa.
 
 ## Camera
 
-- **Rig.** The fixed cabin window from C2/C3 (`realism-lookdev/window-realism-v1.png`,
-  with the blockout matte in `guides/c4-window-frame-blockout.png`). The ship
+- **Rig.** The orange-and-cream cabin shared with C3 and the entry, re-viewed at
+  C4's camera by `c4_cabin_render.py` (`guides/c4-cabin-projected.png`). The ship
   flies level along +X, which is its heading. That puts the bow at screen right,
   so the world slides left, toward the stern, which matches every other window
   shot. The window looks out of the port side along +Y.
@@ -35,13 +35,18 @@ the port fills the window, which closes the shot on the next problem: Nessa.
 - **Lens.** 50° horizontal field of view through the glass at 1920 px, which is
   f = 2059 px, or 38.6 mm on a 36 mm sensor. The optical axis is level and the
   lens is shifted down, so the horizon sits at y = 180 and verticals stay
-  vertical. The window sill hides the ground at y ≥ 712, which is ground nearer
-  than 851 m.
+  vertical. The cabin's sill hides the ground at y ≥ 860, which is ground nearer
+  than 666 m; the jambs stand at x = 211 and 1708 and the window head is above the
+  frame. The cabin itself is rendered from its projector's eye point with its own
+  26 mm lens, rotated level and shifted so its horizon is also y = 180: that
+  re-views the painted cabin exactly. The world keeps the 50° lens above, so the
+  land through the glass is 1.48 times the cabin camera's scale. Nothing in the
+  frame gives that away, and it keeps the land at a readable size.
 - **Height and speed.** 220 m above the plain, held level, at 62 m/s (about
-  220 km/h on the approach corridor). Over 20 s the camera travels 1,240 m.
-- **Duration.** Set by Castle's recorded take, about 20–22 s. The rates are fixed
-  by speed and depth, so a longer take only widens the plates. At 22 s the near
-  plate is about 10,130 px wide.
+  220 km/h on the approach corridor). It starts at X = 296 m and travels 1,139 m,
+  so the port fills the window as "Let me talk first." lands.
+- **Duration.** 18.375 s (441 frames), set by the take: 1.0 s of fields, the 15.84 s
+  line, a 1.5 s hold on the port (`c4_camera.DURATION`, read from the catalog).
 
 ### Why rigid layers are honest here
 
@@ -113,6 +118,7 @@ layer's travel.
 | L1 far | 3,800 → ∞, plus sky | 8,000 m | 16 px/s | 319 px | 4864 × 2160 | 0–299 | Sky and cumulus; blue ridges and the volcanic cone; hazy jungle plain; the launch field (four lattice cradles, terminal blocks, a beacon mast, one lifter standing in a cradle) |
 | L2 port | 1,700–3,800 | 2,500 m | 51 px/s | 1,021 px | 6272 × 2160 | 299–446 | Left: distant farm strips and a village of about 34 houses with a co-op hall and water tower (people live here). Then a band of native jungle. Right: the port district: tank farm, container yard with three gantry cranes, overhaul halls, repair halls, control tower, shuttle pads with one parked shuttle, landing-light masts, a stack, and jungle pressing in behind |
 | L3 mid | 1,100–1,700 | 1,350 m | 95 px/s | 1,891 px | 8016 × 2160 | 446–592 | Crop strips and an irrigation canal; a farmstead with three silos and a barn; a tree belt whose ragged top is the L2 seam. Then native growth, then the freight terminal: perimeter fence, gate spur, truck apron with parked trailers, three sawtooth warehouses, a dispatch block, cold stores, container rows and light masts |
+| L4f fore | 640–840 | 730 m | 175 px/s | 3,213 px | 10656 × 2160 | 719–888 | Crop strips, the near side of the native block, then scrub, a drainage canal and a service track along the port. Added for the orange cabin's lower sill. Strips only, so its seam with L4 is a field track |
 | L4 near | 840–1,100 | 950 m | 134 px/s | 2,687 px | **9600 × 2160** | 592–719 | Crop strips, verges, **the freight road** (two lanes, Y 972–988 m), the hedgerow beyond it (its top is the L3 seam), the **weigh station** (lay-by, canopy, office, barrier) at X 380–470 m, a block of native jungle at X 1,000–1,260 m, then the port edge: fence, freight gate frame, gate spur with three queued haulers (static), and freight sheds |
 | L5 frame | fixed | n/a | 0 | 0 | 3840 × 2160 | all | The cabin window frame and sill from C2/C3, unchanged |
 
@@ -123,20 +129,22 @@ and the `codex-imagegen` skill:
    transparent film (L1 carries the sky), as an exact pushbroom panorama at its
    plate size. It writes `guides/c4-<layer>-guide.png`. The guide owns horizon,
    placement, silhouettes and scale.
-2. **Reskin in tiles.** Codex returns a native image of about 1.6–1.9 MP
-   (1886 × 834 came back here), so a 9,600 px band is reskinned as overlapping
-   tiles of about 2,400 × 1,060 plate px, with 15% overlap. Each tile's guide is
-   the edit target. A finished neighbouring tile is attached as the material
-   reference so the tiles agree. A layer band needs only its own screen rows plus
-   anything rising above them, so every tile is a wide strip.
-3. **Register before accepting.** Overlay each result on its guide. The look
-   test shows Codex compresses lower bands vertically by about 30 px (see
-   *Look test*). Re-fit each tile mechanically to its guide's road, fence and
-   seam lines before stitching. Do not trust the requested framing.
-4. **Alpha.** L2–L4 need true transparency above their band's skyline (trees,
-   cranes and roofs cut against the layer behind). Ask for transparency, and use
-   the guide's alpha as the fallback matte, grown a few pixels, for the
-   silhouette.
+2. **Reskin in sheets of strips.** Codex returns about 1.6 MP at the aspect it is
+   given (1886 × 834 here), and a band is very wide and short. `c4_sheets.py build`
+   cuts each layer into overlapping segments 1,715 output px wide, hazes the clay as
+   the layer will be, sets it on a flat key sky, and stacks two or three segments
+   of adjacent depths into one canvas with black separator bars. Five sheets cover
+   the five ground layers at 1.1x output density (`guides/sheets/`). The first
+   painted sheet is the material reference for the other four.
+3. **Register before accepting.** `c4_sheets.py register` finds each strip by its
+   separator bars (they came back within 5 px), stretches it onto the guide strip,
+   then measures a smooth displacement field against the clay by normalised
+   cross-correlation of gradients and warps the paint back. Overlapping segments
+   are cut where the two paintings agree best, with a short feather, rather than
+   averaged. `plates/registration.json` records every strip's correction.
+4. **Alpha.** Codex keeps the flat key sky flat, so the matte is the guide's grown
+   silhouette refined by distance from the key colour, choked one pixel, with the
+   key taken back out of every partial pixel so no pale halo is left.
 5. **Exclude moving elements from plates.** No haulers on the road, no sprayer,
    no climbing lifter, no lit landing lights. Queued and parked vehicles that
    never move are painted.
@@ -172,20 +180,20 @@ Over C4 Castle speaks her Nessa memory, `openingCompanyPrologueNessaVennWeRanOre
 > loose at every buoy. Never did. She'll have opinions about this ship. Let me
 > talk first.
 
-**It is not recorded yet.** It is not among the `jangala-arrival` takes, and the
-storyboard's production order lists recording it. The estimate: 46 words at
-Castle's measured pace (hail line 2: 24 words in 10.48 s, about 2.3 words/s),
-with her pauses, comes to about 20–22 s. That is C4's length.
+**Recorded** as `jangala_arrival_nessa` (take 3 of 3, 15.84 s, unedited; the receipt
+records why takes 1 and 2 were not used). Word timings from speech-to-text are in
+`c4-nessa-words.json`; the captions and this table come from them. The voice starts
+at 1.0 s.
 
 | t (s) | Line | Picture |
 |---|---|---|
-| 0–5 | "Nessa Venn. We ran ore together before she settled into the yards on Jangala." | Fields and the sprayer, the outbound empties, the first lifter already climbing far right (the destination ahead) |
-| 5–12 | "Once spent three days towing my dead freighter home and swore she'd cut me loose at every buoy." | The loaded inbound convoy, the weigh station passing, the village and farmstead in the middle distance |
-| 12–13 | "Never did." | Native jungle crosses the window. Let it breathe |
-| 13–17 | "She'll have opinions about this ship." | The freight terminal and port district slide in; the second lifter launches (t = 7.5 s puts it well up by now) |
-| 17–20 | "Let me talk first." | The port fills the window's right two-thirds: cranes, tower, pads, lights |
+| 1.3–5.9 | "Nessa Venn. We ran ore together before she settled into the yards on Jangala." | Fields and the sprayer, the village and farmstead, the outbound empties, the first lifter already climbing far right |
+| 6.6–11.9 | "Once spent three days towing my dead freighter home and swore she'd cut me loose at every buoy." | The loaded inbound convoy, centred about 8 s; the weigh station passing |
+| 12.5–13.0 | "Never did." | Native jungle crosses the window |
+| 13.7–15.2 | "She'll have opinions about this ship." | The freight terminal and port district slide in; the second lifter, launched at 7.5 s, climbs off its steam |
+| 15.7–16.7 | "Let me talk first." | The port fills the window: cranes, tower, pads, lights, the second empties passing the gate. Held 1.5 s |
 
-**Treatment (proposal).** Over C1–C2, Castle is on the bridge and heard through
+**Treatment (owner decision).** Over C1–C2, Castle is on the bridge and heard through
 the cabin intercom. In P6 she promises the commander "I'll tell you on the way
 down", so in C4 she is in the cabin, by the window. Record her clean and leave her
 unprocessed, close, over cabin rumble and ventilation easing from C3. This is the
@@ -196,28 +204,53 @@ the most personal thing she says in the arrival.
 
 | Source | Used for |
 |---|---|
-| `realism-lookdev/window-realism-v1.png` | The fixed window frame (blockout matte here). Material and style reference for every reskin |
+| `forest-reveal-realism/forest-reveal-realism.blend` + `assets/cabin-realism-v1.png` | The orange-and-cream cabin, re-viewed at C4's camera through its projector (`c4_cabin_render.py`) |
 | `realism-lookdev/landscape-realism-v1.png` | Style reference: canopy texture, humidity, atmospheric depth |
 | `managed-land-realism/` | Layout ideas only: field strips, the hover crop tender (four lift pods, transverse booms, reagent tank), farm compound with silos, the volcanic cone and hills. Its renders are greybox and are not used as art |
 | `port-refinement/` | Layout ideas only: sawtooth freight warehouse, tank farms, gantry cranes, control station, light masts, freight tug and service traffic. Hound/Venture flight cards are a candidate for one far crossing on L1 if the shot needs more traffic |
 | `port-approach-realism/` | Industrial material atlas and managed turf as material references for concrete and roofs |
-| `corvus-approach/assets/traffic-atlas-v1-clean.png` | Identity reference for the lifter card (Atlas class), repainted nose-up |
+| `parallax-window/traffic/atlas-painted-v1.png` | Identity reference for the lifter card (Atlas class), repainted nose-up |
 | `vehicles/hauler/` (`geometry-first-imagegen.md` table) | Identity of the in-game freight hauler (cab, saddle, freight planes), so the cinematic's haulers match the ones the company later defends. The side-view card is new work |
 
 ## Build
 
+From this directory. Blender opens the retained scenes read-only and never saves them.
+
 ```bash
 python c4_camera.py                     # scale table, guides/c4-camera.json
 "C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup --python build_c4_guides.py -- --samples 16
-python compose_c4.py                    # review/c4-blockout-t00..t20.png, guides/c4-panorama-plan.png
-python compose_c4.py --frames           # every frame to build/cinematic/c4-road-and-port/frames
+"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup --python c4_cabin_render.py
+python c4_sheets.py build               # guides/sheets/: the Codex edit targets
+python c4_sheets.py register            # assets/c4-sheet-N-v*.png -> plates/
+python c4_cards.py guides               # guides/cards/: hauler and air silhouettes
+python c4_cards.py cut                  # assets/c4-haulers-v*.png, c4-air-v*.png -> cards/
+python c4_plan.py                       # guides/c4-panorama-plan.png
+python compose_c4.py                    # review stills and contact sheet
+python compose_c4.py --frames           # build/cinematic/c4-road-and-port/: frames, timeline.json, mp4s
 ```
 
-`guides/c4-panorama-plan.png` is the plan view. On top is a top-down map with the
-camera track and the view wedges at t = 0, 10 and 20 s, with distance on a
-square-root scale, which is why the straight sight lines draw as curves. Below
-it are the four layer strips, each with the window's footprint marked at
-t = 0 (cyan), 10 (white) and 20 s (red).
+`compose_c4.py` also provides the runtime contract's data: `captions()` (three pages in
+C1's paging, speaker `Castle`, drawn as "CASTLE / SECOND WIND"), `overlays()` (none)
+and `audio_cues()` (C3's `jangala_arrival_cabin_bed` at 0.25 for the whole shot, and
+`jangala_arrival_nessa` at 1.0 s, volume 1). `--frames` (or `--mux`) writes them
+to `timeline.json`, a clean `c4-road-and-port.mp4` with the voice, and a
+`-captioned.mp4` that draws C1's captions for review only.
+
+### Generations and masters
+
+Seven Codex generations: five plate sheets (`assets/c4-sheet-1..5-v1.png`), the hauler
+sheet and the air sheet (lifter and crop tender), each with its brief in `prompts/`
+and provenance beside it. Painted as cards: eight road trains in the game's hauler
+identity (five loaded liveries, three empties, all with one shared orange cab stripe),
+the Atlas lifter nose-up and the crop tender. Drawn procedurally because they are a
+few pixels across: the plume and exhaust column, launch steam, spray fan and mist,
+contact shadows, gantry trolleys with their loads, and the pad, tower and beacon
+lights.
+
+`guides/c4-panorama-plan.png` is the plan view: a top-down map with the camera track
+and view wedges (distance on a square-root scale, which is why straight sight lines
+draw as curves), then the layer strips with the window's footprint at the start,
+middle and end.
 
 ## Look test (one generation)
 
@@ -259,26 +292,15 @@ cranes and tower, and more futurist structure (lattice cradles, mast arrays).
 
 ## Open questions
 
-1. **Recording and length.** Record the Nessa memory clean (`eleven_v4`, Castle's
-   `cuwCdnt9CKAB9XrTA1j0`), then set C4's duration from the take. Should the
-   delivery be `[warm, quiet, a little rueful]`?
-2. **Intercom or in the cabin?** This sheet proposes Castle unprocessed and
-   present in the cabin for C4 (see *Audio*). It needs an owner call. It also
-   changes how line 9 ("Somebody knows we're here.") hands over into C3.
-3. **Weigh station on the road.** It is in the blockout as a quiet nod to
-   Relief's checkpoint. Keep it, make it a militia post, or cut it so the road
-   says nothing yet?
-4. **Port coverage at the end.** At t = 20 s the port fills about the right
-   two-thirds of the window. For more, the port could start about 200 m earlier
-   on L2/L3, or C4 could hold a beat after the line ends. The pan never runs out:
-   every plate has 96 px of overscan either side.
-5. **Haulers in Wayline colours?** Wayline is a cooperative of independent
-   drivers, so mixed liveries with one shared marking would fit. That needs a
-   decision before the cards are painted.
-6. **The window frame is 1672 × 941 native.** It is shared with C2 and C3. A
-   native 3840 × 2160 repaint of the frame alone, with a proper alpha cut, would
-   serve all three shots. Coordinate it with the C2/C3 planners rather than
-   making three copies.
-7. **Proposal for `storyboard-v3.md`.** C4's *Motion* line says "pan". It is
+1. **Weigh station on the road.** Kept as a quiet nod to Relief's checkpoint, now
+   passing during the towing sentence. Keep it, make it a militia post, or cut it?
+2. **Hauler liveries.** Painted as mixed owner liveries (white, blue-grey, rust-red,
+   sand) with one shared orange cab stripe, reading Wayline as a cooperative. Owner
+   to confirm.
+3. **Bed level at the C3 cut.** C4 reuses C3's cabin bed at 0.25 (C3 plays it at
+   0.55), about 12 dB under Castle. A cue has one volume, so the bed steps down at the
+   cut; a fade in the player would smooth it if the step reads as a seam.
+4. **Showing Castle.** The owner's direction to design later (see above).
+5. **Proposal for `storyboard-v3.md`.** C4's *Motion* line says "pan". It is
    built as a truck (true parallax with rigid layers). Wording such as "one
    continuous sideways travel" would avoid a future reader rotating the plates.

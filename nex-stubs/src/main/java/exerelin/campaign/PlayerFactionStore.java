@@ -8,4 +8,8 @@ public class PlayerFactionStore {
     public static FactionAPI getPlayerFaction() {
         throw new UnsupportedOperationException("Nexerelin stub");
     }
+
+    public static void setPlayerFactionIdNGC(String newFactionId) {
+        throw new UnsupportedOperationException("Nexerelin stub");
+    }
 }

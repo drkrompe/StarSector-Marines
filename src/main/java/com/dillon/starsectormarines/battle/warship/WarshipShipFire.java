@@ -234,7 +234,14 @@ public final class WarshipShipFire {
         // turns only toward a hull that is nearly in reach.
         // A departing ship answers what is in reach as it goes; it does not hunt.
         boolean hunting = ship.duelHelm() && !ship.departing();
-        if (hunting) {
+        if (hunting && WarshipTactics.ENABLED) {
+            // The group decided who fights whom (WarshipTactics); a hunter with no assignment yet falls through.
+            Warship assigned = ship.manoeuvre().target();
+            if (assigned != null && hostileHull(ship, assigned)) {
+                engage(ship, assigned);
+                return;
+            }
+        } else if (hunting) {
             Warship role = packTarget(ship, ships, held);
             if (role != null) {
                 engage(ship, role);
@@ -404,10 +411,12 @@ public final class WarshipShipFire {
         }
         fireRound(system, ship, m, target, aim);
         e.roundsLeft--;
-        e.timer = MissilePacing.roundDelay(w, w.burstDelaySeconds());
+        // Between hulls a gun cycles on the hull fight's clock (D1): the burst gap and the cooldown run long by it.
+        e.timer = MissilePacing.roundDelay(w, w.burstDelaySeconds()) * WarshipScale.HULL_TEMPO;
         if (e.roundsLeft <= 0) {
             engagements.remove(m);
-            m.cooldown = Math.max(w.cooldownSeconds(), w.beam() ? WarshipPointDefence.MIN_ENGAGEMENT_SECONDS : 0.05f);
+            m.cooldown = WarshipScale.HULL_TEMPO * Math.max(w.cooldownSeconds(),
+                    w.beam() ? WarshipPointDefence.MIN_ENGAGEMENT_SECONDS : 0.05f);
         }
         return true;
     }

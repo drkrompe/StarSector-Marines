@@ -31,6 +31,9 @@ import java.util.List;
  * in MechSurviveContact for the rest of the fight once a majority of its
  * members cross the bottom HP threshold — the intended "wounded mech
  * withdraws" moment from {@code ai-nouns.md}.
+ *
+ * <p>A lance whose standing mechs have lost every weapon mount withdraws the same way while any
+ * of them can still walk ({@link MechDamageDoctrine#lanceWithdraws}).
  */
 public final class MechSurviveContact implements Goal {
 
@@ -43,7 +46,10 @@ public final class MechSurviveContact implements Goal {
 
     @Override
     public float relevance(WorldState state, Squad squad, BattleView sim) {
-        return state.get(Predicate.MORALE_BROKEN) ? 1.0f : 0f;
+        if (state.get(Predicate.MORALE_BROKEN)) return 1.0f;
+        // A lance with nothing left to fire breaks contact too, while any of it can walk;
+        // its attack goals have already declined (GoapMechBehavior.ATTACK_GOALS).
+        return GoapMechBehavior.lanceWithdraws(squad, sim) ? 1.0f : 0f;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.campaign.start.CompanyShipRestoration;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -28,14 +29,14 @@ class WaylineHoundAwardTest {
             MissionResolver.recordStoryCompletion(roster, outcome);
             assertTrue(CompanyShipRestoration.mechBayRestored(roster));
             assertTrue(roster.hasCompletedStory(outcome.missionId));
-            assertEquals(WaylineHound.deployment(), roster.mechBay().mechById(WaylineHound.ID).freezeForDeployment());
+            assertEquals(WaylineHound.deployment(), owned(roster.mechBay().mechById(WaylineHound.ID).freezeForDeployment()));
             assertEquals(1, roster.mechBay().ownedWeapon(MechWeaponComponent.NOSE_CHAINGUN.id));
             roster = roundTrip(roster);
             assertTrue(CompanyShipRestoration.mechBayRestored(roster));
             MissionResolver.recordStoryCompletion(roster, outcome);
             assertEquals(1, roster.mechBay().activeDeployment().size());
             assertEquals(1, roster.mechBay().ownedWeapon(MechWeaponComponent.NOSE_CHAINGUN.id));
-            assertEquals(WaylineHound.deployment(), roster.mechBay().activeDeployment().get(0));
+            assertEquals(WaylineHound.deployment(), owned(roster.mechBay().activeDeployment().get(0)));
         }
     }
 
@@ -68,7 +69,7 @@ class WaylineHoundAwardTest {
         assertEquals(selected, bay.activeSquad().id());
         assertEquals(CampaignMechSquad.CAPACITY, bay.activeSquad().mechs().size());
         assertEquals(2, bay.squads().size());
-        assertEquals(WaylineHound.deployment(), bay.mechById(WaylineHound.ID).freezeForDeployment());
+        assertEquals(WaylineHound.deployment(), owned(bay.mechById(WaylineHound.ID).freezeForDeployment()));
     }
 
     @Test void legacyStarterIsNeverReplacedAndRepeatedReceiptCannotDuplicateParts() {
@@ -92,5 +93,12 @@ class WaylineHoundAwardTest {
         try (var in = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))) {
             return (MarineRoster) in.readObject();
         }
+    }
+
+    /** The owned Hound's frozen spec without its campaign id, which the story's own spec lacks. */
+    private static MechDeploymentSpec owned(MechDeploymentSpec spec) {
+        assertEquals(WaylineHound.ID, spec.campaignId());
+        return new MechDeploymentSpec(spec.variant(), spec.role(), spec.missileReplenisher(),
+                spec.arms(), spec.leftShoulder(), spec.rightShoulder(), spec.displayName(), spec.frame());
     }
 }

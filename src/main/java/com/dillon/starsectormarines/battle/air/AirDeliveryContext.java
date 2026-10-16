@@ -216,6 +216,11 @@ public final class AirDeliveryContext {
         roster.world().attachMechLoadout(unit, loadout);
     }
 
+    /** Marks a landed mech as the company's own {@code campaignId}, so its damage writes back. */
+    public void tagCompanyMech(String campaignId, MechLoadoutComponent loadout) {
+        roster.companyMechs().tag(campaignId, loadout);
+    }
+
     public void deployResupplyCache(int cellX, int cellY) {
         resupply.add(new ResupplyCache(cellX, cellY, faction));
     }

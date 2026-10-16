@@ -10,7 +10,8 @@
       "sprite": "graphics/ships/thunder.png",
       "shape_reference": "art-source/aircraft/fighter-upres/thunder/master-v1.png",
       "ship_sprite_name": "graphics/ships/thunder2.png",
-      "sprite_choice": "The .ship renders thunder2.png; the up-res master (and the mod runtime texture graphics/battle/aircraft/thunder.png) was generated from and registered to thunder.png, so SPRITE is thunder.png. The two share the body aft of X 7 but differ forward: thunder.png has an asymmetric twin-prong port pod and a long lance offset to starboard (Y -1..-4); thunder2.png has two symmetric gun booms at the slots and no lance. The master keeps thunder.png's full-length lance but centres it and draws thunder2-style booms at +-5.5. The model follows the master, so it reads as a hybrid of the two sprites; IoU is reported against both."
+      "plan_reference": "graphics/ships/thunder.png",
+      "sprite_choice": "The .ship renders thunder2.png, but the up-res master and the mod runtime texture (graphics/battle/aircraft/thunder.png) come from thunder.png, and the owner chose its asymmetric design: a twin-prong port gun block and a long lance offset to starboard (Y -1..-4). The model follows thunder.png. master-v1 is a mirrored hybrid (centred lance, symmetric booms) and is used for sections and detail only, not for the plan."
     }
   },
   "provenance": "verified against the installed data/hulls/thunder.ship",
@@ -22,7 +23,7 @@
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
   "metres_per_unit": 0.45,
   "scale": {
-    "summary": "Heavy interceptor, one pilot, lance nose, twin gun booms, two engine pods",
+    "summary": "Heavy interceptor, one pilot, starboard lance, port twin-prong gun block, two engine pods",
     "method": "Sized from the single-seat cockpit: the canopy is 7.2 x 2.6 units, which at 0.45 m/unit is a 3.2 m by 1.2 m bubble, inside the 2.6-3.5 m by 0.9-1.3 m of real single-seat canopies, and the seated 1.8 m proxy clears it. Width bounds the range (0.9-1.3 m sill -> 0.35-0.50), canopy length the low end (>= 2.6 m -> 0.37), overall length the high end (41 units <= 22 m -> 0.53).",
     "range": [
       0.4,
@@ -32,14 +33,14 @@
       "length": 18.6,
       "span": 10.9,
       "engine_pod_diameter": 2.9,
-      "gun_boom_width": 1.3,
+      "gun_block_width": 3.5,
       "su_27_length": 21.9,
       "f_15_length": 19.4,
       "f_14_span_swept": 11.6
     },
     "size_m": [
-      18.6,
-      10.9,
+      18.5,
+      10.8,
       2.6
     ],
     "canopy": {
@@ -71,17 +72,17 @@
   "dimensions": {
     "min": [
       -12.0,
-      -12.1,
+      -12.0,
       -2.32
     ],
     "max": [
-      29.4,
-      12.1,
+      29.2,
+      12.0,
       3.4
     ],
     "size": [
-      41.4,
-      24.2,
+      41.2,
+      24.0,
       5.72
     ]
   },
@@ -196,8 +197,8 @@
       0.45
     ],
     "Weapon WS 001 muzzle": [
-      24.35,
-      5.5,
+      23.4,
+      6.0,
       0.45
     ],
     "Weapon WS 002 anchor": [
@@ -206,21 +207,21 @@
       0.45
     ],
     "Weapon WS 002 muzzle": [
-      24.35,
-      -5.5,
+      21.2,
+      -4.15,
       0.45
     ],
     "Weapon WS 003 anchor": [
       15.0,
       0.0,
-      1.75
+      1.55
     ]
   },
   "anchor_convention": "ARROWS empties; local +X points along the slot angle (0 = nose, 180 = aft)",
   "notes": [
-    "Integer slots straddle the sprite centre line: model symmetric about Y = 0; gun booms and muzzles at +-5.5 (slot mean), pods and engine bells at +-6.5 (engine slot mean). Anchors keep the exact .ship XY.",
-    "All three slots are HIDDEN: the ion cannon (port) and light dual MG (starboard) are the boom barrels the sprite draws; the swarmer launcher is the dark bay on the spine at WS 003, no visible gun.",
-    "Forward of X 14 the model follows the master (centred lance, symmetric booms), which matches neither vanilla sprite exactly; see source.sprite_choice."
+    "Asymmetric forward of X 12, as thunder.png draws it: a port gun block with two prongs, and a starboard lance offset to Y -2.5. Aft of that the engine slots straddle the centre line, so the bells sit at +-6.5 (the slot mean). Anchors keep the exact .ship XY.",
+    "All three slots are HIDDEN. The ion cannon is the outer port prong (muzzle at WS 001, Y 6); the inner prong at Y 2 is drawn hull, not a weapon. The light dual MG is the short twin barrel on the starboard root of the lance (WS 002). The swarmer launcher is the dark bay on the fuselage nose at WS 003, with no visible gun.",
+    "master-v1 is mirrored and does not match this plan; see source.sprite_choice."
   ],
   "cameras": {
     "top": {
@@ -237,7 +238,7 @@
         172.0,
         0.0
       ],
-      "orthographic_scale": 55.08333285649617
+      "orthographic_scale": 54.83333428700766
     },
     "front": {
       "position": [
@@ -257,10 +258,10 @@
     }
   },
   "silhouette": {
-    "iou": 0.8897,
-    "sprite_uncovered": 0.0304,
-    "model_outside_sprite": 0.0898,
-    "sprite": "thunder2.png",
+    "iou": 0.9559,
+    "sprite_uncovered": 0.0212,
+    "model_outside_sprite": 0.024,
+    "sprite": "thunder.png",
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 37.09 px per unit"
   }
 }

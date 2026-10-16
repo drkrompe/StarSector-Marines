@@ -61,18 +61,20 @@ VARIANTS = ['data/variants/legion/legion_xiv_Elite.variant', 'data/variants/legi
 # mostly not habitable: fighter hangars, launch bays and their magazines, belt
 # armour (rating 1650), reactors and flux plant, fifteen barbettes with their
 # magazines, drive machinery, tanks and structure. The budget below puts the
-# habitable share at about a third (30-35%). Fighters are drawn at the carrier's
-# pixel scale, so the hangar requirement is checked in model units and holds at
-# any metres scale. The driver re-measures the pressure hull on every build and
+# habitable share at about a third (30-35%). Fighter stowage is sized in metres
+# from each fighter's own scale (fighters-geometry). The driver re-measures the pressure hull on every build and
 # records the solved value beside the published one (scale_record).
 METRES_PER_UNIT = 0.61
 REQUIRED_M3 = 128428
 USABLE = .33
 USABLE_RANGE = (.30, .35)
-# Fighter craft in model units (installed .ship width x height; length, span) and
-# an assumed height, stowed with 1.8x their footprint for servicing under a
-# 1.6x-height overhead, plus one spare per wing and 25% for ordnance handling.
-CRAFT = {'broadsword': (33, 30, 6.5), 'hoplon': (36, 38, 8.0), 'piranha': (34, 30, 6.5)}
+# Fighter craft: installed .ship height x width in sprite px (length, span), an
+# assumed height in px, and each fighter's own metres per px. Fighters have
+# their own scales (fighters-geometry: Broadsword 0.50 from its cockpit); the
+# Hoplon and Piranha are outside that package and take its heavy-craft 0.50.
+# Stowed at 1.8x footprint for servicing under a 1.6x-height overhead, plus one
+# spare per wing and 25% for ordnance handling.
+CRAFT = {'broadsword': (33, 30, 6.5, .50), 'hoplon': (36, 38, 8.0, .50), 'piranha': (34, 30, 6.5, .50)}
 WINGS = {'legion_xiv_Elite': [('broadsword', 3)]*2+[('hoplon', 2)]*2, 'legion_Strike': [('piranha', 3)]*4}
 NON_HABITABLE_BUDGET = {  # share of the pressure hull, judged; the hangar share is measured below
     'fighter hangars, launch bays, fighter ordnance': None,
@@ -83,7 +85,7 @@ NON_HABITABLE_BUDGET = {  # share of the pressure hull, judged; the hangar share
 }
 PRESSURE_HULL = ['Hull fore body', 'Hull aft body', 'Hull ventral keel', 'Hull dorsal spine', 'Hull tail spine', 'Bridge command dome',
                  'Wing port sponson', 'Wing starboard sponson'] + [
-    f'Flight deck WS 01{i} hangar' for i in range(4)]
+    f'Wing {s} hangar' for s in ('port', 'starboard')]
 MACHINERY = ['Hull engine block', 'Hull port engine housing', 'Hull starboard engine housing']
 
 parser = argparse.ArgumentParser()
@@ -317,14 +319,14 @@ def union_volume(names, step=2.0):
     return total*step*step
 
 
-def hangar_units3():
-    """Stowage volume the fighter complement needs, in cubic model units, per variant."""
+def hangar_m3():
+    """Stowage volume the fighter complement needs, in cubic metres, per variant."""
     out = {}
     for variant, wings in WINGS.items():
         total = 0.0
         for craft, n in wings:
-            length, span, height = CRAFT[craft]
-            total += (n+1)*length*span*1.8*height*1.6
+            length, span, height, mpp = CRAFT[craft]
+            total += (n+1)*(length*mpp)*(span*mpp)*1.8*(height*mpp)*1.6
         out[variant] = round(total*1.25)
     return out
 
@@ -333,8 +335,8 @@ def scale_record():
     hull = union_volume(PRESSURE_HULL)
     machinery = union_volume(MACHINERY)
     solve = lambda usable, volume: (REQUIRED_M3/(usable*volume))**(1/3)
-    hangar = hangar_units3()
-    hangar_share = max(hangar.values())/hull
+    hangar = hangar_m3()
+    hangar_share = max(hangar.values())/(hull*METRES_PER_UNIT**3)
     budget = dict(NON_HABITABLE_BUDGET)
     budget['fighter hangars, launch bays, fighter ordnance'] = round(hangar_share, 3)
     habitable = 1-sum(budget.values())
@@ -342,11 +344,14 @@ def scale_record():
         'method': 'warship pass 4: deck program (DeckProgramProbe CAPITAL "Battlecarrier" 700 1500 300 -> CARRIER) '
                   'less its notional HANGAR rooms: 28667 m2 x1.40 circulation x3.2 m = required habitable m3; '
                   'solved against the habitable share of the pressure hull (union of its solids, measured on every '
-                  'build); fighter hangar volume checked in model units, since fighters share the carrier pixel scale',
+                  'build); fighter stowage sized in metres at each fighter scale',
         'required_habitable_m3': REQUIRED_M3, 'pressure_hull': PRESSURE_HULL, 'pressure_hull_units3': round(hull),
         'machinery_units3': round(machinery), 'usable_fraction': USABLE,
         'non_habitable_budget': budget, 'habitable_share_from_budget': round(habitable, 3),
-        'fighter_stowage_units3': hangar, 'fighter_stowage_share_of_hull': round(hangar_share, 3),
+        'fighter_stowage_m3': hangar, 'fighter_stowage_share_of_hull_at_published': round(hangar_share, 3),
+        'budget_note': 'with the fighters at their own scales (0.50 m/px) the itemised budget leaves more than a '
+                       'third habitable; 33% is the requested warship share, and budget_share in range is what '
+                       'the itemised budget alone solves to. Owner call if they differ much.',
         'solved_metres_per_unit': round(solve(USABLE, hull), 3),
         'range': {f'{int(USABLE_RANGE[1]*100)}pct_habitable': round(solve(USABLE_RANGE[1], hull), 3),
                   f'{int(USABLE_RANGE[0]*100)}pct_habitable': round(solve(USABLE_RANGE[0], hull), 3),
@@ -364,7 +369,8 @@ def scale_record():
                                                           round((lg_wings.ROOF-lg_wings.FLOOR)*S, 1)],
                            'aft hangar mouth w x h': [round(lg_wings.DECKS['aft']['mouth_width']*S, 1),
                                                       round((lg_wings.ROOF-lg_wings.FLOOR)*S, 1)],
-                           'fighters (length x span) m': {k: [round(v[0]*S, 1), round(v[1]*S, 1)] for k, v in CRAFT.items()},
+                           'fighters (length x span) m, own scales': {k: [round(v[0]*v[3], 1), round(v[1]*v[3], 1)] for k, v in CRAFT.items()},
+                           'fighters (length x span) in Legion units': {k: [round(v[0]*v[3]/S, 1), round(v[1]*v[3]/S, 1)] for k, v in CRAFT.items()},
                            'hull keel to crown': round((HI.z-LO.z)*S, 1),
                            'person 1.8 m in units': round(1.8/S, 2),
                            'door 2.1 m / rail 1.1 m / hatch 2 m in units': [round(2.1/S, 1), round(1.1/S, 1), round(2/S, 1)],

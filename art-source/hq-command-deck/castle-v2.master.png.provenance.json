@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a146c0-d40f-73d1-912b-420d27eb251c",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a146c0-d40f-73d1-912b-420d27eb251c\\exec-c701456a-f325-4087-a7ed-c464ec018586.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\hq-command-deck\\castle-v2.master.png",
+    "sha256": "65d0083f394a1a8521282540e9ad20effc87c3d991ad68616c0e184a20ef5525",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\hq-command-deck\\castle-v2.brief.txt",
+  "promptSha256": "2983a33d2b25fb34429e561acb1e1761c2f5d6cb5cc1b20a791f0b9a1695cabf",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity only: face, hair, age and jacket. Not pose, framing or background.\nImage 2: Lighting direction, colour and painting style only. Not layout; include none of its background.\n\nFull-length standing figure card of Castle for a layered illustration. She will be placed into the command-centre painting given as reference 2, standing on the far side of its glowing plotting table, facing the viewer across it.\n\nShe is the same person as reference 1: a woman in her early fifties, warm pale olive skin, lived-in face with fine expression lines, steady grey-green eyes, dark brown hair with silver at the temples tied back in a short practical bun, worn charcoal-olive high-collared duty jacket over a faded undershirt, dark work trousers and boots, small earpiece with a short boom microphone.\n\nPose: standing square to the viewer, weight on one leg, shoulders very slightly turned toward the viewer's left. She holds a battered data slate up at chest height in both hands, glancing up from it toward the viewer with a restrained knowing half-smile. Both hands and the slate sit above her waist; her arms do not reach down or forward. Whole body in frame from the top of her head to her boots, natural adult proportions, small clearance around the figure.\n\nViewpoint matches the painting: a level camera about one metre above her head height and about eight and a half metres away, so she is seen from very slightly above, with no tilt or perspective lean: vertical lines of her body stay vertical.\n\nLighting matches reference 2: a warm pale amber-green glow rising from below and in front of her (the plotting table she stands behind), lighting the underside of her chin, the slate and the front of her jacket; a soft warm downlight from a lamp ring above; dim amber rim light from the console screens behind her. Low, moody, the edges of the figure falling into shadow. Same matte-painted brushwork and palette as reference 2.\n\nTrue transparent background, including negative spaces between arms and body; no ground, floor, cast shadow slab, table, border, text or other people.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\portraits\\castle\\castle-master.png",
+      "sha256": "136dc31a89e0b8143f86e9c0ac80b49ba8230badb1c74d97d7bc6d39104bd37c",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Identity only: face, hair, age and jacket. Not pose, framing or background."
+    },
+    {
+      "path": "art-source\\hq-command-deck\\deck-plate-v3.master.png",
+      "sha256": "24b1aaf24cfe301dc1441c263cc13cd375b147d2374898d9708a6340260eaa1e",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "mode": "RGB",
+      "role": "Lighting direction, colour and painting style only. Not layout; include none of its background."
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent full-length Castle figure using the references and your specified pose and lighting."
+  ],
+  "usage": {
+    "input_tokens": 44790,
+    "cached_input_tokens": 34176,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 693,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 60.6
+}

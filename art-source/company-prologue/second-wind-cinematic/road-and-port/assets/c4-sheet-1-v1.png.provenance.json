@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a1467e-cbba-7cc1-a805-b7653e16cb02",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1467e-cbba-7cc1-a805-b7653e16cb02\\exec-6298f0a5-842c-4c33-b767-5461665eb8c1.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\road-and-port\\assets\\c4-sheet-1-v1.png",
+    "sha256": "e8b34b04cc4eb8364bf6401984d1ed1df14d5ac0ed65e45512627b0c59a68744",
+    "dimensions": [
+      1886,
+      834
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\road-and-port\\prompts\\c4-sheet-1-v1.txt",
+  "promptSha256": "bd84fd260ea1a171c97e6270fcf812fa47a5a89b4581721c77b91ebc24083072",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: clay sheet of separate panoramic strips on black; keep every strip, bar and form in place\nImage 2: Material/style only: an approved painted sheet from the same shot; match its light, colour, texture and level of detail; not layout\n\nGrounded, photographic science-fiction film. These are background plates for one continuous sideways travelling shot out of a ship's side window, about 220 metres above a flat tropical river plain on the planet Jangala, late morning. The plates are painted as long panoramic bands that slide past at different speeds, so every band must be seamless left to right, with nothing that leans or converges.\n\nImage 1 is the GEOMETRY AND LAYOUT AUTHORITY: a sheet of clay massing renders. It is NOT one picture. It holds separate long horizontal panoramic strips stacked on a black background, divided by solid black bars. Repaint each strip on its own, in place:\n- Keep the black bars, the black margin and every strip's top and bottom edge exactly where they are, pure black, untouched. Do not join, merge or blend strips across the bars. Do not add borders.\n- Inside each strip keep every form exactly where it is, at exactly that size and that perspective: the horizon of each strip, field edges, the road, verges, tree crowns, buildings, fences and roofs. Do not move, add or remove large forms, do not change the camera, do not widen, crop, stretch or compress. Repaint every clay surface as the real thing it stands for, with real texture.\n- Where a strip shows flat pale blue-grey sky above its land, keep that sky perfectly flat and plain, the same pale blue-grey, with no clouds, haze gradient, birds or distant land in it: it is a matte that gets cut away. Tree crowns and roofs against it keep crisp, clean edges.\n- Land is laid out in long strips running left to right: crop rows, furrows, verges, ditches and hedges all run horizontally across the strip and never turn toward the viewer, converge, or cross.\n- No moving things: no vehicles on any road or field, no aircraft, no people, no animals, no smoke or dust plumes. Those are separate layers.\n\nLight: one sun, high (about 50 degrees) and BEHIND the viewer to the LEFT. Everything is front-lit from the upper left; shadows fall to the right and slightly away. Humid tropical late-morning daylight, soft but sunny. Atmospheric perspective as in the clay: the haze already in each strip is correct for its distance, keep its overall brightness and contrast.\nScale: seen from a few hundred metres up and far away. Trucks would be tiny, people invisible, buildings modest. Real-world aerial-photograph detail: futuristic but lived-in agricultural and industrial colony world.\nStyle: photographic, cinematic realism, natural colour. Not a toy, miniature, tilt-shift, low-poly render, painting, map or cartoon. No text, labels, logos, borders, window frame, lens flare or vignette.\n\nThis sheet holds the two FAR strips (8 km and beyond), the slowest layer. Here the sky is NOT a matte: paint it.\n\nStrip 1 and Strip 2 (two overlapping stretches of the same far panorama; the right half of strip 1 is the same land as the left part of strip 2, so keep them consistent): a soft humid tropical sky, pale blue overhead fading to hazy white-blue at the horizon, with scattered fair-weather cumulus that are small and soft with distance, lit from the upper left. Below it low hazy blue-green forested ridges where the clay shows the long ridge shapes, very soft and pale with distance. Then a hazy flat jungle plain: endless dense rainforest canopy, blue-grey-green, with thin low mist in a few hollows. Toward the right of strip 2 a distant spaceport launch field on pale concrete: four tall slender open-lattice launch cradle towers, low terminal blocks, a tall thin beacon mast, and one tall slim cargo lifter standing upright inside the rightmost cradle (a pale grey vertical hull). Everything far and hazy, low contrast.\nNo aircraft, no rocket plume, no smoke: launching and climbing lifters are separate layers.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\road-and-port\\guides\\sheets\\c4-sheet-1-guide.png",
+      "sha256": "2f3f06ceb6008cc3410804adfb688da1e97d3e5e20b685a12f5c049fcc4d3087",
+      "dimensions": [
+        1886,
+        834
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: clay sheet of separate panoramic strips on black; keep every strip, bar and form in place"
+    },
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\road-and-port\\assets\\c4-sheet-3-v1.png",
+      "sha256": "7c3c5d345301e83001a4f7484937c67d0ca22917fecc7bcf9f512adf016f74c7",
+      "dimensions": [
+        1886,
+        834
+      ],
+      "mode": "RGB",
+      "role": "Material/style only: an approved painted sheet from the same shot; match its light, colour, texture and level of detail; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using Image 1 for the exact strip layout and Image 2 for the material and lighting style, with painted sky in both far strips."
+  ],
+  "usage": {
+    "input_tokens": 45779,
+    "cached_input_tokens": 12416,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 952,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 78.8
+}

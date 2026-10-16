@@ -15,7 +15,7 @@ import random
 ROAD_Y = (972.0, 988.0)
 ROAD_LANES = (976.0, 984.0)          # inbound lane (toward the port, +X), outbound lane (-X)
 SPUR_X = (1443.0, 1457.0)            # freight gate spur, turning outward into the terminal
-WEIGH_STATION_X = (380.0, 470.0)
+WEIGH_STATION_X = (700.0, 790.0)   # passes the window centre during the towing sentence
 PORT_EDGE_X = 1000.0                 # native growth from here, port proper from about 1250
 
 # Launch cradles on the far layer: lifters climb out of these (moving elements).
@@ -64,15 +64,27 @@ def _prims():
             y += w
             i += 1
 
+    # ------------------------------------------------------------ L4f foreground: fields under the sill
+    # Strips only, parallel to the track; the seam with L4 is a field track at 836-840 m.
+    L = "L4f-fore"
+    plane(L, "ground", -300, 2000, 630, 842, -0.05)
+    crop_strips(L, -300, 980, 640, 836)
+    plane(L, "track", -300, 2000, 836, 842, 0.02)
+    canopy_mass(L, 980, 1290, 640, 836, 0.0016, 7, 15, 1.5)       # the native block, ragged at both ends
+    plane(L, "scrub", 1290, 2000, 640, 836, 0.0)
+    plane(L, "water", 1290, 2000, 760, 768, 0.01, name="drainage canal")
+    plane(L, "track", 1290, 2000, 800, 806, 0.02, name="perimeter service track")
+
     # ------------------------------------------------------------ L4 near: fields and the road
     L = "L4-near"
-    plane(L, "ground", -700, 1900, 830, 1100, -0.05)
-    crop_strips(L, -700, 1000, 840, 962, gap_x=((290.0, 300.0),))
-    plane(L, "track", 290, 300, 840, 962, 0.02)                 # one farm track, the only cross line
-    plane(L, "verge", -700, 1900, 962, ROAD_Y[0], 0.01)
-    plane(L, "road", -700, 1900, ROAD_Y[0], ROAD_Y[1], 0.03, name="freight road")
-    plane(L, "marking", -700, 1900, 979.6, 980.4, 0.05)
-    plane(L, "verge", -700, 1900, ROAD_Y[1], 1000, 0.01)
+    plane(L, "ground", -700, 2000, 830, 1100, -0.05)
+    # No cross lines: with the foreground band below, a track crossing this band would
+    # break at the seam (the two bands slide at different rates).
+    crop_strips(L, -700, 1000, 840, 962)
+    plane(L, "verge", -700, 2000, 962, ROAD_Y[0], 0.01)
+    plane(L, "road", -700, 2000, ROAD_Y[0], ROAD_Y[1], 0.03, name="freight road")
+    plane(L, "marking", -700, 2000, 979.6, 980.4, 0.05)
+    plane(L, "verge", -700, 2000, ROAD_Y[1], 1000, 0.01)
     # hedgerow beyond the road: emergent trees in a ragged belt (its top is the L3 seam)
     canopy_mass(L, -700, 1000, 1040, 1100, 0.0011, 5, 11, 1.4)
     canopy_mass(L, -700, 1000, 1090, 1100, 0.002, 6, 12, 1.3)
@@ -89,10 +101,10 @@ def _prims():
     canopy_mass(L, 1000, 1260, 840, 962, 0.0016, 7, 15, 1.5)
     canopy_mass(L, 1000, 1260, 1000, 1100, 0.0016, 7, 15, 1.5)
     # port edge on the near layer: fence, gate spur, queued trailers, low sheds
-    plane(L, "scrub", 1260, 1900, 840, 962, 0.0)
-    box(L, "fence", 1260, 1900, 1000, 1001, 0, 3)
+    plane(L, "scrub", 1260, 2000, 840, 962, 0.0)
+    box(L, "fence", 1260, 2000, 1000, 1001, 0, 3)
     plane(L, "road", SPUR_X[0], SPUR_X[1], ROAD_Y[1], 1100, 0.03, name="gate spur")
-    plane(L, "concrete", 1260, 1900, 1001, 1100, 0.02)
+    plane(L, "concrete", 1260, 2000, 1001, 1100, 0.02)
     for i in range(3):
         y = 1010 + i * 24
         box(L, "trailer", 1446, 1454, y, y + 18, 0.6, 4.4, name="queued hauler")
@@ -100,6 +112,7 @@ def _prims():
     box(L, "building", 1540, 1700, 1040, 1090, 0, 11, name="freight shed")
     prism(L, "roof", 1540, 1700, 1040, 1090, 11, 15)
     box(L, "building", 1740, 1900, 1030, 1080, 0, 9)
+    box(L, "building", 1930, 2000, 1040, 1085, 0, 12)
     for i in range(6):
         cyl(L, "steel", 1300 + i * 90, 1003, 0.35, 0, 16, name="light mast")
 
@@ -108,13 +121,13 @@ def _prims():
     plane(L, "ground", -900, 2200, 1100, 1700, -0.05)
     crop_strips(L, -900, 960, 1100, 1170)
     plane(L, "water", -900, 960, 1172, 1184, 0.0, name="irrigation canal")
-    crop_strips(L, -900, 960, 1186, 1610, gap_x=((-280.0, -100.0),))
-    plane(L, "concrete", -280, -100, 1230, 1400, 0.02, name="farmstead yard")
+    crop_strips(L, -900, 960, 1186, 1610, gap_x=((450.0, 630.0),))
+    plane(L, "concrete", 450, 630, 1230, 1400, 0.02, name="farmstead yard")
     for i in range(3):
-        cyl(L, "silo", -250 + i * 16, 1300, 6, 0, 22, name="silo")
-    box(L, "building", -200, -150, 1260, 1290, 0, 9, name="barn")
-    prism(L, "roof", -200, -150, 1260, 1290, 9, 13)
-    box(L, "building", -140, -110, 1320, 1350, 0, 7)
+        cyl(L, "silo", 480 + i * 16, 1300, 6, 0, 22, name="silo")
+    box(L, "building", 530, 580, 1260, 1290, 0, 9, name="barn")
+    prism(L, "roof", 530, 580, 1260, 1290, 9, 13)
+    box(L, "building", 590, 620, 1320, 1350, 0, 7)
     canopy_mass(L, -900, 1000, 1610, 1700, 0.0012, 8, 15, 1.4)   # tree belt; its top is the L2 seam
     canopy_mass(L, 960, 1100, 1100, 1700, 0.0014, 8, 16, 1.5)   # native growth
     # freight terminal
@@ -145,19 +158,19 @@ def _prims():
     L = "L2-port"
     plane(L, "ground", -2600, 3600, 1700, 3800, -0.05)
     crop_strips(L, -2600, 600, 1700, 2150)
-    crop_strips(L, -2600, -1100, 2150, 3400)
-    crop_strips(L, -300, 600, 2150, 3400)
+    crop_strips(L, -2600, -400, 2150, 3400)
+    crop_strips(L, 400, 600, 2150, 3400)
     # a settlement: the people who live here
-    plane(L, "concrete", -1100, -300, 2200, 2700, 0.01, name="village")
-    plane(L, "road", -1100, -300, 2440, 2452, 0.02)
+    plane(L, "concrete", -400, 400, 2200, 2700, 0.01, name="village")
+    plane(L, "road", -400, 400, 2440, 2452, 0.02)
     for i in range(34):
-        x = -1080 + (i % 17) * 46 + rng.uniform(-6, 6)
+        x = -380 + (i % 17) * 46 + rng.uniform(-6, 6)
         y = 2380 if i < 17 else 2475
         y += rng.uniform(-10, 10)
         box(L, "house", x, x + 14, y, y + 11, 0, 6)
         prism(L, "roof", x, x + 14, y, y + 11, 6, 9)
-    box(L, "building", -700, -620, 2560, 2620, 0, 12, name="co-op hall")
-    cyl(L, "silo", -520, 2600, 7, 0, 30, name="water tower")
+    box(L, "building", 0, 80, 2560, 2620, 0, 12, name="co-op hall")
+    cyl(L, "silo", 180, 2600, 7, 0, 30, name="water tower")
     canopy_mass(L, -2600, 600, 3350, 3800, 0.0008, 10, 20, 1.4)
     canopy_mass(L, -2600, 600, 2900, 2960, 0.0010, 9, 16, 1.4)
     canopy_mass(L, 600, 960, 1700, 3800, 0.0012, 10, 20, 1.5)    # native growth band
