@@ -4,7 +4,7 @@ Status: IN PROGRESS — post-Shepherd referral, first three chapters through The
 
 Written: 2026-10-13
 
-Updated: 2026-10-15 — story pass: Voss's escalation, the Chapter 4 turn, Greyhook's split in Chapter 5, grounded outfit names, text-only new speakers.
+Updated: 2026-10-15 — Rusk as an Eventide cadet, the four-in-twelve kit ceiling, and the Chapter 5 frigate duel.
 
 Read `early-operation-nouns.md`, `campaign-nouns.md`, `meta-progression.md`,
 `narrative-nouns.md`, `mission-tier-nouns.md`, `progression-nouns.md`,
@@ -356,6 +356,10 @@ work and is delivered on either route. It is not payment for endorsing a politic
 choice or a bonus for killing powered wearers. The person explaining the reward
 may change if an actual casualty makes a particular witness unavailable.
 
+**Rusk, in the Chapter 4 debrief:** “I have written to my family. I would rather
+not have. They will answer, and they will want to know why they had to.” He
+names no ship and no date; Castle does not guess at either.
+
 The recovered levy files carry the lead into Chapter 5: a dispatch order signed
 by Mika Drent whose load numbers match Nadi's shortage lists and identify Black
 Sluice's transfer schedule.
@@ -400,6 +404,28 @@ a seizure target, not an invitation to destroy the district's usable supply.
    replacement/refit under the employer-loss policy below. Untouched pirates
    elsewhere in the system do not block resolution.
 
+**The duel overhead.** When Voss orders the withdrawal, her salvage tender, the
+Greyhook herself, tries to climb out from the pier with a Hound-class sister
+frigate as escort. The frigate Rusk's family has lent, a Wolf (H) from Citadel
+Arcadia, comes in low over the basin to stop her. What follows is a short slugging
+match in atmosphere: two frigates trading fire at close range over the pier,
+plating torn away, a hull that can be crippled and driven down, while the
+company's fight goes on beneath.
+
+- The player's fleet stays out of the sky. The company has no air role in the
+  duel and cannot order the Wolf; it is the family's ship, not a support power.
+- The Wolf fights the Hound and the tender, not Black Sluice's ground garrison. It
+  answers no calls for fire and makes no ground objective easier by existing. Stray
+  fire and falling wreckage are real on the ground in both directions.
+- Nothing about the duel is scripted. The Wolf can be damaged and break off; the
+  Hound can be shot down onto the basin; the tender can escape. The debrief reports
+  what actually happened, and ground victory never depends on it.
+- One frigate, one finite visit. Rusk's letter after Chapter 4 explains its
+  arrival; it leaves when its engagement ends. Its presence is a warning to the
+  Combine and to Agreus, not Hegemony protection of the district.
+- Ship-versus-ship fighting in atmosphere is new engine work. The chapter is not
+  ready to build until that capability exists.
+
 Sera Voss coordinates through transmissions from outside the battle. No invulnerable
 boss avatar or mandatory escape is needed. Her last line on the channel tells the
 company she is alive and what she has lost: “Keep the pier. I've lost worse
@@ -410,8 +436,9 @@ permanent safety for every settlement.
 The ending names the selected agreement, confirmed losses and delivered rewards.
 The company receives the fee and any earned premium and a closed story dossier.
 The once-only settlement sets `AgreusArcProgress.smallWarSettled`, which sends the
-Hegemony auxiliary warrant's offer (`progression-nouns.md`, Kit and armory): the
-more demanding procurement contact is the Hegemony itself.
+Hegemony auxiliary warrant's offer (`progression-nouns.md`, Kit and armory). The
+warrant comes because Rusk's family, having lent the frigate, has noticed the
+company; the more demanding procurement contact is the Hegemony itself.
 
 **Castle, closing assessment:** “Rusk is asking what it would take to keep us here.
 He wasn't asking that when we arrived.” Loss-aware surrounding text acknowledges
@@ -460,24 +487,25 @@ of later learning. A deliberately discarded or sold card is not regranted by
 reopening a debrief. Spec inspection and Fit Squad advice remain available without
 granting another card or silently changing named kit.
 
-**Mixed equipment belongs within a squad.** An individual marine's issued armor
-and weapons need not match their squadmates'. Class, role and pattern choices
-describe billets and their wearers, not indivisible squad equipment packages.
-The existing **Salvage-assisted Section** is one suggested arrangement: eight
-regular billets, two powered assault and two powered support. That particular
-sheet needs both suit roles, so it becomes usable after learning both chapter
-rewards. That requirement belongs to this preset; future mixed presets can use
-different roles and ratios.
+**A loadout card prescribes the whole squad.** The player chooses one weapon card
+and one armor card per squad of twelve, and each card fixes what every billet
+receives. The player never picks the mix inside a card. Mixed equipment therefore
+means a card whose billets differ: the Salvage-assisted Section prescribes eight
+regular billets, two powered assault and two powered support, and becomes usable
+once both chapter rewards are learned. Learning a suit template lets it fill the
+powered billets of any card that prescribes them; it never adds powered billets to
+a card.
 
-Learning still permits free fitting wherever the available sheet requests that
-equipment. The current full-suit sheets allow role fallback inside POWER_SUIT,
-so Specter alone can also supply a fully powered squad if the player chooses.
-That possibility is not a uniform-equipment requirement or a finite shell pool.
-Teach why regular scouts, riflemen and medics remain useful alongside suit wearers.
-Boarding Jack can enter the assault pool after Chapter 4, so the preview must show
-each marine's actual resolved kit. Further mixed presets or fitting controls must
-preserve that per-marine identity. Enforced gradual mechanization would require
-a separately agreed issue policy.
+**The arc's kit ceiling.** Agreus lets the player taste powered fighting, not
+wield it. Every armor card the arc awards or depends on is a section card with at
+most four powered billets in twelve, filled by recovered tier-III rebuilds.
+All-suit cards, which prescribe twelve powered billets, stay behind the Restricted
+tier and the Hegemony auxiliary warrant that this arc's ending sends. If an
+all-suit card is reachable earlier through another source, that is a gap in the shared
+acquisition gate, not a feature of this arc. Teach why regular scouts, riflemen
+and medics remain useful alongside suit wearers. Boarding Jack can enter the
+assault pool after Chapter 4, so the preview must show each marine's actual
+resolved kit.
 
 Military Specter, Arbalest and the other tier-IV suits are not rewards here.
 Their existing Prestige patron/recovery routes currently ignore Shepherd history:

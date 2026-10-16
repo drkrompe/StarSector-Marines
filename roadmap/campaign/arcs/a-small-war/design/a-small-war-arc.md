@@ -4,11 +4,12 @@ Status: ACTIVE — sponsored paramilitary direction; the first three chapters ar
 
 Written: 2026-10-13
 
-Updated: 2026-10-15 — story spine: the creditor rhyme with Junction, Voss's escalation, the Chapter 4 turn and the coalition break.
+Updated: 2026-10-15 — Rusk as an Eventide cadet; the kit ceiling; the Chapter 5 frigate duel and why the warrant follows.
 
 ## Premise, place and cast
 
-Baronet Elian Rusk hires the company to restore the mod-authored Latchkey
+Baronet Elian Rusk, last of a fallen cadet branch of an Eventide house, hires the
+company to restore the mod-authored Latchkey
 District on existing Agreus, the cold airless industrial moon in Arcadia.
 His local concession sits beneath Ko Combine administration. Sera Voss's
 Greyhook flotilla coerces cargo and yard access; Lenna Saye represents the
@@ -27,8 +28,9 @@ when shipped.
 
 ## Story spine
 
-The arc asks what the company becomes when it is paid to keep order where the
-state will not. It is deliberately grey: nobody here is the villain the captain
+The arc asks what the company becomes when it is paid to keep order where no
+authority will: the Ko Combine treats the yard as a tenant's dispute, and the
+Hegemony next door has no jurisdiction on an Independent world. It is deliberately grey: nobody here is the villain the captain
 was hired to find, and the answer carries into later work.
 
 **The creditor rhyme.** The campaign opens on Jangala with the company breaking
@@ -59,15 +61,35 @@ shapes the problem, not the difficulty: under House Custody, Rusk's estate guard
 hold one approach on his terms; under the Yard Compact, Lenna's fitters refuse to
 leave the tools and need cover where they work.
 
+Pell's raid is also Rusk's humiliation: a baronet who cannot hold his own lease.
+He writes to his family on Eventide, and the remaining fighting is the time it
+takes them to answer.
+
 **Chapter 5 breaks the coalition.** Mid-battle, Voss orders Black Sluice abandoned
 by radio. Drent Haulage takes the order and pulls out along the service road; Berth
 Four refuses and holds out of grudge. The company watches its own pressure split
 Greyhook. Voss survives and says so in one line; nothing pretends her fleet is gone.
 
+**The family answers overhead.** As Greyhook's tender tries to climb out from the
+pier under a Hound-class escort, the frigate Rusk's family has lent, a Wolf (H) from
+Citadel Arcadia, comes in low over the basin. Two frigates slug it out in
+atmosphere at close range while the ground fight continues beneath them. The
+player's fleet stays out of the sky; the Wolf is the family's ship, not the
+company's support. It is a check on two audiences: the Eventide house saving face
+over a cadet's failure, and the Hegemony showing an Independent colony what it can
+put overhead at short notice.
+
 **The ending opens the next question.** Rusk asks what it would take to keep the
-company on Agreus, and the Hegemony auxiliary warrant follows. The company that
-began by standing between a creditor and a cooperative is now the private order
-that a state leans on. That is the hook a later arc can pull.
+company on Agreus. The Hegemony auxiliary warrant follows because the family that
+lent the frigate has noticed the company beneath it. The company that began by
+standing between a creditor and a cooperative has made itself useful to the junta
+next door. That is the hook a later arc can pull.
+
+**Kit stays a taste.** A loadout card prescribes all twelve billets of a squad;
+the player picks the card, never the mix. Every armor card this arc awards is a
+section of regular marines with at most four powered billets, worn in recovered,
+tier-III rebuilds. The player tastes powered fighting without wielding it. All-suit
+cards and military patterns belong to the Hegemony auxiliary warrant and later.
 
 **Voices stay text for now.** Rusk, Lenna, Voss, Edek, Nadi, Pell and Drent are new
 speakers. The ElevenLabs account is at its voice limit, so their radio and
