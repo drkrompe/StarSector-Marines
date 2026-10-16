@@ -158,7 +158,13 @@ Wind method in `second-wind-pipeline.md`, Scale):
    min crew, max crew, cargo, run against compiled `build/classes`).
 2. Measure the model's main pressure-hull volume in Blender
    (`bmesh.calc_volume` on the main hull object, in cubic units). Take about
-   55% of it as usable.
+   55% of it as usable. Where the hull is several objects, sum the
+   habitable ones by name. Count drive pods' outer casings, as the Second
+   Wind's unioned hull did, but not their dark cores or overlapping bands.
+   Report the pods-excluded solution as the top of the range. Have the
+   driver re-measure this on every build and record the solved value
+   beside the published one (the Hound's `scale_record`), so a geometry
+   change that moves the answer is visible.
 3. Solve `usable_units³ × s³ = required m³` for `s`, the scale in metres per
    unit. Cross-check it against a fitting with a known real size (the boat
    bay against `RoomRecipe.BOAT_BAY`/`SHUTTLE_BAY`, hatch heights, a 1.8 m
