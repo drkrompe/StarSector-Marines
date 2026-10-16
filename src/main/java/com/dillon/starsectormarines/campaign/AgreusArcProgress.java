@@ -50,9 +50,9 @@ public final class AgreusArcProgress implements Serializable {
      * opens a disclosed replacement mobilization. Stale, duplicate or foreign receipts write nothing.
      */
     public int settleSmallWar(String id, String planetId, boolean victory, int payment,
-                              boolean customs, boolean fuelControl, boolean dispatch, boolean rearPosition, boolean handedOver,
+                              boolean customs, boolean fuelControl, boolean dispatch, boolean handedOver,
                               boolean company, boolean infrastructureLost, int custodianLosses, int holderLosses, int withdrawn) {
-        boolean achieved = customs && fuelControl && dispatch && rearPosition && handedOver && company
+        boolean achieved = customs && fuelControl && dispatch && handedOver && company
                 && !infrastructureLost && custodianLosses < 3;
         if (!smallWarAvailable() || !smallWar(id) || !matchesNext(id) || !id.equals(activeId)
                 || !planetIdEquals(planetId) || !SMALL_WAR_SITE.equals(activeSite)

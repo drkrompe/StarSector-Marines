@@ -48,7 +48,7 @@ part; none is a multiplier on the chassis.
   engine, AMMO_RESERVE the heat sink, MINI_FAB the cooler or loader.
 - `MechHeat` capacity and cooling become per-loadout values frozen from the
   installed internals; AI thresholds scale with capacity.
-- Internals are learned as patterns (`mech-pattern-cards.md`) and built as
+- Internals are learned as patterns (`mechs-nouns.md`, mech pattern) and built as
   finite assemblies like weapons.
 
 ## Authority and presentation

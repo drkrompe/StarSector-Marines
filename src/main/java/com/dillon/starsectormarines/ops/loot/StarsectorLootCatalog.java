@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.ops.loot;
 import com.dillon.starsectormarines.marine.EquipmentAcquisitionEligibility;
 import com.dillon.starsectormarines.marine.LoadoutCardInventory;
 import com.dillon.starsectormarines.marine.LoadoutCardItemPlugin;
+import com.dillon.starsectormarines.marine.MechPatternInventory;
+import com.dillon.starsectormarines.marine.MechPatternLearning;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.SettingsAPI;
 import com.fs.starfarer.api.campaign.FactionAPI;
@@ -38,6 +40,7 @@ public final class StarsectorLootCatalog {
         addAiCores(out, settings, request);
         addWeapons(out, settings, request);
         addEquipmentTemplate(out, settings, request);
+        addMechPattern(out, settings, request);
         return out;
     }
 
@@ -48,6 +51,17 @@ public final class StarsectorLootCatalog {
         if (spec == null || spec.getBasePrice() <= 0f) return;
         out.addAll(EquipmentTemplateRecoveryCatalog.candidates(request,
                 LoadoutCardInventory.playerUnavailableCardIds(),
+                Math.max(1, Math.round(spec.getBasePrice())),
+                Math.max(0f, spec.getCargoSpace()), spec.getIconName(),
+                EquipmentAcquisitionEligibility.currentProgress()));
+    }
+
+    private static void addMechPattern(List<LootCandidate> out, SettingsAPI settings,
+                                       LootRollRequest request) {
+        SpecialItemSpecAPI spec = settings.getSpecialItemSpec(MechPatternLearning.ITEM_ID);
+        if (spec == null || spec.getBasePrice() <= 0f) return;
+        out.addAll(MechPatternRecoveryCatalog.candidates(request,
+                MechPatternInventory.playerUnavailablePatternIds(),
                 Math.max(1, Math.round(spec.getBasePrice())),
                 Math.max(0f, spec.getCargoSpace()), spec.getIconName(),
                 EquipmentAcquisitionEligibility.currentProgress()));

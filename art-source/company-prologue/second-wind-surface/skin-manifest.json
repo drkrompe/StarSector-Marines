@@ -1,0 +1,170 @@
+{
+ "blend_in": "second-wind-geometry.blend",
+ "fallback": "neutral",
+ "parts": {
+  "hull-waist-port": {
+   "source_texture": "textures/hull-waist-port.png",
+   "uv_layer": "skin:hull-waist-port",
+   "objects": {
+    "Main hull - level datum Z0": 6
+   },
+   "texels_per_unit_stored": 24.5
+  },
+  "bow-port-flank": {
+   "source_texture": "textures/bow-port-flank.png",
+   "uv_layer": "skin:bow-port-flank",
+   "objects": {
+    "Forebody armour module.002": 5
+   },
+   "texels_per_unit_stored": 26.0
+  },
+  "fore-module-1": {
+   "source_texture": "textures/fore-module-1.png",
+   "uv_layer": "skin:fore-module-1",
+   "objects": {
+    "Forebody armour module": 4
+   },
+   "texels_per_unit_stored": 33.7
+  },
+  "fore-module-2": {
+   "source_texture": "textures/fore-module-2.png",
+   "uv_layer": "skin:fore-module-2",
+   "objects": {
+    "Forebody armour module.001": 3
+   },
+   "texels_per_unit_stored": 33.7
+  },
+  "pod-cowl-port": {
+   "source_texture": "textures/pod-cowl-port.png",
+   "uv_layer": "skin:pod-cowl-port",
+   "objects": {
+    "Main hull - level datum Z0": 4
+   },
+   "texels_per_unit_stored": 45.2
+  },
+  "pod-lower-casing-port": {
+   "source_texture": "textures/pod-lower-casing-port.png",
+   "uv_layer": "skin:pod-lower-casing-port",
+   "objects": {
+    "Drive lower casing": 4
+   },
+   "texels_per_unit_stored": 52.7
+  },
+  "pod-intake-cap-port": {
+   "source_texture": "textures/pod-intake-cap-port.png",
+   "uv_layer": "skin:pod-intake-cap-port",
+   "objects": {
+    "Drive intake cap": 7
+   },
+   "texels_per_unit_stored": 29.5
+  },
+  "pod-thrust-housing-port": {
+   "source_texture": "textures/pod-thrust-housing-port.png",
+   "uv_layer": "skin:pod-thrust-housing-port",
+   "objects": {
+    "Thrust housing": 7
+   },
+   "texels_per_unit_stored": 30.1
+  },
+  "sponson-lower": {
+   "source_texture": "textures/sponson-lower.png",
+   "uv_layer": "skin:sponson-lower",
+   "objects": {
+    "Grapple sponson aft lower body": 3
+   },
+   "texels_per_unit_stored": 56.6
+  },
+  "sponson-lower-fwd": {
+   "source_texture": "textures/sponson-lower.png",
+   "uv_layer": "skin:sponson-lower-fwd",
+   "objects": {
+    "Grapple sponson forward lower body": 3
+   },
+   "texels_per_unit_stored": 56.6
+  },
+  "sponson-cowl": {
+   "source_texture": "textures/sponson-cowl.png",
+   "uv_layer": "skin:sponson-cowl",
+   "objects": {
+    "Grapple sponson aft cowl": 3
+   },
+   "texels_per_unit_stored": 68.9
+  },
+  "sponson-cowl-fwd": {
+   "source_texture": "textures/sponson-cowl.png",
+   "uv_layer": "skin:sponson-cowl-fwd",
+   "objects": {
+    "Grapple sponson forward cowl": 3
+   },
+   "texels_per_unit_stored": 68.9
+  },
+  "pod-bands-port": {
+   "source_texture": "textures/pod-bands-port.png",
+   "uv_layer": "skin:pod-bands-port",
+   "objects": {
+    "Drive reinforcing band": 10,
+    "Drive reinforcing band.001": 10
+   },
+   "texels_per_unit_stored": 20.0
+  },
+  "belt-bow-port": {
+   "source_texture": "textures/belt-bow-port.png",
+   "uv_layer": "skin:belt-bow-port",
+   "objects": {
+    "Forebody armour belt plate.002": 5
+   },
+   "texels_per_unit_stored": 24.3
+  },
+  "pod-cowl-top": {
+   "source_texture": "textures/pod-cowl-top.png",
+   "uv_layer": "skin:pod-cowl-top",
+   "objects": {
+    "Main hull - level datum Z0": 8
+   },
+   "texels_per_unit_stored": 31.5
+  },
+  "sponson-cowl-tops": {
+   "source_texture": "textures/sponson-cowl-tops.png",
+   "uv_layer": "skin:sponson-cowl-tops",
+   "objects": {
+    "Grapple sponson aft cowl": 7,
+    "Grapple sponson forward cowl": 7
+   },
+   "texels_per_unit_stored": 22.6
+  },
+  "bow-cheek-port": {
+   "source_texture": "textures/bow-cheek-port.png",
+   "uv_layer": "skin:bow-cheek-port",
+   "objects": {
+    "Forebody armour module.002": 2
+   },
+   "texels_per_unit_stored": 18.6
+  },
+  "deck-edge-lip-port": {
+   "source_texture": "textures/deck-edge-lip-port.png",
+   "uv_layer": "skin:deck-edge-lip-port",
+   "objects": {
+    "Deck edge lip": 13
+   },
+   "texels_per_unit_stored": 17.1
+  }
+ },
+ "skinned_objects": {
+  "Deck edge lip": 13,
+  "Drive intake cap": 7,
+  "Drive lower casing": 4,
+  "Drive reinforcing band": 10,
+  "Drive reinforcing band.001": 10,
+  "Forebody armour belt plate.002": 5,
+  "Forebody armour module": 4,
+  "Forebody armour module.001": 3,
+  "Forebody armour module.002": 7,
+  "Grapple sponson aft cowl": 10,
+  "Grapple sponson aft lower body": 3,
+  "Grapple sponson forward cowl": 10,
+  "Grapple sponson forward lower body": 3,
+  "Main hull - level datum Z0": 18,
+  "Thrust housing": 7
+ },
+ "skinned_face_count": 114
+}
