@@ -8,6 +8,9 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.MechBay;
+import com.dillon.starsectormarines.marine.MechFrameBudget;
+import com.dillon.starsectormarines.marine.MechInternal;
+import com.dillon.starsectormarines.marine.MechPattern;
 import com.dillon.starsectormarines.marine.FabricationCost;
 import com.dillon.starsectormarines.marine.FabricationResources;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
@@ -611,6 +614,176 @@ class MechLabViewModelTest {
         }
     }
 
+    @Test
+    void internalSocketsListTheirRoleAndCommitThroughTheWorkshop() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        AtomicInteger changes = new AtomicInteger();
+        MechLabViewModel viewModel = new MechLabViewModel(
+                new Reactor(), bay, TestResources.stocked(2_000), changes::incrementAndGet);
+        viewModel.gantryRows().get().get(0).select().run();
+        CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
+        bay.learnPattern(MechPattern.of(MechInternal.UPRATED_ENGINE).id());
+
+        for (SocketId socket : List.of(SocketId.CORE, SocketId.AMMO_RESERVE, SocketId.MINI_FAB)) {
+            assertFalse(viewModel.socketDefinition(socket).factoryLocked(), socket + " is still sealed");
+            assertFalse(viewModel.canDropCatalogWeapon(MechWeaponComponent.SRM_5, socket),
+                    "a weapon must never drop into " + socket);
+        }
+
+        viewModel.selectSlot(SocketId.CORE);
+        List<MechLabViewModel.CatalogRow> engines = viewModel.catalogRows().get();
+        assertFalse(engines.isEmpty());
+        for (MechLabViewModel.CatalogRow row : engines) {
+            assertNotNull(row.internalPreview());
+            assertEquals(MechInternal.Role.ENGINE, row.internalPreview().role);
+        }
+        MechLabViewModel.CatalogRow stock = engines.stream()
+                .filter(row -> row.internalPreview() == MechInternal.INDUSTRIAL_ENGINE).findFirst().orElseThrow();
+        assertTrue(stock.actionDisabled());
+        assertEquals(MechInternal.INDUSTRIAL_ENGINE, viewModel.installedInternal(SocketId.CORE));
+
+        MechLabViewModel.CatalogRow uprated = engines.stream()
+                .filter(row -> row.internalPreview() == MechInternal.UPRATED_ENGINE).findFirst().orElseThrow();
+        assertFalse(uprated.actionDisabled(), uprated.actionHint());
+        uprated.action().run();
+        assertEquals(MechInternal.UPRATED_ENGINE, mech.internal(MechInternal.Role.ENGINE));
+        assertEquals(1, changes.get());
+        assertTrue(viewModel.feedbackClasses().get().contains("tone-good"));
+        assertEquals(mech.internal(MechInternal.Role.ENGINE).displayName(),
+                viewModel.slotRows().get().stream().filter(row -> row.socketId() == SocketId.CORE)
+                        .findFirst().orElseThrow().component());
+
+        viewModel.selectSlot(SocketId.AMMO_RESERVE);
+        assertTrue(viewModel.catalogRows().get().stream().allMatch(row ->
+                row.internalPreview() != null && row.internalPreview().role == MechInternal.Role.HEAT_SINK));
+    }
+
+    @Test
+    void unlearnedInternalsWithNoStockAreAbsent() {
+        MechBay bay = new MechBay();
+        bay.addMech(MechBay.STARTER_SQUAD_ID, new CampaignMech("support_mech_09", "Bulwark 09",
+                MechVariant.BULWARK, MechRole.ARMORED_SUPPORT, MissileReplenisherComponent.STANDARD.id()));
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay);
+        viewModel.gantryRows().get().get(0).select().run();
+        viewModel.selectSlot(SocketId.CORE);
+        for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
+            MechInternal internal = row.internalPreview();
+            assertTrue(bay.canFabricate(internal) || bay.ownedInternal(internal.id) > 0,
+                    internal + " is listed without a pattern or a copy");
+        }
+        assertTrue(viewModel.catalogRows().get().stream()
+                .anyMatch(row -> row.internalPreview() == MechInternal.INDUSTRIAL_ENGINE));
+    }
+
+    @Test
+    void platingIsChosenBesideTheSocketsAndPreviewsArmor() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        MechLabViewModel viewModel = new MechLabViewModel(
+                new Reactor(), bay, TestResources.stocked(2_000));
+        viewModel.gantryRows().get().get(0).select().run();
+        CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
+
+        viewModel.selectPlating();
+        assertTrue(viewModel.platingSelected());
+        assertNull(viewModel.selectedSocket());
+        assertTrue(viewModel.platingClasses().get().contains("selected"));
+        assertFalse(viewModel.catalogRows().get().isEmpty());
+        assertTrue(viewModel.catalogRows().get().stream().allMatch(row ->
+                row.internalPreview() != null && row.internalPreview().role == MechInternal.Role.PLATING));
+
+        MechLabViewModel.PerformanceMeter armor = meter(viewModel, "mech-meter:armor");
+        assertEquals(Math.round(mech.fit().armorCapacity()) + " PLATE", armor.value());
+        assertTrue(armor.ghostClasses().contains("hidden"));
+        viewModel.hoverInternal(MechInternal.HEAVY_PLATING);
+        assertTrue(meter(viewModel, "mech-meter:armor").ghostClasses().contains("gain"));
+        assertTrue(viewModel.budgetText().get().contains("THIS FIT"), viewModel.budgetText().get());
+        viewModel.clearHoverCandidates();
+        assertFalse(viewModel.budgetText().get().contains("THIS FIT"));
+
+        viewModel.selectSlot(SocketId.ARMS);
+        assertFalse(viewModel.platingSelected());
+        assertEquals(SocketId.ARMS, viewModel.selectedSocket());
+    }
+
+    @Test
+    void budgetReadsEngineOutputAgainstFittedMass() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay);
+        viewModel.gantryRows().get().get(0).select().run();
+        MechFrameBudget.Fit fit = bay.mechById(MechBay.STARTER_MECH_ID).fit();
+        String expected = fit.overBudget() ? "OVER BUDGET" : "MASS";
+        assertTrue(viewModel.budgetText().get().startsWith(expected), viewModel.budgetText().get());
+        assertEquals(fit.overBudget(), viewModel.budgetClasses().get().contains("tone-danger"));
+        assertNotNull(meter(viewModel, "mech-meter:heat"));
+        assertNotNull(meter(viewModel, "mech-meter:cooling"));
+        assertEquals(fit.coolingPerSecond(), viewModel.selectedCoolingPerSecond(), EPSILON);
+    }
+
+    @Test
+    void overBudgetRowsAreRefusedWithBothSidesOfTheBudget() {
+        MechFrameBudget.Fit heavy = new MechFrameBudget.Fit(MechVariant.HOUND,
+                MechWeaponComponent.SINGLE_HEAVY_CANNON, MechWeaponComponent.LRM_15,
+                MechWeaponComponent.LRM_15, MechInternal.INDUSTRIAL_ENGINE,
+                MechInternal.HEAVY_PLATING, MechInternal.MILITARY_HEAT_SINK,
+                MechInternal.AUXILIARY_COOLER);
+        assertTrue(heavy.overBudget(), "fixture fit is expected to exceed a Hound's engine");
+        String message = MechLabViewModel.overBudgetFeedback(heavy);
+        assertTrue(message.contains(Math.round(heavy.output()) + ""), message);
+        assertFalse(message.startsWith("opening"), "string key was not resolved: " + message);
+
+        // Every internal row agrees with the bay's own budget rule.
+        MechBay bay = MechBay.legacyStarterFixture();
+        MechLabViewModel viewModel = new MechLabViewModel(
+                new Reactor(), bay, TestResources.stocked(2_000));
+        for (int gantry = 0; gantry < bay.activeSquad().mechs().size(); gantry++) {
+            viewModel.gantryRows().get().get(gantry).select().run();
+            CampaignMech mech = bay.activeSquad().mechs().get(gantry);
+            viewModel.selectPlating();
+            for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
+                MechInternal internal = row.internalPreview();
+                boolean within = mech.internal(internal.role) == internal || bay.withinBudget(
+                        mech.id(), mech.fit().withInternal(internal.role, internal));
+                assertEquals(!within, row.actionLabel().equals("OVER BUDGET"), internal.id);
+                if (!within) assertTrue(row.actionDisabled());
+            }
+        }
+    }
+
+    @Test
+    void utilityCoolerFitsAndStripsBackToEmpty() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        MechLabViewModel viewModel = new MechLabViewModel(
+                new Reactor(), bay, TestResources.stocked(2_000));
+        viewModel.gantryRows().get().get(0).select().run();
+        CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
+        bay.learnPattern(MechPattern.of(MechInternal.AUXILIARY_COOLER).id());
+        viewModel.selectSlot(SocketId.MINI_FAB);
+        assertNull(viewModel.installedInternal(SocketId.MINI_FAB));
+
+        MechLabViewModel.CatalogRow cooler = viewModel.catalogRows().get().stream()
+                .filter(row -> row.internalPreview() == MechInternal.AUXILIARY_COOLER)
+                .findFirst().orElseThrow();
+        assertTrue(viewModel.catalogRows().get().stream().anyMatch(row -> row.replenisherPreview() != null),
+                "the utility socket still lists missile loaders");
+        assertFalse(cooler.actionDisabled(), cooler.actionHint());
+        cooler.action().run();
+        assertEquals(MechInternal.AUXILIARY_COOLER, mech.internal(MechInternal.Role.COOLER));
+        assertEquals(MechInternal.AUXILIARY_COOLER, viewModel.installedInternal(SocketId.MINI_FAB));
+
+        MechLabViewModel.SlotRow utility = viewModel.slotRows().get().stream()
+                .filter(row -> row.socketId() == SocketId.MINI_FAB).findFirst().orElseThrow();
+        assertTrue(utility.canStrip());
+        assertEquals(MechInternal.AUXILIARY_COOLER.displayName(), utility.component());
+        utility.stripAction().run();
+        assertNull(mech.internal(MechInternal.Role.COOLER));
+        assertTrue(bay.availableInternal(MechInternal.AUXILIARY_COOLER.id) > 0);
+    }
+
+    private static MechLabViewModel.PerformanceMeter meter(MechLabViewModel viewModel, String id) {
+        return viewModel.performanceMeters().get().stream()
+                .filter(meter -> meter.id().equals(id)).findFirst().orElse(null);
+    }
+
     private static void assertWithinRoot(UiDocument document, MarkupInstance instance,
                                          float width, float height) {
         document.layout(width, height);
@@ -651,6 +824,7 @@ class MechLabViewModelTest {
         props.put("selectedMechIdentity", viewModel.selectedMechIdentity());
         props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());
         props.put("performanceMeters", viewModel.performanceMeters());
+        viewModel.putInternalProps(props);
         props.put("leftSlotRows", viewModel.leftSlotRows());
         props.put("rightSlotRows", viewModel.rightSlotRows());
         props.put("slotRows", viewModel.slotRows());

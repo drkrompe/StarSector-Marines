@@ -161,6 +161,7 @@ public final class MechLabScreen implements Screen {
                             this::currentBayId,
                             () -> previewSeconds,
                             viewModel::hoveredWeapon);
+            dollCanvas.installedInternals(viewModel::installedInternal);
             built.canvases().set(dollElement, dollCanvas);
             inventoryDropElement = candidate.requireElement("mech-component-catalog");
             returnDropNote = candidate.requireElement("mech-drag-drop-note");
@@ -213,6 +214,7 @@ public final class MechLabScreen implements Screen {
         props.put("selectedMechIdentity", viewModel.selectedMechIdentity());
         props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());
         props.put("performanceMeters", viewModel.performanceMeters());
+        viewModel.putInternalProps(props);
         props.put("leftSlotRows", viewModel.leftSlotRows());
         props.put("rightSlotRows", viewModel.rightSlotRows());
         props.put("slotRows", viewModel.slotRows());
@@ -254,7 +256,7 @@ public final class MechLabScreen implements Screen {
      */
     private void wireEquipmentPreviews(MarkupInstance instance, UiDocument target,
                                        SpecSheetBinder sheets) {
-        MechLabSpecSheets.bindCatalogRows(sheets, instance, viewModel.catalogRows().get());
+        MechLabSpecSheets.bindCatalogRows(sheets, instance, viewModel.catalogRows().get(), viewModel);
         MechLabSpecSheets.bindMaterials(sheets, instance, viewModel);
         MechLabSpecSheets.bindActions(sheets, instance, viewModel);
         for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
@@ -279,6 +281,8 @@ public final class MechLabScreen implements Screen {
                 if (row.weaponPreview() != null) {
                     viewModel.hoverWeapon(row.weaponPreview());
                     if (dollElement != null) target.canvases().invalidate(dollElement);
+                } else if (row.internalPreview() != null) {
+                    viewModel.hoverInternal(row.internalPreview());
                 }
             });
         }
@@ -560,10 +564,10 @@ public final class MechLabScreen implements Screen {
                 wireEquipmentPreviews(markupInstance, document, specSheets);
             }
         }
-        if (document != null && weaponDrag == null && viewModel.hoveredWeapon() != null) {
+        if (document != null && weaponDrag == null && viewModel.hasHoverCandidate()) {
             boolean overCatalog = document.hoverChain().stream().anyMatch(element ->
                     viewModel.catalogRows().get().stream().anyMatch(row -> row.id().equals(element.id())));
-            if (!overCatalog) viewModel.clearHoverWeapon();
+            if (!overCatalog) viewModel.clearHoverCandidates();
         }
         if (specSheets != null) specSheets.update();
         if (document != null) {
