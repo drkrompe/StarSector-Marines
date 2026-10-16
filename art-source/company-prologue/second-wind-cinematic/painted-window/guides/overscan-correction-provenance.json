@@ -1,0 +1,40 @@
+{
+  "path": "landscape-guide-overscan-corrected.png",
+  "actual_lens_mm": 19.259260177612305,
+  "resolution": [
+    1920,
+    1080
+  ],
+  "frame": 144,
+  "camera_matrix_world": [
+    [
+      1.228847622871399,
+      0.28416550159454346,
+      -0.8119011521339417,
+      -11890.9326171875
+    ],
+    [
+      -0.8601938486099243,
+      0.4059503674507141,
+      -1.159858226776123,
+      30.06267547607422
+    ],
+    [
+      -5.517458490089666e-08,
+      1.4157874584197998,
+      0.4955257773399353,
+      1806.6683349609375
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "timeline_camera_bindings_cleared": true,
+  "supersedes_for_overscan": "landscape-guide.png",
+  "original_guide_actual_lens_mm": 26.0,
+  "original_guide_intended_lens_mm": 19.25925925925926,
+  "diagnosis": "Blender timeline camera binding overrides scene.camera during rendering, after render_pre. Original guide remained unchanged; its original manifest records intended projection rather than actual rendered lens."
+}

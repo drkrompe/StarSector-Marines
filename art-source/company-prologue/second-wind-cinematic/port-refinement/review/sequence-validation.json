@@ -1,0 +1,48 @@
+{
+  "passed": true,
+  "movie": "jangala-approach-refined.mp4",
+  "sha256": "20bf152a66683baf064171149747be40d521265070278fbac3aaf02a68fb7568",
+  "bytes": 7114790,
+  "dimensions": [
+    1920,
+    1080
+  ],
+  "fps": 24,
+  "frames": 288,
+  "seconds": 12,
+  "audio": false,
+  "full_decode": "FFmpeg -xerror exit 0",
+  "cuts": [
+    {
+      "title": "Forest reveal / Atlas lift",
+      "movie": "forest-reveal-realism\\review\\jangala-forest-reveal-realism.mp4",
+      "sha256": "5dd48e721ea17dcf1e9ec9e1a15aac64151c294658a8147a51be118550135fcc",
+      "sequence_start_seconds": 0,
+      "source_frames": [
+        120,
+        167.5
+      ]
+    },
+    {
+      "title": "Managed land / Atlas passage",
+      "movie": "managed-land-realism\\review\\jangala-managed-land-realism.mp4",
+      "sha256": "692e4374db2acb7320af1fb277c6fba719af55b897f20be6cb5ce6660a066f64",
+      "sequence_start_seconds": 4,
+      "source_frames": [
+        240,
+        287.5
+      ]
+    },
+    {
+      "title": "Refined working port",
+      "movie": "port-refinement\\review\\jangala-port-refined.mp4",
+      "sha256": "f79e73cb41ff7aa3d3bbe86571b6e8e77ec99dbe8ae9a827ef6215ef9bb80266",
+      "sequence_start_seconds": 8,
+      "source_frames": [
+        400,
+        447.5
+      ]
+    }
+  ],
+  "limits": "Three excerpts with editorial time ellipses, re-encoded from H.264; not a continuous descent or complete cinematic."
+}

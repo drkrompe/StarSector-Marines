@@ -1,0 +1,2718 @@
+{
+  "min_readable": 1,
+  "two_readable_samples": 85,
+  "samples": [
+    {
+      "sample": 0,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 26.714630126953125,
+          "height_px": 8.059308528900146,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 11.306877136230469,
+          "height_px": 5.705509185791016,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 20.72124481201172,
+          "height_px": 12.162669897079468,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 1,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 26.822433471679688,
+          "height_px": 8.08544397354126,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 11.344871520996094,
+          "height_px": 5.720572471618652,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 20.85010528564453,
+          "height_px": 12.238147258758545,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 2,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 26.93103790283203,
+          "height_px": 8.11042070388794,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 11.383094787597656,
+          "height_px": 5.738081932067871,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 20.980796813964844,
+          "height_px": 12.314364910125732,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 3,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 27.040557861328125,
+          "height_px": 8.133916854858398,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 11.421432495117188,
+          "height_px": 5.752887725830078,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 21.11297607421875,
+          "height_px": 12.391387224197388,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 4,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 27.150650024414062,
+          "height_px": 8.156318664550781,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 11.460113525390625,
+          "height_px": 5.765118598937988,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 21.24664306640625,
+          "height_px": 12.469117641448975,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 5,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 27.26154327392578,
+          "height_px": 8.1773042678833,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 11.499366760253906,
+          "height_px": 5.783979892730713,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 21.38214111328125,
+          "height_px": 12.547749280929565,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 6,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 27.37323760986328,
+          "height_px": 8.20401906967163,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 11.53839111328125,
+          "height_px": 5.800330638885498,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 21.519126892089844,
+          "height_px": 12.627153396606445,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 7,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 27.486133575439453,
+          "height_px": 8.230540752410889,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 11.577873229980469,
+          "height_px": 5.814170837402344,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 21.657943725585938,
+          "height_px": 12.707394361495972,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 8,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 27.60000228881836,
+          "height_px": 8.255839347839355,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 11.617469787597656,
+          "height_px": 5.829942226409912,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 21.798477172851562,
+          "height_px": 12.788407802581787,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 9,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 27.714672088623047,
+          "height_px": 8.279850482940674,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 11.657638549804688,
+          "height_px": 5.84796667098999,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 21.94072723388672,
+          "height_px": 12.870386838912964,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 10,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 27.830142974853516,
+          "height_px": 8.302574157714844,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 11.697921752929688,
+          "height_px": 5.8634161949157715,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 22.084808349609375,
+          "height_px": 12.953170537948608,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 11,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 27.946414947509766,
+          "height_px": 8.325233459472656,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 11.738204956054688,
+          "height_px": 5.876162052154541,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 22.23072052001953,
+          "height_px": 13.036855459213257,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 12,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 28.063716888427734,
+          "height_px": 8.35362195968628,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 11.7791748046875,
+          "height_px": 5.895731449127197,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 22.37834930419922,
+          "height_px": 13.12140941619873,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 13,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 28.18216323852539,
+          "height_px": 8.380658626556396,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 3,
+          "width_px": 11.820030212402344,
+          "height_px": 5.912725925445557,
+          "occluders": [
+            "DISTRICT | tank service valve 1"
+          ]
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 22.528038024902344,
+          "height_px": 13.206864595413208,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 14,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 28.301410675048828,
+          "height_px": 8.406407833099365,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 3,
+          "width_px": 11.861343383789062,
+          "height_px": 5.927145481109619,
+          "occluders": [
+            "DISTRICT | tank service valve 1"
+          ]
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 22.679672241210938,
+          "height_px": 13.293317556381226,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 15,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 28.421573638916016,
+          "height_px": 8.430805206298828,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 11.90277099609375,
+          "height_px": 5.943496227264404,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 22.83313751220703,
+          "height_px": 13.380768299102783,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 16,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 28.542537689208984,
+          "height_px": 8.453915119171143,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 11.944656372070312,
+          "height_px": 5.962228775024414,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 22.98877716064453,
+          "height_px": 13.471888303756714,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 17,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 28.664417266845703,
+          "height_px": 8.479664325714111,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 11.986770629882812,
+          "height_px": 5.978257656097412,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 23.1463623046875,
+          "height_px": 13.564907312393188,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 18,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 28.787155151367188,
+          "height_px": 8.508503437042236,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 12.02911376953125,
+          "height_px": 5.991582870483398,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 23.306121826171875,
+          "height_px": 13.65898847579956,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 19,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 28.910865783691406,
+          "height_px": 8.536055088043213,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 12.071800231933594,
+          "height_px": 6.011795997619629,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 23.46782684326172,
+          "height_px": 13.754099607467651,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 20,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 29.035377502441406,
+          "height_px": 8.562254905700684,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 12.114715576171875,
+          "height_px": 6.02949857711792,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 3,
+          "width_px": 23.631820678710938,
+          "height_px": 13.850401639938354,
+          "occluders": [
+            "DISTRICT | yard light mast.001"
+          ]
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 21,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 29.16086196899414,
+          "height_px": 8.587167263031006,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 12.157974243164062,
+          "height_px": 6.044497489929199,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 3,
+          "width_px": 23.797988891601562,
+          "height_px": 13.947733640670776,
+          "occluders": [
+            "DISTRICT | yard light mast.001"
+          ]
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 22,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 29.28720474243164,
+          "height_px": 8.610663414001465,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 12.201576232910156,
+          "height_px": 6.061556339263916,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 2,
+          "width_px": 23.966445922851562,
+          "height_px": 14.04628872871399,
+          "occluders": [
+            "DISTRICT | yard light mast.001",
+            "DISTRICT | yard light mast.001"
+          ]
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 23,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 29.41457748413086,
+          "height_px": 8.639566898345947,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 12.245407104492188,
+          "height_px": 6.080996990203857,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 3,
+          "width_px": 24.13707733154297,
+          "height_px": 14.145938158035278,
+          "occluders": [
+            "DISTRICT | yard light mast.001"
+          ]
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 24,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 29.54275131225586,
+          "height_px": 8.668920993804932,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 12.289352416992188,
+          "height_px": 6.09766960144043,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 24.31234359741211,
+          "height_px": 14.246746301651001,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 25,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 29.671897888183594,
+          "height_px": 8.697052001953125,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 12.333755493164062,
+          "height_px": 6.111509799957275,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 24.491043090820312,
+          "height_px": 14.348841905593872,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 26,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 29.802074432373047,
+          "height_px": 8.723766803741455,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 12.378501892089844,
+          "height_px": 6.13262414932251,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 24.6734619140625,
+          "height_px": 14.452096223831177,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 27,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 29.933109283447266,
+          "height_px": 8.74912977218628,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 12.423362731933594,
+          "height_px": 6.150970458984375,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 24.859657287597656,
+          "height_px": 14.556670188903809,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 28,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 30.065288543701172,
+          "height_px": 8.773913383483887,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 12.468795776367188,
+          "height_px": 6.1666131019592285,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 25.048370361328125,
+          "height_px": 14.662467241287231,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 29,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 30.198326110839844,
+          "height_px": 8.805198669433594,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 12.51434326171875,
+          "height_px": 6.184380054473877,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 25.240001678466797,
+          "height_px": 14.769648313522339,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 30,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 30.33245086669922,
+          "height_px": 8.835132122039795,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 12.560234069824219,
+          "height_px": 6.204593181610107,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 25.43426513671875,
+          "height_px": 14.878116846084595,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 31,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 30.46743392944336,
+          "height_px": 8.863842487335205,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 12.606468200683594,
+          "height_px": 6.221909523010254,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 25.631561279296875,
+          "height_px": 14.988001585006714,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 32,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 30.603561401367188,
+          "height_px": 8.891072273254395,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 12.652931213378906,
+          "height_px": 6.236393451690674,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 25.831546783447266,
+          "height_px": 15.099173784255981,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 33,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 30.740718841552734,
+          "height_px": 8.917014598846436,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 12.699851989746094,
+          "height_px": 6.258280277252197,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 26.034564971923828,
+          "height_px": 15.21182656288147,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 34,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 30.87890625,
+          "height_px": 8.945081233978271,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 12.747116088867188,
+          "height_px": 6.277399063110352,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 26.24073028564453,
+          "height_px": 15.325959920883179,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 35,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 31.01806640625,
+          "height_px": 8.977010250091553,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 12.794609069824219,
+          "height_px": 6.293685436248779,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 26.449813842773438,
+          "height_px": 15.44154167175293,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 36,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 31.158313751220703,
+          "height_px": 9.007587432861328,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 12.842330932617188,
+          "height_px": 6.312289237976074,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 26.662158966064453,
+          "height_px": 15.558668375015259,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 37,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 31.29964828491211,
+          "height_px": 9.036877155303955,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 12.890510559082031,
+          "height_px": 6.333210468292236,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 26.877593994140625,
+          "height_px": 15.677307844161987,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 38,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 31.442184448242188,
+          "height_px": 9.064686298370361,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 12.939033508300781,
+          "height_px": 6.3512349128723145,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 27.09646224975586,
+          "height_px": 15.80135464668274,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 39,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 31.585636138916016,
+          "height_px": 9.09120798110962,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 12.987899780273438,
+          "height_px": 6.366491317749023,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 27.318706512451172,
+          "height_px": 15.927525758743286,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 40,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 31.730175018310547,
+          "height_px": 9.122686386108398,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 13.036994934082031,
+          "height_px": 6.389279365539551,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 27.54444122314453,
+          "height_px": 16.055370569229126,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 41,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 31.87602996826172,
+          "height_px": 9.155323505401611,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 13.086662292480469,
+          "height_px": 6.409106254577637,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 27.773609161376953,
+          "height_px": 16.184953451156616,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 42,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 32.02280044555664,
+          "height_px": 9.186608791351318,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 13.136558532714844,
+          "height_px": 6.4261651039123535,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 28.006439208984375,
+          "height_px": 16.316306591033936,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 43,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 32.1708869934082,
+          "height_px": 9.216477870941162,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 13.186683654785156,
+          "height_px": 6.44547700881958,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 28.242931365966797,
+          "height_px": 16.44949436187744,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 44,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 32.32006072998047,
+          "height_px": 9.2449951171875,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 13.237266540527344,
+          "height_px": 6.467299461364746,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 28.483257293701172,
+          "height_px": 16.584484577178955,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 45,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 32.47037887573242,
+          "height_px": 9.27222490310669,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 13.288307189941406,
+          "height_px": 6.486096382141113,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 28.7274169921875,
+          "height_px": 16.721502542495728,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 46,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 32.62178421020508,
+          "height_px": 9.307050704956055,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 13.339576721191406,
+          "height_px": 6.502060890197754,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 28.97552490234375,
+          "height_px": 16.860419511795044,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 47,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 32.77456283569336,
+          "height_px": 9.3403959274292,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 13.391189575195312,
+          "height_px": 6.525750160217285,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 29.22769546508789,
+          "height_px": 17.00136423110962,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 48,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 32.928428649902344,
+          "height_px": 9.372389316558838,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 13.443260192871094,
+          "height_px": 6.546413898468018,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 29.483985900878906,
+          "height_px": 17.144272327423096,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 49,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 33.08361053466797,
+          "height_px": 9.40303087234497,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 13.49578857421875,
+          "height_px": 6.564245223999023,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 29.744625091552734,
+          "height_px": 17.289336919784546,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 50,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 33.23993682861328,
+          "height_px": 9.43225622177124,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 13.548545837402344,
+          "height_px": 6.584522724151611,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 30.009498596191406,
+          "height_px": 17.43652582168579,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 51,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 33.39752197265625,
+          "height_px": 9.46296215057373,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 13.601760864257812,
+          "height_px": 6.607117652893066,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 30.278778076171875,
+          "height_px": 17.585935592651367,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 52,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 33.55642318725586,
+          "height_px": 9.498560428619385,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 13.655319213867188,
+          "height_px": 6.6268157958984375,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 30.552749633789062,
+          "height_px": 17.737534046173096,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 53,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 33.716583251953125,
+          "height_px": 9.532742500305176,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 13.709220886230469,
+          "height_px": 6.643552780151367,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 30.831298828125,
+          "height_px": 17.89148211479187,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 54,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 33.87794494628906,
+          "height_px": 9.565572738647461,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 13.763694763183594,
+          "height_px": 6.668143272399902,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 31.114654541015625,
+          "height_px": 18.04781198501587,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 55,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 34.040679931640625,
+          "height_px": 9.596922397613525,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 13.818683624267578,
+          "height_px": 6.689708232879639,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 31.402873992919922,
+          "height_px": 18.206491470336914,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 56,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 34.204673767089844,
+          "height_px": 9.626855850219727,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 13.874359130859375,
+          "height_px": 6.708312034606934,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 31.69607162475586,
+          "height_px": 18.367713689804077,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 57,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 34.37004089355469,
+          "height_px": 9.661295413970947,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 13.930549621582031,
+          "height_px": 6.729555130004883,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 31.994647979736328,
+          "height_px": 18.531349897384644,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 58,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 34.536781311035156,
+          "height_px": 9.697794914245605,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 13.98782730102539,
+          "height_px": 6.753051280975342,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 32.298316955566406,
+          "height_px": 18.69768977165222,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 59,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 34.704837799072266,
+          "height_px": 9.732813835144043,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 14.045562744140625,
+          "height_px": 6.773650646209717,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 32.60750770568848,
+          "height_px": 18.87024164199829,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 60,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 34.87438201904297,
+          "height_px": 9.766480922698975,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 14.103641510009766,
+          "height_px": 6.79128885269165,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 32.92213439941406,
+          "height_px": 19.046945571899414,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 61,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 35.045127868652344,
+          "height_px": 9.798667430877686,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 14.16229248046875,
+          "height_px": 6.816844940185547,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 33.24256896972656,
+          "height_px": 19.226642847061157,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 62,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 35.21736145019531,
+          "height_px": 9.829373359680176,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 14.221229553222656,
+          "height_px": 6.8393754959106445,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 33.56886863708496,
+          "height_px": 19.409204721450806,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 63,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 35.39102554321289,
+          "height_px": 9.867610931396484,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 14.280681610107422,
+          "height_px": 6.858880519866943,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 33.90106201171875,
+          "height_px": 19.59482431411743,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 64,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 35.56612014770508,
+          "height_px": 9.905076026916504,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 14.340591430664062,
+          "height_px": 6.881089210510254,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 34.239492416381836,
+          "height_px": 19.78363037109375,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 65,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 35.742645263671875,
+          "height_px": 9.940996170043945,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 14.401016235351562,
+          "height_px": 6.905615329742432,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 34.584360122680664,
+          "height_px": 19.975494146347046,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 66,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 35.920658111572266,
+          "height_px": 9.97556447982788,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 14.461841583251953,
+          "height_px": 6.9271159172058105,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 34.93569374084473,
+          "height_px": 20.170769691467285,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 67,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 3,
+          "width_px": 36.100215911865234,
+          "height_px": 10.008652210235596,
+          "occluders": [
+            "DISTRICT | tank shallow domed cap 1"
+          ]
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 14.523181915283203,
+          "height_px": 6.945784091949463,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 35.29360771179199,
+          "height_px": 20.369328260421753,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 68,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 2,
+          "width_px": 36.28120422363281,
+          "height_px": 10.042641162872314,
+          "occluders": [
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1"
+          ]
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 14.584980010986328,
+          "height_px": 6.972305774688721,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 35.65838813781738,
+          "height_px": 20.571330785751343,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 69,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 2,
+          "width_px": 36.46379470825195,
+          "height_px": 10.082488059997559,
+          "occluders": [
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1"
+          ]
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 14.647235870361328,
+          "height_px": 6.995866298675537,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 36.030263900756836,
+          "height_px": 20.776841640472412,
+          "occluders": []
+        }
+      ],
+      "readable_count": 3
+    },
+    {
+      "sample": 70,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 1,
+          "width_px": 36.64787292480469,
+          "height_px": 10.12091875076294,
+          "occluders": [
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1"
+          ]
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 14.710006713867188,
+          "height_px": 7.016143798828125,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 4,
+          "width_px": 36.40937805175781,
+          "height_px": 20.994261503219604,
+          "occluders": []
+        }
+      ],
+      "readable_count": 2
+    },
+    {
+      "sample": 71,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 0,
+          "width_px": 36.833438873291016,
+          "height_px": 10.157933235168457,
+          "occluders": [
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1"
+          ]
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 14.773292541503906,
+          "height_px": 7.039575576782227,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 3,
+          "width_px": 36.79604530334473,
+          "height_px": 21.21784508228302,
+          "occluders": [
+            "Viewport vertical frame"
+          ]
+        }
+      ],
+      "readable_count": 2
+    },
+    {
+      "sample": 72,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 0,
+          "width_px": 37.02066421508789,
+          "height_px": 10.193402767181396,
+          "occluders": [
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1"
+          ]
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 14.837093353271484,
+          "height_px": 7.0651960372924805,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 0,
+          "width_px": 37.190351486206055,
+          "height_px": 21.445612907409668,
+          "occluders": [
+            "Viewport vertical frame",
+            "Viewport vertical frame",
+            "Viewport vertical frame",
+            "Viewport vertical frame"
+          ]
+        }
+      ],
+      "readable_count": 1
+    },
+    {
+      "sample": 73,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 0,
+          "width_px": 37.2096061706543,
+          "height_px": 10.22752046585083,
+          "occluders": [
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1"
+          ]
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 14.901351928710938,
+          "height_px": 7.087533473968506,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 0,
+          "width_px": 37.59251117706299,
+          "height_px": 21.677725911140442,
+          "occluders": [
+            "Viewport vertical frame",
+            "Viewport vertical frame",
+            "Viewport vertical frame",
+            "Viewport vertical frame"
+          ]
+        }
+      ],
+      "readable_count": 1
+    },
+    {
+      "sample": 74,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 0,
+          "width_px": 37.39997863769531,
+          "height_px": 10.265371799468994,
+          "occluders": [
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1"
+          ]
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 14.966068267822266,
+          "height_px": 7.107295989990234,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 0,
+          "width_px": 38.002610206604004,
+          "height_px": 21.914168000221252,
+          "occluders": [
+            "Viewport vertical frame",
+            "Viewport vertical frame",
+            "Viewport vertical frame",
+            "Viewport vertical frame"
+          ]
+        }
+      ],
+      "readable_count": 1
+    },
+    {
+      "sample": 75,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 0,
+          "width_px": 37.59206771850586,
+          "height_px": 10.30644178390503,
+          "occluders": [
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1"
+          ]
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 15.031356811523438,
+          "height_px": 7.135040760040283,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 0,
+          "width_px": 38.42143535614014,
+          "height_px": 22.155244946479797,
+          "occluders": [
+            "Viewport vertical frame"
+          ]
+        }
+      ],
+      "readable_count": 1
+    },
+    {
+      "sample": 76,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 0,
+          "width_px": 37.785701751708984,
+          "height_px": 10.345966815948486,
+          "occluders": [
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1"
+          ]
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 15.097160339355469,
+          "height_px": 7.159566879272461,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 0,
+          "width_px": 38.84861469268799,
+          "height_px": 22.401005029678345,
+          "occluders": []
+        }
+      ],
+      "readable_count": 1
+    },
+    {
+      "sample": 77,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 0,
+          "width_px": 37.98116683959961,
+          "height_px": 10.384011268615723,
+          "occluders": [
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1"
+          ]
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 15.163536071777344,
+          "height_px": 7.180938720703125,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 0,
+          "width_px": 39.284706115722656,
+          "height_px": 22.6515930891037,
+          "occluders": []
+        }
+      ],
+      "readable_count": 1
+    },
+    {
+      "sample": 78,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 0,
+          "width_px": 38.1782341003418,
+          "height_px": 10.420575141906738,
+          "occluders": [
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1"
+          ]
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 15.23031234741211,
+          "height_px": 7.205400466918945,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 0,
+          "width_px": 39.73005294799805,
+          "height_px": 22.907073497772217,
+          "occluders": []
+        }
+      ],
+      "readable_count": 1
+    },
+    {
+      "sample": 79,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 0,
+          "width_px": 38.377017974853516,
+          "height_px": 10.45572280883789,
+          "occluders": [
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1"
+          ]
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 15.297718048095703,
+          "height_px": 7.232179641723633,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 0,
+          "width_px": 40.18459439277649,
+          "height_px": 23.17037522792816,
+          "occluders": []
+        }
+      ],
+      "readable_count": 1
+    },
+    {
+      "sample": 80,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 0,
+          "width_px": 38.577518463134766,
+          "height_px": 10.497822761535645,
+          "occluders": [
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1"
+          ]
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 15.365581512451172,
+          "height_px": 7.255675792694092,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 0,
+          "width_px": 40.64895808696747,
+          "height_px": 23.442496061325073,
+          "occluders": []
+        }
+      ],
+      "readable_count": 1
+    },
+    {
+      "sample": 81,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 0,
+          "width_px": 38.779850006103516,
+          "height_px": 10.539987087249756,
+          "occluders": [
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1"
+          ]
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 15.434131622314453,
+          "height_px": 7.2765326499938965,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 0,
+          "width_px": 41.12300097942352,
+          "height_px": 23.72020125389099,
+          "occluders": []
+        }
+      ],
+      "readable_count": 1
+    },
+    {
+      "sample": 82,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 1,
+          "width_px": 38.98384094238281,
+          "height_px": 10.580670833587646,
+          "occluders": [
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1"
+          ]
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 15.50313949584961,
+          "height_px": 7.3053717613220215,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 0,
+          "width_px": 41.63041681051254,
+          "height_px": 24.00358736515045,
+          "occluders": []
+        }
+      ],
+      "readable_count": 1
+    },
+    {
+      "sample": 83,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 2,
+          "width_px": 39.189720153808594,
+          "height_px": 10.619938373565674,
+          "occluders": [
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1"
+          ]
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 15.572776794433594,
+          "height_px": 7.331056594848633,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 0,
+          "width_px": 42.34054684638977,
+          "height_px": 24.29297626018524,
+          "occluders": []
+        }
+      ],
+      "readable_count": 2
+    },
+    {
+      "sample": 84,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 2,
+          "width_px": 39.39737319946289,
+          "height_px": 10.65772533416748,
+          "occluders": [
+            "DISTRICT | tank shallow domed cap 1",
+            "DISTRICT | tank shallow domed cap 1"
+          ]
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 15.642929077148438,
+          "height_px": 7.353522777557373,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 0,
+          "width_px": 43.172489404678345,
+          "height_px": 24.588319659233093,
+          "occluders": []
+        }
+      ],
+      "readable_count": 2
+    },
+    {
+      "sample": 85,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 3,
+          "width_px": 39.60688591003418,
+          "height_px": 10.695383548736572,
+          "occluders": [
+            "DISTRICT | tank shallow domed cap 1"
+          ]
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 15.71371078491211,
+          "height_px": 7.379271984100342,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 0,
+          "width_px": 44.15274381637573,
+          "height_px": 24.89005208015442,
+          "occluders": []
+        }
+      ],
+      "readable_count": 2
+    },
+    {
+      "sample": 86,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 3,
+          "width_px": 39.818172454833984,
+          "height_px": 10.74038028717041,
+          "occluders": [
+            "DISTRICT | tank shallow domed cap 1"
+          ]
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 15.78500747680664,
+          "height_px": 7.4071455001831055,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 0,
+          "width_px": 45.1610541343689,
+          "height_px": 25.198221802711487,
+          "occluders": []
+        }
+      ],
+      "readable_count": 2
+    },
+    {
+      "sample": 87,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 40.03146171569824,
+          "height_px": 10.78383207321167,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 15.856876373291016,
+          "height_px": 7.4318647384643555,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 0,
+          "width_px": 46.19801044464111,
+          "height_px": 25.513102412223816,
+          "occluders": []
+        }
+      ],
+      "readable_count": 2
+    },
+    {
+      "sample": 88,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 40.24666786193848,
+          "height_px": 10.825803279876709,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 15.929489135742188,
+          "height_px": 7.453880310058594,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 0,
+          "width_px": 47.26505756378174,
+          "height_px": 25.83488702774048,
+          "occluders": []
+        }
+      ],
+      "readable_count": 2
+    },
+    {
+      "sample": 89,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 40.4637336730957,
+          "height_px": 10.866293907165527,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 16.002559661865234,
+          "height_px": 7.484071254730225,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 0,
+          "width_px": 48.36283206939697,
+          "height_px": 26.163800954818726,
+          "occluders": []
+        }
+      ],
+      "readable_count": 2
+    },
+    {
+      "sample": 90,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 40.6827449798584,
+          "height_px": 10.905368328094482,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 16.076316833496094,
+          "height_px": 7.5109148025512695,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 0,
+          "width_px": 49.49315071105957,
+          "height_px": 26.50003731250763,
+          "occluders": []
+        }
+      ],
+      "readable_count": 2
+    },
+    {
+      "sample": 91,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 40.90378761291504,
+          "height_px": 10.947468280792236,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 16.150646209716797,
+          "height_px": 7.534539699554443,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 0,
+          "width_px": 50.6566858291626,
+          "height_px": 26.844014525413513,
+          "occluders": []
+        }
+      ],
+      "readable_count": 2
+    },
+    {
+      "sample": 92,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 41.126861572265625,
+          "height_px": 10.99381685256958,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 16.225605010986328,
+          "height_px": 7.561705112457275,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 0,
+          "width_px": 51.8547248840332,
+          "height_px": 27.195796966552734,
+          "occluders": []
+        }
+      ],
+      "readable_count": 2
+    },
+    {
+      "sample": 93,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 41.35185241699219,
+          "height_px": 11.038684844970703,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 16.301250457763672,
+          "height_px": 7.5908660888671875,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 0,
+          "width_px": 53.088998794555664,
+          "height_px": 27.555803060531616,
+          "occluders": []
+        }
+      ],
+      "readable_count": 2
+    },
+    {
+      "sample": 94,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 41.579017639160156,
+          "height_px": 11.082072257995605,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 16.37746810913086,
+          "height_px": 7.616679668426514,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 0,
+          "width_px": 54.36078071594238,
+          "height_px": 27.924177646636963,
+          "occluders": []
+        }
+      ],
+      "readable_count": 2
+    },
+    {
+      "sample": 95,
+      "vehicles": [
+        {
+          "name": "PORT TRAFFIC | articulated freight tug",
+          "visible_probes": 4,
+          "width_px": 41.80818557739258,
+          "height_px": 11.123979091644287,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | maintenance carrier",
+          "visible_probes": 4,
+          "width_px": 16.45437240600586,
+          "height_px": 7.640111446380615,
+          "occluders": []
+        },
+        {
+          "name": "PORT TRAFFIC | port utility van",
+          "visible_probes": 0,
+          "width_px": 55.67135810852051,
+          "height_px": 28.301355242729187,
+          "occluders": []
+        }
+      ],
+      "readable_count": 2
+    }
+  ],
+  "scene": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\port-refinement\\port-refinement.blend",
+  "scene_sha256": "33332e2d69c0d5bd298c3ca66331b284e27261ddd916ff7d4f43b1d54696dddd",
+  "source_fps": 12,
+  "output_fps": 24,
+  "source_frame_start": 400,
+  "sample_step": 0.5,
+  "method": "Four body/cab probes per vehicle against evaluated scene mesh; skip render-hidden meshes and explicit transparent cabin glazing. Readable threshold: two clear probes and projected width >=8 px at 1920x1080. Geometry evidence; visual review separate."
+}

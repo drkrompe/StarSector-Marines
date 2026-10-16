@@ -1,0 +1,205 @@
+{
+  "method": "Manually identified engine lip, bay corners, bow tip, four turret centers and underbow shoe; least-squares2Daffine. Not silhouettebounds fitting.",
+  "guide_dimensions": [
+    1920,
+    1080
+  ],
+  "native_dimensions": [
+    1672,
+    941
+  ],
+  "image": "starboard-surface-v1.png",
+  "affine_top_left_pixel_rows": [
+    [
+      1.1360130378145872,
+      0.0009611366912453123,
+      -291.6387675280004
+    ],
+    [
+      0.0035783407762462627,
+      1.126538494568103,
+      -152.62110181046745
+    ]
+  ],
+  "rms_native_pixels": 4.1909387346295945,
+  "max_native_pixels": 7.337909248816196,
+  "landmarks": [
+    {
+      "name": "aft bell outer lip center",
+      "guide_xy": [
+        355,
+        684
+      ],
+      "native_xy": [
+        116,
+        623
+      ],
+      "predicted_native_xy": [
+        112.3032783929898,
+        619.2015394496825
+      ],
+      "residual_native_px": 5.300382362816321
+    },
+    {
+      "name": "bay upper aft corner",
+      "guide_xy": [
+        973,
+        636
+      ],
+      "native_xy": [
+        811,
+        563
+      ],
+      "predicted_native_xy": [
+        814.313201201225,
+        567.3391063101337
+      ],
+      "residual_native_px": 5.45940892134312
+    },
+    {
+      "name": "bay upper forward corner",
+      "guide_xy": [
+        1256,
+        642
+      ],
+      "native_xy": [
+        1134,
+        568
+      ],
+      "predicted_native_xy": [
+        1135.8106577229007,
+        575.11100771722
+      ],
+      "residual_native_px": 7.337909248816196
+    },
+    {
+      "name": "bay lower forward corner",
+      "guide_xy": [
+        1256,
+        736
+      ],
+      "native_xy": [
+        1134,
+        681
+      ],
+      "predicted_native_xy": [
+        1135.9010045718776,
+        681.0056262066216
+      ],
+      "residual_native_px": 1.9010128975102876
+    },
+    {
+      "name": "bay lower aft corner",
+      "guide_xy": [
+        973,
+        732
+      ],
+      "native_xy": [
+        811,
+        676
+      ],
+      "predicted_native_xy": [
+        814.4054703235845,
+        675.4868017886715
+      ],
+      "residual_native_px": 3.443922259419546
+    },
+    {
+      "name": "bow upper tip",
+      "guide_xy": [
+        1608,
+        611
+      ],
+      "native_xy": [
+        1535,
+        545
+      ],
+      "predicted_native_xy": [
+        1535.6574517962065,
+        541.4478903388474
+      ],
+      "residual_native_px": 3.612440436766919
+    },
+    {
+      "name": "aft far turret center",
+      "guide_xy": [
+        873,
+        428
+      ],
+      "native_xy": [
+        699,
+        333
+      ],
+      "predicted_native_xy": [
+        700.511980987987,
+        332.6612653623436
+      ],
+      "residual_native_px": 1.5494604424710179
+    },
+    {
+      "name": "aft near turret center",
+      "guide_xy": [
+        803,
+        475
+      ],
+      "native_xy": [
+        621,
+        384
+      ],
+      "predicted_native_xy": [
+        621.0362417654546,
+        385.35809075270726
+      ],
+      "residual_native_px": 1.3585742372620748
+    },
+    {
+      "name": "forward near turret center",
+      "guide_xy": [
+        1390,
+        484
+      ],
+      "native_xy": [
+        1288,
+        398
+      ],
+      "predicted_native_xy": [
+        1287.8845451928385,
+        397.59742323947677
+      ],
+      "residual_native_px": 0.41880527767697495
+    },
+    {
+      "name": "forward far turret center",
+      "guide_xy": [
+        1421,
+        451
+      ],
+      "native_xy": [
+        1327,
+        363
+      ],
+      "predicted_native_xy": [
+        1323.0692318542795,
+        360.53258148279286
+      ],
+      "residual_native_px": 4.641022770302687
+    },
+    {
+      "name": "underbow shoe center",
+      "guide_xy": [
+        1338,
+        791
+      ],
+      "native_xy": [
+        1234,
+        745
+      ],
+      "predicted_native_xy": [
+        1229.1069361906923,
+        743.2586673515195
+      ],
+      "residual_native_px": 5.193680085894858
+    }
+  ],
+  "limits": "Manual landmark uncertainty about2-4pixels. Global affine cannot register newly generated small panels, craters or local silhouette differences. Covers this one fixed aspect only."
+}

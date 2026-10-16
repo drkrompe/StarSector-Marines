@@ -210,8 +210,7 @@ public final class HeadlessArmoryPreviewRenderer {
 
         private LayeredUnitAssets loadFamily(LayeredArmorFamily family) {
             String armorRoot = MODULAR_ROOT + "armor/" + familyDirectory(family) + "/";
-            boolean articulatedShoulders = family == LayeredArmorFamily.SPECTER_HEAVY
-                    || family == LayeredArmorFamily.ARBALEST_HEAVY;
+            boolean articulatedShoulders = family.articulatedShoulders();
             LayeredUnitAssets loaded = new LayeredUnitAssets(
                     sprite(armorRoot + "body.png"), sprite(armorRoot + "head.png"),
                     sprite(articulatedShoulders
@@ -285,6 +284,7 @@ public final class HeadlessArmoryPreviewRenderer {
                 case REAVER -> "reaver";
                 case SPECTER_HEAVY -> "specter-heavy";
                 case ARBALEST_HEAVY -> "specter-heavy/paints/olive";
+                case BOARDING_JACK -> "boarding-jack";
                 case BULWARK_HEAVY -> "bulwark-heavy";
                 case RELIQUARY_HEAVY -> "reliquary-heavy";
                 case LIONS_MANTLE -> "lions-mantle";

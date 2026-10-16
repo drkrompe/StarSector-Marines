@@ -1,0 +1,107 @@
+{
+  "guide": {
+    "file": "guides/shot03-agriculture-tight-reskin-guide.png",
+    "dimensions": [
+      1960,
+      1480
+    ],
+    "sha256": "6e7a5ec3d3431dde547910178a2ccefc196e609f6bf78ee1e8c6271505afdfc0",
+    "groups": {
+      "drone": {
+        "bbox_pixels": [
+          325,
+          247,
+          357,
+          259
+        ],
+        "bbox_uv_top_left": [
+          0.16581632653061223,
+          0.16689189189189188,
+          0.18214285714285713,
+          0.175
+        ]
+      },
+      "compound": {
+        "bbox_pixels": [
+          953,
+          261,
+          1648,
+          467
+        ],
+        "bbox_uv_top_left": [
+          0.48622448979591837,
+          0.17635135135135135,
+          0.8408163265306122,
+          0.31554054054054054
+        ]
+      },
+      "tender": {
+        "bbox_pixels": [
+          1237,
+          1112,
+          1606,
+          1286
+        ],
+        "bbox_uv_top_left": [
+          0.6311224489795918,
+          0.7513513513513513,
+          0.8193877551020409,
+          0.8689189189189189
+        ]
+      }
+    }
+  },
+  "art": {
+    "file": "assets/agriculture-reskin-v1.png",
+    "dimensions": [
+      1444,
+      1089
+    ],
+    "sha256": "b8c0f8b09935a250f64b9b55d68b977e22911d028c2473300f38e0401cf6d537",
+    "groups": {
+      "drone": {
+        "bbox_pixels": [
+          210,
+          170,
+          274,
+          191
+        ],
+        "bbox_uv_top_left": [
+          0.14542936288088643,
+          0.1561065197428834,
+          0.18975069252077562,
+          0.1753902662993572
+        ]
+      },
+      "compound": {
+        "bbox_pixels": [
+          594,
+          136,
+          1423,
+          454
+        ],
+        "bbox_uv_top_left": [
+          0.4113573407202216,
+          0.1248852157943067,
+          0.9854570637119113,
+          0.41689623507805323
+        ]
+      },
+      "tender": {
+        "bbox_pixels": [
+          769,
+          739,
+          1378,
+          1005
+        ],
+        "bbox_uv_top_left": [
+          0.5325484764542936,
+          0.6786042240587695,
+          0.9542936288088643,
+          0.9228650137741047
+        ]
+      }
+    }
+  },
+  "method": "Axis-aligned alpha>=96 component bounds within disjoint assembly regions; shader-only affine art registration. Raw bitmap unchanged."
+}

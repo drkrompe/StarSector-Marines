@@ -1,0 +1,38 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "raw_images_preserved": true,
+  "assets": [
+    {
+      "file": "assets/far-realism-v1.png",
+      "prompt": "prompts/far-realism-v1.txt",
+      "input": "../realism-lookdev/landscape-realism-v1.png",
+      "input_role": "Approved landscape edit target and naturalistic style/canvas authority",
+      "transparent_background": true,
+      "output_hint": "Generated images are saved to C:\\Users\\Dillon\\.codex\\generated_images\\01a1423a-6ad3-76a3-bf7f-75f120e991ab as C:\\Users\\Dillon\\.codex\\generated_images\\01a1423a-6ad3-76a3-bf7f-75f120e991ab\\exec-fd65c95e-6d85-48ef-aabd-bad8254e00b5.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+    },
+    {
+      "file": "assets/mid-realism-v1.png",
+      "prompt": "prompts/mid-realism-v1.txt",
+      "input": "../realism-lookdev/landscape-realism-v1.png",
+      "input_role": "Approved landscape edit target and naturalistic style/canvas authority",
+      "transparent_background": true,
+      "output_hint": "Generated images are saved to C:\\Users\\Dillon\\.codex\\generated_images\\01a1423a-6ad3-76a3-bf7f-75f120e991ab as C:\\Users\\Dillon\\.codex\\generated_images\\01a1423a-6ad3-76a3-bf7f-75f120e991ab\\exec-7418698f-b623-4592-b138-031a7a130066.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+    },
+    {
+      "file": "assets/near-realism-v1.png",
+      "prompt": "prompts/near-realism-v1.txt",
+      "input": "../realism-lookdev/landscape-realism-v1.png",
+      "input_role": "Approved landscape edit target and naturalistic style/canvas authority",
+      "transparent_background": true,
+      "output_hint": "Generated images are saved to C:\\Users\\Dillon\\.codex\\generated_images\\01a1423a-6ad3-76a3-bf7f-75f120e991ab as C:\\Users\\Dillon\\.codex\\generated_images\\01a1423a-6ad3-76a3-bf7f-75f120e991ab\\exec-7f1fac36-a9b1-490b-8f97-d70e1a884c22.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+    },
+    {
+      "file": "assets/cabin-realism-v1.png",
+      "prompt": "prompts/cabin-realism-v1.txt",
+      "input": "guides/cabin-geometry.png",
+      "input_role": "Exact rendered geometry/camera edit target; textual materials only",
+      "transparent_background": false,
+      "output_hint": "Generated images are saved to C:\\Users\\Dillon\\.codex\\generated_images\\01a1423a-6ad3-76a3-bf7f-75f120e991ab as C:\\Users\\Dillon\\.codex\\generated_images\\01a1423a-6ad3-76a3-bf7f-75f120e991ab\\exec-3718c817-b2cc-4119-94dd-17368ef0e743.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+    }
+  ]
+}

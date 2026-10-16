@@ -1,0 +1,9 @@
+Use case: stylized-concept
+Asset type: production foliage cutout texture atlas for UV cards in a Blender forest lookdev scene.
+Create ONE square image, preferred 2048 x 2048 pixels, genuine transparent RGBA background. Exactly FOUR fully isolated botanical assets, arranged in an invisible evenly divided 2 by 2 quadrant grid, one asset per quadrant. Each asset must fit entirely inside its own quadrant with 15 percent transparent padding on all four sides of that quadrant. Wide transparent gutters between assets. Each plant has its stem root at the bottom center of its quadrant, main growth upward, pointed tip toward the top. All stems and leaf tips fully within padding, no cropping or quadrant crossing.
+TOP LEFT: broad oval leaf cluster on a branching twig, thick waxy olive and forest green leaves.
+TOP RIGHT: long divided frond, curved narrow paired leaflets, subtle teal green.
+BOTTOM LEFT: alien ribbed fan leaf or frond with several rounded radiating blades, muted fern and sage green.
+BOTTOM RIGHT: compact feathered branchlets, dense smaller olive leaves.
+Physically believable foliage for a lush alien world; slight illustrated naturalism, real leaf veins, subtle organic patina and convincing edges. Flat soft neutral even albedo lighting suitable for later scene relighting, no hard baked shadows, no bright specular highlights or glow. Front-facing flattened botanical specimens, not objects seen in perspective. Delicate irregularity within a coherent biological form.
+No caption, text, symbols, grid lines, frame, background, ground, soil, pots, flying seeds, detached debris, cast shadows or opaque matte. Transparent empty regions must have actual zero alpha. This is a production atlas, not a concept-art presentation.

@@ -1,0 +1,148 @@
+{
+  "boundary_y": 495,
+  "terrain_boundary": [
+    [
+      -1600.0,
+      495.0,
+      3.824185371398926
+    ],
+    [
+      -1473.3333740234375,
+      495.0,
+      4.605957984924316
+    ],
+    [
+      -1200.0,
+      495.0,
+      5.501614570617676
+    ],
+    [
+      -1073.3333740234375,
+      495.0,
+      6.751760005950928
+    ],
+    [
+      -800.0,
+      495.0,
+      4.110296726226807
+    ],
+    [
+      -673.3333129882812,
+      495.0,
+      5.701888561248779
+    ],
+    [
+      -400.0,
+      495.0,
+      5.701888561248779
+    ],
+    [
+      -1745.0,
+      495.0,
+      5.798056125640869
+    ],
+    [
+      -273.33331298828125,
+      495.0,
+      7.473333358764648
+    ],
+    [
+      -195.0,
+      495.0,
+      7.473333358764648
+    ]
+  ],
+  "objects": [
+    {
+      "name": "Jangala | continuous landform",
+      "lo": [
+        -22000.0,
+        -8000.0,
+        -12.0
+      ],
+      "hi": [
+        10000.0,
+        16000.0,
+        963.614013671875
+      ],
+      "materials": [
+        "REALISM | field ground clipped at actual source river nearbank",
+        "PORT REALISM | textured native low vegetation"
+      ]
+    },
+    {
+      "name": "PORT DETAIL | single industrial precinct surface",
+      "lo": [
+        -1745.0,
+        65.0,
+        -3.0547380447387695e-06
+      ],
+      "hi": [
+        -195.0,
+        495.0,
+        0.39999693632125854
+      ],
+      "materials": [
+        "PORT REALISM | freight concrete"
+      ]
+    }
+  ],
+  "rays_through_gap": [
+    {
+      "gap_target_source": [
+        -1600,
+        495,
+        2
+      ],
+      "first_hit": null,
+      "hit_source": null
+    },
+    {
+      "gap_target_source": [
+        -1200,
+        495,
+        2
+      ],
+      "first_hit": null,
+      "hit_source": null
+    },
+    {
+      "gap_target_source": [
+        -800,
+        495,
+        2
+      ],
+      "first_hit": "PORT LAYER | accepted hills",
+      "hit_source": [
+        4114.1083984375,
+        12677.1591796875,
+        -3078.52490234375
+      ]
+    },
+    {
+      "gap_target_source": [
+        -400,
+        495,
+        2
+      ],
+      "first_hit": "Jangala | port approach canopy",
+      "hit_source": [
+        -369.2081298828125,
+        519.3650512695312,
+        -4.161231994628906
+      ]
+    }
+  ],
+  "slab_top_z": 0.4,
+  "boundary_mismatch_range": [
+    3.424185371398926,
+    7.073333358764648
+  ],
+  "diagnosis": "Terrain was physically cut out under slab, but its open edge remained 3.4-7.1 metres above the slab. The gap reveals distant textured scenery as a bright strip; no terrain/slab overlap exists at this boundary.",
+  "repair": "Fit actual adjoining terrain edge to slab and grade adjoining soil to original elevations. Rendered A/B keeps the original boundary footprint, exposing no strip after repair.",
+  "source_scene": "port-approach-realism/port-approach-realism.blend",
+  "source_sha256": "0b737777f455809e3127a3895ff201faeb93d397d5f6b66c4de27bc1c20ae8e3",
+  "fixture": "Original-footprint controlled ground repair; source scene retained unchanged",
+  "ray_limit": "Geometric rays start immediately before gap and include render-hidden source objects; they establish open space, not final composited color ownership.",
+  "proof": "Controlled 1920x1080 start/mid/end repair renders remove the strip without moving the precinct boundary or hiding objects."
+}

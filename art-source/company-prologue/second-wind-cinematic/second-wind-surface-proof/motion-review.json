@@ -1,0 +1,39 @@
+{
+  "movie": "review/second-wind-setdown-proof.mp4",
+  "movie_sha256": "c7bc35404ed58368b4f8d96c65ef6eb6774f5e7a0163e91a8dd578557f7a4331",
+  "final_scene": "second-wind-daylight-landing-proof.blend",
+  "final_scene_sha256": "4b64b68b13314c1aeb7b702884ebbac4b7774b3a9ae4bc9b8991273f84f46e4d",
+  "playback_receipt": {
+    "reviewer": "parent agent browser playback",
+    "dimensions": [
+      1920,
+      1080
+    ],
+    "duration_seconds": 4,
+    "playback_rate": 1,
+    "wall_elapsed_ms": 4026.0999999940395,
+    "total_frames": 96,
+    "dropped_frames": 0,
+    "video_frame_callbacks": 96,
+    "last_presented_frame": 96
+  },
+  "sampled_visual_review": {
+    "sources": [
+      "browser initial view",
+      "browser end view",
+      "review/start.png",
+      "review/poster.png",
+      "review/end.png"
+    ],
+    "findings": [
+      "Side texture features remain at matching hull locations across sampled poses.",
+      "Shoes are seated at contact and at the end."
+    ],
+    "limitations": [
+      "Sampled image review, not continuous per-frame visual QA.",
+      "Yard remains greybox.",
+      "Dark solid lift-placeholder cones remain obvious.",
+      "Near-side texture retains partly baked lighting; other surfaces use neutral atlas fallback."
+    ]
+  }
+}

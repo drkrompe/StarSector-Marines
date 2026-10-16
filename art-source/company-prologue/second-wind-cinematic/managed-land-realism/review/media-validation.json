@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "movie": "jangala-managed-land-realism.mp4",
+  "dimensions": [
+    1920,
+    1080
+  ],
+  "duration_seconds": 4,
+  "fps": 24,
+  "decoded_frames": 96,
+  "unique_source_frames": 96,
+  "source_frame_mapping": "240 + 0.5*i at source 12fps, i=0..95",
+  "scene_sha256": "9c9ec437f12c9721df8c863b462ebbfc98045789b7f8964137ec05824bb49636",
+  "audio": false,
+  "codec": "h264",
+  "pixel_format": "yuv420p",
+  "bytes": 2932640,
+  "sha256": "692e4374db2acb7320af1fb277c6fba719af55b897f20be6cb5ce6660a066f64",
+  "full_decode": "FFmpeg -xerror exit 0",
+  "adjacent_mean_absolute_pixel_change_0_to_255": {
+    "min": 6.3488573816872425,
+    "max": 6.9162832754629635,
+    "mean": 6.652306704502383
+  },
+  "limits": "Media integrity and cadence only; visual quality and physical plausibility require rendered review."
+}

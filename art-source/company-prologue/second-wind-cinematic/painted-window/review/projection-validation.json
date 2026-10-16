@@ -1,0 +1,1796 @@
+{
+  "passed": true,
+  "errors": [],
+  "paths_relative_to": "painted-window directory",
+  "source": "../animatic/jangala-blockout.blend",
+  "painted_scene": "jangala-painted-window.blend",
+  "matrix_comparison": [
+    {
+      "frame": 120,
+      "object": "02 REVEAL / near glass",
+      "max_matrix_delta": 0.0
+    },
+    {
+      "frame": 120,
+      "object": "SECOND WIND | flight root",
+      "max_matrix_delta": 0.0
+    },
+    {
+      "frame": 132,
+      "object": "02 REVEAL / near glass",
+      "max_matrix_delta": 0.0
+    },
+    {
+      "frame": 132,
+      "object": "SECOND WIND | flight root",
+      "max_matrix_delta": 0.0
+    },
+    {
+      "frame": 144,
+      "object": "02 REVEAL / near glass",
+      "max_matrix_delta": 0.0
+    },
+    {
+      "frame": 144,
+      "object": "SECOND WIND | flight root",
+      "max_matrix_delta": 0.0
+    },
+    {
+      "frame": 156,
+      "object": "02 REVEAL / near glass",
+      "max_matrix_delta": 0.0
+    },
+    {
+      "frame": 156,
+      "object": "SECOND WIND | flight root",
+      "max_matrix_delta": 0.0
+    },
+    {
+      "frame": 168,
+      "object": "02 REVEAL / near glass",
+      "max_matrix_delta": 0.0
+    },
+    {
+      "frame": 168,
+      "object": "SECOND WIND | flight root",
+      "max_matrix_delta": 0.0
+    }
+  ],
+  "source_matrices": {
+    "120": {
+      "02 REVEAL / near glass": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          -12545.4990234375
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.031740188598633
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          1890.5843505859375
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "SECOND WIND | flight root": [
+        [
+          1.5,
+          0.0,
+          0.0,
+          -12618.181640625
+        ],
+        [
+          0.0,
+          1.5,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.5,
+          1885.664306640625
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    "132": {
+      "02 REVEAL / near glass": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          -12218.2158203125
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.047210693359375
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          1848.6263427734375
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "SECOND WIND | flight root": [
+        [
+          1.5,
+          0.0,
+          0.0,
+          -12290.9091796875
+        ],
+        [
+          0.0,
+          1.5,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.5,
+          1843.706298828125
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    "144": {
+      "02 REVEAL / near glass": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          -11890.9326171875
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.06267547607422
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          1806.6683349609375
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "SECOND WIND | flight root": [
+        [
+          1.5,
+          0.0,
+          0.0,
+          -11963.63671875
+        ],
+        [
+          0.0,
+          1.5,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.5,
+          1801.748291015625
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    "156": {
+      "02 REVEAL / near glass": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          -11563.6484375
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.07814598083496
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          1764.710205078125
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "SECOND WIND | flight root": [
+        [
+          1.5,
+          0.0,
+          0.0,
+          -11636.36328125
+        ],
+        [
+          0.0,
+          1.5,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.5,
+          1759.7901611328125
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    "168": {
+      "02 REVEAL / near glass": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          -11236.365234375
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.093612670898438
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          1722.752197265625
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "SECOND WIND | flight root": [
+        [
+          1.5,
+          0.0,
+          0.0,
+          -11309.0908203125
+        ],
+        [
+          0.0,
+          1.5,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.5,
+          1717.8321533203125
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    }
+  },
+  "painted_matrices": {
+    "120": {
+      "02 REVEAL / near glass": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          -12545.4990234375
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.031740188598633
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          1890.5843505859375
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "SECOND WIND | flight root": [
+        [
+          1.5,
+          0.0,
+          0.0,
+          -12618.181640625
+        ],
+        [
+          0.0,
+          1.5,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.5,
+          1885.664306640625
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    "132": {
+      "02 REVEAL / near glass": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          -12218.2158203125
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.047210693359375
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          1848.6263427734375
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "SECOND WIND | flight root": [
+        [
+          1.5,
+          0.0,
+          0.0,
+          -12290.9091796875
+        ],
+        [
+          0.0,
+          1.5,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.5,
+          1843.706298828125
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    "144": {
+      "02 REVEAL / near glass": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          -11890.9326171875
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.06267547607422
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          1806.6683349609375
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "SECOND WIND | flight root": [
+        [
+          1.5,
+          0.0,
+          0.0,
+          -11963.63671875
+        ],
+        [
+          0.0,
+          1.5,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.5,
+          1801.748291015625
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    "156": {
+      "02 REVEAL / near glass": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          -11563.6484375
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.07814598083496
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          1764.710205078125
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "SECOND WIND | flight root": [
+        [
+          1.5,
+          0.0,
+          0.0,
+          -11636.36328125
+        ],
+        [
+          0.0,
+          1.5,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.5,
+          1759.7901611328125
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    "168": {
+      "02 REVEAL / near glass": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          -11236.365234375
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.093612670898438
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          1722.752197265625
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "SECOND WIND | flight root": [
+        [
+          1.5,
+          0.0,
+          0.0,
+          -11309.0908203125
+        ],
+        [
+          0.0,
+          1.5,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.5,
+          1717.8321533203125
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    }
+  },
+  "ship_geometry": {
+    "source_mesh_count": 171,
+    "painted_mesh_count": 171,
+    "changed_or_missing": [],
+    "added": [],
+    "source_hashes": {
+      "Aft flank access housing": {
+        "sha256": "22a477cea7af45c73f1124b3c4b59e6ab9227c4cf6cdbbd902ddf185997ac064",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Aft flank access housing.001": {
+        "sha256": "22a477cea7af45c73f1124b3c4b59e6ab9227c4cf6cdbbd902ddf185997ac064",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Aft flank access housing.002": {
+        "sha256": "22a477cea7af45c73f1124b3c4b59e6ab9227c4cf6cdbbd902ddf185997ac064",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Aft flank access housing.003": {
+        "sha256": "22a477cea7af45c73f1124b3c4b59e6ab9227c4cf6cdbbd902ddf185997ac064",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Aft flank access housing.004": {
+        "sha256": "22a477cea7af45c73f1124b3c4b59e6ab9227c4cf6cdbbd902ddf185997ac064",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Aft flank access housing.005": {
+        "sha256": "22a477cea7af45c73f1124b3c4b59e6ab9227c4cf6cdbbd902ddf185997ac064",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Aft machinery casing": {
+        "sha256": "fb7bd1f2056f8e2c5dbb3585fe973bae5cd718a325a3dba456fd1c839355c0f4",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Bay ceiling": {
+        "sha256": "ca7b3125b892a9d77820e75692d95e0072d64aa6789c6e69f53d8d55bcaf67e1",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Bay ceiling.001": {
+        "sha256": "ca7b3125b892a9d77820e75692d95e0072d64aa6789c6e69f53d8d55bcaf67e1",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Bay coaming": {
+        "sha256": "e96fa13724b208425451cfdcf579bea8e2003918e1f1a63b11b86ed6b750bce4",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Bay coaming.001": {
+        "sha256": "e96fa13724b208425451cfdcf579bea8e2003918e1f1a63b11b86ed6b750bce4",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Bay coaming.002": {
+        "sha256": "e96fa13724b208425451cfdcf579bea8e2003918e1f1a63b11b86ed6b750bce4",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Bay coaming.003": {
+        "sha256": "e96fa13724b208425451cfdcf579bea8e2003918e1f1a63b11b86ed6b750bce4",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Bay jamb": {
+        "sha256": "2c40ef2c4fe2d290ff07620673260fbb04b1afaefde103a32267820cba8600c8",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Bay jamb.001": {
+        "sha256": "2c40ef2c4fe2d290ff07620673260fbb04b1afaefde103a32267820cba8600c8",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Bay jamb.002": {
+        "sha256": "2c40ef2c4fe2d290ff07620673260fbb04b1afaefde103a32267820cba8600c8",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Bay jamb.003": {
+        "sha256": "2c40ef2c4fe2d290ff07620673260fbb04b1afaefde103a32267820cba8600c8",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Bay level floor": {
+        "sha256": "ca7b3125b892a9d77820e75692d95e0072d64aa6789c6e69f53d8d55bcaf67e1",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Bay level floor.001": {
+        "sha256": "ca7b3125b892a9d77820e75692d95e0072d64aa6789c6e69f53d8d55bcaf67e1",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Bay structural buttress": {
+        "sha256": "a2c2a635ae09fd5577db05cae03d085ec2325fe43d6000f0f40117170bf140b3",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Bay structural buttress.001": {
+        "sha256": "a2c2a635ae09fd5577db05cae03d085ec2325fe43d6000f0f40117170bf140b3",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Bay structural buttress.002": {
+        "sha256": "a2c2a635ae09fd5577db05cae03d085ec2325fe43d6000f0f40117170bf140b3",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Bay structural buttress.003": {
+        "sha256": "a2c2a635ae09fd5577db05cae03d085ec2325fe43d6000f0f40117170bf140b3",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Cabin ceiling": {
+        "sha256": "3de9818a7b09a95fef0dfbb6570b153bacfe5bf97433273720d83285f7a5eb67",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Cabin floor": {
+        "sha256": "3de9818a7b09a95fef0dfbb6570b153bacfe5bf97433273720d83285f7a5eb67",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Cabin side lining": {
+        "sha256": "40fe90620ca482a529a3c9d07db75df2b654b9d3e6453b2c8a01648f82bdc000",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Cabin side lining.001": {
+        "sha256": "40fe90620ca482a529a3c9d07db75df2b654b9d3e6453b2c8a01648f82bdc000",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Casing access cover": {
+        "sha256": "cb6b67d2e209ae07cd4f953b2f7e728f22e9b5563bceef7c10ab0f2fba147763",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Casing access cover.001": {
+        "sha256": "cb6b67d2e209ae07cd4f953b2f7e728f22e9b5563bceef7c10ab0f2fba147763",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Casing access cover.002": {
+        "sha256": "cb6b67d2e209ae07cd4f953b2f7e728f22e9b5563bceef7c10ab0f2fba147763",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Casing access cover.003": {
+        "sha256": "cb6b67d2e209ae07cd4f953b2f7e728f22e9b5563bceef7c10ab0f2fba147763",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Casing access cover.004": {
+        "sha256": "cb6b67d2e209ae07cd4f953b2f7e728f22e9b5563bceef7c10ab0f2fba147763",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Casing access cover.005": {
+        "sha256": "cb6b67d2e209ae07cd4f953b2f7e728f22e9b5563bceef7c10ab0f2fba147763",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Closed door stiffener": {
+        "sha256": "fdc46ab0c0f6fa1ea824c64daec6012e3a7525170662500e6049846991e895b2",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Closed door stiffener.001": {
+        "sha256": "fdc46ab0c0f6fa1ea824c64daec6012e3a7525170662500e6049846991e895b2",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Closed door stiffener.002": {
+        "sha256": "fdc46ab0c0f6fa1ea824c64daec6012e3a7525170662500e6049846991e895b2",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Closed door stiffener.003": {
+        "sha256": "fdc46ab0c0f6fa1ea824c64daec6012e3a7525170662500e6049846991e895b2",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Closed door stiffener.004": {
+        "sha256": "fdc46ab0c0f6fa1ea824c64daec6012e3a7525170662500e6049846991e895b2",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Cloud breakup proxy": {
+        "sha256": "d856144b846ae4043a2c3d07f809a72cec6ff1f3f67771b6f3dfba3d2838b10b",
+        "vertices": 86,
+        "polygons": 96
+      },
+      "Cloud breakup proxy.001": {
+        "sha256": "ff6e755ace8a114c112a2fcf1e6fa4743f51392f900ed44c38913e7e865afdc5",
+        "vertices": 86,
+        "polygons": 96
+      },
+      "Cloud breakup proxy.002": {
+        "sha256": "acf2e3232e876c820d07c1699cbb38b38ba6edf1def5c2bc446c70ab6c9b954c",
+        "vertices": 86,
+        "polygons": 96
+      },
+      "Cloud breakup proxy.003": {
+        "sha256": "76cd5c1c28180edd616296efb53eb1aebec3053ae380680fea4f8899519e8ee1",
+        "vertices": 86,
+        "polygons": 96
+      },
+      "Cloud breakup proxy.004": {
+        "sha256": "b8f2582e04fe17249ae2a3377e72513516a878f9adc7028757f8b4df9e506255",
+        "vertices": 86,
+        "polygons": 96
+      },
+      "Crew baggage": {
+        "sha256": "d908cc87f8ab4007f7dc88517e1fa1f2c2ef8cad12274251f15401c8f19d97b3",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Crew hand proxy": {
+        "sha256": "e797a2c0658d81844234e2037d8bd2792684eebfde65f778fa40e498bc37af97",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Crew sleeve proxy": {
+        "sha256": "3a72c136dc23f81a7035158cd5aae912038fbf23663062e2d8a08728cb04775a",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Empty maintenance cradle": {
+        "sha256": "7786c8628249a63d6a96b815b672f4c739137c183998130d05b2b457228e7dd0",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Empty maintenance cradle.001": {
+        "sha256": "7786c8628249a63d6a96b815b672f4c739137c183998130d05b2b457228e7dd0",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Engine 1 aft-facing nozzle": {
+        "sha256": "f85c23aace5e3809fd59ad276d1dd80105ae6ed64f1058b83704612fc59c5a48",
+        "vertices": 96,
+        "polygons": 48
+      },
+      "Engine 1 body": {
+        "sha256": "7dad723a3471ae0c86e6bc0cb55510d8958513094cc3364d5a0bdb66a9dd6b10",
+        "vertices": 64,
+        "polygons": 34
+      },
+      "Engine 1 dark throat": {
+        "sha256": "4d9327c85173e9fc438ac8b4688840e8331c5a75b0c894cabbd8c97174c3bb7d",
+        "vertices": 64,
+        "polygons": 34
+      },
+      "Engine 1 mouth rim": {
+        "sha256": "39bbfcca70a392febd8f49f2e1312443b666d82e2d6e3e3cdbd15ea74e3f5b2d",
+        "vertices": 480,
+        "polygons": 480
+      },
+      "Engine 2 aft-facing nozzle": {
+        "sha256": "9a281d472bece27d1fb6f27df57fc43dbea90ce10a89c307e3c77302fd08b02c",
+        "vertices": 96,
+        "polygons": 48
+      },
+      "Engine 2 body": {
+        "sha256": "a851469f23dddeaaad46c18c46a114d2cab17726faac3e8183dce8cdb7090217",
+        "vertices": 64,
+        "polygons": 34
+      },
+      "Engine 2 dark throat": {
+        "sha256": "2c30f93e3b5d7e234e07ab31156eef0e963b84bef7d04c7b571657b5dcde5962",
+        "vertices": 64,
+        "polygons": 34
+      },
+      "Engine 2 mouth rim": {
+        "sha256": "7a9d6d3170f20139d6238c018354ab2a631b9a4c98ca9f7261e38350ee04980e",
+        "vertices": 480,
+        "polygons": 480
+      },
+      "Engine 3 aft-facing nozzle": {
+        "sha256": "fed0c14268428917e37ce5b2182a11f5b4544b8ebb333f44ce6503e503a7a880",
+        "vertices": 96,
+        "polygons": 48
+      },
+      "Engine 3 body": {
+        "sha256": "a851469f23dddeaaad46c18c46a114d2cab17726faac3e8183dce8cdb7090217",
+        "vertices": 64,
+        "polygons": 34
+      },
+      "Engine 3 dark throat": {
+        "sha256": "2c30f93e3b5d7e234e07ab31156eef0e963b84bef7d04c7b571657b5dcde5962",
+        "vertices": 64,
+        "polygons": 34
+      },
+      "Engine 3 mouth rim": {
+        "sha256": "7a9d6d3170f20139d6238c018354ab2a631b9a4c98ca9f7261e38350ee04980e",
+        "vertices": 480,
+        "polygons": 480
+      },
+      "Engine 4 aft-facing nozzle": {
+        "sha256": "dbe31fc438712cb034b83e3a71f6b8f20b672a1fa08d149e3dc999f77b664960",
+        "vertices": 96,
+        "polygons": 48
+      },
+      "Engine 4 body": {
+        "sha256": "7dad723a3471ae0c86e6bc0cb55510d8958513094cc3364d5a0bdb66a9dd6b10",
+        "vertices": 64,
+        "polygons": 34
+      },
+      "Engine 4 dark throat": {
+        "sha256": "4d9327c85173e9fc438ac8b4688840e8331c5a75b0c894cabbd8c97174c3bb7d",
+        "vertices": 64,
+        "polygons": 34
+      },
+      "Engine 4 mouth rim": {
+        "sha256": "39bbfcca70a392febd8f49f2e1312443b666d82e2d6e3e3cdbd15ea74e3f5b2d",
+        "vertices": 480,
+        "polygons": 480
+      },
+      "Engine room armored shoulder": {
+        "sha256": "e45ed4bd552f3f178ac0934a9319ce2e901d2d7f8c1a41faf34eb379d0350877",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Engine room armored shoulder.001": {
+        "sha256": "1efc41813fde52fe4a22e2593dd29a13341e58a48b8f9f9ca75e045df072bfd1",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Engine room armored shoulder.002": {
+        "sha256": "87fdf03fa817666761ed99c4b784d4aeedc367c71f9a2f70699f4620bf308ecd",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Engine room armored shoulder.003": {
+        "sha256": "78ecf554c342ecf8c00685262b6b91906e819772ade434cd17f2a5137cf78b78",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Engine room armored shoulder.004": {
+        "sha256": "5a7bfef3e34580e6fd0de74f4e5c77d57ee47c831fcd52ee072545cbb4be5f7e",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Engine room armored shoulder.005": {
+        "sha256": "e8b09e923ed58da9b105d1affb7de65f94c624f2db0ca4b0bdc9160649c53872",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Engine room armored shoulder.006": {
+        "sha256": "08fa6a9d1209f06ec1310b53f655a54ca1587435f05ab7896992d105ad01d5fe",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Engine room armored shoulder.007": {
+        "sha256": "281d3c9c4a7158d1bf15e5abd368135a19850586944b53b3e7be2f7ea0baa9d5",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Engine room armored shoulder.008": {
+        "sha256": "de783e925af6ae223efa5705ffae4d373e3b190d6903659be06b7380694f173e",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Engine room armored shoulder.009": {
+        "sha256": "0d2b5a060ae6fbe2dced81450bba13c2ca8d09c71e0617a0438ece79e93df4d9",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Engine room armored shoulder.010": {
+        "sha256": "7cc7538203546bfb91814f66837a6357aafd0dc1e9b70e0689d112e3625b9864",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Engine room armored shoulder.011": {
+        "sha256": "c1b849e91f47dbbe227f0dc958d4ec0fc2d9a63492b2c553a4c2ee794989f00c",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Engine room reinforcing band": {
+        "sha256": "652b6cb4d23390b67fffa8fdec5c83fcb512d7fd212c503862f9f161e2f43e38",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Engine room reinforcing band.001": {
+        "sha256": "b2e554b8b9aa765517e81fbcdda8ed97ebc9dc228392457d59fb07e04ffb584a",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Engine room reinforcing band.002": {
+        "sha256": "5bd812b44bccdc642ccea5d595759dc3b8a9f0c0c6e8fbab9a56db571f5e2a29",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Engine room reinforcing band.003": {
+        "sha256": "e5eb1492e9799ba04ec2f5d83ec4ce366e9324c76afc13e858ff875258b40884",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Exposed longitudinal service trunk": {
+        "sha256": "952a1f5da4528b52631d8441ad6181d0e97456251e9127a5c24ac1f493a6d2b2",
+        "vertices": 64,
+        "polygons": 34
+      },
+      "Exposed longitudinal service trunk.001": {
+        "sha256": "952a1f5da4528b52631d8441ad6181d0e97456251e9127a5c24ac1f493a6d2b2",
+        "vertices": 64,
+        "polygons": 34
+      },
+      "Exposed longitudinal service trunk.002": {
+        "sha256": "952a1f5da4528b52631d8441ad6181d0e97456251e9127a5c24ac1f493a6d2b2",
+        "vertices": 64,
+        "polygons": 34
+      },
+      "Fore pressure casing": {
+        "sha256": "d8c0b4e2665f31c67195f1951426506d6796e16a2aef906a673e70c8f669751e",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Forebody reinforcing band": {
+        "sha256": "7ce98d4c6edaa3ee33b65d8b41049b4a422164552d1513b14479dd27b9e715f3",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Forebody replaceable armor": {
+        "sha256": "6784b44f14e152f7b3cb64798dbb37186f45d0940ce2816ca7a54eafb63c312b",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Forebody replaceable armor.001": {
+        "sha256": "3e6f2de3bc8f35d419527b073eeeb9f0653190f418c9ad3a1848b715dd7183d5",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Forebody replaceable armor.002": {
+        "sha256": "c64d1a9e725b29bd14d1fbfbe84eccaa258362ac679ef7da6a7d73ead02c7c5f",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Forebody replaceable armor.003": {
+        "sha256": "232c89b39ec72511d65ae9ab9e67e7fd4a10cf68851c20a1d93f27b3aab17538",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Forebody replaceable armor.004": {
+        "sha256": "e463a7f2cb508debce52f26e6ad2757b1ce7a1874766a9d054c577d40c99d3d5",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Forebody replaceable armor.005": {
+        "sha256": "34aa74379b6f7238ad780785ab27771a8fd34c0111e669ab6d72beb691bfde1a",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Forebody replaceable armor.006": {
+        "sha256": "e7fa9f15d1db1fe08ced93cdc4e542e8b71cec751a7e51378b7dc43766b2a558",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Forebody replaceable armor.007": {
+        "sha256": "fe1934c0a8df63da031eca129394bea061d359190a8d70166c96a5612c6b36f2",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Forebody replaceable armor.008": {
+        "sha256": "854c360b5998b9c02387bd143b7eec55abc540ac8d264d3d0455f8ecaedb85ce",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "Forebody replaceable armor.009": {
+        "sha256": "fa95f4f4d95a38a54489ab02ef1206f4957e7776ab98b4a6a3bb100a4ec5e0c4",
+        "vertices": 25,
+        "polygons": 16
+      },
+      "LIFT VECTOR | placeholder": {
+        "sha256": "e5f830a80983e78dee87157ae477d14e9c793d1031e301d1c0945940a41ff034",
+        "vertices": 24,
+        "polygons": 14
+      },
+      "LIFT VECTOR | placeholder.001": {
+        "sha256": "e5f830a80983e78dee87157ae477d14e9c793d1031e301d1c0945940a41ff034",
+        "vertices": 24,
+        "polygons": 14
+      },
+      "LIFT VECTOR | placeholder.002": {
+        "sha256": "e5f830a80983e78dee87157ae477d14e9c793d1031e301d1c0945940a41ff034",
+        "vertices": 24,
+        "polygons": 14
+      },
+      "LIFT VECTOR | placeholder.003": {
+        "sha256": "e5f830a80983e78dee87157ae477d14e9c793d1031e301d1c0945940a41ff034",
+        "vertices": 24,
+        "polygons": 14
+      },
+      "Main hull - level datum Z0": {
+        "sha256": "680b4fb3bf2a5443bdfc8ec97def04335a538106cee5a691643c3a62720ed1d6",
+        "vertices": 759,
+        "polygons": 818
+      },
+      "Passenger seat back": {
+        "sha256": "fb0300f9a0b18441d36a9d41e3a45b942c6d37eb9518e8172d292032dcf0792d",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Passenger seat cushion": {
+        "sha256": "f3b5505c871d1af71751548c67e71254ea65bfdd2dc10d5ddf4b638bb211e802",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Pod dorsal inspection plate": {
+        "sha256": "3511750c46a1f7df2f1c476ecf6e31724bd4dff3cd4b68566a94fb88ed553d79",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Pod outward access hatch": {
+        "sha256": "1152d7495864a44c097e4e53ddc6b3aeb43246f40792f8f9c2665e55fbaec939",
+        "vertices": 64,
+        "polygons": 34
+      },
+      "Port bay interior": {
+        "sha256": "622b71cb6e5d4cbd32c05d2176088f279c011821ce71aa07ab15e1b5a9d4e691",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Port bay interior lamp": {
+        "sha256": "f56138f33399d0bef6346c37292e6598acb377facac9cd2ccbd3e7bde377725e",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Port bay interior lamp.001": {
+        "sha256": "f56138f33399d0bef6346c37292e6598acb377facac9cd2ccbd3e7bde377725e",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "PORT SERVICE POD - fixed low horizontal body": {
+        "sha256": "401a45550e2dea851e675a47761cd6295d53dd9e7030f3efd854be9eefeb08f0",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Port service pod neck": {
+        "sha256": "efdad28367886d91690dee1f229179038823ecc101378bba409194be6fe38e6c",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "PROPOSAL keel shoe": {
+        "sha256": "c29e32dd1ddeaf2e981173526471bce86d211c3c0b77f93175b2b7bc2b567d4a",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "PROPOSAL keel shoe.001": {
+        "sha256": "c29e32dd1ddeaf2e981173526471bce86d211c3c0b77f93175b2b7bc2b567d4a",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "PROPOSAL keel shoe.002": {
+        "sha256": "c29e32dd1ddeaf2e981173526471bce86d211c3c0b77f93175b2b7bc2b567d4a",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "PROPOSAL keel shoe.003": {
+        "sha256": "c29e32dd1ddeaf2e981173526471bce86d211c3c0b77f93175b2b7bc2b567d4a",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "PROPOSAL lift mouth": {
+        "sha256": "df75540753fbedd64324b117b5c48b484bc6d9f53d48eb6e9fc6bc10a812b3d8",
+        "vertices": 32,
+        "polygons": 18
+      },
+      "PROPOSAL lift mouth.001": {
+        "sha256": "df75540753fbedd64324b117b5c48b484bc6d9f53d48eb6e9fc6bc10a812b3d8",
+        "vertices": 32,
+        "polygons": 18
+      },
+      "PROPOSAL lift mouth.002": {
+        "sha256": "df75540753fbedd64324b117b5c48b484bc6d9f53d48eb6e9fc6bc10a812b3d8",
+        "vertices": 32,
+        "polygons": 18
+      },
+      "PROPOSAL lift mouth.003": {
+        "sha256": "df75540753fbedd64324b117b5c48b484bc6d9f53d48eb6e9fc6bc10a812b3d8",
+        "vertices": 32,
+        "polygons": 18
+      },
+      "PROPOSAL ventral lift collar": {
+        "sha256": "75df4a730c3f912840dd760cc362575b2db2109073b5aba33ffac0ce68680273",
+        "vertices": 32,
+        "polygons": 18
+      },
+      "PROPOSAL ventral lift collar.001": {
+        "sha256": "75df4a730c3f912840dd760cc362575b2db2109073b5aba33ffac0ce68680273",
+        "vertices": 32,
+        "polygons": 18
+      },
+      "PROPOSAL ventral lift collar.002": {
+        "sha256": "75df4a730c3f912840dd760cc362575b2db2109073b5aba33ffac0ce68680273",
+        "vertices": 32,
+        "polygons": 18
+      },
+      "PROPOSAL ventral lift collar.003": {
+        "sha256": "75df4a730c3f912840dd760cc362575b2db2109073b5aba33ffac0ce68680273",
+        "vertices": 32,
+        "polygons": 18
+      },
+      "Protected waist service line": {
+        "sha256": "75620529f8b518d00d7ad5db01c9e007a0efbfbdf648873393fc3f0c80d17a8d",
+        "vertices": 64,
+        "polygons": 34
+      },
+      "Protected waist service line.001": {
+        "sha256": "75620529f8b518d00d7ad5db01c9e007a0efbfbdf648873393fc3f0c80d17a8d",
+        "vertices": 64,
+        "polygons": 34
+      },
+      "Recessed central service bed": {
+        "sha256": "792017d246711afcdcbbe093d57bb2eacf4b4ae1de27b26c816b9559681f339e",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "SEALED GLAZING | clear proxy": {
+        "sha256": "361b7b48512ca63da75e8b67732c440e3acf1d4f4e5a03ec9261d32c6898e216",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Service trunk support hoop": {
+        "sha256": "efabe77e48e6b271137d7a7db5cd2bd259a72d81f4c3501bffded27cf7e6a66e",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Service trunk support hoop.001": {
+        "sha256": "efabe77e48e6b271137d7a7db5cd2bd259a72d81f4c3501bffded27cf7e6a66e",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Service trunk support hoop.002": {
+        "sha256": "efabe77e48e6b271137d7a7db5cd2bd259a72d81f4c3501bffded27cf7e6a66e",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Shoulder louver vent": {
+        "sha256": "5042e2b2a341dcbbaeb34d623b399d44fc775c049fa7bbd21aad1a1b77a6eab7",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Shoulder louver vent.001": {
+        "sha256": "5042e2b2a341dcbbaeb34d623b399d44fc775c049fa7bbd21aad1a1b77a6eab7",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Shoulder louver vent.002": {
+        "sha256": "5042e2b2a341dcbbaeb34d623b399d44fc775c049fa7bbd21aad1a1b77a6eab7",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Shoulder louver vent.003": {
+        "sha256": "5042e2b2a341dcbbaeb34d623b399d44fc775c049fa7bbd21aad1a1b77a6eab7",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Starboard bay interior": {
+        "sha256": "622b71cb6e5d4cbd32c05d2176088f279c011821ce71aa07ab15e1b5a9d4e691",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Starboard bay sealed sectional door": {
+        "sha256": "23226a31daffe4d67c06755dc9009fba4ef06362df9987de04a3773fc445a556",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Turret 1 forward barrel": {
+        "sha256": "364ff38b64cb68b99680e8ccda71cdb837cc12f39eb82336152885efaa9b0cb6",
+        "vertices": 32,
+        "polygons": 18
+      },
+      "Turret 1 raised armored housing": {
+        "sha256": "7a75faa3422573f4de0334c4bae416c631fc5e4e61426f5203fd4015ac3b4a31",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Turret 1 shallow ring": {
+        "sha256": "1f6cb736a0a0dd0bc4416a949d62c15179cf3fd9e5ddf4448183e989b93c0c6c",
+        "vertices": 64,
+        "polygons": 34
+      },
+      "Turret 2 forward barrel": {
+        "sha256": "364ff38b64cb68b99680e8ccda71cdb837cc12f39eb82336152885efaa9b0cb6",
+        "vertices": 32,
+        "polygons": 18
+      },
+      "Turret 2 raised armored housing": {
+        "sha256": "7a75faa3422573f4de0334c4bae416c631fc5e4e61426f5203fd4015ac3b4a31",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Turret 2 shallow ring": {
+        "sha256": "1f6cb736a0a0dd0bc4416a949d62c15179cf3fd9e5ddf4448183e989b93c0c6c",
+        "vertices": 64,
+        "polygons": 34
+      },
+      "Turret 3 forward barrel": {
+        "sha256": "364ff38b64cb68b99680e8ccda71cdb837cc12f39eb82336152885efaa9b0cb6",
+        "vertices": 32,
+        "polygons": 18
+      },
+      "Turret 3 raised armored housing": {
+        "sha256": "7a75faa3422573f4de0334c4bae416c631fc5e4e61426f5203fd4015ac3b4a31",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Turret 3 shallow ring": {
+        "sha256": "1f6cb736a0a0dd0bc4416a949d62c15179cf3fd9e5ddf4448183e989b93c0c6c",
+        "vertices": 64,
+        "polygons": 34
+      },
+      "Turret 4 forward barrel": {
+        "sha256": "9e71e2a507b4e491fd033fbb444306fd618e46b529e9ca76bbb1697e6285de07",
+        "vertices": 32,
+        "polygons": 18
+      },
+      "Turret 4 raised armored housing": {
+        "sha256": "f522d7246d357407a8f6a22e463dac1aab744ad9dbabbc487f534384339b75b1",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Turret 4 shallow ring": {
+        "sha256": "83955ae5741fff9a96c70b2c8610580eaaee3578c5a12d1dc2120250e54db467",
+        "vertices": 64,
+        "polygons": 34
+      },
+      "Vent louver": {
+        "sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Vent louver.001": {
+        "sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Vent louver.002": {
+        "sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Vent louver.003": {
+        "sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Vent louver.004": {
+        "sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Vent louver.005": {
+        "sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Vent louver.006": {
+        "sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Vent louver.007": {
+        "sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Vent louver.008": {
+        "sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Vent louver.009": {
+        "sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Vent louver.010": {
+        "sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Vent louver.011": {
+        "sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Vent louver.012": {
+        "sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Vent louver.013": {
+        "sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Vent louver.014": {
+        "sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Vent louver.015": {
+        "sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Vent louver.016": {
+        "sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Vent louver.017": {
+        "sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Vent louver.018": {
+        "sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Vent louver.019": {
+        "sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Viewport horizontal frame": {
+        "sha256": "eb85973f8511148b4ba0c9eb91e32fc1b6afa22be0dc2d61b199b1a85f2cdde0",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Viewport horizontal frame.001": {
+        "sha256": "eb85973f8511148b4ba0c9eb91e32fc1b6afa22be0dc2d61b199b1a85f2cdde0",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Viewport vertical frame": {
+        "sha256": "a087d1135c4d2d9117426d65448733aa9fc597cb94e8046c46dad088a988dc3e",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Viewport vertical frame.001": {
+        "sha256": "a087d1135c4d2d9117426d65448733aa9fc597cb94e8046c46dad088a988dc3e",
+        "vertices": 8,
+        "polygons": 6
+      },
+      "Window lower wall": {
+        "sha256": "67f28a5d947cde5b44bcd5088fa25713b87d4a6f17a20ce13e66aaabd8e73f7c",
+        "vertices": 8,
+        "polygons": 6
+      }
+    }
+  },
+  "missing_textures": [],
+  "projector_frame144": {
+    "matrix_world": [
+      [
+        0.8192317485809326,
+        0.1894436627626419,
+        -0.5412673950195312,
+        -11890.9326171875
+      ],
+      [
+        -0.5734625458717346,
+        0.2706335783004761,
+        -0.7732387185096741,
+        30.06267547607422
+      ],
+      [
+        -3.6783056600597774e-08,
+        0.9438583254814148,
+        0.33035048842430115,
+        1806.6683349609375
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "lens_mm": 19.259260177612305
+  },
+  "coverage": [
+    {
+      "frame": 120,
+      "land_hits": 248,
+      "cabin_or_other_hits": 262,
+      "missed": 0,
+      "first_hit_counts": {
+        "Viewport vertical frame": 27,
+        "PAINT | distant sky backing": 248,
+        "Viewport vertical frame.001": 35,
+        "Main hull - level datum Z0": 139,
+        "Viewport horizontal frame": 46,
+        "Crew hand proxy": 15
+      },
+      "uv_min": [
+        0.18781012264761465,
+        0.40395065608122294
+      ],
+      "uv_max": [
+        0.771208627237522,
+        0.8548867264821669
+      ],
+      "outside_tolerance": 0.005,
+      "outside_count": 0,
+      "outside_samples": [],
+      "landscape_projection": {
+        "hits": 248,
+        "uv_min": [
+          0.18781012264761465,
+          0.40395065608122294
+        ],
+        "uv_max": [
+          0.771208627237522,
+          0.8548867264821669
+        ],
+        "behind_projector": 0,
+        "outside_tolerance": 0.005,
+        "outside_count": 0,
+        "outside_samples": [],
+        "passed": true
+      },
+      "cabin_projection": {
+        "hits": 262,
+        "uv_min": [
+          0.05296957803972918,
+          0.04385784290379924
+        ],
+        "uv_max": [
+          0.9445608533504246,
+          0.9209151392372985
+        ],
+        "behind_projector": 0,
+        "outside_tolerance": 0.005,
+        "outside_count": 0,
+        "outside_samples": [],
+        "passed": true
+      },
+      "passed": true
+    },
+    {
+      "frame": 132,
+      "land_hits": 252,
+      "cabin_or_other_hits": 258,
+      "missed": 0,
+      "first_hit_counts": {
+        "Viewport vertical frame": 28,
+        "PAINT | distant sky backing": 252,
+        "Viewport vertical frame.001": 35,
+        "Main hull - level datum Z0": 134,
+        "Viewport horizontal frame": 46,
+        "Crew hand proxy": 15
+      },
+      "uv_min": [
+        0.20192973803768433,
+        0.4067078537743129
+      ],
+      "uv_max": [
+        0.7775796452492802,
+        0.8516546991311087
+      ],
+      "outside_tolerance": 0.005,
+      "outside_count": 0,
+      "outside_samples": [],
+      "landscape_projection": {
+        "hits": 252,
+        "uv_min": [
+          0.20192973803768433,
+          0.4067078537743129
+        ],
+        "uv_max": [
+          0.7775796452492802,
+          0.8516546991311087
+        ],
+        "behind_projector": 0,
+        "outside_tolerance": 0.005,
+        "outside_count": 0,
+        "outside_samples": [],
+        "passed": true
+      },
+      "cabin_projection": {
+        "hits": 258,
+        "uv_min": [
+          0.06051300629777279,
+          0.058526658084965766
+        ],
+        "uv_max": [
+          0.9382102138690968,
+          0.9205346065168545
+        ],
+        "behind_projector": 0,
+        "outside_tolerance": 0.005,
+        "outside_count": 0,
+        "outside_samples": [],
+        "passed": true
+      },
+      "passed": true
+    },
+    {
+      "frame": 144,
+      "land_hits": 254,
+      "cabin_or_other_hits": 256,
+      "missed": 0,
+      "first_hit_counts": {
+        "Viewport vertical frame": 29,
+        "PAINT | distant sky backing": 254,
+        "Viewport vertical frame.001": 35,
+        "Main hull - level datum Z0": 132,
+        "Viewport horizontal frame": 46,
+        "Crew hand proxy": 14
+      },
+      "uv_min": [
+        0.21604935539756664,
+        0.40946512093863874
+      ],
+      "uv_max": [
+        0.7839506259438282,
+        0.8484226306860932
+      ],
+      "outside_tolerance": 0.005,
+      "outside_count": 0,
+      "outside_samples": [],
+      "landscape_projection": {
+        "hits": 254,
+        "uv_min": [
+          0.21604935539756664,
+          0.40946512093863874
+        ],
+        "uv_max": [
+          0.7839506259438282,
+          0.8484226306860932
+        ],
+        "behind_projector": 0,
+        "outside_tolerance": 0.005,
+        "outside_count": 0,
+        "outside_samples": [],
+        "passed": true
+      },
+      "cabin_projection": {
+        "hits": 256,
+        "uv_min": [
+          0.06761166187488998,
+          0.07301854770369931
+        ],
+        "uv_max": [
+          0.931762114722762,
+          0.9202785990685067
+        ],
+        "behind_projector": 0,
+        "outside_tolerance": 0.005,
+        "outside_count": 0,
+        "outside_samples": [],
+        "passed": true
+      },
+      "passed": true
+    },
+    {
+      "frame": 156,
+      "land_hits": 258,
+      "cabin_or_other_hits": 252,
+      "missed": 0,
+      "first_hit_counts": {
+        "Viewport vertical frame": 30,
+        "PAINT | distant sky backing": 258,
+        "Viewport vertical frame.001": 35,
+        "Main hull - level datum Z0": 128,
+        "Viewport horizontal frame": 46,
+        "Crew hand proxy": 13
+      },
+      "uv_min": [
+        0.20581461046922706,
+        0.4122223711328768
+      ],
+      "uv_max": [
+        0.8146760900271021,
+        0.8451906045041956
+      ],
+      "outside_tolerance": 0.005,
+      "outside_count": 0,
+      "outside_samples": [],
+      "landscape_projection": {
+        "hits": 258,
+        "uv_min": [
+          0.20581461046922706,
+          0.4122223711328768
+        ],
+        "uv_max": [
+          0.8146760900271021,
+          0.8451906045041956
+        ],
+        "behind_projector": 0,
+        "outside_tolerance": 0.005,
+        "outside_count": 0,
+        "outside_samples": [],
+        "passed": true
+      },
+      "cabin_projection": {
+        "hits": 252,
+        "uv_min": [
+          0.07360764122113328,
+          0.08548232061550831
+        ],
+        "uv_max": [
+          0.926028377548622,
+          0.9200290808686798
+        ],
+        "behind_projector": 0,
+        "outside_tolerance": 0.005,
+        "outside_count": 0,
+        "outside_samples": [],
+        "passed": true
+      },
+      "passed": true
+    },
+    {
+      "frame": 168,
+      "land_hits": 260,
+      "cabin_or_other_hits": 250,
+      "missed": 0,
+      "first_hit_counts": {
+        "Viewport vertical frame": 30,
+        "PAINT | distant sky backing": 260,
+        "Viewport vertical frame.001": 36,
+        "Main hull - level datum Z0": 101,
+        "Viewport horizontal frame": 72,
+        "Crew hand proxy": 11
+      },
+      "uv_min": [
+        0.22027108869353923,
+        0.41497962566677665
+      ],
+      "uv_max": [
+        0.820710201262239,
+        0.8419585694554824
+      ],
+      "outside_tolerance": 0.005,
+      "outside_count": 0,
+      "outside_samples": [],
+      "landscape_projection": {
+        "hits": 260,
+        "uv_min": [
+          0.22027108869353923,
+          0.41497962566677665
+        ],
+        "uv_max": [
+          0.820710201262239,
+          0.8419585694554824
+        ],
+        "behind_projector": 0,
+        "outside_tolerance": 0.005,
+        "outside_count": 0,
+        "outside_samples": [],
+        "passed": true
+      },
+      "cabin_projection": {
+        "hits": 250,
+        "uv_min": [
+          0.07914364881292457,
+          0.09681817831282236
+        ],
+        "uv_max": [
+          0.9207226355200634,
+          0.9196687638939761
+        ],
+        "behind_projector": 0,
+        "outside_tolerance": 0.005,
+        "outside_count": 0,
+        "outside_samples": [],
+        "passed": true
+      },
+      "passed": true
+    }
+  ],
+  "validated_sample_frames": [
+    120,
+    132,
+    144,
+    156,
+    168
+  ],
+  "method": "64px grid first-hit raycast of evaluated render-visible meshes; landscape and visible ship hits checked against their respective per-pixel material perspective divide, including depth sign; world-normalized rays,60000m limit; UV tolerance0.005. Misses fail. Discrete samples do not prove every pixel/frame."
+}

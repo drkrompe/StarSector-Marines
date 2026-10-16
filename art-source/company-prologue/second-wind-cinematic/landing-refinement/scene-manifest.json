@@ -1,0 +1,2151 @@
+{
+  "source_scene": "second-wind-surface-proof\\second-wind-daylight-landing-proof.blend",
+  "source_sha256": "4b64b68b13314c1aeb7b702884ebbac4b7774b3a9ae4bc9b8991273f84f46e4d",
+  "port_source": "../port-refinement/port-refinement.blend",
+  "port_sha256": "33332e2d69c0d5bd298c3ca66331b284e27261ddd916ff7d4f43b1d54696dddd",
+  "camera": "LANDING REFINEMENT | starboard bow-right",
+  "surface": {
+    "image": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\landing-refinement\\assets\\starboard-surface-v1.png",
+    "native_dimensions": [
+      1672,
+      941
+    ],
+    "registration": {
+      "method": "Manually identified engine lip, bay corners, bow tip, four turret centers and underbow shoe; least-squares2Daffine. Not silhouettebounds fitting.",
+      "guide_dimensions": [
+        1920,
+        1080
+      ],
+      "native_dimensions": [
+        1672,
+        941
+      ],
+      "image": "starboard-surface-v1.png",
+      "affine_top_left_pixel_rows": [
+        [
+          1.1360130378145872,
+          0.0009611366912453123,
+          -291.6387675280004
+        ],
+        [
+          0.0035783407762462627,
+          1.126538494568103,
+          -152.62110181046745
+        ]
+      ],
+      "rms_native_pixels": 4.1909387346295945,
+      "max_native_pixels": 7.337909248816196,
+      "landmarks": [
+        {
+          "name": "aft bell outer lip center",
+          "guide_xy": [
+            355,
+            684
+          ],
+          "native_xy": [
+            116,
+            623
+          ],
+          "predicted_native_xy": [
+            112.3032783929898,
+            619.2015394496825
+          ],
+          "residual_native_px": 5.300382362816321
+        },
+        {
+          "name": "bay upper aft corner",
+          "guide_xy": [
+            973,
+            636
+          ],
+          "native_xy": [
+            811,
+            563
+          ],
+          "predicted_native_xy": [
+            814.313201201225,
+            567.3391063101337
+          ],
+          "residual_native_px": 5.45940892134312
+        },
+        {
+          "name": "bay upper forward corner",
+          "guide_xy": [
+            1256,
+            642
+          ],
+          "native_xy": [
+            1134,
+            568
+          ],
+          "predicted_native_xy": [
+            1135.8106577229007,
+            575.11100771722
+          ],
+          "residual_native_px": 7.337909248816196
+        },
+        {
+          "name": "bay lower forward corner",
+          "guide_xy": [
+            1256,
+            736
+          ],
+          "native_xy": [
+            1134,
+            681
+          ],
+          "predicted_native_xy": [
+            1135.9010045718776,
+            681.0056262066216
+          ],
+          "residual_native_px": 1.9010128975102876
+        },
+        {
+          "name": "bay lower aft corner",
+          "guide_xy": [
+            973,
+            732
+          ],
+          "native_xy": [
+            811,
+            676
+          ],
+          "predicted_native_xy": [
+            814.4054703235845,
+            675.4868017886715
+          ],
+          "residual_native_px": 3.443922259419546
+        },
+        {
+          "name": "bow upper tip",
+          "guide_xy": [
+            1608,
+            611
+          ],
+          "native_xy": [
+            1535,
+            545
+          ],
+          "predicted_native_xy": [
+            1535.6574517962065,
+            541.4478903388474
+          ],
+          "residual_native_px": 3.612440436766919
+        },
+        {
+          "name": "aft far turret center",
+          "guide_xy": [
+            873,
+            428
+          ],
+          "native_xy": [
+            699,
+            333
+          ],
+          "predicted_native_xy": [
+            700.511980987987,
+            332.6612653623436
+          ],
+          "residual_native_px": 1.5494604424710179
+        },
+        {
+          "name": "aft near turret center",
+          "guide_xy": [
+            803,
+            475
+          ],
+          "native_xy": [
+            621,
+            384
+          ],
+          "predicted_native_xy": [
+            621.0362417654546,
+            385.35809075270726
+          ],
+          "residual_native_px": 1.3585742372620748
+        },
+        {
+          "name": "forward near turret center",
+          "guide_xy": [
+            1390,
+            484
+          ],
+          "native_xy": [
+            1288,
+            398
+          ],
+          "predicted_native_xy": [
+            1287.8845451928385,
+            397.59742323947677
+          ],
+          "residual_native_px": 0.41880527767697495
+        },
+        {
+          "name": "forward far turret center",
+          "guide_xy": [
+            1421,
+            451
+          ],
+          "native_xy": [
+            1327,
+            363
+          ],
+          "predicted_native_xy": [
+            1323.0692318542795,
+            360.53258148279286
+          ],
+          "residual_native_px": 4.641022770302687
+        },
+        {
+          "name": "underbow shoe center",
+          "guide_xy": [
+            1338,
+            791
+          ],
+          "native_xy": [
+            1234,
+            745
+          ],
+          "predicted_native_xy": [
+            1229.1069361906923,
+            743.2586673515195
+          ],
+          "residual_native_px": 5.193680085894858
+        }
+      ],
+      "limits": "Manual landmark uncertainty about2-4pixels. Global affine cannot register newly generated small panels, craters or local silhouette differences. Covers this one fixed aspect only."
+    },
+    "covered_objects": [
+      {
+        "name": "Aft flank access housing",
+        "polygons": 1
+      },
+      {
+        "name": "Aft flank access housing.001",
+        "polygons": 1
+      },
+      {
+        "name": "Aft flank access housing.002",
+        "polygons": 1
+      },
+      {
+        "name": "Aft machinery casing",
+        "polygons": 1
+      },
+      {
+        "name": "Armor captive fasteners | combined mesh",
+        "polygons": 1343
+      },
+      {
+        "name": "Bay ceiling.001",
+        "polygons": 1
+      },
+      {
+        "name": "Bay coaming.002",
+        "polygons": 1
+      },
+      {
+        "name": "Bay coaming.003",
+        "polygons": 1
+      },
+      {
+        "name": "Bay level floor.001",
+        "polygons": 1
+      },
+      {
+        "name": "Casing access cover",
+        "polygons": 1
+      },
+      {
+        "name": "Casing access cover.001",
+        "polygons": 1
+      },
+      {
+        "name": "Casing access cover.002",
+        "polygons": 1
+      },
+      {
+        "name": "Casing access cover.003",
+        "polygons": 1
+      },
+      {
+        "name": "Casing access cover.004",
+        "polygons": 1
+      },
+      {
+        "name": "Casing access cover.005",
+        "polygons": 1
+      },
+      {
+        "name": "Closed door stiffener",
+        "polygons": 1
+      },
+      {
+        "name": "Closed door stiffener.001",
+        "polygons": 1
+      },
+      {
+        "name": "Closed door stiffener.002",
+        "polygons": 1
+      },
+      {
+        "name": "Closed door stiffener.003",
+        "polygons": 1
+      },
+      {
+        "name": "Closed door stiffener.004",
+        "polygons": 1
+      },
+      {
+        "name": "Emergency backing splint.008",
+        "polygons": 1
+      },
+      {
+        "name": "Emergency backing splint.009",
+        "polygons": 1
+      },
+      {
+        "name": "Engine 3 mouth rim",
+        "polygons": 15
+      },
+      {
+        "name": "Engine 4 aft-facing nozzle",
+        "polygons": 20
+      },
+      {
+        "name": "Engine 4 body",
+        "polygons": 12
+      },
+      {
+        "name": "Engine 4 mouth rim",
+        "polygons": 89
+      },
+      {
+        "name": "Engine room armored shoulder",
+        "polygons": 3
+      },
+      {
+        "name": "Engine room armored shoulder.004",
+        "polygons": 3
+      },
+      {
+        "name": "Engine room armored shoulder.008",
+        "polygons": 1
+      },
+      {
+        "name": "Engine room reinforcing band",
+        "polygons": 1
+      },
+      {
+        "name": "Engine room reinforcing band.002",
+        "polygons": 1
+      },
+      {
+        "name": "Exposed longitudinal service trunk",
+        "polygons": 11
+      },
+      {
+        "name": "Exposed longitudinal service trunk.001",
+        "polygons": 3
+      },
+      {
+        "name": "Exposed longitudinal service trunk.002",
+        "polygons": 3
+      },
+      {
+        "name": "Forebody replaceable armor",
+        "polygons": 3
+      },
+      {
+        "name": "Forebody replaceable armor.004",
+        "polygons": 2
+      },
+      {
+        "name": "Main hull - level datum Z0",
+        "polygons": 95
+      },
+      {
+        "name": "Physical armor | ARRIVAL | backing",
+        "polygons": 109
+      },
+      {
+        "name": "Physical armor | ARRIVAL | cream",
+        "polygons": 343
+      },
+      {
+        "name": "Physical armor | ARRIVAL | gunmetal",
+        "polygons": 61
+      },
+      {
+        "name": "Physical armor | ARRIVAL | oxide",
+        "polygons": 945
+      },
+      {
+        "name": "PROPOSAL ventral lift collar.001",
+        "polygons": 6
+      },
+      {
+        "name": "Protected waist service line",
+        "polygons": 12
+      },
+      {
+        "name": "Recessed central service bed",
+        "polygons": 1
+      },
+      {
+        "name": "Service trunk support hoop",
+        "polygons": 1
+      },
+      {
+        "name": "Service trunk support hoop.001",
+        "polygons": 1
+      },
+      {
+        "name": "Service trunk support hoop.002",
+        "polygons": 1
+      },
+      {
+        "name": "Shoulder louver vent.001",
+        "polygons": 3
+      },
+      {
+        "name": "Shoulder louver vent.003",
+        "polygons": 2
+      },
+      {
+        "name": "Starboard bay sealed sectional door",
+        "polygons": 1
+      },
+      {
+        "name": "Turret 1 forward barrel",
+        "polygons": 6
+      },
+      {
+        "name": "Turret 1 raised armored housing",
+        "polygons": 1
+      },
+      {
+        "name": "Turret 1 shallow ring",
+        "polygons": 6
+      },
+      {
+        "name": "Turret 2 forward barrel",
+        "polygons": 6
+      },
+      {
+        "name": "Turret 2 raised armored housing",
+        "polygons": 1
+      },
+      {
+        "name": "Turret 2 shallow ring",
+        "polygons": 11
+      },
+      {
+        "name": "Turret 3 forward barrel",
+        "polygons": 6
+      },
+      {
+        "name": "Turret 4 forward barrel",
+        "polygons": 6
+      },
+      {
+        "name": "Turret 4 raised armored housing",
+        "polygons": 1
+      },
+      {
+        "name": "Turret 4 shallow ring",
+        "polygons": 10
+      },
+      {
+        "name": "Vent louver.005",
+        "polygons": 1
+      },
+      {
+        "name": "Vent louver.006",
+        "polygons": 1
+      },
+      {
+        "name": "Vent louver.007",
+        "polygons": 1
+      },
+      {
+        "name": "Vent louver.008",
+        "polygons": 1
+      },
+      {
+        "name": "Vent louver.009",
+        "polygons": 1
+      },
+      {
+        "name": "Vent louver.015",
+        "polygons": 1
+      },
+      {
+        "name": "Vent louver.016",
+        "polygons": 1
+      },
+      {
+        "name": "Vent louver.017",
+        "polygons": 1
+      },
+      {
+        "name": "Vent louver.018",
+        "polygons": 1
+      },
+      {
+        "name": "Vent louver.019",
+        "polygons": 1
+      }
+    ],
+    "camera_matrix_world": [
+      [
+        0.9963980317115784,
+        -0.012447941116988659,
+        0.08388123661279678,
+        20.0
+      ],
+      [
+        0.08479984104633331,
+        0.14626330137252808,
+        -0.9856044054031372,
+        -235.0
+      ],
+      [
+        -9.028320313575477e-10,
+        0.9891673922538757,
+        0.14679203927516937,
+        67.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "camera_matrix_ship_local": [
+      [
+        0.6642653942108154,
+        -0.008298628032207489,
+        0.05592082440853119,
+        13.333333969116211
+      ],
+      [
+        0.05653322860598564,
+        0.09750887006521225,
+        -0.6570696234703064,
+        -156.6666717529297
+      ],
+      [
+        -6.018880394087489e-10,
+        0.6594449281692505,
+        0.09786136448383331,
+        30.666667938232422
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "limits": "Single starboard aspect. Polygon sampled visibility; generated internal registration requires review. Retains port finish and neutral hidden-face fallback."
+  },
+  "yard": {
+    "source": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\port-refinement\\port-refinement.blend",
+    "source_coordinate_translation": [
+      850.0,
+      240.0,
+      -0.4000000059604645
+    ],
+    "source_inverse_root_discarded": true,
+    "reused_objects": [
+      "PORT TRAFFIC | port utility van tire.003",
+      "PORT TRAFFIC | port utility van tire.002",
+      "PORT TRAFFIC | port utility van tire.001",
+      "PORT TRAFFIC | port utility van tire",
+      "PORT TRAFFIC | port utility van service body",
+      "PORT TRAFFIC | port utility van recessed latch.005",
+      "PORT TRAFFIC | port utility van recessed latch.004",
+      "PORT TRAFFIC | port utility van recessed latch.003",
+      "PORT TRAFFIC | port utility van recessed latch.002",
+      "PORT TRAFFIC | port utility van recessed latch.001",
+      "PORT TRAFFIC | port utility van recessed latch",
+      "PORT TRAFFIC | port utility van recessed hub.003",
+      "PORT TRAFFIC | port utility van recessed hub.002",
+      "PORT TRAFFIC | port utility van recessed hub.001",
+      "PORT TRAFFIC | port utility van recessed hub",
+      "PORT TRAFFIC | port utility van frame",
+      "PORT TRAFFIC | port utility van compartment door.005",
+      "PORT TRAFFIC | port utility van compartment door.004",
+      "PORT TRAFFIC | port utility van compartment door.003",
+      "PORT TRAFFIC | port utility van compartment door.002",
+      "PORT TRAFFIC | port utility van compartment door.001",
+      "PORT TRAFFIC | port utility van compartment door",
+      "PORT TRAFFIC | port utility van cab work lamp.001",
+      "PORT TRAFFIC | port utility van cab work lamp",
+      "PORT TRAFFIC | port utility van cab side glazing.001",
+      "PORT TRAFFIC | port utility van cab side glazing",
+      "PORT TRAFFIC | port utility van cab mirror arm.001",
+      "PORT TRAFFIC | port utility van cab mirror arm",
+      "PORT TRAFFIC | port utility van cab impact bumper",
+      "PORT TRAFFIC | port utility van cab front windshield",
+      "PORT TRAFFIC | port utility van cab door lower.001",
+      "PORT TRAFFIC | port utility van cab door lower",
+      "PORT TRAFFIC | port utility van cab access step.001",
+      "PORT TRAFFIC | port utility van cab access step",
+      "PORT TRAFFIC | port utility van cab",
+      "PORT TRAFFIC | port utility van axle.001",
+      "PORT TRAFFIC | port utility van axle",
+      "PORT TRAFFIC | port utility van",
+      "PORT TRAFFIC | maintenance carrier tire.003",
+      "PORT TRAFFIC | maintenance carrier tire.002",
+      "PORT TRAFFIC | maintenance carrier tire.001",
+      "PORT TRAFFIC | maintenance carrier tire",
+      "PORT TRAFFIC | maintenance carrier service body",
+      "PORT TRAFFIC | maintenance carrier secured pump housing",
+      "PORT TRAFFIC | maintenance carrier roof equipment rack",
+      "PORT TRAFFIC | maintenance carrier recessed latch.005",
+      "PORT TRAFFIC | maintenance carrier recessed latch.004",
+      "PORT TRAFFIC | maintenance carrier recessed latch.003",
+      "PORT TRAFFIC | maintenance carrier recessed latch.002",
+      "PORT TRAFFIC | maintenance carrier recessed latch.001",
+      "PORT TRAFFIC | maintenance carrier recessed latch",
+      "PORT TRAFFIC | maintenance carrier recessed hub.003",
+      "PORT TRAFFIC | maintenance carrier recessed hub.002",
+      "PORT TRAFFIC | maintenance carrier recessed hub.001",
+      "PORT TRAFFIC | maintenance carrier recessed hub",
+      "PORT TRAFFIC | maintenance carrier frame",
+      "PORT TRAFFIC | maintenance carrier compartment door.005",
+      "PORT TRAFFIC | maintenance carrier compartment door.004",
+      "PORT TRAFFIC | maintenance carrier compartment door.003",
+      "PORT TRAFFIC | maintenance carrier compartment door.002",
+      "PORT TRAFFIC | maintenance carrier compartment door.001",
+      "PORT TRAFFIC | maintenance carrier compartment door",
+      "PORT TRAFFIC | maintenance carrier cab work lamp.001",
+      "PORT TRAFFIC | maintenance carrier cab work lamp",
+      "PORT TRAFFIC | maintenance carrier cab side glazing.001",
+      "PORT TRAFFIC | maintenance carrier cab side glazing",
+      "PORT TRAFFIC | maintenance carrier cab mirror arm.001",
+      "PORT TRAFFIC | maintenance carrier cab mirror arm",
+      "PORT TRAFFIC | maintenance carrier cab impact bumper",
+      "PORT TRAFFIC | maintenance carrier cab front windshield",
+      "PORT TRAFFIC | maintenance carrier cab door lower.001",
+      "PORT TRAFFIC | maintenance carrier cab door lower",
+      "PORT TRAFFIC | maintenance carrier cab access step.001",
+      "PORT TRAFFIC | maintenance carrier cab access step",
+      "PORT TRAFFIC | maintenance carrier cab",
+      "PORT TRAFFIC | maintenance carrier axle.001",
+      "PORT TRAFFIC | maintenance carrier axle",
+      "PORT TRAFFIC | maintenance carrier",
+      "PORT TRAFFIC | articulated freight tug tractor chassis",
+      "PORT TRAFFIC | articulated freight tug tire.007",
+      "PORT TRAFFIC | articulated freight tug tire.006",
+      "PORT TRAFFIC | articulated freight tug tire.005",
+      "PORT TRAFFIC | articulated freight tug tire.004",
+      "PORT TRAFFIC | articulated freight tug tire.003",
+      "PORT TRAFFIC | articulated freight tug tire.002",
+      "PORT TRAFFIC | articulated freight tug tire.001",
+      "PORT TRAFFIC | articulated freight tug tire",
+      "PORT TRAFFIC | articulated freight tug strapped industrial cargo.001",
+      "PORT TRAFFIC | articulated freight tug strapped industrial cargo",
+      "PORT TRAFFIC | articulated freight tug restraint band.003",
+      "PORT TRAFFIC | articulated freight tug restraint band.002",
+      "PORT TRAFFIC | articulated freight tug restraint band.001",
+      "PORT TRAFFIC | articulated freight tug restraint band",
+      "PORT TRAFFIC | articulated freight tug recessed hub.007",
+      "PORT TRAFFIC | articulated freight tug recessed hub.006",
+      "PORT TRAFFIC | articulated freight tug recessed hub.005",
+      "PORT TRAFFIC | articulated freight tug recessed hub.004",
+      "PORT TRAFFIC | articulated freight tug recessed hub.003",
+      "PORT TRAFFIC | articulated freight tug recessed hub.002",
+      "PORT TRAFFIC | articulated freight tug recessed hub.001",
+      "PORT TRAFFIC | articulated freight tug recessed hub",
+      "PORT TRAFFIC | articulated freight tug lowbed trailer",
+      "PORT TRAFFIC | articulated freight tug engine cowling",
+      "PORT TRAFFIC | articulated freight tug cooling slat.007",
+      "PORT TRAFFIC | articulated freight tug cooling slat.006",
+      "PORT TRAFFIC | articulated freight tug cooling slat.005",
+      "PORT TRAFFIC | articulated freight tug cooling slat.004",
+      "PORT TRAFFIC | articulated freight tug cooling slat.003",
+      "PORT TRAFFIC | articulated freight tug cooling slat.002",
+      "PORT TRAFFIC | articulated freight tug cooling slat.001",
+      "PORT TRAFFIC | articulated freight tug cooling slat",
+      "PORT TRAFFIC | articulated freight tug cargo machinery skid.001",
+      "PORT TRAFFIC | articulated freight tug cargo machinery skid",
+      "PORT TRAFFIC | articulated freight tug cab work lamp.001",
+      "PORT TRAFFIC | articulated freight tug cab work lamp",
+      "PORT TRAFFIC | articulated freight tug cab side glazing.001",
+      "PORT TRAFFIC | articulated freight tug cab side glazing",
+      "PORT TRAFFIC | articulated freight tug cab mirror arm.001",
+      "PORT TRAFFIC | articulated freight tug cab mirror arm",
+      "PORT TRAFFIC | articulated freight tug cab impact bumper",
+      "PORT TRAFFIC | articulated freight tug cab front windshield",
+      "PORT TRAFFIC | articulated freight tug cab door lower.001",
+      "PORT TRAFFIC | articulated freight tug cab door lower",
+      "PORT TRAFFIC | articulated freight tug cab access step.001",
+      "PORT TRAFFIC | articulated freight tug cab access step",
+      "PORT TRAFFIC | articulated freight tug cab",
+      "PORT TRAFFIC | articulated freight tug axle.003",
+      "PORT TRAFFIC | articulated freight tug axle.002",
+      "PORT TRAFFIC | articulated freight tug axle.001",
+      "PORT TRAFFIC | articulated freight tug axle",
+      "PORT TRAFFIC | articulated freight tug articulated drawbar",
+      "PORT TRAFFIC | articulated freight tug",
+      "DISTRICT | yard light mast.003",
+      "DISTRICT | yard light mast.002",
+      "DISTRICT | yard light mast.001",
+      "DISTRICT | yard light mast",
+      "DISTRICT | yard light head.003",
+      "DISTRICT | yard light head.002",
+      "DISTRICT | yard light head.001",
+      "DISTRICT | yard light head",
+      "DISTRICT | yard light arm.003",
+      "DISTRICT | yard light arm.002",
+      "DISTRICT | yard light arm.001",
+      "DISTRICT | yard light arm",
+      "DISTRICT | utility tank 3",
+      "DISTRICT | utility tank 2",
+      "DISTRICT | utility tank 1",
+      "DISTRICT | utility tank 0",
+      "DISTRICT | utilities pump house",
+      "DISTRICT | tank shallow domed cap 3",
+      "DISTRICT | tank shallow domed cap 2",
+      "DISTRICT | tank shallow domed cap 1",
+      "DISTRICT | tank shallow domed cap 0",
+      "DISTRICT | tank service valve 3",
+      "DISTRICT | tank service valve 2",
+      "DISTRICT | tank service valve 1",
+      "DISTRICT | tank service valve 0",
+      "DISTRICT | tank rim 3",
+      "DISTRICT | tank rim 2",
+      "DISTRICT | tank rim 1",
+      "DISTRICT | tank rim 0",
+      "DISTRICT | tank inspection ladder.003",
+      "DISTRICT | tank inspection ladder.002",
+      "DISTRICT | tank inspection ladder.001",
+      "DISTRICT | tank inspection ladder",
+      "DISTRICT | tank connecting pipe.001",
+      "DISTRICT | tank connecting pipe",
+      "DISTRICT | tank circumferential band.007",
+      "DISTRICT | tank circumferential band.006",
+      "DISTRICT | tank circumferential band.005",
+      "DISTRICT | tank circumferential band.004",
+      "DISTRICT | tank circumferential band.003",
+      "DISTRICT | tank circumferential band.002",
+      "DISTRICT | tank circumferential band.001",
+      "DISTRICT | tank circumferential band",
+      "DISTRICT | service spine pipe.001",
+      "DISTRICT | service spine pipe",
+      "DISTRICT | service pipe bridge pier.004",
+      "DISTRICT | service pipe bridge pier.003",
+      "DISTRICT | service pipe bridge pier.002",
+      "DISTRICT | service pipe bridge pier.001",
+      "DISTRICT | service pipe bridge pier",
+      "DISTRICT | repair stores projecting roof",
+      "DISTRICT | repair stores door recess.001",
+      "DISTRICT | repair stores door recess",
+      "DISTRICT | repair stores door jamb.003",
+      "DISTRICT | repair stores door jamb.002",
+      "DISTRICT | repair stores door jamb.001",
+      "DISTRICT | repair stores door jamb",
+      "DISTRICT | repair stores door canopy.001",
+      "DISTRICT | repair stores door canopy",
+      "DISTRICT | repair stores",
+      "DISTRICT | repair machine annex",
+      "DISTRICT | repair hangar chamfered envelope",
+      "DISTRICT | repair bay recess.002",
+      "DISTRICT | repair bay recess.001",
+      "DISTRICT | repair bay recess",
+      "DISTRICT | repair bay jamb.005",
+      "DISTRICT | repair bay jamb.004",
+      "DISTRICT | repair bay jamb.003",
+      "DISTRICT | repair bay jamb.002",
+      "DISTRICT | repair bay jamb.001",
+      "DISTRICT | repair bay jamb",
+      "DISTRICT | repair bay canopy.002",
+      "DISTRICT | repair bay canopy.001",
+      "DISTRICT | repair bay canopy",
+      "DISTRICT | rear utility station",
+      "DISTRICT | rear utility spine pipe.001",
+      "DISTRICT | rear utility spine pipe",
+      "DISTRICT | rear utility spine pier.005",
+      "DISTRICT | rear utility spine pier.004",
+      "DISTRICT | rear utility spine pier.003",
+      "DISTRICT | rear utility spine pier.002",
+      "DISTRICT | rear utility spine pier.001",
+      "DISTRICT | rear utility spine pier",
+      "DISTRICT | rear tank small valve.005",
+      "DISTRICT | rear tank small valve.004",
+      "DISTRICT | rear tank small valve.003",
+      "DISTRICT | rear tank small valve.002",
+      "DISTRICT | rear tank small valve.001",
+      "DISTRICT | rear tank small valve",
+      "DISTRICT | rear tank shallow dome.005",
+      "DISTRICT | rear tank shallow dome.004",
+      "DISTRICT | rear tank shallow dome.003",
+      "DISTRICT | rear tank shallow dome.002",
+      "DISTRICT | rear tank shallow dome.001",
+      "DISTRICT | rear tank shallow dome",
+      "DISTRICT | rear tank roof rim.005",
+      "DISTRICT | rear tank roof rim.004",
+      "DISTRICT | rear tank roof rim.003",
+      "DISTRICT | rear tank roof rim.002",
+      "DISTRICT | rear tank roof rim.001",
+      "DISTRICT | rear tank roof rim",
+      "DISTRICT | rear tank band.011",
+      "DISTRICT | rear tank band.010",
+      "DISTRICT | rear tank band.009",
+      "DISTRICT | rear tank band.008",
+      "DISTRICT | rear tank band.007",
+      "DISTRICT | rear tank band.006",
+      "DISTRICT | rear tank band.005",
+      "DISTRICT | rear tank band.004",
+      "DISTRICT | rear tank band.003",
+      "DISTRICT | rear tank band.002",
+      "DISTRICT | rear tank band.001",
+      "DISTRICT | rear tank band",
+      "DISTRICT | rear shelter roof.001",
+      "DISTRICT | rear shelter roof",
+      "DISTRICT | rear maintenance shops walls",
+      "DISTRICT | rear maintenance shops raised roof",
+      "DISTRICT | rear maintenance shops loading recess.002",
+      "DISTRICT | rear maintenance shops loading recess.001",
+      "DISTRICT | rear maintenance shops loading recess",
+      "DISTRICT | rear maintenance shops loading jamb.005",
+      "DISTRICT | rear maintenance shops loading jamb.004",
+      "DISTRICT | rear maintenance shops loading jamb.003",
+      "DISTRICT | rear maintenance shops loading jamb.002",
+      "DISTRICT | rear maintenance shops loading jamb.001",
+      "DISTRICT | rear maintenance shops loading jamb",
+      "DISTRICT | rear maintenance shops loading canopy.002",
+      "DISTRICT | rear maintenance shops loading canopy.001",
+      "DISTRICT | rear maintenance shops loading canopy",
+      "DISTRICT | rear maintenance shops end buttress.001",
+      "DISTRICT | rear maintenance shops end buttress",
+      "DISTRICT | rear handling gantry leg.005",
+      "DISTRICT | rear handling gantry leg.004",
+      "DISTRICT | rear handling gantry leg.003",
+      "DISTRICT | rear handling gantry leg.002",
+      "DISTRICT | rear handling gantry leg.001",
+      "DISTRICT | rear handling gantry leg",
+      "DISTRICT | rear handling gantry girder.002",
+      "DISTRICT | rear handling gantry girder.001",
+      "DISTRICT | rear handling gantry girder",
+      "DISTRICT | rear gantry machinery.002",
+      "DISTRICT | rear gantry machinery.001",
+      "DISTRICT | rear gantry machinery",
+      "DISTRICT | rear gantry ground brace.005",
+      "DISTRICT | rear gantry ground brace.004",
+      "DISTRICT | rear gantry ground brace.003",
+      "DISTRICT | rear gantry ground brace.002",
+      "DISTRICT | rear gantry ground brace.001",
+      "DISTRICT | rear gantry ground brace",
+      "DISTRICT | rear freight container.046",
+      "DISTRICT | rear freight container.045",
+      "DISTRICT | rear freight container.044",
+      "DISTRICT | rear freight container.043",
+      "DISTRICT | rear freight container.042",
+      "DISTRICT | rear freight container.041",
+      "DISTRICT | rear freight container.040",
+      "DISTRICT | rear freight container.039",
+      "DISTRICT | rear freight container.038",
+      "DISTRICT | rear freight container.037",
+      "DISTRICT | rear freight container.036",
+      "DISTRICT | rear freight container.035",
+      "DISTRICT | rear freight container.034",
+      "DISTRICT | rear freight container.033",
+      "DISTRICT | rear freight container.032",
+      "DISTRICT | rear freight container.031",
+      "DISTRICT | rear freight container.030",
+      "DISTRICT | rear freight container.029",
+      "DISTRICT | rear freight container.028",
+      "DISTRICT | rear freight container.027",
+      "DISTRICT | rear freight container.026",
+      "DISTRICT | rear freight container.025",
+      "DISTRICT | rear freight container.024",
+      "DISTRICT | rear freight container.023",
+      "DISTRICT | rear freight container.022",
+      "DISTRICT | rear freight container.021",
+      "DISTRICT | rear freight container.020",
+      "DISTRICT | rear freight container.019",
+      "DISTRICT | rear freight container.018",
+      "DISTRICT | rear freight container.017",
+      "DISTRICT | rear freight container.016",
+      "DISTRICT | rear freight container.015",
+      "DISTRICT | rear freight container.014",
+      "DISTRICT | rear freight container.013",
+      "DISTRICT | rear freight container.012",
+      "DISTRICT | rear freight container.011",
+      "DISTRICT | rear freight container.010",
+      "DISTRICT | rear freight container.009",
+      "DISTRICT | rear freight container.008",
+      "DISTRICT | rear freight container.007",
+      "DISTRICT | rear freight container.006",
+      "DISTRICT | rear freight container.005",
+      "DISTRICT | rear freight container.004",
+      "DISTRICT | rear freight container.003",
+      "DISTRICT | rear freight container.002",
+      "DISTRICT | rear freight container.001",
+      "DISTRICT | rear freight container",
+      "DISTRICT | rear dispatch shelter.001",
+      "DISTRICT | rear dispatch shelter",
+      "DISTRICT | rear crane cable.002",
+      "DISTRICT | rear crane cable.001",
+      "DISTRICT | rear crane cable",
+      "DISTRICT | rear bulk tank 5",
+      "DISTRICT | rear bulk tank 4",
+      "DISTRICT | rear bulk tank 3",
+      "DISTRICT | rear bulk tank 2",
+      "DISTRICT | rear bulk tank 1",
+      "DISTRICT | rear bulk tank 0",
+      "DISTRICT | port cold stores walls",
+      "DISTRICT | port cold stores raised roof",
+      "DISTRICT | port cold stores loading recess.002",
+      "DISTRICT | port cold stores loading recess.001",
+      "DISTRICT | port cold stores loading recess",
+      "DISTRICT | port cold stores loading jamb.005",
+      "DISTRICT | port cold stores loading jamb.004",
+      "DISTRICT | port cold stores loading jamb.003",
+      "DISTRICT | port cold stores loading jamb.002",
+      "DISTRICT | port cold stores loading jamb.001",
+      "DISTRICT | port cold stores loading jamb",
+      "DISTRICT | port cold stores loading canopy.002",
+      "DISTRICT | port cold stores loading canopy.001",
+      "DISTRICT | port cold stores loading canopy",
+      "DISTRICT | port cold stores end buttress.001",
+      "DISTRICT | port cold stores end buttress",
+      "DISTRICT | pipe rack column.003",
+      "DISTRICT | pipe rack column.002",
+      "DISTRICT | pipe rack column.001",
+      "DISTRICT | pipe rack column",
+      "DISTRICT | heavy overhaul hall walls",
+      "DISTRICT | heavy overhaul hall raised roof",
+      "DISTRICT | heavy overhaul hall loading recess.002",
+      "DISTRICT | heavy overhaul hall loading recess.001",
+      "DISTRICT | heavy overhaul hall loading recess",
+      "DISTRICT | heavy overhaul hall loading jamb.005",
+      "DISTRICT | heavy overhaul hall loading jamb.004",
+      "DISTRICT | heavy overhaul hall loading jamb.003",
+      "DISTRICT | heavy overhaul hall loading jamb.002",
+      "DISTRICT | heavy overhaul hall loading jamb.001",
+      "DISTRICT | heavy overhaul hall loading jamb",
+      "DISTRICT | heavy overhaul hall loading canopy.002",
+      "DISTRICT | heavy overhaul hall loading canopy.001",
+      "DISTRICT | heavy overhaul hall loading canopy",
+      "DISTRICT | heavy overhaul hall end buttress.001",
+      "DISTRICT | heavy overhaul hall end buttress",
+      "DISTRICT | hangar external load buttress.007",
+      "DISTRICT | hangar external load buttress.006",
+      "DISTRICT | hangar external load buttress.005",
+      "DISTRICT | hangar external load buttress.004",
+      "DISTRICT | hangar external load buttress.003",
+      "DISTRICT | hangar external load buttress.002",
+      "DISTRICT | hangar external load buttress.001",
+      "DISTRICT | hangar external load buttress",
+      "DISTRICT | hangar clerestory",
+      "DISTRICT | freight transfer hall",
+      "DISTRICT | freight sawtooth roof 04",
+      "DISTRICT | freight sawtooth roof 03",
+      "DISTRICT | freight sawtooth roof 02",
+      "DISTRICT | freight sawtooth roof 01",
+      "DISTRICT | freight sawtooth roof 00",
+      "DISTRICT | freight roof light 04",
+      "DISTRICT | freight roof light 03",
+      "DISTRICT | freight roof light 02",
+      "DISTRICT | freight roof light 01",
+      "DISTRICT | freight roof light 00",
+      "DISTRICT | freight roof extractor.003",
+      "DISTRICT | freight roof extractor.002",
+      "DISTRICT | freight roof extractor.001",
+      "DISTRICT | freight roof extractor",
+      "DISTRICT | freight dock recess.007",
+      "DISTRICT | freight dock recess.006",
+      "DISTRICT | freight dock recess.005",
+      "DISTRICT | freight dock recess.004",
+      "DISTRICT | freight dock recess.003",
+      "DISTRICT | freight dock recess.002",
+      "DISTRICT | freight dock recess.001",
+      "DISTRICT | freight dock recess",
+      "DISTRICT | freight dock jamb.015",
+      "DISTRICT | freight dock jamb.014",
+      "DISTRICT | freight dock jamb.013",
+      "DISTRICT | freight dock jamb.012",
+      "DISTRICT | freight dock jamb.011",
+      "DISTRICT | freight dock jamb.010",
+      "DISTRICT | freight dock jamb.009",
+      "DISTRICT | freight dock jamb.008",
+      "DISTRICT | freight dock jamb.007",
+      "DISTRICT | freight dock jamb.006",
+      "DISTRICT | freight dock jamb.005",
+      "DISTRICT | freight dock jamb.004",
+      "DISTRICT | freight dock jamb.003",
+      "DISTRICT | freight dock jamb.002",
+      "DISTRICT | freight dock jamb.001",
+      "DISTRICT | freight dock jamb",
+      "DISTRICT | freight dock canopy.007",
+      "DISTRICT | freight dock canopy.006",
+      "DISTRICT | freight dock canopy.005",
+      "DISTRICT | freight dock canopy.004",
+      "DISTRICT | freight dock canopy.003",
+      "DISTRICT | freight dock canopy.002",
+      "DISTRICT | freight dock canopy.001",
+      "DISTRICT | freight dock canopy",
+      "DISTRICT | electrical workshop projecting roof",
+      "DISTRICT | electrical workshop door recess.001",
+      "DISTRICT | electrical workshop door recess",
+      "DISTRICT | electrical workshop door jamb.003",
+      "DISTRICT | electrical workshop door jamb.002",
+      "DISTRICT | electrical workshop door jamb.001",
+      "DISTRICT | electrical workshop door jamb",
+      "DISTRICT | electrical workshop door canopy.001",
+      "DISTRICT | electrical workshop door canopy",
+      "DISTRICT | electrical workshop",
+      "DISTRICT | east control heavy canopy",
+      "DISTRICT | east control glass room",
+      "DISTRICT | east control angled support.001",
+      "DISTRICT | east control angled support",
+      "DISTRICT | east communications second step",
+      "DISTRICT | east communications equipment base",
+      "DISTRICT | east communications antenna crossarm.002",
+      "DISTRICT | east communications antenna crossarm.001",
+      "DISTRICT | east communications antenna crossarm",
+      "DISTRICT | east communications antenna",
+      "DISTRICT | east communications aerial terminal.005",
+      "DISTRICT | east communications aerial terminal.004",
+      "DISTRICT | east communications aerial terminal.003",
+      "DISTRICT | east communications aerial terminal.002",
+      "DISTRICT | east communications aerial terminal.001",
+      "DISTRICT | east communications aerial terminal",
+      "DISTRICT | dispatch garage projecting roof",
+      "DISTRICT | dispatch garage door recess.001",
+      "DISTRICT | dispatch garage door recess",
+      "DISTRICT | dispatch garage door jamb.003",
+      "DISTRICT | dispatch garage door jamb.002",
+      "DISTRICT | dispatch garage door jamb.001",
+      "DISTRICT | dispatch garage door jamb",
+      "DISTRICT | dispatch garage door canopy.001",
+      "DISTRICT | dispatch garage door canopy",
+      "DISTRICT | dispatch garage",
+      "DISTRICT | customs second floor",
+      "DISTRICT | customs administration base",
+      "DISTRICT | control tower pedestal",
+      "DISTRICT | control room heavy roof",
+      "DISTRICT | control room cantilever",
+      "DISTRICT | control antenna",
+      "DISTRICT | container r3 c7 level1",
+      "DISTRICT | container r3 c7 level0",
+      "DISTRICT | container r3 c6 level0",
+      "DISTRICT | container r3 c5 level2",
+      "DISTRICT | container r3 c5 level1",
+      "DISTRICT | container r3 c5 level0",
+      "DISTRICT | container r3 c4 level1",
+      "DISTRICT | container r3 c4 level0",
+      "DISTRICT | container r3 c3 level0",
+      "DISTRICT | container r3 c2 level2",
+      "DISTRICT | container r3 c2 level1",
+      "DISTRICT | container r3 c2 level0",
+      "DISTRICT | container r3 c1 level1",
+      "DISTRICT | container r3 c1 level0",
+      "DISTRICT | container r3 c0 level0",
+      "DISTRICT | container r2 c5 level1",
+      "DISTRICT | container r2 c5 level0",
+      "DISTRICT | container r2 c4 level0",
+      "DISTRICT | container r2 c3 level2",
+      "DISTRICT | container r2 c3 level1",
+      "DISTRICT | container r2 c3 level0",
+      "DISTRICT | container r2 c2 level1",
+      "DISTRICT | container r2 c2 level0",
+      "DISTRICT | container r2 c1 level0",
+      "DISTRICT | container r2 c0 level2",
+      "DISTRICT | container r2 c0 level1",
+      "DISTRICT | container r2 c0 level0",
+      "DISTRICT | container r1 c7 level2",
+      "DISTRICT | container r1 c7 level1",
+      "DISTRICT | container r1 c7 level0",
+      "DISTRICT | container r1 c6 level1",
+      "DISTRICT | container r1 c6 level0",
+      "DISTRICT | container r1 c5 level0",
+      "DISTRICT | container r1 c4 level2",
+      "DISTRICT | container r1 c4 level1",
+      "DISTRICT | container r1 c4 level0",
+      "DISTRICT | container r1 c3 level1",
+      "DISTRICT | container r1 c3 level0",
+      "DISTRICT | container r1 c2 level0",
+      "DISTRICT | container r1 c1 level2",
+      "DISTRICT | container r1 c1 level1",
+      "DISTRICT | container r1 c1 level0",
+      "DISTRICT | container r1 c0 level1",
+      "DISTRICT | container r1 c0 level0",
+      "DISTRICT | container r0 c7 level1",
+      "DISTRICT | container r0 c7 level0",
+      "DISTRICT | container r0 c6 level0",
+      "DISTRICT | container r0 c5 level2",
+      "DISTRICT | container r0 c5 level1",
+      "DISTRICT | container r0 c5 level0",
+      "DISTRICT | container r0 c4 level1",
+      "DISTRICT | container r0 c4 level0",
+      "DISTRICT | container r0 c3 level0",
+      "DISTRICT | container r0 c2 level2",
+      "DISTRICT | container r0 c2 level1",
+      "DISTRICT | container r0 c2 level0",
+      "DISTRICT | container r0 c1 level1",
+      "DISTRICT | container r0 c1 level0",
+      "DISTRICT | container r0 c0 level0",
+      "DISTRICT | container end stiffener.176",
+      "DISTRICT | container end stiffener.175",
+      "DISTRICT | container end stiffener.174",
+      "DISTRICT | container end stiffener.173",
+      "DISTRICT | container end stiffener.172",
+      "DISTRICT | container end stiffener.171",
+      "DISTRICT | container end stiffener.170",
+      "DISTRICT | container end stiffener.169",
+      "DISTRICT | container end stiffener.168",
+      "DISTRICT | container end stiffener.167",
+      "DISTRICT | container end stiffener.166",
+      "DISTRICT | container end stiffener.165",
+      "DISTRICT | container end stiffener.164",
+      "DISTRICT | container end stiffener.163",
+      "DISTRICT | container end stiffener.162",
+      "DISTRICT | container end stiffener.161",
+      "DISTRICT | container end stiffener.160",
+      "DISTRICT | container end stiffener.159",
+      "DISTRICT | container end stiffener.158",
+      "DISTRICT | container end stiffener.157",
+      "DISTRICT | container end stiffener.156",
+      "DISTRICT | container end stiffener.155",
+      "DISTRICT | container end stiffener.154",
+      "DISTRICT | container end stiffener.153",
+      "DISTRICT | container end stiffener.152",
+      "DISTRICT | container end stiffener.151",
+      "DISTRICT | container end stiffener.150",
+      "DISTRICT | container end stiffener.149",
+      "DISTRICT | container end stiffener.148",
+      "DISTRICT | container end stiffener.147",
+      "DISTRICT | container end stiffener.146",
+      "DISTRICT | container end stiffener.145",
+      "DISTRICT | container end stiffener.144",
+      "DISTRICT | container end stiffener.143",
+      "DISTRICT | container end stiffener.142",
+      "DISTRICT | container end stiffener.141",
+      "DISTRICT | container end stiffener.140",
+      "DISTRICT | container end stiffener.139",
+      "DISTRICT | container end stiffener.138",
+      "DISTRICT | container end stiffener.137",
+      "DISTRICT | container end stiffener.136",
+      "DISTRICT | container end stiffener.135",
+      "DISTRICT | container end stiffener.134",
+      "DISTRICT | container end stiffener.133",
+      "DISTRICT | container end stiffener.132",
+      "DISTRICT | container end stiffener.131",
+      "DISTRICT | container end stiffener.130",
+      "DISTRICT | container end stiffener.129",
+      "DISTRICT | container end stiffener.128",
+      "DISTRICT | container end stiffener.127",
+      "DISTRICT | container end stiffener.126",
+      "DISTRICT | container end stiffener.125",
+      "DISTRICT | container end stiffener.124",
+      "DISTRICT | container end stiffener.123",
+      "DISTRICT | container end stiffener.122",
+      "DISTRICT | container end stiffener.121",
+      "DISTRICT | container end stiffener.120",
+      "DISTRICT | container end stiffener.119",
+      "DISTRICT | container end stiffener.118",
+      "DISTRICT | container end stiffener.117",
+      "DISTRICT | container end stiffener.116",
+      "DISTRICT | container end stiffener.115",
+      "DISTRICT | container end stiffener.114",
+      "DISTRICT | container end stiffener.113",
+      "DISTRICT | container end stiffener.112",
+      "DISTRICT | container end stiffener.111",
+      "DISTRICT | container end stiffener.110",
+      "DISTRICT | container end stiffener.109",
+      "DISTRICT | container end stiffener.108",
+      "DISTRICT | container end stiffener.107",
+      "DISTRICT | container end stiffener.106",
+      "DISTRICT | container end stiffener.105",
+      "DISTRICT | container end stiffener.104",
+      "DISTRICT | container end stiffener.103",
+      "DISTRICT | container end stiffener.102",
+      "DISTRICT | container end stiffener.101",
+      "DISTRICT | container end stiffener.100",
+      "DISTRICT | container end stiffener.099",
+      "DISTRICT | container end stiffener.098",
+      "DISTRICT | container end stiffener.097",
+      "DISTRICT | container end stiffener.096",
+      "DISTRICT | container end stiffener.095",
+      "DISTRICT | container end stiffener.094",
+      "DISTRICT | container end stiffener.093",
+      "DISTRICT | container end stiffener.092",
+      "DISTRICT | container end stiffener.091",
+      "DISTRICT | container end stiffener.090",
+      "DISTRICT | container end stiffener.089",
+      "DISTRICT | container end stiffener.088",
+      "DISTRICT | container end stiffener.087",
+      "DISTRICT | container end stiffener.086",
+      "DISTRICT | container end stiffener.085",
+      "DISTRICT | container end stiffener.084",
+      "DISTRICT | container end stiffener.083",
+      "DISTRICT | container end stiffener.082",
+      "DISTRICT | container end stiffener.081",
+      "DISTRICT | container end stiffener.080",
+      "DISTRICT | container end stiffener.079",
+      "DISTRICT | container end stiffener.078",
+      "DISTRICT | container end stiffener.077",
+      "DISTRICT | container end stiffener.076",
+      "DISTRICT | container end stiffener.075",
+      "DISTRICT | container end stiffener.074",
+      "DISTRICT | container end stiffener.073",
+      "DISTRICT | container end stiffener.072",
+      "DISTRICT | container end stiffener.071",
+      "DISTRICT | container end stiffener.070",
+      "DISTRICT | container end stiffener.069",
+      "DISTRICT | container end stiffener.068",
+      "DISTRICT | container end stiffener.067",
+      "DISTRICT | container end stiffener.066",
+      "DISTRICT | container end stiffener.065",
+      "DISTRICT | container end stiffener.064",
+      "DISTRICT | container end stiffener.063",
+      "DISTRICT | container end stiffener.062",
+      "DISTRICT | container end stiffener.061",
+      "DISTRICT | container end stiffener.060",
+      "DISTRICT | container end stiffener.059",
+      "DISTRICT | container end stiffener.058",
+      "DISTRICT | container end stiffener.057",
+      "DISTRICT | container end stiffener.056",
+      "DISTRICT | container end stiffener.055",
+      "DISTRICT | container end stiffener.054",
+      "DISTRICT | container end stiffener.053",
+      "DISTRICT | container end stiffener.052",
+      "DISTRICT | container end stiffener.051",
+      "DISTRICT | container end stiffener.050",
+      "DISTRICT | container end stiffener.049",
+      "DISTRICT | container end stiffener.048",
+      "DISTRICT | container end stiffener.047",
+      "DISTRICT | container end stiffener.046",
+      "DISTRICT | container end stiffener.045",
+      "DISTRICT | container end stiffener.044",
+      "DISTRICT | container end stiffener.043",
+      "DISTRICT | container end stiffener.042",
+      "DISTRICT | container end stiffener.041",
+      "DISTRICT | container end stiffener.040",
+      "DISTRICT | container end stiffener.039",
+      "DISTRICT | container end stiffener.038",
+      "DISTRICT | container end stiffener.037",
+      "DISTRICT | container end stiffener.036",
+      "DISTRICT | container end stiffener.035",
+      "DISTRICT | container end stiffener.034",
+      "DISTRICT | container end stiffener.033",
+      "DISTRICT | container end stiffener.032",
+      "DISTRICT | container end stiffener.031",
+      "DISTRICT | container end stiffener.030",
+      "DISTRICT | container end stiffener.029",
+      "DISTRICT | container end stiffener.028",
+      "DISTRICT | container end stiffener.027",
+      "DISTRICT | container end stiffener.026",
+      "DISTRICT | container end stiffener.025",
+      "DISTRICT | container end stiffener.024",
+      "DISTRICT | container end stiffener.023",
+      "DISTRICT | container end stiffener.022",
+      "DISTRICT | container end stiffener.021",
+      "DISTRICT | container end stiffener.020",
+      "DISTRICT | container end stiffener.019",
+      "DISTRICT | container end stiffener.018",
+      "DISTRICT | container end stiffener.017",
+      "DISTRICT | container end stiffener.016",
+      "DISTRICT | container end stiffener.015",
+      "DISTRICT | container end stiffener.014",
+      "DISTRICT | container end stiffener.013",
+      "DISTRICT | container end stiffener.012",
+      "DISTRICT | container end stiffener.011",
+      "DISTRICT | container end stiffener.010",
+      "DISTRICT | container end stiffener.009",
+      "DISTRICT | container end stiffener.008",
+      "DISTRICT | container end stiffener.007",
+      "DISTRICT | container end stiffener.006",
+      "DISTRICT | container end stiffener.005",
+      "DISTRICT | container end stiffener.004",
+      "DISTRICT | container end stiffener.003",
+      "DISTRICT | container end stiffener.002",
+      "DISTRICT | container end stiffener.001",
+      "DISTRICT | container end stiffener",
+      "DISTRICT | clerestory glass.006",
+      "DISTRICT | clerestory glass.005",
+      "DISTRICT | clerestory glass.004",
+      "DISTRICT | clerestory glass.003",
+      "DISTRICT | clerestory glass.002",
+      "DISTRICT | clerestory glass.001",
+      "DISTRICT | clerestory glass",
+      "DISTRICT | cargo crane spreader.001",
+      "DISTRICT | cargo crane spreader",
+      "DISTRICT | cargo crane portal leg.003",
+      "DISTRICT | cargo crane portal leg.002",
+      "DISTRICT | cargo crane portal leg.001",
+      "DISTRICT | cargo crane portal leg",
+      "DISTRICT | cargo crane main girder.001",
+      "DISTRICT | cargo crane main girder",
+      "DISTRICT | cargo crane machinery.001",
+      "DISTRICT | cargo crane machinery",
+      "DISTRICT | cargo crane cables.003",
+      "DISTRICT | cargo crane cables.002",
+      "DISTRICT | cargo crane cables.001",
+      "DISTRICT | cargo crane cables",
+      "DISTRICT | cargo crane back leg.003",
+      "DISTRICT | cargo crane back leg.002",
+      "DISTRICT | cargo crane back leg.001",
+      "DISTRICT | cargo crane back leg",
+      "DISTRICT | bulk transfer depot walls",
+      "DISTRICT | bulk transfer depot raised roof",
+      "DISTRICT | bulk transfer depot loading recess.002",
+      "DISTRICT | bulk transfer depot loading recess.001",
+      "DISTRICT | bulk transfer depot loading recess",
+      "DISTRICT | bulk transfer depot loading jamb.005",
+      "DISTRICT | bulk transfer depot loading jamb.004",
+      "DISTRICT | bulk transfer depot loading jamb.003",
+      "DISTRICT | bulk transfer depot loading jamb.002",
+      "DISTRICT | bulk transfer depot loading jamb.001",
+      "DISTRICT | bulk transfer depot loading jamb",
+      "DISTRICT | bulk transfer depot loading canopy.002",
+      "DISTRICT | bulk transfer depot loading canopy.001",
+      "DISTRICT | bulk transfer depot loading canopy",
+      "DISTRICT | bulk transfer depot end buttress.001",
+      "DISTRICT | bulk transfer depot end buttress",
+      "DISTRICT | annex offset roof",
+      "DISTRICT | admin roof overhang",
+      "DISTRICT | admin recessed window.003",
+      "DISTRICT | admin recessed window.002",
+      "DISTRICT | admin recessed window.001",
+      "DISTRICT | admin recessed window"
+    ],
+    "new_objects": [
+      "LANDING YARD | partitioned precinct ground",
+      "LANDING YARD | pad external rib",
+      "LANDING YARD | foundation anchor",
+      "LANDING YARD | foundation anchor.001",
+      "LANDING YARD | pad external rib.001",
+      "LANDING YARD | foundation anchor.002",
+      "LANDING YARD | foundation anchor.003",
+      "LANDING YARD | pad horizontal reinforcement",
+      "LANDING YARD | pad horizontal reinforcement.001",
+      "LANDING YARD | pad external rib.002",
+      "LANDING YARD | foundation anchor.004",
+      "LANDING YARD | foundation anchor.005",
+      "LANDING YARD | pad external rib.003",
+      "LANDING YARD | foundation anchor.006",
+      "LANDING YARD | foundation anchor.007",
+      "LANDING YARD | pad horizontal reinforcement.002",
+      "LANDING YARD | pad horizontal reinforcement.003",
+      "LANDING YARD | pad external rib.004",
+      "LANDING YARD | foundation anchor.008",
+      "LANDING YARD | foundation anchor.009",
+      "LANDING YARD | pad external rib.005",
+      "LANDING YARD | foundation anchor.010",
+      "LANDING YARD | foundation anchor.011",
+      "LANDING YARD | pad horizontal reinforcement.004",
+      "LANDING YARD | pad horizontal reinforcement.005",
+      "LANDING YARD | pad external rib.006",
+      "LANDING YARD | foundation anchor.012",
+      "LANDING YARD | foundation anchor.013",
+      "LANDING YARD | pad external rib.007",
+      "LANDING YARD | foundation anchor.014",
+      "LANDING YARD | foundation anchor.015",
+      "LANDING YARD | pad horizontal reinforcement.006",
+      "LANDING YARD | pad horizontal reinforcement.007",
+      "LANDING YARD | service bollard foundation",
+      "LANDING YARD | service bollard",
+      "LANDING YARD | service bollard foundation.001",
+      "LANDING YARD | service bollard.001",
+      "LANDING YARD | service bollard foundation.002",
+      "LANDING YARD | service bollard.002",
+      "LANDING YARD | service bollard foundation.003",
+      "LANDING YARD | service bollard.003",
+      "LANDING YARD | service cabinet",
+      "LANDING YARD | cabinet recessed panel",
+      "LANDING YARD | cabinet ventilation louvre",
+      "LANDING YARD | cabinet ventilation louvre.001",
+      "LANDING YARD | cabinet ventilation louvre.002",
+      "LANDING YARD | cabinet ventilation louvre.003",
+      "LANDING YARD | cabinet ventilation louvre.004",
+      "LANDING YARD | cabinet ventilation louvre.005",
+      "LANDING YARD | service cabinet.001",
+      "LANDING YARD | cabinet recessed panel.001",
+      "LANDING YARD | cabinet ventilation louvre.006",
+      "LANDING YARD | cabinet ventilation louvre.007",
+      "LANDING YARD | cabinet ventilation louvre.008",
+      "LANDING YARD | cabinet ventilation louvre.009",
+      "LANDING YARD | cabinet ventilation louvre.010",
+      "LANDING YARD | cabinet ventilation louvre.011",
+      "LANDING YARD | far forest and hills",
+      "LANDING YARD | far daylight sky"
+    ],
+    "hidden_placeholders": [
+      "Jangala | continuous landform",
+      "Jangala | winding river",
+      "Jangala | far estuary",
+      "Jangala | interlocking forest canopy",
+      "Jangala | port approach canopy",
+      "Plantation | clearing 0 0",
+      "Plantation | crop 0 0 0",
+      "Plantation | crop 0 0 1",
+      "Plantation | crop 0 0 2",
+      "Plantation | crop 0 0 3",
+      "Plantation | crop 0 0 4",
+      "Plantation | clearing 0 1",
+      "Plantation | crop 0 1 0",
+      "Plantation | crop 0 1 1",
+      "Plantation | crop 0 1 2",
+      "Plantation | crop 0 1 3",
+      "Plantation | crop 0 1 4",
+      "Plantation | cross road 0",
+      "Plantation | clearing 1 0",
+      "Plantation | crop 1 0 0",
+      "Plantation | crop 1 0 1",
+      "Plantation | crop 1 0 2",
+      "Plantation | crop 1 0 3",
+      "Plantation | crop 1 0 4",
+      "Plantation | clearing 1 1",
+      "Plantation | crop 1 1 0",
+      "Plantation | crop 1 1 1",
+      "Plantation | crop 1 1 2",
+      "Plantation | crop 1 1 3",
+      "Plantation | crop 1 1 4",
+      "Plantation | cross road 1",
+      "Plantation | clearing 2 0",
+      "Plantation | crop 2 0 0",
+      "Plantation | crop 2 0 1",
+      "Plantation | crop 2 0 2",
+      "Plantation | crop 2 0 3",
+      "Plantation | crop 2 0 4",
+      "Plantation | clearing 2 1",
+      "Plantation | crop 2 1 0",
+      "Plantation | crop 2 1 1",
+      "Plantation | crop 2 1 2",
+      "Plantation | crop 2 1 3",
+      "Plantation | crop 2 1 4",
+      "Plantation | cross road 2",
+      "Plantation | clearing 3 0",
+      "Plantation | crop 3 0 0",
+      "Plantation | crop 3 0 1",
+      "Plantation | crop 3 0 2",
+      "Plantation | crop 3 0 3",
+      "Plantation | crop 3 0 4",
+      "Plantation | clearing 3 1",
+      "Plantation | crop 3 1 0",
+      "Plantation | crop 3 1 1",
+      "Plantation | crop 3 1 2",
+      "Plantation | crop 3 1 3",
+      "Plantation | crop 3 1 4",
+      "Plantation | cross road 3",
+      "Plantation | clearing 4 0",
+      "Plantation | crop 4 0 0",
+      "Plantation | crop 4 0 1",
+      "Plantation | crop 4 0 2",
+      "Plantation | crop 4 0 3",
+      "Plantation | crop 4 0 4",
+      "Plantation | clearing 4 1",
+      "Plantation | crop 4 1 0",
+      "Plantation | crop 4 1 1",
+      "Plantation | crop 4 1 2",
+      "Plantation | crop 4 1 3",
+      "Plantation | crop 4 1 4",
+      "Plantation | cross road 4",
+      "Plantation | collector road",
+      "Jangala | distant folded ridgeline",
+      "Jangala | distant storm shelf proxies",
+      "YARD_surrounding_ground",
+      "YARD_negative_X_approach",
+      "YARD_approach_center_-290",
+      "YARD_approach_center_-265",
+      "YARD_approach_center_-240",
+      "YARD_approach_center_-215",
+      "YARD_approach_center_-190",
+      "YARD_approach_center_-165",
+      "YARD_approach_center_-140",
+      "YARD_approach_center_-108",
+      "YARD_approach_center_-84",
+      "YARD_approach_center_-60",
+      "YARD_landing_boundary_-69",
+      "YARD_landing_boundary_69",
+      "YARD_landing_end_-108",
+      "YARD_landing_end_108",
+      "YARD_shed_0",
+      "YARD_shed_roof_0",
+      "YARD_shed_door_0",
+      "YARD_shed_1",
+      "YARD_shed_roof_1",
+      "YARD_shed_door_1",
+      "YARD_shed_2",
+      "YARD_shed_roof_2",
+      "YARD_shed_door_2",
+      "YARD_shed_3",
+      "YARD_shed_roof_3",
+      "YARD_shed_door_3",
+      "YARD_crane_base_0",
+      "YARD_crane_mast_0",
+      "YARD_crane_boom_0",
+      "YARD_crane_cable_0",
+      "YARD_crane_base_1",
+      "YARD_crane_mast_1",
+      "YARD_crane_boom_1",
+      "YARD_crane_cable_1",
+      "Port district shed",
+      "Port district roof",
+      "Port district shed.001",
+      "Port district roof.001",
+      "Port district shed.002",
+      "Port district roof.002",
+      "Port district shed.003",
+      "Port district roof.003",
+      "Port district shed.004",
+      "Port district roof.004",
+      "Port district shed.005",
+      "Port district roof.005",
+      "Port district shed.006",
+      "Port district roof.006",
+      "Port district shed.007",
+      "Port district roof.007",
+      "Port district shed.008",
+      "Port district roof.008",
+      "Port district shed.009",
+      "Port district roof.009",
+      "Port district shed.010",
+      "Port district roof.010",
+      "Port district shed.011",
+      "Port district roof.011",
+      "Port district shed.012",
+      "Port district roof.012",
+      "Port district shed.013",
+      "Port district roof.013",
+      "Port district shed.014",
+      "Port district roof.014",
+      "Port district shed.015",
+      "Port district roof.015",
+      "Port district shed.016",
+      "Port district roof.016",
+      "Port district shed.017",
+      "Port district roof.017",
+      "Port district shed.018",
+      "Port district roof.018",
+      "Port district shed.019",
+      "Port district roof.019",
+      "Port district shed.020",
+      "Port district roof.020",
+      "Port district shed.021",
+      "Port district roof.021",
+      "Port district shed.022",
+      "Port district roof.022",
+      "Port district shed.023",
+      "Port district roof.023",
+      "Port district shed.024",
+      "Port district roof.024",
+      "Port district shed.025",
+      "Port district roof.025",
+      "Port district shed.026",
+      "Port district roof.026",
+      "Port district freight road",
+      "Port communications tower",
+      "Port tower crossarm",
+      "Port communications tower.001",
+      "Port tower crossarm.001",
+      "Port communications tower.002",
+      "Port tower crossarm.002",
+      "Freight vehicle 12m",
+      "Freight vehicle 12m.001",
+      "Freight vehicle 12m.002",
+      "Freight vehicle 12m.003",
+      "SCALE STUDY ONLY | six-seat boat 12m",
+      "SCALE STUDY ONLY | boat nose"
+    ],
+    "restored_atlas_material_slots": 22,
+    "contact_transforms": {
+      "YARD_cradle_rail_-15": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          9.75
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -15.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.44999998807907104
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "YARD_cradle_rail_15": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          9.75
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          15.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.44999998807907104
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "YARD_contact_pad_0": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -31.5
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -15.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          2.5
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "YARD_pad_contact_face_0": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -31.5
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -15.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          4.949999809265137
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "YARD_clamp_slide_0": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -31.5
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -20.700000762939453
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          1.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "YARD_retaining_wedge_0": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -31.5
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -21.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          2.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "YARD_contact_pad_1": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -31.5
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          15.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          2.5
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "YARD_pad_contact_face_1": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -31.5
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          15.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          4.949999809265137
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "YARD_clamp_slide_1": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -31.5
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          20.700000762939453
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          1.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "YARD_retaining_wedge_1": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          -31.5
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          21.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          2.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "YARD_contact_pad_2": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          51.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -15.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          2.5
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "YARD_pad_contact_face_2": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          51.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -15.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          4.949999809265137
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "YARD_clamp_slide_2": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          51.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -20.700000762939453
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          1.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "YARD_retaining_wedge_2": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          51.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          -21.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          2.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "YARD_contact_pad_3": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          51.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          15.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          2.5
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "YARD_pad_contact_face_3": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          51.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          15.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          4.949999809265137
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "YARD_clamp_slide_3": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          51.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          20.700000762939453
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          1.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "YARD_retaining_wedge_3": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          51.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0,
+          21.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0,
+          2.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    "contact_changes": [],
+    "corridor_clearance": {
+      "reserved_bounds_xy": [
+        -300,
+        150,
+        -110,
+        110
+      ],
+      "minimum_imported_y": 171.5,
+      "minimum_y_clearance": 61.5,
+      "violations": [],
+      "proof": "Conservative world AABB exclusion for all imported physical district and traffic meshes at evaluated contact; all imported geometry lies beyond reserved apron/approach Y boundary.",
+      "pad_and_service_details": "Retained contact rig and named service cabinets/bollards intentionally belong to apron."
+    },
+    "dynamic_component_materials": [
+      {
+        "object": "YARD_clamp_slide_0",
+        "image": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\second-wind-surface-proof\\assets\\oxide.png",
+        "mapping": "Normalized component-local BOX; TexCoord object is this moving component",
+        "metallic": 0.5,
+        "roughness": 0.7
+      },
+      {
+        "object": "YARD_retaining_wedge_0",
+        "image": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\second-wind-surface-proof\\assets\\gunmetal.png",
+        "mapping": "Normalized component-local BOX; TexCoord object is this moving component",
+        "metallic": 0.5,
+        "roughness": 0.7
+      },
+      {
+        "object": "YARD_clamp_slide_1",
+        "image": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\second-wind-surface-proof\\assets\\oxide.png",
+        "mapping": "Normalized component-local BOX; TexCoord object is this moving component",
+        "metallic": 0.5,
+        "roughness": 0.7
+      },
+      {
+        "object": "YARD_retaining_wedge_1",
+        "image": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\second-wind-surface-proof\\assets\\gunmetal.png",
+        "mapping": "Normalized component-local BOX; TexCoord object is this moving component",
+        "metallic": 0.5,
+        "roughness": 0.7
+      },
+      {
+        "object": "YARD_clamp_slide_2",
+        "image": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\second-wind-surface-proof\\assets\\oxide.png",
+        "mapping": "Normalized component-local BOX; TexCoord object is this moving component",
+        "metallic": 0.5,
+        "roughness": 0.7
+      },
+      {
+        "object": "YARD_retaining_wedge_2",
+        "image": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\second-wind-surface-proof\\assets\\gunmetal.png",
+        "mapping": "Normalized component-local BOX; TexCoord object is this moving component",
+        "metallic": 0.5,
+        "roughness": 0.7
+      },
+      {
+        "object": "YARD_clamp_slide_3",
+        "image": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\second-wind-surface-proof\\assets\\oxide.png",
+        "mapping": "Normalized component-local BOX; TexCoord object is this moving component",
+        "metallic": 0.5,
+        "roughness": 0.7
+      },
+      {
+        "object": "YARD_retaining_wedge_3",
+        "image": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\second-wind-surface-proof\\assets\\gunmetal.png",
+        "mapping": "Normalized component-local BOX; TexCoord object is this moving component",
+        "metallic": 0.5,
+        "roughness": 0.7
+      }
+    ],
+    "ground_contract": "Original 240x220 apron owns its footprint; neighboring tessellation excludes it and shares Z0 boundary.",
+    "landscape": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\forest-reveal-realism\\assets\\far-realism-v1.png",
+    "sky": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\managed-land-realism\\assets\\sky-realism-v1.png",
+    "traffic_source_frames": [
+      400,
+      448
+    ],
+    "traffic_retimed_frames": [
+      580,
+      774
+    ],
+    "limitations": "Atlas fallback physical materials; distant forest retained limited-aspect artwork; new-camera architecture finish belongs to parent build."
+  },
+  "fx_collection": "LANDING FX | bounded exhaust",
+  "render_device": {
+    "backend": "OPTIX",
+    "devices": [
+      "NVIDIA GeForce RTX 3080"
+    ]
+  },
+  "render": [
+    1920,
+    1080
+  ],
+  "output_duration_seconds": 8,
+  "output_fps": 24,
+  "retiming_knots": [
+    [
+      0,
+      580
+    ],
+    [
+      2,
+      624
+    ],
+    [
+      2.5,
+      648
+    ],
+    [
+      6.5,
+      744
+    ],
+    [
+      8,
+      774
+    ]
+  ],
+  "retiming_note": "Explicit edit retime; original actions evaluated at mapped source times. No horizontal drift introduced after source624."
+}

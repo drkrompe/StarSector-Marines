@@ -1,0 +1,35 @@
+{
+  "asset": "assets/planet-plate.png",
+  "sha256": "7bbd58284152c60202125eb5adcfbab480f53c283a06c03d1d29ce68c13b62ea",
+  "native_dimensions": [
+    1672,
+    941
+  ],
+  "native_original_filename": "exec-3539d891-d32b-40e2-91e7-05b1e99d721e.png",
+  "copy": "Lossless native PNG copied by parent; normalized full-frame mapping, no upscaled master.",
+  "prompt_file": "prompts/planet-plate-v1.txt",
+  "prompt_sha256": "e80c031932ef20937cb620a10a5aa9aabdd3347ad3b75c00f85679371f7325a1",
+  "prompt": "Use case: sketch-to-render. Asset type: full-frame distant planet scenery plate for a grounded Starsector cinematic. Image 1 is the immutable frame layout guide: preserve exactly its large cropped planetary circle/limb, center and curve, and its empty black upper-left space. Image 2 is ONLY the established daylight realism and lush green/blue material palette; do not reproduce that low-altitude scene. Replace the simple blue/green blobs and evenly repeated white guide ribbons with a convincing orbital view of a lush alien terrestrial world, Jangala: intricate irregular dark-green continents, deep blue seas, humid atmosphere, vast broken white cloud systems with one natural cyclonic storm farther across the visible globe. Natural small coastal detail and fine cloud shadows; scale is hundreds/thousands of kilometres, no individual trees, no oversized mountains. Keep the continents broadly distributed inside the guide planet, but give them natural coastlines rather than simple blob borders. A thin pale-blue atmospheric limb against pure black space. Sunlight from upper left, open daylight, subdued physically credible contrast, restrained surface colour, tactile cinematic realism matching the supplied style reference. Full 16:9 canvas with the planet extending off the bottom/right/top-right as in image1, not a complete centered globe. No spacecraft, orbital station, moons, stars, text, logos, lines, charts or foreground objects; these are separate scene elements. Do not move/enlarge/recenter the limb. Keep black space perfectly black for the separate star layer. No Earth-recognizable continents. Deliver only this single finished scenery plate, no panels or captions.\n",
+  "references_in_order": [
+    {
+      "path": "guides/planet-layout.png",
+      "sha256": "0bcfbd3b287100ee3a57aedd67749ae4d973244fb501c66e5cfbd861d0ffab8f",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "role": "Geometry/layout authority: exact curved limb, planet placement, open upper-left ship area; no ship surface authority."
+    },
+    {
+      "path": "../realism-lookdev/landscape-realism-v1.png",
+      "sha256": "c264cda903f255eabe8f1e3c12b5ad135fb4396a799d12c983a11bdd7279eadb",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "role": "Daylight lush landscape, water and cloud material/lighting style only; no layout authority."
+    }
+  ],
+  "generator": "OpenAI built-in ImageGen",
+  "reference_path_base": "space-approach package directory"
+}

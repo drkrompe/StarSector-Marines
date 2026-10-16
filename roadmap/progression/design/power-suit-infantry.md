@@ -2,7 +2,7 @@
 
 Status: ACTIVE — equipment-category direction; field balance and distinct art require acceptance.
 Written: 2026-10-13
-Updated: 2026-10-16 — Boarding Jack pattern and section defined, story-only and not awardable until its art ships.
+Updated: 2026-10-16 — Boarding Jack layered art shipped; its story-only section card is awardable.
 
 ## Purpose
 
@@ -92,8 +92,9 @@ The Yard's Owners awards Recovered Arbalest after a protected tooling inspection
 Learning both cards exposes Salvage-assisted Section for explicit mixed issue.
 The pirate Boarding Jack is defined with its own light section card (two Jacks among
 ten raiders in outlaw plate, a scout and two packframe gunners). It is reserved to
-`a-small-war.md` and cannot be awarded until its grounded art ships: the pattern
-declares its presentation pending, which refuses any cargo payload for the card.
+`a-small-war.md`; no faction channel sells it. A pattern that declares its
+presentation pending refuses any cargo payload for a card carrying it, which held
+the Jack back until its grounded layered art shipped.
 Both existing recovered templates remain outside random faction acquisition. Explicit development
 controls also support campaign-loop testing; neither route automatically changes
 anyone's issued kit.
@@ -216,8 +217,15 @@ the other), visible joint backing, guarded hoses and hand-lettered service label
 It shares the Specter shell registration so the existing pose tracks articulate it,
 keeps torso, shoulders, helmet and feet separate with casing-only paint masks, and
 shows Latch Assist as a left-shoulder actuator/screen carrier. It must not reuse the
-Foundry-breaker's rejected presentation or borrow another suit's family. The
-geometry guide lives under `art-source/marine-modular-topdown/boarding-jack/`.
+Foundry-breaker's rejected presentation or borrow another suit's family. The shipped
+art is worn rust-orange welded plate over dark joint backing with a bare-steel power
+pack: warm and patched where the Specter is cool, faceted and lit. Its helmet is
+mastered smaller than the Specter's into a lower socket, so the chest and hoses stay
+visible between the slab and the cap. Paint variants (rust-orange default, hull-grey,
+oxide-green, soot) recolor only the warm casing plate. Guides, prompts, the retained
+raws and the mechanical exporter live under
+`art-source/marine-modular-topdown/boarding-jack/`; `createSnapshots
+-Psnapshot=boarding-jack-layers` is the review.
 
 Produce reference comparisons beside an ordinary Legionary marine and a Hound
 at one shared camera scale, including front, rear, and top-down views. The three

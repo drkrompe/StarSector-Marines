@@ -1,0 +1,2673 @@
+{
+  "source": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\layered-next-scenes\\layered-next-scenes.blend",
+  "camera": "03 LAND / side window",
+  "source_fps": 12,
+  "source_frames": [
+    240,
+    287.5
+  ],
+  "output_fps": 24,
+  "output_frames": 96,
+  "samples_per_pixel": 96,
+  "lens_mm": 26.0,
+  "sensor_width_mm": 36.0,
+  "midpoint_world_matrix": [
+    [
+      0.8192317485809326,
+      0.12321512401103973,
+      -0.5600690245628357,
+      72.72582244873047
+    ],
+    [
+      -0.5734626054763794,
+      0.1760214865207672,
+      -0.8000981211662292,
+      30.09404182434082
+    ],
+    [
+      7.784413114109157e-09,
+      0.9766444563865662,
+      0.214861661195755,
+      4.920000076293945
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "samples": [
+    {
+      "source_frame": 240.0,
+      "camera_world_matrix": [
+        [
+          1.228847622871399,
+          0.1848226934671402,
+          -0.8401036262512207,
+          72.72582244873047
+        ],
+        [
+          -0.8601939082145691,
+          0.264032244682312,
+          -1.200147271156311,
+          30.09404182434082
+        ],
+        [
+          1.1676619671163735e-08,
+          1.4649667739868164,
+          0.3222925066947937,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "camera_source_world_matrix": [
+        [
+          0.8192317485809326,
+          0.12321512401103973,
+          -0.5600690245628357,
+          -4821.68017578125
+        ],
+        [
+          -0.5734626054763794,
+          0.1760214865207672,
+          -0.8000981211662292,
+          30.09404182434082
+        ],
+        [
+          7.784413114109157e-09,
+          0.9766444563865662,
+          0.214861661195755,
+          372.0528869628906
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "scenery_translation": [
+        4894.40576171875,
+        -0.0,
+        -367.13287353515625
+      ]
+    },
+    {
+      "source_frame": 263.5,
+      "camera_world_matrix": [
+        [
+          1.228847622871399,
+          0.1848226934671402,
+          -0.8401036262512207,
+          72.72582244873047
+        ],
+        [
+          -0.8601939082145691,
+          0.264032244682312,
+          -1.200147271156311,
+          30.09404182434082
+        ],
+        [
+          1.1676619671163735e-08,
+          1.4649667739868164,
+          0.3222925066947937,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "camera_source_world_matrix": [
+        [
+          0.8192317485809326,
+          0.12321512401103973,
+          -0.5600690245628357,
+          -4509.4423828125
+        ],
+        [
+          -0.5734626054763794,
+          0.1760214865207672,
+          -0.8000981211662292,
+          30.09404182434082
+        ],
+        [
+          7.784413114109157e-09,
+          0.9766444563865662,
+          0.214861661195755,
+          358.9060363769531
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "scenery_translation": [
+        4582.16796875,
+        -0.0,
+        -353.98602294921875
+      ]
+    },
+    {
+      "source_frame": 287.5,
+      "camera_world_matrix": [
+        [
+          1.228847622871399,
+          0.1848226934671402,
+          -0.8401036262512207,
+          72.72582244873047
+        ],
+        [
+          -0.8601939082145691,
+          0.264032244682312,
+          -1.200147271156311,
+          30.09404182434082
+        ],
+        [
+          1.1676619671163735e-08,
+          1.4649667739868164,
+          0.3222925066947937,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "camera_source_world_matrix": [
+        [
+          0.8192317485809326,
+          0.12321512401103973,
+          -0.5600690245628357,
+          -4190.5615234375
+        ],
+        [
+          -0.5734626054763794,
+          0.1760214865207672,
+          -0.8000981211662292,
+          30.09404182434082
+        ],
+        [
+          7.784413114109157e-09,
+          0.9766444563865662,
+          0.214861661195755,
+          345.4794616699219
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "scenery_translation": [
+        4263.287109375,
+        -0.0,
+        -340.5594482421875
+      ]
+    }
+  ],
+  "root_translation": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "perspective_plate_coverage": [
+    {
+      "role": "woodland",
+      "source_y_m": 3000,
+      "reference_optical_depth_m": 3711.9271744404314,
+      "full96_frame_uv_bounds": [
+        0.10104859245881043,
+        0.865352881374603,
+        0.006341070788559,
+        0.9770651487212543
+      ],
+      "all_output_corners_inside": true
+    },
+    {
+      "role": "hills",
+      "source_y_m": 11000,
+      "reference_optical_depth_m": 13710.700810277918,
+      "full96_frame_uv_bounds": [
+        0.13877305660671962,
+        0.8521308501548852,
+        0.028726644073231833,
+        0.9667808652929588
+      ],
+      "all_output_corners_inside": true
+    },
+    {
+      "role": "sky",
+      "source_y_m": 35000,
+      "reference_optical_depth_m": 43707.021717790376,
+      "full96_frame_uv_bounds": [
+        0.14838455951527313,
+        0.8487620807983564,
+        0.03443009831691002,
+        0.9641606403776408
+      ],
+      "all_output_corners_inside": true
+    }
+  ],
+  "topdown": {
+    "source_world_bounds_xy_m": [
+      -5155.17529296875,
+      191.716552734375,
+      -150,
+      2700
+    ],
+    "image_dimensions": [
+      3072,
+      1637
+    ],
+    "image_orientation": "+X right, +Y up; image top is ymax",
+    "method": "96 half-frame camera frusta; 49x19 rays each against source terrain. Retain hits at source Y -150..2700; add300m X guardband."
+  },
+  "perspective_environment": {
+    "dimensions": [
+      2560,
+      1080
+    ],
+    "horizontal_overscan": 1.44,
+    "vertical_overscan": 1.08,
+    "reference_source_frame": 263.75
+  },
+  "cabin": {
+    "dimensions": [
+      1920,
+      1080
+    ],
+    "overscan_xy": 1.12,
+    "reference_source_frame": 263.75
+  },
+  "objects": [
+    {
+      "name": "Jangala | continuous landform",
+      "index": 14,
+      "visible": true
+    },
+    {
+      "name": "Jangala | winding river",
+      "index": 14,
+      "visible": true
+    },
+    {
+      "name": "Jangala | far estuary",
+      "index": 14,
+      "visible": true
+    },
+    {
+      "name": "Jangala | interlocking forest canopy",
+      "index": 14,
+      "visible": false
+    },
+    {
+      "name": "Jangala | port approach canopy",
+      "index": 14,
+      "visible": false
+    },
+    {
+      "name": "Plantation | clearing 0 0",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 0 0 0",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 0 0 1",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 0 0 2",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 0 0 3",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 0 0 4",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | clearing 0 1",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 0 1 0",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 0 1 1",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 0 1 2",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 0 1 3",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 0 1 4",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | cross road 0",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | clearing 1 0",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 1 0 0",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 1 0 1",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 1 0 2",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 1 0 3",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 1 0 4",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | clearing 1 1",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 1 1 0",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 1 1 1",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 1 1 2",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 1 1 3",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 1 1 4",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | cross road 1",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | clearing 2 0",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 2 0 0",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 2 0 1",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 2 0 2",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 2 0 3",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 2 0 4",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | clearing 2 1",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 2 1 0",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 2 1 1",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 2 1 2",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 2 1 3",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 2 1 4",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | cross road 2",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | clearing 3 0",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 3 0 0",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 3 0 1",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 3 0 2",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 3 0 3",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 3 0 4",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | clearing 3 1",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 3 1 0",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 3 1 1",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 3 1 2",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 3 1 3",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 3 1 4",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | cross road 3",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | clearing 4 0",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 4 0 0",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 4 0 1",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 4 0 2",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 4 0 3",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 4 0 4",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | clearing 4 1",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 4 1 0",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 4 1 1",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 4 1 2",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 4 1 3",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | crop 4 1 4",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | cross road 4",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Plantation | collector road",
+      "index": 13,
+      "visible": true
+    },
+    {
+      "name": "Jangala | distant folded ridgeline",
+      "index": 14,
+      "visible": false
+    },
+    {
+      "name": "Jangala | distant storm shelf proxies",
+      "index": 14,
+      "visible": false
+    },
+    {
+      "name": "YARD_apron_240x220m",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_surrounding_ground",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_negative_X_approach",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_approach_center_-290",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_approach_center_-265",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_approach_center_-240",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_approach_center_-215",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_approach_center_-190",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_approach_center_-165",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_approach_center_-140",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_approach_center_-108",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_approach_center_-84",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_approach_center_-60",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_landing_boundary_-69",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_landing_boundary_69",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_landing_end_-108",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_landing_end_108",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_cradle_rail_-15",
+      "index": 11,
+      "visible": true
+    },
+    {
+      "name": "YARD_cradle_rail_15",
+      "index": 11,
+      "visible": true
+    },
+    {
+      "name": "YARD_contact_pad_0",
+      "index": 11,
+      "visible": true
+    },
+    {
+      "name": "YARD_pad_contact_face_0",
+      "index": 11,
+      "visible": true
+    },
+    {
+      "name": "YARD_clamp_slide_0",
+      "index": 11,
+      "visible": true
+    },
+    {
+      "name": "YARD_retaining_wedge_0",
+      "index": 11,
+      "visible": true
+    },
+    {
+      "name": "YARD_contact_pad_1",
+      "index": 11,
+      "visible": true
+    },
+    {
+      "name": "YARD_pad_contact_face_1",
+      "index": 11,
+      "visible": true
+    },
+    {
+      "name": "YARD_clamp_slide_1",
+      "index": 11,
+      "visible": true
+    },
+    {
+      "name": "YARD_retaining_wedge_1",
+      "index": 11,
+      "visible": true
+    },
+    {
+      "name": "YARD_contact_pad_2",
+      "index": 11,
+      "visible": true
+    },
+    {
+      "name": "YARD_pad_contact_face_2",
+      "index": 11,
+      "visible": true
+    },
+    {
+      "name": "YARD_clamp_slide_2",
+      "index": 11,
+      "visible": true
+    },
+    {
+      "name": "YARD_retaining_wedge_2",
+      "index": 11,
+      "visible": true
+    },
+    {
+      "name": "YARD_contact_pad_3",
+      "index": 11,
+      "visible": true
+    },
+    {
+      "name": "YARD_pad_contact_face_3",
+      "index": 11,
+      "visible": true
+    },
+    {
+      "name": "YARD_clamp_slide_3",
+      "index": 11,
+      "visible": true
+    },
+    {
+      "name": "YARD_retaining_wedge_3",
+      "index": 11,
+      "visible": true
+    },
+    {
+      "name": "YARD_blast_trench_0",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_trench_rim_0_-1",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_trench_rim_0_1",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_trench_grate_0_-5",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_trench_grate_0_0",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_trench_grate_0_5",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_blast_trench_1",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_trench_rim_1_-1",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_trench_rim_1_1",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_trench_grate_1_-5",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_trench_grate_1_0",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_trench_grate_1_5",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_blast_trench_2",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_trench_rim_2_-1",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_trench_rim_2_1",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_trench_grate_2_-5",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_trench_grate_2_0",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_trench_grate_2_5",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_blast_trench_3",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_trench_rim_3_-1",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_trench_rim_3_1",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_trench_grate_3_-5",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_trench_grate_3_0",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_trench_grate_3_5",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_shed_0",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_shed_roof_0",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_shed_door_0",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_shed_1",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_shed_roof_1",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_shed_door_1",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_shed_2",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_shed_roof_2",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_shed_door_2",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_shed_3",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_shed_roof_3",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_shed_door_3",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_crane_base_0",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_crane_mast_0",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_crane_boom_0",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_crane_cable_0",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_crane_base_1",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_crane_mast_1",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_crane_boom_1",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_crane_cable_1",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_service_truck_12m",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_truck_cab",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_truck_wheel",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_truck_wheel.001",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_truck_wheel.002",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_truck_wheel.003",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_0_boot",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_0_leg",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_0_boot.001",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_0_leg.001",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_0_torso",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_0_arm",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_0_glove",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_0_arm.001",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_0_glove.001",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_0_collar",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_0_sealed_helmet",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_0_fullface_visor",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_0_environment_pack",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_1_boot",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_1_leg",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_1_boot.001",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_1_leg.001",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_1_torso",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_1_arm",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_1_glove",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_1_arm.001",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_1_glove.001",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_1_collar",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_1_sealed_helmet",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_1_fullface_visor",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_worker_1_environment_pack",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_control_booth_lower",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_control_booth_roof",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_booth_glazing",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_booth_glazing.001",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_booth_end_glazing",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_booth_post",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_booth_post.001",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_booth_end_glazing.001",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_booth_post.002",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_booth_post.003",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_booth_console",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_human_1p8m_body",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_human_1p8m_head",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_human_leg",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_human_leg.001",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_human_1p8m_body.001",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_human_1p8m_head.001",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_human_leg.002",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "YARD_human_leg.003",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.001",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.001",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.002",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.002",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.003",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.003",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.004",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.004",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.005",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.005",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.006",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.006",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.007",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.007",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.008",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.008",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.009",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.009",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.010",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.010",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.011",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.011",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.012",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.012",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.013",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.013",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.014",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.014",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.015",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.015",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.016",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.016",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.017",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.017",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.018",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.018",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.019",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.019",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.020",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.020",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.021",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.021",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.022",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.022",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.023",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.023",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.024",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.024",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.025",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.025",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district shed.026",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district roof.026",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port district freight road",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port communications tower",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port tower crossarm",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port communications tower.001",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port tower crossarm.001",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port communications tower.002",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Port tower crossarm.002",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Freight vehicle 12m",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Freight vehicle 12m.001",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Freight vehicle 12m.002",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Freight vehicle 12m.003",
+      "index": 12,
+      "visible": true
+    },
+    {
+      "name": "Vent louver.019",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Vent louver.018",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Vent louver.017",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Vent louver.016",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Vent louver.015",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Vent louver.014",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Vent louver.013",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Vent louver.012",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Vent louver.011",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Vent louver.010",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Vent louver.009",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Vent louver.008",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Vent louver.007",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Vent louver.006",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Vent louver.005",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Vent louver.004",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Vent louver.003",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Vent louver.002",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Vent louver.001",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Vent louver",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Turret 4 shallow ring",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Turret 4 raised armored housing",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Turret 4 forward barrel",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Turret 3 shallow ring",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Turret 3 raised armored housing",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Turret 3 forward barrel",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Turret 2 shallow ring",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Turret 2 raised armored housing",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Turret 2 forward barrel",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Turret 1 shallow ring",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Turret 1 raised armored housing",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Turret 1 forward barrel",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Starboard bay sealed sectional door",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Starboard bay interior",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Shoulder louver vent.003",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Shoulder louver vent.002",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Shoulder louver vent.001",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Shoulder louver vent",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Service trunk support hoop.002",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Service trunk support hoop.001",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Service trunk support hoop",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Recessed central service bed",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Protected waist service line.001",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Protected waist service line",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Port service pod neck",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "PORT SERVICE POD - fixed low horizontal body",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Port bay interior lamp.001",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Port bay interior lamp",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Port bay interior",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Pod outward access hatch",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Pod dorsal inspection plate",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Main hull - level datum Z0",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Forebody replaceable armor.009",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Forebody replaceable armor.008",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Forebody replaceable armor.007",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Forebody replaceable armor.006",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Forebody replaceable armor.005",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Forebody replaceable armor.004",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Forebody replaceable armor.003",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Forebody replaceable armor.002",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Forebody replaceable armor.001",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Forebody replaceable armor",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Forebody reinforcing band",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Fore pressure casing",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Exposed longitudinal service trunk.002",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Exposed longitudinal service trunk.001",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Exposed longitudinal service trunk",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine room reinforcing band.003",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine room reinforcing band.002",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine room reinforcing band.001",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine room reinforcing band",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine room armored shoulder.011",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine room armored shoulder.010",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine room armored shoulder.009",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine room armored shoulder.008",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine room armored shoulder.007",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine room armored shoulder.006",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine room armored shoulder.005",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine room armored shoulder.004",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine room armored shoulder.003",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine room armored shoulder.002",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine room armored shoulder.001",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine room armored shoulder",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine 4 mouth rim",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine 4 dark throat",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine 4 body",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine 4 aft-facing nozzle",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine 3 mouth rim",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine 3 dark throat",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine 3 body",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine 3 aft-facing nozzle",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine 2 mouth rim",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine 2 dark throat",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine 2 body",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine 2 aft-facing nozzle",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine 1 mouth rim",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine 1 dark throat",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine 1 body",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Engine 1 aft-facing nozzle",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Empty maintenance cradle.001",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Empty maintenance cradle",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Closed door stiffener.004",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Closed door stiffener.003",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Closed door stiffener.002",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Closed door stiffener.001",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Closed door stiffener",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Casing access cover.005",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Casing access cover.004",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Casing access cover.003",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Casing access cover.002",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Casing access cover.001",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Casing access cover",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Bay structural buttress.003",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Bay structural buttress.002",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Bay structural buttress.001",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Bay structural buttress",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Bay level floor.001",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Bay level floor",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Bay jamb.003",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Bay jamb.002",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Bay jamb.001",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Bay jamb",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Bay coaming.003",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Bay coaming.002",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Bay coaming.001",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Bay coaming",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Bay ceiling.001",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Bay ceiling",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Aft machinery casing",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Aft flank access housing.005",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Aft flank access housing.004",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Aft flank access housing.003",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Aft flank access housing.002",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Aft flank access housing.001",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Aft flank access housing",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Viewport vertical frame",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Viewport vertical frame.001",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Viewport horizontal frame",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Viewport horizontal frame.001",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "SEALED GLAZING | clear proxy",
+      "index": 10,
+      "visible": false
+    },
+    {
+      "name": "Cabin floor",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Cabin ceiling",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Cabin side lining",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Cabin side lining.001",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Window lower wall",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Passenger seat back",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Passenger seat cushion",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Crew baggage",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Crew sleeve proxy",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "Crew hand proxy",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "PROPOSAL keel shoe",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "PROPOSAL keel shoe.001",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "PROPOSAL keel shoe.002",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "PROPOSAL keel shoe.003",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "PROPOSAL ventral lift collar",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "PROPOSAL lift mouth",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "LIFT VECTOR | placeholder",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "PROPOSAL ventral lift collar.001",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "PROPOSAL lift mouth.001",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "LIFT VECTOR | placeholder.001",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "PROPOSAL ventral lift collar.002",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "PROPOSAL lift mouth.002",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "LIFT VECTOR | placeholder.002",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "PROPOSAL ventral lift collar.003",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "PROPOSAL lift mouth.003",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "LIFT VECTOR | placeholder.003",
+      "index": 10,
+      "visible": true
+    },
+    {
+      "name": "SCALE STUDY ONLY | six-seat boat 12m",
+      "index": 14,
+      "visible": true
+    },
+    {
+      "name": "SCALE STUDY ONLY | boat nose",
+      "index": 14,
+      "visible": true
+    },
+    {
+      "name": "Cloud breakup proxy",
+      "index": 10,
+      "visible": false
+    },
+    {
+      "name": "Cloud breakup proxy.001",
+      "index": 10,
+      "visible": false
+    },
+    {
+      "name": "Cloud breakup proxy.002",
+      "index": 10,
+      "visible": false
+    },
+    {
+      "name": "Cloud breakup proxy.003",
+      "index": 10,
+      "visible": false
+    },
+    {
+      "name": "Cloud breakup proxy.004",
+      "index": 10,
+      "visible": false
+    },
+    {
+      "name": "LAYER BLOCK | far asymmetric hills",
+      "index": 31,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | far forest belt",
+      "index": 32,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | middle woodland continuous belt",
+      "index": 33,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | middle woodland outer shoulder",
+      "index": 33,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | managed land outer hedgerow",
+      "index": 34,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | managed land near broken verge",
+      "index": 34,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | port district backdrop trees",
+      "index": 34,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | exterior asymmetric far hills",
+      "index": 37,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | exterior continuous woodland",
+      "index": 38,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | district shed 00",
+      "index": 39,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | district shed roof 00",
+      "index": 39,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | district shed 01",
+      "index": 39,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | district shed roof 01",
+      "index": 39,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | district shed 02",
+      "index": 39,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | district shed roof 02",
+      "index": 39,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | district shed 03",
+      "index": 39,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | district shed roof 03",
+      "index": 39,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | district shed 04",
+      "index": 39,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | district shed roof 04",
+      "index": 39,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | district shed 05",
+      "index": 39,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | district shed roof 05",
+      "index": 39,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | district tank 00",
+      "index": 39,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | district tank 01",
+      "index": 39,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | district tank 02",
+      "index": 39,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | district gantry 0 upright -42",
+      "index": 39,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | district gantry 0 upright 42",
+      "index": 39,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | district gantry 0 open crossbeam",
+      "index": 39,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | district gantry 0 trolley",
+      "index": 39,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | district gantry 1 upright -42",
+      "index": 39,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | district gantry 1 upright 42",
+      "index": 39,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | district gantry 1 open crossbeam",
+      "index": 39,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | district gantry 1 trolley",
+      "index": 39,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | drifting cloud bank",
+      "index": 35,
+      "visible": true
+    },
+    {
+      "name": "LAYER BLOCK | distant freight transit proxy",
+      "index": 36,
+      "visible": true
+    }
+  ]
+}

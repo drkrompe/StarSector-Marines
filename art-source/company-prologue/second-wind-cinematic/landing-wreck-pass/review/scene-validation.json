@@ -1,0 +1,255 @@
+{
+  "passed": true,
+  "checks": {
+    "171_base_ship_objects_and_unmodified_meshes_preserved": true,
+    "unmodified_base_ship_UVs_preserved": true,
+    "recorded_local_outer_skin_concavity_bounded_to_source_surface": true,
+    "tessellated_outer_skin_UV_layers_and_interpolated_ranges_retained": true,
+    "all_existing_environment_and_contact_mesh_geometry_preserved": true,
+    "environment_traffic_and_support_actions_preserved": true,
+    "static_environment_transforms_preserved": true,
+    "original_support_rig_present": true,
+    "only_recorded_outer_skin_and_sacrificial_damage_changes": true,
+    "surviving_cut_armor_UV_values_retained": true,
+    "two_landscape_only_projection_exceptions_unchanged": true,
+    "no_active_latest_YARD_FINISH_on_physical_yard": true,
+    "all_file_textures_packed_or_readable": true,
+    "four_hidden_lift_controls": true,
+    "12_FX_containers_volume_only": true,
+    "original_pad_clamp_transforms_all_192_poses": true,
+    "current_authored_trajectory_all_192_poses": true,
+    "monotone_COM_descent": true,
+    "visible_single_bank_amplitude": true,
+    "four_contact_pairs": true,
+    "no_sampled_pad_penetration_and_settled_contacts": true,
+    "exact_settled_source_pose_744_plus": true,
+    "nozzle_attachment_all_192_poses": true,
+    "fixed_source_camera_all_192_poses": true,
+    "all_current_mesh_UVs_static": true,
+    "initial_positive_final_zero_exhaust": true,
+    "conservative_reused_district_corridor_clear": true,
+    "camera_intrinsics_and_bow_right_preserved": true,
+    "actual_ground_ownership_and_boundary_joins": true
+  },
+  "failed_checks": [],
+  "source_blend_sha256": "b29e3d632628e0f87b74b64bc2eaff87ba704999e631da24bb3574f69ea79a1c",
+  "final_blend_sha256": "eb7f90c569357ab40d4c3969f0f4e8f9eadf15ddd9cd61729c2507185b2d68c6",
+  "validator_sha256": "46799568f5b6d5e7dd11663a4ef91b4e08ea3b2179a8921e74110f09933c3ebe",
+  "source_frames": 192,
+  "source_clock_knots": [
+    [
+      0,
+      580
+    ],
+    [
+      2,
+      624
+    ],
+    [
+      2.5,
+      648
+    ],
+    [
+      6.5,
+      744
+    ],
+    [
+      8,
+      774
+    ]
+  ],
+  "details": {
+    "base_mesh_mismatches": [],
+    "localized_outer_skin_exceptions": [
+      "Engine room armored shoulder.004",
+      "Engine room armored shoulder.008",
+      "Forebody replaceable armor.004",
+      "Main hull - level datum Z0"
+    ],
+    "bounded_concavity_failures": [],
+    "maximum_unwarped_source_surface_error": 0.020371124148368835,
+    "localized_UV_range_failures": [],
+    "environment_mesh_mismatches": [],
+    "action_mismatches": [],
+    "static_transform_mismatches": [],
+    "sacrificial_mesh_change_count": 9,
+    "disallowed_ship_changes": [],
+    "sacrificial_UV_mismatches": [],
+    "landscape_only_projection_exceptions": [
+      "LANDING YARD | far daylight sky",
+      "LANDING YARD | far forest and hills"
+    ],
+    "latest_projection_objects": [],
+    "missing_images": [],
+    "file_image_count": 12,
+    "maximum_support_rig_matrix_error": 0,
+    "maximum_trajectory_error_m": 0.0008933197426196013,
+    "minimum_shoe_pad_gap_m": 0.0,
+    "maximum_nozzle_attachment_error_m": 0,
+    "maximum_settled_matrix_error": 0,
+    "maximum_camera_matrix_error": 0,
+    "maximum_rotation_curve_error_degrees": 3.298599530260002e-05,
+    "peak_roll_degrees": 3.0000000834826057,
+    "peak_pitch_degrees": 1.249999963636615,
+    "contact_failure_count": 0,
+    "contact_failures": [],
+    "corridor_violations": {},
+    "FX_initial_envelopes": [
+      0.8399999737739563,
+      0.8399999737739563,
+      0.8399999737739563,
+      0.8399999737739563
+    ],
+    "FX_final_envelopes": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "ground": {
+      "passed": true,
+      "ray_count": 199,
+      "edge_pairs": 68,
+      "maximum_join_error_m": 0.0,
+      "failures": [],
+      "failure_count": 0
+    },
+    "trajectory_samples": [
+      {
+        "output_frame": 0,
+        "source_frame": 580.0,
+        "position": [
+          -33.494808197021484,
+          0.0,
+          34.187416076660156
+        ],
+        "rotation_degrees": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "output_frame": 24,
+        "source_frame": 602.0,
+        "position": [
+          -16.025339126586914,
+          0.0,
+          33.62222671508789
+        ],
+        "rotation_degrees": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "output_frame": 48,
+        "source_frame": 624.0,
+        "position": [
+          0.0,
+          0.0,
+          32.0
+        ],
+        "rotation_degrees": [
+          0.7777777598948585,
+          0.13838206050326488,
+          0.0
+        ]
+      },
+      {
+        "output_frame": 72,
+        "source_frame": 660.0,
+        "position": [
+          0.0,
+          0.0,
+          29.594497680664062
+        ],
+        "rotation_degrees": [
+          2.9617777045569795,
+          1.1513387348494273,
+          0.0
+        ]
+      },
+      {
+        "output_frame": 96,
+        "source_frame": 684.0,
+        "position": [
+          0.0,
+          0.0,
+          26.059555053710938
+        ],
+        "rotation_degrees": [
+          2.340512662275905,
+          1.0875767845132425,
+          0.0
+        ]
+      },
+      {
+        "output_frame": 120,
+        "source_frame": 708.0,
+        "position": [
+          0.0,
+          0.0,
+          24.399999618530273
+        ],
+        "rotation_degrees": [
+          0.7777777598948585,
+          0.416904421612544,
+          0.0
+        ]
+      },
+      {
+        "output_frame": 144,
+        "source_frame": 732.0,
+        "position": [
+          0.0,
+          0.0,
+          21.9342041015625
+        ],
+        "rotation_degrees": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "output_frame": 168,
+        "source_frame": 754.0,
+        "position": [
+          0.0,
+          0.0,
+          21.0
+        ],
+        "rotation_degrees": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "output_frame": 191,
+        "source_frame": 773.1666666666666,
+        "position": [
+          0.0,
+          0.0,
+          21.0
+        ],
+        "rotation_degrees": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "static_environment_meshes_compared": 1082,
+    "support_rig_meshes_compared": 18
+  },
+  "limits": [
+    "Finite 192-pose shoe/pad and nozzle checks; no continuous swept collision, structural-load or fluid simulation.",
+    "171 base mesh objects remain; exact geometry/UV hashes required except recorded outer skin concavity. Those tessellated vertices are analytically unwarped and checked against an independently reconstructed authorized source tessellated source surface within0.03root-local units (nonplanar BMesh subdivision grids may choose different interior triangulations) (near-zero boundary depth counts tolerate8 floating-point classification changes), with retained UV layer/range checks. Sacrificial plate/fastener face deletion/buckle allowed; surviving UV values checked against source values.",
+    "Geometry-derived near-datum ground rays sample199 apron/boundary points with68 edge pairs; tiny holes, overlays at other heights and full polygon ownership need further review.",
+    "Conservative AABB corridor checks apply to retained visible district/traffic meshes; authored apron/support/service objects are intentionally excluded.",
+    "No active latest YARD FINISH physical-yard assignment (two exact unchanged distant landscape exceptions) and readable texture paths are construction checks, not visual continuity acceptance."
+  ]
+}

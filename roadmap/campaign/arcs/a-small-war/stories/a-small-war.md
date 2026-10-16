@@ -1,10 +1,10 @@
 # A Small War
 
-Status: IN PROGRESS — all five chapters, the handover decision and District Escort implemented with detached evidence; Boarding Jack art and all live campaign acceptance remain.
+Status: IN PROGRESS — all five chapters, the handover decision, District Escort and Boarding Jack art implemented with detached evidence; all live campaign acceptance remains.
 
 Written: 2026-10-13
 
-Updated: 2026-10-16 — all five chapters, the frigate duel, handover decision, Boarding Jack data and District Escort built; implementation state under acceptance.
+Updated: 2026-10-16 — Boarding Jack layered art shipped and its card made awardable; implementation state under acceptance.
 
 Read `early-operation-nouns.md`, `campaign-nouns.md`, `meta-progression.md`,
 `narrative-nouns.md`, `mission-tier-nouns.md`, `progression-nouns.md`,
@@ -691,12 +691,16 @@ Still open inside this story:
 - **Live acceptance**, items 1–4 and 6 above: nothing has been observed in the
   game — travel, HQ correspondence, signing, save/reload, roofs on the new
   hand-stamped buildings, Boarding Jack rigs at play scale.
-- **Boarding Jack art.** The pattern and its section card exist with trial
-  values supported by `loadoutMatchup`, but the card is `presentationPending`:
-  no cargo is made for it. Chapter 4 records a once-only entitlement on either
-  route and delivers on settlement or a later load once art is declared. The
-  enemy rigs draw a disclosed Specter stand-in meanwhile. Guides and prompts are
-  under `art-source/marine-modular-topdown/boarding-jack/`.
+- **Boarding Jack** (art shipped, live acceptance open). The pattern and its
+  section card carry trial values supported by `loadoutMatchup`. Its layered art
+  (torso, mismatched shoulders, helmet, feet, four casing paints and the Latch
+  Assist screen carrier) is exported from retained Codex ImageGen raws under
+  `art-source/marine-modular-topdown/boarding-jack/` and reviewed by
+  `createSnapshots -Psnapshot=boarding-jack-layers`. The pattern no longer
+  declares its presentation pending, so Chapter 4 places the card in fleet cargo
+  on settlement, and an entitlement recorded by a save from before the art
+  shipped is delivered once on the next load. Greyhook's enemy rigs now draw
+  their own family. Still to observe: the rigs and the card in the live game.
 - **The duel overhead** is built and installed in Chapter 5 (`air-nouns.md`,
   Overhead ships; `warship-behaviours.md`, Decided: ship against ship). The
   ground referee never reads it; a duel-off control wins the same seed. It is

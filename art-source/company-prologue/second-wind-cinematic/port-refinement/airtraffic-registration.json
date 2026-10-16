@@ -1,0 +1,104 @@
+{
+  "ships": [
+    {
+      "ship": "hound",
+      "midpoint_source": [
+        200.0,
+        1100.0,
+        120.0
+      ],
+      "source_frames": [
+        400,
+        448
+      ],
+      "start_source": [
+        -300.0,
+        950.0,
+        96.0
+      ],
+      "end_source": [
+        700.0,
+        1250.0,
+        144.0
+      ],
+      "delta_source": [
+        1000.0,
+        300.0,
+        48.0
+      ],
+      "source_speed_metres_per_second": 261.283371074395,
+      "source_fps": 12,
+      "screen_action": "Bow-first screen-right and receding; gentle climb, fixed painted aspect",
+      "altitude_basis": "quad center source Z; conservative full quad lower bounds checked separately",
+      "texture": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\port-refinement\\assets\\hound-card-v3-flight.png",
+      "width": 105.43208673207317,
+      "height": 39.53703252452744,
+      "source_right": [
+        0.8192317485809326,
+        -0.5734626054763794,
+        3.220132072101478e-08
+      ],
+      "source_up": [
+        0.11246517300605774,
+        0.16066448390483856,
+        0.980580747127533
+      ],
+      "canvas": [
+        2048,
+        768
+      ],
+      "representation": "airborne fixed-orientation parallax quad, independent linear source motion; no landing or contact claim"
+    },
+    {
+      "ship": "venture",
+      "midpoint_source": [
+        -80.0,
+        1350.0,
+        180.0
+      ],
+      "source_frames": [
+        400,
+        448
+      ],
+      "start_source": [
+        -505.0,
+        1225.0,
+        160.0
+      ],
+      "end_source": [
+        345.0,
+        1475.0,
+        200.0
+      ],
+      "delta_source": [
+        850.0,
+        250.0,
+        40.0
+      ],
+      "source_speed_metres_per_second": 221.72618248641723,
+      "source_fps": 12,
+      "screen_action": "Bow-first screen-right and receding; gentle climb, fixed painted aspect",
+      "altitude_basis": "quad center source Z; conservative full quad lower bounds checked separately",
+      "texture": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\port-refinement\\assets\\venture-card-v3-flight.png",
+      "width": 269.07889630036897,
+      "height": 100.90458611263836,
+      "source_right": [
+        0.8192317485809326,
+        -0.5734626054763794,
+        3.220132072101478e-08
+      ],
+      "source_up": [
+        0.11246517300605774,
+        0.16066448390483856,
+        0.980580747127533
+      ],
+      "canvas": [
+        2048,
+        768
+      ],
+      "representation": "airborne fixed-orientation parallax quad, independent linear source motion; no landing or contact claim"
+    }
+  ],
+  "rejected_grounded_study": "artwork-registration.json",
+  "ground_contact_claim": false
+}

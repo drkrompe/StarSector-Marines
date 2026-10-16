@@ -1,0 +1,100 @@
+{
+  "passed": true,
+  "checks": {
+    "authoring_python_syntax": true,
+    "json_utf8_parse": true,
+    "raw_assets_and_prompt_provenance": true,
+    "accepted_source_scenes_and_movies_unchanged": true,
+    "readme_local_links_exist": true,
+    "scene-validation_current_scene": true,
+    "ground-regressions_current_scene": true,
+    "traffic-visibility_current_scene": true,
+    "departure-motion_current_scene": true,
+    "media-validation_current_scene": true
+  },
+  "python_files": 17,
+  "json_files": 17,
+  "assets": [
+    {
+      "file": "assets/hound-skin-v1.png",
+      "passed": true
+    },
+    {
+      "file": "assets/venture-skin-v1.png",
+      "passed": true
+    },
+    {
+      "file": "references/hound.ship",
+      "passed": true
+    },
+    {
+      "file": "references/hound_base.png",
+      "passed": true
+    },
+    {
+      "file": "references/venture.png",
+      "passed": true
+    },
+    {
+      "file": "references/venture.ship",
+      "passed": true
+    },
+    {
+      "file": "assets/secondary-materials-v1.png",
+      "passed": true
+    },
+    {
+      "file": "assets/hound-card-v1.png",
+      "passed": true
+    },
+    {
+      "file": "assets/hound-card-v2.png",
+      "passed": true
+    },
+    {
+      "file": "assets/venture-card-v1.png",
+      "passed": true
+    },
+    {
+      "file": "assets/venture-card-v2.png",
+      "passed": true
+    },
+    {
+      "file": "assets/hound-card-v3-flight.png",
+      "passed": true
+    },
+    {
+      "file": "assets/venture-card-v3-flight.png",
+      "passed": true
+    },
+    {
+      "file": "assets/port-architecture-finish-v1.png",
+      "passed": true
+    }
+  ],
+  "preserved_sources": [
+    {
+      "file": "forest-reveal-realism/review/jangala-forest-reveal-realism.mp4",
+      "passed": true
+    },
+    {
+      "file": "managed-land-realism/review/jangala-managed-land-realism.mp4",
+      "passed": true
+    },
+    {
+      "file": "forest-reveal-realism/forest-reveal-realism.blend",
+      "passed": true
+    },
+    {
+      "file": "managed-land-realism/managed-land-realism.blend",
+      "passed": true
+    },
+    {
+      "file": "port-approach-realism/port-approach-realism.blend",
+      "passed": true
+    }
+  ],
+  "missing_links": [],
+  "scene_sha256": "33332e2d69c0d5bd298c3ca66331b284e27261ddd916ff7d4f43b1d54696dddd",
+  "limits": "Package integrity and syntax only; Blender and motion review are separate evidence."
+}

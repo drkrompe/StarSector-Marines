@@ -1,0 +1,90 @@
+{
+  "check": "All package source/text files retain bytes through Git attributes/filters; text-hashes.json excludes itself.",
+  "passed": true,
+  "files": [
+    {
+      "path": "build_scene.py",
+      "sha256": "7070c06b0c814d2b17799aeb9ac631f5fea761e03d1f9c7c66eb8803602ae100",
+      "git_raw": "fedb99788ada2cf1608bad58a1acd8ea2db1c2e8",
+      "git_filtered": "fedb99788ada2cf1608bad58a1acd8ea2db1c2e8"
+    },
+    {
+      "path": "encode_review.py",
+      "sha256": "ef3ea9285f90d2e8fd2bdd2a915565dbbd20b9b224092bcf590604e6e5feb4af",
+      "git_raw": "3bc2ab5d8dbc12d864bd1999f23d687d672149bd",
+      "git_filtered": "3bc2ab5d8dbc12d864bd1999f23d687d672149bd"
+    },
+    {
+      "path": "media-manifest.json",
+      "sha256": "ccadad62cb745d7de1a3b66c1bd299d91055221368ea38910c13515d6d2432b6",
+      "git_raw": "d48ee408b0c61abd613772dd5f15d90e9987c51e",
+      "git_filtered": "d48ee408b0c61abd613772dd5f15d90e9987c51e"
+    },
+    {
+      "path": "planet-registration.json",
+      "sha256": "53f240605b6747c4f7c3a9fa27b66ca54256c97f7406277ed503117c0ef594bc",
+      "git_raw": "a28e9e00ae7f63084d4bb82c753b3d0a83757c60",
+      "git_filtered": "a28e9e00ae7f63084d4bb82c753b3d0a83757c60"
+    },
+    {
+      "path": "planet_guide.py",
+      "sha256": "76a96472dbfc5e05c74483d6063f00a58ab18e76db16cf5285aca1940c292cae",
+      "git_raw": "54e2e1ee1703d92258f0e64701f06f9d39237902",
+      "git_filtered": "54e2e1ee1703d92258f0e64701f06f9d39237902"
+    },
+    {
+      "path": "provenance.json",
+      "sha256": "2919932acc14f668514837ff03b049c80f992400629441e3cc36c0265bc00193",
+      "git_raw": "2f3dc135350cd0bb30a10c0032003588d5791bfa",
+      "git_filtered": "2f3dc135350cd0bb30a10c0032003588d5791bfa"
+    },
+    {
+      "path": "README.md",
+      "sha256": "4e140d027e12d6519882011633f37df2a2da97ee19fd9934c940d8078437e4b3",
+      "git_raw": "3d891de41f8fc13e9dc953006e83aa92077b546b",
+      "git_filtered": "3d891de41f8fc13e9dc953006e83aa92077b546b"
+    },
+    {
+      "path": "render-manifest.json",
+      "sha256": "dfce7b8a859078dda739e5488291563b18cc2e88d709039a6dc727b8c7553db6",
+      "git_raw": "c96dc1f9ff8294e9cf6faf3be434e1ae055a7de1",
+      "git_filtered": "c96dc1f9ff8294e9cf6faf3be434e1ae055a7de1"
+    },
+    {
+      "path": "render_motion.py",
+      "sha256": "4ea70e53dffcc360649139b7693fc515f9f659978a086687cea6f27b2cab6044",
+      "git_raw": "e1d06bcfe5f6b8b40155b77bf4da420ea91bead4",
+      "git_filtered": "e1d06bcfe5f6b8b40155b77bf4da420ea91bead4"
+    },
+    {
+      "path": "render_preview.py",
+      "sha256": "57d9809301bf304c619732076f6f9e55da06ca06dfcaaf0d7c819238d0d9c6da",
+      "git_raw": "0431f008eedf938765ae476d7d326048a4d2c0f1",
+      "git_filtered": "0431f008eedf938765ae476d7d326048a4d2c0f1"
+    },
+    {
+      "path": "scene-manifest.json",
+      "sha256": "764c49422a047c4ba5df9ec8a889ec417f5ce65ec9f280e769d1904ee93abcb1",
+      "git_raw": "62657cc45ff4dc1ecfa77960c38d9d88fe06f3a7",
+      "git_filtered": "62657cc45ff4dc1ecfa77960c38d9d88fe06f3a7"
+    },
+    {
+      "path": "verification.json",
+      "sha256": "d43c889f64cca9e59be18f1fabf2c4518c97918701ae4f91418dd24a5046a6ce",
+      "git_raw": "c8a9958a3f1cfcaf9ebcdeadb15260765f00046d",
+      "git_filtered": "c8a9958a3f1cfcaf9ebcdeadb15260765f00046d"
+    },
+    {
+      "path": "verify_scene.py",
+      "sha256": "d6980504c8d11dfa40b1cebcd6a75794bdcc8adc45824621bf8cb4c3ff6447f3",
+      "git_raw": "c82d22781511597992832eebd7f2cee5867a515b",
+      "git_filtered": "c82d22781511597992832eebd7f2cee5867a515b"
+    },
+    {
+      "path": "prompts/planet-plate-v1.txt",
+      "sha256": "e80c031932ef20937cb620a10a5aa9aabdd3347ad3b75c00f85679371f7325a1",
+      "git_raw": "18f65540468baf38efe73cc991f901a63f9c804b",
+      "git_filtered": "18f65540468baf38efe73cc991f901a63f9c804b"
+    }
+  ]
+}

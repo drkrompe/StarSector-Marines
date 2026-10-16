@@ -1,0 +1,547 @@
+{
+  "image": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\landing-refinement\\assets\\starboard-surface-v1.png",
+  "native_dimensions": [
+    1672,
+    941
+  ],
+  "registration": {
+    "method": "Manually identified engine lip, bay corners, bow tip, four turret centers and underbow shoe; least-squares2Daffine. Not silhouettebounds fitting.",
+    "guide_dimensions": [
+      1920,
+      1080
+    ],
+    "native_dimensions": [
+      1672,
+      941
+    ],
+    "image": "starboard-surface-v1.png",
+    "affine_top_left_pixel_rows": [
+      [
+        1.1360130378145872,
+        0.0009611366912453123,
+        -291.6387675280004
+      ],
+      [
+        0.0035783407762462627,
+        1.126538494568103,
+        -152.62110181046745
+      ]
+    ],
+    "rms_native_pixels": 4.1909387346295945,
+    "max_native_pixels": 7.337909248816196,
+    "landmarks": [
+      {
+        "name": "aft bell outer lip center",
+        "guide_xy": [
+          355,
+          684
+        ],
+        "native_xy": [
+          116,
+          623
+        ],
+        "predicted_native_xy": [
+          112.3032783929898,
+          619.2015394496825
+        ],
+        "residual_native_px": 5.300382362816321
+      },
+      {
+        "name": "bay upper aft corner",
+        "guide_xy": [
+          973,
+          636
+        ],
+        "native_xy": [
+          811,
+          563
+        ],
+        "predicted_native_xy": [
+          814.313201201225,
+          567.3391063101337
+        ],
+        "residual_native_px": 5.45940892134312
+      },
+      {
+        "name": "bay upper forward corner",
+        "guide_xy": [
+          1256,
+          642
+        ],
+        "native_xy": [
+          1134,
+          568
+        ],
+        "predicted_native_xy": [
+          1135.8106577229007,
+          575.11100771722
+        ],
+        "residual_native_px": 7.337909248816196
+      },
+      {
+        "name": "bay lower forward corner",
+        "guide_xy": [
+          1256,
+          736
+        ],
+        "native_xy": [
+          1134,
+          681
+        ],
+        "predicted_native_xy": [
+          1135.9010045718776,
+          681.0056262066216
+        ],
+        "residual_native_px": 1.9010128975102876
+      },
+      {
+        "name": "bay lower aft corner",
+        "guide_xy": [
+          973,
+          732
+        ],
+        "native_xy": [
+          811,
+          676
+        ],
+        "predicted_native_xy": [
+          814.4054703235845,
+          675.4868017886715
+        ],
+        "residual_native_px": 3.443922259419546
+      },
+      {
+        "name": "bow upper tip",
+        "guide_xy": [
+          1608,
+          611
+        ],
+        "native_xy": [
+          1535,
+          545
+        ],
+        "predicted_native_xy": [
+          1535.6574517962065,
+          541.4478903388474
+        ],
+        "residual_native_px": 3.612440436766919
+      },
+      {
+        "name": "aft far turret center",
+        "guide_xy": [
+          873,
+          428
+        ],
+        "native_xy": [
+          699,
+          333
+        ],
+        "predicted_native_xy": [
+          700.511980987987,
+          332.6612653623436
+        ],
+        "residual_native_px": 1.5494604424710179
+      },
+      {
+        "name": "aft near turret center",
+        "guide_xy": [
+          803,
+          475
+        ],
+        "native_xy": [
+          621,
+          384
+        ],
+        "predicted_native_xy": [
+          621.0362417654546,
+          385.35809075270726
+        ],
+        "residual_native_px": 1.3585742372620748
+      },
+      {
+        "name": "forward near turret center",
+        "guide_xy": [
+          1390,
+          484
+        ],
+        "native_xy": [
+          1288,
+          398
+        ],
+        "predicted_native_xy": [
+          1287.8845451928385,
+          397.59742323947677
+        ],
+        "residual_native_px": 0.41880527767697495
+      },
+      {
+        "name": "forward far turret center",
+        "guide_xy": [
+          1421,
+          451
+        ],
+        "native_xy": [
+          1327,
+          363
+        ],
+        "predicted_native_xy": [
+          1323.0692318542795,
+          360.53258148279286
+        ],
+        "residual_native_px": 4.641022770302687
+      },
+      {
+        "name": "underbow shoe center",
+        "guide_xy": [
+          1338,
+          791
+        ],
+        "native_xy": [
+          1234,
+          745
+        ],
+        "predicted_native_xy": [
+          1229.1069361906923,
+          743.2586673515195
+        ],
+        "residual_native_px": 5.193680085894858
+      }
+    ],
+    "limits": "Manual landmark uncertainty about2-4pixels. Global affine cannot register newly generated small panels, craters or local silhouette differences. Covers this one fixed aspect only."
+  },
+  "covered_objects": [
+    {
+      "name": "Aft flank access housing",
+      "polygons": 1
+    },
+    {
+      "name": "Aft flank access housing.001",
+      "polygons": 1
+    },
+    {
+      "name": "Aft flank access housing.002",
+      "polygons": 1
+    },
+    {
+      "name": "Aft machinery casing",
+      "polygons": 1
+    },
+    {
+      "name": "Armor captive fasteners | combined mesh",
+      "polygons": 1343
+    },
+    {
+      "name": "Bay ceiling.001",
+      "polygons": 1
+    },
+    {
+      "name": "Bay coaming.002",
+      "polygons": 1
+    },
+    {
+      "name": "Bay coaming.003",
+      "polygons": 1
+    },
+    {
+      "name": "Bay level floor.001",
+      "polygons": 1
+    },
+    {
+      "name": "Casing access cover",
+      "polygons": 1
+    },
+    {
+      "name": "Casing access cover.001",
+      "polygons": 1
+    },
+    {
+      "name": "Casing access cover.002",
+      "polygons": 1
+    },
+    {
+      "name": "Casing access cover.003",
+      "polygons": 1
+    },
+    {
+      "name": "Casing access cover.004",
+      "polygons": 1
+    },
+    {
+      "name": "Casing access cover.005",
+      "polygons": 1
+    },
+    {
+      "name": "Closed door stiffener",
+      "polygons": 1
+    },
+    {
+      "name": "Closed door stiffener.001",
+      "polygons": 1
+    },
+    {
+      "name": "Closed door stiffener.002",
+      "polygons": 1
+    },
+    {
+      "name": "Closed door stiffener.003",
+      "polygons": 1
+    },
+    {
+      "name": "Closed door stiffener.004",
+      "polygons": 1
+    },
+    {
+      "name": "Emergency backing splint.008",
+      "polygons": 1
+    },
+    {
+      "name": "Emergency backing splint.009",
+      "polygons": 1
+    },
+    {
+      "name": "Engine 3 mouth rim",
+      "polygons": 15
+    },
+    {
+      "name": "Engine 4 aft-facing nozzle",
+      "polygons": 20
+    },
+    {
+      "name": "Engine 4 body",
+      "polygons": 12
+    },
+    {
+      "name": "Engine 4 mouth rim",
+      "polygons": 89
+    },
+    {
+      "name": "Engine room armored shoulder",
+      "polygons": 3
+    },
+    {
+      "name": "Engine room armored shoulder.004",
+      "polygons": 3
+    },
+    {
+      "name": "Engine room armored shoulder.008",
+      "polygons": 1
+    },
+    {
+      "name": "Engine room reinforcing band",
+      "polygons": 1
+    },
+    {
+      "name": "Engine room reinforcing band.002",
+      "polygons": 1
+    },
+    {
+      "name": "Exposed longitudinal service trunk",
+      "polygons": 11
+    },
+    {
+      "name": "Exposed longitudinal service trunk.001",
+      "polygons": 3
+    },
+    {
+      "name": "Exposed longitudinal service trunk.002",
+      "polygons": 3
+    },
+    {
+      "name": "Forebody replaceable armor",
+      "polygons": 3
+    },
+    {
+      "name": "Forebody replaceable armor.004",
+      "polygons": 2
+    },
+    {
+      "name": "Main hull - level datum Z0",
+      "polygons": 95
+    },
+    {
+      "name": "Physical armor | ARRIVAL | backing",
+      "polygons": 109
+    },
+    {
+      "name": "Physical armor | ARRIVAL | cream",
+      "polygons": 343
+    },
+    {
+      "name": "Physical armor | ARRIVAL | gunmetal",
+      "polygons": 61
+    },
+    {
+      "name": "Physical armor | ARRIVAL | oxide",
+      "polygons": 945
+    },
+    {
+      "name": "PROPOSAL ventral lift collar.001",
+      "polygons": 6
+    },
+    {
+      "name": "Protected waist service line",
+      "polygons": 12
+    },
+    {
+      "name": "Recessed central service bed",
+      "polygons": 1
+    },
+    {
+      "name": "Service trunk support hoop",
+      "polygons": 1
+    },
+    {
+      "name": "Service trunk support hoop.001",
+      "polygons": 1
+    },
+    {
+      "name": "Service trunk support hoop.002",
+      "polygons": 1
+    },
+    {
+      "name": "Shoulder louver vent.001",
+      "polygons": 3
+    },
+    {
+      "name": "Shoulder louver vent.003",
+      "polygons": 2
+    },
+    {
+      "name": "Starboard bay sealed sectional door",
+      "polygons": 1
+    },
+    {
+      "name": "Turret 1 forward barrel",
+      "polygons": 6
+    },
+    {
+      "name": "Turret 1 raised armored housing",
+      "polygons": 1
+    },
+    {
+      "name": "Turret 1 shallow ring",
+      "polygons": 6
+    },
+    {
+      "name": "Turret 2 forward barrel",
+      "polygons": 6
+    },
+    {
+      "name": "Turret 2 raised armored housing",
+      "polygons": 1
+    },
+    {
+      "name": "Turret 2 shallow ring",
+      "polygons": 11
+    },
+    {
+      "name": "Turret 3 forward barrel",
+      "polygons": 6
+    },
+    {
+      "name": "Turret 4 forward barrel",
+      "polygons": 6
+    },
+    {
+      "name": "Turret 4 raised armored housing",
+      "polygons": 1
+    },
+    {
+      "name": "Turret 4 shallow ring",
+      "polygons": 10
+    },
+    {
+      "name": "Vent louver.005",
+      "polygons": 1
+    },
+    {
+      "name": "Vent louver.006",
+      "polygons": 1
+    },
+    {
+      "name": "Vent louver.007",
+      "polygons": 1
+    },
+    {
+      "name": "Vent louver.008",
+      "polygons": 1
+    },
+    {
+      "name": "Vent louver.009",
+      "polygons": 1
+    },
+    {
+      "name": "Vent louver.015",
+      "polygons": 1
+    },
+    {
+      "name": "Vent louver.016",
+      "polygons": 1
+    },
+    {
+      "name": "Vent louver.017",
+      "polygons": 1
+    },
+    {
+      "name": "Vent louver.018",
+      "polygons": 1
+    },
+    {
+      "name": "Vent louver.019",
+      "polygons": 1
+    }
+  ],
+  "camera_matrix_world": [
+    [
+      0.9963980317115784,
+      -0.012447941116988659,
+      0.08388123661279678,
+      20.0
+    ],
+    [
+      0.08479984104633331,
+      0.14626330137252808,
+      -0.9856044054031372,
+      -235.0
+    ],
+    [
+      -9.028320313575477e-10,
+      0.9891673922538757,
+      0.14679203927516937,
+      67.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "camera_matrix_ship_local": [
+    [
+      0.6642653942108154,
+      -0.008298628032207489,
+      0.05592082440853119,
+      13.333333969116211
+    ],
+    [
+      0.05653322860598564,
+      0.09750887006521225,
+      -0.6570696234703064,
+      -156.6666717529297
+    ],
+    [
+      -6.018880394087489e-10,
+      0.6594449281692505,
+      0.09786136448383331,
+      30.666667938232422
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "limits": "Single starboard aspect. Polygon sampled visibility; generated internal registration requires review. Retains port finish and neutral hidden-face fallback."
+}

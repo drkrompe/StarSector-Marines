@@ -1,0 +1,27 @@
+{
+  "generator": "built-in image_gen",
+  "source": "art-source/company-prologue/second-wind-cinematic/painted-window/assets/landscape-painted-v2.png",
+  "postprocessing": "None. Raw generated PNGs copied byte-for-byte, native alpha retained.",
+  "near": {
+    "file": "near-trees-v1.png",
+    "prompt": "near-trees-v1.prompt.txt",
+    "rawSource": "C:/Users/Dillon/.codex/generated_images/01a1411c-ef09-7a21-ab6c-a2d2c647727b/exec-0dbb422b-ed1d-4702-8cdc-903275c2d01d.png",
+    "width": 1672, "height": 941,
+    "alphaZero": 1087768, "alpha255": 154, "alphaPartial": 485430,
+    "dominantNonzeroAlpha": 253,
+    "sha256": "F89687D378A59449452AAB947B95B73DF3B304C0BAFF5675854A3F602AEADE06",
+    "visualQA": "Foreground position and scale track source well, with ragged treetops rising toward right. Sky, river and distant land removed. Some edge simplification/repainting; not pixel-exact.",
+    "limitation": "Most painted interior pixels are alpha253/254 rather than fully opaque. Tiny low-alpha noise exists above visible treetop edge."
+  },
+  "medium": {
+    "file": "medium-trees-v1.png",
+    "prompt": "medium-trees-v1.prompt.txt",
+    "rawSource": "C:/Users/Dillon/.codex/generated_images/01a1411c-ef09-7a21-ab6c-a2d2c647727b/exec-53ef92bf-d932-4e8a-91df-d8354fe99410.png",
+    "width": 1672, "height": 941,
+    "alphaZero": 544870, "alpha255": 79, "alphaPartial": 1028403,
+    "sha256": "2488576038E1D0FBF2B2D7327FBABBE0C374133311CF4C41CD73D041BEE189C2",
+    "visualQA": "Continuous painted medium forest, river, banks and lower smaller forest to bottom. Sky/distant hills removed. Medium horizon follows central canopy masses.",
+    "geometryDrift": "River/banks shifted approximately 20-40 pixels downward by generation in places. Closest masses reduced/repainted but smaller near-side foliage remains under separate near layer.",
+    "limitation": "Interior native alpha is mostly near-opaque rather than 255; tiny low-alpha noise exists above visible horizon. Approximate generated separation, not pixel-exact extraction."
+  }
+}

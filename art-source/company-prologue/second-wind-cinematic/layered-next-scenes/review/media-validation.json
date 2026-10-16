@@ -1,0 +1,55 @@
+{
+  "passed": true,
+  "movie": "review/layered-next-scenes-review.mp4",
+  "bytes": 2555527,
+  "sha256": "ff9b8c88469458a1e8cd490a7c62671fac04238270b2da16f768f2d8106b6334",
+  "dimensions": [
+    1920,
+    1080
+  ],
+  "fps": 24,
+  "frames": 576,
+  "duration_seconds": 24,
+  "audio": false,
+  "full_decode": "FFmpeg -xerror exit 0",
+  "source_frames": {
+    "frame_count": 576,
+    "unique_frames": 564,
+    "size": [
+      1920,
+      1080
+    ],
+    "fps": 24,
+    "shots": [
+      {
+        "shot": "03",
+        "frames": 96,
+        "unique_frames": 96,
+        "leading_hold_extra_frames": 0,
+        "trailing_hold_extra_frames": 0
+      },
+      {
+        "shot": "04",
+        "frames": 96,
+        "unique_frames": 96,
+        "leading_hold_extra_frames": 0,
+        "trailing_hold_extra_frames": 0
+      },
+      {
+        "shot": "05",
+        "frames": 120,
+        "unique_frames": 119,
+        "leading_hold_extra_frames": 0,
+        "trailing_hold_extra_frames": 1
+      },
+      {
+        "shot": "06",
+        "frames": 264,
+        "unique_frames": 253,
+        "leading_hold_extra_frames": 2,
+        "trailing_hold_extra_frames": 9
+      }
+    ]
+  },
+  "limits": "Media integrity only; untextured staging, not final visual acceptance."
+}

@@ -1,0 +1,24 @@
+{
+  "source": "../animatic/jangala-blockout.blend",
+  "source_frame": 144,
+  "shot_camera": "02 REVEAL / near glass",
+  "source_camera_animation_changed": false,
+  "test_source_frames": [
+    120,
+    168
+  ],
+  "landscape_overscan": 1.35,
+  "cabin_overscan": 1.12,
+  "landscape_art": "assets/landscape-painted-v2.png",
+  "cabin_art": "assets/cabin-painted-v2.png",
+  "render_camera_marker_bindings": "cleared in derived scene; original source unchanged",
+  "landscape_projection": "fixed world-space reference at source frame 144",
+  "cabin_projection": "fixed ship-local reference at source frame 144",
+  "painted_environment_meshes": [
+    "PAINT | distant sky backing"
+  ],
+  "landscape_mode": "continuous painted panorama",
+  "backing_distance_m": 14000,
+  "surface_shading": "Emission: artwork contains its own light and brushwork",
+  "scope": "One high-window shot; other cameras and unrestricted camera moves are unvalidated."
+}

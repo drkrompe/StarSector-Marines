@@ -1,0 +1,192 @@
+{
+  "schema_version": 1,
+  "scope": "Revised heavy damaged arrival and continuity with preceding port; prior landing retained separately.",
+  "sources": [
+    {
+      "path": "../landing-refinement/landing-refinement.blend",
+      "role": "Saved previous landing; preserved source for camera, ship finish, support mechanics and yard geometry",
+      "bytes": 15839978,
+      "sha256": "b29e3d632628e0f87b74b64bc2eaff87ba704999e631da24bb3574f69ea79a1c"
+    },
+    {
+      "path": "../landing-refinement/provenance.json",
+      "role": "Inherited ship/yard artwork, registration, source and reference provenance",
+      "bytes": 13746,
+      "sha256": "da763ded224424d3955a596777f97b75e85d9fb75ea463ffd3350df41f071a0c"
+    },
+    {
+      "path": "../port-refinement/review/jangala-port-refined.mp4",
+      "role": "Actual previous four-second port excerpt prepended to continuity cut",
+      "bytes": 2584768,
+      "sha256": "f79e73cb41ff7aa3d3bbe86571b6e8e77ec99dbe8ae9a827ef6215ef9bb80266"
+    }
+  ],
+  "generated_impact_finish": {
+    "generator": "OpenAI built-in image-generation tool",
+    "asset": {
+      "path": "assets/impact-surfaces-v1.png",
+      "role": "Native localized scar RGB; lossless PNG copy without upscale",
+      "bytes": 2231880,
+      "sha256": "9d1c3a29aa412391f6d670c54e704f45d80bc3f76911e0bed57604a0cd29a471",
+      "dimensions": [
+        1672,
+        941
+      ]
+    },
+    "original_generated_filename": "exec-5b5c1565-8376-41fd-95fb-bc5a2dcfe618.png",
+    "prompt": {
+      "path": "prompts/impact-surfaces-v1.txt",
+      "role": "Exact submitted prompt",
+      "bytes": 1755,
+      "sha256": "6766db5d23e402a160a6e715039c5c531d357e302119e7c24e61b55021c1d35c"
+    },
+    "ordered_references": [
+      {
+        "path": "guides/impact-surface-guide.png",
+        "role": "Image1: immutable camera/layout/geometry authority; existing four modeled impact scars",
+        "bytes": 2965373,
+        "sha256": "e6f444577e5b8749d616f385eeb730d9a78e2be5c840318a56967d50169c6118",
+        "dimensions": [
+          1920,
+          1080
+        ]
+      },
+      {
+        "path": "../../second-wind-skins/arrival-heavy.reference.png",
+        "role": "Image2: damage material direction only; no camera/layout/shape authority",
+        "bytes": 2344356,
+        "sha256": "cf767d0a059bf40ee66728fa8e1480c920d25da772f82c92b6221c3f9308432e",
+        "dimensions": [
+          1672,
+          941
+        ]
+      }
+    ],
+    "application": "Identity normalized frame-744 guide coordinates stored in mesh-corner UVs on 12 new scar backing, rim and seam meshes; excludes four emergency straps. Ordinary hull and yard finishes remain unchanged. Packed native image retains physical roughness, bump and metallic shaders. The module supports an optional explicit affine registration.",
+    "limits": "Bounded fixed-aspect projection; generated internal detail and concave-surface registration require visual review. Not complete multiangle UV coverage."
+  },
+  "modules": [
+    {
+      "path": "build_scene.py",
+      "role": "Regeneration implementation snapshot",
+      "bytes": 2719,
+      "sha256": "1c8087051ffeb0d4d1bd4a2d71584e765c11e5dd06a9b2df1fa5bff9a5185615"
+    },
+    {
+      "path": "damage_geometry.py",
+      "role": "Regeneration implementation snapshot",
+      "bytes": 12916,
+      "sha256": "73b09481313bc71afe4327321666e54f3604e2b5399a4dbd5b5618473a82c949"
+    },
+    {
+      "path": "impact_surface.py",
+      "role": "Regeneration implementation snapshot",
+      "bytes": 6109,
+      "sha256": "724b4c87363e1fbab699e0140803147e1ef38d12d4fb1a9536642f9a30db7e1c"
+    },
+    {
+      "path": "unstable_arrival.py",
+      "role": "Regeneration implementation snapshot",
+      "bytes": 11476,
+      "sha256": "073b8d21316af2e63cebc9100d7a21251621de59389d681157eb5e97439116e6"
+    },
+    {
+      "path": "yard_style.py",
+      "role": "Regeneration implementation snapshot",
+      "bytes": 6433,
+      "sha256": "00bdf29cee951d1e9fccddb9b6428ac0ce611f8e9c23a7a8608998b382b1302a"
+    },
+    {
+      "path": "verify_scene.py",
+      "role": "Regeneration implementation snapshot",
+      "bytes": 20475,
+      "sha256": "46799568f5b6d5e7dd11663a4ef91b4e08ea3b2179a8921e74110f09933c3ebe"
+    },
+    {
+      "path": "render_motion.py",
+      "role": "Regeneration implementation snapshot",
+      "bytes": 1975,
+      "sha256": "f139d638f487017114c43d990349d60ec0f455e3a46b93f8f7cd4a6c7529d21d"
+    },
+    {
+      "path": "encode_review.py",
+      "role": "Regeneration implementation snapshot",
+      "bytes": 3061,
+      "sha256": "cfaf770c7e16b97542c937e585c7294ef5980cdb5ede5cb96f4f2e033e3ac2f2"
+    }
+  ],
+  "yard_style": {
+    "physical_docks": "Restore inherited physical port atlas materials at the same 20 m concrete-cell repeat. No photographic puddles, extra fixtures or full-frame blur.",
+    "retained_landscape_only_camera_finish": [
+      "LANDING YARD | far forest and hills",
+      "LANDING YARD | far daylight sky"
+    ],
+    "ship_clamps_fx": "Excluded from static yard restyling"
+  },
+  "damage": {
+    "authorization": "User requested less controlled heavy arrival and stronger physical damage. Localized outer-skin concavity and sacrificial armor loss are newly authorized geometry changes.",
+    "pressure_boundary": "Continuous, sealed occupied boundary retained; no open occupied breach",
+    "parameters": "damage-contract.json and damage_geometry.py own exact regions/limits"
+  },
+  "motion": {
+    "parameters": "motion-contract.json and unstable_arrival.py own the current roll, pitch, sag and delayed lift recovery.",
+    "retime_knots_seconds_source_frames": [
+      [
+        0,
+        580
+      ],
+      [
+        2,
+        624
+      ],
+      [
+        2.5,
+        648
+      ],
+      [
+        6.5,
+        744
+      ],
+      [
+        8,
+        774
+      ]
+    ],
+    "fps": 24,
+    "landing_frames": 192,
+    "landing_seconds": 8,
+    "continuity_frames": 288,
+    "continuity_seconds": 12,
+    "first_source_frame": 580,
+    "last_encoded_source_frame": 773.1666666666666,
+    "separate_settled_still_source_frame": 774,
+    "method": "True Blender evaluations at editorially retimed source times; no synthesized video frames"
+  },
+  "render_target": {
+    "resolution": [
+      1920,
+      1080
+    ],
+    "engine": "Cycles",
+    "samples": 32,
+    "denoising": true,
+    "actual_device": "render-manifest.json",
+    "codec": "H.264",
+    "crf": 18,
+    "pixel_format": "yuv420p",
+    "audio": "none"
+  },
+  "outputs": {
+    "scene": "landing-wreck-pass.blend",
+    "landing_movie": "review/jangala-damaged-landing.mp4",
+    "continuity_movie": "review/port-to-damaged-landing.mp4",
+    "hash_binding_owners": [
+      "scene-manifest.json",
+      "render-manifest.json",
+      "review/media-validation.json"
+    ],
+    "construction_validation": "review/scene-validation.json",
+    "visual_acceptance": "Recorded separately after encoded playback; not inferred from hash/geometry checks.",
+    "note": "Final movie hashes and full decode results are in review/media-validation.json; encoded playback observations are in review/motion-review.json."
+  }
+}

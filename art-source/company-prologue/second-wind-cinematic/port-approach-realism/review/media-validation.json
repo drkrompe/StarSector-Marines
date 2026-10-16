@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "movie": "jangala-port-approach-realism.mp4",
+  "dimensions": [
+    1920,
+    1080
+  ],
+  "duration_seconds": 4,
+  "fps": 24,
+  "decoded_frames": 96,
+  "unique_source_frames": 96,
+  "source_frame_mapping": "400 + 0.5*i at source 12fps, i=0..95",
+  "scene_sha256": "0b737777f455809e3127a3895ff201faeb93d397d5f6b66c4de27bc1c20ae8e3",
+  "audio": false,
+  "codec": "h264",
+  "pixel_format": "yuv420p",
+  "bytes": 3126913,
+  "sha256": "9a9a090f4a504df63763d7e2606d5e681c54e6fe61437a7040579a419249c190",
+  "full_decode": "FFmpeg -xerror exit 0",
+  "adjacent_mean_absolute_pixel_change_0_to_255": {
+    "min": 5.220591403034979,
+    "max": 5.943780381944445,
+    "mean": 5.513664057423652
+  },
+  "limits": "Media integrity and cadence only; visual quality and physical plausibility require rendered review."
+}

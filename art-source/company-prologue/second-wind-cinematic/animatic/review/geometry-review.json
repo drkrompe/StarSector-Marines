@@ -1,0 +1,672 @@
+{
+  "source_blend": "jangala-blockout.blend",
+  "frames": [
+    {
+      "frame": 624,
+      "root_xyz": [
+        0.0,
+        0.0,
+        32.0
+      ],
+      "level_error": 0.0,
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "pad": "YARD_contact_pad_0",
+          "shoe_bottom_z": 16.0,
+          "pad_top_z": 5.0,
+          "gap_m": 11.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "pad": "YARD_contact_pad_1",
+          "shoe_bottom_z": 16.0,
+          "pad_top_z": 5.0,
+          "gap_m": 11.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "pad": "YARD_contact_pad_2",
+          "shoe_bottom_z": 16.0,
+          "pad_top_z": 5.0,
+          "gap_m": 11.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "pad": "YARD_contact_pad_3",
+          "shoe_bottom_z": 16.0,
+          "pad_top_z": 5.0,
+          "gap_m": 11.0
+        }
+      ],
+      "clamps": [
+        {
+          "name": "YARD_retaining_wedge_0",
+          "inner_abs_y": 19.0,
+          "shoe": "PROPOSAL keel shoe",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "name": "YARD_retaining_wedge_1",
+          "inner_abs_y": 19.0,
+          "shoe": "PROPOSAL keel shoe.001",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "name": "YARD_retaining_wedge_2",
+          "inner_abs_y": 19.0,
+          "shoe": "PROPOSAL keel shoe.002",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "name": "YARD_retaining_wedge_3",
+          "inner_abs_y": 19.0,
+          "shoe": "PROPOSAL keel shoe.003",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 1.0
+        }
+      ]
+    },
+    {
+      "frame": 648,
+      "root_xyz": [
+        0.0,
+        0.0,
+        32.0
+      ],
+      "level_error": 0.0,
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "pad": "YARD_contact_pad_0",
+          "shoe_bottom_z": 16.0,
+          "pad_top_z": 5.0,
+          "gap_m": 11.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "pad": "YARD_contact_pad_1",
+          "shoe_bottom_z": 16.0,
+          "pad_top_z": 5.0,
+          "gap_m": 11.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "pad": "YARD_contact_pad_2",
+          "shoe_bottom_z": 16.0,
+          "pad_top_z": 5.0,
+          "gap_m": 11.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "pad": "YARD_contact_pad_3",
+          "shoe_bottom_z": 16.0,
+          "pad_top_z": 5.0,
+          "gap_m": 11.0
+        }
+      ],
+      "clamps": [
+        {
+          "name": "YARD_retaining_wedge_0",
+          "inner_abs_y": 19.0,
+          "shoe": "PROPOSAL keel shoe",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "name": "YARD_retaining_wedge_1",
+          "inner_abs_y": 19.0,
+          "shoe": "PROPOSAL keel shoe.001",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "name": "YARD_retaining_wedge_2",
+          "inner_abs_y": 19.0,
+          "shoe": "PROPOSAL keel shoe.002",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "name": "YARD_retaining_wedge_3",
+          "inner_abs_y": 19.0,
+          "shoe": "PROPOSAL keel shoe.003",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 1.0
+        }
+      ]
+    },
+    {
+      "frame": 720,
+      "root_xyz": [
+        0.0,
+        0.0,
+        22.71875
+      ],
+      "level_error": 0.0,
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "pad": "YARD_contact_pad_0",
+          "shoe_bottom_z": 6.71875,
+          "pad_top_z": 5.0,
+          "gap_m": 1.71875
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "pad": "YARD_contact_pad_1",
+          "shoe_bottom_z": 6.71875,
+          "pad_top_z": 5.0,
+          "gap_m": 1.71875
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "pad": "YARD_contact_pad_2",
+          "shoe_bottom_z": 6.71875,
+          "pad_top_z": 5.0,
+          "gap_m": 1.71875
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "pad": "YARD_contact_pad_3",
+          "shoe_bottom_z": 6.71875,
+          "pad_top_z": 5.0,
+          "gap_m": 1.71875
+        }
+      ],
+      "clamps": [
+        {
+          "name": "YARD_retaining_wedge_0",
+          "inner_abs_y": 19.0,
+          "shoe": "PROPOSAL keel shoe",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "name": "YARD_retaining_wedge_1",
+          "inner_abs_y": 19.0,
+          "shoe": "PROPOSAL keel shoe.001",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "name": "YARD_retaining_wedge_2",
+          "inner_abs_y": 19.0,
+          "shoe": "PROPOSAL keel shoe.002",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "name": "YARD_retaining_wedge_3",
+          "inner_abs_y": 19.0,
+          "shoe": "PROPOSAL keel shoe.003",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 1.0
+        }
+      ]
+    },
+    {
+      "frame": 744,
+      "root_xyz": [
+        0.0,
+        0.0,
+        21.0
+      ],
+      "level_error": 0.0,
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "pad": "YARD_contact_pad_0",
+          "shoe_bottom_z": 5.0,
+          "pad_top_z": 5.0,
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "pad": "YARD_contact_pad_1",
+          "shoe_bottom_z": 5.0,
+          "pad_top_z": 5.0,
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "pad": "YARD_contact_pad_2",
+          "shoe_bottom_z": 5.0,
+          "pad_top_z": 5.0,
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "pad": "YARD_contact_pad_3",
+          "shoe_bottom_z": 5.0,
+          "pad_top_z": 5.0,
+          "gap_m": 0.0
+        }
+      ],
+      "clamps": [
+        {
+          "name": "YARD_retaining_wedge_0",
+          "inner_abs_y": 19.0,
+          "shoe": "PROPOSAL keel shoe",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "name": "YARD_retaining_wedge_1",
+          "inner_abs_y": 19.0,
+          "shoe": "PROPOSAL keel shoe.001",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "name": "YARD_retaining_wedge_2",
+          "inner_abs_y": 19.0,
+          "shoe": "PROPOSAL keel shoe.002",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 1.0
+        },
+        {
+          "name": "YARD_retaining_wedge_3",
+          "inner_abs_y": 19.0,
+          "shoe": "PROPOSAL keel shoe.003",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 1.0
+        }
+      ]
+    },
+    {
+      "frame": 751,
+      "root_xyz": [
+        0.0,
+        0.0,
+        21.0
+      ],
+      "level_error": 0.0,
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "pad": "YARD_contact_pad_0",
+          "shoe_bottom_z": 5.0,
+          "pad_top_z": 5.0,
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "pad": "YARD_contact_pad_1",
+          "shoe_bottom_z": 5.0,
+          "pad_top_z": 5.0,
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "pad": "YARD_contact_pad_2",
+          "shoe_bottom_z": 5.0,
+          "pad_top_z": 5.0,
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "pad": "YARD_contact_pad_3",
+          "shoe_bottom_z": 5.0,
+          "pad_top_z": 5.0,
+          "gap_m": 0.0
+        }
+      ],
+      "clamps": [
+        {
+          "name": "YARD_retaining_wedge_0",
+          "inner_abs_y": 18.95833396911621,
+          "shoe": "PROPOSAL keel shoe",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 0.9583339691162109
+        },
+        {
+          "name": "YARD_retaining_wedge_1",
+          "inner_abs_y": 18.95833396911621,
+          "shoe": "PROPOSAL keel shoe.001",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 0.9583339691162109
+        },
+        {
+          "name": "YARD_retaining_wedge_2",
+          "inner_abs_y": 18.95833396911621,
+          "shoe": "PROPOSAL keel shoe.002",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 0.9583339691162109
+        },
+        {
+          "name": "YARD_retaining_wedge_3",
+          "inner_abs_y": 18.95833396911621,
+          "shoe": "PROPOSAL keel shoe.003",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 0.9583339691162109
+        }
+      ]
+    },
+    {
+      "frame": 768,
+      "root_xyz": [
+        0.0,
+        0.0,
+        21.0
+      ],
+      "level_error": 0.0,
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "pad": "YARD_contact_pad_0",
+          "shoe_bottom_z": 5.0,
+          "pad_top_z": 5.0,
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "pad": "YARD_contact_pad_1",
+          "shoe_bottom_z": 5.0,
+          "pad_top_z": 5.0,
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "pad": "YARD_contact_pad_2",
+          "shoe_bottom_z": 5.0,
+          "pad_top_z": 5.0,
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "pad": "YARD_contact_pad_3",
+          "shoe_bottom_z": 5.0,
+          "pad_top_z": 5.0,
+          "gap_m": 0.0
+        }
+      ],
+      "clamps": [
+        {
+          "name": "YARD_retaining_wedge_0",
+          "inner_abs_y": 18.25,
+          "shoe": "PROPOSAL keel shoe",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 0.25
+        },
+        {
+          "name": "YARD_retaining_wedge_1",
+          "inner_abs_y": 18.25,
+          "shoe": "PROPOSAL keel shoe.001",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 0.25
+        },
+        {
+          "name": "YARD_retaining_wedge_2",
+          "inner_abs_y": 18.25,
+          "shoe": "PROPOSAL keel shoe.002",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 0.25
+        },
+        {
+          "name": "YARD_retaining_wedge_3",
+          "inner_abs_y": 18.25,
+          "shoe": "PROPOSAL keel shoe.003",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 0.25
+        }
+      ]
+    },
+    {
+      "frame": 774,
+      "root_xyz": [
+        0.0,
+        0.0,
+        21.0
+      ],
+      "level_error": 0.0,
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "pad": "YARD_contact_pad_0",
+          "shoe_bottom_z": 5.0,
+          "pad_top_z": 5.0,
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "pad": "YARD_contact_pad_1",
+          "shoe_bottom_z": 5.0,
+          "pad_top_z": 5.0,
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "pad": "YARD_contact_pad_2",
+          "shoe_bottom_z": 5.0,
+          "pad_top_z": 5.0,
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "pad": "YARD_contact_pad_3",
+          "shoe_bottom_z": 5.0,
+          "pad_top_z": 5.0,
+          "gap_m": 0.0
+        }
+      ],
+      "clamps": [
+        {
+          "name": "YARD_retaining_wedge_0",
+          "inner_abs_y": 18.0,
+          "shoe": "PROPOSAL keel shoe",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 0.0
+        },
+        {
+          "name": "YARD_retaining_wedge_1",
+          "inner_abs_y": 18.0,
+          "shoe": "PROPOSAL keel shoe.001",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 0.0
+        },
+        {
+          "name": "YARD_retaining_wedge_2",
+          "inner_abs_y": 18.0,
+          "shoe": "PROPOSAL keel shoe.002",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 0.0
+        },
+        {
+          "name": "YARD_retaining_wedge_3",
+          "inner_abs_y": 18.0,
+          "shoe": "PROPOSAL keel shoe.003",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 0.0
+        }
+      ]
+    },
+    {
+      "frame": 780,
+      "root_xyz": [
+        0.0,
+        0.0,
+        21.0
+      ],
+      "level_error": 0.0,
+      "contacts": [
+        {
+          "shoe": "PROPOSAL keel shoe",
+          "pad": "YARD_contact_pad_0",
+          "shoe_bottom_z": 5.0,
+          "pad_top_z": 5.0,
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.001",
+          "pad": "YARD_contact_pad_1",
+          "shoe_bottom_z": 5.0,
+          "pad_top_z": 5.0,
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.002",
+          "pad": "YARD_contact_pad_2",
+          "shoe_bottom_z": 5.0,
+          "pad_top_z": 5.0,
+          "gap_m": 0.0
+        },
+        {
+          "shoe": "PROPOSAL keel shoe.003",
+          "pad": "YARD_contact_pad_3",
+          "shoe_bottom_z": 5.0,
+          "pad_top_z": 5.0,
+          "gap_m": 0.0
+        }
+      ],
+      "clamps": [
+        {
+          "name": "YARD_retaining_wedge_0",
+          "inner_abs_y": 18.0,
+          "shoe": "PROPOSAL keel shoe",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 0.0
+        },
+        {
+          "name": "YARD_retaining_wedge_1",
+          "inner_abs_y": 18.0,
+          "shoe": "PROPOSAL keel shoe.001",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 0.0
+        },
+        {
+          "name": "YARD_retaining_wedge_2",
+          "inner_abs_y": 18.0,
+          "shoe": "PROPOSAL keel shoe.002",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 0.0
+        },
+        {
+          "name": "YARD_retaining_wedge_3",
+          "inner_abs_y": 18.0,
+          "shoe": "PROPOSAL keel shoe.003",
+          "shoe_outer_abs_y": 18.0,
+          "lateral_clearance_m": 0.0
+        }
+      ]
+    }
+  ],
+  "checks": {
+    "original_ship": {
+      "mesh_count": 135,
+      "world_bounds_m": [
+        [
+          -64.85664367675781,
+          85.5
+        ],
+        [
+          -54.900001525878906,
+          55.94999694824219
+        ],
+        [
+          6.0,
+          47.0692138671875
+        ]
+      ],
+      "dimensions_m": [
+        150.3566436767578,
+        110.8499984741211,
+        41.0692138671875
+      ]
+    },
+    "main_hull": {
+      "mesh_count": 1,
+      "world_bounds_m": [
+        [
+          -54.712501525878906,
+          85.5
+        ],
+        [
+          -52.316246032714844,
+          53.816246032714844
+        ],
+        [
+          6.0,
+          42.82500076293945
+        ]
+      ],
+      "dimensions_m": [
+        140.2125015258789,
+        106.13249206542969,
+        36.82500076293945
+      ]
+    },
+    "original_engine_geometry": [
+      {
+        "name": "Engine 4 mouth rim",
+        "maximum_local_vertex_delta": 0.0
+      },
+      {
+        "name": "Engine 4 dark throat",
+        "maximum_local_vertex_delta": 0.0
+      },
+      {
+        "name": "Engine 4 body",
+        "maximum_local_vertex_delta": 0.0
+      },
+      {
+        "name": "Engine 4 aft-facing nozzle",
+        "maximum_local_vertex_delta": 0.0
+      },
+      {
+        "name": "Engine 3 mouth rim",
+        "maximum_local_vertex_delta": 0.0
+      },
+      {
+        "name": "Engine 3 dark throat",
+        "maximum_local_vertex_delta": 0.0
+      },
+      {
+        "name": "Engine 3 body",
+        "maximum_local_vertex_delta": 0.0
+      },
+      {
+        "name": "Engine 3 aft-facing nozzle",
+        "maximum_local_vertex_delta": 0.0
+      },
+      {
+        "name": "Engine 2 mouth rim",
+        "maximum_local_vertex_delta": 0.0
+      },
+      {
+        "name": "Engine 2 dark throat",
+        "maximum_local_vertex_delta": 0.0
+      },
+      {
+        "name": "Engine 2 body",
+        "maximum_local_vertex_delta": 0.0
+      },
+      {
+        "name": "Engine 2 aft-facing nozzle",
+        "maximum_local_vertex_delta": 0.0
+      },
+      {
+        "name": "Engine 1 mouth rim",
+        "maximum_local_vertex_delta": 0.0
+      },
+      {
+        "name": "Engine 1 dark throat",
+        "maximum_local_vertex_delta": 0.0
+      },
+      {
+        "name": "Engine 1 body",
+        "maximum_local_vertex_delta": 0.0
+      },
+      {
+        "name": "Engine 1 aft-facing nozzle",
+        "maximum_local_vertex_delta": 0.0
+      }
+    ]
+  },
+  "review_render_notes": "Separate orthographic evidence cameras; frontage hidden for clearance review; ship hidden in yard plan. Loaded blend is never saved.",
+  "errors": [],
+  "passed": true
+}

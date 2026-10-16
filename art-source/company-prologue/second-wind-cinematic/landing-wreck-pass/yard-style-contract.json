@@ -1,0 +1,4816 @@
+{
+  "restored_slots": [
+    {
+      "object": "DISTRICT | yard light mast.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | yard light mast.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | yard light mast.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | yard light mast",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | yard light head.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | yard light head.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | yard light head.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | yard light head",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | yard light arm.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | yard light arm.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | yard light arm.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | yard light arm",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | utility tank 3",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded teal tank paint",
+      "to_material": "DISTRICT | faded teal tank paint"
+    },
+    {
+      "object": "DISTRICT | utility tank 3",
+      "slot": 1,
+      "from_material": "YARD FINISH | DISTRICT | faded teal tank paint",
+      "to_material": "DISTRICT | faded teal tank paint"
+    },
+    {
+      "object": "DISTRICT | utility tank 2",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded teal tank paint",
+      "to_material": "DISTRICT | faded teal tank paint"
+    },
+    {
+      "object": "DISTRICT | utility tank 2",
+      "slot": 1,
+      "from_material": "YARD FINISH | DISTRICT | faded teal tank paint",
+      "to_material": "DISTRICT | faded teal tank paint"
+    },
+    {
+      "object": "DISTRICT | utility tank 1",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded teal tank paint",
+      "to_material": "DISTRICT | faded teal tank paint"
+    },
+    {
+      "object": "DISTRICT | utility tank 1",
+      "slot": 1,
+      "from_material": "YARD FINISH | DISTRICT | faded teal tank paint",
+      "to_material": "DISTRICT | faded teal tank paint"
+    },
+    {
+      "object": "DISTRICT | utility tank 0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded teal tank paint",
+      "to_material": "DISTRICT | faded teal tank paint"
+    },
+    {
+      "object": "DISTRICT | utility tank 0",
+      "slot": 1,
+      "from_material": "YARD FINISH | DISTRICT | faded teal tank paint",
+      "to_material": "DISTRICT | faded teal tank paint"
+    },
+    {
+      "object": "DISTRICT | utilities pump house",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | warm cast concrete",
+      "to_material": "DISTRICT | warm cast concrete"
+    },
+    {
+      "object": "DISTRICT | tank shallow domed cap 3",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | tank shallow domed cap 3",
+      "slot": 1,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | tank shallow domed cap 2",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | tank shallow domed cap 2",
+      "slot": 1,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | tank shallow domed cap 1",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | tank shallow domed cap 1",
+      "slot": 1,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | tank shallow domed cap 0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | tank shallow domed cap 0",
+      "slot": 1,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | tank service valve 3",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | tank service valve 2",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | tank service valve 1",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | tank service valve 0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | tank rim 3",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | tank rim 2",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | tank rim 2",
+      "slot": 1,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | tank rim 1",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | tank rim 0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | tank inspection ladder.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | tank inspection ladder.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | tank inspection ladder.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | tank inspection ladder",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | tank connecting pipe.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | tank connecting pipe",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | tank circumferential band.007",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | tank circumferential band.006",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | tank circumferential band.005",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | tank circumferential band.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | tank circumferential band.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | tank circumferential band.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | tank circumferential band.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | tank circumferential band",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | service spine pipe.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | service spine pipe",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | service pipe bridge pier.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | service pipe bridge pier.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | service pipe bridge pier.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | service pipe bridge pier.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | service pipe bridge pier",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | repair stores projecting roof",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | repair stores door recess.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | repair stores door recess",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | repair stores door jamb.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | repair stores door jamb.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | repair stores door jamb.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | repair stores door jamb",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | repair stores door canopy.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | repair stores door canopy",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | repair stores",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | warm tan repair panels",
+      "to_material": "DISTRICT | warm tan repair panels"
+    },
+    {
+      "object": "DISTRICT | repair machine annex",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | repair hangar chamfered envelope",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | warm tan repair panels",
+      "to_material": "DISTRICT | warm tan repair panels"
+    },
+    {
+      "object": "DISTRICT | repair hangar chamfered envelope",
+      "slot": 1,
+      "from_material": "YARD FINISH | DISTRICT | dark slate roof metal",
+      "to_material": "DISTRICT | dark slate roof metal"
+    },
+    {
+      "object": "DISTRICT | repair bay recess.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | repair bay recess.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | repair bay recess",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | repair bay jamb.005",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | repair bay jamb.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | repair bay jamb.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | repair bay jamb.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | repair bay jamb.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | repair bay jamb",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | repair bay canopy.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | repair bay canopy.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | repair bay canopy",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | rear utility station",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | warm cast concrete",
+      "to_material": "DISTRICT | warm cast concrete"
+    },
+    {
+      "object": "DISTRICT | rear utility spine pipe.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear utility spine pipe",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear utility spine pier.005",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear utility spine pier.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear utility spine pier.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear utility spine pier.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear utility spine pier.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear utility spine pier",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear tank small valve.005",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear tank small valve.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear tank small valve.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear tank small valve.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear tank small valve.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear tank small valve",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear tank shallow dome.005",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear tank shallow dome.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear tank shallow dome.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear tank shallow dome.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear tank shallow dome.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear tank shallow dome",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear tank roof rim.005",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear tank roof rim.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear tank roof rim.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear tank roof rim.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear tank roof rim.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear tank roof rim",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear tank band.011",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear tank band.010",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear tank band.009",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear tank band.008",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear tank band.007",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear tank band.006",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear tank band.005",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear tank band.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear tank band.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear tank band.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear tank band.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear tank band",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear shelter roof.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | rear shelter roof",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | rear maintenance shops walls",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | warm cast concrete",
+      "to_material": "DISTRICT | warm cast concrete"
+    },
+    {
+      "object": "DISTRICT | rear maintenance shops raised roof",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | dark slate roof metal",
+      "to_material": "DISTRICT | dark slate roof metal"
+    },
+    {
+      "object": "DISTRICT | rear maintenance shops loading recess.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | rear maintenance shops loading recess.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | rear maintenance shops loading recess",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | rear maintenance shops loading jamb.005",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear maintenance shops loading jamb.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear maintenance shops loading jamb.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear maintenance shops loading jamb.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear maintenance shops loading jamb.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear maintenance shops loading jamb",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear maintenance shops loading canopy.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | rear maintenance shops loading canopy.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | rear maintenance shops loading canopy",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | rear maintenance shops end buttress.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear maintenance shops end buttress",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear handling gantry leg.005",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear handling gantry leg.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear handling gantry leg.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear handling gantry leg.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear handling gantry leg.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear handling gantry leg",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear handling gantry girder.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear handling gantry girder.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear handling gantry girder",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | rear gantry machinery.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | rear gantry machinery.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | rear gantry machinery",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | rear gantry ground brace.005",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear gantry ground brace.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear gantry ground brace.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear gantry ground brace.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear gantry ground brace.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear gantry ground brace",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | rear freight container.046",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.045",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.044",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.043",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.042",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.041",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded ochre cargo",
+      "to_material": "DISTRICT | faded ochre cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.040",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.039",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.038",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.037",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.036",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.035",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.034",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.033",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded ochre cargo",
+      "to_material": "DISTRICT | faded ochre cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.032",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.031",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.030",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.029",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.028",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.027",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded ochre cargo",
+      "to_material": "DISTRICT | faded ochre cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.026",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded ochre cargo",
+      "to_material": "DISTRICT | faded ochre cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.025",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.024",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.023",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.022",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.021",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.020",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.019",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.018",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.017",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.016",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.015",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.014",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded ochre cargo",
+      "to_material": "DISTRICT | faded ochre cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.013",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.012",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.011",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.010",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.009",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.008",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.007",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.006",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded ochre cargo",
+      "to_material": "DISTRICT | faded ochre cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.005",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | rear freight container",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded ochre cargo",
+      "to_material": "DISTRICT | faded ochre cargo"
+    },
+    {
+      "object": "DISTRICT | rear dispatch shelter.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | rear dispatch shelter",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | rear crane cable.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | rear crane cable.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | rear crane cable",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | rear bulk tank 5",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded teal tank paint",
+      "to_material": "DISTRICT | faded teal tank paint"
+    },
+    {
+      "object": "DISTRICT | rear bulk tank 4",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded teal tank paint",
+      "to_material": "DISTRICT | faded teal tank paint"
+    },
+    {
+      "object": "DISTRICT | rear bulk tank 3",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded teal tank paint",
+      "to_material": "DISTRICT | faded teal tank paint"
+    },
+    {
+      "object": "DISTRICT | rear bulk tank 2",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded teal tank paint",
+      "to_material": "DISTRICT | faded teal tank paint"
+    },
+    {
+      "object": "DISTRICT | rear bulk tank 1",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded teal tank paint",
+      "to_material": "DISTRICT | faded teal tank paint"
+    },
+    {
+      "object": "DISTRICT | rear bulk tank 0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded teal tank paint",
+      "to_material": "DISTRICT | faded teal tank paint"
+    },
+    {
+      "object": "DISTRICT | port cold stores walls",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | warm cast concrete",
+      "to_material": "DISTRICT | warm cast concrete"
+    },
+    {
+      "object": "DISTRICT | port cold stores raised roof",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | dark slate roof metal",
+      "to_material": "DISTRICT | dark slate roof metal"
+    },
+    {
+      "object": "DISTRICT | port cold stores loading recess.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | port cold stores loading recess.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | port cold stores loading recess",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | port cold stores loading jamb.005",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | port cold stores loading jamb.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | port cold stores loading jamb.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | port cold stores loading jamb.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | port cold stores loading jamb.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | port cold stores loading jamb",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | port cold stores loading canopy.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | port cold stores loading canopy.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | port cold stores loading canopy",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | port cold stores end buttress.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | port cold stores end buttress",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | pipe rack column.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | pipe rack column.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | pipe rack column.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | pipe rack column",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | heavy overhaul hall walls",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | warm tan repair panels",
+      "to_material": "DISTRICT | warm tan repair panels"
+    },
+    {
+      "object": "DISTRICT | heavy overhaul hall raised roof",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | dark slate roof metal",
+      "to_material": "DISTRICT | dark slate roof metal"
+    },
+    {
+      "object": "DISTRICT | heavy overhaul hall loading recess.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | heavy overhaul hall loading recess.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | heavy overhaul hall loading recess",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | heavy overhaul hall loading jamb.005",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | heavy overhaul hall loading jamb.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | heavy overhaul hall loading jamb.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | heavy overhaul hall loading jamb.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | heavy overhaul hall loading jamb.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | heavy overhaul hall loading jamb",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | heavy overhaul hall loading canopy.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | heavy overhaul hall loading canopy.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | heavy overhaul hall loading canopy",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | heavy overhaul hall end buttress.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | heavy overhaul hall end buttress",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | hangar external load buttress.007",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | hangar external load buttress.006",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | hangar external load buttress.005",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | hangar external load buttress.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | hangar external load buttress.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | hangar external load buttress.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | hangar external load buttress.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | hangar external load buttress",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | hangar clerestory",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | freight transfer hall",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | warm tan repair panels",
+      "to_material": "DISTRICT | warm tan repair panels"
+    },
+    {
+      "object": "DISTRICT | freight sawtooth roof 04",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | dark slate roof metal",
+      "to_material": "DISTRICT | dark slate roof metal"
+    },
+    {
+      "object": "DISTRICT | freight sawtooth roof 04",
+      "slot": 1,
+      "from_material": "YARD FINISH | DISTRICT | dark slate roof metal",
+      "to_material": "DISTRICT | dark slate roof metal"
+    },
+    {
+      "object": "DISTRICT | freight sawtooth roof 03",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | dark slate roof metal",
+      "to_material": "DISTRICT | dark slate roof metal"
+    },
+    {
+      "object": "DISTRICT | freight sawtooth roof 03",
+      "slot": 1,
+      "from_material": "YARD FINISH | DISTRICT | dark slate roof metal",
+      "to_material": "DISTRICT | dark slate roof metal"
+    },
+    {
+      "object": "DISTRICT | freight sawtooth roof 02",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | dark slate roof metal",
+      "to_material": "DISTRICT | dark slate roof metal"
+    },
+    {
+      "object": "DISTRICT | freight sawtooth roof 02",
+      "slot": 1,
+      "from_material": "YARD FINISH | DISTRICT | dark slate roof metal",
+      "to_material": "DISTRICT | dark slate roof metal"
+    },
+    {
+      "object": "DISTRICT | freight sawtooth roof 01",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | dark slate roof metal",
+      "to_material": "DISTRICT | dark slate roof metal"
+    },
+    {
+      "object": "DISTRICT | freight sawtooth roof 01",
+      "slot": 1,
+      "from_material": "YARD FINISH | DISTRICT | dark slate roof metal",
+      "to_material": "DISTRICT | dark slate roof metal"
+    },
+    {
+      "object": "DISTRICT | freight sawtooth roof 00",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | dark slate roof metal",
+      "to_material": "DISTRICT | dark slate roof metal"
+    },
+    {
+      "object": "DISTRICT | freight sawtooth roof 00",
+      "slot": 1,
+      "from_material": "YARD FINISH | DISTRICT | dark slate roof metal",
+      "to_material": "DISTRICT | dark slate roof metal"
+    },
+    {
+      "object": "DISTRICT | freight roof light 04",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | control room smoked glass",
+      "to_material": "DISTRICT | control room smoked glass"
+    },
+    {
+      "object": "DISTRICT | freight roof light 03",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | control room smoked glass",
+      "to_material": "DISTRICT | control room smoked glass"
+    },
+    {
+      "object": "DISTRICT | freight roof light 02",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | control room smoked glass",
+      "to_material": "DISTRICT | control room smoked glass"
+    },
+    {
+      "object": "DISTRICT | freight roof light 01",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | control room smoked glass",
+      "to_material": "DISTRICT | control room smoked glass"
+    },
+    {
+      "object": "DISTRICT | freight roof light 00",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | control room smoked glass",
+      "to_material": "DISTRICT | control room smoked glass"
+    },
+    {
+      "object": "DISTRICT | freight roof extractor.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | freight roof extractor.003",
+      "slot": 1,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | freight roof extractor.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | freight roof extractor.002",
+      "slot": 1,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | freight roof extractor.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | freight roof extractor.001",
+      "slot": 1,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | freight roof extractor",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | freight roof extractor",
+      "slot": 1,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | freight dock recess.007",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | freight dock recess.006",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | freight dock recess.005",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | freight dock recess.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | freight dock recess.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | freight dock recess.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | freight dock recess.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | freight dock recess",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | freight dock jamb.015",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | freight dock jamb.014",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | freight dock jamb.013",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | freight dock jamb.012",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | freight dock jamb.011",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | freight dock jamb.010",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | freight dock jamb.009",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | freight dock jamb.008",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | freight dock jamb.007",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | freight dock jamb.006",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | freight dock jamb.005",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | freight dock jamb.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | freight dock jamb.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | freight dock jamb.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | freight dock jamb.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | freight dock jamb",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | freight dock canopy.007",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | freight dock canopy.006",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | freight dock canopy.005",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | freight dock canopy.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | freight dock canopy.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | freight dock canopy.003",
+      "slot": 1,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | freight dock canopy.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | freight dock canopy.002",
+      "slot": 1,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | freight dock canopy.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | freight dock canopy.001",
+      "slot": 1,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | freight dock canopy",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | freight dock canopy",
+      "slot": 1,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | electrical workshop projecting roof",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | electrical workshop door recess.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | electrical workshop door recess",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | electrical workshop door jamb.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | electrical workshop door jamb.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | electrical workshop door jamb.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | electrical workshop door jamb",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | electrical workshop door canopy.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | electrical workshop door canopy",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | electrical workshop",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded teal tank paint",
+      "to_material": "DISTRICT | faded teal tank paint"
+    },
+    {
+      "object": "DISTRICT | east control heavy canopy",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | dark slate roof metal",
+      "to_material": "DISTRICT | dark slate roof metal"
+    },
+    {
+      "object": "DISTRICT | east control glass room",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | control room smoked glass",
+      "to_material": "DISTRICT | control room smoked glass"
+    },
+    {
+      "object": "DISTRICT | east control angled support.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | east control angled support",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | east communications second step",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | warm tan repair panels",
+      "to_material": "DISTRICT | warm tan repair panels"
+    },
+    {
+      "object": "DISTRICT | east communications equipment base",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | warm cast concrete",
+      "to_material": "DISTRICT | warm cast concrete"
+    },
+    {
+      "object": "DISTRICT | east communications antenna crossarm.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | east communications antenna crossarm.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | east communications antenna crossarm",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | east communications antenna",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | east communications aerial terminal.005",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | east communications aerial terminal.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | east communications aerial terminal.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | east communications aerial terminal.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | east communications aerial terminal.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | east communications aerial terminal",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | dispatch garage projecting roof",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | dispatch garage door recess.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | dispatch garage door recess",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | dispatch garage door jamb.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | dispatch garage door jamb.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | dispatch garage door jamb.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | dispatch garage door jamb",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | dispatch garage door canopy.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | dispatch garage door canopy",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | dispatch garage",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | warm tan repair panels",
+      "to_material": "DISTRICT | warm tan repair panels"
+    },
+    {
+      "object": "DISTRICT | customs second floor",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | warm cast concrete",
+      "to_material": "DISTRICT | warm cast concrete"
+    },
+    {
+      "object": "DISTRICT | customs administration base",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | warm cast concrete",
+      "to_material": "DISTRICT | warm cast concrete"
+    },
+    {
+      "object": "DISTRICT | control tower pedestal",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | control room heavy roof",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | control room cantilever",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | control room smoked glass",
+      "to_material": "DISTRICT | control room smoked glass"
+    },
+    {
+      "object": "DISTRICT | control antenna",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container r3 c7 level1",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | container r3 c7 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | container r3 c6 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded ochre cargo",
+      "to_material": "DISTRICT | faded ochre cargo"
+    },
+    {
+      "object": "DISTRICT | container r3 c5 level2",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | container r3 c5 level1",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded ochre cargo",
+      "to_material": "DISTRICT | faded ochre cargo"
+    },
+    {
+      "object": "DISTRICT | container r3 c5 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | container r3 c4 level1",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | container r3 c4 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | container r3 c3 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | container r3 c2 level2",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | container r3 c2 level1",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | container r3 c2 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded ochre cargo",
+      "to_material": "DISTRICT | faded ochre cargo"
+    },
+    {
+      "object": "DISTRICT | container r3 c1 level1",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded ochre cargo",
+      "to_material": "DISTRICT | faded ochre cargo"
+    },
+    {
+      "object": "DISTRICT | container r3 c1 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | container r3 c0 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | container r2 c5 level1",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | container r2 c5 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | container r2 c4 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | container r2 c3 level2",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | container r2 c3 level1",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | container r2 c3 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded ochre cargo",
+      "to_material": "DISTRICT | faded ochre cargo"
+    },
+    {
+      "object": "DISTRICT | container r2 c2 level1",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded ochre cargo",
+      "to_material": "DISTRICT | faded ochre cargo"
+    },
+    {
+      "object": "DISTRICT | container r2 c2 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | container r2 c1 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | container r2 c0 level2",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | container r2 c0 level1",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | container r2 c0 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | container r1 c7 level2",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | container r1 c7 level1",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded ochre cargo",
+      "to_material": "DISTRICT | faded ochre cargo"
+    },
+    {
+      "object": "DISTRICT | container r1 c7 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | container r1 c6 level1",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | container r1 c6 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | container r1 c5 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | container r1 c4 level2",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | container r1 c4 level1",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | container r1 c4 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded ochre cargo",
+      "to_material": "DISTRICT | faded ochre cargo"
+    },
+    {
+      "object": "DISTRICT | container r1 c3 level1",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded ochre cargo",
+      "to_material": "DISTRICT | faded ochre cargo"
+    },
+    {
+      "object": "DISTRICT | container r1 c3 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | container r1 c2 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | container r1 c1 level2",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | container r1 c1 level1",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | container r1 c1 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | container r1 c0 level1",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | container r1 c0 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded ochre cargo",
+      "to_material": "DISTRICT | faded ochre cargo"
+    },
+    {
+      "object": "DISTRICT | container r0 c7 level1",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | container r0 c7 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | container r0 c6 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | container r0 c5 level2",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | container r0 c5 level1",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | container r0 c5 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded ochre cargo",
+      "to_material": "DISTRICT | faded ochre cargo"
+    },
+    {
+      "object": "DISTRICT | container r0 c4 level1",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded ochre cargo",
+      "to_material": "DISTRICT | faded ochre cargo"
+    },
+    {
+      "object": "DISTRICT | container r0 c4 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | container r0 c3 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | container r0 c2 level2",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | container r0 c2 level1",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | container r0 c2 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | container r0 c1 level1",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded green cargo",
+      "to_material": "DISTRICT | faded green cargo"
+    },
+    {
+      "object": "DISTRICT | container r0 c1 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded ochre cargo",
+      "to_material": "DISTRICT | faded ochre cargo"
+    },
+    {
+      "object": "DISTRICT | container r0 c0 level0",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | faded blue cargo",
+      "to_material": "DISTRICT | faded blue cargo"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.176",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.175",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.174",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.173",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.172",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.171",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.170",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.169",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.168",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.167",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.166",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.165",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.164",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.163",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.162",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.161",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.160",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.159",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.158",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.157",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.156",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.155",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.154",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.153",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.152",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.151",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.150",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.149",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.148",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.147",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.146",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.145",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.144",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.143",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.142",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.141",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.140",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.139",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.138",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.137",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.136",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.135",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.134",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.133",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.132",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.131",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.130",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.129",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.128",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.127",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.126",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.125",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.124",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.123",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.122",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.121",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.120",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.119",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.118",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.117",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.116",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.115",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.114",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.113",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.112",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.111",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.110",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.109",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.108",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.107",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.106",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.105",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.104",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.103",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.102",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.101",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.100",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.099",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.098",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.097",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.096",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.095",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.094",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.093",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.092",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.091",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.090",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.089",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.088",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.087",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.086",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.085",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.084",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.083",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.082",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.081",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.080",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.079",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.078",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.077",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.076",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.075",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.074",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.073",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.072",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.071",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.070",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.069",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.068",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.067",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.066",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.065",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.064",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.063",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.062",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.061",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.060",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.059",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.058",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.057",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.056",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.055",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.054",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.053",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.052",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.051",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.050",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.049",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.048",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.047",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.046",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.045",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.044",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.043",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.042",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.041",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.040",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.039",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.038",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.037",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.036",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.035",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.034",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.033",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.032",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.031",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.030",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.029",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.028",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.027",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.026",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.025",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.024",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.023",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.022",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.021",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.020",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.019",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.018",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.017",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.016",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.015",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.014",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.013",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.012",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.011",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.010",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.009",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.008",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.007",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.006",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.005",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | container end stiffener",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | clerestory glass.006",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | control room smoked glass",
+      "to_material": "DISTRICT | control room smoked glass"
+    },
+    {
+      "object": "DISTRICT | clerestory glass.005",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | control room smoked glass",
+      "to_material": "DISTRICT | control room smoked glass"
+    },
+    {
+      "object": "DISTRICT | clerestory glass.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | control room smoked glass",
+      "to_material": "DISTRICT | control room smoked glass"
+    },
+    {
+      "object": "DISTRICT | clerestory glass.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | control room smoked glass",
+      "to_material": "DISTRICT | control room smoked glass"
+    },
+    {
+      "object": "DISTRICT | clerestory glass.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | control room smoked glass",
+      "to_material": "DISTRICT | control room smoked glass"
+    },
+    {
+      "object": "DISTRICT | clerestory glass.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | control room smoked glass",
+      "to_material": "DISTRICT | control room smoked glass"
+    },
+    {
+      "object": "DISTRICT | clerestory glass",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | control room smoked glass",
+      "to_material": "DISTRICT | control room smoked glass"
+    },
+    {
+      "object": "DISTRICT | cargo crane spreader.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | cargo crane spreader",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | galvanized structural steel",
+      "to_material": "DISTRICT | galvanized structural steel"
+    },
+    {
+      "object": "DISTRICT | cargo crane portal leg.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | cargo crane portal leg.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | cargo crane portal leg.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | cargo crane portal leg",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | cargo crane main girder.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | cargo crane main girder",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | cargo crane machinery.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | cargo crane machinery",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | weathered warm cream cladding",
+      "to_material": "DISTRICT | weathered warm cream cladding"
+    },
+    {
+      "object": "DISTRICT | cargo crane cables.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | cargo crane cables.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | cargo crane cables.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | cargo crane cables",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | cargo crane back leg.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | cargo crane back leg.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | cargo crane back leg.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | cargo crane back leg",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | bulk transfer depot walls",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | warm cast concrete",
+      "to_material": "DISTRICT | warm cast concrete"
+    },
+    {
+      "object": "DISTRICT | bulk transfer depot raised roof",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | dark slate roof metal",
+      "to_material": "DISTRICT | dark slate roof metal"
+    },
+    {
+      "object": "DISTRICT | bulk transfer depot loading recess.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | bulk transfer depot loading recess.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | bulk transfer depot loading recess",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | deep loading apertures",
+      "to_material": "DISTRICT | deep loading apertures"
+    },
+    {
+      "object": "DISTRICT | bulk transfer depot loading jamb.005",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | bulk transfer depot loading jamb.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | bulk transfer depot loading jamb.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | bulk transfer depot loading jamb.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | bulk transfer depot loading jamb.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | bulk transfer depot loading jamb",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | bulk transfer depot loading canopy.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | bulk transfer depot loading canopy.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | bulk transfer depot loading canopy",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | bulk transfer depot end buttress.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | bulk transfer depot end buttress",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | oxide load bearing steel",
+      "to_material": "DISTRICT | oxide load bearing steel"
+    },
+    {
+      "object": "DISTRICT | annex offset roof",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | admin roof overhang",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | standing seam steel roof",
+      "to_material": "DISTRICT | standing seam steel roof"
+    },
+    {
+      "object": "DISTRICT | admin recessed window.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | control room smoked glass",
+      "to_material": "DISTRICT | control room smoked glass"
+    },
+    {
+      "object": "DISTRICT | admin recessed window.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | control room smoked glass",
+      "to_material": "DISTRICT | control room smoked glass"
+    },
+    {
+      "object": "DISTRICT | admin recessed window.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | control room smoked glass",
+      "to_material": "DISTRICT | control room smoked glass"
+    },
+    {
+      "object": "DISTRICT | admin recessed window",
+      "slot": 0,
+      "from_material": "YARD FINISH | DISTRICT | control room smoked glass",
+      "to_material": "DISTRICT | control room smoked glass"
+    },
+    {
+      "object": "LANDING YARD | partitioned precinct ground",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | outer hardstand compacted gravel",
+      "to_material": "LANDING YARD | outer hardstand compacted gravel"
+    },
+    {
+      "object": "LANDING YARD | partitioned precinct ground",
+      "slot": 1,
+      "from_material": "YARD FINISH | LANDING YARD | freight road asphalt",
+      "to_material": "LANDING YARD | freight road asphalt"
+    },
+    {
+      "object": "LANDING YARD | pad external rib",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | foundation anchor",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | foundation anchor.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | pad external rib.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | foundation anchor.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | foundation anchor.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | pad horizontal reinforcement",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | pad horizontal reinforcement.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | pad external rib.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | foundation anchor.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | foundation anchor.005",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | pad external rib.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | foundation anchor.006",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | foundation anchor.007",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | pad horizontal reinforcement.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | pad horizontal reinforcement.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | pad external rib.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | foundation anchor.008",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | foundation anchor.009",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | pad external rib.005",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | foundation anchor.010",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | foundation anchor.011",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | pad horizontal reinforcement.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | pad horizontal reinforcement.005",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | pad external rib.006",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | foundation anchor.012",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | foundation anchor.013",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | pad external rib.007",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | foundation anchor.014",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | foundation anchor.015",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | pad horizontal reinforcement.006",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | pad horizontal reinforcement.007",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | service bollard foundation",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | exposed aggregate concrete",
+      "to_material": "LANDING YARD | exposed aggregate concrete"
+    },
+    {
+      "object": "LANDING YARD | service bollard",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | worn safety ochre",
+      "to_material": "LANDING YARD | worn safety ochre"
+    },
+    {
+      "object": "LANDING YARD | service bollard foundation.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | exposed aggregate concrete",
+      "to_material": "LANDING YARD | exposed aggregate concrete"
+    },
+    {
+      "object": "LANDING YARD | service bollard.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | worn safety ochre",
+      "to_material": "LANDING YARD | worn safety ochre"
+    },
+    {
+      "object": "LANDING YARD | service bollard foundation.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | exposed aggregate concrete",
+      "to_material": "LANDING YARD | exposed aggregate concrete"
+    },
+    {
+      "object": "LANDING YARD | service bollard.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | worn safety ochre",
+      "to_material": "LANDING YARD | worn safety ochre"
+    },
+    {
+      "object": "LANDING YARD | service bollard foundation.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | exposed aggregate concrete",
+      "to_material": "LANDING YARD | exposed aggregate concrete"
+    },
+    {
+      "object": "LANDING YARD | service bollard.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | worn safety ochre",
+      "to_material": "LANDING YARD | worn safety ochre"
+    },
+    {
+      "object": "LANDING YARD | service cabinet",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | weathered oxide mechanism casing",
+      "to_material": "LANDING YARD | weathered oxide mechanism casing"
+    },
+    {
+      "object": "LANDING YARD | cabinet recessed panel",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | cabinet ventilation louvre",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | cabinet ventilation louvre.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | cabinet ventilation louvre.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | cabinet ventilation louvre.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | cabinet ventilation louvre.004",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | cabinet ventilation louvre.005",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | service cabinet.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | weathered oxide mechanism casing",
+      "to_material": "LANDING YARD | weathered oxide mechanism casing"
+    },
+    {
+      "object": "LANDING YARD | cabinet recessed panel.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | cabinet ventilation louvre.006",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | cabinet ventilation louvre.007",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | cabinet ventilation louvre.008",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | cabinet ventilation louvre.009",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | cabinet ventilation louvre.010",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "LANDING YARD | cabinet ventilation louvre.011",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "YARD_apron_240x220m",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | exposed aggregate concrete",
+      "to_material": "LANDING YARD | exposed aggregate concrete"
+    },
+    {
+      "object": "YARD_cradle_rail_-15",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "YARD_cradle_rail_15",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "YARD_contact_pad_0",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | weathered oxide mechanism casing",
+      "to_material": "LANDING YARD | weathered oxide mechanism casing"
+    },
+    {
+      "object": "YARD_pad_contact_face_0",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "YARD_contact_pad_1",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | weathered oxide mechanism casing",
+      "to_material": "LANDING YARD | weathered oxide mechanism casing"
+    },
+    {
+      "object": "YARD_pad_contact_face_1",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "YARD_contact_pad_2",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | weathered oxide mechanism casing",
+      "to_material": "LANDING YARD | weathered oxide mechanism casing"
+    },
+    {
+      "object": "YARD_pad_contact_face_2",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "YARD_contact_pad_3",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | weathered oxide mechanism casing",
+      "to_material": "LANDING YARD | weathered oxide mechanism casing"
+    },
+    {
+      "object": "YARD_pad_contact_face_3",
+      "slot": 0,
+      "from_material": "YARD FINISH | LANDING YARD | burnished support steel",
+      "to_material": "LANDING YARD | burnished support steel"
+    },
+    {
+      "object": "YARD_blast_trench_0",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard trench graphite",
+      "to_material": "Yard trench graphite"
+    },
+    {
+      "object": "YARD_trench_rim_0_-1",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_trench_rim_0_1",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_trench_grate_0_-5",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_trench_grate_0_0",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_trench_grate_0_5",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_blast_trench_1",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard trench graphite",
+      "to_material": "Yard trench graphite"
+    },
+    {
+      "object": "YARD_trench_rim_1_-1",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_trench_rim_1_1",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_trench_grate_1_-5",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_trench_grate_1_0",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_trench_grate_1_5",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_blast_trench_2",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard trench graphite",
+      "to_material": "Yard trench graphite"
+    },
+    {
+      "object": "YARD_trench_rim_2_-1",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_trench_rim_2_1",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_trench_grate_2_-5",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_trench_grate_2_0",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_trench_grate_2_5",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_blast_trench_3",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard trench graphite",
+      "to_material": "Yard trench graphite"
+    },
+    {
+      "object": "YARD_trench_rim_3_-1",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_trench_rim_3_1",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_trench_grate_3_-5",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_trench_grate_3_0",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_trench_grate_3_5",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_service_truck_12m",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard service walls",
+      "to_material": "Yard service walls"
+    },
+    {
+      "object": "YARD_truck_cab",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_truck_wheel",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard trench graphite",
+      "to_material": "Yard trench graphite"
+    },
+    {
+      "object": "YARD_truck_wheel.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard trench graphite",
+      "to_material": "Yard trench graphite"
+    },
+    {
+      "object": "YARD_truck_wheel.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard trench graphite",
+      "to_material": "Yard trench graphite"
+    },
+    {
+      "object": "YARD_truck_wheel.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard trench graphite",
+      "to_material": "Yard trench graphite"
+    },
+    {
+      "object": "YARD_worker_0_boot",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard environmental seals",
+      "to_material": "Yard environmental seals"
+    },
+    {
+      "object": "YARD_worker_0_leg",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard protected workwear ochre",
+      "to_material": "Yard protected workwear ochre"
+    },
+    {
+      "object": "YARD_worker_0_boot.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard environmental seals",
+      "to_material": "Yard environmental seals"
+    },
+    {
+      "object": "YARD_worker_0_leg.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard protected workwear ochre",
+      "to_material": "Yard protected workwear ochre"
+    },
+    {
+      "object": "YARD_worker_0_torso",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard protected workwear ochre",
+      "to_material": "Yard protected workwear ochre"
+    },
+    {
+      "object": "YARD_worker_0_arm",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard protected workwear ochre",
+      "to_material": "Yard protected workwear ochre"
+    },
+    {
+      "object": "YARD_worker_0_glove",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard environmental seals",
+      "to_material": "Yard environmental seals"
+    },
+    {
+      "object": "YARD_worker_0_arm.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard protected workwear ochre",
+      "to_material": "Yard protected workwear ochre"
+    },
+    {
+      "object": "YARD_worker_0_glove.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard environmental seals",
+      "to_material": "Yard environmental seals"
+    },
+    {
+      "object": "YARD_worker_0_collar",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard environmental seals",
+      "to_material": "Yard environmental seals"
+    },
+    {
+      "object": "YARD_worker_0_sealed_helmet",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard protected workwear ochre",
+      "to_material": "Yard protected workwear ochre"
+    },
+    {
+      "object": "YARD_worker_0_fullface_visor",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard sealed fullface visor",
+      "to_material": "Yard sealed fullface visor"
+    },
+    {
+      "object": "YARD_worker_0_environment_pack",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_worker_1_boot",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard environmental seals",
+      "to_material": "Yard environmental seals"
+    },
+    {
+      "object": "YARD_worker_1_leg",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard protected workwear ochre",
+      "to_material": "Yard protected workwear ochre"
+    },
+    {
+      "object": "YARD_worker_1_boot.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard environmental seals",
+      "to_material": "Yard environmental seals"
+    },
+    {
+      "object": "YARD_worker_1_leg.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard protected workwear ochre",
+      "to_material": "Yard protected workwear ochre"
+    },
+    {
+      "object": "YARD_worker_1_torso",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard protected workwear ochre",
+      "to_material": "Yard protected workwear ochre"
+    },
+    {
+      "object": "YARD_worker_1_arm",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard protected workwear ochre",
+      "to_material": "Yard protected workwear ochre"
+    },
+    {
+      "object": "YARD_worker_1_glove",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard environmental seals",
+      "to_material": "Yard environmental seals"
+    },
+    {
+      "object": "YARD_worker_1_arm.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard protected workwear ochre",
+      "to_material": "Yard protected workwear ochre"
+    },
+    {
+      "object": "YARD_worker_1_glove.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard environmental seals",
+      "to_material": "Yard environmental seals"
+    },
+    {
+      "object": "YARD_worker_1_collar",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard environmental seals",
+      "to_material": "Yard environmental seals"
+    },
+    {
+      "object": "YARD_worker_1_sealed_helmet",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard protected workwear ochre",
+      "to_material": "Yard protected workwear ochre"
+    },
+    {
+      "object": "YARD_worker_1_fullface_visor",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard sealed fullface visor",
+      "to_material": "Yard sealed fullface visor"
+    },
+    {
+      "object": "YARD_worker_1_environment_pack",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_control_booth_lower",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard service walls",
+      "to_material": "Yard service walls"
+    },
+    {
+      "object": "YARD_control_booth_roof",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_booth_glazing",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard booth clear glass",
+      "to_material": "Yard booth clear glass"
+    },
+    {
+      "object": "YARD_booth_glazing.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard booth clear glass",
+      "to_material": "Yard booth clear glass"
+    },
+    {
+      "object": "YARD_booth_end_glazing",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard booth clear glass",
+      "to_material": "Yard booth clear glass"
+    },
+    {
+      "object": "YARD_booth_post",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_booth_post.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_booth_end_glazing.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard booth clear glass",
+      "to_material": "Yard booth clear glass"
+    },
+    {
+      "object": "YARD_booth_post.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_booth_post.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_booth_console",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard cradle steel",
+      "to_material": "Yard cradle steel"
+    },
+    {
+      "object": "YARD_human_1p8m_body",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard human proxy",
+      "to_material": "Yard human proxy"
+    },
+    {
+      "object": "YARD_human_1p8m_head",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard human proxy",
+      "to_material": "Yard human proxy"
+    },
+    {
+      "object": "YARD_human_leg",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard human proxy",
+      "to_material": "Yard human proxy"
+    },
+    {
+      "object": "YARD_human_leg.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard human proxy",
+      "to_material": "Yard human proxy"
+    },
+    {
+      "object": "YARD_human_1p8m_body.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard human proxy",
+      "to_material": "Yard human proxy"
+    },
+    {
+      "object": "YARD_human_1p8m_head.001",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard human proxy",
+      "to_material": "Yard human proxy"
+    },
+    {
+      "object": "YARD_human_leg.002",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard human proxy",
+      "to_material": "Yard human proxy"
+    },
+    {
+      "object": "YARD_human_leg.003",
+      "slot": 0,
+      "from_material": "YARD FINISH | Yard human proxy",
+      "to_material": "Yard human proxy"
+    }
+  ],
+  "restored_slot_count": 791,
+  "static_objects_considered": 767,
+  "ground_materials": [
+    "YARD CONTINUITY | port concrete landing apron",
+    "YARD CONTINUITY | port concrete outer hardstand"
+  ],
+  "atlas": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\jangala-greybox-animatic\\art-source\\company-prologue\\second-wind-cinematic\\port-approach-realism\\assets\\industrial-materials-v1.png",
+  "atlas_cell_xy": [
+    0,
+    0
+  ],
+  "repeat_metres": 20,
+  "roughness": 0.82,
+  "outer_hardstand_linear_tint": 0.88,
+  "remaining_latest_camera_projection_objects": [],
+  "ship_materials_unchanged": true,
+  "retained_landscape_camera_finish_objects": [
+    "LANDING YARD | far daylight sky",
+    "LANDING YARD | far forest and hills"
+  ],
+  "landscape_exception_reason": "Retain prior approved camera finish on these two distant cards only; avoids stretched native source canopy/horizon. All physical yard geometry uses restored port atlas. No blur.",
+  "preserved": "All geometry/transforms/actions, source ground joins and pad contacts, moving component-local clamp finish, traffic, sky/forest, camera and daylight.",
+  "limit": "Physical atlas treatment matched to preceding port. No new multiangle texture claim and no full-frame blur.",
+  "construction_check": {
+    "objects_compared": 1310,
+    "all_geometry_uv_matrices_action_identity_visibility_unchanged": true,
+    "saved_source_unchanged": true,
+    "scene_saved": false
+  },
+  "module_sha256": "00bdf29cee951d1e9fccddb9b6428ac0ce611f8e9c23a7a8608998b382b1302a",
+  "source_scene": {
+    "path": "../landing-refinement/landing-refinement.blend",
+    "sha256": "b29e3d632628e0f87b74b64bc2eaff87ba704999e631da24bb3574f69ea79a1c"
+  },
+  "review_references": [
+    {
+      "path": "../port-refinement/review/start.jpg",
+      "sha256": "be1ff60603db82d26849dd9e54d47db71f3ccca9fb85670e5c00d1aef74ef353"
+    },
+    {
+      "path": "../port-refinement/review/poster.jpg",
+      "sha256": "c398d5d3a8603a140b3dd9bd9312c9944e52ad7bb4eee528e016b02db38a66aa"
+    },
+    {
+      "path": "../port-refinement/review/end.jpg",
+      "sha256": "78f1f18a3fc20232d968d9666c9d36f4f93dc4e57a86b68206c5b17666baa9bc"
+    },
+    {
+      "path": "../landing-refinement/review/poster.png",
+      "sha256": "56f5b7d6a2101247a58ccaecde72fa650c996251553569e14f279fa0eb778876"
+    }
+  ],
+  "decision": "Remove later yard-camera photographic projection from all physical yard surfaces; restore port atlas and20m concrete repeat. Retain prior finished forest/sky ONLY on the two named distant-card exceptions to preserve canopy and horizon.",
+  "preview": {
+    "path": "build/yard/yard-style-744.png",
+    "dimensions": [
+      1920,
+      1080
+    ],
+    "source_frame": 744,
+    "engine": "CYCLES",
+    "samples": 16,
+    "scope": "Single native static construction/style review; not movie acceptance",
+    "sha256": "142f2c9a371fed2b0f07c51a7bc83879d559843e0954373daa2ca3f10a7a23c5"
+  },
+  "atlas_sha256": "df879c93a3ddf915095a568ea8822310aa75557d03fa2e1ea5717aca6c9c09e0"
+}

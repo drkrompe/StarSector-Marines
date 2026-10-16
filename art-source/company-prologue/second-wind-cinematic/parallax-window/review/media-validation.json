@@ -1,0 +1,155 @@
+{
+  "movie": {
+    "path": "review/jangala-parallax-window-test.mp4",
+    "size": [
+      1920,
+      1080
+    ],
+    "fps": 24,
+    "decoded_frames": 96,
+    "duration_seconds": 4,
+    "audio": false,
+    "codec": "h264",
+    "pixel_format": "yuv420p",
+    "bytes": 1398103,
+    "sha256": "35d0ca88272d7e3924d7f73069f920e8f888cdae9836e2648b4316ab7d606f7a",
+    "full_decode": "FFmpeg -xerror exit 0"
+  },
+  "unique_source_frames": 96,
+  "adjacent_mean_absolute_pixel_change_0_to_255": {
+    "min": 1.6081338413065842,
+    "max": 1.6991115290637862,
+    "mean": 1.6496459822395495
+  },
+  "layers": {
+    "clouds-v1.png": {
+      "size": [
+        1672,
+        941
+      ],
+      "mode": "RGBA",
+      "native_alpha": true,
+      "bytes": 725835,
+      "sha256": "597845642188c6b7e2f06bfdcce32fa22bd866b059007e80dbb2c3081d02bde9",
+      "alpha": {
+        "zero": 1207808,
+        "opaque255": 0,
+        "partial": 365544,
+        "near_opaque250_to255": 103432,
+        "extrema": [
+          0,
+          253
+        ]
+      }
+    },
+    "far-trees-v1.png": {
+      "size": [
+        1672,
+        941
+      ],
+      "mode": "RGBA",
+      "native_alpha": true,
+      "bytes": 1714942,
+      "sha256": "4e67a292ef2256b90d4aacef590fc2fba773c1dcb39bd760e93cea70770f6ba3",
+      "alpha": {
+        "zero": 678418,
+        "opaque255": 441,
+        "partial": 894493,
+        "near_opaque250_to255": 885687,
+        "extrema": [
+          0,
+          255
+        ]
+      }
+    },
+    "hills-v1.png": {
+      "size": [
+        1672,
+        941
+      ],
+      "mode": "RGBA",
+      "native_alpha": true,
+      "bytes": 1979211,
+      "sha256": "e26d79898184c822c4baabb25cf49d9856cc93c1a4f46fdfa145fb5eaab1c73e",
+      "alpha": {
+        "zero": 349714,
+        "opaque255": 265,
+        "partial": 1223373,
+        "near_opaque250_to255": 1200810,
+        "extrema": [
+          0,
+          255
+        ]
+      }
+    },
+    "medium-trees-v1.png": {
+      "size": [
+        1672,
+        941
+      ],
+      "mode": "RGBA",
+      "native_alpha": true,
+      "bytes": 2032637,
+      "sha256": "2488576038e1d0fbf2b2d7327fbabbe0c374133311cf4c41cd73d041bee189c2",
+      "alpha": {
+        "zero": 544870,
+        "opaque255": 79,
+        "partial": 1028403,
+        "near_opaque250_to255": 1012298,
+        "extrema": [
+          0,
+          255
+        ]
+      }
+    },
+    "near-trees-v1.png": {
+      "size": [
+        1672,
+        941
+      ],
+      "mode": "RGBA",
+      "native_alpha": true,
+      "bytes": 990956,
+      "sha256": "f89687d378a59449452aab947b95b73df3b304c0baff5675854a3f602aeade06",
+      "alpha": {
+        "zero": 1087768,
+        "opaque255": 154,
+        "partial": 485430,
+        "near_opaque250_to255": 454183,
+        "extrema": [
+          0,
+          255
+        ]
+      }
+    },
+    "sky-v1.png": {
+      "size": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "native_alpha": false,
+      "bytes": 1771194,
+      "sha256": "c42c8f7bf1339c37d4da0d58f4523ee2e88f8ed60c8c534b5898942cebbbcb71"
+    }
+  },
+  "previous_movie": {
+    "path": "../painted-window/review/jangala-painted-window-test.mp4",
+    "size": [
+      1920,
+      1080
+    ],
+    "fps": 24,
+    "decoded_frames": 96,
+    "duration_seconds": 4,
+    "audio": false,
+    "codec": "h264",
+    "pixel_format": "yuv420p",
+    "bytes": 1536429,
+    "sha256": "de402fe1fa5150a174d8664626e385c5b2e983f97acdc58d04d4128f0fb71f8b",
+    "full_decode": "FFmpeg -xerror exit 0"
+  },
+  "comparison": "Both movies decode at matching duration, frame count, resolution and FPS; bytes differ.",
+  "passed": true,
+  "limits": "Technical media validation does not establish artistic acceptance or exact source-pixel alignment."
+}

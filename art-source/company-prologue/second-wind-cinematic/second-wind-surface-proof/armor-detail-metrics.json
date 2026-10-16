@@ -1,0 +1,8 @@
+{
+  "physical_armor_plates": 397,
+  "exposed_backing_tiles": 15,
+  "fasteners": 1716,
+  "retained_pressure_hull_uncut": true,
+  "damage": "Missing external armor tiles and buckled surrounding corners, external backing splints. Coarse circular rings removed.",
+  "limitation": "Surface-panel preparation; no actual pressure-hull cavity cutting. Repeating source microtexture, generalized seams and simplified hardpoints remain."
+}

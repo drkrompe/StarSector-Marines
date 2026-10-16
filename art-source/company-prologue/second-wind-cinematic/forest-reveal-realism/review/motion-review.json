@@ -1,0 +1,34 @@
+{
+  "scene_sha256": "7a48fc520d7ce38edfe86b82aeaccb0d443b10b5ced3170c764e439ccfbfefec",
+  "movie_sha256": "5dd48e721ea17dcf1e9ec9e1a15aac64151c294658a8147a51be118550135fcc",
+  "native_frames_reviewed": [
+    0,
+    48,
+    95
+  ],
+  "native_resolution": [
+    1920,
+    1080
+  ],
+  "browser_playback": {
+    "player": "Codex in-app browser on localhost",
+    "rate": 1,
+    "duration_seconds": 4,
+    "presented_frames": 96,
+    "frame_callbacks": 96,
+    "dropped_frames": 0,
+    "completed": true
+  },
+  "findings": [
+    "Layer coverage and river remain intact at reviewed endpoints and midpoint.",
+    "Atlas keeps its original upward/rightward lift and bow-right/engines-left identity.",
+    "Master RGB restores finer canopy detail compared with the first extraction-only preview.",
+    "Worn cabin finish and bright green/blue daylight follow the realism direction."
+  ],
+  "limits": [
+    "Three depth groups do not give individual trees depth.",
+    "Some near-layer generated completion remains smoother than the approved master.",
+    "The wider cabin framing retains more warm orange and ivory panels than the close grey framing in subsequent shots; this is a visible palette difference.",
+    "Playback telemetry plus sampled frames cannot prove absence of every transient artifact."
+  ]
+}

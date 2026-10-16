@@ -1,0 +1,15 @@
+{
+  "file": "jangala-forest-motion-study.mp4",
+  "codec": "h264",
+  "width": 1920,
+  "height": 1080,
+  "duration_seconds": 16,
+  "source_frames": 192,
+  "source_fps": 12,
+  "encoded_frames": 384,
+  "encoded_fps": 24,
+  "size_bytes": 14505114,
+  "audio": false,
+  "full_ffmpeg_decode_exit_code": 0,
+  "delivery_note": "Source frames duplicated to 24 fps; no synthetic motion interpolation."
+}

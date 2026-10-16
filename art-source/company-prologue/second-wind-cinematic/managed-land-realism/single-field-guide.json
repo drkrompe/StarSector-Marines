@@ -1,0 +1,27 @@
+{
+  "camera": "Orthographic vertical, +X right/+Y up",
+  "source_world_canvas_xy_m": [
+    -5030,
+    -3750,
+    1110,
+    1830
+  ],
+  "source_plot": "Plantation | clearing 2 1",
+  "source_plot_xy_m": [
+    -4730,
+    -4050,
+    1125,
+    1815
+  ],
+  "plot_texture_uv_bounds": [
+    0.234375,
+    0.765625,
+    0.020833333333,
+    0.979166666667
+  ],
+  "dimensions": [
+    1920,
+    1080
+  ],
+  "usage": "Map central plot subrectangle per clearing; preserve raw master and use shader UV cropping. Fine crop rows, irrigation and surface material, not high walls."
+}

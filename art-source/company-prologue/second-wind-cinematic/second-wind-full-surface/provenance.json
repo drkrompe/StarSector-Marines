@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "asset": {
+    "path": "second-wind-full-surface.blend",
+    "sha256": "f6471f8293a83421e508742fa93d9638cc35cfcd68c64a05a8c0e9404ae50699",
+    "manifest": "asset-manifest.json",
+    "append_collection": "SECOND WIND | full surface asset"
+  },
+  "geometry_source": {
+    "path": "../landing-wreck-pass/landing-wreck-pass.blend",
+    "sha256": "eb7f90c569357ab40d4c3969f0f4e8f9eadf15ddd9cd61729c2507185b2d68c6",
+    "role": "Accepted damaged ship geometry, hardpoints, pivots and inherited provisional scale; 196 physical meshes retained exactly."
+  },
+  "build_script": {
+    "path": "build_asset.py",
+    "sha256": "c1513fca16cb6b07710829a6245955a0bd4da52da9c37ef2e3080ba55b484b31"
+  },
+  "image_generation_this_package": false,
+  "inherited_generation": {
+    "provider": "OpenAI built-in ImageGen. Exact prompt files retained in prompts; generated native images preserved without rescaling.",
+    "source_provenance": "../second-wind-surface-proof/provenance.json",
+    "source_provenance_sha256": "548fc4d9404b6697af22396673b068ef29cefa2fe8856fa7f79ef3c8a601c44f",
+    "exact_prompt": "../second-wind-surface-proof/prompts/arrival-material-atlas-v1.txt",
+    "exact_prompt_sha256": "f8fc589e1d6c10a8236979891057744d5678462969501a9f1a83ae85ec844319",
+    "native_master": {
+      "path": "../second-wind-surface-proof/assets/arrival-material-atlas-v1.png",
+      "sha256": "86004cc2d9dd9dc3e6d0ac30fdf19d98bb3ce2fea10ddde2eb5a722eba146f47",
+      "dimensions": [
+        1254,
+        1254
+      ]
+    },
+    "reference": {
+      "path": "../../second-wind-skins/arrival-heavy.reference.png",
+      "sha256": "cf767d0a059bf40ee66728fa8e1480c920d25da772f82c92b6221c3f9308432e",
+      "role": "Material/color/weathering direction only; no ship layout, perspective, lighting or crater geometry copied."
+    },
+    "derivation": "Four lossless equal-quadrant crops: cream top-left, oxide top-right, gunmetal bottom-left, backing bottom-right. Existing 627x627 crops reused byte-for-byte; no resampling or new generation."
+  },
+  "images": [
+    {
+      "path": "assets/cream.png",
+      "source": "../second-wind-surface-proof/assets/cream.png",
+      "sha256": "00eafca7d6e55d3ea4a2ff4e237def5109f72f5fe551617e6bdf99c1f293e1c4",
+      "dimensions": [
+        627,
+        627
+      ]
+    },
+    {
+      "path": "assets/oxide.png",
+      "source": "../second-wind-surface-proof/assets/oxide.png",
+      "sha256": "a357173be25977155d52ad5375913e85b350f876a3f5e4646e64b9779cbb083a",
+      "dimensions": [
+        627,
+        627
+      ]
+    },
+    {
+      "path": "assets/gunmetal.png",
+      "source": "../second-wind-surface-proof/assets/gunmetal.png",
+      "sha256": "09ed19bb19379cfc448ce91ef2d96a54667289ec1d8a0c11fcda2b6708600987",
+      "dimensions": [
+        627,
+        627
+      ]
+    },
+    {
+      "path": "assets/backing.png",
+      "source": "../second-wind-surface-proof/assets/backing.png",
+      "sha256": "7f01425df945f9548fd2d9dec300cea10d206b2a81826e1616344d30bf055c0f",
+      "dimensions": [
+        627,
+        627
+      ]
+    }
+  ],
+  "surface_contract": {
+    "mapping": "Explicit overlapping SurfaceTileUV on every mesh corner; SurfaceRestPosition and per-corner paint/patina/panel eligibility attributes. Fixed root-relative rest coordinates.",
+    "repeat_hull_units": 6,
+    "repeat_provisional_metres": 9,
+    "images_packed_in_asset": true,
+    "previous_camera_rgb_chains_removed": true,
+    "representation": "Relightable Blender material graph, not a unique UV-packed or baked PBR texture atlas.",
+    "shell_finish": "Bare oxide shell receives UV-cell cream and gunmetal repair batches, a dark underside keel strip and a stern service core through color and metallic response only; original outer armor roles retained."
+  },
+  "verification": {
+    "report": "review/asset-validation.json",
+    "scope": "Finite geometry, placement, packed image, coordinate and material graph checks; ten motion transforms. No visual acceptance claim."
+  },
+  "review_contract": {
+    "stills": [
+      "starboard",
+      "port",
+      "bow-quarter",
+      "stern-quarter",
+      "top",
+      "underside"
+    ],
+    "dimensions": [
+      1920,
+      1080
+    ],
+    "motion_frames": 192,
+    "fps": 24,
+    "duration_seconds": 8,
+    "motion": "Physical ship yaw 360 degrees over continuous loop; pitch +/-15 degrees; roll +/-4 degrees; camera and studio lights static.",
+    "render_bindings": "review/stills-manifest.json and review/motion-manifest.json capture ordered hashes during rendering; ignored build rig snapshots are ephemeral.",
+    "media_receipt": "review/media-validation.json: completed eight-second encode and strict decode; separate sampled visual and browser playback review in review/motion-review.json. Final cinematic style acceptance remains open."
+  },
+  "limits": "Relightable Blender material asset, not a unique packed PBR atlas. Neutral ImageGen tile RGB approximates albedo. Roughness/metal/normal are authored, not measured. Bow/stern/belly retain simpler source geometry; deep modeled craters remain starboard. No new ship design or gameplay dimensions."
+}

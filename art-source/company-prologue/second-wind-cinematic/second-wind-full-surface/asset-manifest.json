@@ -1,0 +1,2814 @@
+{
+  "source": "../landing-wreck-pass/landing-wreck-pass.blend",
+  "source_sha256": "eb7f90c569357ab40d4c3969f0f4e8f9eadf15ddd9cd61729c2507185b2d68c6",
+  "append_collection": "SECOND WIND | full surface asset",
+  "asset": "second-wind-full-surface.blend",
+  "asset_sha256": "f6471f8293a83421e508742fa93d9638cc35cfcd68c64a05a8c0e9404ae50699",
+  "build_script_sha256": "c1513fca16cb6b07710829a6245955a0bd4da52da9c37ef2e3080ba55b484b31",
+  "mesh_count": 196,
+  "polygons": 19808,
+  "all_retained_geometry_unchanged": true,
+  "objects": [
+    {
+      "name": "Aft flank access housing",
+      "geometry_sha256": "22a477cea7af45c73f1124b3c4b59e6ab9227c4cf6cdbbd902ddf185997ac064",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Aft flank access housing.001",
+      "geometry_sha256": "22a477cea7af45c73f1124b3c4b59e6ab9227c4cf6cdbbd902ddf185997ac064",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Aft flank access housing.002",
+      "geometry_sha256": "22a477cea7af45c73f1124b3c4b59e6ab9227c4cf6cdbbd902ddf185997ac064",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Aft flank access housing.003",
+      "geometry_sha256": "22a477cea7af45c73f1124b3c4b59e6ab9227c4cf6cdbbd902ddf185997ac064",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Aft flank access housing.004",
+      "geometry_sha256": "22a477cea7af45c73f1124b3c4b59e6ab9227c4cf6cdbbd902ddf185997ac064",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Aft flank access housing.005",
+      "geometry_sha256": "22a477cea7af45c73f1124b3c4b59e6ab9227c4cf6cdbbd902ddf185997ac064",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Aft machinery casing",
+      "geometry_sha256": "fb7bd1f2056f8e2c5dbb3585fe973bae5cd718a325a3dba456fd1c839355c0f4",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Armor captive fasteners | combined mesh",
+      "geometry_sha256": "60519df320cfc93e19c09b0b20ffa1c7972063c3c2699187ff400bf80d68f1bc",
+      "roles": [
+        "weld"
+      ],
+      "polygons": 6625,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 19875,
+      "islands": 1658,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Bay ceiling",
+      "geometry_sha256": "ca7b3125b892a9d77820e75692d95e0072d64aa6789c6e69f53d8d55bcaf67e1",
+      "roles": [
+        "backing"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Bay ceiling.001",
+      "geometry_sha256": "ca7b3125b892a9d77820e75692d95e0072d64aa6789c6e69f53d8d55bcaf67e1",
+      "roles": [
+        "backing"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Bay coaming",
+      "geometry_sha256": "e96fa13724b208425451cfdcf579bea8e2003918e1f1a63b11b86ed6b750bce4",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Bay coaming.001",
+      "geometry_sha256": "e96fa13724b208425451cfdcf579bea8e2003918e1f1a63b11b86ed6b750bce4",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Bay coaming.002",
+      "geometry_sha256": "e96fa13724b208425451cfdcf579bea8e2003918e1f1a63b11b86ed6b750bce4",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Bay coaming.003",
+      "geometry_sha256": "e96fa13724b208425451cfdcf579bea8e2003918e1f1a63b11b86ed6b750bce4",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Bay jamb",
+      "geometry_sha256": "2c40ef2c4fe2d290ff07620673260fbb04b1afaefde103a32267820cba8600c8",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Bay jamb.001",
+      "geometry_sha256": "2c40ef2c4fe2d290ff07620673260fbb04b1afaefde103a32267820cba8600c8",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Bay jamb.002",
+      "geometry_sha256": "2c40ef2c4fe2d290ff07620673260fbb04b1afaefde103a32267820cba8600c8",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Bay jamb.003",
+      "geometry_sha256": "2c40ef2c4fe2d290ff07620673260fbb04b1afaefde103a32267820cba8600c8",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Bay level floor",
+      "geometry_sha256": "ca7b3125b892a9d77820e75692d95e0072d64aa6789c6e69f53d8d55bcaf67e1",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Bay level floor.001",
+      "geometry_sha256": "ca7b3125b892a9d77820e75692d95e0072d64aa6789c6e69f53d8d55bcaf67e1",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Bay structural buttress",
+      "geometry_sha256": "a2c2a635ae09fd5577db05cae03d085ec2325fe43d6000f0f40117170bf140b3",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Bay structural buttress.001",
+      "geometry_sha256": "a2c2a635ae09fd5577db05cae03d085ec2325fe43d6000f0f40117170bf140b3",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Bay structural buttress.002",
+      "geometry_sha256": "a2c2a635ae09fd5577db05cae03d085ec2325fe43d6000f0f40117170bf140b3",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Bay structural buttress.003",
+      "geometry_sha256": "a2c2a635ae09fd5577db05cae03d085ec2325fe43d6000f0f40117170bf140b3",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Cabin ceiling",
+      "geometry_sha256": "3de9818a7b09a95fef0dfbb6570b153bacfe5bf97433273720d83285f7a5eb67",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Cabin floor",
+      "geometry_sha256": "3de9818a7b09a95fef0dfbb6570b153bacfe5bf97433273720d83285f7a5eb67",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Cabin side lining",
+      "geometry_sha256": "40fe90620ca482a529a3c9d07db75df2b654b9d3e6453b2c8a01648f82bdc000",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Cabin side lining.001",
+      "geometry_sha256": "40fe90620ca482a529a3c9d07db75df2b654b9d3e6453b2c8a01648f82bdc000",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Casing access cover",
+      "geometry_sha256": "cb6b67d2e209ae07cd4f953b2f7e728f22e9b5563bceef7c10ab0f2fba147763",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Casing access cover.001",
+      "geometry_sha256": "cb6b67d2e209ae07cd4f953b2f7e728f22e9b5563bceef7c10ab0f2fba147763",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Casing access cover.002",
+      "geometry_sha256": "cb6b67d2e209ae07cd4f953b2f7e728f22e9b5563bceef7c10ab0f2fba147763",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Casing access cover.003",
+      "geometry_sha256": "cb6b67d2e209ae07cd4f953b2f7e728f22e9b5563bceef7c10ab0f2fba147763",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Casing access cover.004",
+      "geometry_sha256": "cb6b67d2e209ae07cd4f953b2f7e728f22e9b5563bceef7c10ab0f2fba147763",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Casing access cover.005",
+      "geometry_sha256": "cb6b67d2e209ae07cd4f953b2f7e728f22e9b5563bceef7c10ab0f2fba147763",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Closed door stiffener",
+      "geometry_sha256": "fdc46ab0c0f6fa1ea824c64daec6012e3a7525170662500e6049846991e895b2",
+      "roles": [
+        "oxide"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Closed door stiffener.001",
+      "geometry_sha256": "fdc46ab0c0f6fa1ea824c64daec6012e3a7525170662500e6049846991e895b2",
+      "roles": [
+        "oxide"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Closed door stiffener.002",
+      "geometry_sha256": "fdc46ab0c0f6fa1ea824c64daec6012e3a7525170662500e6049846991e895b2",
+      "roles": [
+        "oxide"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Closed door stiffener.003",
+      "geometry_sha256": "fdc46ab0c0f6fa1ea824c64daec6012e3a7525170662500e6049846991e895b2",
+      "roles": [
+        "oxide"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Closed door stiffener.004",
+      "geometry_sha256": "fdc46ab0c0f6fa1ea824c64daec6012e3a7525170662500e6049846991e895b2",
+      "roles": [
+        "oxide"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Crew baggage",
+      "geometry_sha256": "d908cc87f8ab4007f7dc88517e1fa1f2c2ef8cad12274251f15401c8f19d97b3",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Crew hand proxy",
+      "geometry_sha256": "e797a2c0658d81844234e2037d8bd2792684eebfde65f778fa40e498bc37af97",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Crew sleeve proxy",
+      "geometry_sha256": "3a72c136dc23f81a7035158cd5aae912038fbf23663062e2d8a08728cb04775a",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Emergency backing splint",
+      "geometry_sha256": "6a7943f2246cb7956afbee253ada727e6ee0e104fb860fca43941a5119b9c5e2",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 1,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 4,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Emergency backing splint.001",
+      "geometry_sha256": "37bb284adf8a7b244cd51828348319d617cd00bff2ea1dc3402accaaca22ab48",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 1,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 4,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Emergency backing splint.002",
+      "geometry_sha256": "265452f7d0b5ceb341ebfb1a1a3d2f60ab4f7164bdfb612eff238951056f33f4",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 1,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 4,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Emergency backing splint.003",
+      "geometry_sha256": "b8ed71f76b8cce0547e0d4ced162015a222616c0a317a0859f3d52f2f5c0e4f8",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 1,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 4,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Emergency backing splint.004",
+      "geometry_sha256": "4321f49340e356ac05b606c1464958b57774e21cad4d3e8b0c09d1001b0adc4b",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 1,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 4,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Emergency backing splint.005",
+      "geometry_sha256": "1fedf892d461a8d0482fc76516fee6c98f3e16c68adc108e8cf6a9f57f252267",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 1,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 4,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Emergency backing splint.006",
+      "geometry_sha256": "419a42c1a10707b7bae402bf0b49ce3929eb7765c64edff86795749959e003e3",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 1,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 4,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Emergency backing splint.007",
+      "geometry_sha256": "835dfc499dac6c7616cc979378e16a790d6feb688909e2614dea1bed9d3da36a",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 1,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 4,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Emergency backing splint.008",
+      "geometry_sha256": "5de52d7c15eb128877f9ea15ecc28d604ddc4449dbffb52667f83f1f21b38fa4",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 1,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 4,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Emergency backing splint.009",
+      "geometry_sha256": "06f66c3cea04620bf9e209370c5ee023ce657a83cd8368f8acef836c7fa5d7eb",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 1,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 4,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Emergency backing splint.010",
+      "geometry_sha256": "7f9d2c654ff687b070d664f924c4fc351aacfe42a44fdf587544b782de703600",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 1,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 4,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Emergency backing splint.011",
+      "geometry_sha256": "8f28a6e5e0150cbabb49e00c90058a1eb874e087b2b52d738fc2866115e8f98c",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 1,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 4,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Empty maintenance cradle",
+      "geometry_sha256": "7786c8628249a63d6a96b815b672f4c739137c183998130d05b2b457228e7dd0",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Empty maintenance cradle.001",
+      "geometry_sha256": "7786c8628249a63d6a96b815b672f4c739137c183998130d05b2b457228e7dd0",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine 1 aft-facing nozzle",
+      "geometry_sha256": "f85c23aace5e3809fd59ad276d1dd80105ae6ed64f1058b83704612fc59c5a48",
+      "roles": [
+        "backing"
+      ],
+      "polygons": 48,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 192,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine 1 body",
+      "geometry_sha256": "7dad723a3471ae0c86e6bc0cb55510d8958513094cc3364d5a0bdb66a9dd6b10",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 34,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 192,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine 1 dark throat",
+      "geometry_sha256": "4d9327c85173e9fc438ac8b4688840e8331c5a75b0c894cabbd8c97174c3bb7d",
+      "roles": [
+        "throat"
+      ],
+      "polygons": 34,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 192,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine 1 mouth rim",
+      "geometry_sha256": "39bbfcca70a392febd8f49f2e1312443b666d82e2d6e3e3cdbd15ea74e3f5b2d",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 480,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 1920,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine 2 aft-facing nozzle",
+      "geometry_sha256": "9a281d472bece27d1fb6f27df57fc43dbea90ce10a89c307e3c77302fd08b02c",
+      "roles": [
+        "backing"
+      ],
+      "polygons": 48,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 192,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine 2 body",
+      "geometry_sha256": "a851469f23dddeaaad46c18c46a114d2cab17726faac3e8183dce8cdb7090217",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 34,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 192,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine 2 dark throat",
+      "geometry_sha256": "2c30f93e3b5d7e234e07ab31156eef0e963b84bef7d04c7b571657b5dcde5962",
+      "roles": [
+        "throat"
+      ],
+      "polygons": 34,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 192,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine 2 mouth rim",
+      "geometry_sha256": "7a9d6d3170f20139d6238c018354ab2a631b9a4c98ca9f7261e38350ee04980e",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 480,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 1920,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine 3 aft-facing nozzle",
+      "geometry_sha256": "fed0c14268428917e37ce5b2182a11f5b4544b8ebb333f44ce6503e503a7a880",
+      "roles": [
+        "backing"
+      ],
+      "polygons": 48,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 192,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine 3 body",
+      "geometry_sha256": "a851469f23dddeaaad46c18c46a114d2cab17726faac3e8183dce8cdb7090217",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 34,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 192,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine 3 dark throat",
+      "geometry_sha256": "2c30f93e3b5d7e234e07ab31156eef0e963b84bef7d04c7b571657b5dcde5962",
+      "roles": [
+        "throat"
+      ],
+      "polygons": 34,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 192,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine 3 mouth rim",
+      "geometry_sha256": "7a9d6d3170f20139d6238c018354ab2a631b9a4c98ca9f7261e38350ee04980e",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 480,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 1920,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine 4 aft-facing nozzle",
+      "geometry_sha256": "dbe31fc438712cb034b83e3a71f6b8f20b672a1fa08d149e3dc999f77b664960",
+      "roles": [
+        "backing"
+      ],
+      "polygons": 48,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 192,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine 4 body",
+      "geometry_sha256": "7dad723a3471ae0c86e6bc0cb55510d8958513094cc3364d5a0bdb66a9dd6b10",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 34,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 192,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine 4 dark throat",
+      "geometry_sha256": "4d9327c85173e9fc438ac8b4688840e8331c5a75b0c894cabbd8c97174c3bb7d",
+      "roles": [
+        "throat"
+      ],
+      "polygons": 34,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 192,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine 4 mouth rim",
+      "geometry_sha256": "39bbfcca70a392febd8f49f2e1312443b666d82e2d6e3e3cdbd15ea74e3f5b2d",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 480,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 1920,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine room armored shoulder",
+      "geometry_sha256": "e45ed4bd552f3f178ac0934a9319ce2e901d2d7f8c1a41faf34eb379d0350877",
+      "roles": [
+        "oxide"
+      ],
+      "polygons": 16,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 64,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine room armored shoulder.001",
+      "geometry_sha256": "1efc41813fde52fe4a22e2593dd29a13341e58a48b8f9f9ca75e045df072bfd1",
+      "roles": [
+        "oxide"
+      ],
+      "polygons": 16,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 64,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine room armored shoulder.002",
+      "geometry_sha256": "87fdf03fa817666761ed99c4b784d4aeedc367c71f9a2f70699f4620bf308ecd",
+      "roles": [
+        "oxide"
+      ],
+      "polygons": 16,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 64,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine room armored shoulder.003",
+      "geometry_sha256": "78ecf554c342ecf8c00685262b6b91906e819772ade434cd17f2a5137cf78b78",
+      "roles": [
+        "oxide"
+      ],
+      "polygons": 16,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 64,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine room armored shoulder.004",
+      "geometry_sha256": "349c4eff7853e4357ac44ac9558a471599b47277f7af4644191ab0a5fb5f0c54",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 51,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 214,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine room armored shoulder.005",
+      "geometry_sha256": "e8b09e923ed58da9b105d1affb7de65f94c624f2db0ca4b0bdc9160649c53872",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 16,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 64,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine room armored shoulder.006",
+      "geometry_sha256": "08fa6a9d1209f06ec1310b53f655a54ca1587435f05ab7896992d105ad01d5fe",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 16,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 64,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine room armored shoulder.007",
+      "geometry_sha256": "281d3c9c4a7158d1bf15e5abd368135a19850586944b53b3e7be2f7ea0baa9d5",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 16,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 64,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine room armored shoulder.008",
+      "geometry_sha256": "0f4db8e95ed37fd9b768687f501d7419dd00a77db695d2e86c0c5514d8f11305",
+      "roles": [
+        "oxide"
+      ],
+      "polygons": 196,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 799,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine room armored shoulder.009",
+      "geometry_sha256": "0d2b5a060ae6fbe2dced81450bba13c2ca8d09c71e0617a0438ece79e93df4d9",
+      "roles": [
+        "oxide"
+      ],
+      "polygons": 16,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 64,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine room armored shoulder.010",
+      "geometry_sha256": "7cc7538203546bfb91814f66837a6357aafd0dc1e9b70e0689d112e3625b9864",
+      "roles": [
+        "oxide"
+      ],
+      "polygons": 16,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 64,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine room armored shoulder.011",
+      "geometry_sha256": "c1b849e91f47dbbe227f0dc958d4ec0fc2d9a63492b2c553a4c2ee794989f00c",
+      "roles": [
+        "oxide"
+      ],
+      "polygons": 16,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 64,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine room reinforcing band",
+      "geometry_sha256": "652b6cb4d23390b67fffa8fdec5c83fcb512d7fd212c503862f9f161e2f43e38",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 16,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 64,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine room reinforcing band.001",
+      "geometry_sha256": "b2e554b8b9aa765517e81fbcdda8ed97ebc9dc228392457d59fb07e04ffb584a",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 16,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 64,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine room reinforcing band.002",
+      "geometry_sha256": "5bd812b44bccdc642ccea5d595759dc3b8a9f0c0c6e8fbab9a56db571f5e2a29",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 16,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 64,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Engine room reinforcing band.003",
+      "geometry_sha256": "e5eb1492e9799ba04ec2f5d83ec4ce366e9324c76afc13e858ff875258b40884",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 16,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 64,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Exposed longitudinal service trunk",
+      "geometry_sha256": "952a1f5da4528b52631d8441ad6181d0e97456251e9127a5c24ac1f493a6d2b2",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 34,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 192,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Exposed longitudinal service trunk.001",
+      "geometry_sha256": "952a1f5da4528b52631d8441ad6181d0e97456251e9127a5c24ac1f493a6d2b2",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 34,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 192,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Exposed longitudinal service trunk.002",
+      "geometry_sha256": "952a1f5da4528b52631d8441ad6181d0e97456251e9127a5c24ac1f493a6d2b2",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 34,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 192,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Fore pressure casing",
+      "geometry_sha256": "d8c0b4e2665f31c67195f1951426506d6796e16a2aef906a673e70c8f669751e",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Forebody reinforcing band",
+      "geometry_sha256": "7ce98d4c6edaa3ee33b65d8b41049b4a422164552d1513b14479dd27b9e715f3",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 16,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 64,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Forebody replaceable armor",
+      "geometry_sha256": "6784b44f14e152f7b3cb64798dbb37186f45d0940ce2816ca7a54eafb63c312b",
+      "roles": [
+        "oxide"
+      ],
+      "polygons": 16,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 64,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Forebody replaceable armor.001",
+      "geometry_sha256": "3e6f2de3bc8f35d419527b073eeeb9f0653190f418c9ad3a1848b715dd7183d5",
+      "roles": [
+        "oxide"
+      ],
+      "polygons": 16,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 64,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Forebody replaceable armor.002",
+      "geometry_sha256": "c64d1a9e725b29bd14d1fbfbe84eccaa258362ac679ef7da6a7d73ead02c7c5f",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 16,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 64,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Forebody replaceable armor.003",
+      "geometry_sha256": "232c89b39ec72511d65ae9ab9e67e7fd4a10cf68851c20a1d93f27b3aab17538",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 16,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 64,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Forebody replaceable armor.004",
+      "geometry_sha256": "a9f0634718acbde0a123cce557d4eeed0081bcd580016163ba8ef6497990394b",
+      "roles": [
+        "oxide"
+      ],
+      "polygons": 86,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 359,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Forebody replaceable armor.005",
+      "geometry_sha256": "34aa74379b6f7238ad780785ab27771a8fd34c0111e669ab6d72beb691bfde1a",
+      "roles": [
+        "oxide"
+      ],
+      "polygons": 16,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 64,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Forebody replaceable armor.006",
+      "geometry_sha256": "e7fa9f15d1db1fe08ced93cdc4e542e8b71cec751a7e51378b7dc43766b2a558",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 16,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 64,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Forebody replaceable armor.007",
+      "geometry_sha256": "fe1934c0a8df63da031eca129394bea061d359190a8d70166c96a5612c6b36f2",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 16,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 64,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Forebody replaceable armor.008",
+      "geometry_sha256": "854c360b5998b9c02387bd143b7eec55abc540ac8d264d3d0455f8ecaedb85ce",
+      "roles": [
+        "oxide"
+      ],
+      "polygons": 16,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 64,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Forebody replaceable armor.009",
+      "geometry_sha256": "fa95f4f4d95a38a54489ab02ef1206f4957e7776ab98b4a6a3bb100a4ec5e0c4",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 16,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 64,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Main hull - level datum Z0",
+      "geometry_sha256": "332da17b88e9509aefe68055eccfe045bc380e9ebb6c538ff4738f7cd8b6c596",
+      "roles": [
+        "oxide",
+        "backing"
+      ],
+      "polygons": 2148,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 8680,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "PORT SERVICE POD - fixed low horizontal body",
+      "geometry_sha256": "401a45550e2dea851e675a47761cd6295d53dd9e7030f3efd854be9eefeb08f0",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "PROPOSAL keel shoe",
+      "geometry_sha256": "c29e32dd1ddeaf2e981173526471bce86d211c3c0b77f93175b2b7bc2b567d4a",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "PROPOSAL keel shoe.001",
+      "geometry_sha256": "c29e32dd1ddeaf2e981173526471bce86d211c3c0b77f93175b2b7bc2b567d4a",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "PROPOSAL keel shoe.002",
+      "geometry_sha256": "c29e32dd1ddeaf2e981173526471bce86d211c3c0b77f93175b2b7bc2b567d4a",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "PROPOSAL keel shoe.003",
+      "geometry_sha256": "c29e32dd1ddeaf2e981173526471bce86d211c3c0b77f93175b2b7bc2b567d4a",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "PROPOSAL lift mouth",
+      "geometry_sha256": "df75540753fbedd64324b117b5c48b484bc6d9f53d48eb6e9fc6bc10a812b3d8",
+      "roles": [
+        "throat"
+      ],
+      "polygons": 18,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 96,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "PROPOSAL lift mouth.001",
+      "geometry_sha256": "df75540753fbedd64324b117b5c48b484bc6d9f53d48eb6e9fc6bc10a812b3d8",
+      "roles": [
+        "throat"
+      ],
+      "polygons": 18,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 96,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "PROPOSAL lift mouth.002",
+      "geometry_sha256": "df75540753fbedd64324b117b5c48b484bc6d9f53d48eb6e9fc6bc10a812b3d8",
+      "roles": [
+        "throat"
+      ],
+      "polygons": 18,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 96,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "PROPOSAL lift mouth.003",
+      "geometry_sha256": "df75540753fbedd64324b117b5c48b484bc6d9f53d48eb6e9fc6bc10a812b3d8",
+      "roles": [
+        "throat"
+      ],
+      "polygons": 18,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 96,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "PROPOSAL ventral lift collar",
+      "geometry_sha256": "75df4a730c3f912840dd760cc362575b2db2109073b5aba33ffac0ce68680273",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 18,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 96,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "PROPOSAL ventral lift collar.001",
+      "geometry_sha256": "75df4a730c3f912840dd760cc362575b2db2109073b5aba33ffac0ce68680273",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 18,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 96,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "PROPOSAL ventral lift collar.002",
+      "geometry_sha256": "75df4a730c3f912840dd760cc362575b2db2109073b5aba33ffac0ce68680273",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 18,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 96,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "PROPOSAL ventral lift collar.003",
+      "geometry_sha256": "75df4a730c3f912840dd760cc362575b2db2109073b5aba33ffac0ce68680273",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 18,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 96,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Passenger seat back",
+      "geometry_sha256": "fb0300f9a0b18441d36a9d41e3a45b942c6d37eb9518e8172d292032dcf0792d",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Passenger seat cushion",
+      "geometry_sha256": "f3b5505c871d1af71751548c67e71254ea65bfdd2dc10d5ddf4b638bb211e802",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Physical armor | ARRIVAL | backing",
+      "geometry_sha256": "06ae6f9d86ed8e0c033e444debef3aed61cee21a0c7d9606fc104a65c661ae3f",
+      "roles": [
+        "backing"
+      ],
+      "polygons": 190,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 570,
+      "islands": 14,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Physical armor | ARRIVAL | cream",
+      "geometry_sha256": "a5d2ba724896313a405978b30e068ac8ec083f0192c28f1169fb85d3acd6f501",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 1918,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 5754,
+      "islands": 122,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Physical armor | ARRIVAL | gunmetal",
+      "geometry_sha256": "30e08d302f539dd2bf1cd74e49b4921a26db7e4f3bf9bb0074eb7b27aa184fcd",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 388,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 1164,
+      "islands": 26,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Physical armor | ARRIVAL | oxide",
+      "geometry_sha256": "fc54d9d778e1b197f81db722e9b40c496cd7d5a895dd10f92a9cc2820b1f3e2b",
+      "roles": [
+        "oxide"
+      ],
+      "polygons": 3798,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 11394,
+      "islands": 243,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Pod dorsal inspection plate",
+      "geometry_sha256": "3511750c46a1f7df2f1c476ecf6e31724bd4dff3cd4b68566a94fb88ed553d79",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Pod outward access hatch",
+      "geometry_sha256": "1152d7495864a44c097e4e53ddc6b3aeb43246f40792f8f9c2665e55fbaec939",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 34,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 192,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Port bay interior",
+      "geometry_sha256": "622b71cb6e5d4cbd32c05d2176088f279c011821ce71aa07ab15e1b5a9d4e691",
+      "roles": [
+        "backing"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Port bay interior lamp",
+      "geometry_sha256": "f56138f33399d0bef6346c37292e6598acb377facac9cd2ccbd3e7bde377725e",
+      "roles": [
+        "lamp"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Port bay interior lamp.001",
+      "geometry_sha256": "f56138f33399d0bef6346c37292e6598acb377facac9cd2ccbd3e7bde377725e",
+      "roles": [
+        "lamp"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Port service pod neck",
+      "geometry_sha256": "efdad28367886d91690dee1f229179038823ecc101378bba409194be6fe38e6c",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Protected waist service line",
+      "geometry_sha256": "75620529f8b518d00d7ad5db01c9e007a0efbfbdf648873393fc3f0c80d17a8d",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 34,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 192,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Protected waist service line.001",
+      "geometry_sha256": "75620529f8b518d00d7ad5db01c9e007a0efbfbdf648873393fc3f0c80d17a8d",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 34,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 192,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Recessed central service bed",
+      "geometry_sha256": "792017d246711afcdcbbe093d57bb2eacf4b4ae1de27b26c816b9559681f339e",
+      "roles": [
+        "backing"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "SEALED GLAZING | clear proxy",
+      "geometry_sha256": "361b7b48512ca63da75e8b67732c440e3acf1d4f4e5a03ec9261d32c6898e216",
+      "roles": [
+        "glass"
+      ],
+      "polygons": 6,
+      "visible": false,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Service panel recessed seam inlays",
+      "geometry_sha256": "10c49a329444d43e847d43f3d4112375f8a70e97388bfa3b192c25b0a5717b96",
+      "roles": [
+        "backing"
+      ],
+      "polygons": 128,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 512,
+      "islands": 128,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Service trunk support hoop",
+      "geometry_sha256": "efabe77e48e6b271137d7a7db5cd2bd259a72d81f4c3501bffded27cf7e6a66e",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Service trunk support hoop.001",
+      "geometry_sha256": "efabe77e48e6b271137d7a7db5cd2bd259a72d81f4c3501bffded27cf7e6a66e",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Service trunk support hoop.002",
+      "geometry_sha256": "efabe77e48e6b271137d7a7db5cd2bd259a72d81f4c3501bffded27cf7e6a66e",
+      "roles": [
+        "cream"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Shoulder louver vent",
+      "geometry_sha256": "5042e2b2a341dcbbaeb34d623b399d44fc775c049fa7bbd21aad1a1b77a6eab7",
+      "roles": [
+        "backing"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Shoulder louver vent.001",
+      "geometry_sha256": "5042e2b2a341dcbbaeb34d623b399d44fc775c049fa7bbd21aad1a1b77a6eab7",
+      "roles": [
+        "backing"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Shoulder louver vent.002",
+      "geometry_sha256": "5042e2b2a341dcbbaeb34d623b399d44fc775c049fa7bbd21aad1a1b77a6eab7",
+      "roles": [
+        "backing"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Shoulder louver vent.003",
+      "geometry_sha256": "5042e2b2a341dcbbaeb34d623b399d44fc775c049fa7bbd21aad1a1b77a6eab7",
+      "roles": [
+        "backing"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Starboard bay interior",
+      "geometry_sha256": "622b71cb6e5d4cbd32c05d2176088f279c011821ce71aa07ab15e1b5a9d4e691",
+      "roles": [
+        "backing"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Starboard bay sealed sectional door",
+      "geometry_sha256": "23226a31daffe4d67c06755dc9009fba4ef06362df9987de04a3773fc445a556",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Turret 1 forward barrel",
+      "geometry_sha256": "364ff38b64cb68b99680e8ccda71cdb837cc12f39eb82336152885efaa9b0cb6",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 18,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 96,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Turret 1 raised armored housing",
+      "geometry_sha256": "7a75faa3422573f4de0334c4bae416c631fc5e4e61426f5203fd4015ac3b4a31",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Turret 1 shallow ring",
+      "geometry_sha256": "1f6cb736a0a0dd0bc4416a949d62c15179cf3fd9e5ddf4448183e989b93c0c6c",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 34,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 192,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Turret 2 forward barrel",
+      "geometry_sha256": "364ff38b64cb68b99680e8ccda71cdb837cc12f39eb82336152885efaa9b0cb6",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 18,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 96,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Turret 2 raised armored housing",
+      "geometry_sha256": "7a75faa3422573f4de0334c4bae416c631fc5e4e61426f5203fd4015ac3b4a31",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Turret 2 shallow ring",
+      "geometry_sha256": "1f6cb736a0a0dd0bc4416a949d62c15179cf3fd9e5ddf4448183e989b93c0c6c",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 34,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 192,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Turret 3 forward barrel",
+      "geometry_sha256": "364ff38b64cb68b99680e8ccda71cdb837cc12f39eb82336152885efaa9b0cb6",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 18,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 96,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Turret 3 raised armored housing",
+      "geometry_sha256": "7a75faa3422573f4de0334c4bae416c631fc5e4e61426f5203fd4015ac3b4a31",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Turret 3 shallow ring",
+      "geometry_sha256": "1f6cb736a0a0dd0bc4416a949d62c15179cf3fd9e5ddf4448183e989b93c0c6c",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 34,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 192,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Turret 4 forward barrel",
+      "geometry_sha256": "9e71e2a507b4e491fd033fbb444306fd618e46b529e9ca76bbb1697e6285de07",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 18,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 96,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Turret 4 raised armored housing",
+      "geometry_sha256": "f522d7246d357407a8f6a22e463dac1aab744ad9dbabbc487f534384339b75b1",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Turret 4 shallow ring",
+      "geometry_sha256": "83955ae5741fff9a96c70b2c8610580eaaee3578c5a12d1dc2120250e54db467",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 34,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 192,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Vent louver",
+      "geometry_sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Vent louver.001",
+      "geometry_sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Vent louver.002",
+      "geometry_sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Vent louver.003",
+      "geometry_sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Vent louver.004",
+      "geometry_sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Vent louver.005",
+      "geometry_sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Vent louver.006",
+      "geometry_sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Vent louver.007",
+      "geometry_sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Vent louver.008",
+      "geometry_sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Vent louver.009",
+      "geometry_sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Vent louver.010",
+      "geometry_sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Vent louver.011",
+      "geometry_sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Vent louver.012",
+      "geometry_sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Vent louver.013",
+      "geometry_sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Vent louver.014",
+      "geometry_sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Vent louver.015",
+      "geometry_sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Vent louver.016",
+      "geometry_sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Vent louver.017",
+      "geometry_sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Vent louver.018",
+      "geometry_sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Vent louver.019",
+      "geometry_sha256": "81748f74ffcc1ec6fc9c26c7756376e867736e3a1b9bc9d70e9af9cec40115ee",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Viewport horizontal frame",
+      "geometry_sha256": "eb85973f8511148b4ba0c9eb91e32fc1b6afa22be0dc2d61b199b1a85f2cdde0",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Viewport horizontal frame.001",
+      "geometry_sha256": "eb85973f8511148b4ba0c9eb91e32fc1b6afa22be0dc2d61b199b1a85f2cdde0",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Viewport vertical frame",
+      "geometry_sha256": "a087d1135c4d2d9117426d65448733aa9fc597cb94e8046c46dad088a988dc3e",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Viewport vertical frame.001",
+      "geometry_sha256": "a087d1135c4d2d9117426d65448733aa9fc597cb94e8046c46dad088a988dc3e",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "WRECK PASS | aft broad spall | exposed buckled backing seams",
+      "geometry_sha256": "89861b4ea3c391febca0dd33f2f3e0758c445ae309be4ca5344583444519b404",
+      "roles": [
+        "weld"
+      ],
+      "polygons": 7,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 28,
+      "islands": 7,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "WRECK PASS | aft broad spall | recessed sealed backing",
+      "geometry_sha256": "73b9bad9530b71577a8b41153cec33283a5bfb11d9a14d440cf1b6ff0b588d52",
+      "roles": [
+        "impact"
+      ],
+      "polygons": 55,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 234,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "WRECK PASS | aft broad spall | torn plate lips",
+      "geometry_sha256": "041c90a35a0d20bfc028ae5203105b4a394b48f42d3de707e0a43c1b1f4a8463",
+      "roles": [
+        "weld",
+        "oxide"
+      ],
+      "polygons": 28,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 112,
+      "islands": 14,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "WRECK PASS | aft broad spall | welded emergency restraints",
+      "geometry_sha256": "b92add9c7f4722791304d75b02cdf3a58e18791157e78f1876fe5f4802746ad9",
+      "roles": [
+        "weld"
+      ],
+      "polygons": 2,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 8,
+      "islands": 2,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "WRECK PASS | aft upper impact | exposed buckled backing seams",
+      "geometry_sha256": "f039a3c57d944c642d719cefdf228b46c7c8d29475343ee61fcd1b226ba7a6a1",
+      "roles": [
+        "weld"
+      ],
+      "polygons": 7,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 28,
+      "islands": 7,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "WRECK PASS | aft upper impact | recessed sealed backing",
+      "geometry_sha256": "52a2316e7ec9ea05cbb9f9eb5925fd71273a8de8b2e0cca1b7c709b688b4cb10",
+      "roles": [
+        "impact"
+      ],
+      "polygons": 55,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 234,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "WRECK PASS | aft upper impact | torn plate lips",
+      "geometry_sha256": "cf49edc233e66aae4cc02ff2067e05a311a148665fb09e6071286c4aaaa17035",
+      "roles": [
+        "weld",
+        "oxide"
+      ],
+      "polygons": 28,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 112,
+      "islands": 14,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "WRECK PASS | aft upper impact | welded emergency restraints",
+      "geometry_sha256": "073e5fefd44d6b5ce963a2d2f1944f1a70c1a315afafc62391f505dab68ca0bb",
+      "roles": [
+        "weld"
+      ],
+      "polygons": 2,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 8,
+      "islands": 2,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "WRECK PASS | fore impact basin | exposed buckled backing seams",
+      "geometry_sha256": "876d7568a1e3d475c734d1a41805eeddb2aa576cc9aa014d9907c1ae54d04546",
+      "roles": [
+        "weld"
+      ],
+      "polygons": 7,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 28,
+      "islands": 7,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "WRECK PASS | fore impact basin | recessed sealed backing",
+      "geometry_sha256": "2150b4df08ba3551db617f7a7dcc6561204750fc3fdc6271eef7d779fe200983",
+      "roles": [
+        "impact"
+      ],
+      "polygons": 55,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 234,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "WRECK PASS | fore impact basin | torn plate lips",
+      "geometry_sha256": "c266a7c75116e97931aa14438aaa2691003fdd49dba41910c59e26fc5b555353",
+      "roles": [
+        "weld",
+        "oxide"
+      ],
+      "polygons": 28,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 112,
+      "islands": 14,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "WRECK PASS | fore impact basin | welded emergency restraints",
+      "geometry_sha256": "91f4b80041fe33107bae0bc7ae3fcd581b71ca749564712b0c18bf9495372535",
+      "roles": [
+        "weld"
+      ],
+      "polygons": 2,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 8,
+      "islands": 2,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "WRECK PASS | fore lower scar | exposed buckled backing seams",
+      "geometry_sha256": "4d48e60e4f992daa14090f94d95b6a196c912d7bfaa8d79b377b097c1dcc1187",
+      "roles": [
+        "weld"
+      ],
+      "polygons": 7,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 28,
+      "islands": 7,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "WRECK PASS | fore lower scar | recessed sealed backing",
+      "geometry_sha256": "467fc4b2d243d1eff845e7eb1ba1bec0d2182e396fc350f24199f35f74def7ee",
+      "roles": [
+        "impact"
+      ],
+      "polygons": 55,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 234,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "WRECK PASS | fore lower scar | torn plate lips",
+      "geometry_sha256": "3e3f560a74addc376b61dfc617e75682c4eacfe92187da1b7bc2484bfb4854b8",
+      "roles": [
+        "weld",
+        "oxide"
+      ],
+      "polygons": 28,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 112,
+      "islands": 14,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "WRECK PASS | fore lower scar | welded emergency restraints",
+      "geometry_sha256": "29e18aeafd1a32ffa3461cafc03052b09f60caaae75282c5545617f829dd92f8",
+      "roles": [
+        "weld"
+      ],
+      "polygons": 2,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 8,
+      "islands": 2,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    },
+    {
+      "name": "Window lower wall",
+      "geometry_sha256": "67f28a5d947cde5b44bcd5088fa25713b87d4a6f17a20ce13e66aaabd8e73f7c",
+      "roles": [
+        "gunmetal"
+      ],
+      "polygons": 6,
+      "visible": true,
+      "uv": "SurfaceTileUV",
+      "corners": 24,
+      "islands": 1,
+      "repeat_hull_units": 6,
+      "mapping": "fixed per-corner material UV + rest attributes"
+    }
+  ],
+  "materials": [
+    "cream",
+    "weld",
+    "backing",
+    "gunmetal",
+    "oxide",
+    "throat",
+    "lamp",
+    "glass",
+    "impact"
+  ],
+  "images": [
+    {
+      "path": "assets/cream.png",
+      "source": "../second-wind-surface-proof/assets/cream.png",
+      "sha256": "00eafca7d6e55d3ea4a2ff4e237def5109f72f5fe551617e6bdf99c1f293e1c4",
+      "dimensions": [
+        627,
+        627
+      ]
+    },
+    {
+      "path": "assets/oxide.png",
+      "source": "../second-wind-surface-proof/assets/oxide.png",
+      "sha256": "a357173be25977155d52ad5375913e85b350f876a3f5e4646e64b9779cbb083a",
+      "dimensions": [
+        627,
+        627
+      ]
+    },
+    {
+      "path": "assets/gunmetal.png",
+      "source": "../second-wind-surface-proof/assets/gunmetal.png",
+      "sha256": "09ed19bb19379cfc448ce91ef2d96a54667289ec1d8a0c11fcda2b6708600987",
+      "dimensions": [
+        627,
+        627
+      ]
+    },
+    {
+      "path": "assets/backing.png",
+      "source": "../second-wind-surface-proof/assets/backing.png",
+      "sha256": "7f01425df945f9548fd2d9dec300cea10d206b2a81826e1616344d30bf055c0f",
+      "dimensions": [
+        627,
+        627
+      ]
+    }
+  ],
+  "removed_scene_object_count": 1128,
+  "surface_contract": "All mesh corners have fixed tiled UV and stored rest coordinates; all physical material slots rebuilt. No source camera sheets used.",
+  "limits": "Relightable Blender material asset, not a unique packed PBR atlas. Neutral ImageGen tile RGB approximates albedo. Roughness/metal/normal are authored, not measured. Bow/stern/belly retain simpler source geometry; deep modeled craters remain starboard. No new ship design or gameplay dimensions."
+}

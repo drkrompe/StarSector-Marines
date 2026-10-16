@@ -1,0 +1,122 @@
+{
+  "background": [
+    0,
+    0,
+    0
+  ],
+  "groups": {
+    "10": {
+      "role": "ship and cabin: Retain geometry; shot-local paint projection",
+      "srgb_0_to255": [
+        230,
+        116,
+        80
+      ]
+    },
+    "11": {
+      "role": "cradle and clamps: Retain geometry, contact and occlusion",
+      "srgb_0_to255": [
+        80,
+        88,
+        230
+      ]
+    },
+    "12": {
+      "role": "near port structures: Retain geometry; independent painted surfaces",
+      "srgb_0_to255": [
+        132,
+        230,
+        80
+      ]
+    },
+    "13": {
+      "role": "managed land and roads: Retain ground perspective; paint field surfaces",
+      "srgb_0_to255": [
+        230,
+        80,
+        175
+      ]
+    },
+    "14": {
+      "role": "river and terrain: Terrain relief / broad distant painted plates",
+      "srgb_0_to255": [
+        80,
+        219,
+        230
+      ]
+    },
+    "31": {
+      "role": "far painted hill silhouette / retained shallow relief",
+      "srgb_0_to255": [
+        230,
+        197,
+        80
+      ]
+    },
+    "32": {
+      "role": "far continuous forest plate / silhouette",
+      "srgb_0_to255": [
+        153,
+        80,
+        230
+      ]
+    },
+    "33": {
+      "role": "middle woodland paint relief behind river",
+      "srgb_0_to255": [
+        80,
+        230,
+        110
+      ]
+    },
+    "34": {
+      "role": "near geometric hedges / later alpha foliage strips",
+      "srgb_0_to255": [
+        230,
+        80,
+        94
+      ]
+    },
+    "35": {
+      "role": "independent translucent painted cloud bank",
+      "srgb_0_to255": [
+        80,
+        138,
+        230
+      ]
+    },
+    "36": {
+      "role": "independent distant industrial transit geometry",
+      "srgb_0_to255": [
+        181,
+        230,
+        80
+      ]
+    },
+    "37": {
+      "role": "exterior south-facing painted hill relief",
+      "srgb_0_to255": [
+        230,
+        80,
+        225
+      ]
+    },
+    "38": {
+      "role": "exterior woodland behind working yard",
+      "srgb_0_to255": [
+        80,
+        230,
+        190
+      ]
+    },
+    "39": {
+      "role": "real perspective industrial sheds tanks and open crane frames",
+      "srgb_0_to255": [
+        230,
+        147,
+        80
+      ]
+    }
+  },
+  "note": "Flat object-ID role visualization; original hidden meshes remain hidden."
+}

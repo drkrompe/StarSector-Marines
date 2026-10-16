@@ -1,0 +1,487 @@
+{
+  "output_fps": 24,
+  "frames": [
+    {
+      "output": 1,
+      "source_frame": 720.0,
+      "source_fps": 12
+    },
+    {
+      "output": 2,
+      "source_frame": 720.5,
+      "source_fps": 12
+    },
+    {
+      "output": 3,
+      "source_frame": 721.0,
+      "source_fps": 12
+    },
+    {
+      "output": 4,
+      "source_frame": 721.5,
+      "source_fps": 12
+    },
+    {
+      "output": 5,
+      "source_frame": 722.0,
+      "source_fps": 12
+    },
+    {
+      "output": 6,
+      "source_frame": 722.5,
+      "source_fps": 12
+    },
+    {
+      "output": 7,
+      "source_frame": 723.0,
+      "source_fps": 12
+    },
+    {
+      "output": 8,
+      "source_frame": 723.5,
+      "source_fps": 12
+    },
+    {
+      "output": 9,
+      "source_frame": 724.0,
+      "source_fps": 12
+    },
+    {
+      "output": 10,
+      "source_frame": 724.5,
+      "source_fps": 12
+    },
+    {
+      "output": 11,
+      "source_frame": 725.0,
+      "source_fps": 12
+    },
+    {
+      "output": 12,
+      "source_frame": 725.5,
+      "source_fps": 12
+    },
+    {
+      "output": 13,
+      "source_frame": 726.0,
+      "source_fps": 12
+    },
+    {
+      "output": 14,
+      "source_frame": 726.5,
+      "source_fps": 12
+    },
+    {
+      "output": 15,
+      "source_frame": 727.0,
+      "source_fps": 12
+    },
+    {
+      "output": 16,
+      "source_frame": 727.5,
+      "source_fps": 12
+    },
+    {
+      "output": 17,
+      "source_frame": 728.0,
+      "source_fps": 12
+    },
+    {
+      "output": 18,
+      "source_frame": 728.5,
+      "source_fps": 12
+    },
+    {
+      "output": 19,
+      "source_frame": 729.0,
+      "source_fps": 12
+    },
+    {
+      "output": 20,
+      "source_frame": 729.5,
+      "source_fps": 12
+    },
+    {
+      "output": 21,
+      "source_frame": 730.0,
+      "source_fps": 12
+    },
+    {
+      "output": 22,
+      "source_frame": 730.5,
+      "source_fps": 12
+    },
+    {
+      "output": 23,
+      "source_frame": 731.0,
+      "source_fps": 12
+    },
+    {
+      "output": 24,
+      "source_frame": 731.5,
+      "source_fps": 12
+    },
+    {
+      "output": 25,
+      "source_frame": 732.0,
+      "source_fps": 12
+    },
+    {
+      "output": 26,
+      "source_frame": 732.5,
+      "source_fps": 12
+    },
+    {
+      "output": 27,
+      "source_frame": 733.0,
+      "source_fps": 12
+    },
+    {
+      "output": 28,
+      "source_frame": 733.5,
+      "source_fps": 12
+    },
+    {
+      "output": 29,
+      "source_frame": 734.0,
+      "source_fps": 12
+    },
+    {
+      "output": 30,
+      "source_frame": 734.5,
+      "source_fps": 12
+    },
+    {
+      "output": 31,
+      "source_frame": 735.0,
+      "source_fps": 12
+    },
+    {
+      "output": 32,
+      "source_frame": 735.5,
+      "source_fps": 12
+    },
+    {
+      "output": 33,
+      "source_frame": 736.0,
+      "source_fps": 12
+    },
+    {
+      "output": 34,
+      "source_frame": 736.5,
+      "source_fps": 12
+    },
+    {
+      "output": 35,
+      "source_frame": 737.0,
+      "source_fps": 12
+    },
+    {
+      "output": 36,
+      "source_frame": 737.5,
+      "source_fps": 12
+    },
+    {
+      "output": 37,
+      "source_frame": 738.0,
+      "source_fps": 12
+    },
+    {
+      "output": 38,
+      "source_frame": 738.5,
+      "source_fps": 12
+    },
+    {
+      "output": 39,
+      "source_frame": 739.0,
+      "source_fps": 12
+    },
+    {
+      "output": 40,
+      "source_frame": 739.5,
+      "source_fps": 12
+    },
+    {
+      "output": 41,
+      "source_frame": 740.0,
+      "source_fps": 12
+    },
+    {
+      "output": 42,
+      "source_frame": 740.5,
+      "source_fps": 12
+    },
+    {
+      "output": 43,
+      "source_frame": 741.0,
+      "source_fps": 12
+    },
+    {
+      "output": 44,
+      "source_frame": 741.5,
+      "source_fps": 12
+    },
+    {
+      "output": 45,
+      "source_frame": 742.0,
+      "source_fps": 12
+    },
+    {
+      "output": 46,
+      "source_frame": 742.5,
+      "source_fps": 12
+    },
+    {
+      "output": 47,
+      "source_frame": 743.0,
+      "source_fps": 12
+    },
+    {
+      "output": 48,
+      "source_frame": 743.5,
+      "source_fps": 12
+    },
+    {
+      "output": 49,
+      "source_frame": 744.0,
+      "source_fps": 12
+    },
+    {
+      "output": 50,
+      "source_frame": 744.5,
+      "source_fps": 12
+    },
+    {
+      "output": 51,
+      "source_frame": 745.0,
+      "source_fps": 12
+    },
+    {
+      "output": 52,
+      "source_frame": 745.5,
+      "source_fps": 12
+    },
+    {
+      "output": 53,
+      "source_frame": 746.0,
+      "source_fps": 12
+    },
+    {
+      "output": 54,
+      "source_frame": 746.5,
+      "source_fps": 12
+    },
+    {
+      "output": 55,
+      "source_frame": 747.0,
+      "source_fps": 12
+    },
+    {
+      "output": 56,
+      "source_frame": 747.5,
+      "source_fps": 12
+    },
+    {
+      "output": 57,
+      "source_frame": 748.0,
+      "source_fps": 12
+    },
+    {
+      "output": 58,
+      "source_frame": 748.5,
+      "source_fps": 12
+    },
+    {
+      "output": 59,
+      "source_frame": 749.0,
+      "source_fps": 12
+    },
+    {
+      "output": 60,
+      "source_frame": 749.5,
+      "source_fps": 12
+    },
+    {
+      "output": 61,
+      "source_frame": 750.0,
+      "source_fps": 12
+    },
+    {
+      "output": 62,
+      "source_frame": 750.5,
+      "source_fps": 12
+    },
+    {
+      "output": 63,
+      "source_frame": 751.0,
+      "source_fps": 12
+    },
+    {
+      "output": 64,
+      "source_frame": 751.5,
+      "source_fps": 12
+    },
+    {
+      "output": 65,
+      "source_frame": 752.0,
+      "source_fps": 12
+    },
+    {
+      "output": 66,
+      "source_frame": 752.5,
+      "source_fps": 12
+    },
+    {
+      "output": 67,
+      "source_frame": 753.0,
+      "source_fps": 12
+    },
+    {
+      "output": 68,
+      "source_frame": 753.5,
+      "source_fps": 12
+    },
+    {
+      "output": 69,
+      "source_frame": 754.0,
+      "source_fps": 12
+    },
+    {
+      "output": 70,
+      "source_frame": 754.5,
+      "source_fps": 12
+    },
+    {
+      "output": 71,
+      "source_frame": 755.0,
+      "source_fps": 12
+    },
+    {
+      "output": 72,
+      "source_frame": 755.5,
+      "source_fps": 12
+    },
+    {
+      "output": 73,
+      "source_frame": 756.0,
+      "source_fps": 12
+    },
+    {
+      "output": 74,
+      "source_frame": 756.5,
+      "source_fps": 12
+    },
+    {
+      "output": 75,
+      "source_frame": 757.0,
+      "source_fps": 12
+    },
+    {
+      "output": 76,
+      "source_frame": 757.5,
+      "source_fps": 12
+    },
+    {
+      "output": 77,
+      "source_frame": 758.0,
+      "source_fps": 12
+    },
+    {
+      "output": 78,
+      "source_frame": 758.5,
+      "source_fps": 12
+    },
+    {
+      "output": 79,
+      "source_frame": 759.0,
+      "source_fps": 12
+    },
+    {
+      "output": 80,
+      "source_frame": 759.5,
+      "source_fps": 12
+    },
+    {
+      "output": 81,
+      "source_frame": 760.0,
+      "source_fps": 12
+    },
+    {
+      "output": 82,
+      "source_frame": 760.5,
+      "source_fps": 12
+    },
+    {
+      "output": 83,
+      "source_frame": 761.0,
+      "source_fps": 12
+    },
+    {
+      "output": 84,
+      "source_frame": 761.5,
+      "source_fps": 12
+    },
+    {
+      "output": 85,
+      "source_frame": 762.0,
+      "source_fps": 12
+    },
+    {
+      "output": 86,
+      "source_frame": 762.5,
+      "source_fps": 12
+    },
+    {
+      "output": 87,
+      "source_frame": 763.0,
+      "source_fps": 12
+    },
+    {
+      "output": 88,
+      "source_frame": 763.5,
+      "source_fps": 12
+    },
+    {
+      "output": 89,
+      "source_frame": 764.0,
+      "source_fps": 12
+    },
+    {
+      "output": 90,
+      "source_frame": 764.5,
+      "source_fps": 12
+    },
+    {
+      "output": 91,
+      "source_frame": 765.0,
+      "source_fps": 12
+    },
+    {
+      "output": 92,
+      "source_frame": 765.5,
+      "source_fps": 12
+    },
+    {
+      "output": 93,
+      "source_frame": 766.0,
+      "source_fps": 12
+    },
+    {
+      "output": 94,
+      "source_frame": 766.5,
+      "source_fps": 12
+    },
+    {
+      "output": 95,
+      "source_frame": 767.0,
+      "source_fps": 12
+    },
+    {
+      "output": 96,
+      "source_frame": 767.5,
+      "source_fps": 12
+    }
+  ],
+  "duration_seconds": 4,
+  "interpolation": "No synthesized frames; Blender evaluates original source action at half frames."
+}
