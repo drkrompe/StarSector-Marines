@@ -1,6 +1,8 @@
 # Mech internal systems
 
-Status: Heat and mechanical weapon cycles implemented; engine, armor and alternate subsystem fittings remain design-only. No new recorded dialogue.
+Status: Heat, mechanical weapon cycles and the stock-frame baseline implemented; engine, armor and alternate subsystem fittings remain design-only. No new recorded dialogue.
+
+Updated: 2026-10-16 — stock frame shipped; internals arrive as learned patterns with tier-scaled size (`heavy-equipment-progression.md`).
 
 ## Player promise
 
@@ -28,6 +30,26 @@ with the first larger frame. Preserve existing weapons and existing saves.
   equipment for one subsystem slot. It cannot change missile capacity, projectile
   damage, and cooldown as an undocumented bundle. Guns do not gain a second ammo
   economy simply to make the slot relevant.
+
+## Stock frame and the fitting budget
+
+Every chassis now carries a stock frame — industrial engine, factory plating,
+factory cooler — set below the old values on exactly the axes these internals
+buy back: armor capacity (plating), move speed (engine), cooling (cooler). The
+table is in `heavy-equipment-progression.md`. Each internal replaces one stock
+part; none is a multiplier on the chassis.
+
+- Engine output is a mass budget; every weapon and internal has mass, and a fit
+  over budget is refused atomically. The engine also sets speed within the
+  chassis's own band.
+- Higher-tier weapons and internals are larger or heavier than the part they
+  replace in the same role, so a light chassis cannot carry the top of every
+  ladder. Footprints use the existing socket grid; the CORE socket hosts the
+  engine, AMMO_RESERVE the heat sink, MINI_FAB the cooler or loader.
+- `MechHeat` capacity and cooling become per-loadout values frozen from the
+  installed internals; AI thresholds scale with capacity.
+- Internals are learned as patterns (`mechs-nouns.md`, mech pattern) and built as
+  finite assemblies like weapons.
 
 ## Authority and presentation
 

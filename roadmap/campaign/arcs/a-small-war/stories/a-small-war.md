@@ -4,7 +4,7 @@ Status: IN PROGRESS — all five chapters, the handover decision, District Escor
 
 Written: 2026-10-13
 
-Updated: 2026-10-16 — the Greyhook is Voss's Venture, lifting from the southern pads with two Hounds; the duel over Black Sluice re-staged for ships in atmosphere, round two.
+Updated: 2026-10-16 — Chapter 5 drops its tender and rear-position build (owner): customs, fuel control, dispatch, handover.
 
 Read `early-operation-nouns.md`, `campaign-nouns.md`, `meta-progression.md`,
 `narrative-nouns.md`, `mission-tier-nouns.md`, `progression-nouns.md`,
@@ -59,8 +59,9 @@ or decline. Existing Wayline and recovery arrangements remain available.
 
 The historical handover gate persists if Morrow is later sold or lost. Actual
 construction support still requires an owned eligible working tender and its
-ordinary mission permission. The briefing explains that requirement and pauses
-these construction-dependent chapters if it cannot be met; it never summons a
+ordinary mission permission in the chapters that build (A Small War has no
+construction step and needs no tender). The briefing explains that requirement
+and pauses these construction-dependent chapters if it cannot be met; it never summons a
 replacement Morrow. A subsequently acquired eligible tender can fill that role.
 
 The destination is existing **Agreus in Arcadia**, about **1.91 light-years from
@@ -127,7 +128,7 @@ Equipment rewards are guaranteed story cards, separate from random recovery.
 | 2. Limited Warrant | Low Quay bonded stores: recover the service archive and sealed calibration kit | 2 squads, regular issue sufficient | 30,000 | Tri-Tachyon Specter Section card: two recovered Specter breachers in twelve |
 | 3. The Yard's Owners | Latchkey: take the dispatch house, tooling hall and safe operator entrance | 3 squads; recovered Specter useful | 36,000 | Salvage-assisted Section card: two Specter breachers and two Arbalest gunners in twelve |
 | 4. Terms of Protection | Latchkey and the Cinder Steps approach: defend the signed handover while technicians commission captured rig tooling | 3 squads; mixed sections recommended | 32,000 | A Boarding Jack section card, regardless of the chosen yard agreement; agreement ratified only on victory |
-| 5. A Small War | Black Sluice on the outer Silt Basin: seize the fuel-dispatch foothold and hand it to local holders | 3 squads plus construction; Hound optional | 44,000 | Completed local settlement, a separate recurring escort offer, and a future procurement introduction; no military suit card |
+| 5. A Small War | Black Sluice on the outer Silt Basin: seize the fuel-dispatch foothold and hand it to local holders | 3 squads; Hound optional; no tender | 44,000 | Completed local settlement, a separate recurring escort offer, and a future procurement introduction; no military suit card |
 
 Base completion fees total **168,000 credits** across the arc. House Custody can
 earn the separately disclosed **12,000-credit completion premium** below;
@@ -385,8 +386,9 @@ dispatch pier. Service galleries provide infantry flanks around exposed road
 approaches. Fuel storage is an explicit preservation objective; its controls are
 a seizure target, not an invitation to destroy the district's usable supply.
 
-1. Seize the customs block and establish a tender-built rear position. Allied
-   holders occupy the cleared building before the company advances.
+1. Seize the customs block. Allied holders occupy it the moment the company holds
+   it, before the company advances; there is no construction step and no tender on
+   this chapter (owner, 2026-10-16).
 2. Take fuel control. Drent Haulage opposes the company along a known transfer
    road while a finite party of prize crews and Berth Four covers dispatch. One
    visible support-gun position punishes an exposed frontal approach but has an
@@ -543,7 +545,8 @@ not imply every chapter is a generated Tier-1 patron job. State authored tier,
 recommendation and hard launch minimum separately on each offer.
 
 Initial acceptance floor: two selected squads with at least four ready named
-marines each, an eligible fitted insertion manifest and actual tender support.
+marines each, an eligible fitted insertion manifest and, in the chapters that
+build (all but Chapter 5), actual tender support.
 Recommendations above assume full twelve-person squads; the minimum is not a
 claim that eight people reliably win. All selected squads may enter through
 ordinary repeated trips; Raid-shaped Chapter 2 explicitly has unrestricted
@@ -553,8 +556,9 @@ lift never expands the enemy pool to match it.
 Rusk contracts a bounded employer heavy-lift sortie for an owned active mech lance
 on Chapters 3-5; an empty bay gives no walker. Briefings name the supplied transport.
 No Hound survival is assumed and baseline acceptance must win without a mech.
-No capital gun run or fighter fleet is supplied. Construction uses the actual
-selected tender, finite vulnerable builders and existing placement/range rules.
+No capital gun run or fighter fleet is supplied. Where a chapter builds,
+construction uses the actual selected tender, finite vulnerable builders and
+existing placement/range rules; Chapter 5 does not build.
 Allied constables take stable, separate hold duties only after real company gains.
 
 Citadel Arcadia remains a Hegemony logistics and military presence. Greyhook's
@@ -714,8 +718,7 @@ Still open inside this story:
 - **Encounter readings to revisit:** Chapter 3's Specter fixture lost 12 rather
   than 5 on the rebuilt yard; Chapter 4's mortar withdraws before the company
   reaches its pit, so counter-battery is unexercised, and House Custody's estate
-  guards died in both ordinary runs; Chapter 5's tender-built rear gun never
-  fired; District Escort is won in every ordinary run and needs an
+  guards died in both ordinary runs; District Escort is won in every ordinary run and needs an
   encounter-design pass.
 
 All mission, choice and reward text starts as readable correspondence with Castle's

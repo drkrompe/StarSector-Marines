@@ -20,8 +20,8 @@ Review options, after a literal "--":
   --no-save        skip the .blend and geometry.json
   --cam NAME:PX,PY,PZ:TX,TY,TZ:SCALE   add an ad-hoc ortho review camera
                    (repeatable) and render it; written as NAME.png
-  --state S        clean (default), derelict or patched: sw_damage layers
-                   that damage state onto the finished clean ship. A damaged
+  --state S        clean (default), derelict, patched, refit or restored:
+                   sw_damage.apply layers that condition state onto the finished clean ship. A damaged
                    state writes to states/<S>/ unless --out is given, and by
                    default also renders starboard-quarter and the damage
                    close-ups; the committed guide is always the clean ship.
@@ -37,6 +37,9 @@ import bpy
 from mathutils import Vector
 
 HERE = Path(__file__).resolve().parent
+# The one shared real-world scale (second-wind-pipeline.md, Scale): about
+# 66 m overall. Everything metric reads this; nothing hard-codes metres.
+METRES_PER_UNIT = 0.65
 sys.path.insert(0, str(HERE))
 import sw_kit, sw_hull, sw_aft_deck, sw_engines, sw_bridge, sw_turrets, sw_port_module, sw_damage
 for module in (sw_kit, sw_hull, sw_aft_deck, sw_engines, sw_bridge, sw_turrets, sw_port_module, sw_damage):
@@ -46,7 +49,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--out')
 parser.add_argument('--views')
 parser.add_argument('--res', default='960x440')
-parser.add_argument('--state', choices=('clean','derelict','patched'), default='clean')
+parser.add_argument('--state', choices=('clean','derelict','patched','refit','restored'), default='clean')
 parser.add_argument('--samples', type=int, default=24)
 parser.add_argument('--no-save', action='store_true')
 parser.add_argument('--cam', action='append', default=[])
@@ -76,7 +79,8 @@ sw_port_module.build(kit)
 
 sw_engines.build_nozzles(kit)
 sw_turrets.build(kit)
-damage = sw_damage.build(kit, args.state) if args.state != 'clean' else None
+# Scars are the last phase: everything above is the clean ship.
+damage = sw_damage.apply(kit, args.state) if args.state != 'clean' else None
 
 scene=bpy.context.scene
 scene.render.engine='CYCLES'
@@ -149,7 +153,8 @@ if not args.no_save:
     manifest={
         'status':'Proposed geometry reference; no scene art or gameplay changes',
         'axes':{'+X':'bow','+Y':'port','+Z':'dorsal'},
-        'units':'Vanilla hull-space units; no canonical metre scale asserted',
+        'units':'Vanilla hull-space units (1 sprite px = 1 unit); multiply by metres_per_unit for metres',
+        'metres_per_unit':METRES_PER_UNIT,
         'revision':'V3 detail: segmented sprite-measured hull, whole engine pods, spine command deck, port grapple, naval turrets',
         'thickness_profile':{'method':'Flat deck plateaus (x0, x1, deck z) over single-chamfer sections; level keel', 'stations':sw_hull.THICKNESS_STATIONS, 'deck_datum':0, 'attachments':'Engine centres unchanged from V2'},
         'engine_source':'starsector-core/data/hulls/warhound.ship engineSlots',

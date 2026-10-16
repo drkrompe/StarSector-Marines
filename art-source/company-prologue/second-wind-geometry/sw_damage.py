@@ -1,35 +1,43 @@
-"""Damage states for the Second Wind: real geometry layered on the clean ship.
+"""Scars and condition states for the Second Wind.
 
-Built only when build_reference.py is given --state derelict or patched; the
-clean build never imports this module's effects. Everything here runs after
-the clean ship exists and changes it locally:
+The hull's campaign life is one ladder of builds of the same model (see
+second-wind-pipeline.md):
 
-derelict  Nearly a decade tethered in an asteroid belt as an unpowered parts
-          bin. A few legible impact basins with crushed lips, spalled and
-          torn outer armour opening onto dark backing, missing and buckled
-          deck plates, gouged plate seams, bent heat-sink fins, a sheared
-          sensor mast, a smashed port engine can, scattered small strikes in
-          clusters, scorched waist service lines, a bowed bay frame and
-          stripped pump machinery. Every light is dead.
-patched   derelict plus the emergency work that made the escape: mismatched
-          salvage plates welded over the craters, emergency backing in open
-          ones, splints across buckled plates, the bowed bay frame shored
-          with cargo rail, bolted pressure patches, external cable runs, a
-          split sleeve on the burst service line and a jury whip on the mast
-          stub. Only the starboard pod runs, on a salvaged drive coil bolted
-          to its housing deck; the port pod is dead, stripped and capped.
+derelict  ~8 years tethered in the belt as an unpowered parts bin.
+patched   the escape: only what the flight needed.
+refit     the limited berthing/command conversion: a few patches replaced by
+          proper plates with fresh seams; heavy craters and the dead port pod
+          remain.
+restored  structurally whole, both pods running, replaced plates repainted;
+          old seams and scars still read under the paint.
 
-Laws (owner decisions): damage never moves or removes the bays, the four
-turret slots, the four engine centres, the grapple module or the silhouette;
-no open breach into occupied spaces, no fire, no new engines. Construction
-stays faceted and crisp: craters are faceted bowls, lips are flat shards,
-patches are tented flat plates, beads are faceted lumps.
+clean is the reference and never runs this module. apply(kit, state) is the
+last phase of build_reference.py, so surfacing can be laid on the clean parts
+before scars cut them.
 
-Placement is data, resolved by ray casts against the clean ship's objects
-(never against damage parts), so it follows future hull edits. Cuts are
-live Boolean modifiers added last, over each object's own bevel; the faces
-they open take the dark spalled-backing material.
+Every damage site is one Scar row: a stable id, a kind, a status per state and
+the parameters that place it. Placement is resolved by ray casts against the
+clean ship and every change to a base object is deferred to the end of the
+build, so every cast in every state sees the same clean ship and a scar id
+lands in the same place in all four states.
+
+Rules that keep the surfacing composable:
+- A base object is never renamed, replaced or deleted. Scars Boolean-cut it,
+  deform it with a shape key named 'Scar <id>', hide it (a part stripped or
+  replaced; the object and its skin stay in the file), or override its look
+  with an object-level material slot (the mesh keeps its base material).
+- Everything added is named 'Scar <id> <part>' and takes scar or repair
+  materials (named 'Scar ...', 'Salvage ...', 'Weld ...' etc.), never a base
+  material. Faces a cut opens take the cutter's material.
+
+Rows live in one module per damage area (AREAS), each owning its rows and any
+kinds of its own; the generic kinds here cover the common scar shapes. Laws
+(owner decisions): damage never moves or removes the bays, the four turret
+slots, the four engine centres, the grapple module or the silhouette; no open
+breach into occupied spaces, no fire, no new engines. Construction stays
+faceted and crisp.
 """
+import importlib
 import math
 import random
 import bpy
@@ -37,125 +45,20 @@ import bmesh
 from mathutils import Vector
 import sw_kit
 from sw_hull import armor_patch, crisp
-from sw_engines import ENGINES, BELL_R, CAN_FACE_R, FIN_X, bell_face
 from sw_turrets import MOUNTS
 
 TAU = math.tau
 
-# Impact basins: (name, ray origin, ray target, radius, depth, elongation
-# along the strike's ground track, lip shards, patched repair). Repairs:
-# 'plate' a welded salvage plate, 'plates' two overlapping, 'backing'
-# emergency backing in the open crater with splints over it, None open.
-BASINS = [
-    # Continuity scar 1: the impact cluster on the forward port flank,
-    # around the grapple sponson and the port bow cheek above it.
-    ('Port sponson cowl strike', (33,62,7.6), (33,30,7.4), 2.2, 1.0, 1.25, 8, 'plate'),
-    ('Port bow cheek strike', (45,42,40), (45,21,13), 3.0, 1.3, 1.3, 9, 'backing'),
-    ('Port bow flank strike', (60,44,3), (51,21,3), 2.2, 1.0, 1.2, 7, 'backing'),
-    # Continuity scar 2: the scarred port aft shoulder over the dead pod.
-    ('Port aft shoulder strike', (-12,58,32), (-12,36.5,13.5), 3.6, 1.6, 1.2, 10, 'plates'),
-    ('Port pod lower casing strike', (-9,62,-2), (-9,37,-2.5), 2.0, .9, 1.3, 6, None),
-    ('Port intake cap strike', (-1,60,5), (-1,36,5), 1.8, .8, 1.2, 6, 'backing'),
-    ('Starboard forebody deck strike', (25,-17.5,60), (25.6,-17.2,0), 2.8, 1.2, 1.1, 8, 'plate'),
-    ('Forward deck strike', (46,-6,60), (46.5,-6.5,0), 2.2, 1.0, 1.15, 7, 'plate'),
-    ('Spine housing strike', (3.5,6,60), (3.6,5.6,0), 1.6, .7, 1.1, 6, 'plate'),
-    ('Starboard cowl strike', (-14.5,-33,60), (-14,-33.4,0), 2.1, .9, 1.1, 7, 'plate'),
-    ('Starboard cowl flank strike', (-8,-62,9), (-8,-36,9.5), 2.4, 1.1, 1.3, 8, 'backing'),
-    ('Starboard intake strike', (5,-46,13), (0,-30,8), 2.0, .9, 1.2, 6, 'plate'),
-    ('Bow glacis strike', (76,-3,32), (54,-3,10), 2.2, 1.0, 1.35, 7, 'plate'),
-    ('Aft deck strike', (-23.5,9.3,60), (-23.5,9.3,0), 1.6, .8, 1.0, 6, None),
-    ('Aft deck starboard strike', (-16,-9.2,60), (-16.3,-9,0), 1.5, .7, 1.1, 6, 'plate'),
-    ('Starboard flank strike', (43,-62,3.5), (43,-30,3.5), 2.9, 1.2, 1.3, 9, 'backing'),
-    # The smashed port engine can: struck from aft, over the outer can.
-    ('Port outer engine can strike', (-50,47,14), (-39.6,33,2.5), 2.4, 1.4, 1.2, 6, None),
-]
-
-# Clustered small strikes, not uniform pockmarks: (name, cast, centre,
-# spread, count, radius range). cast 'down' drops onto (x, y); 'port' and
-# 'starboard' fire inboard at (x, z) on that flank.
-CLUSTERS = [
-    ('Port forward flank cluster', 'port', (37,5), (8,3.5), 9, (.35,.8)),
-    ('Port bow deck cluster', 'down', (41,19), (5,3), 6, (.3,.7)),
-    ('Port aft shoulder cluster', 'down', (-12,32), (6,3.5), 7, (.3,.75)),
-    ('Starboard bow deck cluster', 'down', (28,-11), (7,5), 7, (.3,.7)),
-    ('Aft deck cluster', 'down', (-18,-4), (6,5), 6, (.3,.6)),
-    ('Starboard pod flank cluster', 'starboard', (-12,2), (6,3), 6, (.3,.65)),
-    ('Spine cluster', 'down', (16,0), (9,3), 5, (.25,.5)),
-    ('Scattered strikes', 'down', (8,0), (44,26), 16, (.25,.55)),
-]
-
-# Spalled armour: star-shaped tears through the outer plate onto backing,
-# with petals peeled outward. (name, origin, target, radius, depth, petals)
-SPALLS = [
-    ('Starboard flank module tear', (29,-60,5.5), (29,-30,5.5), 1.8, .7, 3),
-    ('Port citadel wall spall', (21,50,12.4), (21,20,12.4), 1.4, .55, 2),
-    ('Starboard bow cheek spall', (54,-32,15), (47,-18,12), 1.6, .6, 3),
-    ('Starboard intake cap spall', (1,-60,4), (1,-30,4), 1.3, .5, 2),
-    ('Starboard belt plate tear', (31,-60,-1.2), (31,-30,-1.2), 1.5, .6, 3),
-    ('Starboard lower casing tear', (-15,-60,-1), (-15,-35,-1), 1.6, .6, 3),
-    ('Port nose block spall', (68,20,8), (57,4,6), 1.4, .55, 2),
-]
-
-# Gouges dragged across plate seams by glancing rock: (name, start origin,
-# end origin, cast direction, half width, depth, patched repair).
-GOUGES = [
-    ('Starboard deck gouge', (17.5,-9.5,60), (33,-13.5,60), (0,0,-1), .7, .45, 'weld'),
-    ('Port cowl gouge', (-2.5,27,60), (-7,34.5,60), (0,0,-1), .6, .4, 'splint'),
-    ('Port glacis gouge', (44,4,60), (53,9.5,60), (0,0,-1), .55, .35, None),
-    ('Starboard belt gouge', (33,-60,-.4), (46,-60,-1.6), (0,1,0), .55, .35, None),
-]
-
-# Deck armour plates torn away (object name, plate centre, kept corner
-# direction, patched repair): a jagged remnant stays in one corner over
-# exposed backing and stringers.
-MISSING_PLATES = [
-    ('Forebody replaceable armor', (32.5,16.75), (-1,1), 'salvage'),
-    ('Forebody replaceable armor', (32.5,-10.25), (1,-1), None),
-    ('Drive casing armour plate', (-11.85,28.6), (1,-1), None),
-    ('Forebody replaceable armor', (24.5,16.75), (1,1), 'salvage'),
-    ('Drive casing armour plate', (-7.7,-29.45), (-1,1), None),
-    ('Aft deck armour plate', (-23.65,-9.2), (1,1), 'salvage'),
-]
-
-# Buckled deck plates (object name, plate centre, fold height, repair).
-BUCKLES = [
-    ('Forebody replaceable armor', (24.5,10.25), .42, 'splint'),
-    ('Drive casing armour plate', (-11.85,-28.6), .36, 'splint'),
-    ('Forebody replaceable armor', (24.5,-10.25), .3, None),
-]
-
-# Heat-sink fins bent by strikes: (side, fin indices, sector test, shift).
-BENT_FINS = [(1, (1,2,3,4), lambda y,z: y > 30 and z > 7.5, (.75,-.55,.9,.5)),
-             (-1, (4,5), lambda y,z: y < -31 and z < -1, (-.6,.7))]
-
-# Continuity scar 3: scorched waist service lines and trunks.
-SCORCHED = [('Protected waist service line', None), ('Exposed waist service trunk', 1),
-            ('Trunk clamp hoop', 1)]
-BURST = (9.5, 24.2, 7.2, 2.4)  # port service line: x, y, z, gap length
-
-# The bowed rib: the port bay's forward frame jamb, pushed aft into the
-# opening at mid-height. (x, y, z0, z1, (z, aft bow) stations)
-RIB = (26, 23, -5.5, 4.5, [(-5.5,0),(-2.6,.7),(-.4,1.55),(1.8,.8),(4.5,0)])
-
-# Parts-bin stripping: pump machinery lifted off both housing decks, the
-# port can feed pipes and the port casing access panels.
-STRIPPED = [('Turbopump housing', 0), ('Turbopump vent slot', 0), ('Pump drive drum', 0),
-            ('Can feed pipe', 1), ('Casing access panel', 1), ('Panel grab strap', 1)]
-
-# Sensor mast parts lost when it sheared.
-MAST_LOST = ('Mast crosstree', 'Scanner turntable', 'Search radar scanner bar',
-             'Masthead light', 'Crosstree signal light')
-
-# Small strikes covered by bolted pressure patches in the patched state:
-# (cluster name, every n-th strike).
-PRESSURE_PATCHED = [('Spine cluster', 2), ('Port bow deck cluster', 3),
-                    ('Starboard bow deck cluster', 3), ('Port forward flank cluster', 3)]
-
-# External cable runs (patched): plan points; z is cast onto the ship.
-CABLES = [[(-29.6,-26.8),(-27.4,-22),(-24,-17),(-20.5,-13.5),(-17.5,-11.6),(-14,-8.2),(-11.4,-4.4),(-10.6,-2.8)]]
+STATES = ('derelict', 'patched', 'refit', 'restored')
+# A scar's life. A ladder never goes backwards; 'gone' is terminal.
+SCAR_STATUSES = ('open', 'patched', 'replaced', 'faded', 'gone')
+# A drive pod's life: stripped and dead, cold with its lines capped, running
+# on jury-rigged salvage, running properly.
+ENGINE_STATUSES = ('dead', 'capped', 'jury', 'running')
+AREAS = ('sw_scars_forebody', 'sw_scars_pods', 'sw_scars_aft', 'sw_scars_spine')
 
 # Nothing a strike or cut may land on or reach into.
-UNCUT = ('Turret', 'Damage', 'Grapple arm', 'Boom', 'Forearm', 'Arm ', 'Engine ',
+UNCUT = ('Turret', 'Scar', 'Grapple arm', 'Boom', 'Forearm', 'Arm ', 'Engine ',
          'Shoulder', 'Grapple head', 'Grapple jaw', 'Grapple clamp', 'Grapple wrist')
 NO_STRIKE = UNCUT + ('Mast', 'Whip', 'Scanner', 'radome', 'Radome', 'viewport', 'Viewport',
                      'glazing', 'light', 'Light', 'lamp', 'Bay ', 'bay ', 'cradle', 'Cradle',
@@ -170,6 +73,40 @@ def basis(n):
     ref = Vector((0,0,1)) if abs(n.z) < .9 else Vector((1,0,0))
     u = n.cross(ref).normalized()
     return u, n.cross(u).normalized()
+
+
+class Scar:
+    """One damage site and its status in each state.
+
+    ladder: four statuses, derelict..restored, as a list or a spaced string.
+    vocab: SCAR_STATUSES (ordered, never backwards) or ENGINE_STATUSES."""
+    def __init__(self, id, kind, ladder, note='', vocab=SCAR_STATUSES, **params):
+        ladder = ladder.split() if isinstance(ladder, str) else list(ladder)
+        assert len(ladder) == len(STATES), (id, ladder)
+        assert all(s in vocab for s in ladder), (id, ladder)
+        if vocab is SCAR_STATUSES:
+            order = [vocab.index(s) for s in ladder]
+            assert order == sorted(order), f'{id}: ladder goes backwards {ladder}'
+        self.id, self.kind, self.note, self.params = id, kind, note, params
+        self.states = dict(zip(STATES, ladder))
+        self.area = None
+
+    def status(self, state):
+        return self.states[state]
+
+    def history(self, state):
+        """Statuses this scar has passed through up to and including state."""
+        return [self.states[s] for s in STATES[:STATES.index(state)+1]]
+
+
+class Site:
+    """A resolved hit on the clean ship: point, outward normal, track (u),
+    cross-track (v) and the object hit."""
+    def __init__(self, p, n, u, v, ob):
+        self.p, self.n, self.u, self.v, self.ob = p, n, u, v, ob
+
+    def __iter__(self):
+        return iter((self.p, self.n, self.u, self.v, self.ob))
 
 
 class Geo:
@@ -200,10 +137,11 @@ class Geo:
         """Flat bar from a to b, lying with its face toward `up`."""
         a, b = V(a), V(b)
         ax = (b-a).normalized()
-        side = up.cross(ax).normalized()
+        side = V(up).cross(ax).normalized()
         self.obox((a+b)/2, ax, side, ax.cross(side).normalized(), (b-a).length/2, w/2, h/2)
 
     def tube(self, path, r, sides=8):
+        path = [V(p) for p in path]
         rings = []
         for i,p in enumerate(path):
             t = (path[min(i+1,len(path)-1)]-path[max(i-1,0)]).normalized()
@@ -233,6 +171,14 @@ class Geo:
             rings.append([c+side*size, c+n*h, c-side*size, c-n*size*.3])
         self.loft(rings)
 
+    def flat(self, ring, n, thick):
+        """A flat plate on a ring of points."""
+        k = len(ring)
+        verts = list(ring)+[q+n*thick for q in ring]
+        faces = [tuple(reversed(range(k))), tuple(range(k, 2*k))]
+        faces += [(i, (i+1) % k, k+(i+1) % k, k+i) for i in range(k)]
+        self.add(verts, faces)
+
     def bounds(self):
         xs, ys, zs = zip(*self.v)
         return V((min(xs),min(ys),min(zs))), V((max(xs),max(ys),max(zs)))
@@ -240,31 +186,62 @@ class Geo:
 
 class Damage:
     def __init__(self, kit, state):
+        assert state in STATES, state
         self.kit, self.state = kit, state
-        self.patched = state == 'patched'
         self.original = {o.name for o in bpy.data.objects if o.type == 'MESH'}
-        self.cuts = []    # (verts, faces, explicit targets or None)
-        self.parts = {}   # (name, material name) -> (Geo, material, edge)
-        self.record = {'state': state, 'basins': [], 'strikes': 0, 'spalls': [], 'gouges': [],
-                       'missing_plates': [], 'buckled_plates': [], 'repairs': []}
-        self.strikes = {}
+        self.cuts = []      # (verts, faces, explicit targets or None, material)
+        self.parts = {}     # object name -> (Geo, material, edge)
+        self.hides = {}     # base object name -> scar id
+        self.shapes = []    # (object, scar id, {vertex index: local co})
+        self.overrides = [] # (object, material, scar id)
+        self.sites = {}     # scar id -> Site or None (resolved once)
+        self.record = {'state': state, 'scars': [], 'hidden': {}, 'shape_keys': [],
+                       'overrides': []}
+        self._torn, self._repaint = {}, {}
         m = sw_kit.material
-        self.backing = m('Spalled armour backing', (.075,.07,.065), .6, .55)
-        self.scorch = m('Scorched plating', (.03,.026,.024), .25, .85)
+        self.m = m
+        self.backing = m('Scar spalled backing', (.075,.07,.065), .6, .55)
+        self.scorch = m('Scar scorched plating', (.03,.026,.024), .25, .85)
         self.weld = m('Weld bead', (.12,.11,.1), .75, .7)
         self.salvage = [m('Salvage plate grey-green primer', (.2,.23,.19), .35, .6),
                         m('Salvage plate bare steel', (.34,.34,.33), .8, .4),
                         m('Salvage plate faded blue-grey', (.17,.2,.24), .4, .6),
-                        kit.cream]
+                        m('Salvage plate chalk cream', (.5,.47,.38), .3, .65)]
+        self.primer = m('Replacement plate shop primer', (.36,.37,.35), .35, .55)
+        self.sealant = m('Replacement seam sealant', (.6,.6,.57), 0, .7)
+        self.fastener = m('Replacement plate fastener', (.42,.42,.4), .85, .35)
+        self.steel = m('Scar fitting steel', (.19,.21,.22), .65)
+        self.dark = m('Scar recess dark', (.055,.065,.072), .5)
         self.rail = m('Cargo rail safety yellow', (.5,.36,.05), .35, .55)
-        self.blank = m('Engine blanking plate', (.27,.28,.27), .6, .5)
         self.copper = m('Salvaged drive coil copper', (.5,.22,.09), .9, .35)
         self.cable = m('External cable run', (.03,.03,.03), 0, .6)
-        self.dead = m('Dead lamp', (.08,.07,.06), .3, .4)
+        self.dead = m('Scar dead lamp', (.08,.07,.06), .3, .4)
+        self.unlit_glass = m('Scar unlit glazing', (.05,.09,.11), .2, .15)
+        self.rubber = m('Borrowed seal rubber', (.05,.045,.04), 0, .9)
         self.glow = m('Drive throat glow', (.3,.5,.8), emission=(.45,.68,1))
         self.glow.node_tree.nodes['Principled BSDF'].inputs['Emission Strength'].default_value = 7
         self.heat = m('Drive bell heat', (.05,.055,.07), .5, .4, emission=(.25,.4,.9))
         self.heat.node_tree.nodes['Principled BSDF'].inputs['Emission Strength'].default_value = .18
+
+    # ---- scar materials -----------------------------------------------------
+    def base_mat(self, ob):
+        mat = ob.active_material if ob is not None else None
+        return mat or self.kit.orange
+
+    def torn(self, base):
+        """Torn painted metal from a base part: a scar material that matches it."""
+        if base.name not in self._torn:
+            col = base.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value
+            self._torn[base.name] = self.m(f'Scar torn {base.name}', tuple(col[:3]), .4, .6)
+        return self._torn[base.name]
+
+    def repaint(self, base):
+        """New paint matched by eye to a base finish: close, never the same."""
+        if base.name not in self._repaint:
+            r, g, b, _ = base.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value
+            self._repaint[base.name] = self.m(f'Scar repaint over {base.name}',
+                                              (r*1.08+.01, g*1.05+.008, b*.97+.006), .3, .55)
+        return self._repaint[base.name]
 
     # ---- queries ---------------------------------------------------------
     def find(self, name, near, sign=0):
@@ -288,6 +265,12 @@ class Damage:
                 if not sign or c.y*sign > 0:
                     out.append(o)
         return out
+
+    def box(self, ob):
+        """World bounding box (lo, hi) of an object."""
+        pts = [ob.matrix_world @ V(c) for c in ob.bound_box]
+        return (V([min(q[k] for q in pts) for k in range(3)]),
+                V([max(q[k] for q in pts) for k in range(3)]))
 
     def cast(self, origin, target, only=None):
         """First hit on the clean ship from origin toward target: (point, normal, object).
@@ -313,29 +296,78 @@ class Damage:
             return hit[0]+n*lift
         return None if strict else point+n*lift
 
-    def g(self, name, mat, edge=.04):
-        key = (name, mat.name)
-        if key not in self.parts:
-            self.parts[key] = (Geo(), mat, edge)
-        return self.parts[key][0]
+    @property
+    def skin(self):
+        """Outer skin and armour a plate may rest on (no lamps, hatches, vents)."""
+        keep = ('hull', 'armor', 'armour', 'plate', 'cowl', 'casing', 'module', 'cap', 'body',
+                'Sponson', 'sponson', 'housing', 'Spine', 'block', 'belt', 'lip', 'shield')
+        drop = ('Scar', 'lamp', 'light', 'hatch', 'Hatch', 'vent', 'louvre', 'louver', 'strap',
+                'hood', 'Intake mouth', 'manifold', 'frame', 'skin')
+        return {n for n in self.original if any(k in n for k in keep) and not any(d in n for d in drop)}
 
-    def remove(self, ob):
-        self.original.discard(ob.name)
-        bpy.data.objects.remove(ob, do_unlink=True)
+    def site(self, scar, origin, target, key=None):
+        """Resolve (once) where a ray from origin toward target meets the clean
+        ship. u follows the ray's ground track across the surface."""
+        key = key or scar_id(scar)
+        if key not in self.sites:
+            hit = self.cast(origin, target)
+            if hit is None:
+                print('scar: no surface for', key)
+                self.sites[key] = None
+            else:
+                p, n, ob = hit
+                aim = (V(target)-V(origin)).normalized()
+                track = aim-n*aim.dot(n)
+                u = track.normalized() if track.length > .2 else basis(n)[0]
+                self.sites[key] = Site(p, n, u, n.cross(u), ob)
+        return self.sites[key]
 
-    # ---- damage primitives -------------------------------------------------
-    def basin(self, name, origin, target, r, d, elong=1., shards=0, sides=8):
-        hit = self.cast(origin, target)
-        if hit is None:
-            print('damage: no surface for', name)
-            return None
-        p, n, ob = hit
-        aim = (V(target)-V(origin)).normalized()
-        track = aim-n*aim.dot(n)
-        u = track.normalized() if track.length > .2 else basis(n)[0]
-        v = n.cross(u)
-        rng = random.Random(name)
-        down = u*r*.18  # floor sits downrange of the entry
+    # ---- deferred changes ----------------------------------------------------
+    def part(self, scar, part, mat, edge=.04):
+        """Geometry for an added object named 'Scar <id> <part>'."""
+        name = f'Scar {scar_id(scar)} {part}'
+        if name not in self.parts:
+            self.parts[name] = (Geo(), mat, edge)
+        return self.parts[name][0]
+
+    def cut(self, geo, targets=None, mat=None):
+        """Boolean-subtract a closed Geo from base objects (the ones its bounds
+        touch, or explicit target names). The opened faces take mat."""
+        self.cuts.append((geo.v, geo.f, targets, mat or self.backing))
+
+    def hide(self, ob, scar):
+        """A base part absent in this state: hidden, never deleted."""
+        if ob is not None:
+            self.hides[ob.name] = scar_id(scar)
+
+    def shape(self, ob, scar, fn):
+        """Deform a base object with a shape key 'Scar <id>'. fn maps a world
+        point to its new world point."""
+        if ob.data.users > 1:
+            print('scar: shape key on shared mesh', ob.name, 'skipped')
+            return
+        mw = ob.matrix_world
+        inv = mw.inverted()
+        moved = {}
+        for vert in ob.data.vertices:
+            w = mw @ vert.co
+            q = fn(w)
+            if (q-w).length > 1e-6:
+                moved[vert.index] = inv @ q
+        if moved:
+            self.shapes.append((ob, scar_id(scar), moved))
+
+    def override(self, ob, mat, scar):
+        """Change a base part's look for this state without touching its mesh
+        material: an object-level material slot."""
+        self.overrides.append((ob, mat, scar_id(scar)))
+
+    # ---- shared scar primitives -------------------------------------------------
+    def basin_cut(self, scar, site, r, d, elong=1., sides=8, mat=None, key=None):
+        """A faceted impact basin, its floor downrange of the entry."""
+        p, n, u, v, _ = site
+        rng = random.Random(key or scar_id(scar))
+        down = u*r*.18
         def ring(rad, h, jit, shift):
             pts = []
             for k in range(sides):
@@ -345,9 +377,13 @@ class Damage:
             return pts
         geo = Geo()
         geo.loft([ring(r*1.18,.55,.22,V((0,0,0))), ring(r*.62,-d*.55,.28,down*.6), ring(r*.26,-d,.3,down)])
-        self.cuts.append((geo.v, geo.f, None))
-        mat = ob.active_material or self.kit.orange
-        lips = self.g('Crushed crater lip', mat, .03)
+        self.cut(geo, None, mat)
+
+    def lip_shards(self, scar, site, r, elong, shards, key=None):
+        """Crushed-lip shards round a basin, in torn base paint."""
+        p, n, u, v, ob = site
+        rng = random.Random((key or scar_id(scar))+' lip')
+        lips = self.part(scar, 'crushed lip', self.torn(self.base_mat(ob)), .03)
         for k in range(shards):
             a = TAU*(k+.5+rng.uniform(-.2,.2))/shards
             span = TAU/shards*rng.uniform(.55,.85)
@@ -360,16 +396,242 @@ class Damage:
             top = [at(r0,a-span/2)+n*lift*rng.uniform(.55,.9), at(r0*.92,a)+n*lift*1.15,
                    at(r0,a+span/2)+n*lift*rng.uniform(.55,.9)]+outer
             lips.loft([[q-n*.17 for q in top], top])
-        return p, n, u, v, ob
 
-    def spall(self, name, origin, target, r, d, petals):
-        hit = self.cast(origin, target)
-        if hit is None:
-            print('damage: no surface for', name)
-            return
-        p, n, ob = hit
-        u, v = basis(n)
-        rng = random.Random(name)
+    def grid_plate(self, scar, part, p, n, u, v, a, b, mat, cut=.14, lift=.07, thick=.12, k=3,
+                   only=None, weld=True):
+        """A cut sheet brake-bent onto the original skin line.
+
+        The plate folds only along lines across its curving direction, so it
+        is k flat strips with crisp bends, never a dome; corners are clipped.
+        Each fold line sits at the highest skin under it, so the sheet
+        bridges dips and never sinks into a crater or a seam. Returns the rim."""
+        def height(q):
+            hit = self.cast(q+n*6, q-n*6, only)
+            return (hit[0]-p).dot(n) if hit else None
+        def profile(axis, across, half, other):
+            hs = []
+            for i in range(k+1):
+                s = 2*i/k-1
+                got = [height(p+axis*s*half+across*t*other) for t in (-1,-.67,-.33,0,.33,.67,1)]
+                got = [h for h in got if h is not None]
+                hs.append(max(got) if got else None)
+            for i in range(len(hs)):
+                if hs[i] is None:
+                    near = sorted((abs(i-j), h) for j, h in enumerate(hs) if h is not None)
+                    hs[i] = near[0][1] if near else 0
+            return hs
+        hu, hv = profile(u, v, a, b), profile(v, u, b, a)
+        if max(hv)-min(hv) > max(hu)-min(hu):
+            u, v, a, b, hs = v, u, b, a, hv
+        else:
+            hs = hu
+        rows = []
+        for i in range(k+1):
+            s = 2*i/k-1
+            w = b*(1-cut) if i in (0, k) else b
+            c = p+u*a*s+n*(hs[i]+lift)
+            rows.append((c-v*w, c+v*w))
+        verts = [q for r in rows for q in r]+[q+n*thick for r in rows for q in r]
+        m = 2*(k+1)
+        faces = []
+        for i in range(k):
+            a0, a1, b0, b1 = 2*i, 2*i+1, 2*i+2, 2*i+3
+            faces += [(a0,b0,b1,a1), (m+a0,m+a1,m+b1,m+b0), (a0,m+a0,m+b0,b0), (a1,b1,m+b1,m+a1)]
+        faces += [(0,1,m+1,m), (m-2,m+m-2,m+m-1,m-1)]
+        self.part(scar, part, mat, .05).add(verts, faces)
+        rim = [r[0] for r in rows]+[r[1] for r in reversed(rows)]
+        if weld:
+            beads = self.part(scar, 'weld bead', self.weld, .01)
+            for q0, q1 in zip(rim, rim[1:]+rim[:1]):
+                beads.bead(q0-n*lift, q1-n*lift, n, .1)
+        return rim, n
+
+    def bolted_plate(self, scar, part, ring, n, mat, thick=.09, fastener=None):
+        """A flat plate on a ring of points, bolted round its edge."""
+        self.part(scar, part, mat, .03).flat(ring, n, thick)
+        studs = self.part(scar, 'bolt heads', fastener or self.steel, .005)
+        k = len(ring)
+        centre = sum(ring, Vector())/k
+        for i in range(k):
+            a, b = ring[i], ring[(i+1) % k]
+            for t in (.2,.4,.6,.8):
+                studs.disc(a.lerp(b, t).lerp(centre, .1)+n*(thick+.02), n, .08, .07, 6)
+
+    def salvage_plate(self, scar, site, a, b, key=None):
+        """Thin salvage sheet squared to the hull's lines, welded all round."""
+        p, n, u, v, _ = site
+        rng = random.Random(key or scar_id(scar))
+        turn = rng.uniform(-.07,.07)
+        uu, vv = u*math.cos(turn)+v*math.sin(turn), v*math.cos(turn)-u*math.sin(turn)
+        mat = self.salvage[sum(map(ord, key or scar_id(scar))) % len(self.salvage)]
+        self.grid_plate(scar, 'salvage plate', p, n, uu, vv, a, b, mat, only=self.skin)
+
+    def pressure_patch(self, scar, site, r, key=None):
+        """Bolted square patch over a strike into occupied space, a borrowed
+        hab-door gasket squeezed out under its edge. Brake-bent onto the
+        skin like any plate, so it stays flat on an uneven roof."""
+        p, n, u, v, _ = site
+        half = r*1.4+.25
+        self.grid_plate(scar, 'seal gasket', p, n, u, v, half+.12, half+.12, self.rubber,
+                        cut=.1, lift=.01, thick=.06, only=self.skin, weld=False)
+        mat = self.salvage[sum(map(ord, key or scar_id(scar))) % 3]
+        rim, n = self.grid_plate(scar, 'pressure patch', p, n, u, v, half, half, mat,
+                                 cut=.1, lift=.06, thick=.09, only=self.skin, weld=False)
+        studs = self.part(scar, 'bolt heads', self.steel, .005)
+        centre = sum(rim, Vector())/len(rim)
+        for q0, q1 in zip(rim, rim[1:]+rim[:1]):
+            steps = max(2, round((q1-q0).length/.45))
+            for i in range(steps):
+                q = q0.lerp(q1, (i+.5)/steps).lerp(centre, .1)
+                studs.disc(q+n*.11, n, .08, .07, 6)
+
+    def panel(self, scar, site, a, b, status, history, part='replacement plate'):
+        """A proper replacement plate laid flush over a repaired area.
+
+        replaced: shop primer, fresh sealant seams, bright fasteners.
+        faded:    repainted to match the part it sits on, seams still visible."""
+        p, n, u, v, ob = site
+        base = self.base_mat(ob)
+        mat = self.primer if status == 'replaced' else self.repaint(base)
+        rim, n = self.grid_plate(scar, part, p, n, u, v, a, b, mat, cut=.06, lift=.02,
+                                 thick=.07, only=self.skin, weld=False)
+        lift = .02
+        seam = self.part(scar, 'seam', self.sealant if status == 'replaced' else self.repaint(base), .005)
+        for q0, q1 in zip(rim, rim[1:]+rim[:1]):
+            seam.bead(q0-n*lift, q1-n*lift, n, .05)
+        studs = self.part(scar, 'fasteners', self.fastener if status == 'replaced' else mat, .005)
+        centre = sum(rim, Vector())/len(rim)
+        for q0, q1 in zip(rim, rim[1:]+rim[:1]):
+            steps = max(2, round((q1-q0).length/.8))
+            for i in range(steps):
+                q = q0.lerp(q1, (i+.5)/steps).lerp(centre, .07)
+                studs.disc(q+n*.08, n, .07, .05, 6)
+
+
+def scar_id(scar):
+    return scar if isinstance(scar, str) else scar.id
+
+
+def repaired(history):
+    """True if a scar was plated properly at some point in its life."""
+    return 'replaced' in history
+
+
+# ---- generic kinds ----------------------------------------------------------
+# A handler(d, scar, status) builds one scar in one state. 'gone' never calls
+# it. Each says what every status means for that shape of damage.
+
+def kind_basin(d, scar, status):
+    """An impact basin.
+    params: origin, target, r, depth, elong=1.2, shards=0, sides=8,
+            patch: 'salvage' (welded sheet, default), 'pressure' (bolted
+            patch with a borrowed gasket) or 'none' (patched = left open),
+            panel=1.5 (replacement plate half size, in radii).
+    open: cut, crushed-lip shards. patched: cut with lips dressed flat, then
+    the patch. replaced: a proper plate over the area (no crater shown).
+    faded: that plate repainted, or a painted-over shallow dent if it was
+    never plated."""
+    P = scar.params
+    site = d.site(scar, P['origin'], P['target'])
+    if site is None:
+        return
+    r, depth, el = P['r'], P['depth'], P.get('elong', 1.2)
+    hist = scar.history(d.state)
+    if status == 'open':
+        d.basin_cut(scar, site, r, depth, el, P.get('sides', 8))
+        if P.get('shards'):
+            d.lip_shards(scar, site, r, el, P['shards'])
+    elif status == 'patched':
+        d.basin_cut(scar, site, r, depth, el, P.get('sides', 8))
+        patch = P.get('patch', 'salvage')
+        if patch == 'salvage':
+            d.salvage_plate(scar, site, r*1.3*el, r*1.3)
+        elif patch == 'pressure':
+            d.pressure_patch(scar, site, r)
+    elif status == 'replaced' or (status == 'faded' and repaired(hist)):
+        k = P.get('panel', 1.5)
+        d.panel(scar, site, r*k*el, r*k, status, hist)
+    elif status == 'faded':
+        d.basin_cut(scar, site, r, depth*.3, el, P.get('sides', 8), d.repaint(d.base_mat(site.ob)))
+
+
+def cluster_sites(d, scar):
+    """The sites of a strike cluster: deterministic, cast on the clean ship."""
+    if scar.id in d.sites:
+        return d.sites[scar.id]
+    P = scar.params
+    cast, centre, spread, count, radii = P['cast'], P['centre'], P['spread'], P['count'], P['radii']
+    rng = random.Random(scar.id)
+    done, tries = [], 0
+    while len(done) < count and tries < count*8:
+        tries += 1
+        a, b = centre[0]+rng.gauss(0,spread[0]/2), centre[1]+rng.gauss(0,spread[1]/2)
+        if cast == 'down':
+            origin, target = (a+rng.uniform(-6,6), b+rng.uniform(-6,6), 60), (a, b, -20)
+            if any(math.hypot(a-x, b-y) < 3.6*s+1 for x,y,_,s,_ in MOUNTS):
+                continue
+        else:
+            y = 70 if cast == 'port' else -70
+            origin, target = (a+rng.uniform(-8,8), y, b+rng.uniform(-4,4)), (a, 0, b)
+            if 1.5 < a < 27.5 and b < 5:
+                continue  # the bay openings
+        r = rng.uniform(*radii)
+        depth, el = r*rng.uniform(.55,.8), rng.uniform(1,1.4)
+        key = f'{scar.id}.{len(done)}'
+        hit = d.cast(origin, target)
+        if hit is None or any(k in hit[2].name for k in NO_STRIKE):
+            continue
+        site = d.site(key, origin, target)
+        if site:
+            done.append((key, site, r, depth, el))
+    d.sites[scar.id] = done
+    return done
+
+
+def in_zone(zone, p):
+    if zone is None:
+        return True
+    x0, x1, y0, y1, zmin = zone
+    return x0 < p.x < x1 and y0 < p.y < y1 and p.z > zmin
+
+
+def kind_cluster(d, scar, status):
+    """A cluster of small strikes, each sub-site id '<id>.<n>'.
+    params: cast ('down'|'port'|'starboard'), centre, spread, count, radii,
+            zone=(x0,x1,y0,y1,zmin): only sites inside it are ever repaired
+            (patched gets pressure patches, replaced small inserts); the rest
+            stay open until faded paints them over.
+    faded: inserts repainted; unrepaired strikes become painted shallow dents."""
+    zone = scar.params.get('zone')
+    hist = scar.history(d.state)
+    for key, site, r, depth, el in cluster_sites(d, scar):
+        mine = in_zone(zone, site.p)
+        if status == 'open' or (not mine and status in ('patched', 'replaced')):
+            d.basin_cut(key, site, r, depth, el, 6)
+        elif status == 'patched':
+            d.basin_cut(key, site, r, depth, el, 6)
+            d.pressure_patch(key, site, r)
+        elif status == 'replaced' or (status == 'faded' and mine and repaired(hist)):
+            d.panel(key, site, r*1.4+.3, r*1.4+.3, status, hist, 'insert')
+        elif status == 'faded':
+            d.basin_cut(key, site, r, depth*.3, el, 6, d.repaint(d.base_mat(site.ob)))
+
+
+def kind_spall(d, scar, status):
+    """Spalled armour: a star tear through the outer plate onto backing.
+    params: origin, target, r, depth, petals.
+    open: tear and peeled petals. patched: tear under a bolted plate.
+    replaced/faded: as basin."""
+    P = scar.params
+    site = d.site(scar, P['origin'], P['target'])
+    if site is None:
+        return
+    p, n, _, _, ob = site
+    u, v = basis(n)
+    r = P['r']
+    hist = scar.history(d.state)
+    if status in ('open', 'patched'):
+        rng = random.Random(scar.id)
         k = 7
         star = []
         for i in range(2*k):
@@ -377,145 +639,109 @@ class Damage:
             rr = r*(rng.uniform(.85,1.15) if i % 2 == 0 else rng.uniform(.45,.65))
             star.append(p+u*math.cos(a)*rr+v*math.sin(a)*rr)
         geo = Geo()
-        geo.loft([[q-n*d for q in star], [q+n*.6 for q in star]])
-        self.cuts.append((geo.v, geo.f, None))
-        mat = ob.active_material or self.kit.orange
-        peel = self.g('Peeled armour petal', mat, .03)
-        for i in range(petals):
-            j = 2*((i*3) % k)
-            tip, l, rr = star[j], star[j-1], star[(j+1) % (2*k)]
-            out = (tip-p).normalized()
-            curl = tip+out*r*.35+n*r*.45
-            tri = [l+n*.02, rr+n*.02, curl]
-            peel.loft([[q-n*.14 for q in tri], tri])
-        self.record['spalls'].append(name)
+        geo.loft([[q-n*P['depth'] for q in star], [q+n*.6 for q in star]])
+        d.cut(geo)
+        if status == 'open':
+            peel = d.part(scar, 'peeled petal', d.torn(d.base_mat(ob)), .03)
+            for i in range(P.get('petals', 0)):
+                j = 2*((i*3) % k)
+                tip, l, rr2 = star[j], star[j-1], star[(j+1) % (2*k)]
+                out = (tip-p).normalized()
+                curl = tip+out*r*.35+n*r*.45
+                tri = [l+n*.02, rr2+n*.02, curl]
+                peel.loft([[q-n*.14 for q in tri], tri])
+        else:
+            half = r*1.3
+            ring = [d.snap(p+u*sx*half+v*sy*half, n, .06) for sx,sy in ((-1,-1),(1,-1),(1,1),(-1,1))]
+            d.bolted_plate(scar, 'bolted patch', ring, n, d.salvage[sum(map(ord, scar.id)) % 3])
+    elif status == 'replaced' or (status == 'faded' and repaired(hist)):
+        d.panel(scar, Site(p, n, u, v, ob), r*1.6, r*1.6, status, hist)
+    elif status == 'faded':
+        d.basin_cut(scar, Site(p, n, u, v, ob), r*.8, P['depth']*.3, 1., 7, d.repaint(d.base_mat(ob)))
 
-    def gouge(self, name, start, end, cast_dir, w, d):
-        a, b, cd = V(start), V(end), V(cast_dir)
-        stations = []
-        for i in range(9):
-            t = i/8
-            o = a.lerp(b, t)
-            hit = self.cast(o, o+cd*200)
-            if hit is None:
-                continue
-            p, n, _ = hit
-            f = math.sin(math.pi*t)
-            stations.append((p, n, w*f**.5+.04, d*f**.8+.02))
-        if len(stations) < 3:
-            print('damage: no surface for', name)
-            return None
-        track = (stations[-1][0]-stations[0][0]).normalized()
+
+def gouge_stations(d, scar):
+    if scar.id in d.sites:
+        return d.sites[scar.id]
+    P = scar.params
+    a, b, cd = V(P['start']), V(P['end']), V(P['cast_dir'])
+    w, dep = P['w'], P['depth']
+    stations = []
+    for i in range(9):
+        t = i/8
+        o = a.lerp(b, t)
+        hit = d.cast(o, o+cd*200)
+        if hit is None:
+            continue
+        p, n, ob = hit
+        f = math.sin(math.pi*t)
+        stations.append((p, n, w*f**.5+.04, dep*f**.8+.02, ob))
+    if len(stations) < 3:
+        print('scar: no surface for', scar.id)
+        stations = None
+    d.sites[scar.id] = stations
+    return stations
+
+
+def kind_gouge(d, scar, status):
+    """A gouge or scrape from glancing contact.
+    params: start, end (ray origins), cast_dir, w (half width), depth.
+    open: the groove. patched: groove run full of weld. replaced: a fairing
+    strip along it. faded: strip repainted, or a painted shallow groove."""
+    st = gouge_stations(d, scar)
+    if not st:
+        return
+    hist = scar.history(d.state)
+    track = (st[-1][0]-st[0][0]).normalized()
+    def groove(scale, mat=None):
         rings = []
-        for p, n, ww, dd in stations:
+        for p, n, ww, dd, _ in st:
             side = n.cross(track).normalized()
-            rings.append([p+side*ww+n*.45, p-side*ww+n*.45, p-n*dd])
+            rings.append([p+side*ww+n*.45, p-side*ww+n*.45, p-n*dd*scale])
         geo = Geo()
         geo.loft(rings)
-        self.cuts.append((geo.v, geo.f, None))
-        self.record['gouges'].append(name)
-        return stations
+        d.cut(geo, None, mat)
+    if status == 'open':
+        groove(1)
+    elif status == 'patched':
+        groove(1)
+        weld = d.part(scar, 'weld fill', d.weld, .01)
+        for (p0, n0, w0, *_), (p1, *_ ) in zip(st, st[1:]):
+            weld.bead(p0-n0*.05, p1-n0*.05, n0, max(.12, w0*.8))
+    elif status == 'replaced' or (status == 'faded' and repaired(hist)):
+        mid = st[len(st)//2]
+        p, n = mid[0], mid[1]
+        u = track-n*track.dot(n)
+        u.normalize()
+        half = (st[-1][0]-st[0][0]).length/2+.4
+        c = (st[-1][0]+st[0][0])/2
+        hit = d.snap(c, n)
+        d.panel(scar, Site(hit, n, u, n.cross(u), mid[4]), half, max(s2[2] for s2 in st)+.45, status, hist,
+                'fairing strip')
+    elif status == 'faded':
+        groove(.3, d.repaint(d.base_mat(st[0][4])))
 
-    def strike(self, cluster, cast, centre, spread, count, radii):
-        rng = random.Random(cluster)
-        done, tries = [], 0
-        while len(done) < count and tries < count*8:
-            tries += 1
-            a, b = centre[0]+rng.gauss(0,spread[0]/2), centre[1]+rng.gauss(0,spread[1]/2)
-            if cast == 'down':
-                origin, target = (a+rng.uniform(-6,6), b+rng.uniform(-6,6), 60), (a, b, -20)
-                if any(math.hypot(a-x, b-y) < 3.6*s+1 for x,y,_,s,_ in MOUNTS):
-                    continue
-            else:
-                y = 70 if cast == 'port' else -70
-                origin, target = (a+rng.uniform(-8,8), y, b+rng.uniform(-4,4)), (a, 0, b)
-                if 1.5 < a < 27.5 and b < 5:
-                    continue  # the bay openings
-            hit = self.cast(origin, target)
-            if hit is None or any(k in hit[2].name for k in NO_STRIKE):
-                continue
-            r = rng.uniform(*radii)
-            res = self.basin(f'{cluster} {len(done)}', origin, target, r, r*rng.uniform(.55,.8),
-                             rng.uniform(1,1.4), 0, 6)
-            if res:
-                done.append((res, r))
-        self.strikes[cluster] = done
-        self.record['strikes'] += len(done)
 
-    def crush(self, ob, centre, direction, radius, depth):
-        mw = ob.matrix_world
-        inv = mw.inverted()
-        for vert in ob.data.vertices:
-            w = mw @ vert.co
-            dist = (w-centre).length
-            if dist < radius:
-                vert.co = inv @ (w+direction*depth*(1-dist/radius))
-        ob.data.update()
-
-    # ---- derelict ----------------------------------------------------------
-    def build_derelict(self):
-        self.sites = {}
-        for name, o, t, r, d, el, sh, repair in BASINS:
-            # Repair crews dress a crushed lip flat before a plate goes on.
-            if self.patched and repair:
-                sh = 0
-            self.sites[name] = self.basin(name, o, t, r, d, el, sh)
-            self.record['basins'].append({'name': name, 'radius': r, 'depth': d,
-                                          'repair': repair if self.patched else None})
-        for args in CLUSTERS:
-            self.strike(*args)
-        for args in SPALLS:
-            self.spall(*args)
-        self.gouges = {name: self.gouge(name, s, e, c, w, d) for name, s, e, c, w, d, _ in GOUGES}
-        self.smash_can()
-        self.bend_fins()
-        self.missing_plates()
-        self.buckle_plates()
-        self.scorch_waist()
-        self.bow_rib()
-        self.shear_mast()
-        self.strip()
-
-    def smash_can(self):
-        site = self.sites.get('Port outer engine can strike')
-        if not site:
-            return
-        p, n, u, v, _ = site
-        x, y, w = ENGINES[0]
-        for tag in ('shroud collar', 'aft-facing bell', 'mouth lip', 'throat ring'):
-            ob = self.find(f'Engine 1 {tag}', None)
-            if ob:
-                self.crush(ob, p, -n, 4.6, 1.05)
-        can = self.find('Thrust bay engine can', (x+5, y), 1)
-        if can:
-            self.crush(can, p, -n, 4.2, 1.0)
-        self.record['smashed_can'] = 'Engine 1 (port outer)'
-
-    def bend_fins(self):
-        for s, indices, test, shifts in BENT_FINS:
-            for i, dx in zip(indices, shifts):
-                for ob in self.named('Heat-sink fin', s):
-                    c = sum((V(b) for b in ob.bound_box), Vector())/8
-                    if abs(c.x-FIN_X[i]) > .3:
-                        continue
-                    for vert in ob.data.vertices:
-                        y, z = vert.co.y, vert.co.z
-                        if test(y, z):
-                            reach = min(1, (abs(y)-29)/6+max(0, (z-7.5))/6 if s > 0 else (-z)/6+(abs(y)-31)/5)
-                            vert.co.x += dx*max(0, reach)
-                    ob.data.update()
-        self.record['bent_fins'] = 'port fin bank top-outboard, starboard bottom-outboard'
-
-    def missing_plates(self):
-        for name, centre, (kx,ky), repair in MISSING_PLATES:
-            ob = self.find(name, centre)
-            if ob is None:
-                continue
-            lo = V([min(c[i] for c in ob.bound_box) for i in range(3)])
-            hi = V([max(c[i] for c in ob.bound_box) for i in range(3)])
-            W, H = hi.x-lo.x, hi.y-lo.y
-            cx, cy = (lo.x+hi.x)/2, (lo.y+hi.y)/2
-            rng = random.Random(name+str(centre))
+def kind_plate(d, scar, status):
+    """A deck armour plate lost.
+    params: object (name prefix), centre (x, y), how: 'torn' (jagged
+            remnant, keep=(kx, ky) corner kept) or 'unbolted' (salvaged:
+            clean removal, bare stud ring).
+    open: remnant or nothing, over backing and stringers. patched: the same
+    under a bolted salvage plate. replaced/faded: the base plate stays hidden
+    and a replacement plate fills its footprint."""
+    P = scar.params
+    ob = d.find(P['object'], P['centre'])
+    if ob is None:
+        return
+    lo, hi = d.box(ob)
+    W, H = hi.x-lo.x, hi.y-lo.y
+    cx, cy = (lo.x+hi.x)/2, (lo.y+hi.y)/2
+    hist = scar.history(d.state)
+    if status in ('open', 'patched'):
+        if P['how'] == 'torn':
+            kx, ky = P['keep']
+            rng = random.Random(scar.id)
             chain = [(-.1,.62)]
             for i in range(1,7):
                 t = i/7
@@ -527,554 +753,253 @@ class Damage:
             pts = [(cx+kx*(.5-s)*W, cy+ky*(.5-t)*H) for s,t in poly]
             geo = Geo()
             geo.loft([[(x,y,lo.z-.6) for x,y in pts], [(x,y,hi.z+.6) for x,y in pts]])
-            self.cuts.append((geo.v, geo.f, [ob.name]))
-            back = armor_patch(self.kit, 'Exposed plate backing', lo.x+.25, hi.x-.25, lo.y+.25, hi.y-.25, self.backing, .06)
-            if back:
-                back.modifiers[0].thickness = .1
-            along_x = W >= H
-            count = max(2, int((W if along_x else H)/2.2))
-            for i in range(1, count):
-                f = i/count
-                if along_x:
-                    x = lo.x+W*f
-                    rib = armor_patch(self.kit, 'Backing stringer', x-.18, x+.18, lo.y+.35, hi.y-.35, self.kit.steel, .14)
-                else:
-                    y = lo.y+H*f
-                    rib = armor_patch(self.kit, 'Backing stringer', lo.x+.35, hi.x-.35, y-.18, y+.18, self.kit.steel, .14)
-                if rib:
-                    rib.modifiers[0].thickness = .16
-            self.record['missing_plates'].append({'object': name, 'centre': list(centre),
-                                                  'repair': repair if self.patched else None})
-
-    def buckle_plates(self):
-        for name, centre, amp, _ in BUCKLES:
-            ob = self.find(name, centre)
-            if ob is None:
-                continue
-            xs = [vv.co.x for vv in ob.data.vertices]
-            ys = [vv.co.y for vv in ob.data.vertices]
-            rng = random.Random(name+str(centre))
-            for vert in ob.data.vertices:
-                s = (vert.co.x-min(xs))/(max(xs)-min(xs))
-                t = (vert.co.y-min(ys))/(max(ys)-min(ys))
-                fold = max(0, 1-abs(s+t-1)*2.2)*(1-.3*(2*s-1)**2)
-                vert.co.z += amp*fold+rng.uniform(-.05,.05)*fold
-            ob.data.update()
-            self.record['buckled_plates'].append({'object': name, 'centre': list(centre)})
-
-    def scorch_waist(self):
-        for name, sign in SCORCHED:
-            for ob in self.named(name, sign or 0):
-                if name == 'Trunk clamp hoop':
-                    c = ob.matrix_world.translation
-                    if c.x < 5:
-                        continue
-                ob.data.materials[0] = self.scorch
-        x, y, z, gap = BURST
-        line = self.find('Protected waist service line', (x,y), 1)
-        if line:
-            geo = Geo()
-            geo.obox((x,y,z), V((1,0,0)), V((0,1,0)), V((0,0,1)), gap/2, 1.2, 1.2)
-            self.cuts.append((geo.v, geo.f, [line.name]))
-            core = self.g('Burst service line cable core', self.kit.dark, .02)
-            for dy, dz in ((-.15,.1),(.2,-.05),(0,-.25)):
-                core.tube([V((x-gap/2-.4,y+dy,z+dz)), V((x-.2,y+dy*1.4,z+dz+.12)), V((x+gap/2+.4,y+dy,z+dz))], .17, 6)
-            peel = self.g('Burst cover petal', self.scorch, .02)
-            for k,(dx,a) in enumerate(((-1,1.2),(-1,-.3),(1,.6),(1,2.2))):
-                base = V((x+dx*gap/2, y, z))
-                out = V((0, math.cos(a), math.sin(a)))
-                tip = base+out*1.1+V((-dx*.5,0,0))
-                tri = [base+out*.7+V((0,0,.25)), base+out*.7+V((0,0,-.25)), tip]
-                tri = [base+out*.7+V((0,-out.z,out.y)).normalized()*.3, base+out*.7-V((0,-out.z,out.y)).normalized()*.3, tip]
-                peel.loft([[q-V((dx*.08,0,0)) for q in tri], tri])
-        self.record['scorched'] = 'port and starboard waist service lines, port waist trunks and hoops; port line burst'
-
-    def bow_rib(self):
-        x, y, z0, z1, stations = RIB
-        jamb = self.find('Bay jamb', (x,y), 1)
-        if jamb is None:
-            return
-        mat = jamb.active_material
-        self.remove(jamb)
-        geo = self.g('Bowed bay frame jamb', mat, .08)
-        rings = []
-        for z, bow in stations:
-            w = .6 if bow < .9 else .5
-            rings.append([V((x-bow+dx, y+dy, z)) for dx,dy in ((-w,-1.5),(w,-1.5),(w,1.5),(-w,1.5))])
-        geo.loft(rings)
-        crumple = self.g('Crumpled frame flange', self.kit.steel, .02)
-        for dz, dy in ((-.6,1.6),(.2,-1.6)):
-            base = V((x-1.15, y+dy, dz))
-            tri = [base+V((0,0,-.7)), base+V((0,0,.6)), base+V((-.5,dy*.25,0))]
-            crumple.loft([[q-V((0,dy*.05,0)) for q in tri], tri])
-        self.record['bowed_rib'] = 'port bay forward frame jamb, bowed aft into the opening'
-
-    def shear_mast(self):
-        pylon = self.find('Mast pylon', None)
-        if pylon is None:
-            return
-        zs = [(pylon.matrix_world @ V(c)).z for c in pylon.bound_box]
-        mx = pylon.matrix_world.translation.x+sum(c[0] for c in pylon.bound_box)/8
-        z0 = min(zs)
-        self.mast = (mx, z0)
-        for name in MAST_LOST:
-            for ob in self.named(name):
-                self.remove(ob)
-        whips = sorted(self.named('Whip antenna'), key=lambda o: o.location.y)
-        if whips:
-            self.remove(whips[0])
-        if len(whips) > 1:
-            w = whips[1]
-            w.rotation_euler = (1.15, 0, .3)
-            w.location.z -= .6
-        geo = Geo()
-        c = V((mx, 0, z0+1.0))
-        n = V((.35, .2, 1)).normalized()
-        u, v = basis(n)
-        geo.obox(c+n*3, u, v, n, 4, 4, 3)
-        self.cuts.append((geo.v, geo.f, [pylon.name]))
-        # The scanner bar fell and lies across the roof beside the stub.
-        bar = self.g('Fallen scanner bar', self.kit.dark, .05)
-        roof = self.snap(V((mx-1.6, 1.2, z0)), V((0,0,1)), .2)
-        bar.bar(roof+V((-.3,-1.7,.05)), roof+V((.4,1.8,-.05)), V((0,0,1)), .55, .4)
-        self.record['sheared_mast'] = 'sensor mast sheared above the pedestal; scanner bar fallen, one whip lost, one bent'
-
-    def strip(self):
-        for name, sign in STRIPPED:
-            for ob in self.named(name, sign):
-                self.remove(ob)
-        pads = self.g('Stripped mounting pad', self.kit.dark, .02)
-        studs = self.g('Stripped mounting stud', self.kit.steel, .01)
-        for s in (1,-1):
-            top = self.snap(V((-30,s*32,9.8)), V((0,0,1)), .04)
-            pads.obox(top, V((1,0,0)), V((0,1,0)), V((0,0,1)), 2.0, 2.8, .05)
-            for dx in (-1.5,1.5):
-                for dy in (-2.3,0,2.3):
-                    studs.disc(top+V((dx,s*dy,.15)), (0,0,1), .16, .25, 6)
-        self.record['stripped'] = 'turbopumps and drive drums off both housing decks; port can feed pipes and casing access panels'
-
-    def lights_off(self):
-        # Unpowered: every lamp is a dead lens, the glazing unlit.
-        for ob in bpy.data.objects:
-            if ob.type != 'MESH' or not ob.data.materials:
-                continue
-            m = ob.data.materials[0]
-            if m is None or m.node_tree is None or m in (self.glow, self.heat):
-                continue
-            bsdf = m.node_tree.nodes.get('Principled BSDF')
-            if bsdf and bsdf.inputs['Emission Strength'].default_value > 0:
-                if 'glazing' in m.name:
-                    bsdf.inputs['Emission Strength'].default_value = 0
-                else:
-                    ob.data.materials[0] = self.dead
-
-    # ---- patched -----------------------------------------------------------
-    def build_patched(self):
-        for name, *_, repair in BASINS:
-            site = self.sites.get(name)
-            if site and repair == 'plate':
-                self.salvage_plate(name, site, 1.25)
-            elif site and repair == 'plates':
-                # A big crater on a curved shoulder takes four smaller sheets
-                # lapped over each other, not one slab that cannot follow it.
-                for i, (su, sv) in enumerate(((-1,-1),(1,-1),(-1,1),(1,1))):
-                    self.salvage_plate(f'{name} tile {i}', site, .66, tile=(su, sv, i))
-            elif site and repair == 'backing':
-                self.crater_backing(name, site)
-        for cluster, every in PRESSURE_PATCHED:
-            for i, (site, r) in enumerate(self.strikes.get(cluster, [])):
-                if i % every == 0:
-                    self.pressure_patch(f'{cluster} {i}', site, r)
-        for name, *_, repair in GOUGES:
-            stations = self.gouges.get(name)
-            if stations and repair == 'weld':
-                self.weld_gouge(stations)
-            elif stations and repair == 'splint':
-                self.splint_gouge(stations)
-        for name, centre, _, repair in MISSING_PLATES:
-            if repair == 'salvage':
-                self.replacement_plate(name, centre)
-        for name, centre, _, repair in BUCKLES:
-            if repair == 'splint':
-                self.splint_plate(name, centre)
-        self.shore_rib()
-        self.sleeve_burst()
-        self.jury_mast()
-        self.cap_port_pod()
-        self.drive_coil()
-        self.cables()
-
-    def emit_plate(self, name, ring, n, mat, thick=.12, bolts=False):
-        """A flat plate on a ring of points, welded or bolted round its edge."""
-        k = len(ring)
-        verts = ring+[q+n*thick for q in ring]
-        faces = [tuple(reversed(range(k))), tuple(range(k, 2*k))]
-        faces += [(i, (i+1) % k, k+(i+1) % k, k+i) for i in range(k)]
-        self.g(name, mat, .03).add(verts, faces)
-        centre = sum(ring, Vector())/k
-        if bolts:
-            studs = self.g('Patch bolt head', self.kit.steel, .005)
+            d.cut(geo, [ob.name])
         else:
-            beads = self.g('Weld bead', self.weld, .01)
-        for i in range(k):
-            a, b = ring[i], ring[(i+1) % k]
-            if bolts:
-                for t in (.2,.4,.6,.8):
-                    studs.disc(a.lerp(b, t).lerp(centre, .1)+n*(thick+.02), n, .08, .07, 6)
+            d.hide(ob, scar)
+        back = armor_patch(d.kit, f'Scar {scar.id} backing', lo.x+.25, hi.x-.25, lo.y+.25, hi.y-.25, d.backing, .06)
+        if back:
+            back.modifiers[0].thickness = .1
+        along_x = W >= H
+        count = max(2, int((W if along_x else H)/2.2))
+        for i in range(1, count):
+            f = i/count
+            if along_x:
+                x = lo.x+W*f
+                rib = armor_patch(d.kit, f'Scar {scar.id} stringer', x-.18, x+.18, lo.y+.35, hi.y-.35, d.steel, .14)
             else:
-                beads.bead(a, b, n, .1)
-
-    def salvage_plate(self, name, site, scale, tile=None):
-        p, n, u, v, _ = site
-        rng = random.Random(name)
-        r = next(r for nm,_,_,r,*_ in BASINS if name.startswith(nm))
-        el = next(e for nm,_,_,_,_,e,*_ in BASINS if name.startswith(nm))
-        # Cut stock squared to the hull's own lines, only slightly off true.
-        turn = rng.uniform(-.07,.07)
-        uu, vv = u*math.cos(turn)+v*math.sin(turn), v*math.cos(turn)-u*math.sin(turn)
-        a, b = r*scale*el, r*scale
-        q, lift = p, .07
-        if tile:
-            su, sv, i = tile
-            q = p+u*su*a*.82+v*sv*b*.82
-            lift = .07+.13*i  # each later sheet laps over the earlier ones
-        mat = self.salvage[sum(map(ord, name.split(' tile')[0])) % len(self.salvage)]
-        self.grid_plate('Welded salvage plate', q, n, uu, vv, a, b, mat, .14, lift, only=self.skin)
-        self.record['repairs'].append(f'salvage plate over {name}')
-
-    @property
-    def skin(self):
-        keep = ('hull', 'armor', 'armour', 'plate', 'cowl', 'casing', 'module', 'cap', 'body',
-                'Sponson', 'sponson', 'housing', 'Spine', 'block', 'belt', 'lip', 'shield')
-        drop = ('Damage', 'lamp', 'light', 'hatch', 'Hatch', 'vent', 'louvre', 'louver', 'strap',
-                'hood', 'Intake mouth', 'manifold', 'frame', 'skin')
-        return {n for n in self.original if any(k in n for k in keep) and not any(d in n for d in drop)}
-
-    def grid_plate(self, name, p, n, u, v, a, b, mat, cut, lift, thick=.12, k=3, only=None):
-        """A cut sheet brake-bent over a crater onto the original skin line.
-
-        The plate folds only along lines across its curving direction, so it
-        is k flat strips with crisp bends, never a dome; corners are clipped.
-        Each fold line sits at the highest skin under it, so the sheet
-        bridges dips and never sinks into the crater or a seam."""
-        def height(q):
-            hit = self.cast(q+n*6, q-n*6, only)
-            return (hit[0]-p).dot(n) if hit else None
-        def profile(axis, across, half, other):
-            hs = []
-            for i in range(k+1):
-                s = 2*i/k-1
-                got = [height(p+axis*s*half+across*t*other) for t in (-1,-.67,-.33,0,.33,.67,1)]
-                got = [h for h in got if h is not None]
-                hs.append(max(got) if got else None)
-            # A station off the part takes its nearest measured neighbour.
-            for i in range(len(hs)):
-                if hs[i] is None:
-                    near = sorted((abs(i-j), h) for j, h in enumerate(hs) if h is not None)
-                    hs[i] = near[0][1] if near else 0
-            return hs
-        hu, hv = profile(u, v, a, b), profile(v, u, b, a)
-        # Bend along whichever direction the skin actually curves.
-        if max(hv)-min(hv) > max(hu)-min(hu):
-            u, v, a, b, hs = v, u, b, a, hv
-        else:
-            hs = hu
-        rows = []
-        for i in range(k+1):
-            s = 2*i/k-1
-            w = b*(1-cut) if i in (0, k) else b  # clipped corners
-            c = p+u*a*s+n*(hs[i]+lift)
-            rows.append((c-v*w, c+v*w))
-        verts = [q for r in rows for q in r]+[q+n*thick for r in rows for q in r]
-        m = 2*(k+1)
-        faces = []
-        for i in range(k):
-            a0, a1, b0, b1 = 2*i, 2*i+1, 2*i+2, 2*i+3
-            faces += [(a0,b0,b1,a1), (m+a0,m+a1,m+b1,m+b0), (a0,m+a0,m+b0,b0), (a1,b1,m+b1,m+a1)]
-        faces += [(0,1,m+1,m), (m-2,m+m-2,m+m-1,m-1)]
-        self.g(name, mat, .05).add(verts, faces)
-        rim = [r[0] for r in rows]+[r[1] for r in reversed(rows)]
-        beads = self.g('Weld bead', self.weld, .01)
-        for q0, q1 in zip(rim, rim[1:]+rim[:1]):
-            beads.bead(q0-n*lift, q1-n*lift, n, .1)
-
-    def crater_backing(self, name, site):
-        p, n, u, v, _ = site
-        r, d = next((r,d) for nm,_,_,r,d,*_ in BASINS if nm == name)
-        # Emergency backing welded into the crater floor, then flat straps
-        # spanning the crater from sound skin to sound skin.
-        q = p-n*(d*.5)
-        ring = [q+u*sx*r*.6+v*sy*r*.5 for sx,sy in ((-1,-1),(1,-1),(1,1),(-1,1))]
-        self.emit_plate('Emergency crater backing', ring, n, self.salvage[1], .1)
-        straps = self.g('Splint strap', self.kit.steel, .02)
-        bolts = self.g('Patch bolt head', self.kit.steel, .005)
-        for off in (-.4, .05, .5):
-            a = self.snap(p+v*off*r-u*r*1.25, n, .04, True)
-            b = self.snap(p+v*off*r+u*r*1.25, n, .04, True)
-            if a is None or b is None or abs((a-p).dot(n)-(b-p).dot(n)) > .5:
-                continue  # no sound skin to bolt to on one side
-            straps.bar(a+n*.06, b+n*.06, n, .38, .12)
-            for e, sgn in ((a, 1), (b, -1)):
-                bolts.disc(e+(b-a).normalized()*sgn*.25+n*.14, n, .08, .06, 6)
-        self.record['repairs'].append(f'emergency backing and straps in {name}')
-
-    def pressure_patch(self, name, site, r):
-        p, n, u, v, _ = site
-        half = r*1.4+.25
-        ring = [self.snap(p+u*sx*half+v*sy*half, n, .03) for sx,sy in ((-1,-1),(1,-1),(1,1),(-1,1))]
-        self.emit_plate('Bolted pressure patch', ring, n, self.salvage[sum(map(ord, name)) % 3], .09, bolts=True)
-        self.record['repairs'].append(f'pressure patch over {name}')
-
-    def weld_gouge(self, stations):
-        beads = self.g('Weld bead', self.weld, .01)
-        for (p0,n0,_,_), (p1,n1,_,_) in zip(stations, stations[1:]):
-            beads.bead(p0-n0*.12, p1-n1*.12, n0, .16)
-        self.record['repairs'].append('gouge run full of weld')
-
-    def splint_gouge(self, stations):
-        straps = self.g('Splint strap', self.kit.steel, .02)
-        bolts = self.g('Patch bolt head', self.kit.steel, .005)
-        track = (stations[-1][0]-stations[0][0]).normalized()
-        for p, n, w, _ in stations[2:-1:2]:
-            side = n.cross(track).normalized()
-            a, b = self.snap(p+side*1.2, n, .1), self.snap(p-side*1.2, n, .1)
-            straps.bar(a, b, n, .36, .1)
-            for e in (a, b):
-                bolts.disc(e+(p-e).normalized()*.2+n*.07, n, .08, .06, 6)
-        self.record['repairs'].append('gouge strapped')
-
-    def replacement_plate(self, name, centre):
-        ob = self.find(name, centre)
-        if ob is None:
-            return
-        xs = [c[0] for c in ob.bound_box]
-        ys = [c[1] for c in ob.bound_box]
-        x0, x1, y0, y1 = min(xs)+.35, max(xs)-.7, min(ys)+.3, max(ys)-.2
-        plate = armor_patch(self.kit, 'Replacement salvage deck plate', x0, x1, y0, y1, self.salvage[0], .24)
-        if plate:
-            plate.modifiers[0].thickness = .36
-        beads = self.g('Weld bead', self.weld, .01)
-        for a, b in (((x0,y0),(x1,y0)),((x1,y0),(x1,y1)),((x1,y1),(x0,y1)),((x0,y1),(x0,y0))):
-            hz = max(self.kit.surface(*a)[0].z, self.kit.surface(*b)[0].z)
-            beads.bead(V((*a,hz+.26)), V((*b,hz+.26)), V((0,0,1)), .1)
-        self.record['repairs'].append(f'replacement salvage plate where {name} was torn away')
-
-    def splint_plate(self, name, centre):
-        ob = self.find(name, centre)
-        if ob is None:
-            return
-        mw = ob.matrix_world
-        vs = [mw @ vv.co for vv in ob.data.vertices]
-        x0, x1 = min(q.x for q in vs), max(q.x for q in vs)
-        y0, y1 = min(q.y for q in vs), max(q.y for q in vs)
-        thick = ob.modifiers[0].thickness if ob.modifiers else .45
-        straps = self.g('Splint strap', self.kit.steel, .02)
-        bolts = self.g('Patch bolt head', self.kit.steel, .005)
-        up = V((0,0,1))
-        for f in (.25,.6):
-            y = y0+(y1-y0)*f
-            # Rests on the fold's crest and is bolted down at each edge.
-            crest = max(q.z for q in vs if abs(q.y-y) < (y1-y0)/4+.01)+thick
-            a, b = V((x0+.25,y,crest+.07)), V((x1-.25,y,crest+.07))
-            straps.bar(a, b, up, .42, .12)
-            for e, sgn in ((a, 1), (b, -1)):
-                bolts.disc(e+(b-a).normalized()*sgn*.25+up*.08, up, .08, .06, 6)
-        self.record['repairs'].append(f'straps bolted across buckled {name}')
-
-    def shore_rib(self):
-        x, y, z0, z1, stations = RIB
-        bow = max(b for _,b in stations)
-        rail = self.g('Cargo rail shore', self.rail, .05)
-        slots = self.g('Cargo rail tie-down slot', self.kit.dark, 0)
-        clamps = self.g('Rail clamp bracket', self.kit.steel, .04)
-        beads = self.g('Weld bead', self.weld, .01)
-        def cargo_rail(a, b, face):
-            a, b = V(a), V(b)
-            rail.bar(a, b, face, .7, .3)
-            L = (b-a).length
-            ax = (b-a)/L
-            side = face.cross(ax).normalized()
-            for k in range(int(L/.9)):
-                c = a+ax*(.45+k*.9)+face*.2
-                slots.obox(c, ax, side, face, .16, .09, .02)
-        # A sister rail standing straight across the bow, clamped to the coamings.
-        face = V((-1,0,0))
-        xs = x-bow-.85
-        cargo_rail((xs,y-.2,z0+.55), (xs,y-.2,z1-.45), face)
-        for z in (z0+.5, z1-.6):
-            clamps.obox(V(((xs+x-.6)/2, y-.2, z)), V((1,0,0)), V((0,1,0)), V((0,0,1)), (x-.6-xs)/2+.3, .55, .3)
-            beads.bead(V((x-.6,y-.8,z-.32)), V((x-.6,y+.4,z-.32)), V((0,0,1)))
-        # A raking shore from the bay floor wedged under the bow.
-        hit = self.cast((x-5.6,y-1.2,-1), (x-5.6,y-1.2,-20))
-        floor = hit[0] if hit else V((x-5.6,y-1.2,-4.75))
-        cargo_rail(floor+V((0,0,.25)), V((xs-.45,y-1.2,-.6)), V((-.6,0,.8)).normalized())
-        clamps.obox(floor+V((0,0,.12)), V((1,0,0)), V((0,1,0)), V((0,0,1)), .9, .8, .12)
-        beads.bead(floor+V((-.9,-.85,.05)), floor+V((.9,-.85,.05)), V((0,0,1)))
-        self.record['repairs'].append('bowed bay frame shored with cargo rail')
-
-    def sleeve_burst(self):
-        x, y, z, gap = BURST
-        sleeve = self.g('Split clamp sleeve', self.salvage[1], .03)
-        bolts = self.g('Patch bolt head', self.kit.steel, .005)
-        L = gap+1.0
-        sleeve.disc((x,y,z), (1,0,0), .84, L, 12)
-        for dx in (-L/2+.12, L/2-.12):
-            sleeve.disc((x+dx,y,z), (1,0,0), .93, .2, 12)
-        # Split-line lugs along the top, bolted through.
-        for dx in (-.9, 0, .9):
-            bolts.obox(V((x+dx,y,z+.9)), V((1,0,0)), V((0,1,0)), V((0,0,1)), .18, .22, .1)
-        self.record['repairs'].append('split clamp sleeve over the burst service line')
-
-    def jury_mast(self):
-        if not hasattr(self, 'mast'):
-            return
-        mx, z0 = self.mast
-        whip = self.g('Jury whip antenna', self.kit.steel, .01)
-        whip.disc((mx+.75, 0, z0+2.4), (0,0,1), .11, 4.2, 6)
-        bands = self.g('Hose clamp lashing', self.salvage[1], .01)
-        for z in (z0+.9, z0+1.6):
-            bands.disc((mx+.6, 0, z), (0,0,1), .28, .14, 8)
-        self.g('Salvaged antenna box', self.salvage[0], .04).obox(
-            V((mx+.75,0,z0+4.2)), V((1,0,0)), V((0,1,0)), V((0,0,1)), .3, .5, .25)
-        self.record['repairs'].append('jury whip antenna lashed to the mast stub')
-
-    def cap_port_pod(self):
-        plates = self.g('Engine blanking plate', self.blank, .03)
-        backs = self.g('Blanking strongback', self.kit.steel, .03)
-        bolts = self.g('Patch bolt head', self.kit.steel, .005)
-        for x, y, w in ENGINES[:2]:
-            face = bell_face(x)
-            R = CAN_FACE_R[w]*math.cos(math.pi/12)
-            xc = face-.95
-            plates.disc((xc,y,0), (1,0,0), R-.1, .3, 12)
-            for k in range(16):
-                a = TAU*(k+.5)/16
-                bolts.disc((xc-.18, y+(R-.45)*math.cos(a), (R-.45)*math.sin(a)), (1,0,0), .1, .08, 6)
-            # One flat strongback across the blank, with a lifting lug.
-            backs.obox(V((xc-.26,y,0)), V((1,0,0)), V((0,1,0)), V((0,0,1)), .1, R-.7, .28)
-            backs.obox(V((xc-.42,y,0)), V((1,0,0)), V((0,1,0)), V((0,0,1)), .08, .22, .3)
-        for ob in self.named('Drive warning light', 1):
-            ob.data.materials[0] = self.dead
-        self.record['port_pod'] = 'dead, stripped, both nozzles blanked'
-
-    def drive_coil(self):
-        x, y = -30.0, -31.0
-        deck = self.snap(V((x,y,9.8)), V((0,0,1)))
-        zc = deck.z+2.35
-        core = self.g('Salvaged drive coil casing', self.salvage[0], .04)
-        wind = self.g('Salvaged drive coil winding', self.copper, .02)
-        caps = self.g('Drive coil end cap', self.kit.steel, .03)
-        saddle = self.g('Drive coil saddle', self.salvage[1], .04)
-        bolts = self.g('Patch bolt head', self.kit.steel, .005)
-        beads = self.g('Weld bead', self.weld, .01)
-        # A cased coil: copper shows only in the cooling windows between
-        # casing sections, recessed below the casing line.
-        wind.disc((x,y,zc), (0,1,0), 1.72, 8.0, 16)
-        for y0, y1 in ((-4,-2.3),(-1.5,-.4),(.4,1.5),(2.3,4)):
-            core.disc((x,y+(y0+y1)/2,zc), (0,1,0), 1.9, y1-y0, 16)
-        for dy in (-4.15, 4.15):
-            caps.disc((x,y+dy,zc), (0,1,0), 2.0, .3, 16)
-        for dy in (-3.15, 3.15):
-            caps.disc((x,y+dy,zc), (0,1,0), 1.97, .26, 16)  # clamp band over the casing
-            saddle.obox(V((x,y+dy,(deck.z+zc)/2-.4)), V((1,0,0)), V((0,1,0)), V((0,0,1)), 1.5, .22, (zc-deck.z)/2-.4)
-            saddle.obox(V((x,y+dy,deck.z+.07)), V((1,0,0)), V((0,1,0)), V((0,0,1)), 1.8, .5, .07)
-            for dx in (-1.45,1.45):
-                bolts.disc((x+dx,y+dy,deck.z+.17), (0,0,1), .1, .08, 6)
-            beads.bead(V((x-1.8,y+dy-.52,deck.z)), V((x+1.8,y+dy-.52,deck.z)), V((0,0,1)), .08)
-        # Terminal box on the outboard end and heavy leads down into both cans.
-        caps.obox(V((x,y-4.75,zc)), V((1,0,0)), V((0,1,0)), V((0,0,1)), .7, .32, .7)
-        leads = self.g('Drive coil lead', self.cable, .01)
-        for _, ey, w in ENGINES[2:]:
-            top = V((x-.3, ey, zc-1.2))
-            can = V((-33.6, ey, CAN_FACE_R[w]*.75))
-            leads.tube([V((x, y-5.05, zc-.3)), V((x-1.6, y-5.2, zc-1.6)), V((-32.6, ey-.6*(1 if ey < -27 else -1), 8.4)), can], .15, 8)
-        self.record['drive_coil'] = 'salvaged drive coil on saddles bolted to the starboard housing deck, leads into both starboard cans'
-        for i in (3, 4):
-            for tag, mat in (('dark throat', self.glow), ('aft-facing bell', self.heat)):
-                ob = self.find(f'Engine {i} {tag}', None)
-                if ob:
-                    ob.data.materials[0] = mat
-        self.record['starboard_pod'] = 'running on the salvaged drive coil; throats lit'
-
-    def cables(self):
-        run = self.g('External cable run', self.cable, .01)
-        clips = self.g('Cable clip', self.kit.steel, .01)
-        for plan in CABLES:
-            for off in (-.35, .35):
-                pts = []
-                for i,(x,y) in enumerate(plan):
-                    t = V((plan[min(i+1,len(plan)-1)][0]-plan[max(i-1,0)][0], plan[min(i+1,len(plan)-1)][1]-plan[max(i-1,0)][1], 0)).normalized()
-                    side = V((-t.y, t.x, 0))
-                    q = V((x,y,0))+side*off
-                    hit = self.cast(V((q.x,q.y,60)), V((q.x,q.y,-20)))
-                    pts.append(V((q.x,q.y,(hit[0].z if hit else 12)+.3)))
-                run.tube(pts, .19, 6)
-            for p, q in zip(plan, plan[1:]):
-                hit = self.cast(V((*p,60)), V((*p,-20)))
-                if hit:
-                    t = V((q[0]-p[0], q[1]-p[1], 0)).normalized()
-                    clips.obox(hit[0]+V((0,0,.33)), t, V((-t.y,t.x,0)), V((0,0,1)), .2, .75, .22)
-        self.record['repairs'].append('external cable runs from the drive coil to the engine-room hatch')
-
-    # ---- assembly ------------------------------------------------------------
-    def emit_parts(self):
-        for (name, _), (geo, mat, edge) in self.parts.items():
-            if not geo.v:
-                continue
-            ob = self.kit.mesh('Damage - '+name, geo.v, geo.f, mat)
-            bm = bmesh.new()
-            bm.from_mesh(ob.data)
-            bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-            bm.to_mesh(ob.data)
-            bm.free()
-            if edge:
-                crisp(ob, edge)
-
-    def apply_cuts(self):
-        groups = {}
-        bpy.context.view_layer.update()
-        boxes = {}
-        for name in self.original:
-            ob = bpy.data.objects.get(name)
-            if ob is None or any(ob.name.startswith(k) or k in ob.name for k in UNCUT):
-                continue
-            pts = [ob.matrix_world @ V(c) for c in ob.bound_box]
-            boxes[name] = (V([min(p[i] for p in pts) for i in range(3)]), V([max(p[i] for p in pts) for i in range(3)]))
-        for verts, faces, targets in self.cuts:
-            geo = Geo()
-            geo.add(verts, faces)
-            lo, hi = geo.bounds()
-            if targets is None:
-                targets = [n for n,(a,b) in boxes.items()
-                           if all(a[i] <= hi[i]+.05 and b[i] >= lo[i]-.05 for i in range(3))]
-            for t in targets:
-                groups.setdefault(t, Geo()).add(verts, faces)
-        for name, geo in groups.items():
-            target = bpy.data.objects[name]
-            cutter = self.kit.mesh('Damage cutter - '+name, geo.v, geo.f, self.backing)
-            bm = bmesh.new()
-            bm.from_mesh(cutter.data)
-            bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-            bm.to_mesh(cutter.data)
-            bm.free()
-            cutter.hide_render = True
-            cutter.display_type = 'WIRE'
-            mod = target.modifiers.new('Impact damage', 'BOOLEAN')
-            mod.operation, mod.object, mod.solver = 'DIFFERENCE', cutter, 'EXACT'
-            mod.material_mode = 'TRANSFER'
-            mod.use_self = True
-            mod.use_hole_tolerant = True
-        self.record['cut_objects'] = len(groups)
+                y = lo.y+H*f
+                rib = armor_patch(d.kit, f'Scar {scar.id} stringer', lo.x+.35, hi.x-.35, y-.18, y+.18, d.steel, .14)
+            if rib:
+                rib.modifiers[0].thickness = .16
+        if P['how'] == 'unbolted':
+            studs = d.part(scar, 'bare studs', d.steel, .005)
+            x0, x1, y0, y1 = lo.x+.3, hi.x-.3, lo.y+.3, hi.y-.3
+            edges = [((x0,y0),(x1,y0)), ((x1,y0),(x1,y1)), ((x1,y1),(x0,y1)), ((x0,y1),(x0,y0))]
+            for (ax,ay), (bx,by) in edges:
+                k = max(2, round(math.hypot(bx-ax, by-ay)/1.1))
+                for i in range(k):
+                    t = i/k
+                    sx, sy = ax+(bx-ax)*t, ay+(by-ay)*t
+                    hit = d.kit.surface(sx, sy)
+                    if hit:
+                        studs.disc((sx, sy, hit[0].z+.2), (0,0,1), .09, .3, 6)
+        if status == 'patched':
+            z = hi.z+.04
+            ring = [V((x, y, z)) for x, y in ((lo.x+.1,lo.y+.1),(hi.x-.1,lo.y+.1),(hi.x-.1,hi.y-.1),(lo.x+.1,hi.y-.1))]
+            d.bolted_plate(scar, 'salvage plate', ring, V((0,0,1)), d.salvage[sum(map(ord, scar.id)) % 4], .1)
+    else:  # replaced, faded
+        d.hide(ob, scar)
+        mat = d.primer if status == 'replaced' else d.repaint(d.base_mat(ob))
+        z = hi.z-.1
+        ring = [V((x, y, z)) for x, y in ((lo.x+.05,lo.y+.05),(hi.x-.05,lo.y+.05),(hi.x-.05,hi.y-.05),(lo.x+.05,hi.y-.05))]
+        fast = d.fastener if status == 'replaced' else mat
+        d.bolted_plate(scar, 'replacement plate', ring, V((0,0,1)), mat, .12, fast)
+        seam = d.part(scar, 'seam', d.sealant if status == 'replaced' else mat, .005)
+        for q0, q1 in zip(ring, ring[1:]+ring[:1]):
+            seam.bead(q0, q1, V((0,0,1)), .05)
 
 
-def build(kit, state):
-    """Layer the named damage state onto the finished clean ship."""
-    d = Damage(kit, state)
-    d.build_derelict()
-    if d.patched:
-        d.build_patched()
+def kind_buckle(d, scar, status):
+    """A deck plate buckled by slow heavy contact (a shape key on the plate).
+    params: object, centre, fold (peak lift).
+    open: buckled. patched: buckled under bolted straps. replaced/faded: the
+    plate hidden and a replacement in its footprint."""
+    P = scar.params
+    ob = d.find(P['object'], P['centre'])
+    if ob is None:
+        return
+    lo, hi = d.box(ob)
+    if status in ('open', 'patched'):
+        rng = random.Random(scar.id)
+        jit = {}
+        def fold(w):
+            s = (w.x-lo.x)/max(hi.x-lo.x, 1e-6)
+            t = (w.y-lo.y)/max(hi.y-lo.y, 1e-6)
+            f = max(0, 1-abs(s+t-1)*2.2)*(1-.3*(2*s-1)**2)
+            key = (round(w.x, 3), round(w.y, 3))
+            if key not in jit:
+                jit[key] = rng.uniform(-.05,.05)
+            return w+V((0, 0, P['fold']*f+jit[key]*f))
+        d.shape(ob, scar, fold)
+        if status == 'patched':
+            straps = d.part(scar, 'strap', d.salvage[1], .02)
+            bolts = d.part(scar, 'bolt heads', d.steel, .005)
+            z = hi.z+P['fold']+.12
+            for f in (.3, .7):
+                y = lo.y+(hi.y-lo.y)*f
+                straps.obox(V(((lo.x+hi.x)/2, y, z)), V((1,0,0)), V((0,1,0)), V((0,0,1)), (hi.x-lo.x)/2+.2, .3, .06)
+                for x in (lo.x+.1, hi.x-.1):
+                    bolts.disc((x, y, z+.08), (0,0,1), .08, .07, 6)
     else:
-        d.lights_off()
-    d.emit_parts()
-    d.apply_cuts()
+        kind_plate(d, Scar(scar.id, 'plate', scar.history(d.state)[-1:]*4, object=P['object'],
+                           centre=P['centre'], how='unbolted'), status)
+
+
+def kind_strip(d, scar, status):
+    """Base parts stripped by salvagers.
+    params: parts [(name prefix, side sign 0|1|-1)], pads [(x, y, z, hx, hy)]
+            bare mounting pads with studs left where they stood.
+    open and patched: parts hidden (a module's own kind adds any jury work);
+    replaced, faded: reinstalled (the base parts as built)."""
+    if status not in ('open', 'patched'):
+        return
+    for name, sign in scar.params['parts']:
+        for ob in d.named(name, sign):
+            d.hide(ob, scar)
+    for x, y, z, hx, hy in scar.params.get('pads', ()):
+        top = d.snap(V((x, y, z)), V((0,0,1)), .04)
+        d.part(scar, 'stripped pad', d.dark, .02).obox(top, V((1,0,0)), V((0,1,0)), V((0,0,1)), hx, hy, .05)
+        studs = d.part(scar, 'stripped stud', d.steel, .01)
+        for sx in (-1, 1):
+            for sy in (-1, 0, 1):
+                studs.disc(top+V((sx*(hx-.5), sy*(hy-.5), .15)), (0,0,1), .16, .25, 6)
+
+
+def kind_power(d, scar, status):
+    """Ship power. open: unpowered, every lamp a dead lens, the glazing unlit
+    (object-level overrides). Any other status: lit as built."""
+    if status != 'open':
+        return
+    for ob in bpy.data.objects:
+        if ob.name not in d.original or not ob.data.materials:
+            continue
+        m = ob.data.materials[0]
+        if m is None or m.node_tree is None:
+            continue
+        bsdf = m.node_tree.nodes.get('Principled BSDF')
+        if bsdf and bsdf.inputs['Emission Strength'].default_value > 0:
+            d.override(ob, d.unlit_glass if 'glazing' in m.name else d.dead, scar)
+
+
+KINDS = {'basin': kind_basin, 'cluster': kind_cluster, 'spall': kind_spall, 'gouge': kind_gouge,
+         'plate': kind_plate, 'buckle': kind_buckle, 'strip': kind_strip, 'power': kind_power}
+
+SCARS = [
+    Scar('ship-power', 'power', 'open gone gone gone',
+         'Unpowered for the years in the belt; lit from the escape on.'),
+]
+
+
+def catalogue():
+    """Every scar row and every kind, from this module and the area modules."""
+    scars, kinds = [], dict(KINDS)
+    for s in SCARS:
+        s.area = 'core'
+        scars.append(s)
+    for name in AREAS:
+        mod = importlib.reload(importlib.import_module(name))
+        for s in getattr(mod, 'SCARS', ()):
+            s.area = name
+            scars.append(s)
+        for k, fn in getattr(mod, 'KINDS', {}).items():
+            assert k not in kinds, f'kind {k} defined twice'
+            kinds[k] = fn
+    ids = [s.id for s in scars]
+    dup = {i for i in ids if ids.count(i) > 1}
+    assert not dup, f'duplicate scar ids {dup}'
+    for s in scars:
+        assert s.kind in kinds, f'{s.id}: unknown kind {s.kind}'
+    return scars, kinds
+
+
+def apply(kit, state):
+    """Layer one condition state onto the finished clean ship. Call last."""
+    d = Damage(kit, state)
+    scars, kinds = catalogue()
+    for s in scars:
+        status = s.status(state)
+        d.record['scars'].append({'id': s.id, 'kind': s.kind, 'area': s.area,
+                                  'status': status, 'note': s.note})
+        if status != 'gone':
+            kinds[s.kind](d, s, status)
+    finish(d)
     return d.record
+
+
+build = apply
+
+
+# ---- assembly ------------------------------------------------------------
+def finish(d):
+    """Commit everything deferred: added parts, cuts, shape keys, overrides
+    and hides, in that order, after every cast has been made."""
+    for name, (geo, mat, edge) in d.parts.items():
+        if not geo.v:
+            continue
+        ob = d.kit.mesh(name, geo.v, geo.f, mat)
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+        bm.to_mesh(ob.data)
+        bm.free()
+        if edge:
+            crisp(ob, edge)
+    apply_cuts(d)
+    for ob, sid, moved in d.shapes:
+        if ob.data.shape_keys is None:
+            ob.shape_key_add(name='Basis', from_mix=False)
+        key = ob.shape_key_add(name=f'Scar {sid}', from_mix=False)
+        for i, co in moved.items():
+            key.data[i].co = co
+        key.value = 1
+        d.record['shape_keys'].append(f'{ob.name}: Scar {sid}')
+    for ob, mat, sid in d.overrides:
+        for slot in ob.material_slots:
+            slot.link = 'OBJECT'
+            slot.material = mat
+        ob['scar_override'] = sid
+        d.record['overrides'].append(f'{ob.name}: {mat.name} ({sid})')
+    for name, sid in d.hides.items():
+        ob = bpy.data.objects[name]
+        ob.hide_render = True
+        ob.hide_viewport = True
+        ob['scar_hidden'] = sid
+    d.record['hidden'] = dict(sorted(d.hides.items()))
+
+
+def apply_cuts(d):
+    groups = {}
+    bpy.context.view_layer.update()
+    boxes = {}
+    for name in d.original:
+        ob = bpy.data.objects.get(name)
+        if ob is None or name in d.hides or any(ob.name.startswith(k) or k in ob.name for k in UNCUT):
+            continue
+        boxes[name] = d.box(ob)
+    for verts, faces, targets, mat in d.cuts:
+        geo = Geo()
+        geo.add(verts, faces)
+        lo, hi = geo.bounds()
+        if targets is None:
+            targets = [n for n,(a,b) in boxes.items()
+                       if all(a[i] <= hi[i]+.05 and b[i] >= lo[i]-.05 for i in range(3))]
+        for t in targets:
+            if t in d.hides:
+                continue
+            groups.setdefault(t, []).append((verts, faces, mat))
+    for name, pieces in groups.items():
+        target = bpy.data.objects[name]
+        geo, idx, mats = Geo(), [], []
+        for verts, faces, mat in pieces:
+            if mat not in mats:
+                mats.append(mat)
+            geo.add(verts, faces)
+            idx += [mats.index(mat)]*len(faces)
+        cutter = d.kit.mesh('Scar cutter - '+name, geo.v, geo.f, mats[0])
+        for mat in mats[1:]:
+            cutter.data.materials.append(mat)
+        for poly, i in zip(cutter.data.polygons, idx):
+            poly.material_index = i
+        bm = bmesh.new()
+        bm.from_mesh(cutter.data)
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+        bm.to_mesh(cutter.data)
+        bm.free()
+        cutter.hide_render = True
+        cutter.display_type = 'WIRE'
+        mod = target.modifiers.new('Scar cuts', 'BOOLEAN')
+        mod.operation, mod.object, mod.solver = 'DIFFERENCE', cutter, 'EXACT'
+        mod.material_mode = 'TRANSFER'
+        mod.use_self = True
+        mod.use_hole_tolerant = True
+    d.record['cut_objects'] = len(groups)

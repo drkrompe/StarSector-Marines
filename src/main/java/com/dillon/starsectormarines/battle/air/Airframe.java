@@ -82,6 +82,12 @@ public interface Airframe {
     float maxHp();
 
     /**
+     * The heaviest machine this aircraft can carry to the ground. Most lift
+     * none; see {@link LiftAdmission}.
+     */
+    default LiftRating liftRating() { return LiftRating.NONE; }
+
+    /**
      * Fraction of a hull's drawn length that stands in for its body circle.
      *
      * <p>A single radius has to speak for a shape that is long and narrow, and

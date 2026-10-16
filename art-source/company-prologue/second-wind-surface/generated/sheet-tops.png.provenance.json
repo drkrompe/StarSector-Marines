@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a145eb-af1b-7a61-b23a-7cd5a148030b",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a145eb-af1b-7a61-b23a-7cd5a148030b\\exec-a7009127-61d5-49e3-9f51-7a0c5a926a56.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-surface\\generated\\sheet-tops.png",
+    "sha256": "28bce274d43d6d4f7ad876480bfef9a5799947c3348563528e112aae72502269",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-surface\\prompts\\sheet-tops.prompt.txt",
+  "promptSha256": "4d6da4c2728701ac42f2f79f99217fa82f9628f1b13de1cc8c8aa196f5330c59",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: geometry/layout authority. Exact silhouettes, positions, sizes and per-shape colour; fill in, never move.\nImage 2: INPUT 2: material/finish reference only (paint, wear density, seams, fasteners); not layout, view or shapes.\n\nUse case: precise-object-edit / texture reskin of a technical render sheet.\nINPUT 1 is a sheet of FOUR separate orthographic renders of single armour faces of one 3D spacecraft (a battered industrial freighter), each face seen square-on and drawn alone as a flat-coloured shape on a plain light grey background:\ntop-left: the oxide-orange roof of the engine pod cowl seen from directly above, with a notch where a turret seat stands;\ntop-right: the gunmetal roofs of two sponson boxes seen from directly above, end to end;\nbottom-left: a long narrow raked oxide-orange bow cheek plate;\nbottom-right: a long thin gunmetal deck-edge lip strip in three pieces.\nINPUT 2 is the SAME ship's port side, already painted: it is the finish to match. Use its paint colours, wear density, chipping, grime, seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.\n\nPaint each of the four faces in INPUT 1 as that worn industrial hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:\n- Keep the four tiles exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole in a shape stays plain background grey.\n- Each shape is a flat steel armour surface. Add painted surface detail inside its outline only: plate seams and welded joints, rows of fasteners and rivets, flush access panels, scuffed and lightly chipped paint, a thin even film of grime. Nothing may stand out from the surface or cross the outline.\n- Keep each shape's colour: oxide-orange shapes stay faded oxide-orange armour paint, gunmetal shapes stay dark gunmetal steel. Do not repaint any shape another colour, and do not add cream, white or different-coloured patches or repair plates.\n- Weathering is light and even across each whole shape. No soot, scorch marks, burns, rust streaks, impact damage, dents, holes, large stains or any single concentrated area of wear: those are added separately later.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.\n- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, vignette, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\second-wind-surface\\guide\\sheet-tops-guide.png",
+      "sha256": "25c35410404d6eff3babb145f930b89b733caee45426953774a03c1b87bdd492",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: geometry/layout authority. Exact silhouettes, positions, sizes and per-shape colour; fill in, never move."
+    },
+    {
+      "path": "art-source\\company-prologue\\second-wind-surface\\reference\\finish-reference.png",
+      "sha256": "cee363a918c8013b9aee282642caca6d825349e8b09adedcd5ad74f0926f76d7",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: material/finish reference only (paint, wear density, seams, fasteners); not layout, view or shapes."
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image generation to texture the supplied shapes, preserving the layout and colours of Image 1 and matching the surface finish of Image 2."
+  ],
+  "usage": {
+    "input_tokens": 45181,
+    "cached_input_tokens": 36736,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 642,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 49.8
+}

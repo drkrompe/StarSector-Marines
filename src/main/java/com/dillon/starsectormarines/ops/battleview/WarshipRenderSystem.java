@@ -335,8 +335,10 @@ public final class WarshipRenderSystem implements RenderSystem {
     }
 
     /**
-     * A hull taken to nothing: charred, drawn with the aircraft altitude cue (a little larger while it is still up)
-     * as it falls, and once it has struck, lying among the parked vehicles where it came to rest.
+     * A hull taken to nothing: charred, its body coming back to true landed scale as it falls
+     * ({@link WarshipWreck#bodyScale}) with the aircraft altitude cue on top (a little larger while it is still up),
+     * and once it has struck, lying at true scale among the parked vehicles where it came to rest. The hull-damage
+     * cuts are drawn at the same size.
      */
     private void drawWreck(DrawList out, BattleCamera cam, float cellPx, float alpha, WarshipWreck wreck) {
         Warship ship = wreck.ship;
@@ -345,9 +347,10 @@ public final class WarshipRenderSystem implements RenderSystem {
         float rad = (float) Math.toRadians(ship.facingDegrees);
         float c = (float) Math.cos(rad);
         float s = (float) Math.sin(rad);
-        float hx = ship.x + (ship.pivotX * c - ship.pivotY * s);
-        float hy = ship.y + (ship.pivotX * s + ship.pivotY * c);
-        float scale = 1f + WRECK_HEIGHT_SCALE * wreck.lift();
+        float body = wreck.bodyScale();
+        float hx = ship.x + body * (ship.pivotX * c - ship.pivotY * s);
+        float hy = ship.y + body * (ship.pivotX * s + ship.pivotY * c);
+        float scale = body * (1f + WRECK_HEIGHT_SCALE * wreck.lift());
         float pxH = ship.lengthCells * cellPx * scale;
         float pxW = pxH * hull.aspect;
         boolean down = wreck.phase() != WarshipWreck.Phase.FALLING;

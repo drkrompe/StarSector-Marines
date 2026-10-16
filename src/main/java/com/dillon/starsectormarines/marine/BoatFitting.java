@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.battle.air.LiftRating;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
@@ -16,7 +17,7 @@ import java.util.List;
  * a handful of authored entries with stable ids, resolved by id everywhere a
  * boat is persisted. Moving it to data is an extension rather than a
  * correction — there is nothing here a JSON file would say better while the
- * list is six long.
+ * list is nine long.
  *
  * <p><b>A fitting is installed work, not a spare.</b> Plating is welded on and
  * a drive is built in, so unlike a mech's components there is no finite stock,
@@ -24,6 +25,8 @@ import java.util.List;
  * one place the boat model departs from the mech one, and it is a fact about
  * what a fitting is rather than a shortcut past inventory.
  *
+ * @param liftRating the machines a LIFT fitting lets the boat carry;
+ *     {@link LiftRating#NONE} for every other fitting and for the standard hold
  * @param bill what the yard consumes out of the fleet's hold, or {@code null}
  *     for the standard fitting included in the boat's fabrication bill
  * @param provenance where the thing comes from, for the player reading the
@@ -37,42 +40,59 @@ public record BoatFitting(
         float hullFactor,
         float speedFactor,
         float accelFactor,
+        LiftRating liftRating,
         FabricationCost bill,
         String provenance) {
 
     public static final BoatFitting STANDARD_PLATING = new BoatFitting(
             "standard_plating", "@openingBoatFittingYardStandardPlating", BoatFittingSlot.PLATING, 1,
-            1.00f, 1f, 1f, null,
+            1.00f, 1f, 1f, LiftRating.NONE, null,
             "@openingBoatFittingWhatABoatLeavesTheYardWith");
 
     public static final BoatFitting REINFORCED_PLATING = new BoatFitting(
             "reinforced_plating", "@openingBoatFittingReinforcedBellyPlate", BoatFittingSlot.PLATING, 2,
-            1.35f, 1f, 1f, cost(10, 0, 20, 0),
+            1.35f, 1f, 1f, LiftRating.NONE, cost(10, 0, 20, 0),
             "@openingBoatFittingASecondSkinLaidOverTheBelly");
 
     public static final BoatFitting ARMOURED_PLATING = new BoatFitting(
             "armoured_plating", "@openingBoatFittingArmouredLanderShell", BoatFittingSlot.PLATING, 3,
-            1.75f, 1f, 1f, cost(20, 5, 40, 0),
+            1.75f, 1f, 1f, LiftRating.NONE, cost(20, 5, 40, 0),
             "@openingBoatFittingAssaultLanderPlateLaminateOverTheCrew");
 
     public static final BoatFitting STANDARD_DRIVE = new BoatFitting(
             "standard_drive", "@openingBoatFittingYardStandardDrive", BoatFittingSlot.DRIVE, 1,
-            1f, 1.00f, 1.00f, null,
+            1f, 1.00f, 1.00f, LiftRating.NONE, null,
             "@openingBoatFittingThePlantTheHullWasRatedFor");
 
     public static final BoatFitting TUNED_DRIVE = new BoatFitting(
             "tuned_drive", "@openingBoatFittingTunedDrive", BoatFittingSlot.DRIVE, 2,
-            1f, 1.20f, 1.20f, cost(15, 5, 0, 0),
+            1f, 1.20f, 1.20f, LiftRating.NONE, cost(15, 5, 0, 0),
             "@openingBoatFittingARefitCrewSWeekCleanFeed");
 
     public static final BoatFitting UPRATED_DRIVE = new BoatFitting(
             "uprated_drive", "@openingBoatFittingUpratedDrive", BoatFittingSlot.DRIVE, 3,
-            1f, 1.45f, 1.45f, cost(30, 10, 0, 5),
+            1f, 1.45f, 1.45f, LiftRating.NONE, cost(30, 10, 0, 5),
             "@openingBoatFittingABiggerPlantThanTheHullWas");
+
+    public static final BoatFitting STANDARD_LIFT = new BoatFitting(
+            "standard_lift", "@boatFittingStandardHold", BoatFittingSlot.LIFT, 1,
+            1f, 1f, 1f, LiftRating.NONE, null,
+            "@boatFittingStandardHoldProvenance");
+
+    public static final BoatFitting LIFT_CRADLE = new BoatFitting(
+            "lift_cradle", "@boatFittingLiftCradle", BoatFittingSlot.LIFT, 2,
+            1f, 1f, 1f, LiftRating.LIGHT, cost(15, 10, 30, 0),
+            "@boatFittingLiftCradleProvenance");
+
+    public static final BoatFitting HEAVY_CRADLE = new BoatFitting(
+            "heavy_cradle", "@boatFittingHeavyCradle", BoatFittingSlot.LIFT, 3,
+            1f, 1f, 1f, LiftRating.MEDIUM, cost(30, 20, 60, 5),
+            "@boatFittingHeavyCradleProvenance");
 
     private static final List<BoatFitting> CATALOG = List.of(
             STANDARD_PLATING, REINFORCED_PLATING, ARMOURED_PLATING,
-            STANDARD_DRIVE, TUNED_DRIVE, UPRATED_DRIVE);
+            STANDARD_DRIVE, TUNED_DRIVE, UPRATED_DRIVE,
+            STANDARD_LIFT, LIFT_CRADLE, HEAVY_CRADLE);
 
     public String displayName() { return Strings.resolve(displayName); }
     public String provenance() { return Strings.resolve(provenance); }
@@ -91,6 +111,10 @@ public record BoatFitting(
         requirePositiveFactor(hullFactor, "hull");
         requirePositiveFactor(speedFactor, "speed");
         requirePositiveFactor(accelFactor, "acceleration");
+        if (liftRating == null) throw new IllegalArgumentException("Boat fitting lift rating is required");
+        if (liftRating != LiftRating.NONE && slot != BoatFittingSlot.LIFT) {
+            throw new IllegalArgumentException("Only a LIFT fitting can carry a lift rating: " + id);
+        }
     }
 
     /** Whether this is the fitting a boat is built with rather than refitted to. */
@@ -98,9 +122,26 @@ public record BoatFitting(
         return bill == null;
     }
 
-    /** Hermes is a repairable courier stopgap; its frame has no upgrade path. */
+    /**
+     * Whether a boat of {@code pattern} can take this fitting. Hermes is a
+     * repairable courier stopgap; its frame has no upgrade path. A cradle goes
+     * only into a bus-class hold, and never into one whose pattern already
+     * lifts at least as much — a Valkyrie gains nothing from it.
+     */
     public boolean supports(ShuttleType pattern) {
-        return pattern != ShuttleType.HERMES || standard();
+        if (standard()) return true;
+        if (pattern == ShuttleType.HERMES) return false;
+        if (slot != BoatFittingSlot.LIFT) return true;
+        return pattern != null && pattern.busClass()
+                && liftRating.ordinal() > pattern.liftRating().ordinal();
+    }
+
+    /**
+     * Whether a boat fitted with this flies machine-only sorties: a cradle
+     * takes the seats, so it carries one machine and no marines.
+     */
+    public boolean machineOnly() {
+        return liftRating != LiftRating.NONE;
     }
 
     /** Every authored fitting, in slot then tier order. */
@@ -119,7 +160,11 @@ public record BoatFitting(
 
     /** The fitting a boat leaves the yard with in {@code slot}. */
     public static BoatFitting standard(BoatFittingSlot slot) {
-        return slot == BoatFittingSlot.DRIVE ? STANDARD_DRIVE : STANDARD_PLATING;
+        return switch (slot) {
+            case DRIVE -> STANDARD_DRIVE;
+            case LIFT -> STANDARD_LIFT;
+            case PLATING -> STANDARD_PLATING;
+        };
     }
 
     /** Returns null for an unknown persisted fitting id. */

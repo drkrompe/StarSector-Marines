@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — a commander may call a mech lance from a mission-declared allowance; the Sirocco cannon is the distance breacher of an assault plan.
+Updated: 2026-10-16 — gantries hold a mech or a vehicle; vehicle patterns; learned patterns gate fabrication.
 
 ## Purpose
 
@@ -87,6 +87,43 @@ increasing an encounter's total armored threat.
   an unfinished machine drawn as a generic mech and one that arrives with a
   working gun. It is not a mech and never becomes one — a finished machine comes
   off the stocks and an ordinary chassis stands where it stood.
+- A **mech pattern** is the company's permanent right to fabricate one chassis,
+  weapon component or vehicle (`MechPattern`). Patterns gate fabrication; owned assemblies
+  are separate, finite and losable, so losing every assembly keeps the pattern and
+  a pattern never puts a free assembly in stores. A new company knows the Hound,
+  nose chaingun and SRM-5; a pre-pattern save that had an unrestricted workshop
+  knows every pattern. Weight class is the access ladder: Hound (light) Common,
+  Sirocco (medium) Advanced, Bulwark (heavy) Prestige; weapons carry their own
+  authored tier. Vehicle patterns follow the same ladder — heavy APC light/Common,
+  escort APC and militia technical medium/Advanced, breakthrough tank
+  heavy/Prestige — and no vehicle is a starter: a company earns its first hull. A **mech pattern card** is the cargo item that teaches one
+  pattern; learning writes only to the mech bay and is consumed only when it
+  teaches something new. Cards arrive through the same market, licence, patron and
+  recovery channels and access gates as loadout cards (`progression-nouns.md`),
+  as their own scarce stack: one market slot on large or military markets, an
+  occasional patron award in place of a loadout card, at most one per high-risk
+  salvage; faction issue weights the draw. Known or carried patterns are never
+  offered, and unlearned items with no stock are absent from the Mech Lab catalog.
+- A **gantry** is one of the support squad's four bay spaces, and it holds a mech
+  or a **company vehicle** (`CampaignVehicle`): an id, a callsign and a
+  `VehicleType`. The gantry is the only thing the two share. A vehicle has no
+  chassis, sockets, heat, replenisher or weapon components; its hull, turret and
+  kinematics are its type's, so there is nothing to fit until a vehicle doll
+  exists (`mech-lab-data-authored-dolls.md`). Mechs and vehicles count against
+  the same four gantries and the same restored berths, fabricate from the same
+  material currency against a learned pattern, and a save from before vehicles
+  keeps every gantry a mech.
+- **Armour Support** brings the active squad's vehicles down, one per charge in
+  gantry order, frozen at launch exactly as Mech Support freezes its mechs; the
+  frozen value carries the vehicle's campaign id and survives the launch-fixture
+  seam. It is sourced as before (a committed Valkyrie), and story battles whose
+  employer arranges the heavy lift add it whenever the bay holds a vehicle. A
+  campaign bay with no vehicle has nothing to call; only a debug grant or a
+  launch with no bay sets down the unowned fallback APC.
+- **A vehicle wrecked on the field is lost to the company**: settlement takes it
+  off its gantry, which stands empty for a new one. Only a vehicle that landed
+  and was wrecked writes back — one still aboard a carrier is not tracked as
+  landed. Mechs have no such writeback; a destroyed mech still returns.
 - **Mech component inventory** is finite fleet stock. Installed weapon assemblies
   and subsystems count
   against owned quantity; a refit transaction returns the target mech's
@@ -661,9 +698,13 @@ support sortie, subject only to practical runtime resources.
   and exposes no equipment catalog, performance strip, or socket rack. Selecting
   an occupied gantry establishes the fitting asset and eases
   the same battle camera into it; only then does the fitting workspace reveal those
-  chassis-scoped controls. Selecting a vacant gantry instead opens the chassis-pattern
-  catalog: a successful cargo-backed commit builds one persistent standard-fit chassis
-  into that exact station and immediately makes it part of the active lance. Returning
+  chassis-scoped controls. Selecting a vacant gantry instead opens the chassis- and
+  vehicle-pattern catalog: a successful cargo-backed commit builds one persistent
+  standard-fit chassis, or one vehicle, into that exact station and immediately makes
+  it part of the active lance. A gantry holding a vehicle is selectable and shows its
+  callsign, hull, weight class and read-only hull stats (structure, armour, mobility,
+  passengers, turret); it exposes no sockets, catalog or doll, and its pad is never
+  drawn as vacant. Gantries order mechs first, then vehicles. Returning
   through the current Mech Lab room route clears
   that selection and restores the overview. No camera transition moves, respawns,
   pauses, or rebuilds garage contents to fake motion.
@@ -714,7 +755,9 @@ A new chassis requires a distinct information or combat doctrine and a real
 capability it gives up; hardware variety alone does not earn another variant.
 
 General salvage acquisition, engine cores, ammunition modules, wider recipe unlock progression,
-and chassis recovery still belong to future progression and economy authority.
+and chassis recovery still belong to future progression and economy authority;
+`heavy-equipment-progression.md` sets their direction (learned patterns, built
+assemblies, lift classes).
 The current Mech Lab owns a bounded workshop catalog: registered weapon and chassis
 patterns, typed capacity checks, finite component stores, and atomic player-cargo
 fabrication. It does not imply that future salvage or markets should bypass those
@@ -748,9 +791,11 @@ simulation uses; it does not choose stats or doctrine.
 
 ## Thermal reservoir and weapon mechanisms
 
-The battle loadout owns a 100-unit heat reservoir cooling at 8 units/second.
-These are sealed baseline internals for all chassis in this first playable slice;
-engine, armor-package, and alternate cooler/loader fittings remain future work.
+The battle loadout owns a 100-unit heat reservoir cooling at 6 units/second.
+These are the stock-frame internals for all chassis, enemy and employer mechs
+included; engine, armor-package, and alternate cooler/loader fittings that buy
+back the stock frame's cut armor capacity, speed and cooling remain future work
+(`heavy-equipment-progression.md`).
 Heat is battle state, not a campaign repair cost, and requires no save migration.
 
 A weapon component owns its mechanical trigger-to-trigger period and its heat
