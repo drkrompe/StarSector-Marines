@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.mech.CompanyMechLedger;
 import com.dillon.starsectormarines.battle.story.ColdStartProgress;
 import com.dillon.starsectormarines.battle.story.WaterUnderSealProgress;
 import com.dillon.starsectormarines.battle.story.LimitedWarrantProgress;
@@ -147,6 +148,11 @@ public final class MissionOutcome {
     public final List<ShipSupportResult> shipsCalled;
     /** Mech-bay vehicle ids wrecked on the field; each leaves its gantry on settlement. */
     public final List<String> vehiclesLost;
+    /**
+     * Section damage on the company's own mechs that landed and were hit, frozen at the end of
+     * the battle; settlement turns it into lost assemblies, repairs and lost chassis.
+     */
+    public final List<CompanyMechLedger.Damage> mechDamage;
     public final Set<String> survivingSoldierIds;
     public final Set<String> fallenSoldierIds;
     /** Mission-time persistent squad selection, in briefing order. */
@@ -238,6 +244,7 @@ public final class MissionOutcome {
         this.marinesLostAboard = Math.max(0, b.marinesLostAboard);
         this.shipsCalled = b.shipsCalled == null ? Collections.emptyList() : List.copyOf(b.shipsCalled);
         this.vehiclesLost = b.vehiclesLost == null ? Collections.emptyList() : List.copyOf(b.vehiclesLost);
+        this.mechDamage = b.mechDamage == null ? Collections.emptyList() : List.copyOf(b.mechDamage);
         this.survivingSoldierIds = immutableIds(b.survivingSoldierIds);
         this.fallenSoldierIds = immutableIds(b.fallenSoldierIds);
         this.deployedFireteamIds = immutableOrderedIds(b.deployedFireteamIds);
@@ -338,6 +345,7 @@ public final class MissionOutcome {
         private int marinesLostAboard;
         private List<ShipSupportResult> shipsCalled = Collections.emptyList();
         private List<String> vehiclesLost = Collections.emptyList();
+        private List<CompanyMechLedger.Damage> mechDamage = Collections.emptyList();
         private Set<String> survivingSoldierIds = Collections.emptySet();
         private Set<String> fallenSoldierIds = Collections.emptySet();
         private Set<String> deployedFireteamIds = Collections.emptySet();
@@ -567,6 +575,11 @@ public final class MissionOutcome {
 
         public Builder vehiclesLost(List<String> vehiclesLost) {
             this.vehiclesLost = vehiclesLost;
+            return this;
+        }
+
+        public Builder mechDamage(List<CompanyMechLedger.Damage> mechDamage) {
+            this.mechDamage = mechDamage;
             return this;
         }
 

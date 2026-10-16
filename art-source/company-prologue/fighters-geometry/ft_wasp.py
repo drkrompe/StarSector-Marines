@@ -73,6 +73,9 @@ NOTES = [
     'empty; no visible launcher is modelled.',
     'The master was registered on its gun tip, so its arm tips read about one unit inboard of the sprite\'s; '
     'the arms follow the sprite.',
+    'Arm edges run straight through the midpoints of the sprite\'s pixel stairs rather than tracing them (owner: '
+    'the traced stairs read as pixelated wings). The stair corners the line cuts and leaves account for most of '
+    'the drop in silhouette IoU from 0.951 to 0.909; on arms one to three pixels wide they are a large share.',
 ]
 
 # --- Spine: (x, half width, keel z, deck z, top chamfer, keel chamfer). ---
@@ -91,21 +94,21 @@ HUB_PLAN = [(1.0, 4.3), (.5, 4.95), (-3.4, 4.95), (-4.0, 4.3), (-4.45, 1.4), (-4
             (-3.4, -4.95), (.5, -4.95), (1.0, -4.3)]
 HUB_Z = (-.8, .75)
 
-# Port arms (starboard mirrored). Each arm is a dark stepped frame whose
-# edges follow the sprite's pixel stairs (chamfered), carrying a straight
-# diagonal armour blade on top, as the master draws its light blade plates
-# over darker structure. Fore arm: tip at the sprite's top corner; aft arm:
-# tip at the bottom corner; both roots buried in the hub.
-FORE_FRAME = [(9.0, 8.0), (4.0, 8.0), (4.0, 7.0), (2.0, 7.0), (2.0, 6.0), (0.0, 6.0), (0.0, 3.0), (2.0, 3.0),
-              (2.0, 4.0), (4.0, 4.0), (4.0, 5.0), (6.0, 5.0), (6.0, 6.0), (8.0, 6.0), (8.0, 7.0), (9.0, 7.0)]
+# Port arms (starboard mirrored). Each arm is a dark frame under a lighter
+# diagonal armour blade, as the master draws its blade plates over darker
+# structure. The frame edges are straight lines through the midpoints of
+# the sprite's pixel stairs (the fore arm's edges rise 1 in 2, the aft's
+# 1 in 1), with a square-cut tip where the sprite's tip runs flat; the
+# stairs themselves are the sprite's sampling, not the shape. Fore arm: tip
+# at the sprite's top corner; aft arm: tip at the bottom corner; both roots
+# buried in the hub.
+FORE_FRAME = [(9.0, 8.0), (5.0, 8.0), (0.0, 5.5), (0.0, 2.5), (9.0, 7.0)]
 FORE_BLADE = [(.3, 3.25), (8.85, 7.45), (8.85, 7.88), (6.0, 7.88), (.3, 5.2)]
-AFT_FRAME = [(-10.0, 8.0), (-5.0, 8.0), (-5.0, 7.0), (-4.0, 7.0), (-4.0, 6.0), (-3.0, 6.0), (-3.0, 5.0),
-             (-2.4, 5.0), (-2.4, 4.0), (-7.0, 4.0), (-7.0, 5.0), (-8.0, 5.0), (-8.0, 6.0), (-9.0, 6.0),
-             (-9.0, 7.0), (-10.0, 7.0)]
+AFT_FRAME = [(-10.0, 8.0), (-5.5, 8.0), (-2.4, 4.9), (-2.4, 4.0), (-6.5, 4.0), (-10.0, 7.5)]
 AFT_BLADE = [(-9.85, 7.88), (-6.1, 7.88), (-2.75, 4.5), (-2.75, 4.12), (-5.9, 4.12)]
 FRAME_Z = (-.45, .2)
 BLADE_Z = (-.12, .55)
-STEP_CHAMFER = .3
+CORNER_CHAMFER = .3
 
 PIVOTS = {'fore': (1.5, 4.45), 'aft': (-3.5, 4.4)}
 PIVOT_R = .75
@@ -144,7 +147,7 @@ def build(kit):
     for side, s in (('port', 1), ('starboard', -1)):
         flip = (lambda p: p) if s > 0 else mirror_y
         for part, frame, blade in (('fore', FORE_FRAME, FORE_BLADE), ('aft', AFT_FRAME, AFT_BLADE)):
-            f = prism(kit, f'Wing {side} {part} arm frame', flip(chamfer(frame, STEP_CHAMFER)),
+            f = prism(kit, f'Wing {side} {part} arm frame', flip(chamfer(frame, CORNER_CHAMFER)),
                       section(FRAME_Z[0], FRAME_Z[1], .18, .15), kit.steel, bevel=.03)
             b = prism(kit, f'Wing {side} {part} arm blade', flip(blade), section(BLADE_Z[0], BLADE_Z[1], .15, .22),
                       kit.armour, bevel=.04)
