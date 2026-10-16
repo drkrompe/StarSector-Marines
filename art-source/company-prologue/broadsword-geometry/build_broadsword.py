@@ -53,14 +53,20 @@ COLLECTION = 'BROADSWORD | geometry'
 RIG = 'BROADSWORD | review rig'
 ROOT = 'Broadsword root'
 
-# Real-world scale (pipeline pass 4). A fighter has no deck program to
-# solve against (FIGHTER, one crew, no cargo), and Starsector draws fighter
-# and carrier sprites at one pixel scale, so the Broadsword takes the scale
-# of the carrier it flies from: the Legion model (legion-geometry/
-# geometry.json) publishes 0.65 m per unit, the Second Wind's figure. At
-# that scale she is about 20 m long with an 18 m span, the size of a large
-# two-engine heavy fighter, and her single-seat canopy is 4 m long.
-METRES_PER_UNIT = 0.65
+# Real-world scale (pipeline pass 4). Every hull has its own scale, found
+# from what it physically holds (owner policy); a fighter has no deck
+# program, so it is the cockpit. Her one pilot sits under a canopy 6.1
+# units long; real single-seat canopies run 2.6-3.5 m, which puts her at
+# 0.43-0.57 m per unit, and 3.05 m gives 0.50. At 0.50 she is 15.5 m long
+# with a 14.1 m span (an F-16 is 15.1 m), a seated 1.8 m pilot clears the
+# glass by about 0.23 m, and each exhaust bell is 1.8 m across, heavy-
+# fighter size. The canopy is broad (1.95 m at the sill against 0.9-1.3 m
+# on real aircraft): read as the sprite's wide glazed hood, not a tighter
+# scale. To sit her beside a hull at another scale, scale the root by
+# METRES_PER_UNIT / that hull's (0.50 / 0.61 = 0.82 for the Legion).
+METRES_PER_UNIT = 0.50
+SCALE_RANGE = (0.43, 0.57)
+PILOT_SEAT_X = 6.3  # seat back; legs run forward under the glass
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--out')
@@ -248,6 +254,15 @@ if not args.no_save:
                 hi = Vector(map(max, hi, w))
     size = [b-a for a, b in zip(lo, hi)]
     m = METRES_PER_UNIT
+
+    def pilot_clearance():
+        # Seat pan 0.55 m below the deck skin; seated crown 0.92 m above it,
+        # measured under the canopy glass at the pilot's head.
+        x = PILOT_SEAT_X-.16/m
+        deck = bw_hull.at(bw_hull.FUSELAGE, x)[3]
+        glass = bpy.data.objects['Canopy glass'].evaluated_get(dg)
+        hit, p, n, _ = glass.ray_cast(Vector((x, 0, 60)), Vector((0, 0, -1)))
+        return (p.z-(deck-.55/m+.92/m))*m
     canopy = (bw_hull.CANOPY[0][0]-bw_hull.CANOPY[-1][0], 2*max(w for _, w, _ in bw_hull.CANOPY))
     anchors = {ob.name: [round(v, 3) for v in ob.matrix_world.translation] for ob in kit.anchors}
     manifest = {
@@ -266,18 +281,21 @@ if not args.no_save:
         'units': 'One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres',
         'metres_per_unit': METRES_PER_UNIT,
         'scale': {
-            'method': 'carrier scale: no deck program applies to a one-crew fighter, and the game draws fighters '
-                      'and carriers at one pixel scale, so the value is the Legion\'s published 0.65 m/unit '
-                      '(legion-geometry/geometry.json, the Second Wind figure)',
+            'method': 'cockpit: one pilot under a canopy %.1f units long; real single-seat canopies are 2.6-3.5 m, '
+                      'so 3.05 m gives the published value and the range follows; overall length checked against '
+                      '12-22 m fighters' % canopy[0],
             'size_m': [round(v*m, 1) for v in size],
-            'cross_checks_m': {'length (comparable: 19-22 m twin-engine heavy fighters)': round(size[0]*m, 1),
+            'cross_checks_m': {'length (F-16 15.1 m, F/A-18 17.1 m)': round(size[0]*m, 1),
                                'span': round(size[1]*m, 1), 'height keel to canopy': round(size[2]*m, 1),
                                'single-seat canopy l x w': [round(canopy[0]*m, 1), round(canopy[1]*m, 1)],
                                'exhaust bell mouth diameter': round(2*bw_engines.BELL_R*m, 2),
-                               'person 1.8 m in units': round(1.8/m, 2)},
-            'range': {'canopy-fit floor (3 m single-seat canopy)': round(3.0/canopy[0], 2), 'published': m},
-            'legion_deck_fit': 'span 18.2 m fits the Legion forward deck mouth (23.4 x 7.8 m); it exceeds the aft '
-                               'mouth width (14.3 m), whose deck is open above, so aft launches leave upward',
+                               'person 1.8 m in units': round(1.8/m, 2),
+                               'seated 1.8 m pilot head clearance under the canopy': round(pilot_clearance(), 2)},
+            'range': list(SCALE_RANGE),
+            'beside_the_legion': 'scale the root by %.2f (0.50 / the Legion 0.61, legion-geometry at 496340563); '
+                                 'her %.1f m span is about %.0f Legion units, inside its hangar tunnels (being widened '
+                                 'to about 40 forward and 46 aft for the Hoplon); fighters leave through the mouths '
+                                 'under the wing arms' % (m/.61, size[1]*m, size[1]*m/.61),
             'not_this': 'landed-ships-true-scale.md (battle-map readability) is a different, smaller number',
         },
         'sprite': {'size': [30, 33], 'center': [15, 13],

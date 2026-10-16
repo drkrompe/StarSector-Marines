@@ -1,0 +1,229 @@
+{
+  "status": "Blockout (pass 1): silhouette, sections, mass, slots and engines. No detail, damage or textures.",
+  "hull": {
+    "name": "Dagger",
+    "hullId": "dagger",
+    "size": "FIGHTER",
+    "style": "HIGH_TECH",
+    "source": {
+      "ship": "data/hulls/dagger.ship",
+      "sprite": "graphics/ships/dagger_trp.png",
+      "shape_reference": "art-source/aircraft/fighter-upres/dagger/master-v2.png",
+      "variant": "data/variants/fighters/dagger_Bomber.variant (WS 002 atropos_single; WS 001 empty)"
+    }
+  },
+  "provenance": "verified against the installed data/hulls/dagger.ship",
+  "axes": {
+    "+X": "nose",
+    "+Y": "port",
+    "+Z": "dorsal"
+  },
+  "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
+  "metres_per_unit": 0.5,
+  "scale": {
+    "summary": "Single-seat torpedo bomber: forked twin-prong nose, offset port torpedo store, one centre-line drive",
+    "method": "Sized from the cockpit. The sprite's pale canopy patch is 6 units long on the waist; a single-seat canopy is 2.6-3.5 m long, so 0.43-0.58 m/unit. At 0.5 the canopy is 3.0 x 1.15 m at the sill, a seated 1.8 m pilot clears it by the reported margin, and the airframe is 16.4 m long and 12 m across the fins: the A-6 / Su-24 class of two-engine strike aircraft, the size a torpedo bomber carrying one heavy store should be. The port store comes out 0.95 m across and 5 m long with its seeker, heavyweight-torpedo proportions (Mk 48: 0.53 x 5.8 m); the 12-unit drive block is 6 m wide around a 3.2 m nozzle ring. Below 0.43 the canopy is shorter than any real single-seat canopy; above 0.58 it is longer than one, and the hull passes 19 m.",
+    "range": [
+      0.43,
+      0.58
+    ],
+    "cross_checks_m": {
+      "length_overall": 16.4,
+      "span_across_tip_fins": 12.0,
+      "canopy_length_width": [
+        3.0,
+        1.15
+      ],
+      "torpedo_store_length_diameter": [
+        5.0,
+        0.95
+      ],
+      "drive_block_width": 6.0,
+      "nozzle_ring_diameter": 3.2,
+      "A-6 Intruder (length, span)": [
+        16.7,
+        16.2
+      ],
+      "Su-24 (length, span spread)": [
+        22.7,
+        17.6
+      ],
+      "F-16 length (single seat reference)": 15.0
+    },
+    "size_m": [
+      16.4,
+      12.1,
+      2.2
+    ],
+    "canopy": {
+      "length_m": 3.1,
+      "width_m": 1.15,
+      "top_z_units": 2.78
+    },
+    "cockpit_fit": [
+      {
+        "seat": [
+          -3.0,
+          0.0
+        ],
+        "head_clearance_under_canopy_m": 0.21
+      }
+    ]
+  },
+  "sprite": {
+    "size": [
+      26,
+      34
+    ],
+    "center": [
+      15,
+      16
+    ],
+    "pixel_to_model": "col c, row r (from top) covers X 17-r..18-r, Y 14-c..15-c"
+  },
+  "dimensions": {
+    "min": [
+      -15.15,
+      -10.05,
+      -1.6
+    ],
+    "max": [
+      17.7,
+      14.05,
+      2.78
+    ],
+    "size": [
+      32.85,
+      24.1,
+      4.38
+    ]
+  },
+  "root": {
+    "name": "Dagger root",
+    "location": [
+      0,
+      0,
+      0
+    ],
+    "note": "the .ship centre: the game's rotation pivot"
+  },
+  "collections": {
+    "model": "DAGGER | geometry",
+    "review_rig": "DAGGER | review rig"
+  },
+  "weapon_slots": [
+    {
+      "id": "WS 001",
+      "location": [
+        2,
+        0
+      ],
+      "angle": 0,
+      "arc": 360,
+      "mount": "HIDDEN",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "anchor": "Weapon WS 001 anchor"
+    },
+    {
+      "id": "WS 002",
+      "location": [
+        7,
+        0
+      ],
+      "angle": 0,
+      "arc": 5,
+      "mount": "HIDDEN",
+      "size": "SMALL",
+      "type": "MISSILE",
+      "anchor": "Weapon WS 002 anchor"
+    }
+  ],
+  "engines": [
+    {
+      "index": 1,
+      "slot_location": [
+        -13,
+        0
+      ],
+      "width": 12,
+      "angle": 180,
+      "parts": [
+        "Engine 1 mouth lip",
+        "Engine 1 aft-facing bell",
+        "Engine 1 dark throat"
+      ],
+      "exhaust_direction": [
+        -1,
+        0,
+        0
+      ]
+    }
+  ],
+  "anchors": {
+    "Engine 1 centre exhaust anchor": [
+      -15.15,
+      0.0,
+      0.15
+    ],
+    "Weapon WS 001 anchor": [
+      2.0,
+      0.0,
+      0.1
+    ],
+    "Weapon WS 002 anchor": [
+      7.0,
+      0.0,
+      0.35
+    ]
+  },
+  "anchor_convention": "ARROWS empties; local +X points along the slot angle (0 = nose, 180 = aft)",
+  "notes": [
+    "Sprite axis is Y = 0 (boundary of columns 14 and 15); the .ship centre column 15 counts from the left edge, so the fork, waist and drive block are symmetric about Y = 0 and only the wings differ.",
+    "The open notch between the prongs (|Y| < 1) is empty in the sprite down to X = 2, the cockpit body's front face. The master fills its lower half with a central spine and puts its canopy there; the sprite wins: the canopy sits on the waist (X -0.5..-6.5) under the sprite's pale centre patch.",
+    "Unequal wings as the sprite draws them: port pylon (Y 7..8) to a pod (Y 8..12) carrying the cream torpedo store, then a strut (Y 12..13) to a tip fin (Y 13..14); starboard a stub (Y -9..-6) to a tip fin (Y -10..-9).",
+    "WS 001 (ENERGY, HIDDEN, unfitted on dagger_Bomber) anchors on the cockpit body's front face at the notch root (2, 0). WS 002 (MISSILE, HIDDEN, atropos_single) anchors in the open notch at (7, 0); no launcher is modelled there because the sprite draws none. The visible ordnance is the painted port store, modelled as Weapon WS 002 port torpedo store on the port pod: presentation only, the game launches from (7, 0).",
+    "Engine slot (-13, 0), width 12: the 12-unit drive block (X -7..-15, |Y| <= 6) is the drive unit. Its bell sits on the block's aft face at X -15.15, 2.15 units aft of the slot, because the sprite closes the tail there; the Engine 1 centre exhaust anchor is at that mouth. No renderEngineOffsetsNativePx is listed for the Dagger."
+  ],
+  "cameras": {
+    "top": {
+      "position": [
+        1.0,
+        2.0,
+        136.0
+      ],
+      "orthographic_scale": 51.768888888888895
+    },
+    "port-side": {
+      "position": [
+        1.0,
+        138.0,
+        0.0
+      ],
+      "orthographic_scale": 44.06250047683716
+    },
+    "front": {
+      "position": [
+        137.0,
+        2.0,
+        0.0
+      ],
+      "orthographic_scale": 33.800000000000004
+    },
+    "three-quarter": {
+      "position": [
+        89.4000015258789,
+        100.5999984741211,
+        68.0
+      ],
+      "orthographic_scale": 49.3
+    }
+  },
+  "silhouette": {
+    "iou": 0.9594,
+    "sprite_uncovered": 0.0129,
+    "model_outside_sprite": 0.0289,
+    "sprite": "dagger_trp.png",
+    "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 37.09 px per unit"
+  }
+}

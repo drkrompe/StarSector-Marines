@@ -877,6 +877,17 @@ Do not run builds or leave generated task files there.
   a suite degrades to not drawing those sprites if it is missing. Select
   suites with `-Psnapshot=<id>[,<id>...]` (default `all`; ids in
   `snapshot-suites.md`) and redirect the common output root with `-PsnapshotDir=<path>`.
+  **The pixel work runs on workers** (`SnapshotWorkers`, half the processors;
+  `-Dsnapshot.threads=1` runs it all on the calling thread): a review frame
+  drains in fixed 32-row bands side by side, particles blend in bands,
+  finished frames compress in the background (spilling to a temp file once the
+  heap is half full) and a suite's GIFs encode at once. The simulation still
+  steps on one thread. `-Dsnapshot.profile=true` prints where a review frame's
+  time goes, by phase and by image. `-PsnapshotRawFrames=<dir>` keeps every
+  artifact's frames losslessly, and `RawFrameDump.main` compares two such runs
+  (maximum and mean channel difference, worst frame side by side) — accept a
+  renderer change on that, never on GIFs, whose palette hides and invents
+  differences.
 - `gradlew.bat sceneEvidence` → plays the behaviour scenes for their verdicts and
   prints a PASS/FAIL table, one row per loop, with a line beneath each failing
   row saying what was measured. The same scenes already play under
@@ -1281,7 +1292,14 @@ and drains the same simulation lists `BattleScreen.advance` does.
 
 A frame is a pure function of simulation state and the feed's history: the feed's
 jitter is seeded, and the animation clock is pinned (`REVIEW_CLOCK_SECONDS`) so
-no wall-clock pulse reaches the pixels. Scenes built over a bare grid get no
+no wall-clock pulse reaches the pixels. The drain's bands are a fixed height
+rather than one per worker, because where a band starts is in the picture: a
+band restarts Java2D's fixed-point sample walk through a scaled or turned
+sprite, which can move a channel by a level or two on that row — and, very
+rarely, include or drop one edge pixel of a turned sprite
+(`HeadlessUiRenderer.drawInBands`). Fixed bands keep every frame the same on
+every machine and at every worker count; `-Dsnapshot.bandRows=0` drains each
+frame whole, bit for bit what the serial drain drew. Scenes built over a bare grid get no
 doodads unless they hand the generator's `ctx.doodads` to the simulation; the
 fort scenes do not, so their frames show none of a fort's earthworks
 (`render-parity` hands them over).
