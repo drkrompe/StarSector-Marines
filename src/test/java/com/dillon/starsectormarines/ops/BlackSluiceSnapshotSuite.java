@@ -72,7 +72,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
         Fixture(String id, long seed, Control control, AgreusYardAgreement route) { this(id, seed, control, route, true); }
     }
     /** Duel frames: every this many ticks from the order, for at most this many ticks. */
-    private static final int DUEL_FRAME_EVERY = 15, DUEL_FRAME_TICKS = 2400, DUEL_FRAME_TAIL = 300;
+    private static final int DUEL_FRAME_EVERY = 30, DUEL_FRAME_TICKS = 6600, DUEL_FRAME_TAIL = 300;
     private final Map<String, Boolean> victories = new HashMap<>();
     public String id() { return "black-sluice"; }
     public String label() { return "A Small War: Black Sluice handover with named company, owned tender and Greyhook's split"; }
@@ -216,7 +216,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                     if (over && duelOverTick < 0) duelOverTick = sim.getSimTickIndex();
                     boolean tail = duelOverTick < 0 || sim.getSimTickIndex() - duelOverTick <= DUEL_FRAME_TAIL;
                     if (since <= DUEL_FRAME_TICKS && since % DUEL_FRAME_EVERY == 0 && tail)
-                        duelFrames.add(new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 150, 60, 112)
+                        duelFrames.add(new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 140, 66, 136)
                                 .withImpactEffects().withUnitShadows()
                                 .render(sim, "BLACK SLUICE / THE DUEL OVERHEAD / " + since / 30 + "s after Voss's order / "
                                         + duelCaption(duel), ReviewAnnotations.builder().build()));
@@ -390,7 +390,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
     private static String duelCaption(BlackSluiceDuel duel) {
         var s = new StringBuilder();
         for (Warship hull : duel.hulls()) {
-            String name = switch (hull.hullId) { case "crig" -> "rig"; case "hound" -> "Hound"; default -> "Wolf"; };
+            String name = switch (hull.hullId) { case "venture" -> "Greyhook"; case "hound" -> "Hound"; default -> "Wolf"; };
             s.append(name).append(' ').append(hull.destroyed() ? "down" : hull.departed() ? "gone" : hull.departing() ? "leaving"
                     : Math.round(hull.hullFraction() * 100) + "%").append("  ");
         }

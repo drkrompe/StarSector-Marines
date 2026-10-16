@@ -27,8 +27,8 @@ class WarshipDuelHelmTest {
         float wolfReach = WarshipDuelHelm.reach(wolf);
         float houndReach = WarshipDuelHelm.reach(hound);
         // The pulse laser (600) outranges the chaingun (450): the game's own figures decide the shape of the duel.
-        assertEquals(WarshipScale.cells(600f), wolfReach, 1e-3f);
-        assertEquals(WarshipScale.cells(450f), houndReach, 1e-3f);
+        assertEquals(WarshipScale.hullReach(600f), wolfReach, 1e-3f);
+        assertEquals(WarshipScale.hullReach(450f), houndReach, 1e-3f);
         assertTrue(WarshipDuelHelm.holdsOff(wolfReach, houndReach));
         assertFalse(WarshipDuelHelm.holdsOff(houndReach, wolfReach));
         float wolfRange = WarshipDuelHelm.preferredRange(wolfReach, houndReach);
@@ -54,7 +54,21 @@ class WarshipDuelHelmTest {
     void bigHullsNeverCloseNearerThanTheirLengthsAndAClearance() {
         assertEquals(10f + 8f + WarshipDuelHelm.CLEARANCE_CELLS,
                 WarshipDuelHelm.preferredRange(10f, 20f, 10f, 8f), 1e-4f);
-        assertEquals(WarshipDuelHelm.CLOSE_SHARE * 60f, WarshipDuelHelm.preferredRange(60f, 70f, 2f, 2f), 1e-4f);
+        assertEquals(WarshipDuelHelm.CLOSE_SHARE * 60f, WarshipDuelHelm.preferredRange(60f, 70f, 15f, 15f), 1e-4f);
+    }
+
+    @Test
+    void noShipHoldsOffFartherThanAFewShipLengths() {
+        // Guns that reach 200 against 50 would hold off at 125; two hulls 20 cells long stand off at 2.5 lengths.
+        assertEquals(WarshipDuelHelm.STANDOFF_LENGTHS * 20f, WarshipDuelHelm.preferredRange(200f, 50f, 10f, 10f), 1e-4f);
+        // Inside the cap the guns decide.
+        assertEquals(0.5f * (60f + 40f), WarshipDuelHelm.preferredRange(60f, 40f, 15f, 15f), 1e-4f);
+    }
+
+    @Test
+    void anEscortsDuelStationIsHeldOnALeashToItsCharge() {
+        assertArrayEquals(new float[]{30f, 10f}, WarshipDuelHelm.leashed(new float[]{30f, 10f}, 10f, 10f, 25f), 1e-4f);
+        assertArrayEquals(new float[]{35f, 10f}, WarshipDuelHelm.leashed(new float[]{80f, 10f}, 10f, 10f, 25f), 1e-4f);
     }
 
     @Test
@@ -64,7 +78,7 @@ class WarshipDuelHelmTest {
         strongest.knockedOut = true;
         Warship.Mount next = WarshipShipRules.strongest(wolf);
         assertTrue(next != strongest);
-        float expected = next == null ? 0f : WarshipScale.cells(next.weapon.rangePx());
+        float expected = next == null ? 0f : WarshipScale.hullReach(next.weapon.rangePx());
         assertEquals(expected, WarshipDuelHelm.reach(wolf), 1e-4f);
     }
 

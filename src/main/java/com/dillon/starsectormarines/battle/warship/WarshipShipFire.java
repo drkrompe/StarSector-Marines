@@ -199,7 +199,7 @@ public final class WarshipShipFire {
      * tender, a salvage rig) is never steered toward a fight it cannot answer.
      */
     static boolean looksAtHulls(Warship ship, boolean held) {
-        if (ship.destroyed() || ship.departing() || ship.overloaded()) return false;
+        if (ship.destroyed() || ship.departed() || ship.overloaded()) return false;
         return switch (ship.shipFire()) {
             case OFF -> false;
             case ALL -> true;
@@ -232,14 +232,17 @@ public final class WarshipShipFire {
         }
         // A ship free to manoeuvre goes to find the hull wherever it is over the battle; one holding its station
         // turns only toward a hull that is nearly in reach.
-        if (ship.duelHelm()) {
+        // A departing ship answers what is in reach as it goes; it does not hunt.
+        boolean hunting = ship.duelHelm() && !ship.departing();
+        if (hunting) {
             Warship role = packTarget(ship, ships, held);
             if (role != null) {
                 engage(ship, role);
                 return;
             }
         }
-        float notice = ship.duelHelm() ? Float.MAX_VALUE : longestReach(ship) * NOTICE_REACH_SHARE;
+        float notice = hunting ? Float.MAX_VALUE : ship.departing() ? longestReach(ship)
+                : longestReach(ship) * NOTICE_REACH_SHARE;
         Warship current = ship.hullTarget();
         if (current != null && hostileHull(ship, current) && gap(ship, current) <= notice) return;
         Warship best = null;
@@ -327,7 +330,7 @@ public final class WarshipShipFire {
         float reach = 0f;
         for (Warship.Mount m : ship.mounts()) {
             if (WarshipShipRules.gunAtHull(m.weapon) && !m.knockedOut()) {
-                reach = Math.max(reach, WarshipScale.cells(m.weapon.rangePx()));
+                reach = Math.max(reach, WarshipScale.hullReach(m.weapon.rangePx()));
             }
         }
         return reach;
@@ -353,12 +356,14 @@ public final class WarshipShipFire {
         }
         if (e == null) {
             if (m.burstRemaining > 0 || m.cooldown - dt > 0f) return false;
-            if (!ship.hasOrdnance(m)) return false;
+            if (!ship.hasHullOrdnance(m)) return false;
             if (!ship.fluxPool().canStart(WarshipPointDefence.engagementFlux(w))) return false;
+            if (w.missile() && !ship.missileVolleyReady()) return false;
             Warship target = pick(ship, m, mx, my, ships);
             if (target == null) return false;
             e = new Engagement(target, w.beam() ? 1 : Math.max(1, w.burstSize()));
             engagements.put(m, e);
+            if (w.missile()) ship.missileVolleyStarted();
         }
         m.secondsSinceFired += dt;
         m.cooldown -= dt;
@@ -381,7 +386,7 @@ public final class WarshipShipFire {
         e.unaligned = 0f;
         e.timer -= dt;
         if (e.timer > 0f) return true;
-        if (!ship.hasOrdnance(m)) {
+        if (!ship.hasHullOrdnance(m)) {
             engagements.remove(m);
             return true;
         }
@@ -398,7 +403,7 @@ public final class WarshipShipFire {
         }
         fireRound(system, ship, m, target, aim);
         e.roundsLeft--;
-        e.timer = w.burstDelaySeconds();
+        e.timer = MissilePacing.roundDelay(w, w.burstDelaySeconds());
         if (e.roundsLeft <= 0) {
             engagements.remove(m);
             m.cooldown = Math.max(w.cooldownSeconds(), w.beam() ? WarshipPointDefence.MIN_ENGAGEMENT_SECONDS : 0.05f);
@@ -408,7 +413,9 @@ public final class WarshipShipFire {
 
     private static boolean inReach(Warship ship, Warship.Mount m, float mx, float my, Warship target) {
         float[] aim = aimFor(mx, my, target, m.weapon);
-        float reach = WarshipScale.cells(m.weapon.rangePx());
+        // A gun reaches a hull at the hull-to-hull reach; a missile's reach is its own flight, read as it flies.
+        float reach = m.weapon.missile() ? WarshipScale.cells(m.weapon.rangePx())
+                : WarshipScale.hullReach(m.weapon.rangePx());
         // A ship free to manoeuvre holds its missiles for the gun fight: a launcher at a hull waits until the hull is
         // inside the ship's gun reach, so the duel opens with gunnery and a magazine is the close-quarters blow, not a
         // long-range opener. A ship held on its station will never close, so it launches at the missile's own reach.
@@ -500,7 +507,7 @@ public final class WarshipShipFire {
             // A beam lands where it points: on the hull's near face, at once.
             float damage = w.damagePerSecond() * WarshipAirRules.BEAM_PULSE_SECONDS;
             boolean onHull = system.strikeHulls(WarshipSystem.detonation(ship.faction, target.centerX(),
-                    target.centerY(), damage, penetration, blast), mx, my);
+                    target.centerY(), damage, penetration, blast), mx, my, w.damageType());
             noteLanding(onHull);
             // The beam ends where it met the hull or its shield.
             tracers.trace(ship, w, mx, my, system.strikeX(target.centerX()), system.strikeY(target.centerY()), onHull);
@@ -514,7 +521,7 @@ public final class WarshipShipFire {
         float ny = dist > 0f ? dx / dist : 0f;
         float lx = aim[0] + nx * miss;
         float ly = aim[1] + ny * miss;
-        float reach = WarshipScale.cells(w.rangePx());
+        float reach = WarshipScale.hullReach(w.rangePx());
         float[] stray = WarshipShipRules.strayLanding(mx, my, lx, ly, reach, WarshipAirRules.unit(seed, 1));
         float visual = Math.max(1f, WarshipScale.cells(w.explosionRadiusPx()));
         float speed = Math.max(1f, WarshipScale.cells(w.projectileSpeedPx()));

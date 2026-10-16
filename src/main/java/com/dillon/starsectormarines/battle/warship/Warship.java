@@ -196,6 +196,22 @@ public final class Warship {
     float turnVelocity;
     /** The heading wanted on the previous tick, so a helm can lead a heading that is drifting; NaN before the first. */
     float previousDesiredHeading = Float.NaN;
+    /** Seconds until another tube on this hull may start a missile volley ({@link MissilePacing}). */
+    private float missileGate;
+
+    /** Whether a tube on this hull may start a missile volley now. */
+    boolean missileVolleyReady() {
+        return missileGate <= 0f;
+    }
+
+    /** A tube has started a volley: the others wait {@link MissilePacing#SHIP_STAGGER_SECONDS}. */
+    void missileVolleyStarted() {
+        missileGate = MissilePacing.SHIP_STAGGER_SECONDS;
+    }
+
+    void tickMissileGate(float dt) {
+        missileGate = Math.max(0f, missileGate - dt);
+    }
     private boolean headingChosen;
     private float hitPoints;
     /** The hull's armour grid, or null for a hull fitted without one. */
@@ -1269,7 +1285,16 @@ public final class Warship {
 
     /** Whether {@code m} still has a round to spend, from its own magazine and the shared pool. */
     boolean hasOrdnance(Mount m) {
-        return !departing && !m.knockedOut && ordnanceRemaining != 0 && m.ammoRemaining != 0;
+        return !departing && hasHullOrdnance(m);
+    }
+
+    /**
+     * Whether {@code m} has a round to spend at a hull: as {@link #hasOrdnance}, but a departing ship keeps it. A ship
+     * leaving a fight (withdrawing, climbing out) still answers a hull that has it in reach as it goes; it neither
+     * hunts nor fires on the ground.
+     */
+    boolean hasHullOrdnance(Mount m) {
+        return !m.knockedOut && ordnanceRemaining != 0 && m.ammoRemaining != 0;
     }
 
     /** Spends one round of {@code m}. */

@@ -113,10 +113,21 @@ class WarshipShipRulesTest {
     }
 
     @Test
+    void howAShipFightsFallsOutOfWhereItsGunsBear() throws Exception {
+        assertTrue(WarshipDuelHelm.bowFighter(Warship.fit("wolf_hegemony", "wolf_hegemony_Rusk", Faction.ALLY, 0f, 0f, 0f)),
+                "the Wolf's battery bears only ahead");
+        assertTrue(WarshipDuelHelm.bowFighter(Warship.fit("hound_d_pirates", "hound_d_pirates_Standard", Faction.ALLY, 0f, 0f, 0f)),
+                "the Hound's chaingun is a hardpoint");
+        assertFalse(WarshipDuelHelm.bowFighter(Warship.fit("venture", "venture_Greyhook", Faction.ALLY, 0f, 0f, 0f)),
+                "the Venture's turrets bear abeam");
+    }
+
+    @Test
     void aShipWhoseEngagedBroadsideIsStrippedWearsRoundToItsFreshSide() throws Exception {
-        Warship ship = Warship.fit("onslaught", "onslaught_Standard", Faction.ALLY, 0f, 0f, 0f);
+        // The Venture is a broadside ship: her battery bears abeam nearly as heavily as ahead.
+        Warship ship = Warship.fit("venture", "venture_Greyhook", Faction.ALLY, 0f, 0f, 0f);
         WarshipPlating plating = ship.plating();
-        assertTrue(plating != null, "the capital carries an armour grid");
+        assertTrue(plating != null, "the cruiser carries an armour grid");
         // A hull to port, abeam: the bearing straight off the nose's counter-clockwise side.
         float tx = -40f;
         float ty = 0f;

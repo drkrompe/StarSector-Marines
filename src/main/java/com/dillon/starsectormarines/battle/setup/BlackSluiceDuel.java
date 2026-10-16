@@ -14,13 +14,15 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * The duel over Black Sluice ({@code warship-behaviours.md}, ship against ship). Greyhook's salvage rig stands over the pier
- * with its two Hound (P) escorts from the start, quiet: they fire at nothing on the ground, and the battle's hull fire is
- * held until Voss's withdrawal beat ({@link HullFireHold#untilBeat}). When Voss orders the site abandoned, the rig
- * climbs out east, the hold lets the Hounds loose on hostile hulls, and two Wolf (H) arrive through the cloud deck on
- * a visit nobody can command. Every hull fights hulls by the ordinary default; no hull of the duel ever fires at the
- * ground. Nothing is scripted after the order: who escapes, breaks off or falls is the ships' own doing, and the
- * debrief reads it from the {@link WarshipDuelLedger}.
+ * The duel over Black Sluice ({@code warship-behaviours.md}, ship against ship). The <i>Greyhook</i>, Voss's Venture,
+ * stands over the pier with her two Hound (P) escorts from the start, quiet: they fire at nothing on the ground, and
+ * the battle's hull fire is held until Voss's withdrawal beat ({@link HullFireHold#untilBeat}). When Voss orders the
+ * site abandoned, the <i>Greyhook</i> climbs out along the coast, answering what comes into reach as she goes; the
+ * hold lets the Hounds loose to screen and brawl; and two of Rusk's Wolf (H) arrive through the cloud deck on a visit
+ * nobody can command. It stays gun against gun: the Venture's fitting carries no wing, and a warship over a ground
+ * battle never launches one from its bay. Every hull fights hulls by the ordinary default; no hull of the duel ever
+ * fires at the ground. Nothing is scripted after the order: who escapes, breaks off or falls is the ships' own doing,
+ * and the debrief reads it from the {@link WarshipDuelLedger}.
  *
  * <p>The ground referee reads nothing here. Stray rounds and falling wreckage are real on the ground, which is the
  * one way the duel can touch the fight below.
@@ -29,17 +31,23 @@ public final class BlackSluiceDuel implements SmallWarDuel {
 
     private static final Logger LOG = Global.getLogger(BlackSluiceDuel.class);
 
-    /** Where the rig stands over the pier, and where its escorts stand off its flanks. */
+    /** The Venture and her fitting: guns only, no wing. */
+    static final String GREYHOOK_HULL = "venture", GREYHOOK_VARIANT = "venture_Greyhook";
+    /** Rusk's Wolfs and their fitting. */
+    static final String WOLF_HULL = "wolf_hegemony", WOLF_VARIANT = "wolf_hegemony_Rusk";
+    /** Where the Greyhook stands over the pier, and where her escorts stand off her landward flanks. */
     static final float RIG_X = 172f, RIG_Y = 56f;
-    static final float[][] HOUND_POSTS = {{164f, 44f}, {164f, 68f}};
+    static final float[][] HOUND_POSTS = {{148f, 36f}, {148f, 76f}};
     /**
-     * Where the Wolfs drop through the cloud deck: inland of the pier, over the company's side of the basin. Ships in
-     * atmosphere are heavy, so this is about seventy-five cells out rather than a hundred: from a hundred the rig and
-     * its screen climbed out before the Wolfs' guns reached them, and from fifty the screen and the rig both fell.
+     * Where the Wolfs drop through the cloud deck: inland of the pier, over the company's side of the basin, about
+     * half a minute's run at atmospheric speed from where the Greyhook's guns begin to reach.
      */
-    static final float[][] WOLF_ENTRIES = {{95f, 36f}, {95f, 76f}};
-    /** The rig's way out: off the pier's seaward end and over the east edge. */
-    static final float[][] CLIMB_ROUTE = {{186f, 66f}, {BlackSluice.WIDTH + 4f, 78f}};
+    static final float[][] WOLF_ENTRIES = {{80f, 30f}, {80f, 86f}};
+    /**
+     * The Greyhook's way out: she comes off the pier southward and works along the coast before she can climb away
+     * over the east edge. A Venture in atmosphere is slow, so this is a long minute and more under the Wolfs' guns.
+     */
+    static final float[][] CLIMB_ROUTE = {{168f, 84f}, {182f, 108f}, {BlackSluice.WIDTH + 4f, 116f}};
     /** Seconds without a hostile hull over the battle before the Wolfs leave. */
     static final float WOLF_DWELL_SECONDS = 10f;
 
@@ -53,10 +61,7 @@ public final class BlackSluiceDuel implements SmallWarDuel {
     public void stage(BattleSimulation sim) {
         if (rig != null) throw new IllegalStateException("The duel is staged once");
         try {
-            rig = Warship.fit("crig", "crig_Standard", Faction.DEFENDER, RIG_X, RIG_Y, 90f);
-            rig.stationTo(RIG_X, RIG_Y);
-            rig.limitFlux();
-            rig.groundFire(Warship.GroundFire.HOLD);
+            rig = quiet(Warship.fit(GREYHOOK_HULL, GREYHOOK_VARIANT, Faction.DEFENDER, RIG_X, RIG_Y, 90f));
             for (float[] post : HOUND_POSTS) {
                 Warship hound = quiet(Warship.fit("hound_d_pirates", "hound_d_pirates_Standard", Faction.DEFENDER,
                         post[0], post[1], 90f));
@@ -91,14 +96,14 @@ public final class BlackSluiceDuel implements SmallWarDuel {
         rig.climbOut(CLIMB_ROUTE, BlackSluice.WIDTH, BlackSluice.HEIGHT);
         try {
             for (float[] entry : WOLF_ENTRIES) {
-                Warship wolf = quiet(Warship.fit("wolf_hegemony", "wolf_hegemony_Assault", Faction.ALLY,
+                Warship wolf = quiet(Warship.fit(WOLF_HULL, WOLF_VARIANT, Faction.ALLY,
                         entry[0], entry[1], 270f));
                 wolf.arriveFromAbove();
                 wolf.visit(WOLF_DWELL_SECONDS);
                 wolves.add(wolf);
             }
         } catch (Exception e) {
-            LOG.warn("Black Sluice duel could not fit the Wolfs; the rig leaves unopposed", e);
+            LOG.warn("Black Sluice duel could not fit the Wolfs; the Greyhook leaves unopposed", e);
             wolves.clear();
         }
         for (Warship wolf : wolves) sim.addWarship(wolf);
@@ -119,11 +124,11 @@ public final class BlackSluiceDuel implements SmallWarDuel {
         }
     }
 
-    /** Greyhook's rig, or {@code null} when none could be fitted. */
-    public Warship rig() { return rig; }
+    /** The Greyhook, Voss's Venture, or {@code null} when none could be fitted. */
+    public Warship greyhook() { return rig; }
     public List<Warship> hounds() { return List.copyOf(hounds); }
     public List<Warship> wolves() { return List.copyOf(wolves); }
-    /** Every hull of the duel: the rig, its escorts, and the Wolfs once they have come. */
+    /** Every hull of the duel: the Greyhook, her escorts, and the Wolfs once they have come. */
     public List<Warship> hulls() {
         List<Warship> out = new ArrayList<>();
         if (rig != null) out.add(rig);
@@ -149,11 +154,20 @@ public final class BlackSluiceDuel implements SmallWarDuel {
         WarshipDuelLedger.Entry e = ledger.entry(rig);
         WarshipDuelLedger.Outcome o = e == null ? WarshipDuelLedger.Outcome.OVER_THE_BATTLE : e.outcome();
         return switch (o) {
-            case ESCAPED -> "the Greyhook rig got away over the sea.";
-            case DESTROYED -> "the Greyhook rig was shot down onto the basin.";
-            case BROKE_OFF, DEPARTED -> "the Greyhook rig left the field.";
-            case OVER_THE_BATTLE -> "the Greyhook rig was still over the pier when we finished.";
+            case ESCAPED -> "the Greyhook got away over the sea, " + state(rig) + ".";
+            case DESTROYED -> "the Greyhook was shot down onto the basin.";
+            case BROKE_OFF, DEPARTED -> "the Greyhook left the field, " + state(rig) + ".";
+            case OVER_THE_BATTLE -> "the Greyhook was still over the pier when we finished.";
         };
+    }
+
+    /** How a hull that got away looked going: untouched, scratched, hurt or barely flying. */
+    static String state(Warship ship) {
+        float f = ship.hullFraction();
+        if (f >= 0.95f) return "untouched";
+        if (f >= 0.7f) return "scarred";
+        if (f >= 0.35f) return "badly hurt";
+        return "barely flying";
     }
 
     private String group(String who, List<Warship> ships) {

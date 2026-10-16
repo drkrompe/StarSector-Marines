@@ -1,0 +1,34 @@
+{
+    "displayName": "Greyhook",
+    "fluxCapacitors": 10,
+    "fluxVents": 15,
+    "hullId": "venture",
+    "hullMods": [],
+    "permaMods": [],
+    "sMods": [],
+    "variantId": "venture_Greyhook",
+    "wings": [],
+    "weaponGroups": [
+        {
+            "autofire": true,
+            "mode": "LINKED",
+            "weapons": {
+                "WS 001": "heavyac",
+                "WS 003": "heavyac"
+            }
+        },
+        {
+            "autofire": true,
+            "mode": "LINKED",
+            "weapons": {"WS 002": "pulselaser"}
+        },
+        {
+            "autofire": true,
+            "mode": "LINKED",
+            "weapons": {
+                "WS 004": "pdlaser",
+                "WS 007": "pdlaser"
+            }
+        }
+    ]
+}

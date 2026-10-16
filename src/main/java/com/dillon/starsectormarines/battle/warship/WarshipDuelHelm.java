@@ -4,20 +4,27 @@ package com.dillon.starsectormarines.battle.warship;
  * The duel helm: where a ship fighting a hostile hull puts itself, as pure functions of the two hulls' own guns and
  * of where the target is going.
  *
- * <p>Ships fight in atmosphere as ships of the line do, not as fighters: they come alongside and trade fire on
- * parallel lines, and they do not make nose-on passes through each other. So the station a ship flies to is on the
- * target's <em>beam</em> (square to the target's own course, on whichever side the ship already is), a little ahead
- * of it so the two lines converge, at the range its guns give it the advantage. That range is read from the weapons
- * both sides carry and never authored per hull. Its <em>reach</em> is the reach of its strongest anti-ship gun. A
- * ship that outranges its target holds off between the two reaches, inside its own and outside the target's; one
- * that is outranged (or evenly matched) closes to {@link #CLOSE_SHARE} of its own reach, since standing off would
- * only let the other side shoot unanswered. Neither ever closes nearer than the two hulls and a clearance, so big
- * hulls do not overlap. Standing on the target's beam also keeps a ship out of a bow battery, which is where most
- * hulls carry their heaviest gun.
+ * <p>Ships fight in atmosphere as ships of the line do, not as fighters, and how a ship fights follows from where
+ * its guns bear ({@link #bowFighter}):
+ * <ul>
+ *   <li>A <b>broadside</b> ship (one that can keep most of its battery on a target laid abeam) takes its station on
+ *   the target's <em>beam</em>, square to the target's course on whichever side it already is and a little ahead,
+ *   so the two lines converge or run parallel.</li>
+ *   <li>A <b>bow</b> ship (one whose battery bears only ahead) hunts: it takes its station on the bearing round the
+ *   target where the target's own guns bear least, weighed against how far it has to fly to get there, and holds
+ *   its bow on the target from there. A heavy hull cannot pivot, so it plans its approach to that quarter rather
+ *   than meeting the target nose-on.</li>
+ * </ul>
  *
- * <p>The heading is chosen separately ({@link WarshipShipRules#bestHeading}): the side that bears, where the guns
- * allow a broadside. Speed, acceleration and braking are the hull's own ({@link AtmosphericHandling}): the helm only
- * moves the station the ship is already flying to.
+ * <p>The range is the <b>standoff law</b>, read from both hulls and their guns and never authored per hull. A ship's
+ * reach is its strongest anti-ship gun's hull-to-hull reach ({@link WarshipScale#hullReach}). A ship that outranges
+ * its target holds off between the two reaches; one that is outranged (or evenly matched) closes to
+ * {@link #CLOSE_SHARE} of its own reach. Either way the range is never more than {@link #STANDOFF_LENGTHS} of the two
+ * hulls' mean length, so an outranging ship cannot sit untouchable across the map, and never nearer than the two
+ * hulls and a clearance, so big hulls do not overlap.
+ *
+ * <p>The heading is chosen separately ({@link WarshipShipRules#bestHeading}). Speed, acceleration and braking are
+ * the hull's own ({@link AtmosphericHandling}): the helm only moves the station the ship is already flying to.
  */
 public final class WarshipDuelHelm {
 
@@ -29,6 +36,12 @@ public final class WarshipDuelHelm {
     static final float CLOSE_SHARE = 0.75f;
     /** Open air, in cells, a duelling ship keeps between its hull and its target's at the least. */
     static final float CLEARANCE_CELLS = 6f;
+    /** The farthest a duelling ship stands from its target, in the two hulls' mean lengths, centre to centre. */
+    static final float STANDOFF_LENGTHS = 2.5f;
+    /** Bearings round the target a bow ship weighs for its station. */
+    static final int BOW_BEARINGS = 24;
+    /** How much flying the whole range round to a quiet quarter costs against the target's full battery bearing. */
+    static final float BOW_TRAVEL_WEIGHT = 0.35f;
     /** How far ahead of the target's beam the station sits, as a share of the range: the lines converge. */
     static final float CONVERGE_SHARE = 0.25f;
     /** The station is kept this many cells plus half the hull inside the map edge. */
@@ -37,7 +50,7 @@ public final class WarshipDuelHelm {
     /** The reach, in cells, of the ship's strongest weapon that may fire at a hull; zero when it has none. */
     public static float reach(Warship ship) {
         Warship.Mount m = WarshipShipRules.strongest(ship);
-        return m == null ? 0f : WarshipScale.cells(m.weapon.rangePx());
+        return m == null ? 0f : WarshipScale.hullReach(m.weapon.rangePx());
     }
 
     /** Whether a ship with {@code mine} reach holds off a target with {@code theirs}, rather than closing. */
@@ -53,9 +66,72 @@ public final class WarshipDuelHelm {
         return holdsOff(mine, theirs) ? 0.5f * (mine + theirs) : CLOSE_SHARE * mine;
     }
 
-    /** {@link #preferredRange}, but never nearer than the two hulls' half-lengths and {@link #CLEARANCE_CELLS}. */
+    /**
+     * {@link #preferredRange}, never farther than {@link #STANDOFF_LENGTHS} of the two hulls' mean length and never
+     * nearer than the two hulls' half-lengths and {@link #CLEARANCE_CELLS}.
+     */
     public static float preferredRange(float mine, float theirs, float halfLength, float targetHalfLength) {
-        return Math.max(preferredRange(mine, theirs), halfLength + targetHalfLength + CLEARANCE_CELLS);
+        float standoff = STANDOFF_LENGTHS * (halfLength + targetHalfLength);
+        float clear = halfLength + targetHalfLength + CLEARANCE_CELLS;
+        return Math.max(clear, Math.min(standoff, preferredRange(mine, theirs)));
+    }
+
+    /**
+     * Whether {@code ship} fights bow-on: no heading that lays a target abeam keeps {@link
+     * WarshipShipRules#BROADSIDE_SHARE} of the anti-ship firepower that bears dead ahead. Read off the hull's own
+     * mounts, so a Wolf (H), whose battery is all forward, hunts bow-on and an Onslaught or a Venture broadsides.
+     */
+    public static boolean bowFighter(Warship ship) {
+        float d = 1000f;
+        float ahead = WarshipShipRules.firepowerAt(ship, 0f, ship.x, ship.y + d);
+        float beam = Math.max(WarshipShipRules.firepowerAt(ship, 0f, ship.x - d, ship.y),
+                WarshipShipRules.firepowerAt(ship, 0f, ship.x + d, ship.y));
+        return ahead > 0f && beam < ahead * WarshipShipRules.BROADSIDE_SHARE;
+    }
+
+    /**
+     * A bow ship's station: of {@link #BOW_BEARINGS} points round the target at {@code range}, the one where the
+     * target's own anti-ship guns bear least, less {@link #BOW_TRAVEL_WEIGHT} for each range's worth of flying to get
+     * there; kept inside the map.
+     */
+    public static float[] bowStation(Warship ship, Warship target, float range, float mapWidth, float mapHeight) {
+        float tx = target.centerX();
+        float ty = target.centerY();
+        float most = 0f;
+        float[] threat = new float[BOW_BEARINGS];
+        float[][] at = new float[BOW_BEARINGS][];
+        float margin = EDGE_MARGIN_CELLS + 0.5f * ship.lengthCells;
+        for (int i = 0; i < BOW_BEARINGS; i++) {
+            double a = 2.0 * Math.PI * i / BOW_BEARINGS;
+            float x = Math.max(margin, Math.min(mapWidth - margin, tx + (float) Math.cos(a) * range));
+            float y = Math.max(margin, Math.min(mapHeight - margin, ty + (float) Math.sin(a) * range));
+            at[i] = new float[]{x, y};
+            threat[i] = WarshipShipRules.firepowerAt(target, target.facingDegrees, x, y);
+            most = Math.max(most, threat[i]);
+        }
+        float[] best = at[0];
+        float bestScore = Float.MAX_VALUE;
+        for (int i = 0; i < BOW_BEARINGS; i++) {
+            float travel = (float) Math.hypot(at[i][0] - ship.x, at[i][1] - ship.y) / Math.max(1f, range);
+            float score = (most > 0f ? threat[i] / most : 0f) + BOW_TRAVEL_WEIGHT * travel;
+            if (score < bestScore) {
+                bestScore = score;
+                best = at[i];
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Where an escort that is fighting a hull may stand: {@code station}, pulled in to within {@code leash} of its
+     * lead's centre. It screens by fighting, but never so far out that it leaves its charge.
+     */
+    public static float[] leashed(float[] station, float leadX, float leadY, float leash) {
+        float dx = station[0] - leadX;
+        float dy = station[1] - leadY;
+        float d = (float) Math.hypot(dx, dy);
+        if (d <= leash || d < 1e-3f) return station;
+        return new float[]{leadX + dx / d * leash, leadY + dy / d * leash};
     }
 
     /**
