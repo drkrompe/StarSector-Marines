@@ -152,7 +152,8 @@ def build_armor_and_spine(kit):
 
     # A stepped service spine: massive fore/aft cases, lower exposed machinery
     # amidships. Its changing height follows the hull, not a flat plank.
-    for name,x,length,z in [('Fore pressure casing',34,18,15),('Aft machinery casing',-18,20,15)]:
+    # The fore pressure casing belongs to sw_bridge, which builds on it.
+    for name,x,length,z in [('Aft machinery casing',-18,20,15)]:
         kit.box(name,(x,0,z),(length,11,4),kit.cream,1.5)
         for px in (x-5,x,x+5):
             kit.box('Casing access cover',(px,0,z+2.1),(4.1,8,.5),kit.cream,.25)
