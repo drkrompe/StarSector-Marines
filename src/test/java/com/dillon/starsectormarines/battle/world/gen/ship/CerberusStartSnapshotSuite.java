@@ -132,7 +132,7 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
                                     new HeadlessBattleSceneRenderer(context.modRoot(), true));
                             frames.add(new SnapshotArtifact("bay-" + state.name().toLowerCase() + "-detail.png",
                                     renderer.renderHostPass(deck.scene().pass(ShipDeckBattleScene.DeckView.over(bay, 2, 64),
-                                            EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS, RenderLayer.UNITS, RenderLayer.SHUTTLES)),
+                                            EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS, RenderLayer.UNITS, RenderLayer.SHUTTLES, RenderLayer.AIRCRAFT_LIGHTS)),
                                             (bay.width() + 4) * 64, (bay.depth() + 4) * 64)));
                             for (float scale : new float[]{1f, 1.5f}) {
                                 frames.add(new SnapshotArtifact("bay-" + state.name().toLowerCase() + "-" + scale + ".png",
@@ -347,7 +347,7 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
                 var bay = deck.rooms(RoomPurpose.HANGAR).get(occupied == 2 ? 1 : 0);
                 frames.add(new SnapshotArtifact(occupied == 2 ? "hermes-second-commissioned.png" : occupied == 1 ? "hermes-commissioned.png" : "hermes-empty.png",
                         renderer.renderHostPass(scene.pass(ShipDeckBattleScene.DeckView.over(bay, 2, 48),
-                                EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS, RenderLayer.UNITS, RenderLayer.SHUTTLES)),
+                                EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS, RenderLayer.UNITS, RenderLayer.SHUTTLES, RenderLayer.AIRCRAFT_LIGHTS)),
                                 (bay.width() + 4) * 48, (bay.depth() + 4) * 48)));
             } finally { deck.dismiss(); }
         }

@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.tools.layerauthoring.JsonTextPatcher;
+import com.dillon.starsectormarines.i18n.Strings;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -25,6 +26,8 @@ public final class TurretAuthoringDocument {
 
     public static final Path WEAPON_PATH =
             Path.of("mod/data/marines/turret-weapons.weapon.json");
+    public static final Path MISSILE_WEAPON_PATH =
+            Path.of("mod/data/marines/missile-aa-weapons.weapon.json");
     public static final Path TURRET_PATH =
             Path.of("mod/data/marines/turret-emplacements.turret.json");
     public static final Path LAYOUT_PATH =
@@ -32,6 +35,8 @@ public final class TurretAuthoringDocument {
 
     private final Path projectRoot;
     private JSONObject weapons;
+    private JSONObject missileWeapons;
+    private String missileWeaponTemplate;
     private JSONObject turrets;
     private JSONObject layouts;
     private String weaponTemplate;
@@ -41,6 +46,14 @@ public final class TurretAuthoringDocument {
     private TurretAuthoringDocument(Path projectRoot, JSONObject weapons,
                                     JSONObject turrets, JSONObject layouts,
                                     String weaponTemplate, String turretTemplate) throws JSONException {
+        this(projectRoot, weapons, turrets, layouts, weaponTemplate, turretTemplate, null);
+    }
+
+    private TurretAuthoringDocument(Path projectRoot, JSONObject weapons, JSONObject turrets,
+                                    JSONObject layouts, String weaponTemplate, String turretTemplate,
+                                    String missileWeaponTemplate) throws JSONException {
+        this.missileWeaponTemplate = missileWeaponTemplate;
+        this.missileWeapons = missileWeaponTemplate == null ? null : new JSONObject(missileWeaponTemplate);
         this.projectRoot = projectRoot;
         this.weapons = weapons;
         this.turrets = turrets;
@@ -59,7 +72,8 @@ public final class TurretAuthoringDocument {
         return new TurretAuthoringDocument(root,
                 new JSONObject(weaponSource), new JSONObject(turretSource),
                 new JSONObject(Files.readString(root.resolve(LAYOUT_PATH), StandardCharsets.UTF_8)),
-                weaponSource, turretSource);
+                weaponSource, turretSource, Files.exists(root.resolve(MISSILE_WEAPON_PATH))
+                        ? Files.readString(root.resolve(MISSILE_WEAPON_PATH), StandardCharsets.UTF_8) : null);
     }
 
     static TurretAuthoringDocument parse(Path projectRoot, String weaponJson,
@@ -76,10 +90,9 @@ public final class TurretAuthoringDocument {
             JSONObject structure = structures.getJSONObject(index);
             JSONObject mount = find(turrets.getJSONArray("mounts"),
                     structure.getString("mount"));
-            JSONObject weapon = find(weapons.getJSONArray("weapons"),
-                    mount.getString("weapon"));
+            JSONObject weapon = findWeapon(mount.getString("weapon"));
             result.add(new TurretSelection(structure.getString("id"),
-                    structure.getJSONObject("catalog").getString("displayName"),
+                    Strings.resolve(structure.getJSONObject("catalog").getString("displayName")),
                     weapon, mount, structure));
         }
         return List.copyOf(result);
@@ -102,6 +115,7 @@ public final class TurretAuthoringDocument {
     public Catalogs validateCatalogs() throws JSONException {
         WeaponRegistry weaponRegistry = new WeaponRegistry();
         weaponRegistry.ingest(copy(weapons));
+        if (missileWeapons != null) weaponRegistry.ingest(copy(missileWeapons));
         TurretCatalogRegistry turretRegistry = new TurretCatalogRegistry();
         turretRegistry.ingest(copy(turrets), weaponRegistry);
         DefensePostLayoutRegistry layoutRegistry = new DefensePostLayoutRegistry();
@@ -122,12 +136,14 @@ public final class TurretAuthoringDocument {
 
     public String snapshot() throws JSONException {
         return new JSONObject().put("weapons", copy(weapons))
-                .put("turrets", copy(turrets)).put("layouts", copy(layouts)).toString();
+                .put("turrets", copy(turrets)).put("layouts", copy(layouts))
+                .put("missileWeapons", missileWeapons == null ? JSONObject.NULL : copy(missileWeapons)).toString();
     }
 
     public void restore(String snapshot) throws JSONException {
         JSONObject root = new JSONObject(snapshot);
         weapons = copy(root.getJSONObject("weapons"));
+        missileWeapons = root.optJSONObject("missileWeapons");
         turrets = copy(root.getJSONObject("turrets"));
         layouts = copy(root.getJSONObject("layouts"));
     }
@@ -144,22 +160,26 @@ public final class TurretAuthoringDocument {
         List<String> errors = validate();
         if (!errors.isEmpty()) throw new IllegalStateException(String.join("\n", errors));
         Prepared weapon = null;
+        Prepared missileWeapon = null;
         Prepared turret = null;
         Prepared layout = null;
         try {
             weapon = prepare(WEAPON_PATH, weapons, weaponTemplate);
+            if (missileWeapons != null) missileWeapon = prepare(MISSILE_WEAPON_PATH, missileWeapons, missileWeaponTemplate);
             turret = prepare(TURRET_PATH, turrets, turretTemplate);
             layout = prepare(LAYOUT_PATH, layouts, null);
             weapon.replace();
+            if (missileWeapon != null) missileWeapon.replace();
             turret.replace();
             layout.replace();
         } catch (IOException failure) {
-            rollback(failure, layout, turret, weapon);
+            rollback(failure, layout, turret, missileWeapon, weapon);
             throw failure;
         } finally {
-            cleanup(layout, turret, weapon);
+            cleanup(layout, turret, missileWeapon, weapon);
         }
         weaponTemplate = weapon.output;
+        if (missileWeapon != null) missileWeaponTemplate = missileWeapon.output;
         turretTemplate = turret.output;
         markSaved();
     }
@@ -187,6 +207,21 @@ public final class TurretAuthoringDocument {
     }
 
     public Path weaponPath() { return projectRoot.resolve(WEAPON_PATH); }
+
+    /** Source catalog for a selected weapon; saves never merge catalog provenance. */
+    public Path weaponPath(String structureId) throws JSONException {
+        JSONObject weapon = selection(structureId).weapon();
+        return projectRoot.resolve(missileWeapons != null
+                && findWeaponIn(missileWeapons, weapon.getString("id")) ? MISSILE_WEAPON_PATH : WEAPON_PATH);
+    }
+
+    private static boolean findWeaponIn(JSONObject catalog, String id) throws JSONException {
+        JSONArray array = catalog.getJSONArray("weapons");
+        for (int i = 0; i < array.length(); i++) {
+            if (id.equals(array.getJSONObject(i).getString("id"))) return true;
+        }
+        return false;
+    }
 
     public Path turretPath() { return projectRoot.resolve(TURRET_PATH); }
 
@@ -254,6 +289,17 @@ public final class TurretAuthoringDocument {
         }
         Files.writeString(temporary, output, StandardCharsets.UTF_8);
         return new Prepared(target, temporary, original, output);
+    }
+
+    private JSONObject findWeapon(String id) throws JSONException {
+        for (JSONObject catalog : missileWeapons == null ? List.of(weapons) : List.of(weapons, missileWeapons)) {
+            JSONArray array = catalog.getJSONArray("weapons");
+            for (int i = 0; i < array.length(); i++) {
+                JSONObject weapon = array.getJSONObject(i);
+                if (id.equals(weapon.getString("id"))) return weapon;
+            }
+        }
+        throw new JSONException("Unknown referenced weapon '" + id + "'");
     }
 
     private static JSONObject find(JSONArray array, String id) throws JSONException {

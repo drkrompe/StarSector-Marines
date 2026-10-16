@@ -40,6 +40,12 @@ without turning a JSON typo into a silent zero-damage battle.
   state; the missile owns its traveled path and must make physical contact.
   Guidance is not a promised hit, an indirect-fire arc, or an implicit
   point-defense-target declaration. Effects follow the simulated flight.
+- An **air missile** may instead declare a complete powered or drifting flight,
+  with launch/cruise speed, finite travel time, optional target switching and a
+  proximity fuse. A fuse owns a real blast volume and friendly-fire policy;
+  a guided direct-hit round does not acquire splash from its drawn explosion.
+  These dedicated AA salvos finish their committed releases before the reload
+  begins. The air model owns eligibility and physical contact.
 - A **mount class** is the compatibility family for a definition: handheld
   primary or secondary, mech mount, or turret mount. It distinguishes what
   may use a definition; it is not a statement about which individual unit
@@ -208,6 +214,10 @@ The public manifest and authoring examples live in `submod-catalog-contract.md`.
   firing bearing's local frame. Persistent projectile ribbons and impact audio
   are weapon presentation fields consumed consistently by runtime and preview;
   neither is inferred from a turret id.
+- A mount may author several launch mouths in its local lateral/forward frame.
+  Successive releases cycle those mouths through the same geometry used by
+  firing and presentation. Trail particles sample the shot's simulation age;
+  drawing a frame or pausing the battle cannot emit another puff.
 - Mount appearance is optional and carrier-overridable. Emplacements and
   shuttle mounts may composite base/barrel layers while a ground vehicle keeps
   equivalent art in its chassis sheet; absent appearance never changes weapon

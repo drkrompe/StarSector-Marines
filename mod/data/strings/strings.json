@@ -6,6 +6,26 @@
 	# Starsector merges later JSONs on top.
 
 	"marineOps": {
+    "missileAaTestTitle": "Missile AA / Fighter Range",
+    "missileAaTestDescription": "Watch Locust, Swarmer and Proximity batteries engage six finite fighter waves. Real damage, physical misses and escape; the company lands at a safe observation apron.",
+    "missileAaTestLocation": "Missile range",
+    "missileAaTestHint": "Detached test battle / All three AA families / Six fighter waves through 80 seconds",
+    "missileAaLaneLocust": "LOCUST / WEST LANE",
+    "missileAaLaneSwarmer": "SWARMER / CENTER LANE",
+    "missileAaLaneProximity": "PROXIMITY / EAST LANE",
+    "missileAaLaneMeasure": "Waves {0}/{1} / Fighters lost {2} / Escaped {3}",
+    "missileAaTestPhase": "LIVE FIRE",
+    "missileAaTestInstruction": "Observe the finite fighter waves. Pause or slow time to inspect launches; withdraw when finished.",
+
+    "gearCatalogStructureAaLocustDisplayName": "Locust Missile Battery",
+    "gearCatalogStructureAaSwarmerDisplayName": "Swarmer Missile Battery",
+    "gearCatalogStructureAaProximityDisplayName": "Proximity Missile Battery",
+    "gearCatalogWeaponAaLocustDisplayName": "Locust AA Launcher",
+    "gearCatalogWeaponAaLocustModelName": "Locust",
+    "gearCatalogWeaponAaSwarmerDisplayName": "Swarmer AA Launcher",
+    "gearCatalogWeaponAaSwarmerModelName": "Swarmer",
+    "gearCatalogWeaponAaProximityDisplayName": "Proximity AA Launcher",
+    "gearCatalogWeaponAaProximityModelName": "Proximity",
     "openingYardHeading": "SECOND WIND / PLANETARY YARD",
     "openingYardReceipt": "WORK ACCEPTED",
     "openingYardHomeTitle": "ROOM TO LIVE",

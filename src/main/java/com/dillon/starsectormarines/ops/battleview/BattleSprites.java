@@ -53,8 +53,10 @@ public class BattleSprites {
 
     private static final String SPRITE_DECAL_SHEET  = "graphics/decals/decals.png";
     /** Vanilla, so the headless sprite set resolves these off the install root rather than through the game. */
-    static final String ENGINE_FLAME_SPRITE = "graphics/fx/engineflame32.png";
-    static final String ENGINE_GLOW_SPRITE  = "graphics/fx/engineglow32.png";
+    static final String WARSHIP_ENGINE_FLAME_SPRITE = "graphics/fx/engineflame32.png";
+    static final String WARSHIP_ENGINE_GLOW_SPRITE = "graphics/fx/engineglow32.png";
+    static final String ENGINE_FLAME_SPRITE = "graphics/battle/fx/aircraft-engine-flame.png";
+    static final String ENGINE_GLOW_SPRITE  = "graphics/battle/fx/aircraft-engine-glow.png";
     /**
      * The soft disc a body's shadow is drawn with. Ours rather than the
      * vanilla engine glow the shadow layer used to borrow, which is a
@@ -163,6 +165,8 @@ public class BattleSprites {
 
     // ---- engine FX sprites --------------------------------------------------
 
+    private SpriteAPI warshipEngineFlameSprite;
+    private SpriteAPI warshipEngineGlowSprite;
     private SpriteAPI engineFlameSprite;
     private SpriteAPI engineGlowSprite;
     private SpriteAPI shadowBlobSprite;
@@ -277,6 +281,8 @@ public class BattleSprites {
     }
 
     public java.util.EnumMap<com.dillon.starsectormarines.battle.vehicle.VehicleType, UnitSpriteCache> convoySprites() { return convoySprites; }
+    public SpriteAPI warshipEngineFlameSprite() { return warshipEngineFlameSprite; }
+    public SpriteAPI warshipEngineGlowSprite() { return warshipEngineGlowSprite; }
     public SpriteAPI engineFlameSprite()           { return engineFlameSprite; }
     public SpriteAPI engineGlowSprite()            { return engineGlowSprite; }
     public SpriteAPI shadowBlobSprite()            { return shadowBlobSprite; }
@@ -385,7 +391,7 @@ public class BattleSprites {
     public void ensureDoodadSheet()     { doodadTex.ensureLoaded(); parkedVehicleTex.ensureLoaded(); }
 
     /**
-     * Lazy-loads the vanilla engine flame + glow textures. Same one-shot
+     * Lazy-loads aircraft textures and the separate vanilla warship textures. Same one-shot
      * pattern as {@link #ensureAirframeSprites()}: try to load each path
      * once, log + degrade gracefully if either fails. A missing engine
      * sprite just means the engine pass renders nothing — no crash.
@@ -393,6 +399,8 @@ public class BattleSprites {
     public void ensureEngineFxSprites() {
         if (engineFxSpritesLoadAttempted) return;
         engineFxSpritesLoadAttempted = true;
+        warshipEngineFlameSprite = loadEngineFxSpriteOrNull(WARSHIP_ENGINE_FLAME_SPRITE);
+        warshipEngineGlowSprite = loadEngineFxSpriteOrNull(WARSHIP_ENGINE_GLOW_SPRITE);
         engineFlameSprite = loadEngineFxSpriteOrNull(ENGINE_FLAME_SPRITE);
         engineGlowSprite  = loadEngineFxSpriteOrNull(ENGINE_GLOW_SPRITE);
     }

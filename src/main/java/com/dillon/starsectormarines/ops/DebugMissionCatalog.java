@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.fixture.RaidBattleFixture;
 import com.fs.starfarer.api.campaign.RepLevel;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.battle.setup.MissileAaTestSetup;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.campaign.LastLiftProgress;
 import com.dillon.starsectormarines.campaign.FreightRunProgress;
@@ -50,7 +52,8 @@ public final class DebugMissionCatalog {
         SILENT_COLONY("Campaign events", "Silent Colony", "Investigate the archive and recover the stranded survivors.", 2, false),
         SALVAGE_RIGHTS("A Working Ship", "Salvage Rights", "Night recovery: secure the camp, hand the workshop to militia and cover Morrow's inspection.", 2, false),
         COLD_START("A Working Ship", "Cold Start", "Escort repair cargo, restore yard power and build Morrow's first road gun.", 2, false),
-        WORKING_PASSAGE("A Working Ship", "Working Passage", "Escort Morrow through the basin with service pulse rifles and starting Ward armor; build road defenses and secure physical climb-out.", 2, false);
+        WORKING_PASSAGE("A Working Ship", "Working Passage", "Escort Morrow through the basin with service pulse rifles and starting Ward armor; build road defenses and secure physical climb-out.", 2, false),
+        MISSILE_AA("Battlefield fixtures", "@missileAaTestTitle", "@missileAaTestDescription", 1, false);
         public final String group, title, description;
         public final int squads;
         public final boolean hound;
@@ -69,6 +72,7 @@ public final class DebugMissionCatalog {
         /** Local story order; detached concepts and repeatables stay distinct. */
         public String sequence() {
             return switch (this) {
+                case MISSILE_AA -> "AA";
                 case RELIEF -> "01";
                 case COUNTERATTACK -> "02";
                 case JUNCTION -> "03";
@@ -88,12 +92,14 @@ public final class DebugMissionCatalog {
             };
         }
         public String location() {
+            if (this == MISSILE_AA) return Strings.get("missileAaTestLocation");
             if(this==SALVAGE_RIGHTS || this==COLD_START || this==WORKING_PASSAGE)return "Asharu";
             if (corvus() != null) return corvus().planetName;
             return this == VETERANS_JOB || this == SILENT_COLONY || this == LAST_LIFT || this == CREW_RECOVERY ? "Unfixed site" : "Jangala";
         }
         public String sequenceHint() {
             return switch (this) {
+                case MISSILE_AA -> Strings.get("missileAaTestHint");
                 case RELIEF -> "Wayline introduction";
                 case COUNTERATTACK -> "After Jangala 01 / Relief";
                 case JUNCTION -> "After Jangala 02 / Counterattack";
@@ -117,9 +123,9 @@ public final class DebugMissionCatalog {
             Mission.Builder builder = chapter == null ? Mission.builder().type(this == LAST_LIFT || this == CREW_RECOVERY || this == SILENT_COLONY
                     ? MissionType.EXTRACTION : this == VETERANS_JOB ? MissionType.RAID : MissionType.ASSAULT)
                     .tier(this == VETERANS_JOB ? OperationTier.ESTABLISHED : OperationTier.FIRST_CONTRACT)
-                    .risk(this == VETERANS_JOB || this == SILENT_COLONY ? RiskLevel.MEDIUM : RiskLevel.LOW).targetPlanetName(location()).flavor(description)
+                    .risk(this == VETERANS_JOB || this == SILENT_COLONY ? RiskLevel.MEDIUM : RiskLevel.LOW).targetPlanetName(location()).flavor(Strings.resolve(description))
                     : Mission.builder(chapter.mission("unused", chapter.planetName, ""));
-            return builder.id(PREFIX + name()).name(title).source(MissionSource.DEBUG).payout(0)
+            return builder.id(PREFIX + name()).name(Strings.resolve(title)).source(MissionSource.DEBUG).payout(0)
                     .requiredDrops(squads * 2).employerShuttles(0)
                     .marineArrivalPolicy(this == COLD_START ? MarineArrivalPolicy.SECURED_GROUND : MarineArrivalPolicy.PAIRED_HALF_SQUAD)
                     .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED)
@@ -197,6 +203,7 @@ public final class DebugMissionCatalog {
         if (chapter != null) return chapter.fixture(seed, manifest, chapter.profile(chapter.surface)).build();
         TargetProfile profile = new TargetProfile(0, 0, 0, 0, "pirates", Set.of(), SurfacePalette.VERDANT, SettlementLink.ROAD);
         return switch (scenario) {
+            case MISSILE_AA -> MissileAaTestSetup.create(seed, manifest);
             case WORKING_PASSAGE -> BattleSetup.createWorkingPassage(seed,manifest,new TargetProfile(0,0,0,0,"pirates",Set.of(),SurfacePalette.ARID,SettlementLink.ROAD));
             case COLD_START -> BattleSetup.createColdStart(seed,manifest,new TargetProfile(0,0,0,0,"pirates",Set.of(),SurfacePalette.ARID,SettlementLink.ROAD),false,false);
             case SALVAGE_RIGHTS -> BattleSetup.createSalvageRights(seed,manifest,new TargetProfile(0,0,0,0,"pirates",Set.of(),SurfacePalette.ARID,SettlementLink.ROAD));

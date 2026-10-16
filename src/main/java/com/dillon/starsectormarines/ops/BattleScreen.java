@@ -633,6 +633,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             renderer.getGroundLights().spawnFire(burst[0], burst[1], burst[2]);
         }
         driveOrdnanceFx(sim, frameSimDt);
+        renderer.getProjectileTrailFx().tick(sim.getActiveShots(), renderer.getImpactFx());
         renderer.getImpactFx().advance(frameSimDt);
         renderer.getGroundLights().advance(frameSimDt);
         renderer.getGroundLights().syncBoltLights(sim.getActiveShots());
@@ -744,7 +745,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         renderer.getRoofMesh().dispose();
         // The resident fog texture is this battle's grid too.
         renderer.getFogField().dispose();
-        renderer.disposeNightLighting();
+        renderer.disposeLighting();
         // The composited ground atlas holds this session's sheets; a reattach
         // reloads them and composites again.
         renderer.getGroundAtlas().dispose();

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
+import com.dillon.starsectormarines.battle.air.engine.EngineVisualOffsets;
 
 /**
  * A kind of aircraft that can stand on a berth: what it looks like, which hull
@@ -34,6 +35,9 @@ public interface Airframe {
      * drawn size and pivot. Also what keys the engine-FX scrape.
      */
     String renderHullId();
+
+    /** Optional render-only nozzle registration for replacement artwork; native slots remain authoritative elsewhere. */
+    default EngineVisualOffsets engineVisualOffsets() { return EngineVisualOffsets.NONE; }
 
     /**
      * What this aircraft delivers on a run, or {@code null} for one that

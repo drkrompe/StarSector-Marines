@@ -2,8 +2,12 @@ package com.dillon.starsectormarines.battle.turret;
 
 import com.dillon.starsectormarines.battle.weapon.MountClass;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Immutable, id-addressed turret carriage definition. The mount owns the
@@ -27,6 +31,11 @@ public final class TurretMountDef {
      * current bearing. Zero means the mount has one launch line.
      */
     public final float muzzleLateralOffsetCells;
+    /** Authored launch mouths in cells, ordered by release; empty retains legacy paired geometry. */
+    public final List<Muzzle> muzzles;
+
+    public record Muzzle(float lateral, float forward) {}
+
     /** Optional whole-texture mount body. Null lets a carrier own sheet-frame art. */
     public final String spritePath;
     /** Optional recoil/barrel layer paired with {@link #spritePath}. */
@@ -35,7 +44,7 @@ public final class TurretMountDef {
     private TurretMountDef(String id, String weaponId, WeaponDef weapon,
                            int ammoCapacity, float turnRateDegPerSec,
                            float visualCells, float muzzleOffsetCells,
-                           float muzzleLateralOffsetCells,
+                           float muzzleLateralOffsetCells, List<Muzzle> muzzles,
                            String spritePath, String recoilSpritePath) {
         this.id = id;
         this.weaponId = weaponId;
@@ -45,6 +54,7 @@ public final class TurretMountDef {
         this.visualCells = visualCells;
         this.muzzleOffsetCells = muzzleOffsetCells;
         this.muzzleLateralOffsetCells = muzzleLateralOffsetCells;
+        this.muzzles = List.copyOf(muzzles);
         this.spritePath = spritePath;
         this.recoilSpritePath = recoilSpritePath;
     }
@@ -86,6 +96,21 @@ public final class TurretMountDef {
             throw new JSONException("Turret definition '" + id
                     + "' field 'muzzleLateralOffsetCells' must be finite and non-negative");
         }
+        List<Muzzle> muzzles = new ArrayList<>();
+        JSONArray mouths = render != null ? render.optJSONArray("muzzles") : null;
+        if (render != null && render.has("muzzles") && (mouths == null || mouths.length() == 0)) {
+            throw new JSONException("Turret mount '" + id + "' muzzles must be a non-empty array");
+        }
+        for (int i = 0; mouths != null && i < mouths.length(); i++) {
+            JSONArray point = mouths.getJSONArray(i);
+            if (point.length() != 2) throw new JSONException("Muzzle must contain [lateral, forward]");
+            float lateral = (float) point.getDouble(0);
+            float forward = (float) point.getDouble(1);
+            if (!Float.isFinite(lateral) || !Float.isFinite(forward)) {
+                throw new JSONException("Turret mount '" + id + "' muzzle coordinates must be finite");
+            }
+            muzzles.add(new Muzzle(lateral, forward));
+        }
         String sprite = render != null ? optionalText(render, "sprite") : null;
         String recoilSprite = render != null ? optionalText(render, "recoilSprite") : null;
         if ((sprite != null || recoilSprite != null) && visualCells == 0f) {
@@ -98,7 +123,7 @@ public final class TurretMountDef {
         }
         return new TurretMountDef(
                 id, weaponId, weapon, ammoCapacity, turnRate, visualCells, muzzleOffsetCells,
-                muzzleLateralOffsetCells, sprite, recoilSprite);
+                muzzleLateralOffsetCells, muzzles, sprite, recoilSprite);
     }
 
     static String requireText(JSONObject json, String key) throws JSONException {

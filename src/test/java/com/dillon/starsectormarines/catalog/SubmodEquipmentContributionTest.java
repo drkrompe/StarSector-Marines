@@ -71,7 +71,8 @@ class SubmodEquipmentContributionTest {
         FactionEquipmentCatalog oldFactionEquipment = FactionEquipmentCatalog.installed();
         try {
             WeaponRegistry weapons = new WeaponRegistry();
-            ingestFiles(weapons, "marine-weapons.weapon.json", "turret-weapons.weapon.json");
+            ingestFiles(weapons, "marine-weapons.weapon.json", "turret-weapons.weapon.json",
+                    "missile-aa-weapons.weapon.json");
             weapons.ingest(externalWeapon(), OC);
             WeaponRegistry.install(weapons);
 

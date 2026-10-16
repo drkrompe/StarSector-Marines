@@ -13,11 +13,17 @@ public final class TurretMountGeometry {
                                TurretMountDef mount, int releaseIndex) {
         float lateral = mount.muzzleLateralOffsetCells;
         if (lateral > 0f && (releaseIndex & 1) == 0) lateral = -lateral;
+        float forward = mount.muzzleOffsetCells;
+        if (!mount.muzzles.isEmpty()) {
+            TurretMountDef.Muzzle mouth = mount.muzzles.get(Math.floorMod(releaseIndex, mount.muzzles.size()));
+            lateral = mouth.lateral();
+            forward = mouth.forward();
+        }
         float radians = (float) Math.toRadians(facingDegrees);
         float cos = (float) Math.cos(radians);
         float sin = (float) Math.sin(radians);
-        float x = mountX + lateral * cos - mount.muzzleOffsetCells * sin;
-        float y = mountY + lateral * sin + mount.muzzleOffsetCells * cos;
+        float x = mountX + lateral * cos - forward * sin;
+        float y = mountY + lateral * sin + forward * cos;
         return new Point(x, y);
     }
 
