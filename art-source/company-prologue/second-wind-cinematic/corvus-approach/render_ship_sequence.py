@@ -40,6 +40,7 @@ centre. A new model needs only SHIP_BLEND / SHIP_ROOT / NOZZLE_PATTERN / THROAT_
 """
 import json
 import math
+import os
 import re
 import subprocess
 import sys
@@ -198,13 +199,17 @@ def blender_main(argv):
     scene.cycles.samples = int(plan["cycles_samples"])
     scene.cycles.use_denoising = True
     prefs = bpy.context.preferences.addons["cycles"].preferences
-    prefs.compute_device_type = "OPTIX"
-    prefs.get_devices()
-    if not [d for d in prefs.devices if d.type == "OPTIX"]:
-        raise RuntimeError("OPTIX GPU required; no silent CPU fallback")
-    for device in prefs.devices:
-        device.use = device.type == "OPTIX"
-    scene.cycles.device = "GPU"
+    if os.environ.get("C1_CYCLES_CPU"):
+        # Explicit opt-in, for when other jobs hold the GPU: the CPU renders the same image.
+        scene.cycles.device = "CPU"
+    else:
+        prefs.compute_device_type = "OPTIX"
+        prefs.get_devices()
+        if not [d for d in prefs.devices if d.type == "OPTIX"]:
+            raise RuntimeError("OPTIX GPU required; no silent CPU fallback (set C1_CYCLES_CPU=1 to choose CPU)")
+        for device in prefs.devices:
+            device.use = device.type == "OPTIX"
+        scene.cycles.device = "GPU"
     scene.render.use_persistent_data = True
     scene.render.resolution_percentage = 100
     scene.render.film_transparent = True
