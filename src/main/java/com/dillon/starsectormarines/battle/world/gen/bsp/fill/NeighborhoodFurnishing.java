@@ -71,6 +71,15 @@ final class NeighborhoodFurnishing {
                     fit(groups,room,CompactBuildingFurnishing.pair("shelf","locker"),1);
                     if(room.area>=30) fit(groups,room,dining(true),1);
                 }
+                case CONFERENCE_ROOM -> {
+                    if(fit(groups,room,dining(true),1)==0) fit(groups,room,dining(false),1);
+                    fit(groups,room,CompactBuildingFurnishing.pair("desk","locker"),1);
+                }
+                case SERVER_ROOM -> {
+                    fit(groups,room,new Group(2,3,List.of(
+                            new Part("ship-utility.server",0,0,true,false),
+                            new Part("ship-utility.server",1,0,true,false))),Math.max(1,room.area/12));
+                }
                 case PRODUCTION_FLOOR -> {
                     // Compact repair bench, spare parts and its operator's stool.
                     fit(groups,room,BuildingWorkGroups.cargoDesk(true),1);

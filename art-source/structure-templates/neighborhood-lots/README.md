@@ -24,3 +24,11 @@ This pass reuses the established colony furnishings, residential beds/sofas,
 ship mess and lounge tables/seating, main-stores stock, and industrial fence art.
 No new bitmap art was generated. Full-footprint groups and authored plan rotations
 remain authoritative; kitchen/living labels and partitions carry the arrangement.
+
+Facade bays use up to two panes for bedrooms/workrooms, three for living/meeting rooms,
+and up to four for shops and reception. Solid corners, room divisions and door
+jambs interrupt the glazing; smaller homes also retain bed/sofa wall support.
+Each pane retains ordinary shared-edge damage and
+movement rules. The authored corner homes and shops also use wider windows.
+Office rooms use the newer colony terminal desks, ship server cabinets and
+seated tables instead of the old blue civic workstation/counter sprites.

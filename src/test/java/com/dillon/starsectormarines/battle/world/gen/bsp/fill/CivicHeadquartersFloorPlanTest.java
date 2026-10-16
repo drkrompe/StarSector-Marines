@@ -62,14 +62,17 @@ class CivicHeadquartersFloorPlanTest {
             assertEquals(1, purposeComponents(topology, leaf, RoomPurpose.SERVER_ROOM));
             assertTwoCellSpine(grid, topology, leaf, frontage, publicDoor);
 
-            assertEquals(4, doodadsInPurpose(doodads, topology, RoomPurpose.CIVIC_OFFICE),
-                    "each office needs a workstation plus records bank");
-            assertEquals(1, doodadsInPurpose(doodads, topology, RoomPurpose.CONFERENCE_ROOM));
+            assertTrue(doodadsInPurpose(doodads, topology, RoomPurpose.CIVIC_OFFICE) >= 4,
+                    "each office has a terminal and operator seating");
+            assertTrue(doodadsInPurpose(doodads, topology, RoomPurpose.CONFERENCE_ROOM) >= 3,
+                    "meeting room has a table and seating");
             assertTrue(doodadsInPurpose(doodads, topology, RoomPurpose.SERVER_ROOM) >= 2,
-                    "server room needs multiple two-cell racks around an aisle");
-            assertEquals(2,
-                    doodadsInPurpose(doodads, topology, RoomPurpose.CIVIC_RECEPTION),
-                    "paired counters should flank the public circulation lane");
+                    "server room has physical racks around a service aisle");
+            assertTrue(doodadsInPurpose(doodads, topology, RoomPurpose.CIVIC_RECEPTION) >= 2,
+                    "reception includes a staffed desk");
+            assertFalse(doodads.stream().anyMatch(d -> d.definitionId().startsWith("doodad.civic-")
+                    || d.definitionId().equals("doodad.office-records-bank")
+                    || d.definitionId().equals("doodad.office-reception-counter")), "legacy blue office fixtures replaced");
             assertTrue(doodads.stream().anyMatch(doodad -> doodad.quarterTurns != 0),
                     "civic fixtures should turn to fit their rooms " + frontage);
             for (Doodad doodad : doodads) {
@@ -83,9 +86,10 @@ class CivicHeadquartersFloorPlanTest {
                             + windowsFacingPurpose(grid, topology, leaf,
                             RoomPurpose.CONFERENCE_ROOM) >= 2,
                     "public rooms retain exterior firing apertures " + frontage);
-            assertEquals(0, windowsFacingPurpose(
-                            grid, topology, leaf, RoomPurpose.CIVIC_OFFICE),
-                    "compact offices reserve their facade capacity for the fixture group " + frontage);
+            assertTrue(windowsFacingPurpose(grid, topology, leaf, RoomPurpose.CIVIC_OFFICE) >= 2,
+                    "work rooms receive daylight too " + frontage);
+            assertEquals(0, windowsFacingPurpose(grid, topology, leaf, RoomPurpose.SERVER_ROOM),
+                    "secure server room retains opaque walls");
 
             for (int y = leaf.top + 1; y < leaf.bottom; y++) {
                 for (int x = leaf.left + 1; x < leaf.right; x++) {
