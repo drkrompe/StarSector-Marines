@@ -149,6 +149,9 @@ public final class BatteryFort {
         for (int[] b : BASTIONS) {
             int[] nest = BastionSites.embrasure(INSIDE, OX + b[0], OY + b[1], b[4], b[5]);
             WALL[nest[0]][nest[1]] = false;
+            // A second cell behind the notch is wall too: at an arm's tip the wall is one cell thick, and a one-thick wall open on both
+            // faces draws as nothing, so the notch read as a breach through the works.
+            WALL[nest[0] - 2 * b[4]][nest[1] - 2 * b[5]] = true;
             nests.add(nest);
         }
         NESTS = List.copyOf(nests);

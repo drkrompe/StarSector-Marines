@@ -126,6 +126,11 @@ public final class RenderParitySnapshotSuite implements SnapshotSuite {
                 artifacts.add(new SnapshotArtifact("fort-works-" + v[0] + ".png",
                         view.render(otherSim, "render-parity / whole works / " + v[0])));
             }
+            int[] nestCell = fort.placed().placement().cell(fort.placed().plan().nests().get(0)[0], fort.placed().plan().nests().get(0)[1]);
+            BattleReviewFrameRenderer nestView = new BattleReviewFrameRenderer(context.modRoot(), WIDTH_PX, HEIGHT_PX,
+                    nestCell[0] + 0.5f, nestCell[1] + 0.5f, 24f);
+            artifacts.add(new SnapshotArtifact("fort-nest-close.png",
+                    nestView.render(sim, "render-parity / bastion nest, 24 cells across / " + counts)));
             if (fence != null) {
                 BattleReviewFrameRenderer fenceView = new BattleReviewFrameRenderer(context.modRoot(), WIDTH_PX, HEIGHT_PX,
                         fence.cellX + 0.5f, fence.cellY + 0.5f, 56f);
