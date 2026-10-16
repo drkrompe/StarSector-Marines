@@ -12,7 +12,6 @@ Read `mechs-nouns.md` before changing the live story.
 
 | Story | State | Scope |
 | --- | --- | --- |
-| `mech-pattern-cards.md` | Planned | Learned fabrication patterns replace the starter-pattern gate; pattern cards arrive through every existing equipment source. First step of `heavy-equipment-progression.md`. |
 | `mech-bay-vehicles.md` | Planned | A bay space holds a mech or a vehicle; vehicle patterns by weight class; Armour Support stops dropping a fixed APC. |
 | `armor-drop-selection.md` | Planned | Pick which bay spaces come down per call; cooldown between calls; lift caps armor per mission. |
 | `mech-internal-systems.md` | Proposed | Stock frame shipped (armor capacity, speed and cooling cut for all mechs). Next: engine, plating and cooler/loader internals, engine budget, tier-scaled footprints, per-loadout heat. |

@@ -1,6 +1,6 @@
 # Vehicles in the mech bay
 
-Status: PLANNED — after `mech-pattern-cards.md`; lift admission from
+Status: PLANNED — mech patterns shipped (`mechs-nouns.md`); lift admission from
 `heavy-lift-fittings.md`.
 Written: 2026-10-16
 Updated: 2026-10-16 — vehicles share the mech bay's gantries rather than a separate vehicle bay.
