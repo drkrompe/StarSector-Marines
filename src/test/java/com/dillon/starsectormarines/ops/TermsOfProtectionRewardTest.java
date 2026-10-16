@@ -7,35 +7,62 @@ import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
 import com.dillon.starsectormarines.marine.LoadoutCard;
 import com.fs.starfarer.api.campaign.SpecialItemData;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * The Boarding Jack award on both routes: recorded once on victory, delivered nowhere while its
- * pattern's presentation is pending, and never through the card gate's back door.
+ * The Boarding Jack award on both routes: recorded once on victory and placed in cargo once, an
+ * entitlement recorded while the art was still pending delivered on the next load, and never
+ * through the card gate's back door.
  */
 class TermsOfProtectionRewardTest {
-    @Test void eitherRouteRecordsTheEntitlementAndPlacesNothingWhileTheArtIsPending() {
-        assertFalse(LoadoutCard.parse(AgreusArcProgress.BOARDING_JACK_CARD).presentationDeclared(),
-                "this test describes the pending-art state; revisit it when the Boarding Jack art ships");
+    @Test void eitherRouteRecordsTheEntitlementAndPlacesTheCardOnce() {
+        assertTrue(LoadoutCard.parse(AgreusArcProgress.BOARDING_JACK_CARD).presentationDeclared(),
+                "the Boarding Jack's layered art has shipped, so its card is awardable");
         for (var route : AgreusYardAgreement.values()) {
             var p = signed(route); var m = AgreusArcCampaign.offer(p, "Agreus");
             assertEquals("Terms of Protection", m.name);
             assertEquals(AgreusArcProgress.TERMS_PAYMENT, m.payout);
             assertEquals(route == AgreusYardAgreement.HOUSE_CUSTODY, AgreusArcCampaign.custodyRoute(m));
-            assertTrue(m.flavor.contains(AgreusArcCampaign.TERMS_AWARD), "the deferred delivery is disclosed before launch");
+            assertTrue(m.flavor.contains(AgreusArcCampaign.TERMS_AWARD), "the award is disclosed before launch");
             assertTrue(p.begin(m.id, "agreus", "Agreus"));
             var cards = new ArrayList<SpecialItemData>(); var cargo = YardOwnersRewardTest.cargo(cards);
             assertEquals(32000, AgreusArcCampaign.settleTerms(p, victory(m, AgreusArcCampaign.route(route)), cargo, Set.of()));
-            assertTrue(cards.isEmpty(), "no card can become cargo while its presentation is pending");
+            assertEquals(1, cards.size());
+            assertEquals(AgreusArcProgress.BOARDING_JACK_CARD, cards.get(0).getData());
             assertTrue(p.boardingJackEntitled());
-            assertTrue(p.boardingJackDeferred());
+            assertFalse(p.boardingJackDeferred());
             assertTrue(p.agreementRatified());
-            assertFalse(AgreusArcCampaign.deliverBoardingJack(p, cargo, Set.of()));
-            assertTrue(p.boardingJackDeferred(), "a refused delivery leaves the entitlement waiting");
+            assertFalse(AgreusArcCampaign.deliverBoardingJack(p, cargo, Set.of()), "delivered once, never again");
             assertEquals(-1, AgreusArcCampaign.settleTerms(p, victory(m, AgreusArcCampaign.route(route)), cargo, Set.of()));
+            assertEquals(1, cards.size());
         }
+    }
+
+    @Test void anEntitlementRecordedWhileTheArtWasPendingIsDeliveredOnce() {
+        // A save from before the art shipped: the victory was recorded, the delivery was refused.
+        var p = signed(AgreusYardAgreement.YARD_COMPACT); var m = AgreusArcCampaign.offer(p, "Agreus"); p.begin(m.id, "agreus", "Agreus");
+        assertEquals(32000, p.settleTerms(m.id, "agreus", true, 32000, AgreusYardAgreement.YARD_COMPACT,
+                true, true, true, true, true, true, false, 1, 0, 1));
+        assertTrue(p.boardingJackDeferred());
+        var cards = new ArrayList<SpecialItemData>(); var cargo = YardOwnersRewardTest.cargo(cards);
+        assertTrue(AgreusArcCampaign.deliverBoardingJack(p, cargo, Set.of()));
+        assertEquals(List.of(AgreusArcProgress.BOARDING_JACK_CARD), cards.stream().map(SpecialItemData::getData).toList());
+        assertFalse(p.boardingJackDeferred());
+        assertFalse(AgreusArcCampaign.deliverBoardingJack(p, cargo, Set.of()));
+        assertEquals(1, cards.size());
+    }
+
+    @Test void aCardAlreadyLearnedOrCarriedSatisfiesTheDeferredEntitlementWithoutADuplicate() {
+        var p = signed(AgreusYardAgreement.HOUSE_CUSTODY); var m = AgreusArcCampaign.offer(p, "Agreus"); p.begin(m.id, "agreus", "Agreus");
+        p.settleTerms(m.id, "agreus", true, 32000, AgreusYardAgreement.HOUSE_CUSTODY,
+                true, true, true, true, true, true, false, 1, 0, 1);
+        var cards = new ArrayList<SpecialItemData>(); var cargo = YardOwnersRewardTest.cargo(cards);
+        assertFalse(AgreusArcCampaign.deliverBoardingJack(p, cargo, Set.of(AgreusArcProgress.BOARDING_JACK_CARD)));
+        assertTrue(cards.isEmpty());
+        assertFalse(p.boardingJackDeferred());
     }
 
     @Test void foreignIncompleteOrUnavailableReceiptsDoNotConsumeTheAttempt() {

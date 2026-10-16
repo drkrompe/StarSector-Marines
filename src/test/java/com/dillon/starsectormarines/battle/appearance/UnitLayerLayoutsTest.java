@@ -105,7 +105,7 @@ class UnitLayerLayoutsTest {
                 "armor-master-furnace-line", "armor-master-reaver",
                 "armor-master-specter-heavy", "armor-master-bulwark-heavy",
                 "armor-master-reliquary-heavy", "armor-master-lions-mantle",
-                "armor-master-foundry-breaker"
+                "armor-master-foundry-breaker", "armor-master-boarding-jack"
         };
         for (String id : ids) {
             AnimationClip clip = layouts.clip(id, "field-loadout", "idle");

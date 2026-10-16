@@ -1,0 +1,262 @@
+{
+  "palettes": {
+    "rust-orange": "raw ImageGen paint",
+    "hull-grey": [
+      "#2a2f33",
+      "#6c757b",
+      "#b8bfc3"
+    ],
+    "oxide-green": [
+      "#222a21",
+      "#5a6a48",
+      "#a8b08a"
+    ],
+    "soot": [
+      "#19191a",
+      "#3e3c3a",
+      "#7a756e"
+    ]
+  },
+  "parts": {
+    "torso": {
+      "raw_sha256": "a226f1d3d8e46b2c167db949cf5451d4dd6197f7057bfcb8a0c0e75d1b20ae76",
+      "raw_size": [
+        1576,
+        998
+      ],
+      "guide_size": [
+        1200,
+        760
+      ],
+      "window": [
+        0,
+        0,
+        150,
+        95
+      ],
+      "canvas": [
+        150,
+        95
+      ],
+      "fit": {
+        "raw_box_on_guide": [
+          324,
+          46,
+          877,
+          717
+        ],
+        "guide_box": [
+          372,
+          152,
+          828,
+          707
+        ],
+        "scale": [
+          0.8246,
+          0.8271
+        ]
+      },
+      "casing_pixels": 606
+    },
+    "left-shoulder": {
+      "raw_sha256": "8e44f697ada7377948f961881e8982f135a8160f6a2d3fdacd501573553611a6",
+      "raw_size": [
+        1211,
+        1299
+      ],
+      "guide_size": [
+        896,
+        960
+      ],
+      "window": [
+        0,
+        12,
+        56,
+        72
+      ],
+      "canvas": [
+        150,
+        95
+      ],
+      "fit": {
+        "raw_box_on_guide": [
+          72,
+          64,
+          819,
+          908
+        ],
+        "guide_box": [
+          72,
+          66,
+          817,
+          903
+        ],
+        "scale": [
+          0.9973,
+          0.9917
+        ]
+      },
+      "casing_pixels": 1321
+    },
+    "right-shoulder": {
+      "raw_sha256": "dd01a112c7514b1540009012ce547f93f5f391e998ad9ce8f0dd6d2f147136b3",
+      "raw_size": [
+        1293,
+        1216
+      ],
+      "guide_size": [
+        816,
+        768
+      ],
+      "window": [
+        94,
+        18,
+        145,
+        66
+      ],
+      "canvas": [
+        150,
+        95
+      ],
+      "fit": {
+        "raw_box_on_guide": [
+          79,
+          72,
+          733,
+          687
+        ],
+        "guide_box": [
+          80,
+          76,
+          729,
+          685
+        ],
+        "scale": [
+          0.9924,
+          0.9902
+        ]
+      },
+      "casing_pixels": 551
+    },
+    "head": {
+      "raw_sha256": "45e1035afc178079e07d163d9f89fd8e52693eb38157924fbc62a1fcc0170581",
+      "raw_size": [
+        1281,
+        1227
+      ],
+      "guide_size": [
+        1008,
+        966
+      ],
+      "window": [
+        0,
+        0,
+        72,
+        69
+      ],
+      "canvas": [
+        72,
+        69
+      ],
+      "fit": {
+        "raw_box_on_guide": [
+          102,
+          87,
+          898,
+          893
+        ],
+        "guide_box": [
+          100,
+          96,
+          908,
+          928
+        ],
+        "scale": [
+          1.0151,
+          1.0323
+        ]
+      },
+      "casing_pixels": 1307
+    },
+    "foot": {
+      "raw_sha256": "304785c4337c5c53b3f0ee966a55289bd9acfdae75304923dd39483c6496a338",
+      "raw_size": [
+        1072,
+        1467
+      ],
+      "guide_size": [
+        760,
+        1040
+      ],
+      "window": [
+        0,
+        0,
+        38,
+        52
+      ],
+      "canvas": [
+        38,
+        52
+      ],
+      "fit": {
+        "raw_box_on_guide": [
+          72,
+          65,
+          688,
+          980
+        ],
+        "guide_box": [
+          76,
+          62,
+          685,
+          978
+        ],
+        "scale": [
+          0.9886,
+          1.0011
+        ]
+      },
+      "casing_pixels": 456
+    },
+    "latch-screen": {
+      "raw_sha256": "cf2eb5c7d52ce16e52234faec02fd7a42a39a3a8c9dd05135ee33e27dc868183",
+      "raw_size": [
+        1335,
+        1178
+      ],
+      "guide_size": [
+        1088,
+        960
+      ],
+      "window": [
+        0,
+        0,
+        136,
+        120
+      ],
+      "canvas": [
+        136,
+        120
+      ],
+      "fit": {
+        "raw_box_on_guide": [
+          49,
+          88,
+          1039,
+          859
+        ],
+        "guide_box": [
+          65,
+          124,
+          1023,
+          884
+        ],
+        "scale": [
+          0.9677,
+          0.9857
+        ]
+      },
+      "casing_pixels": 1111
+    }
+  }
+}

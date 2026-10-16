@@ -1,10 +1,7 @@
-# Boarding Jack layered art (open)
+# Boarding Jack layered art
 
-Status: GUIDE ONLY. No accepted raw art exists and nothing here is exported.
-`armor.boarding-jack` declares `presentationPending` in the armor catalog and its
-`BOARDING_JACK` appearance family loads no assets, so an actor wearing it draws the
-legacy unit sheet and no card carrying it can become cargo. Shipping this art is
-what lets that declaration be removed.
+Status: SHIPPED. `armor.boarding-jack` declares its presentation and its card is
+awardable; the `BOARDING_JACK` appearance family loads the exports below.
 
 ## What the rig is
 
@@ -29,52 +26,46 @@ No incidental guns, spikes, skulls, chains or machinery promising unowned mechan
 - a deliberately mismatched pair: a larger square welded slab on the left, a smaller
   rounded cargo cap on the right;
 - material regions: casing (the only paintable region), bare steel, joint backing,
-  hoses, service labels and at most one indicator lamp per part. Each exported part
-  needs a casing mask so paint variants share identical silhouettes;
-- Latch Assist's visible actuator/screen assembly is a separate carrier layer on the
-  left shoulder (`latch-screen.png`), shown while carried like the Specter's emitter.
+  hoses, service labels and at most one indicator lamp per part;
+- Latch Assist's actuator/screen assembly is a separate 136x120 carrier layer
+  (`equipment/latch-screen.png`, 0.34 x 0.30 shoulder widths) on the left shoulder,
+  shown while carried like the Specter's emitter and pushed forward while in use.
 
-Run `python art-source/marine-modular-topdown/boarding-jack/make_guide.py`; it
-writes `art-source/templates/boarding-jack-guide.png` (1920x1080 review sheet) and
-one flat `guide-<part>.png` per part on its true export canvas.
+`python art-source/marine-modular-topdown/boarding-jack/make_guide.py` writes the
+1920x1080 review sheet `art-source/templates/boarding-jack-guide.png`, one flat
+`guide-<part>.png` per part on its true export canvas, and the large vector edit
+targets `art-source/templates/boarding-jack-<part>-guide.png`. Each edit target is
+an exact multiple of a fixed window of its export canvas (`edit_windows`), so the
+exporter's registration is arithmetic.
 
-## Prompts (built-in ImageGen, edit target = the matching `guide-<part>.png`)
+## Generation (Codex CLI built-in ImageGen)
 
-Material reference: the accepted Specter v2 exports under
-`mod/graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/`.
+`bash generate.sh <part> [reference.png ...]` sends `prompts/<part>.prompt.txt` with
+the part's edit target to `codex exec -s workspace-write -i <guide> [-i <reference>]`
+and retains the untouched result as `raw/<part>.raw.png`. The torso was generated
+first with no reference; every other part passed `raw/torso.raw.png` as the material
+reference so the set shares one paint, wear and finish. All raws came back with real
+alpha: torso 1576x998, left shoulder 1211x1299, right shoulder 1293x1216, helmet
+1281x1227, foot 1072x1467, Latch screen 1335x1178.
 
-**Torso.** Edit the referenced flat guide into the torso layer of a pirate
-"Boarding Jack" rebuilt boarding exoframe, pixel art, strict 90-degree zenith view,
-north/up. Preserve the guide's silhouette, canvas, placement and the empty oval
-helmet socket exactly. Orange-coded regions become welded mismatched replacement
-plate with weld beads and bolted patches; grey becomes a compact bare-steel power
-pack; dark rim becomes flexible joint backing; purple lines become guarded hoses in
-armored sleeves; yellow becomes a hand-lettered service panel with no readable text.
-Worn, grounded, plausible industrial salvage. Transparent or flat #ff00ff background.
-No head, arms, legs, weapon, spikes, skulls, chains, extra guns or perspective.
+## Export
 
-**Shoulders (one call each).** Edit the referenced flat guide into one isolated
-shoulder slab of the same rig. Preserve the canvas, outline and position exactly
-(the empty canvas around it is required). Left: a large square welded slab with a
-small service panel. Right: a smaller rounded cargo-frame cap from a different donor
-part. Same materials as the torso. Nothing outside the slab.
+`python export_assets.py` is mechanical. Each raw is resampled to its edit target,
+its opaque extent fitted onto the guide's (one per-axis scale and offset, recorded in
+`export-measurements.json`; the torso came back about 21% larger on the canvas than
+its guide, the other parts within 3%), its own alpha bounded by the guide silhouette
+grown 1.2%, downsampled with premultiplied alpha through the window and placed on the
+complete export canvas. The casing mask (`masks/<part>-casing.png`) is warm painted
+plate by colour inside that silhouette; steel, rubber, hoses, cream labels and lamps
+are never painted. The rust-orange default is the raw paint; `paints/hull-grey`,
+`paints/oxide-green` and `paints/soot` run the Specter v1 luminance ramp through the
+mask, so every paint shares one silhouette and alpha.
 
-**Helmet.** Edit the referenced flat guide into a compact pressure helmet seen from
-directly above: low oval dome, flat welded brow plate forward, one tiny indicator
-lamp, two guarded hose ports aft. Preserve the oval footprint and centered pivot.
+Mastering lives in `unit-layer-layouts.appearance.json` (`armor-master-boarding-jack`):
+the Specter's body and shoulder transforms, and a helmet at scale 0.8 offset to the
+measured socket (centre 0.421 of the canvas height, so offset -0.004 shoulder widths),
+which keeps the chest, neck ring and hoses visible between the slab and the cap.
 
-**Foot.** Edit the referenced flat guide into one broad flat cargo boot seen from
-above: toe plate forward, heel latch, dark backing. One foot only.
-
-**Latch screen carrier.** A narrow bolted actuator plate with a small salvaged
-riot-screen panel, top-down, sized to the proposal in `geometry.json`. A screen,
-not a shield dome and not a ram; no weapon.
-
-## After generation
-
-Retain each raw output and its exact prompt here, record measured dimensions and
-registration, cut and export mechanically (as `specter-v2/export_assets.py` does),
-produce casing masks and the four palettes named in `geometry.json`, add the
-`boarding-jack` family to `BattleSprites`, `UnitLayerLayouts` mastering and the
-headless renderers, review at 1920x1080 / 100% through `createSnapshots`, then remove
-`presentationPending` from the catalog entry.
+Review: `gradlew.bat createSnapshots -Psnapshot=boarding-jack-layers` (1920x1080,
+100%): separate parts, the rig beside the Specter, articulated poses, the four
+paints, world scale and Greyhook's raider issue.

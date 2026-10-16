@@ -37,11 +37,18 @@ public enum LayeredArmorFamily {
     /** Articulated support shell; appended to preserve persisted appearance ordinals. */
     ARBALEST_HEAVY,
     /**
-     * Pirate rebuilt boarding frame. Declared ahead of its grounded layered art, which is not
-     * produced yet: nothing loads assets for it, so an actor wearing it keeps the legacy sheet
-     * and its pattern declares {@code presentationPending}. Appended for ordinal stability.
+     * Pirate rebuilt boarding frame: welded mismatched plate on the shell registration Specter
+     * established, so the same pose tracks articulate it. Appended for ordinal stability.
      */
     BOARDING_JACK;
+
+    /**
+     * Whether this family is a powered shell cut into a torso and two hinged shoulder layers
+     * with its own feet, rather than one body plate over the shared infantry boots.
+     */
+    public boolean articulatedShoulders() {
+        return this == SPECTER_HEAVY || this == ARBALEST_HEAVY || this == BOARDING_JACK;
+    }
 
     public static LayeredArmorFamily spawnDefault(UnitType type) {
         switch (type) {

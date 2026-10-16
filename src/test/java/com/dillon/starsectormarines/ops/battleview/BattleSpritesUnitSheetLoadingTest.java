@@ -44,6 +44,14 @@ class BattleSpritesUnitSheetLoadingTest {
         assertEquals(olive + "shoulder-left.png", arbalest.shoulderLeft.sourcePath);
         assertEquals(olive + "shoulder-right.png", arbalest.shoulderRight.sourcePath);
         assertSame(regular.rifle, arbalest.rifle);
+        LayeredUnitAssets jack = sprites.layeredUnitSprites().get(LayeredArmorFamily.BOARDING_JACK);
+        String rig = "graphics/battle/marine-modular-topdown/variants/armor/boarding-jack/";
+        assertEquals(rig + "body.png", jack.body.sourcePath);
+        assertEquals(rig + "head.png", jack.head.sourcePath);
+        assertEquals(rig + "foot.png", jack.foot.sourcePath);
+        assertEquals(rig + "shoulder-left.png", jack.shoulderLeft.sourcePath);
+        assertEquals(rig + "shoulder-right.png", jack.shoulderRight.sourcePath);
+        assertSame(regular.rifle, jack.rifle);
     }
 
     @Test

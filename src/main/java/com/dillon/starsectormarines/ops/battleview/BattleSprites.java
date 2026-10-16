@@ -788,6 +788,9 @@ public class BattleSprites {
         loadLayeredFamily(LayeredArmorFamily.ARBALEST_HEAVY, "specter-heavy/paints/olive",
                 loadLayeredSprite(MODULAR_ROOT + "armor/specter-heavy/paints/olive/foot.png"),
                 rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamily(LayeredArmorFamily.BOARDING_JACK, "boarding-jack",
+                loadLayeredSprite(MODULAR_ROOT + "armor/boarding-jack/foot.png"),
+                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
         loadLayeredFamily(LayeredArmorFamily.BULWARK_HEAVY, "bulwark-heavy", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
         loadLayeredFamily(LayeredArmorFamily.RELIQUARY_HEAVY, "reliquary-heavy", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
         loadLayeredFamily(LayeredArmorFamily.LIONS_MANTLE, "lions-mantle", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
@@ -977,9 +980,9 @@ public class BattleSprites {
         }
         LayeredUnitAssets assets = new LayeredUnitAssets(body, head, foot, foreClaw,
                 rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr,
-                familyId == LayeredArmorFamily.SPECTER_HEAVY || familyId == LayeredArmorFamily.ARBALEST_HEAVY
+                familyId.articulatedShoulders()
                         ? loadLayeredSprite(familyRoot + "shoulder-left.png") : null,
-                familyId == LayeredArmorFamily.SPECTER_HEAVY || familyId == LayeredArmorFamily.ARBALEST_HEAVY
+                familyId.articulatedShoulders()
                         ? loadLayeredSprite(familyRoot + "shoulder-right.png") : null);
         for (Map.Entry<String, LayeredSpriteCache> entry : specialEquipmentLayers.entrySet()) {
             assets.registerSpecialEquipment(entry.getKey(), entry.getValue());

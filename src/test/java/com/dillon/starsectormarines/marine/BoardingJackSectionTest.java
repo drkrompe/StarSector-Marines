@@ -8,12 +8,11 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The pirate Boarding Jack is a tier-III assault suit a rung below military issue, worn in a
- * light section card that only its story may hand out, and only once its art exists.
+ * light section card that only its story may hand out.
  */
 class BoardingJackSectionTest {
 
@@ -66,18 +65,16 @@ class BoardingJackSectionTest {
     }
 
     @Test
-    void onlyItsStoryCanReachItAndNotBeforeItsArtShips() {
+    void onlyItsStoryCanReachIt() {
         String template = EquipmentTemplateCatalog.armorId(SUIT);
         assertEquals("a-small-war", EquipmentTemplateCatalog.installed().storySource(template));
         assertFalse(FactionEquipmentCatalog.installed().entries().stream()
                 .flatMap(pool -> pool.offers().stream())
                 .anyMatch(offer -> offer.templateId().equals(template)));
         assertTrue(CARD.storyReserved());
-        assertFalse(CARD.presentationDeclared());
+        // Its layered art has shipped, so the story may print it; no faction channel sells it.
+        assertTrue(CARD.presentationDeclared());
         assertFalse(LoadoutCards.all().contains(CARD));
-        assertThrows(IllegalArgumentException.class, () -> LoadoutCardItemPlugin.itemData(CARD.id()));
-        // The recovered Specter section next to it stays an ordinary, awardable card.
-        assertTrue(new LoadoutCard(LoadoutCard.Kind.SHEET,
-                SquadEquipmentDoctrines.CORPORATE_SPECTER_SECTION_ARMOR).presentationDeclared());
+        assertEquals(CARD.id(), LoadoutCardItemPlugin.itemData(CARD.id()).getData());
     }
 }

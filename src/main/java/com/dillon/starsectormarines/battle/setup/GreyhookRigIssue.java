@@ -11,12 +11,11 @@ import java.util.Objects;
  * capacity, rating, handling, incoming accuracy and the surplus Latch Assist — so the rig the
  * company meets is the rig it is later paid with, not a stronger enemy copy.
  *
- * <p>Enemy use needs no award gate, but it needs something drawable. Until the pattern's own
- * layered art ships its {@code BOARDING_JACK} family loads nothing and would fall back to the
- * legacy sheet, which draws a powered rig as one more rifleman. While the pattern declares its
- * presentation pending, the rig is drawn on the {@link #STAND_IN} shell — the registration the
- * Boarding Jack's own layers are cut to — and switches to its own family the moment the
- * declaration is removed. The stand-in is presentation only; it changes no number.
+ * <p>Enemy use needs no award gate, but it needs something drawable. The rig draws its own
+ * {@code BOARDING_JACK} family. Should the pattern ever declare its presentation pending again,
+ * the rig falls back to the {@link #STAND_IN} shell — the registration the Boarding Jack's own
+ * layers are cut to — rather than the legacy sheet, which draws a powered rig as one more
+ * rifleman. The stand-in is presentation only; it changes no number.
  */
 public final class GreyhookRigIssue {
     public static final String PATTERN = "armor.boarding-jack";
