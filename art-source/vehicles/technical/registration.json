@@ -1,0 +1,9 @@
+{
+  "outputSize": [3072, 576],
+  "frames": [
+    {"source": "wheel-well-master.png", "sourceSize": [2048, 768], "sourceRect": [0, 0, 1100, 768], "scale": 0.8, "sourceCenter": [531, 375], "targetCenter": [384, 288], "sourceBearing": [847, 375]},
+    {"source": "wheel-well-master.png", "sourceSize": [2048, 768], "sourceRect": [1100, 0, 948, 768], "scale": 0.8, "sourceCenter": [1784, 375], "targetCenter": [1152, 288], "sourceMuzzles": [[1415, 375]]},
+    {"source": "wreck-master.png", "sourceSize": [2048, 768], "sourceRect": [0, 0, 1300, 768], "scale": 0.63, "sourceCenter": [632.73, 406], "targetCenter": [1920, 288], "sourceBearing": [1034, 406]},
+    {"source": "wreck-master.png", "sourceSize": [2048, 768], "sourceRect": [1300, 0, 748, 768], "scale": 0.6, "sourceCenter": [1889, 400], "targetCenter": [2688, 288]}
+  ]
+}

@@ -323,6 +323,10 @@ public class GroundSystem {
             effects.spawnTankWreck(body.x, body.y, body.facingDegrees);
         } else if (type.isApc()) {
             effects.spawnApcWreck(body.x, body.y, body.facingDegrees, type.visualLengthCells);
+        } else if (type == VehicleType.MILITIA_TECHNICAL) {
+            effects.spawnTechnicalWreck(body.x, body.y, body.facingDegrees);
+        } else if (type == VehicleType.CARGO_CARRIER) {
+            effects.spawnHaulerWreck(body.x, body.y, body.facingDegrees);
         } else {
             effects.spawnVehicleWreck(body.x, body.y, type.visualLengthCells, type.visualWidthCells);
         }

@@ -1,0 +1,7 @@
+{
+  "outputSize": [2048, 384],
+  "frames": [
+    {"source": "master.png", "sourceSize": [2048, 768], "sourceRect": [0, 0, 2048, 768], "scale": 0.5, "sourceCenter": [1024, 384], "targetCenter": [512, 192]},
+    {"source": "wreck-master.png", "sourceSize": [2048, 768], "sourceRect": [0, 0, 2048, 768], "scale": 0.5, "sourceCenter": [1024, 384], "targetCenter": [1536, 192]}
+  ]
+}
