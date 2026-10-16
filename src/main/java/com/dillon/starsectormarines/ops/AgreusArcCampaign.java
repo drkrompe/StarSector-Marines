@@ -27,7 +27,7 @@ public final class AgreusArcCampaign {
             + "Yard management and debt enforcement require a separate agreement; this job chooses neither. Learned patterns remain yours. Deploying accepts these terms; you may leave and return without a deadline.";
     public static final String WARRANT_BRIEF = "Castle: North Weir is working. Rusk now offers 30,000 credits and the Recovered Specter service pattern for the Low Quay recovery. "
             + "Secure the records office, then escort the supplier's technician into the calibration cage. Eight seconds of protected work at each site authenticate the archive and release the kit. "
-            + "Cover its marked carrier back to the western egress. The Cask Runners hold the stores and may try to block the loading exit. Four constables cover our approach; bring your working tender and fitted boats. "
+            + "Cover its marked carrier back to the western egress. Drent Haulage crews hold the stores and may try to block the loading exit. Four constables cover our approach; bring your working tender and fitted boats. "
             + "Nadi Orr's signed shortage list identifies clinic consignments among the diverted cargo; those belong to the clinic, not our equipment award. "
             + "The stores are sealed; outside we use pressure protection. Losing the calibration load, or the technician before the kit is recovered, fails the job. "
             + "Authenticated records survive withdrawal. A new mobilization funds replacement calibration material and personnel. "
@@ -39,7 +39,7 @@ public final class AgreusArcCampaign {
     public static final String YARD_BRIEF = "Castle: Rusk offers 36,000 credits and the Recovered Arbalest service pattern for a working inspection at Latchkey Yard. "
             + "Secure dispatch first. The constables will hold our gains while we clear the tooling hall and operator entrance. Six seconds of uncontested company presence secures each site; enemy contact can take it back. "
             + "Hold all three together while a living technician completes twelve uninterrupted seconds at the tools, covered by company infantry. The marked calibration machine must survive ordinary fire and blast damage. "
-            + "Lenna Saye has supplied machine labels and a safe route from the housing frontage. The Hookhands hold the yard and have a finite counterattack; workers are not targets. "
+            + "Lenna Saye has supplied machine labels and a safe route from the housing frontage. Voss's prize crews hold the yard and have a finite counterattack; workers are not targets. "
             + "Bring three full squads if possible, fitted boats and your working tender. Rusk funds heavy lift for your active owned mech lance if available; no walker is supplied. "
             + "Recovered Specter is useful, but regular issue can do this job. Sealed halls and pressure protection suit Agreus's airless surface. "
             + "Lost tooling or both inspection technicians ends this attempt. A later mobilization explicitly funds replacement personnel and tooling refit, with the losses kept on record. ";

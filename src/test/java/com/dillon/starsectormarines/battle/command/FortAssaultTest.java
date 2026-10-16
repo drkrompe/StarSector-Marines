@@ -507,6 +507,55 @@ class FortAssaultTest {
                 "and is the one sent (squad " + spare + ")");
     }
 
+    /** Every nest but the one nearest the breach mouth seen alive and then gone under a witness: one live nest sees the way up. */
+    private static int[] killAllButTheNestAtTheMouth(Picture p, FortAssault.Way breach) {
+        int keep = 0;
+        double best = Double.MAX_VALUE;
+        for (int i = 0; i < p.works.nests.size(); i++) {
+            double gap = Math.hypot(p.works.nests.get(i)[0] - breach.mouthX(), p.works.nests.get(i)[1] - breach.mouthY());
+            if (gap < best) {
+                best = gap;
+                keep = i;
+            }
+        }
+        List<int[]> witness = new ArrayList<>();
+        for (int[] nest : p.works.nests) witness.add(new int[] {nest[0] - 12, nest[1] - 12});
+        p.belief.update(p.works, new ArrayList<>(p.works.nests), witness);
+        p.belief.update(p.works, List.of(p.works.nests.get(keep)), witness);
+        return p.works.nests.get(keep);
+    }
+
+    @Test
+    void aSapperIsLetGoIntoANestWhoseSightToTheRouteAStandingScreenCutsAndHeldWithoutIt() {
+        FortAssault.Way breach = new Picture().works.ways.stream().filter(w -> w.variant() == Variant.BREACH).findFirst().orElseThrow();
+        // Control: one live nest sees the way up and nothing answers it, so the sapper waits.
+        Picture held = new Picture();
+        int[] nest = killAllButTheNestAtTheMouth(held, breach);
+        held.execution = new FortAssault.Execution(held.works, held.belief, new FortAssault.Defence(breach, 0, 0, 0f, FortAssault.BreachMeans.CLOSE, null), 0);
+        CommandTopology walled = walledAt(breach.mouthX() - breach.outX(), breach.mouthY() - breach.outY());
+        held.execution.run(0, M, held.objective, held.members, held.bodies, walled, held.notes);
+        assertEquals(-1, held.execution.satchelRecord().releasedTick, "a live, open nest on the route: held");
+
+        // The same company with a pot standing on the nest: its sight to every cell of the route is cut for longer than the crossing.
+        Picture screened = new Picture();
+        killAllButTheNestAtTheMouth(screened, breach);
+        screened.execution = new FortAssault.Execution(screened.works, screened.belief, new FortAssault.Defence(breach, 0, 0, 0f, FortAssault.BreachMeans.CLOSE, null), 0);
+        screened.execution.clouds(List.of(new SmokeCloudFact(nest[0] + 0.5f, nest[1] + 0.5f, 3f, 120f)), 0);
+        Map<Integer, Order> orders = screened.execution.run(0, M, screened.objective, screened.members, screened.bodies, walled, screened.notes);
+        FortAssault.SatchelRecord record = screened.execution.satchelRecord();
+        assertEquals(0, record.releasedTick, "the screen stands, so the nest reads blinded and the sapper goes: " + screened.notes);
+        assertEquals(1, record.answersAtRelease.getOrDefault(SatchelApproach.Answer.BLINDED, 0));
+        assertTrue(anyOrder(orders, AssignmentReason.ASSAULT_BREACH));
+
+        // A cloud with less life than the crossing is not a screen: it has thinned before the sapper would be across.
+        Picture thin = new Picture();
+        killAllButTheNestAtTheMouth(thin, breach);
+        thin.execution = new FortAssault.Execution(thin.works, thin.belief, new FortAssault.Defence(breach, 0, 0, 0f, FortAssault.BreachMeans.CLOSE, null), 0);
+        thin.execution.clouds(List.of(new SmokeCloudFact(nest[0] + 0.5f, nest[1] + 0.5f, 3f, 1f)), 0);
+        thin.execution.run(0, M, thin.objective, thin.members, thin.bodies, walled, thin.notes);
+        assertEquals(-1, thin.execution.satchelRecord().releasedTick, "one second of cloud does not cover a crossing and a charge dwell");
+    }
+
     @Test
     void aCloseBreacherIsLetGoAtOnceWhenNoCoveringNestIsBelievedLive() {
         Picture p = new Picture();

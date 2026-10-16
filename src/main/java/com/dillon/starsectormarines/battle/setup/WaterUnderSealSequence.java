@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-/** Physical repair load, protected switch work and a finite Salt Knife road attack. */
+/** Physical repair load, protected switch work and a finite Berth Four road attack. */
 public final class WaterUnderSealSequence implements Objective {
     private final WaterUnderSealProgress progress = new WaterUnderSealProgress();
     private final int technicians;
@@ -168,7 +168,7 @@ public final class WaterUnderSealSequence implements Objective {
         int batch = released++; int squad = sim.mintSquad(Faction.DEFENDER, UnitType.MILITIA);
         for (int i = batch * 6; i < batch * 6 + 6; i++) sim.spawn(reserve.get(i).squad(squad));
         sim.getSquad(squad).originalSize = 6;
-        sim.claimSquadCommand(squad, CommandAuthority.MISSION_COMMAND, WaterUnderSealCommand.issuer(Faction.DEFENDER), "Salt Knife committed road element");
+        sim.claimSquadCommand(squad, CommandAuthority.MISSION_COMMAND, WaterUnderSealCommand.issuer(Faction.DEFENDER), "Berth Four committed road element");
         roadSquads.add(squad);
         log.emitOnce(sim.getSimTickIndex(), "water_under_seal.road_element_" + batch, StoryBeatLog.Audience.OBSERVER_ONLY);
     }

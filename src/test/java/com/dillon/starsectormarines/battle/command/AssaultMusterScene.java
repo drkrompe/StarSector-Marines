@@ -398,7 +398,8 @@ public final class AssaultMusterScene implements BehaviorScene {
                         s == null || s.heldSinceTick < 0 || s.releasedTick >= 0 || s.approachChangedTick >= 0
                                 || s.lastHeldTick - s.lastProgressTick <= SatchelApproach.PATIENCE_TICKS + SATCHEL_PULSE_ALLOWANCE_TICKS,
                         s == null ? "no satchel record" : "held " + s.heldTicks() + " ticks, " + (s.lastHeldTick - s.lastProgressTick) + " since a further nest was answered (patience " + SatchelApproach.PATIENCE_TICKS
-                                + "), released at " + s.releasedTick + ", approach changed at " + s.approachChangedTick + " " + s.approachChange));
+                                + "), released at " + s.releasedTick + ", approach changed at " + s.approachChangedTick + " " + s.approachChange
+                                + (s.breachLog.isEmpty() ? "" : "; breach roles " + s.breachLog)));
                 verdicts.add(Verdict.of("a-smoke-screen-asked-for-was-thrown-or-ended-on-purpose",
                         s == null || s.asked(SatchelApproach.Enabler.SMOKE) == 0 || !t.cloudsStood.isEmpty()
                                 || s.smokeLog.stream().anyMatch(line -> line.contains("withdrawn") || line.contains("retired")),

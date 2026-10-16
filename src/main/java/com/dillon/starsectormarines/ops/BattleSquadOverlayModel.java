@@ -48,6 +48,7 @@ final class BattleSquadOverlayModel {
     private final MutableSignal<String> tooltipSpecial;
     private final MutableSignal<String> tooltipSystem;
     private final MutableSignal<String> tooltipProfile;
+    private final MutableSignal<String> tooltipRecord;
     private final Runnable backAction;
     private final LongConsumer selectMemberAction;
 
@@ -70,6 +71,7 @@ final class BattleSquadOverlayModel {
         tooltipSpecial = reactor.signal("");
         tooltipSystem = reactor.signal("");
         tooltipProfile = reactor.signal("");
+        tooltipRecord = reactor.signal("");
     }
 
     BattleSquadOverlayModel(Reactor reactor, Runnable backAction) {
@@ -90,6 +92,7 @@ final class BattleSquadOverlayModel {
         props.put("tooltipSpecial", tooltipSpecial);
         props.put("tooltipSystem", tooltipSystem);
         props.put("tooltipProfile", tooltipProfile);
+        props.put("tooltipRecord", tooltipRecord);
         props.put("backAction", backAction);
         return props;
     }
@@ -150,6 +153,7 @@ final class BattleSquadOverlayModel {
             if (grouped.get(team).size() < MEMBERS_PER_TEAM) grouped.get(team).add(member);
         }
 
+        long topContributor = topContributor(squad.members());
         tilesById.clear();
         List<FireTeamView> teams = new ArrayList<>(FIRE_TEAM_COUNT);
         for (int team = 0; team < FIRE_TEAM_COUNT; team++) {
@@ -158,7 +162,7 @@ final class BattleSquadOverlayModel {
                 String id = "battle-squad-member-" + team + "-" + slot;
                 MemberTile tile = slot < grouped.get(team).size()
                         ? tile(id, team, slot, grouped.get(team).get(slot),
-                                selectedMemberId, memberSelectionEnabled)
+                                selectedMemberId, memberSelectionEnabled, topContributor)
                         : emptyTile(id);
                 members.add(tile);
                 tilesById.put(id, tile);
@@ -171,6 +175,7 @@ final class BattleSquadOverlayModel {
         }
         fireTeams.set(List.copyOf(teams));
         if (hoveredTileId != null && !tilesById.containsKey(hoveredTileId)) clearHover();
+        else if (hoveredTileId != null) showTooltip(tilesById.get(hoveredTileId));
         return new Presentation(true);
     }
 
@@ -182,6 +187,15 @@ final class BattleSquadOverlayModel {
         }
         if (tileId.equals(hoveredTileId)) return;
         hoveredTileId = tileId;
+        showTooltip(tile);
+    }
+
+    /** Fills the tooltip from {@code tile}; re-run on every update so the mission record stays live. */
+    private void showTooltip(MemberTile tile) {
+        if (tile == null || !tile.occupied()) {
+            clearHover();
+            return;
+        }
         tooltipClasses.set(TOOLTIP_VISIBLE);
         tooltipTitle.set(tile.tooltipTitle());
         tooltipTeam.set(tile.tooltipTeam());
@@ -189,6 +203,30 @@ final class BattleSquadOverlayModel {
         tooltipSpecial.set(tile.tooltipSpecial());
         tooltipSystem.set(tile.tooltipSystem());
         tooltipProfile.set(tile.tooltipProfile());
+        tooltipRecord.set(tile.tooltipRecord());
+    }
+
+    /**
+     * The member doing the most work this mission: most kills, then most damage dealt. No one is
+     * marked before anyone has landed a round, so the mark never names a marine for doing nothing.
+     */
+    static long topContributor(List<MemberState> members) {
+        MemberState best = null;
+        for (MemberState member : members) {
+            if (member.kills() == 0 && member.damageDealt() <= 0f) continue;
+            if (best == null || member.kills() > best.kills()
+                    || member.kills() == best.kills() && member.damageDealt() > best.damageDealt()) {
+                best = member;
+            }
+        }
+        return best == null ? 0L : best.entityId();
+    }
+
+    /** What this marine is doing right now, read from state the simulation already keeps. */
+    static String status(MemberState member) {
+        if (member.engaged()) return "ENGAGED";
+        if (member.maxHp() > 0f && member.hp() < member.maxHp()) return "WOUNDED";
+        return "HOLDING";
     }
 
     void clearHover() {
@@ -230,18 +268,22 @@ final class BattleSquadOverlayModel {
                 systemStatus(systems, system, unit),
                 profile.experienceTier().displayName,
                 profile.aptitude().displayName,
-                sim.role().role(unit), sim.identity().armorClass(unit));
+                sim.role().role(unit), sim.identity().armorClass(unit),
+                sim.telemetry().roundsFired(unit), sim.telemetry().roundsHit(unit),
+                sim.telemetry().kills(unit), sim.telemetry().damageDealt(unit),
+                sim.combat().targetId(unit) != 0L || sim.combat().reflexTargetId(unit) != 0L);
     }
 
     private MemberTile tile(String id, int team, int slot, MemberState member,
-                            long selectedMemberId, boolean memberSelectionEnabled) {
+                            long selectedMemberId, boolean memberSelectionEnabled, long topContributor) {
         float hpFraction = member.maxHp() > 0f ? clamp01(member.hp() / member.maxHp()) : 0f;
         Color hpColor = hpFraction < 0.34f ? new Color(0xE9, 0x8B, 0x83)
                 : hpFraction < 0.67f ? new Color(0xFF, 0xD4, 0x64)
                 : new Color(0x78, 0xD4, 0x94);
         String classes = "member-card" + (member.leader() ? " member-leader" : "")
                 + (hpFraction < 0.34f ? " member-critical" : "")
-                + (member.entityId() == selectedMemberId ? " member-selected selected" : "");
+                + (member.entityId() == selectedMemberId ? " member-selected selected" : "")
+                + (member.entityId() == topContributor ? " member-top" : "");
         String tag = member.leader() ? "LDR " + (slot + 1) : "M-" + (slot + 1);
         String special = member.specialAbbrev() != null ? member.specialAbbrev()
                 : roleBadge(member.role());
@@ -268,6 +310,9 @@ final class BattleSquadOverlayModel {
                         : "SUIT SYSTEM · NONE",
                 "PROFILE · " + member.experience() + " / " + member.aptitude()
                         + " · " + roleName(member.role()),
+                "THIS MISSION · " + member.roundsHit() + "/" + member.roundsFired() + " landed · "
+                        + member.kills() + (member.kills() == 1 ? " kill" : " kills") + " · "
+                        + Math.round(member.damageDealt()) + " dmg · " + status(member),
                 member.entityId(), !memberSelectionEnabled, () -> selectMember(id));
     }
 
@@ -283,7 +328,7 @@ final class BattleSquadOverlayModel {
         return new MemberTile(id, id + "-line", id + "-name", id + "-primary",
                 id + "-special", id + "-hp-track", id + "-hp", false,
                 "member-card member-empty", "—", "", "",
-                "width: 0%;", "", "", "", "", "", "", 0L, true, () -> selectMember(id));
+                "width: 0%;", "", "", "", "", "", "", "", 0L, true, () -> selectMember(id));
     }
 
     private List<FireTeamView> emptyTeams() {
@@ -358,7 +403,8 @@ final class BattleSquadOverlayModel {
                        String specialName, String specialAbbrev, String specialStatus,
                        String systemName, String systemStatus,
                        String experience, String aptitude, UnitRole role,
-                       ArmorClass armorClass) { }
+                       ArmorClass armorClass, int roundsFired, int roundsHit, int kills,
+                       float damageDealt, boolean engaged) { }
 
     record FireTeamView(String id, String headerId, String labelId, String strengthId,
                         String membersId, String label, String strength,
@@ -386,7 +432,7 @@ final class BattleSquadOverlayModel {
                       String primary, String special, String hpStyle,
                       String tooltipTitle, String tooltipTeam, String tooltipPrimary,
                       String tooltipSpecial, String tooltipSystem, String tooltipProfile,
-                      long entityId, boolean disabled, Runnable selectAction)
+                      String tooltipRecord, long entityId, boolean disabled, Runnable selectAction)
             implements MarkupPropertySource {
         @Override
         public Object markupProperty(String property) {

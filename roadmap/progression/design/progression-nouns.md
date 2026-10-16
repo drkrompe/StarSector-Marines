@@ -1319,6 +1319,30 @@ and recommended squads describe quantity separately. The comparison is advice,
 not an invisible strength calculation or a source of battle scaling; it must
 not prevent a valid understrength fire team from attempting the work.
 
+**The company roster ranks the company without arithmetic.** The Barracks'
+Company Roster lists every marine on the books (the fallen are not) on one
+comparable row: squad, status with the return day of the wounded, aptitude, the
+band their issued armour sets, the primary and its grade, the armour, and the
+service record that also decides seniority. The three quality axes are drawn as
+**absolute** four-step bars, never scaled to the company, because a relative bar
+makes a company of Limited marines look uniformly excellent; the step holding the
+company's median aptitude is outlined so each marine also reads against the
+company. Every column sorts, quality columns best first. Captains' traits read on
+the officer dossier, and a trait with no mechanic says so rather than claiming
+one; outlook traits read as character. Retained screens assign their compact text
+faces by role (heading, body, compact) rather than one display face everywhere.
+
+**The battle squad panel says who is doing the work.** Hovering a marine's card
+in the selected-squad panel shows a running line for this mission: rounds landed
+out of rounds fired, kills, damage dealt, and what the marine is doing now. That
+status reads only state the simulation already keeps: *engaged* while the marine
+holds a target, *wounded* below full health, otherwise *holding*. There is no
+per-marine suppression state, so the panel does not invent one. The marine with
+the most kills (then most damage) carries a warm mark on their card. Nobody is
+marked until someone has landed a round, so the mark never names a marine for
+doing nothing. The record is mission telemetry read after the tick and refreshed
+while the card stays hovered; it never feeds back into the fight.
+
 Avoid stacking redundant
 battlefield overlays; start with the closest decision surface and add in-world
 signal only when it materially improves play.
