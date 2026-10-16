@@ -128,6 +128,15 @@ through the catalog text. That probably wants a portrait-less "cinematic caption
 component beside `story-subtitle.mlx` and `company-subtitle.mlx`, not the boxed
 battle panel.
 
+## Owner decisions (2026-10-16)
+
+- The planet label stays at three parts: JANGALA, then CORVUS / HEGEMONY.
+- Orbitron (SIL OFL 1.1, `ui_fonts/`) is approved and sets the planet name and
+  speaker tags. Captions stay in a plain face for legibility. Orbitron has no middle
+  dot, so the separators are slashes.
+- Captions continue into C2 for lines 7 and 8, by the lead's call, for consistency
+  with C1.
+
 ## Open questions for the owner
 
 1. Should the planet ID name the system and owner (CORVUS · HEGEMONY), or the

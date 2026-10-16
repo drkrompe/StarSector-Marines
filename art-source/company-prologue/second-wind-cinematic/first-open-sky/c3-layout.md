@@ -216,6 +216,12 @@ realism plates) and the reveal's 3D scenery.
 | `compose_c3.py` | Blockout stills in `review/`; `--movie` writes `build/c3-blockout.mp4`. |
 | `prompts/`, `assets/` | Codex briefs and masters with provenance. |
 
+## Owner decisions (2026-10-16)
+
+- **The 9-degree tilt is accepted.** Rework the entry transition as needed to hide
+  the tilt change from C2's 18.6 degrees.
+- **The shared window frame is undecided.** See question 2.
+
 ## Open questions
 
 1. **Pitch, shared with the entry.** C3 proposes 9 degrees down; the entry tail

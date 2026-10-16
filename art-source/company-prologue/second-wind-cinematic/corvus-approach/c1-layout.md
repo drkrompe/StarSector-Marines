@@ -146,3 +146,13 @@ sprites.
   and every rejected attempt with the reason.
 - Do not commit, do not edit files outside your layer, and do not touch
   `compose_c1.py`. The lead integrates.
+
+## Known scale debt (for the re-render pass)
+
+Second Wind uses the ship pipeline's 0.65 m per hull unit (about 66 m). The traffic
+model above still counts a vanilla sprite pixel as one metre, so every Hegemony hull
+and freighter is 1/0.65 too long in metres. On-screen sizes are unaffected, because
+size and distance scale together, but parallax and the hull-to-hull comparisons in
+the text are off. Fix this on the pass that re-renders C1 with the new Second Wind:
+derive the traffic's metres from the same `metres_per_unit`, scaling lengths and
+distances together, and keep the station's 2.4 km as a real-world figure.
