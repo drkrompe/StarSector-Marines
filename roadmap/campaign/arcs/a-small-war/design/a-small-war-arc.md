@@ -131,6 +131,10 @@ Before Chapter 4, explicit signing chooses House Custody or Yard Compact.
 House Custody offers a 12,000-credit Chapter 5 premium; the compact forgoes it
 to retain inspected common access and Lenna's contracting relationship.
 Both retain the same core equipment rewards; defeat cannot reset the signature.
+The decision's campaign layer is implemented: readable agreements and Castle's
+comparison at Company HQ, a final signature or pre-signature decline, ratification
+recorded separately for Chapter 4 victory, and the premium held for Chapter 5.
+Terms of Protection itself shows only as in preparation.
 
 Planned District Escort is a separate 24,000-credit repeatable through the
 chosen contact. The proposed later procurement introduction is a lead requiring
