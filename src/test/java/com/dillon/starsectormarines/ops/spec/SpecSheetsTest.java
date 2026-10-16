@@ -238,6 +238,14 @@ class SpecSheetsTest {
         assertEquals(SpecSheets.ACCENT_SPECIAL, specialSheet.accent());
     }
 
+    @Test
+    void aRestrictedCardNamesTheTraditionThatIssuesIt() {
+        SpecSheet sheet = SpecSheets.card(EquipmentTemplateCatalog.armor("armor.heavy"));
+
+        assertTrue(sheet.subtitle().startsWith("Restricted"), sheet.subtitle());
+        assertTrue(sheet.subtitle().contains("Hegemony military issue"),
+                "Restricted kit says whose warrant opens it: " + sheet.subtitle());
+    }
     private static EquipmentTemplateCard firstCard(EquipmentTemplateCard.Kind kind) {
         assertNotNull(EquipmentTemplateCatalog.installed(),
                 "the equipment template catalog is installed for tests");

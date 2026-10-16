@@ -53,7 +53,8 @@ public final class ReleasedKit {
      *
      * @return true when this call is what put the card in the polity's hands. A
      *         Common-band id is a no-op returning false, because it was already
-     *         released by construction.
+     *         released by construction. A Restricted id is refused the same way: a
+     *         military warrant authorises the company, never its polity.
      * @throws IllegalArgumentException if the catalog does not know {@code cardId}.
      *         A release names a definition, so an id nobody can resolve is a caller
      *         mistake rather than a polity with a mystery template.
@@ -62,6 +63,8 @@ public final class ReleasedKit {
         if (state == null) return false;
         EquipmentTemplateCard card = EquipmentTemplateCatalog.require(cardId);
         if (card.accessTier() == EquipmentAccessTier.COMMON) return false;
+        // A military warrant authorises the company, not whoever the company arms.
+        if (card.accessTier() == EquipmentAccessTier.RESTRICTED) return false;
         int slot = state.equipmentTemplateRegistry.intern(card.id());
         return state.recordReleasedKit(slot) >= 0;
     }
@@ -100,6 +103,7 @@ public final class ReleasedKit {
             if (!EquipmentTemplateCatalog.contains(cardId)) continue;
             EquipmentTemplateCard card = EquipmentTemplateCatalog.require(cardId);
             if (card.accessTier() == EquipmentAccessTier.COMMON) continue;
+            if (card.accessTier() == EquipmentAccessTier.RESTRICTED) continue;
             if (isListed(state, cardId)) continue;
             out.add(card);
         }

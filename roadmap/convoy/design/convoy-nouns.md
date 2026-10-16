@@ -35,6 +35,14 @@ rear-route support in Thunder Run, not player ownership or a reinforcement-pool
 change. Parked map vehicles are separate static scenery and obstacles, not
 convoy actors.
 
+The technical's overhead pickup silhouette hides its four tires beneath metal
+fenders. Its hood, cab and open rear bed remain distinct, with a separately
+registered pintle MG on the bed bearing. Destroyed hull and gun art preserve
+their final bearings; a small blast, front-engine fire and brief pintle flash
+cool to smoke, with the last emitter expiring by 35 seconds. The covered wheels
+have no exposed tread animation. These are presentation states, with ordinary
+weapon and durability authority unchanged.
+
 ## Delivery authority and lifecycle
 
 `ConvoyMeans` is the reinforcement provider. Defender-side ARMORY supply gates
@@ -583,7 +591,7 @@ retains the same existing cross-domain behavior as an autonomous hull.
 - A vehicle is a unit with a hull. It reads its durability the way every other
   combat actor does — the shared ownership-coded gauge over its chassis, armor
   row over structure row — for as long as it is alive. A wreck drops the gauge;
-  the wreck art or darkened hull is the whole report.
+  the registered wreck art is the whole report.
 
 A **story column** is an employer-owned group of deployed chassis released by
 public scenario conditions. It uses ordinary movement legs, footprint checks,
@@ -633,6 +641,15 @@ escorts have their own durability profile rather than changing every ordinary
 reinforcement APC. Their fire uses the shared turret and damage model. Mission-owned
 travel is dormant outside an explicit allied deployed route; player orders and
 ordinary arrive/deboard/depart missions retain their existing lifecycle.
+
+The freight hauler reads as a blunt cab, recessed machinery saddle and long
+raised cargo module. Beveled roof planes imply volume from straight overhead;
+covered bogies and orange shoulder rails retain its industrial identity.
+Its destroyed frame keeps the same center and final heading, with a crushed
+cab and torn freight roof over opaque cargo remains. A modest blast starts
+separate cab and cargo burns, leaving finite smoke for up to 90 seconds.
+It is ordinary freight loss, with no secondary explosions, damage, cover,
+concealment or navigation changes.
 
 ## Adjacent domains and extension points
 

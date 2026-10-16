@@ -441,9 +441,10 @@ progression therefore remains a release dependency. A future shared acquisition
 policy must gate *new* military POWER_SUIT awards behind a real later procurement
 milestone across every source, while preserving learned, carried and issued gear
 in existing saves. Do not disable the current routes until that later obtainable
-route exists, or claim that writing this story has installed the gate. That policy is
-planned as `restricted-equipment-warrants.md`, with `hegemony-auxiliary-warrant.md`
-as the authored procurement route this chapter's introduction leads to. Advanced
+route exists, or claim that writing this story has installed the gate. The shared gate has
+shipped as the Restricted tier with standing military warrants (`progression-nouns.md`,
+Kit and armory); `hegemony-auxiliary-warrant.md` is the authored procurement route
+this chapter's introduction leads to. Advanced
 STANDARD armor and unrelated equipment retain their own access and purposes.
 
 ## Force, support and failure contract
@@ -588,7 +589,8 @@ military equipment to compensate for a harder map.
    usefulness; synthetic protection numbers alone do not accept the power curve.
 7. Author the later military procurement route and implement its shared source
    gate before claiming a strict story-first progression for fresh campaigns.
-   Planned as `restricted-equipment-warrants.md` and `hegemony-auxiliary-warrant.md`.
+   The shared gate has shipped (`progression-nouns.md`); the authored route is
+   `hegemony-auxiliary-warrant.md`.
 
 All mission, choice and reward text starts as readable correspondence with Castle's
 fact-bound operational briefing. The sample lines above are unrecorded copy, not
