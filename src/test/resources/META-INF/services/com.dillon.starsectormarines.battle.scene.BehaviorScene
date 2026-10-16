@@ -76,3 +76,4 @@ com.dillon.starsectormarines.battle.air.MissileAaFightersScene
 com.dillon.starsectormarines.battle.smoke.SmokeScreenScene
 com.dillon.starsectormarines.battle.setup.GreyhookDuelScene
 com.dillon.starsectormarines.battle.warship.HullDurabilityScene
+com.dillon.starsectormarines.battle.warship.WarshipTacticsScene

@@ -32,10 +32,11 @@ import java.util.Map;
 public final class FrigateClimbOutScene implements BehaviorScene {
 
     private static final int WIDTH = 140;
-    private static final int HEIGHT = 68;
+    /** Room for the rig and an escort clear of it on either beam: hulls are physical bodies and do not overlap. */
+    private static final int HEIGHT = 100;
     private static final float RIG_X = 70f;
-    private static final float RIG_Y = 40f;
-    private static final float[][] ROUTE = {{96f, 30f}, {139f, 26f}};
+    private static final float RIG_Y = 50f;
+    private static final float[][] ROUTE = {{96f, 40f}, {139f, 36f}};
     private static final int CLIMB_TICK = 60;
     private static final int TICKS = 5400;
     private static final int FRAME_EVERY = 8;
@@ -62,8 +63,8 @@ public final class FrigateClimbOutScene implements BehaviorScene {
 
     private Run playOne(String loop, FrameSink frames) throws Exception {
         SceneBuilder builder = SceneBuilder.openGround(WIDTH, HEIGHT).missionCompletion(false);
-        builder.squad("west-ground").faction(Faction.MARINE).size(4).at(4, 62).unarmed().stationary().done();
-        builder.squad("east-ground").faction(Faction.DEFENDER).size(4).at(120, 62).unarmed().stationary().done();
+        builder.squad("west-ground").faction(Faction.MARINE).size(4).at(4, 94).unarmed().stationary().done();
+        builder.squad("east-ground").faction(Faction.DEFENDER).size(4).at(120, 94).unarmed().stationary().done();
         SceneWorld world = builder.build();
         BattleSimulation sim = world.sim();
         sim.random().setSeed(20261016L);
@@ -74,7 +75,10 @@ public final class FrigateClimbOutScene implements BehaviorScene {
         rig.stationTo(RIG_X, RIG_Y);
         rig.limitFlux();
         List<Warship> hounds = new ArrayList<>();
-        for (float dy : new float[]{-8f, 8f}) {
+        for (float side : new float[]{-1f, 1f}) {
+            // Abreast the rig, clear of it: the rig lies east-west, a Hound north-south.
+            Warship probe = Warship.fit("hound_d_pirates", "hound_d_pirates_Standard", Faction.DEFENDER, 0f, 0f, 0f);
+            float dy = side * (0.5f * rig.widthCells + 0.5f * probe.lengthCells + WarshipEscort.GAP_CELLS);
             Warship hound = ship("hound_d_pirates", "hound_d_pirates_Standard", Faction.DEFENDER, RIG_X - 6f,
                     RIG_Y + dy, 0f);
             hound.escort(rig);
@@ -82,7 +86,7 @@ public final class FrigateClimbOutScene implements BehaviorScene {
         }
         List<Warship> wolves = new ArrayList<>();
         if (loop.equals("hunted")) {
-            for (float y : new float[]{24f, 44f}) {
+            for (float y : new float[]{34f, 54f}) {
                 Warship wolf = ship("wolf_hegemony", "wolf_hegemony_Assault", Faction.ALLY, 10f, y, 0f);
                 wolf.groundFire(Warship.GroundFire.HOLD);
                 wolves.add(wolf);
