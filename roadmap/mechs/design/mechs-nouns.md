@@ -216,6 +216,13 @@ increasing an encounter's total armored threat.
   destroyed, which weapon each lost mount carried) for campaign writeback,
   where a lost mount is a lost assembly, other damaged sections are repairs,
   and a destroyed torso loses the chassis.
+  Section loss shows on the chassis itself: a lost mount's weapon layer drops
+  off the layered appearance, a section bursts into flame where it sat the
+  moment it goes and its stump smoulders after, and a crippled mech smokes at
+  its legs for as long as it stands. These are presentation events read off the
+  sections (`MechSectionFxSystem`); they draw nothing from the battle's random
+  stream, so they change no outcome and a review frame stays a function of
+  simulation state.
 - The **Mech Lab** is the shipboard room that selects the active mech squad,
   parks its assets across four fabrication gantries, frames one selected asset as
   a top-down hardpoint doll, and performs inventory-checked refits. Asset/lance browsing is
