@@ -202,11 +202,12 @@ re-frames to the hull rather than the hull bending to the shot.
 55% usable is a freighter's or liner's share. For a warship, do the warship
 form (the Legion's `scale_record` is the worked example):
 - Drop the program's notional `HANGAR` rooms and size the fighter
-  complement instead. Fighters are drawn at the carrier's pixel scale, so
-  their stowage (craft footprint x servicing room x overhead, a spare per
-  wing, ordnance handling) is a volume in model units and holds at any
-  metres scale. Measure it as a share of the pressure hull, and check that
-  the bay mouths clear the largest craft's span and height in units.
+  complement instead: craft footprint x servicing room x overhead, a spare
+  per wing, ordnance handling. Fighters have their own scales, from their
+  cockpits (`fighters-geometry`), so size the stowage in metres and take
+  it as a share of the pressure hull at the published scale. Check that
+  the bay mouths clear the largest craft's span and height converted into
+  the carrier's units.
 - Budget the rest of the non-habitable share explicitly (armour, reactors
   and flux plant, barbettes and magazines, tanks and structure) and solve
   at the resulting habitable share, about 30-35% for a battlecarrier.

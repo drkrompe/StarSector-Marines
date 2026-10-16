@@ -109,8 +109,10 @@ if crew:
     fit = manifest['scale'].get('cockpit_fit') or []
     clear = ', '.join(f"{f['head_clearance_under_canopy_m']} m" for f in fit)
     panel('cockpit-check', f'CUTAWAY: 1.8 m PILOT CLEARS GLASS BY {clear}', bw[0]+bw[1], 580, bw[2], 430)
-draw.text((28, 1050), f"Slots and engines from {manifest['hull']['source']['ship']}; shape from "
-                      f"{Path(manifest['hull']['source']['shape_reference']).parent.name}/"
-                      f"{Path(manifest['hull']['source']['shape_reference']).name}; heights proposed. "
+source = manifest['hull']['source']
+master = f"{Path(source['shape_reference']).parent.name}/{Path(source['shape_reference']).name}"
+shape = (f"plan from {Path(source['plan_reference']).name}, sections from {master}" if source.get('plan_reference')
+         else f'shape from {master}')
+draw.text((28, 1050), f"Slots and engines from {source['ship']}; {shape}; heights proposed. "
                       f'Silhouette IoU {iou:.3f}.', font=font(17), fill=SOFT)
 sheet.save(src/f'{args.fighter}-geometry.reference.png', optimize=True)

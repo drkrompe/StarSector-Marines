@@ -26,8 +26,13 @@ public final class MechPatternCardItemPlugin extends BaseSpecialItemPlugin {
 
     /** Validated cargo payload for market stock, patron rewards and salvage. */
     public static SpecialItemData itemData(String patternId) {
-        if (MechPattern.parse(patternId) == null) {
+        MechPattern pattern = MechPattern.parse(patternId);
+        if (pattern == null) {
             throw new IllegalArgumentException("Unknown mech pattern id '" + patternId + "'");
+        }
+        if (!pattern.presentationDeclared()) {
+            throw new IllegalArgumentException("Mech pattern '" + patternId
+                    + "' is a vehicle whose art is still pending; it is not awardable");
         }
         return new SpecialItemData(ITEM_ID, patternId);
     }
