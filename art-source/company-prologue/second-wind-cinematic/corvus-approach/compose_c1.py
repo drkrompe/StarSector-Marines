@@ -20,22 +20,17 @@ import os
 import subprocess
 import sys
 from concurrent.futures import ProcessPoolExecutor
-from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageEnhance
 
-BASE = Path(__file__).resolve().parent
-ROOT = BASE.parents[3]
-GAME = Path(os.environ.get("STARSECTOR_DIR", r"C:\Program Files (x86)\Fractal Softworks\Starsector")) / "starsector-core" / "graphics"
+sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent))
+import c1_overlay  # noqa: E402
+import c1_ship  # noqa: E402
+import c1_traffic  # noqa: E402
+from c1_core import BASE, FOCUS, FPS, H, PLANET, PLANET_DIAMETER, PUSH, ROOT, TRUCK, W, Element, smooth  # noqa: E402
+
 OUT = ROOT / "build" / "cinematic" / "c1-corvus"
-W, H, FPS = 1920, 1080, 24
-PUSH = (1.00, 1.07)          # camera scale over the shot
-FOCUS = (1000.0, 520.0)      # push centre, between the fleet and Jangala
-FLOTILLA_WINDOW = (247, 148, 576, 324)   # frame x, y, w, h shared by both fleet guides
-PLANET = (1290.0, 560.0)     # globe centre on the frame (interim disc and render target)
-TRUCK = 140.0                # pixels a depth-1.0 layer slides left over the shot
-ENTRANCE_NOZZLES = [(255, 815), (370, 815), (1005, 1005), (1085, 1025)]   # bell mouths, 2048x1152 render
 STAND_INS = False
 
 sys.path.insert(0, str(BASE.parent / "arrival-audio"))
@@ -52,47 +47,6 @@ def c1_duration():
 
 # ---------------------------------------------------------------- sources
 
-def latest(stem):
-    """Highest-numbered accepted master, e.g. assets/station-v3.png."""
-    found = [p for p in (BASE / "assets").glob(stem + "-v*.png") if p.stem.rsplit("-v", 1)[1].isdigit()]
-    found.sort(key=lambda p: int(p.stem.rsplit("-v", 1)[1]))
-    return found[-1] if found else None
-
-
-def cutout(path, width):
-    """A painted card cropped to its subject. ImageGen leaves a faint 1-8 alpha haze across
-    the canvas; it would lift black space, so it is cleared before cropping."""
-    im = Image.open(path).convert("RGBA")
-    im.putalpha(im.getchannel("A").point(lambda a: 0 if a <= 8 else a))
-    im = im.crop(im.getchannel("A").getbbox())
-    return im.resize((round(width), round(width * im.height / im.width)), Image.LANCZOS)
-
-
-def sprite(rel, height, heading=0.0, haze=0.0, dim=1.0):
-    """Stand-in: a vanilla sprite (bow up) scaled to a height, turned to a fixed heading."""
-    im = Image.open(GAME / rel).convert("RGBA")
-    im = im.resize((max(1, round(im.width * height / im.height)), round(height)), Image.LANCZOS)
-    if heading:
-        im = im.rotate(heading, resample=Image.BICUBIC, expand=True)
-    rgb, a = im.convert("RGB"), im.getchannel("A")
-    rgb = ImageEnhance.Brightness(ImageEnhance.Color(rgb).enhance(1 - 0.35 * haze)).enhance(dim)
-    if haze:
-        rgb = Image.blend(rgb, Image.new("RGB", rgb.size, (70, 95, 130)), 0.25 * haze)
-    rgb.putalpha(a)
-    return rgb
-
-
-def glow_dot(radius, color, strength=1.0):
-    size = int(radius * 6) | 1
-    yy, xx = np.mgrid[:size, :size] - size // 2
-    d = np.sqrt(xx * xx + yy * yy) / radius
-    a = np.clip(np.exp(-d * d * 1.6) * strength, 0, 1)
-    arr = np.zeros((size, size, 4), np.uint8)
-    arr[..., :3] = color
-    arr[..., 3] = (a * 255).astype(np.uint8)
-    return Image.fromarray(arr, "RGBA")
-
-
 def interim_globe(diameter):
     """Placeholder until render_planet.py lands: the earlier plate's texture on a lit disc."""
     src = Image.open(BASE.parent / "space-approach" / "assets" / "planet-plate.png").convert("RGB")
@@ -107,39 +61,6 @@ def interim_globe(diameter):
     alpha = np.clip((1 - r) * d / 2, 0, 1)
     arr = np.dstack([np.clip(rgb, 0, 1), alpha])
     return Image.fromarray((arr * 255).astype(np.uint8), "RGBA")
-
-
-def smooth(u):
-    u = min(1.0, max(0.0, u))
-    return u * u * (3 - 2 * u)
-
-
-class Element:
-    """An image on one depth layer. Path keys are (t, cx, cy, scale), centre coordinates,
-    eased between keys; with one key the element drifts at (vx, vy) px/s. A child sits
-    at an offset in its parent's image pixels and follows the parent's scale."""
-
-    def __init__(self, name, img, depth, keys, vx=0.0, vy=0.0, additive=False, blink=None, parent=None, offset=(0, 0)):
-        self.name, self.img, self.depth, self.keys = name, img, depth, keys
-        self.vx, self.vy, self.additive, self.blink = vx, vy, additive, blink
-        self.parent, self.offset = parent, offset
-
-    def place(self, t):
-        if self.parent is not None:
-            px, py, ps = self.parent.place(t)
-            pw, ph = self.parent.img.size
-            return px + (self.offset[0] - pw / 2) * ps, py + (self.offset[1] - ph / 2) * ps, ps
-        keys = self.keys
-        if len(keys) == 1:
-            _, x, y, s = keys[0]
-            return x + self.vx * t, y + self.vy * t, s
-        if t <= keys[0][0]:
-            return keys[0][1:]
-        for (t0, x0, y0, s0), (t1, x1, y1, s1) in zip(keys, keys[1:]):
-            if t <= t1:
-                u = smooth((t - t0) / (t1 - t0))
-                return x0 + (x1 - x0) * u, y0 + (y1 - y0) * u, s0 * (s1 / s0) ** u
-        return keys[-1][1:]
 
 
 # ---------------------------------------------------------------- scene
@@ -165,73 +86,10 @@ def build_scene(duration):
         img = Image.open(planet).convert("RGBA").resize((W, H), Image.LANCZOS)   # registered to the frame
         add("planet", img, 0.04, [(0, 960, 540, 1.0)])
     else:
-        add("planet", interim_globe(760), 0.04, [(0, PLANET[0], PLANET[1], 1.0)])
+        add("planet", interim_globe(PLANET_DIAMETER), 0.04, [(0, PLANET[0], PLANET[1], 1.0)])
 
-    # The battlegroup: two silhouette-guided layers (flotilla_guides.py) registered to one
-    # frame window, every bow on the same heading toward the inbound lane.
-    flotilla = None
-    for stem, depth in (("heg-flotilla-far", 0.07), ("heg-flotilla-mid", 0.09)):
-        path = BASE / "assets" / (stem + "-v2-registered.png")
-        path = path if path.exists() else latest(stem)
-        if path:
-            layer = Image.open(path).convert("RGBA").resize(FLOTILLA_WINDOW[2:], Image.LANCZOS)
-            layer.putalpha(layer.getchannel("A").point(lambda a: 0 if a <= 8 else a))
-            cx = FLOTILLA_WINDOW[0] + FLOTILLA_WINDOW[2] / 2
-            cy = FLOTILLA_WINDOW[1] + FLOTILLA_WINDOW[3] / 2
-            flotilla = add(stem, layer, depth, [(0, cx, cy, 1.0)], vx=-0.8, vy=0.2)
-
-    # Jangala Station just off the planet's upper-left limb, small at this distance.
-    station = latest("station")
-    img = cutout(station, 82) if station else sprite("stations/station_jangala.png", 128, 0, haze=0.15)
-    st = add("station", img, 0.06, [(0, 905, 300, 1.0)], vx=0.4)
-    for i, (ox, oy) in enumerate([(img.width * 0.45, img.height * 0.2), (img.width * 0.55, img.height * 0.8)]):
-        add("station-light-%d" % i, glow_dot(1.6, (255, 235, 200)), 0.06, None, additive=True,
-            blink=(1.7, i * 0.6), parent=st, offset=(ox, oy))
-
-    hero = latest("heg-hero")
-    if hero:
-        add("heg-hero", cutout(hero, 240), 0.2, [(0, 1560, 74, 1.0)], vx=-11.0, vy=0.2)
-    if not flotilla and STAND_INS:
-        for i, (rel, h, x, y) in enumerate([("ships/onslaught/onslaught_hegemony.png", 110, 560, 300),
-                                            ("ships/dominator/dominator_hegemony.png", 64, 460, 380),
-                                            ("ships/eagle/eagle_hegemony.png", 46, 650, 240)]):
-            add("heg-%d" % i, sprite(rel, h, heading=140.0, haze=0.3, dim=0.92), 0.08, [(0, x, y, 1.0)],
-                vx=-0.8, vy=0.2)
-
-    # Traffic toward the planet: the hero Atlas crosses in front of the lit disc; small
-    # freighters on a farther lane; a shuttle drops from the station toward the surface.
-    atlas = latest("traffic-atlas")
-    if atlas:
-        add("atlas", cutout(atlas, 230), 0.18, [(0, -220, 600, 1.0)], vx=36.0, vy=-2.5)
-    # A convoy on the Atlas's lane, clear of the battlegroup above it.
-    lane = [("tarsus", 80, 160, 520, 0.14, 30, -1.6), ("mule", 70, -420, 490, 0.13, 30, -1.6),
-            ("buffalo", 64, -950, 560, 0.14, 31, -1.8), ("shuttle", 40, 930, 360, 0.07, 9, 6.0)]
-    small = []
-    for name, width, x, y, depth, vx, vy in lane:
-        path = BASE / "assets" / ("traffic-small-v1-%s.png" % name)
-        if path.exists():
-            small.append(add("lane-" + name, cutout(path, width), depth, [(0, x, y, 1.0)], vx=vx, vy=vy))
-    if not small and STAND_INS:
-        for i, (rel, h, x, y, v) in enumerate([("ships/tarsus.png", 40, -260, 470, 24),
-                                               ("ships/buffalo_dd.png", 34, -640, 500, 22)]):
-            add("lane-%d" % i, sprite(rel, h, heading=-90, haze=0.5, dim=0.85), 0.12, [(0, x, y, 1.0)],
-                vx=v, vy=0.4)
-
-    # Second Wind's entrance: from off-screen bottom left, close and large, receding toward
-    # Jangala. The rear three-quarter card keeps one viewing angle because the ship travels
-    # away along roughly the camera's own line of sight.
-    card = Image.open(BASE / "layers" / "second-wind-entrance.png").convert("RGBA")
-    box = card.getchannel("A").getbbox()
-    card = card.crop(box)
-    base_w = 760.0
-    k = base_w / card.width
-    card = card.resize((round(base_w), round(card.height * k)), Image.LANCZOS)
-    sw = add("second-wind", card, 0.6, [(0.0, -300, 1330, 1.6),
-                                         (6.5, 470, 820, 0.78),
-                                         (duration, 760, 700, 0.42)])
-    for i, (nx, ny) in enumerate(ENTRANCE_NOZZLES):
-        add("sw-engine-%d" % i, glow_dot(16, (150, 205, 255), 0.9), 0.6, None, additive=True,
-            parent=sw, offset=((nx - box[0]) * k, (ny - box[1]) * k))
+    c1_traffic.build(add, duration, STAND_INS)
+    c1_ship.build(add, duration)
     return els
 
 
@@ -251,25 +109,28 @@ def frame_image(t, duration):
         if el.blink is not None and ((t + el.blink[1]) % el.blink[0]) > el.blink[0] * 0.18:
             continue
         cx, cy, s_el = el.place(t)
+        img = el.image(t)
         cx -= TRUCK * el.depth * u
         zoom = cam ** (0.4 + 0.6 * el.depth / 0.6)      # nearer layers feel the push more
         s = s_el * zoom
         sx, sy = FOCUS[0] + (cx - FOCUS[0]) * zoom, FOCUS[1] + (cy - FOCUS[1]) * zoom
-        w, h = el.img.size
+        w, h = img.size
         x0, y0 = sx - w * s / 2, sy - h * s / 2
         bx0, by0 = max(0, math.floor(x0)), max(0, math.floor(y0))
         bx1, by1 = min(W, math.ceil(x0 + w * s)), min(H, math.ceil(y0 + h * s))
         if bx1 <= bx0 or by1 <= by0:
             continue
         # Inverse affine into just the covered box: sub-pixel placement, no stepping.
-        tile = el.img.transform((bx1 - bx0, by1 - by0), Image.AFFINE,
+        tile = img.transform((bx1 - bx0, by1 - by0), Image.AFFINE,
                                 (1 / s, 0, (bx0 - x0) / s, 0, 1 / s, (by0 - y0) / s),
                                 resample=Image.BICUBIC, fillcolor=(0, 0, 0, 0))
         arr = np.asarray(tile, np.float32) / 255
         rgb, a = arr[..., :3], arr[..., 3:4]
+        if el.alpha is not None:
+            a = a * el.alpha(t)
         region = canvas[by0:by1, bx0:bx1]
         canvas[by0:by1, bx0:bx1] = region + rgb * a if el.additive else region * (1 - a) + rgb * a
-    return Image.fromarray((np.clip(canvas, 0, 1) * 255).astype(np.uint8))
+    return c1_overlay.apply(Image.fromarray((np.clip(canvas, 0, 1) * 255).astype(np.uint8)), t, duration)
 
 
 def init(stand_ins):
