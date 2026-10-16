@@ -38,6 +38,9 @@ AFT_PLAN = [(AFT_FACE,-28.5),(-4,-28.5),(-1,-27),(-1,27),(-4,28.5),(AFT_FACE,28.
 # Sponson plan (port; mirrored), the forebody outline outboard of y 21.5
 # with no acute corners, so its chamfer insets cannot cross over.
 SPONSON_PLAN = [(19,21.5),(19.5,23.5),(21,27.5),(33,28.5),(39,24),(39.3,21.5)]
+# Forward end of each stripe (port; mirrored): from y 16..19.5 at x 28 it
+# angles in to y 8.5..12 at x 35, beside the cockpit (y +-8).
+STRIPE_BEND = [(28,16),(28,19.5),(35,12),(35,8.5)]
 # The forebody core is the waist width carried forward; the sponsons outboard
 # of it (ms_hull.build_forebody) make up the sprite's full +-28.5 shoulder.
 FORE_CORE = clip(clip(FORE_PLAN, 0, 1, 22.5), 0, -1, 22.5)
@@ -90,10 +93,15 @@ def build_forebody(kit):
     hood = prism(kit, 'Dorsal cabin hood', HOOD_PLAN, [(0,WAIST_DECK-1),(0,11.5),(2,13)], kit.plate)
     plane_cut(hood, 'Hood brow', *facet('Hood brow', (22,0,13), (1,0), 45)[1:])
     crisp(hood)
-    # Red stripe panels either side of the hood, flat on the deck.
+    # Stripe panels either side of the hood, flat on the deck. As in the
+    # sprite, each runs straight aft of x 28 and then angles in at 45 degrees
+    # to end against the cockpit's flank.
     for s in (1,-1):
         kit.box('Red stripe panel', (11,s*17.75,WAIST_DECK+.15), (16,3.5,.3), kit.stripe, .05)
-        kit.box('Red stripe panel', (26,s*17.75,FORE_DECK+.15), (14,3.5,.3), kit.stripe, .05)
+        kit.box('Red stripe panel', (23.5,s*17.75,FORE_DECK+.15), (9,3.5,.3), kit.stripe, .05)
+        bend = prism(kit, 'Red stripe panel angled', [(x,s*y) for x,y in STRIPE_BEND],
+                     [(0,FORE_DECK),(0,FORE_DECK+.3)], kit.stripe)
+        crisp(bend, .05)
 
 
 def build_waist(kit):
