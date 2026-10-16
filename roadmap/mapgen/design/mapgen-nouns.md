@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 - shared ground installations organize workshop, armory and utility equipment around working aisles, with matching damage states.
+Updated: 2026-10-15 - shared ground command posts combine tactical plots and shaped console banks around connected working aisles.
 
 Earlier 2026-10-13 — reversible authored damage layers give Relief a worn checkpoint without changing its landing contract; Relief rear working courts preserve the expanded landing and assembly apron.
 
@@ -1411,6 +1411,14 @@ precedence over equipment, and small rooms retain complete electrical or repair
 stations instead of miniature machinery. These kits carry full-footprint damage
 states; when a rack or bench collapses, its supported rifles, frame and tools
 collapse with it. Debris preserves the original floor and releases obstruction.
+
+Ground command posts arrange L- and U-shaped console banks around a central
+tactical plot. A circulation loop reaches every side of the plot, and door
+approaches join that loop without cutting through the table. Watch positions
+belong to accessible working sides of installed consoles, with a separate plot
+officer position. This room program is shared by authored and packed ground
+compounds; constrained pockets use complete shorter banks, and small rooms use
+a compact chart table. The plot and consoles retain matching damage states.
 
 A stage that replaces what an earlier stage built owns everything the earlier one
 recorded, not only what it drew: decorative placements, points of interest,

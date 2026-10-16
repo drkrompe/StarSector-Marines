@@ -101,3 +101,20 @@ cuts in the normal authoring records and run `tileset_export` for
 `createSnapshots -Psnapshot=composable-damage` exercises real structural damage,
 layer collapse, released obstruction and rotations; `review/armory-turn-*` and
 `review/utility-turn-*` retain those production-rendered boards.
+
+## Tactical command plot
+
+`command-plot` adds the damaged and destroyed pair for `ship-bridge.plot`.
+The original three-cell square plot is shared by the ship CIC and reusable
+ground command posts. The retained one-column geometry guide and intact
+reference were edited with built-in ImageGen using the exact prompt at
+`art-source/tilesets/command-plot-damage.prompt.txt`. The returned image is kept
+as `command-plot-damage.raw.png`; registration and the normal authoring exporter
+preserve its native alpha and full footprint, with no pixel repainting.
+
+The damaged table retains its metal casing and cracked plotting screen. Its
+wreck is separate glass, trim and electronics with clear gaps, zero cover and
+zero height. Registration uses `ComposableDamageRegistration command-plot 1`;
+export uses `tileset_export` with name `command-plot-damage`.
+`review/command-turn-*` shows the actual ground fitting, including both console
+banks, through intact/damaged/destroyed states in the production renderer.
