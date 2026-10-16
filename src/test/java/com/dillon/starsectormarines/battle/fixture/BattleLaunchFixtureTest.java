@@ -30,6 +30,7 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -41,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class BattleLaunchFixtureTest {
 
+    @Tag("generated-space-evidence")
     @Test
     void checkedInProductionShapedLaunchReplaysHeadlessly() throws Exception {
         BattleLaunchFixture fixture =
@@ -67,6 +69,7 @@ class BattleLaunchFixtureTest {
         }
     }
 
+    @Tag("generated-space-evidence")
     @Test
     void rebuildsPersonnelAircraftPowersAndFiniteResourcesIndependently() {
         BattleLaunchFixture fixture = productionShapedFixture();

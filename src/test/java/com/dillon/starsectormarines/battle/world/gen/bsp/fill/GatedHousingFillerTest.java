@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef.WallSide;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayDeque;
@@ -148,6 +149,7 @@ class GatedHousingFillerTest {
         assertAllWalkableCellsConnected(map.grid);
     }
 
+    @Tag("generated-space-evidence")
     @Test
     void representativeCitiesClaimRoomedResidentialCompounds() {
         BspCityGenerator generator = new BspCityGenerator();

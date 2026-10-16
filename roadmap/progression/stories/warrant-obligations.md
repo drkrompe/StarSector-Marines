@@ -3,8 +3,9 @@
 > A military warrant is Capability bought with Standing, and it has to keep
 > costing something or it is just a bigger unlock.
 
-Status: PLANNED — builds on the shipped Restricted tier (`progression-nouns.md`).
-`hegemony-auxiliary-warrant.md` uses its "honoured period" for its second stage.
+Status: PLANNED — builds on the shipped Restricted tier and Hegemony auxiliary
+warrant (`progression-nouns.md`), whose second stage waits on this story's
+"honoured period".
 Written: 2026-10-15
 
 Read `meta-progression.md` (the growth rule and the four currencies),
@@ -32,8 +33,11 @@ Standing warrants and authored ones state them the same way:
   Hegemony auxiliary warrant the floor is Favorable. For a standing warrant it
   is the rule's own threshold.
 
-A period in which service was done and loyalty kept is **honoured**.
-`hegemony-auxiliary-warrant.md` reads that event for its second stage.
+A period in which service was done and loyalty kept is **honoured**. The
+Hegemony auxiliary warrant's first honoured period opens its second stage: the
+period clock reports it through `HegemonyAuxiliaryWarrant.honouredPeriod`, which
+is once-only and does nothing for a company that is not enrolled. The auxiliary
+warrant's terms already state these obligations to the player.
 
 **Suspension, the counter-pressure.** A missed period, or a broken loyalty
 term, suspends the warrant. While a warrant is suspended:

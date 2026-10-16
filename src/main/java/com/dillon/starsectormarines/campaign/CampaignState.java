@@ -38,6 +38,14 @@ public final class CampaignState implements Serializable {
     public ShepherdRecoveryProgress shepherdRecovery;
     /** Null in older saves; the first Agreus launch freezes its authored attempt. */
     public AgreusArcProgress agreusArc;
+    /** The Hegemony auxiliary warrant offer; null in older saves, created on first read. */
+    public AuxiliaryWarrantProgress hegemonyAuxiliary;
+
+    /** The Hegemony auxiliary warrant offer, created on first read so an old save starts at NONE. */
+    public AuxiliaryWarrantProgress auxiliaryWarrant() {
+        if (hegemonyAuxiliary == null) hegemonyAuxiliary = new AuxiliaryWarrantProgress();
+        return hegemonyAuxiliary;
+    }
 
     // ---------- Id registries (interned vanilla strings) ----------
 

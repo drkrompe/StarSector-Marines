@@ -2,7 +2,8 @@
 
 Status: ACTIVE — the hard Restricted tier, standing military warrants and the four
 arc issue cards have shipped (`progression-nouns.md`, Kit and armory).
-`hegemony-auxiliary-warrant.md` and `warrant-obligations.md` remain planned.
+The Hegemony auxiliary warrant has shipped, waiting on *A Small War*'s Chapter 5
+to send its offer; `warrant-obligations.md` remains planned.
 Trench-Clearing Issue as the Junction reward and the across-the-line rosters remain
 proposals.
 
@@ -91,7 +92,7 @@ What each arc should hand the player, see across the line, and hold back.
 | **The Corvus Account** — Dust Ledger, Blind Watch, Cold Account | Sable Wake mortars and missiles at Blind Watch; at Garnir, Kord's Hegemony marines in XIV Shock with Arbalests and Arrestor packs, fighting beside the company | **Counter-Battery Issue** (Hegemony): service rifles, two Arrestor packs, one anti-materiel rifle. On sale at Hegemony markets once Cold Account settles, as a nod rather than a licence | XIV Shock, the military Arbalest: the company has now seen what it cannot have |
 | **A Working Ship** — Salvage Rights, Cold Start, Working Passage | Builders working under fire | **Builder's Guard**: revetments and Palisade pods from Tamsin Vale's yard stores, on sale at Asharu once Working Passage settles, for holding a construction site | — |
 | **A Small War** — Agreus | Greyhook's crude boarding rigs and mortar fire on the commissioning work | Recovered Specter and Recovered Arbalest (as shipped), the Salvage-assisted Section, and the planned Boarding Jack. Counter-Battery Issue pairs naturally with the mixed section | Approved sections. The arc's planned procurement lead becomes the **first warrant** |
-| **Beyond Agreus** — the procurement lead | — | The **Hegemony auxiliary warrant** (`hegemony-auxiliary-warrant.md`): the military Arbalest first, XIV shock armour after the first honoured obligation period | Other traditions' approved kit, which needs their own warrants |
+| **Beyond Agreus** — the procurement lead | — | The **Hegemony auxiliary warrant** (`progression-nouns.md`, Kit and armory): the military Arbalest first, XIV shock armour after the first honoured obligation period | Other traditions' approved kit, which needs their own warrants |
 
 Two things this keeps true:
 
@@ -117,7 +118,8 @@ Even after Agreus, most of the catalog stays ahead of the company:
 ## Work this implies
 
 1. **Restricted tier and military warrants**: shipped; see `progression-nouns.md`.
-2. **The first authored warrant**: `hegemony-auxiliary-warrant.md`.
+2. **The first authored warrant**: shipped; see `progression-nouns.md`. Its offer
+   arrives once *A Small War*'s Chapter 5 settles (`a-small-war.md`).
 3. **The counter-pressure**: `warrant-obligations.md`.
 4. **New cards and their story stocking**: shipped; see `progression-nouns.md`
    (Kit and armory, arc issue cards) and the ladder readings below.

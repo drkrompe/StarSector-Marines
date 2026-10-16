@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.Random;
@@ -59,6 +60,7 @@ class DenseUrbanRowFillerTest {
         for (int x = leaf.left; x <= leaf.right; x++) assertTrue(fixture.grid.isWalkable(x, midY));
     }
 
+    @Tag("generated-space-evidence")
     @Test
     void representativeCitiesSurfaceTacticalDenseRows() {
         BspCityGenerator generator = new BspCityGenerator();

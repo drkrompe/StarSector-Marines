@@ -28,6 +28,7 @@ import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.marine.SquadExperienceStandard;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -302,6 +303,7 @@ class DebugCompanyTest {
                 "the uncapped control's readout must not overflow");
     }
 
+    @Tag("generated-space-evidence")
     @Test
     void twoHundredSquadLaunchSnapshotStaysWithinABoundedSetupBudget() {
         assertTimeout(Duration.ofSeconds(5), () -> {

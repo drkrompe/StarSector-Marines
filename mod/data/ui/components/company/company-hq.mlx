@@ -1,4 +1,4 @@
-<template props="firstRefitClasses,wingsClasses,debugAction,debugClasses,openingGuide,newsDesk,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,shipAction,shipLabel,shipViewAction,shipView">
+<template props="auxiliary,firstRefitClasses,wingsClasses,debugAction,debugClasses,openingGuide,newsDesk,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,shipAction,shipLabel,shipViewAction,shipView">
   <div id="company-hq-root" class="company-hq-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{purpose}" />
 
@@ -17,6 +17,7 @@
 
     <button id="company-hq-first-refit" class="{firstRefitClasses}" onclick="{barracksAction}">{i18n.openingUiCompanyHqAProperIssueChooseOneFreeWayline}</button>
     <button id="company-hq-wings" class="{wingsClasses}" onclick="{boatsAction}">{i18n.openingUiCompanyHqSecondhandWingsCastleHasALeadOn}</button>
+    <button id="company-hq-auxiliary" class="{auxiliary.resumeClasses}" onclick="{auxiliary.open}">{auxiliary.resumeLabel}</button>
 
     <div id="company-hq-main" class="company-hq-main">
       <div id="company-hq-sidebar" class="company-hq-sidebar">
@@ -179,10 +180,48 @@
       </div>
     </div>
 
+    <div id="aux-modal" class="{auxiliary.classes}">
+      <div id="aux-space-above" class="aux-space" />
+      <div id="aux-letter" class="aux-letter console-readout">
+        <div id="aux-heading" class="aux-heading">
+          <img id="aux-crest" class="aux-crest" src="{auxiliary.crest}" />
+          <div id="aux-heading-copy" class="aux-heading-copy">
+            <div id="aux-title" class="label heading tone-edge aux-title">{auxiliary.title}</div>
+            <div id="aux-from" class="label tone-muted aux-from">{auxiliary.from}</div>
+          </div>
+        </div>
+        <div id="aux-record" class="label aux-part">{auxiliary.record}</div>
+        <div id="aux-grants" class="{auxiliary.grantsClasses}">{auxiliary.grants}</div>
+        <div id="aux-obligations" class="{auxiliary.partClasses}">{auxiliary.obligations}</div>
+        <div id="aux-limits" class="{auxiliary.partClasses}">{auxiliary.limits}</div>
+        <div id="aux-decline-note" class="{auxiliary.noteClasses}">{auxiliary.declineNote}</div>
+        <div id="aux-fill" class="aux-space" />
+        <div id="aux-controls" class="aux-controls">
+          <button id="aux-accept" class="{auxiliary.answerClasses}" onclick="{auxiliary.accept}">{auxiliary.acceptLabel}</button>
+          <button id="aux-decline" class="{auxiliary.answerClasses}" onclick="{auxiliary.decline}">{auxiliary.declineLabel}</button>
+          <button id="aux-close" class="aux-action console-action" onclick="{auxiliary.close}">{auxiliary.closeLabel}</button>
+        </div>
+      </div>
+      <div id="aux-space-below" class="aux-space" />
+    </div>
   </div>
 </template>
 
 <style>
+  .aux-backdrop { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; flex-direction: column; align-items: center; background-color: #080e12d9; }
+  .aux-hidden { position: absolute; width: 0px; height: 0px; opacity: 0; pointer-events: none; overflow: hidden; }
+  .aux-hidden-part { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; opacity: 0; pointer-events: none; }
+  .aux-space { height: 0px; flex-grow: 1; }
+  .aux-letter { width: 980px; height: 400px; padding: 20px; gap: 12px; flex-direction: column; border-width: 2px; border-color: #c9b77a; background-color: #1c2826; }
+  .aux-heading { flex-direction: row; height: 64px; gap: 14px; align-items: center; }
+  .aux-crest { width: 60px; height: 60px; pointer-events: none; }
+  .aux-heading-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; }
+  .aux-title { height: 22px; }
+  .aux-from { height: 18px; }
+  .aux-part { height: auto; white-space: normal; }
+  .aux-grants { padding: 8px; border-width: 1px; border-color: #8c815d; background-color: #26302b; }
+  .aux-controls { flex-direction: row; height: 34px; gap: 12px; }
+  .aux-action { width: 0px; flex-grow: 1; height: 26px; padding: 4px 8px; border-width: 2px; font-family: heading; text-align: center; }
   .hq-wings { height: 30px; width: 100%; text-align: left; padding: 4px 12px; font-family: heading; }
 .hq-debug { width: 168px; height: 34px; text-align: center; font-family: heading; border-width: 2px; }
 .hq-debug-hidden { width: 0px; height: 0px; opacity: 0; pointer-events: none; }

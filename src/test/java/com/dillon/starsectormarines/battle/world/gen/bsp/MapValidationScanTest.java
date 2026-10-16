@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.road.VehicleCorridor;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayDeque;
@@ -23,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Dev tool dressed as a test — the validation half of the map-gen gut-check
- * loop (the preview half lives in {@link BspMapPreviewTest}). Where the preview
+ * loop (the preview half lives in {@link BspMapPreviewSnapshotSuite}). Where the preview
  * renders maps for the eye, this runs structural <em>scans</em> over the same
  * seed batches and prints a per-seed report so missing generation rules surface
  * as numbers, not as a bug noticed in-game three weeks later.
@@ -31,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  * <p>Three scans, each isolating a distinct class of "missing rule":
  *
  * <ol>
- *   <li><b>Connectivity (cell vs. edge).</b> {@link BspMapPreviewTest}'s
+ *   <li><b>Connectivity (cell vs. edge).</b> {@link BspMapPreviewSnapshotSuite}'s
  *       {@code assertConnected} floods 4-neighbor over {@link
  *       NavigationGrid#isWalkable} — <em>cell</em> connectivity only. The real
  *       {@link GridPathfinder} honors per-edge walls (dual-side check, {@code
@@ -115,6 +116,7 @@ public class MapValidationScanTest {
         runBatch("LEGACY", LEGACY_SEEDS, GRID_W, GRID_H, null);
     }
 
+    @Tag("generated-space-evidence")
     @Test
     void scanConquestBatch() {
         for (TraversalAxis axis : TraversalAxis.values()) {

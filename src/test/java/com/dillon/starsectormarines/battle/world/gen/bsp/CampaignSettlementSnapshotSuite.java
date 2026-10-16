@@ -6,21 +6,19 @@ import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
-import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleMapRenderer;
-import org.json.JSONObject;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 
-import javax.imageio.ImageIO;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -32,11 +30,11 @@ import java.util.Locale;
  * <p>One row per market size, so the ladder from an off-grid outpost to a
  * city is visible in the art, beside a no-market map as the control — that
  * control is the stock crossroad, because a battle with nothing behind it has
- * no density to derive.
+ * no density to derive. Re-run via
+ * {@code gradlew createSnapshots -Psnapshot=campaign-settlements}.
  */
-class CampaignSettlementRenderTest {
+public final class CampaignSettlementSnapshotSuite implements SnapshotSuite {
 
-    private static final Path OUT_DIR = Paths.get("build/map-previews");
     private static final int GRID = 80;
     private static final int CELL_PX = 8;
     private static final long[] SEEDS = { 42L, 777L };
@@ -46,28 +44,24 @@ class CampaignSettlementRenderTest {
 
     private static HeadlessBattleMapRenderer battleMaps;
 
-    @BeforeAll
-    static void installRegistry() throws Exception {
-        TileRegistry reg = new TileRegistry();
-        for (String path : TileRegistry.BUILTIN_TILESETS) {
-            reg.ingestSheet(new JSONObject(Files.readString(Paths.get("mod/" + path))));
-        }
-        reg.validateReferences();
-        TileRegistry.install(reg);
-        battleMaps = new HeadlessBattleMapRenderer(Paths.get("mod"));
-    }
+    @Override public String id() { return "campaign-settlements"; }
+    @Override public String label() { return "Campaign-driven settlement ladder by market size"; }
 
-    @Test
-    void renderCampaignDrivenSettlements() throws Exception {
-        Files.createDirectories(OUT_DIR);
+    @Override
+    public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
+        TileRegistryTestInstaller.install(context.projectRoot());
+        battleMaps = new HeadlessBattleMapRenderer(context.modRoot());
+        List<SnapshotArtifact> artifacts = new ArrayList<>();
         for (SurfacePalette palette : new SurfacePalette[]{
                 SurfacePalette.ROCK, SurfacePalette.ARID, SurfacePalette.FROZEN }) {
-            renderLadder(palette);
+            renderLadder(palette, artifacts);
         }
+        return artifacts;
     }
 
     /** One row per market size on one world surface, beside a stock control. */
-    private void renderLadder(SurfacePalette palette) throws Exception {
+    private void renderLadder(SurfacePalette palette, List<SnapshotArtifact> artifacts)
+            throws Exception {
         for (long seed : SEEDS) {
             BufferedImage[] tiles = new BufferedImage[SIZES.length + 1];
             tiles[0] = tile(new BspCityGenerator().generate(GRID, GRID, seed),
@@ -81,10 +75,8 @@ class CampaignSettlementRenderTest {
                 tiles[i + 1] = tile(map, seed, caption(profile));
             }
             BufferedImage sheet = row(tiles);
-            Path out = OUT_DIR.resolve(String.format("campaign-settlement-%s-%04d.png",
-                    palette.name().toLowerCase(Locale.ROOT), (int) seed));
-            ImageIO.write(sheet, "PNG", out.toFile());
-            System.out.println("  wrote " + out.toAbsolutePath());
+            artifacts.add(new SnapshotArtifact(String.format("campaign-settlement-%s-%04d.png",
+                    palette.name().toLowerCase(Locale.ROOT), (int) seed), sheet));
         }
     }
 

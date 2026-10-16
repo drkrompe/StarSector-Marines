@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import javax.imageio.ImageIO;
@@ -38,6 +39,7 @@ class SandbagGeometryTest {
         }
     }
 
+    @Tag("generated-space-evidence")
     @Test void thunderRunHorseshoesJoinAtBothCornersAndFaceTheRoad() throws Exception {
         DiskRegistries.installMapGeneration(Path.of(""));
         MapResult map = ThunderRunCompound.generate(9301, TargetProfile.NEUTRAL).map();

@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -44,6 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * every baseline fight resolves at all. Absolute targets stay in the story
  * document, where changing them is a design decision rather than a test edit.
  */
+@Tag("generated-space-evidence")
 class TtkReportTest {
 
     /** Lower than the harness default: this report measures ~50 scenarios, and the guarded comparisons are wide enough to hold at this precision. */

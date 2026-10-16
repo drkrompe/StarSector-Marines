@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.EnumSet;
@@ -97,6 +98,7 @@ class MapLayoutTest {
      * spawn is chosen by a stage at the end of the pipeline and the plan only
      * states the intent.
      */
+    @Tag("generated-space-evidence")
     @Test
     void theAttackerArrivesWhereTheMissionSaid() {
         MapResult map = new BspCityGenerator().generate(W, H, 42L, null, world(),
@@ -107,6 +109,7 @@ class MapLayoutTest {
     }
 
     /** The defender holds the thing the mission is about. */
+    @Tag("generated-space-evidence")
     @Test
     void theDefenderHoldsTheObjective() {
         PrecinctPlan laid = plan(MapPlacement.NORTH_EAST, MapPlacement.SOUTH_WEST, 42L);
@@ -124,6 +127,7 @@ class MapLayoutTest {
      * <p>A force landing beside the thing it is meant to take has no approach to
      * fight through, which is most of what a conquest map is for.
      */
+    @Tag("generated-space-evidence")
     @Test
     void withNoInstructionTheAttackerStartsAwayFromTheObjective() {
         PrecinctPlan laid = plan(MapPlacement.NORTH_EAST, null, 42L);
