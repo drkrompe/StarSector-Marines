@@ -1912,6 +1912,8 @@
     "openingBarracksCommandUseTheHighlightedControl": "USE THE HIGHLIGHTED CONTROL",
     "openingBarracksCommandUseTheHighlightedControlEscToDismiss": "USE THE HIGHLIGHTED CONTROL / ESC TO DISMISS",
     "openingBarracksCommandSquadsReadyPersonnelReserves": "{0} squads / {1} ready personnel / {2} reserves",
+    "openingBarracksCommandFullHealHours": "FULL HEAL IN {0}H  /  {1} WIA",
+    "openingBarracksCommandFullHealNone": "ALL SQUADS FIT  /  NO WIA",
     "openingBarracksCommandSquadsInViewSelected": "{0} squads in view / {1} selected",
     "openingBarracksCommandNoSquadsMatchThisViewChooseRaise": "No squads match this view. Use the Raise Squad tile to form a new unit.",
     "openingBarracksCommandPage": "PAGE {0} / {1}",
