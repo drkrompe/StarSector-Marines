@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at four times the shared density and slower in atmosphere, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture; a landed ship is drawn at true scale and eases to flight presence as it lifts (rationale in `warship-behaviours.md`).
+Updated: 2026-10-16 — ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at six times the shared density and slower in atmosphere, a declared airspace for the hull fight, point defence tracking what is inbound, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture; a landed ship is drawn at true scale and eases to flight presence as it lifts (rationale in `warship-behaviours.md`).
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1650,19 +1650,19 @@ and yaw, and leaves. It never lands, never orbits and never flies a run.
 action (standing, owner, 2026-10-16).** This holds for every warship over a battle, not
 for one mission:
 
-- **Its body is large.** A hull is drawn, hit, shielded and fitted at four times the
-  shared density (`WarshipScale.HULL_PRESENCE`), so a frigate is about ten fighters long
-  and half again a Valkyrie, a cruiser twice that, and a capital about seventy cells, as
-  long as a compound. Aircraft stay on the shared density: a fighter is a fighter beside
+- **Its body is large.** A hull is drawn, hit, shielded and fitted at six times the
+  shared density (`WarshipScale.HULL_PRESENCE`), within a few percent of its true size
+  against the ground, so a frigate is about twenty-five cells long, a destroyer forty to
+  fifty, a cruiser about sixty and a capital about a hundred, longer than a compound. Aircraft stay on the shared density: a fighter is a fighter beside
   marines, and it is the ship that is out of the ordinary. Only the body grows against
   the ground: a gun's reach at the ground or the air, a round's speed and a shell's blast
   stay on the shared density, so no weapon hits the ground harder or further.
 - **Between hulls, reach is a hull's.** A gun fired at another hull reaches by the
   atmospheric hull reach (`WarshipScale.hullReach`): half the body's scale, so a pulse
-  laser reaches about three Wolf lengths. Ships are big and their guns reach a few of
+  laser reaches about three Wolf lengths and the fight keeps its shape as the body grows. Ships are big and their guns reach a few of
   their own lengths, as their base game's do; a gun's reach at the ground and the air is
   unchanged, because those fights are measured against marines and aircraft, which did
-  not grow. A missile at a hull reaches by its own flight.
+  not grow. A missile at a hull reaches by the same hull reach, from its own range.
 - **It handles like a ship of the line.** Its speed and turn are its table row's pulled
   toward a battleship's and then halved (speed) or cut to three fifths (turn)
   (`AtmosphericHandling`): the ladder between hulls survives, so a frigate still outruns
@@ -1694,7 +1694,16 @@ for one mission:
   station by the same laws, pulled in to within its charge's half-length and its own
   reach of the charge, so it brawls with what threatens the charge without leaving it.
 - **A ship free to manoeuvre fights with its guns.** Its missiles wait until its guns
-  are in reach; a ship held on station keeps launching at the missile's own reach.
+  are in reach; a ship held on station keeps launching at the missile's own reach. A
+  **finisher** (the base game's role for a Harpoon) is held for a hull already worn to
+  three fifths or overloaded, as the base game's own fleets hold it.
+- **Rounds between hulls keep their gun's cadence.** A round fired at a hull is followed
+  by the next after the weapon's charge-up and charge-down, so a pulse laser fires about
+  three times a second, as in the base game, and not at the floor of the tick.
+- **A mission may keep the hull fight over its own ground.** It declares an
+  **airspace** (`HullAirspace`), and ships fighting hulls choose their stations inside
+  it, in sight of the ground battle and not over it; entering, climbing out and routes
+  cross it freely. With none declared the whole map is the airspace.
 
 What the ground-support manoeuvres (a gun run, close air support, a low pass, a shelling)
 take from this is described with each: they inherit the slower handling through the
@@ -1976,6 +1985,10 @@ one hull start a volley within three quarters of a second of each other, and no 
 launches the next round of its volley sooner than a quarter second, so a pair of
 launchers fires left, right, left. A missile's own damage, flight and warheads are its
 weapon's.
+
+**Point defence watches what is coming.** A point-defence mount with nothing in its reach
+lays its barrel on the nearest hostile round it bears on within four times its reach, so a
+fast missile that is inside the reach for a few ticks meets a barrel already on it.
 
 **A pack divides a hunt; an escort interposes.** When two or more ships of a side hunt
 hulls with their duel helm and a hostile hull is being escorted, the hunter nearest that
