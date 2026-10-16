@@ -22,7 +22,14 @@ public enum MechSupportPayload implements AirDeliveryPayload {
 
     @Override
     public boolean tryDeploy(AirDeliveryContext context) {
-        MechDeploymentSpec deployment = deploymentForDeboard(context.mission);
+        return deploy(context, deploymentForDeboard(context.mission));
+    }
+
+    /**
+     * Sets {@code deployment} down into the sortie's one mech squad, minting it on the first
+     * machine. Shared with {@link ArmorDropPayload}, whose mixed drop unloads mechs the same way.
+     */
+    static boolean deploy(AirDeliveryContext context, MechDeploymentSpec deployment) {
         MechVariant variant = deployment.variant();
         MechSpawnPlacement.Point point = context.findOpenMechPosition(variant.radius);
         if (point == null) return false;

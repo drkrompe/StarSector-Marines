@@ -1,0 +1,16 @@
+Use case: precise-object-edit / texture reskin of a technical render sheet.
+INPUT 1 is a sheet of FOUR separate orthographic renders of armour faces at the bow of one 3D spacecraft (a battered industrial freighter), each seen square-on and drawn alone as flat-coloured shapes on a plain light grey background:
+top-left: the raked nose seen square-on: a large chalked-cream armoured nose block in the middle (with chamfered lower corners), framed left and right by two oxide-orange triangular wings of the bow shield's raked face behind it;
+top-right: the cream nose block's side face (an upright plate whose upper-left and lower-left corners are cut by the rake and the chin);
+bottom-left: the cream nose block's front stem face: a long horizontal cream band widening into cream wedge-shaped corner faces at both ends;
+bottom-right: the cream nose block's flat crown, a long horizontal cream strip.
+INPUT 2 is the SAME ship's port side, already painted: it is the finish to match. Use its paint colours, wear density, chipping, grime, seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.
+
+Paint each of the four tiles in INPUT 1 as that worn industrial hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:
+- Keep the four tiles exactly where they are, the same size, with the same plain grey gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any background stays plain background grey.
+- Each shape is a flat armour surface. Add painted surface detail inside its outline only: plate seams and welded joints, rows of fasteners and rivets, flush access panels, scuffed and lightly chipped paint, a thin even film of grime. Nothing may stand out from the surface or cross the outline.
+- Keep each shape's colour exactly where it is: cream shapes stay chalky, faded cream armour paint; the two oxide-orange wings in the top-left tile stay faded oxide-orange armour paint, and the boundary between the cream block and the orange wings stays exactly where it is. Do not repaint any area another colour, and do not add white, grey, orange or different-coloured patches, stripes, markings or repair plates.
+- Weathering is light and even across each whole shape. No soot, scorch marks, burns, rust streaks, impact damage, dents, holes, large stains or any single concentrated area of wear: those are added separately later.
+- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening (remove the soft dark shading along the cream block's edges in the top-left tile), no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.
+- Background and gutters: the same plain flat uniform light grey as INPUT 1, with no floor, shadow, vignette, text, labels or borders.
+Output: one landscape 16:9 image, same composition as INPUT 1.

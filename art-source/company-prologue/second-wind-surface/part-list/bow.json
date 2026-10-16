@@ -1,0 +1,235 @@
+{
+ "bow-nose-rake": {
+  "what": "nose rake: the cream nose block rake standing proud of the oxide shield rake, centreline",
+  "sheet": "bow-nose",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Armoured nose block",
+    "seed": [
+     56.5,
+     0,
+     5.7
+    ],
+    "faces": [
+     8
+    ]
+   },
+   {
+    "object": "Forebody armour module.002",
+    "seed": [
+     54.6,
+     14,
+     6.3
+    ],
+    "faces": [
+     19
+    ]
+   }
+  ],
+  "face_count": 2,
+  "area_units2": 504.04,
+  "view_dir": [
+   0.8479983040050879,
+   0.0,
+   0.5299989400031799
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.9,
+  "extent_units": [
+   38.25,
+   13.82
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -1.1444091796875e-05,
+    -24.1013346016407
+   ],
+   "ortho_width": 44.47488119435865
+  },
+  "native_texels_per_unit": 17.9
+ },
+ "bow-nose-side-port": {
+  "what": "cream nose block, port side face",
+  "sheet": "bow-nose",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Armoured nose block",
+    "seed": [
+     53.3,
+     8,
+     2.2
+    ],
+    "faces": [
+     5
+    ]
+   }
+  ],
+  "face_count": 1,
+  "area_units2": 131.51,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.9,
+  "extent_units": [
+   8.6,
+   18.3
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -53.29999923706055,
+    3.249999761581421
+   ],
+   "ortho_width": 37.82945677291515
+  },
+  "native_texels_per_unit": 21.0
+ },
+ "bow-nose-side-stbd": {
+  "what": "cream nose block, starboard side face (mirror of the port side)",
+  "sheet": "bow-nose",
+  "tile": 1,
+  "skin_from": "bow-nose-side-port",
+  "members": [
+   {
+    "object": "Armoured nose block",
+    "seed": [
+     53.3,
+     -8,
+     2.2
+    ],
+    "faces": [
+     1
+    ]
+   }
+  ],
+  "face_count": 1,
+  "area_units2": 131.51,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.9,
+  "extent_units": [
+   8.6,
+   18.3
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    53.29999923706055,
+    3.249999761581421
+   ],
+   "ortho_width": 37.82945677291515
+  },
+  "native_texels_per_unit": 21.0
+ },
+ "bow-nose-front": {
+  "what": "cream nose block stem face and its corner chamfers",
+  "sheet": "bow-nose",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Armoured nose block",
+    "seed": [
+     59.6,
+     0,
+     -0.9
+    ],
+    "faces": [
+     2,
+     3,
+     4
+    ]
+   }
+  ],
+  "face_count": 3,
+  "area_units2": 70.01,
+  "view_dir": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.65,
+  "extent_units": [
+   16.0,
+   7.74
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    0.0086439847946167
+   ],
+   "ortho_width": 18.6046511627907
+  },
+  "native_texels_per_unit": 42.7
+ },
+ "bow-nose-top": {
+  "what": "cream nose block crown, flat top behind the rake",
+  "sheet": "bow-nose",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Armoured nose block",
+    "seed": [
+     50.6,
+     0,
+     12.4
+    ],
+    "faces": [
+     7
+    ]
+   }
+  ],
+  "face_count": 1,
+  "area_units2": 52.42,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.9,
+  "extent_units": [
+   16.0,
+   3.28
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    50.63824462890625
+   ],
+   "ortho_width": 18.6046511627907
+  },
+  "native_texels_per_unit": 42.7
+ }
+}

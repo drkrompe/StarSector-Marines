@@ -1,10 +1,11 @@
 # C3 FIRST OPEN SKY: shared layout for every layer
 
-Status: DRAFT. Groundwork and camera plan; blockout animatic built, plates not yet painted.
+Status: ACTIVE. Production plates, cards and audio cues built; final frames render from `compose_c3.py`.
 
 Written: 2026-10-16
+Updated: 2026-10-16 — production pass: 2x de-misted plates, mist cards, cabin head v2, realism Atlas, flock flap cycle, burn-off from the entry's white, audio cues.
 
-Shot C3 of `storyboard-v3.md`: 12.0 seconds, 1920x1080, 24 fps (288 frames), silent.
+Shot C3 of `storyboard-v3.md`: 12.0 seconds, 1920x1080, 24 fps (288 frames), no dialogue: cabin bed and wind only.
 Every layer and moving element obeys this sheet, so the pieces composite into one
 camera. The numbers live in `c3_core.py`; this sheet explains them.
 
@@ -139,18 +140,25 @@ whole shot, lean included, and finds **no pixel needed beyond the master's canva
 
 ### What Codex must fill, and how
 
-| Fill | Area | Method |
+| Fill | Area | Method (as built) |
 |---|---|---|
-| Range behind the far crests | 1,255 master px of slivers | Edit target: the range band over neutral grey, the slivers painted flat mid-grey, master as style reference. Brief: continue the range's lower slopes into the grey only. Composite back only the grey region, after checking registration with `c3_bands.register`. |
-| De-misted far and mid bands | the 43,800 px mist mask | One edit per band: remove the valley mist and paint the canopy beneath. Then the mist cards are exact: alpha = (master − de-misted) / (mist white − de-misted), a difference matte, so the drifting mist is the approved mist and not an invention. |
-| Plate resolution | every band | The master is 1672 px wide; the plate rule is 3840. Re-render each band as two overlapping wide strips (image_gen returns about 2048x768) with the upscaled band as the edit target, then register each strip back with `c3_bands.register` before blending. Reject any strip that moves a crown or a bank by more than 2 px. |
-| Cabin head | done (v1) | See below. |
+| Range behind the far crests | 1,255 master px of slivers, never more than ~16 px deep | **Procedural**, no generation (`c3_layers.py`): below the range's foot each column mirrors the range's own lower slope about the foot and fades into its haze colour. At 40 km the range is ~70% sky colour and nearly featureless, so a mirrored slope cannot be told from paint. The range's skyline is pulled in 1.5 master px so the master's paler sky fringe does not ride on it against the sky plate. |
+| De-misted far and mid bands | 30,100 master px removed (mist mask dilated, near band excluded) | Done in the same generations as the resolution pass: the mist is painted **flat grey into each edit target**, so the region to repaint is drawn. The mist cards are a difference matte, alpha = (master - de-misted) / (mist white - de-misted), measured over all far and mid land (the completions also cleared the thin wisps between ridges, which belong to the approved mist), after softening both images so added detail does not read as mist. |
+| Plate resolution | every band | `c3_plates.py`: the shot only ever shows master rows 176-800, so the land is four overlapping tiles of 917x344 master px, each returned at 2048x768 (2.23x). Every tile registered at (0, 0) and no 96 px block drifted at all (rule: reject over 2 px). Each tile is colour-matched to the master at low frequency outside the mist (detail from Codex, broad light from the approved still), then feather-blended into a 3344x1882 plate (2x master; 1.67 plate px per frame px). Continuations behind nearer bands stay the 1x salvage extractions; only slivers of them ever show. |
+| Cabin head | v2 | See below. |
 
-**The lesson from the one completion already run** (`assets/c3-cabin-top-v1.png`):
+**The lesson from the first completion** (`assets/c3-cabin-top-v1.png`):
 Codex keeps finished paint registered (1 px below the seam) but redraws geometry it
 is only *told* about. Asked for a window head at y = 77, it drew a deeper rim with
 its glass edge at y = 169. Geometry belongs in the guide, drawn, not in the brief.
 Every fill above therefore marks its region in the edit target itself.
+
+**Cabin head v2** (`c3_cabin_head.py`) draws it: the painted sill rim, flipped about
+the glass edge and widened to the aperture's top width, puts a rim exactly on y = 77;
+the side jambs continue upward as their own paint mirrored about the y = 213 seam; the
+two meet in a mitre at each upper corner. Codex repainted that draft's detail and light
+and kept its lines: the completion's glass top measures y = 76 and its jambs fall within
+1-3 px of the geometry, so it is used with no lift or stretch.
 
 ## Moving elements
 
@@ -160,17 +168,22 @@ flight. `c3_core.ELEMENTS` holds the numbers.
 
 | Element | Host | True distance | Own travel | Method and why it is safe |
 |---|---|---:|---|---|
-| Atlas lifter | Mid | 2.2 km | 60 m/s bow-right, climbing 8 m/s | One side-view card (bow right). Net screen motion about +25 px/s right, 6 px/s up: it crosses slowly *against* the world. Bearing change about 12 degrees: end-face sliver about 4 px, so no perspective change shows. Blockout uses the earlier painted card `parallax-window/traffic/atlas-painted-v1.png`; the final card is a realism repaint (open question 7). |
-| Flock | Near | 0.7 km | 8 m/s aft | Eleven fliers from a flap sheet (blockout: a procedural 6 px chevron cycle at 3.2 flaps/s, phases staggered). They pass the ship and enter from behind the right jamb at about 2.5 s, crossing the bright low sky, where a dark speck reads. Flapping is the only internal motion; no perspective. |
-| Low mist | Mid | 1.7 km | 1 m/s breeze from the bow | Translucent card: the mid band's own mist, difference-matted once the de-misted band exists. Depth offset and breeze together slide it about 20 px aft against the forest under it. |
-| High mist | Far | 4.5 km | the same breeze | The same from the far band; slides about 30 px aft against the ridges it lies between. |
-| Entry's last cloud | Near | 0.8 km | none | `managed-land-realism/assets/clouds-realism-v1.png`, already used by the entry tail. Slides aft and burns off over the first 1.6 s. |
-| Gloved hand (optional) | Cabin | 0.6 m | — | A 3–4 frame sheet on the sill, loosening at about 9.5 s, after the lean. Owner call (open question 8). |
+| Atlas lifter | Mid | 2.2 km | 60 m/s bow-right, climbing 8 m/s | One side-view card (bow right). Net screen motion about +25 px/s right, 6 px/s up: it crosses slowly *against* the world. Bearing change about 12 degrees: end-face sliver about 4 px, so no perspective change shows. Realism card `assets/c3-atlas-v1.png`, repainted on `guides/c3-atlas-guide.png`: the reveal scene's Atlas is itself one plane carrying the painted card, so the guide is that card's exact silhouette in grey with the shared sun laid over it (`c3_atlas_guide.py`). Baked at 3x, hazed 15%. |
+| Flock | Near | 0.7 km | 8 m/s aft | Eleven fliers from a procedural flap cycle (`compose_c3.bird_frame`): each wing is an arm and a hand segment, the hand lagging the arm so a downstroke reads as a stroke; 2.9-3.5 flaps/s per bird, each gliding with wings held up for 0.6 s in every 2.6 s, with a slight bob. Drawn at 6x and reduced, at 1.4x true span so the wingbeat reads. They pass the ship and enter from behind the right jamb at about 2.5 s, crossing the bright low sky. No perspective. |
+| Low mist | Mid | 1.7 km | 1 m/s breeze from the bow | Translucent card: the difference matte over the mid band. Depth offset and breeze together slide it about 20 px aft against the forest under it. |
+| High mist | Far | 4.5 km | the same breeze | The matte over the far band and the range; slides about 30 px aft against the ridges it lies between. |
+| Entry's last cloud | Near | 0.8 km | none | Frame 0 is the aperture filled with the entry's flat soft white, sRGB (244, 246, 248). It burns off over the first 1.6 s, thinnest parts first, its density from `managed-land-realism/assets/clouds-realism-v1.png` (softened: it is out of focus) sliding aft at the 800 m rate. |
+| Gloved hand (optional) | Cabin | 0.6 m | — | A 3–4 frame sheet on the sill, loosening at about 9.5 s, after the lean. Owner call (open question 3). |
 
 Nothing near the camera moves fast, nothing rotates, and nothing changes scale except
 the cabin under the lean.
 
 ## Picking up from the entry transition
+
+**The hand-off** (shared session notes, `c3-handoff.md`): the entry ends with its window
+full of flat soft white, sRGB (244, 246, 248), on C3's camera with the cabin unchanged;
+C3's frame 0 is exactly that. If the entry instead ends white over the whole frame, C3
+adds a short white-to-cabin fade.
 
 - The entry tail (`entry-window/`) ends on the forest reveal's first frame: the reveal
   camera at 19.3 degrees down, the orange cabin, and the forest. C3's camera differs
@@ -205,6 +218,14 @@ the cabin under the lean.
 Not used: `forest-lookdev/` (the modelled-foliage experiment is superseded by the
 realism plates) and the reveal's 3D scenery.
 
+## Audio
+
+`audio_cues()` in `compose_c3.py`: `jangala_arrival_cabin_bed` (a 16 s seamless loop,
+volume 0.55, the whole shot) and `jangala_arrival_wind` (one 12.5 s pass, volume 0.8,
+its buffeting easing with the world shake). Both are built by `c3_audio.py` from
+repository ambience and seeded noise and registered in `audio.json`; any window shot
+may reuse them. `captions()` and `overlays()` are empty.
+
 ## Files
 
 | File | Role |
@@ -213,7 +234,12 @@ realism plates) and the reveal's 3D scenery.
 | `c3_cabin_guide.py` | Blender: greybox cabin, depth and camera at the C3 pitch. |
 | `c3_cabin_render.py` | Blender: the painted cabin re-viewed at the C3 pitch, plus the mask of what the projector never saw. |
 | `c3_bands.py` | Band masks, registration, mist, and the fill maps. |
-| `compose_c3.py` | Blockout stills in `review/`; `--movie` writes `build/c3-blockout.mp4`. |
+| `c3_plates.py` | Tile edit targets, registration check, and the 2x de-misted plate and mist matte. |
+| `c3_cabin_head.py` | Cabin head v2 edit target with the rim drawn; `--check` measures a completion. |
+| `c3_atlas_guide.py` | The Atlas guide from the reveal scene's Atlas card. |
+| `c3_layers.py` | Bakes every production layer to `build/layers/`. |
+| `c3_audio.py` | The cabin bed and wind sources. |
+| `compose_c3.py` | Final frames, review mp4 and `timeline.json` under `build/cinematic/c3-first-open-sky/`; review stills and contact sheet in `review/`; the runtime contract's data. |
 | `prompts/`, `assets/` | Codex briefs and masters with provenance. |
 
 ## Owner decisions (2026-10-16)
@@ -226,44 +252,23 @@ realism plates) and the reveal's 3D scenery.
 
 ## Open questions
 
-1. **Pitch, shared with the entry.** C3 proposes 9 degrees down; the entry tail
-   (re-planned in `patrol-abeam/`) would have to end on the same camera. C2 sits at
-   18.6. Does the entry adopt C3's camera, with the pitch change hidden in the C2→entry
-   cut?
-2. **Which cabin.** `storyboard-v3.md` names the grey `realism-lookdev` frame for C2, C3,
-   C4 and the entry, and `patrol-abeam/c2_core.py` uses its aperture. But that keyframe
-   is not registered to the Blender cabin (its left jamb sits about 75 px from the
-   geometry's), so it cannot be re-viewed at another pitch. The orange
-   `cabin-realism-v1` can, and is what the entry and the reveal already use. Proposal:
-   keep the Blender-registered geometry and give it the grey palette in one reskin
-   generation from `c3-cabin-geometry-p09.png`, used by every window shot. Storyboard
-   change proposed: "one frame throughout" means one geometry and one palette, not one
-   keyframe image.
-3. **Cabin head v2.** `c3-cabin-top-v1.png` drew the window head 92 px too deep; the
-   compositor lifts it into place, which stretches the jamb paint between y = 77 and
-   213 about 3x vertically. A v2 with the rim drawn into the edit target fixes it, and
-   can be the same generation as question 2.
-4. **The sky has depth, and the storyboard has five layers.** Overhead cumulus is about
+Settled and removed: the shared pitch and the one cabin (owner decisions above), cabin head v2, plate resolution and the realism Atlas (built in the production pass).
+
+1. **The sky has depth, and the storyboard has five layers.** Overhead cumulus is about
    5 km away and the horizon cumulus about 35 km, so one sky plate is wrong by about
    60 px over the shot at the top of the window. Plan: a C3 sky generation as a clear
    gradient plus a transparent cumulus row, the row riding the far layer. This needs
    the reading above, that a layer is a rate and may carry disjoint cut-outs. Confirm.
-5. **Depth inside a band.** A card cannot shear: the near band really spans 0.9–1.5 km
+2. **Depth inside a band.** A card cannot shear: the near band really spans 0.9–1.5 km
    (366–230 px of slide) and the mid band 1.2–5 km (280–85 px). At 20 m/s the error is
    tolerable; faster would show the bands as cards. Alternative if it shows: fold the
    range into the far layer (about 40 px of error) and spend the freed layer splitting
    the mid band at the river.
-6. **Plate resolution.** Approve the band-strip regeneration path, or accept the
-   1672-px master (soft at 1080p, well short of the 3840 plate rule).
-7. **Atlas card.** The blockout card is the earlier painted style. A realism card
-   wants a guide rendered from the reveal blend's Atlas at this camera, lit by the
-   shared sun (top and upper-left lit, near flank in partial shade), then reskinned.
-   One generation.
-8. **The gloved hand.** At 9 degrees the lower-left sleeve of the reveal framing is out
+3. **The gloved hand.** At 9 degrees the lower-left sleeve of the reveal framing is out
    of frame. Put a hand on the sill (a short sheet, loosening after the lean), or drop
    it?
-9. **Storyboard wording.** C3's layer list could read: "horizon (sky and range); far
+4. **Storyboard wording.** C3's layer list could read: "horizon (sky and range); far
    ridges; middle forest and river; near canopy; fixed window frame and cabin", with
    the lifter, flock and mist as moving elements riding those layers.
-10. **The flock's species.** Jangala fauna or generic birds? At 6 px it is a silhouette
+5. **The flock's species.** Jangala fauna or generic birds? At 6 px it is a silhouette
     either way; a painted sheet matters only if a later shot comes closer.

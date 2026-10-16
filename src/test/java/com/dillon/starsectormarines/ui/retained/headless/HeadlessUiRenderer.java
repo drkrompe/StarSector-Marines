@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ui.retained.headless;
 
+import com.dillon.starsectormarines.tools.snapshot.SnapshotWorkers;
 import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.retained.CanvasBlend;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
@@ -23,6 +24,7 @@ import java.awt.Color;
 import java.awt.Composite;
 import java.awt.CompositeContext;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
@@ -30,6 +32,8 @@ import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
+import java.awt.image.DataBuffer;
+import java.awt.image.DirectColorModel;
 import java.awt.image.Raster;
 import java.awt.image.WritableRaster;
 import java.io.IOException;
@@ -37,9 +41,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Renders any retained document to a deterministic Java2D image without a
@@ -71,6 +76,82 @@ public final class HeadlessUiRenderer {
             graphics.setComposite(composite);
             graphics.setTransform(transform);
         }
+    }
+
+    /** Draws one horizontal band of a canvas; {@code top}/{@code bottom} are the band's rows in canvas coordinates. */
+    @FunctionalInterface
+    public interface BandDrawer {
+        void draw(CanvasContext band, int top, int bottom) throws Exception;
+    }
+
+    /**
+     * Draws {@code drawer} into {@code context} as horizontal bands of {@code bandRows} rows, side by side on
+     * {@link SnapshotWorkers#raster()} (one after another when there is one worker), and returns once every band is
+     * drawn. Returns false, drawing nothing, when the canvas cannot be split — then the caller draws it whole.
+     *
+     * <p><b>A band is the whole canvas with a clip</b>, not a smaller surface: every band draws through the same
+     * transform, so every primitive is placed at exactly the device coordinates it always was and the clip only
+     * decides which rows it may write. Bands are disjoint, so each pixel is written by one band only, in the order
+     * the drawer issues its draws. Only a direct, unscaled host-pass canvas (the review drain) is split: elsewhere the
+     * device transform is not the identity, and a band boundary would not be a pixel boundary.
+     *
+     * <p><b>Where the bands fall is part of the picture</b>, which is why their height is the caller's constant and
+     * not a function of the worker count. Java2D's transformed-image loop walks its sample position down a clip span
+     * in fixed point from an exact transform of the span's first row, so a boundary through a scaled or turned sprite
+     * restarts that walk there, and the band's first row can sample a hair away from where the uninterrupted walk
+     * had drifted to: a level or two in a channel, in about one pixel in five hundred along that row. The same walk
+     * places a turned sprite's edges, so very rarely an edge pixel is taken in or left out (seen once in 3.7
+     * billion pixels of the broadside scene, sixteen levels). Fixed
+     * bands make that the same on every machine and at every worker count, so a frame stays a function of the
+     * state it draws.
+     *
+     * <p>The drawer runs concurrently with itself: it must only read what it shares.
+     */
+    public static boolean drawInBands(CanvasContext context, int bandRows, BandDrawer drawer) {
+        if (bandRows <= 0 || !(context instanceof RasterCanvasContext raster)) return false;
+        if (!raster.graphics.getTransform().isIdentity()
+                || raster.coordinateScaleX != 1f || raster.coordinateScaleY != 1f) return false;
+        if (raster.surfaceRows <= 0 || raster.surfaceColumns <= 0) return false;
+        Rectangle clip = raster.graphics.getClipBounds();
+        int top = Math.max(0, clip == null ? 0 : clip.y);
+        int bottom = Math.min(raster.surfaceRows, clip == null ? raster.surfaceRows : clip.y + clip.height);
+        if (bottom - top <= bandRows) return false;
+        List<Graphics2D> graphics = new ArrayList<>();
+        List<Callable<Void>> tasks = new ArrayList<>();
+        try {
+            // Bands start on multiples of bandRows from the surface's own top, wherever the clip begins.
+            for (int y0 = top; y0 < bottom; y0 = (y0 / bandRows + 1) * bandRows) {
+                int y1 = Math.min(bottom, (y0 / bandRows + 1) * bandRows);
+                Graphics2D bandGraphics = (Graphics2D) raster.graphics.create();
+                bandGraphics.clipRect(0, y0, raster.surfaceColumns, y1 - y0);
+                graphics.add(bandGraphics);
+                CanvasContext bandContext = new RasterCanvasContext(bandGraphics, raster.resources, raster.metrics(),
+                        raster.visibleBounds(), raster.alphaMult(), raster.hostPassRenderer,
+                        raster.originX, raster.originY, 1f, 1f);
+                int localTop = (int) Math.floor(y0 - raster.originY);
+                int localBottom = (int) Math.ceil(y1 - raster.originY);
+                tasks.add(() -> {
+                    drawer.draw(bandContext, localTop, localBottom);
+                    return null;
+                });
+            }
+            if (SnapshotWorkers.threads() > 1) {
+                SnapshotWorkers.runAll(tasks);
+            } else {
+                for (Callable<Void> task : tasks) {
+                    try {
+                        task.call();
+                    } catch (RuntimeException failure) {
+                        throw failure;
+                    } catch (Exception failure) {
+                        throw new IllegalStateException(failure);
+                    }
+                }
+            }
+        } finally {
+            for (Graphics2D bandGraphics : graphics) bandGraphics.dispose();
+        }
+        return true;
     }
 
     private final ResourceStore resources;
@@ -136,8 +217,11 @@ public final class HeadlessUiRenderer {
         configure(graphics);
         Rect surface = new Rect(0f, 0f, width, height);
         CanvasMetrics metrics = new CanvasMetrics(surface, width, height, 1f);
-        new RasterCanvasContext(graphics, resources, metrics, surface, alphaMult,
-                hostPassRenderer).hostPass(pass);
+        RasterCanvasContext canvas = new RasterCanvasContext(graphics, resources, metrics, surface, alphaMult,
+                hostPassRenderer);
+        canvas.surfaceColumns = width;
+        canvas.surfaceRows = height;
+        canvas.hostPass(pass);
         graphics.dispose();
         return output;
     }
@@ -301,6 +385,9 @@ public final class HeadlessUiRenderer {
         private final float originY;
         private final float coordinateScaleX;
         private final float coordinateScaleY;
+        /** Pixel size of the image under this canvas when it is known to be a whole, untransformed surface; else -1. */
+        private int surfaceColumns = -1;
+        private int surfaceRows = -1;
 
         private RasterCanvasContext(Graphics2D graphics, ResourceStore resources,
                                     CanvasMetrics metrics, Rect visibleBounds,
@@ -424,7 +511,7 @@ public final class HeadlessUiRenderer {
                 throw new IllegalArgumentException(
                         "Headless canvas sprites require their source path");
             }
-            BufferedImage image = sourceRegion(resources.tintedSprite(sourcePath, tint), region);
+            BufferedImage image = resources.region(resources.tintedSprite(sourcePath, tint), region);
             AffineTransform transform = graphics.getTransform();
             var composite = graphics.getComposite();
             graphics.translate(documentX(centerX), documentY(centerY));
@@ -461,9 +548,11 @@ public final class HeadlessUiRenderer {
             // Native host passes resolve their camera directly in the physical content
             // box. Replay those resolved coordinates without stretching them through the
             // canvas's authored surface a second time.
-            CanvasContext direct = new RasterCanvasContext(graphics, resources, metrics,
+            RasterCanvasContext direct = new RasterCanvasContext(graphics, resources, metrics,
                     visibleBounds(), alphaMult(), hostPassRenderer,
                     content.x(), content.y(), 1f, 1f);
+            direct.surfaceColumns = surfaceColumns;
+            direct.surfaceRows = surfaceRows;
             return hostPassRenderer.draw(pass, direct, viewport, alphaMult());
         }
 
@@ -480,8 +569,25 @@ public final class HeadlessUiRenderer {
             return (float) Math.hypot(normalX * scaleX, normalY * scaleY);
         }
 
-        private static BufferedImage sourceRegion(BufferedImage source,
-                                                  CanvasSpriteRegion region) {
+    }
+
+    /** Identifies one cut of one decoded image; the image is compared by identity, which is what a record does with it. */
+    private record RegionKey(BufferedImage source, int left, int top, int right, int bottom) { }
+
+    private static final class ResourceStore {
+        private final List<Path> roots;
+        private final Map<String, BufferedImage> images = new ConcurrentHashMap<>();
+        private final Map<TintKey, BufferedImage> tintedFonts = new ConcurrentHashMap<>();
+        private final Map<SpriteTintKey, BufferedImage> tintedSprites = new ConcurrentHashMap<>();
+        /** Source rectangles already cut, by image identity: a fresh subimage per draw cost Java2D a new surface and a disposer record every time. */
+        private final Map<RegionKey, BufferedImage> regions = new ConcurrentHashMap<>();
+        private final IdentityHashMap<BitmapFont, Boolean> installedFonts =
+                new IdentityHashMap<>();
+
+        /** Cuts beyond this many are dropped wholesale; a cut is a view onto its image, so it costs a header, not pixels. */
+        private static final int MAX_REGIONS = 200_000;
+
+        private BufferedImage region(BufferedImage source, CanvasSpriteRegion region) {
             if (region.equals(CanvasSpriteRegion.FULL)) return source;
             int left = Math.round(region.x() * source.getWidth());
             int top = Math.round(region.y() * source.getHeight());
@@ -490,17 +596,10 @@ public final class HeadlessUiRenderer {
             if (right <= left || bottom <= top) {
                 throw new IllegalArgumentException("sprite region resolves to no source pixels");
             }
-            return source.getSubimage(left, top, right - left, bottom - top);
+            if (regions.size() > MAX_REGIONS) regions.clear();
+            return regions.computeIfAbsent(new RegionKey(source, left, top, right, bottom),
+                    key -> source.getSubimage(left, top, right - left, bottom - top));
         }
-    }
-
-    private static final class ResourceStore {
-        private final List<Path> roots;
-        private final Map<String, BufferedImage> images = new LinkedHashMap<>();
-        private final Map<TintKey, BufferedImage> tintedFonts = new LinkedHashMap<>();
-        private final Map<SpriteTintKey, BufferedImage> tintedSprites = new LinkedHashMap<>();
-        private final IdentityHashMap<BitmapFont, Boolean> installedFonts =
-                new IdentityHashMap<>();
 
         private ResourceStore(List<Path> roots) {
             if (roots == null || roots.isEmpty()) {
@@ -652,6 +751,13 @@ public final class HeadlessUiRenderer {
                             WritableRaster destinationOut) {
             int width = Math.min(source.getWidth(), destinationIn.getWidth());
             int height = Math.min(source.getHeight(), destinationIn.getHeight());
+            if (packedArgb(sourceColorModel, source) && packedArgb(destinationColorModel, destinationIn)
+                    && !destinationColorModel.isAlphaPremultiplied()
+                    && destinationOut.getDataBuffer().getDataType() == DataBuffer.TYPE_INT) {
+                composePacked(source, destinationIn, destinationOut, width, height,
+                        sourceColorModel.isAlphaPremultiplied());
+                return;
+            }
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
                     int sourceArgb = sourceColorModel.getRGB(source.getDataElements(
@@ -682,9 +788,60 @@ public final class HeadlessUiRenderer {
         public void dispose() {
         }
 
+        /** An 8-bit-per-channel 0xAARRGGBB pixel held in one int, the layout of every surface this backend draws. */
+        private static boolean packedArgb(ColorModel model, Raster raster) {
+            return model instanceof DirectColorModel direct
+                    && direct.getTransferType() == DataBuffer.TYPE_INT
+                    && raster.getDataBuffer().getDataType() == DataBuffer.TYPE_INT
+                    && direct.getAlphaMask() == 0xff000000 && direct.getRedMask() == 0x00ff0000
+                    && direct.getGreenMask() == 0x0000ff00 && direct.getBlueMask() == 0x000000ff
+                    && direct.getColorSpace().isCS_sRGB();
+        }
+
+        /**
+         * The per-pixel arithmetic of the general path above, a row at a time on packed ints. A premultiplied source
+         * is un-premultiplied exactly as {@link DirectColorModel#getRGB(int)} does it, float for float, so the two
+         * paths produce the same bits; the general path asked the colour model for every channel of every pixel and
+         * was a seventh of a recording's time.
+         */
+        private void composePacked(Raster source, Raster destinationIn, WritableRaster destinationOut,
+                                   int width, int height, boolean premultiplied) {
+            int[] sourceRow = new int[width];
+            int[] destinationRow = new int[width];
+            for (int y = 0; y < height; y++) {
+                source.getDataElements(source.getMinX(), source.getMinY() + y, width, 1, sourceRow);
+                destinationIn.getDataElements(destinationIn.getMinX(), destinationIn.getMinY() + y, width, 1,
+                        destinationRow);
+                for (int x = 0; x < width; x++) {
+                    int sourceArgb = sourceRow[x];
+                    int alpha = sourceArgb >>> 24;
+                    int red = sourceArgb >>> 16 & 0xff, green = sourceArgb >>> 8 & 0xff, blue = sourceArgb & 0xff;
+                    if (premultiplied) {
+                        red = unpremultiply(red, alpha);
+                        green = unpremultiply(green, alpha);
+                        blue = unpremultiply(blue, alpha);
+                    }
+                    int destinationArgb = destinationRow[x];
+                    int sourceAlpha = Math.round(alpha * opacity);
+                    int outputAlpha = Math.min(255, (destinationArgb >>> 24) + sourceAlpha * sourceAlpha / 255);
+                    destinationRow[x] = outputAlpha << 24
+                            | additiveChannel(destinationArgb >>> 16 & 0xff, red, sourceAlpha) << 16
+                            | additiveChannel(destinationArgb >>> 8 & 0xff, green, sourceAlpha) << 8
+                            | additiveChannel(destinationArgb & 0xff, blue, sourceAlpha);
+                }
+                destinationOut.setDataElements(destinationOut.getMinX(), destinationOut.getMinY() + y, width, 1,
+                        destinationRow);
+            }
+        }
+
         private static int additiveChannel(int destination, int source, int sourceAlpha) {
             return Math.min(255, destination + source * sourceAlpha / 255);
         }
+    }
+
+    /** {@code DirectColorModel}'s own un-premultiply for an 8-bit sRGB channel, operation for operation. */
+    static int unpremultiply(int channel, int alpha) {
+        return alpha == 0 ? 0 : (int) (((channel * 1.0f) * 255.0f / (alpha * 1.0f)) + 0.5f);
     }
 
     private static Color opaque(Color color) {

@@ -28,6 +28,12 @@ public enum VehicleSupportPayload implements AirDeliveryPayload {
 
     @Override
     public boolean tryDeploy(AirDeliveryContext context) {
+        return deploy(context, context.mission.vehicleDeployment != null
+                ? context.mission.vehicleDeployment : VehicleDeploymentSpec.standard(FALLBACK));
+    }
+
+    /** Sets {@code vehicle} down; shared with {@link ArmorDropPayload}'s mixed drop. */
+    static boolean deploy(AirDeliveryContext context, VehicleDeploymentSpec vehicle) {
         int[] cell = context.findOpenDeboardCell();
         if (cell == null) return false;
         // Pointed the way the carrier flew in. Better than an authored
@@ -36,8 +42,6 @@ public enum VehicleSupportPayload implements AirDeliveryPayload {
         float facing = AirBody.facingToward(
                 context.mission.lzX - context.mission.entryX,
                 context.mission.lzY - context.mission.entryY);
-        VehicleDeploymentSpec vehicle = context.mission.vehicleDeployment != null
-                ? context.mission.vehicleDeployment : VehicleDeploymentSpec.standard(FALLBACK);
         context.deployVehicle(vehicle, cell[0] + 0.5f, cell[1] + 0.5f, facing);
         return true;
     }

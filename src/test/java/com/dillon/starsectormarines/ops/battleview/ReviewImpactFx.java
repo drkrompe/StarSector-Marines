@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxRuntime;
 import com.dillon.starsectormarines.ops.BattleScreen;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotWorkers;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.SettingsAPI;
 import com.fs.starfarer.api.graphics.SpriteAPI;
@@ -17,6 +18,8 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
+import java.awt.image.SinglePixelPackedSampleModel;
 import java.io.IOException;
 import java.lang.reflect.Proxy;
 import java.nio.file.Files;
@@ -25,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * The game's real {@link ImpactFx}, drawn into a Java2D review frame.
@@ -160,12 +164,55 @@ public final class ReviewImpactFx {
     public void paint(BufferedImage image, BattleCamera camera) {
         draws.clear();
         withSettings(() -> fx.render(camera, 1f));
+        List<Draw> painted = new ArrayList<>(draws.size());
+        List<BufferedImage> sheets = new ArrayList<>(draws.size());
         for (Draw draw : draws) {
             BufferedImage sheet = art(draw.path);
             if (sheet == null) continue;
-            blend(image, sheet, draw, image.getHeight() - draw.centerY);
+            painted.add(draw);
+            sheets.add(sheet);
         }
         draws.clear();
+        if (!fastTarget(image) || SnapshotWorkers.threads() <= 1) {
+            for (int i = 0; i < painted.size(); i++) {
+                blend(image, sheets.get(i), painted.get(i), image.getHeight() - painted.get(i).centerY);
+            }
+            return;
+        }
+        // Each particle's turned and scaled cell is its own small raster, so they are made side by side; then the
+        // frame is blended in horizontal bands, every band taking every particle in the recorded order, so each pixel
+        // sees exactly the blends it saw one particle at a time.
+        Particle[] particles = new Particle[painted.size()];
+        List<Callable<Void>> cells = new ArrayList<>(painted.size());
+        for (int i = 0; i < painted.size(); i++) {
+            int index = i;
+            cells.add(() -> {
+                particles[index] = particle(sheets.get(index), painted.get(index), image.getHeight() - painted.get(index).centerY);
+                return null;
+            });
+        }
+        SnapshotWorkers.runAll(cells);
+        int[] target = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
+        int bands = SnapshotWorkers.threads();
+        List<Callable<Void>> rows = new ArrayList<>(bands);
+        for (int band = 0; band < bands; band++) {
+            int top = image.getHeight() * band / bands, bottom = image.getHeight() * (band + 1) / bands;
+            rows.add(() -> {
+                for (Particle particle : particles) {
+                    if (particle != null) particle.blend(target, image.getWidth(), image.getHeight(), top, bottom);
+                }
+                return null;
+            });
+        }
+        SnapshotWorkers.runAll(rows);
+    }
+
+    /** A packed, unshared 0xAARRGGBB frame whose pixels can be read and written as the ints {@code getRGB} returns. */
+    private static boolean fastTarget(BufferedImage image) {
+        return image.getType() == BufferedImage.TYPE_INT_ARGB && image.getRaster().getParent() == null
+                && image.getRaster().getDataBuffer() instanceof DataBufferInt buffer && buffer.getNumBanks() == 1
+                && buffer.getOffset() == 0 && image.getRaster().getSampleModel() instanceof SinglePixelPackedSampleModel model
+                && model.getScanlineStride() == image.getWidth();
     }
 
     private void withSettings(Runnable action) {
@@ -196,6 +243,25 @@ public final class ReviewImpactFx {
     }
 
     private static void blend(BufferedImage target, BufferedImage sheet, Draw draw, float centerY) {
+        Particle particle = particle(sheet, draw, centerY);
+        if (particle == null) return;
+        for (int y = 0; y < particle.span; y++) {
+            int ty = particle.originY + y;
+            if (ty < 0 || ty >= target.getHeight()) continue;
+            for (int x = 0; x < particle.span; x++) {
+                int tx = particle.originX + x;
+                if (tx < 0 || tx >= target.getWidth()) continue;
+                int out = particle.over(particle.pixels[y * particle.span + x], target.getRGB(tx, ty));
+                if (out != NO_CHANGE) target.setRGB(tx, ty, out);
+            }
+        }
+    }
+
+    /** Returned by {@link Particle#over} for a source pixel that leaves the target as it was. */
+    private static final int NO_CHANGE = 0x00FFFFFF;
+
+    /** One recorded draw's cell, turned and scaled into a square of its own, with where it lands and how it tints. */
+    private static Particle particle(BufferedImage sheet, Draw draw, float centerY) {
         int sheetW = sheet.getWidth();
         int sheetH = sheet.getHeight();
         int sx = Math.max(0, Math.min(sheetW - 1, Math.round(draw.texX * sheetW)));
@@ -205,7 +271,7 @@ public final class ReviewImpactFx {
         int sh = Math.max(1, Math.min(sheetH - sy, Math.round(draw.texH * sheetH)));
         BufferedImage cell = sheet.getSubimage(sx, sy, sw, sh);
         int span = (int) Math.ceil(Math.hypot(draw.width, draw.height)) + 2;
-        if (span <= 2 || span > 4096) return;
+        if (span <= 2 || span > 4096) return null;
         BufferedImage scratch = new BufferedImage(span, span, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = scratch.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
@@ -214,41 +280,52 @@ public final class ReviewImpactFx {
         g.drawImage(cell, Math.round(-draw.width / 2f), Math.round(-draw.height / 2f),
                 Math.round(draw.width), Math.round(draw.height), null);
         g.dispose();
-        int originX = Math.round(draw.centerX - span / 2f);
-        int originY = Math.round(centerY - span / 2f);
-        float tintR = draw.color.getRed() / 255f;
-        float tintG = draw.color.getGreen() / 255f;
-        float tintB = draw.color.getBlue() / 255f;
-        float tintA = draw.color.getAlpha() / 255f * draw.alpha;
-        for (int y = 0; y < span; y++) {
-            int ty = originY + y;
-            if (ty < 0 || ty >= target.getHeight()) continue;
-            for (int x = 0; x < span; x++) {
-                int tx = originX + x;
-                if (tx < 0 || tx >= target.getWidth()) continue;
-                int s = scratch.getRGB(x, y);
-                float a = ((s >>> 24) & 0xFF) / 255f * tintA;
-                if (a <= 0f) continue;
-                float r = ((s >> 16) & 0xFF) * tintR;
-                float gr = ((s >> 8) & 0xFF) * tintG;
-                float b = (s & 0xFF) * tintB;
-                int d = target.getRGB(tx, ty);
-                float dr = (d >> 16) & 0xFF;
-                float dg = (d >> 8) & 0xFF;
-                float db = d & 0xFF;
-                int outR;
-                int outG;
-                int outB;
-                if (draw.additive) {
-                    outR = Math.min(255, Math.round(dr + r * a));
-                    outG = Math.min(255, Math.round(dg + gr * a));
-                    outB = Math.min(255, Math.round(db + b * a));
-                } else {
-                    outR = Math.round(dr * (1f - a) + r * a);
-                    outG = Math.round(dg * (1f - a) + gr * a);
-                    outB = Math.round(db * (1f - a) + b * a);
+        return new Particle(((DataBufferInt) scratch.getRaster().getDataBuffer()).getData(), span,
+                Math.round(draw.centerX - span / 2f), Math.round(centerY - span / 2f),
+                draw.color.getRed() / 255f, draw.color.getGreen() / 255f, draw.color.getBlue() / 255f,
+                draw.color.getAlpha() / 255f * draw.alpha, draw.additive);
+    }
+
+    /** A particle ready to lay over a frame. {@link #over} is the one blend both paths use. */
+    private record Particle(int[] pixels, int span, int originX, int originY,
+                            float tintR, float tintG, float tintB, float tintA, boolean additive) {
+
+        /** The blended pixel, or {@link #NO_CHANGE} when the source is fully transparent here. */
+        int over(int s, int d) {
+            float a = ((s >>> 24) & 0xFF) / 255f * tintA;
+            if (a <= 0f) return NO_CHANGE;
+            float r = ((s >> 16) & 0xFF) * tintR;
+            float gr = ((s >> 8) & 0xFF) * tintG;
+            float b = (s & 0xFF) * tintB;
+            float dr = (d >> 16) & 0xFF;
+            float dg = (d >> 8) & 0xFF;
+            float db = d & 0xFF;
+            int outR;
+            int outG;
+            int outB;
+            if (additive) {
+                outR = Math.min(255, Math.round(dr + r * a));
+                outG = Math.min(255, Math.round(dg + gr * a));
+                outB = Math.min(255, Math.round(db + b * a));
+            } else {
+                outR = Math.round(dr * (1f - a) + r * a);
+                outG = Math.round(dg * (1f - a) + gr * a);
+                outB = Math.round(db * (1f - a) + b * a);
+            }
+            return 0xFF000000 | (outR << 16) | (outG << 8) | outB;
+        }
+
+        /** {@link ReviewImpactFx#blend}, over rows {@code top} (inclusive) to {@code bottom} of a packed frame. */
+        void blend(int[] target, int width, int height, int top, int bottom) {
+            int from = Math.max(Math.max(0, top), originY), to = Math.min(Math.min(height, bottom), originY + span);
+            for (int ty = from; ty < to; ty++) {
+                int row = (ty - originY) * span;
+                for (int x = 0; x < span; x++) {
+                    int tx = originX + x;
+                    if (tx < 0 || tx >= width) continue;
+                    int out = over(pixels[row + x], target[ty * width + tx]);
+                    if (out != NO_CHANGE) target[ty * width + tx] = out;
                 }
-                target.setRGB(tx, ty, 0xFF000000 | (outR << 16) | (outG << 8) | outB);
             }
         }
     }
