@@ -97,29 +97,41 @@ Placement is data (tables of basins, strike clusters, spalls, gouges, torn
 and buckled plates) resolved by ray casts against the clean ship, so it
 follows hull edits. Cuts are live Boolean modifiers over each part's own
 bevel; the faces they open are dark spalled backing.
-derelict: nearly a decade tethered in the belt as an unpowered parts bin.
-  Faceted impact basins with crushed-lip shards; clustered small strikes
-  rather than uniform pockmarks; star-shaped spalls through outer armour;
-  gouges dragged across plate seams; deck plates torn away to a jagged
-  remnant over dark backing and stringers; buckled plates; bent heat-sink
-  fins; the sensor mast sheared to a stub with its scanner bar fallen; the
-  port outer engine can smashed; turbopumps stripped off both housing decks
-  and the port pod's feed pipes and access panels gone; the port bay's
-  forward frame jamb bowed aft into the opening. All lamps dead. The four
-  turrets remain (canon: stripped, then reinstalled for the escape).
-patched: derelict plus the emergency work that made the escape, kept to
-  real-world proportions: thin salvage sheet squared to the hull's lines,
-  brake-bent onto the original skin line and fillet-welded all round
-  (crushed lips dressed flat first; the big shoulder crater takes four
-  lapped sheets of one stock); emergency backing in craters left open with
-  flat straps bolted across; bolted pressure patches over small strikes;
-  gouges run full of weld or strapped; straps bolted across buckled plates; the bowed bay frame shored with yellow cargo rail (a
-  sister rail clamped to the coamings and a raking shore off the floor);
-  a split clamp sleeve on the burst service line; a jury whip lashed to the
-  mast stub; external cable runs. Only the starboard pod runs, on a cased
-  salvaged drive coil (copper showing in its cooling windows) clamped on saddles to its housing deck with leads into
-  both cans; its throats glow. The port pod is dead, stripped and capped
-  with bolted blanking plates and strongbacks, its warning lights dark.
+Each item is chosen for a cause the setting supports and, in patched, for
+whether a stranded crew with salvage and a welder would or could fix it.
+derelict: nearly a decade tethered in the belt as an unpowered parts bin,
+  port side and deck turned into the drift. Fast strikes are rare and land
+  on that windward face as faceted basins with crushed-lip shards and
+  clustered small strikes; the lee shows only shallow lipless dents.
+  Glancing contact left scrapes along the port sponson and pod casing and
+  gouges across plate seams; spalls tear outer armour to backing. Two deck
+  plates are torn to jagged remnants; four were unbolted by salvagers,
+  leaving backing, stringers and bare stud rings. Buckled plates, a bent
+  port fin bank. Salvagers torch-cut two waist service runs (square ends,
+  heat tint at the cut only, conductors cut short) and took the turbopumps,
+  both pods' access panels, both drive coils (empty saddles, cut feed
+  stubs) and the four gun houses (barbettes and stud rings remain). The
+  port outer can is crushed against the anchor rock with its nozzle ring
+  round; two tether padeyes with cut tether stubs mark the mooring. The
+  sensor mast is sheared to a stub, one whip lost and one bent. A knock
+  bowed the sealed starboard bay's forward jamb outboard. All lamps dead.
+patched: derelict plus only what the flight needed - thrust, power,
+  pressure, navigation. A rough salvage patch under the sponson's collar and
+  welded doublers on the bow cheek and spine housing; bolted pressure
+  patches with borrowed hab-door gaskets on every strike over the spine and
+  command deck, nowhere else; borrowed seals on the access trunks and one
+  trunk dogged shut with a bolted blank. Point defence reinstalled on
+  adapter rings, two gun houses in another owner's primer. The bowed jamb
+  shored with a length of yellow cargo rail, wedged and clamped; the jammed
+  starboard bay door welded shut with dog plates. Split clamp sleeves over
+  the torch cuts; a jury whip and salvaged nav sensor on the mast stub. The
+  starboard pod runs on a cased salvaged drive coil tied down on saddles,
+  leads to a junction box, a coolant pair to the fin bank, and a jury
+  propellant feed through a salvaged pump; its throats glow. The port pod is
+  dead and cold: nozzles open, coil cradle empty, cut feed lines
+  blind-flanged. An external cable run, clipped every metre, ends at a gland
+  blank on the engine-room hatch. Torn plates, dents, gouges and buckles are
+  left as they are.
 Continuity scars from ../second-wind-skins/README.txt, remapped onto this
 geometry (the old teal side pod no longer exists): the impact cluster on the
 forward port flank sits on the grapple sponson and the port bow cheek above
