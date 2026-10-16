@@ -11,4 +11,4 @@ Read `a-small-war-arc.md`, `agreus-latchkey.md` and `early-operation-nouns.md` f
 | Story | Status | Outcome |
 | --- | --- | --- |
 | `a-small-war.md` | IN PROGRESS | All five chapters, the handover decision, Boarding Jack data and art, the frigate duel and District Escort built with detached evidence. Boarding Jack art shipped and its card is awardable. Open: live campaign acceptance and an encounter pass (including the lopsided frigate duel) on noted readings. |
-| `landed-ships-true-scale.md` (air) | IN PROGRESS | Greyhook's Venture and two Hound (P) docked at Black Sluice at true scale beside infantry: remastered hull art, a docking compound replacing the dispatch pier, and an eased liftoff into flight scale. |
+| `landed-ships-true-scale.md` (air) | IN PROGRESS | Greyhook's Venture and two Hound (P) docked at Black Sluice at true scale beside infantry: remastered hull art, a southern pad field below a ridge reached only through the berth gate, a lift run into flight scale, and the duel flown over the south. |
