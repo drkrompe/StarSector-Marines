@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef.WallSide;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -95,6 +96,8 @@ final class BuildingWorkGroups {
                 new Part("main-stores.pallet", 7, 2, true),
                 new Part("main-stores.cases", 7, 2, false)));
     }
+
+    void reserveAccess(int x, int y) { access.add(new Cell(x,y)); }
 
     /** Retail thresholds retain their full one-cell turning envelope, including diagonals. */
     void reserveDoorSurrounds(int bl, int bt, int br, int bb) {
@@ -232,6 +235,17 @@ final class BuildingWorkGroups {
                         || topology.getRoomPurpose(cx, cy) != purpose
                         || doodads.stream().anyMatch(d -> d.occupiesCell(cx, cy))) return false;
             }
+        for (Part part : group.parts) if (part.id.startsWith("doodad.residential-bed-") || part.id.startsWith("doodad.residential-sofa-")) {
+            int[] at=anchor(group,part,turn);
+            Doodad d=new Doodad(x+at[0],y+at[1],TileRegistry.installed().doodad(part.id),turn);
+            WallSide back=d.preferredWallSide;
+            int length=back==WallSide.N||back==WallSide.S?d.footprintCellsX:d.footprintCellsY;
+            for(int i=0;i<length;i++) {
+                int bx=back==WallSide.W?d.cellX-1:back==WallSide.E?d.cellX+d.footprintCellsX:d.cellX+i;
+                int by=back==WallSide.S?d.cellY-1:back==WallSide.N?d.cellY+d.footprintCellsY:d.cellY+i;
+                if(!grid.inBounds(bx,by)||grid.isWalkable(bx,by)||topology.isFixture(bx,by))return false;
+            }
+        }
         for (Cell cell : blocked(group, x, y, turn))
             if (access.contains(cell) || PlacementGuards.touchesDoorway(grid, cell.x(), cell.y())
                     || PlacementGuards.touchesEdgeBarrier(grid, cell.x(), cell.y())) return false;
