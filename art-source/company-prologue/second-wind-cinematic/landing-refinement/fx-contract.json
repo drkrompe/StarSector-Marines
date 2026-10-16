@@ -1,0 +1,58 @@
+{
+  "module": "thruster_fx.py",
+  "api": "apply_thruster_fx(scene)",
+  "collection": "LANDING FX | bounded exhaust",
+  "source_blend_sha256": "4b64b68b13314c1aeb7b702884ebbac4b7774b3a9ae4bc9b8991273f84f46e4d",
+  "module_sha256": "1588182130bca1851f6e0e276787f85b2c799c3591b59cb14d565c28751c7afb",
+  "source_fps": 12,
+  "source_frames_reviewed": [
+    720,
+    744,
+    767
+  ],
+  "contact_frame": 744,
+  "shutdown_frame": 758,
+  "original_object_matrices_unchanged": true,
+  "idempotent_object_count": 20,
+  "no_surface_shader": true,
+  "shutdown_material_strength_zero_at_767": true,
+  "preview": {
+    "camera_location": [
+      20,
+      -190,
+      4
+    ],
+    "camera_target": [
+      10,
+      0,
+      23
+    ],
+    "resolution": [
+      1920,
+      1080
+    ],
+    "engine": "CYCLES",
+    "samples": 24,
+    "source_YARD_shed_hidden_in_scratch_only": true,
+    "frames": {
+      "720": {
+        "path": "build/fx/fx-720.png",
+        "sha256": "41eb1167ad5c4c8150e224b61e561a5287158289147a2351ffb5d84c8103b07d"
+      },
+      "744": {
+        "path": "build/fx/fx-744.png",
+        "sha256": "fd66b979dc21306102a178609a4c397c348ffbd3bda57d75bc2ea19fc5d1a40d"
+      },
+      "767": {
+        "path": "build/fx/fx-767.png",
+        "sha256": "d808b22d2ea6b2ddcfd0329d1356fc649ad0822c272569369495da71a35c549a"
+      }
+    }
+  },
+  "limits": [
+    "Procedural visual approximation, not fluid or thermal simulation.",
+    "Ground wash deliberately restrained and low; no image-space heat distortion.",
+    "Final environment/camera integrated playback remains parent task."
+  ],
+  "retiming": "Evaluate source half-frame poses directly; if retiming scene actions include FX material node-tree actions and animated 4D Noise W driver clock."
+}

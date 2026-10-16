@@ -1051,6 +1051,15 @@ public final class WarshipSystem {
      * whether it reached any (a shield's absorption counts). A hull it takes to nothing falls on the next tick.
      */
     boolean strikeHulls(PendingDetonation det) {
+        return strikeHulls(det, Float.NaN, Float.NaN);
+    }
+
+    /**
+     * {@link #strikeHulls(PendingDetonation)} for a round fired from {@code (fromX, fromY)}: it enters each hull it
+     * reaches from that side, so the shield is asked of that side and the plate on that side is what it meets
+     * ({@link WarshipPlating}). NaN for a round with no source.
+     */
+    boolean strikeHulls(PendingDetonation det, float fromX, float fromY) {
         boolean reached = false;
         for (Warship ship : ships) {
             if (ship.destroyed() || !ship.faction.hostileTo(det.shooterFaction)) continue;
@@ -1062,12 +1071,13 @@ public final class WarshipSystem {
             }
             if (gap > det.aoeRadius) continue;
             reached = true;
-            if (ship.shieldCovers(det.endpointX, det.endpointY)) {
+            if (ship.shieldCoversFrom(fromX, fromY, det.endpointX, det.endpointY)) {
                 // The shield takes the hit as flux; the hull takes nothing.
                 ship.shieldModel().absorb(det.damage, ship.fluxPool());
                 continue;
             }
-            ship.takeDamage(det.damage, det.penetration);
+            int cell = ship.entryCell(fromX, fromY, det.endpointX, det.endpointY);
+            ship.takeHit(cell, det.damage, det.penetration, clock);
         }
         return reached;
     }
@@ -1279,7 +1289,7 @@ public final class WarshipSystem {
             PendingDetonation landing = shell.landing();
             if (landing == null) continue;
             if (shell.hullOnly()) {
-                boolean struck = strikeHulls(landing);
+                boolean struck = strikeHulls(landing, shell.fromX, shell.fromY);
                 if (shell.hullTarget() != null) shipFire.noteLanding(struck);
                 if (!struck && shell.straysOnMiss()) {
                     // It passed the hull it was fired at: it carries on and comes down on the ground.
@@ -1340,7 +1350,7 @@ public final class WarshipSystem {
             PendingDetonation det = strike.detonation();
             if (strike.hullTarget() != null) {
                 // A warhead aimed at a hull lands on hulls alone; one that reached none carries on to the ground.
-                boolean struck = strikeHulls(det);
+                boolean struck = strikeHulls(det, strike.releaseX, strike.releaseY);
                 shipFire.noteWarhead(struck);
                 if (!struck) {
                     shells.add(WarshipShipFire.carryOn(strike));

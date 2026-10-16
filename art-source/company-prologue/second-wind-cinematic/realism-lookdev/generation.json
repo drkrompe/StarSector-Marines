@@ -1,0 +1,79 @@
+{
+  "status": "Style proofs; broad composition retained, exact registration unverified; animation unchanged",
+  "assets": [
+    {
+      "bytes": 2854912,
+      "sha256": "5d942024e314a490c4df82f332a67f7e4fb67d8a361b794b889399a471d96885",
+      "height": 941,
+      "width": 1672,
+      "path": "window-realism-v1.png"
+    },
+    {
+      "bytes": 3165695,
+      "sha256": "c264cda903f255eabe8f1e3c12b5ad135fb4396a799d12c983a11bdd7279eadb",
+      "height": 941,
+      "width": 1672,
+      "path": "landscape-realism-v1.png"
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "bytes": 660009,
+      "derivation": "FFmpeg Lanczos resize to1920x1080, JPEG q2; no native detail added",
+      "path": "review/window-realism-v1.jpg",
+      "sha256": "99486217ab0cb96b9547a12d14083ff64d31f3abee845a92150ce3f00a466a65"
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "bytes": 829806,
+      "derivation": "FFmpeg Lanczos resize to1920x1080, JPEG q2; no native detail added",
+      "path": "review/landscape-realism-v1.jpg",
+      "sha256": "f815a3c6934bfdca054a741099fd41ca3b9445fb04578dc9c81961e5b6cd8957"
+    }
+  ],
+  "transparent_background": false,
+  "tool": "built-in image_gen.imagegen",
+  "source_commit": "6a5f5186d",
+  "date": "2026-10-15",
+  "generations": [
+    {
+      "inputs": [
+        {
+          "role": "edit target/composition",
+          "path": "../parallax-window/review/poster.jpg"
+        },
+        {
+          "role": "material realism style",
+          "path": "../../story-stills/cargo-billets.master.png"
+        },
+        {
+          "role": "cinematic realism style",
+          "path": "../../story-stills/yard-hull.master.png"
+        }
+      ],
+      "output": "window-realism-v1.png",
+      "prompt": "window-realism-v1.prompt.txt",
+      "raw_source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-1425b80d-822c-4312-85eb-896361827c2d.png"
+    },
+    {
+      "inputs": [
+        {
+          "role": "edit target/composition",
+          "path": "../painted-window/assets/landscape-painted-v2.png"
+        },
+        {
+          "role": "style",
+          "path": "window-realism-v1.png"
+        },
+        {
+          "role": "cinematic realism style",
+          "path": "../../story-stills/yard-hull.master.png"
+        }
+      ],
+      "output": "landscape-realism-v1.png",
+      "prompt": "landscape-realism-v1.prompt.txt",
+      "raw_source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-2c6807b0-9bb1-44e8-b72e-e7085c488c47.png"
+    }
+  ]
+}

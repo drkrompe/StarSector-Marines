@@ -1,0 +1,36 @@
+{
+  "artifact_status": "Textured motion review of the requested full arrival order; silent and not game-integrated.",
+  "movie": "review/jangala-space-to-berth.mp4",
+  "movie_sha256": "8eb67966ce363be10e02bd69a5776f91208d5055352e29a19728b16091ca7c5b",
+  "method": "Played the full encoded 28-second cut at 1x in the in-app browser, inspected sampled playback frames and sought decoded entry frames at 4.10, 6.00 and 7.95 seconds. Also inspected native space start/mid/end and entry start/mid/end previews. This is sampled visual inspection plus full playback completion, not a claim of watching every individual frame.",
+  "playback_receipt": {
+    "ended": true,
+    "currentTime": 28,
+    "duration": 28,
+    "playbackRate": 1,
+    "width": 1920,
+    "height": 1080,
+    "elapsedMs": 28005,
+    "frameCallbacks": 671,
+    "totalFrames": 668,
+    "droppedFrames": 0,
+    "error": null
+  },
+  "counter_limits": "Browser presentation/decode counters have different baselines. FFprobe separately confirms all 672 encoded frames.",
+  "findings": [
+    "Second Wind travels bow-first toward the planet at a restrained fixed aspect; damage and component identity match the retained landing hull.",
+    "The orbital view establishes green land, seas, broken cloud and a large storm while keeping the vessel much smaller than the planet.",
+    "Warm exterior filaments fade into pale clouds inside the same sealed-window framing. The cabin remains readable and its retained material does not receive new simulated glow lighting.",
+    "The decoded 7.95-second frame shows the accepted forest and Atlas composition. The source entry endpoint is pixel-identical to forest output zero, with a single shared 1/24-second boundary sample.",
+    "The requested order is complete: space, entry, forest, fields, port, damaged landing. Changes in altitude and scale are editorial time ellipses.",
+    "The cut ends on the previously reviewed damaged landing and simpler dock finish."
+  ],
+  "limits": [
+    "Four-second opening excerpts establish timing and continuity; final pacing remains dependent on eventual narration and sound.",
+    "Planet is a fixed distant scenery plate; moving ship is real retained geometry with bounded projected surface coverage.",
+    "Entry uses authored layered effects and a retained daylight cabin finish, not plasma, aerodynamic or lighting simulation.",
+    "No new narration, audio mix, campaign trigger, skip behavior or runtime integration is included.",
+    "First entry render has after-render scene/frame hashes only; its report explicitly does not claim an in-process before/after hash binding. Future renders implement that instrumentation.",
+    "Fine motion artifacts outside inspected samples and final creative acceptance remain for user review."
+  ]
+}

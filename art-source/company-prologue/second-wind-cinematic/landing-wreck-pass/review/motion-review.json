@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "artifact_status": "Textured motion revision for user review; not runtime integrated.",
+  "scene_sha256": "eb7f90c569357ab40d4c3969f0f4e8f9eadf15ddd9cd61729c2507185b2d68c6",
+  "movie": "review/port-to-damaged-landing.mp4",
+  "movie_sha256": "035cc5619d6f52771232826fa507e2cc1f47d44a49baaedacfbfd3323a114348",
+  "method": "Played the entire encoded continuity cut at 1x in the in-app browser. Inspected sampled browser frames and native approach, descent, recovery, contact and settled images. This is not a claim of continuous human inspection of every frame.",
+  "playback_receipt": {
+    "ended": true,
+    "currentTime": 12,
+    "duration": 12,
+    "playbackRate": 1,
+    "width": 1920,
+    "height": 1080,
+    "elapsedMs": 12004.40000000596,
+    "frameCallbacks": 288,
+    "totalFrames": 284,
+    "droppedFrames": 0,
+    "error": null
+  },
+  "receipt_limits": "Browser callback and decoded-frame counters have different baselines; ffprobe independently verifies all 288 encoded frames. No playback stalls or decoder errors were reported.",
+  "native_images_inspected": [
+    "review/start.png",
+    "build/frames/0078.png",
+    "review/correction.png",
+    "review/contact.png",
+    "review/end.png"
+  ],
+  "findings": [
+    "Physical dock roofs, walls and ground use the preceding port's simpler slate/tan/concrete material treatment. The ship remains the detailed foreground subject.",
+    "Four larger battered areas read as fractured recessed metal with broken armor and emergency restraints. The scar textures remain attached in the sampled changed poses.",
+    "The ship advances left-to-right, descends with a bounded bank and bow dip, and returns level for support contact. The visible scene remains stationary.",
+    "Short white-blue lift effects remain at the nozzle mouths and stop after settlement. The inspected contact/end frames show no obvious floating supports or hull penetration."
+  ],
+  "limits": [
+    "Motion remains authored rather than a dynamics simulation. The recovery is one slow asymmetric event, not violent uncontrolled tumbling.",
+    "Fixed-view generated surface projection retains baked shading and is not a complete multiangle texture atlas.",
+    "Finite geometry checks and sampled images cannot exclude every subframe collision or fine temporal artifact.",
+    "No audio or campaign runtime integration is included. Final creative acceptance remains with the user."
+  ]
+}

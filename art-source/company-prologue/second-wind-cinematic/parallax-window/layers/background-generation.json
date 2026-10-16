@@ -1,0 +1,33 @@
+{
+  "tool": "image_gen.imagegen",
+  "mode": "edits",
+  "source": "../../painted-window/assets/landscape-painted-v2.png",
+  "relative_base": "this metadata directory",
+  "raw_outputs": {
+    "sky-v1": {
+      "retained": "sky-v1.png",
+      "prompt": "../prompts/sky-v1.txt",
+      "transparent_background": false,
+      "generated_source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-3a5c2fd5-1317-4cc6-9164-40a28bd9f41c.png"
+    },
+    "hills-v1": {
+      "retained": "hills-v1.png",
+      "prompt": "../prompts/hills-v1.txt",
+      "transparent_background": true,
+      "generated_source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-5bc40d53-6d47-4945-ad82-81c9cce246c1.png"
+    },
+    "far-trees-v1": {
+      "retained": "far-trees-v1.png",
+      "prompt": "../prompts/far-trees-v1.txt",
+      "transparent_background": true,
+      "generated_source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-ad0bb4a6-27f7-41c7-855b-7ae214734443.png"
+    },
+    "clouds-v1": {
+      "retained": "clouds-v1.png",
+      "prompt": "../prompts/clouds-v1.txt",
+      "transparent_background": true,
+      "generated_source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-9be5716a-f164-436d-9168-9206262ed03d.png"
+    }
+  },
+  "pixel_edits": false
+}

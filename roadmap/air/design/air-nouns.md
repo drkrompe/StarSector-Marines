@@ -1830,9 +1830,23 @@ off as its lift fails), turns as it goes, trails fire, and strikes the ground a 
 seconds later as the crash a downed aircraft makes, hurting whoever is under it on
 either side, then skids to rest and lies there as wreckage for the rest of the battle.
 The fall is a pure function of the hull's own state, so it lands the same way every
-play (`WarshipWreck`). A battered hull is
-drawn darker. The hit comes from the detonation pipeline itself, so any source
+play (`WarshipWreck`). The hit comes from the detonation pipeline itself, so any source
 that already lands a detonation is a counter without a ship-specific shortcut.
+
+**A hull's armour is a grid, and a hit has a place on it** (`warship-hull-damage.md`). The
+**plating** is the base game's armour grid read off the hull's own sprite box and collision
+polygon: cells of about fifteen hull pixels, the outer two carrying **plate** (a fifteenth of
+the rating each), the deeper ones the **core**, every cell an equal share of the hull's hit
+points as **structure**. A round enters from the side it came from (a blast with no source,
+from the side nearest where it landed), and the shield is asked of that side. The armour rule
+reads the plate left in the base game's block about the entry cell, never under 5% of the
+rating; the plate soaks what gets through and the hull takes only what it cannot. A cell spent
+of plate and structure is **breached** and a round's line passes through it, but an outer
+**section** (bow, port, starboard, stern) gives way only once the hull has lost a quarter of
+its hit points through it, and the core is holed only from an open neighbour: a side is
+stripped, then opens, and then the core takes rounds nearly whole. Hull hit points stay the
+one authority on when the ship dies. `-Dbattle.warship.platingGrid=false` restores the flat
+rule.
 
 **A hostile hull is a target for a ship's guns, in any mission.** Warships of
 opposing sides overhead fight each other by default, in an ordinary or generated
@@ -2072,7 +2086,8 @@ table's `shield type` (FRONT, OMNI or none; a phase cloak is none), `shield arc`
 `shieldCenter`. While a shield is raised it draws its upkeep (a share of the
 ship's dissipation, per second) from the pool and **the pool stops venting
 entirely**; a ship that holds its shield and keeps firing can only climb. A
-hostile detonation that reaches the hull from inside the arc is absorbed: its
+hostile detonation that reaches the hull from inside the arc (asked of the side the round was
+fired from, for a round with a source) is absorbed: its
 damage times the shield's efficiency becomes flux and the hull takes nothing. A
 FRONT shield faces the hull's heading; an OMNI shield covers every bearing. A hit
 from outside the arc, or while the shield is down or still rising (0.4 s), goes to

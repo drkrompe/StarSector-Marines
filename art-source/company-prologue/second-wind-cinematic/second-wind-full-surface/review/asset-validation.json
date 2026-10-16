@@ -1,0 +1,173 @@
+{
+  "passed": true,
+  "errors": [],
+  "asset_sha256": "f6471f8293a83421e508742fa93d9638cc35cfcd68c64a05a8c0e9404ae50699",
+  "source_sha256": "eb7f90c569357ab40d4c3969f0f4e8f9eadf15ddd9cd61729c2507185b2d68c6",
+  "build_script_sha256": "c1513fca16cb6b07710829a6245955a0bd4da52da9c37ef2e3080ba55b484b31",
+  "verification_script_sha256": "d1ec4226014f0bdc2ce23632b723bce18a5b817e159b898537659d86015b0566",
+  "retained_mesh_count": 196,
+  "retained_vertices": 24145,
+  "physical_polygons": 19808,
+  "verified_corners": 67793,
+  "all_retained_geometry_hashes_match": true,
+  "max_source_relative_matrix_error": 1.1920928955078125e-06,
+  "motion_transform_count": 10,
+  "motion_transforms": [
+    [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        45
+      ]
+    ],
+    [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        90
+      ]
+    ],
+    [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        180
+      ]
+    ],
+    [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        270
+      ]
+    ],
+    [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        360
+      ]
+    ],
+    [
+      [
+        310,
+        -210,
+        75
+      ],
+      [
+        -45,
+        0,
+        37
+      ]
+    ],
+    [
+      [
+        310,
+        -210,
+        75
+      ],
+      [
+        45,
+        0,
+        37
+      ]
+    ],
+    [
+      [
+        -120,
+        370,
+        -45
+      ],
+      [
+        0,
+        -45,
+        123
+      ]
+    ],
+    [
+      [
+        -120,
+        370,
+        -45
+      ],
+      [
+        0,
+        45,
+        123
+      ]
+    ]
+  ],
+  "all_stored_coordinate_hashes_invariant": true,
+  "max_motion_relative_matrix_error": 3.814697265625e-05,
+  "materials": [
+    "FULL SURFACE | backing",
+    "FULL SURFACE | cream",
+    "FULL SURFACE | glass",
+    "FULL SURFACE | gunmetal",
+    "FULL SURFACE | impact",
+    "FULL SURFACE | lamp",
+    "FULL SURFACE | oxide",
+    "FULL SURFACE | throat",
+    "FULL SURFACE | weld"
+  ],
+  "images": [
+    "FULL SURFACE | backing",
+    "FULL SURFACE | cream",
+    "FULL SURFACE | gunmetal",
+    "FULL SURFACE | oxide"
+  ],
+  "ignored_blender_runtime_images": [
+    "Render Result",
+    "Viewer Node"
+  ],
+  "limits": "Finite structural/material graph checks only. No rendered pixels, art acceptance, seamlessness, physically measured PBR response or continuous collision verification. Source bow/stern/belly simplicity and asymmetric deep damage remain.",
+  "append_test": {
+    "factory_clean_scene": true,
+    "collection": "SECOND WIND | full surface asset",
+    "objects": 198,
+    "mesh_count": 196,
+    "material_roles": 9,
+    "packed_neutral_images": 4,
+    "linked_external_datablocks": [],
+    "append_source_library_records": 1,
+    "geometry_and_coordinate_hashes_match": true,
+    "saved_scene": false
+  }
+}

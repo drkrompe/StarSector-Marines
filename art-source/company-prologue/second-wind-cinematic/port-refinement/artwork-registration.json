@@ -1,0 +1,101 @@
+{
+  "ships": [
+    {
+      "id": "hound",
+      "asset": "assets/hound-card-v2.png",
+      "canvas": [
+        2048,
+        768
+      ],
+      "width": 105.43208673207317,
+      "height": 39.53703252452744,
+      "source_center": [
+        196.0400922535184,
+        906.0580249052083,
+        19.002175891640704
+      ],
+      "contact_source": [
+        186.547119140625,
+        908.1617431640625,
+        0.40000152587890625
+      ],
+      "contact_uv": [
+        0.414794921875,
+        0.02018229166666663
+      ],
+      "artwork_anchor_pixel_top_left": [
+        849.5,
+        752.5
+      ],
+      "alpha_threshold": 0.5,
+      "alpha_bounds": [
+        46,
+        57,
+        1978,
+        753
+      ],
+      "guide_alpha_bounds": [
+        55,
+        62,
+        835,
+        324
+      ],
+      "authors_reason": "Bounds-fit generated solid hull width to retained geometry guide; generated near-foot lowest opaque pixel placed on retained source ground anchor. Generated support shapes and Venture height differ; this is authored view registration, not exact mesh UV correspondence.",
+      "alpha_corner_values": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "venture",
+      "asset": "assets/venture-card-v2.png",
+      "canvas": [
+        2048,
+        768
+      ],
+      "width": 269.07889630036897,
+      "height": 100.90458611263836,
+      "source_center": [
+        -88.62304498910157,
+        951.5717017421696,
+        49.29279298415804
+      ],
+      "contact_source": [
+        -110.80657958984375,
+        955.1639404296875,
+        0.40000152587890625
+      ],
+      "contact_uv": [
+        0.4248046875,
+        0.005859375
+      ],
+      "artwork_anchor_pixel_top_left": [
+        870.0,
+        763.5
+      ],
+      "alpha_threshold": 0.5,
+      "alpha_bounds": [
+        74,
+        12,
+        1943,
+        764
+      ],
+      "guide_alpha_bounds": [
+        90,
+        106,
+        813,
+        301
+      ],
+      "authors_reason": "Bounds-fit generated solid hull width to retained geometry guide; generated near-foot lowest opaque pixel placed on retained source ground anchor. Generated support shapes and Venture height differ; this is authored view registration, not exact mesh UV correspondence.",
+      "alpha_corner_values": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "guide_layout_unchanged": true
+}

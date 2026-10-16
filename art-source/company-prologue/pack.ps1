@@ -1,12 +1,17 @@
+param([string]$OutputDirectory)
+
 # Whole 3:2 story frames. 1200x800 covers the ~1050px art column at 1080p/100%.
 # Quality 85 bounds disk cost; no alpha, crops, upscaling or shipped PNG masters.
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 $repository = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
-$destination = Join-Path $repository 'mod/graphics/illustrations/company'
+$sourceDirectory = Join-Path $PSScriptRoot 'story-stills'
+$destination = if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
+    Join-Path $repository 'mod/graphics/illustrations/company'
+} else { $OutputDirectory }
 New-Item -ItemType Directory -Path $destination -Force | Out-Null
 $codec = [System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders() | Where-Object MimeType -eq 'image/jpeg'
-foreach ($source in (Get-ChildItem -LiteralPath $PSScriptRoot -Filter '*.master.png' | Sort-Object Name)) {
+foreach ($source in (Get-ChildItem -LiteralPath $sourceDirectory -Filter '*.master.png' | Sort-Object Name)) {
     $image = [System.Drawing.Image]::FromFile($source.FullName)
     $packed = [System.Drawing.Bitmap]::new(1200, 800)
     $graphics = [System.Drawing.Graphics]::FromImage($packed)

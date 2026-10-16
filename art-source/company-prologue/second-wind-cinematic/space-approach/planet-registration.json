@@ -1,0 +1,133 @@
+{
+  "method": "Read-only native image sampling; normalized to1920x1080. First sustained above-threshold max-RGB span equivalent to12 output pixels. No image resize or edit.",
+  "limits": "Brightness/clouds/atmospheric glow shift threshold; broad silhouette comparison only, not exact pixel registration or geography correspondence.",
+  "rows": [
+    {
+      "render_y": 100,
+      "max_rgb_threshold_8bit": 20,
+      "guide_first_sustained_limb_x": 864.0,
+      "generated_first_sustained_limb_x": 857.7990430622009,
+      "delta_render_px": -6.200956937799106
+    },
+    {
+      "render_y": 100,
+      "max_rgb_threshold_8bit": 40,
+      "guide_first_sustained_limb_x": 868.0,
+      "generated_first_sustained_limb_x": 861.2440191387559,
+      "delta_render_px": -6.7559808612440975
+    },
+    {
+      "render_y": 100,
+      "max_rgb_threshold_8bit": 60,
+      "guide_first_sustained_limb_x": 873.0,
+      "generated_first_sustained_limb_x": 863.5406698564593,
+      "delta_render_px": -9.459330143540683
+    },
+    {
+      "render_y": 200,
+      "max_rgb_threshold_8bit": 20,
+      "guide_first_sustained_limb_x": 738.0,
+      "generated_first_sustained_limb_x": 732.6315789473684,
+      "delta_render_px": -5.368421052631561
+    },
+    {
+      "render_y": 200,
+      "max_rgb_threshold_8bit": 40,
+      "guide_first_sustained_limb_x": 742.0,
+      "generated_first_sustained_limb_x": 734.9282296650717,
+      "delta_render_px": -7.07177033492826
+    },
+    {
+      "render_y": 200,
+      "max_rgb_threshold_8bit": 60,
+      "guide_first_sustained_limb_x": 745.0,
+      "generated_first_sustained_limb_x": 737.224880382775,
+      "delta_render_px": -7.775119617224959
+    },
+    {
+      "render_y": 400,
+      "max_rgb_threshold_8bit": 20,
+      "guide_first_sustained_limb_x": 563.0,
+      "generated_first_sustained_limb_x": 560.3827751196172,
+      "delta_render_px": -2.6172248803827642
+    },
+    {
+      "render_y": 400,
+      "max_rgb_threshold_8bit": 40,
+      "guide_first_sustained_limb_x": 566.0,
+      "generated_first_sustained_limb_x": 561.5311004784688,
+      "delta_render_px": -4.468899521531171
+    },
+    {
+      "render_y": 400,
+      "max_rgb_threshold_8bit": 60,
+      "guide_first_sustained_limb_x": 569.0,
+      "generated_first_sustained_limb_x": 563.8277511961722,
+      "delta_render_px": -5.172248803827756
+    },
+    {
+      "render_y": 600,
+      "max_rgb_threshold_8bit": 20,
+      "guide_first_sustained_limb_x": 452.0,
+      "generated_first_sustained_limb_x": 448.9952153110048,
+      "delta_render_px": -3.004784688995187
+    },
+    {
+      "render_y": 600,
+      "max_rgb_threshold_8bit": 40,
+      "guide_first_sustained_limb_x": 455.0,
+      "generated_first_sustained_limb_x": 451.2918660287081,
+      "delta_render_px": -3.708133971291886
+    },
+    {
+      "render_y": 600,
+      "max_rgb_threshold_8bit": 60,
+      "guide_first_sustained_limb_x": 457.0,
+      "generated_first_sustained_limb_x": 452.4401913875598,
+      "delta_render_px": -4.559808612440179
+    },
+    {
+      "render_y": 800,
+      "max_rgb_threshold_8bit": 20,
+      "guide_first_sustained_limb_x": 385.0,
+      "generated_first_sustained_limb_x": 383.5406698564593,
+      "delta_render_px": -1.459330143540683
+    },
+    {
+      "render_y": 800,
+      "max_rgb_threshold_8bit": 40,
+      "guide_first_sustained_limb_x": 388.0,
+      "generated_first_sustained_limb_x": 385.8373205741627,
+      "delta_render_px": -2.162679425837325
+    },
+    {
+      "render_y": 800,
+      "max_rgb_threshold_8bit": 60,
+      "guide_first_sustained_limb_x": 390.0,
+      "generated_first_sustained_limb_x": 386.9856459330144,
+      "delta_render_px": -3.014354066985618
+    },
+    {
+      "render_y": 1000,
+      "max_rgb_threshold_8bit": 20,
+      "guide_first_sustained_limb_x": 356.0,
+      "generated_first_sustained_limb_x": 353.6842105263158,
+      "delta_render_px": -2.3157894736842195
+    },
+    {
+      "render_y": 1000,
+      "max_rgb_threshold_8bit": 40,
+      "guide_first_sustained_limb_x": 358.0,
+      "generated_first_sustained_limb_x": 355.98086124401914,
+      "delta_render_px": -2.019138755980862
+    },
+    {
+      "render_y": 1000,
+      "max_rgb_threshold_8bit": 60,
+      "guide_first_sustained_limb_x": 361.0,
+      "generated_first_sustained_limb_x": 357.12918660287085,
+      "delta_render_px": -3.8708133971291545
+    }
+  ],
+  "max_absolute_delta_render_px": 9.459330143540683
+}

@@ -1,0 +1,22 @@
+{
+  "tool": "built-in image_gen",
+  "relative_path_base": ".. (painted-window directory)",
+  "intent": "style-transfer edit",
+  "composition_guide": "guides/landscape-guide-overscan-corrected.png",
+  "style_only_reference": "assets/landscape-painted-v1.png",
+  "prompt": "prompts/landscape-v2.txt",
+  "output": "assets/landscape-painted-v2.png",
+  "generated_source": "C:/Users/Dillon/.codex/generated_images/01a14104-8645-7910-b951-161f69f20438/exec-cc7873e4-1c66-479c-8717-04666f3d10cf.png",
+  "requested_dimensions": [
+    1920,
+    1080
+  ],
+  "actual_dimensions": [
+    1672,
+    941
+  ],
+  "mode": "RGB",
+  "pixel_modifications": false,
+  "composition_review": "Wider corrected composition broadly retained: generous sky, lower ridges, left-to-right diagonal river and far-right bend, pale fields at far right. Organic river banks differ locally; scene projection still requires validation.",
+  "guide_correction": "Original landscape guide was rendered through the 26mm shot camera due to a timeline camera marker override; corrected composition guide uses the 19.259mm overscan camera."
+}

@@ -1,0 +1,26 @@
+{
+  "generator": "built-in image_gen.imagegen",
+  "file": "assets/industrial-materials-v1.png",
+  "prompt": "prompts/industrial-materials-v1.txt",
+  "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-7cec590b-fb67-4e00-a479-eec71bde12ee.png",
+  "input_roles": [
+    {
+      "path": "../managed-land-realism/review/poster.jpg",
+      "role": "approved daylight/material realism only"
+    }
+  ],
+  "dimensions": [
+    1254,
+    1254
+  ],
+  "mode": "RGB",
+  "bytes": 3480742,
+  "sha256": "df879c93a3ddf915095a568ea8822310aa75557d03fa2e1ea5717aca6c9c09e0",
+  "quadrants_image_origin_top_left": [
+    "upper-left roof metal",
+    "upper-right wall cladding",
+    "lower-left concrete",
+    "lower-right oxide-orange steel"
+  ],
+  "limitations": "Neutral orthographic material atlas; no registered geometry or seamless tiling claim. Individual quadrant size is half native dimensions; shader mapping must avoid cross-quadrant bleed."
+}

@@ -1,0 +1,406 @@
+{
+  "schema_version": 1,
+  "scope": "Opposite-side Jangala landing textured motion study; no game/mod deployment",
+  "camera": {
+    "position_metres": [
+      20,
+      -235,
+      67
+    ],
+    "target_metres": [
+      0,
+      0,
+      32
+    ],
+    "perspective_lens_mm": 32,
+    "sensor_width_mm": 36,
+    "view": "Starboard -Y; +X bow projects right; actual geometry view, no mirroring",
+    "direction_authority": "Latest user request for opposite-side camera overrides earlier same-side storyboard direction for this study; storyboard not modified"
+  },
+  "sources": [
+    {
+      "path": "../second-wind-surface-proof/second-wind-daylight-landing-proof.blend",
+      "role": "Saved accepted daylight ship proof: original hull/flight/support actions, damage geometry and port finish",
+      "bytes": 10501869,
+      "sha256": "4b64b68b13314c1aeb7b702884ebbac4b7774b3a9ae4bc9b8991273f84f46e4d"
+    },
+    {
+      "path": "../port-refinement/port-refinement.blend",
+      "role": "Reused physical industrial district and independently animated ground traffic",
+      "bytes": 5906495,
+      "sha256": "33332e2d69c0d5bd298c3ca66331b284e27261ddd916ff7d4f43b1d54696dddd"
+    }
+  ],
+  "generated_assets": [
+    {
+      "generator": "OpenAI built-in image-generation tool",
+      "asset": {
+        "path": "assets/starboard-surface-v1.png",
+        "role": "Native starboard surface artwork; lossless copied PNG, no upscale",
+        "bytes": 1915488,
+        "sha256": "4121c16aed09cca85cfff9f771e3a5a1533020227b4d31b0bab981801c2d4df3",
+        "dimensions": [
+          1672,
+          941
+        ],
+        "mode": "RGB"
+      },
+      "prompt": {
+        "path": "prompts/starboard-surface-v1.txt",
+        "role": "Exact submitted prompt",
+        "bytes": 2427,
+        "sha256": "ab54e87904d8fae7a63fbef0f16f0463fd83990050788a0f2caf013145ac5c6f"
+      },
+      "ordered_references": [
+        {
+          "path": "guides/starboard-contact-guide.png",
+          "role": "Image1: exact camera, framing, geometry and silhouette authority",
+          "bytes": 2163469,
+          "sha256": "8773f00b4982d1b0a5226f1eda1590a9d8952376645a8d191818f7d19e20ef3c",
+          "dimensions": [
+            1920,
+            1080
+          ],
+          "mode": "RGB"
+        },
+        {
+          "path": "../second-wind-surface-proof/assets/side-surface-v1.png",
+          "role": "Image2: material realism, palette and fastener scale only; opposite port side shapes have no authority",
+          "bytes": 1807666,
+          "sha256": "3d52745a7d2e15c31637c9296b3f95bdbf4cccca70ae0e5ec0d5da19240f6965",
+          "dimensions": [
+            1672,
+            941
+          ],
+          "mode": "RGB"
+        },
+        {
+          "path": "../../second-wind-skins/arrival-heavy.reference.png",
+          "role": "Image3: asteroid-impact damage and emergency salvage state only",
+          "bytes": 2344356,
+          "sha256": "cf767d0a059bf40ee66728fa8e1480c920d25da772f82c92b6221c3f9308432e",
+          "dimensions": [
+            1672,
+            941
+          ],
+          "mode": "RGB"
+        }
+      ],
+      "postprocessing": "Lossless copy only. Measured affine registration occurs in mesh UV mapping, not image resampling."
+    },
+    {
+      "generator": "OpenAI built-in image-generation tool",
+      "asset": {
+        "path": "assets/yard-finish-v1.png",
+        "role": "Native static yard finish artwork; lossless copied PNG, no upscale",
+        "bytes": 2745023,
+        "sha256": "cf87db0f0ed696aa116a9e0f614f1841ba3dd7d54d593fd8f09670e1b2f99033",
+        "dimensions": [
+          1672,
+          941
+        ],
+        "mode": "RGB"
+      },
+      "prompt": {
+        "path": "prompts/yard-finish-v1.txt",
+        "role": "Exact submitted prompt",
+        "bytes": 2554,
+        "sha256": "6b53330611eb29eab6390861e541a3997c63c80d4cc20a09487c64e3f2805871"
+      },
+      "ordered_references": [
+        {
+          "path": "guides/yard-contact-guide.png",
+          "role": "Image1: exact static yard camera/layout/geometry authority; empty berth",
+          "bytes": 2212345,
+          "sha256": "e072ae89167cc2f5396a36f004a3ea54ae24bf39c4b1528b75d49925515e448b",
+          "dimensions": [
+            1920,
+            1080
+          ],
+          "mode": "RGB"
+        },
+        {
+          "path": "../port-refinement/assets/port-architecture-finish-v1.png",
+          "role": "Image2: material realism/daylight/detail style only, different window camera",
+          "bytes": 2892092,
+          "sha256": "87c61f83f934a20ff7aa5ab38e467a21aa9aabaaf9303711dfc775ef2b56d31b",
+          "dimensions": [
+            1672,
+            941
+          ],
+          "mode": "RGB"
+        }
+      ],
+      "postprocessing": "Lossless copy only. Fixed-camera material projection onto retained static geometry."
+    }
+  ],
+  "registration": {
+    "starboard": {
+      "method": "Manually identified engine lip, bay corners, bow tip, four turret centers and underbow shoe; least-squares2Daffine. Not silhouettebounds fitting.",
+      "landmarks": 11,
+      "rms_native_pixels": 4.1909387346295945,
+      "max_native_pixels": 7.337909248816196,
+      "affine_top_left_pixel_rows": [
+        [
+          1.1360130378145872,
+          0.0009611366912453123,
+          -291.6387675280004
+        ],
+        [
+          0.0035783407762462627,
+          1.126538494568103,
+          -152.62110181046745
+        ]
+      ],
+      "metadata": {
+        "path": "guides/starboard-image-registration.json",
+        "role": "Measured affine from guide pixels to native image pixels",
+        "bytes": 4154,
+        "sha256": "e135ff57c36285cd04b59c6a3047833b543794ab7d877a778dc4077e08488633"
+      },
+      "limits": "Single starboard aspect; sampled polygon visibility; global structural correction does not prove invented fine-detail correspondence. Retains port finish and neutral fallback."
+    },
+    "yard": {
+      "method": "Immutable actual-camera perspective division; static scenery only; dynamic hull/traffic/clamps/FX excluded",
+      "limits": "Retained 3D silhouette/contact geometry with generated surface detail. Not a complete multiangle UV atlas.",
+      "metadata": {
+        "path": "yard-finish-registration.json",
+        "role": "Final applied static projection objects/material count and image binding; maintained by scene builder"
+      }
+    }
+  },
+  "reused_environment": {
+    "objects": 756,
+    "source_local_translation_metres": [
+      850,
+      240,
+      -0.4
+    ],
+    "inverse_flight_root": "Discarded; fixed landing world",
+    "reserved_corridor_xy_metres": [
+      -300,
+      150,
+      -110,
+      110
+    ],
+    "minimum_imported_y_metres": 171.5,
+    "minimum_y_clearance_metres": 61.5,
+    "original_contact_transforms_preserved": 18,
+    "dynamic_clamps": {
+      "count": 8,
+      "mapping": "Each moving component references itself in TexCoord Object, normalized BOX mapping; original actions/transforms/geometry retained",
+      "metallic": 0.5,
+      "roughness": 0.7,
+      "images": [
+        {
+          "path": "../second-wind-surface-proof/assets/oxide.png",
+          "role": "Clamp slide local weathered oxide",
+          "bytes": 907036,
+          "sha256": "a357173be25977155d52ad5375913e85b350f876a3f5e4646e64b9779cbb083a",
+          "dimensions": [
+            627,
+            627
+          ],
+          "mode": "RGB"
+        },
+        {
+          "path": "../second-wind-surface-proof/assets/gunmetal.png",
+          "role": "Retaining wedge local gunmetal",
+          "bytes": 889247,
+          "sha256": "09ed19bb19379cfc448ce91ef2d96a54667289ec1d8a0c11fcda2b6708600987",
+          "dimensions": [
+            627,
+            627
+          ],
+          "mode": "RGB"
+        }
+      ]
+    },
+    "ground": "Apron sole footprint owner, neighboring tessellation shares Z0 boundary; retained pad cap owns center top with physical body rim"
+  },
+  "retained_environment_art": [
+    {
+      "path": "../forest-reveal-realism/assets/far-realism-v1.png",
+      "role": "Distant forest/hills: limited fixed aspect, buried skirt, top Z300 at Y3000",
+      "bytes": 3133804,
+      "sha256": "3403fff79c38d816164ab941dcae91adf05daefacc43cb90afc98ec4859cf6c2",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "../managed-land-realism/assets/sky-realism-v1.png",
+      "role": "Distant daylight sky artwork",
+      "bytes": 1890657,
+      "sha256": "8db9cee5bbbdc90fdea7b37d297ea51f21695c95d6d4e9e61acbaf6e2f3a1bd5",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "../port-approach-realism/assets/industrial-materials-v1.png",
+      "role": "Original physical industrial atlas fallback",
+      "bytes": 3480742,
+      "sha256": "df879c93a3ddf915095a568ea8822310aa75557d03fa2e1ea5717aca6c9c09e0",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "../port-refinement/assets/secondary-materials-v1.png",
+      "role": "Original secondary industrial atlas fallback",
+      "bytes": 3373889,
+      "sha256": "a592f10b428c1a63024f969f4cbd54f1a53c2ff02b05b4bb48867918d0c48f5f",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB"
+    }
+  ],
+  "motion": {
+    "output_fps": 24,
+    "output_frames": 192,
+    "duration_seconds": 8,
+    "source_fps": 12,
+    "retime_knots_seconds_source_frames": [
+      [
+        0,
+        580
+      ],
+      [
+        2,
+        624
+      ],
+      [
+        2.5,
+        648
+      ],
+      [
+        6.5,
+        744
+      ],
+      [
+        8,
+        774
+      ]
+    ],
+    "first_encoded_source_frame": 580,
+    "last_encoded_source_frame": 773.1666666666666,
+    "separate_settled_still_source_frame": 774,
+    "forward_arrest_source_frame": 624,
+    "vertical_descent_start_source_frame": 648,
+    "contact_source_frame": 744,
+    "method": "Original 3D actions evaluated at explicit edited source times. Deliberate editorial retime; not original elapsed time, duplicated frames or synthesized video.",
+    "lift_shutdown_source_frame": 758
+  },
+  "effects": {
+    "method": "Bounded procedural volumetric thrusters and ground dust",
+    "limits": "No fluid/heat engineering simulation; heat refraction not implemented"
+  },
+  "render_target": {
+    "native_resolution": [
+      1920,
+      1080
+    ],
+    "resolution_percentage": 100,
+    "engine": "Cycles",
+    "samples": 32,
+    "denoising": true,
+    "preferred_backend": "OPTIX; actual device recorded by render manifest",
+    "codec": "H.264",
+    "crf": 18,
+    "pixel_format": "yuv420p",
+    "audio": "none"
+  },
+  "implementation": [
+    {
+      "path": "build_scene.py",
+      "role": "Regeneration implementation",
+      "bytes": 4106,
+      "sha256": "ed526feba47c3974592a36c145050960401102f6460ca29d2010dd66968913d4"
+    },
+    {
+      "path": "ship_view.py",
+      "role": "Regeneration implementation",
+      "bytes": 8948,
+      "sha256": "f5d5f0a4f5904e571f499172f58f6998ff4208ad1e69ea512f3c6b91b3655e11"
+    },
+    {
+      "path": "yard_environment.py",
+      "role": "Regeneration implementation",
+      "bytes": 17896,
+      "sha256": "498f011aa8fbe03e4fa6d98c2939ed7d3cff88a1df34b2570b42ec65729069c7"
+    },
+    {
+      "path": "yard_finish.py",
+      "role": "Regeneration implementation",
+      "bytes": 4140,
+      "sha256": "d6732c175ea3f8736da22f6b86af4ec99227dea583934090b157c36f16821955"
+    },
+    {
+      "path": "thruster_fx.py",
+      "role": "Regeneration implementation",
+      "bytes": 6049,
+      "sha256": "9b6f4742de57b97c5acc2af82367d83ccac287e4e1d857a1505681a9b2e18ced"
+    },
+    {
+      "path": "render_config.py",
+      "role": "Regeneration implementation",
+      "bytes": 680,
+      "sha256": "a5053cce6bfa9301ab1d817e209d634f3a296630ca68ebce820d03901df4f09d"
+    },
+    {
+      "path": "verify_scene.py",
+      "role": "Regeneration implementation",
+      "bytes": 11396,
+      "sha256": "cf89881367e81a89001b32a5f41d2f074cdbc9400367f0018dcaba648a0720a6"
+    },
+    {
+      "path": "render_motion.py",
+      "role": "Regeneration implementation",
+      "bytes": 1783,
+      "sha256": "1e647f27c05a6fa70d7a25622610e6c21bbc5a6be0572a55e5fd946a2124fc19"
+    },
+    {
+      "path": "encode_review.py",
+      "role": "Regeneration implementation",
+      "bytes": 2181,
+      "sha256": "ed6b6d852e3943175beb6a11ac63603298b15465327c54c774974c6fd45f9e09"
+    }
+  ],
+  "retained_guide_metadata": [
+    {
+      "path": "guides/starboard-camera.json",
+      "role": "Retained camera/registration contract; refer to measured amendment where earlier identity-UV text differs",
+      "bytes": 816,
+      "sha256": "654734ee6dd5cffdce3f215a4123340908538c76d426c139c8d81320a4c73e21"
+    },
+    {
+      "path": "guides/starboard-guide-contract.txt",
+      "role": "Retained camera/registration contract; refer to measured amendment where earlier identity-UV text differs",
+      "bytes": 2621,
+      "sha256": "84e2248a8aa8d4e369c1e46c999152e680071f4a0af47b16b568f0d32a99cc1d"
+    },
+    {
+      "path": "guides/starboard-surface-registration.json",
+      "role": "Retained camera/registration contract; refer to measured amendment where earlier identity-UV text differs",
+      "bytes": 11217,
+      "sha256": "81639566df29f09fad95d0b1924ad51c7aa248812d14d27effd878127c7bc412"
+    }
+  ],
+  "binding_reports": {
+    "scene": "scene-manifest.json",
+    "geometry_motion_validation": "review/scene-validation.json",
+    "render": "render-manifest.json",
+    "media": "review/media-validation.json",
+    "visual_motion_review": "review/motion-review.json",
+    "note": "These reports own final saved-scene, frame and movie hashes. No in-progress/final-movie hash is asserted here."
+  }
+}

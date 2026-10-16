@@ -1,0 +1,3089 @@
+{
+  "source": "../forest-reveal-realism/forest-reveal-realism.blend",
+  "source_sha256": "7a48fc520d7ce38edfe86b82aeaccb0d443b10b5ced3170c764e439ccfbfefec",
+  "timing": "96 frames at 24fps (4 seconds). Independent source clock: 73 + (47/95)*i, i=0..95. Source remains 12fps.",
+  "cut": "Last entry sample equals forest source120 pose/light. Forest starts source120; duplicate endpoint is one frame only, optionally skip its first output frame in assembly.",
+  "layers": [
+    {
+      "name": "ENTRY | distant luminous cloud body",
+      "depth_m": 2300
+    },
+    {
+      "name": "ENTRY | retained cloud filaments",
+      "depth_m": 1600
+    },
+    {
+      "name": "ENTRY | exterior warm boundary glow",
+      "depth_m": 900
+    },
+    {
+      "name": "ENTRY | exterior heating filaments",
+      "depth_m": 800
+    }
+  ],
+  "ship_geometry_sha256": {
+    "Aft flank access housing": "b5cca605af53b12fa6c1e173a752b99675d1a384ff7dc856c6228c7e77bf37a5",
+    "Aft flank access housing.001": "b5cca605af53b12fa6c1e173a752b99675d1a384ff7dc856c6228c7e77bf37a5",
+    "Aft flank access housing.002": "b5cca605af53b12fa6c1e173a752b99675d1a384ff7dc856c6228c7e77bf37a5",
+    "Aft flank access housing.003": "b5cca605af53b12fa6c1e173a752b99675d1a384ff7dc856c6228c7e77bf37a5",
+    "Aft flank access housing.004": "b5cca605af53b12fa6c1e173a752b99675d1a384ff7dc856c6228c7e77bf37a5",
+    "Aft flank access housing.005": "b5cca605af53b12fa6c1e173a752b99675d1a384ff7dc856c6228c7e77bf37a5",
+    "Aft machinery casing": "a29198a655229f6cd5897923bbfd7085437b1d31919519c4cab31daef75b2209",
+    "Bay ceiling": "d9f62f264e0bd1a4e04c770fd4a5897e0ebabeb12c3a995df56df0c5f47d093c",
+    "Bay ceiling.001": "d9f62f264e0bd1a4e04c770fd4a5897e0ebabeb12c3a995df56df0c5f47d093c",
+    "Bay coaming": "5b16a1a8628d2052900d112b8bb24ec18f779e718db57b377f12f9556545110d",
+    "Bay coaming.001": "5b16a1a8628d2052900d112b8bb24ec18f779e718db57b377f12f9556545110d",
+    "Bay coaming.002": "5b16a1a8628d2052900d112b8bb24ec18f779e718db57b377f12f9556545110d",
+    "Bay coaming.003": "5b16a1a8628d2052900d112b8bb24ec18f779e718db57b377f12f9556545110d",
+    "Bay jamb": "311f77af31e0792e8f16a2ed6d5344e27bb7287942a71c8105af2ff6f4d7f2c8",
+    "Bay jamb.001": "311f77af31e0792e8f16a2ed6d5344e27bb7287942a71c8105af2ff6f4d7f2c8",
+    "Bay jamb.002": "311f77af31e0792e8f16a2ed6d5344e27bb7287942a71c8105af2ff6f4d7f2c8",
+    "Bay jamb.003": "311f77af31e0792e8f16a2ed6d5344e27bb7287942a71c8105af2ff6f4d7f2c8",
+    "Bay level floor": "d9f62f264e0bd1a4e04c770fd4a5897e0ebabeb12c3a995df56df0c5f47d093c",
+    "Bay level floor.001": "d9f62f264e0bd1a4e04c770fd4a5897e0ebabeb12c3a995df56df0c5f47d093c",
+    "Bay structural buttress": "7cd6e4710d18eb895c457d5a5db97945c4affa90f0c9d317c5b9d01f2360bab5",
+    "Bay structural buttress.001": "7cd6e4710d18eb895c457d5a5db97945c4affa90f0c9d317c5b9d01f2360bab5",
+    "Bay structural buttress.002": "7cd6e4710d18eb895c457d5a5db97945c4affa90f0c9d317c5b9d01f2360bab5",
+    "Bay structural buttress.003": "7cd6e4710d18eb895c457d5a5db97945c4affa90f0c9d317c5b9d01f2360bab5",
+    "Cabin ceiling": "785f7219565eef47747422af62c617bb9242e6a478016b5444658b03a5e60ad7",
+    "Cabin floor": "785f7219565eef47747422af62c617bb9242e6a478016b5444658b03a5e60ad7",
+    "Cabin side lining": "2d27c1b1cb6e8ab52aa3d79a8c9953ab24027072d798b564d04d21ca142da473",
+    "Cabin side lining.001": "2d27c1b1cb6e8ab52aa3d79a8c9953ab24027072d798b564d04d21ca142da473",
+    "Casing access cover": "9b9bc93d42f70d5af4c9a65507aee85dedebb6813efadf52ce931606ea53164e",
+    "Casing access cover.001": "9b9bc93d42f70d5af4c9a65507aee85dedebb6813efadf52ce931606ea53164e",
+    "Casing access cover.002": "9b9bc93d42f70d5af4c9a65507aee85dedebb6813efadf52ce931606ea53164e",
+    "Casing access cover.003": "9b9bc93d42f70d5af4c9a65507aee85dedebb6813efadf52ce931606ea53164e",
+    "Casing access cover.004": "9b9bc93d42f70d5af4c9a65507aee85dedebb6813efadf52ce931606ea53164e",
+    "Casing access cover.005": "9b9bc93d42f70d5af4c9a65507aee85dedebb6813efadf52ce931606ea53164e",
+    "Closed door stiffener": "26617e87f77463a418d26f54dabdb484a7542144a1feaeac45b2cd9eb20a8a2b",
+    "Closed door stiffener.001": "26617e87f77463a418d26f54dabdb484a7542144a1feaeac45b2cd9eb20a8a2b",
+    "Closed door stiffener.002": "26617e87f77463a418d26f54dabdb484a7542144a1feaeac45b2cd9eb20a8a2b",
+    "Closed door stiffener.003": "26617e87f77463a418d26f54dabdb484a7542144a1feaeac45b2cd9eb20a8a2b",
+    "Closed door stiffener.004": "26617e87f77463a418d26f54dabdb484a7542144a1feaeac45b2cd9eb20a8a2b",
+    "Cloud breakup proxy": "8fbdfeb3cf4af80820b4feec61ef5145bb77baa6e97cde0127091f836624aa07",
+    "Cloud breakup proxy.001": "41beab20d9b7d8812570aa9377780165dd76699d518331439df2cb7bcaa8ec29",
+    "Cloud breakup proxy.002": "b476f7dd88b80005c6c1f8c1678191f382c179cab789f6ee0cf0bba452f29d7d",
+    "Cloud breakup proxy.003": "009d53d6f8aa24ab0ddb64199e9caa2c115268aba275122cf533c0e0bfd32452",
+    "Cloud breakup proxy.004": "a24e8253c92a3ec5550ba36e16ef4ba0081a337b0b84aaa83dce967373ea3333",
+    "Crew baggage": "e84b9ad30f02a55f82c3364015f7c5acdcc8bf2f1fb34d4f2f20cb0748721e5a",
+    "Crew hand proxy": "78cac78869f5cee1c9930db33287664b2b5a752b8b4cef2bd80a178024197149",
+    "Crew sleeve proxy": "bb513a107a73790cbc21154b9550f3ab9adef78c53ae4b62608bc39de9564dfb",
+    "Empty maintenance cradle": "e02db7b9573569e29f2038fac37c52f1cca4bc16fa64891641f3b5bd1215265d",
+    "Empty maintenance cradle.001": "e02db7b9573569e29f2038fac37c52f1cca4bc16fa64891641f3b5bd1215265d",
+    "Engine 1 aft-facing nozzle": "2462a4034b4820ee6630957d270871cdbd27bc4412df133c8bde4a8aaf65b7e1",
+    "Engine 1 body": "f588404f5b2ea3d58717e6ff8cdbe3aba01cf6e17c2ab03aa0e5ccb5f0209bf3",
+    "Engine 1 dark throat": "3aa9e5ed19508edc919a18125364d27f69fa8c57819db0c492459e286baa45ac",
+    "Engine 1 mouth rim": "82a1074c162d4f60ef691f2efdb304a99d61d71393bf87e81b7fc8fc8a2742d3",
+    "Engine 2 aft-facing nozzle": "a3d5afe2c1d4e566be9c7f3a604ed1c0615643b337854ffed5a6674643b72639",
+    "Engine 2 body": "c863761c6f071fefd41301d016fe3f1d5231e71f230b6e0c1c43131aec1a4daf",
+    "Engine 2 dark throat": "bb776b1e76262eee5271710093120536d863d1ff758c7e7b911b314cbed26c1d",
+    "Engine 2 mouth rim": "b61d8b029e70e5dc1b40ce8a12e29ba676cd86889f8b5b02d5de6ae356df4c1b",
+    "Engine 3 aft-facing nozzle": "5dcb76fa9fbeee595c62fde4559a631f41d652b08d5af548ff9ed6cfc8ff53b4",
+    "Engine 3 body": "c863761c6f071fefd41301d016fe3f1d5231e71f230b6e0c1c43131aec1a4daf",
+    "Engine 3 dark throat": "bb776b1e76262eee5271710093120536d863d1ff758c7e7b911b314cbed26c1d",
+    "Engine 3 mouth rim": "b61d8b029e70e5dc1b40ce8a12e29ba676cd86889f8b5b02d5de6ae356df4c1b",
+    "Engine 4 aft-facing nozzle": "4bc6c363c0da96722d5d5bfc8240dbfca7795b0ab38201c06657c13528e507dd",
+    "Engine 4 body": "f588404f5b2ea3d58717e6ff8cdbe3aba01cf6e17c2ab03aa0e5ccb5f0209bf3",
+    "Engine 4 dark throat": "3aa9e5ed19508edc919a18125364d27f69fa8c57819db0c492459e286baa45ac",
+    "Engine 4 mouth rim": "82a1074c162d4f60ef691f2efdb304a99d61d71393bf87e81b7fc8fc8a2742d3",
+    "Engine room armored shoulder": "8389b5a7cc89e9d38b048850fc837ad8445e07abd225b568b5c252301e585b6a",
+    "Engine room armored shoulder.001": "fb1552e962ae13e04fcfed362140d5a73ae13e8dcd69f71a5478f385351d2077",
+    "Engine room armored shoulder.002": "de3b9f0761227080e7812ac3490d697c3647fdfc1ddb3693906c9aafec53a02d",
+    "Engine room armored shoulder.003": "7dbb897a7c579790818630cb79b4942ead01b08613640a609dd9c23af4f61dbc",
+    "Engine room armored shoulder.004": "ac6e46d9008c067139b3b90908bdfca0c8f559f6eeeb4e49b91015919ecca5c4",
+    "Engine room armored shoulder.005": "4222500d4dc9713a6ea07ece136e45eaaaa4775745fbe3b9fda58beb959d5ea2",
+    "Engine room armored shoulder.006": "adfbf88ff2020e4202a1716e8bf195938063b56088665d1577e33b8fe69c5ad1",
+    "Engine room armored shoulder.007": "9ef616c35f135724c6318b240620f1109453bb83a32c83ca8c26d2f81296894b",
+    "Engine room armored shoulder.008": "08cb20c621b6cdccbce6db1789e9d485b30ce5c336c45506e8431a67dc12aab0",
+    "Engine room armored shoulder.009": "0fc6f83d0053bed1d2a7586399c17920d37da2d8089a65bf9d3aa91b61c13ef7",
+    "Engine room armored shoulder.010": "20292dfc83d6ac37b976617bf9161f5b4f7cb1274476ff64a2385069c3d42524",
+    "Engine room armored shoulder.011": "d1fb87ab148f159b2c387d4af9bc3380c3fc52557976a51c2996dfc18192723b",
+    "Engine room reinforcing band": "56d2c27fbafe13a0cb5ae55ca63cc86e15b4bcda4e9abbb660edcd9897857936",
+    "Engine room reinforcing band.001": "94a03fcc6874b1c7c6ca4ca81e16e37dfd3ce0a075d5014e9422cdc8d0ebb3b9",
+    "Engine room reinforcing band.002": "c4a271451d69201e4ab1f4c7bcf28a37fd3fa45d870fbdc4a0ae0c5b5b6e5fa9",
+    "Engine room reinforcing band.003": "a832a03994b78a280a47b00a69174017b39f7feb506e5b97d5af7000ece1b280",
+    "Exposed longitudinal service trunk": "abf91cc90db684943aa8ef99e2b26304ddbe8037143825322af0df0efaab38a8",
+    "Exposed longitudinal service trunk.001": "abf91cc90db684943aa8ef99e2b26304ddbe8037143825322af0df0efaab38a8",
+    "Exposed longitudinal service trunk.002": "abf91cc90db684943aa8ef99e2b26304ddbe8037143825322af0df0efaab38a8",
+    "Fore pressure casing": "1ef4918d4f96a5439d04356dd7336ed2bad39844e623a316ac949240b5b89be6",
+    "Forebody reinforcing band": "8affa0270ef74d426513f995ccfc6be10941e3bd7ac6f406656d2cc86dd9589f",
+    "Forebody replaceable armor": "de1bcbf43e85a00df8b77b8963ae732a99c8a1572f4c703ca646726a29fa5bec",
+    "Forebody replaceable armor.001": "d948cfd31897c5e3b2532edbd30b8e29ad990ce5a0a5b807db8743d22156ebdf",
+    "Forebody replaceable armor.002": "b6102d6ff58f745bd5cce438e54aa38affb6379a7d9224a5ee24adfe07ecb643",
+    "Forebody replaceable armor.003": "fdf7938960a27e9db628fe022350770a2e24fd3a1dd29284c20fe4e292d97fc9",
+    "Forebody replaceable armor.004": "7d83bea2e17973848288d89451ad75e9618c38f3d80600fda07ca624004dc085",
+    "Forebody replaceable armor.005": "f67d638286395b14850f21a386096d5045756d794a27d91622423982a69ecefd",
+    "Forebody replaceable armor.006": "c443f8e59bef7181910f75d9db1a743ad846cf1a31056129354e16635f81a66b",
+    "Forebody replaceable armor.007": "77076b3d20b2dff376c299a41ed16f5c9ecb8c5d04e2b0ac5f5b100748417469",
+    "Forebody replaceable armor.008": "4f570ce3e268dcfdbb548765faf6344487addd02d97474b75bd36f1cf8a99462",
+    "Forebody replaceable armor.009": "6c5ebb76f9d3d638addc96ae40165aa1c2c70841b702febfe3c97744a2ef5e32",
+    "LIFT VECTOR | placeholder": "a01eaa20c3332c6724ce91eb5ba7a3559c5c25e49f1c9d261c6ba457f16edd9c",
+    "LIFT VECTOR | placeholder.001": "a01eaa20c3332c6724ce91eb5ba7a3559c5c25e49f1c9d261c6ba457f16edd9c",
+    "LIFT VECTOR | placeholder.002": "a01eaa20c3332c6724ce91eb5ba7a3559c5c25e49f1c9d261c6ba457f16edd9c",
+    "LIFT VECTOR | placeholder.003": "a01eaa20c3332c6724ce91eb5ba7a3559c5c25e49f1c9d261c6ba457f16edd9c",
+    "Main hull - level datum Z0": "a6af522bf88cc3f04b2725fe3b8e6b5bf645fd297e2ae39c17eedee3be271689",
+    "Passenger seat back": "33359ed282119a163927f623a253412efd8043811fab32f20523429c6324293c",
+    "Passenger seat cushion": "c4d39eb7b78672319df61063cc2012ed4f70ab5992442f795614ea96262575bf",
+    "Pod dorsal inspection plate": "4392d3128f5d33e602dca127707a9b6d9bd0a86f60cef79235da4ac54f79eba5",
+    "Pod outward access hatch": "6978fdfc238b6fb4d34a51448e5224d91f733aec64455c85de869e3f7b56cc82",
+    "Port bay interior": "04c59fe5cc2b14ba87d391ef0e8e18dc0fb9ef33d438a51c47f598ca57f91311",
+    "Port bay interior lamp": "22dac3bb4cc0892e185221411dacb439a81ffe917f7b6414c91f1d9b28a2d4a3",
+    "Port bay interior lamp.001": "22dac3bb4cc0892e185221411dacb439a81ffe917f7b6414c91f1d9b28a2d4a3",
+    "PORT SERVICE POD - fixed low horizontal body": "af1753a5ac7b1d7fe6c8b0e25ed1ae2ba0ad1757ea10a641dc6f6eeb971fddf3",
+    "Port service pod neck": "1be05d21a1b45b0bfcfd31014549a4b69b1adfbd1ca1fb7ad3d09b9c813d0066",
+    "PROPOSAL keel shoe": "2e9f27ff486184b5d092aacd8c4b9b3ec87edace2091dca914cb2e8ae161c626",
+    "PROPOSAL keel shoe.001": "2e9f27ff486184b5d092aacd8c4b9b3ec87edace2091dca914cb2e8ae161c626",
+    "PROPOSAL keel shoe.002": "2e9f27ff486184b5d092aacd8c4b9b3ec87edace2091dca914cb2e8ae161c626",
+    "PROPOSAL keel shoe.003": "2e9f27ff486184b5d092aacd8c4b9b3ec87edace2091dca914cb2e8ae161c626",
+    "PROPOSAL lift mouth": "eef45b01401fde475be9b0b4b5c40ad074d2c7c74e7c698af57c9fc95d900f6a",
+    "PROPOSAL lift mouth.001": "eef45b01401fde475be9b0b4b5c40ad074d2c7c74e7c698af57c9fc95d900f6a",
+    "PROPOSAL lift mouth.002": "eef45b01401fde475be9b0b4b5c40ad074d2c7c74e7c698af57c9fc95d900f6a",
+    "PROPOSAL lift mouth.003": "eef45b01401fde475be9b0b4b5c40ad074d2c7c74e7c698af57c9fc95d900f6a",
+    "PROPOSAL ventral lift collar": "87843ba86094d8b27448771c799211c3c6e2b3a80f302c874db84d1651bba869",
+    "PROPOSAL ventral lift collar.001": "87843ba86094d8b27448771c799211c3c6e2b3a80f302c874db84d1651bba869",
+    "PROPOSAL ventral lift collar.002": "87843ba86094d8b27448771c799211c3c6e2b3a80f302c874db84d1651bba869",
+    "PROPOSAL ventral lift collar.003": "87843ba86094d8b27448771c799211c3c6e2b3a80f302c874db84d1651bba869",
+    "Protected waist service line": "3fa82ebbf0e6a35d6ed0e13067b62028515c3efb311d111d22c713353e70589a",
+    "Protected waist service line.001": "3fa82ebbf0e6a35d6ed0e13067b62028515c3efb311d111d22c713353e70589a",
+    "Recessed central service bed": "5065e2c309f026b345889e3ee824db7546a6125c604b866ce924781781bec152",
+    "SEALED GLAZING | clear proxy": "61194884c46dee2e87d414372714f26aecc159d58e76136029dd318299a75529",
+    "Service trunk support hoop": "7e78d6cfed82d7c508729510c3461a021659307ffe7497c445107618fce2b282",
+    "Service trunk support hoop.001": "7e78d6cfed82d7c508729510c3461a021659307ffe7497c445107618fce2b282",
+    "Service trunk support hoop.002": "7e78d6cfed82d7c508729510c3461a021659307ffe7497c445107618fce2b282",
+    "Shoulder louver vent": "d768f4aa9e20e729d50b4619eb734eb77ba4f712e4d533b15e2ad9d637371ec3",
+    "Shoulder louver vent.001": "d768f4aa9e20e729d50b4619eb734eb77ba4f712e4d533b15e2ad9d637371ec3",
+    "Shoulder louver vent.002": "d768f4aa9e20e729d50b4619eb734eb77ba4f712e4d533b15e2ad9d637371ec3",
+    "Shoulder louver vent.003": "d768f4aa9e20e729d50b4619eb734eb77ba4f712e4d533b15e2ad9d637371ec3",
+    "Starboard bay interior": "04c59fe5cc2b14ba87d391ef0e8e18dc0fb9ef33d438a51c47f598ca57f91311",
+    "Starboard bay sealed sectional door": "af9c5ca374455ba6ff69d2d8c175ebfbbd1c569fb30c9c238cf049d40712383e",
+    "Turret 1 forward barrel": "2ad1424a92c41eafebbf1588e0d3064ae842758e46af569765bb7b6744b30b1a",
+    "Turret 1 raised armored housing": "608f7aae692d2114c7c055f40079bd982f05147527e1682afb5aef5ed725fb70",
+    "Turret 1 shallow ring": "b9abcf7eb8cfcbe533a809efa3456738bd356a42437fb4d0d00bc90d13fa9493",
+    "Turret 2 forward barrel": "2ad1424a92c41eafebbf1588e0d3064ae842758e46af569765bb7b6744b30b1a",
+    "Turret 2 raised armored housing": "608f7aae692d2114c7c055f40079bd982f05147527e1682afb5aef5ed725fb70",
+    "Turret 2 shallow ring": "b9abcf7eb8cfcbe533a809efa3456738bd356a42437fb4d0d00bc90d13fa9493",
+    "Turret 3 forward barrel": "2ad1424a92c41eafebbf1588e0d3064ae842758e46af569765bb7b6744b30b1a",
+    "Turret 3 raised armored housing": "608f7aae692d2114c7c055f40079bd982f05147527e1682afb5aef5ed725fb70",
+    "Turret 3 shallow ring": "b9abcf7eb8cfcbe533a809efa3456738bd356a42437fb4d0d00bc90d13fa9493",
+    "Turret 4 forward barrel": "02e75722a46423aa97f5da29111e29e32ec05d97953d827727119d228d169246",
+    "Turret 4 raised armored housing": "d99b0e57e3573db67b2733b773f1a27359225ee6dc28a570e34a656d2da19de5",
+    "Turret 4 shallow ring": "5eff4625070161fa480ea3dff1ad85905855111c79358995ef9323a2729e2d8b",
+    "Vent louver": "8169566a1fa5bbf9e5c9b61621840c86f4ad7b87834272af262f5e80fd03e07c",
+    "Vent louver.001": "8169566a1fa5bbf9e5c9b61621840c86f4ad7b87834272af262f5e80fd03e07c",
+    "Vent louver.002": "8169566a1fa5bbf9e5c9b61621840c86f4ad7b87834272af262f5e80fd03e07c",
+    "Vent louver.003": "8169566a1fa5bbf9e5c9b61621840c86f4ad7b87834272af262f5e80fd03e07c",
+    "Vent louver.004": "8169566a1fa5bbf9e5c9b61621840c86f4ad7b87834272af262f5e80fd03e07c",
+    "Vent louver.005": "8169566a1fa5bbf9e5c9b61621840c86f4ad7b87834272af262f5e80fd03e07c",
+    "Vent louver.006": "8169566a1fa5bbf9e5c9b61621840c86f4ad7b87834272af262f5e80fd03e07c",
+    "Vent louver.007": "8169566a1fa5bbf9e5c9b61621840c86f4ad7b87834272af262f5e80fd03e07c",
+    "Vent louver.008": "8169566a1fa5bbf9e5c9b61621840c86f4ad7b87834272af262f5e80fd03e07c",
+    "Vent louver.009": "8169566a1fa5bbf9e5c9b61621840c86f4ad7b87834272af262f5e80fd03e07c",
+    "Vent louver.010": "8169566a1fa5bbf9e5c9b61621840c86f4ad7b87834272af262f5e80fd03e07c",
+    "Vent louver.011": "8169566a1fa5bbf9e5c9b61621840c86f4ad7b87834272af262f5e80fd03e07c",
+    "Vent louver.012": "8169566a1fa5bbf9e5c9b61621840c86f4ad7b87834272af262f5e80fd03e07c",
+    "Vent louver.013": "8169566a1fa5bbf9e5c9b61621840c86f4ad7b87834272af262f5e80fd03e07c",
+    "Vent louver.014": "8169566a1fa5bbf9e5c9b61621840c86f4ad7b87834272af262f5e80fd03e07c",
+    "Vent louver.015": "8169566a1fa5bbf9e5c9b61621840c86f4ad7b87834272af262f5e80fd03e07c",
+    "Vent louver.016": "8169566a1fa5bbf9e5c9b61621840c86f4ad7b87834272af262f5e80fd03e07c",
+    "Vent louver.017": "8169566a1fa5bbf9e5c9b61621840c86f4ad7b87834272af262f5e80fd03e07c",
+    "Vent louver.018": "8169566a1fa5bbf9e5c9b61621840c86f4ad7b87834272af262f5e80fd03e07c",
+    "Vent louver.019": "8169566a1fa5bbf9e5c9b61621840c86f4ad7b87834272af262f5e80fd03e07c",
+    "Viewport horizontal frame": "0f4ea02d7560299041790b02e14b5566cf58340a96a8858cdb1424a7051fe192",
+    "Viewport horizontal frame.001": "0f4ea02d7560299041790b02e14b5566cf58340a96a8858cdb1424a7051fe192",
+    "Viewport vertical frame": "d7265fcf948d4a223373f083c784cfdb3a88ddc412da9f50568a3aa7cb5040ba",
+    "Viewport vertical frame.001": "d7265fcf948d4a223373f083c784cfdb3a88ddc412da9f50568a3aa7cb5040ba",
+    "Window lower wall": "99d282db0dec237c6718c2c7ca99f5eb173edf38d4550a0366324e85029146f5"
+  },
+  "samples": [
+    {
+      "index": 0,
+      "source_frame": 73.0,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.63980102539062
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.97115707397461
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 1,
+      "source_frame": 73.49473684210527,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.64025115966797
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.9717960357666
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 2,
+      "source_frame": 73.98947368421052,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.64070129394531
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.972434997558594
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 3,
+      "source_frame": 74.48421052631579,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.64114379882812
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.973072052001953
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 4,
+      "source_frame": 74.97894736842105,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.64158630371094
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.973709106445312
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 5,
+      "source_frame": 75.47368421052632,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.64203643798828
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.974346160888672
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 6,
+      "source_frame": 75.96842105263158,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.64248657226562
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.97498321533203
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 7,
+      "source_frame": 76.46315789473684,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.64292907714844
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.97562026977539
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 8,
+      "source_frame": 76.9578947368421,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.64337158203125
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.976259231567383
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 9,
+      "source_frame": 77.45263157894738,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.6438217163086
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.976898193359375
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 10,
+      "source_frame": 77.94736842105263,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.64427185058594
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.977535247802734
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 11,
+      "source_frame": 78.4421052631579,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.64471435546875
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.978172302246094
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 12,
+      "source_frame": 78.93684210526315,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.64515686035156
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.978811264038086
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 13,
+      "source_frame": 79.43157894736842,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.6456069946289
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.979450225830078
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 14,
+      "source_frame": 79.92631578947369,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.64605712890625
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.980087280273438
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 15,
+      "source_frame": 80.42105263157895,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.64649963378906
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.980722427368164
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 16,
+      "source_frame": 80.91578947368421,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.64694213867188
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.981361389160156
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 17,
+      "source_frame": 81.41052631578947,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.64739227294922
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.981998443603516
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 18,
+      "source_frame": 81.90526315789474,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.64784240722656
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.982635498046875
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 19,
+      "source_frame": 82.4,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.64828491210938
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.983274459838867
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 20,
+      "source_frame": 82.89473684210526,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.64872741699219
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.98391342163086
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 21,
+      "source_frame": 83.38947368421053,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.64917755126953
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.98455047607422
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 22,
+      "source_frame": 83.88421052631578,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.64962768554688
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.985187530517578
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 23,
+      "source_frame": 84.37894736842105,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.65007019042969
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.98582649230957
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 24,
+      "source_frame": 84.87368421052632,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.6505126953125
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.986465454101562
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 25,
+      "source_frame": 85.36842105263158,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.65096282958984
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.987098693847656
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 26,
+      "source_frame": 85.86315789473684,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.65141296386719
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.98773765563965
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 27,
+      "source_frame": 86.3578947368421,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.65185546875
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.98837661743164
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 28,
+      "source_frame": 86.85263157894737,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.65229797363281
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.989013671875
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 29,
+      "source_frame": 87.34736842105264,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.65274810791016
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.98965072631836
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 30,
+      "source_frame": 87.84210526315789,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.6531982421875
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.99028968811035
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 31,
+      "source_frame": 88.33684210526316,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.65364074707031
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.990928649902344
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 32,
+      "source_frame": 88.83157894736843,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.65408325195312
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.991565704345703
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 33,
+      "source_frame": 89.32631578947368,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.65453338623047
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.992202758789062
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 34,
+      "source_frame": 89.82105263157895,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.65498352050781
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.992841720581055
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 35,
+      "source_frame": 90.3157894736842,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.65542602539062
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.99347686767578
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 36,
+      "source_frame": 90.81052631578947,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.65586853027344
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.99411392211914
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 37,
+      "source_frame": 91.30526315789473,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.65631866455078
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.994752883911133
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 38,
+      "source_frame": 91.8,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.65676879882812
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.995391845703125
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 39,
+      "source_frame": 92.29473684210527,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.65721130371094
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.996028900146484
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 40,
+      "source_frame": 92.78947368421052,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.65766143798828
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.996665954589844
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 41,
+      "source_frame": 93.28421052631579,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.65811157226562
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.997304916381836
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 42,
+      "source_frame": 93.77894736842106,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.65855407714844
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.997943878173828
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 43,
+      "source_frame": 94.27368421052631,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.65900421142578
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.998580932617188
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 44,
+      "source_frame": 94.76842105263158,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.6594467163086
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.999217987060547
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 45,
+      "source_frame": 95.26315789473685,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.65989685058594
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          29.999855041503906
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 46,
+      "source_frame": 95.7578947368421,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.66033935546875
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.000492095947266
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 47,
+      "source_frame": 96.25263157894737,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.6607894897461
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.001129150390625
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 48,
+      "source_frame": 96.74736842105263,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.6612319946289
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.001768112182617
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 49,
+      "source_frame": 97.2421052631579,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.66168212890625
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.00240707397461
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 50,
+      "source_frame": 97.73684210526315,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.66212463378906
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.00304412841797
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 51,
+      "source_frame": 98.23157894736842,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.6625747680664
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.003681182861328
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 52,
+      "source_frame": 98.72631578947369,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.66301727294922
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.00432014465332
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 53,
+      "source_frame": 99.22105263157894,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.66346740722656
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.004959106445312
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 54,
+      "source_frame": 99.71578947368421,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.66390991210938
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.005592346191406
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 55,
+      "source_frame": 100.21052631578948,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.66436004638672
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.0062313079834
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 56,
+      "source_frame": 100.70526315789473,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.66480255126953
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.00687026977539
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 57,
+      "source_frame": 101.2,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.66525268554688
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.00750732421875
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 58,
+      "source_frame": 101.69473684210527,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.66569519042969
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.00814437866211
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 59,
+      "source_frame": 102.18947368421053,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.66614532470703
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.0087833404541
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 60,
+      "source_frame": 102.6842105263158,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.66658782958984
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.009422302246094
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 61,
+      "source_frame": 103.17894736842105,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.66703796386719
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.010059356689453
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 62,
+      "source_frame": 103.67368421052632,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.66748046875
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.010696411132812
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 63,
+      "source_frame": 104.16842105263157,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.66793060302734
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.011335372924805
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 64,
+      "source_frame": 104.66315789473684,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.66837310791016
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.01197052001953
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 65,
+      "source_frame": 105.15789473684211,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.6688232421875
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.01260757446289
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 66,
+      "source_frame": 105.65263157894736,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.66926574707031
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.013246536254883
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 67,
+      "source_frame": 106.14736842105263,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.66971588134766
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.013885498046875
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 68,
+      "source_frame": 106.6421052631579,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.67015838623047
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.014522552490234
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 69,
+      "source_frame": 107.13684210526316,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.67060852050781
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.015159606933594
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 70,
+      "source_frame": 107.63157894736841,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.67105102539062
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.015798568725586
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 71,
+      "source_frame": 108.1263157894737,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.67150115966797
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.016437530517578
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 72,
+      "source_frame": 108.62105263157895,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.67194366455078
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.017074584960938
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 73,
+      "source_frame": 109.1157894736842,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.67239379882812
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.017711639404297
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 74,
+      "source_frame": 109.61052631578947,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.67283630371094
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.018348693847656
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 75,
+      "source_frame": 110.10526315789474,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.67328643798828
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.018985748291016
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 76,
+      "source_frame": 110.6,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.6737289428711
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.019622802734375
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 77,
+      "source_frame": 111.09473684210526,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.67417907714844
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.020261764526367
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 78,
+      "source_frame": 111.58947368421053,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.67462158203125
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.02090072631836
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 79,
+      "source_frame": 112.08421052631579,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.6750717163086
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.02153778076172
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 80,
+      "source_frame": 112.57894736842105,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.6755142211914
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.022174835205078
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 81,
+      "source_frame": 113.07368421052632,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.67596435546875
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.02281379699707
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 82,
+      "source_frame": 113.56842105263158,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.67640686035156
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.023452758789062
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 83,
+      "source_frame": 114.06315789473683,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.6768569946289
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.024089813232422
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 84,
+      "source_frame": 114.55789473684212,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.67729949951172
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.02472496032715
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 85,
+      "source_frame": 115.05263157894737,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.67774963378906
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.02536392211914
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 86,
+      "source_frame": 115.54736842105262,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.67819213867188
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.0260009765625
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 87,
+      "source_frame": 116.0421052631579,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.67864227294922
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.02663803100586
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 88,
+      "source_frame": 116.53684210526316,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.67908477783203
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.02727699279785
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 89,
+      "source_frame": 117.03157894736842,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.67953491210938
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.027915954589844
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 90,
+      "source_frame": 117.52631578947368,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.67997741699219
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.028553009033203
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 91,
+      "source_frame": 118.02105263157895,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.68042755126953
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.029190063476562
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 92,
+      "source_frame": 118.51578947368421,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.68087005615234
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.029829025268555
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 93,
+      "source_frame": 119.01052631578948,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.68132019042969
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.030467987060547
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 94,
+      "source_frame": 119.50526315789475,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.6817626953125
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.03110122680664
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "index": 95,
+      "source_frame": 120.0,
+      "camera": [
+        [
+          1.228847622871399,
+          0.2841654419898987,
+          -0.8119012117385864,
+          72.68221282958984
+        ],
+        [
+          -0.8601938486099243,
+          0.40595024824142456,
+          -1.159858226776123,
+          30.031740188598633
+        ],
+        [
+          -7.434854865095986e-08,
+          1.4157875776290894,
+          0.4955255389213562,
+          4.920000076293945
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    }
+  ],
+  "limits": "Authored exterior layered noise/glow and retained cloud art, not physical plasma/fluid simulation. No new cabin lighting or ship geometry. Review/media reports own final render status.",
+  "reused_cloud_asset": {
+    "path": "../managed-land-realism/assets/clouds-realism-v1.png",
+    "sha256": "e3f9c4cb4961f6454e94d3c3fdb674c7d43175d9f9bc4228f8ac9ce7189bd60a",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "role": "Existing approved cloud artwork, independent exterior depth card; raw pixels unchanged"
+  }
+}

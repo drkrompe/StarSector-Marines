@@ -1,0 +1,19 @@
+{
+  "all96_source_camera_root_atlas_matrices_match": true,
+  "unchanged_ship_mesh_count": 171,
+  "all_ship_vertex_topology_hashes_match": true,
+  "missing_textures": [],
+  "exterior_depths_m": {
+    "ENTRY | distant luminous cloud body": 2300,
+    "ENTRY | exterior heating filaments": 800,
+    "ENTRY | exterior warm boundary glow": 900,
+    "ENTRY | retained cloud filaments": 1600
+  },
+  "inspected_1080p_previews": [
+    0,
+    48,
+    95
+  ],
+  "movie_playback_review": "Coordinating reviewer owns normal-speed full-cut review; see media-validation.json for encode facts",
+  "scene_sha256": "09eecb3d0a60a2b57914b5184d3aa1f1c943d2e05132f0b8064ae8960f05c062"
+}

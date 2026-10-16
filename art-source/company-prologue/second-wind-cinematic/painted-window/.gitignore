@@ -1,0 +1,6 @@
+build/
+__pycache__/
+*.blend1
+guides/projection-base.blend
+guides/cabin-paint-guide.png
+guides/cabin-paint-guide-current.png

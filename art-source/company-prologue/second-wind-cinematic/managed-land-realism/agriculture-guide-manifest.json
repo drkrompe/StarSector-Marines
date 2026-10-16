@@ -1,0 +1,977 @@
+{
+  "objects": [
+    "AGRI | tender keel",
+    "AGRI | tender upper casing",
+    "AGRI | tender control cabin",
+    "AGRI | tender front glazing",
+    "AGRI | tender lift outrigger",
+    "AGRI | tender lift shroud",
+    "AGRI | tender dark lift mouth",
+    "AGRI | tender lift ceramic ring",
+    "AGRI | tender lift outrigger.001",
+    "AGRI | tender lift shroud.001",
+    "AGRI | tender dark lift mouth.001",
+    "AGRI | tender lift ceramic ring.001",
+    "AGRI | tender extended spray spar",
+    "AGRI | tender oxide spar stripe",
+    "AGRI | tender downward nozzle",
+    "AGRI | tender downward nozzle.001",
+    "AGRI | tender downward nozzle.002",
+    "AGRI | tender downward nozzle.003",
+    "AGRI | tender service rail",
+    "AGRI | tender rail support",
+    "AGRI | tender rail support.001",
+    "AGRI | tender rail support.002",
+    "AGRI | tender lift outrigger.002",
+    "AGRI | tender lift shroud.002",
+    "AGRI | tender dark lift mouth.002",
+    "AGRI | tender lift ceramic ring.002",
+    "AGRI | tender lift outrigger.003",
+    "AGRI | tender lift shroud.003",
+    "AGRI | tender dark lift mouth.003",
+    "AGRI | tender lift ceramic ring.003",
+    "AGRI | tender extended spray spar.001",
+    "AGRI | tender oxide spar stripe.001",
+    "AGRI | tender downward nozzle.004",
+    "AGRI | tender downward nozzle.005",
+    "AGRI | tender downward nozzle.006",
+    "AGRI | tender downward nozzle.007",
+    "AGRI | tender service rail.001",
+    "AGRI | tender rail support.003",
+    "AGRI | tender rail support.004",
+    "AGRI | tender rail support.005",
+    "AGRI | tender reagent tank",
+    "AGRI | tender tank retaining band",
+    "AGRI | tender tank retaining band.001",
+    "AGRI | tender top cooling fins",
+    "AGRI | tender top cooling fins.001",
+    "AGRI | tender top cooling fins.002",
+    "AGRI | tender top cooling fins.003",
+    "AGRI | tender top cooling fins.004",
+    "AGRI | drone center",
+    "AGRI | drone arm",
+    "AGRI | drone duct",
+    "AGRI | drone dark duct",
+    "AGRI | drone arm.001",
+    "AGRI | drone duct.001",
+    "AGRI | drone dark duct.001",
+    "AGRI | drone survey head",
+    "AGRI | compound broad apron",
+    "AGRI | shed 0 plinth",
+    "AGRI | shed 0 walls",
+    "AGRI | shed 0 sloped roof",
+    "AGRI | shed 0 sloped roof.001",
+    "AGRI | shed 0 seam",
+    "AGRI | shed 0 seam.001",
+    "AGRI | shed 0 seam.002",
+    "AGRI | shed 0 seam.003",
+    "AGRI | shed 0 seam.004",
+    "AGRI | shed 0 seam.005",
+    "AGRI | shed 0 seam.006",
+    "AGRI | shed 0 seam.007",
+    "AGRI | shed 0 seam.008",
+    "AGRI | shed 0 seam.009",
+    "AGRI | shed 0 recessed service door",
+    "AGRI | shed 0 door header",
+    "AGRI | shed 0 recessed service door.001",
+    "AGRI | shed 0 door header.001",
+    "AGRI | shed 0 wall buttress",
+    "AGRI | shed 0 wall buttress.001",
+    "AGRI | shed 0 wall buttress.002",
+    "AGRI | shed 0 rooftop HVAC",
+    "AGRI | shed 0 rooftop HVAC.001",
+    "AGRI | shed 1 plinth",
+    "AGRI | shed 1 walls",
+    "AGRI | shed 1 sloped roof",
+    "AGRI | shed 1 sloped roof.001",
+    "AGRI | shed 1 seam",
+    "AGRI | shed 1 seam.001",
+    "AGRI | shed 1 seam.002",
+    "AGRI | shed 1 seam.003",
+    "AGRI | shed 1 seam.004",
+    "AGRI | shed 1 seam.005",
+    "AGRI | shed 1 seam.006",
+    "AGRI | shed 1 recessed service door",
+    "AGRI | shed 1 door header",
+    "AGRI | shed 1 recessed service door.001",
+    "AGRI | shed 1 door header.001",
+    "AGRI | shed 1 wall buttress",
+    "AGRI | shed 1 wall buttress.001",
+    "AGRI | shed 1 wall buttress.002",
+    "AGRI | shed 1 rooftop HVAC",
+    "AGRI | shed 1 rooftop HVAC.001",
+    "AGRI | compound storage silo",
+    "AGRI | silo reinforcing ring",
+    "AGRI | silo reinforcing ring.001",
+    "AGRI | silo reinforcing ring.002",
+    "AGRI | silo crown",
+    "AGRI | compound storage silo.001",
+    "AGRI | silo reinforcing ring.003",
+    "AGRI | silo reinforcing ring.004",
+    "AGRI | silo reinforcing ring.005",
+    "AGRI | silo crown.001",
+    "AGRI | compound storage silo.002",
+    "AGRI | silo reinforcing ring.006",
+    "AGRI | silo reinforcing ring.007",
+    "AGRI | silo reinforcing ring.008",
+    "AGRI | silo crown.002",
+    "AGRI | pump service building",
+    "AGRI | pump roof",
+    "AGRI | landing service pad",
+    "AGRI | landing pad bar",
+    "AGRI | landing pad bar.001",
+    "AGRI | landing H legs",
+    "AGRI | landing H legs.001",
+    "AGRI | landing H bridge",
+    "AGRI | compound antenna mast",
+    "AGRI | antenna transverse spar",
+    "AGRI | antenna transverse spar.001",
+    "AGRI | compound cargo crate",
+    "AGRI | compound cargo crate.001",
+    "AGRI | compound cargo crate.002"
+  ],
+  "pass_index": 61,
+  "compound_source_xyz_m": [
+    -2680,
+    1280,
+    8.0
+  ],
+  "tender_ground_xyz_m": [
+    -3520,
+    660,
+    8.0
+  ],
+  "material_mapping": "Generated object-local procedural base; retained guides are unreskinned geometry authority. Final scene optionally applies rigid-assembly-attached perspective finish with per-component affine registration.",
+  "dimensions_provisional": true,
+  "reference_source_frame": 263.75,
+  "dimensions": [
+    1920,
+    1080
+  ],
+  "camera": "03 LAND / side window",
+  "lens_mm": 26.0,
+  "guide": "shot03-agriculture-isolated-guide.png",
+  "context": "shot03-agriculture-context-guide.png",
+  "mask": "shot03-agriculture-mask.png",
+  "overscan": "shot03-agriculture-overscan-guide.png",
+  "overscan_factor": 1.08,
+  "reskin_contract": "Use shot03-agriculture-tight-reskin-guide.png as geometry authority. Preserve exact crop canvas and alpha silhouette; materials only, no extra components. Save registered RGBA as assets/agriculture-reskin-v1.png. Original full guides are inspection only.",
+  "reskin_crop": {
+    "file": "shot03-agriculture-tight-reskin-guide.png",
+    "original_camera_pixel_bounds_top_left": [
+      1150,
+      1640,
+      370,
+      740
+    ],
+    "original_camera_uv_bounds": [
+      0.5989583333333334,
+      0.8541666666666666,
+      0.3148148148148148,
+      0.6574074074074074
+    ],
+    "density_multiplier": 4,
+    "native_dimensions": [
+      1960,
+      1480
+    ],
+    "method": "Blender camera render border, crop_to_border; no raster cropping or rescaling"
+  },
+  "projection": "One midpoint projector parented per rigid assembly, then per-assembly alpha-bounds affine from agriculture-reskin-registration.json. Approximate projected material finish: generated internal panels are not exactly registered. Procedural material retained on backward faces and outside image alpha.",
+  "visible_parts": "Near right: low crop tender with four lift pods, long transverse crop spray arms, cream tank, orange control cabin. Far right: two low service sheds, three cylindrical silos, cargo crates, service pad, antenna. Small survey drone above distant field.",
+  "light_baking_limit": "Request neutral weathered material without added shadows/highlights: BSDF supplies scene light. Ground shadow is separate terrain-conforming procedural decal.",
+  "object_screen_bounds": {
+    "AGRI | tender keel": [
+      0.7710333466529846,
+      0.7997928261756897,
+      0.37294355034828186,
+      0.38940316438674927
+    ],
+    "AGRI | tender upper casing": [
+      0.7731204628944397,
+      0.7965461015701294,
+      0.3791256248950958,
+      0.39277246594429016
+    ],
+    "AGRI | tender control cabin": [
+      0.7874228358268738,
+      0.7970719933509827,
+      0.3853604793548584,
+      0.3961632251739502
+    ],
+    "AGRI | tender front glazing": [
+      0.7926989197731018,
+      0.7967443466186523,
+      0.3888384699821472,
+      0.39492321014404297
+    ],
+    "AGRI | tender lift outrigger": [
+      0.778673529624939,
+      0.7888424396514893,
+      0.3711503744125366,
+      0.37850451469421387
+    ],
+    "AGRI | tender lift shroud": [
+      0.779313862323761,
+      0.7906402945518494,
+      0.3680863678455353,
+      0.3768557906150818
+    ],
+    "AGRI | tender dark lift mouth": [
+      0.7806156277656555,
+      0.7891306281089783,
+      0.3685034513473511,
+      0.37269800901412964
+    ],
+    "AGRI | tender lift ceramic ring": [
+      0.7815576195716858,
+      0.7881634831428528,
+      0.36881494522094727,
+      0.37206360697746277
+    ],
+    "AGRI | tender lift outrigger.001": [
+      0.7925158739089966,
+      0.8027312159538269,
+      0.37383604049682617,
+      0.3811110258102417
+    ],
+    "AGRI | tender lift shroud.001": [
+      0.7931894063949585,
+      0.8045427799224854,
+      0.3707980513572693,
+      0.37947899103164673
+    ],
+    "AGRI | tender dark lift mouth.001": [
+      0.7944931983947754,
+      0.8030233979225159,
+      0.3712083101272583,
+      0.37535029649734497
+    ],
+    "AGRI | tender lift ceramic ring.001": [
+      0.7954365611076355,
+      0.8020541667938232,
+      0.37151479721069336,
+      0.3747227191925049
+    ],
+    "AGRI | tender extended spray spar": [
+      0.7867474555969238,
+      0.8081342577934265,
+      0.360768586397171,
+      0.3789777457714081
+    ],
+    "AGRI | tender oxide spar stripe": [
+      0.7880582809448242,
+      0.8068479895591736,
+      0.36400675773620605,
+      0.3782610297203064
+    ],
+    "AGRI | tender downward nozzle": [
+      0.7911567687988281,
+      0.7925772070884705,
+      0.3713398575782776,
+      0.37377169728279114
+    ],
+    "AGRI | tender downward nozzle.001": [
+      0.7964300513267517,
+      0.797870934009552,
+      0.3671426773071289,
+      0.3696042597293854
+    ],
+    "AGRI | tender downward nozzle.002": [
+      0.8018119931221008,
+      0.8032738566398621,
+      0.36285892128944397,
+      0.3653509318828583
+    ],
+    "AGRI | tender downward nozzle.003": [
+      0.8059217929840088,
+      0.8073996901512146,
+      0.3595876395702362,
+      0.3621029853820801
+    ],
+    "AGRI | tender service rail": [
+      0.780491054058075,
+      0.7912729978561401,
+      0.38485637307167053,
+      0.38759392499923706
+    ],
+    "AGRI | tender rail support": [
+      0.7807282209396362,
+      0.7811327576637268,
+      0.3829421103000641,
+      0.3853825330734253
+    ],
+    "AGRI | tender rail support.001": [
+      0.7856336832046509,
+      0.7860400676727295,
+      0.38385850191116333,
+      0.3862933814525604
+    ],
+    "AGRI | tender rail support.002": [
+      0.7905167937278748,
+      0.7909250259399414,
+      0.3847706615924835,
+      0.3872000575065613
+    ],
+    "AGRI | tender lift outrigger.002": [
+      0.7675471901893616,
+      0.7774009704589844,
+      0.38030877709388733,
+      0.38739457726478577
+    ],
+    "AGRI | tender lift shroud.002": [
+      0.765728235244751,
+      0.7766512632369995,
+      0.3793322741985321,
+      0.38773733377456665
+    ],
+    "AGRI | tender dark lift mouth.002": [
+      0.7669850587844849,
+      0.775201678276062,
+      0.37972143292427063,
+      0.3837001621723175
+    ],
+    "AGRI | tender lift ceramic ring.002": [
+      0.767894446849823,
+      0.7742688655853271,
+      0.38001251220703125,
+      0.38309386372566223
+    ],
+    "AGRI | tender lift outrigger.003": [
+      0.781156599521637,
+      0.7910559177398682,
+      0.38287654519081116,
+      0.3898879587650299
+    ],
+    "AGRI | tender lift shroud.003": [
+      0.7793188095092773,
+      0.7902685403823853,
+      0.38189926743507385,
+      0.39022213220596313
+    ],
+    "AGRI | tender dark lift mouth.003": [
+      0.7805776000022888,
+      0.7888095378875732,
+      0.38228216767311096,
+      0.38621243834495544
+    ],
+    "AGRI | tender lift ceramic ring.003": [
+      0.7814883589744568,
+      0.787874698638916,
+      0.38256868720054626,
+      0.38561245799064636
+    ],
+    "AGRI | tender extended spray spar.001": [
+      0.7599791884422302,
+      0.7792258858680725,
+      0.38359737396240234,
+      0.40003928542137146
+    ],
+    "AGRI | tender oxide spar stripe.001": [
+      0.7611474990844727,
+      0.7780796885490417,
+      0.3866136372089386,
+      0.3994103670120239
+    ],
+    "AGRI | tender downward nozzle.004": [
+      0.7735100388526917,
+      0.774863064289093,
+      0.38538476824760437,
+      0.3877178430557251
+    ],
+    "AGRI | tender downward nozzle.005": [
+      0.7686871886253357,
+      0.7700220346450806,
+      0.3892230689525604,
+      0.3915293216705322
+    ],
+    "AGRI | tender downward nozzle.006": [
+      0.763956606388092,
+      0.7652736902236938,
+      0.39298781752586365,
+      0.39526790380477905
+    ],
+    "AGRI | tender downward nozzle.007": [
+      0.7604675889015198,
+      0.7617716789245605,
+      0.39576444029808044,
+      0.3980252742767334
+    ],
+    "AGRI | tender service rail.001": [
+      0.773846447467804,
+      0.7845175862312317,
+      0.39007437229156494,
+      0.3927498161792755
+    ],
+    "AGRI | tender rail support.003": [
+      0.7740835547447205,
+      0.7744790315628052,
+      0.3881825804710388,
+      0.3905913829803467
+    ],
+    "AGRI | tender rail support.004": [
+      0.778939962387085,
+      0.7793372273445129,
+      0.3890751004219055,
+      0.3914785385131836
+    ],
+    "AGRI | tender rail support.005": [
+      0.7837743759155273,
+      0.7841734886169434,
+      0.3899635970592499,
+      0.39236167073249817
+    ],
+    "AGRI | tender reagent tank": [
+      0.775895893573761,
+      0.789248526096344,
+      0.3820447027683258,
+      0.396868497133255
+    ],
+    "AGRI | tender tank retaining band": [
+      0.776881217956543,
+      0.7817453742027283,
+      0.38202911615371704,
+      0.39571985602378845
+    ],
+    "AGRI | tender tank retaining band.001": [
+      0.7825464606285095,
+      0.7874525189399719,
+      0.3830960988998413,
+      0.39674392342567444
+    ],
+    "AGRI | tender top cooling fins": [
+      0.776590883731842,
+      0.7807462811470032,
+      0.3907187581062317,
+      0.3939850628376007
+    ],
+    "AGRI | tender top cooling fins.001": [
+      0.7790298461914062,
+      0.783194899559021,
+      0.3911673128604889,
+      0.39442694187164307
+    ],
+    "AGRI | tender top cooling fins.002": [
+      0.7814632654190063,
+      0.7856379151344299,
+      0.3916148543357849,
+      0.394867867231369
+    ],
+    "AGRI | tender top cooling fins.003": [
+      0.7838912606239319,
+      0.7880754470825195,
+      0.39206138253211975,
+      0.3953077793121338
+    ],
+    "AGRI | tender top cooling fins.004": [
+      0.7863136529922485,
+      0.7905072569847107,
+      0.3925068974494934,
+      0.39574670791625977
+    ],
+    "AGRI | drone center": [
+      0.6419054269790649,
+      0.644801676273346,
+      0.597987949848175,
+      0.6002703905105591
+    ],
+    "AGRI | drone arm": [
+      0.6418227553367615,
+      0.6435806751251221,
+      0.5985454320907593,
+      0.599454402923584
+    ],
+    "AGRI | drone duct": [
+      0.6409695744514465,
+      0.6431131958961487,
+      0.5977466702461243,
+      0.5992317795753479
+    ],
+    "AGRI | drone dark duct": [
+      0.6412773728370667,
+      0.6427803039550781,
+      0.5977672934532166,
+      0.5981837511062622
+    ],
+    "AGRI | drone arm.001": [
+      0.643126368522644,
+      0.6448801159858704,
+      0.5988076329231262,
+      0.5997148156166077
+    ],
+    "AGRI | drone duct.001": [
+      0.6435746550559998,
+      0.6457138657569885,
+      0.5982731580734253,
+      0.5997527241706848
+    ],
+    "AGRI | drone dark duct.001": [
+      0.6438817381858826,
+      0.6453813910484314,
+      0.5982934832572937,
+      0.5987077951431274
+    ],
+    "AGRI | drone survey head": [
+      0.6430864930152893,
+      0.6444356441497803,
+      0.5974364876747131,
+      0.598836362361908
+    ],
+    "AGRI | compound broad apron": [
+      0.7229797840118408,
+      0.8136289715766907,
+      0.5492599010467529,
+      0.5749407410621643
+    ],
+    "AGRI | shed 0 plinth": [
+      0.7322486639022827,
+      0.7671793103218079,
+      0.5576034784317017,
+      0.5684915781021118
+    ],
+    "AGRI | shed 0 walls": [
+      0.7330353260040283,
+      0.7668255567550659,
+      0.5584439635276794,
+      0.5771902203559875
+    ],
+    "AGRI | shed 0 sloped roof": [
+      0.7389349937438965,
+      0.767764687538147,
+      0.5678397417068481,
+      0.5779901146888733
+    ],
+    "AGRI | shed 0 sloped roof.001": [
+      0.7324926257133484,
+      0.7612990140914917,
+      0.5715710520744324,
+      0.5778623819351196
+    ],
+    "AGRI | shed 0 seam": [
+      0.7339812517166138,
+      0.7478618621826172,
+      0.5694511532783508,
+      0.5736728310585022
+    ],
+    "AGRI | shed 0 seam.001": [
+      0.7359622716903687,
+      0.749845027923584,
+      0.5699736475944519,
+      0.5741757750511169
+    ],
+    "AGRI | shed 0 seam.002": [
+      0.7379338145256042,
+      0.7518184781074524,
+      0.5704935789108276,
+      0.5746762752532959
+    ],
+    "AGRI | shed 0 seam.003": [
+      0.7398958802223206,
+      0.7537823915481567,
+      0.571010947227478,
+      0.5751743912696838
+    ],
+    "AGRI | shed 0 seam.004": [
+      0.7418485283851624,
+      0.7557366490364075,
+      0.5715258717536926,
+      0.5756701231002808
+    ],
+    "AGRI | shed 0 seam.005": [
+      0.743791937828064,
+      0.7576814293861389,
+      0.5720382332801819,
+      0.5761634111404419
+    ],
+    "AGRI | shed 0 seam.006": [
+      0.7457260489463806,
+      0.7596167922019958,
+      0.5725481510162354,
+      0.5766544938087463
+    ],
+    "AGRI | shed 0 seam.007": [
+      0.7476509809494019,
+      0.761542797088623,
+      0.5730555653572083,
+      0.577143132686615
+    ],
+    "AGRI | shed 0 seam.008": [
+      0.7495667934417725,
+      0.7634595036506653,
+      0.5735605359077454,
+      0.5776295065879822
+    ],
+    "AGRI | shed 0 seam.009": [
+      0.7514735460281372,
+      0.7653670310974121,
+      0.5740630626678467,
+      0.5781135559082031
+    ],
+    "AGRI | shed 0 recessed service door": [
+      0.7489890456199646,
+      0.7524282932281494,
+      0.5595710277557373,
+      0.5671886205673218
+    ],
+    "AGRI | shed 0 door header": [
+      0.749159574508667,
+      0.7527720928192139,
+      0.5661940574645996,
+      0.5678940415382385
+    ],
+    "AGRI | shed 0 recessed service door.001": [
+      0.7604999542236328,
+      0.7638615369796753,
+      0.5627490878105164,
+      0.5702496767044067
+    ],
+    "AGRI | shed 0 door header.001": [
+      0.7606824636459351,
+      0.7642031908035278,
+      0.5692823529243469,
+      0.5709450244903564
+    ],
+    "AGRI | shed 0 wall buttress": [
+      0.7464948892593384,
+      0.747787594795227,
+      0.5582957863807678,
+      0.5678082704544067
+    ],
+    "AGRI | shed 0 wall buttress.001": [
+      0.7558194398880005,
+      0.7571154236793518,
+      0.5608786940574646,
+      0.570282518863678
+    ],
+    "AGRI | shed 0 wall buttress.002": [
+      0.7649316787719727,
+      0.7662304639816284,
+      0.5634027123451233,
+      0.5727004408836365
+    ],
+    "AGRI | shed 0 rooftop HVAC": [
+      0.7429859638214111,
+      0.7476097941398621,
+      0.5726407170295715,
+      0.5762758255004883
+    ],
+    "AGRI | shed 0 rooftop HVAC.001": [
+      0.7518147230148315,
+      0.7563952803611755,
+      0.5749250650405884,
+      0.578508734703064
+    ],
+    "AGRI | shed 1 plinth": [
+      0.7559155821800232,
+      0.7806682586669922,
+      0.5653215646743774,
+      0.5731880068778992
+    ],
+    "AGRI | shed 1 walls": [
+      0.7566847801208496,
+      0.7803415656089783,
+      0.5661265850067139,
+      0.5817066431045532
+    ],
+    "AGRI | shed 1 sloped roof": [
+      0.7611775398254395,
+      0.7812668085098267,
+      0.5754125118255615,
+      0.5827021598815918
+    ],
+    "AGRI | shed 1 sloped roof.001": [
+      0.7562102675437927,
+      0.7763028740882874,
+      0.5781653523445129,
+      0.5825772881507874
+    ],
+    "AGRI | shed 1 seam": [
+      0.7576039433479309,
+      0.7685039639472961,
+      0.5767651200294495,
+      0.5799669623374939
+    ],
+    "AGRI | shed 1 seam.001": [
+      0.7594702243804932,
+      0.7703703045845032,
+      0.5772523880004883,
+      0.5804400444030762
+    ],
+    "AGRI | shed 1 seam.002": [
+      0.7613278031349182,
+      0.7722278833389282,
+      0.5777373313903809,
+      0.5809109210968018
+    ],
+    "AGRI | shed 1 seam.003": [
+      0.7631767392158508,
+      0.7740766406059265,
+      0.578220009803772,
+      0.5813796520233154
+    ],
+    "AGRI | shed 1 seam.004": [
+      0.7650170922279358,
+      0.7759167551994324,
+      0.5787004232406616,
+      0.5818461179733276
+    ],
+    "AGRI | shed 1 seam.005": [
+      0.7668489217758179,
+      0.777748167514801,
+      0.5791785717010498,
+      0.5823104977607727
+    ],
+    "AGRI | shed 1 seam.006": [
+      0.7686723470687866,
+      0.779570996761322,
+      0.5796545147895813,
+      0.5827727317810059
+    ],
+    "AGRI | shed 1 recessed service door": [
+      0.7681282758712769,
+      0.7714090943336487,
+      0.5668146014213562,
+      0.574165940284729
+    ],
+    "AGRI | shed 1 door header": [
+      0.7683168649673462,
+      0.7717462182044983,
+      0.5732329487800598,
+      0.5748483538627625
+    ],
+    "AGRI | shed 1 recessed service door.001": [
+      0.7756036520004272,
+      0.7788351774215698,
+      0.568859875202179,
+      0.5761362314224243
+    ],
+    "AGRI | shed 1 door header.001": [
+      0.7757995128631592,
+      0.7791709303855896,
+      0.5752202868461609,
+      0.5768121480941772
+    ],
+    "AGRI | shed 1 wall buttress": [
+      0.7668172121047974,
+      0.7681046724319458,
+      0.5658922791481018,
+      0.5750852823257446
+    ],
+    "AGRI | shed 1 wall buttress.001": [
+      0.772849977016449,
+      0.7741390466690063,
+      0.5675482153892517,
+      0.5766715407371521
+    ],
+    "AGRI | shed 1 wall buttress.002": [
+      0.7787913084030151,
+      0.7800816893577576,
+      0.5691790580749512,
+      0.5782337784767151
+    ],
+    "AGRI | shed 1 rooftop HVAC": [
+      0.7630521655082703,
+      0.7675540447235107,
+      0.5788937211036682,
+      0.582388699054718
+    ],
+    "AGRI | shed 1 rooftop HVAC.001": [
+      0.7687897682189941,
+      0.7732634544372559,
+      0.5803703665733337,
+      0.5838325023651123
+    ],
+    "AGRI | compound storage silo": [
+      0.7609217762947083,
+      0.7706484198570251,
+      0.5530745983123779,
+      0.5713146924972534
+    ],
+    "AGRI | silo reinforcing ring": [
+      0.7608757019042969,
+      0.7701157927513123,
+      0.5543992519378662,
+      0.5574944019317627
+    ],
+    "AGRI | silo reinforcing ring.001": [
+      0.7611255645751953,
+      0.77037513256073,
+      0.5600813031196594,
+      0.5631135702133179
+    ],
+    "AGRI | silo reinforcing ring.002": [
+      0.7614316940307617,
+      0.7706927061080933,
+      0.5670409798622131,
+      0.5699959397315979
+    ],
+    "AGRI | silo crown": [
+      0.7626707553863525,
+      0.7696200609207153,
+      0.5690074563026428,
+      0.5718152523040771
+    ],
+    "AGRI | compound storage silo.001": [
+      0.765960156917572,
+      0.7756484746932983,
+      0.5545372366905212,
+      0.5726493000984192
+    ],
+    "AGRI | silo reinforcing ring.003": [
+      0.7659153342247009,
+      0.7751075625419617,
+      0.5558539628982544,
+      0.5589129328727722
+    ],
+    "AGRI | silo reinforcing ring.004": [
+      0.766168475151062,
+      0.7753700017929077,
+      0.5615012049674988,
+      0.5644979476928711
+    ],
+    "AGRI | silo reinforcing ring.005": [
+      0.7664784789085388,
+      0.7756914496421814,
+      0.568418025970459,
+      0.5713384747505188
+    ],
+    "AGRI | silo crown.001": [
+      0.7677123546600342,
+      0.7746260166168213,
+      0.5703703165054321,
+      0.5731486678123474
+    ],
+    "AGRI | compound storage silo.002": [
+      0.77093505859375,
+      0.7805851697921753,
+      0.5559813976287842,
+      0.5739672183990479
+    ],
+    "AGRI | silo reinforcing ring.006": [
+      0.770891547203064,
+      0.7800363302230835,
+      0.5572903156280518,
+      0.5603136420249939
+    ],
+    "AGRI | silo reinforcing ring.007": [
+      0.7711478471755981,
+      0.7803018093109131,
+      0.5629030466079712,
+      0.5658649206161499
+    ],
+    "AGRI | silo reinforcing ring.008": [
+      0.7714616656303406,
+      0.7806268930435181,
+      0.5697776079177856,
+      0.5726640820503235
+    ],
+    "AGRI | silo crown.002": [
+      0.7726904153823853,
+      0.7795687913894653,
+      0.5717158317565918,
+      0.5744653344154358
+    ],
+    "AGRI | pump service building": [
+      0.7761516571044922,
+      0.7863023281097412,
+      0.5571903586387634,
+      0.5649009943008423
+    ],
+    "AGRI | pump roof": [
+      0.7758614420890808,
+      0.7868545651435852,
+      0.5619967579841614,
+      0.5656556487083435
+    ],
+    "AGRI | landing service pad": [
+      0.7800680994987488,
+      0.8046407103538513,
+      0.5600117444992065,
+      0.567108690738678
+    ],
+    "AGRI | landing pad bar": [
+      0.7935522794723511,
+      0.8003754615783691,
+      0.561521589756012,
+      0.5635392665863037
+    ],
+    "AGRI | landing pad bar.001": [
+      0.7843090295791626,
+      0.7911295890808105,
+      0.5640401244163513,
+      0.5660127997398376
+    ],
+    "AGRI | landing H legs": [
+      0.7871156930923462,
+      0.7934865951538086,
+      0.5623248219490051,
+      0.564104437828064
+    ],
+    "AGRI | landing H legs.001": [
+      0.7911873459815979,
+      0.7975541949272156,
+      0.563498854637146,
+      0.5652598738670349
+    ],
+    "AGRI | landing H bridge": [
+      0.7901344895362854,
+      0.7945146560668945,
+      0.5631582140922546,
+      0.5644542574882507
+    ],
+    "AGRI | compound antenna mast": [
+      0.7687612175941467,
+      0.7704561352729797,
+      0.5725870728492737,
+      0.5970941781997681
+    ],
+    "AGRI | antenna transverse spar": [
+      0.7685583233833313,
+      0.7711275815963745,
+      0.5895859599113464,
+      0.5905017256736755
+    ],
+    "AGRI | antenna transverse spar.001": [
+      0.769172728061676,
+      0.7709388732910156,
+      0.5943412780761719,
+      0.5950507521629333
+    ],
+    "AGRI | compound cargo crate": [
+      0.7714160680770874,
+      0.7755070924758911,
+      0.562910258769989,
+      0.5664201974868774
+    ],
+    "AGRI | compound cargo crate.001": [
+      0.7741207480430603,
+      0.7781994938850403,
+      0.5636687278747559,
+      0.5671631097793579
+    ],
+    "AGRI | compound cargo crate.002": [
+      0.7768068909645081,
+      0.7808734178543091,
+      0.5644220113754272,
+      0.5679009556770325
+    ]
+  },
+  "retained_guide_note": "Guide PNGs unchanged since generation before terrain-triangle shadow refinement. Isolated/mask/tight prop silhouettes remain valid; context guide retains earlier ground-shadow construction. Exact tight-guide and raw-art SHA256 values are verified in agriculture-reskin-registration.json.",
+  "historical_clearance_estimates": {
+    "tender_lowest_lift_clearance_m": 2.2,
+    "clarification": "Retained original authoring estimates, not evaluated terrain-wide measurements. Original drone estimate18.4 was conservative; modeled lowest point is3m below its22m root offset, giving19m nominal clearance above the root ground datum.",
+    "drone_clearance_m": 18.4
+  },
+  "tender_nominal_lift_clearance_at_root_datum_m": 2.2,
+  "drone_nominal_clearance_at_root_datum_m": 19,
+  "clearance_measurement": "Nominal root datum values only; actual terrain-wide evaluated-mesh clearance is verified separately.",
+  "reskin_applied": false,
+  "reskin_missing_behavior": "Optional art absent: complete procedural materials. Art present: registration JSON required; malformed or missing registration fails build rather than silently applying misregistered art.",
+  "retained_registration_inputs": {
+    "art_file": "assets/agriculture-reskin-v1.png",
+    "registration_file": "agriculture-reskin-registration.json",
+    "art_sha256": "b8c0f8b09935a250f64b9b55d68b977e22911d028c2473300f38e0401cf6d537",
+    "guide_sha256": "6e7a5ec3d3431dde547910178a2ccefc196e609f6bf78ee1e8c6271505afdfc0",
+    "guide_file": "guides/shot03-agriculture-tight-reskin-guide.png"
+  }
+}

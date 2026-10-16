@@ -1,0 +1,16 @@
+{
+  "generator": "built-in image_gen.imagegen",
+  "file": "assets/managed-turf-v1.png",
+  "prompt": "prompts/managed-turf-v1.txt",
+  "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-2626399a-e80c-47ea-b95f-597022f56223.png",
+  "input_roles": [],
+  "dimensions": [
+    1254,
+    1254
+  ],
+  "mode": "RGB",
+  "bytes": 4275108,
+  "sha256": "707fc4aa5af6253e9267cde2e64d5e9fbec6c53449da391f666a27871bc1bdb6",
+  "intent": "Low managed turf for industrial buffer terrain, approximately80m texture footprint, source-world mapping",
+  "limitations": "Raw single material color map, seam continuity not asserted; avoid visible repeat at final screen scale."
+}

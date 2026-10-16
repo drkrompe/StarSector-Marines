@@ -1,0 +1,14 @@
+Use case: style-transfer.
+Asset type: 16:9 cinematic style keyframe for an existing layered parallax shot, 1920x1080 target.
+
+Image 1 is the EDIT TARGET and controls the entire composition: a worn Second Wind crew viewport looking down over lush Jangala forest, a river in the lower right, cloudy daylight and one distant Atlas freighter. Image 2 (cargo billets) and image 3 (yard ship) are STYLE REFERENCES ONLY: reproduce their grounded, convincing material realism and cinematic environmental detail, without importing their subjects, darkness or locations.
+
+Restyle image 1 to match the naturalistic, physically detailed sci-fi realism of the campaign stills. Retain the exact viewpoint, window opening silhouette and corner positions, framing, sleeve at lower left, cabin layout, horizon, major hill silhouettes, river location, freighter position/size/orientation and aspect ratio. The cabin and landscape must belong to the same realistic image. This is a restrained art-direction revision, not a redesigned scene.
+
+Scenery: a vast wet, thriving, slightly alien subtropical forest seen from an airborne vessel. Uneven old-growth canopy, varied crown shapes and tree heights, realistic branching and fine foliage texture scaled correctly to this altitude, subtle species variation in olive, deep green and cool green. Avoid the current repetitive chunky leaf daubs and rounded carpet-like tree masses. Broad hills keep their layout but acquire convincing geological contours and canopy depth. Natural layered atmospheric perspective; thin mist lies in low terrain and between distant ridges. The river has plausible reflected sky, fine surface variation and irregular vegetated banks. Preserve its existing partial lower-right visibility. Clouds have realistic translucent edges, internal volume and neutral daylight scattering.
+
+Materials: retain every foreground component but make steel, flaking paint, worn fabric, fasteners and old welds tactile and optically convincing, matching the style references. Fine material-specific wear rather than large decorative brushmarks. Distant Atlas retains its established silhouette and dimensions in frame, with realistic industrial plating and atmospheric integration. Do not add ships.
+
+Lighting and mood: bright overcast daylight with soft sun through cloud, healthy lush greens and open distance. Preserve the target's welcoming daylight and warm cabin edge bounce. Normal exposure, readable shadow detail and restrained saturation. Grit comes from physical detail and lived-in surfaces. No dark mood, brown grading, storm drama, heavy fog, bloom, lens flare or crushed blacks.
+
+Finish: high-quality cinematic environmental realism, natural detail hierarchy from near to far, subtle photographic texture. No visible oil/gouache brushwork, no watercolor, no comic contours, no oversized foreground leaves, no miniature-model effect, no UI, text, border or watermark. Return one full-frame image.

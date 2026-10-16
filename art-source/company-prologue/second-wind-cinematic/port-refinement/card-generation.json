@@ -1,0 +1,141 @@
+{
+  "generator": "built-in image_gen.imagegen",
+  "raw_outputs_preserved": true,
+  "assets": [
+    {
+      "file": "assets/hound-card-v1.png",
+      "prompt": "prompts/hound-card-v1.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-529e95d0-0726-4034-98d0-9d9dc20dddb7.png",
+      "dimensions": [
+        2048,
+        768
+      ],
+      "mode": "RGBA",
+      "sha256": "bccd7c10683824f4be85bee0c96591cffa26b0c93688ad767b8e096cf7077a51",
+      "bytes": 2314180,
+      "status": "retained rejected grounded-card study",
+      "inputs": [
+        {
+          "path": "guides/hound-card-guide.png",
+          "role": "rough geometry perspective, scale and contact guide; not final hull volume"
+        },
+        {
+          "path": "assets/hound-skin-v1.png",
+          "role": "hull plan and livery identity"
+        },
+        {
+          "path": "../../second-wind-design-v3.reference.png",
+          "role": "industrial material realism only; different ship geometry"
+        }
+      ]
+    },
+    {
+      "file": "assets/hound-card-v2.png",
+      "prompt": "prompts/hound-card-v2.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-9e981d5f-aa62-4e0a-87db-635606d789d0.png",
+      "dimensions": [
+        2048,
+        768
+      ],
+      "mode": "RGBA",
+      "sha256": "e08e963f251bbe054478221ce9d86cf0fc268219f13b2dc2c03deefc6de76ae5",
+      "bytes": 2637089,
+      "status": "retained rejected grounded-card study",
+      "inputs": [
+        {
+          "path": "assets/hound-card-v1.png",
+          "role": "cutout cleanup input; art moved despite preservation prompt"
+        }
+      ]
+    },
+    {
+      "file": "assets/venture-card-v1.png",
+      "prompt": "prompts/venture-card-v1.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-8f041c2c-d4f5-4999-a8f5-e3749afc574c.png",
+      "dimensions": [
+        2048,
+        768
+      ],
+      "mode": "RGBA",
+      "sha256": "96b620a304551ae30a89f59a37eb150ed5049893093957b68ab7a9a4fe3aebc0",
+      "bytes": 2291855,
+      "status": "retained rejected grounded-card study",
+      "inputs": [
+        {
+          "path": "guides/venture-card-guide.png",
+          "role": "rough geometry perspective, scale and contact guide; not final hull volume"
+        },
+        {
+          "path": "assets/venture-skin-v1.png",
+          "role": "hull plan and livery identity"
+        },
+        {
+          "path": "../../second-wind-design-v3.reference.png",
+          "role": "industrial material realism only; different ship geometry"
+        }
+      ]
+    },
+    {
+      "file": "assets/venture-card-v2.png",
+      "prompt": "prompts/venture-card-v2.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-8a6acf24-cb5c-4c34-b1ef-f03186c17974.png",
+      "dimensions": [
+        2048,
+        768
+      ],
+      "mode": "RGBA",
+      "sha256": "f105194b54a78d3309fdb787cceca5fdda2fdc66f73d80e307e8947e381c6d14",
+      "bytes": 2891607,
+      "status": "retained rejected grounded-card study",
+      "inputs": [
+        {
+          "path": "assets/venture-card-v1.png",
+          "role": "perspective artwork for added hull depth and raised multi-deck superstructure"
+        },
+        {
+          "path": "assets/venture-skin-v1.png",
+          "role": "plan identity; vertical mass authored"
+        }
+      ]
+    },
+    {
+      "file": "assets/hound-card-v3-flight.png",
+      "prompt": "prompts/hound-card-v3-flight.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-cf546b64-66e1-4244-a652-ba3fd3d58ee1.png",
+      "dimensions": [
+        2048,
+        768
+      ],
+      "mode": "RGBA",
+      "sha256": "45cfe36fb1a74498767951ad3c40e96ad1c9deb842ddf0256f91969d0bc5b36b",
+      "bytes": 2568605,
+      "status": "used airborne artwork",
+      "inputs": [
+        {
+          "path": "assets/hound-card-v2.png",
+          "role": "retain ship identity and vertical mass, remove cradles and add restrained powered-flight cues"
+        }
+      ]
+    },
+    {
+      "file": "assets/venture-card-v3-flight.png",
+      "prompt": "prompts/venture-card-v3-flight.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-cd0d70e8-aaf7-4f70-a482-8a7ea543ef25.png",
+      "dimensions": [
+        2048,
+        768
+      ],
+      "mode": "RGBA",
+      "sha256": "bc0024179b62bdbb5be7e000c6ec0c3dc5297cdc40f6016e89876183ae524716",
+      "bytes": 2704030,
+      "status": "used airborne artwork",
+      "inputs": [
+        {
+          "path": "assets/venture-card-v2.png",
+          "role": "retain ship identity and vertical mass, remove cradles and add restrained powered-flight cues"
+        }
+      ]
+    }
+  ],
+  "limits": "Fixed-aspect airborne traffic cards. Grounded-card versions failed visual contact review and are retained only as rejected studies. Native artwork remains outside mod; not rotating hero hull textures."
+}

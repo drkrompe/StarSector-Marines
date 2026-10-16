@@ -1,0 +1,19 @@
+{
+  "diagnosis": "Broad terrain RGB punched through compound apron in output11 (source245), a depth-buffer conflict despite 0.5m physical top separation.",
+  "camera_clip_m": [
+    0.06,
+    60000
+  ],
+  "apron_camera_depth_m_approx": 1413,
+  "geometry": "Apron top clears terrain by at least0.4577m; no actual intersection. Landing slab intersects apron volume0.1m but tops differ0.4m; thin H/bar tops differ0.01..0.1m.",
+  "fix": "Exact original loop-triangle mesh-plane partition removes terrain faces beneath apron and apron faces beneath landing. H/bar markings shade landing material. Accepted terrain shader remains unchanged.",
+  "evidence": "Original before native camera-border crops and FINAL canonical geometry-partition full-frame crops output10..13; comparisondisplay2.5x. Actual afterframes modified after final blend.",
+  "validation": "Final canonical96time validator PASS:15840camera+15840verticalground-owner rays, zeroownershipfailures, all441gridcoveragehits perparcel. Separate geometryclearances use retainedprepartitionterrainreference.",
+  "limits": [
+    "Depth quantization diagnosis supported by triangle switching, nonintersecting geometry, clipping range and successful overlap elimination; internal GPU depth format was not instrumented.",
+    "Oblique rays may legitimately encounter a second ground surface farther behind a silhouette at a different XY footprint; vertical plan ownership tests distinguish this from duplicate surfaces."
+  ],
+  "binary_material_depth": "Nested transparent terrain shader wrapper hid the tender despite geometric camera-ray visibility; switching that wrapper to DITHERED alone did not restore it. Geometry-only partition plus original terrain shader restores tender in retained full1920x1080 frame49.",
+  "geometry_partition_proof": "geometry-partition_0049.png",
+  "scene_sha256": "9c9ec437f12c9721df8c863b462ebbfc98045789b7f8964137ec05824bb49636"
+}

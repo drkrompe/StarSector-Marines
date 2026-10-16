@@ -1,0 +1,142 @@
+{
+  "generator": "built-in image_gen.imagegen",
+  "assets": [
+    {
+      "file": "assets/sky-realism-v1.png",
+      "prompt": "prompts/sky-realism-v1.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-1593e8b5-df4d-4e75-9778-59af22d17e99.png",
+      "inputs": [
+        {
+          "path": "../realism-lookdev/landscape-realism-v1.png",
+          "role": "daylight and style only"
+        }
+      ]
+    },
+    {
+      "file": "assets/fields-realism-v1.png",
+      "prompt": "prompts/fields-realism-v1.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-59b17ef8-c777-4c30-b2dd-653844cd32b2.png",
+      "inputs": [
+        {
+          "path": "guides/shot03-fields-topdown-guide.png",
+          "role": "spatial layout/orthographic guide"
+        },
+        {
+          "path": "../realism-lookdev/landscape-realism-v1.png",
+          "role": "style and daylight only"
+        }
+      ]
+    },
+    {
+      "file": "assets/environment-realism-v1.png",
+      "prompt": "prompts/environment-realism-v1.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-922e0e60-66df-435c-b0d9-a2de843ef069.png",
+      "inputs": [
+        {
+          "path": "guides/shot03-environment-wide-guide-v2.png",
+          "role": "layout/camera guide, 1.44 horizontal and 1.08 vertical overscan"
+        },
+        {
+          "path": "../realism-lookdev/landscape-realism-v1.png",
+          "role": "style and daylight only"
+        }
+      ]
+    },
+    {
+      "file": "assets/hills-realism-v1.png",
+      "prompt": "prompts/hills-realism-v1.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-496f6fdc-a165-4353-ada1-ba968d1f08d6.png",
+      "inputs": [
+        {
+          "path": "assets/environment-realism-v1.png",
+          "role": "registered extraction source"
+        }
+      ]
+    },
+    {
+      "file": "assets/woodland-realism-v1.png",
+      "prompt": "prompts/woodland-realism-v1.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-9c46cb44-5cbf-48f0-8ec1-60c6ccffae8e.png",
+      "inputs": [
+        {
+          "path": "assets/environment-realism-v1.png",
+          "role": "registered extraction source"
+        }
+      ]
+    },
+    {
+      "file": "assets/cabin-realism-v1.png",
+      "prompt": "prompts/cabin-realism-v1.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-66d3531b-5155-488a-b245-2c2b09efae9a.png",
+      "inputs": [
+        {
+          "path": "guides/shot03-cabin-overscan-guide.png",
+          "role": "camera/geometry guide"
+        },
+        {
+          "path": "../realism-lookdev/window-realism-v1.png",
+          "role": "materials style only"
+        }
+      ]
+    },
+    {
+      "file": "assets/hills-realism-v2.png",
+      "prompt": "prompts/hills-realism-v2.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-98872851-3883-4cb3-875b-52f2736c577d.png",
+      "inputs": [
+        {
+          "path": "assets/environment-realism-v1.png",
+          "role": "precision shallow ridge extraction"
+        }
+      ]
+    },
+    {
+      "file": "assets/cabin-realism-v2.png",
+      "prompt": "prompts/cabin-realism-v2.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-eb67960b-82df-46a9-b341-a9e26117cf4e.png",
+      "inputs": [
+        {
+          "path": "guides/shot03-cabin-only-guide.png",
+          "role": "geometry and original opening alpha"
+        }
+      ]
+    },
+    {
+      "file": "assets/clouds-realism-v1.png",
+      "prompt": "prompts/clouds-realism-v1.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-eb8516f8-e3fc-4d92-b026-c2fc8f5f0df5.png",
+      "inputs": [
+        {
+          "path": "assets/sky-realism-v1.png",
+          "role": "daylight/material reference"
+        }
+      ]
+    },
+    {
+      "file": "assets/field-detail-realism-v1.png",
+      "prompt": "prompts/field-detail-realism-v1.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-8d57af1f-4edd-4722-acdb-9921c695a327.png",
+      "inputs": [
+        {
+          "path": "guides/shot03-single-field-topdown-guide.png",
+          "role": "orthographic central plot layout guide"
+        },
+        {
+          "path": "../realism-lookdev/landscape-realism-v1.png",
+          "role": "style/daylight"
+        }
+      ]
+    },
+    {
+      "file": "assets/agriculture-reskin-v1.png",
+      "prompt": "prompts/agriculture-reskin-v1.txt",
+      "source": "C:/Users/Dillon/.codex/generated_images/01a1400e-e1c4-7b40-b86c-87940b0159f2/exec-3d76c825-c07c-449a-9e17-1da12978c275.png",
+      "inputs": [
+        {
+          "path": "guides/shot03-agriculture-tight-reskin-guide.png",
+          "role": "native Blender camera-crop geometry/layout guide; material direction supplied in text"
+        }
+      ]
+    }
+  ]
+}

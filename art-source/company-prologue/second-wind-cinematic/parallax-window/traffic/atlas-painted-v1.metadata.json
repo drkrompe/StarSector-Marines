@@ -1,0 +1,33 @@
+{
+  "tool": "built-in image_gen",
+  "intent": "one transparent painted Atlas traffic cutout",
+  "canonical_sprite": "atlas-canonical-reference.png",
+  "canonical_hull": "atlas-canonical.ship",
+  "canonical_sources": [
+    "C:/Program Files (x86)/Fractal Softworks/Starsector/starsector-core/graphics/ships/atlas/atlas.png",
+    "C:/Program Files (x86)/Fractal Softworks/Starsector/starsector-core/data/hulls/atlas.ship"
+  ],
+  "style_only_reference": "../../painted-window/assets/landscape-painted-v2.png",
+  "prompt": "atlas-painted-v1.prompt.txt",
+  "output": "atlas-painted-v1.png",
+  "generated_source": "C:/Users/Dillon/.codex/generated_images/01a14104-8645-7910-b951-161f69f20438/exec-1a660530-9c55-4540-ad86-456c69f73693.png",
+  "dimensions": [
+    1774,
+    887
+  ],
+  "mode": "RGBA",
+  "alpha_extrema": [
+    0,
+    255
+  ],
+  "fully_transparent_pixels": 908843,
+  "alpha_bounds": [
+    27,
+    19,
+    1744,
+    887
+  ],
+  "raw_pixels_unchanged": true,
+  "sha256": "0a3c196dee8cb13ef5d1e81fc9c817502751ba20fb9ffd4069cb0f69dfe54fa3",
+  "review": "Entire recognizable bulky civilian container-hauler silhouette retained; bowright enginesleft, near-level underside three-quarter view, painted diffuse muted cargo colors, no opaque background/battle/text. Perspective reconstruction proposes hull depth and bridge details rather than claiming canonical side-profile geometry."
+}

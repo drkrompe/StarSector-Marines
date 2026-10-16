@@ -1,0 +1,4 @@
+interface:
+  display_name: "Campaign Cinematic Production"
+  short_description: "Grounded cinematics, parallax, and controlled reskins"
+  default_prompt: "Use $cinematic-production to develop this campaign shot in our approved visual style while preserving its geometry and motion."

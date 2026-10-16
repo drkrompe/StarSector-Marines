@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "GUIDE ONLY - no accepted raw art exists; nothing here is exported or shipped",
+  "status": "SHIPPED - raws in raw/, exported by export_assets.py; this file and make_guide.py own the geometry",
   "facing": "north",
   "registration_source": "../specter-v2/geometry.json",
   "registration": "Reuse the Specter v2 export canvases and inner-hinge pivots so the existing shell pose tracks drive the rig. Every body part keeps the complete canvas; never trim or recenter a shoulder.",

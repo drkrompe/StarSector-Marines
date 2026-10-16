@@ -191,6 +191,8 @@ public final class Warship {
     float previousDesiredHeading = Float.NaN;
     private boolean headingChosen;
     private float hitPoints;
+    /** The hull's armour grid, or null for a hull fitted without one. */
+    private WarshipPlating plating;
     /** The ship-support source this hull was called from, or null for any ship not called that way. */
     private ShipSupportSource supportSource;
     /** Seconds of station time left, counted down while the ship is on station; infinite when unbounded. */
@@ -490,6 +492,16 @@ public final class Warship {
         return shieldAbsorbing() && arcCovers(px, py);
     }
 
+    /**
+     * Whether the shield takes a round fired from {@code (fromX, fromY)} that came down at {@code (px, py)}: asked
+     * of the side the round came from, which is what the arc means. A round with no source (NaN), and every round on
+     * a hull with no armour grid (the control), is asked of where it landed, as it always was.
+     */
+    boolean shieldCoversFrom(float fromX, float fromY, float px, float py) {
+        if (plating != null && Float.isFinite(fromX) && Float.isFinite(fromY)) return shieldCovers(fromX, fromY);
+        return shieldCovers(px, py);
+    }
+
     /** Whether {@code (px, py)} lies inside the arc, up or not. */
     boolean arcCovers(float px, float py) {
         float dx = px - shieldCentreX();
@@ -723,12 +735,116 @@ public final class Warship {
         return damage * strength / (armour + strength);
     }
 
-    /** Applies one hit through the armour rule and returns the hull points it took. A destroyed hull takes nothing more. */
+    /**
+     * Applies one hit through the armour rule against the hull's full rating and returns the hull points it took. It
+     * has no place on the hull, so the plating is untouched: this is for setting a hull up battered, or for damage
+     * that is not a round. A destroyed hull takes nothing more.
+     */
     public float takeDamage(float damage, float penetration) {
         if (destroyed()) return 0f;
         float taken = Math.min(hitPoints, effectiveDamage(damage, penetration, armour));
         hitPoints -= taken;
         return taken;
+    }
+
+    /** Whether hulls fitted from now on carry an armour grid; {@code -Dbattle.warship.platingGrid=false} is the control. */
+    public static boolean platingGridEnabled() {
+        return !"false".equalsIgnoreCase(System.getProperty("battle.warship.platingGrid"));
+    }
+
+    /** The hull's armour grid, or null for a hull fitted without one (the control, or a hull with no spec). */
+    public WarshipPlating plating() {
+        return plating;
+    }
+
+    /** Gives the hull an armour grid; {@link #fit} does this from the hull's own spec. */
+    void plating(WarshipPlating plating) {
+        this.plating = plating;
+    }
+
+    /**
+     * The plating cell a round coming from {@code (fromX, fromY)} toward {@code (toX, toY)} enters, or -1 for a hull
+     * with no grid or none of it left. With no source ({@code fromX} NaN, a bomb or a ground blast) the round enters
+     * from the side nearest where it landed.
+     */
+    public int entryCell(float fromX, float fromY, float toX, float toY) {
+        if (plating == null) return -1;
+        float tu = hullU(toX, toY);
+        float tv = hullV(toX, toY);
+        float fu;
+        float fv;
+        if (Float.isFinite(fromX) && Float.isFinite(fromY)) {
+            fu = hullU(fromX, fromY);
+            fv = hullV(fromX, fromY);
+        } else {
+            // From outside, along the line from the hull's middle through where it landed; dead on the middle, the nose.
+            float du = (tu - 0.5f) * widthCells;
+            float dv = (tv - 0.5f) * lengthCells;
+            float len = (float) Math.sqrt(du * du + dv * dv);
+            if (len < 1e-3f) {
+                du = 0f;
+                dv = -1f;
+                len = 1f;
+            }
+            float far = 2f * Math.max(widthCells, lengthCells);
+            fu = tu + du / len * far / widthCells;
+            fv = tv + dv / len * far / lengthCells;
+        }
+        return plating.entryCell(fu, fv, tu, tv);
+    }
+
+    /**
+     * Lands one located hit on {@code cell} of the plating and returns the hull points it took: the armour rule read
+     * against the plate left there ({@link WarshipPlating#hit}). A hull with no grid, or a hit with no cell left to
+     * land on, takes the flat rule ({@link #takeDamage}) or the floor armour respectively.
+     */
+    public float takeHit(int cell, float damage, float penetration, float nowSeconds) {
+        if (destroyed()) return 0f;
+        if (plating == null) return takeDamage(damage, penetration);
+        float through;
+        if (cell >= 0) {
+            through = plating.hit(cell, damage, penetration, nowSeconds);
+        } else {
+            through = damage * penetration < armour * GLANCE_SHARE ? 0f
+                    : effectiveDamage(damage, penetration, armour * WarshipPlating.MIN_ARMOUR_FRACTION);
+        }
+        float taken = Math.min(hitPoints, through);
+        hitPoints -= taken;
+        return taken;
+    }
+
+    /** World X of a plating cell's centre. */
+    public float cellX(int cell) {
+        float lx = (plating.cellU(cell) - 0.5f) * widthCells;
+        float ly = (0.5f - plating.cellV(cell)) * lengthCells;
+        double r = Math.toRadians(facingDegrees);
+        return centerX() + lx * (float) Math.cos(r) - ly * (float) Math.sin(r);
+    }
+
+    /** World Y of a plating cell's centre. */
+    public float cellY(int cell) {
+        float lx = (plating.cellU(cell) - 0.5f) * widthCells;
+        float ly = (0.5f - plating.cellV(cell)) * lengthCells;
+        double r = Math.toRadians(facingDegrees);
+        return centerY() + lx * (float) Math.sin(r) + ly * (float) Math.cos(r);
+    }
+
+    /** Normalised across-position of a world point on the hull's sprite box, 0 at the port edge. */
+    float hullU(float px, float py) {
+        double r = Math.toRadians(facingDegrees);
+        float dx = px - centerX();
+        float dy = py - centerY();
+        float lx = dx * (float) Math.cos(r) + dy * (float) Math.sin(r);
+        return 0.5f + lx / widthCells;
+    }
+
+    /** Normalised along-position of a world point on the hull's sprite box, 0 at the nose. */
+    float hullV(float px, float py) {
+        double r = Math.toRadians(facingDegrees);
+        float dx = px - centerX();
+        float dy = py - centerY();
+        float ly = -dx * (float) Math.sin(r) + dy * (float) Math.cos(r);
+        return 0.5f - ly / lengthCells;
     }
 
     /** Where the hull's footprint is centred: the ship's position offset by the sprite's pivot, turned with the heading. */
@@ -1930,6 +2046,17 @@ public final class Warship {
         Warship ship = new Warship(hullId, sprite, h * k, pivotX, pivotY,
                 handling, w * k, toughness[0], toughness[1], faction, x, y, facingDegrees, mounts,
                 fluxFigures(hullId), WarshipShield.read(hull, row));
+        if (platingGridEnabled() && w > 0f && h > 0f) {
+            JSONArray b = hull.optJSONArray("bounds");
+            float[] bounds = null;
+            if (b != null) {
+                bounds = new float[b.length()];
+                for (int i = 0; i < bounds.length; i++) bounds[i] = (float) b.optDouble(i);
+            }
+            float cx = c == null ? w / 2f : (float) c.optDouble(0);
+            float cy = c == null ? h / 2f : (float) c.optDouble(1);
+            ship.plating = WarshipPlating.fromHull(bounds, w, h, cx, cy, toughness[1], toughness[0]);
+        }
         ship.flux.fittings(FLUX_PER_CAPACITOR * Math.max(0, loadout.fluxCapacitors()),
                 DISSIPATION_PER_VENT * Math.max(0, loadout.fluxVents()));
         if (row != null) {

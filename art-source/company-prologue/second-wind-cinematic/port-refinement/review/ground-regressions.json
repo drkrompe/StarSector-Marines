@@ -1,0 +1,97 @@
+{
+  "fixture": "Controlled temporary faults injected into the saved expanded rectangular port ground; no scene saved",
+  "scene_sha256": "33332e2d69c0d5bd298c3ca66331b284e27261ddd916ff7d4f43b1d54696dddd",
+  "passed": true,
+  "bounds": [
+    -2200,
+    500,
+    -80,
+    1800
+  ],
+  "baseline": {
+    "passed": true,
+    "failed_checks": [],
+    "max_boundary_height_error": 5.960464455334602e-09,
+    "ownership_failure_samples": 0,
+    "expected_area": 5076000,
+    "measured_area": 5076000.0,
+    "grade_return_samples": 88
+  },
+  "negative_controls": {
+    "raised_join_vertex_5m": {
+      "passed": false,
+      "failed_checks": [
+        "terrain_boundary_matches_top"
+      ],
+      "max_boundary_height_error": 5.000000095367431,
+      "ownership_failure_samples": 0,
+      "expected_area": 5076000,
+      "measured_area": 5076000.0,
+      "grade_return_samples": 88
+    },
+    "duplicate_ground_owner": {
+      "passed": false,
+      "failed_checks": [
+        "one_visible_ground_owner"
+      ],
+      "max_boundary_height_error": 5.960464455334602e-09,
+      "ownership_failure_samples": 323,
+      "expected_area": 5076000,
+      "measured_area": 5076000.0,
+      "grade_return_samples": 88
+    },
+    "removed_owner_cell": {
+      "passed": false,
+      "failed_checks": [
+        "top_area_matches_footprint",
+        "one_visible_ground_owner"
+      ],
+      "max_boundary_height_error": 5.960464455334602e-09,
+      "ownership_failure_samples": 15,
+      "expected_area": 5076000,
+      "measured_area": 4794930.0,
+      "grade_return_samples": 88
+    },
+    "raised_outer_grade_return_5m": {
+      "passed": false,
+      "failed_checks": [
+        "grade_returns_to_original_elevation"
+      ],
+      "max_boundary_height_error": 5.960464455334602e-09,
+      "ownership_failure_samples": 0,
+      "expected_area": 5076000,
+      "measured_area": 5076000.0,
+      "grade_return_samples": 77
+    }
+  },
+  "restored": {
+    "passed": true,
+    "failed_checks": [],
+    "max_boundary_height_error": 5.960464455334602e-09,
+    "ownership_failure_samples": 0,
+    "expected_area": 5076000,
+    "measured_area": 5076000.0,
+    "grade_return_samples": 88
+  },
+  "grade_fixture": {
+    "label": "Independent temporary helper build from original unexpanded source",
+    "baseline": {
+      "passed": true,
+      "failed_checks": [],
+      "max_boundary_height_error": 5.960464455334602e-09,
+      "ownership_failure_samples": 0,
+      "expected_area": 5076000,
+      "measured_area": 5076000.0,
+      "grade_return_samples": 77
+    },
+    "max_return_height_error_after_fault": 5.0
+  },
+  "elapsed_seconds": 2.881,
+  "limits": [
+    "One axis-aligned rectangular precinct with nested rectangular material partitions; expanded footprint must contain existing cutout.",
+    "323 deterministic interior rays sample visible tagged/named ground owners; finite sampling cannot prove arbitrary sub-pixel holes or unrelated untagged overlays.",
+    "Area equality supplements ray coverage but does not alone prove an arbitrary overlapping polygon union.",
+    "Boundary fitting checks all terrain vertices on the rectangle; visual motion review remains separate.",
+    "Outer-grade return is checked only when retained original-grade samples are present in the build contract."
+  ]
+}

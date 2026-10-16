@@ -1,0 +1,39 @@
+{
+  "frame_count": 576,
+  "unique_frames": 564,
+  "size": [
+    1920,
+    1080
+  ],
+  "fps": 24,
+  "shots": [
+    {
+      "shot": "03",
+      "frames": 96,
+      "unique_frames": 96,
+      "leading_hold_extra_frames": 0,
+      "trailing_hold_extra_frames": 0
+    },
+    {
+      "shot": "04",
+      "frames": 96,
+      "unique_frames": 96,
+      "leading_hold_extra_frames": 0,
+      "trailing_hold_extra_frames": 0
+    },
+    {
+      "shot": "05",
+      "frames": 120,
+      "unique_frames": 119,
+      "leading_hold_extra_frames": 0,
+      "trailing_hold_extra_frames": 1
+    },
+    {
+      "shot": "06",
+      "frames": 264,
+      "unique_frames": 253,
+      "leading_hold_extra_frames": 2,
+      "trailing_hold_extra_frames": 9
+    }
+  ]
+}

@@ -1,0 +1,677 @@
+{
+  "scene": "layered-next-scenes.blend",
+  "paths_relative_to": "layered-next-scenes directory",
+  "interior_shots": [
+    {
+      "shot": "03",
+      "camera": "03 LAND / side window",
+      "source_frames": [
+        240,
+        263.75,
+        287.5
+      ],
+      "source_fps": 12,
+      "near_to_far_motion_order_correct": true,
+      "layers": [
+        {
+          "role": "near",
+          "object": "LAYER BLOCK | managed land near broken verge",
+          "mean_source_y_m": 412.7250158779863,
+          "aligned_source_world_point": [
+            -4238.2783203125,
+            412.72503662109375,
+            256.0128479003906
+          ],
+          "midpoint_camera_depth_m": 478.23002632625713,
+          "actual_crest_vertex_index": 207,
+          "aligned_samples": [
+            {
+              "pixel": [
+                1504.9457931518555,
+                485.3922414779663
+              ],
+              "depth_camera_units": 657.8201904296875,
+              "inside_image": true,
+              "source_frame": 240
+            },
+            {
+              "pixel": [
+                960.0004577636719,
+                539.9999356269836
+              ],
+              "depth_camera_units": 478.230224609375,
+              "inside_image": true,
+              "source_frame": 263.75
+            },
+            {
+              "pixel": [
+                -240.35734176635742,
+                660.2848756313324
+              ],
+              "depth_camera_units": 298.6405029296875,
+              "inside_image": false,
+              "source_frame": 287.5
+            }
+          ],
+          "crest_samples": [
+            {
+              "pixel": [
+                1571.341209411621,
+                856.1229121685028
+              ],
+              "depth_camera_units": 804.7188720703125,
+              "inside_image": true,
+              "source_frame": 240,
+              "first_hit_object": "LAYER BLOCK | managed land near broken verge",
+              "visible_surface": true,
+              "status": "visible"
+            },
+            {
+              "pixel": [
+                1173.526725769043,
+                1004.4035643339157
+              ],
+              "depth_camera_units": 625.12890625,
+              "inside_image": true,
+              "source_frame": 263.75,
+              "first_hit_object": "Viewport horizontal frame",
+              "visible_surface": false,
+              "status": "occluded"
+            },
+            {
+              "pixel": [
+                455.00773429870605,
+                1272.2230249643326
+              ],
+              "depth_camera_units": 445.5392150878906,
+              "inside_image": false,
+              "source_frame": 287.5,
+              "first_hit_object": "Main hull - level datum Z0",
+              "visible_surface": false,
+              "status": "outside_image"
+            }
+          ],
+          "aligned_start_to_end_displacement_px": 1754.0440320118662
+        },
+        {
+          "role": "middle",
+          "object": "LAYER BLOCK | middle woodland continuous belt",
+          "mean_source_y_m": 4271.652807088744,
+          "aligned_source_world_point": [
+            -1537.02734375,
+            4271.65283203125,
+            -780.279541015625
+          ],
+          "midpoint_camera_depth_m": 5301.297849693609,
+          "actual_crest_vertex_index": 672,
+          "aligned_samples": [
+            {
+              "pixel": [
+                1025.4048156738281,
+                533.4459257125854
+              ],
+              "depth_camera_units": 5480.88818359375,
+              "inside_image": true,
+              "source_frame": 240
+            },
+            {
+              "pixel": [
+                960.000114440918,
+                540.0
+              ],
+              "depth_camera_units": 5301.29833984375,
+              "inside_image": true,
+              "source_frame": 263.75
+            },
+            {
+              "pixel": [
+                890.0087356567383,
+                547.0136332511902
+              ],
+              "depth_camera_units": 5121.70849609375,
+              "inside_image": true,
+              "source_frame": 287.5
+            }
+          ],
+          "crest_samples": [
+            {
+              "pixel": [
+                1019.7780990600586,
+                304.2884159088135
+              ],
+              "depth_camera_units": 5354.177734375,
+              "inside_image": true,
+              "source_frame": 240,
+              "first_hit_object": null,
+              "visible_surface": false,
+              "status": "occluded"
+            },
+            {
+              "pixel": [
+                952.5765609741211,
+                303.04975032806396
+              ],
+              "depth_camera_units": 5174.587890625,
+              "inside_image": true,
+              "source_frame": 263.75,
+              "first_hit_object": "LAYER BLOCK | middle woodland continuous belt",
+              "visible_surface": true,
+              "status": "visible"
+            },
+            {
+              "pixel": [
+                880.5426979064941,
+                301.72205686569214
+              ],
+              "depth_camera_units": 4994.998046875,
+              "inside_image": true,
+              "source_frame": 287.5,
+              "first_hit_object": "LAYER BLOCK | middle woodland continuous belt",
+              "visible_surface": true,
+              "status": "visible"
+            }
+          ],
+          "aligned_start_to_end_displacement_px": 136.0741752569065
+        },
+        {
+          "role": "far",
+          "object": "LAYER BLOCK | far forest belt",
+          "mean_source_y_m": 6504.434974009597,
+          "aligned_source_world_point": [
+            25.9208984375,
+            6504.43505859375,
+            -1379.880126953125
+          ],
+          "midpoint_camera_depth_m": 8091.93307494762,
+          "actual_crest_vertex_index": 842,
+          "aligned_samples": [
+            {
+              "pixel": [
+                1003.3386611938477,
+                535.6571388244629
+              ],
+              "depth_camera_units": 8271.5234375,
+              "inside_image": true,
+              "source_frame": 240
+            },
+            {
+              "pixel": [
+                960.0,
+                540.0
+              ],
+              "depth_camera_units": 8091.93408203125,
+              "inside_image": true,
+              "source_frame": 263.75
+            },
+            {
+              "pixel": [
+                914.6942138671875,
+                544.5400035381317
+              ],
+              "depth_camera_units": 7912.34423828125,
+              "inside_image": true,
+              "source_frame": 287.5
+            }
+          ],
+          "crest_samples": [
+            {
+              "pixel": [
+                986.7892456054688,
+                274.28595542907715
+              ],
+              "depth_camera_units": 7897.70263671875,
+              "inside_image": true,
+              "source_frame": 240,
+              "first_hit_object": "LAYER BLOCK | far forest belt",
+              "visible_surface": true,
+              "status": "visible"
+            },
+            {
+              "pixel": [
+                940.9665298461914,
+                272.7573537826538
+              ],
+              "depth_camera_units": 7718.11279296875,
+              "inside_image": true,
+              "source_frame": 263.75,
+              "first_hit_object": "LAYER BLOCK | far forest belt",
+              "visible_surface": true,
+              "status": "visible"
+            },
+            {
+              "pixel": [
+                892.9605674743652,
+                271.1560106277466
+              ],
+              "depth_camera_units": 7538.52294921875,
+              "inside_image": true,
+              "source_frame": 287.5,
+              "first_hit_object": "LAYER BLOCK | far forest belt",
+              "visible_surface": true,
+              "status": "visible"
+            }
+          ],
+          "aligned_start_to_end_displacement_px": 89.08840175561782
+        },
+        {
+          "role": "hills",
+          "object": "LAYER BLOCK | far asymmetric hills",
+          "mean_source_y_m": 11000.657391283885,
+          "aligned_source_world_point": [
+            3173.27880859375,
+            11000.6572265625,
+            -2587.314453125
+          ],
+          "midpoint_camera_depth_m": 13711.521427144964,
+          "actual_crest_vertex_index": 597,
+          "aligned_samples": [
+            {
+              "pixel": [
+                985.8061981201172,
+                537.4140071868896
+              ],
+              "depth_camera_units": 13891.11328125,
+              "inside_image": true,
+              "source_frame": 240
+            },
+            {
+              "pixel": [
+                960.000114440918,
+                540.0000321865082
+              ],
+              "depth_camera_units": 13711.5224609375,
+              "inside_image": true,
+              "source_frame": 263.75
+            },
+            {
+              "pixel": [
+                933.5090446472168,
+                542.6546466350555
+              ],
+              "depth_camera_units": 13531.9326171875,
+              "inside_image": true,
+              "source_frame": 287.5
+            }
+          ],
+          "crest_samples": [
+            {
+              "pixel": [
+                954.8501586914062,
+                196.28536462783813
+              ],
+              "depth_camera_units": 13012.83203125,
+              "inside_image": true,
+              "source_frame": 240,
+              "first_hit_object": "LAYER BLOCK | far asymmetric hills",
+              "visible_surface": true,
+              "status": "visible"
+            },
+            {
+              "pixel": [
+                926.8446922302246,
+                194.27454471588135
+              ],
+              "depth_camera_units": 12833.2421875,
+              "inside_image": true,
+              "source_frame": 263.75,
+              "first_hit_object": "LAYER BLOCK | far asymmetric hills",
+              "visible_surface": true,
+              "status": "visible"
+            },
+            {
+              "pixel": [
+                898.044261932373,
+                192.2064971923828
+              ],
+              "depth_camera_units": 12653.6513671875,
+              "inside_image": true,
+              "source_frame": 287.5,
+              "first_hit_object": "LAYER BLOCK | far asymmetric hills",
+              "visible_surface": true,
+              "status": "visible"
+            }
+          ],
+          "aligned_start_to_end_displacement_px": 52.55907688681157
+        }
+      ]
+    },
+    {
+      "shot": "04",
+      "camera": "04 PORT / side window",
+      "source_frames": [
+        400,
+        423.75,
+        447.5
+      ],
+      "source_fps": 12,
+      "near_to_far_motion_order_correct": true,
+      "layers": [
+        {
+          "role": "near",
+          "object": "LAYER BLOCK | port district backdrop trees",
+          "mean_source_y_m": 775.0157400211817,
+          "aligned_source_world_point": [
+            -466.09088134765625,
+            775.0157470703125,
+            -62.296852111816406
+          ],
+          "midpoint_camera_depth_m": 927.3004513541296,
+          "actual_crest_vertex_index": 187,
+          "aligned_samples": [
+            {
+              "pixel": [
+                1182.4314880371094,
+                517.0402693748474
+              ],
+              "depth_camera_units": 1043.314208984375,
+              "inside_image": true,
+              "source_frame": 400
+            },
+            {
+              "pixel": [
+                959.999942779541,
+                540.0000321865082
+              ],
+              "depth_camera_units": 927.3004150390625,
+              "inside_image": true,
+              "source_frame": 423.75
+            },
+            {
+              "pixel": [
+                673.9530944824219,
+                569.5262289047241
+              ],
+              "depth_camera_units": 811.28662109375,
+              "inside_image": true,
+              "source_frame": 447.5
+            }
+          ],
+          "crest_samples": [
+            {
+              "pixel": [
+                1195.056381225586,
+                331.15790605545044
+              ],
+              "depth_camera_units": 1062.8214111328125,
+              "inside_image": true,
+              "source_frame": 400,
+              "first_hit_object": "LAYER BLOCK | port district backdrop trees",
+              "visible_surface": true,
+              "status": "visible"
+            },
+            {
+              "pixel": [
+                978.7545776367188,
+                330.8681631088257
+              ],
+              "depth_camera_units": 946.8075561523438,
+              "inside_image": true,
+              "source_frame": 423.75,
+              "first_hit_object": "LAYER BLOCK | port district backdrop trees",
+              "visible_surface": true,
+              "status": "visible"
+            },
+            {
+              "pixel": [
+                702.0430755615234,
+                330.49750328063965
+              ],
+              "depth_camera_units": 830.793701171875,
+              "inside_image": true,
+              "source_frame": 447.5,
+              "first_hit_object": "LAYER BLOCK | port district backdrop trees",
+              "visible_surface": true,
+              "status": "visible"
+            }
+          ],
+          "aligned_start_to_end_displacement_px": 511.1800589417857
+        },
+        {
+          "role": "middle",
+          "object": "LAYER BLOCK | middle woodland continuous belt",
+          "mean_source_y_m": 4271.652807088744,
+          "aligned_source_world_point": [
+            1981.556396484375,
+            4271.65283203125,
+            -915.9342041015625
+          ],
+          "midpoint_camera_depth_m": 5280.017170926094,
+          "actual_crest_vertex_index": 812,
+          "aligned_samples": [
+            {
+              "pixel": [
+                1003.0066680908203,
+                535.5607724189758
+              ],
+              "depth_camera_units": 5396.03076171875,
+              "inside_image": true,
+              "source_frame": 400
+            },
+            {
+              "pixel": [
+                959.999942779541,
+                540.0
+              ],
+              "depth_camera_units": 5280.01708984375,
+              "inside_image": true,
+              "source_frame": 423.75
+            },
+            {
+              "pixel": [
+                915.0607681274414,
+                544.6386873722076
+              ],
+              "depth_camera_units": 5164.0029296875,
+              "inside_image": true,
+              "source_frame": 447.5
+            }
+          ],
+          "crest_samples": [
+            {
+              "pixel": [
+                1039.6865844726562,
+                269.6016597747803
+              ],
+              "depth_camera_units": 5262.2666015625,
+              "inside_image": true,
+              "source_frame": 400,
+              "first_hit_object": "LAYER BLOCK | middle woodland continuous belt",
+              "visible_surface": true,
+              "status": "visible"
+            },
+            {
+              "pixel": [
+                996.3888931274414,
+                268.160605430603
+              ],
+              "depth_camera_units": 5146.2529296875,
+              "inside_image": true,
+              "source_frame": 423.75,
+              "first_hit_object": "LAYER BLOCK | middle woodland continuous belt",
+              "visible_surface": true,
+              "status": "visible"
+            },
+            {
+              "pixel": [
+                951.093921661377,
+                266.6531825065613
+              ],
+              "depth_camera_units": 5030.2392578125,
+              "inside_image": true,
+              "source_frame": 447.5,
+              "first_hit_object": "LAYER BLOCK | middle woodland continuous belt",
+              "visible_surface": true,
+              "status": "visible"
+            }
+          ],
+          "aligned_start_to_end_displacement_px": 88.4131769606022
+        },
+        {
+          "role": "far",
+          "object": "LAYER BLOCK | far forest belt",
+          "mean_source_y_m": 6504.434974009597,
+          "aligned_source_world_point": [
+            3544.5048828125,
+            6504.43505859375,
+            -1461.0255126953125
+          ],
+          "midpoint_camera_depth_m": 8059.450118271993,
+          "actual_crest_vertex_index": 992,
+          "aligned_samples": [
+            {
+              "pixel": [
+                988.3855819702148,
+                537.0699977874756
+              ],
+              "depth_camera_units": 8175.4638671875,
+              "inside_image": true,
+              "source_frame": 400
+            },
+            {
+              "pixel": [
+                959.999942779541,
+                540.0
+              ],
+              "depth_camera_units": 8059.44970703125,
+              "inside_image": true,
+              "source_frame": 423.75
+            },
+            {
+              "pixel": [
+                930.7851219177246,
+                543.0156183242798
+              ],
+              "depth_camera_units": 7943.43603515625,
+              "inside_image": true,
+              "source_frame": 447.5
+            }
+          ],
+          "crest_samples": [
+            {
+              "pixel": [
+                1027.2568130493164,
+                231.20746850967407
+              ],
+              "depth_camera_units": 8001.69091796875,
+              "inside_image": true,
+              "source_frame": 400,
+              "first_hit_object": null,
+              "visible_surface": false,
+              "status": "occluded"
+            },
+            {
+              "pixel": [
+                998.8175582885742,
+                229.70223426818848
+              ],
+              "depth_camera_units": 7885.6767578125,
+              "inside_image": true,
+              "source_frame": 423.75,
+              "first_hit_object": null,
+              "visible_surface": false,
+              "status": "occluded"
+            },
+            {
+              "pixel": [
+                969.528923034668,
+                228.15200328826904
+              ],
+              "depth_camera_units": 7769.6630859375,
+              "inside_image": true,
+              "source_frame": 447.5,
+              "first_hit_object": "LAYER BLOCK | far forest belt",
+              "visible_surface": true,
+              "status": "visible"
+            }
+          ],
+          "aligned_start_to_end_displacement_px": 57.906505695182396
+        },
+        {
+          "role": "hills",
+          "object": "LAYER BLOCK | far asymmetric hills",
+          "mean_source_y_m": 11000.657391283885,
+          "aligned_source_world_point": [
+            6691.8623046875,
+            11000.6572265625,
+            -2558.69287109375
+          ],
+          "midpoint_camera_depth_m": 13656.480097421934,
+          "actual_crest_vertex_index": 692,
+          "aligned_samples": [
+            {
+              "pixel": [
+                976.8499374389648,
+                538.2607698440552
+              ],
+              "depth_camera_units": 13772.4931640625,
+              "inside_image": true,
+              "source_frame": 400
+            },
+            {
+              "pixel": [
+                960.0,
+                540.0000321865082
+              ],
+              "depth_camera_units": 13656.4794921875,
+              "inside_image": true,
+              "source_frame": 423.75
+            },
+            {
+              "pixel": [
+                942.861270904541,
+                541.7690992355347
+              ],
+              "depth_camera_units": 13540.4658203125,
+              "inside_image": true,
+              "source_frame": 447.5
+            }
+          ],
+          "crest_samples": [
+            {
+              "pixel": [
+                1010.1906967163086,
+                222.88365125656128
+              ],
+              "depth_camera_units": 13305.9970703125,
+              "inside_image": true,
+              "source_frame": 400,
+              "first_hit_object": "LAYER BLOCK | far asymmetric hills",
+              "visible_surface": true,
+              "status": "visible"
+            },
+            {
+              "pixel": [
+                993.0380630493164,
+                221.9105887413025
+              ],
+              "depth_camera_units": 13189.9833984375,
+              "inside_image": true,
+              "source_frame": 423.75,
+              "first_hit_object": "LAYER BLOCK | far asymmetric hills",
+              "visible_surface": true,
+              "status": "visible"
+            },
+            {
+              "pixel": [
+                975.5810165405273,
+                220.9201455116272
+              ],
+              "depth_camera_units": 13073.9697265625,
+              "inside_image": true,
+              "source_frame": 447.5,
+              "first_hit_object": "LAYER BLOCK | far asymmetric hills",
+              "visible_surface": true,
+              "status": "visible"
+            }
+          ],
+          "aligned_start_to_end_displacement_px": 34.16925266825982
+        }
+      ]
+    }
+  ],
+  "method": "At each shot midpoint intersect one common camera-centre ray with each selected ribbon's mean world-Y plane, then hold that source-world point fixed through scenery rebasing. This isolates depth from image registration. These hypothetical depth-plane points are not actual surface features and their screen travel is a mathematical diagnostic, not visible-art acceptance. Actual crest vertices are separately projected and first-hit raycast against render-visible meshes; offscreen/occluded results reported explicitly.",
+  "exterior": {
+    "05": "Ordering intentionally not asserted: source exterior camera pans; source camera preservation belongs to verify_scene.py.",
+    "06": "Ordering intentionally not asserted: fixed source camera relative yard; source camera preservation belongs to verify_scene.py."
+  }
+}
