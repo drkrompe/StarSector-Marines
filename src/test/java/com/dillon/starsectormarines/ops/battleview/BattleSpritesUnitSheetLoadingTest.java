@@ -52,6 +52,10 @@ class BattleSpritesUnitSheetLoadingTest {
         assertEquals(rig + "shoulder-left.png", jack.shoulderLeft.sourcePath);
         assertEquals(rig + "shoulder-right.png", jack.shoulderRight.sourcePath);
         assertSame(regular.rifle, jack.rifle);
+        LayeredUnitAssets raider = sprites.layeredUnitSprites().get(LayeredArmorFamily.BOARDING_JACK_PIRATE);
+        assertEquals(rig + "paints/pirate/body.png", raider.body.sourcePath);
+        assertEquals(rig + "paints/pirate/foot.png", raider.foot.sourcePath);
+        assertEquals(rig + "paints/pirate/shoulder-left.png", raider.shoulderLeft.sourcePath);
     }
 
     @Test

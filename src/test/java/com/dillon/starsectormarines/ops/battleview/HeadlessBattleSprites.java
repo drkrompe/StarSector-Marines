@@ -421,6 +421,9 @@ final class HeadlessBattleSprites extends BattleSprites {
         loadFamily(LayeredArmorFamily.BOARDING_JACK, INFANTRY_ROOT + "armor/boarding-jack/",
                 layer(INFANTRY_ROOT + "armor/boarding-jack/foot.png"), null,
                 rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+        loadFamily(LayeredArmorFamily.BOARDING_JACK_PIRATE, INFANTRY_ROOT + "armor/boarding-jack/paints/pirate/",
+                layer(INFANTRY_ROOT + "armor/boarding-jack/paints/pirate/foot.png"), null,
+                rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
         loadFamily(LayeredArmorFamily.BULWARK_HEAVY, INFANTRY_ROOT + "armor/bulwark-heavy/",
                 foot, null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
         loadFamily(LayeredArmorFamily.RELIQUARY_HEAVY, INFANTRY_ROOT + "armor/reliquary-heavy/",
