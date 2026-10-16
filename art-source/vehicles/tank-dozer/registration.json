@@ -1,0 +1,78 @@
+{
+  "outputSize": [
+    3072,
+    768
+  ],
+  "frameSize": 768,
+  "visualLengthCells": 4.6,
+  "note": "Hull scales are the breakthrough tank's (0.73 / 0.835) times 4.3/4.6 so the hull draws at the same on-screen size in a 4.6-cell frame. Turret frames are the APC's 768x576 MG frames copied pixel-exact and padded 96 px top and bottom.",
+  "frames": [
+    {
+      "source": "../tank/master.png",
+      "sourceSize": [
+        1774,
+        887
+      ],
+      "sourceRect": [
+        0,
+        0,
+        1020,
+        887
+      ],
+      "scale": 0.6823913043478261,
+      "sourceCenter": [
+        508,
+        451
+      ],
+      "targetCenter": [
+        384,
+        384
+      ],
+      "underlay": "blade-live-raw.png"
+    },
+    {
+      "sheet": "mod/graphics/battle/vehicles/army-apc.png",
+      "sheetFrame": 1,
+      "sheetFrameSize": [
+        768,
+        576
+      ],
+      "padTop": 96
+    },
+    {
+      "source": "../tank/wreck-master.png",
+      "sourceSize": [
+        1774,
+        887
+      ],
+      "sourceRect": [
+        0,
+        0,
+        1000,
+        887
+      ],
+      "scale": 0.7805434782608696,
+      "sourceCenter": [
+        448,
+        443
+      ],
+      "targetCenter": [
+        1920,
+        384
+      ],
+      "underlay": "blade-wreck-raw.png"
+    },
+    {
+      "sheet": "mod/graphics/battle/vehicles/army-apc.png",
+      "sheetFrame": 3,
+      "sheetFrameSize": [
+        768,
+        576
+      ],
+      "padTop": 96
+    }
+  ],
+  "underlayNote": "ImageGen edits of guide-live/guide-wreck (1254x1254 for the 768 frame). pack.py resamples them to 768, keeps only pixels inside the blade_geometry silhouette dilated by maskDilatePx and left of underlayMaxX, and draws the exact registered hull over them.",
+  "maskDilatePx": 6,
+  "underlayMaxX": 124
+}
