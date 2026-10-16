@@ -106,11 +106,13 @@ apart, and a fitting choice (where the plating goes) matters.
    - Scene `mech-hull-down` (`sceneEvidence`, `createSnapshots`): four seeds a
      side against ten rifles, open ground against a level-1 windowed parapet
      (masonry, because rifle fire wears sandbags away mid-window). Legs took
-     1.86 damage a second behind it against 3.81 in the open (16% of all
-     damage against 26%); torso and weapons stayed close to their open rates.
+     1.85 damage a second behind it against 3.29 in the open (18% of all
+     damage against 24%); torso and weapons stayed close to their open rates.
    - Scene `mech-locational-damage` adds `every-armed-crippled-hound-fires`:
      across 16 plays every Hound crippled with a weapon left fired afterwards
-     (10 of 10; one more had lost both weapons first and stood silent).
+     (10 of 10; two more had lost both weapons first and stood silent). With
+     slices 3 and 4 together the sweep's median time-to-kill read 25.1s with a
+     rocket tube and 51.1s rifles only, as a reading.
 4. **Campaign consequences** (shipped 2026-10-16). Model folded into
    `mechs-nouns.md` (After the battle, repair, readiness). The frozen
    deployment carries the campaign id; `CompanyMechLedger` freezes owned mechs'
