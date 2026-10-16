@@ -178,7 +178,12 @@ fall's change of size is slight; the strike's footprint is the substantive chang
 Small War no longer has a tender or a rear-position build. The sequence is customs,
 fuel control (the split), dispatch, handover; customs falling hands the holders
 their first building with no construction gate, the offer no longer requires an
-owned tender, and the old build bay south of customs is plain staging ground.
+owned tender, and the old build bay south of customs is plain staging ground. The
+build's wait had been what let the company's last lift land before the push on fuel
+control; without it seed 16205 lost the whole company, so the company now forms up
+on the staging ground while its lift is landing (at most 120 s, gating nothing), and
+through the handover keeps a squad on each site (that seed's holders died, 11 of 12,
+and left customs empty).
 
 ## Acceptance
 

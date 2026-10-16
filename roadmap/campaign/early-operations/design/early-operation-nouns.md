@@ -346,8 +346,10 @@ is told when Voss gives her order and reports what happened, and nothing it does
 is read by the ground referee. Three full squads are recommended, with the same
 two-squad minimum and fitted lift, no tender (the chapter has no construction
 step) and optional employer heavy lift for an owned mech. The company takes the
-causeway customs block, which its holders occupy at once; then fuel control, then
-dispatch. Each site
+causeway customs block, which its holders occupy at once; it forms up on the
+staging ground south of customs while its lift is still landing (bounded, and
+gating nothing), then takes fuel control, then dispatch, and through the handover
+keeps a squad on each site so the handover does not depend on the holders living. Each site
 is held only by uncontested company infantry and can be lost again, so a lost site
 must be reclaimed. Twelve holders take only sites the company has actually held.
 Victory requires all three held together, the marked tank farm standing and a
