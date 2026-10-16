@@ -32,8 +32,8 @@ from mathutils import Vector
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-import sw_kit, sw_hull, sw_engines, sw_bridge, sw_turrets
-for module in (sw_kit, sw_hull, sw_engines, sw_bridge, sw_turrets):
+import sw_kit, sw_hull, sw_engines, sw_bridge, sw_turrets, sw_port_module
+for module in (sw_kit, sw_hull, sw_engines, sw_bridge, sw_turrets, sw_port_module):
     importlib.reload(module)
 
 parser = argparse.ArgumentParser()
@@ -58,13 +58,7 @@ sw_hull.build_bays(kit)
 sw_hull.build_details(kit)
 sw_engines.build_details(kit)
 sw_bridge.build(kit)
-
-# A proposed service/airlock pod, not a standing mast: long axis +X,
-# centered below the top of the pressure hull and physically on PORT only.
-kit.box('Port service pod neck', (37,28,1), (12,8,4), kit.steel, .6)
-kit.box('PORT SERVICE POD - fixed low horizontal body', (37,33,1), (19,8,6), kit.podmat, 2)
-kit.cylinder('Pod outward access hatch', (37,37.1,1), 2.2, .4, kit.steel, 'Y')
-kit.box('Pod dorsal inspection plate', (37,33,4.1), (10,4,.25), kit.cream, .3)
+sw_port_module.build(kit)
 
 # Vanilla warhound.ship / Cerberus engineSlots: exact XY and width ratios.
 # Four fixed nozzles, two lateral pairs, all at Z=0 and pointed aft (-X).

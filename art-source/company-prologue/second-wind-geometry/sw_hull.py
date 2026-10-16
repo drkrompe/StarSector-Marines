@@ -14,17 +14,21 @@ from mathutils import Vector
 # reads as plate construction. Cerberus planform: broad forebody, narrow waist,
 # two wider aft engine rooms and a central stern notch. Plans are CCW; blocks
 # flagged True are port-side plans mirrored onto starboard.
-KEEL, WAIST_DECK, MAIN_DECK = -10, 10.5, 14.5
+KEEL, WAIST_DECK, MAIN_DECK = -7.5, 10.5, 14.5
 
-# Section profiles: (inset from plan outline, z), keel to deck.
-# A knuckle at the datum breaks the flank into two flats instead of one slab.
+# Section profiles: (inset from plan outline, z), keel to deck. One keel
+# chamfer, one vertical wall, one shoulder chamfer: a stack of chamfers and
+# knuckles read as a rounded pebble in side view. Horizontal lines come from
+# the separate armour belt instead.
 def side_profile(deck, wall_top, proud=0):
-    return [(d-proud,z) for d,z in
-            [(4,KEEL),(1.5,-8.5),(0,-5.5),(0,1),(.8,wall_top),(2.2,deck-1.6),(3.8,deck)]]
+    return [(d-proud,z) for d,z in [(3,KEEL),(0,KEEL+3),(0,wall_top),(3,deck)]]
 
-LOWER = side_profile(WAIST_DECK, 6.5)
+LOWER = side_profile(WAIST_DECK, 7.5)
+# A plate belt standing proud of the flank wall along the datum.
+BELT = [(0,-3.4),(-1.3,-2.6),(-1.3,.6),(0,1.4)]
 def citadel(base):
-    return [(0,base),(0,12.6),(1,13.8),(2.2,MAIN_DECK)]
+    # A terrace step: vertical wall, one narrow lip chamfer at the deck edge.
+    return [(0,base),(0,MAIN_DECK-.8),(.8,MAIN_DECK)]
 
 BLOCKS = [
     # Forebody lower hull, measured off the vanilla sprite: widest (+-32) over
@@ -41,10 +45,14 @@ BLOCKS = [
     # stay a deck lower.
     ('Forecastle and armoured nose', False, [(0,5.5),(0,12.4),(1.2,13.6),(2.4,MAIN_DECK)],
      [(44,-8.5),(56,-8.5),(59,-5),(59,5),(56,8.5),(44,8.5)]),
-    ('Bow chin', False, [(2.2,-12.4),(0,-11),(0,-8),(1,-6.5)],
+    ('Bow chin', False, [(2,KEEL-2.5),(0,KEEL-1),(0,KEEL+1)],
      [(42,-11),(54,-11),(57,-7),(57,7),(54,11),(42,11)]),
-    ('Ventral keel', False, [(1.6,-13),(0,-11.8),(0,-9)],
+    ('Ventral keel', False, [(1.2,KEEL-2.5),(0,KEEL-1.3),(0,KEEL+1)],
      [(-25,-6.5),(44,-6.5),(44,6.5),(-25,6.5)]),
+    # Forebody armour belt; it stops short of the bays and the bow rake.
+    ('Forebody armour belt', False, BELT,
+     [(27,-30.5),(30,-31.5),(40,-31.5),(47,-26.5),(52,-20.5),(55,-12),
+      (55,12),(52,20.5),(47,26.5),(40,31.5),(30,31.5),(27,30.5)]),
 ]
 # Deck plateaus aft to fore, for the manifest: (x0, x1, deck z).
 THICKNESS_STATIONS = [(-36,-32,8),(-32,-1,MAIN_DECK),
@@ -69,7 +77,7 @@ def _left(x, y):
     return (-y/length, x/length)
 
 
-def prism(kit, name, plan, profile):
+def prism(kit, name, plan, profile, mat=None):
     n = len(plan)
     verts = [(x,y,z) for d,z in profile for x,y in inset(plan,d)]
     faces = [tuple(reversed(range(n)))]
@@ -77,7 +85,7 @@ def prism(kit, name, plan, profile):
         faces += [(r*n+i, r*n+(i+1)%n, (r+1)*n+(i+1)%n, (r+1)*n+i) for i in range(n)]
     top = (len(profile)-1)*n
     faces.append(tuple(range(top, top+n)))
-    return kit.mesh(name, verts, faces, kit.orange)
+    return kit.mesh(name, verts, faces, mat or kit.orange)
 
 
 def union(hull, other):
@@ -113,10 +121,6 @@ BOW_FACETS = [
     facet('Port bow cheek', (48,17.5,MAIN_DECK), (.81,.58), 38),
     facet('Starboard bow cheek', (48,-17.5,MAIN_DECK), (.81,-.58), 38),
     facet('Chin rake', (50,0,KEEL-1), (1,0), 147),
-    # Forebody citadel flanks slope outboard like the sprite's armoured
-    # shoulders; limited to the forebody so the engine pods keep their walls.
-    facet('Port forebody shoulder', (0,21.5,MAIN_DECK), (0,1), 48, (-2,64)),
-    facet('Starboard forebody shoulder', (0,-21.5,MAIN_DECK), (0,-1), 48, (-2,64)),
 ]
 
 
