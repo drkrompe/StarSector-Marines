@@ -8,7 +8,7 @@ depth are proposed art geometry, not canonical game dimensions.
 Detail lives in one module per area so separate passes do not collide:
 sw_hull (forebody shell, bow facets, bays, armor), sw_engines (aft engine pods
 and stern), sw_bridge (dorsal casings, command deck, spine), sw_turrets; sw_kit holds the
-shared materials and primitives. Engines and the port pod are locked here.
+shared materials and primitives; sw_port_module builds the port grapple.
 
 Review options, after a literal "--":
   --out DIR        write renders, .blend and geometry.json to DIR instead
@@ -130,11 +130,11 @@ if not args.no_save:
         'status':'Proposed geometry reference; no scene art or gameplay changes',
         'axes':{'+X':'bow','+Y':'port','+Z':'dorsal'},
         'units':'Vanilla hull-space units; no canonical metre scale asserted',
-        'revision':'V3 detail: sprite-measured faceted bow, separate engine nacelles, spine command deck, naval turrets',
-        'thickness_profile':{'method':'Upper Z uses plateaus and linear chamfer transitions between stations; lower hull has uniform 1.25 depth multiplier for level keel', 'stations':sw_hull.THICKNESS_STATIONS, 'deck_datum':0, 'attachments':'Engine and port-pod coordinates unchanged from V2'},
+        'revision':'V3 detail: segmented sprite-measured hull, whole engine pods, spine command deck, port grapple, naval turrets',
+        'thickness_profile':{'method':'Flat deck plateaus (x0, x1, deck z) over single-chamfer sections; level keel', 'stations':sw_hull.THICKNESS_STATIONS, 'deck_datum':0, 'attachments':'Engine centres unchanged from V2'},
         'engine_source':'starsector-core/data/hulls/warhound.ship engineSlots',
         'engines':[{'location':[x,y,0],'width':w,'exhaust_direction':[-1,0,0]} for x,y,w in sw_engines.ENGINES],
-        'pod':{'center':[37,33,1],'dimensions':[19,8,6],'long_axis':'+X','function':'Proposed service/airlock pod; not canonical lore'},
+        'port_fitting':{'extent_x':[28.5,48],'extent_y':[24,34.3],'function':'Proposed boarding/cargo grapple sponson and folded arm, read from the sprite; not canonical lore'},
         'cameras':[{'name':name,'position':list(pos),'orthographic_scale':scale} for name,pos,scale in cameras],
         'bay_state':{'port':'open, empty cradle','starboard':'sealed, awaits repair'},
         'mesh_authority':'All views render the same objects; generated surface art is subordinate to this geometry.'

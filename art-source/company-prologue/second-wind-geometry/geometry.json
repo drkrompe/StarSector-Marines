@@ -6,9 +6,9 @@
     "+Z": "dorsal"
   },
   "units": "Vanilla hull-space units; no canonical metre scale asserted",
-  "revision": "V3 detail: sprite-measured faceted bow, separate engine nacelles, spine command deck, naval turrets",
+  "revision": "V3 detail: segmented sprite-measured hull, whole engine pods, spine command deck, port grapple, naval turrets",
   "thickness_profile": {
-    "method": "Upper Z uses plateaus and linear chamfer transitions between stations; lower hull has uniform 1.25 depth multiplier for level keel",
+    "method": "Flat deck plateaus (x0, x1, deck z) over single-chamfer sections; level keel",
     "stations": [
       [
         -36,
@@ -31,18 +31,18 @@
         14.5
       ],
       [
-        50,
+        47.6,
         57,
-        10.5
+        14.5
       ],
       [
-        44,
-        59,
-        14.5
+        49,
+        59.6,
+        12.4
       ]
     ],
     "deck_datum": 0,
-    "attachments": "Engine and port-pod coordinates unchanged from V2"
+    "attachments": "Engine centres unchanged from V2"
   },
   "engine_source": "starsector-core/data/hulls/warhound.ship engineSlots",
   "engines": [
@@ -99,19 +99,16 @@
       ]
     }
   ],
-  "pod": {
-    "center": [
-      37,
-      33,
-      1
+  "port_fitting": {
+    "extent_x": [
+      28.5,
+      48
     ],
-    "dimensions": [
-      19,
-      8,
-      6
+    "extent_y": [
+      24,
+      34.3
     ],
-    "long_axis": "+X",
-    "function": "Proposed service/airlock pod; not canonical lore"
+    "function": "Proposed boarding/cargo grapple sponson and folded arm, read from the sprite; not canonical lore"
   },
   "cameras": [
     {
