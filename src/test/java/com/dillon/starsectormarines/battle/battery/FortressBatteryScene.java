@@ -50,11 +50,11 @@ public final class FortressBatteryScene implements BehaviorScene {
 
     private static final int WIDTH = 260;
     private static final int HEIGHT = 90;
-    private static final int TICKS = 3600;
+    private static final int TICKS = 5400;
     private static final int BATTERY_X = 60;
     private static final int BATTERY_Y = 45;
     /** Where the capital starts when it has to arrive from outside the envelope. */
-    private static final float SHIP_START_X = 145f;
+    private static final float SHIP_START_X = 170f;
     /** Where the mission asks it to stand: well inside the envelope. */
     private static final float STATION_X = 100f;
     private static final int MARINES_ARRIVE_TICK = 300;

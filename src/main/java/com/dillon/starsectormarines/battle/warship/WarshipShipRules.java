@@ -151,8 +151,7 @@ public final class WarshipShipRules {
         float most = 0f;
         for (int i = 0; i < power.length; i++) {
             float h = candidates.get(i);
-            power[i] = Math.min(firepowerAt(ship, h, tx, ty),
-                    Math.min(firepowerAt(ship, h - SETTLE_DEGREES, tx, ty), firepowerAt(ship, h + SETTLE_DEGREES, tx, ty)));
+            power[i] = settledFirepowerAt(ship, h, tx, ty);
             most = Math.max(most, power[i]);
         }
         if (most <= 0f) {
@@ -219,10 +218,36 @@ public final class WarshipShipRules {
     static final float BOW_SHARE = 0.85f;
     /** How much laying the target fully abeam is worth against a half-circle of turning. */
     static final float TURN_PENALTY = 0.15f;
-    /** How far either side of a heading its guns must still bear for the heading to count their firepower. */
+    /**
+     * How far either side of a heading its guns must still bear for the heading to count their firepower: this, or
+     * a quarter of the mount's own arc where that is narrower, so a hardpoint laid on the target still counts.
+     */
     static final float SETTLE_DEGREES = 2f;
     /** How much the last of the firepower inside the broadside band is worth against laying the target abeam. */
     static final float POWER_PREFERENCE = 0.5f;
+
+    /**
+     * {@link #firepowerAt}, counting a gun only if it also bears its settle either side of {@code heading}
+     * ({@link #SETTLE_DEGREES}, or a quarter of its arc where that is narrower).
+     */
+    static float settledFirepowerAt(Warship ship, float heading, float tx, float ty) {
+        float total = 0f;
+        for (Warship.Mount m : ship.mounts()) {
+            if (!gunAtHull(m.weapon) || m.knockedOut()) continue;
+            float settle = Math.min(SETTLE_DEGREES, 0.25f * m.slot.arcDegrees());
+            if (bearsAt(ship, m, heading, tx, ty) && bearsAt(ship, m, heading - settle, tx, ty)
+                    && bearsAt(ship, m, heading + settle, tx, ty)) {
+                total += firepower(m.weapon);
+            }
+        }
+        return total;
+    }
+
+    private static boolean bearsAt(Warship ship, Warship.Mount m, float heading, float tx, float ty) {
+        float mx = Warship.mountX(ship.x, m.slot, heading);
+        float my = Warship.mountY(ship.y, m.slot, heading);
+        return Warship.bears(m, heading, mx, my, tx, ty, UNBOUNDED_REACH);
+    }
 
     static float firepowerAt(Warship ship, float heading, float tx, float ty) {
         float total = 0f;

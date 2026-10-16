@@ -134,6 +134,13 @@ public final class GreyhookDuelScene implements BehaviorScene {
         metrics.put("shieldDamageToWolves", Math.round(t.shieldTaken(duel.wolves())));
         metrics.put("shieldDamageToGreyhook", Math.round(greyhook.shieldAbsorbedDamage()));
         metrics.put("greyhookShotsWhileLeaving", t.greyhookShotsWhileLeaving);
+        metrics.put("greyhookGoneSeconds", t.seconds(t.greyhookGoneTick));
+        metrics.put("firstHoundDownSeconds", t.seconds(t.firstHoundDownTick));
+        metrics.put("lastHoundDownSeconds", t.seconds(t.lastHoundDownTick));
+        metrics.put("firstWolfDownSeconds", t.seconds(t.firstWolfDownTick));
+        metrics.put("greyhookRounds", shots(List.of(greyhook)));
+        metrics.put("houndRounds", shots(duel.hounds()));
+        metrics.put("wolfRounds", shots(duel.wolves()));
         return new SceneReport(id(), loop, TICKS, verdicts, metrics);
     }
 
@@ -155,12 +162,24 @@ public final class GreyhookDuelScene implements BehaviorScene {
         return n;
     }
 
+    /** Rounds fired by {@code ships}' guns and launchers (point defence left out). */
+    private static int shots(List<Warship> ships) {
+        int n = 0;
+        for (Warship s : ships) for (Warship.Mount m : s.mounts()) if (!m.pointDefence()) n += m.shotsFired;
+        return n;
+    }
+
     private static final class Trace implements TickObserver {
         final BlackSluiceDuel duel;
         final int orderTick;
         final Map<Warship, Float> startHp = new LinkedHashMap<>();
         int resolvedTick = -1;
         int firstHitTick = -1;
+        int greyhookGoneTick = -1;
+        int firstHoundDownTick = -1;
+        int lastHoundDownTick = -1;
+        int firstWolfDownTick = -1;
+        private int houndsDown;
         float damageToGreyhookSide;
         float damageToWolves;
         int greyhookShotsWhileLeaving;
@@ -185,6 +204,11 @@ public final class GreyhookDuelScene implements BehaviorScene {
                         : Math.round(hull.hullFraction() * 100) + "%");
             }
             return s.toString();
+        }
+
+        /** Seconds after the order of {@code tick}, or -1 for a tick that never came. */
+        float seconds(int tick) {
+            return tick < 0 ? -1f : (tick - orderTick) / 30f;
         }
 
         float hullLost(Warship ship) {
@@ -234,6 +258,15 @@ public final class GreyhookDuelScene implements BehaviorScene {
                 }
             }
             lastGreyhookShots = shots;
+            if (greyhookGoneTick < 0 && (greyhook.departed() || greyhook.destroyed())) greyhookGoneTick = tick;
+            int down = 0;
+            for (Warship h : duel.hounds()) if (h.destroyed()) down++;
+            if (down > houndsDown) {
+                if (firstHoundDownTick < 0) firstHoundDownTick = tick;
+                lastHoundDownTick = tick;
+                houndsDown = down;
+            }
+            if (firstWolfDownTick < 0) for (Warship w : duel.wolves()) if (w.destroyed()) firstWolfDownTick = tick;
             for (long air : sim.getAirEntityIds()) if (sim.world().airFaction(air) == Faction.DEFENDER) defenderAircraft++;
             if (resolvedTick < 0 && duel.ordered() && tick > orderTick) {
                 boolean over = true;

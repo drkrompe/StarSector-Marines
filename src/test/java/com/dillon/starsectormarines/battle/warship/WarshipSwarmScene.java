@@ -48,14 +48,15 @@ public final class WarshipSwarmScene implements BehaviorScene {
     private static final float SHIP_X = 20f;
     private static final float SHIP_Y = 45f;
     private static final float SHIP_HEADING = -90f;
-    private static final float FAR_TARGET_X = 92f;
-    private static final float NEAR_TARGET_X = 62f;
+    private static final float FAR_TARGET_X = 108f;
+    private static final float NEAR_TARGET_X = 78f;
+    private static final float CAP_TARGET_X = 60f;
     /** Where the district is this loop: the long-range missiles take the far one, the short-range ones the near one. */
     private float targetX = FAR_TARGET_X;
     private static final float TARGET_Y = 45f;
     private static final float AREA_RADIUS = 6f;
     /** A picket flies in the carriers' lane, well short of where they split. */
-    private static final float PICKET_X = 58f;
+    private static final float PICKET_X = 74f;
     private static final int DISTRICT = 44;
     private static final float DISTRICT_RADIUS = 15f;
     private static final String[] SLOTS = {"WS 021", "WS 022", "WS 023", "WS 024"};
@@ -93,6 +94,8 @@ public final class WarshipSwarmScene implements BehaviorScene {
         if (wanted("hammer-cinematic")) reports.add(playHammer(frames));
         targetX = FAR_TARGET_X;
         if (wanted("rack-squall")) reports.add(playRack("rack-squall", "squall", 2, 540, frames));
+        // Every slot a Locust rack, on a district all its racks reach: enough bodies in the air to meet the cap.
+        targetX = CAP_TARGET_X;
         if (wanted("rack-cap")) reports.add(playRack("rack-cap", "locust", -1, 600, FrameSink.NONE));
         return reports;
     }

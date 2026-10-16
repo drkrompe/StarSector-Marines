@@ -347,7 +347,8 @@ public final class WarshipShieldScene implements BehaviorScene {
             float toX = ship.x;
             float toY = ship.y + sign * ship.lengthCells * 0.3f;
             float fromX = ship.x - 25f;
-            float fromY = ship.y + sign * 32f;
+            // From a battery standing off the bow or the stern, clear of the hull at its drawn size.
+            float fromY = ship.y + sign * (ship.lengthCells * 0.5f + 15f);
             for (int i = 0; i < pieces; i++) {
                 PendingDetonation det = new PendingDetonation(0L, toX, toY, 0f, BLAST, DAMAGE, PENETRATION, 0,
                         Faction.DEFENDER, false, 0f, false, false, false);

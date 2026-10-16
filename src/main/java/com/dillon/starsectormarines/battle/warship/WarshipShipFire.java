@@ -361,6 +361,7 @@ public final class WarshipShipFire {
             if (w.missile() && !ship.missileVolleyReady()) return false;
             Warship target = pick(ship, m, mx, my, ships);
             if (target == null) return false;
+            if (MissilePacing.finisher(w) && !MissilePacing.softened(target)) return false;
             e = new Engagement(target, w.beam() ? 1 : Math.max(1, w.burstSize()));
             engagements.put(m, e);
             if (w.missile()) ship.missileVolleyStarted();
@@ -413,9 +414,9 @@ public final class WarshipShipFire {
 
     private static boolean inReach(Warship ship, Warship.Mount m, float mx, float my, Warship target) {
         float[] aim = aimFor(mx, my, target, m.weapon);
-        // A gun reaches a hull at the hull-to-hull reach; a missile's reach is its own flight, read as it flies.
-        float reach = m.weapon.missile() ? WarshipScale.cells(m.weapon.rangePx())
-                : WarshipScale.hullReach(m.weapon.rangePx());
+        // Gun or missile, a mount reaches a hull at the hull-to-hull reach, so the base game's ratio between a gun's
+        // range and a missile's survives; a missile flies its own path there.
+        float reach = WarshipScale.hullReach(m.weapon.rangePx());
         // A ship free to manoeuvre holds its missiles for the gun fight: a launcher at a hull waits until the hull is
         // inside the ship's gun reach, so the duel opens with gunnery and a magazine is the close-quarters blow, not a
         // long-range opener. A ship held on its station will never close, so it launches at the missile's own reach.

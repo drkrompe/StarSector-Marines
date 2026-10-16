@@ -41,7 +41,7 @@ public final class TenderPilotScene implements BehaviorScene {
 
     private static final int WIDTH = 140;
     private static final int HEIGHT = 80;
-    private static final int TICKS = 2600;
+    private static final int TICKS = 3900;
     private static final float START_X = 14f;
     private static final float START_Y = 40f;
     private static final float STOP_X = 46f;
@@ -54,11 +54,11 @@ public final class TenderPilotScene implements BehaviorScene {
     private static final int DARK_AT = 20;
     private static final int LAY_A_AT = 60;
     private static final int LAY_B_AT = 80;
-    private static final int RECALL_AT = 1000;
-    private static final int DEPLOY_AT = 1220;
-    private static final int CANCEL_AT = 1300;
-    private static final int LAY_C_AT = 1350;
-    private static final int RELEASE_AT = 1450;
+    private static final int RECALL_AT = 1600;
+    private static final int DEPLOY_AT = 1820;
+    private static final int CANCEL_AT = 1900;
+    private static final int LAY_C_AT = 1950;
+    private static final int RELEASE_AT = 2050;
 
     @Override public String id() {
         return "tender-pilot";
@@ -215,7 +215,7 @@ public final class TenderPilotScene implements BehaviorScene {
             }
             if (siteB != null && tick < CANCEL_AT) {
                 if (siteB.phase() == ConstructionOrder.Phase.WORKING) siteBWorkedBeforeCancel = true;
-                if (tick >= 900 && siteB.phase() == ConstructionOrder.Phase.TRANSIT && firstTurretTick >= 0
+                if (tick >= 1500 && siteB.phase() == ConstructionOrder.Phase.TRANSIT && firstTurretTick >= 0
                         && tender.current() == siteB) {
                     siteBWaitedInTransit = true;
                 }

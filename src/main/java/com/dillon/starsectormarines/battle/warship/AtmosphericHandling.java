@@ -33,9 +33,11 @@ public final class AtmosphericHandling {
      * like one: a frigate takes the better part of ten seconds to cover its own length and a capital most of a
      * minute, so a heavy ship's position changes over many seconds rather than across a frame.
      */
-    public static final float SPEED_SHARE = 0.5f;
+    public static final float SPEED_SHARE =
+            Float.parseFloat(System.getProperty("battle.warship.atmosphericSpeedShare", "0.5"));
     /** The share of the compressed turn rate a hull keeps in atmosphere. */
-    public static final float TURN_SHARE = 0.6f;
+    public static final float TURN_SHARE =
+            Float.parseFloat(System.getProperty("battle.warship.atmosphericTurnShare", "0.6"));
     /** No hull comes to its top speed, or stops from it, in less than this. */
     public static final float SPOOL_SECONDS = 6f;
     /** No hull comes to its turn rate, or out of it, in less than this. */

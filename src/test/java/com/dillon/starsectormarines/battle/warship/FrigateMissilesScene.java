@@ -33,10 +33,10 @@ import java.util.Set;
  */
 public final class FrigateMissilesScene implements BehaviorScene {
 
-    private static final int WIDTH = 80;
+    private static final int WIDTH = 110;
     private static final int HEIGHT = 68;
     private static final float WOLF_X = 16f;
-    private static final float TARGET_X = 54f;
+    private static final float TARGET_X = 86f;
     private static final float MID_Y = 34f;
     private static final int TICKS = 1500;
     private static final int FRAME_EVERY = 3;
@@ -69,7 +69,7 @@ public final class FrigateMissilesScene implements BehaviorScene {
         SceneBuilder builder = SceneBuilder.openGround(WIDTH, HEIGHT).missionCompletion(false);
         // One unarmed bystander a side keeps the battle ticking; the ships are the subject.
         builder.squad("west-ground").faction(Faction.MARINE).size(4).at(4, 62).unarmed().stationary().done();
-        builder.squad("east-ground").faction(Faction.DEFENDER).size(4).at(76, 62).unarmed().stationary().done();
+        builder.squad("east-ground").faction(Faction.DEFENDER).size(4).at(106, 62).unarmed().stationary().done();
         SceneWorld world = builder.build();
         BattleSimulation sim = world.sim();
         sim.random().setSeed(20261016L);

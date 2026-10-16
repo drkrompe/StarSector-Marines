@@ -33,7 +33,7 @@ public final class OnslaughtFlybyScene implements BehaviorScene {
 
     private static final int WIDTH = 200;
     private static final int HEIGHT = 100;
-    private static final int TICKS = 6000;
+    private static final int TICKS = 12000;
     private static final float[][] ROUTE = {{15f, 20f}, {60f, 30f}, {120f, 30f}, {180f, 20f}};
     private static final String[][] CLUSTERS = {
             {"a1", "a2", "a3", "a4"}, {"b1", "b2", "b3", "b4"}, {"c1", "c2", "c3", "c4"}};

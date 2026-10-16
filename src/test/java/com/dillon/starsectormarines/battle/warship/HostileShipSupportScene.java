@@ -67,7 +67,7 @@ public final class HostileShipSupportScene implements BehaviorScene {
 
     private static final int WIDTH = 160;
     private static final int HEIGHT = 90;
-    private static final int TICKS = 7200;
+    private static final int TICKS = 10800;
     private static final int KEEP_X = 111;
     private static final int KEEP_Y = 45;
     private static final String CARBINE = "weapon.smg";

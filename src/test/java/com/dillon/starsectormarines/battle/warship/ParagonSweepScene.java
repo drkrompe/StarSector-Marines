@@ -36,7 +36,7 @@ public final class ParagonSweepScene implements BehaviorScene {
     private static final int WIDTH = 120;
     private static final int HEIGHT = 90;
     private static final int TICKS = 600;
-    private static final float SHIP_X = 24f;
+    private static final float SHIP_X = 10f;
     private static final float SHIP_Y = 45f;
     private static final float AREA_X = 66f;
     private static final float AREA_Y = 45f;

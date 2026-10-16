@@ -49,11 +49,11 @@ public final class ShipEscortScene implements BehaviorScene {
 
     private static final int WIDTH = 200;
     /** Tall enough for a screen a capital's half-length and an escort's out on either beam. */
-    private static final int HEIGHT = 110;
+    private static final int HEIGHT = 160;
     private static final int TICKS = 2400;
-    private static final int AUTO_TICKS = 900;
+    private static final int AUTO_TICKS = 1800;
     private static final float LEAD_X = 110f;
-    private static final float LEAD_Y = 55f;
+    private static final float LEAD_Y = 80f;
     private static final float ESCORT_HOME_X = 70f;
     private static final float ESCORT_HOME_Y = 20f;
     private static final float LEAD_STAY_SECONDS = 25f;

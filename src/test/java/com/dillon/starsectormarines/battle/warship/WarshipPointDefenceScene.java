@@ -51,7 +51,7 @@ public final class WarshipPointDefenceScene implements BehaviorScene {
      * An Onslaught carries its point defence in its bow, about this far ahead of its centre at the hull's size, so the
      * friendly ship hangs south of the marines with its bow over them.
      */
-    private static final float BOW_PD_CELLS = 14f;
+    private static final float BOW_PD_CELLS = 7f * WarshipScale.HULL_PRESENCE;
 
     private float controlLandedShare = 1f;
 

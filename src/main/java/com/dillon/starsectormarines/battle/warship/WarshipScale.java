@@ -38,8 +38,11 @@ public final class WarshipScale {
 
     /** The reach, in cells, of a gun firing at a hull: the game's range at the hull's drawn scale, shortened. */
     public static float hullReach(float rangeGameUnits) {
-        return cells(rangeGameUnits) * HULL_PRESENCE * HULL_REACH_SHARE;
+        return cells(rangeGameUnits) * HULL_REACH_MULTIPLIER;
     }
+
+    /** {@link #hullReach} over {@link #cells}: the range multiplier a gun firing at a hull reaches by. */
+    public static final float HULL_REACH_MULTIPLIER = HULL_PRESENCE * HULL_REACH_SHARE;
 
     /** Game units to cells, for reach, blasts and speeds. */
     public static float cells(float gameUnits) {

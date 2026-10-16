@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.warship.WarshipScale;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 
@@ -37,7 +38,7 @@ import java.util.Map;
 public final class TenderSortieScene implements BehaviorScene {
 
     private static final int WIDTH = 140;
-    private static final int HEIGHT = 80;
+    private static final int HEIGHT = 100;
     private static final float START_X = 30f;
     private static final float START_Y = 40f;
     private static final String CARBINE = "weapon.smg";
@@ -83,7 +84,7 @@ public final class TenderSortieScene implements BehaviorScene {
             builder.squad("raid").faction(Faction.DEFENDER).size(1).at(62, 38).primary(CARBINE)
                     .assigned(id -> ObjectiveAssignment.attackMove(id, (int) START_X, (int) START_Y)).done();
             // Beyond the leash and the reach beyond it: nothing the wing should go after.
-            builder.unit("bystander", Faction.DEFENDER, UnitType.MARINE, 30, 79);
+            builder.unit("bystander", Faction.DEFENDER, UnitType.MARINE, 30, 86);
         }
         builder.unit("far-enemy", Faction.DEFENDER, UnitType.MARINE, 135, 75);
         builder.unit("far-friend", Faction.MARINE, UnitType.MARINE, 3, 3);
@@ -120,7 +121,10 @@ public final class TenderSortieScene implements BehaviorScene {
         Trace t = run.trace();
         Tender tender = run.tender();
         List<Verdict> verdicts = new ArrayList<>();
-        float leashSlack = TenderFlight.LEASH_CELLS + 4f;
+        float leashSlack = tender.leashCells() + 4f;
+        // The ring clears the hull it screens (EscortFormation), so it is wider by however much longer the hull is
+        // drawn than at the twofold presence these bounds were first read at.
+        float grown = 0.5f * tender.ship().lengthCells * (1f - 2f / WarshipScale.HULL_PRESENCE);
         switch (loop) {
             case "sortie" -> {
                 verdicts.add(Verdict.of("launches-are-staggered",
@@ -131,9 +135,9 @@ public final class TenderSortieScene implements BehaviorScene {
                                 + "leaving it (the exit point is %.0f out)", t.minFlyOut(), SortieFlight.EXIT_CELLS)));
                 verdicts.add(Verdict.of("escort-stays-within-the-leash", t.maxHullDistance <= leashSlack,
                         String.format(Locale.ROOT, "furthest %.1f cells from a hull that moved %.0f cells, leash %.0f",
-                                t.maxHullDistance, t.hullTravel(), TenderFlight.LEASH_CELLS)));
+                                t.maxHullDistance, t.hullTravel(), tender.leashCells())));
                 verdicts.add(Verdict.of("escort-rides-a-ring-round-the-hull",
-                        t.settledSamples > 100 && t.meanHullDistance() >= 2.5f && t.meanHullDistance() <= 10f,
+                        t.settledSamples > 100 && t.meanHullDistance() >= 2.5f && t.meanHullDistance() <= 10f + grown,
                         String.format(Locale.ROOT, "mean %.1f cells from the hull over %d settled samples",
                                 t.meanHullDistance(), t.settledSamples)));
                 verdicts.add(Verdict.of("drones-do-not-stack", t.minPair >= 0.6f,
@@ -159,13 +163,13 @@ public final class TenderSortieScene implements BehaviorScene {
                                 100f * t.focusShare(), t.targetSamples)));
                 verdicts.add(Verdict.of("escort-stays-within-the-leash", t.maxHullDistance <= leashSlack,
                         String.format(Locale.ROOT, "furthest %.1f cells from the hull, leash %.0f", t.maxHullDistance,
-                                TenderFlight.LEASH_CELLS)));
+                                tender.leashCells())));
                 verdicts.add(Verdict.of("the-wing-does-not-chase-past-the-leash", t.bystanderUnharmed(),
-                        "bystander 39 cells off, hit points " + t.bystanderHp()));
+                        "bystander 46 cells off, hit points " + t.bystanderHp()));
                 verdicts.add(Verdict.of("drones-do-not-stack", t.minPair >= 0.5f,
                         String.format(Locale.ROOT, "closest pair %.2f cells at tick %d", t.minPair, t.minPairTick)));
                 verdicts.add(Verdict.of("the-wing-breaks-off-and-returns-to-the-ring",
-                        t.threatSeen >= 0 && t.endHullDistance <= 11f,
+                        t.threatSeen >= 0 && t.endHullDistance <= 11f + grown,
                         String.format(Locale.ROOT, "threat first seen at tick %d, the wing ends %.1f cells out at its furthest drone %s",
                                 t.threatSeen, t.endHullDistance, t.endState)));
             }
@@ -412,11 +416,13 @@ public final class TenderSortieScene implements BehaviorScene {
         }
 
         boolean bystanderUnharmed() {
+            if (world.sim().resolveUnit(unit("bystander")) == 0L) return false;
             return bystanderHp() >= bystanderMax();
         }
 
         float bystanderHp() {
-            return world.sim().world().hp(unit("bystander"));
+            long id = unit("bystander");
+            return world.sim().resolveUnit(id) == 0L ? 0f : world.sim().world().hp(id);
         }
 
         private float bystanderMax() {

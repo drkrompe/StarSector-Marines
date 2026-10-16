@@ -761,7 +761,9 @@ public final class WarshipSystem {
         float sx = origin != null ? origin[0] : ship.hasStation() ? ship.stationX() : ship.x;
         float sy = origin != null ? origin[1] : ship.hasStation() ? ship.stationY() : ship.y;
         boolean moved = false;
-        float clear = standoffClearance(marginScale, ship.lengthCells);
+        // The station is where the hull's pivot hovers; its bow or stern may sit a pivot's offset further out.
+        float clear = standoffClearance(marginScale,
+                ship.lengthCells + 2f * (float) Math.hypot(ship.pivotX, ship.pivotY));
         List<CapitalHazard> all = new ArrayList<>();
         if (declared) all.addAll(hazards);
         if (batteries) all.addAll(batteryEnvelopes.values());
@@ -1546,8 +1548,6 @@ public final class WarshipSystem {
         // Venting: the barrel stays on its choice and waits for the pool to drain.
         float cost = w.fluxPerShot() * w.burstSize();
         if (!ship.fluxPool().canStart(cost)) return;
-        if (w.missile() && !ship.missileVolleyReady()) return;
-        if (w.missile()) ship.missileVolleyStarted();
         ship.fluxPool().spend(cost);
         m.burstRemaining = w.burstSize();
         m.burstTimer = 0f;

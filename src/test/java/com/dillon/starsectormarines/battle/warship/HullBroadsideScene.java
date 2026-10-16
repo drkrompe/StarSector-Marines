@@ -23,7 +23,7 @@ import java.util.Map;
 
 /**
  * Two capitals trading broadsides at a held station, for the warship armour grid ({@code warship-hull-damage.md}):
- * an Onslaught of the company's allies against a defending Onslaught, guns on each other, stations held and shields
+ * a Conquest of the company's allies against a defending Conquest, guns on each other, stations held and shields
  * held down, so the plate is the only thing between a round and the hull.
  *
  * <p>Verdicts are mechanics: rounds land on the side of a hull that faces the ship firing them; that side's plate
@@ -43,6 +43,18 @@ public final class HullBroadsideScene implements BehaviorScene {
     static final float MID_Y = 45f;
     /** Centre to centre across the line, in cells: inside the heavy guns' reach, clear of the other hull. */
     private static final float SEPARATION = 34f;
+    /**
+     * Across the line for the broadside loops: two Conquests beam to beam, clear of each other at their drawn size and
+     * inside the Mark IXs' hull reach.
+     */
+    private static final float BROADSIDE_SEPARATION = 50f;
+    /**
+     * The broadside pair is a Conquest, whose battery is on its beams, so the heading rule keeps it broadside on of its
+     * own accord; an Onslaught's heavy guns bear forward, and it turns its nose onto the target. The shield loops keep
+     * the Onslaught for its front shield.
+     */
+    private static final String BROADSIDE_HULL = "conquest";
+    private static final String BROADSIDE_VARIANT = "conquest_Standard";
     private static final String HULL = "onslaught";
     private static final String VARIANT = "onslaught_Standard";
     private static final int BROADSIDE_TICKS = 3600;
@@ -55,7 +67,7 @@ public final class HullBroadsideScene implements BehaviorScene {
     @Override public String id() { return "hull-broadside"; }
 
     @Override public String label() {
-        return "Two Onslaughts trading broadsides: hits land on the side facing the shooter, strip its plate and "
+        return "Two Conquests trading broadsides: hits land on the side facing the shooter, strip its plate and "
                 + "breach inward to the core; a front shield is asked of the side a round came from";
     }
 
@@ -92,14 +104,16 @@ public final class HullBroadsideScene implements BehaviorScene {
         Warship east;
         if (shieldLoop) {
             // The target sits east; its nose points away from the shooter (astern) or at it (ahead).
-            west = ship(Faction.ALLY, MID_X - SEPARATION * 0.5f, MID_Y, EAST, ShipFireOrder.ALL);
-            east = ship(Faction.DEFENDER, MID_X + SEPARATION * 0.5f, MID_Y,
+            west = ship(HULL, VARIANT, Faction.ALLY, MID_X - SEPARATION * 0.5f, MID_Y, EAST, ShipFireOrder.ALL);
+            east = ship(HULL, VARIANT, Faction.DEFENDER, MID_X + SEPARATION * 0.5f, MID_Y,
                     loop.equals("shield-astern") ? EAST : WEST, ShipFireOrder.OFF);
             east.raiseShield(true);
             // The shooter takes what it can bring to bear without swinging round; the target holds its heading.
         } else {
-            west = ship(Faction.ALLY, MID_X - SEPARATION * 0.5f, MID_Y, 0f, ShipFireOrder.ALL);
-            east = ship(Faction.DEFENDER, MID_X + SEPARATION * 0.5f, MID_Y, 0f, ShipFireOrder.ALL);
+            west = ship(BROADSIDE_HULL, BROADSIDE_VARIANT, Faction.ALLY, MID_X - BROADSIDE_SEPARATION * 0.5f, MID_Y, 0f,
+                    ShipFireOrder.ALL);
+            east = ship(BROADSIDE_HULL, BROADSIDE_VARIANT, Faction.DEFENDER, MID_X + BROADSIDE_SEPARATION * 0.5f, MID_Y,
+                    0f, ShipFireOrder.ALL);
             west.raiseShield(false);
             east.raiseShield(false);
         }
@@ -118,8 +132,9 @@ public final class HullBroadsideScene implements BehaviorScene {
         return new Run(trace, west, east, sim, ticks);
     }
 
-    private static Warship ship(Faction side, float x, float y, float facing, ShipFireOrder order) throws Exception {
-        Warship ship = Warship.fit(HULL, VARIANT, side, x, y, facing);
+    private static Warship ship(String hull, String variant, Faction side, float x, float y, float facing,
+                                ShipFireOrder order) throws Exception {
+        Warship ship = Warship.fit(hull, variant, side, x, y, facing);
         ship.stationTo(x, y);
         ship.limitFlux();
         ship.shipFire(order);
