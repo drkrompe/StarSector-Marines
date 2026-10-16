@@ -29,6 +29,12 @@ public final class CampaignMech implements Serializable {
     private String platingId;
     private String heatSinkId;
     private String coolerId;
+    // Absent in saves from before section damage: null damage and a zero clock read as a whole,
+    // ready mech, so an existing save needs no rewrite.
+    /** What the last battle left needing repair; null when whole or once a repair is ordered. */
+    private MechDamage damage;
+    /** Campaign day an ordered repair finishes; the mech is in its gantry until then. */
+    private float repairUntilDay;
 
     public CampaignMech(String id, String displayName, MechVariant variant,
                         MechRole role, String missileReplenisherId) {
@@ -145,7 +151,50 @@ public final class CampaignMech implements Serializable {
 
     public MechDeploymentSpec freezeForDeployment() {
         return new MechDeploymentSpec(variant, role(), missileReplenisher(),
-                arms(), leftShoulder(), rightShoulder(), displayName, fit().frame());
+                arms(), leftShoulder(), rightShoulder(), displayName, fit().frame(), id);
+    }
+
+    /** Battle damage awaiting a repair order, or null. */
+    public MechDamage damage() {
+        return damage;
+    }
+
+    public float repairUntilDay() {
+        return repairUntilDay;
+    }
+
+    public float repairDaysRemaining(float day) {
+        return Math.max(0f, repairUntilDay - day);
+    }
+
+    /**
+     * Whether the mech can go into an armor drop on {@code day}: damaged and awaiting repair, or
+     * in its gantry under repair, it cannot.
+     */
+    public Readiness readiness(float day) {
+        if (damage != null) return Readiness.DAMAGED;
+        return repairDaysRemaining(day) > 0f ? Readiness.UNDER_REPAIR : Readiness.READY;
+    }
+
+    /** Records battle damage; a mech hit twice before repair keeps the worse of each section. */
+    void recordDamage(MechDamage taken) {
+        if (taken == null || taken.isEmpty()) return;
+        damage = MechDamage.worst(damage, taken);
+    }
+
+    /** A paid repair order: the damage is in hand and the mech is back on {@code untilDay}. */
+    void beginRepair(float untilDay) {
+        damage = null;
+        repairUntilDay = Float.isFinite(untilDay) ? untilDay : 0f;
+    }
+
+    /** Whether a mech can deploy, and if not, why. */
+    public enum Readiness {
+        READY,
+        /** Battle damage recorded and no repair ordered yet. */
+        DAMAGED,
+        /** A paid repair is still running on the campaign clock. */
+        UNDER_REPAIR
     }
 
     /** A null cooler empties the utility socket; every other role always holds a part. */

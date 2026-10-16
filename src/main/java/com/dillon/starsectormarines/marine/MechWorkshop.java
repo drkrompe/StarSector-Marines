@@ -144,6 +144,34 @@ public final class MechWorkshop {
         return new Result(Status.VEHICLE_FABRICATED, null, vehicle);
     }
 
+    /** The quoted bill and clock for repairing {@code mechId}'s battle damage, or null if whole. */
+    public RepairQuote repairQuote(String mechId) {
+        CampaignMech mech = bay.mechById(mechId);
+        MechRepairs.Estimate estimate = MechRepairs.estimate(mech);
+        if (estimate == null) return null;
+        return new RepairQuote(mechId, estimate.wear(), estimate.days(),
+                resources.quote(estimate.bill()));
+    }
+
+    /**
+     * Orders the repair of a damaged mech: the whole bill is spent, or nothing is and the
+     * damage stands. A paid order clears the damage and starts the clock; the mech stays out of
+     * drops until {@code day} plus the quoted days.
+     */
+    public Result repair(String mechId, float day) {
+        CampaignMech mech = bay.mechById(mechId);
+        if (mech == null || !Float.isFinite(day)) return Result.of(Status.INVALID);
+        RepairQuote quote = repairQuote(mechId);
+        if (quote == null) return Result.of(Status.NOT_DAMAGED);
+        if (!resources.spend(quote.bill())) return new Result(Status.INSUFFICIENT_MATERIALS, mech);
+        mech.beginRepair(day + quote.days());
+        return new Result(Status.REPAIR_STARTED, mech);
+    }
+
+    /** A repair order as the player reviews it: wear, days in the gantry and the quoted bill. */
+    public record RepairQuote(String mechId, float wear, float days, FabricationCost bill) {
+    }
+
     public enum Status {
         ALREADY_INSTALLED,
         INSTALLED_FROM_STORES,
@@ -154,6 +182,10 @@ public final class MechWorkshop {
         ALREADY_STRIPPED,
         CHASSIS_FABRICATED,
         VEHICLE_FABRICATED,
+        /** A repair order was paid; the mech is in its gantry until the clock runs out. */
+        REPAIR_STARTED,
+        /** There is no battle damage to repair. */
+        NOT_DAMAGED,
         INCOMPATIBLE,
         /** The fit would weigh more than the engine can carry. */
         OVER_BUDGET,
@@ -174,7 +206,8 @@ public final class MechWorkshop {
                     || status == Status.STRIPPED
                     || status == Status.ALREADY_STRIPPED
                     || status == Status.CHASSIS_FABRICATED
-                    || status == Status.VEHICLE_FABRICATED;
+                    || status == Status.VEHICLE_FABRICATED
+                    || status == Status.REPAIR_STARTED;
         }
     }
 }

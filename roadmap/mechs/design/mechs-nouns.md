@@ -143,7 +143,7 @@ increasing an encounter's total armored threat.
 - **A vehicle wrecked on the field is lost to the company**: settlement takes it
   off its gantry, which stands empty for a new one. Only a vehicle that landed
   and was wrecked writes back — one still aboard a carrier is not tracked as
-  landed. Mechs have no such writeback; a destroyed mech still returns.
+  landed. Mechs write back by section instead (see Section loss).
 - **Mech component inventory** is finite fleet stock. Installed weapon assemblies
   and subsystems count
   against owned quantity; a refit transaction returns the target mech's
@@ -199,10 +199,27 @@ increasing an encounter's total armored threat.
   zero costs only that section's protection, with no hidden stat penalty. Cover
   still meets a mech as one body with the flat chance until mech plans author
   cover by section. `-Dbattle.mech.locationalDamage=false` is the whole-body
-  control. The battle keeps each mech's section record (pools, what was
-  destroyed, which weapon each lost mount carried) for campaign writeback,
-  where a lost mount is a lost assembly, other damaged sections are repairs,
-  and a destroyed torso loses the chassis.
+  control. The battle keeps each owned mech's section record (pools, what was
+  destroyed, which weapon each lost mount carried); the frozen deployment
+  carries the mech's campaign identity so the record finds its way home.
+- **After the battle** settlement writes that record back. A destroyed torso
+  (or a chassis that died as one body under the control) **loses the chassis**:
+  it leaves its gantry and every part fitted to it leaves stores with it. A
+  destroyed mount **loses its weapon assembly** from stores; the mount comes
+  back empty and the pattern is kept, so the loss feeds fabrication. Every
+  other damaged section, a destroyed mount's own section included, comes back
+  as **mech damage**: the fraction of each section's structure and armor gone.
+  Settlement is idempotent: a replayed result strikes nothing twice.
+- A **repair** is ordered in the Mech Lab and is atomic: the whole bill or
+  nothing. Its size is the chassis's **wear**, each section's loss (structure
+  weighted over armor) weighted by its pool share. At full wear the bill is half
+  the chassis's own fabrication bill, the boat precedent, and the clock is a
+  few campaign days by weight class; both scale down with wear. A paid order
+  clears the damage and starts the clock.
+- A mech's **readiness** is ready, damaged (no order yet) or under repair
+  (clock running). Only a ready mech enters the armor-drop manifest; the Mech
+  Lab shows a held-back mech's reason and days left. A damaged mech never fights
+  on worn pools.
 - The **Mech Lab** is the shipboard room that selects the active mech squad,
   parks its assets across four fabrication gantries, frames one selected asset as
   a top-down hardpoint doll, and performs inventory-checked refits. Asset/lance browsing is
