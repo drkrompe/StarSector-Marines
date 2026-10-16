@@ -1053,7 +1053,7 @@ public final class FortStage implements GenStage {
         for (int[] battery : plan.airBatteries()) {
             emitStructure(ctx, TurretCatalogRegistry.AA_LOCUST_STRUCTURE_ID, at.cell(battery[0], battery[1]), tag);
         }
-        for (int[] tower : yard.closeInCells()) {
+        for (int[] tower : plan.airTowers()) {
             emitStructure(ctx, TurretCatalogRegistry.AA_SWARMER_STRUCTURE_ID, at.cell(tower[0], tower[1]), tag);
         }
         return placed;

@@ -34,17 +34,12 @@ class AirDefenceYardTest {
     }
 
     @Test
-    void theDoorIsInTheWallOnTheNearSideAndTheTowersStandOutsideAgainstItsSides() {
+    void theDoorIsInTheWallOnTheNearSide() {
         for (AirDefenceYard yard : new AirDefenceYard[]{SOUTH, NORTH}) {
             int[] floor = yard.floor();
             int[] door = yard.gapCell();
             assertFalse(inside(floor, door[0], door[1]), "the door is in the ring, not on the floor");
             assertEquals(1, Math.abs(door[1] - (yard.gapDy() > 0 ? floor[1] + floor[3] - 1 : floor[1])), "one step outside the floor");
-            for (int[] tower : yard.closeInCells()) {
-                assertFalse(inside(floor, tower[0], tower[1]), "the tower is outside the room");
-                assertEquals(AirDefenceYard.HALF_WIDTH + 3, Math.abs(tower[0] - yard.centreX()), "the 3x3 stands against the side wall ring");
-                assertEquals(yard.centreY(), tower[1], "level with the room's middle");
-            }
         }
     }
 
