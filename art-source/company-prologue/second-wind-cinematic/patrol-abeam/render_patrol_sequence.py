@@ -133,11 +133,12 @@ def plan_and_launch(argv):
     opts = _args(argv)
     p = plan(opts)
     OUT.mkdir(parents=True, exist_ok=True)
-    (OUT / "plan.json").write_text(json.dumps(p), encoding="utf-8")
+    plan_path = OUT / ("plan.json" if not p["only"] else "plan-%s.json" % p["only"].replace(":", "-"))
+    plan_path.write_text(json.dumps(p), encoding="utf-8")
     print("C2 Legion: %d frames, model %s, key %s" % (p["frames"], p["blend"], p["key"]))
     started = time.time()
     subprocess.run([str(BLENDER), "--background", "--factory-startup", "--python-exit-code", "1",
-                    "--python", str(Path(__file__).resolve()), "--", "--plan", str(OUT / "plan.json")], check=True)
+                    "--python", str(Path(__file__).resolve()), "--", "--plan", str(plan_path)], check=True)
     print("Rendered in %.0fs" % (time.time() - started))
 
 
@@ -370,7 +371,8 @@ def blender_main(argv):
     if plan_.get("only"):
         a, b = plan_["only"].split(":")
         lo_i, hi_i = int(a), int(b)
-    meta_path = out / "meta.json"
+    # Ranges may render side by side (GPU and CPU); each keeps its own meta file.
+    meta_path = out / ("meta.json" if not plan_.get("only") else "meta-%s.json" % plan_["only"].replace(":", "-"))
     done = set()
     if plan_.get("resume") and meta_path.exists():
         prev = json.loads(meta_path.read_text(encoding="utf-8"))

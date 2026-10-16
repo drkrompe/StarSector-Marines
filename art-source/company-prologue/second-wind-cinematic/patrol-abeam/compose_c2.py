@@ -59,16 +59,30 @@ def duration():
 
 @lru_cache(maxsize=1)
 def _hail():
-    """[(line, start, end)] on the absolute hail clock, from the catalog and the treated clips."""
+    """[(line, start, end)] on the absolute hail clock, from the catalog and the treated clips.
+
+    Line 9 is Castle closing the channel and speaking to the room: it starts
+    OFF_CHANNEL_GAP after line 8 ends (c2-layout.md, *Entry transition*). The preview
+    timeline applies that gap to the catalog's last line, which is now C4's Nessa memory,
+    so line 9 is placed here by the rule rather than read from it."""
     import c1_overlay
-    return [(line, start, end) for line, start, end, _, _ in c1_overlay.hail_lines()]
+    import build_hail_preview as hail
+    out = [(line, start, end) for line, start, end, _, _ in c1_overlay.hail_lines()]
+    for i, (line, start, end) in enumerate(out):
+        if line["id"] == "jangala_arrival_hail_09" and i > 0:
+            begin = out[i - 1][2] + hail.OFF_CHANNEL_GAP
+            out[i] = (line, begin, begin + (end - start))
+    return out
+
+
+SPEAKER_IDS = {"Jangala Approach": "approach", "Castle": "castle"}   # runtime-contract speaker ids
 
 
 def captions_between(t0, t1):
     """(t_in, t_out, speaker_id, text) for every hail line starting in [t0, t1) on the hail
     clock, shot-relative. Paging, reading tail and speaker ids are C1's (c1_overlay):
     a line is split at sentences into pages of at most two rows, each held for its share
-    of the take; speaker_id is the catalog speaker, which the player maps to C1's tags."""
+    of the take; speaker_id is the contract's id ('approach' or 'castle')."""
     import c1_overlay
     out = []
     lines = _hail()
@@ -77,7 +91,17 @@ def captions_between(t0, t1):
             continue
         nxt = lines[i + 1][1] if i + 1 < len(lines) else math.inf
         release = min(end + c1_overlay.TAIL, nxt - 0.05, t1)
-        pages = c1_overlay.chunks(line["text"])
+        pages = []
+        for page in c1_overlay.chunks(line["text"]):        # a measured sentence start splits a page
+            for key in SENTENCE_STARTS:
+                lead = " ".join(eval(key))
+                if lead in page and not page.startswith(lead):
+                    head, tail = page.split(lead, 1)
+                    page = None
+                    pages += [head.strip(), lead + tail]
+                    break
+            if page is not None:
+                pages.append(page)
         weights = [len(p) + 6 for p in pages]
         acc = start
         for k, (text, w) in enumerate(zip(pages, weights)):
@@ -85,7 +109,7 @@ def captions_between(t0, t1):
             if k + 1 < len(pages):           # a measured sentence start beats the proportional share
                 t_out = SENTENCE_STARTS.get(pages[k + 1].split()[0:3].__str__(), t_out)
             out.append((round(acc - t0, 3), round(release - t0 if k == len(pages) - 1 else t_out - t0, 3),
-                        line["speaker"], text))
+                        SPEAKER_IDS[line["speaker"]], text))
             acc = t_out
     return out
 
@@ -104,16 +128,19 @@ def overlays():
 
 
 def audio_cues():
-    """(t, sound_id, volume[, until]), shot-relative. Lines 7 and 8 at their hail-clock
-    starts; the cabin bed under the whole shot (C3's loop, reused by every window shot).
-    The hail's squelch bursts are synthesised by build_hail_preview.py and have no mod
-    sound yet, so they are in the review mix only."""
-    starts = {line["id"]: start for line, start, _ in _hail()}
-    return [
-        (0.0, "jangala_arrival_cabin_bed", 0.55, DURATION),
-        (round(starts["jangala_arrival_hail_07"] - C.C2_START, 3), "jangala_arrival_hail_07", 1.0),
-        (round(starts["jangala_arrival_hail_08"] - C.C2_START, 3), "jangala_arrival_hail_08", 1.0),
-    ]
+    """[{t, sound, volume}] in shot time. Approach keys up and down around line 7 (the
+    squelch is part of the radio, C1's sounds); line 8 is Castle on the open channel. No
+    bed: C1's cabin bed runs under the whole hail, through C2 and the entry."""
+    import build_hail_preview as hail
+    lines = json.loads(hail.CATALOG.read_text(encoding="utf-8"))["lines"]
+    _, squelch, _ = hail.timeline(lines)
+    t0, t1 = C.C2_START, C.ENTRY_START
+    starts = [start for _, start, _ in _hail()]
+    cues = [{"t": round(t - t0, 3), "sound": "jangala_squelch_" + kind, "volume": 1.0}
+            for kind, t in squelch if t0 <= t < t1]
+    cues += [{"t": round(start - t0, 3), "sound": line["id"], "volume": 1.0}
+             for line, start in zip(lines, starts) if t0 <= start < t1]
+    return sorted(cues, key=lambda c: (c["t"], c["sound"]))
 
 
 def check_hail():
@@ -231,7 +258,7 @@ def burn_captions(img, t, caps):
             a = c1_overlay._window(t, t_in, t_out, 0.14, 0.2)
             panel, pad = c1_overlay._field()
             ui.blend(frame, panel, W / 2 - panel.width / 2, c1_overlay.CAPTION_TOP - 14 - pad, a * 0.9)
-            tag = c1_overlay._tag_patch(speaker)
+            tag = c1_overlay._tag_patch({v: k for k, v in SPEAKER_IDS.items()}.get(speaker, speaker))
             ui.blend(frame, tag, W / 2 - tag.width / 2, c1_overlay.CAPTION_TOP, a)
             cap = c1_overlay._caption_patch(text)
             ui.blend(frame, cap, W / 2 - cap.width / 2, c1_overlay.CAPTION_TOP + 30, a)
@@ -251,20 +278,42 @@ def contact_sheet(frames_dir, n_frames, out, cols=6, rows=5, label=""):
     sheet.save(out)
 
 
-def review_movie(frames_dir, n_frames, caps, audio_from, length, movie):
-    """mp4 for review: frames with captions burnt in, and the hail mix cut at the shot's clock."""
-    import build_hail_preview as hail
-    audio = ROOT / "build" / "audio-previews" / "jangala-hail" / "cabin.mp3"
-    if not audio.exists():
-        hail.main()
+def review_audio(cues, length, out, bed_from=None):
+    """The shot's own cues mixed for review (the player mixes the same cues at runtime), over
+    C1's cabin bed, which runs under the whole hail, from hail-clock second `bed_from`."""
+    sounds = ROOT / "mod" / "sounds" / "story" / "jangala-arrival"
+    inputs, graph, labels = [], [], []
+    for k, c in enumerate(cues):
+        inputs += ["-i", str(sounds / (c["sound"] + ".ogg"))]
+        graph.append("[%d:a]aformat=sample_rates=44100:channel_layouts=stereo,volume=%.3f,adelay=%d:all=1[c%d]"
+                     % (k, c["volume"], round(c["t"] * 1000), k))
+        labels.append("[c%d]" % k)
+    if bed_from is not None and (sounds / "jangala_cabin_bed.ogg").exists():
+        import build_hail_preview as hail
+        n = len(cues)
+        loop = hail.duration(sounds / "jangala_cabin_bed.ogg")
+        inputs += ["-stream_loop", "-1", "-i", str(sounds / "jangala_cabin_bed.ogg")]
+        graph.append("[%d:a]aformat=sample_rates=44100:channel_layouts=stereo,atrim=start=%.3f,asetpts=PTS-STARTPTS[b]"
+                     % (n, bed_from % loop))
+        labels.append("[b]")
+    graph.append("%samix=inputs=%d:normalize=0:duration=longest,atrim=0:%.3f,alimiter=limit=0.9[out]"
+                 % ("".join(labels), len(labels), length))
+    subprocess.run(["ffmpeg", "-hide_banner", "-v", "error", "-y", *inputs, "-filter_complex", ";".join(graph),
+                    "-map", "[out]", "-c:a", "aac", "-b:a", "160k", str(out)], check=True)
+
+
+def review_movie(frames_dir, n_frames, caps, cues, length, movie, bed_from=None):
+    """mp4 for review: frames with captions burnt in, and the shot's cues mixed."""
     with tempfile.TemporaryDirectory() as tmp:
+        audio = Path(tmp) / "mix.m4a"
+        review_audio(cues, length, audio, bed_from)
         for i in range(n_frames):
             im = Image.open(frames_dir / ("%05d.png" % i)).convert("RGB")
             burn_captions(im, i / FPS, caps).save(Path(tmp) / ("%05d.png" % i), compress_level=1)
         subprocess.run(["ffmpeg", "-hide_banner", "-v", "error", "-y", "-framerate", str(FPS),
-                        "-i", str(Path(tmp) / "%05d.png"), "-ss", "%.3f" % audio_from, "-t", "%.3f" % length,
-                        "-i", str(audio), "-map", "0:v", "-map", "1:a", "-c:v", "libx264", "-crf", "17",
-                        "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-shortest", str(movie)], check=True)
+                        "-i", str(Path(tmp) / "%05d.png"), "-i", str(audio), "-map", "0:v", "-map", "1:a",
+                        "-c:v", "libx264", "-crf", "17", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k",
+                        "-shortest", str(movie)], check=True)
 
 
 def write_frames(fn, n, frames_dir, workers):
@@ -289,8 +338,8 @@ def main():
     args = parser.parse_args()
     check_hail()
     n = round(DURATION * FPS)
-    meta = json.loads((LEGION / "meta.json").read_text(encoding="utf-8"))
-    missing = [i for i in range(n) if i not in set(meta.get("rendered", []))]
+    meta = json.loads(sorted(LEGION.glob("meta*.json"))[0].read_text(encoding="utf-8"))
+    missing = [i for i in range(n) if not (LEGION / ("f_%05d.png" % i)).exists()]
     if missing:
         print("WARNING: Legion frames missing (%d), e.g. %s; run render_patrol_sequence.py" % (len(missing), missing[:5]))
     (BASE / "review").mkdir(exist_ok=True)
@@ -308,7 +357,7 @@ def main():
         "legion": {"blend": meta.get("blend"), "key": meta.get("key"), "samples": meta.get("samples")}}, indent=1),
         encoding="utf-8")
     contact_sheet(OUT / "frames", n, OUT / "contact-sheet.png", label="C2")
-    review_movie(OUT / "frames", n, caps, C.C2_START, DURATION, OUT / (SHOT + ".mp4"))
+    review_movie(OUT / "frames", n, caps, audio_cues(), DURATION, OUT / (SHOT + ".mp4"), bed_from=C.C2_START)
     print("Wrote", (OUT / (SHOT + ".mp4")).relative_to(ROOT))
 
 

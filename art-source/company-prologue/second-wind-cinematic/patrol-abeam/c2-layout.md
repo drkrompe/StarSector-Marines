@@ -274,9 +274,13 @@ Production decisions that supersede the plan above:
 - **The entry ends on C3's frame 0** (C3's cabin at 9 degrees around flat entry white,
   per the C3 hand-off). The 19.29-to-9-degree change happens under a bloom to white
   at 2.72 s.
-- **Audio cues.** C2: cabin bed, lines 7 and 8. Entry: cabin bed, wind from 0.35 s,
-  line 9. The hail's squelch bursts have no mod sound yet (they exist only in the
-  preview mix).
+- **Audio cues** (player dicts). C2: squelch open, line 7, squelch close, line 8.
+  Entry: line 9 at 0.16 s (no squelch), wind from 0.35 s. Neither adds a bed: C1's
+  cabin bed runs under the whole hail. Line 9 is placed by its own rule, 1.4 s after
+  line 8 ends. `build_hail_preview.timeline()` now gives that gap to the catalog's last
+  line, C4's Nessa memory.
+- **Packaging.** `cinematic_export.py --shot c2` / `--shot entry` writes
+  `mod/cinematic/jangala-arrival/{c2,entry}.mp4` and their timelines.
 
 ## Owner decisions (2026-10-16)
 

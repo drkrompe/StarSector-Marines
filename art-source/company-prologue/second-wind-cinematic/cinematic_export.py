@@ -38,6 +38,8 @@ Shot = namedtuple("Shot", "folder module output crf", defaults=(None,))
 # In play order; the player reads the same order from sequence.json.
 SHOTS = {
     "c1": Shot("corvus-approach", "compose_c1", "c1-corvus"),
+    "c2": Shot("patrol-abeam", "compose_c2", "c2-patrol"),
+    "entry": Shot("patrol-abeam", "compose_entry", "entry"),
     # C3 is film-grain heavy: crf 25 costs 1.1 MB/s there against 0.4 for C1, so it takes 28 (8 MB).
     "c3": Shot("first-open-sky", "compose_c3", "c3-first-open-sky", 28),
     "c4": Shot("road-and-port", "compose_c4", "c4-road-and-port"),

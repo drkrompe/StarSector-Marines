@@ -67,12 +67,14 @@ def overlays():
 
 
 def audio_cues():
-    """Line 9 off channel (no squelch), the cabin bed, and the wind C3 continues."""
+    """Line 9, off channel (no squelch: the missing key-up is how the ear knows Castle has
+    closed the channel), and the wind rising with the heat, which C3 carries on. No bed:
+    C1's cabin bed runs through the entry."""
     starts = {line["id"]: start for line, start, _ in K._hail()}
     return [
-        (0.0, "jangala_arrival_cabin_bed", 0.55, DURATION),
-        (0.35, "jangala_arrival_wind", 0.45),
-        (round(starts["jangala_arrival_hail_09"] - C.ENTRY_START, 3), "jangala_arrival_hail_09", 1.0),
+        {"t": round(starts["jangala_arrival_hail_09"] - C.ENTRY_START, 3), "sound": "jangala_arrival_hail_09",
+         "volume": 1.0},
+        {"t": 0.35, "sound": "jangala_arrival_wind", "volume": 0.45},
     ]
 
 
@@ -232,7 +234,7 @@ def main():
         "captions": caps, "overlays": overlays(), "audio_cues": audio_cues(),
         "last_frame_vs_c3_frame0_mean_abs_8bit": round(seam, 3)}, indent=1), encoding="utf-8")
     K.contact_sheet(OUT / "frames", n, OUT / "contact-sheet.png", cols=6, rows=4, label="ENTRY")
-    K.review_movie(OUT / "frames", n, caps, C.ENTRY_START, DURATION, OUT / (SHOT + ".mp4"))
+    K.review_movie(OUT / "frames", n, caps, audio_cues(), DURATION, OUT / (SHOT + ".mp4"), bed_from=C.ENTRY_START)
     print("Entry: last frame vs C3 frame 0, mean |diff| %.2f / 255" % seam)
 
 
