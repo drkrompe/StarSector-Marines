@@ -1,5 +1,5 @@
 SECOND WIND - JANGALA SURFACE ARRIVAL STORYBOARD
-Status: DRAFT for discussion. Surface yard and crew-window approach requested by
+Status: SUPERSEDED by storyboard-v3.md (image-first rebuild). Was: DRAFT for discussion. Surface yard and crew-window approach requested by
 the user. Expanded from the short landing study; no new scenes or audio produced.
 Updated: 2026-10-15
 
