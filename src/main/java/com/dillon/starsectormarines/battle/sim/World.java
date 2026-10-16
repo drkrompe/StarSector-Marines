@@ -376,6 +376,16 @@ public final class World {
         if (entityWorld.has(id, components.MECH_LAYERED_ANIMATION)) {
             entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
                     BattleComponents.MECH_LAYERED_CHASSIS, loadout.variant.chassisAppearance);
+        }
+        refreshMechMountAppearance(id, loadout);
+    }
+    /**
+     * Re-authors the layered appearance's mount selectors from the loadout's live mounts, so a
+     * mount destroyed in battle ({@code MechLoadoutComponent.destroyMount}) drops its layer from
+     * the drawn chassis. Serial-only, like every other appearance-column write.
+     */
+    public void refreshMechMountAppearance(long id, MechLoadoutComponent loadout) {
+        if (entityWorld.has(id, components.MECH_LAYERED_ANIMATION)) {
             entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
                     BattleComponents.MECH_LAYERED_ARMS,
                     loadout.appearanceSelector(MechMountSlot.ARMS));

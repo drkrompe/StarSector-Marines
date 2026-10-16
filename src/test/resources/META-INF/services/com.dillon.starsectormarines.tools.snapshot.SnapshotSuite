@@ -202,4 +202,5 @@ com.dillon.starsectormarines.ops.TermsOfProtectionSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.bsp.DefencePostSnapshotSuite
 com.dillon.starsectormarines.battle.setup.GreyhookDuelSceneSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechLocationalDamageSceneSnapshotSuite
+com.dillon.starsectormarines.battle.mech.MechHullDownSceneSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.FireSupportApcSceneSnapshotSuite

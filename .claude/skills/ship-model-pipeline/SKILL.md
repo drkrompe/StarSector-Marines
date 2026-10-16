@@ -301,3 +301,6 @@ forking them. Each state exports one appendable Blender collection
   local `main`, then clean up. Never push.
 - A sibling session's report is a claim: look at its renders and diff before
   telling the owner it is done.
+- Keep `art-source/company-prologue/ship-model-status.md` current: when a
+  pass merges (or goes to the owner for review), update that asset's row in
+  the same commit. A new hull adds its row when its blockout starts.

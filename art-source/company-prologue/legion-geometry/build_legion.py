@@ -85,7 +85,7 @@ NON_HABITABLE_BUDGET = {  # share of the pressure hull, judged; the hangar share
 }
 PRESSURE_HULL = ['Hull fore body', 'Hull aft body', 'Hull ventral keel', 'Hull dorsal spine', 'Hull tail spine', 'Bridge command dome',
                  'Wing port sponson', 'Wing starboard sponson'] + [
-    f'Flight deck WS 01{i} hangar' for i in range(4)]
+    f'Wing {s} hangar' for s in ('port', 'starboard')]
 MACHINERY = ['Hull engine block', 'Hull port engine housing', 'Hull starboard engine housing']
 
 parser = argparse.ArgumentParser()

@@ -17,7 +17,7 @@ import java.util.Map;
 
 /**
  * How long a mech lasts once it is under fire: for every mech that takes the field, the tick it
- * was first damaged, the ticks its sections went ({@code mech-locational-damage.md}) and the tick
+ * was first damaged, the ticks its sections went ({@code mechs-nouns.md}) and the tick
  * it died. Time-to-kill is death less first damage. A reading, never asserted: run the same
  * fixture with {@code -Dbattle.mech.locationalDamage=false} for the whole-body control.
  */

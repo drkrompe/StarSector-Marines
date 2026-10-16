@@ -80,4 +80,5 @@ com.dillon.starsectormarines.battle.setup.GreyhookDuelScene
 com.dillon.starsectormarines.battle.warship.HullDurabilityScene
 com.dillon.starsectormarines.battle.warship.WarshipTacticsScene
 com.dillon.starsectormarines.battle.mech.MechLocationalDamageScene
+com.dillon.starsectormarines.battle.mech.MechHullDownScene
 com.dillon.starsectormarines.battle.vehicle.FireSupportApcScene

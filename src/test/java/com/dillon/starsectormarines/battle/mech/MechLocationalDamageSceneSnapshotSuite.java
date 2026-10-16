@@ -2,14 +2,16 @@ package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.scene.BehaviorSceneSnapshotSuite;
 
-import java.util.Arrays;
+import java.util.stream.IntStream;
 
 /**
  * {@link MechLocationalDamageScene} recorded at 1920x1080, 100% scale, from the same play the
  * verdicts are read from: the Hound walking in, losing its pod, crippled at the legs, firing where
  * it stands, and the torso kill. The arena is forty-eight cells across, so the whole map is already
- * close. Stills are the walk-in (pod still fitted) and the first frames at or after the pod loss, the leg loss, the
- * first crippled shot and the death.
+ * close. Stills are the walk-in (pod still fitted), the first frames at or after the pod loss, the
+ * leg loss, the first crippled shot and the death, the frame after each section loss (its burst),
+ * and the midpoints between those moments: the pod's dropped layer and smouldering stump, and a
+ * crippled Hound smoking at the legs.
  */
 public final class MechLocationalDamageSceneSnapshotSuite extends BehaviorSceneSnapshotSuite {
 
@@ -43,14 +45,26 @@ public final class MechLocationalDamageSceneSnapshotSuite extends BehaviorSceneS
     @Override
     protected int[] stillFrames(String loopId) {
         int[] ticks = scene.keyTicks();
-        int[] frames = new int[ticks.length + 1];
+        IntStream.Builder frames = IntStream.builder();
         // Frame 1 rather than 0: the first frame precedes the first tick, before any body is drawn.
-        frames[0] = 1;
-        for (int i = 0; i < ticks.length; i++) {
-            frames[i + 1] = ticks[i] < 0 ? -1
-                    : (ticks[i] + MechLocationalDamageScene.FRAME_EVERY_TICKS - 1)
-                            / MechLocationalDamageScene.FRAME_EVERY_TICKS;
+        frames.add(1);
+        for (int tick : ticks) frames.add(frameAt(tick));
+        // Between key moments, where no fresh impact hides the chassis: the pod's empty mount and
+        // its smouldering stump between pod and leg loss, and the leg smoke between the first
+        // crippled shot and the kill. Each loss also gets the frame after it, for its burst.
+        for (int i = 0; i + 1 < ticks.length; i++) {
+            if (ticks[i] < 0 || ticks[i + 1] < 0) continue;
+            frames.add(frameAt((ticks[i] + ticks[i + 1]) / 2));
         }
-        return Arrays.stream(frames).distinct().toArray();
+        for (int i = 0; i < Math.min(2, ticks.length); i++) {
+            if (ticks[i] >= 0) frames.add(frameAt(ticks[i]) + 1);
+        }
+        return frames.build().filter(f -> f > 0).distinct().sorted().toArray();
+    }
+
+    private static int frameAt(int tick) {
+        return tick < 0 ? -1
+                : (tick + MechLocationalDamageScene.FRAME_EVERY_TICKS - 1)
+                        / MechLocationalDamageScene.FRAME_EVERY_TICKS;
     }
 }

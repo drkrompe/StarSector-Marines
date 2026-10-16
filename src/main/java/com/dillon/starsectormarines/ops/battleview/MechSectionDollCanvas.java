@@ -19,7 +19,7 @@ import java.util.function.Function;
  * of the torso (the chassis's left on the viewer's left), the arms mount beneath the torso and the
  * legs below. Each section shows its armor and structure as two bars and its state as a colour:
  * intact, armor worn, structure damaged, or destroyed (dark and crossed out). A mount the chassis
- * was deployed without is drawn as an empty outline. See {@code mech-locational-damage.md}.
+ * was deployed without is drawn as an empty outline. See {@code mechs-nouns.md}.
  *
  * <p>Reads a mutable {@link View} the host refreshes in place, so a frame allocates nothing.
  */

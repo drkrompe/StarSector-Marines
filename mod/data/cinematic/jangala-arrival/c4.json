@@ -1,0 +1,53 @@
+{
+ "id": "c4",
+ "video": "cinematic/jangala-arrival/c4.mp4",
+ "fps": 24,
+ "width": 1920,
+ "height": 1080,
+ "frames": 441,
+ "duration": 18.375,
+ "captions": [
+  {
+   "t_in": 1.26,
+   "t_out": 6.37,
+   "speaker": "castle",
+   "text": "Nessa Venn. We ran ore together before she settled into the yards on Jangala."
+  },
+  {
+   "t_in": 6.48,
+   "t_out": 13.47,
+   "speaker": "castle",
+   "text": "Once spent three days towing my dead freighter home and swore she'd cut me loose at every buoy. Never did."
+  },
+  {
+   "t_in": 13.56,
+   "t_out": 17.11,
+   "speaker": "castle",
+   "text": "She'll have opinions about this ship. Let me talk first."
+  }
+ ],
+ "overlays": [],
+ "cues": [
+  {
+   "t": 0.0,
+   "sound": "jangala_arrival_cabin_bed",
+   "volume": 0.25,
+   "until": 18.375
+  },
+  {
+   "t": 1.0,
+   "sound": "jangala_arrival_nessa",
+   "volume": 1.0
+  }
+ ],
+ "speakers": {
+  "approach": {
+   "label": "JANGALA APPROACH",
+   "color": "hegemony"
+  },
+  "castle": {
+   "label": "CASTLE  /  SECOND WIND",
+   "color": "player"
+  }
+ }
+}
