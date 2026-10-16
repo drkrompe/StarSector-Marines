@@ -1,17 +1,19 @@
 """Select every part's faces on the clean build and render each source part alone.
 
-  blender --background --factory-startup --python render_parts.py [-- --only part,part]
+  blender --background --factory-startup --python render_parts.py [-- --group g[,g]] [--only part,part]
 
 Needs build/geom/second-wind-geometry.blend (rebuild.sh step 1: the clean
-geometry build, imported, never edited). Writes:
-  part-list.json            every part: members, face indices per object, area,
+geometry build, imported, never edited). Selection runs over every group's
+parts, so overlaps resolve the same way they will in the integrated build;
+only the named groups' parts are listed and rendered. Writes:
+  part-list/<group>.json    every part: members, face indices per object, area,
                             view extent, tile camera, texels per model unit
   guide/<part>-guide.png    the part's faces alone, square-on, base materials
                             under a uniform white world (no lamps), on BACKGROUND
   guide/<part>-mask.png     coverage
   guide/<part>-class.png    flat material class (CLASS_ID colours): what the
                             guide says is cream / oxide / gunmetal / dark
-  build/tiles/<part>-normal.png  flat world normal, for plane-wise de-lighting
+  build/<group>/tiles/<part>-normal.png  flat world normal, for plane-wise de-lighting
 Only source parts (those in a sheet) are rendered; skin_from parts reuse one.
 """
 from pathlib import Path
@@ -28,19 +30,22 @@ import parts as P
 
 argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
 ONLY = argv[argv.index('--only') + 1].split(',') if '--only' in argv else None
-GUIDE, TILES = HERE / 'guide', HERE / 'build' / 'tiles'
+GROUPS = P.group_arg(argv)
+MINE = P.parts_in(GROUPS)
+GUIDE = HERE / 'guide'
 GUIDE.mkdir(exist_ok=True)
-TILES.mkdir(parents=True, exist_ok=True)
+(HERE / 'part-list').mkdir(exist_ok=True)
 
 bpy.ops.wm.open_mainfile(filepath=str(HERE / 'build' / 'geom' / 'second-wind-geometry.blend'))
 scene = bpy.context.scene
 for ob in [o for o in scene.objects if o.type == 'LIGHT']:
     bpy.data.objects.remove(ob)
-selection = P.all_selections()
+selection = P.all_selections(strict=set(MINE))
 
 # ---- part list
 listing = {}
-for part, spec in P.PARTS.items():
+for part in MINE:
+    spec = P.PARTS[part]
     faces = selection[part]
     ext = P.group_extent(part, faces)
     src = P.source_part(part)
@@ -163,9 +168,10 @@ def save(arr, path):
 
 
 bg = np.array(P.BACKGROUND, np.float32) / 255
-for part in P.PARTS:
+for part in MINE:
     if P.source_part(part) != part or (ONLY and part not in ONLY):
         continue
+    TILES = P.tiles_dir(part)
     for o in originals:
         o.hide_render = True
     temps = isolate(part)

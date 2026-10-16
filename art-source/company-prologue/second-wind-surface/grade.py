@@ -1,6 +1,6 @@
 """Check, de-light and grade every registered part tile to the shared palette.
 
-  python grade.py     -> textures/<part>.png, grading/<part>.json, grading/summary.json
+  python grade.py [--group g[,g]]  -> textures/<part>.png, grading/<part>.json, grading/summary-<group>.json
 
 Per part, in guide tile pixel space (the texture space the UVs address):
 1. Colour-layout check. Every pixel is classified to the nearest palette class
@@ -26,23 +26,24 @@ Per part, in guide tile pixel space (the texture space the UVs address):
 """
 from pathlib import Path
 import json
+import sys
 import numpy as np
 from PIL import Image, ImageFilter
 import imgops as I
 import parts as P
 
 HERE = Path(__file__).resolve().parent
-TILES = HERE / 'build' / 'tiles'
+GROUPS = P.group_arg(sys.argv)
 (HERE / 'textures').mkdir(exist_ok=True)
 (HERE / 'grading').mkdir(exist_ok=True)
 PAL = json.loads((HERE / 'palette.json').read_text())['classes']
-CLASSES = ['cream', 'oxide', 'gunmetal', 'dark']
+CLASSES = ['cream', 'oxide', 'gunmetal', 'dark', 'pale']
 SWAP_SHARE = 0.6
 EDGE_TRIM = 3  # px of the outline refilled from inside (see 4. Pad)
 # A swap is a change of paint family (grey painted orange), not a lighter or
 # darker grey: gunmetal and dark recess are one neutral family for the check,
 # and the L drift between them is reported as tone instead.
-FAMILY = {'cream': 'cream', 'oxide': 'oxide', 'gunmetal': 'neutral', 'dark': 'neutral'}
+FAMILY = {'cream': 'cream', 'oxide': 'oxide', 'gunmetal': 'neutral', 'dark': 'neutral', 'pale': 'neutral'}
 pal_mean = np.array([PAL[c]['mean'] for c in CLASSES])
 
 
@@ -74,8 +75,9 @@ def pad(rgb, mask, px=24):
 
 
 summary = {}
-for sheet, members in P.SHEETS.items():
-    for part in members:
+for sheet in P.sheets_in(GROUPS):
+    for part in P.SHEETS[sheet]:
+        TILES = P.tiles_dir(part)
         reg = I.load_rgb(TILES / f'{part}-reg.png')
         mask = I.load_rgb(HERE / 'guide' / f'{part}-mask.png')[..., 0] > 127
         inner = I.erode(mask, 2)

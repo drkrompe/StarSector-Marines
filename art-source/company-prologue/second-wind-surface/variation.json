@@ -1,0 +1,146 @@
+{
+ "belt-bow-port": {
+  "unit_offset_L_a_b": [
+   0.38,
+   0.443,
+   -0.647
+  ],
+  "note": "hash default; edit freely"
+ },
+ "bow-cheek-port": {
+  "unit_offset_L_a_b": [
+   0.043,
+   -0.412,
+   -0.788
+  ],
+  "note": "hash default; edit freely"
+ },
+ "bow-port-flank": {
+  "unit_offset_L_a_b": [
+   0.169,
+   -0.357,
+   -0.812
+  ],
+  "note": "hash default; edit freely"
+ },
+ "deck-edge-lip-port": {
+  "unit_offset_L_a_b": [
+   -0.584,
+   -0.89,
+   0.71
+  ],
+  "note": "hash default; edit freely"
+ },
+ "fore-module-1": {
+  "unit_offset_L_a_b": [
+   0.953,
+   0.388,
+   -0.545
+  ],
+  "note": "hash default; edit freely"
+ },
+ "fore-module-2": {
+  "unit_offset_L_a_b": [
+   0.545,
+   0.318,
+   -0.859
+  ],
+  "note": "hash default; edit freely"
+ },
+ "hull-waist-port": {
+  "unit_offset_L_a_b": [
+   -0.796,
+   -0.851,
+   -0.31
+  ],
+  "note": "hash default; edit freely"
+ },
+ "pod-bands-port": {
+  "unit_offset_L_a_b": [
+   -0.302,
+   -0.788,
+   -0.78
+  ],
+  "note": "hash default; edit freely"
+ },
+ "pod-cowl-port": {
+  "unit_offset_L_a_b": [
+   0.239,
+   0.098,
+   0.961
+  ],
+  "note": "hash default; edit freely"
+ },
+ "pod-cowl-top": {
+  "unit_offset_L_a_b": [
+   0.929,
+   -0.294,
+   0.843
+  ],
+  "note": "hash default; edit freely"
+ },
+ "pod-intake-cap-port": {
+  "unit_offset_L_a_b": [
+   -0.522,
+   0.757,
+   -0.631
+  ],
+  "note": "hash default; edit freely"
+ },
+ "pod-lower-casing-port": {
+  "unit_offset_L_a_b": [
+   -0.114,
+   0.537,
+   0.922
+  ],
+  "note": "hash default; edit freely"
+ },
+ "pod-thrust-housing-port": {
+  "unit_offset_L_a_b": [
+   0.906,
+   -0.992,
+   0.788
+  ],
+  "note": "hash default; edit freely"
+ },
+ "sponson-cowl": {
+  "unit_offset_L_a_b": [
+   -0.404,
+   0.671,
+   -0.929
+  ],
+  "note": "hash default; edit freely"
+ },
+ "sponson-cowl-fwd": {
+  "unit_offset_L_a_b": [
+   0.969,
+   -0.741,
+   -0.655
+  ],
+  "note": "hash default; edit freely"
+ },
+ "sponson-cowl-tops": {
+  "unit_offset_L_a_b": [
+   0.616,
+   -0.827,
+   0.114
+  ],
+  "note": "hash default; edit freely"
+ },
+ "sponson-lower": {
+  "unit_offset_L_a_b": [
+   0.725,
+   -0.969,
+   -0.482
+  ],
+  "note": "hash default; edit freely"
+ },
+ "sponson-lower-fwd": {
+  "unit_offset_L_a_b": [
+   -0.671,
+   0.231,
+   0.686
+  ],
+  "note": "hash default; edit freely"
+ }
+}

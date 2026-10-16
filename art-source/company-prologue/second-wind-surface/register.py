@@ -1,6 +1,7 @@
 """Register every generated part tile to its guide by silhouette fit.
 
-  python register.py        -> registration/<part>.json, build/tiles/<part>-reg.png
+  python register.py [--group g[,g]]
+      -> registration/<part>.json, registration/summary-<group>.json, build/<group>/tiles/<part>-reg.png
 
 Splits each generated sheet into tiles (sheets.split), segments the part from
 the background, and fits identity, a bounds affine and an IoU-refined
@@ -14,6 +15,7 @@ signal here and is not run).
 """
 from pathlib import Path
 import json
+import sys
 import numpy as np
 import imgops as I
 import parts as P
@@ -22,14 +24,17 @@ import sheets
 HERE = Path(__file__).resolve().parent
 OUT = HERE / 'registration'
 OUT.mkdir(exist_ok=True)
-TILES = HERE / 'build' / 'tiles'
+GROUPS = P.group_arg(sys.argv)
+NAMES = P.sheets_in(GROUPS)
 
-for name in P.SHEETS:
+for name in NAMES:
     sheets.split(name, HERE / 'generated' / f'sheet-{name}.png')
 
 summary = {}
-for name, members in P.SHEETS.items():
+for name in NAMES:
+    members = P.SHEETS[name]
     for part in members:
+        TILES = P.tiles_dir(part)
         guide = I.load_rgb(HERE / 'guide' / f'{part}-guide.png')
         gmask = I.load_rgb(HERE / 'guide' / f'{part}-mask.png')[..., 0] > 127
         gen = I.load_rgb(TILES / f'{part}-gen.png')
