@@ -1,11 +1,13 @@
 # Campaign kit arc
 
-Status: ACTIVE — the hard Restricted tier and standing military warrants have shipped
-(`progression-nouns.md`, Kit and armory). `hegemony-auxiliary-warrant.md` and
-`warrant-obligations.md` remain planned. The arc card map remains a proposal.
+Status: ACTIVE — the hard Restricted tier, standing military warrants and the four
+arc issue cards have shipped (`progression-nouns.md`, Kit and armory).
+`hegemony-auxiliary-warrant.md` and `warrant-obligations.md` remain planned.
+Trench-Clearing Issue as the Junction reward and the across-the-line rosters remain
+proposals.
 
 Written: 2026-10-15
-Updated: 2026-10-15 — the Restricted tier and standing warrants shipped.
+Updated: 2026-10-15 — the arc issue cards shipped, stocked by market listings.
 
 Read `campaign-overview.md` for the route, `meta-progression.md` for the stages and
 the growth rule, `role-and-access.md` for how a card fills a squad, and
@@ -80,15 +82,14 @@ Hegemony, the scrutiny of being a licensed military auxiliary).
 
 ## The arc map
 
-What each arc should hand the player, see across the line, and hold back. "New card"
-means a loadout card that does not exist yet.
+What each arc should hand the player, see across the line, and hold back.
 
 | Arc | Shows the player (enemy or ally) | Fun in the player's hands | Held back |
 | --- | --- | --- | --- |
-| **Wayline opening** — Relief, Counterattack | Militia holding a checkpoint behind revetments | Watchman's Kit; A Proper Issue's choice (Steady Line or Forward Screen). Add a third path, **Checkpoint Issue** (new card): service rifles, two Rampart revetments, smoke. It teaches digging in, which is what Relief is about | Everything above Common |
-| **Broken Supply Route** — Junction, Thunder Run | Raiders with rocket tubes against the convoy | **Trench-Clearing Issue** as the Junction reward (opening a defended junction is exactly its job); **Convoy Escort Issue** (new card): rockets plus one Palisade pod, as the Thunder Run reward | Powered anything |
-| **The Corvus Account** — Dust Ledger, Blind Watch, Cold Account | Sable Wake mortars and missiles at Blind Watch; at Garnir, Kord's Hegemony marines in XIV Shock with Arbalests and Arrestor packs, fighting beside the company | **Counter-Battery Issue** (new card, Hegemony): service rifles, two Arrestor packs, one anti-materiel rifle. Awarded once by Kord's quartermaster after Cold Account, as a nod rather than a licence | XIV Shock, the military Arbalest: the company has now seen what it cannot have |
-| **A Working Ship** — Salvage Rights, Cold Start, Working Passage | Builders working under fire | **Builder's Guard** (new card): revetments and Palisade pods from Tamsin Vale's yard stores, for holding a construction site | — |
+| **Wayline opening** — Relief, Counterattack | Militia holding a checkpoint behind revetments | Watchman's Kit; A Proper Issue's choice (Steady Line or Forward Screen). **Checkpoint Issue**: service rifles, three Rampart revetments, smoke, on sale at the broker's market once Relief settles, beside the free choice rather than as a third path. It teaches digging in, which is what Relief is about | Everything above Common |
+| **Broken Supply Route** — Junction, Thunder Run | Raiders with rocket tubes against the convoy | **Trench-Clearing Issue** as the Junction reward (opening a defended junction is exactly its job); **Convoy Escort Issue**: rockets plus one Palisade pod, on sale at the employer's market once Thunder Run settles | Powered anything |
+| **The Corvus Account** — Dust Ledger, Blind Watch, Cold Account | Sable Wake mortars and missiles at Blind Watch; at Garnir, Kord's Hegemony marines in XIV Shock with Arbalests and Arrestor packs, fighting beside the company | **Counter-Battery Issue** (Hegemony): service rifles, two Arrestor packs, one anti-materiel rifle. On sale at Hegemony markets once Cold Account settles, as a nod rather than a licence | XIV Shock, the military Arbalest: the company has now seen what it cannot have |
+| **A Working Ship** — Salvage Rights, Cold Start, Working Passage | Builders working under fire | **Builder's Guard**: revetments and Palisade pods from Tamsin Vale's yard stores, on sale at Asharu once Working Passage settles, for holding a construction site | — |
 | **A Small War** — Agreus | Greyhook's crude boarding rigs and mortar fire on the commissioning work | Recovered Specter and Recovered Arbalest (as shipped), the Salvage-assisted Section, and the planned Boarding Jack. Counter-Battery Issue pairs naturally with the mixed section | Approved sections. The arc's planned procurement lead becomes the **first warrant** |
 | **Beyond Agreus** — the procurement lead | — | The **Hegemony auxiliary warrant** (`hegemony-auxiliary-warrant.md`): the military Arbalest first, XIV shock armour after the first honoured obligation period | Other traditions' approved kit, which needs their own warrants |
 
@@ -118,12 +119,32 @@ Even after Agreus, most of the catalog stays ahead of the company:
 1. **Restricted tier and military warrants**: shipped; see `progression-nouns.md`.
 2. **The first authored warrant**: `hegemony-auxiliary-warrant.md`.
 3. **The counter-pressure**: `warrant-obligations.md`.
-4. **New cards**: `arc-issue-cards.md`, stocked through market listings (shipped; `progression-nouns.md`). Checkpoint Issue, Convoy Escort Issue, Counter-Battery Issue,
-   Builder's Guard. Each is a weapon card, so it pairs with whatever armour sheet the
-   squad already wears. Place each on the `loadoutMatchup` ladder before shipping.
-5. **Story rewards**: part of `arc-issue-cards.md`. Each settlement lists its card\n   at a market rather than granting it, so nothing is granted twice.
+4. **New cards and their story stocking**: shipped; see `progression-nouns.md`
+   (Kit and armory, arc issue cards) and the ladder readings below.
+5. **Trench-Clearing Issue as the Junction reward**: still a proposal.
 6. **Show approved kit across the line.** Kord's marines at Garnir field the approved
    kit the player will later want; Greyhook fields Foundry-Breaker-style rigs.
+
+## Why the arc cards are shaped as they are
+
+Each was settled on the `loadoutMatchup` ladder (field fatigues, three seeds) as an
+uncarded kit before it was authored, against two controls: Dockside Issue and
+Trench-Clearing Issue. Trench-Clearing is the fair comparison, because it also
+issues service rifles, so the difference from it is the specials alone.
+
+- **Counter-Battery Issue** earns its place where it was meant to: holding a trench
+  under a field-mortar attack it won 3/3 with seven left, where Trench-Clearing lost
+  2/3.
+- **Builder's Guard** held the same trench 2/3 with nine left, and held open ground
+  against a Trench-Clearing assault 2/3, which Trench-Clearing's mirror never did.
+- **Convoy Escort Issue** took the garrisoned building 3/3 from Trench-Clearing
+  defenders, against 2/3 for the mirror.
+- **Checkpoint Issue** has the thinnest edge: against Trench-Clearing attackers in
+  open ground it held where the mirror stalled. That is acceptable for a Common card
+  bought after the first contract, and the place to revisit if revetments change.
+
+Rows move with behaviour tuning; rerun them before reshaping a card rather than
+trusting these numbers.
 
 ## Open questions
 
