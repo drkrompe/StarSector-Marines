@@ -122,6 +122,7 @@ public class BattleRenderer {
 
     private final BattleSprites sprites;
     private final NightLightingRenderSystem nightLighting;
+    private final ShuttleRenderSystem aircraft;
     private RenderContext rc;
 
     /**
@@ -273,6 +274,7 @@ public class BattleRenderer {
         // join via RenderSystem.of(...) emitting a Custom (the FBO/own-GL escape hatch).
         DoodadRenderSystem doodads = new DoodadRenderSystem(sprites);
         this.nightLighting = new NightLightingRenderSystem(sprites);
+        this.aircraft = new ShuttleRenderSystem(sprites);
         this.worldSystems = List.of(
                 new GroundRenderSystem(sprites, groundMesh, groundAtlas),
                 // Zone debug overlay paints on top of ground tiles, under decals.
@@ -338,7 +340,7 @@ public class BattleRenderer {
                             if (DEBUG_RENDER_DOCKING_PATHS) renderConvoyDockingPathsDebug(convoyIds, convoy, ctx.alphaMult);
                             renderSelectedVehicleDebug(convoy, ctx.alphaMult);
                         })),
-                new ShuttleRenderSystem(sprites),
+                aircraft,
                 new ShipLightingRenderSystem(),
                 nightLighting,
                 new WarshipRenderSystem(sprites),
@@ -531,8 +533,11 @@ public class BattleRenderer {
     /** Accessor for the host's combat-event presentation pass. */
     public GroundLightService getGroundLights() { return groundLights; }
 
-    /** Releases the screen-resolution night lighting targets. */
-    public void disposeNightLighting() { nightLighting.dispose(); }
+    /** Releases night lighting targets and the aircraft's reflected-light shader. */
+    public void disposeLighting() {
+        nightLighting.dispose();
+        aircraft.disposeLighting();
+    }
 
     /** Accessor for {@code BattleScreen.detach()} — release FBO resources. */
     public DecalAccumulator getDecalAccumulator() { return decalAccumulator; }

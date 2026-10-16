@@ -175,6 +175,7 @@ class ReviewDrainOverlayTest {
         new ShuttleRenderSystem(sprites).collect(context(sim), out);
 
         assertEquals(1, enginePasses(out, RenderLayer.AIRCRAFT_LIGHTS));
+        assertEquals(1, hullLightPasses(out));
         assertEquals(0, enginePasses(out, RenderLayer.SHUTTLES), "No duplicate engine draw beneath the night shade");
         assertTrue(RenderLayer.NIGHT_LIGHTING.ordinal() < RenderLayer.AIRCRAFT_LIGHTS.ordinal());
         assertTrue(RenderLayer.DECK_LIGHTING.ordinal() < RenderLayer.AIRCRAFT_LIGHTS.ordinal());
@@ -185,13 +186,33 @@ class ReviewDrainOverlayTest {
             DrawList suppressed = new DrawList();
             new ShuttleRenderSystem(sprites).collect(context(sim), suppressed);
             assertEquals(0, enginePasses(suppressed, RenderLayer.AIRCRAFT_LIGHTS), state.name());
+            assertEquals(0, hullLightPasses(suppressed), state.name());
         }
         mission.state = ShuttleState.INCOMING;
         mission.destroyed = true;
         DrawList destroyed = new DrawList();
         new ShuttleRenderSystem(sprites).collect(context(sim), destroyed);
         assertEquals(0, enginePasses(destroyed, RenderLayer.AIRCRAFT_LIGHTS));
+        assertEquals(0, hullLightPasses(destroyed));
         sim.close();
+    }
+
+    private static int hullLightPasses(DrawList out) {
+        int count = 0;
+        for (int i = 0; i < out.count(RenderLayer.AIRCRAFT_LIGHTS); i++) {
+            DrawCommand command = out.buffer(RenderLayer.AIRCRAFT_LIGHTS)[i];
+            if (command.customDraw() instanceof EngineHullLightPass light) {
+                count++;
+                DrawCommand hull = out.buffer(RenderLayer.SHUTTLES)[0];
+                assertEquals(hull.sprite(), light.hullSprite());
+                assertEquals(hull.centerX(), light.centerX());
+                assertEquals(hull.centerY(), light.centerY());
+                assertEquals(hull.width(), light.widthPx());
+                assertEquals(hull.height(), light.heightPx());
+                assertEquals(hull.angleDegrees(), light.angleDegrees());
+            }
+        }
+        return count;
     }
 
     private static int enginePasses(DrawList out, RenderLayer layer) {

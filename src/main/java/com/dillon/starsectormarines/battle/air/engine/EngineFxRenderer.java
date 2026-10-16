@@ -34,21 +34,11 @@ public final class EngineFxRenderer {
     private static final float LEN_INTENSITY_FLOOR = 0.35f;
     /** Width scales between {@link #WIDTH_INTENSITY_FLOOR}× at intensity 0 and 1.0× at intensity 1. */
     private static final float WIDTH_INTENSITY_FLOOR = 0.65f;
-    /** Per-frame alpha multiplier — flame alpha = alphaMult × (FLOOR + (1 - FLOOR) × intensity). */
-    private static final float ALPHA_INTENSITY_FLOOR = 0.18f;
     /** A restrained nozzle bloom, measured against native nozzle width rather than the narrowed exhaust. */
     private static final float GLOW_WIDTH_MULT = 1.1f;
     private static final float GLOW_ALPHA_MULT = 0.2f;
     private static final float FLAME_WIDTH_MULT = 0.7f;
     private static final float FLAME_LENGTH_MULT = 0.72f;
-
-    /**
-     * Per-slot floor when a {@code perSlotDemand} array is supplied: an idle
-     * thruster (demand 0) still draws at this fraction of the master intensity,
-     * so a live nozzle keeps a modest glow while reserving a clear bloom for
-     * acceleration. Flight-phase intensity still gates landed engines off.
-     */
-    private static final float DEMAND_FLOOR = 0.1f;
 
     private EngineFxRenderer() {}
 
@@ -102,7 +92,7 @@ public final class EngineFxRenderer {
             EngineSlotData es = slots[si];
             // Each thruster's intensity is the master throttle scaled by how
             // much that nozzle is contributing this tick (1.0 when uniform).
-            float intensityS = intensity * slotFactor(perSlotDemand, si);
+            float intensityS = EngineBurn.slotIntensity(intensity, perSlotDemand, si);
             // Slot world position — scale-then-rotate so engines stay locked
             // to their hardpoints through any scaling the caller applies.
             float lx = es.localX * scaleMult;
@@ -128,8 +118,7 @@ public final class EngineFxRenderer {
                     * (WIDTH_INTENSITY_FLOOR + (1f - WIDTH_INTENSITY_FLOOR) * intensityS);
             float lenPx = lenCells * cellPx;
             float widthPx = widthCells * cellPx;
-            float flameAlpha = alphaMult
-                    * (ALPHA_INTENSITY_FLOOR + (1f - ALPHA_INTENSITY_FLOOR) * intensityS);
+            float flameAlpha = EngineBurn.flameAlpha(alphaMult, intensityS);
 
             Color flame = EngineStylePalette.flameColor(es.style);
 
@@ -169,16 +158,4 @@ public final class EngineFxRenderer {
         }
     }
 
-    /**
-     * The effective per-slot intensity multiplier: {@code 1} when no demand
-     * array is supplied (uniform), else {@link #DEMAND_FLOOR} lerped to 1 by the
-     * clamped demand for slot {@code i}.
-     */
-    private static float slotFactor(float[] perSlotDemand, int i) {
-        if (perSlotDemand == null || i >= perSlotDemand.length) return 1f;
-        float d = perSlotDemand[i];
-        if (d < 0f) d = 0f;
-        else if (d > 1f) d = 1f;
-        return DEMAND_FLOOR + (1f - DEMAND_FLOOR) * d;
-    }
 }

@@ -745,7 +745,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         renderer.getRoofMesh().dispose();
         // The resident fog texture is this battle's grid too.
         renderer.getFogField().dispose();
-        renderer.disposeNightLighting();
+        renderer.disposeLighting();
         // The composited ground atlas holds this session's sheets; a reattach
         // reloads them and composites again.
         renderer.getGroundAtlas().dispose();

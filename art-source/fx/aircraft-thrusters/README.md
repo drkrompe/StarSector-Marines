@@ -11,8 +11,12 @@ No source game textures are edited. Flight physics and the smoothed per-engine
 thrust demand remain authoritative; the renderer changes only effect dimensions
 and opacity. Nozzle offsets still follow each aircraft's registered appearance.
 The same tight alpha masks paint once above environmental shade, keeping the
-engines self-lit at night while the hull remains shaded. They do not illuminate
-the ground or change fog visibility, and need no additional runtime textures.
+engines self-lit at night. A small elliptical falloff beside each nozzle also
+samples the existing hull texture, adding engine-coloured reflected light to
+the rear plating while preserving painted detail and transparent gaps. The
+reflection and exhaust use the same smoothed burn intensity; the rest of the
+hull retains its environmental shade. They do not illuminate the ground or
+change fog visibility, and need no additional runtime textures.
 
 The opt-in `createSnapshots -Psnapshot=aircraft-thrusters` suite produces a
 1920x1080, 15 fps, ten-second controlled flight preview of the six existing

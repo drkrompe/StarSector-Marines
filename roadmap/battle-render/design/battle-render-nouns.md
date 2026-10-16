@@ -4,7 +4,7 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — Aircraft engine masks remain emissive above environmental shade without changing hull shading or observation.
+Updated: 2026-10-15 — Aircraft engine emission and localized hull reflection share the hull pose and thrust response above environmental shade.
 
 ## Vocabulary
 
@@ -90,7 +90,10 @@ Updated: 2026-10-15 — Aircraft engine masks remain emissive above environmenta
   Ship-compartment lighting is separate.
 - **Aircraft engine light** is the nozzle and exhaust's own emissive alpha mask,
   drawn once after environmental shade. It follows the admitted aircraft's pose,
-  appearance offsets and smoothed thrust demand. The hull retains night shading;
+  appearance offsets and smoothed thrust demand. Its localized reflection uses
+  the hull's own painted colour and alpha, so adjoining plating catches light
+  while gaps stay transparent and the rest of the hull retains night shading.
+  Both effects share the exact hull pose and the same per-engine burn response;
   engine emission does not light the ground or grant observation through fog.
 
 ## Ownership and flow

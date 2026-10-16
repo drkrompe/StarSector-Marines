@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — Native hull geometry anchors replacement artwork and self-lit engine masks; visible exhaust distinguishes acceleration from steady cruise.
+Updated: 2026-10-15 — Engine burn and its reflected rear-hull light share nozzle placement and smoothed thrust demand.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -109,8 +109,11 @@ An engine's visible burn follows its realized work: a compact idle, a restrained
 sustaining flame at steady speed, and a longer, brighter plume while accelerating.
 Individual nozzles also respond to turning demand, with smooth attack and decay
 on the simulation clock. Night missions retain self-lit nozzle and exhaust masks
-at the same hull hardpoints while environmental shade still darkens the airframe.
-Engine light neither reveals fog nor changes the craft's motion or detection.
+at the same hull hardpoints. A little of that light catches the adjoining hull
+plating, retaining its painted detail and transparent gaps; the rest of the
+airframe keeps its environmental shade. Reflected light follows each nozzle's
+burn, including asymmetric turning demand. Engine light neither reveals fog nor
+changes the craft's motion or detection.
 
 A craft's drawn size is `AirAppearance.GROUND_SCALE` on the ground rising to
 `GROUND_SCALE × ALTITUDE_SCALE_GAIN` at altitude — the gain is factored out as

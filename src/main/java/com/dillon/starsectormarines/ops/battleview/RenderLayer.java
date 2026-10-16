@@ -74,7 +74,7 @@ public enum RenderLayer {
     NIGHT_LIGHTING,
     /** Interior-only light pools and fixture glow over deck contents, below exterior effects. */
     DECK_LIGHTING,
-    /** Aircraft nozzle and exhaust alpha masks, emissive above environmental shade. */
+    /** Aircraft nozzle, exhaust and localized hull reflection, above environmental shade. */
     AIRCRAFT_LIGHTS,
     /** Contrails, hitscan tracers, projectile sprites. */
     SHOTS,
