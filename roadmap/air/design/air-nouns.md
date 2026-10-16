@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — Falling aircraft retain their hull colors until ground contact starts charring and breakup.
+Updated: 2026-10-15 — Missile AA joins ordinary heavy defense posts; all six supported carrier wings use the shared commitment flow.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1433,6 +1433,11 @@ hit points, interception targets or a new point-defence model. Existing mission
 batteries, including Ridgewatch, and the ground-artillery Locust retain their
 own established behavior; these are additional catalog choices.
 
+Ordinary heavy defense posts may select any of the three missile towers alongside
+their gun layouts. Each tower uses one existing post allocation and reserves its
+full foundation; selection does not add a second defense budget. Dedicated fort
+aspects and authored mission batteries keep their explicitly chosen composition.
+
 The Swarmer releases four missiles at 0.2-second intervals; the Locust releases
 thirty at 0.1-second intervals. Both wait five seconds after the last round
 before starting another salvo. A committed salvo completes even if its original
@@ -1551,6 +1556,12 @@ overlay is gone; what remains under `battle.flyby` is the roster.
 Wing composition, air-to-air, and formation are still future capabilities. What
 a wing is today is a commitment: a profile, a side, and how many sorties arrive
 when.
+
+The player's fitted Talon, Wasp, Broadsword, Thunder, Longbow and Dagger wings
+all contribute through the same opt-in carrier commitment. Each supported bay
+keeps its own battle airframe and ordnance and uses the shared finite, staggered
+sortie schedule. Unsupported wings contribute nothing; bomber bays do not grant
+an extra air-support pool or bypass commitment.
 
 ### Air cover, and where a sortie is from
 

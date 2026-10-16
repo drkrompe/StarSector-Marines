@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 - shared working yards include medical receiving and transfer courts, with purpose-furnished supply annexes.
+Updated: 2026-10-15 — Heavy defense posts include missile AA towers with validated multi-cell foundations.
 
 Earlier 2026-10-13 — reversible authored damage layers give Relief a worn checkpoint without changing its landing contract; Relief rear working courts preserve the expanded landing and assembly apron.
 
@@ -1477,8 +1477,12 @@ halo, and reachable rear approach are placement requirements, so a bunker is
 omitted rather than publishing an isolated fighting cell.
 
 The layout catalog loads after turret structures and rejects unknown structure
-ids, duplicate or out-of-bounds cells, turrets placed off ordinary pads, and
-invalid tier composition. Generation selects among the layouts authored for a
+ids, duplicate or out-of-bounds cells, turrets placed off ordinary pads, overlapping
+turret footprints, and invalid tier composition. A multi-cell structure requires
+ordinary pad cells under its entire foundation; placement and connectivity checks
+therefore reserve the same ground that spawning will seal. Heavy posts include
+Locust, Swarmer and Proximity Charge AA towers alongside ground-gun layouts,
+within the mission's existing post budget. Generation selects among the layouts authored for a
 tier through its request-owned random stream. A tier with one layout consumes
 no selection draw; a tier with several variants consumes exactly one, preserving
 determinism as fixed stamps become data. Connectivity checks and tactical-node

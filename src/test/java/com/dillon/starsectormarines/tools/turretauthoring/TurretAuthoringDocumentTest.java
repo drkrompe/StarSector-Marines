@@ -61,7 +61,7 @@ class TurretAuthoringDocumentTest {
         // regression in that. It still requires the document to have found the
         // structure it goes on to edit.
         assertFalse(document.selections().isEmpty());
-        assertEquals(9, document.layoutObjects().size());
+        assertFalse(document.layoutObjects().isEmpty());
 
         TurretAuthoringDocument.TurretSelection hephaestus =
                 document.selection("structure.turret-hephaestus");
@@ -120,6 +120,7 @@ class TurretAuthoringDocumentTest {
         copyCatalogs(temporary);
         TurretAuthoringDocument document = TurretAuthoringDocument.load(temporary);
         TurretAuthoringHistory history = new TurretAuthoringHistory();
+        int originalLayouts = document.layoutObjects().size();
         String before = document.snapshot();
 
         JSONObject copy = document.duplicateLargeLayout(
@@ -131,12 +132,12 @@ class TurretAuthoringDocumentTest {
         String after = document.snapshot();
         history.record(before, after);
 
-        assertEquals(10, document.layoutObjects().size());
+        assertEquals(originalLayouts + 1, document.layoutObjects().size());
         assertTrue(document.validate().isEmpty());
         history.undo(document);
-        assertEquals(9, document.layoutObjects().size());
+        assertEquals(originalLayouts, document.layoutObjects().size());
         history.redo(document);
-        assertEquals(10, document.layoutObjects().size());
+        assertEquals(originalLayouts + 1, document.layoutObjects().size());
         assertEquals("authoring-test", document.layoutObject(
                 "layout.defense-post-large-authoring-test").getString("variant"));
     }
