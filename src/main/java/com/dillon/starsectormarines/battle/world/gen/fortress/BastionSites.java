@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.fortress;
 
+import java.util.function.BiPredicate;
+
 /**
  * Where a bastion's guns stand. A bastion is a salient of the works: its gun has to see <em>out</em> of it, and a gun
  * standing in the open floor of the bastion's pocket sees nothing but the wall that surrounds it. So a nest stands in
@@ -47,5 +49,30 @@ public final class BastionSites {
     /** The middle of a three-by-three launcher pocket {@code steps} cells from the bastion centre toward its tip, along the diagonal. */
     public static int[] pocket(int cx, int cy, int dx, int dy, int steps) {
         return new int[]{cx + dx * steps, cy + dy * steps};
+    }
+
+    /** Reach of a mount's concrete collar from its middle: the three-by-three body and one ring about it. */
+    private static final int COLLAR_REACH = 2;
+
+    /**
+     * Like {@link #pocket}, but walks back toward the bastion centre, a cell at a time, from {@code maxSteps} until the
+     * mount's whole collar (the cells within two of its middle) is clear of the works' wall, so the wall never swallows a
+     * piece of it. Where none clears, it keeps {@code maxSteps}.
+     */
+    public static int[] pocketClearOfWall(int cx, int cy, int dx, int dy, int maxSteps, BiPredicate<Integer, Integer> isWall) {
+        for (int steps = maxSteps; steps >= 0; steps--) {
+            int[] at = pocket(cx, cy, dx, dy, steps);
+            if (collarClear(at, isWall)) return at;
+        }
+        return pocket(cx, cy, dx, dy, maxSteps);
+    }
+
+    private static boolean collarClear(int[] middle, BiPredicate<Integer, Integer> isWall) {
+        for (int x = middle[0] - COLLAR_REACH; x <= middle[0] + COLLAR_REACH; x++) {
+            for (int y = middle[1] - COLLAR_REACH; y <= middle[1] + COLLAR_REACH; y++) {
+                if (isWall.test(x, y)) return false;
+            }
+        }
+        return true;
     }
 }

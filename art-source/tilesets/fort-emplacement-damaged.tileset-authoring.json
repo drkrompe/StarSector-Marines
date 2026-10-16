@@ -1,0 +1,149 @@
+{
+  "alphaMin": 16,
+  "blocks": [],
+  "cellPx": 128,
+  "entries": [
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-s",
+      "included": true,
+      "note": "Collar piece s (damaged).",
+      "rect": [
+        389,
+        96,
+        174,
+        162
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-n",
+      "included": true,
+      "note": "Collar piece n (damaged).",
+      "rect": [
+        389,
+        762,
+        174,
+        162
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-e",
+      "included": true,
+      "note": "Collar piece e (damaged).",
+      "rect": [
+        48,
+        426,
+        168,
+        168
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-w",
+      "included": true,
+      "note": "Collar piece w (damaged).",
+      "rect": [
+        737,
+        426,
+        167,
+        168
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-inner-se",
+      "included": true,
+      "note": "Collar piece inner-se (damaged).",
+      "rect": [
+        48,
+        96,
+        168,
+        162
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-inner-sw",
+      "included": true,
+      "note": "Collar piece inner-sw (damaged).",
+      "rect": [
+        737,
+        96,
+        167,
+        162
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-inner-ne",
+      "included": true,
+      "note": "Collar piece inner-ne (damaged).",
+      "rect": [
+        48,
+        762,
+        168,
+        162
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-damaged-inner-nw",
+      "included": true,
+      "note": "Collar piece inner-nw (damaged).",
+      "rect": [
+        737,
+        762,
+        167,
+        162
+      ]
+    }
+  ],
+  "gridCols": 8,
+  "gridRows": 4,
+  "idPrefix": "doodad.fort-emplacement",
+  "note": "Fort emplacement collar, damaged state: the pieces a tight concrete parapet ring is built from (four swapped edge pieces and four inner corners), all cut from ONE contiguous 5x5 plate painted in a single ImageGen pass from templates/fort-emplacement-guide.png (fort-emplacement-guide.py) with the fort's own concrete as material reference (templates/fort-material-reference.png); exact prompt retained (fort-emplacement-damaged.prompt.txt), raw retained unmodified. ImageGen painted the plate 868x840 rather than 960x960, so the rects are measured and authoritative. Doodads, not a block: the collar is stamped swapped (the north ring cell wears the south-edge piece) and no GridLayout resolves that. The ids are the CoverPropDamage family, so rounds wear each piece intact -> damaged -> destroyed. Presentation art only - cover and topology belong to the post or pad that stamps it.",
+  "sheet": "art-source/tilesets/fort-emplacement-damaged.raw.png",
+  "sheetName": "fort-emplacement-damaged"
+}

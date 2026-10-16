@@ -1,164 +1,24 @@
 {
   "alphaMin": 16,
-  "blocks": [{
-    "fillRgb": "0x969690",
-    "id": "fort.emplacement",
-    "layout": "wall-3x3"
-  }],
+  "blocks": [],
   "cellPx": 128,
   "entries": [
     {
-      "block": "fort.emplacement",
-      "cover": "none",
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
       "footprintCells": [
         1,
         1
       ],
-      "id": "fort.emplacement.nw",
+      "id": "doodad.fort-emplacement-s",
       "included": true,
+      "note": "Collar piece s (intact).",
       "rect": [
-        22,
-        11,
-        181,
-        181
-      ],
-      "slot": "nw"
-    },
-    {
-      "block": "fort.emplacement",
-      "cover": "none",
-      "footprintCells": [
-        1,
-        1
-      ],
-      "id": "fort.emplacement.n",
-      "included": true,
-      "rect": [
-        203,
-        11,
-        181,
-        181
-      ],
-      "slot": "n"
-    },
-    {
-      "block": "fort.emplacement",
-      "cover": "none",
-      "footprintCells": [
-        1,
-        1
-      ],
-      "id": "fort.emplacement.ne",
-      "included": true,
-      "rect": [
-        384,
-        11,
-        181,
-        181
-      ],
-      "slot": "ne"
-    },
-    {
-      "block": "fort.emplacement",
-      "cover": "none",
-      "footprintCells": [
-        1,
-        1
-      ],
-      "id": "fort.emplacement.w",
-      "included": true,
-      "rect": [
-        22,
-        192,
-        181,
-        181
-      ],
-      "slot": "w"
-    },
-    {
-      "block": "fort.emplacement",
-      "cover": "none",
-      "footprintCells": [
-        1,
-        1
-      ],
-      "id": "fort.emplacement.center",
-      "included": true,
-      "rect": [
-        203,
-        192,
-        181,
-        181
-      ],
-      "slot": "center"
-    },
-    {
-      "block": "fort.emplacement",
-      "cover": "none",
-      "footprintCells": [
-        1,
-        1
-      ],
-      "id": "fort.emplacement.e",
-      "included": true,
-      "rect": [
-        384,
-        192,
-        181,
-        181
-      ],
-      "slot": "e"
-    },
-    {
-      "block": "fort.emplacement",
-      "cover": "none",
-      "footprintCells": [
-        1,
-        1
-      ],
-      "id": "fort.emplacement.sw",
-      "included": true,
-      "rect": [
-        22,
-        373,
-        181,
-        181
-      ],
-      "slot": "sw"
-    },
-    {
-      "block": "fort.emplacement",
-      "cover": "none",
-      "footprintCells": [
-        1,
-        1
-      ],
-      "id": "fort.emplacement.s",
-      "included": true,
-      "rect": [
-        203,
-        373,
-        181,
-        181
-      ],
-      "slot": "s"
-    },
-    {
-      "block": "fort.emplacement",
-      "cover": "none",
-      "footprintCells": [
-        1,
-        1
-      ],
-      "id": "fort.emplacement.se",
-      "included": true,
-      "rect": [
-        384,
-        373,
-        181,
-        181
-      ],
-      "slot": "se"
+        389,
+        96,
+        174,
+        162
+      ]
     },
     {
       "ballisticHalfHeight": 0.5,
@@ -169,12 +29,12 @@
       ],
       "id": "doodad.fort-emplacement-n",
       "included": true,
-      "note": "Parapet edge piece, exterior n.",
+      "note": "Collar piece n (intact).",
       "rect": [
-        205,
-        11,
-        181,
-        181
+        389,
+        762,
+        174,
+        162
       ]
     },
     {
@@ -186,29 +46,12 @@
       ],
       "id": "doodad.fort-emplacement-e",
       "included": true,
-      "note": "Parapet edge piece, exterior e.",
+      "note": "Collar piece e (intact).",
       "rect": [
-        397,
-        224,
+        48,
+        426,
         168,
-        181
-      ]
-    },
-    {
-      "ballisticHalfHeight": 0.5,
-      "cover": "heavy",
-      "footprintCells": [
-        1,
-        1
-      ],
-      "id": "doodad.fort-emplacement-s",
-      "included": true,
-      "note": "Parapet edge piece, exterior s.",
-      "rect": [
-        205,
-        373,
-        181,
-        181
+        168
       ]
     },
     {
@@ -220,67 +63,87 @@
       ],
       "id": "doodad.fort-emplacement-w",
       "included": true,
-      "note": "Parapet edge piece, exterior w.",
+      "note": "Collar piece w (intact).",
       "rect": [
-        22,
-        224,
-        169,
-        181
+        737,
+        426,
+        167,
+        168
       ]
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.fort-emplacement-platform-0",
+      "id": "doodad.fort-emplacement-inner-se",
       "included": true,
-      "note": "Flat gun-platform cell. Plain slab with hairline cracks.",
+      "note": "Collar piece inner-se (intact).",
       "rect": [
-        770,
-        10,
-        212,
-        212
+        48,
+        96,
+        168,
+        162
       ]
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.fort-emplacement-platform-1",
+      "id": "doodad.fort-emplacement-inner-sw",
       "included": true,
-      "note": "Flat gun-platform cell. Four tie-down plates and a central drain.",
+      "note": "Collar piece inner-sw (intact).",
       "rect": [
-        985,
-        10,
-        212,
-        212
+        737,
+        96,
+        167,
+        162
       ]
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.fort-emplacement-platform-2",
+      "id": "doodad.fort-emplacement-inner-ne",
       "included": true,
-      "note": "Flat gun-platform cell. Worn square bearing recess.",
+      "note": "Collar piece inner-ne (intact).",
       "rect": [
-        1200,
-        10,
-        212,
-        212
+        48,
+        762,
+        168,
+        162
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-inner-nw",
+      "included": true,
+      "note": "Collar piece inner-nw (intact).",
+      "rect": [
+        737,
+        762,
+        167,
+        162
       ]
     }
   ],
   "gridCols": 8,
   "gridRows": 4,
   "idPrefix": "doodad.fort-emplacement",
-  "note": "Fort emplacement: a snappable poured-concrete gun-platform revetment. Built-in ImageGen reskin of templates/fort-emplacement-guide.png (fort-emplacement-guide.py); exact prompt retained beside this file (fort-emplacement.prompt.txt), raw retained unmodified. 1536x1024 RGBA. ImageGen did not hold the 192px pitch: the nine patch frames are one contiguous 3x3 picture cut at 181px squares from (22,11), and the three platform variants are 212px squares - the document's rects are authoritative, not the 8x4 grid. Block fort.emplacement (wall-3x3, slots read 'the exterior is on this side'): raised parapet along the exterior, flat platform inside; the centre slot is platform. Platform variants are doodads. Presentation art only - cover and topology belong to the post/pad that stamps it. New sheet, shares no id with a shipped tileset.",
+  "note": "Fort emplacement collar, intact state: the pieces a tight concrete parapet ring is built from (four swapped edge pieces and four inner corners), all cut from ONE contiguous 5x5 plate painted in a single ImageGen pass from templates/fort-emplacement-guide.png (fort-emplacement-guide.py) with the fort's own concrete as material reference (templates/fort-material-reference.png); exact prompt retained (fort-emplacement.prompt.txt), raw retained unmodified. ImageGen painted the plate 868x840 rather than 960x960, so the rects are measured and authoritative. Doodads, not a block: the collar is stamped swapped (the north ring cell wears the south-edge piece) and no GridLayout resolves that. The ids are the CoverPropDamage family, so rounds wear each piece intact -> damaged -> destroyed. Presentation art only - cover and topology belong to the post or pad that stamps it.",
   "sheet": "art-source/tilesets/fort-emplacement.raw.png",
   "sheetName": "fort-emplacement"
 }
