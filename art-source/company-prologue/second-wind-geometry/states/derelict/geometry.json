@@ -193,39 +193,9 @@
         "repair": null
       },
       {
-        "name": "Starboard forebody deck strike",
-        "radius": 2.8,
-        "depth": 1.2,
-        "repair": null
-      },
-      {
-        "name": "Forward deck strike",
-        "radius": 2.2,
-        "depth": 1.0,
-        "repair": null
-      },
-      {
         "name": "Spine housing strike",
         "radius": 1.6,
         "depth": 0.7,
-        "repair": null
-      },
-      {
-        "name": "Starboard cowl strike",
-        "radius": 2.1,
-        "depth": 0.9,
-        "repair": null
-      },
-      {
-        "name": "Starboard cowl flank strike",
-        "radius": 2.4,
-        "depth": 1.1,
-        "repair": null
-      },
-      {
-        "name": "Starboard intake strike",
-        "radius": 2.0,
-        "depth": 0.9,
         "repair": null
       },
       {
@@ -241,39 +211,54 @@
         "repair": null
       },
       {
-        "name": "Aft deck starboard strike",
-        "radius": 1.5,
-        "depth": 0.7,
+        "name": "Starboard forebody deck dent",
+        "radius": 1.8,
+        "depth": 0.45,
         "repair": null
       },
       {
-        "name": "Starboard flank strike",
-        "radius": 2.9,
-        "depth": 1.2,
+        "name": "Forward deck dent",
+        "radius": 1.6,
+        "depth": 0.4,
+        "repair": null
+      },
+      {
+        "name": "Starboard cowl dent",
+        "radius": 1.5,
+        "depth": 0.4,
+        "repair": null
+      },
+      {
+        "name": "Starboard flank dent",
+        "radius": 1.5,
+        "depth": 0.45,
+        "repair": null
+      },
+      {
+        "name": "Starboard bay door strike",
+        "radius": 2.0,
+        "depth": 0.5,
         "repair": null
       },
       {
         "name": "Port outer engine can strike",
         "radius": 2.4,
-        "depth": 1.4,
+        "depth": 1.2,
         "repair": null
       }
     ],
-    "strikes": 62,
+    "strikes": 63,
     "spalls": [
       "Starboard flank module tear",
       "Port citadel wall spall",
       "Starboard bow cheek spall",
-      "Starboard intake cap spall",
-      "Starboard belt plate tear",
-      "Starboard lower casing tear",
       "Port nose block spall"
     ],
     "gouges": [
-      "Starboard deck gouge",
+      "Port sponson scrape",
+      "Port pod contact scrape",
       "Port cowl gouge",
-      "Port glacis gouge",
-      "Starboard belt gouge"
+      "Port glacis gouge"
     ],
     "missing_plates": [
       {
@@ -282,23 +267,7 @@
           32.5,
           16.75
         ],
-        "repair": null
-      },
-      {
-        "object": "Forebody replaceable armor",
-        "centre": [
-          32.5,
-          -10.25
-        ],
-        "repair": null
-      },
-      {
-        "object": "Drive casing armour plate",
-        "centre": [
-          -11.85,
-          28.6
-        ],
-        "repair": null
+        "how": "torn"
       },
       {
         "object": "Forebody replaceable armor",
@@ -306,7 +275,23 @@
           24.5,
           16.75
         ],
-        "repair": null
+        "how": "torn"
+      },
+      {
+        "object": "Forebody replaceable armor",
+        "centre": [
+          32.5,
+          -10.25
+        ],
+        "how": "unbolted"
+      },
+      {
+        "object": "Drive casing armour plate",
+        "centre": [
+          -11.85,
+          28.6
+        ],
+        "how": "unbolted"
       },
       {
         "object": "Drive casing armour plate",
@@ -314,7 +299,7 @@
           -7.7,
           -29.45
         ],
-        "repair": null
+        "how": "unbolted"
       },
       {
         "object": "Aft deck armour plate",
@@ -322,7 +307,7 @@
           -23.65,
           -9.2
         ],
-        "repair": null
+        "how": "unbolted"
       }
     ],
     "buckled_plates": [
@@ -339,22 +324,20 @@
           -11.85,
           -28.6
         ]
-      },
-      {
-        "object": "Forebody replaceable armor",
-        "centre": [
-          24.5,
-          -10.25
-        ]
       }
     ],
     "repairs": [],
-    "smashed_can": "Engine 1 (port outer)",
-    "bent_fins": "port fin bank top-outboard, starboard bottom-outboard",
-    "scorched": "port and starboard waist service lines, port waist trunks and hoops; port line burst",
-    "bowed_rib": "port bay forward frame jamb, bowed aft into the opening",
-    "sheared_mast": "sensor mast sheared above the pedestal; scanner bar fallen, one whip lost, one bent",
-    "stripped": "turbopumps and drive drums off both housing decks; port can feed pipes and casing access panels",
-    "cut_objects": 107
+    "smashed_can": "Engine 1 (port outer) can crushed from outboard; nozzle ring intact",
+    "bent_fins": "port fin bank, top outboard",
+    "torch_cuts": [
+      "Protected waist service line",
+      "Exposed waist service trunk"
+    ],
+    "bowed_rib": "starboard (sealed) bay forward frame jamb, bowed outboard",
+    "sheared_mast": "sensor mast sheared above the pedestal; scanner gone, one whip lost, one bent",
+    "stripped": "turbopumps off both housing decks; both pods' access panels; port can feed pipes",
+    "tethers": "two padeyes on the port flank with cut tether stubs and chafe bands",
+    "point_defence": "gun houses stripped; barbettes and bare stud rings remain at all four slots",
+    "cut_objects": 94
   }
 }

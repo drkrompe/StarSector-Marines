@@ -72,7 +72,8 @@ Modeled damage geometry for these states now exists:
 ../second-wind-geometry/states/derelict/ (the parts-bin hulk before the escape)
 and ../second-wind-geometry/states/patched/ (the arrival condition these skins
 paint: only the starboard pod's two engines work, on the salvaged drive coil;
-the port pod is dead and blanked). See ../second-wind-geometry/README.txt. Earlier studies kept damage to coatings and thin covers;
+the port pod is dead and cold, its coil cradle empty and feed lines
+blind-flanged; the starboard bay door is welded shut). See ../second-wind-geometry/README.txt. Earlier studies kept damage to coatings and thin covers;
 the current heavy-arrival direction also deforms local outer armor.
 No active fire, catastrophic pressure holes, new engines, missing guns, launched
 boats, exposed occupied rooms or people. No mapping named interior rooms to
