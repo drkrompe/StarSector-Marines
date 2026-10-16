@@ -482,6 +482,7 @@
     "unitModifierDugIn": "Dug in",
     "unitModifierLegWound": "Leg wound",
     "unitModifierArmWound": "Arm wound",
+    "unitModifierMechCrippled": "Legs destroyed",
     "battleOrderSecureCompound": "SECURE COMPOUND",
     "battleShipMove": "Move",
     "battleShipHold": "Hold",
