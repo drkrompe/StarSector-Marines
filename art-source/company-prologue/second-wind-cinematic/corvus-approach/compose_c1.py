@@ -110,8 +110,9 @@ def frame_image(t, duration):
             continue
         cx, cy, s_el = el.place(t)
         img = el.image(t)
-        cx -= TRUCK * el.depth * u
-        zoom = cam ** (0.4 + 0.6 * el.depth / 0.6)      # nearer layers feel the push more
+        depth = el.depth_at(t)
+        cx -= TRUCK * depth * u
+        zoom = cam ** (0.4 + 0.6 * depth / 0.6)      # nearer layers feel the push more
         s = s_el * zoom
         sx, sy = FOCUS[0] + (cx - FOCUS[0]) * zoom, FOCUS[1] + (cy - FOCUS[1]) * zoom
         w, h = img.size

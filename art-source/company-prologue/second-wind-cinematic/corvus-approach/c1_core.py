@@ -77,7 +77,8 @@ class Element:
     `path`, when given, replaces the keys: a function t -> (cx, cy, scale). `frames`, when
     given, replaces the fixed image: a function t -> RGBA image (a rendered sequence or an
     animation sheet). `alpha`, when given, is a function t -> opacity multiplier, and
-    `blink` is (period, phase) for a light that shows for 18% of its period."""
+    `blink` is (period, phase) for a light that shows for 18% of its period. `depth` may
+    be a function of t; children always take their parent's."""
 
     def __init__(self, name, img, depth, keys, vx=0.0, vy=0.0, additive=False, blink=None, parent=None,
                  offset=(0, 0), path=None, frames=None, alpha=None):
@@ -85,6 +86,12 @@ class Element:
         self.vx, self.vy, self.additive, self.blink = vx, vy, additive, blink
         self.parent, self.offset = parent, offset
         self.path, self.frames, self.alpha = path, frames, alpha
+
+    def depth_at(self, t):
+        """Parallax rate; `depth` may be a function of t for a body that changes distance."""
+        if self.parent is not None:
+            return self.parent.depth_at(t)
+        return self.depth(t) if callable(self.depth) else self.depth
 
     def image(self, t):
         return self.frames(t) if self.frames is not None else self.img
