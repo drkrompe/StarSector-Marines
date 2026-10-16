@@ -47,6 +47,32 @@ import java.util.Map;
  */
 public final class HeadlessUiRenderer {
 
+    /** Test-backend access to the existing decoded-resource cache, without registering transient textures. */
+    public static BufferedImage sourceImage(CanvasContext context, String path) {
+        if (!(context instanceof RasterCanvasContext raster)) throw new IllegalArgumentException("Not a raster canvas");
+        return raster.resources.image(path);
+    }
+
+    /** Draws a transient raster through the same transform, host alpha and additive blend as ordinary sprites. */
+    public static void additiveImage(CanvasContext context, BufferedImage image, float centerX, float centerY,
+                                     float width, float height, float angleDegrees, float alpha) {
+        if (!(context instanceof RasterCanvasContext raster)) throw new IllegalArgumentException("Not a raster canvas");
+        var graphics = raster.graphics;
+        var transform = graphics.getTransform();
+        var composite = graphics.getComposite();
+        try {
+            graphics.translate(raster.documentX(centerX), raster.documentY(centerY));
+            graphics.rotate(Math.toRadians(-angleDegrees));
+            graphics.scale(width * raster.coordinateScaleX / image.getWidth(), height * raster.coordinateScaleY / image.getHeight());
+            graphics.setComposite(new AdditiveComposite(clampAlpha(alpha * raster.alphaMult())));
+            graphics.translate(-image.getWidth()/2d, -image.getHeight()/2d);
+            graphics.drawImage(image, 0, 0, null);
+        } finally {
+            graphics.setComposite(composite);
+            graphics.setTransform(transform);
+        }
+    }
+
     private final ResourceStore resources;
     private final HeadlessHostPassRenderer hostPassRenderer;
 

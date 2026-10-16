@@ -1,4 +1,6 @@
 package com.dillon.starsectormarines.ops;
+
+import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
 import com.dillon.starsectormarines.i18n.Strings;
 
 import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
@@ -310,6 +312,28 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderCompanyHq(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
                                 CompanyHqViewModel.auxiliaryWarrantPreview(AuxiliaryWarrantDesk.Page.DECLINED))),
+                // The Latchkey custody decision: each written agreement, Castle's comparison,
+                // the signing confirmation and the recorded signature with Voss's warning.
+                new SnapshotArtifact("company-hq-handover-custody-wide.png",
+                        renderCompanyHq(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
+                                CompanyHqViewModel.agreusHandoverPreview(AgreusHandoverDesk.Page.CUSTODY, null))),
+                new SnapshotArtifact("company-hq-handover-compact-wide.png",
+                        renderCompanyHq(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
+                                CompanyHqViewModel.agreusHandoverPreview(AgreusHandoverDesk.Page.COMPACT, null))),
+                new SnapshotArtifact("company-hq-handover-compare-wide.png",
+                        renderCompanyHq(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
+                                CompanyHqViewModel.agreusHandoverPreview(AgreusHandoverDesk.Page.COMPARE, null))),
+                new SnapshotArtifact("company-hq-handover-confirm-wide.png",
+                        renderCompanyHq(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
+                                CompanyHqViewModel.agreusHandoverPreview(AgreusHandoverDesk.Page.CONFIRM_COMPACT, null))),
+                new SnapshotArtifact("company-hq-handover-signed-wide.png",
+                        renderCompanyHq(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
+                                CompanyHqViewModel.agreusHandoverPreview(AgreusHandoverDesk.Page.SIGNED, AgreusYardAgreement.YARD_COMPACT))),
                 // Military warrant obligations on the company record: an active warrant with
                 // its next service deadline beside a suspended one with what restores it.
                 new SnapshotArtifact("company-hq-warrants-wide.png",

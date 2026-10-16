@@ -1,0 +1,745 @@
+{
+  "durationSeconds": 7.000000476837158,
+  "events": [
+    {
+      "kind": "launch",
+      "seconds": 0.03333333507180214,
+      "soundId": "swarmer_fire",
+      "tick": 1,
+      "weapon": "locust",
+      "x": 40.18147277832031,
+      "y": 26.060720443725586
+    },
+    {
+      "kind": "launch",
+      "seconds": 0.13333334028720856,
+      "soundId": "swarmer_fire",
+      "tick": 4,
+      "weapon": "locust",
+      "x": 40.39507293701172,
+      "y": 26.15047836303711
+    },
+    {
+      "kind": "launch",
+      "seconds": 0.23333334922790527,
+      "soundId": "swarmer_fire",
+      "tick": 7,
+      "weapon": "locust",
+      "x": 40.61710739135742,
+      "y": 26.14746856689453
+    },
+    {
+      "kind": "launch",
+      "seconds": 0.3333333432674408,
+      "soundId": "swarmer_fire",
+      "tick": 10,
+      "weapon": "locust",
+      "x": 40.83436965942383,
+      "y": 26.05141830444336
+    },
+    {
+      "kind": "launch",
+      "seconds": 0.4333333671092987,
+      "soundId": "swarmer_fire",
+      "tick": 13,
+      "weapon": "locust",
+      "x": 40.14568328857422,
+      "y": 26.221614837646484
+    },
+    {
+      "kind": "launch",
+      "seconds": 0.5333333611488342,
+      "soundId": "swarmer_fire",
+      "tick": 16,
+      "weapon": "locust",
+      "x": 40.374351501464844,
+      "y": 26.32042121887207
+    },
+    {
+      "kind": "launch",
+      "seconds": 0.6333333849906921,
+      "soundId": "swarmer_fire",
+      "tick": 19,
+      "weapon": "locust",
+      "x": 40.60291290283203,
+      "y": 26.32566261291504
+    },
+    {
+      "kind": "launch",
+      "seconds": 0.7333333492279053,
+      "soundId": "swarmer_fire",
+      "tick": 22,
+      "weapon": "locust",
+      "x": 40.82727813720703,
+      "y": 26.254953384399414
+    },
+    {
+      "kind": "impact",
+      "seconds": 0.8000000715255737,
+      "soundId": "marines_missile_impact",
+      "tick": 24,
+      "weapon": "locust",
+      "x": 43.12271499633789,
+      "y": 39.28790283203125
+    },
+    {
+      "kind": "launch",
+      "seconds": 0.8333333730697632,
+      "soundId": "swarmer_fire",
+      "tick": 25,
+      "weapon": "locust",
+      "x": 41.02936553955078,
+      "y": 26.10501480102539
+    },
+    {
+      "kind": "impact",
+      "seconds": 0.8666667342185974,
+      "soundId": "marines_missile_impact",
+      "tick": 26,
+      "weapon": "locust",
+      "x": 43.461265563964844,
+      "y": 39.201045989990234
+    },
+    {
+      "kind": "launch",
+      "seconds": 0.9333333969116211,
+      "soundId": "swarmer_fire",
+      "tick": 28,
+      "weapon": "locust",
+      "x": 40.46641159057617,
+      "y": 26.411733627319336
+    },
+    {
+      "kind": "impact",
+      "seconds": 0.9666666984558105,
+      "soundId": "marines_missile_impact",
+      "tick": 29,
+      "weapon": "locust",
+      "x": 43.80318069458008,
+      "y": 39.05876541137695
+    },
+    {
+      "kind": "launch",
+      "seconds": 1.033333420753479,
+      "soundId": "swarmer_fire",
+      "tick": 31,
+      "weapon": "locust",
+      "x": 40.710899353027344,
+      "y": 26.401458740234375
+    },
+    {
+      "kind": "impact",
+      "seconds": 1.0666667222976685,
+      "soundId": "marines_missile_impact",
+      "tick": 32,
+      "weapon": "locust",
+      "x": 44.15877151489258,
+      "y": 38.90907287597656
+    },
+    {
+      "kind": "launch",
+      "seconds": 1.133333444595337,
+      "soundId": "swarmer_fire",
+      "tick": 34,
+      "weapon": "locust",
+      "x": 40.93194580078125,
+      "y": 26.29397201538086
+    },
+    {
+      "kind": "impact",
+      "seconds": 1.1666667461395264,
+      "soundId": "marines_missile_impact",
+      "tick": 35,
+      "weapon": "locust",
+      "x": 44.44021224975586,
+      "y": 38.753665924072266
+    },
+    {
+      "kind": "launch",
+      "seconds": 1.2333333492279053,
+      "soundId": "swarmer_fire",
+      "tick": 37,
+      "weapon": "locust",
+      "x": 40.37016677856445,
+      "y": 26.131671905517578
+    },
+    {
+      "kind": "impact",
+      "seconds": 1.2666667699813843,
+      "soundId": "marines_missile_impact",
+      "tick": 38,
+      "weapon": "locust",
+      "x": 44.750999450683594,
+      "y": 38.59416580200195
+    },
+    {
+      "kind": "launch",
+      "seconds": 1.3333333730697632,
+      "soundId": "swarmer_fire",
+      "tick": 40,
+      "weapon": "locust",
+      "x": 40.601985931396484,
+      "y": 26.15094566345215
+    },
+    {
+      "kind": "impact",
+      "seconds": 1.3666667938232422,
+      "soundId": "marines_missile_impact",
+      "tick": 41,
+      "weapon": "locust",
+      "x": 45.076019287109375,
+      "y": 38.42688751220703
+    },
+    {
+      "kind": "launch",
+      "seconds": 1.433333396911621,
+      "soundId": "swarmer_fire",
+      "tick": 43,
+      "weapon": "locust",
+      "x": 40.812591552734375,
+      "y": 26.0789794921875
+    },
+    {
+      "kind": "impact",
+      "seconds": 1.4666666984558105,
+      "soundId": "marines_missile_impact",
+      "tick": 44,
+      "weapon": "locust",
+      "x": 45.411190032958984,
+      "y": 38.25083541870117
+    },
+    {
+      "kind": "launch",
+      "seconds": 1.533333420753479,
+      "soundId": "swarmer_fire",
+      "tick": 46,
+      "weapon": "locust",
+      "x": 40.98964309692383,
+      "y": 25.91966438293457
+    },
+    {
+      "kind": "impact",
+      "seconds": 1.5666667222976685,
+      "soundId": "marines_missile_impact",
+      "tick": 47,
+      "weapon": "locust",
+      "x": 45.75654983520508,
+      "y": 38.065101623535156
+    },
+    {
+      "kind": "launch",
+      "seconds": 1.633333444595337,
+      "soundId": "swarmer_fire",
+      "tick": 49,
+      "weapon": "locust",
+      "x": 40.38926696777344,
+      "y": 26.296245574951172
+    },
+    {
+      "kind": "impact",
+      "seconds": 1.6666667461395264,
+      "soundId": "marines_missile_impact",
+      "tick": 50,
+      "weapon": "locust",
+      "x": 46.02552795410156,
+      "y": 37.924312591552734
+    },
+    {
+      "kind": "launch",
+      "seconds": 1.7333334684371948,
+      "soundId": "swarmer_fire",
+      "tick": 52,
+      "weapon": "locust",
+      "x": 40.63838195800781,
+      "y": 26.318368911743164
+    },
+    {
+      "kind": "impact",
+      "seconds": 1.7333334684371948,
+      "soundId": "marines_missile_impact",
+      "tick": 52,
+      "weapon": "locust",
+      "x": 46.33859634399414,
+      "y": 37.73710250854492
+    },
+    {
+      "kind": "launch",
+      "seconds": 1.8333333730697632,
+      "soundId": "swarmer_fire",
+      "tick": 55,
+      "weapon": "locust",
+      "x": 40.85799026489258,
+      "y": 26.251100540161133
+    },
+    {
+      "kind": "impact",
+      "seconds": 1.8333333730697632,
+      "soundId": "marines_missile_impact",
+      "tick": 55,
+      "weapon": "locust",
+      "x": 46.66313552856445,
+      "y": 37.534175872802734
+    },
+    {
+      "kind": "launch",
+      "seconds": 1.933333396911621,
+      "soundId": "swarmer_fire",
+      "tick": 58,
+      "weapon": "locust",
+      "x": 41.04941940307617,
+      "y": 26.11254119873047
+    },
+    {
+      "kind": "impact",
+      "seconds": 1.9666668176651,
+      "soundId": "marines_missile_impact",
+      "tick": 59,
+      "weapon": "locust",
+      "x": 46.98642349243164,
+      "y": 37.279541015625
+    },
+    {
+      "kind": "launch",
+      "seconds": 2.0333335399627686,
+      "soundId": "swarmer_fire",
+      "tick": 61,
+      "weapon": "locust",
+      "x": 41.194175720214844,
+      "y": 25.905447006225586
+    },
+    {
+      "kind": "impact",
+      "seconds": 2.066666841506958,
+      "soundId": "marines_missile_impact",
+      "tick": 62,
+      "weapon": "locust",
+      "x": 47.276573181152344,
+      "y": 37.07157516479492
+    },
+    {
+      "kind": "launch",
+      "seconds": 2.133333444595337,
+      "soundId": "swarmer_fire",
+      "tick": 64,
+      "weapon": "locust",
+      "x": 40.75897979736328,
+      "y": 26.37482452392578
+    },
+    {
+      "kind": "impact",
+      "seconds": 2.133333444595337,
+      "soundId": "marines_missile_impact",
+      "tick": 64,
+      "weapon": "locust",
+      "x": 47.59988784790039,
+      "y": 36.88557815551758
+    },
+    {
+      "kind": "launch",
+      "seconds": 2.2333333492279053,
+      "soundId": "swarmer_fire",
+      "tick": 67,
+      "weapon": "locust",
+      "x": 40.9883918762207,
+      "y": 26.286497116088867
+    },
+    {
+      "kind": "impact",
+      "seconds": 2.2333333492279053,
+      "soundId": "marines_missile_impact",
+      "tick": 67,
+      "weapon": "locust",
+      "x": 47.91347885131836,
+      "y": 36.652984619140625
+    },
+    {
+      "kind": "launch",
+      "seconds": 2.3333334922790527,
+      "soundId": "swarmer_fire",
+      "tick": 70,
+      "weapon": "locust",
+      "x": 41.164127349853516,
+      "y": 26.113109588623047
+    },
+    {
+      "kind": "impact",
+      "seconds": 2.3333334922790527,
+      "soundId": "marines_missile_impact",
+      "tick": 70,
+      "weapon": "locust",
+      "x": 48.15143966674805,
+      "y": 36.43610763549805
+    },
+    {
+      "kind": "launch",
+      "seconds": 2.433333396911621,
+      "soundId": "swarmer_fire",
+      "tick": 73,
+      "weapon": "locust",
+      "x": 40.58071517944336,
+      "y": 26.13980484008789
+    },
+    {
+      "kind": "impact",
+      "seconds": 2.433333396911621,
+      "soundId": "marines_missile_impact",
+      "tick": 73,
+      "weapon": "locust",
+      "x": 48.4178352355957,
+      "y": 36.20537567138672
+    },
+    {
+      "kind": "launch",
+      "seconds": 2.5333335399627686,
+      "soundId": "swarmer_fire",
+      "tick": 76,
+      "weapon": "locust",
+      "x": 40.807003021240234,
+      "y": 26.082992553710938
+    },
+    {
+      "kind": "impact",
+      "seconds": 2.5333335399627686,
+      "soundId": "marines_missile_impact",
+      "tick": 76,
+      "weapon": "locust",
+      "x": 48.695648193359375,
+      "y": 35.96198272705078
+    },
+    {
+      "kind": "launch",
+      "seconds": 2.633333444595337,
+      "soundId": "swarmer_fire",
+      "tick": 79,
+      "weapon": "locust",
+      "x": 40.98347854614258,
+      "y": 25.9462947845459
+    },
+    {
+      "kind": "impact",
+      "seconds": 2.633333444595337,
+      "soundId": "marines_missile_impact",
+      "tick": 79,
+      "weapon": "locust",
+      "x": 48.980472564697266,
+      "y": 35.70616149902344
+    },
+    {
+      "kind": "launch",
+      "seconds": 2.7333335876464844,
+      "soundId": "swarmer_fire",
+      "tick": 82,
+      "weapon": "locust",
+      "x": 41.099510192871094,
+      "y": 25.737590789794922
+    },
+    {
+      "kind": "impact",
+      "seconds": 2.7333335876464844,
+      "soundId": "marines_missile_impact",
+      "tick": 82,
+      "weapon": "locust",
+      "x": 49.2720947265625,
+      "y": 35.43711471557617
+    },
+    {
+      "kind": "launch",
+      "seconds": 2.8333334922790527,
+      "soundId": "swarmer_fire",
+      "tick": 85,
+      "weapon": "locust",
+      "x": 40.65497970581055,
+      "y": 26.288829803466797
+    },
+    {
+      "kind": "impact",
+      "seconds": 2.8333334922790527,
+      "soundId": "marines_missile_impact",
+      "tick": 85,
+      "weapon": "locust",
+      "x": 49.475616455078125,
+      "y": 35.20541763305664
+    },
+    {
+      "kind": "launch",
+      "seconds": 2.933333396911621,
+      "soundId": "swarmer_fire",
+      "tick": 88,
+      "weapon": "locust",
+      "x": 40.89830017089844,
+      "y": 26.228172302246094
+    },
+    {
+      "kind": "impact",
+      "seconds": 2.933333396911621,
+      "soundId": "marines_missile_impact",
+      "tick": 88,
+      "weapon": "locust",
+      "x": 49.72998809814453,
+      "y": 34.93873977661133
+    },
+    {
+      "kind": "impact",
+      "seconds": 3.0333335399627686,
+      "soundId": "marines_missile_impact",
+      "tick": 91,
+      "weapon": "locust",
+      "x": 49.99319839477539,
+      "y": 34.65572738647461
+    },
+    {
+      "kind": "impact",
+      "seconds": 3.133333444595337,
+      "soundId": "marines_missile_impact",
+      "tick": 94,
+      "weapon": "locust",
+      "x": 50.26887893676758,
+      "y": 34.35157775878906
+    },
+    {
+      "kind": "impact",
+      "seconds": 3.2333335876464844,
+      "soundId": "marines_missile_impact",
+      "tick": 97,
+      "weapon": "locust",
+      "x": 50.49522018432617,
+      "y": 34.07136535644531
+    },
+    {
+      "kind": "impact",
+      "seconds": 3.3333334922790527,
+      "soundId": "marines_missile_impact",
+      "tick": 100,
+      "weapon": "locust",
+      "x": 50.72907257080078,
+      "y": 33.775299072265625
+    },
+    {
+      "kind": "impact",
+      "seconds": 3.433333396911621,
+      "soundId": "marines_missile_impact",
+      "tick": 103,
+      "weapon": "locust",
+      "x": 50.96900939941406,
+      "y": 33.46288299560547
+    },
+    {
+      "kind": "impact",
+      "seconds": 3.5333335399627686,
+      "soundId": "marines_missile_impact",
+      "tick": 106,
+      "weapon": "locust",
+      "x": 51.142005920410156,
+      "y": 33.192405700683594
+    },
+    {
+      "kind": "impact",
+      "seconds": 3.633333444595337,
+      "soundId": "marines_missile_impact",
+      "tick": 109,
+      "weapon": "locust",
+      "x": 51.33724594116211,
+      "y": 32.8961067199707
+    },
+    {
+      "kind": "launch",
+      "seconds": 0.03333333507180214,
+      "soundId": "swarmer_fire",
+      "tick": 1,
+      "weapon": "swarmer",
+      "x": 39.936397552490234,
+      "y": 26.49429702758789
+    },
+    {
+      "kind": "launch",
+      "seconds": 0.23333334922790527,
+      "soundId": "swarmer_fire",
+      "tick": 7,
+      "weapon": "swarmer",
+      "x": 40.34560012817383,
+      "y": 26.512344360351562
+    },
+    {
+      "kind": "launch",
+      "seconds": 0.4333333671092987,
+      "soundId": "swarmer_fire",
+      "tick": 13,
+      "weapon": "swarmer",
+      "x": 40.7547607421875,
+      "y": 26.490798950195312
+    },
+    {
+      "kind": "launch",
+      "seconds": 0.6333333849906921,
+      "soundId": "swarmer_fire",
+      "tick": 19,
+      "weapon": "swarmer",
+      "x": 41.16032028198242,
+      "y": 26.429494857788086
+    },
+    {
+      "kind": "impact",
+      "seconds": 0.9666666984558105,
+      "soundId": "marines_missile_impact",
+      "tick": 29,
+      "weapon": "swarmer",
+      "x": 43.80986404418945,
+      "y": 39.05994415283203
+    },
+    {
+      "kind": "impact",
+      "seconds": 1.1666667461395264,
+      "soundId": "marines_missile_impact",
+      "tick": 35,
+      "weapon": "swarmer",
+      "x": 44.4633674621582,
+      "y": 38.75413513183594
+    },
+    {
+      "kind": "impact",
+      "seconds": 1.3333333730697632,
+      "soundId": "marines_missile_impact",
+      "tick": 40,
+      "weapon": "swarmer",
+      "x": 45.128089904785156,
+      "y": 38.47401428222656
+    },
+    {
+      "kind": "impact",
+      "seconds": 1.533333420753479,
+      "soundId": "marines_missile_impact",
+      "tick": 46,
+      "weapon": "swarmer",
+      "x": 45.7657356262207,
+      "y": 38.11435317993164
+    },
+    {
+      "kind": "launch",
+      "seconds": 5.633333683013916,
+      "soundId": "swarmer_fire",
+      "tick": 169,
+      "weapon": "swarmer",
+      "x": 41.47964859008789,
+      "y": 26.088695526123047
+    },
+    {
+      "kind": "launch",
+      "seconds": 5.833333492279053,
+      "soundId": "swarmer_fire",
+      "tick": 175,
+      "weapon": "swarmer",
+      "x": 41.508949279785156,
+      "y": 25.675209045410156
+    },
+    {
+      "kind": "launch",
+      "seconds": 6.033333778381348,
+      "soundId": "swarmer_fire",
+      "tick": 181,
+      "weapon": "swarmer",
+      "x": 41.49483871459961,
+      "y": 25.261516571044922
+    },
+    {
+      "kind": "launch",
+      "seconds": 6.233333587646484,
+      "soundId": "swarmer_fire",
+      "tick": 187,
+      "weapon": "swarmer",
+      "x": 41.437564849853516,
+      "y": 24.851186752319336
+    },
+    {
+      "kind": "impact",
+      "seconds": 6.533333778381348,
+      "soundId": "marines_missile_impact",
+      "tick": 196,
+      "weapon": "swarmer",
+      "x": 53.476078033447266,
+      "y": 22.565771102905273
+    },
+    {
+      "kind": "impact",
+      "seconds": 6.733333587646484,
+      "soundId": "marines_missile_impact",
+      "tick": 202,
+      "weapon": "swarmer",
+      "x": 53.32145309448242,
+      "y": 21.829517364501953
+    },
+    {
+      "kind": "impact",
+      "seconds": 6.933333873748779,
+      "soundId": "marines_missile_impact",
+      "tick": 208,
+      "weapon": "swarmer",
+      "x": 53.12673568725586,
+      "y": 21.09933090209961
+    },
+    {
+      "kind": "launch",
+      "seconds": 0.03333333507180214,
+      "soundId": "proximity_charge_launcher_fire",
+      "tick": 1,
+      "weapon": "proximity",
+      "x": 40.47414779663086,
+      "y": 26.554370880126953
+    },
+    {
+      "kind": "launch",
+      "seconds": 2.0333335399627686,
+      "soundId": "proximity_charge_launcher_fire",
+      "tick": 61,
+      "weapon": "proximity",
+      "x": 41.01188278198242,
+      "y": 26.42214012145996
+    },
+    {
+      "kind": "flameout",
+      "seconds": 3.3000001907348633,
+      "soundId": null,
+      "tick": 99,
+      "weapon": "proximity",
+      "x": 37.792789459228516,
+      "y": 80.00799560546875
+    },
+    {
+      "kind": "launch",
+      "seconds": 4.033333778381348,
+      "soundId": "proximity_charge_launcher_fire",
+      "tick": 121,
+      "weapon": "proximity",
+      "x": 41.42425537109375,
+      "y": 26.008054733276367
+    },
+    {
+      "kind": "impact",
+      "seconds": 4.566667079925537,
+      "soundId": "prox_charge_explosion",
+      "tick": 137,
+      "weapon": "proximity",
+      "x": 50.94413757324219,
+      "y": 29.34935188293457
+    },
+    {
+      "kind": "flameout",
+      "seconds": 5.700000286102295,
+      "soundId": null,
+      "tick": 171,
+      "weapon": "proximity",
+      "x": 63.510894775390625,
+      "y": 80.36843872070312
+    },
+    {
+      "kind": "launch",
+      "seconds": 6.033333778381348,
+      "soundId": "proximity_charge_launcher_fire",
+      "tick": 181,
+      "weapon": "proximity",
+      "x": 41.5526237487793,
+      "y": 25.43402099609375
+    }
+  ],
+  "fps": 20,
+  "timeOrigin": "Each independent weapon loop starts at simulation tick zero"
+}

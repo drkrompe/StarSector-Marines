@@ -28,6 +28,81 @@ public final class AgreusArcProgress implements Serializable {
      */
     private boolean smallWarSettled;
     public boolean smallWarSettled() { return smallWarSettled; }
+
+    /** Where the Latchkey custody decision stands. Older saves without these fields read as unsigned. */
+    public enum HandoverStage {
+        /** The Yard's Owners has not settled with a victory. */
+        NOT_REACHED,
+        /** Both agreements are readable; nothing is committed. */
+        OPEN,
+        /** One agreement is signed; Chapter 4 victory has not yet ratified it. */
+        SIGNED,
+        /** Chapter 4 victory ratified the signed agreement. */
+        RATIFIED,
+        /** The company declined further work before signing, keeping completed fees and cards. */
+        DECLINED
+    }
+    /** Null until an explicit signing action; never written by opening or previewing either text. */
+    private AgreusYardAgreement signedAgreement;
+    private boolean agreementRatified, furtherWorkDeclined, custodyPremiumSettled;
+
+    public AgreusYardAgreement signedAgreement() { return signedAgreement; }
+    public boolean agreementRatified() { return agreementRatified; }
+    public boolean furtherWorkDeclined() { return furtherWorkDeclined; }
+    public boolean custodyPremiumSettled() { return custodyPremiumSettled; }
+    public HandoverStage handoverStage() {
+        if (!yardCompleted) return HandoverStage.NOT_REACHED;
+        if (furtherWorkDeclined) return HandoverStage.DECLINED;
+        if (signedAgreement == null) return HandoverStage.OPEN;
+        return agreementRatified ? HandoverStage.RATIFIED : HandoverStage.SIGNED;
+    }
+
+    /**
+     * The explicit signing action: commits one route once, after a settled Chapter 3 victory and
+     * outside any active mobilization. A second signature, of either agreement, is refused, so
+     * defeat or reload can never yield both routes' terms.
+     */
+    public boolean signAgreement(AgreusYardAgreement agreement) {
+        if (agreement == null || handoverStage() != HandoverStage.OPEN || activeId != null) return false;
+        signedAgreement = agreement;
+        return true;
+    }
+
+    /** Before signing, the company may stop here; completed fees and cards are untouched. Final. */
+    public boolean declineFurtherWork() {
+        if (handoverStage() != HandoverStage.OPEN || activeId != null) return false;
+        furtherWorkDeclined = true;
+        return true;
+    }
+
+    /** Chapter 4 (Terms of Protection) may be prepared only under a signed, unratified route. */
+    public boolean termsOfProtectionInPreparation() { return handoverStage() == HandoverStage.SIGNED; }
+
+    /**
+     * Chapter 4 victory's ratification hook. The outcome freezes the agreement it launched under;
+     * a receipt naming any other route, or arriving after ratification, writes nothing. Defeat
+     * never calls this: the signed route simply stands for the next attempt.
+     */
+    public boolean ratifyAgreement(AgreusYardAgreement launchedUnder) {
+        if (handoverStage() != HandoverStage.SIGNED || launchedUnder != signedAgreement) return false;
+        agreementRatified = true;
+        return true;
+    }
+
+    /** The disclosed premium still owed on Chapter 5 victory: 12,000 under House Custody, else 0. */
+    public int custodyPremiumDue() {
+        return signedAgreement == null || custodyPremiumSettled ? 0 : signedAgreement.completionPremium;
+    }
+
+    /**
+     * Chapter 5 victory's premium hook: returns the credits to pay, once, only for a ratified
+     * House Custody route. The compact, an unratified route or a repeat call pays nothing.
+     */
+    public int settleCustodyPremium() {
+        if (handoverStage() != HandoverStage.RATIFIED || custodyPremiumSettled) return 0;
+        custodyPremiumSettled = true;
+        return signedAgreement.completionPremium;
+    }
     public boolean yardCompleted() { return yardCompleted; }
     public int yardTechniciansLost() { return yardTechniciansLost; }
     public int yardConstablesLost() { return yardConstablesLost; }

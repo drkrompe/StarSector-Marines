@@ -115,6 +115,7 @@ public final class GroundSimPresentation {
         spawnAmbientFx(fx, sim);
 
         driveOrdnanceFx(renderer, sim, dt);
+        renderer.getProjectileTrailFx().tick(sim.getActiveShots(), fx);
         fx.advance(dt);
         renderer.getContrailFx().tick(sim.getActiveShots(), dt);
     }

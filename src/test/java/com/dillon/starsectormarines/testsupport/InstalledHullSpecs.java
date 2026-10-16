@@ -2,6 +2,9 @@ package com.dillon.starsectormarines.testsupport;
 
 import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import org.json.JSONObject;
+import com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver;
+import com.dillon.starsectormarines.battle.air.engine.HullPivotResolver;
+import com.dillon.starsectormarines.battle.air.engine.WeaponSlotParser;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,11 +42,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * early, which is what lets anything that swapped the source out — a test of
  * the seam itself — put the real one back.
  */
-public final class InstalledHullSpecs implements HullFootprintResolver.HullDimensions {
+public final class InstalledHullSpecs implements HullFootprintResolver.HullDimensions, HullPivotResolver.HullGeometrySource {
 
     private static InstalledHullSpecs installed;
 
     private final Path hullDir;
+    private final Map<String, JSONObject> specsByHull = new ConcurrentHashMap<>();
     private final Map<String, Float> forwardExtentPxByHull = new ConcurrentHashMap<>();
 
     private InstalledHullSpecs(Path hullDir) {
@@ -64,6 +68,8 @@ public final class InstalledHullSpecs implements HullFootprintResolver.HullDimen
             installed = new InstalledHullSpecs(hulls);
         }
         HullFootprintResolver.useHullDimensions(installed);
+        HullPivotResolver.useHullGeometry(installed);
+        EngineSlotResolver.useHullSpecs(installed::spec);
     }
 
     /**
@@ -84,11 +90,29 @@ public final class InstalledHullSpecs implements HullFootprintResolver.HullDimen
     }
 
     private float readForwardExtentPx(String hullId) {
-        Path spec = hullDir.resolve(hullId + ".ship");
         try {
-            return (float) new JSONObject(Files.readString(spec)).optDouble("height", 0.0);
+            return (float) spec(hullId).optDouble("height", 0.0);
         } catch (Exception e) {
             return 0f;
         }
+    }
+    @Override
+    public HullPivotResolver.HullGeometry geometry(String hullId) {
+        if (hullId == null || hullId.isEmpty()) return null;
+        try {
+            JSONObject spec = spec(hullId);
+            float[] center = WeaponSlotParser.parseCenter(spec);
+            if (center == null) return null;
+            return new HullPivotResolver.HullGeometry((float) spec.optDouble("width", 0),
+                    (float) spec.optDouble("height", 0), center[0], center[1]);
+        } catch (Exception e) { return null; }
+    }
+    /** One parsed install spec shared by footprint, pivot and engine-slot tool sources. */
+    private JSONObject spec(String hullId) {
+        if (hullId == null || hullId.isEmpty()) return null;
+        return specsByHull.computeIfAbsent(hullId, id -> {
+            try { return new JSONObject(Files.readString(hullDir.resolve(id + ".ship"))); }
+            catch (Exception e) { return null; }
+        });
     }
 }

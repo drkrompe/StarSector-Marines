@@ -53,6 +53,11 @@ public final class CompanyHqScreen implements Screen {
             CompanyHqScreen::auxiliaryStage, CompanyHqScreen::acceptAuxiliary, CompanyHqScreen::declineAuxiliary,
             () -> projectedCampaignHour = Integer.MIN_VALUE);
 
+    /** The Latchkey custody letter; held across rebuilds for the same reason as the warrant's. */
+    private final AgreusHandoverDesk handover = new AgreusHandoverDesk(reactor,
+            AgreusArcCampaign::handoverStage, AgreusArcCampaign::signedAgreement, AgreusArcCampaign::sign,
+            AgreusArcCampaign::declineFurtherWork, () -> projectedCampaignHour = Integer.MIN_VALUE);
+
     private MarineOpsContext context;
     private Runnable dismissDialog;
     private UiViewport viewport;
@@ -104,6 +109,7 @@ public final class CompanyHqScreen implements Screen {
         props.put("debugClasses", DevConfig.DEBUG_CLIENT ? "hq-debug console-action" : "hq-debug-hidden");
         newsDesk.put(props);
         auxiliary.put(props);
+        handover.put(props);
         MarkupInstance candidate = markup.reloadAndBuild(
                 reactor, ROOT_COMPONENT, props);
         UiDocument built;

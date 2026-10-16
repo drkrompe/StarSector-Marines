@@ -1,5 +1,8 @@
 {
   "mounts": [
+    {"id": "mount.aa-locust", "weapon": "weapon.aa-locust", "sim": {"ammoCapacity": 0, "turnRateDegPerSec": 110}, "render": {"visualCells": 3, "muzzleOffsetCells": 1, "muzzles": [[-0.304688, 0.568359], [-0.105469, 0.650391], [0.099609, 0.650391], [0.304688, 0.568359], [-0.410156, 0.691406], [-0.210938, 0.802734], [-0.005859, 0.832031], [0.205078, 0.796875], [0.410156, 0.691406], [-0.222656, 0.884766], [-0.005859, 0.925781], [0.210938, 0.878906]], "sprite": "graphics/structures/aa-locust-mount.png"}},
+    {"id": "mount.aa-swarmer", "weapon": "weapon.aa-swarmer", "sim": {"ammoCapacity": 0, "turnRateDegPerSec": 110}, "render": {"visualCells": 3, "muzzleOffsetCells": 1, "muzzles": [[-0.539062, 1.007812], [-0.181641, 1.007812], [0.175781, 1.007812], [0.533203, 1.007812]], "sprite": "graphics/structures/aa-swarmer-mount.png"}},
+    {"id": "mount.aa-proximity", "weapon": "weapon.aa-proximity", "sim": {"ammoCapacity": 0, "turnRateDegPerSec": 110}, "render": {"visualCells": 3, "muzzleOffsetCells": 1, "muzzles": [[0.0, 1.054688]], "sprite": "graphics/structures/aa-proximity-mount.png"}},
     { "id": "mount.ridge-aa", "weapon": "weapon.ridge-aa",
       "sim": { "ammoCapacity": 48, "turnRateDegPerSec": 110.0 },
       "render": { "visualCells": 3.5, "muzzleOffsetCells": 1.12, "muzzleLateralOffsetCells": 0.87,
@@ -62,6 +65,9 @@
     { "id": "mount.pd-pack", "weapon": "weapon.pd-pack", "sim": { "ammoCapacity": 6, "turnRateDegPerSec": 300.0 }, "render": { "visualCells": 0.95, "muzzleOffsetCells": 0.34, "sprite": "graphics/weapons/burstpd_turret_base.png" } }
   ],
   "structures": [
+    {"id": "structure.aa-locust", "mount": "mount.aa-locust", "targetRole": "AA", "catalog": {"displayName": "@gearCatalogStructureAaLocustDisplayName"}, "durability": {"structure": 130, "armorCapacity": 65, "armorRating": 6}, "physics": {"radius": 1.1, "hitHalfHeight": 0.8, "footprintCells": [3, 3]}, "forceScore": 16, "art": {"base": "graphics/structures/missile-aa-base.png"}},
+    {"id": "structure.aa-swarmer", "mount": "mount.aa-swarmer", "targetRole": "AA", "catalog": {"displayName": "@gearCatalogStructureAaSwarmerDisplayName"}, "durability": {"structure": 130, "armorCapacity": 65, "armorRating": 6}, "physics": {"radius": 1.1, "hitHalfHeight": 0.8, "footprintCells": [3, 3]}, "forceScore": 16, "art": {"base": "graphics/structures/missile-aa-base.png"}},
+    {"id": "structure.aa-proximity", "mount": "mount.aa-proximity", "targetRole": "AA", "catalog": {"displayName": "@gearCatalogStructureAaProximityDisplayName"}, "durability": {"structure": 130, "armorCapacity": 65, "armorRating": 6}, "physics": {"radius": 1.1, "hitHalfHeight": 0.8, "footprintCells": [3, 3]}, "forceScore": 16, "art": {"base": "graphics/structures/missile-aa-base.png"}},
     { "id": "structure.ridge-aa", "mount": "mount.ridge-aa", "targetRole": "AA",
       "catalog": { "displayName": "Ridgewatch Missile Battery" },
       "durability": { "structure": 130.0, "armorCapacity": 65.0, "armorRating": 6.0 },

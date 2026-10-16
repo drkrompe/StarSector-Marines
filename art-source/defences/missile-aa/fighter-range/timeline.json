@@ -1,0 +1,274 @@
+{
+  "durationSeconds": 10,
+  "events": [
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 0,
+      "soundId": "swarmer_fire",
+      "tick": 183
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 0.1,
+      "soundId": "swarmer_fire",
+      "tick": 186
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 0.2,
+      "soundId": "swarmer_fire",
+      "tick": 189
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 0.3,
+      "soundId": "swarmer_fire",
+      "tick": 192
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 0.4,
+      "soundId": "swarmer_fire",
+      "tick": 195
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 0.5,
+      "soundId": "swarmer_fire",
+      "tick": 198
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 0.6,
+      "soundId": "swarmer_fire",
+      "tick": 201
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 0.7,
+      "soundId": "swarmer_fire",
+      "tick": 204
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 0.8,
+      "soundId": "swarmer_fire",
+      "tick": 207
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 0.9,
+      "soundId": "swarmer_fire",
+      "tick": 210
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 1,
+      "soundId": "swarmer_fire",
+      "tick": 213
+    },
+    {
+      "kind": "impact",
+      "lane": "locust",
+      "seconds": 1.0666666666666667,
+      "soundId": "marines_missile_impact",
+      "tick": 215
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 1.1,
+      "soundId": "swarmer_fire",
+      "tick": 216
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 1.2,
+      "soundId": "swarmer_fire",
+      "tick": 219
+    },
+    {
+      "kind": "launch",
+      "lane": "swarmer",
+      "seconds": 1.2333333333333334,
+      "soundId": "swarmer_fire",
+      "tick": 220
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 1.3,
+      "soundId": "swarmer_fire",
+      "tick": 222
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 1.4,
+      "soundId": "swarmer_fire",
+      "tick": 225
+    },
+    {
+      "kind": "launch",
+      "lane": "swarmer",
+      "seconds": 1.4333333333333333,
+      "soundId": "swarmer_fire",
+      "tick": 226
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 1.5,
+      "soundId": "swarmer_fire",
+      "tick": 228
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 1.6,
+      "soundId": "swarmer_fire",
+      "tick": 231
+    },
+    {
+      "kind": "launch",
+      "lane": "swarmer",
+      "seconds": 1.6333333333333333,
+      "soundId": "swarmer_fire",
+      "tick": 232
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 1.7,
+      "soundId": "swarmer_fire",
+      "tick": 234
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 1.8,
+      "soundId": "swarmer_fire",
+      "tick": 237
+    },
+    {
+      "kind": "launch",
+      "lane": "swarmer",
+      "seconds": 1.8333333333333333,
+      "soundId": "swarmer_fire",
+      "tick": 238
+    },
+    {
+      "kind": "launch",
+      "lane": "proximity",
+      "seconds": 1.8666666666666667,
+      "soundId": "proximity_charge_launcher_fire",
+      "tick": 239
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 1.9,
+      "soundId": "swarmer_fire",
+      "tick": 240
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 2,
+      "soundId": "swarmer_fire",
+      "tick": 243
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 2.1,
+      "soundId": "swarmer_fire",
+      "tick": 246
+    },
+    {
+      "kind": "impact",
+      "lane": "swarmer",
+      "seconds": 2.1,
+      "soundId": "marines_missile_impact",
+      "tick": 246
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 2.2,
+      "soundId": "swarmer_fire",
+      "tick": 249
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 2.3,
+      "soundId": "swarmer_fire",
+      "tick": 252
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 2.4,
+      "soundId": "swarmer_fire",
+      "tick": 255
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 2.5,
+      "soundId": "swarmer_fire",
+      "tick": 258
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 2.6,
+      "soundId": "swarmer_fire",
+      "tick": 261
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 2.7,
+      "soundId": "swarmer_fire",
+      "tick": 264
+    },
+    {
+      "kind": "impact",
+      "lane": "proximity",
+      "seconds": 2.7666666666666666,
+      "soundId": "prox_charge_explosion",
+      "tick": 266
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 2.8,
+      "soundId": "swarmer_fire",
+      "tick": 267
+    },
+    {
+      "kind": "launch",
+      "lane": "locust",
+      "seconds": 2.9,
+      "soundId": "swarmer_fire",
+      "tick": 270
+    }
+  ],
+  "fps": 20,
+  "simulationStartSeconds": 6.1,
+  "simulationStartTick": 183
+}
