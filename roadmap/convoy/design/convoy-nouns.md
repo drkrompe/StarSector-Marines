@@ -360,6 +360,15 @@ suspension discard queued rounds and targets without resetting ammunition or
 cooldown. The actual posed hardpoint supplies the ground ballistic source, and
 the structural body-to-barrel check prevents launching beyond a wall.
 
+The APC hull and twin roof MG are separate overhead silhouettes. The tapered
+nose and sloped glacis distinguish the front from the broad troop compartment
+and squared rear ramp, including when the gun faces elsewhere. The roof bearing
+is on the chassis centerline and the gun rotates about its own frame center;
+the retained source registration owns their measured placement. Heavy and
+escort APCs carry the same-sized MG even though their chassis sizes differ.
+The visible muzzles follow the shared heavy-MG ballistic hardpoints through
+independent hull and turret rotation (`art-source/vehicles/apc/`).
+
 A directly controlled hull repels bodies exactly as an autonomous one does.
 Navigation occupancy, crushing and predictive avoidance remain the open parts
 of `truck-infantry-interaction.md`. Direct control grants no special
@@ -582,6 +591,14 @@ ballistic contact and blast payloads, so it can breach a gun line while lighter
 escorts screen infantry. It carries no passengers. The tracked silhouette uses
 a conservative rolling-turn envelope shared by route proof and body motion;
 neutral pivot, track slip and player-owned tank logistics are not modeled.
+
+Its overhead hull has a projecting armored glacis at the front and a recessed
+engine deck at the rear, with continuous track tops and layered shoulder
+plates. The independent turret distinguishes its forward cheeks and mantlet
+from the rear bustle. Both components retain their authored frame centers so
+traverse cannot move the bearing; paired visible muzzles follow the cannon's
+existing ballistic hardpoints. Armor volume comes from sloped planes and bevels,
+not a tilted camera or baked ground shadow.
 
 An industrial freight hauler has no passenger or turret payload; its long chassis
 and slower handling distinguish cargo from the armed escort. Reinforced story

@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 
 /**
  * Static config for each ground-vehicle variant — sprite, capacity, handling
@@ -22,6 +23,8 @@ public enum VehicleType {
      * Slower and heavier than the militia truck. The gun is what it defends
      * itself with on the drive in and the drive out; it does not buy the
      * squad a parked fire-support platform on the drop point.
+     * Bearing registration comes from art-source/vehicles/apc; both APC hulls
+     * carry the same 1.42-cell gun frame to match the shared ballistic muzzles.
      */
     HEAVY_APC(
             "graphics/battle/vehicles/army-apc.png", /*spriteFrame*/ 0, /*frameCount*/ 2,
@@ -29,8 +32,8 @@ public enum VehicleType {
             /*capacity*/ 4, /*visualLengthCells*/ 2.4f, /*visualWidthCells*/ 1.4f,
             /*maxSpeed*/ 2.8f, /*accel*/ 1.8f, /*brakingAccel*/ 3.5f,
             /*deboardInterval*/ 0.8f, /*lookAheadCells*/ 2.2f,
-            /*turretFrame*/ 1, /*turretMountX*/ -0.15866698f, /*turretMountY*/ 0.26800027f,
-            /*turretPivotX*/ 0.108333334f, /*turretPivotY*/ 0.024999995f, /*turretVisualCells*/ 0.7f, /*turretSpriteFacingOffsetDeg*/ -90f,
+            /*turretFrame*/ 1, /*turretMountX*/ 0f, /*turretMountY*/ 0.15208333f,
+            /*turretPivotX*/ 0f, /*turretPivotY*/ 0f, /*turretVisualCells*/ 1.42f, /*turretSpriteFacingOffsetDeg*/ -90f,
             /*turretStructureId*/ TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID,
             /*maxStructure*/ 220f, /*maxArmor*/ 160f, /*armorRating*/ 18f,
             /*incomingAccuracyMult*/ 1.25f, /*hitHalfHeight*/ 0.75f) {
@@ -45,16 +48,16 @@ public enum VehicleType {
     /** Reinforced local convoy escort. Ordinary reinforcement APCs keep their lighter profile. */
     ESCORT_APC("graphics/battle/vehicles/army-apc.png", 0, 2, -90f,
             0, 3.2f, 1.8f, 3.4f, 1.8f, 3.5f, .8f, 2.8f,
-            1, -.21156f, .35733f, .14444f, .03333f, .94f, -90f,
+            1, 0f, .20277778f, 0f, 0f, 1.42f, -90f,
             TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 620f, 420f, 24f, 1.25f, .9f) {
         @Override public GroundBody createBody() {
             return new BicycleBody(2.2f, 26f, 150f, accel, brakingAccel, maxSpeed);
         }
     },
     /** Heavy convoy spearhead. Uses conservative rolling turns; neutral track pivot is not modeled. */
-    BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 3, -90f,
+    BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 2, -90f,
             0, 4.3f, 3.9f, 3.1f, 1.0f, 3.0f, .8f, 3.0f,
-            1, 0f, 0f, .99f, -.08f, 4.5f, -90f,
+            1, 0f, 0f, 0f, 0f, 7.789194f, -90f,
             TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID, 1100f, 850f, 36f, 1.4f, 1.1f) {
         @Override public GroundBody createBody() {
             // Bounded curvature is deliberately shared with route proof and collision checks.
@@ -86,18 +89,31 @@ public enum VehicleType {
     /** Visual recoil from actual recent shots; does not change the ballistic hardpoint. */
     public float turretRecoilCells() { return 0f; }
 
+    /** Keep authored vehicle bearings; legacy sheets still use detected content bounds. */
+    public SpriteSheetFrames registeredSpriteFrames(SpriteSheetFrames detected) {
+        if (this != HEAVY_APC && this != ESCORT_APC && this != BREAKTHROUGH_TANK) return detected;
+        if (detected.sheetWidth % frameCount != 0) {
+            throw new IllegalArgumentException("Registered vehicle sheet must contain equal horizontal frames");
+        }
+        int width = detected.sheetWidth / frameCount;
+        SpriteSheetFrames.Frame[] frames = new SpriteSheetFrames.Frame[frameCount];
+        for (int i = 0; i < frameCount; i++) {
+            frames[i] = new SpriteSheetFrames.Frame(i * width, 0, width, detected.sheetHeight);
+        }
+        return new SpriteSheetFrames(detected.sheetWidth, detected.sheetHeight, frames);
+    }
+
     public final String spritePath;
     /** Which frame in the horizontal sprite-sheet to draw. 0 = leftmost, increments rightward. */
     public final int spriteFrame;
-    /** Total frames in the sprite-sheet. The renderer divides the texture width by this to get each frame's UV rect. */
+    /** Authored horizontal frame count; registered sheets retain these full slots. */
     public final int frameCount;
     /**
      * Degrees to add to the chassis {@link GroundBody}'s {@code facingDegrees} when
      * rendering, to align the texture's natural "forward" with the sim's
      * "facing=0 is +Y" convention. Vanilla Starsector ship sprites point
-     * north (offset 0); trucks_2.png frames point east (cab on the right
-     * edge of each frame) so they need +90° to rotate the cab toward the
-     * sim's north when the body faces north.
+     * north (offset 0); the ground-vehicle frames point left and use -90°
+     * to turn their noses toward the sim's north when the body faces north.
      */
     public final float spriteFacingOffsetDeg;
     public final int capacity;

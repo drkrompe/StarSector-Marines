@@ -176,12 +176,14 @@ class GroundVehicleTurretSystemTest {
 
     @Test
     void structuralBarrelGateProtectsManualAndAiContinuationButWalkableCoverDoesNot() {
-        Fixture f = new Fixture();
-        f.body.x = 20.71f;
+        // A long barrel can cross a wall while its chassis stays clear. The
+        // centered APC MG now remains inside the hull's collision footprint.
+        Fixture f = new Fixture(VehicleType.BREAKTHROUGH_TANK);
+        f.body.x = 20f + f.type.visualWidthCells * .5f + .01f;
         f.turret.facingDeg = 90f;
         for (int y = 0; y < 96; y++) f.grid.setWalkable(19, y, false);
         assertTrue(VehicleFootprint.isPoseFeasible(f.body.x, f.body.y, 0f,
-                VehicleType.HEAVY_APC.visualLengthCells, VehicleType.HEAVY_APC.visualWidthCells, f.grid));
+                f.type.visualLengthCells, f.type.visualWidthCells, f.grid));
         PointFireAim west = new PointFireAim(5f, f.mountY());
         f.tick(west, true);
         assertTrue(f.shots.getActiveShots().isEmpty());
