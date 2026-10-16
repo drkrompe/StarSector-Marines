@@ -1,5 +1,11 @@
 # Jangala opposite-side landing
 
+> Historical study: superseded encoded movies were retired during the 2026-10-16 cleanup.
+> Source art, prompts, Blender scenes and reference stills remain. Movie sizes,
+> playback observations and media receipts below describe the original exports;
+> rebuild or recover them before running these historical media checks. See the
+> [current cinematic index](../README.md) and [cleanup record](../../cleanup-record.json).
+
 A bounded, textured eight-second landing study built from the accepted Second Wind daylight proof and the previous working-port scene. The latest user direction selects the opposite, starboard camera: bow right and a left-to-right approach. This supersedes the storyboard's earlier same-side direction for this study; the storyboard itself is unchanged. Nothing under `mod/` is changed.
 
 The fixed perspective camera is at `(20,-235,67)`, looking at `(0,0,32)`, with a 32 mm lens and 36 mm sensor. Ship axes remain +X bow, +Y port, +Z up. This is an actual -Y view, not a mirrored image; the horizontal service pod remains on the far port side. The 171 original hull meshes and source flight/support actions are retained.

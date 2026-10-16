@@ -15,6 +15,8 @@ import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
@@ -591,7 +593,7 @@ public final class DefensePostStamper implements GenStage {
             int x = cx + offset.x();
             int y = cy + offset.y();
             Doodad concrete = cell.appearance() == DefensePostLayoutDef.BarrierAppearance.CONCRETE
-                    ? TileManifest.emplacementParapet(x, y, cell.facing().x(), cell.facing().y(), Doodad.COVER_HEAVY)
+                    ? TileManifest.emplacementTightParapet(x, y, cell.facing().x(), cell.facing().y(), Doodad.COVER_HEAVY)
                     : null;
             if (concrete != null) {
                 stampRingDoodad(grid, topology, doodads, x, y, concrete);
@@ -600,6 +602,11 @@ public final class DefensePostStamper implements GenStage {
             }
         }
 
+        boolean concreteRing = false;
+        for (DefensePostLayoutDef.Cell cell : layout.cells) {
+            concreteRing |= cell.kind() == DefensePostLayoutDef.CellKind.BARRIER
+                    && cell.appearance() == DefensePostLayoutDef.BarrierAppearance.CONCRETE;
+        }
         Set<DefensePostLayoutDef.Offset> turretPads = new HashSet<>();
         for (DefensePostLayoutDef.TurretPlacement turret : layout.turrets) {
             turretPads.add(turret.offset());
@@ -610,6 +617,12 @@ public final class DefensePostStamper implements GenStage {
             int y = cy + cell.offset().y();
             if (turretPads.contains(cell.offset())) stampTurretCenter(grid, topology, x, y);
             else sealInnerCell(grid, topology, x, y);
+            if (concreteRing && grid.inBounds(x, y)) {
+                // The sealed mount has no ground art of its own (STONE draws as a bare blue-grey fill): it stands on
+                // the same concrete the fort paves. Surface only; the cell's kind and topology are untouched.
+                topology.setSurface(x, y, topology.surfaceIndex(
+                        Material.CONCRETE.block(RoadRasterizer.age(.55, 0L, x, y))));
+            }
         }
 
         List<DefensePost.TurretSpec> turrets = new ArrayList<>(layout.turrets.size());

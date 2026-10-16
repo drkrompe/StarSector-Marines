@@ -4,7 +4,7 @@
   "frames": 780,
   "ship_scale_m_per_hull_unit": 1.5,
   "scale_status": "provisional review scale, not canonical metres",
-  "source_ship": "second-wind-geometry-v3\\second-wind-geometry.blend",
+  "source_ship": "second-wind-geometry\\second-wind-geometry.blend",
   "ship_objects": 135,
   "axes": {
     "+X": "bow and approach",

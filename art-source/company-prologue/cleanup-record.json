@@ -1,0 +1,361 @@
+{
+  "schema": 1,
+  "date": "2026-10-16",
+  "recovery_commit": "8ec84cbc54d516fd15ecbd95b8a3ec5ecc7c37be",
+  "scope": "Retire superseded encoded previews and one obsolete staging list; preserve all image/reference/prompt/Blender sources. Organize story stills and the rejected orbital prototype.",
+  "removed": [
+    {
+      "path": "second-wind-cinematic/review/arrival-cinematic.mp4",
+      "bytes": 5083212,
+      "sha256": "19e916a00544d7e15a4b70d397d80df95d2fdbdc226a86125bbd75bc489794de",
+      "reason": "Superseded review export; source, still references and historical receipts retained"
+    },
+    {
+      "path": "second-wind-cinematic/forest-lookdev/review/jangala-forest-motion-study.mp4",
+      "bytes": 14505114,
+      "sha256": "89b3099d46fe8f7670b71dab1bef7e9ad6be4272ab14097ad24bb386179f8732",
+      "reason": "Superseded review export; source, still references and historical receipts retained"
+    },
+    {
+      "path": "second-wind-cinematic/painted-window/review/jangala-painted-window-test.mp4",
+      "bytes": 1536429,
+      "sha256": "de402fe1fa5150a174d8664626e385c5b2e983f97acdc58d04d4128f0fb71f8b",
+      "reason": "Superseded review export; source, still references and historical receipts retained"
+    },
+    {
+      "path": "second-wind-cinematic/parallax-window/review/jangala-parallax-window-test.mp4",
+      "bytes": 1398103,
+      "sha256": "35d0ca88272d7e3924d7f73069f920e8f888cdae9836e2648b4316ab7d606f7a",
+      "reason": "Superseded review export; source, still references and historical receipts retained"
+    },
+    {
+      "path": "second-wind-cinematic/port-approach-realism/review/jangala-port-approach-realism.mp4",
+      "bytes": 3126913,
+      "sha256": "9a9a090f4a504df63763d7e2606d5e681c54e6fe61437a7040579a419249c190",
+      "reason": "Superseded review export; source, still references and historical receipts retained"
+    },
+    {
+      "path": "second-wind-cinematic/sequence-review/review/jangala-approach-continuity.mp4",
+      "bytes": 7624158,
+      "sha256": "cc3a50ebf080cb75cabc03a7972f6c7eba0925682d0d8cab1486348e3517533c",
+      "reason": "Superseded review export; source, still references and historical receipts retained"
+    },
+    {
+      "path": "second-wind-cinematic/layered-next-scenes/review/layered-next-scenes-review.mp4",
+      "bytes": 2555527,
+      "sha256": "ff9b8c88469458a1e8cd490a7c62671fac04238270b2da16f768f2d8106b6334",
+      "reason": "Superseded review export; source, still references and historical receipts retained"
+    },
+    {
+      "path": "second-wind-cinematic/layered-next-scenes/review/shot-03.mp4",
+      "bytes": 558249,
+      "sha256": "01c29cb8e2e05219fa830fe17b65b09a5a0ddadcf27128b7913c930aeb939fd8",
+      "reason": "Superseded review export; source, still references and historical receipts retained"
+    },
+    {
+      "path": "second-wind-cinematic/layered-next-scenes/review/shot-04.mp4",
+      "bytes": 565654,
+      "sha256": "12bc3f309a6c1ffa507d7ed275244fa9aa1afe99962b07455a08ff27981bd5ba",
+      "reason": "Superseded review export; source, still references and historical receipts retained"
+    },
+    {
+      "path": "second-wind-cinematic/layered-next-scenes/review/shot-05.mp4",
+      "bytes": 844781,
+      "sha256": "72cbd1e2493092fe1612a6ba8e5e48d062c19f332e5cc4b76752dd08265506fe",
+      "reason": "Superseded review export; source, still references and historical receipts retained"
+    },
+    {
+      "path": "second-wind-cinematic/layered-next-scenes/review/shot-06.mp4",
+      "bytes": 685484,
+      "sha256": "dc77653f8f721d23a62213a25b8e4b4385a8e943bb357a14c89497afe15d8190",
+      "reason": "Superseded review export; source, still references and historical receipts retained"
+    },
+    {
+      "path": "second-wind-cinematic/landing-refinement/review/jangala-landing-refined.mp4",
+      "bytes": 2334630,
+      "sha256": "4479db28d5b563751aa6b691ebce3606eba06d1d8be8efd3f59b8dad955eff97",
+      "reason": "Superseded review export; source, still references and historical receipts retained"
+    },
+    {
+      "path": "second-wind-cinematic/second-wind-surface-proof/review/second-wind-setdown-proof.mp4",
+      "bytes": 745449,
+      "sha256": "c7bc35404ed58368b4f8d96c65ef6eb6774f5e7a0163e91a8dd578557f7a4331",
+      "reason": "Superseded review export; source, still references and historical receipts retained"
+    },
+    {
+      "path": "second-wind-cinematic/second-wind-surface-proof/stage-files.txt",
+      "bytes": 3749,
+      "sha256": "842374b4f1d15eb7ff70ba5c5e2ea0e462de44c35ac8f9809b7eb530814cc9a4",
+      "reason": "Obsolete staging inventory"
+    }
+  ],
+  "moved": [
+    {
+      "from": "berths-fitted.master.png",
+      "to": "story-stills/berths-fitted.master.png",
+      "sha256_before": "4bd08397ed14e90c64fad9531719d83d6588843bcbd291ff0290919c1583d5d7"
+    },
+    {
+      "from": "berths-fitted.prompt.txt",
+      "to": "story-stills/berths-fitted.prompt.txt",
+      "sha256_before": "c90b7299f1977912fc2236c2e731011b6ea7ea3f02c2d965bb1744b473a6e626"
+    },
+    {
+      "from": "cargo-billets.master.png",
+      "to": "story-stills/cargo-billets.master.png",
+      "sha256_before": "cc3592ab17117927d31dac4f15bbea580de6e8e5999b1b2536fbcdc58819e951"
+    },
+    {
+      "from": "cargo-billets.prompt.txt",
+      "to": "story-stills/cargo-billets.prompt.txt",
+      "sha256_before": "b2253515df369d413230fae3ecfe3c8c2e308991c6567b3cb4b01ee36e1c2868"
+    },
+    {
+      "from": "claim.master.png",
+      "to": "story-stills/claim.master.png",
+      "sha256_before": "1bdde5e57d183604c64a25a9017fb2723b52e84e20a88abfe148fe4cb997f17e"
+    },
+    {
+      "from": "claim.prompt.txt",
+      "to": "story-stills/claim.prompt.txt",
+      "sha256_before": "2271482ef421adafd5d5d7e004faa93b261ef796cf4e9389c3d15969758a391d"
+    },
+    {
+      "from": "departure-roster.master.png",
+      "to": "story-stills/departure-roster.master.png",
+      "sha256_before": "338c4d904c22499b1834081d3ec3e4ef8da00afe938e944381ffa0358e33eeb8"
+    },
+    {
+      "from": "departure-roster.prompt.txt",
+      "to": "story-stills/departure-roster.prompt.txt",
+      "sha256_before": "e7585392fb5eec8a10f5a09db2af35110d6f5b1e95f4ff845e50c6f52e9d33d5"
+    },
+    {
+      "from": "last-carrier.master.png",
+      "to": "story-stills/last-carrier.master.png",
+      "sha256_before": "4d43d059e054318e0a0b202f21014a54ec522039a95f7f8fe14633adbf0828e0"
+    },
+    {
+      "from": "last-carrier.prompt.txt",
+      "to": "story-stills/last-carrier.prompt.txt",
+      "sha256_before": "236a532e36468d20e9d6f02bd93f1ca7d84f872749d98cdb522a568f707c1caa"
+    },
+    {
+      "from": "raising-her.master.png",
+      "to": "story-stills/raising-her.master.png",
+      "sha256_before": "762463bb69aae8c8300dd62e9181d4550c3c8ce2fe8f79c88c986f1249bc9547"
+    },
+    {
+      "from": "raising-her.prompt.txt",
+      "to": "story-stills/raising-her.prompt.txt",
+      "sha256_before": "afcd24417b0199e17d71b074560a2d27d25fa2bee646e9d1f2bf7d55d33f1a29"
+    },
+    {
+      "from": "second-wind.master.png",
+      "to": "story-stills/second-wind.master.png",
+      "sha256_before": "18057dfc0d3c3f78c32b23fe79cec41cd5f0c1680f7850807262840584c00bc2"
+    },
+    {
+      "from": "second-wind.prompt.txt",
+      "to": "story-stills/second-wind.prompt.txt",
+      "sha256_before": "8d487d677399555df5a10a9c264e659fe5b675ecddd05763bfc33b39f35fedea"
+    },
+    {
+      "from": "somewhere-to-dock.master.png",
+      "to": "story-stills/somewhere-to-dock.master.png",
+      "sha256_before": "c1aeac898d7476220159174a9927ca6ec1b067867aca1718693ab274b760cad0"
+    },
+    {
+      "from": "somewhere-to-dock.prompt.txt",
+      "to": "story-stills/somewhere-to-dock.prompt.txt",
+      "sha256_before": "28bdef2031b02194a4ecf7799e169658ecb749ef09bbb1b48a0eca58e1d9c347"
+    },
+    {
+      "from": "yard-estimate.master.png",
+      "to": "story-stills/yard-estimate.master.png",
+      "sha256_before": "bd401585c00ee099d6197772896a2c2d39a787d9a9901df79a650a30b170839a"
+    },
+    {
+      "from": "yard-estimate.prompt.txt",
+      "to": "story-stills/yard-estimate.prompt.txt",
+      "sha256_before": "65769c11cf90a831b0bbc84267ffc72350b03fa952c17df432fb25809756a551"
+    },
+    {
+      "from": "yard-hull.master.png",
+      "to": "story-stills/yard-hull.master.png",
+      "sha256_before": "e3977e9d76e1f22197c4688fb70ff034654a84d302d9a3542d4fdbc678ef47d7"
+    },
+    {
+      "from": "yard-hull.prompt.txt",
+      "to": "story-stills/yard-hull.prompt.txt",
+      "sha256_before": "dc6e1c3f430eb6a365c6e4e9fdb12ccaabbb0ba4a32ea45422ce660c2daca8f3"
+    },
+    {
+      "from": "second-wind-cinematic/background.png",
+      "to": "second-wind-cinematic/orbital-study/background.png",
+      "sha256_before": "4f7db4c912af73fddb77911345ad8c3dc831a868250f5456f2136b014648e191"
+    },
+    {
+      "from": "second-wind-cinematic/background.prompt.txt",
+      "to": "second-wind-cinematic/orbital-study/background.prompt.txt",
+      "sha256_before": "a98fe4b9bdc76852d0a27447e3564ae7007965310b56297b37326f2d1c2dfd79"
+    },
+    {
+      "from": "second-wind-cinematic/foreground.png",
+      "to": "second-wind-cinematic/orbital-study/foreground.png",
+      "sha256_before": "05bcc5162644d1c9a925b3bd0bfb4054c298327cf9fecaff232353df509980fb"
+    },
+    {
+      "from": "second-wind-cinematic/foreground.prompt.txt",
+      "to": "second-wind-cinematic/orbital-study/foreground.prompt.txt",
+      "sha256_before": "99882f6314f52cec5d613e6f1538103b0a89426c2297392800152a3dae1b6cb4"
+    },
+    {
+      "from": "second-wind-cinematic/ship.png",
+      "to": "second-wind-cinematic/orbital-study/ship.png",
+      "sha256_before": "b6995cc15fa28c8e217e4a32681a30e884e289f9c9edd3b4b414f98049141d8b"
+    },
+    {
+      "from": "second-wind-cinematic/ship.prompt.txt",
+      "to": "second-wind-cinematic/orbital-study/ship.prompt.txt",
+      "sha256_before": "bd707fb0b6a8a6ee630fb6c68ba51aa465400c7c2a19a68832572acf9c578bfc"
+    },
+    {
+      "from": "second-wind-cinematic/composition.json",
+      "to": "second-wind-cinematic/orbital-study/composition.json",
+      "sha256_before": "7c389b473362d4bcdaf2cc9a59b88aae91c42a155e0bdaa9d2531c44a85c64d2"
+    },
+    {
+      "from": "second-wind-cinematic/build_cinematic.py",
+      "to": "second-wind-cinematic/orbital-study/build_cinematic.py",
+      "sha256_before": "a147e31034b3976a5f753025f3c660d8f1434d440d97bf7cc8aca2fd1e1b3f3b"
+    },
+    {
+      "from": "second-wind-cinematic/README.txt",
+      "to": "second-wind-cinematic/orbital-study/README.txt",
+      "sha256_before": "9d9dbffad03882ba195b91784afe1be1295aaf12e52f9af45aecca3e306c0437"
+    },
+    {
+      "from": "second-wind-cinematic/review/poster.jpg",
+      "to": "second-wind-cinematic/orbital-study/review/poster.jpg",
+      "sha256_before": "71f676781d79332e164284a89924ebf6fe571dd9c24075b79486f554d7583381"
+    },
+    {
+      "from": "second-wind-cinematic/review/contact-sheet.jpg",
+      "to": "second-wind-cinematic/orbital-study/review/contact-sheet.jpg",
+      "sha256_before": "fda0ae2ad6bb6a0aa3f511316aca0cac5f1534f23d7bc10f94c832be11a037f1"
+    },
+    {
+      "from": "second-wind-cinematic/review/verification.json",
+      "to": "second-wind-cinematic/orbital-study/review/verification.json",
+      "sha256_before": "40e19fc98dc1626790e7638b37d164fc7de86988bec0a4ebb735aff12c556c60"
+    }
+  ],
+  "geometry_consolidation": {
+    "recovery_commit": "9bd3d50ea2b78b4a4d4b747b90abc77e746961f1",
+    "canonical_directory": "second-wind-geometry",
+    "accepted_revision": "V3; geometry and native guide pixels unchanged",
+    "retired_v2_files": [
+      {
+        "path": "second-wind-geometry/build_reference.py",
+        "sha256": "e7d692d3f893f290962d7733b682fa3c0e270655137cdd1c9cbe7d49b2dd3a83"
+      },
+      {
+        "path": "second-wind-geometry/compose_guide.py",
+        "sha256": "a0804e175abcc6aeb9a16c2b4a3b79f3ce2128e60bc4e48ecfe62531eaab9dcb"
+      },
+      {
+        "path": "second-wind-geometry/geometry.json",
+        "sha256": "f789dd51d766cdb39e5c0ab0919d6e4517185e507264f2278fa9c0b37e55002d"
+      },
+      {
+        "path": "second-wind-geometry/README.txt",
+        "sha256": "ce104e61dec45311deea763394793d0f5f13ba5fbb694aca19db76c081ef30c3"
+      },
+      {
+        "path": "second-wind-geometry/second-wind-geometry.blend",
+        "sha256": "8d18a14a259c028cda957047caf2eabf770896dcde402dae9fc1189ee864a151"
+      }
+    ],
+    "reference_images": [
+      {
+        "from": "second-wind-geometry/port-quarter.png",
+        "to": "second-wind-geometry/reference-history/v2/port-quarter.png",
+        "sha256": "9cf248dde4efa54ba06574e6e25b919ee346b95575d82ead61beffe499b0329b"
+      },
+      {
+        "from": "second-wind-geometry/port-side.png",
+        "to": "second-wind-geometry/reference-history/v2/port-side.png",
+        "sha256": "0d4565299e28244f2d0826d4bd5de636c310a10e1860e2f3bf11f63114d187d9"
+      },
+      {
+        "from": "second-wind-geometry/second-wind-geometry.reference.png",
+        "to": "second-wind-geometry/reference-history/v2/second-wind-geometry.reference.png",
+        "sha256": "a94c1fe9981f012bcca9525ac4e0235e7b12cdfae7d31bdfa65052150af427ed"
+      },
+      {
+        "from": "second-wind-geometry/stern.png",
+        "to": "second-wind-geometry/reference-history/v2/stern.png",
+        "sha256": "77547d1d55db4e6133b122286c7cd083a16c93aaa99131b3808d85938abb8743"
+      },
+      {
+        "from": "second-wind-geometry/top.png",
+        "to": "second-wind-geometry/reference-history/v2/top.png",
+        "sha256": "af111c81f8b0916eee4d6926ca49f9ec9f7c37cd06d8eae903c270ba3635c75d"
+      }
+    ],
+    "current_files": [
+      {
+        "from": "second-wind-geometry-v3/build_reference.py",
+        "to": "second-wind-geometry/build_reference.py",
+        "sha256_before": "c60e3cc131ce4aa577e04118a9a55f11cbbfa1f31ea0dc19d520da7c8d3b4be0"
+      },
+      {
+        "from": "second-wind-geometry-v3/compose_guide.py",
+        "to": "second-wind-geometry/compose_guide.py",
+        "sha256_before": "80bc85d207e0ecb0ec3d39cc91d18f0810bd7e8ddc04b7028742eea0894385b7"
+      },
+      {
+        "from": "second-wind-geometry-v3/geometry.json",
+        "to": "second-wind-geometry/geometry.json",
+        "sha256_before": "db3e01dd0c28c0b768d1815a27fedd1b56685b939b9b232304202c1795237545"
+      },
+      {
+        "from": "second-wind-geometry-v3/port-quarter.png",
+        "to": "second-wind-geometry/port-quarter.png",
+        "sha256_before": "d47f929957efbb257f21bdaca4eecdbc274637239f1bf999e26b1b1d55ec323b"
+      },
+      {
+        "from": "second-wind-geometry-v3/port-side.png",
+        "to": "second-wind-geometry/port-side.png",
+        "sha256_before": "02aaf5d9f0e2a37c27442a5c62d978e3da3498cf9ec249e552d31ee7b3042da2"
+      },
+      {
+        "from": "second-wind-geometry-v3/README.txt",
+        "to": "second-wind-geometry/README.txt",
+        "sha256_before": "13241cc72a19e2bc3cecef1cf517388c495ffebec56ae589b26d6e6128383314"
+      },
+      {
+        "from": "second-wind-geometry-v3/second-wind-geometry.blend",
+        "to": "second-wind-geometry/second-wind-geometry.blend",
+        "sha256_before": "6ce9047c5cd76f1c1c84218435c2dde8e3c742483a621ba26e679fb5d1e7ec4a"
+      },
+      {
+        "from": "second-wind-geometry-v3/second-wind-geometry.reference.png",
+        "to": "second-wind-geometry/second-wind-geometry.reference.png",
+        "sha256_before": "86cabb0a45e884e6fd38316d8f1d4c5f0ac7a03fbb7065668ac157171beb9e1e"
+      },
+      {
+        "from": "second-wind-geometry-v3/stern.png",
+        "to": "second-wind-geometry/stern.png",
+        "sha256_before": "31a1a1303944ed3262c37e44907a33ee35cb1e9fd13e05ab2fe09b8c86bb8d11"
+      },
+      {
+        "from": "second-wind-geometry-v3/top.png",
+        "to": "second-wind-geometry/top.png",
+        "sha256_before": "e9515b030366233db30deadeebc77a3a055847b9aa05b549fe39ffae96aa0411"
+      }
+    ],
+    "prompt_policy": "Exact historical prompts are unchanged. Their old V2 guide path now resolves through reference_images; their V3 paths resolve through current_files. Old V2 model/scripts exist only in Git history."
+  }
+}

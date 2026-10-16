@@ -45,11 +45,11 @@
         },
         {
           "role": "material realism style",
-          "path": "../../cargo-billets.master.png"
+          "path": "../../story-stills/cargo-billets.master.png"
         },
         {
           "role": "cinematic realism style",
-          "path": "../../yard-hull.master.png"
+          "path": "../../story-stills/yard-hull.master.png"
         }
       ],
       "output": "window-realism-v1.png",
@@ -68,7 +68,7 @@
         },
         {
           "role": "cinematic realism style",
-          "path": "../../yard-hull.master.png"
+          "path": "../../story-stills/yard-hull.master.png"
         }
       ],
       "output": "landscape-realism-v1.png",

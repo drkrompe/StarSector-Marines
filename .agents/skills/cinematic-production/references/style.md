@@ -36,8 +36,8 @@ These links resolve from this file into the same repository checkout.
 | [Window realism master](../../../../art-source/company-prologue/second-wind-cinematic/realism-lookdev/window-realism-v1.png) | Approved daylight, foliage and worn cabin look in context. |
 | [Landscape realism master](../../../../art-source/company-prologue/second-wind-cinematic/realism-lookdev/landscape-realism-v1.png) | Matching wide environment style; input for new layer extraction. |
 | [Look-development provenance](../../../../art-source/company-prologue/second-wind-cinematic/realism-lookdev/README.md) | Exact input roles, prompts and dimensions; both raw masters are 1672×941. The 1080p review copies are resampled. |
-| [Cargo billets](../../../../art-source/company-prologue/cargo-billets.master.png) and [yard hull](../../../../art-source/company-prologue/yard-hull.master.png) | Optional campaign material/lighting exemplars. Their older ship geometry has no authority over the accepted V3 model. |
-| [Parallax study](../../../../art-source/company-prologue/second-wind-cinematic/parallax-window/README.md) | Accepted motion technique; the retained movie has the earlier, more painted surface style. |
+| [Cargo billets](../../../../art-source/company-prologue/story-stills/cargo-billets.master.png) and [yard hull](../../../../art-source/company-prologue/story-stills/yard-hull.master.png) | Optional campaign material/lighting exemplars. Their older ship geometry has no authority over the accepted V3 model. |
+| [Parallax study](../../../../art-source/company-prologue/second-wind-cinematic/parallax-window/README.md) | Accepted motion technique; its later Atlas-lift movie remains as a reference in the earlier, more painted style. The superseded first export is retired. |
 | [Forest reveal realism](../../../../art-source/company-prologue/second-wind-cinematic/forest-reveal-realism/README.md) | Textured derivative of the same camera and Atlas lift; combines approved-master RGB with newly extracted layer alpha. Review its stated registration limits. |
 
 The two realism masters preserve broad composition, not pixel registration.

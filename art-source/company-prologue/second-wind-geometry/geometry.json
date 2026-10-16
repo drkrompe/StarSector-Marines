@@ -6,6 +6,50 @@
     "+Z": "dorsal"
   },
   "units": "Vanilla hull-space units; no canonical metre scale asserted",
+  "revision": "V3: heavier forebody and engine rooms; recessed waist; layered armor and service machinery",
+  "thickness_profile": {
+    "method": "Upper Z uses plateaus and linear chamfer transitions between stations; lower hull has uniform 1.25 depth multiplier for level keel",
+    "stations": [
+      [
+        -40,
+        1.15
+      ],
+      [
+        -29,
+        1.5
+      ],
+      [
+        -6,
+        1.5
+      ],
+      [
+        3,
+        1.1
+      ],
+      [
+        18,
+        1.1
+      ],
+      [
+        26,
+        1.5
+      ],
+      [
+        40,
+        1.5
+      ],
+      [
+        52,
+        1.15
+      ],
+      [
+        60,
+        1.05
+      ]
+    ],
+    "deck_datum": 0,
+    "attachments": "Engine and port-pod coordinates unchanged from V2"
+  },
   "engine_source": "starsector-core/data/hulls/warhound.ship engineSlots",
   "engines": [
     {
@@ -83,7 +127,7 @@
         130,
         100
       ],
-      "orthographic_scale": 151
+      "orthographic_scale": 163
     },
     {
       "name": "top",

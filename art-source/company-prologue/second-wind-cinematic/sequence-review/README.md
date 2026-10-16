@@ -1,5 +1,11 @@
 # Jangala approach continuity review
 
+> Historical study: superseded encoded movies were retired during the 2026-10-16 cleanup.
+> Source art, prompts, Blender scenes and reference stills remain. Movie sizes,
+> playback observations and media receipts below describe the original exports;
+> rebuild or recover them before running these historical media checks. See the
+> [current cinematic index](../README.md) and [cleanup record](../../cleanup-record.json).
+
 The [refined sequence](../port-refinement/review/jangala-approach-refined.mp4)
 reuses these forest and farmland excerpts with the updated working-port shot.
 Its source and evidence are in the [port refinement](../port-refinement/README.md).
@@ -20,7 +26,7 @@ Run `assemble_sequence.py` from this directory with Python and FFmpeg/FFprobe:
 python assemble_sequence.py --ffmpeg '<ffmpeg.exe>' --ffprobe '<ffprobe.exe>'
 ```
 
-The clean [continuity movie](review/jangala-approach-continuity.mp4) is silent,
+The clean `review/jangala-approach-continuity.mp4` (retired export) is silent,
 1920×1080 at 24 fps. The assembler checks each four-second input and the combined
 288-frame output, performs a full decode, and records input hashes and source-time
 mapping in [media validation](review/media-validation.json). Each source shot

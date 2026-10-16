@@ -3,7 +3,7 @@
 Editable, silent, untextured staging study for the Second Wind arrival. The
 rejected orbital movie is not the reference for this surface arrival. The
 accepted V3 ship's 135 meshes are reused from
-`../../second-wind-geometry-v3/second-wind-geometry.blend`.
+`../../second-wind-geometry/second-wind-geometry.blend`.
 
 The sequence is 65 seconds: 780 motion frames at 12 fps, delivered as
 1920×1080 H.264 at 24 fps by duplicating frames. Six shots cover entry,
