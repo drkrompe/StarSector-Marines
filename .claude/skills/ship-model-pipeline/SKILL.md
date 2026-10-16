@@ -262,11 +262,16 @@ surfacing package beside the geometry, never inside it.
   take a flat neutral fallback so coverage is honest.
 - **Review** at 1920x1080 with lit, albedo and part-id passes: coverage share,
   plus the step and tone across each part boundary.
-- **Pilot cost:** four generations for 16 parts (about 1 min each, run in
-  parallel), and 5 min of replay. Known gaps before a whole-hull rollout:
-  chamfers and bevel strips stretch under a square-on camera (give them
-  their own parts or swatches), and grading removes plate-to-plate variety
-  (add it back from an owned offset table in the wear layer).
+- **Cost.** The Second Wind's whole hull took 11 generations (62 parts, 22 of
+  them free reuses, plus one swatch sheet), about 1 min each in parallel, and
+  about 25 min of replay. Split the part table by group (`groups/<group>.py`,
+  `--group` on every script) so one subagent per group can author in parallel.
+- **Chamfers and variety.** Blend each part's material to its class swatch on
+  faces more than ~30 deg off its view (true normal, per pixel), so bevel
+  strips never stretch; restore plate-to-plate variety from an owned per-part
+  offset table applied as a material gain. One `skin` UV layer per object
+  (Blender caps meshes at eight layers). Fit de-light ramps with one intercept
+  per material class on a plane.
 - **Swatches.** Small parts and all damage/repair surfacing still use graded
   swatches. Never build a whole-ship six-view atlas. Wear placement stays in
   our masks.
