@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — a hostile hull is a target for a ship's direct-fire guns by mission order, misses fall on the ground, a lost hull falls as wreckage, a ship fighting hulls manoeuvres by its reach against theirs with its variant's capacitors and vents, missiles fly at hulls with a Sabot's warheads aimed at the split, and a pack splits on an escorted hull while its escorts interpose (`atmospheric-frigate-duel.md`, slices 1-4); a fort's anti-air yard stands Locust and Swarmer towers instead of Ridgewatch and flak; earlier: Missile AA joins ordinary heavy defense posts; all six supported carrier wings use the shared commitment flow.
+Updated: 2026-10-16 — hostile hulls fight each other by default in every mission (`ShipFireOrder.AUTO`), a mission may hold hull fire until a story beat or condition, and a ship takes its duel footing when it first turns on a hull; earlier the same day the ship-against-ship model shipped for a-small-war Chapter 5 (rationale in `warship-behaviours.md`).
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1834,9 +1834,14 @@ play (`WarshipWreck`). A battered hull is
 drawn darker. The hit comes from the detonation pipeline itself, so any source
 that already lands a detonation is a counter without a ship-specific shortcut.
 
-**A hostile hull is a target for a ship's guns when a mission says so.** A ship
-under a **ship-fire order** (`ShipFireOrder`: off by default, `ALL` from a mission or
-script, `AUTO` reserved for the duel doctrine) fights hostile hulls with the same
+**A hostile hull is a target for a ship's guns, in any mission.** Warships of
+opposing sides overhead fight each other by default, in an ordinary or generated
+mission as much as a story chapter. A ship's **ship-fire order** (`ShipFireOrder`)
+is `AUTO` unless something says otherwise: it fights any hostile hull once no
+**hull-fire hold** is pending, provided it carries a weapon that may fire at a
+ship (a gunless tender or rig is a target, never a duellist). `ALL` is an
+explicit order from a mission or script that no hold delays; `OFF` keeps a ship
+off hulls. A ship fights hostile hulls with the same
 mounts, cooldowns, magazines and flux as any other fire, as a third customer beside
 ground and air fire. Which guns may fire at a ship follows the base game: point
 defence never does, a lance keeps its ground sweep, a standoff missile keeps its
@@ -1849,7 +1854,7 @@ real below them. Rounds between hulls are direct fire and no point defence engag
 them. A ship with a hull to fight and no ground to bring its guns to bear on turns to
 the heading that puts the most anti-ship firepower on it, re-chosen as it moves. A
 vanilla skin (a Wolf (H), a Hound (P)) is fitted as its base hull under its own
-sprite. See `atmospheric-frigate-duel.md`.
+sprite. Why it is shaped this way: `warship-behaviours.md`, Decided: ship against ship.
 
 **A ship fighting a hull manoeuvres by the two reaches.** Its **duel helm** moves the
 station it flies to, never its speed or turn: a ship whose strongest anti-ship gun
@@ -1877,9 +1882,43 @@ hulls with their duel helm and a hostile hull is being escorted, the hunter near
 with enough hysteresis that near equals do not trade roles. An escort with a live lead
 is not steered by the duel helm: it holds its ring on the side the hostile hulls are on
 and fights from there, and it saves itself by the ordinary withdraw rule. Ground fire
-`HOLD` keeps a duelling hull off the ground entirely. Whether hostile hulls duel without
-a mission's order (`ShipFireOrder.AUTO`) is undecided; until it is, hull fire is a
-mission's explicit choice.
+`HOLD` keeps a duelling hull off the ground entirely. The first time a ship turns on a
+hull it takes the base game's **duel footing** for the rest of the battle: its variant's
+capacitors and vents, and its missiles' magazines from the weapon table (an `ALL` order
+takes it at once). A ship that never meets a hostile hull keeps the hull table's flux and
+bottomless racks its bombardment was tuned to.
+
+**A mission may hold hull fire until its moment.** A **hull-fire hold** is named and
+battle-wide: while any is pending no `AUTO` ship fires at a hull. It is released by a
+story beat, by a condition on the battle, or by the mission by hand, and stays
+released. It times the start of a fight overhead and nothing else: ground fire, air fire
+and an explicit `ALL` are not held, and it decides no outcome.
+
+**A hull leaving by a climb-out is still a hull until it is gone.** It flies an
+authored route over the map edge at its own speed, climbing by how much of the way it
+has flown, and it has escaped only when propulsion has carried the whole hull off the
+map. Until then it can be hit, and its escorts keep it as their lead and follow it out
+once it has gone. Any other departure of a lead releases its escorts.
+
+**A mission's hull visits once and is nobody's to command.** A hull on a **visit**
+belongs to its mission: no remote ship command, piloting or power reaches it, whatever
+side it is on. It leaves through the ordinary departure once no hostile hull has been
+over the battle for the visit's dwell. A hull on a visit usually arrives through the
+cloud deck. A ground event (a wreck striking and skidding, an airframe going up) hurts
+the ground and never a hull hovering over it.
+
+**The duel ledger** records, for a debrief, what became of every hull over the
+battle: escaped (climbed out and gone), broke off (withdrawn by its doctrine), departed
+(any other leaving) or destroyed (when, where it burst and where its wreck struck). It
+also counts ground casualties by side, from stray rounds and from wreckage. Nothing in
+the battle reads it, and a ground objective never does.
+
+**A duel overhead belongs to its mission, never to the ground.** A ground chapter may
+stage a duel through an optional seam on its referee: hulls stand quiet under a
+hull-fire hold until the chapter's moment comes, the duel then runs on its own, and the debrief reads its
+ledger. The referee settles on nothing the duel does; stray rounds and wreckage are the
+only way it reaches the ground. Black Sluice is the first: Greyhook's rig and two
+Hounds over the pier, two lent Wolfs arriving when Voss orders the withdrawal.
 
 **A warship's stay and its magazine can both be bounded.** Station time is counted
 down only while the ship is on its station, not while it travels to it; when it

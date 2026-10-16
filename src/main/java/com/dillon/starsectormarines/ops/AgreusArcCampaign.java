@@ -333,8 +333,8 @@ public final class AgreusArcCampaign {
             + "The guards will hold the Cinder Steps gate on Rusk's terms. That frees one of our sections; their post is the weak point if anyone comes down the lane. ";
     public static final String TERMS_COMPACT = "Yard Compact: the joint party, Rusk's custodian and the association's delegate, rides with the joint-party records carrier, with the utilities crew and three of Lenna's fitters. "
             + "The fitters will not leave the benches while the tooling is commissioned, so the hall itself has to be held, not only its doors. ";
-    public static final String TERMS_AWARD = "Either route: the technicians' Boarding Jack refurbishment dossier is a once-only section-card entitlement recorded on victory. "
-            + "While the pattern's issue presentation is still being prepared, the card is held on the company's account and delivered to fleet cargo, once, when it is ready. Nothing is lost by the wait. ";
+    public static final String TERMS_AWARD = "Either route: the technicians' Boarding Jack refurbishment dossier is a once-only section card, delivered to fleet cargo on victory. "
+            + "Learning and fitting it are explicit Armory choices; nobody is refitted automatically. ";
     public static final String TERMS_UNKNOWN = "Voss says she told Pell to leave it. We have no count of his people and no time. The yard's approaches are the south service road and the Cinder Steps lane. ";
 
     static final WaylineNarration.Line RUSK_FAMILY = correspondence("rusk-family", "story_agreus_terms_of_protection", "debrief.terms_of_protection.family",

@@ -70,8 +70,8 @@ pirate boarding rig. `agreus-latchkey.md` develops Baronet Rusk's local concessi
 under Ko Combine administration, the Greyhook flotilla and the yard workers caught
 between them. All five chapters, the yard agreement and District Escort are built
 with detached evidence. Test the live transition from Corvus, owned tender support,
-signing and once-only rewards in the game. Boarding Jack art and Chapter 5's frigate
-duel (`atmospheric-frigate-duel.md`) remain.
+signing and once-only rewards, including the Boarding Jack card, in the game. Chapter 5's frigate
+duel is built over Black Sluice (`warship-behaviours.md`, ship against ship).
 
 Mech-company work begins with editable campaign callsigns carried into the
 deployed unit's visible identity. Persistent multi-lance organization, the

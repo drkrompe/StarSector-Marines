@@ -588,8 +588,16 @@ public final class DefensePostStamper implements GenStage {
         for (DefensePostLayoutDef.Cell cell : layout.cells) {
             if (cell.kind() != DefensePostLayoutDef.CellKind.BARRIER) continue;
             DefensePostLayoutDef.Offset offset = cell.offset();
-            stampRingCell(grid, topology, doodads, cx + offset.x(), cy + offset.y(),
-                    barrierTile(cell));
+            int x = cx + offset.x();
+            int y = cy + offset.y();
+            Doodad concrete = cell.appearance() == DefensePostLayoutDef.BarrierAppearance.CONCRETE
+                    ? TileManifest.emplacementParapet(x, y, cell.facing().x(), cell.facing().y(), Doodad.COVER_HEAVY)
+                    : null;
+            if (concrete != null) {
+                stampRingDoodad(grid, topology, doodads, x, y, concrete);
+            } else {
+                stampRingCell(grid, topology, doodads, x, y, barrierTile(cell));
+            }
         }
 
         Set<DefensePostLayoutDef.Offset> turretPads = new HashSet<>();
@@ -650,7 +658,7 @@ public final class DefensePostStamper implements GenStage {
             case VENT -> TileManifest.lightPostVent();
             case EMBANKMENT -> TileManifest.turretEmbankment(
                     cell.facing().x(), cell.facing().y());
-            case BOW_OUT -> TileManifest.turretBowOut(
+            case BOW_OUT, CONCRETE -> TileManifest.turretBowOut(
                     cell.facing().x(), cell.facing().y());
         };
     }
@@ -676,9 +684,25 @@ public final class DefensePostStamper implements GenStage {
         // dedicated generated sandbag sheet. Bow-out and vent art remain on
         // the road sheet because they intentionally have different materials.
         DoodadDef generated = generatedSandbagFor(tile);
-        doodads.add(generated != null
+        placeRingDoodad(grid, topology, doodads, x, y, generated != null
                 ? new Doodad(x, y, generated)
                 : new Doodad(x, y, tile, /*fromRoadSheet=*/true, Doodad.COVER_HEAVY));
+    }
+
+    /** A ring cell whose art is already a doodad (the concrete parapet): same sealing as every other ring cell. */
+    private static void stampRingDoodad(NavigationGrid grid, CellTopology topology,
+                                        List<Doodad> doodads, int x, int y, Doodad doodad) {
+        if (!grid.inBounds(x, y)) return;
+        grid.setWalkable(x, y, false);
+        grid.setSeeThrough(x, y, true);
+        topology.setWall(x, y, false);
+        topology.setFixture(x, y, true);
+        placeRingDoodad(grid, topology, doodads, x, y, doodad);
+    }
+
+    private static void placeRingDoodad(NavigationGrid grid, CellTopology topology,
+                                        List<Doodad> doodads, int x, int y, Doodad doodad) {
+        doodads.add(doodad);
         grid.recomputeCoverAt(x, y);
         // Refresh neighbors so their facing-cover picks up this cell.
         grid.recomputeCoverAt(x + 1, y);

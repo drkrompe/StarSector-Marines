@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.dillon.starsectormarines.battle.story.TermsOfProtectionProgress;
 import com.dillon.starsectormarines.marine.LoadoutCard;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -104,19 +105,21 @@ final class MissionDebriefConversation {
     }
     /**
      * Chapter 5's debrief: the selected agreement, confirmed losses and delivered rewards, read only
-     * from the frozen outcome. The duel overhead is not reported here until it exists and reports.
+     * from the frozen outcome. The duel overhead, when one was fought, gets Castle's one line from its ledger,
+     * win or lose: the ground result never depends on it.
      */
     static List<WaylineNarration.Line> smallWarLines(MissionOutcome o) {
         var r = o.smallWar;
         String route = r.houseCustody() ? "House Custody" : "the Yard Compact";
         String cost = "Company casualties: " + o.marinesLost + ". Custody party lost: " + r.custodiansLost()
                 + ". Holders lost: " + r.holdersLost() + ".";
-        if (!o.victory) return List.of(
+        var overhead = o.smallWarOverhead == null ? null : sluiceLine("overhead", "CASTLE", o.smallWarOverhead);
+        if (!o.victory) return withOverhead(List.of(
                 sluiceLine("withdrawal", "CASTLE", (r.infrastructureLost() ? "The marked fuel storage was destroyed; the handover cannot stand on a burned depot. "
                         : r.custodiansLost() >= 3 ? "The whole custody party is dead; there is nobody left to take the site. "
                         : "The handover was not completed. ") + cost),
                 sluiceLine("replacement", "RUSK", "No completion fee is paid. A new mobilization will bring a replacement custody party and holders"
-                        + (r.infrastructureLost() ? " and refitted fuel controls" : "") + ". This loss stays on the account; the ratified agreement stands."));
+                        + (r.infrastructureLost() ? " and refitted fuel controls" : "") + ". This loss stays on the account; the ratified agreement stands.")), overhead);
         int premium = r.houseCustody() ? 12000 : 0;
         String paid = NumberFormat.getIntegerInstance().format(o.payoutEarned + premium);
         String withdrawn = r.greyhookWithdrawn() > 0
@@ -125,14 +128,22 @@ final class MissionDebriefConversation {
         String lead = o.marinesLost > 0
                 ? "We paid for that pier: " + o.marinesLost + (o.marinesLost == 1 ? " of ours is" : " of ours are") + " on the roll that won't come home. "
                 : "Everyone we put down at Black Sluice is coming home. ";
-        return List.of(
+        return withOverhead(List.of(
                 sluiceLine("handover", "CASTLE", "Customs, fuel control and dispatch are held, the marked fuel storage is intact, and the custody party signed the handover in the control room under " + route + ". " + withdrawn),
                 sluiceLine("award", "RUSK", "Your invoice is settled: " + paid + " credits" + (premium > 0
                         ? ", the 44,000 fee and the 12,000 premium House Custody promised." : ", the full 44,000 fee. The compact forwent the premium, as written.")
                         + " Black Sluice's surface facility and its levy route are out of Greyhook's hands. That is all I will claim for it."),
                 sluiceLine("cost", "CASTLE", cost),
                 AgreusArcCampaign.VOSS_LAST,
-                sluiceLine("closing", "CASTLE", lead + "Rusk is asking what it would take to keep us here. He wasn't asking that when we arrived."));
+                sluiceLine("closing", "CASTLE", lead + "Rusk is asking what it would take to keep us here. He wasn't asking that when we arrived.")), overhead);
+    }
+
+    /** Puts the overhead line after the opening line, where Castle says what happened. */
+    private static List<WaylineNarration.Line> withOverhead(List<WaylineNarration.Line> lines, WaylineNarration.Line overhead) {
+        if (overhead == null) return lines;
+        var out = new ArrayList<>(lines);
+        out.add(1, overhead);
+        return List.copyOf(out);
     }
     private static WaylineNarration.Line sluiceLine(String beat, String speaker, String text) {
         return new WaylineNarration.Line("small-war-debrief-" + beat, "story_agreus_small_war", "debrief.small_war." + beat, text, 12f, 10, 15f, List.of(),

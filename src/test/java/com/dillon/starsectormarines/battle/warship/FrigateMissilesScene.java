@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Slice 3 of {@code atmospheric-frigate-duel.md}: missiles at hulls. A Wolf (H) holds its station thirty-eight cells
+ * Slice 3 of the frigate duel ({@code warship-behaviours.md}, ship against ship): missiles at hulls. A Wolf (H) holds its station thirty-eight cells
  * from its target, outside every gun's reach on either side and inside its Sabots'.
  *
  * <p>Loops: {@code sabot} (a Hound (P) held on station: the Sabots fly to their split range short of it and their

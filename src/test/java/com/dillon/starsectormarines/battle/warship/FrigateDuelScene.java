@@ -21,7 +21,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Ship against ship in atmosphere, slice 1 of {@code atmospheric-frigate-duel.md}: two Wolf (H) frigates (the
+ * Ship against ship in atmosphere, slice 1 of the frigate duel ({@code warship-behaviours.md}, ship against ship): two Wolf (H) frigates (the
  * Rusk family's, {@link Faction#ALLY}) against two Hound (P) frigates ({@link Faction#DEFENDER}) on stations within
  * reach of each other, with unarmed bystanders of both sides on the ground beneath.
  *

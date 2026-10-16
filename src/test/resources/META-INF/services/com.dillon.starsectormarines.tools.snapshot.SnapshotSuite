@@ -1,5 +1,6 @@
 com.dillon.starsectormarines.ops.battleview.ArmorySnapshotSuite
 com.dillon.starsectormarines.ops.battleview.SpecterLayerSnapshotSuite
+com.dillon.starsectormarines.ops.battleview.BoardingJackLayerSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.EquipmentMountSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.SpecterBattleSnapshotSuite
 com.dillon.starsectormarines.ops.TurretSnapshotSuite
@@ -85,6 +86,9 @@ com.dillon.starsectormarines.battle.warship.FrigateDuelSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.FrigateDuelHelmSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.FrigateMissilesSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.FrigateDoctrineSceneSnapshotSuite
+com.dillon.starsectormarines.battle.warship.FrigateClimbOutSceneSnapshotSuite
+com.dillon.starsectormarines.battle.warship.FrigateVisitSceneSnapshotSuite
+com.dillon.starsectormarines.battle.warship.FrigateLedgerSceneSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.CompoundPropDamageSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.FurnishingDamageSnapshotSuite
 com.dillon.starsectormarines.ops.DebugMissionSnapshotSuite

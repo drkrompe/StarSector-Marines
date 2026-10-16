@@ -29,7 +29,8 @@ public final class WarshipEscort {
     static Warship liveLead(Warship escort) {
         Warship lead = escort.escortLead();
         if (lead == null || lead == escort) return null;
-        if (lead.destroyed() || lead.departing() || lead.departed()) return null;
+        // A lead climbing out is still being escorted out; any other departure ends the relation.
+        if (lead.destroyed() || lead.departed() || (lead.departing() && !lead.climbingOut())) return null;
         return escort.faction.friendlyTo(lead.faction) ? lead : null;
     }
 

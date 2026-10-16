@@ -57,12 +57,12 @@ public final class BatteryFort {
 
     /**
      * Each corner bastion's centre in the works' frame, the diagonal its missile battery stands toward (its tip), and the axis
-     * its nest looks along, in nest order. A nest stands on the bastion face that looks along a curtain (or at the vertex on that axis), as a
+     * its nest looks along, in nest order. Every nest looks along the same axis as its pair: the two on one side of the works look one way and the two on the other side look the opposite way, so the four stand mirrored about the works (the older mix of north, east and diagonal looks read as inconsistent). It stands on the bastion face on that axis, as a
      * flanking gun does: it sees almost everything outside the works and enfilades the face beside it, which is also what keeps
      * the gates and the breach within its reach.
      */
     private static final int[][] BASTIONS = {
-            {1, 1, -1, -1, 0, -1}, {WORKS_W - 2, 1, 1, -1, 0, -1}, {1, WORKS_H - 2, -1, 1, 1, 1}, {WORKS_W - 2, WORKS_H - 2, 1, 1, 1, 0}};
+            {1, 1, -1, -1, 0, -1}, {WORKS_W - 2, 1, 1, -1, 0, -1}, {1, WORKS_H - 2, -1, 1, 0, 1}, {WORKS_W - 2, WORKS_H - 2, 1, 1, 0, 1}};
 
     /**
      * Bastion nests, one in an embrasure on the outer face of each corner bastion, where it can fire out of the works

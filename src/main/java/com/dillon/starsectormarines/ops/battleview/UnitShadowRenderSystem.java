@@ -236,7 +236,7 @@ public final class UnitShadowRenderSystem implements RenderSystem {
             if (hull == null) continue;
             // A ship dropping through the deck, or climbing back into it, casts from higher up: the
             // shadow lies further down-sun, softer and thinner, and closes on the hull as it settles.
-            float lift = WarshipAtmosphere.lift(ship.entrySeconds(), ship.departingSeconds(), ship.departing());
+            float lift = WarshipAtmosphere.lift(ship.entrySeconds(), ship.climbSeconds(), ship.departing());
             // On a low pass it skims: the shadow lies close under the hull, sharp and dense.
             LowPass pass = ship.lowPass();
             float skim = ship.lowHovering() ? 1f : pass == null ? 0f : pass.blend();

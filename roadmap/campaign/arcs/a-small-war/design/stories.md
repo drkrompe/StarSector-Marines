@@ -10,4 +10,4 @@ Read `a-small-war-arc.md`, `agreus-latchkey.md` and `early-operation-nouns.md` f
 
 | Story | Status | Outcome |
 | --- | --- | --- |
-| `a-small-war.md` | IN PROGRESS | All five chapters, the handover decision, Boarding Jack data and District Escort built with detached evidence. Open: live campaign acceptance, Boarding Jack art (card gated until declared), the Chapter 5 frigate duel (`atmospheric-frigate-duel.md`), and an encounter pass on noted readings. |
+| `a-small-war.md` | IN PROGRESS | All five chapters, the handover decision, Boarding Jack data and art, the frigate duel and District Escort built with detached evidence. Boarding Jack art shipped and its card is awardable. Open: live campaign acceptance and an encounter pass (including the lopsided frigate duel) on noted readings. |

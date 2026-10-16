@@ -215,6 +215,20 @@ public final class PendingDetonation {
 
     public boolean isShipGrade() { return shipGrade; }
 
+    /**
+     * Whether this is a ground event rather than a round: a wreck striking or skidding, an airframe or a magazine
+     * going up. It hurts what is on the ground and never a hull hovering over it. Set by whoever makes it.
+     */
+    private boolean groundEvent;
+
+    /** Marks this as a ground event and returns it, so a factory can mark it inline. */
+    public PendingDetonation asGroundEvent() {
+        this.groundEvent = true;
+        return this;
+    }
+
+    public boolean isGroundEvent() { return groundEvent; }
+
     /** Records that a dome took this detonation: nothing it would have done has happened. */
     public void markAbsorbed() { this.absorbed = true; }
 

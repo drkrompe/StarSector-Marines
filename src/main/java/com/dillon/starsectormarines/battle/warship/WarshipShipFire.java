@@ -16,8 +16,8 @@ import java.util.TreeMap;
  *
  * <p>It is the third customer of the ship's mounts beside ground fire and {@link WarshipAirFire}, not a second
  * weapon model. A mount takes a hull only when its weapon may fire at a ship, the ship's {@link ShipFireOrder}
- * allows it, the hull is in the weapon's reach and the slot's arc, the mount has ordnance and the flux pool lets the
- * burst start; it then traverses onto the point the hull will be at, and fires the weapon's burst on the weapon's
+ * allows it (and, under {@code AUTO}, no mission {@link HullFireHold} is pending), the hull is in the weapon's
+ * reach and the slot's arc, the mount has ordnance and the flux pool lets the burst start; it then traverses onto the point the hull will be at, and fires the weapon's burst on the weapon's
  * own cooldown, magazine and flux. A mount in the middle of a ground or air burst finishes it first.
  *
  * <h2>What a round does</h2>
@@ -81,6 +81,7 @@ public final class WarshipShipFire {
     private int warheadsOnHull;
     private int warheadsStrayed;
     private float lastReleaseSpread = Float.NaN;
+    private boolean held;
 
     WarshipShipFire(List<WarshipShell> shells, WarshipPointDefence tracers) {
         this.shells = shells;
@@ -178,9 +179,38 @@ public final class WarshipShipFire {
         else roundsStrayed++;
     }
 
-    /** Whether the ship may fire at hulls now. */
+    /** Whether a mission's {@link HullFireHold} is keeping {@link ShipFireOrder#AUTO} ships off hulls this tick. */
+    boolean held() {
+        return held;
+    }
+
+    void held(boolean on) {
+        this.held = on;
+    }
+
+    /** Whether the ship may fire at hulls now, with no mission hold pending. */
     static boolean looksAtHulls(Warship ship) {
-        return ship.shipFire() == ShipFireOrder.ALL && !ship.destroyed() && !ship.departing() && !ship.overloaded();
+        return looksAtHulls(ship, false);
+    }
+
+    /**
+     * Whether the ship may fire at hulls now: never under {@code OFF}; always under {@code ALL}; under {@code AUTO}
+     * when no mission hold is pending and the ship carries a weapon that may fire at a ship, so a gunless hull (a
+     * tender, a salvage rig) is never steered toward a fight it cannot answer.
+     */
+    static boolean looksAtHulls(Warship ship, boolean held) {
+        if (ship.destroyed() || ship.departing() || ship.overloaded()) return false;
+        return switch (ship.shipFire()) {
+            case OFF -> false;
+            case ALL -> true;
+            case AUTO -> !held && armedAgainstHulls(ship);
+        };
+    }
+
+    /** Whether any of the ship's mounts carries a weapon that may fire at a ship. */
+    static boolean armedAgainstHulls(Warship ship) {
+        for (Warship.Mount m : ship.mounts()) if (WarshipShipRules.mayFireAtHull(m.weapon)) return true;
+        return false;
     }
 
     /** Whether {@code target} is a hull {@code ship} may fight. */
@@ -194,16 +224,16 @@ public final class WarshipShipFire {
      * reach; kept while it is still a hostile hull in that range. Ties go to the earlier-added hull.
      */
     void chooseTarget(Warship ship, List<Warship> ships) {
-        if (!looksAtHulls(ship)) {
+        if (!looksAtHulls(ship, held)) {
             ship.hullTarget(null);
             return;
         }
         // A ship free to manoeuvre goes to find the hull wherever it is over the battle; one holding its station
         // turns only toward a hull that is nearly in reach.
         if (ship.duelHelm()) {
-            Warship role = packTarget(ship, ships);
+            Warship role = packTarget(ship, ships, held);
             if (role != null) {
-                ship.hullTarget(role);
+                engage(ship, role);
                 return;
             }
         }
@@ -220,7 +250,14 @@ public final class WarshipShipFire {
                 bestGap = g;
             }
         }
-        ship.hullTarget(best);
+        if (best != null) engage(ship, best);
+        else ship.hullTarget(null);
+    }
+
+    /** Turns the ship on {@code target}; the first hull it fights puts it on the base game's duel footing. */
+    private static void engage(Warship ship, Warship target) {
+        ship.duelFooting();
+        ship.hullTarget(target);
     }
 
     /**
@@ -231,6 +268,10 @@ public final class WarshipShipFire {
      * pack or no charge: a lone hunter fights the nearest hull, and so does a pack once the escorts are gone.
      */
     static Warship packTarget(Warship ship, List<Warship> ships) {
+        return packTarget(ship, ships, false);
+    }
+
+    static Warship packTarget(Warship ship, List<Warship> ships, boolean held) {
         if (WarshipEscort.liveLead(ship) != null) return null;
         Warship charge = null;
         float chargeGap = Float.MAX_VALUE;
@@ -248,7 +289,7 @@ public final class WarshipShipFire {
         Warship holder = null;
         int hunters = 0;
         for (Warship other : ships) {
-            if (other.faction != ship.faction || !looksAtHulls(other) || !other.duelHelm()
+            if (other.faction != ship.faction || !looksAtHulls(other, held) || !other.duelHelm()
                     || WarshipEscort.liveLead(other) != null || !hostileHull(other, charge)) continue;
             hunters++;
             float g = gap(other, charge);
@@ -294,7 +335,7 @@ public final class WarshipShipFire {
      * mount's cooldown is this method's whenever it returns {@code true}.
      */
     boolean tickMount(float dt, WarshipSystem system, Warship ship, Warship.Mount m, List<Warship> ships) {
-        if (!looksAtHulls(ship) || !WarshipShipRules.mayFireAtHull(m.weapon)) {
+        if (!looksAtHulls(ship, held) || !WarshipShipRules.mayFireAtHull(m.weapon)) {
             engagements.remove(m);
             return false;
         }
@@ -593,6 +634,6 @@ public final class WarshipShipFire {
         MissilePath leg = MissilePath.straight(strike.aimX, strike.aimY, strike.strayX(), strike.strayY(), speed);
         return new WarshipShell(strike.weapon, strike.faction, strike.shooter, strike.aimX, strike.aimY,
                 strike.strayX(), strike.strayY(), leg, strike.visualCells, det.damage, det.penetration,
-                det.aoeRadius, null, null, 0f, null, 0f).directFire();
+                det.aoeRadius, null, null, 0f, null, 0f).directFire().markStray();
     }
 }

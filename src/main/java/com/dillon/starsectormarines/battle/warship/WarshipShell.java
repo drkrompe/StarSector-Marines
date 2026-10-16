@@ -161,6 +161,19 @@ public final class WarshipShell implements Interceptable {
         return this;
     }
 
+    /** Set on a round carrying on past a hull it missed: its landing on the ground is a stray round's. */
+    private boolean stray;
+
+    /** Whether this is a round that missed every hull and is coming down on the ground. */
+    boolean stray() {
+        return stray;
+    }
+
+    WarshipShell markStray() {
+        this.stray = true;
+        return this;
+    }
+
     /** Marks this round as direct fire, which point defence does not engage. */
     WarshipShell directFire() {
         this.directFire = true;
@@ -194,6 +207,7 @@ public final class WarshipShell implements Interceptable {
         WarshipShell next = new WarshipShell(weapon, faction, shooter, toX, toY, strayX, strayY, leg, blastCells,
                 damage, penetration, damageRadius, null, null, hitpoints, null, 0f);
         next.directFire = directFire;
+        next.stray = true;
         return next;
     }
 

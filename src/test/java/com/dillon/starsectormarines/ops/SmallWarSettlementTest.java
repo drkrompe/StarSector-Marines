@@ -67,6 +67,21 @@ class SmallWarSettlementTest {
         assertFalse(failed.contains("Keep the pier"));
     }
 
+    @Test void theDuelOverheadGetsOneLineWinOrLoseAndNothingWithoutIt() {
+        var m = AgreusArcCampaign.offer(ratified(AgreusYardAgreement.HOUSE_CUSTODY), "Agreus");
+        String overhead = "Overhead: the Greyhook rig got away over the sea.";
+        for (boolean victory : new boolean[]{true, false}) {
+            var plain = outcome(m, victory, report(victory, true, 6));
+            var dueled = MissionOutcome.builder().mission(m).victory(victory).payoutEarned(victory ? 44000 : 0)
+                    .smallWar(report(victory, true, 6)).smallWarOverhead(overhead).build();
+            var without = MissionDebriefConversation.smallWarLines(plain);
+            var with = MissionDebriefConversation.smallWarLines(dueled);
+            assertEquals(without.size() + 1, with.size());
+            assertEquals(overhead, with.get(1).text(), "Castle says what happened overhead right after the result");
+            assertTrue(without.stream().noneMatch(line -> line.text().startsWith("Overhead")));
+        }
+    }
+
     static MissionOutcome outcome(Mission m, boolean victory, SmallWarProgress.Report report) {
         return MissionOutcome.builder().mission(m).victory(victory).payoutEarned(victory ? 44000 : 0).smallWar(report).build();
     }

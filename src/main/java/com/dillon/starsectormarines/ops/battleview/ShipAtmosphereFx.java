@@ -164,7 +164,7 @@ final class ShipAtmosphereFx {
         SpriteAPI soft = soft();
         if (soft == null) return;
         float entry = ship.entrySeconds();
-        float departing = ship.departingSeconds();
+        float departing = ship.climbSeconds();
         boolean leaving = ship.departing();
         float lift = WarshipAtmosphere.lift(entry, departing, leaving);
         float glow = WarshipAtmosphere.reentryGlow(entry);

@@ -59,9 +59,12 @@ public final class WarshipPilot {
         return null;
     }
 
-    /** Whether a ship may be piloted by {@code player}: a live hull on that side that is not leaving. */
+    /**
+     * Whether a ship may be piloted by {@code player}: a live hull on that side that is not leaving and does not
+     * belong to a mission's visit.
+     */
     public static boolean eligible(Warship ship, Faction player) {
-        return ship != null && ship.faction == player && !ship.destroyed()
+        return ship != null && ship.faction == player && !ship.missionOwned() && !ship.destroyed()
                 && !ship.departing() && !ship.departed();
     }
 

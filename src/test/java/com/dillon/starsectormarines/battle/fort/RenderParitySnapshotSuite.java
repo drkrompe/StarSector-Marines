@@ -62,6 +62,10 @@ public final class RenderParitySnapshotSuite implements SnapshotSuite {
                         List<DefensePost> posts) {}
 
     private static Fort stamp() {
+        return stamp(FortKind.BATTERY_FORT, 0, CY);
+    }
+
+    private static Fort stamp(FortKind kind, int facingX, int facingY) {
         NavigationGrid grid = new NavigationGrid(WIDTH, HEIGHT);
         CellTopology topology = new CellTopology(WIDTH, HEIGHT);
         for (int y = 0; y < HEIGHT; y++) {
@@ -74,8 +78,8 @@ public final class RenderParitySnapshotSuite implements SnapshotSuite {
         ctx.put(BspKeys.TACTICAL_REGIONS, TacticalRegionMap.build(grid, topology, null));
         ctx.put(BspKeys.BUILDINGS, BuildingFloodFill.populate(topology, 7L));
         ctx.put(BspKeys.MARKET_PROFILE, TargetProfile.NEUTRAL.withDeclaredDefences(
-                new GroundDefences(0, false).withForts(FortKind.BATTERY_FORT, 1)));
-        FortStage stage = FortStage.pinned(List.of(new FortStage.Pin(FortKind.BATTERY_FORT, CX, CY, 0, CY, true)));
+                new GroundDefences(0, false).withForts(kind, 1)));
+        FortStage stage = FortStage.pinned(List.of(new FortStage.Pin(kind, CX, CY, facingX, facingY, true)));
         stage.run(ctx);
         return new Fort(grid, topology, stage.placed().get(0), List.copyOf(ctx.doodads),
                 List.copyOf(ctx.defensePosts));
@@ -109,6 +113,19 @@ public final class RenderParitySnapshotSuite implements SnapshotSuite {
                     worksCentre[0] + 0.5f, worksCentre[1] + 0.5f, 84f);
             artifacts.add(new SnapshotArtifact("fort-aa-placement.png",
                     worksView.render(sim, "render-parity / whole works: anti-air mounts on the bastions / " + counts)));
+            Object[][] variants = {{"battery-north", FortKind.BATTERY_FORT, CX, 0}, {"battery-east", FortKind.BATTERY_FORT, WIDTH, CY},
+                    {"shield-west", FortKind.SHIELD_FORT, 0, CY}, {"shield-south", FortKind.SHIELD_FORT, CX, HEIGHT}};
+            for (Object[] v : variants) {
+                Fort other = stamp((FortKind) v[1], (Integer) v[2], (Integer) v[3]);
+                BattleSimulation otherSim = SceneBuilder.over(other.grid(), other.topology()).posts(other.posts())
+                        .missionCompletion(false).build().sim();
+                for (Doodad doodad : other.doodads()) otherSim.addDoodad(doodad);
+                int[] c = other.placed().placement().cell(other.placed().plan().width() / 2, other.placed().plan().height() / 2);
+                BattleReviewFrameRenderer view = new BattleReviewFrameRenderer(context.modRoot(), WIDTH_PX, HEIGHT_PX,
+                        c[0] + 0.5f, c[1] + 0.5f, 120f);
+                artifacts.add(new SnapshotArtifact("fort-works-" + v[0] + ".png",
+                        view.render(otherSim, "render-parity / whole works / " + v[0])));
+            }
             if (fence != null) {
                 BattleReviewFrameRenderer fenceView = new BattleReviewFrameRenderer(context.modRoot(), WIDTH_PX, HEIGHT_PX,
                         fence.cellX + 0.5f, fence.cellY + 0.5f, 56f);

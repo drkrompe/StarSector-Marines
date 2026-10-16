@@ -159,7 +159,7 @@ public final class AirframeCookOffSystem {
     private void crush(float x, float y, float radius, float damage, int structureDamage, CrashContact crash) {
         detonations.crushNow(new PendingDetonation(CombatTelemetryService.NO_ATTACKER,
                 x, y, 0f, radius, damage, 60f, structureDamage, crash.faction,
-                false, radius, true, false), crash.struck);
+                false, radius, true, false).asGroundEvent(), crash.struck);
     }
 
     private void ignite(long airframe, float x, float y, Faction faction) {
@@ -181,7 +181,7 @@ public final class AirframeCookOffSystem {
                 /*friendlyFireImmune*/ false,
                 /*directTargetId*/ 0L, /*directDamage*/ 0f, /*directPenetration*/ 0f,
                 /*authoredAftermath*/ false,
-                airframesOnTheirBerths()));
+                airframesOnTheirBerths()).asGroundEvent());
     }
 
     /**

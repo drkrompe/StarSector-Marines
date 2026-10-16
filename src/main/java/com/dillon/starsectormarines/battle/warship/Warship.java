@@ -912,6 +912,41 @@ public final class Warship {
         entrySeconds = 0f;
     }
 
+    private float visitDwellSeconds = Float.NaN;
+    private float visitQuietSeconds;
+
+    /**
+     * Makes this ship's stay over the battle one finite visit that belongs to its mission: it leaves through the
+     * ordinary departure once no hostile hull has been over the battle for {@code dwellSeconds} on end, and from now
+     * on no player command reaches it (remote ship command, direct control, or a power), whatever side it is on.
+     * Arriving through the cloud deck is {@link #arriveFromAbove}, which a visit usually starts with.
+     */
+    public void visit(float dwellSeconds) {
+        if (!(dwellSeconds >= 0f)) throw new IllegalArgumentException("a visit's dwell cannot be negative");
+        visitDwellSeconds = dwellSeconds;
+        visitQuietSeconds = 0f;
+    }
+
+    /** Whether the ship is on a mission's visit and so belongs to the mission, not the player. */
+    public boolean missionOwned() {
+        return !Float.isNaN(visitDwellSeconds);
+    }
+
+    /** Seconds on end that no hostile hull has been over the battle, for a ship on a visit; zero otherwise. */
+    public float visitQuietSeconds() {
+        return visitQuietSeconds;
+    }
+
+    /**
+     * Counts a visit's quiet: reset while a hostile hull is over the battle, else run up. Returns whether the dwell
+     * has been reached, at which point the caller sends the ship away through the ordinary departure.
+     */
+    boolean tickVisit(float dt, boolean hostileHullOver) {
+        if (!missionOwned() || departing) return false;
+        visitQuietSeconds = hostileHullOver ? 0f : visitQuietSeconds + dt;
+        return visitQuietSeconds >= visitDwellSeconds;
+    }
+
     /** Whether the ship arrived through the cloud deck (see {@link #arriveFromAbove()}). */
     public boolean arrivedFromAbove() {
         return entrySeconds >= 0f;
@@ -953,6 +988,68 @@ public final class Warship {
         // Two collinear points keep this a through-flight until the entire hull is off map.
         float dx = (float) Math.cos(nose) * reach, dy = (float) Math.sin(nose) * reach;
         flyRoute(new float[][]{{x + dx, y + dy}, {x + 2f * dx, y + 2f * dy}}, false);
+    }
+
+    private boolean climbingOut;
+    private float climbLength;
+
+    /**
+     * Leaves the battle along {@code waypoints} and on over the map edge: a departure (no order, nothing new fired,
+     * the lift climbing toward the deck) flown as a through-route at the hull's own speed, the last leg carried on
+     * past the edge so the escape is physical ({@link #physicallyDeparted}). The hull stays a hull until it is gone:
+     * it can be hit, and its escorts keep it as their lead. The climb is drawn by how much of the way it has flown
+     * ({@link #climbSeconds}), so a slow hull is still low when it is still near.
+     */
+    public void climbOut(float[][] waypoints, float mapWidth, float mapHeight) {
+        if (departing || departed || destroyed()) return;
+        if (waypoints == null || waypoints.length == 0) throw new IllegalArgumentException("a climb-out needs a route");
+        beginDeparture();
+        float[] last = waypoints[waypoints.length - 1];
+        float[] before = waypoints.length > 1 ? waypoints[waypoints.length - 2] : new float[]{x, y};
+        float dx = last[0] - before[0];
+        float dy = last[1] - before[1];
+        float len = (float) Math.hypot(dx, dy);
+        float reach = (float) Math.hypot(mapWidth, mapHeight) + lengthCells;
+        float[][] route = new float[waypoints.length + 1][];
+        for (int i = 0; i < waypoints.length; i++) route[i] = waypoints[i].clone();
+        route[waypoints.length] = len > 1e-3f
+                ? new float[]{last[0] + dx / len * reach, last[1] + dy / len * reach}
+                : new float[]{last[0] + reach, last[1]};
+        float total = 0f;
+        float px = x;
+        float py = y;
+        for (float[] p : waypoints) {
+            total += (float) Math.hypot(p[0] - px, p[1] - py);
+            px = p[0];
+            py = p[1];
+        }
+        climbLength = Math.max(1f, total);
+        climbingOut = true;
+        flyRoute(route, false);
+    }
+
+    /** Whether the ship is leaving along a climb-out route and has not yet gone. */
+    public boolean climbingOut() {
+        return climbingOut && !departed;
+    }
+
+    /**
+     * The departure clock presentation draws the climb from: the seconds since departure began, or for a climb-out
+     * the share of its route flown, as seconds of {@link WarshipAtmosphere#CLIMB_SECONDS}.
+     */
+    public float climbSeconds() {
+        if (!climbingOut || route == null) return departingSeconds;
+        float left = 0f;
+        float px = x;
+        float py = y;
+        for (int i = routeIndex; i < route.length - 1; i++) {
+            left += (float) Math.hypot(route[i][0] - px, route[i][1] - py);
+            px = route[i][0];
+            py = route[i][1];
+        }
+        if (routeIndex >= route.length - 1) left = 0f;
+        float flown = 1f - Math.min(1f, left / climbLength);
+        return WarshipAtmosphere.CLIMB_SECONDS * flown;
     }
 
     /** Begins leaving: no order, no director, and every burst in progress is abandoned. */
@@ -1514,18 +1611,48 @@ public final class Warship {
         return airFire;
     }
 
-    private ShipFireOrder shipFire = ShipFireOrder.OFF;
+    private ShipFireOrder shipFire = ShipFireOrder.AUTO;
     /** The hostile hull this ship is fighting, as last chosen by {@link WarshipShipFire}; {@code null} when none. */
     private Warship hullTarget;
+    private boolean duelFooting;
 
-    /** Whether the ship's weapons may fire on hostile hulls; see {@link ShipFireOrder}. */
+    /**
+     * Whether the ship's weapons may fire on hostile hulls; see {@link ShipFireOrder}. {@code AUTO} is the default.
+     * {@code ALL} puts the ship on its duel footing at once, {@code OFF} takes it off; under {@code AUTO} the ship
+     * takes it the first time it turns on a hull.
+     */
     public void shipFire(ShipFireOrder order) {
         if (order == null) throw new IllegalArgumentException("a ship-fire order is needed");
         this.shipFire = order;
-        if (order == ShipFireOrder.OFF) hullTarget = null;
-        // Ship against ship keeps the base game's balance, so a ship ordered to fight hulls carries its variant's
-        // capacitors and vents; a ship bombarding ground keeps the hull table's rhythm its postures were tuned to.
-        flux.applyFittings(order != ShipFireOrder.OFF);
+        if (order == ShipFireOrder.OFF) {
+            hullTarget = null;
+            duelFooting = false;
+            flux.applyFittings(false);
+        } else if (order == ShipFireOrder.ALL) {
+            duelFooting();
+        }
+    }
+
+    /**
+     * Puts the ship on the base game's footing for a fight between hulls, once: ship against ship keeps the base
+     * game's balance, so it carries its variant's capacitors and vents (a ship that has only bombarded keeps the hull
+     * table's rhythm its postures were tuned to), and its missiles carry the base game's magazines, since a duel is
+     * not fought with a bottomless Sabot rack.
+     */
+    void duelFooting() {
+        if (duelFooting) return;
+        duelFooting = true;
+        flux.applyFittings(true);
+        for (Mount m : mounts) {
+            if (!m.weapon.missile() || m.ammoRemaining >= 0) continue;
+            int ammo = VanillaWeapons.ammo(m.weapon.id());
+            if (ammo > 0) m.ammoRemaining = ammo;
+        }
+    }
+
+    /** Whether the ship is on its duel footing ({@link #duelFooting()}). */
+    public boolean onDuelFooting() {
+        return duelFooting;
     }
 
     public ShipFireOrder shipFire() {

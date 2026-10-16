@@ -255,7 +255,9 @@ public final class DefensePostLayoutDef {
     }
 
     public enum BarrierAppearance {
-        VENT, EMBANKMENT, BOW_OUT;
+        VENT, EMBANKMENT, BOW_OUT,
+        /** The prepared concrete emplacement parapet ({@code fort.emplacement}); falls back to bow-out art without the catalog sheet. */
+        CONCRETE;
 
         static BarrierAppearance parse(String key, String id) throws JSONException {
             try {

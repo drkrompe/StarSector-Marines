@@ -37,7 +37,7 @@ final class EmplacementAuthoringPanel extends JPanel {
     private final JComboBox<LayoutItem> layouts = new JComboBox<>();
     private final JComboBox<Tool> tool = new JComboBox<>(Tool.values());
     private final JComboBox<String> appearance = new JComboBox<>(
-            new String[]{"vent", "embankment", "bow-out"});
+            new String[]{"vent", "embankment", "bow-out", "concrete"});
     private final JComboBox<String> structure = new JComboBox<>();
     private final JLabel status = new JLabel(" ");
     private final GridCanvas canvas = new GridCanvas();
