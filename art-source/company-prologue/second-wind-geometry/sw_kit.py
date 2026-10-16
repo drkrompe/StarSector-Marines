@@ -29,7 +29,6 @@ class Kit:
         self.orange = material('Oxide orange armor', (.38, .16, .065), .3)
         self.dark = material('Recess and machinery', (.055, .065, .072), .5)
         self.steel = material('Engine collars', (.19, .21, .22), .65)
-        self.podmat = material('Port pod - muted teal identification', (.13, .32, .31), .35)
         self.lightmat = material('Bay work lights', (.8, .7, .42))
         self.glass = material('Bridge viewport glazing', (.05, .09, .11), .2, .15, emission=(.35, .5, .55))
         self.hull = None

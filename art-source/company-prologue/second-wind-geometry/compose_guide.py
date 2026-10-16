@@ -12,7 +12,7 @@ def font(size):
     return ImageFont.truetype(str(fontpath),size)
 
 draw.text((28,15),'SECOND WIND / GEOMETRY V3 DETAIL',font=font(32),fill='#273137')
-draw.text((28,55),'FACETED BOW  |  ENGINE NACELLES  |  SPINE COMMAND DECK  |  FIXED POD AND ENGINES',font=font(19),fill='#485158')
+draw.text((28,55),'SEGMENTED HULL  |  ENGINE PODS  |  SPINE COMMAND DECK  |  PORT GRAPPLE',font=font(19),fill='#485158')
 panels=[('port-quarter',0,92,'PORT BOW QUARTER'),
         ('top',960,92,'TOP / BOW LEFT - PORT BELOW'),
         ('port-side',0,580,'PORT SIDE / INNER ENGINES OCCLUDED'),
@@ -20,5 +20,5 @@ panels=[('port-quarter',0,92,'PORT BOW QUARTER'),
 for name,x,y,label in panels:
     sheet.paste(Image.open(ROOT/(name+'.png')).convert('RGB'),(x,y))
     draw.text((x+28,y+442),label,font=font(20),fill='#273137')
-draw.text((28,1050),'Proposed design, scale provisional. Teal identifies the fixed port service pod. Geometry review only.',font=font(17),fill='#485158')
+draw.text((28,1050),'Proposed design, scale provisional. Port grapple is the only asymmetric fitting. Geometry review only.',font=font(17),fill='#485158')
 sheet.save(ROOT/'second-wind-geometry.reference.png',optimize=True)
