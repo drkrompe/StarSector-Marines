@@ -3,20 +3,26 @@ package com.dillon.starsectormarines.battle.world.gen;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingStamp;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.NatureZoneFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainBrush;
+import com.dillon.starsectormarines.battle.world.gen.terrain.SummitDressing;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainPlan;
+import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainSurface;
 import com.dillon.starsectormarines.battle.world.model.BuildingKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -170,9 +176,13 @@ public final class BlackSluice {
     }
 
     /**
-     * The rock between the fight and the pads, laid on bare ground before anything is built: a broken ridge right
-     * across the map under the northern band, a massif filling the south-west, a spine along the east edge and two
-     * outcrops for shape. The ridge is what makes the berth gate the only way down.
+     * The rock between the fight and the pads, laid on bare ground before anything is built.
+     *
+     * <p>A broken, knolled ridge runs the width of the map under the northern band; it is what makes the berth gate
+     * the only way down. South of it the pad field sits in a basin: the basin's rim is the planet's own country,
+     * massed off the west and south edges and down the east side, its backs running off the map, its inland toe a
+     * line of overlapping lobes and spurs of different heights broken by gullies, with outcrops standing out on
+     * the flats below. Scree fans spill from the toes and regolith drifts blend the rock into the open ground.
      */
     private static void terrain(GenContext c) {
         TargetProfile profile = c.get(BspKeys.MARKET_PROFILE);
@@ -183,13 +193,42 @@ public final class BlackSluice {
         // The ridge: a meandering spine of varying height, shouldered by knolls on both faces.
         strokes.add(raise(6.5, 0, 88, 16, 85, 34, 90, 52, 93, 70, 88, 88, 84, 108, 87, 126, 92, 146, 89, 166, 84, 186, 86,
                 204, 91, 224, 88, 244, 84, 262, 88, 266, 90));
-        for (double[] knoll : new double[][]{{30, 89, 9}, {62, 84, 9}, {98, 89, 9}, {138, 85, 9}, {176, 89, 9},
-                {214, 84, 9}, {248, 88, 8}})
+        for (double[] knoll : new double[][]{{30, 89, 8.5}, {62, 84, 8.5}, {98, 89, 8.5}, {138, 85, 8}, {176, 89, 8.5},
+                {214, 85, 8}, {248, 88, 8}})
             strokes.add(raise(knoll[2], knoll[0] - 6, knoll[1] - 1, knoll[0] + 6, knoll[1] + 1));
-        strokes.add(raise(10, 8, 60, 30, 48, 52, 58, 74, 40, 92, 52));
-        strokes.add(raise(9, 12, 18, 40, 12, 66, 22, 90, 10));
-        strokes.add(raise(3.5, 296, 70, 297, 110, 295, 150));
+        // The basin's west and south-west rim: backs off the map, lobes of different sizes reaching inland.
+        strokes.add(raise(20, 0, 2, 0, 70));
+        strokes.add(raise(18, 2, 0, 92, 0));
+        strokes.add(raise(26, 0, 34));
+        strokes.add(raise(22, 14, 8));
+        strokes.add(raise(19, 42, 2));
+        strokes.add(raise(15, 70, 0, 80, 3));
+        strokes.add(raise(17, 6, 60));
+        // Spurs running out from the rim toward the pads, each a different length and height.
+        strokes.add(raise(9, 24, 40, 44, 46, 58, 44));
+        strokes.add(raise(7, 20, 22, 46, 26, 66, 22));
+        strokes.add(raise(6, 14, 66, 32, 70, 44, 66));
+        strokes.add(raise(5.5, 58, 10, 78, 16, 88, 12));
+        // Broken outcrops on the flats below the toe.
+        // Broken ribs, not round knobs: low, narrow, running the way the spurs do and nicked through.
+        strokes.add(raise(2.5, 72, 40, 78, 37, 84, 38, 89, 34));
+        strokes.add(raise(2, 64, 55, 69, 53, 72, 49));
+        strokes.add(raise(2, 86, 50, 92, 47));
+        strokes.add(raise(1.5, 50, 64, 55, 62));
+        strokes.add(erase(1.5, 80, 41, 82, 34));
+        // The south rim past the pads, low and broken, and the east rim behind the berth road.
+        strokes.add(raise(7, 108, 0, 132, 2, 150, 0));
+        strokes.add(raise(8, 244, 0, 270, 2, 299, 0));
+        strokes.add(raise(9, 299, 0, 299, 14));
+        strokes.add(raise(7, 299, 60, 299, 104, 299, 150));
+        strokes.add(raise(3, 112, 12));
+        strokes.add(raise(3, 274, 12));
         strokes.add(raise(6, 284, 200, 290, 214));
+        // Gullies cut back into the rim, so the lobes read as eroded country rather than placed masses.
+        strokes.add(erase(4, 40, 30, 22, 34));
+        strokes.add(erase(3.5, 48, 14, 34, 18));
+        strokes.add(erase(3.5, 30, 56, 14, 52));
+        strokes.add(erase(3, 70, 8, 62, 2));
         // An open crescent north of fuel control: shape for the band, never a sealed island.
         List<Double> rim = new ArrayList<>();
         for (int i = 0; i <= 6; i++) {
@@ -198,7 +237,66 @@ public final class BlackSluice {
             rim.add(212 + Math.sin(a) * 9);
         }
         strokes.add(raise(3, rim.stream().mapToDouble(Double::doubleValue).toArray()));
-        TerrainBrush.stamp(new TerrainPlan(WIDTH, HEIGHT, finish, 1.8, .55, c.seed ^ 0x534c55494345L, strokes), c.grid, c.topology);
+        TerrainBrush.stamp(new TerrainPlan(WIDTH, HEIGHT, finish, 3, .9, c.seed ^ 0x534c55494345L, strokes), c.grid, c.topology);
+        new SummitDressing(c).scatter(surface);
+        dressBasin(c);
+    }
+
+    /**
+     * The basin floor between the rock and the pads: regolith drifts on the open natural ground, and scree fanning
+     * out from every toe, thick against the rock and thinning onto the flats. Paint only; footing is unchanged.
+     */
+    private static void dressBasin(GenContext c) {
+        var terrain = c.topology.terrainSurface();
+        boolean[] open = new boolean[WIDTH * HEIGHT];
+        int[] distance = new int[WIDTH * HEIGHT];
+        Arrays.fill(distance, Integer.MAX_VALUE);
+        ArrayDeque<int[]> frontier = new ArrayDeque<>();
+        for (int y = 0; y < BAND_BOTTOM; y++) for (int x = 0; x < WIDTH; x++) {
+            int i = y * WIDTH + x;
+            if (!c.grid.isWalkable(x, y)) {
+                if (c.grid.hasTag(x, y, CellTag.NATURAL_SOLID)) { distance[i] = 0; frontier.add(new int[]{x, y}); }
+                continue;
+            }
+            if (c.isMadeGround(x, y) || c.topology.getSurface(x, y) != 0) continue;
+            boolean patch = false;
+            for (int layer = 0; layer < TerrainSurface.LAYERS && !patch; layer++) patch = terrain.patch(x, y, layer) != null;
+            open[i] = !patch;
+        }
+        NatureZoneFiller.dressOpenGround(c, open);
+        int reach = 7;
+        while (!frontier.isEmpty()) {
+            int[] at = frontier.poll();
+            int d = distance[at[1] * WIDTH + at[0]];
+            if (d >= reach) continue;
+            for (int[] step : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+                int nx = at[0] + step[0], ny = at[1] + step[1];
+                if (nx < 0 || ny < 0 || nx >= WIDTH || ny >= BAND_BOTTOM) continue;
+                int j = ny * WIDTH + nx;
+                if (distance[j] <= d + 1) continue;
+                distance[j] = d + 1;
+                frontier.add(new int[]{nx, ny});
+            }
+        }
+        var tiles = TileRegistry.installed();
+        String[] stones = {"nature.rock-small-1", "nature.rock-small-2", "nature.rock-medium-1"};
+        var fans = new PatchField(c.seed ^ 0x5343524545L, 9);
+        var random = new Random(c.seed ^ 0x54414c5553L);
+        for (int y = 0; y < BAND_BOTTOM; y++) for (int x = 0; x < WIDTH; x++) {
+            int i = y * WIDTH + x;
+            if (!open[i] || distance[i] > reach) continue;
+            float near = 1f - (distance[i] - 1) / (float) reach;
+            // Fans, not a halo: the patch field gathers the scree into tongues below some stretches of toe.
+            float chance = near * near * (fans.sample(x, y) < .5f ? .55f : .12f);
+            if (random.nextFloat() < chance)
+                c.topology.setNatureOverlayIndex(x, y, tiles.tile(stones[random.nextInt(stones.length)]).index);
+        }
+    }
+
+    private static TerrainPlan.Stroke erase(double radius, double... xy) {
+        List<TerrainPlan.Point> points = new ArrayList<>();
+        for (int i = 0; i + 1 < xy.length; i += 2) points.add(new TerrainPlan.Point(xy[i], xy[i + 1]));
+        return new TerrainPlan.Stroke(TerrainPlan.Mode.ERASE, radius, points);
     }
 
     private static TerrainPlan.Stroke raise(double radius, double... xy) {

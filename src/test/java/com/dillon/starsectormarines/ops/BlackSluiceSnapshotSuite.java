@@ -357,7 +357,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                     .arrow(240, 160, BlackSluice.GATE_X + 4, BlackSluice.GATE_Y, "BERTH GATE", ReviewStyle.ROUTE)
                     .arrow(283, 150, 283, 74, "BERTH ROAD: THE ONLY WAY DOWN", ReviewStyle.ROUTE)
                     .label(150, 92, "RIDGE: NO WAY THROUGH", ReviewStyle.NOTE)
-                    .label(56, 40, "ROCK MASSIF", ReviewStyle.NOTE)
+                    .label(56, 40, "BASIN RIM", ReviewStyle.NOTE)
                     .box(0, 0, BlackSluice.WIDTH - 1, BlackSluice.AIRSPACE_TOP, "DUEL AIRSPACE", ReviewStyle.NOTE);
             var cradle = BlackSluice.VENTURE_CRADLE;
             marks.box(cradle.left(), cradle.bottom(), cradle.right(), cradle.top(), "VENTURE CRADLE", ReviewStyle.OBJECTIVE);
@@ -376,6 +376,8 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                     .withUnitShadows().render(sim, "BLACK SLUICE / WEST HOUND BERTH, GANTRY ARMS AND KERB / 48 cells across")));
             frames.add(new SnapshotArtifact("black-sluice-detail-berth-gate.png", new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 262, 124, 112)
                     .withUnitShadows().render(sim, "BLACK SLUICE / BERTH YARD, BERTH GATE, BERTH ROAD AND RIDGE / 112 cells across")));
+            frames.add(new SnapshotArtifact("black-sluice-detail-basin-edge.png", new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 72, 44, 144)
+                    .withUnitShadows().render(sim, "BLACK SLUICE / SOUTH-WEST BASIN EDGE, SPURS, GULLIES AND SCREE / 144 cells across")));
             frames.add(new SnapshotArtifact("black-sluice-detail-customs.png", new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 70, 164, 88)
                     .render(sim, "BLACK SLUICE / CUSTOMS, REAR BAY AND GALLERY MOUTHS / 88 cells across")));
         }

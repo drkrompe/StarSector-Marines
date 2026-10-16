@@ -89,4 +89,21 @@ class LandedScaleTest {
         float half = LandedScale.runProgress(run[1][0], run[1][1], run, 2, length);
         assertTrue(half > 0f && half < 1f, "part way round is part of the lift: " + half);
     }
+
+    @Test
+    void aFallingHullComesBackToTrueScaleByTheStrike() {
+        for (float ground : new float[]{LandedScale.berthFactor(2f), LandedScale.berthFactor(6f)}) {
+            assertEquals(1f, LandedScale.fallFactor(1f, ground, 0f), 1e-6f);
+            assertEquals(ground, LandedScale.fallFactor(1f, ground, 1f), 1e-6f);
+            assertEquals(ground, LandedScale.fallFactor(1f, ground, 2f), 1e-6f);
+            float previous = 1f;
+            for (int i = 1; i <= 90; i++) {
+                float now = LandedScale.fallFactor(1f, ground, i / 90f);
+                assertTrue((now - previous) * (ground - 1f) >= -1e-6f, "the wreck only moves toward true scale");
+                previous = now;
+            }
+        }
+        // A hull shot down part way through its lift falls from the size it was drawn at.
+        assertEquals(1.3f, LandedScale.fallFactor(1.3f, 2f, 0f), 1e-6f);
+    }
 }
