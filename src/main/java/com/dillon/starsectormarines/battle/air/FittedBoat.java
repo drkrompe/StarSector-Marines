@@ -23,8 +23,9 @@ import java.util.Objects;
  * is the direction {@code battle} already reads {@code marine}'s authored defs
  * in — the equipment, integral-system and deployable specs all arrive that way.
  *
- * <p><b>Only the two numbers a fitting is about are touched.</b> Plating scales
- * the hull; the drive scales forward speed and both accelerations. Turn rate,
+ * <p><b>Only the numbers a fitting is about are touched.</b> Plating scales
+ * the hull; the drive scales forward speed and both accelerations; a lift
+ * cradle raises the {@link #liftRating} and makes the boat machine-only. Turn rate,
  * damping, seats, hardpoints, sprite and hull id are the pattern's and are
  * delegated untouched — a better boat is faster and tougher, not a different
  * aircraft. The deboard cadence and the deck turnaround are deliberately not
@@ -36,6 +37,7 @@ public final class FittedBoat implements Airframe, AirHandling {
     private final ShuttleType pattern;
     private final BoatFitting plating;
     private final BoatFitting drive;
+    private final BoatFitting lift;
     private final String boatId;
 
     public FittedBoat(ShuttleType pattern, BoatFitting plating, BoatFitting drive) {
@@ -44,9 +46,15 @@ public final class FittedBoat implements Airframe, AirHandling {
 
     public FittedBoat(ShuttleType pattern, BoatFitting plating, BoatFitting drive,
                       String boatId) {
+        this(pattern, plating, drive, BoatFitting.STANDARD_LIFT, boatId);
+    }
+
+    public FittedBoat(ShuttleType pattern, BoatFitting plating, BoatFitting drive,
+                      BoatFitting lift, String boatId) {
         this.pattern = Objects.requireNonNull(pattern, "pattern");
         this.plating = requireSlot(plating, BoatFittingSlot.PLATING);
         this.drive = requireSlot(drive, BoatFittingSlot.DRIVE);
+        this.lift = requireSlot(lift, BoatFittingSlot.LIFT);
         this.boatId = boatId;
     }
 
@@ -54,7 +62,8 @@ public final class FittedBoat implements Airframe, AirHandling {
     public static FittedBoat standard(ShuttleType pattern) {
         return new FittedBoat(pattern,
                 BoatFitting.standard(BoatFittingSlot.PLATING),
-                BoatFitting.standard(BoatFittingSlot.DRIVE));
+                BoatFitting.standard(BoatFittingSlot.DRIVE),
+                BoatFitting.standard(BoatFittingSlot.LIFT), null);
     }
 
     /** The airframe underneath the fit — what kind of boat this is. */
@@ -63,6 +72,25 @@ public final class FittedBoat implements Airframe, AirHandling {
     public BoatFitting plating() { return plating; }
 
     public BoatFitting drive() { return drive; }
+
+    public BoatFitting lift() { return lift; }
+
+    /**
+     * The heavier of the pattern's own lift and the cradle's: a cradled Buffalo
+     * carries Light machines, a Valkyrie Heavy ones as built.
+     */
+    @Override
+    public LiftRating liftRating() {
+        return LiftRating.max(pattern.liftRating(), lift.liftRating());
+    }
+
+    /**
+     * Whether this boat flies machine-only sorties: its cradle took the seats,
+     * so it carries a machine and never a section. Deboarding stays one kind.
+     */
+    public boolean machineOnly() {
+        return lift.machineOnly();
+    }
 
     /**
      * The campaign boat this frame was frozen from, or null when nothing owns
@@ -108,6 +136,7 @@ public final class FittedBoat implements Airframe, AirHandling {
         return pattern == boat.pattern
                 && plating.id().equals(boat.plating.id())
                 && drive.id().equals(boat.drive.id())
+                && lift.id().equals(boat.lift.id())
                 && Objects.equals(boatId, boat.boatId);
     }
 
@@ -115,12 +144,14 @@ public final class FittedBoat implements Airframe, AirHandling {
     public int hashCode() {
         int result = 31 * pattern.hashCode() + plating.id().hashCode();
         result = 31 * result + drive.id().hashCode();
+        result = 31 * result + lift.id().hashCode();
         return 31 * result + Objects.hashCode(boatId);
     }
 
     @Override
     public String toString() {
         return pattern + "[" + plating.id() + "," + drive.id()
+                + (lift.standard() ? "" : "," + lift.id())
                 + (boatId != null ? "," + boatId : "") + "]";
     }
 
