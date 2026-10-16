@@ -26,7 +26,7 @@ import java.util.Map;
 
 /**
  * A Hound hull-down: <b>does a berm hide a mech's legs while its weapons stay in the fight?</b> The
- * cover-by-section acceptance of {@code mech-locational-damage.md}, slice 3.
+ * cover-by-section acceptance ({@code mechs-nouns.md}, Cover by section).
  *
  * <p>One Hound, planted, under the fire of a ten-strong rifle squad twenty cells east, played twice
  * over the same ground: once in the open and once behind a windowed masonry parapet one cell in

@@ -380,7 +380,7 @@ public final class DamageResolver {
     }
 
     /**
-     * What a section at zero costs a mech that still stands ({@code mech-locational-damage.md}):
+     * What a section at zero costs a mech that still stands ({@code mechs-nouns.md}):
      * a mount loses its weapon, the head its sensors. Crippled legs need nothing written here:
      * the sections say so, and movement reads it through {@code MechSectionModifier}.
      */

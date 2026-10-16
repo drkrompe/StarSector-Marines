@@ -194,7 +194,8 @@ increasing an encounter's total armored threat.
   shoulder on the side the round came from, read against the upper torso's
   facing. A lone pod a chassis draws on its centreline (the Hound's) takes the
   whole shoulder band. A payload with no ballistic height (a blast, a strafe) is
-  struck at a uniform height. The roll is never aimed.
+  struck at a uniform height. The roll is never aimed; aiming at a section in
+  direct control would be a separate, later feature.
 - **Cover by section.** Each band of a mech plan carries cover rows, and they
   read from the ground up: cover hides a mech's legs (low cover about half,
   medium most, high all of them), at its tallest the bottom of its torso, and
@@ -211,7 +212,9 @@ increasing an encounter's total armored threat.
   by the shared durability calculation; what a section cannot hold carries on
   into the torso, which meets it with its own armor before its structure, and
   a hit on a section already at zero goes through the hole to the torso's plate. The chassis health and armor columns carry the
-  sections' totals, so whole-chassis readers see one body.
+  sections' totals, so whole-chassis readers see one body. Plating may later
+  shift capacity between sections; that is the fitting decision sections make
+  possible.
 - **Section loss** is a capability before it is the machine. Legs at zero
   **cripple** the mech: no walking speed, autonomous or manual, while it still
   pivots its hips onto its target, turns its torso and fires. A mount at zero
@@ -238,7 +241,9 @@ increasing an encounter's total armored threat.
   its legs for as long as it stands. These are presentation events read off the
   sections (`MechSectionFxSystem`); they draw nothing from the battle's random
   stream, so they change no outcome and a review frame stays a function of
-  simulation state.
+  simulation state. A section paper-doll in the direct-control HUD and above the
+  selected-mech panel shows each section's armor and structure and marks what
+  is gone.
 - **After the battle** settlement writes that record back. A destroyed torso
   (or a chassis that died as one body under the control) **loses the chassis**:
   it leaves its gantry and every part fitted to it leaves stores with it. A

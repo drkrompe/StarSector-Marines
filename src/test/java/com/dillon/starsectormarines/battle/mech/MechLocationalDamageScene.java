@@ -23,7 +23,7 @@ import java.util.Map;
 
 /**
  * A Hound taken apart: <b>does a mech under rifle and rocket fire lose a capability before it loses
- * the machine?</b> The acceptance scene of {@code mech-locational-damage.md}.
+ * the machine?</b> The acceptance scene for mech locational damage ({@code mechs-nouns.md}, Section loss).
  *
  * <p>One Hound with its stock loadout (nose chaingun, one centred SRM pod) under an attack-move
  * across open ground at a ten-strong hostile rifle squad holding the far side, one seat of which

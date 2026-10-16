@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * What section loss does to doctrine ({@code mech-locational-damage.md}, slice 3), asked of the
+ * What section loss does to doctrine ({@code mechs-nouns.md}, Section loss), asked of the
  * decisions directly: a crippled mech is a turret, a disarmed one declines to attack and withdraws
  * if it can walk, and a lost mount takes its reach with it.
  */

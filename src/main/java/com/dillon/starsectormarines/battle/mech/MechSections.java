@@ -19,7 +19,7 @@ import com.dillon.starsectormarines.battle.combat.DurabilityModel;
  * <p>Written only on the serialized damage path. Read by the presentation (the section
  * paper-doll) and, after the battle, by campaign writeback ({@link #report()}), which turns a
  * lost mount into a lost assembly, other damaged sections into repairs, and a destroyed torso into
- * a lost chassis. See {@code mech-locational-damage.md}.
+ * a lost chassis. See {@code mechs-nouns.md}.
  */
 public final class MechSections {
 
