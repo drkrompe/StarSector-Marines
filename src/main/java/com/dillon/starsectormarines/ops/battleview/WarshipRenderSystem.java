@@ -346,7 +346,7 @@ public final class WarshipRenderSystem implements RenderSystem {
         float tint = down ? 0.22f : 0.3f;
         // A hull that was holed falls and lies holed: the same cut, burnt.
         if (WarshipHullDamageRenderer.draw(out, down ? RenderLayer.VEHICLES : RenderLayer.SHUTTLES, cam, sprites, hull,
-                ship, hx, hy, pxW, pxH, alpha, tint * 1.6f, battleSeconds, engineClockSeconds)) {
+                ship, hx, hy, pxW, pxH, alpha, tint * 2.4f, battleSeconds, engineClockSeconds)) {
             return;
         }
         out.addSprite(down ? RenderLayer.VEHICLES : RenderLayer.SHUTTLES, hull.sprite,

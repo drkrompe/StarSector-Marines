@@ -200,6 +200,8 @@ public final class Warship {
     private float hitPoints;
     /** The hull's armour grid, or null for a hull fitted without one. */
     private WarshipPlating plating;
+    /** The hull table's {@code tech/manufacturer} column, or empty when it has none. */
+    private String techStyle = "";
     /** The ship-support source this hull was called from, or null for any ship not called that way. */
     private ShipSupportSource supportSource;
     /** Seconds of station time left, counted down while the ship is on station; infinite when unbounded. */
@@ -762,6 +764,11 @@ public final class Warship {
     /** Whether hulls fitted from now on carry an armour grid; {@code -Dbattle.warship.platingGrid=false} is the control. */
     public static boolean platingGridEnabled() {
         return !"false".equalsIgnoreCase(System.getProperty("battle.warship.platingGrid"));
+    }
+
+    /** The hull table's {@code tech/manufacturer} (Low Tech, Midline, High Tech, ...), or empty; for presentation. */
+    public String techStyle() {
+        return techStyle;
     }
 
     /** The hull's armour grid, or null for a hull fitted without one (the control, or a hull with no spec). */
@@ -2107,6 +2114,8 @@ public final class Warship {
         ship.flux.fittings(FLUX_PER_CAPACITOR * Math.max(0, loadout.fluxCapacitors()),
                 DISSIPATION_PER_VENT * Math.max(0, loadout.fluxVents()));
         if (row != null) {
+            String tech = row.get("tech/manufacturer");
+            ship.techStyle = tech == null ? "" : tech.trim();
             ship.shipClass = ShipClass.classify(hull.optString("hullSize", null), row.get("designation"),
                     row.get("hints"), row.get("fighter bays"), row.get("shield type"),
                     row.get("shield arc"), row.get("shield efficiency"));
