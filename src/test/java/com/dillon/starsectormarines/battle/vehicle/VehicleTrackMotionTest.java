@@ -6,18 +6,22 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class VehicleTrackMotionTest {
-    @Test void controllerCountsOnlyTravelAcceptedByTheWallSweep() {
+    @ParameterizedTest
+    @EnumSource(value = VehicleType.class, names = {"BREAKTHROUGH_TANK", "HEAVY_APC", "ESCORT_APC"})
+    void controllerCountsOnlyTravelAcceptedByTheWallSweep(VehicleType type) {
         var grid = new NavigationGrid(24, 14);
         for (int y = 0; y < 14; y++) for (int x = 0; x < 24; x++) grid.setWalkableFloor(x, y);
         for (int y = 0; y < 14; y++) grid.setWalkable(14, y, false);
         var topology = new CellTopology(24, 14);
         try (var sim = new BattleSimulation(grid, topology)) {
-            long tank = sim.convoy().spawn(VehicleType.BREAKTHROUGH_TANK, Faction.ALLY,
+            long tank = sim.convoy().spawn(type, Faction.ALLY,
                     VehicleMission.deployed(9, 7));
             var body = sim.convoy().body(tank);
             body.teleport(9, 7, -90);

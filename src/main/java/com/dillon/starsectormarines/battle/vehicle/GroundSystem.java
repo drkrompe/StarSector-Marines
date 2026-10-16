@@ -321,6 +321,8 @@ public class GroundSystem {
         resolveOnboardRiders(id, body);
         if (type == VehicleType.BREAKTHROUGH_TANK) {
             effects.spawnTankWreck(body.x, body.y, body.facingDegrees);
+        } else if (type.isApc()) {
+            effects.spawnApcWreck(body.x, body.y, body.facingDegrees, type.visualLengthCells);
         } else {
             effects.spawnVehicleWreck(body.x, body.y, type.visualLengthCells, type.visualWidthCells);
         }

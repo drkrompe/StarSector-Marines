@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -8,11 +11,19 @@ import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.campaign.FreightRunProgress;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
+import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotation.Point;
 import com.dillon.starsectormarines.ops.battleview.ReviewStyle;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
+import com.dillon.starsectormarines.testsupport.HeadlessSvgAssets;
+import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
+import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
@@ -20,8 +31,9 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
-/** Controlled art poses through production convoy rendering, not combat or traverse-rate evidence. */
+/** Registered live/wreck poses and controlled chassis/destruction evidence; not mission balance. */
 public final class ApcSnapshotSuite implements SnapshotSuite {
     @Override public String id() { return "apc"; }
     @Override public String label() { return "APC hull and independent turret registration"; }
@@ -68,7 +80,40 @@ public final class ApcSnapshotSuite implements SnapshotSuite {
         }
         artifacts.add(new SnapshotArtifact("muzzle-registration.png", frames.get(0)));
         artifacts.add(SnapshotArtifact.colorAnimation("turret-sweep.gif", frames, 125));
+        for (long id : matrix.getConvoyVehicleIds()) matrix.applyDamage(id, 10000, 10000);
+        artifacts.add(new SnapshotArtifact("wreck-headings.png", renderer.refocus(32, 20, 28).render(matrix,
+                "APC wrecks / both chassis sizes, final independent bearings / particles omitted / UI 100%",
+                labels.build())));
+        matrix.close();
+        sweep.close();
+        campaignLifecycle(context, artifacts);
         return List.copyOf(artifacts);
+    }
+
+    private static void campaignLifecycle(SnapshotContext context, List<SnapshotArtifact> artifacts)
+            throws Exception {
+        HeadlessSvgAssets.install(context.modRoot());
+        HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
+        InstalledHullSpecs.install();
+        InstalledVanillaData.install();
+        var profile = new TargetProfile(0, 0, 0, 0, "", Set.of(),
+                SurfacePalette.VERDANT, SettlementLink.ROAD);
+        var manifest = List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 2, 6),
+                new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 2, 6));
+        var attempt = new FreightRunProgress("apc-art-thunder-run").previewAttempt();
+        try (var sim = BattleSetup.createThunderRun(9301, manifest, profile, attempt, 0)) {
+            long escort = 0;
+            for (long id : sim.getConvoyVehicleIds()) {
+                var type = sim.convoy().vehicleType(id);
+                if (type.hasTurretWeapon()) sim.convoy().turret(id).facingDeg = sim.convoy().body(id).facingDegrees;
+                if (type == VehicleType.ESCORT_APC && escort == 0) escort = id;
+            }
+            if (escort == 0) throw new IllegalStateException("Thunder Run has no APC escort");
+            artifacts.add(new SnapshotArtifact("campaign-comparison.png",
+                    new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 24, 76, 44).render(sim,
+                            "THUNDER RUN / APCs beside tank, technical and freight / starting poses / UI 100%")));
+            VehicleLifecycleSnapshots.collect(context, artifacts, sim, escort, "APC", 10);
+        }
     }
 
     private static BattleSimulation scene() {
