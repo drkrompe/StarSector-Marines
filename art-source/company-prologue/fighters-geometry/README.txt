@@ -43,8 +43,12 @@ Conventions (every fighter)
   starboard|centre> exhaust anchor" at the mouth plane, local +X aft.
 - Weapons: "Weapon <slot id> anchor" at every .ship slot (+X along the slot
   angle), and "Weapon <slot id> muzzle" at the tip of every drawn gun.
-- Placing beside another hull: scale the root by
-  this metres_per_unit / that hull's (the Legion is 0.65).
+- Placing beside another hull: scale the root by this metres_per_unit /
+  that hull's, read from its geometry.json. The Legion's is 0.61 (local
+  main 496340563): root scales Broadsword, Wasp, Dagger 0.82; Talon 1.23;
+  Longbow, Thunder 0.74. The widest span here (Talon, 16.5 m) is about 27
+  Legion units, inside its hangar tunnels (being widened to about 40
+  forward and 46 aft for the Hoplon).
 
 Scale: each hull its own (owner policy)
 Every crewed fighter is scaled from its cockpit: the canopy against real

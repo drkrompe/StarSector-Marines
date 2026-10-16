@@ -53,7 +53,7 @@
       0.43,
       0.57
     ],
-    "beside_the_legion": "scale the root by 0.77 (0.50 / 0.65); her 14.1 m span then clears the Legion forward hangar mouth (23.4 m) and the aft mouth (14.3 m wide, 7.8 m high) by only 0.2 m: fighters leave the under-wing hangars through the mouths",
+    "beside_the_legion": "scale the root by 0.82 (0.50 / the Legion 0.61, legion-geometry at 496340563); her 14.1 m span is about 23 Legion units, inside its hangar tunnels (being widened to about 40 forward and 46 aft for the Hoplon); fighters leave through the mouths under the wing arms",
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
   },
   "sprite": {
