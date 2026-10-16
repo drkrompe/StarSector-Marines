@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
@@ -71,7 +72,10 @@ class ArmoryLoadoutPreviewCanvasTest {
         HeadlessArmoryPreviewRenderer renderer =
                 new HeadlessArmoryPreviewRenderer(Path.of("mod"));
 
-        MarineArmorCatalogRegistry.installed().all().forEach(armor -> {
+        // A pattern still awaiting art says so (presentationPending) and is never awardable;
+        // every pattern that claims a presentation must actually render.
+        MarineArmorCatalogRegistry.installed().all().stream()
+                .filter(MarineArmorCatalogDef::presentationDeclared).forEach(armor -> {
             BufferedImage image = renderer.render(new FireTeamBillet(
                     "Catalog proof", WeaponRegistry.STARTER_PRIMARY_ID,
                     EquipmentGrade.SERVICE, null, armor.id()));
