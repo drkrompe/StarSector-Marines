@@ -54,7 +54,7 @@
   "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
   "metres_per_unit": 0.61,
   "scale": {
-    "method": "warship pass 4: deck program (DeckProgramProbe CAPITAL \"Battlecarrier\" 700 1500 300 -> CARRIER) less its notional HANGAR rooms: 28667 m2 x1.40 circulation x3.2 m = required habitable m3; solved against the habitable share of the pressure hull (union of its solids, measured on every build); fighter hangar volume checked in model units, since fighters share the carrier pixel scale",
+    "method": "warship pass 4: deck program (DeckProgramProbe CAPITAL \"Battlecarrier\" 700 1500 300 -> CARRIER) less its notional HANGAR rooms: 28667 m2 x1.40 circulation x3.2 m = required habitable m3; solved against the habitable share of the pressure hull (union of its solids, measured on every build); fighter stowage sized in metres at each fighter scale",
     "required_habitable_m3": 128428,
     "pressure_hull": [
       "Hull fore body",
@@ -74,23 +74,24 @@
     "machinery_units3": 43133,
     "usable_fraction": 0.33,
     "non_habitable_budget": {
-      "fighter hangars, launch bays, fighter ordnance": 0.245,
+      "fighter hangars, launch bays, fighter ordnance": 0.135,
       "belt and deck armour (rating 1650, about 1.5 m over the envelope)": 0.15,
       "reactors, flux plant, drive machinery": 0.12,
       "fifteen barbettes, gun and missile magazines": 0.05,
       "fuel (300), supplies and water tanks, structure, trunks": 0.1
     },
-    "habitable_share_from_budget": 0.335,
-    "fighter_stowage_units3": {
-      "legion_xiv_Elite": 421718,
-      "legion_Strike": 381888
+    "habitable_share_from_budget": 0.445,
+    "fighter_stowage_m3": {
+      "legion_xiv_Elite": 52715,
+      "legion_Strike": 47736
     },
-    "fighter_stowage_share_of_hull": 0.245,
+    "fighter_stowage_share_of_hull_at_published": 0.135,
+    "budget_note": "with the fighters at their own scales (0.50 m/px) the itemised budget leaves more than a third habitable; 33% is the requested warship share, and budget_share in range is what the itemised budget alone solves to. Owner call if they differ much.",
     "solved_metres_per_unit": 0.609,
     "range": {
       "35pct_habitable": 0.597,
       "30pct_habitable": 0.629,
-      "budget_share": 0.606,
+      "budget_share": 0.551,
       "freighter_55pct_for_comparison": 0.514
     },
     "published_vs_solved": 1.001,
@@ -115,18 +116,32 @@
         13.4,
         7.3
       ],
-      "fighters (length x span) m": {
+      "fighters (length x span) m, own scales": {
         "broadsword": [
-          20.1,
-          18.3
+          16.5,
+          15.0
         ],
         "hoplon": [
-          22.0,
-          23.2
+          18.0,
+          19.0
         ],
         "piranha": [
-          20.7,
-          18.3
+          17.0,
+          15.0
+        ]
+      },
+      "fighters (length x span) in Legion units": {
+        "broadsword": [
+          27.0,
+          24.6
+        ],
+        "hoplon": [
+          29.5,
+          31.1
+        ],
+        "piranha": [
+          27.9,
+          24.6
         ]
       },
       "hull keel to crown": 46.0,

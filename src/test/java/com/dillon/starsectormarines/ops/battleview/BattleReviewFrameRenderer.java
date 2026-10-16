@@ -161,11 +161,22 @@ public final class BattleReviewFrameRenderer {
     public BufferedImage render(BattleSimulation simulation, String caption,
                                 ReviewAnnotations annotations,
                                 ReviewImpactFx impacts) throws IOException {
+        long start = System.nanoTime();
         BufferedImage image = renderer.renderHostPass(pass(simulation, impacts), width, height);
+        long scene = System.nanoTime();
         if (impacts != null) {
             impacts.paint(image, cameraFor(image.getWidth(), image.getHeight(), simulation));
         }
+        long particles = System.nanoTime();
         annotate(image, simulation, caption, annotations);
+        if (ReviewRenderProfile.ENABLED) {
+            long end = System.nanoTime();
+            ReviewRenderProfile.phase("scene (collect+drain)", scene - start);
+            ReviewRenderProfile.phase("impact particles", particles - scene);
+            ReviewRenderProfile.phase("annotate", end - particles);
+            ReviewRenderProfile.phase("frame total", end - start);
+            ReviewRenderProfile.frameDone();
+        }
         return image;
     }
 

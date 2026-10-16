@@ -98,10 +98,11 @@
       ],
       "headPx": [
         1093.4,
-        67.7
+        170.1
       ],
-      "heightPx": 341.6,
-      "heightM": 1.68
+      "heightPx": 239.1,
+      "heightM": 1.68,
+      "figureScale": 0.7
     },
     {
       "id": "commander",
@@ -111,10 +112,11 @@
       ],
       "headPx": [
         878.7,
-        78.1
+        228.6
       ],
-      "heightPx": 501.7,
-      "heightM": 1.82
+      "heightPx": 351.2,
+      "heightM": 1.82,
+      "figureScale": 0.7
     }
   ],
   "anchors": [
@@ -305,11 +307,11 @@
       "kind": "figure-head",
       "px": [
         1093.4,
-        67.7
+        170.1
       ],
       "world": [
         0.45,
-        1.68,
+        1.18,
         1.37
       ],
       "pxPerMetre": 203.3,
@@ -342,11 +344,11 @@
       "kind": "figure-head",
       "px": [
         878.7,
-        78.1
+        228.6
       ],
       "world": [
         -0.35,
-        1.82,
+        1.27,
         -0.22
       ],
       "pxPerMetre": 275.7,
