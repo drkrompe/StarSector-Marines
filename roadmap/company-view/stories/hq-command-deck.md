@@ -1,7 +1,8 @@
 # HQ command deck
 
-Status: PLANNED — prompts drafted; art not generated, layout not implemented
+Status: IN PROGRESS — deck plate approved (v2); figure cards next, layout not implemented
 Written: 2026-10-16
+Updated: 2026-10-16 — the banner is layered (deck plate plus figure cards) with live overlays.
 
 Read `company-view-nouns.md` (Company HQ) first.
 
@@ -16,10 +17,18 @@ where things live without becoming the only way to reach them.
 
 ## Scope and laws
 
-- **One painted plate, not a live scene.** The art lives in
-  `art-source/hq-command-deck/` (`prompts.json`, master, pack script) and ships a
-  downsampled banner the way `story-scenes` does. The generic deck is the company's
-  home whatever its flagship; per-hull plates are out of scope.
+- **Painted layers, not a live scene.** The art lives in `art-source/hq-command-deck/`
+  (`prompts.json`, masters, briefs, provenance). It is an empty **deck plate**
+  (`deck-plate-v2.master.png`, approved) plus one transparent **figure card** per
+  person (Castle, the comms pair, the commander, the quartermaster), composited at
+  authored positions. Layers let a station highlight its own figure, let an alert
+  relight the deck alone, and let one figure be redone without repainting the scene.
+  The generic deck is the company's home whatever its flagship; per-hull plates are
+  out of scope.
+- **Live overlays.** Console screens and the chart-table top are painted blank so the
+  game can draw over them: readouts, blinking lamps and a live plot on the table.
+  Stations sit in fixed bands so a station can later become its own layer (for
+  example one that appears as the company grows) or carry motion.
 - **Remove** the `company-hq-network-canvas` intel drawing and the
   `company-hq-assessment` strip. Every fact they carried still appears: the rating
   and Castle's daily assessment move onto the banner, and the source windows,
@@ -92,15 +101,16 @@ panel when used.
 
 ## Alert state
 
-When an obligation is overdue (`due now`), the banner swaps to the
-`command-deck-alert` plate, the same composition under red-amber light. It is
-generated only after the main plate is approved, as an edit of that master, and is
-optional for the first cut.
+When an obligation is overdue (`due now`), the deck plate swaps to
+`deck-plate-alert`, the same composition under red-amber light, generated as an
+edit of the approved plate. Figure cards stay as they are; the live overlays can
+carry the urgency too. Optional for the first cut.
 
 ## Acceptance
 
-1. The plate matches the prompt's station order, keeps every figure inside the
-   centre band, and Castle matches her portrait.
+1. The deck plate matches the prompt's station order inside the centre band; each
+   figure card has true transparency, matches the plate's lighting, and Castle
+   matches her portrait.
 2. HQ at 1920x1080 / 100% shows the banner with caption, no network canvas and no
    assessment strip; rating and assessment text are fully readable over the scrim.
 3. Every hotspot is reachable by keyboard and pointer, shows its label, and points
@@ -112,7 +122,7 @@ optional for the first cut.
 
 ## Implementation order
 
-Generate and approve the master; pack the banner and measure station rectangles;
+Generate and approve the deck plate, then the figure cards; pack the layers and measure station rectangles;
 replace the canvas and strip in `company-hq.mlx` and the view model; add hotspots
 and panel pulses; snapshot evidence; optional alert plate.
 
