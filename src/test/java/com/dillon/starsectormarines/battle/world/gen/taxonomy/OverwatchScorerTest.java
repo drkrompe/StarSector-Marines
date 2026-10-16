@@ -88,6 +88,7 @@ public class OverwatchScorerTest {
         return run;
     }
 
+    @Tag("generated-space-evidence")
     @Test
     void conquestSitesFireTowardTheAttacker() {
         BspCityGenerator gen = new BspCityGenerator();
