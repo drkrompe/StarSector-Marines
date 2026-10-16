@@ -2,7 +2,7 @@
   "sourceSize": [1774, 887],
   "outputSize": [1536, 768],
   "frames": [
-    {"sourceRect": [0, 0, 1000, 887], "scale": 0.8, "sourceCenter": [507, 461], "targetCenter": [384, 384]},
-    {"sourceRect": [1000, 0, 774, 887], "scale": 0.75, "sourceCenter": [1530, 465], "targetCenter": [1152, 384], "sourceMuzzles": [[1108, 441], [1108, 490]]}
+    {"sourceRect": [0, 0, 1020, 887], "scale": 0.73, "sourceCenter": [508, 451], "targetCenter": [384, 384]},
+    {"sourceRect": [1020, 0, 754, 887], "scale": 0.7309469115702443, "sourceCenter": [1498, 460.5], "targetCenter": [1152, 384], "sourceMuzzles": [[1065, 435], [1065, 486]]}
   ]
 }

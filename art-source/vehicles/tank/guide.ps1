@@ -18,59 +18,61 @@ function Poly($color,$points) {
     $vertices=[System.Drawing.PointF[]]@($points | ForEach-Object { [System.Drawing.PointF]::new($_[0],$_[1]) })
     $g.FillPolygon($brush,$vertices); $brush.Dispose()
 }
-# Long armored track pods, chamfered leading ends, squared trailing sprocket guards.
-Poly '#262e29' @(@(70,132),@(115,84),@(711,84),@(736,109),@(736,215),@(115,215),@(70,185))
-Poly '#262e29' @(@(70,636),@(115,684),@(711,684),@(736,659),@(736,553),@(115,553),@(70,583))
-foreach ($x in 112..704 | Where-Object { ($_ - 112) % 24 -eq 0 }) {
-    Rect '#424a40' $x 91 12 116
-    Rect '#424a40' $x 561 12 116
+# Abrams / Type 10 proportions. Left is front: flat transverse glacis, no prow.
+# Hull bearing (384,384). Long rectangular track base, 680 x 460 overall.
+foreach ($y in @(154,534)) {
+    Poly '#272b29' @(@(48,$y+16),@(65,$y),@(710,$y),@(730,$y+18),@(730,$y+62),@(710,$y+80),@(65,$y+80),@(48,$y+64))
+    foreach ($x in 62..710 | Where-Object { ($_-62)%20 -eq 0 }) { Rect '#44463d' $x ($y+5) 10 70 }
 }
-# Center hull: projecting wedge nose at left, broad shoulders, squared engine deck aft.
-Poly '#4b5944' @(@(32,314),@(113,232),@(234,168),@(687,168),@(727,210),@(727,558),@(687,600),@(234,600),@(113,536),@(32,454))
-Poly '#a3ad8b' @(@(32,314),@(113,232),@(234,168),@(278,238),@(149,294),@(89,350),@(89,418),@(149,474),@(278,530),@(234,600),@(113,536),@(32,454))
-Poly '#7b896b' @(@(89,350),@(149,294),@(278,238),@(278,530),@(149,474),@(89,418))
-# Raised shoulder armor, layered applique blocks and darker downward slopes.
-Poly '#8f9b7d' @(@(234,168),@(687,168),@(686,225),@(278,238))
-Poly '#354434' @(@(234,600),@(687,600),@(686,543),@(278,530))
-foreach ($x in @(300,407,514)) {
-    Rect '#697a5b' $x 177 88 42
-    Rect '#697a5b' $x 549 88 42
+Poly '#6f705a' @(@(66,225),@(86,211),@(714,211),@(723,227),@(723,541),@(714,557),@(86,557),@(66,543))
+# Broad front face and long sloped upper glacis, only tiny corner clips.
+Poly '#aa9b69' @(@(66,245),@(82,225),@(240,225),@(240,543),@(82,543),@(66,523))
+Rect '#5e5d49' 66 263 15 242
+Rect '#b3a576' 85 239 143 290
+Rect '#777b64' 231 242 74 284
+Rect '#263431' 251 333 26 50
+Rect '#787b60' 249 389 39 48
+# Narrow segmented side skirts cover the upper edge of the tracks.
+foreach ($x in @(83,186,289,392,495,598)) {
+    Rect '#817b5d' $x 201 96 40
+    Rect '#565c4b' $x 527 96 40
 }
-# Driver position behind glacis; twin towing eyes make the prow distinct.
-Rect '#263c3e' 235 310 32 45
-Rect '#263c3e' 235 413 32 45
-Rect '#4a5041' 61 309 22 28
-Rect '#4a5041' 61 431 22 28
-# Opaque ring, true center at (384,384), no gun baked into the hull.
-Oval '#303a30' 279 279 210 210
-Oval '#a0aa8c' 289 289 190 190
-Oval '#59674f' 303 303 162 162
-# Rear engine deck has two long recessed grilles, rear exhausts and red lamps.
-Rect '#728164' 526 243 160 282
-Rect '#242e28' 544 261 121 105
-Rect '#242e28' 544 402 121 105
-foreach ($y in 270..498 | Where-Object { (($_ - 270) % 15 -eq 0) -and ($_ -lt 360 -or $_ -gt 405) }) { Rect '#475341' 549 $y 111 5 }
-Rect '#29352d' 693 267 23 97
-Rect '#29352d' 693 404 23 97
-Rect '#a04c39' 699 235 15 17
-Rect '#a04c39' 699 516 15 17
-# Turret pivot (1152,384). At 8 cells/frame, tip forward=3.208, lateral=+/-0.1875.
-Oval '#303a30' 1062 294 180 180
-Poly '#606f51' @(@(1008,351),@(1037,305),@(1100,276),@(1215,280),@(1286,315),@(1286,453),@(1215,488),@(1100,492),@(1037,463),@(1008,417))
-# Thick wedge cheeks, sloped armor facets and a raised roof crown.
-Poly '#a0ac87' @(@(1008,351),@(1037,305),@(1100,276),@(1120,318),@(1065,337),@(1047,360))
-Poly '#3b4c36' @(@(1008,417),@(1037,463),@(1100,492),@(1120,450),@(1065,431),@(1047,408))
-Poly '#7a8b65' @(@(1120,318),@(1215,320),@(1245,345),@(1245,423),@(1215,450),@(1120,450),@(1065,431),@(1065,337))
-Rect '#404e39' 1249 337 27 94
-Oval '#323e30' 1144 339 54 54
-Oval '#91a17a' 1150 345 42 42
-Rect '#253f45' 1101 413 32 18
-# Two equal cannon barrels, close-spaced, with opaque armored mantlet at their roots.
-Rect '#4d5d45' 1034 345 68 78
+# Driver forward, turret bearing slightly forward of rear engine compartment.
+Oval '#2e342e' 292 292 184 184
+Oval '#82836a' 301 301 166 166
+Oval '#555d4b' 313 313 142 142
+# Rectangular aft power deck, two grilles, rear exhaust beam.
+Rect '#747760' 500 250 190 268
+Rect '#30362f' 525 266 139 99
+Rect '#30362f' 525 403 139 99
+foreach ($x in 533..659 | Where-Object { ($_-533)%14 -eq 0 }) {
+    Rect '#5b6150' $x 272 5 86
+    Rect '#5b6150' $x 409 5 86
+}
+Rect '#40463b' 697 263 22 242
+Rect '#9e5739' 695 245 19 13
+Rect '#9e5739' 695 510 19 13
+# Turret bearing (1152,384). Compact angular roof, paired separate cheek wedges.
+Oval '#30362e' 1080 312 144 144
+# Rear ammunition bustle is a rectangle with tiny chamfers, not a rounded shield.
+Poly '#626b56' @(@(1144,304),@(1278,304),@(1290,316),@(1290,452),@(1278,464),@(1144,464))
+Rect '#777b61' 1201 312 77 144
+Rect '#414a3d' 1262 319 16 130
+# Two Type-10-like arrowhead cheek modules, separated by narrow mantlet.
+Poly '#9c956d' @(@(1029,351),@(1070,294),@(1160,292),@(1190,309),@(1160,347),@(1083,359))
+Poly '#565e49' @(@(1029,417),@(1070,474),@(1160,476),@(1190,459),@(1160,421),@(1083,409))
+Poly '#b2a57a' @(@(1042,347),@(1074,305),@(1158,303),@(1138,324),@(1080,347))
+Poly '#808467' @(@(1042,421),@(1074,463),@(1158,465),@(1138,444),@(1080,421))
+Rect '#747d62' 1104 344 98 80
+Oval '#394438' 1152 341 38 38
+Oval '#91967b' 1157 346 28 28
+Rect '#303f3b' 1122 397 28 16
+# Long paired cannons; source muzzles (844,366),(844,402), no hull attached.
+Rect '#525b49' 1051 351 54 66
 foreach ($y in @(366,402)) {
-    Rect '#3b4740' 844 ($y-6) 204 12
-    Rect '#859174' 844 ($y-10) 30 20
-    Rect '#5d6954' 949 ($y-9) 31 18
+    Rect '#454e43' 844 ($y-5) 221 10
+    Rect '#9a9877' 844 ($y-9) 25 18
+    Rect '#777d65' 937 ($y-8) 48 16
 }
 $g.Dispose()
 $image.Save((Join-Path $PSScriptRoot 'guide.png'),[System.Drawing.Imaging.ImageFormat]::Png)
