@@ -8,6 +8,8 @@ import com.dillon.starsectormarines.battle.setup.ColdAccountIntervention;
 import com.dillon.starsectormarines.battle.setup.ColdStartSequence;
 import com.dillon.starsectormarines.battle.setup.WaterUnderSealSequence;
 import com.dillon.starsectormarines.battle.setup.LimitedWarrantSequence;
+import com.dillon.starsectormarines.battle.setup.DistrictEscortSequence;
+import com.dillon.starsectormarines.battle.story.DistrictEscortProgress;
 import com.dillon.starsectormarines.battle.story.LimitedWarrantProgress;
 import com.dillon.starsectormarines.battle.world.gen.LowQuay;
 import com.dillon.starsectormarines.battle.story.WaterUnderSealProgress;
@@ -179,6 +181,18 @@ public final class MissionObjectiveFamilies {
                 p.terminal() ? -1 : inspecting ? p.inspection()/YardOwnersProgress.INSPECTION_SECONDS : p.capture(site)/YardOwnersProgress.CAPTURE_SECONDS,
                 p.terminal() ? "" : "Keep all sites clear and occupied by company or constables. Inspection needs a living technician and company infantry inside the tooling hall.",
                 markers, inspecting || p.terminal() ? "yard-tools" : "yard-site-"+site);
+    }
+    public static Item districtEscort(DistrictEscortSequence sequence) {
+        var p = sequence.progress(); var state = state(sequence);
+        boolean escort = p.phase() == DistrictEscortProgress.Phase.ESCORT;
+        return new Item("district-escort", "Low Quay freight lane", state, p.phase().name(),
+                "Link up at the loading lane > Cover consignment and party to the apron", sequence.displayName(),
+                escort || p.terminal() ? "Escort the marked consignment" : timed("Link up", p.link(), DistrictEscortProgress.LINK_SECONDS),
+                escort || p.terminal() ? -1 : p.link() / DistrictEscortProgress.LINK_SECONDS,
+                p.terminal() || p.covered() ? "" : "Keep company infantry with the carrier and clear anything that can see it.",
+                List.of(new Marker("escort-load", "Consignment", sequence.cargoX(), sequence.cargoY(), "ESCORT", state),
+                        new Marker("escort-apron", "Western apron", LowQuay.LANDING_X, LowQuay.LANDING_Y, "DELIVER LOAD AND PARTY", state)),
+                "escort-load");
     }
     public static Item limitedWarrant(LimitedWarrantSequence sequence) {
         var p = sequence.progress(); var state = state(sequence);

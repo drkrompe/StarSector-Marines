@@ -6,6 +6,8 @@ import com.dillon.starsectormarines.battle.world.gen.NorthWeir;
 import com.dillon.starsectormarines.battle.command.AssaultStyle;
 import com.dillon.starsectormarines.battle.command.WaterUnderSealCommand;
 import com.dillon.starsectormarines.battle.command.LimitedWarrantCommand;
+import com.dillon.starsectormarines.battle.command.DistrictEscortCommand;
+import com.dillon.starsectormarines.battle.story.DistrictEscortProgress;
 import com.dillon.starsectormarines.battle.world.gen.LowQuay;
 import com.dillon.starsectormarines.battle.world.gen.LatchkeyYard;
 import com.dillon.starsectormarines.battle.command.YardOwnersCommand;
@@ -1604,6 +1606,91 @@ public final class BattleSetup {
             sim.setAutonomousCommander(faction, new LimitedWarrantCommand(faction), LimitedWarrantCommand.disclosure(sim.getLimitedWarrant()));
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(LimitedWarrantCommand.issuer(Faction.MARINE), "Company recovery support"));
         return sim;
+    }
+
+    /**
+     * District Escort: a finite two-squad escort job over Low Quay's ordinary freight lane. A fresh
+     * consignment and its two-person handover party wait at the loading lane; two raider pickets
+     * sit on the lane and one finite raider group commits once the company links up. The party's
+     * name is the issuing office's only difference: both agreements field the same support.
+     */
+    public static BattleSimulation createDistrictEscort(long seed, List<ShuttleAssignment> manifest, TargetProfile profile,
+                                                        String partyName) {
+        if (manifest == null || manifest.isEmpty() || manifest.size() > 4)
+            throw new IllegalArgumentException("District Escort requires one to four fitted company boats");
+        if (partyName == null || partyName.isBlank()) throw new IllegalArgumentException("District Escort needs its party's office");
+        MapResult map = LowQuay.generate(seed, profile);
+        float[] route = DistrictEscortSequence.route(map.grid, VehicleType.CARGO_CARRIER.visualWidthCells);
+        if (route.length < 8) throw new IllegalStateException("Low Quay freight lane has no carrier route to the apron");
+        float[] routeX = new float[route.length / 2], routeY = new float[route.length / 2];
+        for (int i = 0; i < routeX.length; i++) { routeX[i] = route[2 * i]; routeY[i] = route[2 * i + 1]; }
+        BattleSimulation sim = buildMap(map, List.of(), List.of(), List.of(), seed).sim();
+        sim.setSurface(surfaceOf(profile));
+        sim.getBattleResources().disableCompoundProduction();
+        sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
+        Random rng = new Random(seed);
+        var pads = LandingPadSelector.select(map, manifest.size(), LZ_MIN_SEPARATION);
+        stampLzPads(sim, pads);
+        for (int i = 0; i < manifest.size(); i++) {
+            var assignment = manifest.get(i); var pad = pads.get(i);
+            float x = pad.centerX + .5f, y = pad.centerY + .5f;
+            float[] entry = shuttleEntryFor(x, y, map.grid.getWidth(), map.grid.getHeight(), pad.approach);
+            long air = sim.spawnShuttle(assignment.type, assignment.airframe, Faction.MARINE, x, y,
+                    entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
+            var mission = sim.world().mission(air);
+            mission.totalCycles = assignment.cycles; mission.manifestOrdinal = i;
+            mission.commandClaim = SquadCommandClaim.mission(DistrictEscortCommand.issuer(Faction.MARINE), "Company fitted escort lift");
+            mission.cycleLoadouts = new MarineLoadout[assignment.cycles][];
+            for (int cycle = 0; cycle < assignment.cycles; cycle++)
+                mission.cycleLoadouts[cycle] = InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle), rng);
+            mission.marineLoadout = mission.cycleLoadouts[0];
+        }
+        // Two pickets astride the lane, set back from the road on whatever ground the map gives.
+        for (float share : new float[]{.35f, .6f}) {
+            int index = Math.round((routeX.length - 1) * share);
+            int px = Math.round(routeX[index]), py = Math.round(routeY[index]);
+            var post = openingDefenseNode(px, py, Faction.DEFENDER, map.grid);
+            spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, px, py, 4), Faction.DEFENDER, "Freight-lane raider picket", post, rng);
+        }
+        int apronX = LowQuay.LANDING_X + 4, apronY = LowQuay.LANDING_Y;
+        spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, apronX, apronY, DistrictEscortProgress.CONSTABLES),
+                Faction.ALLY, "Low Quay district constable", null, rng);
+        int constables = sim.getSquads().stream().filter(squad -> squad.faction == Faction.ALLY).findFirst().orElseThrow().id;
+        if (!sim.handoffSquadCommand(constables, OpeningOperationCommand.issuer(Faction.ALLY), CommandAuthority.MISSION_COMMAND,
+                DistrictEscortCommand.issuer(Faction.ALLY), null, "Constables hold the western apron"))
+            throw new IllegalStateException("Constable command handoff failed");
+        int party = sim.mintSquad(Faction.ALLY, UnitType.TECHNICIAN);
+        for (int[] cell : pickSpawnCluster(map.grid, LowQuay.LOAD_X + 6, LowQuay.LOAD_Y, DistrictEscortProgress.PARTY))
+            sim.spawn(new EntitySpec(partyName, Faction.ALLY, UnitType.TECHNICIAN, cell[0], cell[1]).squad(party).role(UnitRole.PATROL));
+        sim.getSquad(party).originalSize = DistrictEscortProgress.PARTY;
+        sim.claimSquadCommand(party, CommandAuthority.MISSION_COMMAND, DistrictEscortCommand.issuer(Faction.ALLY), "Consignment handover party");
+        List<EntitySpec> reserve = new ArrayList<>();
+        // The committed group comes in off the north edge above the lane's western stretch, clear of the
+        // loading lane, from the nearest edge ground that can actually walk to its ambush.
+        int ambush = Math.round((routeX.length - 1) * DistrictEscortSequence.AMBUSH_SHARE);
+        int[] ingress = escortIngress(map.grid, Math.round(routeX[ambush]), Math.round(routeY[ambush]));
+        for (int[] cell : pickSpawnCluster(map.grid, ingress[0], ingress[1], 6))
+            reserve.add(makeOpeningMilitia("Freight-lane raider " + reserve.size(), Faction.DEFENDER, cell[0], cell[1], rng).role(UnitRole.PATROL));
+        long carrier = sim.convoy().spawn(VehicleType.CARGO_CARRIER, Faction.ALLY, VehicleMission.deployed(LowQuay.LOAD_X, LowQuay.LOAD_Y));
+        sim.convoy().body(carrier).teleport(LowQuay.LOAD_X, LowQuay.LOAD_Y, (float) Math.PI);
+        sim.installDistrictEscort(party, constables, carrier, reserve, routeX, routeY);
+        for (Faction faction : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER))
+            sim.setAutonomousCommander(faction, new DistrictEscortCommand(faction), DistrictEscortCommand.disclosure(sim.getDistrictEscort()));
+        sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(DistrictEscortCommand.issuer(Faction.MARINE), "Company escort support"));
+        return sim;
+    }
+
+    /** North-edge ingress west of the loading lane with a direct walking route to the ambush; the reserve corner otherwise. */
+    private static int[] escortIngress(NavigationGrid grid, int ambushX, int ambushY) {
+        int y = grid.getHeight() - 8;
+        for (int step = 0; step < grid.getWidth(); step += 4) for (int x : new int[]{ambushX - step, ambushX + step}) {
+            if (x < 2 || x >= LowQuay.LOAD_X - 20 || !grid.isWalkable(x, y)) continue;
+            int[] path = GridPathfinder.findPath(grid, x, y, ambushX, ambushY);
+            // A direct approach, not a long way round a perimeter fence it would only shoot through.
+            if (path != null && path.length > 0 && path.length / 2 <= 1.2 * Math.hypot(x - ambushX, y - ambushY) + 4)
+                return new int[]{x, y};
+        }
+        return new int[]{LowQuay.RESERVE_X, LowQuay.RESERVE_Y};
     }
 
     /** Latchkey territorial inspection with preserved tooling and optional owned support. */

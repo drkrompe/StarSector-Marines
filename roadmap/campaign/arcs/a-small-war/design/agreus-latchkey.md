@@ -4,7 +4,7 @@ Status: DRAFT — original local setting direction on an existing vanilla world 
 
 Written: 2026-10-13
 
-Updated: 2026-10-15 — grounded Greyhook's outfit names; Voss's coalition frays as the arc's climax.
+Updated: 2026-10-16 — who posts the district escort work under each agreement.
 
 ## Scope and provenance
 
@@ -324,6 +324,14 @@ will obey her instructions when relatives are threatened.
 accounting process her members can inspect. She fears losing their trust as much
 as losing a machine. She is willing to bargain over repayment and security,
 provided bargaining leaves them a continuing voice and a livelihood.
+
+After the arc settles, the signed agreement decides who posts the district's
+recurring escort work. Under House Custody it comes from Rusk's office, written
+on the concession's schedule and carried by his custodial clerks; under the compact
+Lenna's association posts common-service consignments (weir pump parts, recovered
+stock) with its own delegates. Either way the freight leaves Low Quay's loading lane
+for the western apron through the same raider-worked lane, with the same constables
+and the same fee: the office changes the voice and the people, not the protection.
 
 **Nadi Orr**, clinic quartermaster at Low Quay, keeps signed shortage lists and
 refuses to let either side describe medical freight as expendable. **Foreman Tor

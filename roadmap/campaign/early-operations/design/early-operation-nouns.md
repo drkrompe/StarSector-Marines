@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — Junction victory waits out a fifteen-second hold of every site.
+Updated: 2026-10-16 — District Escort: the recurring Low Quay escort after A Small War.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -295,8 +295,30 @@ contact (Rusk's office or Lenna's association), and under the compact Rusk recor
 the company as an independent counterparty. These are records and disclosed
 payments only: no hidden virtue score, combat modifier or access penalty. Signing
 puts Terms of Protection in preparation, with Sera Voss's attributable warning; it
-is not deployable until that chapter exists. Chapters 4–5, the escort job and their
-acceptance belong to `a-small-war.md`.
+is not deployable until that chapter exists. Chapters 4–5 and their acceptance
+belong to `a-small-war.md`.
+
+**District Escort** is the arc's recurring job. It is offered only once *A Small
+War* has settled (Chapter 5) under a ratified agreement, and only by that route's
+escort contact: Rusk's office under House Custody, or Lenna Saye's association
+under the compact, who then replaces Rusk as the Agreus contact. The two offices
+differ in letterhead, voice and the handover party's title; support, terms and fee
+are identical. Each posting is a finite two-squad escort on the Low Quay freight
+lane: the company links up with a fresh consignment and its two-person handover
+party at the loading lane, then covers both to the western apron, where four
+constables hold. Two raider pickets sit on the lane and one finite raider group
+commits when the company comes down. Delivery needs the carrier, a living party
+member and company infantry together at the apron under cover; enemy casualties
+never stand in for it, and an absent company cannot win through the constables.
+Losing the load or both of the party, or withdrawing, ends the attempt unpaid.
+Every posting carries a new job and attempt identity, a new consignment and new
+people; the route is part of the identity, so an attempt under one agreement can
+never settle the other. The active attempt's own receipt settles once for 24,000
+credits. The job writes only its own ledger: it awards no named equipment, replays
+no ratification, pays no premium, and grants no house promotion, MRB tier,
+stationing contract or faction commission. The map reuses Low Quay through its
+public generator and solves the carrier's clearance route at setup, so the
+district's own layout may change without changing the job.
 
 A **story arc** is a finite sequence of authored operations for a named contact,
 with a problem, a resolution, and a visible completed record. A **chapter** is

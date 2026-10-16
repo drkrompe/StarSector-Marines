@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.story.ColdStartProgress;
 import com.dillon.starsectormarines.battle.story.WaterUnderSealProgress;
 import com.dillon.starsectormarines.battle.story.LimitedWarrantProgress;
 import com.dillon.starsectormarines.battle.story.YardOwnersProgress;
+import com.dillon.starsectormarines.battle.story.DistrictEscortProgress;
 import com.dillon.starsectormarines.battle.story.WorkingPassageProgress;
 import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
 
@@ -46,6 +47,8 @@ public final class MissionOutcome {
     public final WaterUnderSealProgress.Report waterUnderSeal;
     public final LimitedWarrantProgress.Report limitedWarrant;
     public final YardOwnersProgress.Report yardOwners;
+    /** District Escort's frozen physical receipt; null for every other mission. */
+    public final DistrictEscortProgress.Report districtEscort;
 
     /** Stable story-person outcomes; separate from representative population scaling. */
     public final LastLiftProgress.Outcome lastLiftOutcome;
@@ -165,6 +168,7 @@ public final class MissionOutcome {
         this.waterUnderSeal=b.waterUnderSeal;
         this.limitedWarrant=b.limitedWarrant;
         this.yardOwners=b.yardOwners;
+        this.districtEscort=b.districtEscort;
         this.lastLiftOutcome    = b.lastLiftOutcome;
         this.freightOutcome = b.freightOutcome;
         this.waylineHound = b.waylineHound;
@@ -254,6 +258,8 @@ public final class MissionOutcome {
         private LimitedWarrantProgress.Report limitedWarrant;
         private YardOwnersProgress.Report yardOwners;
         public Builder yardOwners(YardOwnersProgress.Report value) { yardOwners = value; return this; }
+        private DistrictEscortProgress.Report districtEscort;
+        public Builder districtEscort(DistrictEscortProgress.Report value) { districtEscort = value; return this; }
         public Builder limitedWarrant(LimitedWarrantProgress.Report report) { limitedWarrant=report; return this; }
         private WaterUnderSealProgress.Report waterUnderSeal;
         public Builder waterUnderSeal(WaterUnderSealProgress.Report report){waterUnderSeal=report;return this;}

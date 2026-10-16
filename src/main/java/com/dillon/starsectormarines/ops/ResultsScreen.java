@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.AgreusDistrictEscortProgress;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 
@@ -226,6 +227,18 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             var route = SupplyRouteCampaign.current();
             if (route != null && outcome.missionSource == MissionSource.STORY) report += " " + route.status();
             props.put("storyMessage", report);
+        }
+        if (outcome != null && outcome.districtEscort != null && DistrictEscortCampaign.owns(outcome.missionId)) {
+            var agreement = AgreusDistrictEscortProgress.agreementOf(outcome.missionId);
+            var letterhead = DistrictEscortCampaign.Letterhead.of(agreement);
+            props.put("storyClasses", "story-dispatch console-readout");
+            props.put("storyPortrait", OpeningBroker.CREST);
+            props.put("storySender", letterhead.sender);
+            props.put("storyProgress", "RECURRING WORK / DISTRICT ESCORT");
+            var r = outcome.districtEscort;
+            props.put("storyMessage", DistrictEscortCampaign.debrief(outcome, agreement)
+                    + " Party lost: " + r.partyLost() + " of 2. Constables lost: " + r.constablesLost() + "."
+                    + (r.cargoLost() ? " The consignment was destroyed." : ""));
         }
         if(outcome!=null && outcome.workingPassage!=null) {
             var passage=outcome.workingPassage;
