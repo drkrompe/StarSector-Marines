@@ -89,6 +89,9 @@ public final class ShieldFort {
     /** Which towers (indices of {@link #NESTS}) stand a Locust missile battery when the fort carries the anti-air aspect: the two farthest from the main gate. */
     private static final int[] AIR_BASTIONS = {0, 1};
 
+    /** Which bastions stand a Swarmer missile tower: the two nearest the main gate, so all four corners carry anti-air. */
+    private static final int[] SWARMER_BASTIONS = {2, 3};
+
     /** How far from a tower's centre, toward its face, its missile battery's middle stands. */
     private static final int BATTERY_POCKET_STEPS = 1;
 
@@ -96,7 +99,7 @@ public final class ShieldFort {
     public static final int[] GENERATOR = {OX + CENTRE, OY + CENTRE};
 
     /** The optional anti-air yard: open ground south-east of the keep, between the east and south gates' lanes. */
-    public static final AirDefenceYard AIR_DEFENCE = new AirDefenceYard(OX + 34, OY + 33, 0, -1);
+    public static final AirDefenceYard AIR_DEFENCE = new AirDefenceYard(OX + 36, OY + 33, 0, -1);
 
     /**
      * The rooms: the generator hall (its plant around the reactor) and the control room's suite, an operations hall of
@@ -318,14 +321,18 @@ public final class ShieldFort {
         @Override public FortAspect centrepieceAspect() { return FortAspect.EMITTER; }
         @Override public AirDefenceYard airDefence() { return AIR_DEFENCE; }
         @Override public List<int[]> airBatteries() { return AIR_BATTERIES; }
+        @Override public List<int[]> airTowers() { return AIR_TOWERS; }
     };
 
     /** The Locust batteries' middles: in the pocket behind the nest of each of the {@link #AIR_BASTIONS}. */
-    private static final List<int[]> AIR_BATTERIES = airBatteries();
+    private static final List<int[]> AIR_BATTERIES = pockets(AIR_BASTIONS);
 
-    private static List<int[]> airBatteries() {
+    /** The Swarmer towers' middles: in the pocket of each of the {@link #SWARMER_BASTIONS}. */
+    private static final List<int[]> AIR_TOWERS = pockets(SWARMER_BASTIONS);
+
+    private static List<int[]> pockets(int[] bastions) {
         List<int[]> out = new ArrayList<>();
-        for (int i : AIR_BASTIONS) {
+        for (int i : bastions) {
             int[] b = BASTIONS[i];
             out.add(BastionSites.pocket(b[0], b[1], b[2], b[3], BATTERY_POCKET_STEPS));
         }
