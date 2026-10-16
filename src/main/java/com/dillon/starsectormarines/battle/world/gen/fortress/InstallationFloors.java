@@ -1,26 +1,38 @@
 package com.dillon.starsectormarines.battle.world.gen.fortress;
 
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /** Ground-side floor finishes belong to each packed room, including its apertures and fixture underlay. */
 public final class InstallationFloors {
     private InstallationFloors() {}
 
     public static void dress(GenContext ctx, List<RoomPacker.Placed> rooms) {
+        Set<Long> windows = new HashSet<>();
+        for (var edge : ctx.grid.getEdgeBarriers())
+            if (edge.kind() == SharedEdgeBarrier.Kind.WINDOW)
+                windows.add(key(edge.structureCellX(), edge.structureCellY()));
         for (var room : rooms) {
             String material = material(room.purpose());
             for (int[] cell : room.shape().filled())
                 coat(ctx, room.originX() + cell[0], room.originY() + cell[1], material);
             for (int[] cell : room.shape().wall()) {
                 int x = room.originX() + cell[0], y = room.originY() + cell[1];
-                if (ctx.grid.inBounds(x, y) && (ctx.grid.isDoorway(x, y) || ctx.topology.isWindow(x, y)))
+                if (ctx.grid.inBounds(x, y) && (ctx.grid.isDoorway(x, y) || ctx.topology.isWindow(x, y)
+                        || windows.contains(key(x, y))))
                     coat(ctx, x, y, material);
             }
         }
+    }
+
+    private static long key(int x, int y) {
+        return ((long) x << 32) ^ (y & 0xffffffffL);
     }
 
     private static void coat(GenContext ctx, int x, int y, String material) {
