@@ -13,6 +13,8 @@ Read `mechs-nouns.md` before changing the live story.
 | Story | State | Scope |
 | --- | --- | --- |
 | `mech-pattern-cards.md` | Planned | Learned fabrication patterns replace the starter-pattern gate; pattern cards arrive through every existing equipment source. First step of `heavy-equipment-progression.md`. |
+| `mech-bay-vehicles.md` | Planned | A bay space holds a mech or a vehicle; vehicle patterns by weight class; Armour Support stops dropping a fixed APC. |
+| `armor-drop-selection.md` | Planned | Pick which bay spaces come down per call; cooldown between calls; lift caps armor per mission. |
 | `mech-internal-systems.md` | Proposed | Stock frame shipped (armor capacity, speed and cooling cut for all mechs). Next: engine, plating and cooler/loader internals, engine budget, tier-scaled footprints, per-loadout heat. |
 | `mech-battle-doctrine-overrides.md` | In progress | Layer a lance-wide Form on Lead / Free Reign order beneath mission authority and above each deployed mech's battle-local Brawler, Frontline Support, Long-Range Support, or Balanced override. |
 | `s1-specialist-striders.md` | Active manual tuning | Validate and tune the shipped Bulwark/Hound/Sirocco identities, formations, production encounters, and debug delivery feel without weakening their stated tradeoffs. |
