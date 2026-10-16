@@ -42,8 +42,9 @@ class VehicleDurabilityIntegrationTest {
             assertEquals(2, sim.getSmokingWrecks().size());
             var engine = sim.getSmokingWrecks().get(1);
             float rearOffset = switch (type) {
-                case HEAVY_APC, ESCORT_APC -> .55f * type.visualLengthCells / 2.4f;
-                case BREAKTHROUGH_TANK -> 1.1f;
+                case HEAVY_APC, ESCORT_APC, UP_ARMORED_APC, FIRE_SUPPORT_APC ->
+                        .55f * type.visualLengthCells / 2.4f;
+                case BREAKTHROUGH_TANK, HEAVY_GUN_TANK, DOZER_BREACHER -> 1.1f;
                 case MILITIA_TECHNICAL -> .9875f;
                 case CARGO_CARRIER -> .75f;
             };

@@ -1,0 +1,45 @@
+{
+ "part": "bay-door-stbd",
+ "regions": {
+  "gunmetal": {
+   "pixels": 233220,
+   "share_as_declared": 0.934,
+   "share_in_declared_family": 0.987,
+   "came_back_as": {
+    "gunmetal": 0.934,
+    "dark": 0.046
+   },
+   "swap": false,
+   "before_mean_lab": [
+    45.4,
+    1.6,
+    1.64
+   ],
+   "after_mean_lab": [
+    46.45,
+    1.05,
+    1.83
+   ],
+   "gain_L_a_b": [
+    1.33,
+    0.925,
+    1.028
+   ],
+   "dE_to_palette_before": 1.2,
+   "forced_back_to_declared": false
+  }
+ },
+ "planes": [
+  {
+   "pixels": 237552,
+   "ramp_span_L_removed": 3.32,
+   "ramp_dL_per_100px": [
+    -0.02,
+    -1.07
+   ],
+   "edge_band_dL_after": 1.72
+  }
+ ],
+ "ramp_span_L_removed_max": 3.32,
+ "edge_band_dL_after_mean": 1.72
+}

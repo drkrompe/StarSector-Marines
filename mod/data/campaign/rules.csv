@@ -33,8 +33,7 @@ smYardOpen,DialogOptionSelected,$option == smYardOpen,CompanyYardCMD show,,,
 smYardReview,DialogOptionSelected,CompanyYardCMD selected,CompanyYardCMD review,,,
 smYardInstall,DialogOptionSelected,$option == smYardInstall,CompanyYardCMD install,,,
 smYardReturn,DialogOptionSelected,$option == smYardReturn,FireBest OpenInteractionDialog,,,
-smNexInvadeIntercept,DialogOptionSelected,"$option == nex_mktInvade
-score:100
+smNexInvadeIntercept,DialogOptionSelected,"$option == nex_mktInvade score:100
 MarineInvasionCMD intercept",MarineInvasionCMD fork,,,"Nexerelin's Invade: offers Marine Operations or Nexerelin, per the save's ground combat preference. Inert without Nexerelin, because the option never exists"
 smNexInvadeMarineSel,DialogOptionSelected,$option == smInvadeMarine,MarineInvasionCMD marine,,,Fights the invasion as a Marine Operations Conquest
 smNexInvadeMarineAlwaysSel,DialogOptionSelected,$option == smInvadeMarineAlways,MarineInvasionCMD marineAlways,,,Remembers Marine Operations for this save and opens the briefing

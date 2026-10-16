@@ -1,0 +1,551 @@
+{
+ "deck-fore-top": {
+  "what": "forward deck top (main hull, z 14.5), oxide; raked bow glacis left to the bow group",
+  "sheet": "decks-a",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Main hull - level datum Z0",
+    "seed": [
+     34.6,
+     0,
+     14.5
+    ],
+    "faces": [
+     73
+    ]
+   }
+  ],
+  "face_count": 1,
+  "area_units2": 1379.65,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.95,
+  "extent_units": [
+   48.8,
+   29.4
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    30.299994468688965
+   ],
+   "ortho_width": 60.775169352844394
+  },
+  "native_texels_per_unit": 13.1
+ },
+ "spine-top": {
+  "what": "spine roofs seen from above: command deck roof, cream housings, gunmetal trunk segments, dark core",
+  "sheet": "decks-a",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Command deck armoured roof",
+    "seed": [
+     13,
+     0,
+     20.6
+    ],
+    "faces": [
+     2,
+     3,
+     4,
+     9
+    ]
+   },
+   {
+    "object": "Command deck visor brow",
+    "seed": [
+     13.2,
+     0,
+     20.1
+    ],
+    "faces": [
+     9
+    ]
+   },
+   {
+    "object": "Command deck housing",
+    "seed": [
+     12.2,
+     0,
+     17.5
+    ],
+    "faces": [
+     27,
+     33,
+     37
+    ]
+   },
+   {
+    "object": "Spine waist housing",
+    "seed": [
+     3.5,
+     0,
+     17.5
+    ],
+    "faces": [
+     27,
+     33,
+     37
+    ]
+   },
+   {
+    "object": "Spine roof walkway",
+    "seed": [
+     2.6,
+     0,
+     17.7
+    ],
+    "faces": [
+     5
+    ]
+   },
+   {
+    "object": "Spine aft cap",
+    "seed": [
+     -2.1,
+     0,
+     17.5
+    ],
+    "faces": [
+     27,
+     33,
+     37
+    ]
+   },
+   {
+    "object": "Spine trunk segment",
+    "seed": [
+     20.4,
+     0,
+     17.2
+    ],
+    "faces": [
+     27,
+     33,
+     37
+    ]
+   },
+   {
+    "object": "Spine trunk segment.001",
+    "seed": [
+     23.8,
+     0,
+     17.2
+    ],
+    "faces": [
+     27,
+     33,
+     37
+    ]
+   },
+   {
+    "object": "Spine trunk segment.002",
+    "seed": [
+     27.1,
+     0,
+     17.2
+    ],
+    "faces": [
+     27,
+     33,
+     37
+    ]
+   },
+   {
+    "object": "Spine trunk nose",
+    "seed": [
+     29.5,
+     0,
+     17.2
+    ],
+    "faces": [
+     27,
+     33,
+     37
+    ]
+   },
+   {
+    "object": "Spine dark core",
+    "seed": [
+     13.1,
+     0,
+     16.7
+    ],
+    "faces": [
+     27,
+     33,
+     37
+    ]
+   }
+  ],
+  "face_count": 30,
+  "area_units2": 915.79,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "cone_cos": 0.9,
+  "extent_units": [
+   33.9,
+   13.8
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    13.250000357627869,
+    0.0
+   ],
+   "ortho_width": 39.41860559374787
+  },
+  "native_texels_per_unit": 20.1
+ },
+ "spine-side-port": {
+  "what": "spine and command deck housings, port faces",
+  "sheet": "decks-a",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Command deck housing",
+    "seed": [
+     12.4,
+     8.0,
+     12.5
+    ],
+    "faces": [
+     9,
+     21
+    ]
+   },
+   {
+    "object": "Command deck lower bulkhead",
+    "seed": [
+     12.8,
+     5.1,
+     17.9
+    ],
+    "faces": [
+     4,
+     5,
+     6
+    ]
+   },
+   {
+    "object": "Command deck visor brow",
+    "seed": [
+     12.9,
+     5.3,
+     19.8
+    ],
+    "faces": [
+     4,
+     5,
+     6
+    ]
+   },
+   {
+    "object": "Spine waist housing",
+    "seed": [
+     3.5,
+     8.0,
+     12.5
+    ],
+    "faces": [
+     9,
+     21
+    ]
+   },
+   {
+    "object": "Spine aft cap",
+    "seed": [
+     -2.0,
+     8.0,
+     12.5
+    ],
+    "faces": [
+     9,
+     21
+    ]
+   },
+   {
+    "object": "Spine dark core",
+    "seed": [
+     12.9,
+     6.5,
+     12.3
+    ],
+    "faces": [
+     8,
+     9,
+     21
+    ]
+   },
+   {
+    "object": "Spine trunk segment",
+    "seed": [
+     20.4,
+     6.9,
+     12.5
+    ],
+    "faces": [
+     9,
+     21
+    ]
+   },
+   {
+    "object": "Spine trunk segment.001",
+    "seed": [
+     23.8,
+     6.9,
+     12.5
+    ],
+    "faces": [
+     9,
+     21
+    ]
+   },
+   {
+    "object": "Spine trunk segment.002",
+    "seed": [
+     27.1,
+     6.9,
+     12.5
+    ],
+    "faces": [
+     9,
+     21
+    ]
+   }
+  ],
+  "face_count": 21,
+  "area_units2": 437.46,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   33.31,
+   10.6
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -13.756000280380249,
+    14.799996376037598
+   ],
+   "ortho_width": 38.73488459476205
+  },
+  "native_texels_per_unit": 20.5
+ },
+ "spine-side-stbd": {
+  "what": "spine and command deck housings, starboard faces (mirror of the port side)",
+  "sheet": "decks-a",
+  "tile": 2,
+  "skin_from": "spine-side-port",
+  "members": [
+   {
+    "object": "Command deck housing",
+    "seed": [
+     12.4,
+     -8.0,
+     12.5
+    ],
+    "faces": [
+     3,
+     15
+    ]
+   },
+   {
+    "object": "Command deck lower bulkhead",
+    "seed": [
+     12.8,
+     -5.1,
+     17.9
+    ],
+    "faces": [
+     1,
+     2,
+     8
+    ]
+   },
+   {
+    "object": "Command deck visor brow",
+    "seed": [
+     12.9,
+     -5.3,
+     19.8
+    ],
+    "faces": [
+     1,
+     2,
+     8
+    ]
+   },
+   {
+    "object": "Spine waist housing",
+    "seed": [
+     3.5,
+     -8.0,
+     12.5
+    ],
+    "faces": [
+     3,
+     15
+    ]
+   },
+   {
+    "object": "Spine aft cap",
+    "seed": [
+     -2.0,
+     -8.0,
+     12.5
+    ],
+    "faces": [
+     3,
+     15
+    ]
+   },
+   {
+    "object": "Spine dark core",
+    "seed": [
+     12.9,
+     -6.5,
+     12.3
+    ],
+    "faces": [
+     3,
+     4,
+     15
+    ]
+   },
+   {
+    "object": "Spine trunk segment",
+    "seed": [
+     20.4,
+     -6.9,
+     12.5
+    ],
+    "faces": [
+     3,
+     15
+    ]
+   },
+   {
+    "object": "Spine trunk segment.001",
+    "seed": [
+     23.8,
+     -6.9,
+     12.5
+    ],
+    "faces": [
+     3,
+     15
+    ]
+   },
+   {
+    "object": "Spine trunk segment.002",
+    "seed": [
+     27.1,
+     -6.9,
+     12.5
+    ],
+    "faces": [
+     3,
+     15
+    ]
+   }
+  ],
+  "face_count": 21,
+  "area_units2": 437.46,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   33.31,
+   10.6
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    13.756000280380249,
+    14.799996376037598
+   ],
+   "ortho_width": 38.73488459476205
+  },
+  "native_texels_per_unit": 20.5
+ },
+ "keel-plate": {
+  "what": "keel plate underside, gunmetal",
+  "sheet": "decks-a",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Keel plate",
+    "seed": [
+     26.7,
+     0,
+     -9.2
+    ],
+    "faces": [
+     0
+    ]
+   }
+  ],
+  "face_count": 1,
+  "area_units2": 1689.54,
+  "view_dir": [
+   0.0,
+   0.0,
+   -1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.75,
+  "extent_units": [
+   52.0,
+   38.0
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    25.5
+   ],
+   "ortho_width": 78.55297157622739
+  },
+  "native_texels_per_unit": 10.1
+ }
+}

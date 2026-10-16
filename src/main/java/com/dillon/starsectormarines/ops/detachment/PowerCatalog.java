@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.air.VehicleSupportPayload;
 import com.dillon.starsectormarines.battle.power.CloseAirSupport;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.ReconPing;
+import com.dillon.starsectormarines.battle.power.BayManifest;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.EmergencyResupply;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
@@ -114,14 +115,43 @@ public final class PowerCatalog {
                                              List<MechDeploymentSpec> configuredMechs,
                                              List<VehicleDeploymentSpec> configuredVehicles,
                                              List<FittedBoat> committedBoats) {
-        List<CommandPower> powers = withBayVehicles(
+        List<CommandPower> powers = bayManifest(withBayVehicles(
                 resolveSourced(committedShips, m, configuredMechs),
-                arrangedHeavyLift(m), configuredVehicles);
+                arrangedHeavyLift(m), configuredVehicles), configuredMechs, configuredVehicles);
         if (committedBoats == null || committedBoats.isEmpty()) return powers;
         Map<String, CommandPower> byId = new LinkedHashMap<>();
         for (CommandPower power : powers) byId.put(power.id, power);
         assignCompanyLift(byId, fleetGranted(committedShips, m), committedBoats);
         return List.copyOf(byId.values());
+    }
+
+    /**
+     * One bay, one call: where both drop powers are in the roster and the bay was read,
+     * Mech Support carries the bay's vehicles in its manifest beside its mechs and
+     * Armour Support leaves the roster, so the player picks any bay space from one picker
+     * ({@code mechs-nouns.md}, Armor drop). Armour Support alone (no mech source) is unchanged.
+     */
+    static List<CommandPower> bayManifest(List<CommandPower> powers,
+                                          List<MechDeploymentSpec> configuredMechs,
+                                          List<VehicleDeploymentSpec> configuredVehicles) {
+        if (configuredMechs == null || configuredVehicles == null || configuredVehicles.isEmpty()) {
+            return powers;
+        }
+        boolean mech = false;
+        boolean vehicles = false;
+        for (CommandPower power : powers) {
+            mech |= power instanceof MechSupport;
+            vehicles |= power instanceof VehicleSupport;
+        }
+        if (!mech || !vehicles) return powers;
+        List<CommandPower> out = new ArrayList<>(powers.size());
+        for (CommandPower power : powers) {
+            if (power instanceof VehicleSupport) continue;
+            out.add(power instanceof MechSupport
+                    ? MechSupport.configured(configuredMechs, configuredVehicles, null, true)
+                    : power);
+        }
+        return List.copyOf(out);
     }
 
     /**
@@ -159,11 +189,12 @@ public final class PowerCatalog {
         Set<FittedBoat> taken = new LinkedHashSet<>();
         if (fleetGranted.contains(MechSupport.ID)
                 && byId.get(MechSupport.ID) instanceof MechSupport mech) {
-            List<LiftClass> load = mech.deployments().stream()
-                    .map(deployment -> deployment.variant().liftClass()).toList();
+            List<LiftClass> load = mech.manifest().entries().stream()
+                    .map(BayManifest.Entry::weightClass).toList();
             FittedBoat boat = LiftAdmission.bestCarrier(committedBoats, load, taken);
             if (boat != null) {
-                byId.put(MechSupport.ID, MechSupport.configured(mech.deployments(), boat, true));
+                byId.put(MechSupport.ID, MechSupport.configured(mech.deployments(),
+                        mech.vehicles(), boat, true));
                 taken.add(boat);
             }
         }
@@ -322,11 +353,16 @@ public final class PowerCatalog {
                 return VehicleSupport.configured(vehicles.deployments(), companyCarrier, true);
             }
             if (base instanceof MechSupport mech) {
-                return MechSupport.configured(mech.deployments(), companyCarrier, true);
+                return MechSupport.configured(mech.deployments(), mech.vehicles(),
+                        companyCarrier, true);
             }
             throw new IllegalArgumentException("Power '" + id + "' cannot carry a company boat");
         }
         if (vehicleDeployments != null && !vehicleDeployments.isEmpty()) {
+            if (MechSupport.ID.equals(id)) {
+                return MechSupport.configured(mechDeployments == null ? List.of() : mechDeployments,
+                        vehicleDeployments, null, true);
+            }
             if (!VehicleSupport.ID.equals(id)) {
                 throw new IllegalArgumentException("Power '" + id + "' cannot carry vehicles");
             }

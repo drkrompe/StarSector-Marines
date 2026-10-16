@@ -5,7 +5,8 @@ A scripted Blender model of the vanilla Mudskipper, for cinematics the way
 second-wind-geometry/ serves the Second Wind. It follows the passes in the
 ship-model-pipeline skill (.claude/skills/ship-model-pipeline/SKILL.md):
   pass 1 blockout             accepted; snapshot in reference-history/v1-blockout/
-  pass 2 plausible detailing  built here; awaiting the owner's review (pass 3)
+  pass 2 plausible detailing  built here
+  pass 3 owner review         round 1 below; awaiting review
   pass 4 real-world scale     0.85 m per unit (see Scale below)
 No damage states or texturing yet. This is source art only. It changes no
 runtime art or gameplay.
@@ -124,6 +125,38 @@ Close-ups (bow, bridge, turret, waist, stern, engine) before and after are
 side by side in closeups-before-after.reference.png. Top-view IoU rose from
 0.935 to 0.943 (the engine actuators fill the sprite's dark stern columns).
 
+Pass 3: owner review
+Round 1. The owner: the hull joining the centre hull and engine block "needs
+a bit more work - the chamfered edge catches the eye too quick". Across the
+top, the waist deck ran into the aft hull's forward shoulder chamfer as one
+long V-groove. On each flank, the aft hull stepped out past the waist in a
+clean full-height corner bevel. ms_hull.build_junction breaks both up with
+structure that changes bay by bay and side to side ('Junction ...' and
+'{Port|Starboard} junction ...' objects).
+Across the top, port to starboard:
+  - a louvred vent bank standing in the groove;
+  - two feed conduits crossing from the waist deck onto the aft deck, on
+    saddles, into a junction box;
+  - a low collar segment, then the stepped collar beam with its bolted cap
+    on the centreline;
+  - two unequal bolted service plates on a recessed seam;
+  - three gusset buttresses at uneven spacing.
+On each flank:
+  - a frame band over the crease between the forward face and the bevel;
+  - a stepped profile band that runs up the forward face, over the shoulder
+    and onto the aft deck, at a different station on each side;
+  - knee gussets in the inside corner.
+The bevels differ by side. Port carries a vent bank and a lifting hardpoint
+under the existing running light. Starboard carries a service plate, plus a
+clamped conduit running down into a junction box.
+Before and after (port quarter, port side and both junction close-ups):
+junction-before-after.reference.png. The new close-up cameras are
+junction-detail and junction-starboard. Top-view IoU is 0.9426 (0.9434
+before). The sprite steps in at x -1, so anything standing forward of the
+aft hull's face counts against it, and the knees and bands were trimmed to
+keep that loss under 0.001.
+Pixel diff against pass 2: only the views that can see the junction changed.
+
 Construction (lessons carried over from the Second Wind)
 Flat-shaded plate prisms, each section one keel chamfer, one vertical wall
 and one shoulder chamfer, with a one-segment crisp edge chamfer. Hull blocks
@@ -144,8 +177,8 @@ the sprite.
 
 Silhouette check
 compose_review.py lays the sprite over the transparent top render at
-16 px/unit and measures alpha IoU (threshold 128): 0.943 after pass 2
-(0.935 for the blockout). In units^2, 165 are model-only (mostly the jet
+16 px/unit and measures alpha IoU (threshold 128): 0.9426 after pass 3
+round 1 (0.9434 after pass 2, 0.935 for the blockout). In units^2, 165 are model-only (mostly the jet
 housings, bow fenders and door fittings) and 70 are sprite-only (the
 sprite's soft pod corners and part-alpha flank pixels). The figure is also
 stored under "silhouette" in geometry.json.
@@ -169,6 +202,7 @@ renders/*.png                       1920x1080 renders: top (transparent),
                                     port-side, bow, port-quarter, stern-quarter,
                                     and the six *-detail close-ups
 closeups-before-after.reference.png pass 2 close-ups against the blockout
+junction-before-after.reference.png pass 3 junction, before and after
 reference-history/v1-blockout/      the accepted blockout's renders
 mudskipper-geometry.reference.png   1920x1080 review sheet of four views
 

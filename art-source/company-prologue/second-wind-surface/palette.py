@@ -31,4 +31,14 @@ for c in ('cream', 'oxide', 'gunmetal', 'dark'):
                          'L_p10_p50_p90': np.percentile(v[:, 0], [10, 50, 90]).round(2).tolist(),
                          'mean_srgb': I.lab_to_rgb(v.mean(0)).round(1).tolist()}
     print(c, out['classes'][c])
+# The grapple arm's pale grey is not on the reference (it is the arm's only
+# material and the reference's arm is a few pixels): an owned derivation.
+c, g = out['classes']['cream'], out['classes']['gunmetal']
+out['classes']['pale'] = {'derived': 'not on the finish reference (the grapple arm is its only material): cream lightness, gunmetal chroma and spread',
+                          'mean': [round(c['mean'][0] - 4, 2), g['mean'][1], g['mean'][2]],
+                          'std': [round(c['std'][0] * 0.8, 2), g['std'][1], g['std'][2]]}
+# The owned wear colours (wear.py) are authored, not measured: carry them over.
+old = HERE / 'palette.json'
+if old.exists() and 'wear' in json.loads(old.read_text()):
+    out['wear'] = json.loads(old.read_text())['wear']
 (HERE / 'palette.json').write_text(json.dumps(out, indent=1) + '\n')

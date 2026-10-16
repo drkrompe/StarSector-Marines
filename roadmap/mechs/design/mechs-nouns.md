@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — internals under an engine budget; gantries hold a mech or a vehicle; vehicle patterns.
+Updated: 2026-10-16 — armor drop: the bay is a frozen manifest, each call picks from it, a cooldown paces calls and mission lift caps what lands; internals under an engine budget.
 
 ## Purpose
 
@@ -97,7 +97,23 @@ increasing an encounter's total armored threat.
   access ladder: Hound (light) Common, Sirocco (medium) Advanced, Bulwark (heavy)
   Prestige; weapons and internals carry their own authored tier. Vehicle patterns follow the same ladder — heavy APC light/Common,
   escort APC and militia technical medium/Advanced, breakthrough tank
-  heavy/Prestige — and no vehicle is a starter: a company earns its first hull. A **mech pattern card** is the cargo item that teaches one
+  heavy/Prestige — and no vehicle is a starter: a company earns its first hull.
+  A vehicle line climbs by **variants**, each its own pattern card and bill, never
+  by fitting the hull it has: the heavy APC's up-armored APC (twice the plate, slower,
+  Medium lift) and fire-support APC (a heavy mortar where the troop bay was, no seats,
+  Medium lift) are Advanced; the breakthrough tank's heavy-gun tank and dozer
+  breacher are Prestige and Heavy lift. A variant earns its place by a trade —
+  among fabricable hulls on the same lift with the same gun, none is at least as good
+  at everything — and costs more than the hull it improves on. A faction weights up
+  the variant it is known for (Hegemony the up-armored APC, the Lion's Guard the
+  fire-support APC, Tri-Tachyon the heavy-gun tank, the Luddic Path the dozer).
+  Every variant now has its own hull and turret art and is offered. The dozer's
+  blade is presentation only for now: it does not yet breach anything, so in play
+  the dozer is the line's toughest, slowest, cannonless hull.
+  **A variant whose hull or turret art is missing is not offerable**, exactly as a
+  loadout card whose presentation is pending is not: it keeps its stats, pattern and
+  bill, but no channel draws it and no card for it can become cargo
+  (`VehicleType.presentationDeclared`). A **mech pattern card** is the cargo item that teaches one
   pattern; learning writes only to the mech bay and is consumed only when it
   teaches something new. Cards arrive through the same market, licence, patron and
   recovery channels and access gates as loadout cards (`progression-nouns.md`),
@@ -114,17 +130,36 @@ increasing an encounter's total armored threat.
   the same four gantries and the same restored berths, fabricate from the same
   material currency against a learned pattern, and a save from before vehicles
   keeps every gantry a mech.
-- **Armour Support** brings the active squad's vehicles down, one per charge in
-  gantry order, frozen at launch exactly as Mech Support freezes its mechs; the
-  frozen value carries the vehicle's campaign id and survives the launch-fixture
-  seam. It is sourced as before (a committed Valkyrie), and story battles whose
-  employer arranges the heavy lift add it whenever the bay holds a vehicle. A
-  campaign bay with no vehicle has nothing to call; only a debug grant or a
-  launch with no bay sets down the unowned fallback APC.
+- The **bay manifest** is the active squad's bay spaces frozen at launch: its
+  mechs in gantry order, then its vehicles, each with chassis or hull, weight
+  class and callsign. Vehicles carry their campaign id across the launch-fixture
+  seam as mechs carry theirs. Armour Support is sourced as before (a committed
+  Valkyrie, or a story battle whose employer arranges the heavy lift while the
+  bay holds a vehicle). Where Mech Support and Armour Support would both be in
+  the roster and the bay was read, Mech Support carries the whole manifest and
+  Armour Support leaves the roster: one bay, one picker. Armour Support alone (a
+  vehicle source with no mech source) still brings vehicles one per charge; only
+  a debug grant or a launch with no bay sets down its unowned fallback APC.
+- An **armor drop** is one call of Mech Support. The player arms the card, picks
+  which manifest entries come down this time (the picker starts on every machine
+  aboard that lift allows, up to a lance), then clicks the landing ground. Only
+  the picked machines fly; the rest stay aboard for a later call. A cooldown
+  spaces the calls in place of one charge per lance, and the card counts the
+  machines still aboard, reading spent when none are.
+- The **lift budget** is the mission's armor lift, carrier by carrier: a cradled
+  company boat flies two machine lifts at its rating, and the synthetic heavy
+  carrier a hull, ship, employer or story arranges lifts the whole bay. Each
+  picked machine spends one lift from the lowest-rated carrier that admits it
+  (`air-nouns.md`, Lift), so a Heavy machine spends Heavy lift. Spent lift stays
+  spent for the mission whether or not the carrier came home: better boats mean
+  more armor on the ground, not faster calls. An entry the budget cannot lift is
+  shown disabled with its reason (no lift of its class, lift spent, or its only
+  carrier away), and a call the budget refuses stays armed and spends nothing.
+  A call split between the company boat and the synthetic carrier flies both.
 - **A vehicle wrecked on the field is lost to the company**: settlement takes it
   off its gantry, which stands empty for a new one. Only a vehicle that landed
   and was wrecked writes back — one still aboard a carrier is not tracked as
-  landed. Mechs have no such writeback; a destroyed mech still returns.
+  landed. Mechs write back by section instead (see Section loss).
 - **Mech component inventory** is finite fleet stock. Installed weapon assemblies
   and subsystems count
   against owned quantity; a refit transaction returns the target mech's
@@ -153,6 +188,83 @@ increasing an encounter's total armored threat.
   one chassis another. The heat sink sets the reservoir and base cooling, a cooler
   adds to it, and an uprated engine runs hotter. Battle reads only these values;
   internals, mass and budget stay campaign authority.
+- A **section** is where on a mech a round lands (`MechSection`): legs, torso,
+  the arms mount, the left and right shoulder mounts, and the head. A chassis's
+  **mech plan** (`MechBodyPlan`, authored per chassis) stacks four height bands
+  from the feet up (legs, torso, shoulders, head) so the ballistic height picks
+  the band exactly as it picks a marine's part; the torso band gives the arms
+  mount a lateral share of its hits, and the shoulder band gives the hit to the
+  shoulder on the side the round came from, read against the upper torso's
+  facing. A lone pod a chassis draws on its centreline (the Hound's) takes the
+  whole shoulder band. A payload with no ballistic height (a blast, a strafe) is
+  struck at a uniform height. The roll is never aimed; aiming at a section in
+  direct control would be a separate, later feature.
+- **Cover by section.** Each band of a mech plan carries cover rows, and they
+  read from the ground up: cover hides a mech's legs (low cover about half,
+  medium most, high all of them), at its tallest the bottom of its torso, and
+  never its shoulders or head. A mech behind a berm is **hull-down** — its legs
+  hidden, its weapons still in the fight — the counterpart of a marine in a
+  trench. The cover's target-plane catch band, sized for a man, does not gate a
+  mech: centred on a body twice his height it would hide the torso and bare the
+  legs. Cover counted by section is counted once, so a round that reaches an
+  exposed section takes no further cover cut (`body-part-cover.md`).
+- **Section pools** divide the frame's armor capacity and the chassis structure
+  across the sections by authored shares, so the totals are what frame and
+  plating set; the armor rating stays per chassis. A mount the mech deployed
+  without has no section and its share is the torso's. Each section is resolved
+  by the shared durability calculation; what a section cannot hold carries on
+  into the torso, which meets it with its own armor before its structure, and
+  a hit on a section already at zero goes through the hole to the torso's plate. The chassis health and armor columns carry the
+  sections' totals, so whole-chassis readers see one body. Plating may later
+  shift capacity between sections; that is the fitting decision sections make
+  possible.
+- **Section loss** is a capability before it is the machine. Legs at zero
+  **cripple** the mech: no walking speed, autonomous or manual, while it still
+  pivots its hips onto its target, turns its torso and fires. A mount at zero
+  **destroys its weapon**: the mount becomes absent for the rest of the battle.
+  The head at zero **loses the sensors**: vision halves and weapon accuracy
+  drops. The torso at zero is the only death; legs are never a kill. Damage above
+  zero costs only that section's protection, with no hidden stat penalty.
+  Doctrine follows the loss. A crippled mech is a **turret** under any order:
+  it holds, turns and fires at what it can engage, asks for no movement, and is
+  never an anchor its lance or a screened infantry advance keys movement to, so
+  nobody is held waiting on it; a player's move order releases itself. A mech
+  that has lost every mount is **disarmed**: it declines its doctrine's attack
+  and breaks contact while it can walk, and a lance with no armed standing mech
+  declines its attack goals as broken morale does, without touching the
+  command's assignment; crippled and disarmed, it simply holds. One lost mount
+  needs no posture: doctrine and engagement range read only the surviving
+  mounts. `-Dbattle.mech.locationalDamage=false` is the whole-body
+  control. The battle keeps each owned mech's section record (pools, what was
+  destroyed, which weapon each lost mount carried); the frozen deployment
+  carries the mech's campaign identity so the record finds its way home.
+  Section loss shows on the chassis itself: a lost mount's weapon layer drops
+  off the layered appearance, a section bursts into flame where it sat the
+  moment it goes and its stump smoulders after, and a crippled mech smokes at
+  its legs for as long as it stands. These are presentation events read off the
+  sections (`MechSectionFxSystem`); they draw nothing from the battle's random
+  stream, so they change no outcome and a review frame stays a function of
+  simulation state. A section paper-doll in the direct-control HUD and above the
+  selected-mech panel shows each section's armor and structure and marks what
+  is gone.
+- **After the battle** settlement writes that record back. A destroyed torso
+  (or a chassis that died as one body under the control) **loses the chassis**:
+  it leaves its gantry and every part fitted to it leaves stores with it. A
+  destroyed mount **loses its weapon assembly** from stores; the mount comes
+  back empty and the pattern is kept, so the loss feeds fabrication. Every
+  other damaged section, a destroyed mount's own section included, comes back
+  as **mech damage**: the fraction of each section's structure and armor gone.
+  Settlement is idempotent: a replayed result strikes nothing twice.
+- A **repair** is ordered in the Mech Lab and is atomic: the whole bill or
+  nothing. Its size is the chassis's **wear**, each section's loss (structure
+  weighted over armor) weighted by its pool share. At full wear the bill is half
+  the chassis's own fabrication bill, the boat precedent, and the clock is a
+  few campaign days by weight class; both scale down with wear. A paid order
+  clears the damage and starts the clock.
+- A mech's **readiness** is ready, damaged (no order yet) or under repair
+  (clock running). Only a ready mech enters the armor-drop manifest; the Mech
+  Lab shows a held-back mech's reason and days left. A damaged mech never fights
+  on worn pools.
 - The **Mech Lab** is the shipboard room that selects the active mech squad,
   parks its assets across four fabrication gantries, frames one selected asset as
   a top-down hardpoint doll, and performs inventory-checked refits. Asset/lance browsing is
@@ -566,6 +678,12 @@ support sortie, subject only to practical runtime resources.
 
 ## Laws
 
+- **The picker chooses; it never edits.** An armor drop selects from the frozen
+  manifest. It cannot change a fit, add a machine, or bring a machine twice: one
+  already called (landed, lost, or still in the air) is not aboard again this
+  mission. The AI commander's mech-drop allowance is a separate ledger and is
+  untouched by the player's picks.
+
 - **A field works produces from work done, never from elapsed time.** Its
   progress is the work of technicians actually at a servicing point in that bay —
   not standing in it, not walking across it, and not at its stores or its
@@ -661,7 +779,11 @@ support sortie, subject only to practical runtime resources.
   remains the high-capacity, high-rating anchor; Hound trades armor endurance for
   mobility; Sirocco has the least protection and depends on range and a screen.
 - Mount absence is a tactical weakness. Firing, continuation, AI utility,
-  resupply, and rendering must operate only on installed components.
+  resupply, and rendering must operate only on installed components. A mount
+  destroyed in battle is an absent mount, not a disabled one.
+- A mech dies only through its torso. Every other section at zero costs a
+  capability and passes further damage to the torso; section pools always sum to
+  the frame's armor capacity and the chassis structure.
 - Missile weapon hardware owns capacity and projectile behavior; the installed
   replenisher owns refill cadence. Upgrade content changes the subsystem rather
   than encoding reload speed in a chassis, role, or weapon definition.

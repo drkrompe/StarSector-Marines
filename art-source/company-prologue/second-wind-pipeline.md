@@ -79,8 +79,9 @@ Rules that keep the layers composable:
 
 ## Surfacing
 
-From the projection spike (`second-wind-projection-spike/README.md`); the
-first real package is the port-flank pilot (`second-wind-surface/README.md`):
+From the projection spike (`second-wind-projection-spike/README.md`), the
+port-flank pilot and its whole-hull rollout (`second-wind-surface/README.md`):
+every base face renders a part skin or a graded class swatch.
 
 - **Base skin, part by part.** Major armour parts are rendered alone and
   square-on, reskinned by Codex (`tools/codex_imagegen.py`, the
@@ -91,7 +92,10 @@ first real package is the port-flank pilot (`second-wind-surface/README.md`):
   creases, never region boxes. Identical parts (turret pairs, mirrored pods)
   are generated once.
 - **Small and unseen parts** use graded Codex material swatches on tiled
-  coordinates, the full-surface material approach.
+  coordinates, the full-surface material approach: one periodic swatch per
+  paint class, box-projected at 8 hull units per image. Chamfers and bevel
+  strips blend to them by angle; per-part tone offsets come from an owned
+  variation table.
 - **Damage and repair surfacing** comes from swatches too (salvage plate
   variants, weld, scorch, exposed backing), so a scar can change status
   without regenerating any base skin.

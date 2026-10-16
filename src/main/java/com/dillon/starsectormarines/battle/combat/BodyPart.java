@@ -23,7 +23,13 @@ public final class BodyPart {
         /** Only damage. */
         NONE,
         /** A limb wound ({@link WoundService}): a leg slows the man, an arm costs him his aim. */
-        LIMB_WOUND
+        LIMB_WOUND,
+        /** A mech's legs: at zero the chassis is crippled and can no longer walk. */
+        CRIPPLE,
+        /** A mech's weapon mount: at zero the weapon on it is destroyed. */
+        MOUNT_LOSS,
+        /** A mech's head: at zero its sensors are lost, cutting vision and accuracy. */
+        SENSOR_LOSS
     }
 
     /** Cover levels a part carries a column for: none, low, medium, high. */
@@ -76,8 +82,11 @@ public final class BodyPart {
      */
     public BodyPart(String name, int index, float share, float damageMultiplier, Consequence consequence,
                     float[] edgeCover, float[] occupantCover, float[] crossedCover) {
-        if (edgeCover.length != COVER_LEVELS || occupantCover.length != COVER_LEVELS
-                || crossedCover.length != COVER_LEVELS) {
+        // A part with no rows at all keeps the flat whole-body cover chance (a mech section).
+        boolean rowless = edgeCover == null && occupantCover == null && crossedCover == null;
+        if (!rowless && (edgeCover == null || occupantCover == null || crossedCover == null
+                || edgeCover.length != COVER_LEVELS || occupantCover.length != COVER_LEVELS
+                || crossedCover.length != COVER_LEVELS)) {
             throw new IllegalArgumentException(name + ": a cover column needs " + COVER_LEVELS + " levels");
         }
         this.name = name;
@@ -85,9 +94,25 @@ public final class BodyPart {
         this.share = share;
         this.damageMultiplier = damageMultiplier;
         this.consequence = consequence;
-        this.edgeCover = edgeCover.clone();
-        this.occupantCover = occupantCover.clone();
-        this.crossedCover = crossedCover.clone();
+        this.edgeCover = edgeCover != null ? edgeCover.clone() : null;
+        this.occupantCover = occupantCover != null ? occupantCover.clone() : null;
+        this.crossedCover = crossedCover != null ? crossedCover.clone() : null;
+    }
+
+    /**
+     * A part with no cover rows of its own: cover meets the body it belongs to with the flat
+     * whole-body chance and damage cut, exactly as it meets a body without parts.
+     */
+    public BodyPart(String name, int index, float share, float damageMultiplier, Consequence consequence) {
+        this(name, index, share, damageMultiplier, consequence, null, null, null);
+    }
+
+    /**
+     * Whether cover meets this part by its own rows. A part without them is hit wherever the round
+     * crosses, but cover treats its body as one whole-body contact.
+     */
+    public boolean hasCoverRows() {
+        return edgeCover != null;
     }
 
     /** The part's name, upper case (e.g. {@code LEGS}). */

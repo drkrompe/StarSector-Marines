@@ -12,6 +12,9 @@ final class VehicleTreadRender {
             new Band(88, 687, 187, 29, 91, 108),
             new Band(88, 687, 550, 24, 91, 108)
     };
+    // The dozer's 4.6-cell frame carries the same hull drawn smaller, about the frame center.
+    private static final Band[] DOZER = scaled(TANK, VehicleType.BREAKTHROUGH_TANK.visualLengthCells
+            / VehicleType.DOZER_BREACHER.visualLengthCells);
     private static final Band[] APC = {
             new Band(148, 246, 111, 30, 151, 42),
             new Band(344, 444, 111, 30, 347, 42),
@@ -26,11 +29,22 @@ final class VehicleTreadRender {
         // Image top becomes the vehicle's right side when the left-facing sprite points north.
         float cellsPerPixel = type.visualLengthCells / 768f;
         float centerY = cache.frames.frames[0].h * .5f;
-        for (Band band : type.isApc() ? APC : TANK) {
+        for (Band band : type.isApc() ? APC : type == VehicleType.DOZER_BREACHER ? DOZER : TANK) {
             double lateral = (centerY - band.y - band.height * .5f) * cellsPerPixel;
             double travel = body.visualTravelCells + body.visualYawRadians * lateral;
             band(type, cache, body, cam, alpha, out, band, cellsPerPixel, centerY, travel);
         }
+    }
+
+    private static Band[] scaled(Band[] bands, float scale) {
+        Band[] out = new Band[bands.length];
+        for (int i = 0; i < bands.length; i++) {
+            Band b = bands[i];
+            out[i] = new Band(Math.round(384 + (b.start - 384) * scale), Math.round(384 + (b.end - 384) * scale),
+                    Math.round(384 + (b.y - 384) * scale), Math.round(b.height * scale),
+                    Math.round(384 + (b.tileX - 384) * scale), Math.round(b.tileWidth * scale));
+        }
+        return out;
     }
 
     private static void band(VehicleType type, UnitSpriteCache cache, GroundBody body, BattleCamera cam,

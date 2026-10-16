@@ -3,6 +3,10 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.CompanyMechLedger;
+import com.dillon.starsectormarines.battle.mech.MechMountSlot;
+import com.dillon.starsectormarines.battle.mech.MechSection;
+import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
@@ -27,6 +31,7 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -904,6 +909,78 @@ class MechLabViewModelTest {
                 <= body.box().contentBox().right() + EPSILON);
     }
 
+    @Test
+    void repairOrderSpendsTheBillAndHoldsTheMechUntilItsClockRunsOut() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        damage(bay, MechBay.STARTER_MECH_ID);
+        TestResources resources = TestResources.stocked(2_000);
+        double[] clock = {10d};
+        AtomicInteger changes = new AtomicInteger();
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, resources,
+                changes::incrementAndGet, () -> clock[0]);
+        CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
+
+        assertEquals("Damaged — repair before it can drop", viewModel.gantryRows().get().get(0).detail());
+        viewModel.gantryRows().get().get(0).select().run();
+        MechLabViewModel.Repair card = viewModel.repair().get();
+        assertFalse(card.classes().contains("hidden"));
+        assertTrue(card.sections().contains("Legs"));
+        assertFalse(card.materials().isEmpty());
+        long stockBefore = resources.stock.values().stream().mapToLong(Integer::longValue).sum();
+
+        card.action().run();
+
+        assertEquals(CampaignMech.Readiness.UNDER_REPAIR, mech.readiness(10f));
+        assertNull(mech.damage());
+        assertTrue(resources.stock.values().stream().mapToLong(Integer::longValue).sum() < stockBefore);
+        assertTrue(viewModel.feedbackText().get().contains("under repair"));
+        assertEquals(1, changes.get());
+        assertTrue(viewModel.repair().get().status().startsWith("Under repair"));
+        assertTrue(viewModel.repair().get().orderClasses().contains("hidden"));
+
+        clock[0] = 10d + mech.repairDaysRemaining(10f) + 1d;
+        viewModel.refreshTime();
+        assertTrue(viewModel.repair().get().classes().contains("hidden"));
+        assertEquals("OPEN GANTRY", viewModel.mechRows().get().get(0).status());
+    }
+
+    @Test
+    void repairOrderRefusedOnAShortHoldChangesNothing() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        damage(bay, MechBay.STARTER_MECH_ID);
+        TestResources resources = TestResources.stocked(0);
+        AtomicInteger changes = new AtomicInteger();
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, resources,
+                changes::incrementAndGet, () -> 4d);
+        CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
+        viewModel.gantryRows().get().get(0).select().run();
+
+        viewModel.repair().get().action().run();
+
+        assertEquals(CampaignMech.Readiness.DAMAGED, mech.readiness(4f));
+        assertNotNull(mech.damage());
+        assertEquals(0, changes.get());
+        assertTrue(viewModel.feedbackText().get().contains("short of materials"));
+        assertTrue(viewModel.feedbackClasses().get().contains("tone-danger"));
+        assertFalse(viewModel.repair().get().classes().contains("hidden"));
+    }
+
+    /** Settles a battle that left the mech's legs half gone and its torso armor scratched. */
+    private static void damage(MechBay bay, String mechId) {
+        int sections = MechSection.values().length;
+        boolean[] fitted = new boolean[sections];
+        float[] structure = new float[sections];
+        float[] armor = new float[sections];
+        Arrays.fill(fitted, true);
+        Arrays.fill(structure, 1f);
+        Arrays.fill(armor, 1f);
+        structure[MechSection.LEGS.ordinal()] = 0.5f;
+        armor[MechSection.TORSO.ordinal()] = 0.6f;
+        MechSections.Report report = new MechSections.Report("test", fitted, structure, armor,
+                new boolean[sections], new MechWeaponComponent[MechMountSlot.values().length]);
+        bay.settleBattleDamage(List.of(new CompanyMechLedger.Damage(mechId, report, false)));
+    }
+
     private static Map<String, Object> props(MechLabViewModel viewModel) {
         Map<String, Object> props = new LinkedHashMap<>();
         // Layout evidence, so the heading only has to be a string of about the
@@ -931,6 +1008,7 @@ class MechLabViewModelTest {
         props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());
         props.put("performanceMeters", viewModel.performanceMeters());
         viewModel.putInternalProps(props);
+        viewModel.putRepairProps(props);
         props.put("leftSlotRows", viewModel.leftSlotRows());
         props.put("rightSlotRows", viewModel.rightSlotRows());
         props.put("slotRows", viewModel.slotRows());

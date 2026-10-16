@@ -383,8 +383,12 @@ the tank. Each wheel retains its own silhouette and the gaps remain open;
 accepted chassis travel and yaw move only the tread material. Reverse reverses
 the texture motion, stopped or blocked hulls stay still, and teleport resets
 its phase. Steering and traction remain the ordinary vehicle motion model.
-Both APC variants retain separately registered wreck hull and MG art at their
+Every APC variant retains separately registered wreck hull and MG art at their
 final bearings, with torn troop roofs, damaged tires and bent turret plates.
+The up-armored APC is the same hull drawn darker for its welded plate. The
+fire-support APC keeps the hull and replaces the sheet's MG with its heavy-mortar
+mount's own catalog art, drawn on the roof bearing at the mount's intrinsic size
+the way an aircraft's hull turrets are, and darkened on the wreck.
 Destruction stops the tread animation and leaves the wreck after the effects cool.
 
 A directly controlled hull repels bodies exactly as an autonomous one does.
@@ -634,6 +638,18 @@ fire and a longer rear-engine fire; both cool into finite smoke and leave the
 permanent wreck. The tank-specific emitters expire by 90 seconds. These effects
 use the shared presentation drains and cause no secondary damage, cover,
 concealment or navigation changes.
+
+The tank's two variants each draw from their own sheet with the same four
+registered slots. The heavy-gun tank keeps the breakthrough hull exactly and
+swaps the turret for the same angular housing carrying one long, thick gun with
+a fume-extractor collar and muzzle brake; its ballistic hardpoint follows that
+longer barrel. The dozer breacher is the breakthrough hull with a broad blade on
+push arms ahead of the glacis; its longer footprint frame draws the hull at the
+same on-screen size, so its tread bands are the tank's scaled about the frame
+center. In place of the cannon turret it carries the APC's twin roof MG at the APC's
+own registration, sitting on the empty turret ring. Both keep authored wreck
+frames; the dozer's blade buckles and tears with its hull
+(`art-source/vehicles/tank-heavy-gun/`, `art-source/vehicles/tank-dozer/`).
 
 An industrial freight hauler has no passenger or turret payload; its long chassis
 and slower handling distinguish cargo from the armed escort. Reinforced story

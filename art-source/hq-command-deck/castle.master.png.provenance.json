@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a14685-3e39-7bd1-a852-582d18ddcb56",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a14685-3e39-7bd1-a852-582d18ddcb56\\exec-e26c1c2d-efa5-4004-b9d7-be3ce9f96d62.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\hq-command-deck\\castle.master.png",
+    "sha256": "6b8fe99fa01681d9f549af39a55bed45ac4473513f41cb1dac32d7e6aed786d3",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\hq-command-deck\\castle.brief.txt",
+  "promptSha256": "6b7f8a9d5e8a7892948c6e4cfafef11f5423a071a769f274ad106c77b179cc49",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity only: face, hair, age and jacket. Not pose, framing or background.\nImage 2: Lighting direction, colour and painting style only. Not layout; include none of its background.\n\nFull-length standing figure card of Castle for a layered illustration, to be placed into the operations-deck painting given as the style reference. She is the same person as the identity reference: a woman in her early fifties, warm pale olive skin, lived-in face with fine expression lines, steady grey-green eyes, dark brown hair with silver at the temples tied back in a short practical bun, worn charcoal-olive high-collared duty jacket over a faded undershirt, dark work trousers and boots, small earpiece with a short boom microphone. Pose: standing upright, relaxed, body in three-quarter view turned slightly toward the viewer's left, face toward the viewer with a restrained knowing half-smile, holding a battered data slate low in one hand. Whole body in frame from top of head to boots, natural adult proportions, small clearance around the figure. Viewpoint matches the deck painting: seen from a camera slightly above her head height, tilted down about 15 degrees, at a few metres' distance. Lighting matches the style reference: warm amber key light from below and in front (a glowing chart table she stands behind), soft cool blue-grey rim light from a viewport behind her. Same matte-painted style and brushwork. True transparent background, including negative spaces; no ground, floor, cast shadow slab, table, border, text or other people.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\portraits\\castle\\castle-master.png",
+      "sha256": "136dc31a89e0b8143f86e9c0ac80b49ba8230badb1c74d97d7bc6d39104bd37c",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Identity only: face, hair, age and jacket. Not pose, framing or background."
+    },
+    {
+      "path": "art-source\\hq-command-deck\\deck-plate-v2.master.png",
+      "sha256": "cb37afff46ed503a614496f414f298d0f0734d8317827c7a71f68f1ed7deb5ff",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "mode": "RGB",
+      "role": "Lighting direction, colour and painting style only. Not layout; include none of its background."
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one full-length Castle cutout with the specified pose, lighting, and transparent background."
+  ],
+  "usage": {
+    "input_tokens": 44431,
+    "cached_input_tokens": 36864,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 462,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 62.3
+}

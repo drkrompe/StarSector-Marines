@@ -216,6 +216,7 @@ public final class MechLabScreen implements Screen {
         props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());
         props.put("performanceMeters", viewModel.performanceMeters());
         viewModel.putInternalProps(props);
+        viewModel.putRepairProps(props);
         props.put("leftSlotRows", viewModel.leftSlotRows());
         props.put("rightSlotRows", viewModel.rightSlotRows());
         props.put("slotRows", viewModel.slotRows());
@@ -554,6 +555,7 @@ public final class MechLabScreen implements Screen {
             CompanyNotices.Notice.HOUND_INDUCTION.review(CompanyPreparationGuide.roster());
         if (Float.isFinite(dt)) previewSeconds = (previewSeconds + Math.max(0f, dt)) % 3600d;
         if (viewModel != null) {
+            viewModel.refreshTime();
             cameraController.target(viewModel.fittingFocused(),
                     viewModel.selectedGantryIndex(), viewModel.gantryVariants().size());
             cameraController.advance(dt);

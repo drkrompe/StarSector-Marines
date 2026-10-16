@@ -19,6 +19,7 @@ import math
 import bpy
 import bmesh
 import sw_kit
+from mathutils import Vector
 from sw_hull import armor_patch, prism, union
 
 # Vanilla warhound.ship / Cerberus engineSlots: exact XY and width ratios.
@@ -262,21 +263,169 @@ def ring(kit, name, x0, x1, y, r_in, r_out, mat, n=48):
     return kit.mesh(name, v, f, mat, bevel=.06)
 
 
+# Nozzle proportions, in fractions of the mouth radius r (the bell is the
+# same drive scaled for both slot widths). A short contoured bell: a Rao-like
+# curve leaving the throat at 33 deg and reaching the mouth at 11 deg, shallow
+# enough that the throat still shows from C1's stern quarter.
+THROAT_R = .55      # throat radius
+BELL_L = .7         # mouth plane to throat
+CHAMBER = .1        # throat to injector face (the dark throat)
+WALL = .045         # bell wall thickness
+BANDS_N = 6         # film-cooling bands lining the bell
+STEP = .03          # backward-facing step at each band joint
+# Along X behind the mouth plane, in units scaled by r/3.9: heat-shield band,
+# gimbal ring, then the fixed shroud collar on the can face (x+0.6).
+COLLAR_AFT = .56
+RING_T = .34
+# Gimbal actuators, at angles in (away-from-partner, up): one on top and one
+# low on the far side, both on can flats; two non-collinear rams steer pitch
+# and yaw about the gimbal trunnions.
+RAM_ANGLES = (90, -60)
+
+
+def bell_curve(r):
+    """Interior radius as a function of depth a behind the mouth."""
+    rt, L = THROAT_R*r, BELL_L*r
+    m1, m2 = math.tan(math.radians(33)), math.tan(math.radians(11))
+    bc = (r-rt-m2*L)/(m1-m2)
+    pts = []
+    for k in range(65):
+        u = k/64
+        b = 2*u*(1-u)*bc+u*u*L
+        rho = (1-u)**2*rt+2*u*(1-u)*(rt+m1*bc)+u*u*r
+        pts.append((L-b, rho))
+    pts.sort()
+    def rho(a):
+        for (a0,r0),(a1,r1) in zip(pts, pts[1:]):
+            if a <= a1:
+                return r0+(r1-r0)*(a-a0)/max(a1-a0, 1e-9)
+        return pts[-1][1]
+    return rho
+
+
+def revolve(kit, name, prof, y, mat, n=36, closed=False, inward=False, bevel=0):
+    """Surface of revolution about the engine axis (parallel to X through
+    (y, 0)) through an (x, radius) profile; closed profiles make solids."""
+    v = []
+    for x,r_ in prof:
+        v += [(x, y+r_*math.cos(t*math.tau/n), r_*math.sin(t*math.tau/n)) for t in range(n)]
+    m = len(prof)
+    rows = m if closed else m-1
+    f = [(k*n+t, k*n+(t+1)%n, ((k+1)%m)*n+(t+1)%n, ((k+1)%m)*n+t)
+         for k in range(rows) for t in range(n)]
+    ob = kit.mesh(name, v, f, mat, bevel=bevel)
+    bm = bmesh.new(); bm.from_mesh(ob.data)
+    if closed:
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    else:
+        # Open sheet: face the axis (interior) or away from it.
+        out = 0
+        for fc in bm.faces:
+            c = fc.calc_center_median()
+            out += fc.normal.dot(Vector((0, c.y-y, c.z)))*fc.calc_area()
+        if (out > 0) == inward:
+            bmesh.ops.reverse_faces(bm, faces=bm.faces)
+    bm.to_mesh(ob.data); bm.free()
+    return ob
+
+
+def radial_box(kit, name, x, y, u, ang, r0, r1, length, width, mat, bevel=.04):
+    """Box standing radially off the engine axis from r0 to r1 at angle ang
+    (degrees, in the (away-from-partner u, up) plane)."""
+    a = math.radians(ang)
+    rc = (r0+r1)/2
+    ob = kit.box(name, (x, y+u*rc*math.cos(a), rc*math.sin(a)), (length, width, r1-r0), mat, bevel)
+    ob.rotation_euler[0] = math.atan2(-u*math.cos(a), math.sin(a))
+    return ob
+
+
 def build_nozzles(kit):
+    liner = sw_kit.material('Drive bell liner', (.085,.09,.095), .75, .42)
+    rod = sw_kit.material('Actuator rod chrome', (.5,.52,.53), .9, .22)
     for i,(x,y,w) in enumerate(ENGINES,1):
         r = BELL_R[w]
-        face = bell_face(x)
-        # Faceted shroud collar on the can face, round bore through it.
-        ring(kit, f'Engine {i} shroud collar', face+.2, face-.6, y, r+.45, CAN_FACE_R[w]*math.cos(math.pi/12)-.15, kit.steel)
-        # Open bell: wide mouth at the vanilla engine point narrowing to a
-        # dark throat deep in the well, so the can reads as the exhaust.
-        ev = []
-        for ex,rr_ in ((x,r),(x+3.4,r*.55)):
-            ev += [(ex,y+rr_*math.cos(t*math.tau/48),rr_*math.sin(t*math.tau/48)) for t in range(48)]
-        ef = [(t,(t+1)%48,48+(t+1)%48,48+t) for t in range(48)]
-        kit.mesh(f'Engine {i} aft-facing bell', ev, ef, kit.dark)
-        kit.cylinder(f'Engine {i} dark throat', (x+3.4,y,0), r*.55, .1, kit.dark, 'X', 32, 0)
-        kit.cylinder(f'Engine {i} throat ring', (x+2.6,y,0), r*.72, .3, kit.steel, 'X', 32, .03)
-        bpy.ops.mesh.primitive_torus_add(major_radius=r, minor_radius=.3, major_segments=48,
+        k = r/3.9
+        rho = bell_curve(r)
+        L, rt, t = BELL_L*r, THROAT_R*r, WALL*r
+        xi = x+L+CHAMBER*r  # injector face
+        u = (1 if y > 0 else -1)*(1 if w == 12 else -1)  # away from the pair partner
+        # Bell interior: film-cooling bands, each joint a backward-facing step
+        # (the downstream band starts proud of the upstream one), faceted.
+        joints = [L*j/BANDS_N for j in range(BANDS_N+1)]
+        prof = []
+        for j,(a0,a1) in enumerate(zip(joints, joints[1:])):
+            for q in range(4):
+                a = a0+(a1-a0)*q/3
+                inset = 0 if j == 0 else STEP*r*(a1-a)/(a1-a0)
+                prof.append((x+a, rho(a)-inset))
+        # Throat, then the short chamber widening to the injector face.
+        prof += [(x+L+CHAMBER*r*.5, rt*1.04), (xi, rt*1.12)]
+        revolve(kit, f'Engine {i} aft-facing bell', prof, y, liner, inward=True)
+        # Injector face at the bottom: the cinematic swaps this for glow.
+        kit.cylinder(f'Engine {i} dark throat', (xi,y,0), rt*1.14, .06*k, kit.dark, 'X', 36, 0)
+        kit.cylinder(f'Engine {i} injector pintle', (xi-.08*k,y,0), .07*r, .16*k, kit.steel, 'X', 12, .02)
+        revolve(kit, f'Engine {i} injector ring', [(xi-.05*k,rt*.55),(xi-.05*k,rt*.6),(xi-.01,rt*.6),(xi-.01,rt*.55)],
+                y, kit.steel, 24, True)
+        # Throat ring: the hard insert at the narrowest section, its bore open.
+        revolve(kit, f'Engine {i} throat ring', [(x+L-.06*r,rho(L-.06*r)-.01),(x+L-.02*r,rt*.95),(x+L+.05*r,rt*.95),
+                (x+L+.05*r,rt*1.06),(x+L-.06*r,rt*1.12)], y, kit.steel, 36, True)
+        # Bell wall: outer skin one wall thickness off the liner.
+        skin = [(x+a, rho(a)+t) for a in [L*q/12 for q in range(13)]]
+        revolve(kit, f'Engine {i} bell outer skin', skin, y, kit.steel, 36)
+        bpy.ops.mesh.primitive_torus_add(major_radius=r+t/2, minor_radius=t/2+.06*k, major_segments=48,
                                          minor_segments=8, location=(x,y,0), rotation=(0,math.pi/2,0))
         kit.finish(bpy.context.object, f'Engine {i} mouth lip', kit.steel)
+        # Exposed exterior between lip and gimbal ring: a heat-shield band.
+        ring_aft = x+(COLLAR_AFT-RING_T)*k
+        e0, e1 = rho(.1*k)+t, rho(ring_aft-x)+t
+        hb = [(x+.1*k, e0), (x+.14*k, e0+.08*k), (ring_aft-.04*k, e1+.08*k), (ring_aft-.02*k, e1)]
+        revolve(kit, f'Engine {i} heat-shield band', hb, y, kit.dark, 36, True)
+        # Gimbal ring hugging the bell behind the mouth, pinned to the collar
+        # at two trunnions; lever ears carry the actuator rod ends.
+        ring_out = r+.85*k
+        ring(kit, f'Engine {i} gimbal ring', x+COLLAR_AFT*k, ring_aft, y, rho(.4*k)+t+.03, ring_out, kit.steel)
+        ring(kit, f'Engine {i} shroud collar', bell_face(x)+.2, x+COLLAR_AFT*k, y, r+.45,
+             CAN_FACE_R[w]*math.cos(math.pi/12)-.15, kit.dark)
+        rmid = x+(COLLAR_AFT-RING_T/2)*k
+        for ang in (0,180):
+            radial_box(kit, f'Engine {i} gimbal trunnion', rmid, y, u, ang, ring_out-.15*k, ring_out+.42*k,
+                       RING_T*k+.08, .7*k, kit.steel, .05)
+            a = math.radians(ang)
+            kit.cylinder(f'Engine {i} trunnion pin cap', (ring_aft-.05*k, y+u*(ring_out+.13*k)*math.cos(a), 0),
+                         .2*k, .1*k, rod, 'X', 12, .02)
+        # Actuator rams lying along the can flats, from clevis brackets bolted
+        # against the can band forward to the gimbal ring's lever ears.
+        rr_ = .1*r
+        band_aft = CAN[w][3][0]
+        apo = CAN[w][4][1]*math.cos(math.pi/12)
+        R = apo+.18+rr_
+        xb = band_aft-.35
+        for ang in RAM_ANGLES:
+            a = math.radians(ang)
+            py, pz = y+u*R*math.cos(a), R*math.sin(a)
+            # The ear runs forward to the can face so no light shows under it.
+            radial_box(kit, f'Engine {i} gimbal lever ear', (ring_aft+bell_face(x)+.04)/2, y, u, ang, ring_out-.2*k, R+rr_*.7,
+                       bell_face(x)+.04-ring_aft, 2.2*rr_, kit.steel, .04)
+            radial_box(kit, f'Engine {i} actuator clevis bracket', xb, y, u, ang, apo-.1, R+rr_*.8,
+                       .7, 2.6*rr_, kit.steel, .05)
+            x_body = rmid+(xb-rmid)*.42
+            kit.cylinder(f'Engine {i} gimbal actuator', ((x_body+xb-.3)/2, py, pz), rr_, xb-.3-x_body, kit.dark, 'X', 16, .04)
+            kit.cylinder(f'Engine {i} actuator gland', (x_body-.1*k, py, pz), rr_*1.2, .3*k, kit.steel, 'X', 16, .03)
+            kit.cylinder(f'Engine {i} actuator rod', ((rmid+x_body)/2, py, pz), rr_*.45, x_body-rmid, rod, 'X', 12, .02)
+            # Hydraulic line along the cylinder's flank, into the bracket.
+            hu = R*math.cos(a)-(rr_+.07*k)*math.sin(a)
+            hz = R*math.sin(a)+(rr_+.07*k)*math.cos(a)
+            kit.cylinder(f'Engine {i} actuator hydraulic line', ((x_body+xb)/2, y+u*hu, hz),
+                         .07*k, xb-x_body, kit.steel, 'X', 8, 0)
+        # Exhaust anchor: mouth-plane centre, local +X down the exhaust (-X).
+        an = bpy.data.objects.new(f'Engine {i} exhaust anchor', None)
+        an.empty_display_type = 'ARROWS'
+        an.empty_display_size = r
+        an.location = (x, y, 0)
+        an.rotation_euler = (0, 0, math.pi)
+        bpy.context.collection.objects.link(an)
+        an['engine'] = i
+        an['radius'] = r
+        an['radius_m'] = r*.65
+        an['throat_x'] = xi
+        an['throat_radius'] = rt*1.14

@@ -46,6 +46,35 @@ public enum VehicleType {
                     accel, brakingAccel, maxSpeed);
         }
     },
+    /**
+     * The heavy APC with welded appliqué plate: the same four seats and roof gun behind
+     * twice the armour, paid for in speed and in lift — it needs a Medium cradle where the
+     * troop carrier rides a Light one. Same hull art; the fresh plate reads as a darker hull.
+     */
+    UP_ARMORED_APC("graphics/battle/vehicles/army-apc.png", 0, 4, -90f,
+            4, 2.5f, 1.45f, 2.3f, 1.4f, 3.2f, .9f, 2.3f,
+            1, 0f, .15208333f, 0f, 0f, 1.42f, -90f,
+            TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 300f, 320f, 24f, 1.3f, .78f) {
+        @Override public GroundBody createBody() {
+            return new BicycleBody(1.65f, 22f, 140f, accel, brakingAccel, maxSpeed);
+        }
+        @Override public float[] hullTint() { return UP_ARMORED_TINT; }
+    },
+    /**
+     * The heavy APC's hull with the troop bay given over to a heavy mortar: no seats, and
+     * the roof gun is the mortar mount's own catalog art rather than the sheet's MG turret.
+     * It shells what it can see; it cannot carry a squad and it is no tougher than the
+     * carrier it replaces.
+     */
+    FIRE_SUPPORT_APC("graphics/battle/vehicles/army-apc.png", 0, 4, -90f,
+            0, 2.4f, 1.4f, 2.6f, 1.6f, 3.5f, .8f, 2.2f,
+            -1, 0f, .15208333f, 0f, 0f, 0f, 0f,
+            TurretCatalogRegistry.HEAVY_MORTAR_STRUCTURE_ID, 220f, 160f, 18f, 1.25f, .75f) {
+        @Override public GroundBody createBody() {
+            return new BicycleBody(1.6f, 22f, 150f, accel, brakingAccel, maxSpeed);
+        }
+        @Override public boolean turretArtFromMount() { return true; }
+    },
     /** Reinforced local convoy escort. Ordinary reinforcement APCs keep their lighter profile. */
     ESCORT_APC("graphics/battle/vehicles/army-apc.png", 0, 4, -90f,
             0, 3.2f, 1.8f, 3.4f, 1.8f, 3.5f, .8f, 2.8f,
@@ -65,6 +94,34 @@ public enum VehicleType {
             return new BicycleBody(2.6f, 32f, 90f, accel, brakingAccel, maxSpeed);
         }
         @Override public float turretRecoilCells() { return .18f; }
+    },
+    /**
+     * Breakthrough hull carrying one long heavy gun instead of the twin breach cannons:
+     * more reach and penetration per round, a slower cycle and a slower hull. The breakthrough
+     * hull art with its own long-gun turret frames (art-source/vehicles/tank-heavy-gun).
+     */
+    HEAVY_GUN_TANK("graphics/battle/vehicles/army-tank-heavy-gun.png", 0, 4, -90f,
+            0, 4.3f, 3.9f, 2.6f, .85f, 3.0f, .8f, 3.0f,
+            1, 0f, 0f, 0f, 0f, 7.789194f, -90f,
+            TurretCatalogRegistry.TANK_HEAVY_GUN_STRUCTURE_ID, 1050f, 900f, 40f, 1.4f, 1.1f) {
+        @Override public GroundBody createBody() {
+            return new BicycleBody(2.6f, 30f, 80f, accel, brakingAccel, maxSpeed);
+        }
+        @Override public float turretRecoilCells() { return .24f; }
+    },
+    /**
+     * Breaching sidegrade on the breakthrough hull: a dozer blade and the APC's twin MG instead of
+     * the cannons, the heaviest plate of the line and the slowest drive. Its sheet carries the
+     * breakthrough hull drawn at this longer frame's scale with the blade ahead of the nose, and
+     * the APC's twin-MG frames at their own 1.42-cell registration (art-source/vehicles/tank-dozer).
+     */
+    DOZER_BREACHER("graphics/battle/vehicles/army-tank-dozer.png", 0, 4, -90f,
+            0, 4.6f, 3.9f, 2.4f, .9f, 3.0f, .8f, 3.0f,
+            1, 0f, 0f, 0f, 0f, 1.42f, -90f,
+            TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 1400f, 1000f, 38f, 1.45f, 1.1f) {
+        @Override public GroundBody createBody() {
+            return new BicycleBody(2.8f, 30f, 80f, accel, brakingAccel, maxSpeed);
+        }
     },
     /**
      * Workshop pickup with a pintle MG and welded plate, faction-neutral for authored local forces.
@@ -90,10 +147,36 @@ public enum VehicleType {
     /** Visual recoil from actual recent shots; does not change the ballistic hardpoint. */
     public float turretRecoilCells() { return 0f; }
 
-    public boolean isApc() { return this == HEAVY_APC || this == ESCORT_APC; }
+    private static final float[] NO_TINT = {1f, 1f, 1f};
+    private static final float[] UP_ARMORED_TINT = {.78f, .80f, .76f};
+
+    public boolean isApc() {
+        return this == HEAVY_APC || this == ESCORT_APC || this == UP_ARMORED_APC || this == FIRE_SUPPORT_APC;
+    }
+
+    /** The breakthrough hull and the variants built on it. */
+    public boolean isTank() {
+        return this == BREAKTHROUGH_TANK || this == HEAVY_GUN_TANK || this == DOZER_BREACHER;
+    }
 
     /** Only exposed tire/track tops scroll; covered technical/hauler wheels stay hidden. */
-    public boolean hasAnimatedTreads() { return isApc() || this == BREAKTHROUGH_TANK; }
+    public boolean hasAnimatedTreads() { return isApc() || isTank(); }
+
+    /** Multiplier on the hull sprite's colour; white for every hull drawn as painted. */
+    public float[] hullTint() { return NO_TINT; }
+
+    /**
+     * Whether the turret is drawn from its catalog mount's own sprite (the way an aircraft's
+     * hull turrets are) rather than from a frame of this hull's sheet.
+     */
+    public boolean turretArtFromMount() { return false; }
+
+    /**
+     * Whether this variant's hull and turret art exist. A variant still waiting on art keeps
+     * its stats and pattern but is never offered as a card, as a loadout card whose
+     * presentation is pending is not.
+     */
+    public boolean presentationDeclared() { return true; }
 
     public int wreckHullFrame() { return this == CARGO_CARRIER ? 1 : 2; }
     public int wreckTurretFrame() { return turretFrame < 0 ? -1 : 3; }
@@ -168,7 +251,9 @@ public enum VehicleType {
     /** Vertical half-extent used by the ballistic target-plane/contact model. */
     public final float hitHalfHeight;
 
-    public boolean hasTurretWeapon() { return turretStructureId != null && turretFrame >= 0; }
+    public boolean hasTurretWeapon() {
+        return turretStructureId != null && (turretFrame >= 0 || turretArtFromMount());
+    }
 
     public StructureDef turretStructure() {
         return hasTurretWeapon()
@@ -230,8 +315,8 @@ public enum VehicleType {
     public LiftClass liftClass() {
         return switch (this) {
             case HEAVY_APC -> LiftClass.LIGHT;
-            case ESCORT_APC, MILITIA_TECHNICAL -> LiftClass.MEDIUM;
-            case BREAKTHROUGH_TANK -> LiftClass.HEAVY;
+            case ESCORT_APC, MILITIA_TECHNICAL, UP_ARMORED_APC, FIRE_SUPPORT_APC -> LiftClass.MEDIUM;
+            case BREAKTHROUGH_TANK, HEAVY_GUN_TANK, DOZER_BREACHER -> LiftClass.HEAVY;
             case CARGO_CARRIER -> null;
         };
     }

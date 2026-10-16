@@ -1825,7 +1825,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 
     static List<SnapshotArtifact> renderBarracksCommand(SnapshotContext context) throws Exception {
         return renderBarracksCommand(context, List.of("dossier", "dossier-trained", "command", "profiles",
-                "empty", "large", "transfers", "guide", "guide-transfer", "guide-replenish",
+                "empty", "large", "guide", "guide-replenish",
                 "guide-equipment"), true, true);
     }
 
@@ -1897,22 +1897,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 viewModel.command().selectCommand(captain.id());
             }
             if (!state.startsWith("guide") && !state.equals("empty")) ((Runnable) viewModel.command().props().get("guideDismiss")).run();
-            if (state.equals("transfers")) {
-                viewModel.command().toggle(squads.get(2).id());
-                ((Runnable) viewModel.command().props().get("chooseDonors")).run();
-                viewModel.command().toggle(squads.get(1).id());
-                viewModel.command().reviewTransfers();
-            }
             if (state.startsWith("guide-")) {
+                // Selecting a squad opens the replenish lesson; equipment is the next one.
                 viewModel.command().toggle(squads.get(2).id());
-                if (state.equals("guide-transfer")) {
-                    ((Runnable) viewModel.command().props().get("chooseDonors")).run();
-                    viewModel.command().toggle(squads.get(1).id());
-                    viewModel.command().reviewTransfers();
-                } else {
-                    ((Runnable) viewModel.command().props().get("guideNext")).run();
-                    if (state.equals("guide-equipment")) ((Runnable) viewModel.command().props().get("guideNext")).run();
-                }
+                if (state.equals("guide-equipment")) ((Runnable) viewModel.command().props().get("guideNext")).run();
             }
             if (state.equals("profiles")) ((Runnable) viewModel.command().props().get("newProfile")).run();
             Map<String, Object> properties = new LinkedHashMap<>();
@@ -1932,7 +1920,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 bindings.update(document, instance, viewModel, hints);
                 images.add(new SnapshotArtifact("barracks-" + state + "-1920x1080.png",
                         renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
-                if (state.startsWith("dossier") || state.startsWith("guide") || state.equals("transfers")) {
+                if (state.startsWith("dossier") || state.startsWith("guide")) {
                     images.add(new SnapshotArtifact("barracks-" + state + "-150pct.png",
                             renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1.5f)));
                 }
@@ -3439,6 +3427,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());
         props.put("performanceMeters", viewModel.performanceMeters());
         viewModel.putInternalProps(props);
+        viewModel.putRepairProps(props);
         props.put("leftSlotRows", viewModel.leftSlotRows());
         props.put("rightSlotRows", viewModel.rightSlotRows());
         props.put("slotRows", viewModel.slotRows());

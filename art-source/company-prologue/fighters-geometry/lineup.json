@@ -1,0 +1,90 @@
+{
+  "px_per_metre": 20.55604936549195,
+  "gap_m": 3.0,
+  "fighters": [
+    {
+      "id": "thunder",
+      "name": "Thunder",
+      "metres_per_unit": 0.45,
+      "length_m": 18.5,
+      "span_m": 10.8,
+      "height_m": 2.6,
+      "centre_px": [
+        182.11381395175397,
+        494.26689911329845
+      ],
+      "bottom_px": 684.8214861412215,
+      "top_px": 303.71231208537546
+    },
+    {
+      "id": "dagger",
+      "name": "Dagger",
+      "metres_per_unit": 0.5,
+      "length_m": 16.4,
+      "span_m": 12.0,
+      "height_m": 2.2,
+      "centre_px": [
+        478.6348397716188,
+        494.26689911329845
+      ],
+      "bottom_px": 663.0834466858906,
+      "top_px": 325.4503515407064
+    },
+    {
+      "id": "broadsword",
+      "name": "Broadsword",
+      "metres_per_unit": 0.5,
+      "length_m": 15.5,
+      "span_m": 14.1,
+      "height_m": 3.3,
+      "centre_px": [
+        808.8164023086096,
+        494.26689911329845
+      ],
+      "bottom_px": 653.3193349995477,
+      "top_px": 335.21446322704924
+    },
+    {
+      "id": "longbow",
+      "name": "Longbow",
+      "metres_per_unit": 0.45,
+      "length_m": 15.0,
+      "span_m": 14.4,
+      "height_m": 2.5,
+      "centre_px": [
+        1163.1512679594798,
+        494.26689911329845
+      ],
+      "bottom_px": 648.7456073504418,
+      "top_px": 339.7881908761551
+    },
+    {
+      "id": "talon",
+      "name": "Talon",
+      "metres_per_unit": 0.55,
+      "length_m": 12.1,
+      "span_m": 12.1,
+      "height_m": 2.4,
+      "centre_px": [
+        1497.1871485638292,
+        494.26689911329845
+      ],
+      "bottom_px": 618.6592703407431,
+      "top_px": 369.87452788585387
+    },
+    {
+      "id": "wasp",
+      "name": "Wasp",
+      "metres_per_unit": 0.5,
+      "length_m": 9.8,
+      "span_m": 8.1,
+      "height_m": 2.4,
+      "centre_px": [
+        1766.0541171103953,
+        494.26689911329845
+      ],
+      "bottom_px": 594.7655212254285,
+      "top_px": 393.76827700116837
+    }
+  ]
+}

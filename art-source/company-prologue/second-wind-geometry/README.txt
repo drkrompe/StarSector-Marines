@@ -88,6 +88,37 @@ trained to its slot's angle: the aft pair broadside to port and starboard,
 the forward pair 30 degrees outboard. Turret 3 stands on a taller barbette
 so its resting line fires over the stowed port grapple arm.
 
+Main drives and attitude thrusters (sw_engines.build_nozzles, sw_rcs)
+Each of the four drives (Engine 1-2 port, 3-4 starboard) is a contoured bell
+lined with six faceted film-cooling bands ("Engine {i} aft-facing bell", the
+liner) inside a steel outer skin, a throat insert ("throat ring") with an
+open bore, and the injector face at the bottom ("Engine {i} dark throat", the
+part a running drive's glow goes on) with its pintle and injector ring. A
+12-sided gimbal ring sits between the mouth and the can face on two
+trunnions, worked by two actuator rams lying on the can flats; a dark
+heat-shield band rings the exposed exterior behind the mouth lip. Sizes at
+0.65 m/unit (outer / inner engine): mouth radius 2.54 / 1.69 m, throat 1.40
+/ 0.93 m radius 1.77 / 1.18 m behind the mouth, injector face 2.03 / 1.35 m
+behind it, gimbal ring 3.09 / 2.06 m outer radius, rams 2.9 / 2.1 m long.
+Attitude control is eight RCS clusters of small bells (mouth radius 0.30 m,
+blocks 1-1.75 m): bow-port, bow-stbd, pod-port, pod-stbd (the widest
+station, |y| ~38), stern-port, stern-stbd, dorsal, ventral; 24 bells, axis
+named for the exhaust direction (up, down, port, stbd, fore, aft). Bank to
+starboard (C1) fires pod-port down with pod-stbd up; bow to starboard fires
+bow-port port with stern-stbd stbd, bow to port bow-stbd stbd with
+stern-port port; sw_rcs's docstring has the full table.
+Effect anchors: one empty per drive mouth, "Engine {i} exhaust anchor"
+(props engine, radius, radius_m), and per RCS bell, "RCS <cluster> <axis>
+anchor" (props cluster, axis, radius_m, working); local +X is the exhaust
+direction. geometry.json in every build lists engine_anchors (name,
+position, position_m, exhaust_dir, engine, radius, radius_m, running) and
+rcs_anchors (name, position, position_m, exhaust_dir, cluster, axis,
+radius_m, working) for that state. The engine rows in sw_scars_pods set
+running (derelict none; patched and refit 3-4; restored all) and the rcs-
+rows in sw_scars_rcs set working (derelict none; some port clusters
+stripped or blanked until restored). Names and cluster/axis words are keys
+for the VFX kit: never rename them.
+
 Condition states (sw_damage.py and sw_scars_*.py, --state S)
 The committed guide above is always the clean ship. The campaign life is one
 ladder of builds of the same model, derelict -> patched -> refit -> restored
@@ -101,7 +132,7 @@ and every change to a base object is deferred to the end of the build, so
 each id lands in the same place in all four states. states/scar-table.md
 lists every id and its ladder. Rows live in one module per area, each owning
 its rows and any kinds of its own: sw_scars_forebody (fb-), sw_scars_pods
-(pod-), sw_scars_aft (aft-), sw_scars_spine (sp-); sw_damage holds the
+(pod-), sw_scars_aft (aft-), sw_scars_spine (sp-), sw_scars_rcs (rcs-); sw_damage holds the
 ladder, the schema, the generic kinds (basin, cluster, spall, gouge, plate,
 buckle, strip, power) and the ship-power row.
 Base objects are never renamed, replaced, deleted or re-materialled. Scars

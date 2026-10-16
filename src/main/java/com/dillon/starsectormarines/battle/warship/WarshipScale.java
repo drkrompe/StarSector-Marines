@@ -44,6 +44,17 @@ public final class WarshipScale {
     /** {@link #hullReach} over {@link #cells}: the range multiplier a gun firing at a hull reaches by. */
     public static final float HULL_REACH_MULTIPLIER = HULL_PRESENCE * HULL_REACH_SHARE;
 
+    /**
+     * The hull fight's clock (`warship-tactics.md`, D1): everything a fight between hulls spends per second (a gun's
+     * cycle at a hull, the missile ripple, and on the duel footing flux dissipation, shield upkeep and overload)
+     * runs at {@code 1 / HULL_TEMPO}. Derived, not tuned: a round between hulls flies {@link #HULL_REACH_MULTIPLIER}
+     * times as far as in the base game at the base game's speed, so at the same tempo the rounds in the air at once,
+     * and the share of a fight a round spends crossing, are the base game's. Damage, armour, shields and hit points
+     * are untouched. {@code -Dbattle.warship.hullTempo=1} is the control.
+     */
+    public static final float HULL_TEMPO = Math.max(1f, Float.parseFloat(
+            System.getProperty("battle.warship.hullTempo", Float.toString(HULL_REACH_MULTIPLIER))));
+
     /** Game units to cells, for reach, blasts and speeds. */
     public static float cells(float gameUnits) {
         return gameUnits * AirScale.METERS_PER_PX / AirScale.METERS_PER_CELL;

@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a146b9-59af-7b21-8ac5-bedf36077a7b",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a146b9-59af-7b21-8ac5-bedf36077a7b\\exec-4c591431-015b-4580-856a-e36195f630c1.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\hq-command-deck\\deck-plate-v3.master.png",
+    "sha256": "24b1aaf24cfe301dc1441c263cc13cd375b147d2374898d9708a6340260eaa1e",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\hq-command-deck\\deck-plate-v3.brief.txt",
+  "promptSha256": "92e77036e84c979dfeae739b828c6f777d17402ed1c707ec718ff3990e96efc6",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: exact camera, silhouettes, placement and scale; paint over it, never move anything\nImage 2: Material, palette, brushwork and lighting only; not layout or camera\n\nUse case: sketch-to-render illustration, background plate. Asset type: wide landscape establishing illustration for Starsector Marines, a grounded mercenary ground-operations game; it becomes the background layer of a banner across the top of the company's headquarters screen.\n\nReference 1 is a grey 3D blockout rendered from the exact camera of this shot. It is the geometry and layout authority: keep every object where it is, at its size, with its silhouette, perspective and horizon. Paint over it; do not move, add, remove, resize or re-angle anything, and do not change the camera. Plain grey surfaces in it become painted materials; the near-white surfaces in it are lit screens and lamps.\nReference 2 is an earlier painting of this company's deck. It is material, palette, brushwork and lighting reference only; ignore its layout, room shape and camera.\n\nScene: the company's combat information centre, a dim working warship CIC in the spirit of a classic battlestar's: a square plotting table glowing in the middle of a darker command island, a cluster of monitors hung over it from the beams, rows of watch consoles along both side walls with their screens facing in, a raised rear tier behind a handrail with a three-screen main display, two comms watch consoles at the back left and a quartermaster's ledger desk, crate and roster board at the back right, a wheeled hatch at the far right of the tier, heavy ceiling I-beams and conduit, free-standing glass plotting boards beside the tier. No windows anywhere. Grounded and used: worn metal, scuffed deck plate, patched paint, cable runs, hand-labelled panels with no legible text, clipped paper on the roster board.\n\nStyle: detailed late-1990s/early-2000s science-fiction strategy-game illustration, matte-painted cinematic industrial realism, visible restrained brush texture, the same painted family as the game's character portraits. Restrained olive, charcoal, umber and cream palette. Lighting, which the figure layers will match: low and moody; warm amber glow rising from the plotting table and console screens, pools of light from the ceiling lamps and the lamp ring under the hanging cluster, the corners and ceiling falling into shadow, faint haze in the air.\n\nLive effects will be drawn over this plate in the game, so paint every screen (side consoles, comms, the hanging cluster, the three main displays, the wall displays, the ledger monitor) as a simple rectangle with a dim, even amber or pale green glow and only faint texture, no readouts, graphs or maps. Paint the plotting table top as a flat, evenly lit pale-green radar surface with only the one faint ring and cross the reference shows. Small indicator lamps may be painted.\n\nFigures are separate layers painted later, so this plate contains NO people at all: no crew, no silhouettes, no figures in the distance, no reflections of people. Every chair is empty.\n\nConstraints: no text, lettering, numbers, logos, insignia, HUD elements, frames or watermark. No holograms, no blue neon, no floating screens, no windows or starfields, no weapons. Opaque, edge-to-edge painting. Use the widest landscape canvas available, as close to 3:1 as possible, matching the reference's framing edge to edge.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\hq-command-deck\\deck-guide-v5.png",
+      "sha256": "e31a5cebd26c3df67ae742a35e7f0773ee7da692931e06a3bc5df5b90d589b54",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: exact camera, silhouettes, placement and scale; paint over it, never move anything"
+    },
+    {
+      "path": "art-source\\hq-command-deck\\deck-plate-v2.master.png",
+      "sha256": "cb37afff46ed503a614496f414f298d0f0734d8317827c7a71f68f1ed7deb5ff",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "mode": "RGB",
+      "role": "Material, palette, brushwork and lighting only; not layout or camera"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the first reference for exact geometry and the second for painted materials and lighting."
+  ],
+  "usage": {
+    "input_tokens": 44037,
+    "cached_input_tokens": 28416,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 737,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 72.9
+}
