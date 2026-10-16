@@ -13,7 +13,7 @@ the profile the player's pure-Java decoder is measured on (runtime-contract.md).
 it without re-measuring. Shots with no frames are skipped, so they can land one at a time.
 
 To add a shot, add a row to SHOTS: the folder holding its composer, the module name, and where
-the composer writes frames. The module provides captions(), overlays(), audio_cues() and
+the composer writes frames (build/cinematic/<output>/frames). The module provides captions(), overlays(), audio_cues() and
 duration() (or DURATION). Requires ffmpeg on PATH.
 """
 import argparse
@@ -34,11 +34,15 @@ SOUNDS = MOD / "data" / "config" / "sounds.json"
 FPS = 24
 GOP = 24
 
-Shot = namedtuple("Shot", "folder module frames")
+Shot = namedtuple("Shot", "folder module output crf", defaults=(None,))
 # In play order; the player reads the same order from sequence.json.
 SHOTS = {
-    "c1": Shot("corvus-approach", "compose_c1", ROOT / "build" / "cinematic" / "c1-corvus" / "frames"),
+    "c1": Shot("corvus-approach", "compose_c1", "c1-corvus"),
+    # C3 is film-grain heavy: crf 25 costs 1.1 MB/s there against 0.4 for C1, so it takes 28 (8 MB).
+    "c3": Shot("first-open-sky", "compose_c3", "c3-first-open-sky", 28),
+    "c4": Shot("road-and-port", "compose_c4", "c4-road-and-port"),
 }
+CINEMATIC_BUILD = ROOT / "build" / "cinematic"
 
 SPEAKERS = {
     "approach": {"label": "JANGALA APPROACH", "color": "hegemony"},
@@ -55,13 +59,32 @@ def known_sounds():
     return set(re.findall(r'^\s*"([^"]+)"\s*:\s*\[', text, re.M))
 
 
+SPEAKER_ALIASES = {"jangala approach": "approach", "castle": "castle", "approach": "approach"}
+
+
+def speaker_id(name):
+    """The hail's display names ("Castle", "Jangala Approach") or ids both resolve to an id."""
+    return SPEAKER_ALIASES.get(str(name).strip().lower(), name)
+
+
+def cue_dict(cue):
+    """A cue as the contract's tuple (t, sound, volume[, until[, fade_in[, fade_out]]]) or a dict."""
+    if isinstance(cue, dict):
+        return dict(cue)
+    out = {"t": cue[0], "sound": cue[1], "volume": cue[2] if len(cue) > 2 else 1.0}
+    for key, i in (("until", 3), ("fade_in", 4), ("fade_out", 5)):
+        if len(cue) > i and cue[i] is not None:
+            out[key] = cue[i]
+    return out
+
+
 def collect(shot_id, shot, frames):
     sys.path.insert(0, str(HERE / shot.folder))
     module = importlib.import_module(shot.module)
     duration = module.duration() if hasattr(module, "duration") else module.DURATION
-    captions = [{"t_in": a, "t_out": b, "speaker": s, "text": t} for a, b, s, t in module.captions()]
+    captions = [{"t_in": a, "t_out": b, "speaker": speaker_id(s), "text": t} for a, b, s, t in module.captions()]
     overlays = list(module.overlays())
-    cues = list(module.audio_cues())
+    cues = [cue_dict(c) for c in module.audio_cues()]
     clock = len(frames) / FPS
     problems = []
     if abs(clock - duration) > 1.5 / FPS:
@@ -100,16 +123,19 @@ def encode(frames_dir, target, crf):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--shot", action="append", help="only these shots (default: every shot with frames)")
-    parser.add_argument("--crf", type=int, default=25)
+    parser.add_argument("--crf", type=int, default=None, help="override every shot's crf (default 25, or the shot's own)")
+    parser.add_argument("--frames-root", type=Path, default=CINEMATIC_BUILD,
+                        help="folder holding <output>/frames for each shot (default build/cinematic)")
     parser.add_argument("--check", action="store_true", help="validate the timeline; write nothing")
     args = parser.parse_args()
     total = 0
     for shot_id, shot in SHOTS.items():
         if args.shot and shot_id not in args.shot:
             continue
-        frames = frames_of(shot.frames)
+        frames_dir = args.frames_root / shot.output / "frames"
+        frames = frames_of(frames_dir)
         if not frames:
-            print("%s: no frames in %s, skipped" % (shot_id, shot.frames))
+            print("%s: no frames in %s, skipped" % (shot_id, frames_dir))
             continue
         timeline = collect(shot_id, shot, frames)
         timeline["speakers"] = SPEAKERS
@@ -117,7 +143,7 @@ def main():
             print("%s: ok, %d frames, %d captions, %d cues" % (shot_id, len(frames), len(timeline["captions"]), len(timeline["cues"])))
             continue
         video = VIDEO_DIR / (shot_id + ".mp4")
-        encode(shot.frames, video, args.crf)
+        encode(frames_dir, video, args.crf or shot.crf or 25)
         TIMELINE_DIR.mkdir(parents=True, exist_ok=True)
         (TIMELINE_DIR / (shot_id + ".json")).write_text(json.dumps(timeline, indent=1) + "\n", encoding="utf-8")
         size = video.stat().st_size

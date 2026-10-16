@@ -980,4 +980,7 @@
 	"jangala_cabin_bed": [{"file": "sounds/story/jangala-arrival/jangala_cabin_bed.ogg", "pitch": 1, "volume": 1.0}],
 	"jangala_squelch_open": [{"file": "sounds/story/jangala-arrival/jangala_squelch_open.ogg", "pitch": 1, "volume": 1.0}],
 	"jangala_squelch_close": [{"file": "sounds/story/jangala-arrival/jangala_squelch_close.ogg", "pitch": 1, "volume": 1.0}],
+	"jangala_arrival_nessa": [{"file": "sounds/story/jangala-arrival/jangala_arrival_nessa.ogg", "pitch": 1, "volume": 1.0}],
+	"jangala_arrival_cabin_bed": [{"file": "sounds/story/jangala-arrival/jangala_arrival_cabin_bed.ogg", "pitch": 1, "volume": 1.0}],
+	"jangala_arrival_wind": [{"file": "sounds/story/jangala-arrival/jangala_arrival_wind.ogg", "pitch": 1, "volume": 1.0}],
 }

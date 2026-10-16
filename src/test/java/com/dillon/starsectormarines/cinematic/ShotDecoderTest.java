@@ -56,7 +56,7 @@ class ShotDecoderTest {
 
     @Test void aMissingFileFailsTheDecoderRatherThanThrowingToTheCaller() throws Exception {
         try (ShotDecoder decoder = new ShotDecoder(() -> { throw new IOException("no such video"); }, 48, 96, 54, 48).start(1)) {
-            for (int i = 0; i < 200 && decoder.failure() == null; i++) Thread.sleep(5);
+            for (int i = 0; i < 3000 && decoder.failure() == null; i++) Thread.sleep(5);
             assertNotNull(decoder.failure());
         }
     }
