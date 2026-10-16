@@ -136,8 +136,13 @@ Wind method in `second-wind-pipeline.md`, Scale):
 1. Take the deck area the mod's own deck program
    (`DeckSizing.programFor` with the `RoomRecipe` shapes; one cell is a
    metre) requires for the hull's class, minimum and maximum crew, and
-   cargo. Add about 25% for circulation, and multiply by about 3.2 m of
-   deck height.
+   cargo. The role comes from the designation (`HullRole.fromDesignation`:
+   "Civilian Transport" is `LINER`). Sum `RoomRecipe.area()`, multiply by
+   the program's own circulation factor (`DeckSizing.CIRCULATION`, 1.40;
+   this is what reproduces the Second Wind's 0.64), and multiply by about
+   3.2 m of deck height. `DeckProgramProbe.java` beside this skill prints
+   all of it with no game process (usage in its Javadoc: class, designation,
+   min crew, max crew, cargo, run against compiled `build/classes`).
 2. Measure the model's main pressure-hull volume in Blender
    (`bmesh.calc_volume` on the main hull object, in cubic units). Take about
    55% of it as usable.
