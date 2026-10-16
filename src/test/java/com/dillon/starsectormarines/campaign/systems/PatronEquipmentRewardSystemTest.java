@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.campaign.PatronEngagementMemory;
 import com.dillon.starsectormarines.campaign.PatronEngagementOutcome;
 import com.dillon.starsectormarines.marine.LoadoutCard;
 import com.dillon.starsectormarines.marine.LoadoutCards;
+import com.dillon.starsectormarines.marine.MechPattern;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -134,6 +135,46 @@ class PatronEquipmentRewardSystemTest {
     }
 
     @Test
+    void someCompletedContractsPayMechPatternsExactlyOnce() {
+        Fixture fixture = fixture("hegemony");
+        for (int day = 0; day < 16; day++) {
+            record(fixture, ContractType.STRIKE, PatronEngagementOutcome.COMPLETED, day);
+        }
+        FakeAccess access = new FakeAccess();
+        access.patternsEnabled = true;
+        access.fieldsMechs = true;
+        PatronEquipmentRewardSystem system = new PatronEquipmentRewardSystem(access);
+
+        system.tick(fixture.state, 16);
+        int paid = access.granted.size() + access.grantedPatterns.size();
+        system.tick(fixture.state, 17);
+
+        assertTrue(!access.grantedPatterns.isEmpty(), "some contract should pay a pattern");
+        assertTrue(!access.granted.isEmpty(), "contracts still pay loadout cards");
+        assertEquals(16, fixture.state.patronEquipmentRewardCursor);
+        assertEquals(paid, access.granted.size() + access.grantedPatterns.size(),
+                "a consumed ledger row never pays twice");
+        assertEquals(access.grantedPatterns.size(), new HashSet<>(access.grantedPatterns).size());
+        assertTrue(access.grantedPatterns.stream().allMatch(id -> MechPattern.parse(id) != null));
+    }
+
+    @Test
+    void aCompanyWithoutMechsIsPaidOnlyChassisPatterns() {
+        Fixture fixture = fixture("hegemony");
+        for (int day = 0; day < 24; day++) {
+            record(fixture, ContractType.STRIKE, PatronEngagementOutcome.COMPLETED, day);
+        }
+        FakeAccess access = new FakeAccess();
+        access.patternsEnabled = true;
+
+        new PatronEquipmentRewardSystem(access).tick(fixture.state, 24);
+
+        assertTrue(access.grantedPatterns.stream().allMatch(
+                id -> MechPattern.parse(id).kind() == MechPattern.Kind.CHASSIS));
+        assertEquals(24, fixture.state.patronEquipmentRewardCursor);
+    }
+
+    @Test
     void rewardSeedIsStableAndSensitiveToLedgerIdentity() {
         long seed = PatronEquipmentRewardSystem.rewardSeed(2L, 4L, 8L);
         assertEquals(seed, PatronEquipmentRewardSystem.rewardSeed(2L, 4L, 8L));
@@ -172,6 +213,10 @@ class PatronEquipmentRewardSystemTest {
         final Set<String> unavailable = new HashSet<>();
         final List<String> granted = new ArrayList<>();
         final List<String> patrons = new ArrayList<>();
+        final Set<String> knownPatterns = new HashSet<>();
+        final List<String> grantedPatterns = new ArrayList<>();
+        boolean patternsEnabled;
+        boolean fieldsMechs;
         boolean cargoAvailable = true;
         boolean acceptGrants = true;
         boolean failAnnouncements;
@@ -191,6 +236,24 @@ class PatronEquipmentRewardSystemTest {
             if (!acceptGrants) return false;
             granted.add(templateId);
             unavailable.add(templateId);
+            return true;
+        }
+
+        @Override
+        public Set<String> unavailablePatternIds() {
+            return patternsEnabled ? Set.copyOf(knownPatterns) : null;
+        }
+
+        @Override
+        public boolean fieldsMechs() {
+            return fieldsMechs;
+        }
+
+        @Override
+        public boolean grantPattern(String patternId) {
+            if (!acceptGrants) return false;
+            grantedPatterns.add(patternId);
+            knownPatterns.add(patternId);
             return true;
         }
 
