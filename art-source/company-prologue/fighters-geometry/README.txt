@@ -65,7 +65,7 @@ Dagger      0.50    0.43-0.58  16.4 x 12.1 x 2.2  3.10x1.15   0.21 m      0.959
 Broadsword  0.50    0.43-0.57  15.5 x 14.1 x 3.3  3.0 x1.9    0.21 m      0.931 (pass 2)
 Longbow     0.45    0.40-0.55  15.0 x 14.4 x 2.5  2.66x1.12   0.14 m      0.951
 Talon       0.55    0.50-0.62  12.1 x 12.1 x 2.4  2.15x0.88   0.08 m      0.977
-Wasp        0.50    0.40-0.65   9.5 x  8.0 x 1.5  (drone)     -           0.909 **
+Wasp        0.50    0.40-0.65   9.5 x  8.0 x 1.9  (drone)     -           0.909 **
 Each <id>/geometry.json has the method, cross-checks and cockpit fit.
 
 For review
@@ -79,7 +79,11 @@ For review
   runs each edge straight through the stair midpoints instead of tracing
   them, so the arms read as blades, not pixels. The stair corners it cuts
   and leaves cost the IoU (0.951 traced), putting it below the 0.93 aim;
-  on arms one to three pixels wide they are a large share.
+  on arms one to three pixels wide they are a large share. It has no
+  landing gear: its arms droop and taper to foot pads at the tips, all on
+  one plane, and it sits level with the drive cans 0.33 m off the deck.
+  The build checks that (parked_check in geometry.json, FEET in the
+  module) and its sheet shows it parked in place of a cockpit cutaway.
 - Asymmetric hulls keep their asymmetry: the Thunder (see above), the Talon (gun nacelle to port,
   cockpit pod to starboard), the Dagger (port torpedo store) and the
   Longbow (emitter to port, missile cell to starboard).

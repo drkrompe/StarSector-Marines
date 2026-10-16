@@ -229,6 +229,21 @@ public final class EffectsService {
         cannonPlumes.add(plume);
     }
 
+    // ---- Single emissions ----
+
+    /**
+     * Queues one smoke puff this frame, for an emitter that keeps its own cadence (a crippled
+     * mech's legs). Draws nothing from the simulation's random stream.
+     */
+    public void emitSmokePuff(float x, float y, float radius) {
+        smokePuffsThisFrame.add(new float[]{x, y, radius});
+    }
+
+    /** Queues one fire burst this frame; the fire counterpart of {@link #emitSmokePuff}. */
+    public void emitFireBurst(float x, float y, float radius) {
+        fireBurstsThisFrame.add(new float[]{x, y, radius});
+    }
+
     // ---- Dust ----
 
     /** Queues a wall-collapse dust-burst event at world cell-center {@code (cellX, cellY)}. Drained by the renderer into {@code ImpactFx.spawnWallCollapse} each frame. */

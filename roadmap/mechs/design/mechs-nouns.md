@@ -194,7 +194,17 @@ increasing an encounter's total armored threat.
   shoulder on the side the round came from, read against the upper torso's
   facing. A lone pod a chassis draws on its centreline (the Hound's) takes the
   whole shoulder band. A payload with no ballistic height (a blast, a strafe) is
-  struck at a uniform height. The roll is never aimed.
+  struck at a uniform height. The roll is never aimed; aiming at a section in
+  direct control would be a separate, later feature.
+- **Cover by section.** Each band of a mech plan carries cover rows, and they
+  read from the ground up: cover hides a mech's legs (low cover about half,
+  medium most, high all of them), at its tallest the bottom of its torso, and
+  never its shoulders or head. A mech behind a berm is **hull-down** — its legs
+  hidden, its weapons still in the fight — the counterpart of a marine in a
+  trench. The cover's target-plane catch band, sized for a man, does not gate a
+  mech: centred on a body twice his height it would hide the torso and bare the
+  legs. Cover counted by section is counted once, so a round that reaches an
+  exposed section takes no further cover cut (`body-part-cover.md`).
 - **Section pools** divide the frame's armor capacity and the chassis structure
   across the sections by authored shares, so the totals are what frame and
   plating set; the armor rating stays per chassis. A mount the mech deployed
@@ -202,19 +212,38 @@ increasing an encounter's total armored threat.
   by the shared durability calculation; what a section cannot hold carries on
   into the torso, which meets it with its own armor before its structure, and
   a hit on a section already at zero goes through the hole to the torso's plate. The chassis health and armor columns carry the
-  sections' totals, so whole-chassis readers see one body.
+  sections' totals, so whole-chassis readers see one body. Plating may later
+  shift capacity between sections; that is the fitting decision sections make
+  possible.
 - **Section loss** is a capability before it is the machine. Legs at zero
   **cripple** the mech: no walking speed, autonomous or manual, while it still
   pivots its hips onto its target, turns its torso and fires. A mount at zero
   **destroys its weapon**: the mount becomes absent for the rest of the battle.
   The head at zero **loses the sensors**: vision halves and weapon accuracy
   drops. The torso at zero is the only death; legs are never a kill. Damage above
-  zero costs only that section's protection, with no hidden stat penalty. Cover
-  still meets a mech as one body with the flat chance until mech plans author
-  cover by section. `-Dbattle.mech.locationalDamage=false` is the whole-body
+  zero costs only that section's protection, with no hidden stat penalty.
+  Doctrine follows the loss. A crippled mech is a **turret** under any order:
+  it holds, turns and fires at what it can engage, asks for no movement, and is
+  never an anchor its lance or a screened infantry advance keys movement to, so
+  nobody is held waiting on it; a player's move order releases itself. A mech
+  that has lost every mount is **disarmed**: it declines its doctrine's attack
+  and breaks contact while it can walk, and a lance with no armed standing mech
+  declines its attack goals as broken morale does, without touching the
+  command's assignment; crippled and disarmed, it simply holds. One lost mount
+  needs no posture: doctrine and engagement range read only the surviving
+  mounts. `-Dbattle.mech.locationalDamage=false` is the whole-body
   control. The battle keeps each owned mech's section record (pools, what was
   destroyed, which weapon each lost mount carried); the frozen deployment
   carries the mech's campaign identity so the record finds its way home.
+  Section loss shows on the chassis itself: a lost mount's weapon layer drops
+  off the layered appearance, a section bursts into flame where it sat the
+  moment it goes and its stump smoulders after, and a crippled mech smokes at
+  its legs for as long as it stands. These are presentation events read off the
+  sections (`MechSectionFxSystem`); they draw nothing from the battle's random
+  stream, so they change no outcome and a review frame stays a function of
+  simulation state. A section paper-doll in the direct-control HUD and above the
+  selected-mech panel shows each section's armor and structure and marks what
+  is gone.
 - **After the battle** settlement writes that record back. A destroyed torso
   (or a chassis that died as one body under the control) **loses the chassis**:
   it leaves its gantry and every part fitted to it leaves stores with it. A

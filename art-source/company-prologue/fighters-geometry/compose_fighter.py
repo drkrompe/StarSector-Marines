@@ -102,13 +102,17 @@ def panel(n, label, x, y, w, h):
 panel('top-overlay', panels[0][1], 0, 92, 960, 440)
 panel('three-quarter', panels[1][1], 960, 92, 960, 440)
 crew = (src/'cockpit-check.png').exists()
-bw = (800, 560, 560) if crew else (960, 960, 0)
+parked = manifest.get('parked_check') if (src/'parked.png').exists() else None
+bw = (800, 560, 560) if crew or parked else (960, 960, 0)
 panel('port-side', panels[2][1], 0, 580, bw[0], 430)
 panel('front', panels[3][1], bw[0], 580, bw[1], 430)
 if crew:
     fit = manifest['scale'].get('cockpit_fit') or []
     clear = ', '.join(f"{f['head_clearance_under_canopy_m']} m" for f in fit)
     panel('cockpit-check', f'CUTAWAY: 1.8 m PILOT CLEARS GLASS BY {clear}', bw[0]+bw[1], 580, bw[2], 430)
+elif parked:
+    panel('parked', f"PARKED ON {len(parked['feet'])} FEET: BODY CLEARS DECK BY {parked['body_clearance_m']:.2f} m",
+          bw[0]+bw[1], 580, bw[2], 430)
 source = manifest['hull']['source']
 master = f"{Path(source['shape_reference']).parent.name}/{Path(source['shape_reference']).name}"
 shape = (f"plan from {Path(source['plan_reference']).name}, sections from {master}" if source.get('plan_reference')
