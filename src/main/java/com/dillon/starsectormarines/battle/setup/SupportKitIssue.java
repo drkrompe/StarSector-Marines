@@ -39,6 +39,8 @@ public final class SupportKitIssue {
         }
         missions.sort(Comparator.comparingInt(m -> m.manifestOrdinal));
         SpecialEquipmentDef mortar = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FIELD_MORTAR_ID);
+        SpecialEquipmentDef satchel = kit.satchelEvery() > 0 ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID) : null;
+        SpecialEquipmentDef pot = kit.smokeEvery() > 0 ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_POT_ID) : null;
         SpecialEquipmentDef radio = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.COMMS_RADIO_ID);
         int ordinal = 0;
         int issued = 0;
@@ -55,6 +57,8 @@ public final class SupportKitIssue {
                     cycle[radioSeat] = cycle[radioSeat].withSpecial(radio.id(), radio.startingAmmo());
                     issued++;
                 }
+                if (kit.sapper(ordinal) && issueFirstFree(cycle, satchel)) issued++;
+                if (kit.screener(ordinal) && issueFirstFree(cycle, pot)) issued++;
                 ordinal++;
             }
             mission.marineLoadout = mission.cycleLoadouts[Math.min(Math.max(mission.currentCycle, 0), mission.cycleLoadouts.length - 1)];
@@ -76,6 +80,8 @@ public final class SupportKitIssue {
         }
         SpecialEquipmentDef mortar = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FIELD_MORTAR_ID);
         SpecialEquipmentDef radio = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.COMMS_RADIO_ID);
+        SpecialEquipmentDef satchel = kit.satchelEvery() > 0 ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID) : null;
+        SpecialEquipmentDef pot = kit.smokeEvery() > 0 ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_POT_ID) : null;
         List<MarineSeatCommitment> issued = new ArrayList<>(seats);
         int ordinal = 0;
         for (List<Integer> squad : squads.values()) {
@@ -85,9 +91,22 @@ public final class SupportKitIssue {
             if (kit.observer(ordinal) && squad.size() >= 3) {
                 issueFirstFree(issued, squad.subList(squad.size() - 2, squad.size() - 1), radio);
             }
+            if (kit.sapper(ordinal) && squad.size() >= 3) issueFirstFree(issued, squad.subList(1, squad.size() - 1), satchel);
+            if (kit.screener(ordinal) && squad.size() >= 3) issueFirstFree(issued, squad.subList(1, squad.size() - 1), pot);
             ordinal++;
         }
         return issued;
+    }
+
+    /** Puts the item in the first seat after the tube-holder and before the launcher that carries no special of its own. */
+    private static boolean issueFirstFree(MarineLoadout[] cycle, SpecialEquipmentDef special) {
+        if (special == null || cycle.length < 3) return false;
+        for (int i = 1; i < cycle.length - 1; i++) {
+            if (cycle[i].specialEquipmentId != null) continue;
+            cycle[i] = cycle[i].withSpecial(special.id(), special.startingAmmo());
+            return true;
+        }
+        return false;
     }
 
     private static void issueFirstFree(List<MarineSeatCommitment> seats, List<Integer> squad, SpecialEquipmentDef special) {

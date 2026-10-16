@@ -129,6 +129,17 @@ class ConquestTrialEvidenceTest {
         System.out.println("[conquest-trial] report " + output.resolve("summary.md").toAbsolutePath());
     }
 
+    /**
+     * The kit object of a fixture: periods for mortar teams, observers, sappers (satchel charges) and screeners (smoke pots). A
+     * {@code "base": "conquest"} names the standing mortar and observer periods (6 and 4) for the fields it does not give, so a
+     * fixture adds sappers and smoke to that kit without restating it. Absent sapper fields issue none.
+     */
+    static SquadSupportKit kitOf(JSONObject k) {
+        boolean base = "conquest".equals(k.optString("base", ""));
+        return new SquadSupportKit(k.optInt("mortarTeamEvery", base ? 6 : 0), k.optInt("observerEvery", base ? 4 : 0),
+                k.optInt("satchelEvery", 0), k.optInt("smokeEvery", 0));
+    }
+
     private static JSONArray fixtures() throws Exception {
         String custom = System.getProperty(PREFIX + ".fixture.path", "").trim();
         if (!custom.isEmpty()) return new JSONArray(Files.readString(Path.of(custom)));
@@ -171,7 +182,7 @@ class ConquestTrialEvidenceTest {
         Object kit = f.opt("supportKit");
         if (kit instanceof JSONObject k) {
             profile = profile.withDeclaredSupportKit(SquadSupportDeclaration.NONE.with(Faction.MARINE,
-                    new SquadSupportKit(k.optInt("mortarTeamEvery", 0), k.optInt("observerEvery", 0))));
+                    kitOf(k)));
         } else if ("conquest".equals(kit)) {
             profile = profile.withDeclaredSupportKit(SquadSupportDeclaration.NONE.with(Faction.MARINE,
                     new SquadSupportKit(6, 4)));

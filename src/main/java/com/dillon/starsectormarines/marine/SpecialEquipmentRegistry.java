@@ -24,6 +24,7 @@ public final class SpecialEquipmentRegistry {
     public static final String ROCKET_LAUNCHER_ID = "special.rocket-launcher";
     public static final String ANTI_MATERIEL_RIFLE_ID = "special.anti-materiel-rifle";
     public static final String SMOKE_GRENADE_ID = "special.smoke-grenade";
+    public static final String SMOKE_POT_ID = "special.smoke-pot";
     public static final String SATCHEL_CHARGE_ID = "special.satchel-charge";
     public static final String COMMS_RADIO_ID = "special.comms-radio";
     public static final String FRAG_GRENADE_ID = "special.frag-grenade";

@@ -6,7 +6,7 @@ Slices are on the mission-command board.
 
 Written: 2026-10-13
 
-Updated: 2026-10-15 — satchel squads hold until their approach is survivable and the company works to make it so, see "Satchel squads keep holding".
+Updated: 2026-10-15 — a long-burning smoke pot and the screen as a partition (it blinds the attacker's own base of fire as well), see "Smoke screens: the pot and the partition".
 
 Read `conquest-command.md`, `forts.md` and `ai-nouns.md` first.
 
@@ -582,6 +582,22 @@ A close breacher (satchel or cutter) is not released by the suppression window; 
 The bound is mechanical: when nothing has progressed for a suppression window plus one strike flight, the company changes approach rather than spending the sappers, to a staffed distance breacher, otherwise the least-covered gate. Smoke is rarely feasible at fort scale because a cloud stands twelve seconds and a walk across the exposed stretch is longer; the planner declines it then.
 
 **Readings** (`sceneEvidence -Pscene=assault-muster`, `breach-charges`, six seeds; seed 4242 fails its existing plan-variant verdict, the company took the main gate). Two seeds went in: 12345 released at tick 5026 after 3,150 held, cut the wall at 5860, closest approach 2 cells; 777 released at 5326, cut at 6130. Seeds 99, 31337 and 20261016 held to the end of the run with no sapper lost; 12345 and 777 each lost the one sapper squad on the plant. `combined-arms` (fire and air) released on 20261016 and cut at 5655, and changed approach to the gate on seed 99 at 6301. Trial ground lane, kit and air fixture, seeds 41 to 46: identical before and after, because that company carries no satchels. What remains: holding is not yet converted into a decisive approach on three of six seeds, and a stronger enabler (suppression that is mechanical rather than a settle time) is not modelled.
+
+## Smoke screens: the pot and the partition
+
+**The finding that started it.** A grenade cloud lasts twelve seconds; crossing an exposed stretch and planting a charge takes longer, so the planner declined smoke every time and smoke was never used. The owner's direction: a longer screen is useful, and it is double-edged, because whatever it covers is stranded from support on the far side of it. A screen is a **partition**, not just a blindfold for the enemy.
+
+**The pot.** `special.smoke-pot` is a mission-kit item (not in the company economy yet; see `nonPlayerEquipment`) with a 3-cell cloud that stands 150 s, of which the last 30 s thin: the radius holds for the first 120 s (`SmokeGrenadeSpec.coverSeconds`), then gives back its rim cell by cell down to a core of 40% of the radius (`SmokeFieldService.CORE_FRACTION`) before the cloud goes. All numbers are UNTUNED first values. Mechanics are unchanged: a cloud adds transient opacity to its cells, cutting line of sight both ways and degrading accuracy through it (`SmokeObscuration`); it does not stop bullets. No wind drift yet.
+
+**The partition is a fact.** `SmokePartition` answers, for any set of standing clouds and a tick, which sight lines are cut (`cuts`), which pairs of positions are cut from each other (`cutPairs`), and whether a place is isolated from a set of others (`isolates`). `SmokeCloudFact` carries what a cloud *holds* (its full radius and the seconds it stays whole), so planners and fair-knowledge observers read the same fact; a thinning cloud is not counted as whole. `SatchelApproach.blinded` now delegates to it.
+
+**The planner weighs both edges.** `SatchelApproach.weigh` refuses a proposed screen that newly cuts a line the plan relies on: `BLINDS_BASE_OF_FIRE` when it cuts a fire squad's line to the nest it is suppressing, and `STRANDS_SAPPERS` when it would sever the sappers' route from the support they stand on. Only cuts the proposal *newly* makes count, so an existing screen does not veto itself. A refusal is recorded (`smokeRefusedBlindsBase`, `smokeRefusedStrandsSappers`) and the company falls through to its next enabler. The screen is offered only when some throwing squad's `CapabilityProfile.screenSeconds` covers the crossing; grenades (12 s) cover none at fort scale, pots do.
+
+**Kit.** `SquadSupportKit` gains `satchelEvery` and `smokeEvery` (default 0, so existing fixtures are unchanged), issued by `SupportKitIssue` into seats nobody else holds; fixtures carry them in `supportKit` (`{"base":"conquest","satchelEvery":3,"smokeEvery":3}` on the trial ground).
+
+**Evidence.** `sceneEvidence -Pscene=smoke-screen` is the mechanics: a sapper squad crossing 64 cells to a heavy-MG nest, open versus screened versus a screen laid across the base of fire versus a thinned screen, with verdicts that the screen stood before the crossing and through it, that sight is cut in both directions, that the base's line is cut only when the screen is placed across it, and that the sappers cross inside the cloud. The headless renderer did not draw smoke at all until `HeadlessBattleSprites` loaded the smoke sheets; the GIFs now show the cloud. In `assault-muster` the `breach-charges-pot` loop gives every third squad pots: pots are thrown (2 to 4 clouds per run, 150 s each) and the smoke is accepted, but across six seeds no sapper was released *because* of a screen (`satchelReleasedBlinded` is 0): the nests die to ordinary fire and engagement first, or the sappers are lost on the walk. The screen also blinded the company's own fire for thousands of sample-ticks (`ownFireBlindedTicks`), which is the cost the partition model exists to name, and seed 12345 did worse than its no-pot control (no wall cut) with the pot. Read these as findings, not as a verdict on smoke: it is a tool the planner now owns and rarely needs.
+
+**Next, in order.** Mortar smoke rounds (a screen laid at range with the existing `FieldMortarService` machinery, so no one walks into the cloud's edge to lay it). Drift and thinning by wind. A defender use of the same fact (a defender screens a gap to strand an attacking company from its base of fire; the symmetric half of the partition). Using the partition between strongpoints to decide which garrisons can reinforce which. A pot economy (an acquisition source and cost) so it can leave mission-kit.
 
 ## Slices
 

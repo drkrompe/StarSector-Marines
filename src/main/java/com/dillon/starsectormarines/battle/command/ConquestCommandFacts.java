@@ -155,7 +155,7 @@ public final class ConquestCommandFacts {
         if (!(sim instanceof BattleSimulation live)) return List.of();
         List<SmokeCloudFact> clouds = new ArrayList<>();
         for (var field : live.smokeFields().activeFields()) {
-            clouds.add(new SmokeCloudFact(field.x(), field.y(), field.radius(), field.remaining()));
+            clouds.add(new SmokeCloudFact(field.x(), field.y(), field.fullRadius(), field.coverSeconds()));
         }
         return clouds;
     }
@@ -163,6 +163,14 @@ public final class ConquestCommandFacts {
     /** The clouds of smoke standing when the facts were frozen. */
     public List<SmokeCloudFact> smokeClouds() {
         return smokeClouds;
+    }
+
+    /**
+     * Which sight lines the standing screens cut, as of {@code tick}: the one answer to "does smoke stand between these two points" that
+     * every planner reads, the side that laid a screen and the side it was laid against alike.
+     */
+    SmokePartition smokePartition(int tick) {
+        return SmokePartition.of(smokeClouds, tick, FortAssault.TICKS_PER_SECOND);
     }
 
     /** What the side's air can do for a plan; {@link AirSupportFacts#NONE} when it holds no pool. */
