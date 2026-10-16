@@ -90,9 +90,16 @@ DECK_PLATES = [
 HATCH = (-14.6, -9.6, -10.6, 1.6)   # aft cargo hatch coaming, outer
 
 # Keel plates (x0, x1, y0, y1), mirrored to starboard.
-KEEL_PLATES = [(-10.2, -4.6), (-4.4, 1.4), (7.9, 12.6), (12.8, 17.0)]
+KEEL_PLATES = [(-7.9, -4.6), (-4.4, 1.4), (7.9, 12.6), (12.8, 17.0)]
 KEEL_ROWS = [(1.5, 5.9), (6.1, 10.8)]
 VENTRAL_HATCH = (1.6, 7.7, 5.6)
+# Aft ventral cargo ramp (pass-3 review): opening (x0, x1, half width),
+# the well it opens into, and the ramp hinged on the opening's forward edge.
+RAMP_OPENING = (-16.9, -8.5, 4.7)
+RAMP_WELL_TOP = -2.0
+RAMP_HINGE = (-8.7, 0.0, KEEL-.38)
+RAMP_LENGTH, RAMP_HALF = 7.95, 4.5
+GROUND = KEEL-1.25    # bottom of the landing pads
 
 
 def bx(kit, name, x0, x1, y0, y1, z0, z1, mat, bevel=.06):
@@ -292,18 +299,19 @@ def deckhouse(kit, house):
                    [bolt(x, y, z+.24, .2, .08) for x in (xa+.3, xb-.3) for y in (ya+.3, yb-.3)], kit.steel)
     z = seat(kit, 10.4, -8.9, 9.7)
     bx(kit, 'Hull hold drain gutter', 7.0, 13.8, -9.5, -8.3, z-.02, z+.04, kit.dark, 0)
-    # Crew access hatch on the deckhouse's aft wall, facing the turret.
-    bx(kit, 'Hull deckhouse aft access hatch frame', 5.8, 6.1, -.2, 3.0, 6.6, 8.7, kit.steel, .04)
-    bx(kit, 'Hull deckhouse aft access hatch', 5.7, 5.95, .1, 2.7, 6.85, 8.45, kit.rust, .04)
+    # The bridge door on the deckhouse's aft wall, facing the turret: 1.6 x
+    # 2.3 units, 1.4 x 2.0 m at 0.88 m per unit (a person is 2.05 units).
+    bx(kit, 'Hull deckhouse aft access hatch frame', 5.78, 6.1, .05, 1.75, 6.42, 8.78, kit.steel, .04)
+    bx(kit, 'Hull deckhouse aft access hatch', 5.68, 5.95, .2, 1.6, 6.5, 8.65, kit.rust, .04)
     blocks(kit, 'Hull deckhouse aft access hatch dogs',
-           [bolt(5.7, y, z, .2, -.1, 'X') for y in (.4, 2.4) for z in (7.15, 8.15)], kit.steel)
+           [bolt(5.68, y, z, .2, -.1, 'X') for y in (.45, 1.35) for z in (7.0, 8.15)], kit.steel)
     # Louvred side vents on the deckhouse walls.
     for s, label in ((1, 'port'), (-1, 'starboard')):
         w = 11.0 if s > 0 else 10.5
         y0, y1 = sorted((s*(w-.1), s*(w+.12)))
-        bx(kit, f'Hull deckhouse side vent {label}', 8.0, 12.0, y0, y1, 6.9, 8.3, kit.dark, 0)
+        bx(kit, f'Hull deckhouse side vent {label}', 6.8, 10.6, y0, y1, 6.9, 8.3, kit.dark, 0)
         blocks(kit, f'Hull deckhouse side vent {label} louvres',
-               [(8.1, 11.9, *sorted((s*(w+.05), s*(w+.2))), z-.08, z+.08) for z in (7.15, 7.6, 8.05)], kit.steel)
+               [(6.9, 10.5, *sorted((s*(w+.05), s*(w+.2))), z-.08, z+.08) for z in (7.15, 7.6, 8.05)], kit.steel)
 
 
 def coolant_loop(kit):
@@ -380,10 +388,12 @@ def skids(kit):
                 (-19.25, -18.85, *sorted((sy*9.6, sy*13.85)), KEEL+2.1, 1.1)], kit.dark)
 
 
-def underside(kit):
+def underside(kit, body):
     """Plated keel, keel beam, ventral hatch, vents and forward pads."""
     plan = [(-15.9, -12.0), (-2.0, -12.0), (-2.0, -11.0), (17.2, -11.0), (17.2, 11.0), (-2.0, 11.0), (-2.0, 12.0), (-15.9, 12.0)]
-    prism(kit, 'Hull keel seam underlay', plan, [(0, KEEL-.06), (0, KEEL+.02)], kit.dark, 0)
+    underlay = prism(kit, 'Hull keel seam underlay', plan, [(0, KEEL-.06), (0, KEEL+.02)], kit.dark, 0)
+    x0, x1, h = RAMP_OPENING
+    boolean(underlay, bx(kit, 'Temporary ramp opening', x0-.4, x1+.4, -h-.45, h+.45, KEEL-2, KEEL+1, kit.dark, 0))
     zp = (KEEL-.36, KEEL-.06)
     k = 0
     for s, label in ((1, 'port'), (-1, 'starboard')):
@@ -392,10 +402,10 @@ def underside(kit):
                 k += 1
                 y0, y1 = sorted((s*ya, s*yb))
                 bx(kit, f'Hull keel plate {k}', xa, xb, y0, y1, *zp, kit.orange, .05)
-        # Inner row of the aftmost bay.
+        # Outer row beside the ramp opening.
         k += 1
-        y0, y1 = sorted((s*1.5, s*5.9))
-        bx(kit, f'Hull keel plate {k}', -15.8, -10.4, y0, y1, *zp, kit.orange, .05)
+        y0, y1 = sorted((s*6.1, s*10.8))
+        bx(kit, f'Hull keel plate {k}', -10.2, -8.1, y0, y1, *zp, kit.orange, .05)
         # Ventral vent in the outer aft bay.
         y0, y1 = sorted((s*6.2, s*10.7))
         bx(kit, f'Hull ventral vent {label} well', -15.6, -10.6, y0, y1, KEEL-.2, KEEL, kit.dark, 0)
@@ -410,9 +420,10 @@ def underside(kit):
         kit.cylinder(f'Hull forward landing pad {label}', (14.6, s*7.6, KEEL-1.05), 1.25, .4, kit.steel, 'Z', 8, .05)
     # Exposed transverse keel frames along the plate seams.
     blocks(kit, 'Hull keel frames',
-           [(x-.16, x+.16, -10.8, 10.8, KEEL-.5, KEEL-.06) for x in (-10.3, -4.5, 7.8, 12.7)], kit.steel)
+           [(x-.16, x+.16, -10.8, 10.8, KEEL-.5, KEEL-.06) for x in (-4.5, 7.8, 12.7)]
+           + [(-10.46, -10.14, *sorted((s*5.25, s*10.8)), KEEL-.5, KEEL-.06) for s in (1, -1)], kit.steel)
     beam = octagon(-1.3, 1.3, KEEL-.95, KEEL+.05, .06, .45)
-    loft_x(kit, 'Hull keel beam aft', [(-16.4, beam), (1.4, beam)], kit.steel, .05)
+    loft_x(kit, 'Hull keel beam aft', [(-7.9, beam), (1.4, beam)], kit.steel, .05)
     loft_x(kit, 'Hull keel beam fore', [(7.9, beam), (16.0, beam)], kit.steel, .05)
     x0, x1, h = VENTRAL_HATCH
     w = .4
@@ -424,6 +435,73 @@ def underside(kit):
     for s, label in ((1, 'port'), (-1, 'starboard')):
         y0, y1 = sorted((s*13.2, s*14.4))
         bx(kit, f'Hull spar underside rib {label}', -6.5, 3.5, y0, y1, -3.9, -3.5, kit.steel, .04)
+    ramp(kit, body)
+
+
+def ramp(kit, body):
+    '''Aft ventral cargo ramp: how cargo gets aboard a small freighter.
+
+    An opening under the stern between the skids leads up into the lower
+    hold. The ramp is hinged on the opening's forward edge and lowers its
+    aft end, so loads come in from astern between the skid legs. Every ramp
+    part is parented to 'Hull aft ventral ramp hinge'. Rotating that empty
+    about its local Y opens it: negative angles lower the aft end. At about
+    6.5 degrees the toe meets the ground under the landing pads.
+    '''
+    x0, x1, h = RAMP_OPENING
+    well = bx(kit, 'Temporary ramp well', x0, x1, -h, h, KEEL-1, RAMP_WELL_TOP, kit.dark, 0)
+    boolean(body, well)
+    # Dark well lining, and a lit strip in its roof (the hold beyond).
+    zt = RAMP_WELL_TOP
+    blocks(kit, 'Hull aft cargo well liner',
+           [(x0+.02, x1-.02, -h+.02, h-.02, zt-.1, zt-.02),
+            (x0+.02, x0+.1, -h+.02, h-.02, KEEL-.1, zt-.02), (x1-.1, x1-.02, -h+.02, h-.02, KEEL-.1, zt-.02),
+            (x0+.02, x1-.02, -h+.02, -h+.1, KEEL-.1, zt-.02), (x0+.02, x1-.02, h-.1, h-.02, KEEL-.1, zt-.02)], kit.dark)
+    work = material('Hull ramp work light', (.3, .3, .28), 0, .3, emission=(1.0, .92, .75), strength=4)
+    bx(kit, 'Hull aft cargo well light', x0+1.0, x1-1.0, -.3, .3, zt-.18, zt-.1, work, 0)
+    # Frame round the opening, with hazard bars and jamb lights at its corners.
+    w = .45
+    fr = [(x0-w, x1+w, -h-w, -h), (x0-w, x1+w, h, h+w), (x0-w, x0, -h, h), (x1, x1+w, -h, h)]
+    blocks(kit, 'Hull aft ventral ramp frame', [(a, b, c, d, KEEL-.5, KEEL) for a, b, c, d in fr], kit.steel)
+    hazard = material('Hull ramp hazard yellow', (.55, .42, .06), .3, .5)
+    blocks(kit, 'Hull aft ventral ramp frame hazard bars',
+           [(x-.2, x+.2, *sorted((s*(h+.05), s*(h+.4))), KEEL-.53, KEEL-.5)
+            for s in (1, -1) for x in [x0+.6+i*1.2 for i in range(7)]], hazard)
+    for k, (x, y) in enumerate(((x0-.22, h+.22), (x0-.22, -h-.22), (x1+.22, h+.22), (x1+.22, -h-.22)), 1):
+        kit.cylinder(f'Hull aft ventral ramp jamb light {k}', (x, y, KEEL-.56), .16, .12, work, 'Z', 8, 0)
+    # The ramp itself, built closed, then parented to its hinge.
+    hx, hy, hz = RAMP_HINGE
+    xa = hx-RAMP_LENGTH
+    parts = [
+        bx(kit, 'Hull aft ventral ramp', xa, hx, -RAMP_HALF, RAMP_HALF, KEEL-.36, KEEL-.02, kit.rust, .05),
+        blocks(kit, 'Hull aft ventral ramp stiffeners',
+               [(xa+.3, hx-.3, y-.15, y+.15, KEEL-.52, KEEL-.36) for y in (-3.4, -1.1, 1.1, 3.4)]
+               + [(x-.12, x+.12, -RAMP_HALF+.2, RAMP_HALF-.2, KEEL-.48, KEEL-.36) for x in (xa+2.6, xa+5.3)], kit.steel),
+        blocks(kit, 'Hull aft ventral ramp treads',
+               [(x-.1, x+.1, -RAMP_HALF+.3, RAMP_HALF-.3, KEEL-.02, KEEL+.06) for x in [xa+.6+i*.75 for i in range(10)]], kit.steel),
+        bx(kit, 'Hull aft ventral ramp toe', xa-.45, xa, -RAMP_HALF, RAMP_HALF, KEEL-.3, KEEL-.12, kit.steel, .04),
+        bx(kit, 'Hull aft ventral ramp hinge barrel', hx-.2, hx+.2, -RAMP_HALF+.4, RAMP_HALF-.4, hz-.2, hz+.2, kit.dark, .05),
+    ]
+    for s, label in ((1, 'port'), (-1, 'starboard')):
+        # Ram from the well roof to the ramp's back; it swings with the ramp
+        # (a rig can split it into cylinder and rod later).
+        a = Vector((hx-.8, s*3.0, RAMP_WELL_TOP-.2))
+        b = Vector((xa+2.4, s*3.0, KEEL+.05))
+        d = b-a
+        ob = kit.cylinder(f'Hull aft ventral ramp actuator {label}', (a+b)/2, .22, d.length, kit.steel, 'Z', 8, .02)
+        ob.rotation_euler = d.to_track_quat('Z', 'Y').to_euler()
+        parts.append(ob)
+    hinge = bpy.data.objects.new('Hull aft ventral ramp hinge', None)
+    hinge.empty_display_type = 'ARROWS'
+    hinge.location = RAMP_HINGE
+    bpy.context.collection.objects.link(hinge)
+    hinge['open_axis'] = 'local Y; negative angles lower the aft end'
+    hinge['ground_contact_deg'] = round(math.degrees(math.asin((KEEL-.36-GROUND)/RAMP_LENGTH)), 1)
+    bpy.context.view_layer.update()
+    for ob in parts:
+        ob.parent = hinge
+        ob.matrix_parent_inverse = hinge.matrix_world.inverted()
+    return hinge
 
 
 def build(kit):
@@ -439,7 +517,9 @@ def build(kit):
     # a raked chin keeps the keel from reading as a brick in side view.
     plane_cut(body, 'Hull chin rake', (21, 0, KEEL+3), facet_normal((1, 0), 140))
     house = prism(kit, 'Hull shielded hold deckhouse', HOUSE_PLAN, HOUSE, kit.rust)
-    plane_cut(house, 'Deckhouse forward rake', (18.5, 0, 7.8), facet_normal((1, 0), 35))
+    # The forward face is the bridge's window wall (hd_wheelhouse glazes it):
+    # vertical to the sill, then leaning back 20 degrees to the roof.
+    plane_cut(house, 'Deckhouse forward rake', (18.5, 0, 7.6), facet_normal((1, 0), 70))
     spar = prism(kit, 'Hull engine spar', SPAR_PLAN, SPAR, kit.orange)
     kit.hull = [body, house, spar]
 
@@ -449,6 +529,6 @@ def build(kit):
     deck(kit, faded)
     coolant_loop(kit)
     skids(kit)
-    underside(kit)
+    underside(kit, body)
     kit.hull = [body, house, spar]
     return body
