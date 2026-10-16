@@ -89,7 +89,7 @@ public final class AnimatedGifWriter implements AutoCloseable {
             throw new IllegalArgumentException("GIF frames must keep one size: "
                     + previousWidth + "x" + previousHeight + " then " + width + "x" + height);
         }
-        int[] rgb = image.getRGB(0, 0, width, height, null, 0, width);
+        int[] rgb = FramePixels.argb(image);
         // A key identifies a pixel's colour for the change test: the cube index in
         // COMPACT mode (so sub-quantum noise never counts as change), the source
         // colour itself in ADAPTIVE mode.

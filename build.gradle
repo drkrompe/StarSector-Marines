@@ -690,6 +690,10 @@ tasks.register('createSnapshots', JavaExec) {
     // Snapshot scenes play the same worlds `sceneEvidence` does and must read the same: serial, overridable by a -Dbattle switch.
     systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
     forwardBattleSwitches(delegate)
+    // `-Dsnapshot.threads=N` (`SnapshotWorkers`; 1 is the serial control) and any other snapshot switch.
+    System.properties.each { key, value ->
+        if (key.toString().startsWith('snapshot.')) systemProperty key.toString(), value
+    }
     // Lossless per-frame copies for a pixel comparison between two runs (`RawFrameDump`).
     if (providers.gradleProperty('snapshotRawFrames').isPresent()) {
         systemProperty 'snapshot.rawFrames', file(providers.gradleProperty('snapshotRawFrames').get()).absolutePath

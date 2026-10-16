@@ -46,7 +46,7 @@ public final class RawFrameDump {
             out.writeInt(frames.size());
             for (BufferedImage frame : frames) {
                 int width = frame.getWidth(), height = frame.getHeight();
-                int[] argb = frame.getRGB(0, 0, width, height, null, 0, width);
+                int[] argb = FramePixels.argb(frame);
                 ByteBuffer bytes = ByteBuffer.allocate(argb.length * 4);
                 bytes.asIntBuffer().put(argb);
                 Deflater deflater = new Deflater(Deflater.BEST_SPEED);

@@ -12,6 +12,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 /**
  * Renders selected suites and exclusively owns their filesystem output.
@@ -82,16 +83,23 @@ public final class SnapshotRunner {
             }
             long writeStart = System.nanoTime();
             Path rawRoot = rawFrameRoot();
+            // Each artifact is its own file and its own encoder, so they are written side by side; the order of
+            // `outputs` stays the planned order whatever finishes first.
+            List<Callable<Void>> writes = new ArrayList<>(planned.size());
             for (PlannedArtifact item : planned) {
-                Path output = item.output();
-                if (output.getParent() != null) Files.createDirectories(output.getParent());
-                write(item.artifact(), output);
-                outputs.add(output);
-                if (rawRoot != null) {
-                    RawFrameDump.write(rawRoot.resolve(suite.id()).resolve(item.artifact().relativePath()),
-                            item.artifact().frames());
-                }
+                writes.add(() -> {
+                    Path output = item.output();
+                    if (output.getParent() != null) Files.createDirectories(output.getParent());
+                    write(item.artifact(), output);
+                    if (rawRoot != null) {
+                        RawFrameDump.write(rawRoot.resolve(suite.id()).resolve(item.artifact().relativePath()),
+                                item.artifact().frames());
+                    }
+                    return null;
+                });
             }
+            writeAll(writes);
+            for (PlannedArtifact item : planned) outputs.add(item.output());
             System.out.printf(Locale.ROOT, "  [%s] rendered in %.1fs, wrote %d artifact(s) in %.1fs%n",
                     suite.id(), renderNanos / 1e9, planned.size(), (System.nanoTime() - writeStart) / 1e9);
         }
@@ -104,6 +112,27 @@ public final class SnapshotRunner {
     private static Path rawFrameRoot() {
         String raw = System.getProperty(RawFrameDump.PROPERTY);
         return raw == null || raw.isBlank() ? null : Path.of(raw).toAbsolutePath().normalize();
+    }
+
+    private static void writeAll(List<Callable<Void>> writes) throws IOException {
+        if (SnapshotWorkers.threads() <= 1) {
+            for (Callable<Void> write : writes) {
+                try {
+                    write.call();
+                } catch (IOException | RuntimeException failure) {
+                    throw failure;
+                } catch (Exception failure) {
+                    throw new IllegalStateException(failure);
+                }
+            }
+            return;
+        }
+        try {
+            SnapshotWorkers.runAll(writes);
+        } catch (IllegalStateException wrapped) {
+            if (wrapped.getCause() instanceof IOException io) throw io;
+            throw wrapped;
+        }
     }
 
     private static void write(SnapshotArtifact artifact, Path output) throws IOException {
