@@ -164,14 +164,22 @@ public final class MissionSelectScreen implements Screen {
         props.put("brokerPortrait", OpeningBroker.CREST);
         props.put("brokerName", AgreusArcCampaign.NAME);
         props.put("brokerRole", Strings.get("missionSelectHOUSERUSKKOCOMBINECONCESSION"));
-        props.put("brokerIntroduction", p != null && p.yardCompleted()
+        props.put("brokerIntroduction", p != null && p.smallWarSettled()
+                ? Strings.get("missionSelectRuskBlackSluiceSettled")
+                : p != null && p.smallWarAvailable()
+                ? Strings.get("missionSelectRuskBlackSluiceOffered")
+                : p != null && p.yardCompleted()
                 ? Strings.get("missionSelectRuskLatchkeySInspectionIsSettledReadThe")
                 : p != null && p.warrantCompleted()
                 ? Strings.get("missionSelectRuskTheLowQuayRecoveryIsSettledNow")
                 : p != null && p.completed()
                 ? Strings.get("missionSelectRuskNorthWeirIsWorkingRecoverTheLow")
                 : AgreusArcCampaign.REFERRAL);
-        props.put("brokerProgress", p != null && p.yardCompleted()
+        props.put("brokerProgress", p != null && p.smallWarSettled()
+                ? Strings.get("missionSelectSMALLWARCLOSED")
+                : p != null && p.smallWarAvailable()
+                ? Strings.get("missionSelectSMALLWARAVAILABLE")
+                : p != null && p.yardCompleted()
                 ? Strings.get("missionSelectLATCHKEYINSPECTED92000CRSETTLEDBothRecovered")
                 : p != null && p.warrantCompleted()
                 ? Strings.get("missionSelectLIMITEDWARRANTCOMPLETETHEYARDSOWNERSAVAILABLE")
@@ -396,6 +404,12 @@ public final class MissionSelectScreen implements Screen {
     }
 
     private static List<DetailRow> detailRows(Mission mission) {
+        if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.smallWar(mission.id)) return List.of(
+                detailRow("force",Strings.get("missionSelectCompany"),Strings.get("missionSelect3FullSquadsRecommendedMinimum2With4")),
+                detailRow("support",Strings.get("missionSelectSmallWarSupport"),Strings.get("missionSelectSmallWarSupportDetail")),
+                detailRow("claim",Strings.get("missionSelectBlackSluice"),Strings.get("missionSelectSmallWarClaim")),
+                detailRow("terms",Strings.get("missionSelectPreservation"),Strings.get("missionSelectSmallWarPreservation")),
+                detailRow("payout",Strings.get("missionSelectVictoryFee"),Strings.get("missionSelectSmallWarPayout")));
         if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.yardOwners(mission.id)) return List.of(
                 detailRow("force",Strings.get("missionSelectCompany"),Strings.get("missionSelect3FullSquadsRecommendedMinimum2With4")),
                 detailRow("support",Strings.get("missionSelectInspectionParty"),Strings.get("missionSelectOwnedTender8Constables2TechniciansOptionalOwned")),

@@ -4296,6 +4296,238 @@
       "terminal": true
     },
     {
+      "id": "small_war_briefing",
+      "missionId": "story_agreus_small_war",
+      "event": "briefing",
+      "text": "Take Black Sluice's customs block, fuel control and dispatch, preserve the marked fuel tanks, and walk the custody party into fuel control. The galleries flank the causeway.",
+      "durationSeconds": 10,
+      "priority": 12,
+      "expiresSeconds": 40,
+      "supersedes": [
+        "small_war.mobilization",
+        "small_war.customs",
+        "small_war.rear_position",
+        "small_war.fuel_control",
+        "small_war.dispatch",
+        "small_war.handover"
+      ],
+      "speaker": "CASTLE / COMPANY OPERATIONS",
+      "portrait": "graphics/portraits/castle.png",
+      "voiced": false,
+      "terminal": false
+    },
+    {
+      "id": "small_war_mobilization",
+      "missionId": "story_agreus_small_war",
+      "event": "small_war.mobilization",
+      "text": "Customs first. Our tender builds the rear position behind it, and the holders take only what we actually hold.",
+      "durationSeconds": 10,
+      "priority": 12,
+      "expiresSeconds": 40,
+      "supersedes": [
+        "small_war.customs",
+        "small_war.rear_position",
+        "small_war.fuel_control",
+        "small_war.dispatch",
+        "small_war.handover"
+      ],
+      "speaker": "CASTLE / COMPANY OPERATIONS",
+      "portrait": "graphics/portraits/castle.png",
+      "voiced": false,
+      "terminal": false
+    },
+    {
+      "id": "small_war_customs",
+      "missionId": "story_agreus_small_war",
+      "event": "small_war.customs",
+      "text": "Customs is contested again. Retake it before anything further down the causeway counts.",
+      "durationSeconds": 10,
+      "priority": 12,
+      "expiresSeconds": 40,
+      "supersedes": [
+        "small_war.mobilization",
+        "small_war.rear_position",
+        "small_war.fuel_control",
+        "small_war.dispatch",
+        "small_war.handover"
+      ],
+      "speaker": "CASTLE / COMPANY OPERATIONS",
+      "portrait": "graphics/portraits/castle.png",
+      "voiced": false,
+      "terminal": false
+    },
+    {
+      "id": "small_war_rear_position",
+      "missionId": "story_agreus_small_war",
+      "event": "small_war.rear_position",
+      "text": "Customs is ours. Bring the tender in and build the rear position in the marked bay south of the block.",
+      "durationSeconds": 10,
+      "priority": 12,
+      "expiresSeconds": 40,
+      "supersedes": [
+        "small_war.mobilization",
+        "small_war.customs",
+        "small_war.fuel_control",
+        "small_war.dispatch",
+        "small_war.handover"
+      ],
+      "speaker": "CASTLE / COMPANY OPERATIONS",
+      "portrait": "graphics/portraits/castle.png",
+      "voiced": false,
+      "terminal": false
+    },
+    {
+      "id": "small_war_fuel_control",
+      "missionId": "story_agreus_small_war",
+      "event": "small_war.fuel_control",
+      "text": "Fuel control next. Stay off the open causeway where the gun can see you; the service galleries come out beside it.",
+      "durationSeconds": 10,
+      "priority": 12,
+      "expiresSeconds": 40,
+      "supersedes": [
+        "small_war.mobilization",
+        "small_war.customs",
+        "small_war.rear_position",
+        "small_war.dispatch",
+        "small_war.handover"
+      ],
+      "speaker": "CASTLE / COMPANY OPERATIONS",
+      "portrait": "graphics/portraits/castle.png",
+      "voiced": false,
+      "terminal": false
+    },
+    {
+      "id": "small_war_dispatch",
+      "missionId": "story_agreus_small_war",
+      "event": "small_war.dispatch",
+      "text": "Take dispatch and its transfer records. Keep fire away from the marked tanks.",
+      "durationSeconds": 10,
+      "priority": 12,
+      "expiresSeconds": 40,
+      "supersedes": [
+        "small_war.mobilization",
+        "small_war.customs",
+        "small_war.rear_position",
+        "small_war.fuel_control",
+        "small_war.handover"
+      ],
+      "speaker": "CASTLE / COMPANY OPERATIONS",
+      "portrait": "graphics/portraits/castle.png",
+      "voiced": false,
+      "terminal": false
+    },
+    {
+      "id": "small_war_handover",
+      "missionId": "story_agreus_small_war",
+      "event": "small_war.handover",
+      "text": "All three sites are ours. Hold them clear while the custody party walks into fuel control and completes the handover.",
+      "durationSeconds": 10,
+      "priority": 12,
+      "expiresSeconds": 40,
+      "supersedes": [
+        "small_war.mobilization",
+        "small_war.customs",
+        "small_war.rear_position",
+        "small_war.fuel_control",
+        "small_war.dispatch"
+      ],
+      "speaker": "CASTLE / COMPANY OPERATIONS",
+      "portrait": "graphics/portraits/castle.png",
+      "voiced": false,
+      "terminal": false
+    },
+    {
+      "id": "small_war_voss_abandon",
+      "missionId": "story_agreus_small_war",
+      "event": "small_war.voss_abandon",
+      "text": "All Greyhook crews, Black Sluice is closed. Drent, take your people out by the service road. Nobody stays for a berth that is already lost.",
+      "durationSeconds": 10,
+      "priority": 25,
+      "expiresSeconds": 40,
+      "supersedes": [],
+      "speaker": "SERA VOSS / OPEN CHANNEL",
+      "portrait": "graphics/factions/crest_neutral_traders.png",
+      "voiced": false,
+      "terminal": false
+    },
+    {
+      "id": "small_war_berth_four_refuses",
+      "missionId": "story_agreus_small_war",
+      "event": "small_war.berth_four_refuses",
+      "text": "Berth Four isn't walking off its own pier. Anyone who wants a share of what's left, hold dispatch with us.",
+      "durationSeconds": 10,
+      "priority": 24,
+      "expiresSeconds": 40,
+      "supersedes": [],
+      "speaker": "DARO PELL / BERTH FOUR",
+      "portrait": "graphics/factions/crest_neutral_traders.png",
+      "voiced": false,
+      "terminal": false
+    },
+    {
+      "id": "small_war_complete",
+      "missionId": "story_agreus_small_war",
+      "event": "small_war.complete",
+      "text": "The handover is signed in fuel control. Count our people before anyone counts the fuel.",
+      "durationSeconds": 10,
+      "priority": 30,
+      "expiresSeconds": 40,
+      "supersedes": [
+        "small_war.mobilization",
+        "small_war.customs",
+        "small_war.rear_position",
+        "small_war.fuel_control",
+        "small_war.dispatch",
+        "small_war.handover"
+      ],
+      "speaker": "CASTLE / COMPANY OPERATIONS",
+      "portrait": "graphics/portraits/castle.png",
+      "voiced": false,
+      "terminal": true
+    },
+    {
+      "id": "small_war_failed",
+      "missionId": "story_agreus_small_war",
+      "event": "small_war.failed",
+      "text": "We cannot complete this handover. Withdraw and report the losses; another attempt needs a new mobilization.",
+      "durationSeconds": 10,
+      "priority": 30,
+      "expiresSeconds": 40,
+      "supersedes": [
+        "small_war.mobilization",
+        "small_war.customs",
+        "small_war.rear_position",
+        "small_war.fuel_control",
+        "small_war.dispatch",
+        "small_war.handover"
+      ],
+      "speaker": "CASTLE / COMPANY OPERATIONS",
+      "portrait": "graphics/portraits/castle.png",
+      "voiced": false,
+      "terminal": true
+    },
+    {
+      "id": "small_war_construction_exhausted",
+      "missionId": "story_agreus_small_war",
+      "event": "small_war.construction_exhausted",
+      "text": "The tender support is spent and the rear position is not built. Withdraw; a new mobilization is required.",
+      "durationSeconds": 10,
+      "priority": 30,
+      "expiresSeconds": 40,
+      "supersedes": [
+        "small_war.mobilization",
+        "small_war.customs",
+        "small_war.rear_position",
+        "small_war.fuel_control",
+        "small_war.dispatch",
+        "small_war.handover"
+      ],
+      "speaker": "CASTLE / COMPANY OPERATIONS",
+      "portrait": "graphics/portraits/castle.png",
+      "voiced": false,
+      "terminal": true
+    },
+    {
       "id": "basin_referral_01",
       "missionId": "story_shepherd_referral",
       "event": "referral.01",

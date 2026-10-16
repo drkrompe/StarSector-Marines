@@ -8,6 +8,9 @@ import com.dillon.starsectormarines.battle.command.WaterUnderSealCommand;
 import com.dillon.starsectormarines.battle.command.LimitedWarrantCommand;
 import com.dillon.starsectormarines.battle.world.gen.LowQuay;
 import com.dillon.starsectormarines.battle.world.gen.LatchkeyYard;
+import com.dillon.starsectormarines.battle.world.gen.BlackSluice;
+import com.dillon.starsectormarines.battle.command.SmallWarCommand;
+import com.dillon.starsectormarines.battle.story.SmallWarProgress;
 import com.dillon.starsectormarines.battle.command.YardOwnersCommand;
 import com.dillon.starsectormarines.battle.command.SalvageRightsCommand;
 import com.dillon.starsectormarines.battle.command.ColdStartCommand;
@@ -201,7 +204,9 @@ import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
 
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
@@ -1661,6 +1666,75 @@ public final class BattleSetup {
         for (Faction faction : List.of(Faction.MARINE,Faction.ALLY,Faction.DEFENDER))
             sim.setAutonomousCommander(faction,new YardOwnersCommand(faction),YardOwnersCommand.disclosure(sim.getYardOwners()));
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(YardOwnersCommand.issuer(Faction.MARINE),"Company inspection support"));
+        return sim;
+    }
+
+    /**
+     * Black Sluice, the chapter-five foothold. Greyhook's groups are the finite authored table in
+     * {@link SmallWarForces}; holders and the custody party are the employer's. {@code houseCustody}
+     * names who walks the handover (Rusk's custodians or the joint party); it changes no strength.
+     */
+    public static BattleSimulation createSmallWar(long seed, List<ShuttleAssignment> manifest, TargetProfile profile, boolean houseCustody) {
+        if (manifest == null || manifest.isEmpty() || manifest.size() > 4)
+            throw new IllegalArgumentException("A Small War requires one to four fitted company boats");
+        MapResult map = BlackSluice.generate(seed, profile);
+        BattleSimulation sim = buildMap(map, List.of(), List.of(), List.of(), seed).sim();
+        sim.setSurface(surfaceOf(profile));
+        sim.getBattleResources().disableCompoundProduction();
+        sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
+        Random rng = new Random(seed);
+        var pads = LandingPadSelector.select(map, manifest.size(), LZ_MIN_SEPARATION);
+        stampLzPads(sim, pads);
+        for (int i = 0; i < manifest.size(); i++) {
+            var assignment = manifest.get(i); var pad = pads.get(i);
+            float x = pad.centerX + .5f, y = pad.centerY + .5f;
+            float[] entry = shuttleEntryFor(x, y, map.grid.getWidth(), map.grid.getHeight(), pad.approach);
+            long air = sim.spawnShuttle(assignment.type, assignment.airframe, Faction.MARINE, x, y,
+                    entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
+            var mission = sim.world().mission(air);
+            mission.totalCycles = assignment.cycles; mission.manifestOrdinal = i;
+            mission.commandClaim = SquadCommandClaim.mission(SmallWarCommand.issuer(Faction.MARINE), "Company fitted Black Sluice lift");
+            mission.cycleLoadouts = new MarineLoadout[assignment.cycles][];
+            for (int cycle = 0; cycle < assignment.cycles; cycle++)
+                mission.cycleLoadouts[cycle] = InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle), rng);
+            mission.marineLoadout = mission.cycleLoadouts[0];
+        }
+        Map<Integer, SmallWarForces.Group> starting = new LinkedHashMap<>();
+        Map<SmallWarForces.Group, List<EntitySpec>> reserves = new LinkedHashMap<>();
+        for (var group : SmallWarForces.GROUPS) {
+            List<EntitySpec> members = new ArrayList<>();
+            for (int[] cell : pickSpawnCluster(map.grid, group.x(), group.y(), group.size()))
+                members.add(makeOpeningMilitia(group.name() + " / " + members.size(), Faction.DEFENDER, cell[0], cell[1], rng).role(UnitRole.PATROL));
+            if (group.reserve()) { reserves.put(group, members); continue; }
+            int squad = sim.mintSquad(Faction.DEFENDER, UnitType.MILITIA);
+            for (var member : members) sim.spawn(member.squad(squad));
+            sim.getSquad(squad).originalSize = group.size();
+            sim.claimSquadCommand(squad, CommandAuthority.MISSION_COMMAND, SmallWarCommand.issuer(Faction.DEFENDER), group.name() + " holds the " + group.ingress());
+            starting.put(squad, group);
+        }
+        // One visible support gun covers the causeway; the north gallery flanks it.
+        long gun = sim.spawn(MapTurret.create("greyhook-causeway-gun", Faction.DEFENDER,
+                TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, BlackSluice.GUN_X, BlackSluice.GUN_Y));
+        List<Integer> holders = new ArrayList<>();
+        for (int duty = 0; duty < 3; duty++) {
+            int squad = sim.mintSquad(Faction.ALLY, UnitType.MILITIA);
+            for (int[] cell : pickSpawnCluster(map.grid, 34 + 4 * duty, 52, 4))
+                sim.spawn(makeOpeningMilitia(houseCustody ? "Rusk estate guard" : "Black Sluice constable", Faction.ALLY, cell[0], cell[1], rng)
+                        .squad(squad).role(UnitRole.PATROL));
+            sim.getSquad(squad).originalSize = 4;
+            sim.claimSquadCommand(squad, CommandAuthority.MISSION_COMMAND, SmallWarCommand.issuer(Faction.ALLY), "Holders occupy actual company gains");
+            holders.add(squad);
+        }
+        int custody = sim.mintSquad(Faction.ALLY, UnitType.TECHNICIAN);
+        for (int[] cell : pickSpawnCluster(map.grid, 28, 52, SmallWarProgress.CUSTODIANS))
+            sim.spawn(new EntitySpec(houseCustody ? "House Rusk appointed custodian" : "Joint custody party member",
+                    Faction.ALLY, UnitType.TECHNICIAN, cell[0], cell[1]).squad(custody).role(UnitRole.PATROL));
+        sim.getSquad(custody).originalSize = SmallWarProgress.CUSTODIANS;
+        sim.claimSquadCommand(custody, CommandAuthority.MISSION_COMMAND, SmallWarCommand.issuer(Faction.ALLY), "Agreed local custody party");
+        sim.installSmallWar(custody, holders, starting, reserves, gun, houseCustody);
+        for (Faction faction : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER))
+            sim.setAutonomousCommander(faction, new SmallWarCommand(faction), SmallWarCommand.disclosure(sim.getSmallWar()));
+        sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(SmallWarCommand.issuer(Faction.MARINE), "Company Black Sluice support"));
         return sim;
     }
 

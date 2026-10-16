@@ -32,7 +32,7 @@ record AgreusWorkGuide(AgreusArcProgress progress, OpeningBroker.Destination des
         return switch (progress.handoverStage()) {
             case OPEN -> "DECISION / Latchkey custody agreements";
             case SIGNED -> "IN PREPARATION / Terms of Protection";
-            case RATIFIED -> "RATIFIED / " + agreementName(progress.signedAgreement());
+            case RATIFIED -> progress.smallWarSettled() ? "CLOSED / A Small War settled" : "NEW / A Small War";
             case DECLINED -> "CLOSED / Further work declined";
             case NOT_REACHED -> "COMPLETE / Latchkey inspection";
         };
@@ -41,8 +41,10 @@ record AgreusWorkGuide(AgreusArcProgress progress, OpeningBroker.Destination des
         return switch (progress.handoverStage()) {
             case SIGNED -> "Signed: " + agreementName(progress.signedAgreement()) + " / ratified only on Chapter 4 victory"
                     + (progress.custodyPremiumDue() > 0 ? " / 12,000 cr premium on Chapter 5 victory" : " / premium forgone");
-            case RATIFIED -> agreementName(progress.signedAgreement())
-                    + (progress.custodyPremiumDue() > 0 ? " / 12,000 cr premium on Chapter 5 victory" : " / premium forgone");
+            case RATIFIED -> progress.smallWarSettled()
+                    ? agreementName(progress.signedAgreement()) + " / 44,000 cr" + (progress.smallWarPremiumPaid() > 0 ? " + 12,000 cr premium" : "") + " settled"
+                    : "44,000 cr / " + agreementName(progress.signedAgreement())
+                    + (progress.custodyPremiumDue() > 0 ? " / 12,000 cr premium on victory" : " / premium forgone");
             default -> "92,000 cr settled / Recovered Specter and Arbalest entitlements fulfilled";
         };
     }
@@ -51,13 +53,19 @@ record AgreusWorkGuide(AgreusArcProgress progress, OpeningBroker.Destination des
             case OPEN -> "Company HQ > Latchkey custody: read both agreements, ask Castle to compare, or leave them. Nothing is signed.";
             case SIGNED -> "Terms of Protection is in preparation; no deployment is available yet. Later escort work: "
                     + (progress.signedAgreement() == AgreusYardAgreement.HOUSE_CUSTODY ? "Rusk's office." : "Lenna Saye's association.");
+            case RATIFIED -> progress.smallWarSettled()
+                    ? "Black Sluice is in local hands. The record is closed; later escort work comes through "
+                    + (progress.signedAgreement() == AgreusYardAgreement.HOUSE_CUSTODY ? "Rusk's office." : "Lenna Saye's association.")
+                    : "Marine operations > Baronet Elian Rusk / Black Sluice";
             default -> "Learn both recovered-suit cargo cards, then fit Salvage-assisted Section in the Armory.";
         };
     }
     private String handoverPreparation() {
         return switch (progress.handoverStage()) {
             case OPEN -> "Signing commits one route and closes the other. You may instead decline further work and keep completed fees and cards.";
-            case SIGNED, RATIFIED -> AgreusArcCampaign.VOSS_WARNING.speaker() + ": “" + AgreusArcCampaign.VOSS_WARNING.text() + "”";
+            case RATIFIED -> progress.smallWarSettled() ? AgreusArcCampaign.VOSS_LAST.speaker() + ": “" + AgreusArcCampaign.VOSS_LAST.text() + "”"
+                    : "Three full squads recommended, fitted boats and working tender. Take customs, fuel control and dispatch; preserve the marked fuel tanks. Optional owned mech.";
+            case SIGNED -> AgreusArcCampaign.VOSS_WARNING.speaker() + ": “" + AgreusArcCampaign.VOSS_WARNING.text() + "”";
             case DECLINED -> AgreusArcCampaign.DECLINED_RECORD;
             case NOT_REACHED -> "Issued gear is unchanged. Already learned or carried cards satisfy the award; selling a card does not renew it. Recovered equipment is below military issue.";
         };

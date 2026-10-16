@@ -22,12 +22,52 @@ public final class AgreusArcProgress implements Serializable {
     private int yardAttempt, yardTechniciansLost, yardConstablesLost, toolingLost;
     private boolean yardCompleted;
     /**
-     * Whether *A Small War* (Chapter 5, Black Sluice) has settled. Its settlement carries the
-     * procurement introduction that opens the Hegemony auxiliary warrant offer. Nothing sets
-     * this until Chapter 5 ships; its settlement is the one writer.
+     * Whether *A Small War* (Chapter 5, Black Sluice) has settled with a victory. Its settlement
+     * carries the procurement introduction that opens the Hegemony auxiliary warrant offer;
+     * {@link #settleSmallWar} is the one writer.
      */
     private boolean smallWarSettled;
     public boolean smallWarSettled() { return smallWarSettled; }
+    public static final String SMALL_WAR_PREFIX = "agreus_small_war_v1_";
+    public static final int SMALL_WAR_PAYMENT = 44000;
+    public static final String SMALL_WAR_SITE = "black-sluice";
+    private int smallWarAttempt, smallWarCustodiansLost, smallWarHoldersLost, fuelInfrastructureLost, smallWarPremiumPaid, greyhookWithdrawn;
+    public static boolean smallWar(String id) { return id != null && id.startsWith(SMALL_WAR_PREFIX); }
+    public int smallWarCustodiansLost() { return smallWarCustodiansLost; }
+    public int smallWarHoldersLost() { return smallWarHoldersLost; }
+    public int fuelInfrastructureLost() { return fuelInfrastructureLost; }
+    /** The premium actually paid with the Chapter 5 settlement; 0 under the compact or before victory. */
+    public int smallWarPremiumPaid() { return smallWarPremiumPaid; }
+    /** Greyhook people seen to walk off the field on the settled victory. */
+    public int greyhookWithdrawn() { return greyhookWithdrawn; }
+    /** Chapter 5 is offered only once a Terms of Protection victory has ratified the signed route. */
+    public boolean smallWarAvailable() { return handoverStage() == HandoverStage.RATIFIED && !smallWarSettled; }
+
+    /**
+     * Chapter 5's once-only settlement. Accepts only the active Black Sluice attempt whose frozen
+     * facts match its claimed result; victory sets {@link #smallWarSettled} and returns the fee plus
+     * any ratified House Custody premium, exactly once. Defeat records confirmed employer losses and
+     * opens a disclosed replacement mobilization. Stale, duplicate or foreign receipts write nothing.
+     */
+    public int settleSmallWar(String id, String planetId, boolean victory, int payment,
+                              boolean customs, boolean fuelControl, boolean dispatch, boolean rearPosition, boolean handedOver,
+                              boolean company, boolean infrastructureLost, int custodianLosses, int holderLosses, int withdrawn) {
+        boolean achieved = customs && fuelControl && dispatch && rearPosition && handedOver && company
+                && !infrastructureLost && custodianLosses < 3;
+        if (!smallWarAvailable() || !smallWar(id) || !matchesNext(id) || !id.equals(activeId)
+                || !planetIdEquals(planetId) || !SMALL_WAR_SITE.equals(activeSite)
+                || payment != (victory ? SMALL_WAR_PAYMENT : 0) || victory != achieved || handedOver && !achieved
+                || custodianLosses < 0 || custodianLosses > 3 || holderLosses < 0 || holderLosses > 12 || withdrawn < 0) return -1;
+        smallWarCustodiansLost += custodianLosses; smallWarHoldersLost += holderLosses;
+        if (infrastructureLost) fuelInfrastructureLost++;
+        activeId = null; activePlanetId = null; activePlanetName = null; activeSite = null;
+        smallWarAttempt = Math.max(1, smallWarAttempt) + 1;
+        if (!victory) return 0;
+        smallWarSettled = true;
+        greyhookWithdrawn = withdrawn;
+        smallWarPremiumPaid = settleCustodyPremium();
+        return payment + smallWarPremiumPaid;
+    }
 
     /** Where the Latchkey custody decision stands. Older saves without these fields read as unsigned. */
     public enum HandoverStage {
@@ -114,15 +154,20 @@ public final class AgreusArcProgress implements Serializable {
     public int militiaLost() { return militiaLost; }
     public int repairLoadsLost() { return repairLoadsLost; }
     public String missionId() { return completed ? null : PREFIX + attempt; }
-    public static boolean owns(String id) { return id != null && (id.startsWith(PREFIX) || limitedWarrant(id) || yardOwners(id)); }
+    public static boolean owns(String id) { return id != null && (id.startsWith(PREFIX) || limitedWarrant(id) || yardOwners(id) || smallWar(id)); }
     public static boolean limitedWarrant(String id) { return id != null && id.startsWith(WARRANT_PREFIX); }
     public boolean warrantCompleted() { return warrantCompleted; }
     public boolean recordsRecovered() { return recordsRecovered; }
     public int warrantTechniciansLost() { return warrantTechniciansLost; }
     public int warrantConstablesLost() { return warrantConstablesLost; }
     public int calibrationLoadsLost() { return calibrationLoadsLost; }
-    public String nextMissionId() { return !completed ? missionId() : !warrantCompleted ? WARRANT_PREFIX + Math.max(1, warrantAttempt) : yardCompleted ? null : YARD_PREFIX + Math.max(1, yardAttempt); }
-    public int nextPayment() { return warrantCompleted ? YARD_PAYMENT : completed ? WARRANT_PAYMENT : PAYMENT; }
+    public String nextMissionId() {
+        if (!completed) return missionId();
+        if (!warrantCompleted) return WARRANT_PREFIX + Math.max(1, warrantAttempt);
+        if (!yardCompleted) return YARD_PREFIX + Math.max(1, yardAttempt);
+        return smallWarAvailable() ? SMALL_WAR_PREFIX + Math.max(1, smallWarAttempt) : null;
+    }
+    public int nextPayment() { return yardCompleted ? SMALL_WAR_PAYMENT : warrantCompleted ? YARD_PAYMENT : completed ? WARRANT_PAYMENT : PAYMENT; }
     public boolean matchesNext(String id) { return id != null && id.equals(nextMissionId()); }
     public boolean matches(String id) { return id != null && id.equals(missionId()); }
 
@@ -134,7 +179,7 @@ public final class AgreusArcProgress implements Serializable {
         activeId = id;
         activePlanetId = planetId;
         activePlanetName = planetName;
-        activeSite = yardOwners(id) ? "latchkey-yard" : limitedWarrant(id) ? "low-quay-bonded-stores" : SITE;
+        activeSite = smallWar(id) ? SMALL_WAR_SITE : yardOwners(id) ? "latchkey-yard" : limitedWarrant(id) ? "low-quay-bonded-stores" : SITE;
         return true;
     }
     public boolean acceptsTarget(String name) { return activePlanetName != null && activePlanetName.equals(name); }

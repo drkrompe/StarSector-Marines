@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.marine.LoadoutCardItemPlugin;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import java.util.List;
 import java.util.Set;
+import java.util.function.IntConsumer;
 
 /** House Rusk's authored concession beneath the existing Agreus administration. */
 public final class AgreusArcCampaign {
@@ -55,6 +56,16 @@ public final class AgreusArcCampaign {
             + "Agreus is cold and airless: our regular infantry use pressure protection outside the sealed halls. "
             + "Destroyed repair cargo or the loss of both technicians forces withdrawal. Rusk provides a new load and replacement party for a later mobilization. "
             + "This local security contract grants no planetary police commission or orbital-fire authority.";
+    public static final String SMALL_WAR_TERMS = "HANDOVER TERMS: Seize Black Sluice's customs block, fuel-control house and dispatch pier, and hand the site to the agreed local custody party at fuel control. "
+            + "The marked fuel storage is a preservation objective: its controls are a seizure target, not something to destroy. No bombardment or fighter strikes. "
+            + "This breaks one Greyhook surface foothold and its levy route; it is not a commission against every pirate in Arcadia. Deploying accepts these terms; the offer has no deadline.";
+    public static final String SMALL_WAR_BRIEF = "Castle: Pell's recovered levy files hold a Drent Haulage dispatch order signed by Mika Drent. Its load numbers match Nadi Orr's shortage report and name Black Sluice's transfer schedule; local pilots confirm the service approach. "
+            + "Rusk offers 44,000 credits to take that foothold and hand it to local holders. "
+            + "Seize the causeway customs block first and build a rear position there with our tender; the holders occupy what we actually take. "
+            + "Then fuel control. The causeway runs between walled settling beds with no cover, and Drent Haulage works that transfer road. A support gun covers it; the sealed service galleries north and south are the way round. "
+            + "Prize crews and Berth Four cover dispatch. Take it and its transfer records, reclaim anything we lose, then escort the custody party into fuel control and hold all three sites while they complete the handover. "
+            + "The marked fuel tanks must survive ordinary fire. Agreus is airless: pressure protection outside the sealed halls. "
+            + "Losing the marked fuel infrastructure or the whole custody party fails the attempt; a later mobilization is a disclosed replacement and refit, with the loss kept on record. ";
     /** Shared by both agreements; neither text may imply otherwise. */
     public static final String AGREEMENT_COMMON = "Both agreements keep Rusk's secured title under Combine administration, the yard's enforceable debt, "
             + "the same core equipment rewards and the company's duty to remove Greyhook's coercive presence. "
@@ -86,6 +97,10 @@ public final class AgreusArcCampaign {
     static final WaylineNarration.Line VOSS_WARNING = correspondence("voss-warning", "story_agreus_terms_of_protection", "correspondence.voss.warning",
             "SERA VOSS / GREYHOOK FLOTILLA",
             "Pell collected his share from that yard. Your new agreement leaves him nothing. I've told him to leave it. Plan for him not listening.");
+
+    /** Voss's last line on the open channel; text only, never voiced. */
+    static final WaylineNarration.Line VOSS_LAST = correspondence("voss-last", "story_agreus_small_war", "correspondence.voss.last",
+            "SERA VOSS / OPEN CHANNEL", "Keep the pier. I've lost worse berths.");
 
     private static WaylineNarration.Line correspondence(String id, String missionId, String event, String speaker, String text) {
         return new WaylineNarration.Line(id, missionId, event, text, 12f, 10, 15f, List.of(), speaker, OpeningBroker.CREST, false, false);
@@ -151,11 +166,12 @@ public final class AgreusArcCampaign {
     public static boolean atSite(PlanetAPI planet) { var d = destination(); return planet != null && d != null && d.planetId().equals(planet.getId()); }
     public static List<Mission> offers(StoryEligibilityContext ctx) {
         var p = current();
-        if (p == null || p.yardCompleted() || ctx == null || ctx.roster == null || !isContact(ctx.client)
+        if (p == null || p.yardCompleted() && !p.smallWarAvailable() || ctx == null || ctx.roster == null || !isContact(ctx.client)
                 || ctx.client.locked || ctx.client.patronHouseId != -1 || !atSite(ctx.planet)) return List.of();
         return List.of(offer(p, ctx.planet.getName()));
     }
     public static Mission offer(AgreusArcProgress p, String planetName) {
+        if (p != null && p.smallWarAvailable()) return smallWarOffer(p, planetName);
         if (p == null || p.yardCompleted()) throw new IllegalArgumentException("No open Agreus contract");
         if (p.warrantCompleted()) return yardOffer(p, planetName);
         if (p.completed()) return warrantOffer(p, planetName);
@@ -206,6 +222,23 @@ public final class AgreusArcCampaign {
                 .requiredDrops(6).employerShuttles(0).marineArrivalPolicy(MarineArrivalPolicy.PAIRED_HALF_SQUAD)
                 .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED).battleSeed(15303L).build();
     }
+    private static Mission smallWarOffer(AgreusArcProgress p, String planetName) {
+        boolean custody = p.signedAgreement() == AgreusYardAgreement.HOUSE_CUSTODY;
+        String losses = p.smallWarCustodiansLost() + p.smallWarHoldersLost() + p.fuelInfrastructureLost() == 0 ? ""
+                : " Confirmed prior losses: " + p.smallWarCustodiansLost() + " custody-party members, " + p.smallWarHoldersLost()
+                + " holders and " + p.fuelInfrastructureLost() + " marked fuel installations. This mobilization brings a replacement custody party, holders and refitted controls; the losses stay on record.";
+        String route = custody ? " Ratified House Custody: Rusk's appointed custodians take the handover, and the disclosed 12,000-credit premium is paid once with this victory."
+                : " Ratified Yard Compact: a joint custody party takes the handover; the premium was forgone to fund the transition guarantee.";
+        return Mission.builder().id(p.nextMissionId()).name("A Small War").source(MissionSource.STORY)
+                .type(MissionType.ASSAULT).tier(OperationTier.ESTABLISHED).risk(RiskLevel.MEDIUM)
+                .payout(AgreusArcProgress.SMALL_WAR_PAYMENT).targetPlanetName(planetName).defenderFactionOverride("pirates")
+                .flavor(SMALL_WAR_BRIEF + route + losses + "\n\n" + SMALL_WAR_TERMS)
+                .requirements("Three full squads recommended; minimum two selected squads with four ready marines each. Fitted boats and owned working tender required. "
+                        + "Twelve " + (custody ? "estate guards" : "constables") + " and a three-person custody party; employer heavy lift for an owned active mech lance, optional. "
+                        + "44,000 credits once on completed handover" + (custody ? ", plus the 12,000-credit House Custody premium." : ". No suit card."))
+                .requiredDrops(6).employerShuttles(0).marineArrivalPolicy(MarineArrivalPolicy.PAIRED_HALF_SQUAD)
+                .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED).battleSeed(15305L).build();
+    }
     static TargetProfile profile(Mission m) { requireCurrent(m); return new TargetProfile(0, 0, 0, 0, "pirates", Set.of(),
             SurfaceZoning.forPlanetType(destination().planet().getTypeId()), SettlementLink.ROAD); }
     static void begin(Mission m) {
@@ -217,6 +250,11 @@ public final class AgreusArcCampaign {
         var p = current();
         if (p == null || o == null || o.missionSource != MissionSource.STORY || !owns(o.missionId)
                 || !p.acceptsTarget(o.targetPlanetName)) return -1;
+        if (AgreusArcProgress.smallWar(o.missionId)) {
+            if (o.smallWar == null || Global.getSector().getPlayerFleet() == null) return -1;
+            var credits = Global.getSector().getPlayerFleet().getCargo().getCredits();
+            return settleSmallWar(p, o, credits::add);
+        }
         if (AgreusArcProgress.yardOwners(o.missionId)) {
             if (o.yardOwners == null || MarineRosterScript.getInstance() == null) return -1;
             var unavailable = LoadoutCardInventory.playerUnavailableCardIds();
@@ -245,6 +283,21 @@ public final class AgreusArcCampaign {
                 r.cargoLost(), r.techniciansLost(), r.constablesLost());
         if (payment > 0 && !unavailable.contains(AgreusArcProgress.SPECTER_CARD)) cargo.addSpecial(card, 1);
         return payment;
+    }
+    /**
+     * Chapter 5's once-only settlement. The ordinary resolver credits the 44,000 fee from the
+     * outcome; a ratified House Custody premium is paid here through {@code premium}, once.
+     * Returns the total credits the receipt earned, or -1 for a refused receipt.
+     */
+    static int settleSmallWar(AgreusArcProgress p, MissionOutcome o, IntConsumer premium) {
+        if (p == null || o == null || premium == null || o.smallWar == null || o.missionSource != MissionSource.STORY
+                || !AgreusArcProgress.smallWar(o.missionId) || !p.acceptsTarget(o.targetPlanetName)) return -1;
+        var r = o.smallWar;
+        int total = p.settleSmallWar(o.missionId, "agreus", o.victory, o.payoutEarned, r.customsHeld(), r.fuelControlHeld(),
+                r.dispatchHeld(), r.rearPositionBuilt(), r.handedOver(), r.companyPresent(), r.infrastructureLost(),
+                r.custodiansLost(), r.holdersLost(), r.greyhookWithdrawn());
+        if (total > o.payoutEarned) premium.accept(total - o.payoutEarned);
+        return total;
     }
     static int settleYard(AgreusArcProgress p, MissionOutcome o, CargoAPI cargo, Set<String> unavailable) {
         if (p == null || o == null || cargo == null || unavailable == null || o.yardOwners == null

@@ -4,7 +4,7 @@ Status: DRAFT — original local setting direction on an existing vanilla world 
 
 Written: 2026-10-13
 
-Updated: 2026-10-15 — grounded Greyhook's outfit names; Voss's coalition frays as the arc's climax.
+Updated: 2026-10-16 — Black Sluice's causeway, galleries, fuel control, tank farm and service road.
 
 ## Scope and provenance
 
@@ -81,6 +81,17 @@ tanks, a customs causeway and transfer records link district cargo to outbound
 tenders. Greyhook exploits this commercial infrastructure to move prizes and
 sustain levies; losing it breaks a local operation without destroying its fleet.
 The retained dockside names are local industrial usage, not evidence of a sea.
+
+The causeway is the one transfer road across the outer basin. It runs between
+walled settling beds of silt, so anyone on it is in the open; sealed service
+galleries run through the bed field to the north and south, entered through
+pressure vestibules, and are how people cross under cover; the north gallery
+comes out behind the fuel-control house, out of the road gun's sight. The customs block
+stands at the causeway's landward end beside a working bay where a tender can
+set down a rear position. The sheltered fuel-control house stands at the seaward
+end, with the marked tank farm behind it and a support-gun position on the road
+in front of it. Dispatch occupies the pier beyond. A separate service road leaves
+the apron to the east: the way Greyhook's crews come and go, and the way out.
 
 Open yards are airless and cold. Exterior workers and combatants use appropriate
 pressure protection; occupied interiors have life support. Tactical art, equipment

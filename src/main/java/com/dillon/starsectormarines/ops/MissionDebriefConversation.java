@@ -28,6 +28,7 @@ final class MissionDebriefConversation {
     }
 
     static String title(MissionOutcome outcome) {
+        if (smallWar(outcome)) return "BLACK SLUICE / CASTLE, RUSK & VOSS";
         if (yardOwners(outcome)) return "LATCHKEY / CASTLE, RUSK & LENNA";
         if (limitedWarrant(outcome)) return "LIMITED WARRANT / CASTLE & RUSK";
         if (waterUnderSeal(outcome)) return "NORTH WEIR / CASTLE & RUSK";
@@ -39,6 +40,7 @@ final class MissionDebriefConversation {
     }
 
     static List<WaylineNarration.Line> lines(MissionOutcome outcome, WaylineNarration catalog) {
+        if (smallWar(outcome)) return smallWarLines(outcome);
         if (yardOwners(outcome)) return yardLines(outcome);
         if (limitedWarrant(outcome)) return warrantLines(outcome);
         if (waterUnderSeal(outcome)) return weirLines(outcome);
@@ -93,6 +95,46 @@ final class MissionDebriefConversation {
                 .filter(Objects::nonNull).toList();
     }
 
+    private static boolean smallWar(MissionOutcome o) {
+        return o != null && o.missionSource == MissionSource.STORY && AgreusArcProgress.smallWar(o.missionId) && o.smallWar != null;
+    }
+    /**
+     * Chapter 5's debrief: the selected agreement, confirmed losses and delivered rewards, read only
+     * from the frozen outcome. The duel overhead is not reported here until it exists and reports.
+     */
+    static List<WaylineNarration.Line> smallWarLines(MissionOutcome o) {
+        var r = o.smallWar;
+        String route = r.houseCustody() ? "House Custody" : "the Yard Compact";
+        String cost = "Company casualties: " + o.marinesLost + ". Custody party lost: " + r.custodiansLost()
+                + ". Holders lost: " + r.holdersLost() + ".";
+        if (!o.victory) return List.of(
+                sluiceLine("withdrawal", "CASTLE", (r.infrastructureLost() ? "The marked fuel storage was destroyed; the handover cannot stand on a burned depot. "
+                        : r.custodiansLost() >= 3 ? "The whole custody party is dead; there is nobody left to take the site. "
+                        : "The handover was not completed. ") + cost),
+                sluiceLine("replacement", "RUSK", "No completion fee is paid. A new mobilization will bring a replacement custody party and holders"
+                        + (r.infrastructureLost() ? " and refitted fuel controls" : "") + ". This loss stays on the account; the ratified agreement stands."));
+        int premium = r.houseCustody() ? 12000 : 0;
+        String paid = NumberFormat.getIntegerInstance().format(o.payoutEarned + premium);
+        String withdrawn = r.greyhookWithdrawn() > 0
+                ? r.greyhookWithdrawn() + " of Greyhook's people walked off along the service road on Voss's order; Berth Four held dispatch until we took it."
+                : "Nobody we saw made it out along the service road; Berth Four held dispatch until we took it.";
+        String lead = o.marinesLost > 0
+                ? "We paid for that pier: " + o.marinesLost + (o.marinesLost == 1 ? " of ours is" : " of ours are") + " on the roll that won't come home. "
+                : "Everyone we put down at Black Sluice is coming home. ";
+        return List.of(
+                sluiceLine("handover", "CASTLE", "Customs, fuel control and dispatch are held, the marked fuel storage is intact, and the custody party signed the handover in the control room under " + route + ". " + withdrawn),
+                sluiceLine("award", "RUSK", "Your invoice is settled: " + paid + " credits" + (premium > 0
+                        ? ", the 44,000 fee and the 12,000 premium House Custody promised." : ", the full 44,000 fee. The compact forwent the premium, as written.")
+                        + " Black Sluice's surface facility and its levy route are out of Greyhook's hands. That is all I will claim for it."),
+                sluiceLine("cost", "CASTLE", cost),
+                AgreusArcCampaign.VOSS_LAST,
+                sluiceLine("closing", "CASTLE", lead + "Rusk is asking what it would take to keep us here. He wasn't asking that when we arrived."));
+    }
+    private static WaylineNarration.Line sluiceLine(String beat, String speaker, String text) {
+        return new WaylineNarration.Line("small-war-debrief-" + beat, "story_agreus_small_war", "debrief.small_war." + beat, text, 12f, 10, 15f, List.of(),
+                speaker.equals("CASTLE") ? "CASTLE / COMPANY OPERATIONS" : "BARONET ELIAN RUSK / HOUSE RUSK",
+                speaker.equals("CASTLE") ? CompanyManagementGuide.portrait() : OpeningBroker.CREST, false, false);
+    }
     private static boolean yardOwners(MissionOutcome o) {
         return o != null && o.missionSource == MissionSource.STORY && AgreusArcProgress.yardOwners(o.missionId) && o.yardOwners != null;
     }

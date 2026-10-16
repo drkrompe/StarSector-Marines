@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
+import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
 
 import com.dillon.starsectormarines.marine.OfficerCommandProfile;
 import com.dillon.starsectormarines.campaign.start.CompanyShipRestoration;
@@ -301,7 +302,10 @@ public final class MissionLaunch {
         if (AgreusArcCampaign.isBattle(m)) {
             var agreus = AgreusArcCampaign.requireCurrent(m);
             boolean records = agreus.recordsRecovered();
-            builder = AgreusArcProgress.yardOwners(m.id)
+            boolean houseCustody = agreus.signedAgreement() == AgreusYardAgreement.HOUSE_CUSTODY;
+            builder = AgreusArcProgress.smallWar(m.id)
+                    ? () -> BattleSetup.createSmallWar(seed, constructionDetachment.shuttleManifest, profile, houseCustody)
+                    : AgreusArcProgress.yardOwners(m.id)
                     ? () -> BattleSetup.createYardOwners(seed, constructionDetachment.shuttleManifest, profile)
                     : AgreusArcProgress.limitedWarrant(m.id)
                     ? () -> BattleSetup.createLimitedWarrant(seed, constructionDetachment.shuttleManifest, profile, records)

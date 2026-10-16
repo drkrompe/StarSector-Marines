@@ -1043,6 +1043,11 @@ public class BriefingScreen implements Screen {
 
     private List<BriefingViewModel.InfoRow> retainedEmployerRows(Mission mission) {
         List<BriefingViewModel.InfoRow> rows = new ArrayList<>();
+        if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.smallWar(mission.id)) return List.of(
+                BriefingViewModel.info("sluice-holders","Local holders","Twelve / occupy only sites the company has taken",""),
+                BriefingViewModel.info("sluice-custody","Custody party","Three / escort into fuel control; one must finish the handover",""),
+                BriefingViewModel.info("sluice-support","Company support","Working tender builds the rear position; employer heavy lift for your owned active mech lance",""),
+                BriefingViewModel.info("sluice-preserve","Preserve fuel storage","Four marked tanks / no bombardment or fighter strikes",""));
         if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.yardOwners(mission.id)) return List.of(
                 BriefingViewModel.info("yard-constables","Rusk's constables","Eight militia / occupy company gains",""),
                 BriefingViewModel.info("yard-inspectors","Supplier inspection party","Two technicians / one must finish the protected inspection",""),

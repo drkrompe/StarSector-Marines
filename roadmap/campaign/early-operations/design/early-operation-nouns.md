@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — Junction victory waits out a fifteen-second hold of every site.
+Updated: 2026-10-16 — A Small War at Black Sluice: ratified-route offer, the split, handover and once-only settlement.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -295,8 +295,39 @@ contact (Rusk's office or Lenna's association), and under the compact Rusk recor
 the company as an independent counterparty. These are records and disclosed
 payments only: no hidden virtue score, combat modifier or access penalty. Signing
 puts Terms of Protection in preparation, with Sera Voss's attributable warning; it
-is not deployable until that chapter exists. Chapters 4–5, the escort job and their
+is not deployable until that chapter exists. Chapter 4, the escort job and the arc's
 acceptance belong to `a-small-war.md`.
+
+**A Small War** at Black Sluice is offered only under a ratified route, and its
+ground fight never depends on the frigate duel overhead: the duel, when it exists,
+is told when Voss gives her order and reports what happened, and nothing it does
+is read by the ground referee. Three full squads are recommended, with the same
+two-squad minimum, fitted lift, owned tender and optional employer heavy lift for
+an owned mech. The company takes the causeway customs block and builds a real
+tender-built rear position beside it; then fuel control, then dispatch. Each site
+is held only by uncontested company infantry and can be lost again, so a lost site
+must be reclaimed. Twelve holders take only sites the company has actually held.
+Victory requires all three held together, the marked tank farm standing and a
+living custody party (Rusk's custodians or the joint party, by route) completing
+fifteen protected seconds of handover inside fuel control with company infantry
+present. Destroyed tanks or the whole custody party fail the attempt.
+
+Greyhook's strength is a finite authored table: starting posts, plus two reserves
+each with a named ingress and a commitment condition (customs falling; fuel
+control falling). Player strength never changes it. **The split** happens once,
+when fuel control first actually falls: Voss orders the site abandoned on an open
+channel, Drent Haulage and one prize crew walk out along the service road and
+leave the map through its gate, which removes their strength without killing it,
+and Berth Four with the other prize crew refuses and holds dispatch. Departures
+are counted as withdrawn, not killed.
+
+Settlement accepts only the active attempt's frozen receipt and pays 44,000
+credits once, plus the ratified House Custody premium; it is the one writer of the
+settled flag that sends the Hegemony auxiliary warrant offer. Defeat records
+custody-party, holder and fuel-installation losses and opens a disclosed
+replacement mobilization. The closed dossier names the route; the debrief states
+company and employer losses before Castle's closing assessment and carries Voss's
+last line as unvoiced text.
 
 A **story arc** is a finite sequence of authored operations for a named contact,
 with a problem, a resolution, and a visible completed record. A **chapter** is
