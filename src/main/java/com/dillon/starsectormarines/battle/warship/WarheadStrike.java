@@ -32,6 +32,10 @@ public final class WarheadStrike implements Interceptable {
     private final String spriteId;
     private float age;
     boolean intercepted;
+    /** The hull this warhead was aimed at, or {@code null} for one sent at the ground. */
+    private Warship hullTarget;
+    private float strayX = Float.NaN;
+    private float strayY = Float.NaN;
 
     WarheadStrike(VanillaWeapon weapon, Faction faction, Warship shooter, float releaseX, float releaseY,
                   WarshipShell.Warhead warhead, String spriteId) {
@@ -48,6 +52,30 @@ public final class WarheadStrike implements Interceptable {
         this.path = warhead.path();
         this.hitpoints = warhead.hitpoints();
         this.spriteId = spriteId;
+    }
+
+    /**
+     * Makes this a warhead aimed at a hostile hull: it lands on hulls alone, and if it reaches none it carries on and
+     * comes down on the ground at {@code (strayX, strayY)}.
+     */
+    WarheadStrike atHull(Warship target, float strayX, float strayY) {
+        this.hullTarget = target;
+        this.strayX = strayX;
+        this.strayY = strayY;
+        return this;
+    }
+
+    /** The hull this warhead was aimed at, or {@code null}. */
+    public Warship hullTarget() {
+        return hullTarget;
+    }
+
+    float strayX() {
+        return strayX;
+    }
+
+    float strayY() {
+        return strayY;
     }
 
     /** Seconds since the split. */

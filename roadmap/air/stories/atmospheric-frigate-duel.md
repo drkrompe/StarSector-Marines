@@ -1,10 +1,10 @@
 # Story — Atmospheric frigate duel
 
-Status: ACTIVE — slices 1-2 built (hulls as targets for direct fire, stray rounds, falling wreckage, skins; duel helm and variant flux fittings); slice 3 (missiles at hulls) next
+Status: ACTIVE — slices 1-3 built (hulls as targets for direct fire, stray rounds, falling wreckage, skins; duel helm and variant flux fittings; missiles at hulls); slice 4 (doctrine for duels) next
 
 Written: 2026-10-16
 
-Updated: 2026-10-16 — slice 2 built (duel helm, variant capacitors and vents) with its readings; slice 1 readings refreshed for the fittings; open questions left to the owner.
+Updated: 2026-10-16 — slice 3 built (missiles at hulls, Sabot warheads aimed at the split) with its readings; open questions left to the owner.
 
 Read `air-nouns.md` (**Overhead ships**, **Standing laws**), `warship-behaviours.md`
 (the posture model, Classes, Decided: escort, gap G4), `ship-support.md` and
@@ -140,7 +140,7 @@ ion cannon's arcs (not modelled; the ion cannon fires as an energy projectile).
    variant's flux capacitors and vents (base-game figures), which the stationary duel
    showed the Wolfs' shields need. Verdicts: range closes to reach, the target spends
    most of the engagement inside the hardpoint arc.
-3. **Missiles at hulls.** A Sabot (or any missile) fired at a hull flies its own path
+3. **Missiles at hulls** (built). A Sabot (or any missile) fired at a hull flies its own path
    to the led point; a multi-warhead missile splits short of the hull and its warheads
    converge on it; the target's point defence may shoot them.
 4. **Doctrine for duels.** `ShipFireOrder.AUTO` engages hostile hulls under air
@@ -241,6 +241,43 @@ off so it stays the stationary evidence.
   Hounds and one Wolf lost, Wolf shield hits 22, flux peak 90%; `crossing` 6 of 34
   strayed, crash hurt 6; `wreck` crash hurt 3.
 - All 35 ship and tender scenes (135 loops) pass with the slice in.
+
+## Slice 3 as built: what the scene reads
+
+`frigate-missiles` (`sceneEvidence -Pscene=frigate-missiles`; whole-map and close GIFs
+under `createSnapshots -Psnapshot=frigate-missiles`) holds a Wolf (H) on station 38
+cells from its target, outside every gun's reach on both sides and inside the Sabot's
+54, for 1500 ticks. Loops: `sabot` (a Hound (P) on station), `crossing` (the Hound
+flying back and forth 16 cells either side of the Wolf's bow), `harpoon` (a Brawler
+(Elite) firing Harpoons at the Wolf, whose PD lasers may answer; its heavy mauler
+reaches too) and `control` (ship fire off).
+
+- **The rule.** A missile may fire at a hull, except a standoff missile, whose beam is
+  a ground payload. A magazine is not a sustained gun, so the hull's heading and the
+  duel helm's reach stay the guns' alone. A guided missile launches inside its slot's
+  arc widened by 20 degrees, because it turns onto the hull after launch. It flies its
+  own path to where the hull will be after the missile's own flight time (for a
+  carrier, the flight to the split plus the warheads' flight). It is not direct fire,
+  so the target's point defence may shoot it. A Sabot's carrier splits at the spec's
+  split range short of the hull, and its five warheads are aimed **when it splits**,
+  at the hull as it is then, led by their own flight. They are spread evenly across
+  the spec's 20-degree arc with a hashed jitter, so the hull's size and the arc decide
+  how many strike. A warhead that reaches no hull carries on to the ground. A carrier
+  whose hull is gone by the split sends its warheads where it was going.
+- `sabot`: 10 Sabots, 4 splits at a live hull, worst split centre 0.47 cells from the
+  hull's led centre. 12 warheads on the hull, which took it (2000) without a gun; 38
+  strayed to the ground, 30 of them from carriers whose hull was already falling.
+- `crossing`: 6 Sabots, 4 live splits (worst 0.38 cells); 12 of the 20 live warheads
+  struck the moving Hound, and it fell.
+- `harpoon`: both Harpoons were shot down by the Wolf's PD lasers (2 engagements, 2
+  intercepts); the Wolf's Sabots took the Brawler; Wolf shield hits 6 (heavy mauler).
+- `control`: no missile, no round.
+- With missiles in, `frigate-duel` `duel` reads 102 rounds (12 Sabots), both Hounds
+  lost and Wolfs 120 hull down; `frigate-duel-helm` `helm` 109 rounds (16 Sabots),
+  closest approach 16.2, both Hounds lost, Wolfs 2395 hull down. All 36 ship and
+  tender scenes (139 loops) pass.
+- **A finding for the look.** The Sabot's split flash is the carrier's spec visual
+  radius, very large at the close view; a presentation question, not a mechanic.
 
 ## Acceptance
 

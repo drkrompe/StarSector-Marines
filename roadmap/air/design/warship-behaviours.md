@@ -34,9 +34,9 @@ Read from `src/main` on 2026-10-11. This is the ground the proposal stands on, a
 - A hull is hurt only through `WarshipSystem.onDetonation`, as it always was: any detonation by a hostile faction whose blast reaches the hull footprint, shield first (as flux on the pool) then the armour rule. The attack run is the ordinary one, so aircraft weapons are unchanged and there is no second route.
 - A warship is not a body. It is not in the unit roster, not an air entity, not in `EngagementService`, not in `getAirEntityIds`. Nothing can *target* it; it can only be *splashed*.
 
-**Ship against ship: by order only (slice 1 of `atmospheric-frigate-duel.md`).**
+**Ship against ship: by order only (slices 1-3 of `atmospheric-frigate-duel.md`).**
 
-- A hostile ship's shells are point-defence targets, and a shell that lands near a hostile hull damages it. A director never picks a hull as ground to fire on. Under `ShipFireOrder.ALL` a ship's direct-fire guns fight hostile hulls (`WarshipShipFire`); with the default `OFF`, two hostile capitals still ignore each other until a round happens to land. No posture turns it on yet.
+- A hostile ship's shells are point-defence targets, and a shell that lands near a hostile hull damages it. A director never picks a hull as ground to fire on. Under `ShipFireOrder.ALL` a ship's guns and missiles fight hostile hulls (`WarshipShipFire`), and a ship free to manoeuvre flies a duel helm; with the default `OFF`, two hostile capitals still ignore each other until a round happens to land. No posture turns it on yet.
 
 **Ground against aircraft: defence posts only, as an area drain.**
 

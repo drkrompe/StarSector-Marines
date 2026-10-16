@@ -1122,6 +1122,7 @@ public final class WarshipSystem {
         for (int i = shells.size() - 1; i >= 0; i--) {
             WarshipShell shell = shells.get(i);
             if (shell.intercepted) {
+                if (shell.hullTarget() != null) shipFire.noteShotDown();
                 shells.remove(i);
                 continue;
             }
@@ -1176,6 +1177,11 @@ public final class WarshipSystem {
         MissileFlightSpec.Mirv mirv = flight == null ? null : flight.mirv();
         splits.add(new SplitEvent(shell.weapon, rx, ry, shell.splitScale(), mirv == null ? null : mirv.smokeColor()));
         cue(WarshipSoundCue.Kind.SPLIT, shell.splitSoundId(), rx, ry);
+        if (shell.hullTarget() != null && mirv != null) {
+            // A carrier fired at a hull: its warheads are aimed at the hull now, not where it was at launch.
+            strikes.addAll(shipFire.release(shell, rx, ry));
+            return;
+        }
         for (WarshipShell.Warhead warhead : shell.warheads()) {
             strikes.add(new WarheadStrike(shell.weapon, shell.faction, shell.shooter, rx, ry, warhead,
                     mirv == null ? null : mirv.sprite()));
@@ -1187,13 +1193,24 @@ public final class WarshipSystem {
         for (int i = strikes.size() - 1; i >= 0; i--) {
             WarheadStrike strike = strikes.get(i);
             if (strike.intercepted) {
+                if (strike.hullTarget() != null) shipFire.noteWarheadShotDown();
                 strikes.remove(i);
                 continue;
             }
             if (!strike.advance(dt)) continue;
             strikes.remove(i);
             PendingDetonation det = strike.detonation();
-            sim.detonateNow(det);
+            if (strike.hullTarget() != null) {
+                // A warhead aimed at a hull lands on hulls alone; one that reached none carries on to the ground.
+                boolean struck = strikeHulls(det);
+                shipFire.noteWarhead(struck);
+                if (!struck) {
+                    shells.add(WarshipShipFire.carryOn(strike));
+                    continue;
+                }
+            } else {
+                sim.detonateNow(det);
+            }
             if (!det.wasAbsorbed() && cueAllowed(strike.weapon, IMPACT_CUE_GAP_SECONDS)) {
                 cue(WarshipSoundCue.Kind.IMPACT, strike.weapon.impactSoundId(), strike.aimX, strike.aimY);
             }

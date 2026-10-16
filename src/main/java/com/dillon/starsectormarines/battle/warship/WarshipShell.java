@@ -152,6 +152,15 @@ public final class WarshipShell implements Interceptable {
         return this;
     }
 
+    /**
+     * Makes this a multi-warhead carrier fired at a hostile hull: its warheads are aimed at that hull when it splits,
+     * not at the ground. The carrier is a missile, so point defence may shoot it.
+     */
+    WarshipShell aimedAtHull(Warship target) {
+        this.hullTarget = target;
+        return this;
+    }
+
     /** Marks this round as direct fire, which point defence does not engage. */
     WarshipShell directFire() {
         this.directFire = true;
@@ -178,7 +187,9 @@ public final class WarshipShell implements Interceptable {
      * Direct fire stays direct fire.
      */
     WarshipShell carryOn() {
-        float speed = Math.max(1f, WarshipScale.cells(weapon.projectileSpeedPx()));
+        // A missile has no projectile speed of its own in the table: it carries on at the speed it arrived with.
+        float gun = WarshipScale.cells(weapon.projectileSpeedPx());
+        float speed = Math.max(1f, weapon.missile() || gun <= 0f ? path.speed(path.totalSeconds()) : gun);
         MissilePath leg = MissilePath.straight(toX, toY, strayX, strayY, speed);
         WarshipShell next = new WarshipShell(weapon, faction, shooter, toX, toY, strayX, strayY, leg, blastCells,
                 damage, penetration, damageRadius, null, null, hitpoints, null, 0f);
