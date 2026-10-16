@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.decision.goap.action;
 
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.combat.FireStance;
+import com.dillon.starsectormarines.battle.mech.MechDamageDoctrine;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
@@ -96,7 +97,9 @@ final class MechScreenAdvance {
             if (sim.identity().faction(candidate) != squad.faction) continue;
             MechLoadoutComponent loadout = sim.world().mechLoadout(candidate);
             if (loadout == null
-                    || loadout.effectiveRole() != MechRole.ARMORED_SUPPORT) continue;
+                    || loadout.effectiveRole() != MechRole.ARMORED_SUPPORT
+                    // A crippled or disarmed mech will not lead the advance it would screen.
+                    || !MechDamageDoctrine.postureOf(loadout).anchorsOthers()) continue;
             Squad mechSquad = sim.squadOf(candidate);
             if (mechSquad == null || !mechSquad.isMechSquad()
                     || mechSquad.rescuePickupMech) continue;

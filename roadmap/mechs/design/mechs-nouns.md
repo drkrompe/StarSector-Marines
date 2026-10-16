@@ -209,7 +209,17 @@ increasing an encounter's total armored threat.
   **destroys its weapon**: the mount becomes absent for the rest of the battle.
   The head at zero **loses the sensors**: vision halves and weapon accuracy
   drops. The torso at zero is the only death; legs are never a kill. Damage above
-  zero costs only that section's protection, with no hidden stat penalty. Cover
+  zero costs only that section's protection, with no hidden stat penalty.
+  Doctrine follows the loss. A crippled mech is a **turret** under any order:
+  it holds, turns and fires at what it can engage, asks for no movement, and is
+  never an anchor its lance or a screened infantry advance keys movement to, so
+  nobody is held waiting on it; a player's move order releases itself. A mech
+  that has lost every mount is **disarmed**: it declines its doctrine's attack
+  and breaks contact while it can walk, and a lance with no armed standing mech
+  declines its attack goals as broken morale does, without touching the
+  command's assignment; crippled and disarmed, it simply holds. One lost mount
+  needs no posture: doctrine and engagement range read only the surviving
+  mounts. Cover
   still meets a mech as one body with the flat chance until mech plans author
   cover by section. `-Dbattle.mech.locationalDamage=false` is the whole-body
   control. The battle keeps each mech's section record (pools, what was

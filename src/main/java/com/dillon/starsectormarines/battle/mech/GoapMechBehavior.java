@@ -16,8 +16,10 @@ import com.dillon.starsectormarines.battle.command.OrderCatalog;
 import com.dillon.starsectormarines.battle.command.OrderCatalog.PlayerOrder;
 import com.dillon.starsectormarines.battle.command.ServiceAssignedObjectiveGoal;
 import com.dillon.starsectormarines.battle.command.WithdrawAssignedGoal;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -86,6 +88,22 @@ public final class GoapMechBehavior implements UnitBehavior {
             .filter(goal -> goal.priority() != Goal.Priority.MISSION)
             .toList();
 
+    /**
+     * The goals that attack: every doctrine goal served through {@link ExecuteMechDoctrine}, and
+     * the attack move a player hands a lance. A lance with no weapon left among its standing
+     * mechs declines them, the same way they decline on broken morale, and falls through to
+     * {@link MechSurviveContact} or to holding ({@link MechDamageDoctrine#lanceDeclinesAttack}).
+     */
+    static final Set<Goal> ATTACK_GOALS = Set.of(
+            AttackMoveGoal.INSTANCE,
+            MechAssignedObjectiveGoal.INSTANCE,
+            BalancedContactGoal.INSTANCE,
+            AssaultAssignedObjectiveGoal.INSTANCE,
+            OverwatchKillZoneGoal.INSTANCE,
+            BackstopAssignedSquadGoal.INSTANCE,
+            MechEliminateEnemiesGoal.INSTANCE
+    );
+
     /** Actions the planner may use. The role-anchored goals ship custom-plans that bypass the planner; the list is the registry for any future goal that wants backward-chaining search. */
     public static final List<Action> MECH_ACTIONS = List.of(
             PatrolRescueFormation.INSTANCE,
@@ -109,7 +127,7 @@ public final class GoapMechBehavior implements UnitBehavior {
         if (squad == null || !squad.availableToPlan(unit, sim)) return;
 
         // Everything that outranks the doctrine step, in this arm's declared
-        // order. One entry today; see MechReflexes for why it is a list.
+        // order; see MechReflexes for the ranks.
         // Opportunity fire is permitted because no mech step withholds it —
         // the suppression the flag carries is an infantry bounding concern.
         if (ReflexChain.run(MechReflexes.CHAIN, unit, squad,
@@ -211,7 +229,8 @@ public final class GoapMechBehavior implements UnitBehavior {
         // ever grows a precondition must not reintroduce the freeze.
         Goal goal;
         SquadPlan plan;
-        Set<Goal> declined = Set.of();
+        Set<Goal> declined = lanceDisarmed(squad, sim)
+                ? new HashSet<>(ATTACK_GOALS) : Set.of();
         while (true) {
             goal = pickGoal(current, squad, sim, declined);
             if (goal == null) {
@@ -258,6 +277,35 @@ public final class GoapMechBehavior implements UnitBehavior {
         squad.timeSinceReplan = Planner.periodicTimerAfterReplan(squad.id);
         squad.aliveMembersAtLastPlan = squad.aliveMembers;
         squad.assignedObjectiveAtLastPlan = executableAssignment;
+    }
+
+    /** Whether not one of the lance's standing mechs still carries a weapon. */
+    static boolean lanceDisarmed(Squad squad, BattleView sim) {
+        int[] counts = damageCounts(squad, sim);
+        return MechDamageDoctrine.lanceDeclinesAttack(counts[0], counts[1]);
+    }
+
+    /** Whether a disarmed lance has a member that can still walk away. */
+    static boolean lanceWithdraws(Squad squad, BattleView sim) {
+        int[] counts = damageCounts(squad, sim);
+        return MechDamageDoctrine.lanceWithdraws(counts[0], counts[1], counts[2]);
+    }
+
+    /** Standing, armed and mobile mechs among the lance's plannable members. */
+    private static int[] damageCounts(Squad squad, BattleView sim) {
+        int standing = 0;
+        int armed = 0;
+        int mobile = 0;
+        for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
+            long member = sim.squadMemberAt(squad.id, i);
+            if (!sim.world().isAlive(member) || !squad.availableToPlan(member, sim)) continue;
+            MechLoadoutComponent loadout = sim.world().mechLoadout(member);
+            if (loadout == null) continue;
+            standing++;
+            if (MechDamageDoctrine.armed(loadout.mounts())) armed++;
+            if (!MechDamageDoctrine.crippled(loadout.sections())) mobile++;
+        }
+        return new int[]{standing, armed, mobile};
     }
 
     /**

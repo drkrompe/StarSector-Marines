@@ -1,0 +1,98 @@
+package com.dillon.starsectormarines.battle.mech;
+
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+
+/**
+ * What section loss does to a mech's doctrine ({@code mech-locational-damage.md}, slice 3).
+ * Pure decisions over plain inputs; the dispatchers that act on them are
+ * {@link MechReflexes#CRIPPLED_CHASSIS}, {@link ExecuteMechDoctrine} and
+ * {@link GoapMechBehavior}'s goal choice.
+ *
+ * <ul>
+ *   <li>A <b>crippled</b> mech is a turret: it holds where it stands, pivots and turns its torso,
+ *       fires at whatever it can engage, and asks for no movement, from itself or its lance.</li>
+ *   <li>A <b>disarmed</b> mech (every mount lost) declines to attack. It withdraws if it can
+ *       walk and holds if it cannot.</li>
+ *   <li>A lost mount needs no posture of its own: every doctrine reading reads the live mounts,
+ *       so the lost one simply is not there to reach for.</li>
+ * </ul>
+ */
+public final class MechDamageDoctrine {
+
+    private MechDamageDoctrine() {}
+
+    /** How a mech serves its order given what section loss has left it. */
+    public enum Posture {
+        /** Walking and armed: its doctrine applies unchanged. */
+        FIGHT,
+        /** Crippled and armed: holds, turns and fires; requests no movement. */
+        TURRET,
+        /** Walking and disarmed: declines to attack and breaks contact. */
+        WITHDRAW,
+        /** Crippled and disarmed: holds, with nothing left to fire. */
+        HOLD;
+
+        /** Whether this posture may request movement for its own body. */
+        public boolean walks() {
+            return this == FIGHT || this == WITHDRAW;
+        }
+
+        /** Whether this posture still engages targets. */
+        public boolean attacks() {
+            return this == FIGHT || this == TURRET;
+        }
+
+        /**
+         * Whether the rest of its lance, or infantry advancing behind it, may key their movement
+         * to this mech: a cohesion anchor, a formation leader, a screen to advance behind. Only a
+         * mech still fighting on its legs is one; anything else would hold its lance to a body
+         * that cannot or will not go where the lance is going.
+         */
+        public boolean anchorsOthers() {
+            return this == FIGHT;
+        }
+    }
+
+    /** The posture for a mech that is or is not crippled and does or does not have a weapon left. */
+    public static Posture posture(boolean crippled, boolean armed) {
+        if (crippled) return armed ? Posture.TURRET : Posture.HOLD;
+        return armed ? Posture.FIGHT : Posture.WITHDRAW;
+    }
+
+    /** Whether any mount still carries a weapon: lost and never-fitted mounts are both null. */
+    public static boolean armed(MechWeaponMount[] mounts) {
+        if (mounts == null) return false;
+        for (MechWeaponMount mount : mounts) {
+            if (mount != null) return true;
+        }
+        return false;
+    }
+
+    /** Whether the legs have gone; a mech nobody has hit has no sections and is whole. */
+    public static boolean crippled(MechSections sections) {
+        return sections != null && sections.crippled();
+    }
+
+    /** {@link #posture(boolean, boolean)} for a live loadout; a non-mech is {@link Posture#FIGHT}. */
+    public static Posture postureOf(MechLoadoutComponent loadout) {
+        if (loadout == null) return Posture.FIGHT;
+        return posture(crippled(loadout.sections()), armed(loadout.mounts()));
+    }
+
+    /**
+     * Whether a lance declines its attack goals: it has standing mechs and not one of them still
+     * carries a weapon. A lance with any armed member keeps them; its disarmed members decline
+     * individually through their posture.
+     */
+    public static boolean lanceDeclinesAttack(int standingMechs, int armedMechs) {
+        return standingMechs > 0 && armedMechs == 0;
+    }
+
+    /**
+     * Whether a lance that declines to attack withdraws rather than simply holding: some member
+     * can still walk. A lance of crippled, disarmed mechs has nowhere it can go.
+     */
+    public static boolean lanceWithdraws(int standingMechs, int armedMechs, int mobileMechs) {
+        return lanceDeclinesAttack(standingMechs, armedMechs) && mobileMechs > 0;
+    }
+}

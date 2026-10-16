@@ -36,6 +36,10 @@ public final class ExecuteMechDoctrine implements Action {
         MechLoadoutComponent loadout = sim.world().mechLoadout(member);
         if (loadout == null) return ActionStatus.FAILURE;
         MechAssignmentBoundary.observeAssignment(member, squad, sim);
+        // A member with no weapon left declines its doctrine's attack and breaks contact; a
+        // crippled one never reaches here (MechReflexes.CRIPPLED_CHASSIS holds it as a turret).
+        MechDamageDoctrine.Posture posture = MechDamageDoctrine.postureOf(loadout);
+        if (!posture.attacks()) return MechBreakContact.INSTANCE.execute(member, squad, sim);
         MechRole role = loadout.effectiveRole();
         TickInnerProfile profile = TickInnerProfile.currentIfBound();
         long started = profile == null ? 0L : System.nanoTime();
