@@ -11,6 +11,33 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EffectsServiceTest {
 
+    @Test void apcEffectsFollowHullSizeAndExpireSoonerThanTankEffects() {
+        var tank = new EffectsService(new Random(17));
+        tank.spawnTankWreck(10, 10, 90);
+        float previousRadius = 0;
+        for (float hullSize : new float[]{2.4f, 3.2f}) {
+            var effects = new EffectsService(new Random(17));
+            effects.spawnApcWreck(10, 10, 90, hullSize);
+            float radius = effects.getHeavyImpactsThisFrame().get(0)[2];
+            assertTrue(radius > previousRadius);
+            assertTrue(radius < tank.getHeavyImpactsThisFrame().get(0)[2]);
+            previousRadius = radius;
+            assertEquals(2, effects.getSmokingWrecks().size());
+            assertEquals(10 + .55f * hullSize / 2.4f, effects.getSmokingWrecks().get(1).x, .001);
+            assertEquals(10, effects.getSmokingWrecks().get(1).y, .001);
+            assertTrue(effects.getSmokingWrecks().get(1).effectScale
+                    < tank.getSmokingWrecks().get(1).effectScale);
+            effects.beginFrame();
+            effects.tickWrecks(11);
+            assertTrue(effects.getFireBurstsThisFrame().isEmpty());
+            assertFalse(effects.getSmokePuffsThisFrame().isEmpty());
+            effects.beginFrame();
+            effects.tickWrecks(45);
+            assertTrue(effects.getSmokingWrecks().isEmpty());
+            assertTrue(effects.getSmokePuffsThisFrame().isEmpty());
+        }
+    }
+
     @Test void tankFireCoolsIntoSmokeAndBothEmittersExpire() {
         var effects = new EffectsService(new Random(17));
         effects.spawnTankWreck(10, 10, 0);

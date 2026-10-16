@@ -133,6 +133,25 @@ public class ConquestObjectiveTest {
     }
 
     @Test
+    public void confirmationWindowRequiresTheSitesHeldTogether() {
+        BattleSimulation sim = openSim();
+        CompoundService service = sim.getCompoundService();
+        CompoundCaptureSystem system = new CompoundCaptureSystem();
+        ConquestObjective obj = new ConquestObjective(service, 3);
+        service.register(compoundAt(TacticalNode.Kind.BARRACKS, 3, 5));
+        service.register(compoundAt(TacticalNode.Kind.COMMAND_POST, 7, 5));
+
+        captureAll(sim, service, system, 3, 5, 7, 5);
+
+        for (int i = 0; i < 3; i++) {
+            obj.tick(sim);
+            assertFalse(obj.isComplete(), "the win waits out the confirmation window");
+        }
+        obj.tick(sim);
+        assertTrue(obj.isComplete(), "every site held through the window confirms the win");
+    }
+
+    @Test
     public void failsWhenCentralKeepIsMissing() {
         BattleSimulation sim = openSim();
         CompoundService service = sim.getCompoundService();

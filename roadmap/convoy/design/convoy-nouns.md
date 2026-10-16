@@ -229,8 +229,9 @@ salvo. HP zero is once-only. Any passengers still onboard die except for one
 or two faction-rostered infantry who eject into nearby free cells at 25% HP.
 The live mission becomes `WRECKED`, its turret and body stop, and stacked or
 late impacts cannot repeat wreck or passenger effects. The transition also
-queues one hull-sized visual blast, a short fire phase and three minutes of
-cooling smoke through the shared effect service. This is presentation only: no
+queues one compact visual blast and short roof/rear-compartment burns that
+cool into smoke, with the last APC emitter expiring by 55 seconds. The escort's
+effects scale with its larger hull but stay smaller than the tank's. This is presentation only: no
 secondary damage, navigation obstruction or smoke concealment is manufactured.
 
 ## Route, corridor, and motion
@@ -368,6 +369,15 @@ the retained source registration owns their measured placement. Heavy and
 escort APCs carry the same-sized MG even though their chassis sizes differ.
 The visible muzzles follow the shared heavy-MG ballistic hardpoints through
 independent hull and turret rotation (`art-source/vehicles/apc/`).
+
+The six exposed tire tops use the same distance-driven tread presentation as
+the tank. Each wheel retains its own silhouette and the gaps remain open;
+accepted chassis travel and yaw move only the tread material. Reverse reverses
+the texture motion, stopped or blocked hulls stay still, and teleport resets
+its phase. Steering and traction remain the ordinary vehicle motion model.
+Both APC variants retain separately registered wreck hull and MG art at their
+final bearings, with torn troop roofs, damaged tires and bent turret plates.
+Destruction stops the tread animation and leaves the wreck after the effects cool.
 
 A directly controlled hull repels bodies exactly as an autonomous one does.
 Navigation occupancy, crushing and predictive avoidance remain the open parts
@@ -573,7 +583,7 @@ retains the same existing cross-domain behavior as an autonomous hull.
 - A vehicle is a unit with a hull. It reads its durability the way every other
   combat actor does — the shared ownership-coded gauge over its chassis, armor
   row over structure row — for as long as it is alive. A wreck drops the gauge;
-  the darkened hull is the whole report.
+  the wreck art or darkened hull is the whole report.
 
 A **story column** is an employer-owned group of deployed chassis released by
 public scenario conditions. It uses ordinary movement legs, footprint checks,
