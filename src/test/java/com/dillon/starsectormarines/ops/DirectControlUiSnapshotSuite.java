@@ -20,6 +20,9 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlAimLane;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlAimOrigins;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MechSection;
+import com.dillon.starsectormarines.battle.mech.MechSections;
+import com.dillon.starsectormarines.battle.combat.DurabilityModel;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import java.awt.BasicStroke;
 import java.awt.geom.Line2D;
@@ -125,6 +128,8 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 composite(renderer, context.modRoot(), 1920, 1080, 1f, false)));
         artifacts.add(new SnapshotArtifact("active-mech-1920x1080-ui100.png",
                 activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, false)));
+        artifacts.add(new SnapshotArtifact("mech-sections-states-1920x1080-ui100.png",
+                sectionStates(renderer, context.modRoot())));
         return artifacts;
     }
 
@@ -183,6 +188,9 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 draw(graphics, renderer, fixture.markup(), layout.activeControl(), layout.host(), uiScale);
                 draw(graphics, renderer, fixture.actionsMarkup(), layout.activeActions(), layout.host(), uiScale);
             }
+            var plate = sectionPlate(modRoot, damagedHound());
+            draw(graphics, renderer, plate, BattleMechSectionPlate.leftOf(layout.activeControl()),
+                    layout.host(), uiScale);
         } finally {
             graphics.dispose();
         }
@@ -225,6 +233,9 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                     BattleMechOverlay.wireLayout(markup);
                     draw(graphics, renderer, markup, layout.mech(), layout.host(), uiScale);
                 }
+                var plate = sectionPlate(modRoot, new MechLoadoutComponent(MechVariant.BULWARK, null));
+                draw(graphics, renderer, plate, BattleMechSectionPlate.above(layout.mech()),
+                        layout.host(), uiScale);
             } else {
                 var model = new BattleSquadOverlayModel(reactor, () -> {});
                 List<BattleSquadOverlayModel.MemberState> members = new ArrayList<>();
@@ -257,6 +268,98 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
             graphics.dispose();
         }
         return image;
+    }
+
+    /**
+     * The section paper-doll in four states, each plate at 100% on a 1920x1080 frame: an intact
+     * Hound, a Hound whose SRM pod was shot off and whose torso armor is stripped, a crippled Hound
+     * with its sensors gone, and an intact Bulwark. Damage goes through {@link MechSections#resolve},
+     * the path combat uses; a destroyed mount is then struck off the loadout as combat does.
+     */
+    private static BufferedImage sectionStates(HeadlessUiRenderer renderer, Path modRoot) {
+        BufferedImage image = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = image.createGraphics();
+        try {
+            graphics.setColor(new Color(18, 25, 30));
+            graphics.fillRect(0, 0, 1920, 1080);
+            graphics.setColor(new Color(25, 34, 39));
+            for (int x = 0; x < 1920; x += 48) graphics.drawLine(x, 0, x, 1080);
+            for (int y = 0; y < 1080; y += 48) graphics.drawLine(0, y, 1920, y);
+            graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                    RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            graphics.setFont(graphics.getFont().deriveFont(14f));
+            List<MechLoadoutComponent> mechs = List.of(
+                    new MechLoadoutComponent(MechVariant.HOUND, null), damagedHound(),
+                    crippledHound(), new MechLoadoutComponent(MechVariant.BULWARK, null));
+            List<String> captions = List.of("Hound, intact", "Hound, SRM pod destroyed, torso armor stripped",
+                    "Hound, crippled, sensors lost", "Bulwark, intact");
+            int width = (int) BattleMechSectionPlate.DOCUMENT_WIDTH;
+            int height = (int) BattleMechSectionPlate.DOCUMENT_HEIGHT;
+            int pitch = 420;
+            int left = (1920 - pitch * 3 - width) / 2;
+            for (int i = 0; i < mechs.size(); i++) {
+                var plate = sectionPlate(modRoot, mechs.get(i));
+                BufferedImage panel = renderer.render(plate.document(), width, height);
+                int x = left + i * pitch;
+                int y = (1080 - height) / 2;
+                graphics.drawImage(panel, x, y, null);
+                graphics.setColor(new Color(0xC5, 0xD6, 0xCB));
+                graphics.drawString(captions.get(i), x, y - 14);
+            }
+        } finally {
+            graphics.dispose();
+        }
+        return image;
+    }
+
+    private static BattleMechSectionPlate sectionPlate(Path modRoot, MechLoadoutComponent loadout) {
+        var plate = new BattleMechSectionPlate(path -> Files.readString(modRoot.resolve(path)),
+                ModStrings.fromDisk(modRoot));
+        plate.update(loadout);
+        return plate;
+    }
+
+    private static MechLoadoutComponent damagedHound() {
+        var hound = new MechLoadoutComponent(MechVariant.HOUND, null);
+        MechSections sections = sections(hound);
+        hit(hound, MechSection.LEFT_SHOULDER, sections.armor(MechSection.LEFT_SHOULDER)
+                + sections.structure(MechSection.LEFT_SHOULDER) + 1f);
+        hit(hound, MechSection.TORSO, sections.armor(MechSection.TORSO));
+        hit(hound, MechSection.LEGS, sections.armor(MechSection.LEGS) * 0.4f);
+        return hound;
+    }
+
+    private static MechLoadoutComponent crippledHound() {
+        var hound = new MechLoadoutComponent(MechVariant.HOUND, null);
+        MechSections sections = sections(hound);
+        for (MechSection section : List.of(MechSection.LEGS, MechSection.HEAD)) {
+            hit(hound, section, sections.armor(section) + sections.structure(section) + 1f);
+        }
+        hit(hound, MechSection.ARMS, sections.armor(MechSection.ARMS) * 0.7f);
+        return hound;
+    }
+
+    private static MechSections sections(MechLoadoutComponent mech) {
+        MechVariant v = mech.variant;
+        return mech.sectionsFor(v.maxStructure, v.maxStructure, v.armorCapacity, v.armorCapacity);
+    }
+
+    /** One full-penetration hit through the combat resolution; a mount at zero loses its weapon. */
+    private static void hit(MechLoadoutComponent mech, MechSection section, float damage) {
+        MechSections sections = sections(mech);
+        sections.resolve(section, damage, mech.variant.armorRating, 0f, mech.variant.armorRating,
+                new DurabilityModel.Resolution(), new MechSections.Hit());
+        if (section.mount() != null && sections.destroyed(section)) mech.destroyMount(section.mount());
+    }
+
+    private static void draw(Graphics2D graphics, HeadlessUiRenderer renderer, BattleMechSectionPlate plate,
+                             UiViewport viewport, UiViewport host, float uiScale) {
+        BufferedImage panel = renderer.render(plate.document(),
+                Math.round(viewport.documentWidth()), Math.round(viewport.documentHeight()));
+        int x = Math.round((viewport.screenX() - host.screenX()) * uiScale);
+        int y = Math.round((host.screenY() + host.height() - viewport.screenY() - viewport.height()) * uiScale);
+        graphics.drawImage(panel, x, y, Math.round(viewport.width() * uiScale),
+                Math.round(viewport.height() * uiScale), null);
     }
 
     private static MarkupInstance build(Path modRoot, Reactor reactor, String path,
