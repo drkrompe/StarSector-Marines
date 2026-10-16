@@ -1,0 +1,16 @@
+Use case: sketch-to-render. Asset: ONE transparent compositing card of a civilian Atlas-class bulk freighter for a grounded, photographic science-fiction cinematic (Starsector, the inbound lane to Jangala). The ship is about 384 m long, seen from about 3.5 km away.
+
+Image 1 is the AUTHORITY for silhouette, pose, heading, placement, scale AND LIGHTING: a crude grey blockout rendered through the shot's camera under the shot's one sun. Fill it in as a real ship; do not move, rotate, resize, mirror or re-pose it. Output the SAME square canvas framing as Image 1 with the hull at exactly the same position and size, and all empty space kept empty. The blockout is a rough clay heightfield: its lumpy surface means nothing; build a crisp, straight-edged real ship inside its overall outline, with clean straight lines and no ragged, stepped or voxel edges anywhere: the heavy engineering block and engine cluster at the LEFT (stern, nearest the camera), the long container spine running to the compact armoured bridge at the RIGHT (bow, slightly away).
+- Image 2 identifies the Atlas hull plan ONLY (top-down game sprite: a central cargo spine flanked by racks of stacked rectangular containers, a command section at the bow, a broad engineering block with large engine nozzles at the stern). Never copy its flat top-down view.
+- Image 3 sets material, container colours, detail quality and the long slender proportions ONLY (a previously approved painted Atlas, also bow right); do not copy its lighting. The Atlas is long and fairly low: about four times longer than its visible height.
+
+LIGHTING IS CRITICAL, and Image 1 shows it exactly: one hard yellow-white sun (the star Corvus) high above and to the LEFT. This is vacuum: there is NO ambient light, no sky fill, no studio fill and no atmosphere.
+- The tops of the containers, the spine and the bridge, and left-facing surfaces: brightly sunlit, crisp specular glints.
+- The long flank facing the camera (the lower edge of the hull in the image), the container sides facing us, and every right-facing or downward-facing surface: in deep shadow, nearly black, as dark as in Image 1. The gaps between containers are black slots; each container casts a hard shadow on its neighbour toward the lower right.
+- The only fill is a very faint cool blue planet-shine on shadowed surfaces facing RIGHT. Keep it barely visible.
+- No haze, no fog, no bloom, no rim glow, no lens flare.
+- Self-lit only: the stern engine bells at the LEFT glow hot blue-white inside with a very short soft glow (no plume); tiny lit bridge windows; one small red and one small green running light.
+
+Material: photoreal, tactile weathered civilian industrial hardware: containers in muted rust red, ochre, olive, slate blue and grey with chipped faded paint, dull worn steel trusses, grime streaks, small scale cues (hatches, handrails, antennae). Not a toy, low-poly render, voxel model, game sprite, painting or cartoon.
+
+TRUE TRANSPARENT background everywhere around the ship, including all gaps between containers and trusses. No stars, planet, station, other ships, exhaust plume, shadow slab, border, labels or text.

@@ -1,0 +1,54 @@
+{
+ "part": "bow-cheek-port",
+ "regions": {
+  "oxide": {
+   "pixels": 51812,
+   "share_as_declared": 0.939,
+   "share_in_declared_family": 0.939,
+   "came_back_as": {
+    "oxide": 0.939,
+    "gunmetal": 0.049
+   },
+   "swap": false,
+   "before_mean_lab": [
+    56.09,
+    22.24,
+    33.36
+   ],
+   "after_mean_lab": [
+    51.17,
+    18.92,
+    27.77
+   ],
+   "gain_L_a_b": [
+    1.33,
+    0.851,
+    0.832
+   ],
+   "dE_to_palette_before": 8.15,
+   "forced_back_to_declared": false
+  }
+ },
+ "planes": [
+  {
+   "pixels": 52833,
+   "ramp_span_L_removed": 0.43,
+   "ramp_dL_per_100px": [
+    0.0,
+    0.21
+   ],
+   "edge_band_dL_after": -3.16
+  },
+  {
+   "pixels": 2790,
+   "ramp_span_L_removed": 4.27,
+   "ramp_dL_per_100px": [
+    2.62,
+    -4.26
+   ],
+   "edge_band_dL_after": null
+  }
+ ],
+ "ramp_span_L_removed_max": 4.27,
+ "edge_band_dL_after_mean": -3.16
+}

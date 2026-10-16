@@ -1,0 +1,26 @@
+{
+  "generator": "planet_maps.py (derived, no image generation)",
+  "inputs": {
+    "assets\\planet-clouds-v2.png": "30d92a39e0549de9108f1807aba78fe5725688f9f70362e577fd2fc24c2e3589"
+  },
+  "script": "planet_maps.py",
+  "scriptSha256": "62325d9428a14b7ed354d02749dddc829036493f4f1282a6a5ecaefe4010476b",
+  "parameters": {
+    "eye_centre_px": [
+      1126,
+      243
+    ],
+    "eyewall_mean": 0.577,
+    "fill": "40% of eyewall at centre rising to the wall by r=9 px, feather r 8-13"
+  },
+  "note": "Cloud master with the cyclone eye's black dot raised to a dim clearing; otherwise unchanged.",
+  "output": {
+    "path": "assets\\planet-clouds-v2-eyefix.png",
+    "sha256": "2592377ac9d9ec73cd88c9cbe4277f7f7d402fed47cdcf32d02f727935c0421b",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "L"
+  }
+}

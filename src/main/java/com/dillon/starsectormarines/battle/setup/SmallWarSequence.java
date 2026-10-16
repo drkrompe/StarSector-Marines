@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.SmallWarCommand;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.ObjectiveFactionPresence;
-import com.dillon.starsectormarines.battle.power.ShipOnStation;
 import com.dillon.starsectormarines.battle.setup.SmallWarForces.Commitment;
 import com.dillon.starsectormarines.battle.setup.SmallWarForces.Group;
 import com.dillon.starsectormarines.battle.setup.SmallWarForces.SplitSide;
@@ -13,7 +12,6 @@ import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.story.SmallWarProgress;
 import com.dillon.starsectormarines.battle.story.SmallWarProgress.Phase;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
-import com.dillon.starsectormarines.battle.tender.Tender;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -28,8 +26,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Black Sluice referee and Greyhook's split. Sites, the rear position and the handover are read
- * from physical presence; the split happens only when fuel control actually falls, and those who
+ * Black Sluice referee and Greyhook's split. Sites and the handover are read from physical
+ * presence; there is no construction step and no tender on this mission; the split happens only when fuel control actually falls, and those who
  * obey it walk off the map along the service road, so the withdrawal is strength Greyhook loses
  * rather than a despawn. The optional {@link SmallWarDuel} hears the order; nothing here waits on it.
  */
@@ -48,13 +46,15 @@ public final class SmallWarSequence implements Objective {
     private final Set<Integer> withdrawing = new HashSet<>();
     private final Set<Long> withdrawn = new HashSet<>();
     private final Map<SmallWarForces.Outfit, Integer> withdrawnByOutfit = new HashMap<>();
-    private final Set<Long> turretIds = new HashSet<>();
     private final StoryBeatLog log;
     /** The story beat raised when Voss orders Black Sluice abandoned. */
     public static final String VOSS_ABANDON_BEAT = "small_war.voss_abandon";
     private SmallWarDuel duel;
-    private Tender tender;
-    private boolean initialized, constructionExhausted;
+    private boolean initialized, liftDown;
+    /** Seconds since customs first fell; drives the bounded form-up before the push on fuel control. */
+    private float sinceCustoms = -1;
+    /** The longest the company waits at the staging ground for the rest of its lift before pushing on regardless. */
+    public static final float FORM_UP_LIMIT_SECONDS = 120;
 
     public SmallWarSequence(int custody, List<Integer> holders, Map<Integer, Group> startingSquads,
                             Map<Group, List<EntitySpec>> reserves, long supportGun, boolean houseCustody, StoryBeatLog log) {
@@ -76,27 +76,27 @@ public final class SmallWarSequence implements Objective {
     }
     public SmallWarDuel duel() { return duel; }
     public SmallWarProgress progress() { return progress; }
+    /**
+     * Whether the company forms up at the staging ground south of customs instead of pushing on: customs has
+     * fallen, fuel control has not yet, and the company's lift is still bringing people in, for at most
+     * {@link #FORM_UP_LIMIT_SECONDS}. A command choice, not an objective: nothing waits on it.
+     */
+    public boolean formingUp() {
+        return progress.phase() == Phase.FUEL_CONTROL && !progress.visited(SmallWarProgress.FUEL_CONTROL)
+                && !liftDown && sinceCustoms >= 0 && sinceCustoms < FORM_UP_LIMIT_SECONDS;
+    }
     public int custodySquadId() { return custody; }
     public List<Integer> holderSquadIds() { return holders; }
     public long supportGunId() { return supportGun; }
     public boolean houseCustody() { return houseCustody; }
     public Map<Integer, Group> squadGroups() { return Map.copyOf(squadGroups); }
     public Set<Integer> withdrawingSquads() { return Set.copyOf(withdrawing); }
-    public Set<Long> rearTurretIds() { return Set.copyOf(turretIds); }
-    public Tender tender() { return tender; }
-    public boolean constructionExhausted() { return constructionExhausted; }
     public int pendingMembers() {
         if (progress.terminal()) return 0;
         int pending = 0;
         for (var entry : reserves.entrySet()) if (!released.contains(entry.getKey())) pending += entry.getValue().size();
         return pending;
     }
-    public boolean tenderAvailable() {
-        return tender != null && tender.anchorAlive() && !tender.disabled() && !tender.ship().departing() && !tender.departed()
-                && tender.buildersLost() < tender.builderComplement();
-    }
-    public int buildX() { return BlackSluice.BUILD_X; }
-    public int buildY() { return BlackSluice.BUILD_Y; }
 
     public SmallWarProgress.Report report(BattleSimulation sim) {
         return progress.report(SmallWarProgress.CUSTODIANS - sim.squadMemberCount(custody),
@@ -121,15 +121,9 @@ public final class SmallWarSequence implements Objective {
     public void advance(BattleSimulation sim) {
         if (sim.isComplete() || progress.terminal()) return;
         if (!initialized) { initialized = true; emit(sim, "mobilization"); }
-        for (Tender candidate : sim.tenders().tenders()) {
-            var source = candidate.ship().supportSource();
-            if (candidate.ship().faction == Faction.MARINE && !candidate.grounded() && source != null && source.tender()
-                    && source.memberId() != null && candidate.anchorAlive() && !candidate.disabled()
-                    && !candidate.ship().departing() && candidate.buildersLost() < candidate.builderComplement()) {
-                tender = candidate; break;
-            }
-        }
         Phase before = progress.phase();
+        liftDown = companyLiftDown(sim);
+        if (sinceCustoms >= 0) sinceCustoms += BattleSimulation.TICK_DT;
         int company = 0, friendly = 0, contested = 0;
         boolean custodyInRoom = false;
         for (int i = 0; i < sim.liveUnitCount(); i++) {
@@ -145,22 +139,14 @@ public final class SmallWarSequence implements Objective {
                 if (Faction.MARINE.hostileTo(side) && sim.identity().type(id).combatant
                         && (inside || Math.hypot(sim.world().x(id) - place.x(), sim.world().y(id) - place.y()) < 12)) contested |= 1 << site;
             }
-            String name = sim.identity().name(id);
-            if (side == Faction.MARINE && name != null && name.startsWith("tender-turret-")
-                    && Math.hypot(sim.world().x(id) - buildX(), sim.world().y(id) - buildY()) < 12) turretIds.add(id);
         }
-        // Only a completed site owned by the called, campaign-backed tender commissions the rear position.
-        boolean commissioned = tender != null && tender.completedSites().stream()
-                .anyMatch(site -> Math.hypot(site.siteX() - buildX(), site.siteY() - buildY()) < 12)
-                && turretIds.stream().anyMatch(sim.world()::isAlive);
         boolean split = progress.advance(BattleSimulation.TICK_DT, companyInPlay(sim), infrastructureIntact(sim),
-                sim.squadMemberCount(custody) > 0, custodyInRoom, commissioned, company, friendly, contested);
-        if (progress.visited(SmallWarProgress.CUSTOMS)) release(sim, Commitment.CUSTOMS_FALLS);
-        if (split) split(sim);
-        if (progress.phase() == Phase.REAR_POSITION && tender != null && !tenderAvailable()
-                && sim.getCommandPowerService().getChargesRemaining(ShipOnStation.ID) <= 0) {
-            constructionExhausted = true; progress.fail(); emit(sim, "construction_exhausted");
+                sim.squadMemberCount(custody) > 0, custodyInRoom, company, friendly, contested);
+        if (progress.visited(SmallWarProgress.CUSTOMS)) {
+            if (sinceCustoms < 0) sinceCustoms = 0;
+            release(sim, Commitment.CUSTOMS_FALLS);
         }
+        if (split) split(sim);
         observeExits(sim);
         if (duel != null && progress.split()) duel.advance(sim);
         if (before != progress.phase()) emit(sim, progress.phase().name().toLowerCase(Locale.ROOT));
@@ -207,6 +193,17 @@ public final class SmallWarSequence implements Objective {
         }
     }
 
+    /** Every company boat has flown its last sortie and set down everyone aboard it. */
+    private static boolean companyLiftDown(BattleSimulation sim) {
+        for (long air : sim.getAirEntityIds()) {
+            if (sim.world().airFaction(air) != Faction.MARINE) continue;
+            var flight = sim.world().mission(air);
+            if (flight == null || flight.cycleLoadouts == null) continue;
+            if (flight.currentCycle + 1 < flight.totalCycles || flight.marinesRemaining > 0) return false;
+        }
+        return true;
+    }
+
     /** Every marked tank still stands, intact or damaged; a destroyed tank is lost infrastructure. */
     public static boolean infrastructureIntact(BattleSimulation sim) {
         for (int[] tank : BlackSluice.TANKS) {
@@ -232,13 +229,11 @@ public final class SmallWarSequence implements Objective {
     public boolean isFailed() { return progress.phase() == Phase.FAILED; }
     public String displayName() { return switch (progress.phase()) {
         case CUSTOMS -> "Seize the causeway customs block";
-        case REAR_POSITION -> "Call the selected tender; build the rear position south of customs";
         case FUEL_CONTROL -> "Take fuel control; the service galleries flank the exposed causeway";
         case DISPATCH -> "Capture dispatch and its transfer records";
         case HANDOVER -> "Hold all three sites; escort the custody party into fuel control";
         case COMPLETE -> "Black Sluice handed over to its local holders";
-        case FAILED -> constructionExhausted ? "Construction support exhausted; withdraw for a new mobilization"
-                : progress.report(0, 0, 0, houseCustody).infrastructureLost() ? "Marked fuel infrastructure destroyed; the handover has failed"
+        case FAILED -> progress.report(0, 0, 0, houseCustody).infrastructureLost() ? "Marked fuel infrastructure destroyed; the handover has failed"
                 : "Black Sluice handover failed; a new mobilization is required";
     }; }
 }

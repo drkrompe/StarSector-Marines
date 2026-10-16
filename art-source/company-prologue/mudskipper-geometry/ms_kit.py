@@ -34,7 +34,10 @@ class Kit:
         self.tan = material('Tan hatch and fender work', (.42, .33, .20), .3)
         self.dark = material('Recess and machinery', (.055, .065, .072), .5)
         self.steel = material('Drive casing steel', (.19, .21, .22), .65)
-        self.glass = material('Cockpit glazing', (.05, .09, .11), .2, .15, emission=(.35, .5, .55))
+        # Ports and skylights: dark smoked glass with a faint cabin glow. A
+        # stronger emission read as white panes on the flanks.
+        self.glass = material('Cockpit glazing', (.03, .05, .06), .2, .12, emission=(.35, .5, .55))
+        self.glass.node_tree.nodes['Principled BSDF'].inputs['Emission Strength'].default_value = .25
         self.lamp = material('Bow running lamps', (.8, .7, .42), emission=(.9, .75, .35))
         self.hull = None
 

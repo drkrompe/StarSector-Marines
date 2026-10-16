@@ -1,0 +1,59 @@
+{
+ "part": "pod-intake-cap-port",
+ "sheet": "pod",
+ "tile": 2,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.998,
+ "raw_iou": 0.9802,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9966,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9802
+  },
+  "bounds_affine": {
+   "scale": [
+    1.01205,
+    1.00907
+   ],
+   "offset_px": [
+    -5.49,
+    -2.33
+   ],
+   "iou": 0.9952
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.01205,
+    1.00757
+   ],
+   "offset_px": [
+    -5.74,
+    -2.33
+   ],
+   "iou": 0.9966
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 1.06,
+  "p95_px": 2.0,
+  "max_px": 2.24
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.18,
+  "p95_px": 1.0,
+  "max_px": 2.0
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

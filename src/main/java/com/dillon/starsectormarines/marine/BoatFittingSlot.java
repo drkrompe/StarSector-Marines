@@ -3,9 +3,10 @@ package com.dillon.starsectormarines.marine;
 /**
  * A place on a ship's boat where one fitting is installed.
  *
- * <p>Two of them, and they divide the boat the way a yard's work order does:
- * what is between the crew and the ground fire, and what gets them off the
- * deck. A hardpoint slot would be a third, and is deliberately absent — a
+ * <p>Three of them, and they divide the boat the way a yard's work order does:
+ * what is between the crew and the ground fire, what gets them off the deck,
+ * and whether the hold takes people or a machine. A hardpoint slot would be a
+ * fourth, and is deliberately absent — a
  * boat's door gun is decided by what the sortie is for
  * ({@code AirArmament.kitFor}), not by what the company bolted on last month.
  */
@@ -15,5 +16,12 @@ public enum BoatFittingSlot {
     PLATING,
 
     /** Engines. How fast the boat is through that fire and away again. */
-    DRIVE
+    DRIVE,
+
+    /**
+     * The hold. Standard seats people; a cradle trades every seat for a lift
+     * rating, so a cradled boat flies machine-only sorties. Bus-class hulls
+     * only.
+     */
+    LIFT
 }
