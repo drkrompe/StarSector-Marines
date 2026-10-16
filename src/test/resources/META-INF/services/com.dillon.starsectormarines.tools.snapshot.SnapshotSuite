@@ -180,3 +180,4 @@ com.dillon.starsectormarines.battle.world.gen.bsp.FortressPreviewSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.bsp.CampaignSettlementSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.bsp.BspMapPreviewSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionPreviewSnapshotSuite
+com.dillon.starsectormarines.ops.FreightVehiclesSnapshotSuite

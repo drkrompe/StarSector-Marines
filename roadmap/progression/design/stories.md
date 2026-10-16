@@ -2,7 +2,7 @@
 
 Status: ACTIVE — open progression implementation and acceptance work
 Written: 2026-08-23
-Updated: 2026-10-15 — the Restricted tier shipped; the authored Hegemony warrant and warrant obligations remain.
+Updated: 2026-10-15 — Restricted tier, market listings and arc issue cards shipped.
 
 Read `progression-nouns.md` before changing a progression story, and
 `role-and-access.md` before changing anything about which patterns exist or how

@@ -30,7 +30,7 @@ public final class ComposableDamageSnapshotSuite implements SnapshotSuite {
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         DiskRegistries.installMapGeneration(context.projectRoot());
         List<SnapshotArtifact> images = new ArrayList<>();
-        for (String family : List.of("consoles", "storage", "clinic", "factory")) for (int turn=0;turn<4;turn++)
+        for (String family : List.of("consoles", "storage", "clinic", "factory", "armory", "utility")) for (int turn=0;turn<4;turn++)
             images.add(new SnapshotArtifact(family+"-turn-"+turn+".png",board(context,family,turn)));
         return images;
     }
@@ -54,7 +54,23 @@ public final class ComposableDamageSnapshotSuite implements SnapshotSuite {
                     f.place("main-stores.pallet",p[0],p[1],0,turn);f.place("main-stores.cases",p[0],p[1],0,turn);
                 }
                 f.place("main-stores.tally",2,5,0,turn);f.place("main-stores.packing",9,5,0,turn);
-            } else if(family.equals("factory")) {
+
+            } else if(family.equals("armory")) {
+                f.place("armory-workshop.counter",2,5,0,turn);
+                f.place("armory-workshop.counter",4,5,0,turn);
+                f.place("armory-workshop.ready-locker",2,9,0,turn);
+                f.place("armory-workshop.bench",7,9,0,turn);
+                f.place("armory-workshop.bench-tools",7,9,0,turn);
+                f.place("armory-workshop.ammo",12,9,0,turn);
+                for(int x=2;x<=11;x+=3) {
+                    f.place("armory-workshop.rack",x,14,0,turn);
+                    f.place("armory-workshop.rifles",x,14,0,turn);
+                    f.place("armory-workshop.rack-frame",x,14,0,turn);
+                }
+            } else if(family.equals("utility")) {
+                f.place("ship-engineering.generator",5,11,0,turn);
+                f.place("ship-engineering.switchgear",3,5,0,turn);
+                f.place("ship-engineering.control",10,5,0,turn);            } else if(family.equals("factory")) {
                 f.place("factory-machines.fabricator",3,12,0,turn);
                 f.place("factory-machines.conveyor",6,13,0,turn);
                 f.place("factory-machines.conveyor",7,13,0,turn);

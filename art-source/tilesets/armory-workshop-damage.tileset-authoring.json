@@ -1,0 +1,269 @@
+{
+  "sheetName": "armory-workshop-damage",
+  "sheet": "art-source/tilesets/armory-workshop-damage.raw.png",
+  "cellPx": 128,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "armory-workshop",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/armory-workshop-damage.png",
+  "note": "Built-in ImageGen edit of retained geometry guide, with intact material reference. Full-footprint registration only; native alpha, no repainting or keying. See art-source/console-bank/damage.",
+  "entries": [
+    {
+      "rect": [
+        23,
+        89,
+        267,
+        135
+      ],
+      "id": "armory-workshop.counter-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        26,
+        405,
+        262,
+        132
+      ],
+      "id": "armory-workshop.counter-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        337,
+        110,
+        268,
+        94
+      ],
+      "id": "armory-workshop.rack-damaged",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        340,
+        427,
+        262,
+        90
+      ],
+      "id": "armory-workshop.rack-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        650,
+        112,
+        266,
+        90
+      ],
+      "id": "armory-workshop.rifles-damaged",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        653,
+        427,
+        262,
+        89
+      ],
+      "id": "armory-workshop.rifles-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        965,
+        112,
+        266,
+        93
+      ],
+      "id": "armory-workshop.rack-frame-damaged",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        967,
+        424,
+        262,
+        91
+      ],
+      "id": "armory-workshop.rack-frame-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        25,
+        696,
+        267,
+        177
+      ],
+      "id": "armory-workshop.bench-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "footprintCells": [
+        3,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        26,
+        1010,
+        262,
+        175
+      ],
+      "id": "armory-workshop.bench-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        3,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        333,
+        696,
+        271,
+        180
+      ],
+      "id": "armory-workshop.bench-tools-damaged",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        3,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        340,
+        1010,
+        262,
+        175
+      ],
+      "id": "armory-workshop.bench-tools-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        3,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        652,
+        696,
+        265,
+        176
+      ],
+      "id": "armory-workshop.ready-locker-damaged",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "footprintCells": [
+        3,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        653,
+        1010,
+        262,
+        175
+      ],
+      "id": "armory-workshop.ready-locker-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        3,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        964,
+        650,
+        268,
+        267
+      ],
+      "id": "armory-workshop.ammo-damaged",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        967,
+        967,
+        262,
+        262
+      ],
+      "id": "armory-workshop.ammo-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "included": true
+    }
+  ]
+}

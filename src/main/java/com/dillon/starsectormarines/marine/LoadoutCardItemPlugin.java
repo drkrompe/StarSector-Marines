@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CargoStackAPI;
@@ -82,6 +83,13 @@ public final class LoadoutCardItemPlugin extends BaseSpecialItemPlugin {
                 tooltip.addPara(MilitaryWarrants.restrictedRoute(template), pad);
                 break;
             }
+        }
+        CampaignStateScript campaign = Global.getSector() != null ? CampaignStateScript.getInstance() : null;
+        MarketListings.Listing listing = campaign != null
+                ? MarketListings.firstFor(campaign.state(), card.id()) : null;
+        if (listing != null) {
+            // Why this shelf has it: the story beat that stocked it.
+            tooltip.addPara(Strings.get(listing.reasonKey()), Misc.getHighlightColor(), pad);
         }
         tooltip.addPara(Strings.get("loadoutCardShipBoundary"), pad);
         addCostLabel(tooltip, pad, transferHandler, stackSource);

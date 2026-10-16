@@ -1,0 +1,16 @@
+armory-workshop.counter-damaged	23	89	267	135	2	1	med	0.65
+armory-workshop.counter-destroyed	26	405	262	132	2	1	none	0
+armory-workshop.rack-damaged	337	110	268	94	3	1	heavy	1.1
+armory-workshop.rack-destroyed	340	427	262	90	3	1	none	0
+armory-workshop.rifles-damaged	650	112	266	90	3	1	none	0
+armory-workshop.rifles-destroyed	653	427	262	89	3	1	none	0
+armory-workshop.rack-frame-damaged	965	112	266	93	3	1	none	0
+armory-workshop.rack-frame-destroyed	967	424	262	91	3	1	none	0
+armory-workshop.bench-damaged	25	696	267	177	3	2	med	0.65
+armory-workshop.bench-destroyed	26	1010	262	175	3	2	none	0
+armory-workshop.bench-tools-damaged	333	696	271	180	3	2	none	0
+armory-workshop.bench-tools-destroyed	340	1010	262	175	3	2	none	0
+armory-workshop.ready-locker-damaged	652	696	265	176	3	2	heavy	1.1
+armory-workshop.ready-locker-destroyed	653	1010	262	175	3	2	none	0
+armory-workshop.ammo-damaged	964	650	268	267	2	2	heavy	1.1
+armory-workshop.ammo-destroyed	967	967	262	262	2	2	none	0

@@ -1,0 +1,109 @@
+{
+  "sheetName": "installation-utility-damage",
+  "sheet": "art-source/tilesets/installation-utility-damage.raw.png",
+  "cellPx": 128,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "installation-utility",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/installation-utility-damage.png",
+  "note": "Built-in ImageGen edit of retained geometry guide, with intact material reference. Full-footprint registration only; native alpha, no repainting or keying. See art-source/console-bank/damage.",
+  "entries": [
+    {
+      "rect": [
+        45,
+        116,
+        428,
+        287
+      ],
+      "id": "ship-engineering.generator-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        6,
+        4
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        42,
+        625,
+        428,
+        286
+      ],
+      "id": "ship-engineering.generator-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        6,
+        4
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        558,
+        192,
+        426,
+        141
+      ],
+      "id": "ship-engineering.control-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        554,
+        696,
+        428,
+        144
+      ],
+      "id": "ship-engineering.control-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        1066,
+        117,
+        428,
+        284
+      ],
+      "id": "ship-engineering.switchgear-damaged",
+      "cover": "med",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        3,
+        2
+      ],
+      "included": true
+    },
+    {
+      "rect": [
+        1062,
+        625,
+        432,
+        286
+      ],
+      "id": "ship-engineering.switchgear-destroyed",
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        3,
+        2
+      ],
+      "included": true
+    }
+  ]
+}
