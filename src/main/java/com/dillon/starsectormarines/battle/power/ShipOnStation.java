@@ -120,7 +120,7 @@ public final class ShipOnStation extends CommandPower {
         }
         ship.calledFrom(source);
         ship.stationTo(stationX, stationY);
-        ship.arriveFromAbove();
+        ship.arriveFromAbove(stationX, stationY);
         ship.stance(side == Faction.DEFENDER ? MissionStance.DEFEND : battle.companyStance());
         ship.stayFor(STATION_SECONDS);
         if (tender != null) {

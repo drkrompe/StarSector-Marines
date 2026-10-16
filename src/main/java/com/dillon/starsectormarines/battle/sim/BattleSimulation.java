@@ -691,6 +691,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (openingStory != null || junctionStory != null || lastLiftAttempt != null || relayNineStory != null || simTickIndex != 0) throw new IllegalStateException("Install story hooks once at setup");
         openingStory = new OpeningOperationStoryObserver(this, facts, storyBeats);
     }
+    /**
+     * Publishes a story beat for the player at this tick, once per id: the seam a mission's own machinery (a duel
+     * overhead, say) uses to reach the battle's radio without holding the log.
+     */
+    public void emitStoryBeat(String id) { storyBeats.emitOnce(simTickIndex, id, StoryBeatLog.Audience.PLAYER); }
     /** Full immutable history for neutral diagnostic tools, including hidden scenario facts. */
     public List<StoryBeatLog.Event> getStoryBeats() { return storyBeats.events(); }
     /** Presentation reads after advance; each consumer owns a battle-local sequence cursor. */

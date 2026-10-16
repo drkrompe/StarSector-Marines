@@ -48,7 +48,9 @@ class WarshipDuelHelmTest {
         float[] ahead = WarshipDuelHelm.station(140f, 50f, 100f, 50f, 0f, 20f, false, 2f, map);
         assertEquals(30f, ahead[1], 1e-3f);
         float[] edge = WarshipDuelHelm.station(10f, 95f, 50f, 90f, 0f, 20f, true, 2f, map);
-        assertEquals(100f - WarshipDuelHelm.EDGE_MARGIN_CELLS - 2f, edge[1], 1e-4f, "clamped inside the map edge");
+        // Clamped inside the map edge, then eased off it by half the soft band (a quarter of the 90 cells of room).
+        float hard = 100f - WarshipDuelHelm.EDGE_MARGIN_CELLS - 2f;
+        assertEquals(hard - 0.5f * 0.25f * 90f, edge[1], 1e-4f, "kept off the map edge");
     }
 
     @Test
@@ -56,7 +58,8 @@ class WarshipDuelHelmTest {
         // The fight kept over the southern band y < 40: a station that would stand at y 70 comes down inside it.
         HullAirspace south = new HullAirspace(0f, 0f, 200f, 40f);
         float[] north = WarshipDuelHelm.station(90f, 70f, 100f, 50f, 0f, 20f, true, 2f, south);
-        assertEquals(40f - WarshipDuelHelm.EDGE_MARGIN_CELLS - 2f, north[1], 1e-4f);
+        // Inside the band's hard margin (35), eased half its soft band (a quarter of 30 cells of room) off the edge.
+        assertEquals(40f - WarshipDuelHelm.EDGE_MARGIN_CELLS - 2f - 0.5f * 0.25f * 30f, north[1], 1e-4f);
         assertEquals(100f + 20f * WarshipDuelHelm.CONVERGE_SHARE, north[0], 1e-3f);
         // A band too narrow for the hull's margin puts it on the middle line.
         assertArrayEquals(new float[]{50f, 5f}, new HullAirspace(0f, 0f, 100f, 10f).clamp(50f, 80f, 6f), 1e-4f);

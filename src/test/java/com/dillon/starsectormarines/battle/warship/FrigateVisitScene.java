@@ -80,7 +80,8 @@ public final class FrigateVisitScene implements BehaviorScene {
                     fight ? ShipFireOrder.ALL : ShipFireOrder.OFF);
             wolf.groundFire(Warship.GroundFire.HOLD);
             if (onVisit) {
-                wolf.arriveFromAbove();
+                // Pointed at the Hounds' line to the east, where the visit is going.
+                wolf.arriveFromAbove(100f, y);
                 wolf.visit(DWELL_SECONDS);
             }
             wolves.add(wolf);

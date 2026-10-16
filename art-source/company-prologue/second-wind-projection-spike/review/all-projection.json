@@ -1,0 +1,312 @@
+{
+  "projectors": [
+    {
+      "view": "port-side",
+      "image": "generated/reskin-v1.png",
+      "fit": "iou_refined_affine",
+      "scale": [
+        1.1186783546864465,
+        1.1181717171717171
+      ],
+      "offset_px": [
+        -107.71325016857722,
+        -46.137373737373764
+      ],
+      "generated_texels_per_model_unit": 12.666666666666666
+    },
+    {
+      "view": "quarter30",
+      "image": "generated/reskin-quarter30.png",
+      "fit": "iou_refined_affine",
+      "scale": [
+        1.0014214641080312,
+        1.0036036036036036
+      ],
+      "offset_px": [
+        -0.9193319118692216,
+        -1.2783783783783633
+      ],
+      "generated_texels_per_model_unit": 11.146666666666667
+    },
+    {
+      "view": "part-deck",
+      "image": "build/parts/part-deck.png",
+      "fit": "iou_refined_affine",
+      "scale": [
+        1.0028095238095238,
+        0.996
+      ],
+      "offset_px": [
+        -0.9571428571428555,
+        0.0
+      ],
+      "generated_texels_per_model_unit": 6.5636363636363635
+    },
+    {
+      "view": "part-turret",
+      "image": "build/parts/part-turret.png",
+      "fit": "moments_similarity",
+      "scale": [
+        1.0042762383334118,
+        1.0042762383334118
+      ],
+      "offset_px": [
+        -2.6396523432837284,
+        -1.2705522405949807
+      ],
+      "generated_texels_per_model_unit": 24.066666666666666
+    },
+    {
+      "view": "part-pod",
+      "image": "build/parts/part-pod.png",
+      "fit": "iou_refined_affine",
+      "scale": [
+        1.0013571428571428,
+        1.002079002079002
+      ],
+      "offset_px": [
+        0.0,
+        0.0
+      ],
+      "generated_texels_per_model_unit": 9.417391304347825
+    },
+    {
+      "view": "part-bow",
+      "image": "build/parts/part-bow.png",
+      "fit": "iou_refined_affine",
+      "scale": [
+        1.001,
+        1.001953125
+      ],
+      "offset_px": [
+        0.0,
+        0.0
+      ],
+      "generated_texels_per_model_unit": 8.664
+    }
+  ],
+  "views": {
+    "guide": {
+      "pixel_coverage_of_visible_hull": 0.9781731153069866,
+      "dominant_share": {
+        "port-side": 0.6059129013844897,
+        "quarter30": 0.1677709753358628,
+        "part-deck": 0.0015352128965344853,
+        "part-turret": 0.0005577504933946672,
+        "part-pod": 0.13843031476527845,
+        "part-bow": 0.06396596043142654
+      },
+      "stretch_mean": 1.237891435623169,
+      "stretch_share_over_1_5": 0.13342397989248275,
+      "handover_pixels_share_of_textured": 0.002633581308247248,
+      "handover_step_mean_0_255": 13.584444999694824,
+      "same_projector_step_mean_0_255": 4.49994421005249,
+      "pairs": {
+        "port-side vs quarter30": {
+          "overlap_share_of_visible_hull": 0.7132752078972993,
+          "mean_abs_srgb_diff_0_255": 15.888381958007812,
+          "mean_luminance_offset_0_255": -0.9343613358444482
+        },
+        "port-side vs part-pod": {
+          "overlap_share_of_visible_hull": 0.26110371174559116,
+          "mean_abs_srgb_diff_0_255": 16.19284439086914,
+          "mean_luminance_offset_0_255": 8.355976186148437
+        },
+        "port-side vs part-bow": {
+          "overlap_share_of_visible_hull": 0.14947340145723975,
+          "mean_abs_srgb_diff_0_255": 23.855297088623047,
+          "mean_luminance_offset_0_255": 6.931089182601291
+        },
+        "quarter30 vs part-pod": {
+          "overlap_share_of_visible_hull": 0.18837789741121694,
+          "mean_abs_srgb_diff_0_255": 19.95653533935547,
+          "mean_luminance_offset_0_255": 7.800969610711077
+        },
+        "quarter30 vs part-bow": {
+          "overlap_share_of_visible_hull": 0.11521185191817669,
+          "mean_abs_srgb_diff_0_255": 22.115371704101562,
+          "mean_luminance_offset_0_255": 9.91170648134767
+        }
+      }
+    },
+    "quarter30": {
+      "pixel_coverage_of_visible_hull": 0.8904109071110977,
+      "dominant_share": {
+        "port-side": 0.24190322434288133,
+        "quarter30": 0.40743436375185266,
+        "part-deck": 0.030687592631801822,
+        "part-turret": 0.0019509391730437675,
+        "part-pod": 0.06970637609267717,
+        "part-bow": 0.13872841111884093
+      },
+      "stretch_mean": 1.3947160243988037,
+      "stretch_share_over_1_5": 0.3127900706148117,
+      "handover_pixels_share_of_textured": 0.005844936157925801,
+      "handover_step_mean_0_255": 16.217182159423828,
+      "same_projector_step_mean_0_255": 5.393032550811768,
+      "pairs": {
+        "port-side vs quarter30": {
+          "overlap_share_of_visible_hull": 0.541882807537582,
+          "mean_abs_srgb_diff_0_255": 16.12515640258789,
+          "mean_luminance_offset_0_255": -1.1664003374743601
+        },
+        "port-side vs part-pod": {
+          "overlap_share_of_visible_hull": 0.13538043313874354,
+          "mean_abs_srgb_diff_0_255": 17.090232849121094,
+          "mean_luminance_offset_0_255": 7.227797611088083
+        },
+        "port-side vs part-bow": {
+          "overlap_share_of_visible_hull": 0.11221870179365416,
+          "mean_abs_srgb_diff_0_255": 24.142789840698242,
+          "mean_luminance_offset_0_255": 11.546627852235574
+        },
+        "quarter30 vs part-deck": {
+          "overlap_share_of_visible_hull": 0.01293631469102568,
+          "mean_abs_srgb_diff_0_255": 26.1184139251709,
+          "mean_luminance_offset_0_255": -4.312454100003397
+        },
+        "quarter30 vs part-pod": {
+          "overlap_share_of_visible_hull": 0.13207026405734854,
+          "mean_abs_srgb_diff_0_255": 19.872406005859375,
+          "mean_luminance_offset_0_255": 7.296165914943125
+        },
+        "quarter30 vs part-bow": {
+          "overlap_share_of_visible_hull": 0.19170434953570673,
+          "mean_abs_srgb_diff_0_255": 22.354446411132812,
+          "mean_luminance_offset_0_255": 6.979122803140042
+        },
+        "part-deck vs part-bow": {
+          "overlap_share_of_visible_hull": 0.00942197755663773,
+          "mean_abs_srgb_diff_0_255": 24.495893478393555,
+          "mean_luminance_offset_0_255": 6.507801128501954
+        }
+      }
+    },
+    "quarter60": {
+      "pixel_coverage_of_visible_hull": 0.6605284145308871,
+      "dominant_share": {
+        "port-side": 0.06328919286289801,
+        "quarter30": 0.34806800871738414,
+        "part-deck": 0.06933723688445775,
+        "part-turret": 0.0033356500417212527,
+        "part-pod": 0.0276323855330787,
+        "part-bow": 0.1488659404913472
+      },
+      "stretch_mean": 1.5200127363204956,
+      "stretch_share_over_1_5": 0.4353746352970389,
+      "handover_pixels_share_of_textured": 0.0034670060214786764,
+      "handover_step_mean_0_255": 17.976613998413086,
+      "same_projector_step_mean_0_255": 6.007218837738037,
+      "pairs": {
+        "port-side vs quarter30": {
+          "overlap_share_of_visible_hull": 0.2728446923800796,
+          "mean_abs_srgb_diff_0_255": 16.924179077148438,
+          "mean_luminance_offset_0_255": -1.5300658619233733
+        },
+        "port-side vs part-pod": {
+          "overlap_share_of_visible_hull": 0.05699102634281954,
+          "mean_abs_srgb_diff_0_255": 18.297224044799805,
+          "mean_luminance_offset_0_255": 6.376850470038548
+        },
+        "port-side vs part-bow": {
+          "overlap_share_of_visible_hull": 0.07723249706311083,
+          "mean_abs_srgb_diff_0_255": 24.914688110351562,
+          "mean_luminance_offset_0_255": 13.815047797202197
+        },
+        "quarter30 vs part-deck": {
+          "overlap_share_of_visible_hull": 0.016635196335910415,
+          "mean_abs_srgb_diff_0_255": 22.433061599731445,
+          "mean_luminance_offset_0_255": -2.8696335985637407
+        },
+        "quarter30 vs part-pod": {
+          "overlap_share_of_visible_hull": 0.05796896430833953,
+          "mean_abs_srgb_diff_0_255": 20.190153121948242,
+          "mean_luminance_offset_0_255": 6.884056144192689
+        },
+        "quarter30 vs part-bow": {
+          "overlap_share_of_visible_hull": 0.18170374425179545,
+          "mean_abs_srgb_diff_0_255": 22.19926643371582,
+          "mean_luminance_offset_0_255": 6.312061839925208
+        },
+        "part-deck vs part-bow": {
+          "overlap_share_of_visible_hull": 0.01428978536619369,
+          "mean_abs_srgb_diff_0_255": 22.566104888916016,
+          "mean_luminance_offset_0_255": 3.916355859386931
+        }
+      }
+    },
+    "high45": {
+      "pixel_coverage_of_visible_hull": 0.48988362714598455,
+      "dominant_share": {
+        "port-side": 0.051012501440258096,
+        "quarter30": 0.23470301878096556,
+        "part-deck": 0.10291220186657449,
+        "part-turret": 0.0042646042170757,
+        "part-pod": 0.024340361792833276,
+        "part-bow": 0.07265093904827745
+      },
+      "stretch_mean": 1.4843577146530151,
+      "stretch_share_over_1_5": 0.3861455417832867,
+      "handover_pixels_share_of_textured": 0.0052508408401345345,
+      "handover_step_mean_0_255": 18.897281646728516,
+      "same_projector_step_mean_0_255": 6.972740650177002,
+      "pairs": {
+        "port-side vs quarter30": {
+          "overlap_share_of_visible_hull": 0.18186715059338635,
+          "mean_abs_srgb_diff_0_255": 17.3032169342041,
+          "mean_luminance_offset_0_255": -0.8746452188096542
+        },
+        "port-side vs part-pod": {
+          "overlap_share_of_visible_hull": 0.05077485885470676,
+          "mean_abs_srgb_diff_0_255": 18.782033920288086,
+          "mean_luminance_offset_0_255": 6.77417139884903
+        },
+        "port-side vs part-bow": {
+          "overlap_share_of_visible_hull": 0.03401025463763106,
+          "mean_abs_srgb_diff_0_255": 26.0086669921875,
+          "mean_luminance_offset_0_255": 13.923571992806831
+        },
+        "quarter30 vs part-deck": {
+          "overlap_share_of_visible_hull": 0.014432826362484157,
+          "mean_abs_srgb_diff_0_255": 21.515338897705078,
+          "mean_luminance_offset_0_255": 0.4113394786909704
+        },
+        "quarter30 vs part-pod": {
+          "overlap_share_of_visible_hull": 0.04945126166609056,
+          "mean_abs_srgb_diff_0_255": 20.320478439331055,
+          "mean_luminance_offset_0_255": 5.851748562337399
+        },
+        "quarter30 vs part-bow": {
+          "overlap_share_of_visible_hull": 0.10208549372047471,
+          "mean_abs_srgb_diff_0_255": 21.888601303100586,
+          "mean_luminance_offset_0_255": 5.308382668217485
+        },
+        "part-deck vs part-bow": {
+          "overlap_share_of_visible_hull": 0.013260456273764258,
+          "mean_abs_srgb_diff_0_255": 23.527395248413086,
+          "mean_luminance_offset_0_255": 0.680892244852795
+        }
+      }
+    }
+  },
+  "facing_cosine": 0.25,
+  "depth_tolerance_units": 0.35,
+  "review_views": {
+    "guide": "build_reference port-side camera",
+    "quarter30": [
+      30,
+      12,
+      150
+    ],
+    "quarter60": [
+      60,
+      24,
+      170
+    ],
+    "high45": [
+      45,
+      50,
+      170
+    ]
+  }
+}

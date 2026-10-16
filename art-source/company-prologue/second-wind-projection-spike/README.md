@@ -3,39 +3,56 @@
 Status: SPIKE, findings for a go/no-go on surfacing. Nothing here ships or
 changes geometry, campaign art or gameplay.
 Written: 2026-10-16
+Updated: 2026-10-16 — added the part-by-part arm the owner suggested.
 
 **Question.** Can Codex CLI reskin a render of the clean Second Wind model well
-enough that the result can be projected back onto the mesh as texture?
+enough that the result can be projected back onto the mesh as texture? A
+second arm asks whether doing it **part by part** works better: square-on
+renders of single parts with large flat faces.
 
-**Verdict.** Yes for the near side of a view; registration is the easy part.
-One port-side reskin kept every feature, and once a global scale was removed
-it registered to the mesh within 1–2 px (silhouette IoU 0.994). Projected back,
-it reads as a properly surfaced hull at its own angle. The limits lie elsewhere:
+**Verdict.** Yes, and registration is the easy part either way.
 
-- a single view textures only what it faces (55% of the visible hull at 30°,
-  27% at 60°);
-- lighting and grime arrive baked into the RGB;
-- two views agree on paint layout but not on individual chips and rivets, so
-  blending softens detail where they overlap.
+- **Whole-ship view.** One port-side reskin kept every feature. Once a global
+  scale was removed it registered within 1–2 px (silhouette IoU 0.994), and
+  projected back it reads as a properly surfaced hull at its own angle. But
+  one view textures only what it faces (55% of the visible hull at 30°, 27%
+  at 60°), lighting and grime arrive baked into the RGB, and two views agree
+  on paint layout but not on individual chips and rivets.
+- **Part by part.** One sheet of four parts (deck, turret, engine pod, bow)
+  came back with no global drift at all (every tile within 1.1% scale,
+  interior within 2 px). It reached faces no whole-ship view sees, the deck
+  tops and the turret roof. Parts are rendered alone, so nothing occludes
+  them, and their seams fall on real part edges rather than across a plate.
+  Its two costs were measured too: tone drifts between generations (the parts
+  sheet is 6–14/255 brighter than the whole-ship reskins, and the turret was
+  repainted from grey to orange and cream), and sharing one generation between
+  four parts halves resolution for the big ones.
 
-Scale this as **a hybrid**, not as six camera projections:
+Scale **part by part** for the major armour parts, ahead of more whole-ship
+views (see Recommendation):
 
-- **Projected art** only for the broad faces the story cameras actually see.
-- **The tileable-material route** that the full-surface asset already uses for
-  everything else.
-
-Codex is also good at the swatches that route needs.
+- **Whole-ship projection** only for faces a story camera holds near one angle.
+- **Codex swatches** with the full-surface material pipeline for small parts
+  and anything unseen.
 
 ![review sheet](review-sheet.png)
 ![scaling sheet](review-sheet-scaling.png)
+![parts sheet](review-sheet-parts.png)
 
 `review-sheet.png` (1920×1080) compares guide / generated / registered, then
 the projection from the guide angle, 30° and 60°. `review-sheet-scaling.png`
 covers the second projector, the two-view blend, where the views disagree,
-and the swatch sheet.
+and the swatch sheet. `review-sheet-parts.png` covers the part-by-part arm:
+the guide and generated part sheets, the coverage gained from above, and
+where projectors hand over.
 
 ## Driving Codex image generation from the CLI
 
+- **Since this spike, `tools/codex_imagegen.py` and the `codex-imagegen`
+  skill on main are the maintained way to do this.** They feed the prompt on
+  stdin, run in an empty read-only scratch directory, find the image by thread
+  id and write provenance. `run_codex.sh` here is the spike's own record of
+  how the five images were made.
 - `codex exec` (0.159) has the built-in `image_gen` tool on by default
   (`codex features list` → `image_generation stable true`). No flag and no
   `OPENAI_API_KEY` are needed: it runs on the signed-in Codex account (the
@@ -68,11 +85,12 @@ and the swatch sheet.
 | `reskin-v1` port side | 70 s (tool itself 28.6 s) | 29.7k (read skill + CLAUDE.md) | kept features; hull scaled ×1.119 |
 | `reskin-quarter30` | 57 s | 23.2k | kept features; not scaled |
 | `swatches` 2×2 sheet | 77 s | 10.7k | four believable tiles; seams hidden on plate joints |
+| `parts-sheet` 2×2 parts | 68 s | 14.4k | no global drift; turret recoloured |
 
-Four generations in all, one of them a 46-second throwaway test. Expect about
+Five generations in all, one of them a 46-second throwaway test. Expect about
 a minute per image, sequential.
 
-## Pipeline (all reproducible: `./rebuild.sh`, ~100 s, Codex not re-run)
+## Pipeline (all reproducible: `./rebuild.sh`, about 6 minutes, Codex not re-run)
 
 1. `../second-wind-geometry/build_reference.py -- --out build/geom` builds the
    clean model. The geometry modules are run, never edited.
@@ -83,7 +101,11 @@ a minute per image, sequential.
    `-depth.png` preview and an unfiltered float view-Z
    `build/depth-<view>.exr`. Cameras live in `views.py`: `port-side` is
    build_reference's own; `quarter30` and `quarter60` orbit the same target at
-   30°/60° toward the bow and 12°/24° up.
+   30°/60° toward the bow and 12°/24° up (`high45`, 45° and 50° up, is a
+   review view only). Part views (`part-*`) render one selection of objects
+   alone, square-on along one direction, at 912×513. `parts_sheet.py compose`
+   lays four of them out as one 1920×1080 sheet with gutters, and
+   `parts_sheet.py split` cuts the generated sheet back into tiles.
 3. `run_codex.sh prompts/X.prompt.txt generated/X.png <guide> [<reference>]`.
 4. `measure_drift.py generated/X.png --view NAME` segments the hull from the
    background (self-check on the guide: IoU 0.995). It then fits identity,
@@ -91,11 +113,15 @@ a minute per image, sequential.
    and measures interior drift by patch phase correlation of gradient
    magnitude. Output: `registration/X.json`.
 5. `project.py -- --tag T --proj VIEW:IMAGE:REG [...]` stores, per projector,
-   guide UVs, registered UVs, guide depth and facing cosine on every mesh
-   corner, so the data is object-attached and travels with the hull. The
-   shader then tests visibility **per pixel** against the depth map, like a
-   shadow map, and blends projectors by `(cos − 0.25)²`. It renders with a key
-   sun the guides never had, then measures coverage and two-view disagreement.
+   guide UVs, guide depth and facing cosine on the mesh corners it may paint
+   (a part projector only on its own objects inside its region), so the data
+   is object-attached and travels with the hull. Registration is applied in
+   the shader, which keeps one UV layer per projector within Blender's limit
+   of eight. The shader then tests visibility **per pixel** against the depth
+   map, like a shadow map, and blends projectors by `(cos − 0.25)²`. It
+   renders with a key sun the guides never had, then measures from flat
+   per-projector passes: coverage, texel stretch, seams at hand-overs between
+   projectors, and pairwise disagreement.
 6. `swatch_check.py`, then `compose_review.py`.
 
 ## Findings
@@ -167,6 +193,72 @@ angle):
   two cameras. **Best-view-per-face with hard switching would show the
   disagreement as visible seams instead of blur.**
 
+### Part by part (the owner's suggestion)
+
+Four parts were rendered alone and square-on, laid out as one sheet, and
+reskinned in **one** generation with the port-side reskin as the finish to
+match:
+
+- the forward deck (main hull faces, from above);
+- turret 1, from above;
+- the port engine-pod assembly, from port;
+- the bow armour, from 45° to bow and port.
+
+Each tile was registered on its own and projected only onto its own part.
+Measured against the whole-ship views:
+
+| | whole-ship port side | part tiles (deck / turret / pod / bow) |
+|---|---|---|
+| raw silhouette IoU | 0.792 | 0.998 / 0.992 / 0.994 / 0.995 |
+| global scale | ×1.119 | within 1.1% on every tile |
+| interior drift after fit, p90 | 2.0 px | – / 1.0 / 1.4 / 2.0 px |
+| generated texels per model unit | 12.7 (30° view 11.1) | 6.6 / 24.1 / 9.4 / 8.7 |
+| texel stretch > 1.5× (share of what it paints, at the guide angle) | 21% | 26% (parts alone) |
+
+**What part by part does better**
+
+- **Drift is a non-issue.** This sheet was not rescaled. The deck tile had no
+  interior detail to correlate, because the guide is a plain flat plate, and
+  that is the point: on a flat part Codex invents the panel layout (seams,
+  hatches, access plates; sheet cell 14), and only the outline has to
+  register.
+- **It reaches faces whole-ship views cannot.** Adding the four parts to the
+  two whole-ship views raises coverage from 86% to 89% at 30°, 59% to 66% at
+  60°, and 39% to 49% from high 45°. That last gain is the deck and turret
+  roof (sheet cells 15–16). The deck was textured under the spine and turrets
+  too, because a part render has no occluders.
+- **Seams fall on real edges.** Projectors hand over on one plane (same true
+  normal and depth) only where two projections meet across a flat surface.
+  Parts alone produce **none**: every part boundary is a crease or an object
+  edge, where paint is allowed to change. Whole-ship views hand over across
+  plates. There the colour step is 16–20/255 against 4.5–6 between
+  neighbouring pixels of one projector, a visible seam about three times the
+  texture's own variation.
+
+**What it costs**
+
+- **Tone drifts between generations.** Where a part tile and a whole-ship
+  view see the same surface, the part is 6–14/255 brighter on average, while
+  the two whole-ship views agreed to within 1/255. Codex also repainted the
+  grey turret orange and cream, a colour-layout change that no whole-ship
+  reskin made. With many independent parts this becomes a patchwork, unless
+  each part is graded to a shared palette after generation.
+- **Sharing one generation shares resolution.** Four parts in one 1672-pixel
+  image give each tile about 794 pixels. The small turret gained (24 texels
+  per unit, about twice the whole-ship view). The deck lost (6.6, about half),
+  and the pod and bow came in below the whole-ship view too. One part per
+  generation would give each of these about 2.1× the figures above.
+- **Square-on is per face, not per part.** "Square-on" is only true of each
+  part's dominant face. The pod's faceted cans, the deck's chamfers and the
+  bow's two facet directions sit at an angle to their own camera. So stretch
+  is no better than a whole-ship view's on average (26% of texels over 1.5×
+  against 21%), although adding parts to the views lowers it where they
+  overlap (52% → 39% from high 45°).
+- **Region boxes cut planes.** The deck part's region (x 11–51) ends in the
+  middle of the deck plate. Combined with the whole-ship views, that cut is
+  where on-plane seams appear. Parts should be cut at geometric boundaries
+  (objects, or face groups split at creases), never by a box.
+
 ### Baked lighting
 
 The prompt asked for flat albedo. The result is flatter than ordinary concept
@@ -213,27 +305,37 @@ gunmetal, soot-stained steel) at plate scale:
 
 ## Recommendation
 
-1. **Do not build a six-view projected atlas as the primary surface.** Six
-   views would cover the hull, but every overlap carries the uncorrelated-
-   detail problem, and every view carries its own baked light. The scaling
-   sheet shows both. Neither fixes itself with more views.
-2. **Do use projection for camera-fixed hero faces.** For a shot that holds a
-   known angle (the port-side landing, the bay approach), one or two Codex
-   reskins of guides from the shot's own camera, registered with
-   `measure_drift.py`, give the richest finish for the least work. Keep the
-   object-attached UV/depth/facing data so the paint rides the mesh, and
-   restrict the camera to about ±30° of the projector.
-3. **Surface everything else from Codex swatches.** Ask for single-material
-   tiles, one per request or as a 2×2 sheet, with "seamless, plate joints on
-   the edges". Grade them to the established palette and heal the wrap, then
-   feed them to the full-surface material pipeline. Wear placement (soot at
-   drives, scars) stays a mask decision under our control rather than
-   Codex's uniform noise.
-4. **If a projected atlas is still wanted later,** generate the views
-   **sequentially, each with the previous accepted reskin as its finish
-   reference** (as done here for 30°). Blend with a narrow crossfade, then bake
-   to one UV atlas and paint out the seams by hand. Budget for a de-lighting
-   step, and expect per-image scale drift: measure every generation.
+1. **Scale part by part for the major armour parts**, rather than adding
+   whole-ship views. It has no meaningful drift, it reaches decks and roofs,
+   it is not occluded, and its seams land on real edges. To make it work at
+   scale:
+   - **Define parts geometrically**: whole objects, or face groups split at
+     creases, never region boxes.
+   - **Give big parts a generation of their own**, or share a sheet only
+     among parts of similar size, so resolution stays at or above the
+     whole-ship view's ~12 texels per unit.
+   - **Attach one fixed finish reference to every request**, and grade each
+     result to the shared palette per material region before projection;
+     tone drift is the main defect.
+   - **Generate once per identical part**: the two turret pairs and the
+     mirrored engine pods.
+2. **Use whole-ship projection only for camera-held hero faces.** For a shot
+   that holds a known angle (the port-side landing, the bay approach), one
+   reskin of a guide from the shot's own camera gives the most coherent
+   finish across many parts at once, in one tone. Keep the camera within
+   about ±30° of the projector.
+3. **Surface small parts and anything unseen from Codex swatches.** Ask for
+   single-material tiles with "seamless, plate joints on the edges", grade
+   them and heal the wrap, then use the full-surface material pipeline. Wear
+   placement (soot at drives, scars) stays a mask decision under our control
+   rather than Codex's uniform noise.
+4. **Do not build a six-view whole-ship atlas.** Every overlap carries the
+   uncorrelated-detail problem, every view carries its own baked light, and
+   the hand-overs fall across plates.
+
+Whichever route, budget a de-lighting or grading pass (generated RGB carries
+25–30/255 of baked shading) and measure every generation's registration; it
+cannot be assumed.
 
 ## Files
 
@@ -242,10 +344,11 @@ gunmetal, soot-stained steel) at plate scale:
 | `run_codex.sh` | one verbatim `image_gen` call; copies the output out of `~/.codex` |
 | `views.py`, `render_guide.py` | guide cameras; guide / mask / depth renders |
 | `measure_drift.py` | segmentation, fits, interior drift → `registration/*.json` |
-| `project.py` | object-attached multi-projector projection, coverage and disagreement → `review/*-projection.json` |
+| `project.py` | object-attached multi-projector projection; coverage, stretch, seams and disagreement → `review/*-projection.json` |
+| `parts_sheet.py` | four part guides into one sheet, and the generated sheet back into tiles |
 | `swatch_check.py` | tile wrap-seam metric → `review/swatches.json` |
 | `compose_review.py`, `rebuild.sh` | review sheets; full replay without Codex |
 | `prompts/` | the exact prompt files sent |
-| `generated/` | the three Codex outputs, untouched |
+| `generated/` | the four Codex outputs, untouched |
 | `guide/` | the exact guides sent to Codex, plus masks, depth previews and camera matrices |
 | `build/` (ignored) | applied-modifier scene, depth EXRs, registered images, overlays, every review still, projected `.blend`s |

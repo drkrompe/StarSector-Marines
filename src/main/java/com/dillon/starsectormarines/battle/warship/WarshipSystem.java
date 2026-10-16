@@ -424,6 +424,11 @@ public final class WarshipSystem {
             turnHull(dt, ship);
             for (Warship.Mount mount : ship.mounts()) {
                 if (mount.knockedOut()) continue;
+                if (ship.descending()) {
+                    // Still in the cloud deck: nothing fires, point defence included, and the guns ride at rest.
+                    traverse(dt, ship, mount, ship.facingDegrees + mount.slot.angleDegrees());
+                    continue;
+                }
                 if (mount.pointDefence()) {
                     boolean ordnance = WarshipAirFire.scope(ship) != WarshipAirFire.Scope.NONE
                             && pointDefence.hasTarget(sim, ship, mount, shells, strikes);
@@ -469,6 +474,11 @@ public final class WarshipSystem {
         }
         if (!ship.departing()) return;
         ship.addDepartingSeconds(dt);
+        if (ship.throughDeck() && ship.departingSeconds() >= WarshipAtmosphere.CLIMB_SECONDS) {
+            // Into the cloud deck: gone from the battle without crossing an edge.
+            ship.markPhysicallyDeparted();
+            return;
+        }
         float margin = Math.max(ship.lengthCells, Math.max(ship.lowHoverWidth(), ship.lowHoverHeight())) * 0.5f;
         boolean offMap = ship.x < -margin || ship.y < -margin
                 || ship.x > sim.getGrid().getWidth() + margin || ship.y > sim.getGrid().getHeight() + margin;
@@ -671,7 +681,8 @@ public final class WarshipSystem {
         if (escaped != null && escaped.physicallyDeparted() && !ship.departing()
                 && ship.remoteOrder() == Warship.RemoteOrder.NONE) {
             // The lead it was escorting has escaped: the escort follows it out the way it went.
-            ship.climbOut(new float[][]{{escaped.x, escaped.y}}, sim.getGrid().getWidth(), sim.getGrid().getHeight());
+            if (escaped.throughDeck()) ship.climbThroughDeck(sim.getGrid().getWidth(), sim.getGrid().getHeight());
+            else ship.climbOut(new float[][]{{escaped.x, escaped.y}}, sim.getGrid().getWidth(), sim.getGrid().getHeight());
         }
         if (ship.remoteOrder() == Warship.RemoteOrder.NONE) escortUpkeep(ship);
         Warship lead = WarshipEscort.liveLead(ship);
@@ -1225,6 +1236,7 @@ public final class WarshipSystem {
         Warship target = ship.hullTarget();
         Warship lead = WarshipEscort.liveLead(ship);
         boolean free = !ship.piloted() && !ship.departing() && !ship.isPassingThrough() && ship.lowPass() == null
+                && !ship.descending()
                 && ship.remoteOrder() == Warship.RemoteOrder.NONE;
         if (lead != null) {
             // An escort screens by fighting: with a hull to fight it takes its own duel station, held on a leash to
@@ -1264,8 +1276,8 @@ public final class WarshipSystem {
                         WarshipEscort.noseBearingDegrees(target), range, ship.serial() % 2 == 0,
                         0.5f * ship.lengthCells, airspace);
         if (lead == null) return at;
-        float[] held = WarshipDuelHelm.leashed(at, lead.centerX(), lead.centerY(), 0.5f * lead.lengthCells + mine);
-        return airspace.clamp(held[0], held[1], WarshipDuelHelm.EDGE_MARGIN_CELLS + 0.5f * ship.lengthCells);
+        float[] held = WarshipDuelHelm.leashed(at, lead.centerX(), lead.centerY(), 0.5f * lead.lengthCells + mine * WarshipDuelHelm.ESCORT_LEASH_REACH_SHARE);
+        return airspace.settle(held[0], held[1], WarshipDuelHelm.EDGE_MARGIN_CELLS + 0.5f * ship.lengthCells);
     }
 
     /** Whether a hostile hull is over the battle for {@code ship}: alive and not yet gone, a climbing one included. */
