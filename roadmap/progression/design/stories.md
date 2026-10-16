@@ -11,6 +11,7 @@ rather than settled.
 
 | Story | Status | Dependencies / freshness |
 | --- | --- | --- |
+| `approved-kit-across-the-line.md` | Needs decision | Garnir half of the kit arc. The proposal (Kord's marines in approved kit) contradicts the shipped Cold Account model of no Hegemony infantry; options A (land a section on Kord's own orders), B (correct the texts) or C. Greyhook's half belongs to *A Small War*. |
 | `power-suit-field-acceptance.md` | In progress | Recovered/military Specter and layered Arbalest plus explicit mixed issue are available for development testing. Full live named refit/save/reload and mission balance remain. `a-small-war.md` authors the planned introduction after actual Shepherd handover; its first three chapters award both recovered roles; live mixed-squad acceptance, later chapters and the military-source gate remain open. |
 | `s1-lethality-feel-pass.md` | Ready | Verify the shipped lethality and grade pass through the TTK harness and mission evidence. Its original play-acceptance wording is stale: tuning is settled from measured output, not from a described play impression. |
 | `s2f-combat-stim-injectors.md` | Planned | Adds finite, temporary handling utility while keeping neural/HUD interfaces out of hidden stat and knowledge bonuses. |

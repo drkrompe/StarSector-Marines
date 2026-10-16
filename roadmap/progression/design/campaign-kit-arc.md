@@ -128,6 +128,8 @@ Even after Agreus, most of the catalog stays ahead of the company:
    `progression-nouns.md` (Kit and armory, arc issue cards).
 6. **Show approved kit across the line.** Kord's marines at Garnir field the approved
    kit the player will later want; Greyhook fields Foundry-Breaker-style rigs.
+   The Garnir half is `approved-kit-across-the-line.md`, awaiting a decision because it
+   contradicts the shipped Cold Account model; Greyhook's half is *A Small War* work.
 
 ## Why the arc cards are shaped as they are
 
