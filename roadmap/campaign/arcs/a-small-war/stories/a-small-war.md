@@ -410,8 +410,8 @@ a seizure target, not an invitation to destroy the district's usable supply.
 the Greyhook herself, tries to climb out from the pier escorted by two Hound (P)
 frigates. The pair of Wolf (H) frigates Rusk's family has lent from Citadel
 Arcadia comes in low over the basin to stop her. What follows is a short slugging
-match in atmosphere, two against two at close range over the pier: plating torn
-away, hulls crippled and driven down, while the company's fight goes on beneath.
+match in atmosphere, two against two at close range over the pads south of the ridge: plating torn
+away, hulls crippled and driven down, in full view of the company's fight.
 
 The matchup is the drama. The Wolfs are fast, shielded high-tech hunters with
 light armour; the Hounds are tough, unshielded low-tech brawlers, quicker in a

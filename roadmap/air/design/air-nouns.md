@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at six times the shared density and slower in atmosphere, a declared airspace for the hull fight, point defence tracking what is inbound, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture; a landed ship is drawn at true scale and eases to flight presence as it lifts (rationale in `warship-behaviours.md`).
+Updated: 2026-10-16 — ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at six times the shared density and slower in atmosphere, a declared airspace for the hull fight, point defence tracking what is inbound, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture, landed on the pads south of the ridge and fighting over that southern ground; a landed ship is drawn at true scale and lifts on a run (ahead off the berth, round a climbing turn) that carries it to flight presence (rationale in `warship-behaviours.md`).
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -2033,10 +2033,10 @@ stage a duel through an optional seam on its referee: hulls stand quiet under a
 hull-fire hold until the chapter's moment comes, the duel then runs on its own, and the debrief reads its
 ledger. The referee settles on nothing the duel does; stray rounds and wreckage are the
 only way it reaches the ground. Black Sluice is the first: the *Greyhook*, Voss's Venture,
-and two Hound (P) over the pier, two of Rusk's Wolfs arriving when Voss orders the
-withdrawal. A warship over a ground battle never launches a wing from its bays (bays
-only classify the hull), and the Greyhook's fitting carries none, so it stays gun against
-gun.
+and two Hound (P) landed on the pads south of the ridge, two of Rusk's Wolfs arriving when
+Voss orders the withdrawal, the fight kept over that southern ground by its airspace. A
+warship over a ground battle never launches a wing from its bays (bays only classify the
+hull), and the Greyhook's fitting carries none, so it stays gun against gun.
 
 **A warship's stay and its magazine can both be bounded.** Station time is counted
 down only while the ship is on its station, not while it travels to it; when it
@@ -2456,14 +2456,21 @@ cold ground object: no plume, guns stowed, drawn among the vehicles, its shadow
 tight under it, holding its berth. It is still a live warship with its flight
 fitting: hit shape, slots and shield stay at flight scale, which is sound only
 because nothing engages a berthed hull (infantry fire never reaches a hull, and a
-mission that lands ships holds hull fire until it lifts them). **Lifting is one
-body eased between two regimes**: from the lift, the drawn body eases by smoothstep
-to flight presence over a few seconds while the shadow draws out from under it,
-the berth's grit blows out and the guns run out, so a ship climbing out never
-changes size at once. The ease is a ratio to whatever `HULL_PRESENCE` is in force.
-A hull with a remaster (`art-source/ships/`) draws it in both regimes, so detail
-does not change at liftoff either; the berth itself (a sunken, see-through,
-unwalkable well) is the mission map's.
+mission that lands ships holds hull fire until it lifts them). **Lifting is a
+run, not a resize**: a lifted hull flies its **lift run**, a leg ahead off the
+berth, a climbing turn toward where it is going (a point the mission names, the
+first waypoint of a climb-out, or else the middle of the battle) and a leg out
+along that bearing, all scaled to its landed length. Its drawn body eases by
+smoothstep to flight presence with the share of that run flown, while the shadow
+draws out from under it, the berth's grit blows out and the guns run out, so the
+size change reads as altitude and distance carried by travel and never as a hull
+changing size where it sits. The run is flown before any route or station the
+mission has given; a hull given nothing newer holds where its run comes out, not
+over its empty berth, and a hull held or taken over mid-run is through its lift
+by time. The ease is a ratio to whatever `HULL_PRESENCE` is in force. A hull with
+a remaster (`art-source/ships/`) draws it in both regimes, so detail does not
+change at liftoff either; the berth itself (a concrete pad, see-through and
+unwalkable) is the mission map's.
 
 ### Authored structural bombardment
 

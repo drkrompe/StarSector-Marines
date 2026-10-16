@@ -222,8 +222,8 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                                 .render(sim, "BLACK SLUICE / THE DUEL OVER THE SOUTHERN GROUND / " + since / 30 + "s after Voss's order / "
                                         + duelCaption(duel), ReviewAnnotations.builder().build()));
                 }
-                if (recordDuel && splitSeen && (sim.getSimTickIndex() - splitTick) % 45 == 0
-                        && sim.getSimTickIndex() - splitTick <= 225)
+                if (recordDuel && splitSeen && (sim.getSimTickIndex() - splitTick) % 90 == 0
+                        && sim.getSimTickIndex() - splitTick <= 990)
                     frames.add(new SnapshotArtifact(String.format(Locale.ROOT, "%s-liftoff-t%03d.png", fixture.id(), sim.getSimTickIndex() - splitTick),
                             new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080, 176, 40, 200).withImpactEffects().withUnitShadows()
                                     .render(sim, "BLACK SLUICE / LIFTOFF / " + String.format(Locale.ROOT, "%.1f", (sim.getSimTickIndex() - splitTick) / 30f)
