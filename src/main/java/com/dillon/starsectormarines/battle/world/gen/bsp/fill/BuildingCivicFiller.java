@@ -32,6 +32,7 @@ public final class BuildingCivicFiller implements BlockFiller {
 
     @Override
     public void fill(BlockLeaf leaf, GenContext ctx) {
+        if (LotYardTemplate.tryPlace(leaf,ctx,CONFIG,BuildingResidentialFiller.streetFrontage(leaf,ctx))) return;
         BuildingPlacement placement = new BuildingPlacement(frontage(leaf, ctx), true);
         PointOfInterest poi = BuildingShellCore.carve(
                 leaf, ctx.grid, ctx.topology, ctx.doodads, ctx.rng, CONFIG, placement);

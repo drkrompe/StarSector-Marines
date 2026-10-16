@@ -161,12 +161,13 @@ final class BuildingLayouts {
     /** Sleeping nook and kitchenette, each fitted with protected working space. */
     private static void applyHome(NavigationGrid grid, CellTopology topology,
                                   int bl, int bt, int br, int bb, List<Doodad> doodads, Random rng) {
-        CompactBuildingFurnishing.furnish(grid, topology, bl, bt, br, bb,
-                "RESIDENTIAL", LayoutRecipe.HOME, doodads);
+        if (!NeighborhoodFurnishing.furnish(grid, topology, bl, bt, br, bb, doodads))
+            CompactBuildingFurnishing.furnish(grid, topology, bl, bt, br, bb,
+                    "RESIDENTIAL", LayoutRecipe.HOME, doodads);
     }
 
     /**
-     * Furnishes each purpose-labeled apartment room with one tactical fixture.
+     * Furnishes each purpose-labeled apartment room with complete domestic activity groups.
      * The common two-cell hall remains completely clear; beds and sofas are low
      * enough to preserve sightlines while still shaping movement and cover.
      */
@@ -181,26 +182,7 @@ final class BuildingLayouts {
             return;
         }
 
-        DoodadDef[] beds = {
-                TileRegistry.installed().doodad("doodad.residential-bed-head-n"),
-                TileRegistry.installed().doodad("doodad.residential-bed-v"),
-                TileRegistry.installed().doodad("doodad.residential-bed-head-e"),
-                TileRegistry.installed().doodad("doodad.residential-bed-h"),
-        };
-        DoodadDef[] sofas = {
-                TileRegistry.installed().doodad("doodad.residential-sofa-h"),
-                TileRegistry.installed().doodad("doodad.residential-sofa-back-s"),
-                TileRegistry.installed().doodad("doodad.residential-sofa-back-e"),
-                TileRegistry.installed().doodad("doodad.residential-sofa-v"),
-        };
-        DoodadDef lobbyDesk = TileRegistry.installed().doodad("colony-furnishings.desk");
-
-        stampOneOrientedFixturePerPurposeRoom(grid, topology, bl, bt, br, bb,
-                RoomPurpose.BEDROOM, beds, doodads, rng, true);
-        stampOneOrientedFixturePerPurposeRoom(grid, topology, bl, bt, br, bb,
-                RoomPurpose.APARTMENT_LIVING, sofas, doodads, rng, true);
-        stampPurposeFixture(grid, topology, bl, bt, br, bb,
-                RoomPurpose.APARTMENT_LOBBY, lobbyDesk, doodads, rng, true);
+        NeighborhoodFurnishing.furnish(grid, topology, bl, bt, br, bb, doodads);
     }
 
     /**
@@ -430,7 +412,8 @@ final class BuildingLayouts {
                                                  int bl, int bt, int br, int bb,
                                                  List<Doodad> doodads, Random rng) {
         if (!partition.tacticalIndustrial) {
-            applyWarehouse(grid, topology, bl, bt, br, bb, doodads, rng);
+            if (!NeighborhoodFurnishing.furnish(grid, topology, bl, bt, br, bb, doodads))
+                applyWarehouse(grid, topology, bl, bt, br, bb, doodads, rng);
             return;
         }
 
@@ -653,7 +636,10 @@ final class BuildingLayouts {
                                                 PartitionLayout partition,
                                                 int bl, int bt, int br, int bb,
                                                 List<Doodad> doodads, Random rng) {
-        if (!partition.tacticalCivic) return;
+        if (!partition.tacticalCivic) {
+            NeighborhoodFurnishing.furnish(grid, topology, bl, bt, br, bb, doodads);
+            return;
+        }
         DoodadDef workstation = TileRegistry.installed().doodad("doodad.civic-workstation-bank");
         DoodadDef records = TileRegistry.installed().doodad("doodad.office-records-bank");
         DoodadDef reception = TileRegistry.installed().doodad("doodad.office-reception-counter");

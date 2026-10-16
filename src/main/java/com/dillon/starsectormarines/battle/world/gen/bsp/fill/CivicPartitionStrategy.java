@@ -38,6 +38,8 @@ final class CivicPartitionStrategy implements PartitionStrategy {
                                      int bl, int bt, int br, int bb,
                                      Random rng, GroundKind interiorGround,
                                      BuildingPlacement placement) {
+        if (Math.min(br-bl+1, bb-bt+1)<13 || Math.max(br-bl+1, bb-bt+1)<15)
+            return NeighborhoodPartitionStrategy.OFFICE.partition(grid, topology, bl, bt, br, bb, rng, interiorGround, placement);
         boolean vertical = placement.frontage == BuildingPlacement.Side.TOP
                 || placement.frontage == BuildingPlacement.Side.BOTTOM
                 || (placement.frontage == null && (bb - bt) >= (br - bl));
