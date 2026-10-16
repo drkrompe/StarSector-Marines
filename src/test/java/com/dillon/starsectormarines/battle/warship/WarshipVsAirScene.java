@@ -62,7 +62,17 @@ public final class WarshipVsAirScene implements BehaviorScene {
     private static final int WIDTH = 200;
     private static final int HEIGHT = 64;
     private static final int TICKS = 1350;
-    private static final float SHIP_X = 120f;
+    /**
+     * Craft in each wing: enough that some live through the flak to reach the small point-defence turrets, which on a
+     * hull at its flight presence sit well inside the flak's reach.
+     */
+    private static final int WING_SIZE = 6;
+    /**
+     * The Onslaught's centre; it lies bow west, so it moves east by the growth of its half-length (taken as 6.75 cells
+     * a unit of presence) over a presence of four, keeping its bow, and the point defence beside it, where the scene
+     * was laid.
+     */
+    private static final float SHIP_X = 120f + (WarshipScale.HULL_PRESENCE - 4f) * WarshipScale.cells(150f);
     private static final float SHIP_Y = 32f;
     private static final float LZ_X = 70.5f;
     private static final float LZ_Y = 32.5f;
@@ -139,8 +149,8 @@ public final class WarshipVsAirScene implements BehaviorScene {
         }
         if (wing) {
             sim.setFlybyRoster(new FlybyRoster(List.of(
-                    new FighterWing(FighterProfile.BROADSWORD, Faction.DEFENDER, 4, 3f, 2.5f),
-                    new FighterWing(FighterProfile.THUNDER, Faction.DEFENDER, 4, 4f, 2.5f))));
+                    new FighterWing(FighterProfile.BROADSWORD, Faction.DEFENDER, WING_SIZE, 3f, 2.5f),
+                    new FighterWing(FighterProfile.THUNDER, Faction.DEFENDER, WING_SIZE, 4f, 2.5f))));
         }
         Warship ship = Warship.fit("onslaught", "onslaught_Standard", shipSide, SHIP_X, SHIP_Y, 90f);
         ship.stationTo(SHIP_X, SHIP_Y);

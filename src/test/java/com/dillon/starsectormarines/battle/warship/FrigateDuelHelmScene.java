@@ -32,12 +32,14 @@ import java.util.Map;
  */
 public final class FrigateDuelHelmScene implements BehaviorScene {
 
-    private static final int WIDTH = 160;
-    private static final int HEIGHT = 68;
-    private static final float WOLF_X = 20f;
-    private static final float HOUND_X = 140f;
-    private static final float[] LANES = {26f, 42f};
-    private static final int TICKS = 2700;
+    /** The ground grows with hull reach; laid out at a reach multiplier of two. */
+    private static final float K = WarshipScale.HULL_REACH_MULTIPLIER / 2f;
+    private static final int WIDTH = Math.round(160 * K);
+    private static final int HEIGHT = Math.round(68 * K);
+    private static final float WOLF_X = 20f * K;
+    private static final float HOUND_X = 140f * K;
+    private static final float[] LANES = {26f * K, 42f * K};
+    private static final int TICKS = Math.round(2700 * K);
     private static final int FRAME_EVERY = 6;
     /** A strongest gun must be on its target for at least this share of the ticks the target is in its reach. */
     private static final float ON_TARGET_SHARE = 0.5f;

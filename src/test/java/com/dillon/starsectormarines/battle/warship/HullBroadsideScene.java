@@ -37,17 +37,19 @@ import java.util.Map;
  */
 public final class HullBroadsideScene implements BehaviorScene {
 
-    static final int WIDTH = 160;
-    static final int HEIGHT = 90;
-    static final float MID_X = 80f;
-    static final float MID_Y = 45f;
+    /** The ground and the spacing grow with the hulls' presence; laid out at a presence of four. */
+    private static final float K = WarshipScale.HULL_PRESENCE / 4f;
+    static final int WIDTH = Math.round(160 * K);
+    static final int HEIGHT = Math.round(90 * K);
+    static final float MID_X = WIDTH / 2f;
+    static final float MID_Y = HEIGHT / 2f;
     /** Centre to centre across the line, in cells: inside the heavy guns' reach, clear of the other hull. */
-    private static final float SEPARATION = 34f;
+    private static final float SEPARATION = 34f * K;
     /**
      * Across the line for the broadside loops: two Conquests beam to beam, clear of each other at their drawn size and
      * inside the Mark IXs' hull reach.
      */
-    private static final float BROADSIDE_SEPARATION = 50f;
+    private static final float BROADSIDE_SEPARATION = 45f * K;
     /**
      * The broadside pair is a Conquest, whose battery is on its beams, so the heading rule keeps it broadside on of its
      * own accord; an Onslaught's heavy guns bear forward, and it turns its nose onto the target. The shield loops keep

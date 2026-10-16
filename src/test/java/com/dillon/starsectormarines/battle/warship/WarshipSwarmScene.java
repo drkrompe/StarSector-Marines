@@ -50,13 +50,19 @@ public final class WarshipSwarmScene implements BehaviorScene {
     private static final float SHIP_HEADING = -90f;
     private static final float FAR_TARGET_X = 108f;
     private static final float NEAR_TARGET_X = 78f;
-    private static final float CAP_TARGET_X = 60f;
+    /**
+     * How much an Onslaught's half-length (taken as 6.75 cells a unit of presence) has grown over a presence of four:
+     * the guard and the rack-cap district move east by it, so the guard's bow and the launcher's bow stand as far apart
+     * as they were laid.
+     */
+    private static final float GROWTH = (WarshipScale.HULL_PRESENCE - 4f) * WarshipScale.cells(150f);
+    private static final float CAP_TARGET_X = 60f + GROWTH;
     /** Where the district is this loop: the long-range missiles take the far one, the short-range ones the near one. */
     private float targetX = FAR_TARGET_X;
     private static final float TARGET_Y = 45f;
     private static final float AREA_RADIUS = 6f;
     /** A picket flies in the carriers' lane, well short of where they split. */
-    private static final float PICKET_X = 74f;
+    private static final float PICKET_X = 74f + GROWTH;
     private static final int DISTRICT = 44;
     private static final float DISTRICT_RADIUS = 15f;
     private static final String[] SLOTS = {"WS 021", "WS 022", "WS 023", "WS 024"};
@@ -150,7 +156,7 @@ public final class WarshipSwarmScene implements BehaviorScene {
         ship.order(new WarshipOrder.FireOnArea(targetX, TARGET_Y, AREA_RADIUS, true));
         sim.addWarship(ship);
         if (cover != Cover.NONE) {
-            float guardX = cover == Cover.UMBRELLA ? targetX - 6f : PICKET_X;
+            float guardX = cover == Cover.UMBRELLA ? targetX - 6f + GROWTH : PICKET_X;
             // Bow to the launcher, so the guard's point defence lies along the swarm's lane rather than across it.
             sim.addWarship(Warship.fit("onslaught", "onslaught_Standard", Faction.DEFENDER, guardX, TARGET_Y, 90f));
             // The guard is here for its point defence against the swarm, not to fight the launching hull.

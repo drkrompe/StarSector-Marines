@@ -41,7 +41,7 @@ public final class TenderPilotScene implements BehaviorScene {
 
     private static final int WIDTH = 140;
     private static final int HEIGHT = 80;
-    private static final int TICKS = 3900;
+    private static final int TICKS = 4000;
     private static final float START_X = 14f;
     private static final float START_Y = 40f;
     private static final float STOP_X = 46f;
@@ -54,11 +54,12 @@ public final class TenderPilotScene implements BehaviorScene {
     private static final int DARK_AT = 20;
     private static final int LAY_A_AT = 60;
     private static final int LAY_B_AT = 80;
+    /** Recalled drones are counted the tick before the redeploy: the wing flies home from a leash that grows with the hull. */
     private static final int RECALL_AT = 1600;
-    private static final int DEPLOY_AT = 1820;
-    private static final int CANCEL_AT = 1900;
-    private static final int LAY_C_AT = 1950;
-    private static final int RELEASE_AT = 2050;
+    private static final int DEPLOY_AT = 1920;
+    private static final int CANCEL_AT = 2000;
+    private static final int LAY_C_AT = 2050;
+    private static final int RELEASE_AT = 2150;
 
     @Override public String id() {
         return "tender-pilot";
@@ -220,7 +221,7 @@ public final class TenderPilotScene implements BehaviorScene {
                     siteBWaitedInTransit = true;
                 }
             }
-            if (tick == RECALL_AT + 200) defenceAfterRecall = tender.defendersOut();
+            if (tick == DEPLOY_AT - 1) defenceAfterRecall = tender.defendersOut();
             if (tick == DEPLOY_AT + 200) defenceAfterDeploy = tender.defendersOut();
             if (tick == CANCEL_AT + 2) sitesAfterCancel = TenderPilot.liveSites(tender);
             if (tick == RELEASE_AT) {

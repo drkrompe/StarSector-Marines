@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.warship.AirFireOrder;
 import com.dillon.starsectormarines.battle.warship.Warship;
+import com.dillon.starsectormarines.battle.warship.WarshipScale;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 
@@ -53,8 +54,12 @@ public final class FortressBatteryScene implements BehaviorScene {
     private static final int TICKS = 5400;
     private static final int BATTERY_X = 60;
     private static final int BATTERY_Y = 45;
-    /** Where the capital starts when it has to arrive from outside the envelope. */
-    private static final float SHIP_START_X = 170f;
+    /**
+     * Where the capital starts when it has to arrive from outside the envelope: east by twice the growth of an
+     * Onslaught's half-length (taken as 6.75 cells a unit of presence) over a presence of four, so its bow starts as
+     * far outside.
+     */
+    private static final float SHIP_START_X = 170f + 2f * (WarshipScale.HULL_PRESENCE - 4f) * WarshipScale.cells(150f);
     /** Where the mission asks it to stand: well inside the envelope. */
     private static final float STATION_X = 100f;
     private static final int MARINES_ARRIVE_TICK = 300;

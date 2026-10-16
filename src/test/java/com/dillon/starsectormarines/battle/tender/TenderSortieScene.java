@@ -39,6 +39,7 @@ public final class TenderSortieScene implements BehaviorScene {
 
     private static final int WIDTH = 140;
     private static final int HEIGHT = 100;
+    private static final int BYSTANDER_Y = 86 + Math.round((WarshipScale.HULL_PRESENCE - 4f) * WarshipScale.cells(46f));
     private static final float START_X = 30f;
     private static final float START_Y = 40f;
     private static final String CARBINE = "weapon.smg";
@@ -49,6 +50,10 @@ public final class TenderSortieScene implements BehaviorScene {
     private static final int RECALL_TICK = 780;
     private static final int REDEPLOY_TICK = 1250;
     private static final int HURT_TICK = 300;
+    /** Two escorting drones closer than this are together. */
+    private static final float ESCORT_STACK_CELLS = 0.5f;
+    /** Ticks a pair may spend together while crossing in a fight before that counts as stacking. */
+    private static final int CROSSING_TICKS = 15;
 
     @Override public String id() {
         return "tender-sortie";
@@ -83,8 +88,9 @@ public final class TenderSortieScene implements BehaviorScene {
         if (loop.equals("escort")) {
             builder.squad("raid").faction(Faction.DEFENDER).size(1).at(62, 38).primary(CARBINE)
                     .assigned(id -> ObjectiveAssignment.attackMove(id, (int) START_X, (int) START_Y)).done();
-            // Beyond the leash and the reach beyond it: nothing the wing should go after.
-            builder.unit("bystander", Faction.DEFENDER, UnitType.MARINE, 30, 86);
+            // Beyond the leash and the reach beyond it: nothing the wing should go after. Both grow with the
+            // Shepherd's half-length (46 px of a 92 px hull), so the bystander stands further off as it does.
+            builder.unit("bystander", Faction.DEFENDER, UnitType.MARINE, 30, BYSTANDER_Y);
         }
         builder.unit("far-enemy", Faction.DEFENDER, UnitType.MARINE, 135, 75);
         builder.unit("far-friend", Faction.MARINE, UnitType.MARINE, 3, 3);
@@ -165,9 +171,11 @@ public final class TenderSortieScene implements BehaviorScene {
                         String.format(Locale.ROOT, "furthest %.1f cells from the hull, leash %.0f", t.maxHullDistance,
                                 tender.leashCells())));
                 verdicts.add(Verdict.of("the-wing-does-not-chase-past-the-leash", t.bystanderUnharmed(),
-                        "bystander 46 cells off, hit points " + t.bystanderHp()));
-                verdicts.add(Verdict.of("drones-do-not-stack", t.minPair >= 0.5f,
-                        String.format(Locale.ROOT, "closest pair %.2f cells at tick %d", t.minPair, t.minPairTick)));
+                        "bystander " + Math.round(BYSTANDER_Y - START_Y) + " cells off, hit points " + t.bystanderHp()));
+                // In a fight two drones may cross: stacking is a pair that stays together, not one that passes.
+                verdicts.add(Verdict.of("drones-do-not-stack", t.longestClose <= CROSSING_TICKS,
+                        String.format(Locale.ROOT, "longest a pair stayed within %.1f cells: %d ticks (closest %.2f at "
+                                + "tick %d)", ESCORT_STACK_CELLS, t.longestClose, t.minPair, t.minPairTick)));
                 verdicts.add(Verdict.of("the-wing-breaks-off-and-returns-to-the-ring",
                         t.threatSeen >= 0 && t.endHullDistance <= 11f + grown,
                         String.format(Locale.ROOT, "threat first seen at tick %d, the wing ends %.1f cells out at its furthest drone %s",
@@ -193,6 +201,7 @@ public final class TenderSortieScene implements BehaviorScene {
         metrics.put("maxHullDistance", t.maxHullDistance);
         metrics.put("meanHullDistance", t.meanHullDistance());
         metrics.put("minPair", t.minPair);
+        metrics.put("longestCloseTicks", t.longestClose);
         metrics.put("launches", t.launchTicks.size());
         metrics.put("dronesLost", tender.dronesLost());
         return new SceneReport(id(), loop, ticks(loop), verdicts, metrics);
@@ -210,6 +219,9 @@ public final class TenderSortieScene implements BehaviorScene {
         private int recallTick = -1;
         float maxHullDistance;
         float minPair = Float.MAX_VALUE;
+        /** The longest run of consecutive settled ticks with some pair together. */
+        int longestClose;
+        private int closeRun;
         int minPairTick = -1;
         private float hullDistanceSum;
         int settledSamples;
@@ -300,17 +312,19 @@ public final class TenderSortieScene implements BehaviorScene {
                             sim.world().y(id) - tender.ship().y);
                     settledSamples++;
                 }
+                boolean close = false;
                 for (int i = 0; i < now.size(); i++) {
                     for (int j = i + 1; j < now.size(); j++) {
                         float pairGap = (float) Math.hypot(
                                 sim.world().x(now.get(i)) - sim.world().x(now.get(j)),
                                 sim.world().y(now.get(i)) - sim.world().y(now.get(j)));
                         if (pairGap < minPair) minPairTick = tick;
-                        minPair = Math.min(minPair, (float) Math.hypot(
-                                sim.world().x(now.get(i)) - sim.world().x(now.get(j)),
-                                sim.world().y(now.get(i)) - sim.world().y(now.get(j))));
+                        minPair = Math.min(minPair, pairGap);
+                        if (pairGap < ESCORT_STACK_CELLS) close = true;
                     }
                 }
+                closeRun = close ? closeRun + 1 : 0;
+                longestClose = Math.max(longestClose, closeRun);
             }
             if (threatSeen < 0 && tender.threatened()) threatSeen = tick;
             trackRaid(sim, tick, now);

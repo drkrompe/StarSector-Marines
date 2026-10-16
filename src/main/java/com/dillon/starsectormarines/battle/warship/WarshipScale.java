@@ -23,7 +23,7 @@ public final class WarshipScale {
      * hull, so the ladder between frigate and capital is the game's own. {@code -Dbattle.warship.hullPresence=1} is
      * the control that draws hulls at the shared ladder's size.
      */
-    public static final float HULL_PRESENCE = Float.parseFloat(System.getProperty("battle.warship.hullPresence", "4"));
+    public static final float HULL_PRESENCE = Float.parseFloat(System.getProperty("battle.warship.hullPresence", "6"));
 
     /**
      * The share of the game's range, read at the hull's drawn scale, that a gun reaches against another hull. The
