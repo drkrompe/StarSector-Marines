@@ -115,8 +115,8 @@ final class WarshipShield {
         float vx = c == null ? 0f : (float) c.optDouble(0, 0.0);
         float vy = c == null ? 0f : (float) c.optDouble(1, 0.0);
         // The same frame every slot is read in: the first figure runs along the nose.
-        return new WarshipShield(type, arc, WarshipScale.cells(radiusPx),
-                -WarshipScale.cells(vy), WarshipScale.cells(vx),
+        return new WarshipShield(type, arc, WarshipScale.hullCells(radiusPx),
+                -WarshipScale.hullCells(vy), WarshipScale.hullCells(vx),
                 Math.max(0f, number(row.get("shield upkeep"), DEFAULT_UPKEEP)),
                 Math.max(0.01f, number(row.get("shield efficiency"), DEFAULT_EFFICIENCY)));
     }
