@@ -12,7 +12,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
  * point of it — see {@code vehicle-as-commandable-unit.md}.
  *
  * <p>What it sets down is the sortie's frozen company vehicle from the mech bay
- * ({@code mech-bay-vehicles.md}). A sortie with none — a debug grant, or a mission
+ * ({@code mechs-nouns.md}, gantries). A sortie with none — a debug grant, or a mission
  * flown without a bay — sets down the {@link #FALLBACK} hull, which belongs to nobody.
  */
 public enum VehicleSupportPayload implements AirDeliveryPayload {
