@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
+import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
+import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -53,7 +55,73 @@ public final class AgreusArcCampaign {
             + "Agreus is cold and airless: our regular infantry use pressure protection outside the sealed halls. "
             + "Destroyed repair cargo or the loss of both technicians forces withdrawal. Rusk provides a new load and replacement party for a later mobilization. "
             + "This local security contract grants no planetary police commission or orbital-fire authority.";
+    /** Shared by both agreements; neither text may imply otherwise. */
+    public static final String AGREEMENT_COMMON = "Both agreements keep Rusk's secured title under Combine administration, the yard's enforceable debt, "
+            + "the same core equipment rewards and the company's duty to remove Greyhook's coercive presence. "
+            + "Chapter 4, Terms of Protection, pays 32,000 credits and a Boarding Jack section card on either route; victory ratifies the signed agreement.";
+    public static final String CUSTODY_UNDERTAKING = "Escort Rusk's appointed custodians and put access under their office. Association workshops operate through new leases and debt deductions.";
+    public static final String CUSTODY_BENEFIT = "Rusk funds a 12,000-credit premium, payable only with Chapter 5 victory. Later district escort work comes through his office.";
+    public static final String CUSTODY_COST = "Independent tool access ends. Lenna records the company's role and does not become its worker-side contracting contact. The court terms remain lawful and burdensome.";
+    public static final String COMPACT_UNDERTAKING = "Escort a joint custody party and preserve inspected common-service access under a signed repayment schedule. Rusk appoints security; the association retains shop operation and auditable service allocation.";
+    public static final String COMPACT_BENEFIT = "Lenna Saye becomes the contact for later district escort work. The existing common workshop access continues.";
+    public static final String COMPACT_COST = "The company forgoes the 12,000-credit premium to fund the transition guarantee; that fully satisfies its contribution, with no further debit. "
+            + "Rusk accepts the agreement but records the company as an independent counterparty rather than his preferred enforcement contractor. Debt and security duties remain.";
+    public static final String CASTLE_COMPARISON = "Castle: Both papers keep Rusk's title, the debt and the same equipment on either route; Greyhook still has to go. "
+            + "Custody is the money and Rusk's office: 12,000 credits if Black Sluice falls, his managers stabilize the schedules, and the benches go on lease with deductions. Lenna stops being our contact on the workers' side. "
+            + "The compact costs us that premium. Lenna becomes our contact for escort work, the shops stay common and inspected, and Rusk files us as an independent counterparty. Divided administration will rub. "
+            + "Neither changes how we fight or what we can buy, and nobody on that yard is universally grateful either way. Nothing is committed until you sign; we can leave this and come back.";
+    public static final String SIGNING_NOTE = "Signing is final: the other agreement closes. Defeat or a later retreat does not reopen it. "
+            + "Before signing, the company may instead decline further work; completed fees and learned or carried cards are kept.";
+    public static final String DECLINED_RECORD = "The company has declined further Latchkey work before signing. Rusk's three completion fees and both recovered section cards stand. "
+            + "Custody stays a matter between House Rusk, the association and the Combine courts; no fourth commission will be offered.";
     private AgreusArcCampaign() { }
+
+    /** Text-only correspondence; these new speakers have no recorded voice. */
+    static final WaylineNarration.Line LENNA_GATE = correspondence("lenna-gate", "story_agreus_yard_owners", "correspondence.lenna.gate",
+            "LENNA SAYE / LATCHKEY YARD ASSOCIATION",
+            "You have opened the gate. Before you hand over the keys, read who is allowed through it tomorrow. Those benches repair the weir's pumps as well as Rusk's cargo gear.");
+    static final WaylineNarration.Line LENNA_LIEN = correspondence("lenna-lien", "story_agreus_yard_owners", "correspondence.lenna.lien",
+            "LENNA SAYE / LATCHKEY YARD ASSOCIATION",
+            "Mara Venn says you broke a lien for Wayline on Jangala. Whose side is the lien on this time?");
+    static final WaylineNarration.Line VOSS_WARNING = correspondence("voss-warning", "story_agreus_terms_of_protection", "correspondence.voss.warning",
+            "SERA VOSS / GREYHOOK FLOTILLA",
+            "Pell collected his share from that yard. Your new agreement leaves him nothing. I've told him to leave it. Plan for him not listening.");
+
+    private static WaylineNarration.Line correspondence(String id, String missionId, String event, String speaker, String text) {
+        return new WaylineNarration.Line(id, missionId, event, text, 12f, 10, 15f, List.of(), speaker, OpeningBroker.CREST, false, false);
+    }
+
+    /** Correspondence the current decision stage has actually earned, in reading order. */
+    static List<WaylineNarration.Line> correspondence(AgreusArcProgress p) {
+        if (p == null) return List.of();
+        return switch (p.handoverStage()) {
+            case NOT_REACHED -> List.of();
+            case OPEN, DECLINED -> List.of(LENNA_GATE, LENNA_LIEN);
+            case SIGNED, RATIFIED -> List.of(LENNA_GATE, LENNA_LIEN, VOSS_WARNING);
+        };
+    }
+
+    /** The explicit signing action from the HQ agreement desk. */
+    static boolean sign(AgreusYardAgreement agreement) {
+        var p = current();
+        if (p == null || !p.signAgreement(agreement)) return false;
+        CampaignStateScript.getInstance().state().agreusArc = p;
+        return true;
+    }
+    static boolean declineFurtherWork() {
+        var p = current();
+        if (p == null || !p.declineFurtherWork()) return false;
+        CampaignStateScript.getInstance().state().agreusArc = p;
+        return true;
+    }
+    static AgreusArcProgress.HandoverStage handoverStage() {
+        var p = current();
+        return p == null ? AgreusArcProgress.HandoverStage.NOT_REACHED : p.handoverStage();
+    }
+    static AgreusYardAgreement signedAgreement() {
+        var p = current();
+        return p == null ? null : p.signedAgreement();
+    }
 
     static boolean eligibleHistory(ShepherdRecoveryProgress recovery) { return recovery != null && recovery.departed(); }
     public static AgreusArcProgress current() {

@@ -29,10 +29,12 @@ read the same way, in four registers:
 | **Recovered** | Worn military patterns, real but lesser, rebuilt from wrecks | Introduced by the Agreus story; afterwards ordinary Advanced cards | Recovered Specter, Recovered Arbalest |
 | **Approved** | Proper military issue: whole powered sections, current doctrine | Only by a military warrant from the tradition that builds it | XIV Shock, Bulwark, Reliquary, Lion's Mantle |
 
-The player meets each register first **across the line**, then in their own hands.
-Garnir is where the company sees approved kit fight beside it; Agreus is where it
-starts wearing recovered versions of the same machines. That gap, visible for a
-whole arc before it closes, is the story.
+Where it suits a mission, the player meets a register **across the line** before
+holding it: Agreus puts Greyhook's crude powered rigs in the field before the
+company wears recovered versions of the same machines. This is a habit, not a rule.
+A register may arrive simply as a new licence or a new listing in the market
+stalls, with nobody on either side having worn it first, and a mission does not
+need to show new kit at all.
 
 ## What is wrong today
 
@@ -89,7 +91,7 @@ What each arc should hand the player, see across the line, and hold back.
 | --- | --- | --- | --- |
 | **Wayline opening** — Relief, Counterattack | Militia holding a checkpoint behind revetments | Watchman's Kit; A Proper Issue's choice (Steady Line or Forward Screen). **Checkpoint Issue**: service rifles, three Rampart revetments, smoke, on sale at the broker's market once Relief settles, beside the free choice rather than as a third path. It teaches digging in, which is what Relief is about | Everything above Common |
 | **Broken Supply Route** — Junction, Thunder Run | Raiders with rocket tubes against the convoy | **Trench-Clearing Issue** as the Junction reward (opening a defended junction is exactly its job); **Convoy Escort Issue**: rockets plus one Palisade pod, on sale at the employer's market once Thunder Run settles | Powered anything |
-| **The Corvus Account** — Dust Ledger, Blind Watch, Cold Account | Sable Wake mortars and missiles at Blind Watch; at Garnir, Kord's Hegemony marines in XIV Shock with Arbalests and Arrestor packs, fighting beside the company | **Counter-Battery Issue** (Hegemony): service rifles, two Arrestor packs, one anti-materiel rifle. On sale at Hegemony markets once Cold Account settles, as a nod rather than a licence | XIV Shock, the military Arbalest: the company has now seen what it cannot have |
+| **The Corvus Account** — Dust Ledger, Blind Watch, Cold Account | Sable Wake mortars and missiles at Blind Watch; at Garnir, Resolute's guns rather than Hegemony infantry: Kord lands no one | **Counter-Battery Issue** (Hegemony): service rifles, two Arrestor packs, one anti-materiel rifle. On sale at Hegemony markets once Cold Account settles, as a nod rather than a licence | XIV Shock, the military Arbalest: the company has now seen what it cannot have |
 | **A Working Ship** — Salvage Rights, Cold Start, Working Passage | Builders working under fire | **Builder's Guard**: revetments and Palisade pods from Tamsin Vale's yard stores, on sale at Asharu once Working Passage settles, for holding a construction site | — |
 | **A Small War** — Agreus | Greyhook's crude boarding rigs and mortar fire on the commissioning work | Recovered Specter and Recovered Arbalest (as shipped), the Salvage-assisted Section, and the planned Boarding Jack. Counter-Battery Issue pairs naturally with the mixed section | Approved sections. The arc's planned procurement lead becomes the **first warrant** |
 | **Beyond Agreus** — the procurement lead | — | The **Hegemony auxiliary warrant** (`progression-nouns.md`, Kit and armory): the military Arbalest first, XIV shock armour after the first honoured obligation period | Other traditions' approved kit, which needs their own warrants |
@@ -126,10 +128,11 @@ Even after Agreus, most of the catalog stays ahead of the company:
    (Kit and armory, arc issue cards) and the ladder readings below.
 5. **Trench-Clearing Issue as the Junction reward**: shipped; see
    `progression-nouns.md` (Kit and armory, arc issue cards).
-6. **Show approved kit across the line.** Kord's marines at Garnir field the approved
-   kit the player will later want; Greyhook fields Foundry-Breaker-style rigs.
-   The Garnir half is `approved-kit-across-the-line.md`, awaiting a decision because it
-   contradicts the shipped Cold Account model; Greyhook's half is *A Small War* work.
+6. **Approved kit across the line**: settled as not required. Garnir stays as
+   shipped, with no Hegemony infantry on the ground. The auxiliary warrant and
+   Counter-Battery Issue cite the company's evidence and the Navy's report rather
+   than fighting beside the Hegemony line. Greyhook's rigs at Agreus remain *A Small
+   War* work, wanted for that story rather than owed to this arc.
 
 ## Why the arc cards are shaped as they are
 
