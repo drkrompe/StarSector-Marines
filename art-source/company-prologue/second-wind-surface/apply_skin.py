@@ -21,8 +21,9 @@ names, other faces and other UV layers are untouched, so a later damage phase
 keep their UVs and skin, new cut faces take the cutter's material.
 
 Faces no part claims keep a fallback: `neutral` (default) swaps every base
-material on them for one flat dark grey (darker still for recesses), so
-coverage reads honestly in review; `base` leaves the clean build's flat base colours.
+base material (the four palette classes) on them for one flat dark grey,
+darker still for recesses, so coverage reads honestly in review; lamps,
+glazing and a damage state's scar and repair materials are left alone; `base` leaves the clean build's flat base colours.
 Writes build/skinned.blend (packed images) and skin-manifest.json.
 """
 from pathlib import Path
@@ -113,7 +114,7 @@ for part, per in selection.items():
 # Fallback on everything no part claimed.
 if FALLBACK == 'neutral':
     grey = {}
-    for cls, v in (('cream', .12), ('oxide', .12), ('gunmetal', .12), ('dark', .03), ('other', .12)):
+    for cls, v in (('cream', .12), ('oxide', .12), ('gunmetal', .12), ('dark', .03)):
         m = bpy.data.materials.new(f'Unskinned fallback {cls}')
         m.use_nodes = True
         b = m.node_tree.nodes.get('Principled BSDF')
@@ -128,9 +129,9 @@ if FALLBACK == 'neutral':
         for k, m in enumerate(list(me.materials)):
             if m is None or m.name.startswith('Skin '):
                 continue
-            cls = P.MATERIAL_CLASS.get(m.name.split('.')[0], 'other')
-            if m.name.startswith(('Bay work lights', 'Bridge viewport')) or 'light' in m.name.lower():
-                continue  # emissive lamps and glazing keep their own look
+            cls = P.MATERIAL_CLASS.get(m.name.split('.')[0])
+            if cls is None:
+                continue  # lamps, glazing and damage/repair materials keep their own look
             j = me.materials.find(grey[cls].name)
             if j < 0:
                 me.materials.append(grey[cls])

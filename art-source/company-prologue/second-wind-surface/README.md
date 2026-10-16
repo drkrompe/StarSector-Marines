@@ -154,10 +154,12 @@ The skin belongs to the clean build and is generated once.
   (sw_damage.py's live Booleans) cuts skinned faces like any other: the
   surviving faces keep their `skin:<part>` UVs and material, and the faces
   the cut opens take the cutter's damage material.
-- To layer a state, run `apply_skin.py -- --blend <state build> --out ...`.
-  That is not wired up here; the damage session exposes states as a later
-  phase. Selection happens on the base meshes, so it is unaffected by live
-  modifiers.
+- Checked on the `patched` state: `build_reference.py -- --state patched`,
+  then `apply_skin.py -- --blend <that build> --out ...`. It skins the same
+  114 faces. Craters cut through the skinned belt, and the salvage plates
+  keep their own materials (`review/patched-port-flank-detail.png`). The
+  skin phase does not wire up states itself; the geometry package owns the
+  `--state` build.
 - Repair plates, patches and welds are their own objects with their own
   materials, never this skin.
 
@@ -211,6 +213,7 @@ wear but cannot remove baked chips. The layer needs:
 | `register.py`, `registration/` | silhouette fits per part |
 | `grade.py`, `grading/`, `textures/` | swap check, de-light, grade; the final part images |
 | `apply_skin.py`, `skin-manifest.json` | the surfacing phase on the clean build |
+| `review/patched-port-flank-detail.png` | the same skin applied to the `patched` damage build |
 | `review.py`, `compose_review.py`, `review/` | renders, coverage and seams, sheets (1920×1080) |
 | `imgops.py` | shared numpy/Pillow helpers |
 | `build/` (ignored) | geometry build, tiles, passes, `skinned.blend` |

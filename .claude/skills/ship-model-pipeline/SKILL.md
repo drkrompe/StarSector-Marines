@@ -166,18 +166,47 @@ every scar id sits in the same place in every state.
 
 ## Pass 6: texturing
 
-**Provisional:** the Second Wind's surfacing pilot (`second-wind-surface/`) is
-the first real run; update this section from its README when it lands.
-Current method, from `second-wind-projection-spike/README.md`:
-- **Part-by-part Codex reskins** (the `codex-imagegen` skill) of major parts,
-  each rendered alone and square-on. Attach one fixed finish reference to
-  every request, register the result by silhouette fit, grade it to a shared
-  palette per material, and store it on the part keyed by object name.
-- Small parts and all damage/repair surfacing use graded swatches, so a scar
-  can change status without regenerating any base skin.
-- Do not build a whole-ship six-view atlas. Codex wear is uniform, so wear
-  placement stays in our masks.
-- De-light the generated images: they carry 25-30/255 of baked light.
+The Second Wind's port-flank pilot (`second-wind-surface/README.md`) is the
+worked example. Its scripts are the template; copy them into the hull's own
+surfacing package beside the geometry, never inside it.
+
+- **Parts by geometry.** Each part is one or more (object, seed point) members
+  plus a view direction and a normal cone. Its faces are the connected group
+  grown from the seed, among faces inside the cone that the view sees first.
+  So every boundary is a crease, object edge or occlusion edge, never a box.
+  Sample visibility per triangle (an L-shaped n-gon's centre falls in its own
+  hole) and connect across boolean T-junctions.
+- **Sheets.** 2x2 sheets of similar-sized parts, each tile framed to its part,
+  one Codex call per sheet. Keep at least ~15 native texels per unit.
+  Near-identical parts reuse one generation (`skin_from`).
+- **Prompt.** One fixed finish reference goes on every request (material
+  only). Forbid repair patches, colour changes and concentrated wear: those
+  are the scar and wear layers.
+- **Measure every result.** Register each tile by silhouette fit. Classify
+  every pixel against the palette and flag any region below 60% in its
+  declared paint family: that is a colour-layout swap.
+- **De-light and grade.** Remove a robust linear L ramp per plane. Grade each
+  declared material region to a palette read off the finish reference (CIELAB
+  mean; spread clamped). Scale chroma about neutral on painted classes, because
+  shifting it turns bare-metal chips blue.
+- **Pad from inside the outline.** Codex draws a light edge line round every
+  shape; padding from it streaks bevels white. Trim 3 px first, then pad
+  24 px out.
+- **Store and apply.** Each part gets its own UV layer `skin:<part>` and image,
+  plus a material copied from the base one. Apply in a phase on the clean
+  build, with modifiers live. Damage Booleans then cut the skin like any face
+  (checked on the Second Wind's `patched` state). Unskinned base materials
+  take a flat neutral fallback so coverage is honest.
+- **Review** at 1920x1080 with lit, albedo and part-id passes: coverage share,
+  plus the step and tone across each part boundary.
+- **Pilot cost:** four generations for 16 parts (about 1 min each, run in
+  parallel), and 5 min of replay. Known gaps before a whole-hull rollout:
+  chamfers and bevel strips stretch under a square-on camera (give them
+  their own parts or swatches), and grading removes plate-to-plate variety
+  (add it back from an owned offset table in the wear layer).
+- **Swatches.** Small parts and all damage/repair surfacing still use graded
+  swatches. Never build a whole-ship six-view atlas. Wear placement stays in
+  our masks.
 
 ## Pass 7: VFX, lighting and cinematic export
 

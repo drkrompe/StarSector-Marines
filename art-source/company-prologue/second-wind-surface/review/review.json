@@ -1,7 +1,7 @@
 {
  "views": {
   "port-side": {
-   "coverage_skinned_share_of_ship": 0.3709,
+   "coverage_skinned_share_of_ship": 0.371,
    "parts_visible": [
     "belt-bow-port",
     "bow-cheek-port",
@@ -347,7 +347,7 @@
    ]
   },
   "high-quarter": {
-   "coverage_skinned_share_of_ship": 0.1344,
+   "coverage_skinned_share_of_ship": 0.1345,
    "parts_visible": [
     "belt-bow-port",
     "bow-cheek-port",
@@ -512,7 +512,7 @@
    ]
   },
   "port-flank-detail": {
-   "coverage_skinned_share_of_ship": 0.3114,
+   "coverage_skinned_share_of_ship": 0.3101,
    "parts_visible": [
     "belt-bow-port",
     "bow-cheek-port",
@@ -616,7 +616,7 @@
    ]
   },
   "port-aft-detail": {
-   "coverage_skinned_share_of_ship": 0.2224,
+   "coverage_skinned_share_of_ship": 0.2223,
    "parts_visible": [
     "deck-edge-lip-port",
     "hull-waist-port",
