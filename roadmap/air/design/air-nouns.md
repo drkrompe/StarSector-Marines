@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — A fort's anti-air yard stands Locust and Swarmer towers instead of Ridgewatch and flak; earlier: Missile AA joins ordinary heavy defense posts; all six supported carrier wings use the shared commitment flow.
+Updated: 2026-10-16 — a hostile hull is a target for a ship's direct-fire guns by mission order, misses fall on the ground, and a lost hull falls as wreckage (`atmospheric-frigate-duel.md`, slice 1); a fort's anti-air yard stands Locust and Swarmer towers instead of Ridgewatch and flak; earlier: Missile AA joins ordinary heavy defense posts; all six supported carrier wings use the shared commitment flow.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1823,10 +1823,33 @@ hit's strength is its damage times its penetration, the share that gets through
 is strength over armour plus strength, and a hit weaker than a tenth of the armour
 glances off and does nothing. A rifle round is nothing to it however many fire; a
 mortar or orbital strike chips it; only anti-ship-grade ordnance in numbers brings
-it down. Its own side never hurts it. A hull taken to nothing goes up in a heavy
-blast and leaves the battle at once, and every gun with it; a battered hull is
+it down. Its own side never hurts it. A hull taken to nothing bursts in a heavy
+blast and every gun, shield and point-defence mount dies with it, but it does not
+leave the battle: it **falls**. It keeps the momentum it had (a hovering hull slides
+off as its lift fails), turns as it goes, trails fire, and strikes the ground a few
+seconds later as the crash a downed aircraft makes, hurting whoever is under it on
+either side, then skids to rest and lies there as wreckage for the rest of the battle.
+The fall is a pure function of the hull's own state, so it lands the same way every
+play (`WarshipWreck`). A battered hull is
 drawn darker. The hit comes from the detonation pipeline itself, so any source
 that already lands a detonation is a counter without a ship-specific shortcut.
+
+**A hostile hull is a target for a ship's guns when a mission says so.** A ship
+under a **ship-fire order** (`ShipFireOrder`: off by default, `ALL` from a mission or
+script, `AUTO` reserved for the duel doctrine) fights hostile hulls with the same
+mounts, cooldowns, magazines and flux as any other fire, as a third customer beside
+ground and air fire. Which guns may fire at a ship follows the base game: point
+defence never does, a lance keeps its ground sweep, missiles wait for a path that
+flies at a hull; everything else may. A round is aimed where the hull will be,
+thrown off by the weapon's cone as a hash of who fired what, and flies as an ordinary
+shell; on arrival it lands on whatever hostile hull its blast reaches, shield first
+and then the armour rule, and a round that reaches none carries on along its line and
+comes down on the ground as an ordinary detonation, so stray fire between ships is
+real below them. Rounds between hulls are direct fire and no point defence engages
+them. A ship with a hull to fight and no ground to bring its guns to bear on turns to
+the heading that puts the most anti-ship firepower on it, re-chosen as it moves. A
+vanilla skin (a Wolf (H), a Hound (P)) is fitted as its base hull under its own
+sprite. See `atmospheric-frigate-duel.md`.
 
 **A warship's stay and its magazine can both be bounded.** Station time is counted
 down only while the ship is on its station, not while it travels to it; when it

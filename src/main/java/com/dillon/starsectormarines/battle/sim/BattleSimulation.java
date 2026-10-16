@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.salvage.FieldSalvage;
 import com.dillon.starsectormarines.battle.salvage.SalvagePlacement;
 import com.dillon.starsectormarines.battle.setup.DepotHoldSequence;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
+import com.dillon.starsectormarines.battle.world.model.PropDamage;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
 import com.dillon.starsectormarines.battle.ambient.WorksCrewService;
 import com.dillon.starsectormarines.battle.ambient.WorksCrewSystem;
@@ -2258,6 +2259,25 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     @Override
     public void spawnHeavyImpact(float x, float y, float radius) {
         effects.spawnHeavyImpact(x, y, radius);
+    }
+
+    /** A burning piece shed by a falling hull onto the ground beneath it; presentation only. */
+    public void spawnFallingWreckFire(float x, float y, float size) {
+        effects.spawnPropDamage(x, y, PropDamage.Effect.FIRE, size);
+    }
+
+    /**
+     * A falling warship strikes the ground: the crash an aircraft makes, at the hull's radius, hurting and marking
+     * whatever is there whichever side it is on. {@code key} identifies the wreck to the crash machinery.
+     */
+    public void crashWreck(long key, float x, float y, Faction faction, float hullRadius, float vx, float vy) {
+        airframeCookOff.crash(key, x, y, faction, hullRadius, vx, vy);
+        effects.spawnBurningSmokePlume(x, y);
+    }
+
+    /** A crashed warship skids: the crash's crush along the ground it covers this tick. */
+    public void skidWreck(long key, float x, float y, boolean stopped) {
+        airframeCookOff.skid(key, x, y, stopped);
     }
 
     /** Drains target-side reprio / fall-back enqueues from this tick's weapon hits. Delegates to {@link DamageService#flushPendingTargetMutations()}. */

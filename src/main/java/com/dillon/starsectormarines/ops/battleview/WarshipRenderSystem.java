@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.warship.WarshipEngine;
 import com.dillon.starsectormarines.battle.warship.WarshipPointDefence;
 import com.dillon.starsectormarines.battle.warship.WarshipScale;
 import com.dillon.starsectormarines.battle.warship.WarshipShell;
+import com.dillon.starsectormarines.battle.warship.WarshipWreck;
 import com.dillon.starsectormarines.battle.warship.WarshipThrust;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.fs.starfarer.api.graphics.SpriteAPI;
@@ -103,6 +104,9 @@ public final class WarshipRenderSystem implements RenderSystem {
     /** What the world's surface tints the cloud, the re-entry glow and the dust; read from the battle each frame. */
     private WarshipAtmosphere.Tint tint = WarshipAtmosphere.Tint.forPalette(null);
 
+    /** How much larger a falling wreck is drawn at the height it burst at, read as the aircraft altitude cue. */
+    private static final float WRECK_HEIGHT_SCALE = 0.15f;
+
     public WarshipRenderSystem(BattleSprites sprites) {
         this.sprites = sprites;
         this.atmosphereFx = new ShipAtmosphereFx(sprites);
@@ -144,6 +148,7 @@ public final class WarshipRenderSystem implements RenderSystem {
             // Cloud and heat over the hull: the deck it is dropping through, the burn of coming down.
             atmosphereFx.sky(out, cam, cellPx, ctx.alphaMult, ship, tint);
         }
+        for (WarshipWreck wreck : ctx.sim.warships().wrecks()) drawWreck(out, cam, cellPx, ctx.alphaMult, wreck);
         ViewCull cull = ViewCull.of(cam);
         List<WarshipShell> shells = ctx.sim.warships().shells();
         List<WarheadStrike> strikes = ctx.sim.warships().strikes();
@@ -259,6 +264,29 @@ public final class WarshipRenderSystem implements RenderSystem {
                 cam.cellToScreenX(hx), cam.cellToScreenY(hy),
                 pxW, pxH, ship.facingDegrees,
                 tint, tint, tint, alpha);
+    }
+
+    /**
+     * A hull taken to nothing: charred, drawn with the aircraft altitude cue (a little larger while it is still up)
+     * as it falls, and once it has struck, lying among the parked vehicles where it came to rest.
+     */
+    private void drawWreck(DrawList out, BattleCamera cam, float cellPx, float alpha, WarshipWreck wreck) {
+        Warship ship = wreck.ship;
+        ShuttleSpriteCache hull = sprites.spriteByPath(ship.spritePath);
+        if (hull == null) return;
+        float rad = (float) Math.toRadians(ship.facingDegrees);
+        float c = (float) Math.cos(rad);
+        float s = (float) Math.sin(rad);
+        float hx = ship.x + (ship.pivotX * c - ship.pivotY * s);
+        float hy = ship.y + (ship.pivotX * s + ship.pivotY * c);
+        float scale = 1f + WRECK_HEIGHT_SCALE * wreck.lift();
+        float pxH = ship.lengthCells * cellPx * scale;
+        float pxW = pxH * hull.aspect;
+        boolean down = wreck.phase() != WarshipWreck.Phase.FALLING;
+        float tint = down ? 0.22f : 0.3f;
+        out.addSprite(down ? RenderLayer.VEHICLES : RenderLayer.SHUTTLES, hull.sprite,
+                cam.cellToScreenX(hx), cam.cellToScreenY(hy), pxW, pxH, ship.facingDegrees,
+                tint, tint * 0.9f, tint * 0.85f, alpha);
     }
 
     private void drawMount(DrawList out, BattleCamera cam, float cellPx, float alpha,
