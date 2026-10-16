@@ -1,0 +1,218 @@
+{
+  "alphaMin": 16,
+  "blocks": [{
+    "fillRgb": "0x969690",
+    "id": "fort.emplacement",
+    "layout": "wall-3x3"
+  }],
+  "cellPx": 128,
+  "entries": [
+    {
+      "block": "fort.emplacement",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement.nw",
+      "included": true,
+      "rect": [
+        22,
+        11,
+        181,
+        181
+      ],
+      "slot": "nw"
+    },
+    {
+      "block": "fort.emplacement",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement.n",
+      "included": true,
+      "rect": [
+        203,
+        11,
+        181,
+        181
+      ],
+      "slot": "n"
+    },
+    {
+      "block": "fort.emplacement",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement.ne",
+      "included": true,
+      "rect": [
+        384,
+        11,
+        181,
+        181
+      ],
+      "slot": "ne"
+    },
+    {
+      "block": "fort.emplacement",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement.w",
+      "included": true,
+      "rect": [
+        22,
+        192,
+        181,
+        181
+      ],
+      "slot": "w"
+    },
+    {
+      "block": "fort.emplacement",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement.center",
+      "included": true,
+      "rect": [
+        203,
+        192,
+        181,
+        181
+      ],
+      "slot": "center"
+    },
+    {
+      "block": "fort.emplacement",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement.e",
+      "included": true,
+      "rect": [
+        384,
+        192,
+        181,
+        181
+      ],
+      "slot": "e"
+    },
+    {
+      "block": "fort.emplacement",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement.sw",
+      "included": true,
+      "rect": [
+        22,
+        373,
+        181,
+        181
+      ],
+      "slot": "sw"
+    },
+    {
+      "block": "fort.emplacement",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement.s",
+      "included": true,
+      "rect": [
+        203,
+        373,
+        181,
+        181
+      ],
+      "slot": "s"
+    },
+    {
+      "block": "fort.emplacement",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "fort.emplacement.se",
+      "included": true,
+      "rect": [
+        384,
+        373,
+        181,
+        181
+      ],
+      "slot": "se"
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-platform-0",
+      "included": true,
+      "note": "Flat gun-platform cell. Plain slab with hairline cracks.",
+      "rect": [
+        770,
+        10,
+        212,
+        212
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-platform-1",
+      "included": true,
+      "note": "Flat gun-platform cell. Four tie-down plates and a central drain.",
+      "rect": [
+        985,
+        10,
+        212,
+        212
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.fort-emplacement-platform-2",
+      "included": true,
+      "note": "Flat gun-platform cell. Worn square bearing recess.",
+      "rect": [
+        1200,
+        10,
+        212,
+        212
+      ]
+    }
+  ],
+  "gridCols": 8,
+  "gridRows": 4,
+  "idPrefix": "doodad.fort-emplacement",
+  "note": "Fort emplacement: a snappable poured-concrete gun-platform revetment. Built-in ImageGen reskin of templates/fort-emplacement-guide.png (fort-emplacement-guide.py); exact prompt retained beside this file (fort-emplacement.prompt.txt), raw retained unmodified. 1536x1024 RGBA. ImageGen did not hold the 192px pitch: the nine patch frames are one contiguous 3x3 picture cut at 181px squares from (22,11), and the three platform variants are 212px squares - the document's rects are authoritative, not the 8x4 grid. Block fort.emplacement (wall-3x3, slots read 'the exterior is on this side'): raised parapet along the exterior, flat platform inside; the centre slot is platform. Platform variants are doodads. Presentation art only - cover and topology belong to the post/pad that stamps it. New sheet, shares no id with a shipped tileset.",
+  "sheet": "art-source/tilesets/fort-emplacement.raw.png",
+  "sheetName": "fort-emplacement"
+}
