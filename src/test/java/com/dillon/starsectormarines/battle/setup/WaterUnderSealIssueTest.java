@@ -10,8 +10,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class WaterUnderSealIssueTest {
     @Test void recoveredRigBelongsToOnePersonAndKeepsItsCatalogLimits() {
-        var ordinary = new EntitySpec("Salt Knife rifleman", Faction.DEFENDER, UnitType.MILITIA, 10, 10).squad(7);
-        var wearer = new EntitySpec("Salt Knife recovered assault rig", Faction.DEFENDER, UnitType.MILITIA, 11, 10).squad(7);
+        var ordinary = new EntitySpec("Berth Four rifleman", Faction.DEFENDER, UnitType.MILITIA, 10, 10).squad(7);
+        var wearer = new EntitySpec("Berth Four recovered assault rig", Faction.DEFENDER, UnitType.MILITIA, 11, 10).squad(7);
         var recovered = MarineArmorCatalogRegistry.require("armor.specter-recovered");
         WaterUnderSealIssue.recoveredAssaultRig(wearer, recovered);
         assertEquals(ordinary.squadId, wearer.squadId);

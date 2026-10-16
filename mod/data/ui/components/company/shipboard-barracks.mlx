@@ -14,6 +14,7 @@
     <div id="barracks-flow-actions" class="board-tools">
       <button id="barracks-equipment" class="{command.equipmentClasses}" onclick="{command.equipmentWorkspace}">{command.equipmentLabel}</button>
       <button id="barracks-officer-dossier" class="{command.dossierButtonClasses}" onclick="{command.openDossier}">{i18n.openingUiShipboardBarracksOfficerDossier}</button>
+      <button id="barracks-company-roster-open" class="flow-button console-action" onclick="{command.openRoster}">{i18n.companyRosterOpen}</button>
       <button id="barracks-guide-help" class="flow-button console-action" disabled="{command.guideHelpDisabled}" onclick="{command.guideHelp}">{command.guideHelpLabel}</button>
       <button id="barracks-missions" class="{command.missionClasses}" onclick="{command.missions}">{command.missionLabel}</button>
     </div>
@@ -142,6 +143,55 @@
           <button id="barracks-page-previous" class="tool-button console-action" disabled="{command.previousDisabled}" onclick="{command.previous}">{i18n.openingUiShipboardBarracksPrevious}</button>
           <div id="barracks-page-label" class="label heading page-label">{command.pageLabel}</div>
           <button id="barracks-page-next" class="tool-button console-action" disabled="{command.nextDisabled}" onclick="{command.next}">{i18n.openingUiShipboardBarracksNext}</button>
+        </div>
+      </div>
+      <div id="barracks-company-roster" class="{command.rosterClasses}">
+        <div id="roster-header" class="roster-header">
+          <div id="roster-title" class="label heading warm roster-title">{command.rosterTitle}</div>
+          <div id="roster-legend" class="label muted roster-legend">{i18n.companyRosterLegend}</div>
+          <button id="roster-close" class="flow-button console-action" onclick="{command.closeRoster}">{i18n.openingUiShipboardBarracksViewFormations}</button>
+        </div>
+        <div id="roster-columns" class="roster-columns">
+          <button id="roster-sort-name" class="{command.rosterSortNameClasses}" onclick="{command.rosterSortName}">{i18n.companyRosterColumnName}</button>
+          <button id="roster-sort-squad" class="{command.rosterSortSquadClasses}" onclick="{command.rosterSortSquad}">{i18n.companyRosterColumnSquad}</button>
+          <button id="roster-sort-status" class="{command.rosterSortStatusClasses}" onclick="{command.rosterSortStatus}">{i18n.companyRosterColumnStatus}</button>
+          <button id="roster-sort-aptitude" class="{command.rosterSortAptitudeClasses}" onclick="{command.rosterSortAptitude}">{i18n.companyRosterColumnAptitude}</button>
+          <button id="roster-sort-band" class="{command.rosterSortBandClasses}" onclick="{command.rosterSortBand}">{i18n.companyRosterColumnBand}</button>
+          <button id="roster-sort-weapon" class="{command.rosterSortWeaponClasses}" onclick="{command.rosterSortWeapon}">{i18n.companyRosterColumnWeapon}</button>
+          <button id="roster-sort-armor" class="{command.rosterSortArmorClasses}" onclick="{command.rosterSortArmor}">{i18n.companyRosterColumnArmor}</button>
+          <button id="roster-sort-service" class="{command.rosterSortServiceClasses}" onclick="{command.rosterSortService}">{i18n.companyRosterColumnService}</button>
+        </div>
+        <div id="roster-list" class="roster-list">
+          <div each="marine in command.rosterRows" key="{marine.id}" id="{marine.id}" class="{marine.classes}">
+            <div id="{marine.nameId}" class="label heading roster-name">{marine.name}</div>
+            <div id="{marine.squadId}" class="label muted roster-squad">{marine.squad}</div>
+            <div id="{marine.statusId}" class="{marine.statusClasses}">{marine.status}</div>
+            <div id="{marine.aptitudeCellId}" class="roster-cell roster-aptitude">
+              <div id="{marine.aptitudeStepsId}" class="roster-steps">
+                <div each="step in marine.aptitudeSteps" key="{step.id}" id="{step.id}" class="{step.classes}"></div>
+              </div>
+              <div id="{marine.aptitudeId}" class="label roster-step-label">{marine.aptitude}</div>
+            </div>
+            <div id="{marine.bandCellId}" class="roster-cell roster-band">
+              <div id="{marine.bandStepsId}" class="roster-steps">
+                <div each="step in marine.bandSteps" key="{step.id}" id="{step.id}" class="{step.classes}"></div>
+              </div>
+              <div id="{marine.bandId}" class="label roster-step-label">{marine.band}</div>
+            </div>
+            <div id="{marine.gradeCellId}" class="roster-cell roster-weapon">
+              <div id="{marine.gradeStepsId}" class="roster-steps">
+                <div each="step in marine.gradeSteps" key="{step.id}" id="{step.id}" class="{step.classes}"></div>
+              </div>
+              <div id="{marine.weaponId}" class="label roster-step-label">{marine.weapon}</div>
+            </div>
+            <div id="{marine.armorId}" class="label roster-armor">{marine.armor}</div>
+            <div id="{marine.serviceId}" class="label muted roster-service">{marine.service}</div>
+          </div>
+        </div>
+        <div id="roster-page-tools" class="page-tools">
+          <button id="roster-page-previous" class="tool-button console-action" disabled="{command.rosterPreviousDisabled}" onclick="{command.rosterPrevious}">{i18n.openingUiShipboardBarracksPrevious}</button>
+          <div id="roster-page-label" class="label heading page-label">{command.rosterPageLabel}</div>
+          <button id="roster-page-next" class="tool-button console-action" disabled="{command.rosterNextDisabled}" onclick="{command.rosterNext}">{i18n.openingUiShipboardBarracksNext}</button>
         </div>
       </div>
       <div id="barracks-orders" class="{command.ordersPanelClasses}">
@@ -402,5 +452,32 @@
   .specialty-node-image { width: 64px; height: 64px; pointer-events: none; }
   .specialty-link { width: 8px; height: 22px; }
   .guide-progress { width: 98px; height: 24px; }
+  .company-roster { flex-direction: column; width: 0px; flex-grow: 1; padding: 10px; gap: 6px; border-width: 1px; overflow: hidden; }
+  .roster-header { flex-direction: row; align-items: center; height: 40px; gap: 12px; }
+  .roster-title { width: 420px; height: 22px; }
+  .roster-legend { width: 0px; flex-grow: 1; height: 20px; font-family: body; }
+  .roster-columns { flex-direction: row; align-items: center; height: 30px; gap: 8px; padding: 0px 8px; }
+  .roster-sort { height: 28px; padding: 0px; text-align: left; font-family: heading; }
+  .roster-sort.active { color: #dfc588; border-color: #dfc588; }
+  .roster-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 2px; overflow: hidden; }
+  .roster-row { flex-direction: row; align-items: center; height: 40px; gap: 8px; padding: 0px 8px; background-color: #1c241e; }
+  .roster-row-alt { background-color: #222b24; }
+  #roster-sort-name, .roster-name { width: 180px; }
+  #roster-sort-squad, .roster-squad { width: 100px; }
+  #roster-sort-status, .roster-status { width: 130px; }
+  #roster-sort-aptitude, .roster-aptitude { width: 180px; }
+  #roster-sort-band, .roster-band { width: 150px; }
+  #roster-sort-weapon, .roster-weapon { width: 290px; }
+  #roster-sort-armor, .roster-armor { width: 0px; flex-grow: 1; }
+  #roster-sort-service, .roster-service { width: 210px; }
+  .roster-name, .roster-squad, .roster-status, .roster-armor, .roster-service { height: 20px; font-family: body; }
+  .roster-name { font-family: heading; }
+  .roster-cell { flex-direction: row; align-items: center; height: 24px; gap: 3px; }
+  .roster-steps { flex-direction: row; align-items: center; width: 76px; height: 12px; gap: 3px; }
+  .roster-step { width: 16px; height: 10px; border-width: 1px; border-color: #46554b; }
+  .roster-step-on { background-color: #a8cd99; border-color: #a8cd99; }
+  .roster-step-off { background-color: #121719; }
+  .roster-step-median { border-color: #f2d27a; border-width: 2px; }
+  .roster-step-label { width: 0px; flex-grow: 1; height: 20px; padding: 0px 0px 0px 6px; font-family: body; }
   .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; flex-grow: 0; }
 </style>

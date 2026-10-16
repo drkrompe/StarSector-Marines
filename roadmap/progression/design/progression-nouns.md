@@ -373,6 +373,23 @@ proposal to let anything else raise a band — a mission reward, a training
 facility, a battlefield promotion — is proposing a second authority, and has to
 retire this one rather than sit beside it.
 
+**Lethality is settled from measured output, not from a described play
+impression.** `TtkReportTest` and the `loadoutMatchup` ladder are the instruments.
+Their standing readings: a service pulse rifle in a Regular's hands kills an
+unarmored marine in the open in about three and a half seconds, so movement and
+target priority stay actionable; cover is the strongest single lever, roughly
+doubling time-to-kill behind light cover, nearly tripling it behind solid cover
+and multiplying it about sixfold behind hard cover, while every baseline
+engagement still resolves. The compound arc holds: an endgame Elite with a
+Masterwork weapon kills an opening Green-with-Surplus marine about thirty times
+faster than the reverse kills the endgame marine in power-suit armor. The preserved
+fauna and swarm exchanges still serve their scenes: a swarm runner carries a
+little more structure than one rifle round, which keeps the second shooter's
+choice meaningful. The bottom edge is harsher than intended. Surplus rifles
+cannot hurt powered armor at all, which pirate rosters field at medium and high
+risk; that floor is contracted as `surplus-floor-against-powered-armor.md` rather
+than retuned through the grade ladder.
+
 Rank-and-file marines are otherwise interchangeable, and the company's growth is
 what the Armory has collected and can issue rather than a per-marine ladder.
 Enlisted stripes follow the same source: a squad leader wears sergeant's stripes
@@ -721,6 +738,12 @@ payment. The cards also circulate like any other, because a card's pool weight i
 its templates' weight: Counter-Battery Issue reaches a Hegemony licence through the
 Arrestor pack, the others reach independent markets and licences. The listing is
 the guaranteed route; the pools are the fallback.
+*Trench-Clearing Issue* (service rifles, rocket tubes and grenades) is the one arc
+card handed over rather than stocked: a won *Open the Junction*, the first assault
+on a dug-in position, puts one card in fleet cargo from Wayline's militia stores,
+named in the terms before the battle and in the debrief after it. The Junction is
+won once, so the card comes once, and a company that already knows or carries it
+gets none. It is a card to learn; nobody's fitting changes.
 It lets add-ons keep faction identity while ensuring that a newly collectible
 family, grade, suit, or special item cannot be stranded by an omitted or
 permanently ineligible source.
@@ -1295,6 +1318,30 @@ distribution beside a coarse risk-derived opposition expectation, while tier
 and recommended squads describe quantity separately. The comparison is advice,
 not an invisible strength calculation or a source of battle scaling; it must
 not prevent a valid understrength fire team from attempting the work.
+
+**The company roster ranks the company without arithmetic.** The Barracks'
+Company Roster lists every marine on the books (the fallen are not) on one
+comparable row: squad, status with the return day of the wounded, aptitude, the
+band their issued armour sets, the primary and its grade, the armour, and the
+service record that also decides seniority. The three quality axes are drawn as
+**absolute** four-step bars, never scaled to the company, because a relative bar
+makes a company of Limited marines look uniformly excellent; the step holding the
+company's median aptitude is outlined so each marine also reads against the
+company. Every column sorts, quality columns best first. Captains' traits read on
+the officer dossier, and a trait with no mechanic says so rather than claiming
+one; outlook traits read as character. Retained screens assign their compact text
+faces by role (heading, body, compact) rather than one display face everywhere.
+
+**The battle squad panel says who is doing the work.** Hovering a marine's card
+in the selected-squad panel shows a running line for this mission: rounds landed
+out of rounds fired, kills, damage dealt, and what the marine is doing now. That
+status reads only state the simulation already keeps: *engaged* while the marine
+holds a target, *wounded* below full health, otherwise *holding*. There is no
+per-marine suppression state, so the panel does not invent one. The marine with
+the most kills (then most damage) carries a warm mark on their card. Nobody is
+marked until someone has landed a round, so the mark never names a marine for
+doing nothing. The record is mission telemetry read after the tick and refreshed
+while the card stays hovered; it never feeds back into the fight.
 
 Avoid stacking redundant
 battlefield overlays; start with the closest decision surface and add in-world

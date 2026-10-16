@@ -4,8 +4,12 @@ import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.LastLiftProgress;
 import com.dillon.starsectormarines.campaign.FreightRunProgress;
+import com.dillon.starsectormarines.marine.LoadoutCard;
+import com.dillon.starsectormarines.marine.LoadoutCardInventory;
+import com.dillon.starsectormarines.marine.LoadoutCardItemPlugin;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
+import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.ops.mission.story.StoryEligibilityContext;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PlanetAPI;
@@ -13,9 +17,13 @@ import com.fs.starfarer.api.campaign.econ.MarketAPI;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /** Campaign boundary for the authored route; projection never advances a chapter or starts an attempt. */
 public final class SupplyRouteCampaign {
+    /** The Junction's reward card: Trench-Clearing Issue, for opening a defended position. */
+    static final String JUNCTION_CARD =
+            new LoadoutCard(LoadoutCard.Kind.WEAPON, SquadEquipmentDoctrines.TRENCH_CLEARING_WEAPONS).id();
     private SupplyRouteCampaign() { }
 
     public static BrokenSupplyRouteProgress current() {
@@ -84,7 +92,7 @@ public final class SupplyRouteCampaign {
         String name = kind == BrokenSupplyRouteProgress.JUNCTION ? "Open the Junction"
                 : kind == BrokenSupplyRouteProgress.THUNDER ? "Thunder Run" : "Route Security";
         String terms = kind == BrokenSupplyRouteProgress.JUNCTION
-                ? "Mara Venn: Getting the depot back has put Wayline on its feet again, Commander, but our freight is still stuck at the junction. When we sold the freighters, a debt-recovery outfit called Varro bought part of what we owed, and they have taken the junction as security: a toll on our drivers at the Weigh Station, and three months of contracted loads impounded in the bonded warehouse. The civil authority on Jangala calls it a lien between two freight companies and will not touch it. Iona Serr, our dispatch coordinator, needs the junction opened. Capture Weigh Station, Freight Yard and Junction Dispatch together. Six militia hold your gains while the company advances. Talon Two, a contracted Mudskipper gunship, goes ahead of your company to work the trenches dug across the road. You're paid on success; then we run the freed loads through the corridor on Thunder Run."
+                ? "Mara Venn: Getting the depot back has put Wayline on its feet again, Commander, but our freight is still stuck at the junction. When we sold the freighters, a debt-recovery outfit called Varro bought part of what we owed, and they have taken the junction as security: a toll on our drivers at the Weigh Station, and three months of contracted loads impounded in the bonded warehouse. The civil authority on Jangala calls it a lien between two freight companies and will not touch it. Iona Serr, our dispatch coordinator, needs the junction opened. Capture Weigh Station, Freight Yard and Junction Dispatch together. Six militia hold your gains while the company advances. Talon Two, a contracted Mudskipper gunship, goes ahead of your company to work the trenches dug across the road. You're paid on success, and Iona opens our militia stores to you: one Trench-Clearing Issue card, the rifles, rocket tubes and grenades our people kept for exactly this. Then we run the freed loads through the corridor on Thunder Run."
                 : kind == BrokenSupplyRouteProgress.THUNDER
                 ? "Mara Venn: The junction is open. Now we put freight through the corridor. Land at the staging apron, clear the roadside strongpoints at Dispatch Post, East Crossing and Outbound Gate. On our first arrival, an earlier unescorted hauler is already under attack; its local camera feed shows the danger. The loads freed at the junction wait at staging. Talon Two returns to give your company close air support after Dispatch is secured. We've hired more ground muscle for the final breakthrough: a heavy tank and two reinforced APCs. Clear Dispatch, then defend for 90 seconds; take East Crossing and defend for 120 seconds while small raider groups enter along the cross streets. Select an infantry squad and use DEFEND AREA to cover an approach. Eight militia anchor the gains and assemble two roadside machine guns if their crews reach the posts. Give your squads a new order when the dispatch window ends. Our three loads move in stages, with freight released at 45-second intervals during the final breakthrough. Beyond Outbound Gate, raiders hold a fenced inspection checkpoint with dug-in machine guns and rifle bays. The tank breaks that gun line; the APCs screen the crossing while the freight passes between them. Keep the road open for the convoy; raiders will try to cut off the column. Wayline is paying for the armored crews and vehicles; your company leads the advance. You're paid when the run is complete, with more for every carrier that gets through. Dispatch tracks every delivery and loss; if we have to pull back, we return for the remaining loads. Get at least one through and we can fund regular Route Security contracts."
                     + " Terms: Cr. 6,000, plus 4,000 per carrier delivered across the job, up to 18,000, settled when the run is complete."
@@ -115,7 +123,7 @@ public final class SupplyRouteCampaign {
         if (outcome.freightOutcome != null)
             return " The delivered loads are real work on Wayline's books again. Castle's report says every ambush sat on the loads worth something and let the rest go by. I want to know who saw those manifests. We can fund regular Route Security. Take time to see to your company before we talk about the next contract.";
         if (outcome.missionId.startsWith(BrokenSupplyRouteProgress.PREFIX + BrokenSupplyRouteProgress.JUNCTION + "_"))
-            return " You have opened the junction. We have ground to organize from. Sabine says they were dug in before your boats were down. Somebody told them we were coming. Thunder Run will put our freight through the corridor once your company is ready.";
+            return " You have opened the junction. We have ground to organize from. Sabine says they were dug in before your boats were down. Somebody told them we were coming. Iona has put a Trench-Clearing Issue card in your fleet cargo from our militia stores; learn it when you want it, nobody's kit has changed. Thunder Run will put our freight through the corridor once your company is ready.";
         return "";
     }
 
@@ -132,7 +140,9 @@ public final class SupplyRouteCampaign {
     }
     static int settle(MissionOutcome outcome) {
         BrokenSupplyRouteProgress p = current();
-        int paid = settle(p, outcome);
+        var cargo = Global.getSector().getPlayerFleet().getCargo();
+        int paid = settle(p, outcome, LoadoutCardInventory.playerUnavailableCardIds(),
+                card -> cargo.addSpecial(LoadoutCardItemPlugin.itemData(card), 1));
         if (paid >= 0) {
             OpeningBroker.Destination site = destination();
             ArcIssueListings.afterLive(ArcIssueListings.Beat.THUNDER_RUN, p.successful(),
@@ -140,6 +150,22 @@ public final class SupplyRouteCampaign {
         }
         return paid;
     }
+    /**
+     * Settles {@code outcome} and, when it is the won Junction, hands over Trench-Clearing Issue
+     * from Wayline's militia stores ({@code progression-nouns.md}, Kit and armory). The Junction
+     * is won once, so the card comes once; a company that knows or carries it gets none.
+     */
+    static int settle(BrokenSupplyRouteProgress p, MissionOutcome outcome, Set<String> unavailable,
+                      Consumer<String> award) {
+        boolean junction = p != null && p.readable() && p.operation() == BrokenSupplyRouteProgress.JUNCTION;
+        int paid = settle(p, outcome);
+        if (paid >= 0 && junction && p.junctionWon() && unavailable != null
+                && !unavailable.contains(JUNCTION_CARD)) {
+            award.accept(JUNCTION_CARD);
+        }
+        return paid;
+    }
+
     static int settle(BrokenSupplyRouteProgress p, MissionOutcome outcome) {
         if (p == null || !p.readable() || outcome == null || outcome.missionSource != (p.job() > 0 ? MissionSource.RECURRING : MissionSource.STORY)
                 || !p.planetName().equals(outcome.targetPlanetName)

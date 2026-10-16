@@ -1,4 +1,4 @@
-<template props="squadTitle,squadStrength,moraleLabel,moraleStyle,fireTeams,tooltipClasses,tooltipTitle,tooltipTeam,tooltipPrimary,tooltipSpecial,tooltipSystem,tooltipProfile,backAction">
+<template props="squadTitle,squadStrength,moraleLabel,moraleStyle,fireTeams,tooltipClasses,tooltipTitle,tooltipTeam,tooltipPrimary,tooltipSpecial,tooltipSystem,tooltipProfile,tooltipRecord,backAction">
   <div id="battle-squad-overlay" class="battle-squad-overlay" style="background-color: transparent">
     <div id="battle-squad-panel" class="squad-panel">
       <div id="battle-squad-header" class="squad-header">
@@ -44,6 +44,7 @@
       <div id="battle-squad-tooltip-special" class="label tooltip-line tooltip-special">{tooltipSpecial}</div>
       <div id="battle-squad-tooltip-system" class="label tooltip-line tooltip-system">{tooltipSystem}</div>
       <div id="battle-squad-tooltip-profile" class="label tooltip-line tooltip-profile">{tooltipProfile}</div>
+      <div id="battle-squad-tooltip-record" class="label tooltip-line tooltip-record">{tooltipRecord}</div>
     </div>
   </div>
 </template>
@@ -167,6 +168,8 @@
   .member-leader { border-color: #806b35; }
   .member-leader .member-name { color: #ffd464; }
   .member-critical { border-color: #8e4d49; }
+  .member-top { border-color: #dfc588; }
+  .member-top .member-name { color: #dfc588; }
   .member-empty { opacity: 0.28; background-color: #101713; }
 
   .member-line {
@@ -190,7 +193,7 @@
 
   .squad-tooltip {
     width: 300px;
-    height: 150px;
+    height: 170px;
     flex-direction: column;
     padding: 7px;
     gap: 5px;
@@ -216,4 +219,5 @@
   .tooltip-special { color: #ffd464; }
   .tooltip-system { color: #a7ccc4; }
   .tooltip-profile { color: #c1cbc3; }
+  .tooltip-record { color: #dfc588; }
 </style>
