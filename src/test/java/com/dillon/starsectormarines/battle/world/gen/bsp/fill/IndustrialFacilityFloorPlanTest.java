@@ -108,7 +108,8 @@ class IndustrialFacilityFloorPlanTest {
 
         for (int y = leaf.top + 1; y < leaf.bottom; y++) {
             for (int x = leaf.left + 1; x < leaf.right; x++) {
-                assertNull(topology.getRoomPurpose(x, y), "compact warehouse remains unlabeled");
+                if(grid.isWalkable(x,y)&&!grid.isDoorway(x,y)&&x>leaf.left&&x<leaf.right&&y>leaf.top&&y<leaf.bottom)
+                    assertNotNull(topology.getRoomPurpose(x, y), "compact workshop rooms have a job");
             }
         }
         assertTrue(doodads.stream().anyMatch(d -> topology.isFixture(d.cellX, d.cellY)),

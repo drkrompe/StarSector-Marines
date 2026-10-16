@@ -55,9 +55,9 @@ public enum VehicleType {
         }
     },
     /** Heavy convoy spearhead. Uses conservative rolling turns; neutral track pivot is not modeled. */
-    BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 3, -90f,
+    BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 2, -90f,
             0, 4.3f, 3.9f, 3.1f, 1.0f, 3.0f, .8f, 3.0f,
-            1, 0f, 0f, .99f, -.08f, 4.5f, -90f,
+            1, 0f, 0f, 0f, 0f, 7.789194f, -90f,
             TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID, 1100f, 850f, 36f, 1.4f, 1.1f) {
         @Override public GroundBody createBody() {
             // Bounded curvature is deliberately shared with route proof and collision checks.
@@ -89,11 +89,11 @@ public enum VehicleType {
     /** Visual recoil from actual recent shots; does not change the ballistic hardpoint. */
     public float turretRecoilCells() { return 0f; }
 
-    /** Keep authored APC bearings; legacy sheets still use detected content bounds. */
+    /** Keep authored vehicle bearings; legacy sheets still use detected content bounds. */
     public SpriteSheetFrames registeredSpriteFrames(SpriteSheetFrames detected) {
-        if (this != HEAVY_APC && this != ESCORT_APC) return detected;
+        if (this != HEAVY_APC && this != ESCORT_APC && this != BREAKTHROUGH_TANK) return detected;
         if (detected.sheetWidth % frameCount != 0) {
-            throw new IllegalArgumentException("APC sheet must contain equal horizontal frames");
+            throw new IllegalArgumentException("Registered vehicle sheet must contain equal horizontal frames");
         }
         int width = detected.sheetWidth / frameCount;
         SpriteSheetFrames.Frame[] frames = new SpriteSheetFrames.Frame[frameCount];

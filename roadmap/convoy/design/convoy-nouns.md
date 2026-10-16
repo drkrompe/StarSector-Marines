@@ -592,6 +592,16 @@ escorts screen infantry. It carries no passengers. The tracked silhouette uses
 a conservative rolling-turn envelope shared by route proof and body motion;
 neutral pivot, track slip and player-owned tank logistics are not modeled.
 
+Its overhead hull has a broad, flat-fronted glacis between the tracks and a recessed
+engine deck at the rear, with continuous track tops and layered shoulder
+plates. The compact independent turret distinguishes its separate angular cheeks and narrow mantlet
+from the rear bustle. Both components retain their authored frame centers so
+traverse cannot move the bearing; paired visible muzzles follow the cannon's
+existing ballistic hardpoints. Armor volume comes from sloped planes and bevels,
+not a tilted camera or baked ground shadow. Its Abrams/Type 10-inspired shape, faded
+ochre paint and replacement panels depict scavenged, century-old Hegemony surplus.
+This provenance is Marine Operations art direction, not a claim about vanilla canon.
+
 An industrial freight hauler has no passenger or turret payload; its long chassis
 and slower handling distinguish cargo from the armed escort. Reinforced story
 escorts have their own durability profile rather than changing every ordinary

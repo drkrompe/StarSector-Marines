@@ -34,6 +34,7 @@ public final class BuildingIndustrialFiller implements BlockFiller {
 
     @Override
     public void fill(BlockLeaf leaf, GenContext ctx) {
+        if (LotYardTemplate.tryPlace(leaf,ctx,CONFIG,BuildingResidentialFiller.streetFrontage(leaf,ctx))) return;
         if (BuildingStamp.tryPlace(leaf, ctx, BuildingKind.INDUSTRIAL)) return;
         BuildingPlacement placement = new BuildingPlacement(frontage(leaf, ctx), true);
         PointOfInterest poi = BuildingShellCore.carve(
