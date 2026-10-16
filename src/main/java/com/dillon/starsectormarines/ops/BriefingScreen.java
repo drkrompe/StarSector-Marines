@@ -1048,6 +1048,22 @@ public class BriefingScreen implements Screen {
                 BriefingViewModel.info("sluice-custody","Custody party","Three / escort into fuel control; one must finish the handover",""),
                 BriefingViewModel.info("sluice-support","Company support","Working tender builds the rear position; employer heavy lift for your owned active mech lance",""),
                 BriefingViewModel.info("sluice-preserve","Preserve fuel storage","Four marked tanks / no bombardment or fighter strikes",""));
+        if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.termsOfProtection(mission.id)) {
+            boolean custody = AgreusArcCampaign.custodyRoute(mission);
+            return List.of(
+                    BriefingViewModel.info("terms-party", custody ? "Rusk's custodial party" : "Joint custody party",
+                            (custody ? "Two custodians" : "Rusk's custodian and the association's delegate") + " / records carrier / one must ratify at dispatch", ""),
+                    BriefingViewModel.info("terms-technicians", "Utilities crew", "Two technicians / one must finish commissioning in the calibration room", ""),
+                    BriefingViewModel.info("terms-route", custody ? "Rusk's estate guards" : "Lenna's fitters",
+                            custody ? "Four militia / hold the Cinder Steps gate; their post is the weak point"
+                                    : "Three fitters / stay at the hall benches under fire", ""),
+                    BriefingViewModel.info("terms-constables", "Rusk's constables", "Four militia / hold the secured operator entrance", ""),
+                    BriefingViewModel.info("terms-support", "Company support", "Working tender required; employer heavy lift for your owned active mech lance", ""));
+        }
+        if (DistrictEscortCampaign.isBattle(mission)) return List.of(
+                BriefingViewModel.info("escort-constables", "District constables", "Four militia / hold the western apron", ""),
+                BriefingViewModel.info("escort-party", "Handover party", "Two people / one must reach the apron with the load", ""),
+                BriefingViewModel.info("escort-load", "Consignment", "Physical carrier / link up at the loading lane, cover it west", ""));
         if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.yardOwners(mission.id)) return List.of(
                 BriefingViewModel.info("yard-constables","Rusk's constables","Eight militia / occupy company gains",""),
                 BriefingViewModel.info("yard-inspectors","Supplier inspection party","Two technicians / one must finish the protected inspection",""),
@@ -1111,7 +1127,7 @@ public class BriefingScreen implements Screen {
         boolean debug = mission.source.isDebug();
         boolean transportOk = mission.source == MissionSource.STATIONING
                 || isTransportSufficient(mission, lift());
-        boolean routeReady = !(SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission)) || SupplyRouteCampaign.forceReady(liveRoster(), ctx.getSelectedMarineSquadIds());
+        boolean routeReady = !(SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission) || DistrictEscortCampaign.isBattle(mission)) || SupplyRouteCampaign.forceReady(liveRoster(), ctx.getSelectedMarineSquadIds());
         boolean personnelOk = (debug || readiness == null || readiness.ready()) && routeReady;
         boolean commandOk = captainCommandReady(mission);
         boolean canAccept = transportOk && personnelOk && commandOk;

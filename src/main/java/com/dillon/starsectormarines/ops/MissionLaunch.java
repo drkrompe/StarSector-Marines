@@ -248,6 +248,11 @@ public final class MissionLaunch {
             if (!AgreusArcCampaign.atSite(ctx.planet))
                 throw new IllegalStateException("Travel to Agreus in Arcadia before deploying.");
         }
+        if (DistrictEscortCampaign.owns(m.id)) {
+            DistrictEscortCampaign.requireCurrent(m);
+            if (!AgreusArcCampaign.atSite(ctx.planet))
+                throw new IllegalStateException("Travel to Agreus in Arcadia before deploying.");
+        }
         boolean detachedDebugWorld = m.source.isDebug() && (ctx == null || ctx.planet == null);
         boolean enemyHasHeavyArmor = !detachedDebugWorld && !CorvusWaylineCampaign.isBattle(m)
                 && DetachmentResolver.planetHasHeavyArmaments(m.targetPlanetName);
@@ -259,7 +264,7 @@ public final class MissionLaunch {
         // (the debug board's faction-comparison group). This is the one place
         // that override is applied: it rewrites the profile's faction id and
         // nothing else, so only roster selection sees it and generation cannot.
-        TargetProfile marketProfile = MissionDefencePolicy.garrisonFaced(m, (detachedDebugWorld ? TargetProfile.NEUTRAL : AgreusArcCampaign.isBattle(m) ? AgreusArcCampaign.profile(m) : ShepherdRecoveryCampaign.isBattle(m) ? ShepherdRecoveryCampaign.profile(m) : CorvusWaylineCampaign.isBattle(m) ? CorvusWaylineCampaign.profile(m)
+        TargetProfile marketProfile = MissionDefencePolicy.garrisonFaced(m, (detachedDebugWorld ? TargetProfile.NEUTRAL : AgreusArcCampaign.isBattle(m) ? AgreusArcCampaign.profile(m) : DistrictEscortCampaign.isBattle(m) ? DistrictEscortCampaign.profile(m) : ShepherdRecoveryCampaign.isBattle(m) ? ShepherdRecoveryCampaign.profile(m) : CorvusWaylineCampaign.isBattle(m) ? CorvusWaylineCampaign.profile(m)
                 : SupplyRouteCampaign.isBattle(m)
                 ? TargetProfileResolver.fromMarket(SupplyRouteCampaign.destination().planet().getMarket())
                 : TargetProfileResolver.resolve(m.targetPlanetName))
@@ -302,14 +307,20 @@ public final class MissionLaunch {
         if (AgreusArcCampaign.isBattle(m)) {
             var agreus = AgreusArcCampaign.requireCurrent(m);
             boolean records = agreus.recordsRecovered();
+            var signedRoute = AgreusArcProgress.termsOfProtection(m.id) ? AgreusArcCampaign.route(agreus.activeAgreement() != null ? agreus.activeAgreement() : agreus.signedAgreement()) : null;
             boolean houseCustody = agreus.signedAgreement() == AgreusYardAgreement.HOUSE_CUSTODY;
             builder = AgreusArcProgress.smallWar(m.id)
                     ? () -> BattleSetup.createSmallWar(seed, constructionDetachment.shuttleManifest, profile, houseCustody)
+                    : signedRoute != null
+                    ? () -> BattleSetup.createTermsOfProtection(seed, constructionDetachment.shuttleManifest, profile, signedRoute)
                     : AgreusArcProgress.yardOwners(m.id)
                     ? () -> BattleSetup.createYardOwners(seed, constructionDetachment.shuttleManifest, profile)
                     : AgreusArcProgress.limitedWarrant(m.id)
                     ? () -> BattleSetup.createLimitedWarrant(seed, constructionDetachment.shuttleManifest, profile, records)
                     : () -> BattleSetup.createWaterUnderSeal(seed, constructionDetachment.shuttleManifest, profile);
+        } else if (DistrictEscortCampaign.isBattle(m)) {
+            String party = DistrictEscortCampaign.partyName(m);
+            builder = () -> BattleSetup.createDistrictEscort(seed, constructionDetachment.shuttleManifest, profile, party);
         } else if (ShepherdRecoveryCampaign.isBattle(m)) {
             var recovery=ShepherdRecoveryCampaign.requireCurrent(m);
             boolean departureChapter=recovery.repaired(), repairChapter=recovery.claimSecured(), delivered=recovery.cargoDelivered(), powered=recovery.shorePower();
@@ -421,7 +432,7 @@ public final class MissionLaunch {
                                             ShipSupportSource declared) {
         if (defenderFactionId == null || defenderFactionId.isEmpty() || m.source == MissionSource.STATIONING
                 || CorvusWaylineCampaign.isBattle(m) || ShepherdRecoveryCampaign.isBattle(m)
-                || AgreusArcCampaign.isBattle(m)) return HostileShipReport.declared(declared);
+                || AgreusArcCampaign.isBattle(m) || DistrictEscortCampaign.isBattle(m)) return HostileShipReport.declared(declared);
         try {
             boolean campaign = !m.source.isDebug();
             return HostileShipSelection.resolve(declared, campaign, profile,
@@ -498,17 +509,23 @@ public final class MissionLaunch {
             boolean supplyRoute = SupplyRouteCampaign.isBattle(m);
             boolean shepherd = ShepherdRecoveryCampaign.isBattle(m);
             boolean agreus = AgreusArcCampaign.isBattle(m);
+            boolean escort = DistrictEscortCampaign.isBattle(m);
+            if (escort) {
+                DistrictEscortCampaign.requireCurrent(m);
+                if (!AgreusArcCampaign.atSite(ctx.planet))
+                    throw new IllegalStateException("Travel to Agreus in Arcadia before deploying.");
+            }
             if (agreus) {
                 AgreusArcCampaign.requireCurrent(m);
                 if (!AgreusArcCampaign.atSite(ctx.planet))
                     throw new IllegalStateException("Travel to Agreus in Arcadia before deploying.");
                 AgreusConstructionSupport.requireLive(det.powers, liveResources.availableSupplies());
             }
-            if ((CorvusWaylineCampaign.isBattle(m) || shepherd || agreus)
+            if ((CorvusWaylineCampaign.isBattle(m) || shepherd || agreus || escort)
                     && !SupplyRouteCampaign.forceReady(personnel == null ? null : personnel.roster(), ctx.getSelectedMarineSquadIds()))
                 throw new IllegalStateException("Select at least two squads with four ready marines each.");
             BrokenSupplyRouteProgress route = supplyRoute ? SupplyRouteCampaign.requireCurrent(m) : null;
-            if (supplyRoute || shepherd || agreus) {
+            if (supplyRoute || shepherd || agreus || escort) {
                 if (!SupplyRouteCampaign.forceReady(personnel == null ? null : personnel.roster(), ctx.getSelectedMarineSquadIds()))
                     throw new IllegalStateException("Select at least two squads with four ready marines each.");
                 if (!sim.companyStartsOnGround()) deployment.applyToAuthoredPlayerLift(sim);
@@ -519,7 +536,7 @@ public final class MissionLaunch {
                     && debugScenario != DebugMissionCatalog.Scenario.VETERANS_JOB;
             if (authoredDebugLift && !sim.companyStartsOnGround()) deployment.applyToAuthoredPlayerLift(sim);
             BattleLaunchOverlay launch = BattleLaunchOverlay.capture(
-                    firstPlayerShuttle, !sim.companyStartsOnGround() && (supplyRoute || shepherd || agreus || authoredDebugLift) ? CampaignMarineDeployment.EMPTY : deployment, det.marineWings, debugWings,
+                    firstPlayerShuttle, !sim.companyStartsOnGround() && (supplyRoute || shepherd || agreus || escort || authoredDebugLift) ? CampaignMarineDeployment.EMPTY : deployment, det.marineWings, debugWings,
                     debugShipPowers(m, debugWarship, det.powers), Math.max(0, liveResources.availableSupplies()),
                     m.fieldPresencePolicy);
             launch.applyTo(sim, liveResources);
@@ -534,6 +551,7 @@ public final class MissionLaunch {
             if (CorvusWaylineCampaign.isBattle(m)) CorvusWaylineCampaign.begin(m);
             if (shepherd) ShepherdRecoveryCampaign.begin(m);
             if (agreus) AgreusArcCampaign.begin(m);
+            if (escort) DistrictEscortCampaign.begin(m);
             return new PreparedBattle(sim, fixture, det);
         } catch (RuntimeException | Error failure) {
             sim.close();

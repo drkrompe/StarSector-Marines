@@ -6,9 +6,12 @@ import com.dillon.starsectormarines.battle.setup.ColdStartSequence;
 import com.dillon.starsectormarines.battle.setup.SupportKitIssue;
 import com.dillon.starsectormarines.battle.setup.WaterUnderSealSequence;
 import com.dillon.starsectormarines.battle.setup.LimitedWarrantSequence;
+import com.dillon.starsectormarines.battle.setup.DistrictEscortSequence;
 import com.dillon.starsectormarines.battle.setup.YardOwnersSequence;
 import com.dillon.starsectormarines.battle.setup.SmallWarForces;
 import com.dillon.starsectormarines.battle.setup.SmallWarSequence;
+import com.dillon.starsectormarines.battle.setup.TermsOfProtectionSequence;
+import com.dillon.starsectormarines.battle.story.TermsOfProtectionProgress;
 import com.dillon.starsectormarines.battle.setup.WorkingPassageSequence;
 
 import com.dillon.starsectormarines.battle.fixture.MarineSeatCommitment;
@@ -21,6 +24,7 @@ import com.dillon.starsectormarines.battle.salvage.FieldSalvage;
 import com.dillon.starsectormarines.battle.salvage.SalvagePlacement;
 import com.dillon.starsectormarines.battle.setup.DepotHoldSequence;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
+import com.dillon.starsectormarines.battle.world.model.PropDamage;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
 import com.dillon.starsectormarines.battle.ambient.WorksCrewService;
 import com.dillon.starsectormarines.battle.ambient.WorksCrewSystem;
@@ -567,11 +571,26 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         yardOwners = new YardOwnersSequence(technicians,constables,reserves,storyBeats);
         addObjective(yardOwners);
     }
+    private TermsOfProtectionSequence termsOfProtection;
+    public TermsOfProtectionSequence getTermsOfProtection() { return termsOfProtection; }
+    public void installTermsOfProtection(TermsOfProtectionProgress.Route route, long carrier,
+                                         TermsOfProtectionSequence.Parties parties, TermsOfProtectionSequence.Reserve reserve) {
+        if (simTickIndex != 0 || termsOfProtection != null) throw new IllegalStateException("Install the Latchkey handover once at setup");
+        termsOfProtection = new TermsOfProtectionSequence(route, carrier, parties, reserve, storyBeats);
+        addObjective(termsOfProtection);
+    }
     public LimitedWarrantSequence getLimitedWarrant() { return limitedWarrant; }
     public void installLimitedWarrant(int technician, int constables, long carrier, List<EntitySpec> reserve, boolean records) {
         if (simTickIndex != 0 || limitedWarrant != null) throw new IllegalStateException("Install Limited Warrant once at setup");
         limitedWarrant = new LimitedWarrantSequence(technician, constables, carrier, reserve, records, storyBeats);
         addObjective(limitedWarrant);
+    }
+    private DistrictEscortSequence districtEscort;
+    public DistrictEscortSequence getDistrictEscort() { return districtEscort; }
+    public void installDistrictEscort(int party, int constables, long carrier, List<EntitySpec> reserve, float[] routeX, float[] routeY) {
+        if (simTickIndex != 0 || districtEscort != null) throw new IllegalStateException("Install District Escort once at setup");
+        districtEscort = new DistrictEscortSequence(party, constables, carrier, reserve, routeX, routeY, storyBeats);
+        addObjective(districtEscort);
     }
     private WaterUnderSealSequence waterUnderSeal;
     public WaterUnderSealSequence getWaterUnderSeal() { return waterUnderSeal; }
@@ -856,7 +875,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 + (waterUnderSeal == null ? 0 : waterUnderSeal.pendingMembers())
                 + (limitedWarrant == null ? 0 : limitedWarrant.pendingMembers())
                 + (yardOwners == null ? 0 : yardOwners.pendingMembers())
-                + (smallWar == null ? 0 : smallWar.pendingMembers());
+                + (smallWar == null ? 0 : smallWar.pendingMembers())
+                + (termsOfProtection == null ? 0 : termsOfProtection.pendingMembers())
+                + (districtEscort == null ? 0 : districtEscort.pendingMembers());
     }
 
     /** Stateless slow-tick driver that polls the reinforcement triggers, drains the request queue, and dispatches each through the priority-ordered means (resource-gated). */
@@ -2272,6 +2293,25 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         effects.spawnHeavyImpact(x, y, radius);
     }
 
+    /** A burning piece shed by a falling hull onto the ground beneath it; presentation only. */
+    public void spawnFallingWreckFire(float x, float y, float size) {
+        effects.spawnPropDamage(x, y, PropDamage.Effect.FIRE, size);
+    }
+
+    /**
+     * A falling warship strikes the ground: the crash an aircraft makes, at the hull's radius, hurting and marking
+     * whatever is there whichever side it is on. {@code key} identifies the wreck to the crash machinery.
+     */
+    public void crashWreck(long key, float x, float y, Faction faction, float hullRadius, float vx, float vy) {
+        airframeCookOff.crash(key, x, y, faction, hullRadius, vx, vy);
+        effects.spawnBurningSmokePlume(x, y);
+    }
+
+    /** A crashed warship skids: the crash's crush along the ground it covers this tick. */
+    public void skidWreck(long key, float x, float y, boolean stopped) {
+        airframeCookOff.skid(key, x, y, stopped);
+    }
+
     /** Drains target-side reprio / fall-back enqueues from this tick's weapon hits. Delegates to {@link DamageService#flushPendingTargetMutations()}. */
     private void flushPendingTargetMutations() {
         damageService.flushPendingTargetMutations();
@@ -3157,6 +3197,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (limitedWarrant != null) limitedWarrant.advance(this);
         if (yardOwners != null) yardOwners.advance(this);
         if (smallWar != null) smallWar.advance(this);
+        if (termsOfProtection != null) termsOfProtection.advance(this);
+        if (districtEscort != null) districtEscort.advance(this);
         objectivesService.tick(o -> o.tick(this));
         // Delayed impacts and objective callbacks run after DEMOLISH and may
         // kill a body on the final tick. Publish their corpse/cascade reactions

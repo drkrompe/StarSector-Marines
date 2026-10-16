@@ -104,6 +104,11 @@ public final class RenderParitySnapshotSuite implements SnapshotSuite {
             List<SnapshotArtifact> artifacts = new ArrayList<>();
             artifacts.add(new SnapshotArtifact("fort-yard-earthworks.png",
                     yardView.render(sim, "render-parity / anti-air yard / " + counts)));
+            int[] worksCentre = fort.placed().placement().cell(fort.placed().plan().width() / 2, fort.placed().plan().height() / 2);
+            BattleReviewFrameRenderer worksView = new BattleReviewFrameRenderer(context.modRoot(), WIDTH_PX, HEIGHT_PX,
+                    worksCentre[0] + 0.5f, worksCentre[1] + 0.5f, 84f);
+            artifacts.add(new SnapshotArtifact("fort-aa-placement.png",
+                    worksView.render(sim, "render-parity / whole works: anti-air mounts on the bastions / " + counts)));
             if (fence != null) {
                 BattleReviewFrameRenderer fenceView = new BattleReviewFrameRenderer(context.modRoot(), WIDTH_PX, HEIGHT_PX,
                         fence.cellX + 0.5f, fence.cellY + 0.5f, 56f);

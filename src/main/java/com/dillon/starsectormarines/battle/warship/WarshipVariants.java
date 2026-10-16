@@ -24,8 +24,7 @@ public final class WarshipVariants {
      * an empty map when the variant cannot be found.
      */
     public static Map<String, String> weaponsBySlot(String hullId, String variantId) {
-        JSONObject variant = load("data/variants/" + hullId + "/" + variantId + ".variant");
-        if (variant == null) variant = load("data/variants/" + variantId + ".variant");
+        JSONObject variant = variant(hullId, variantId);
         Map<String, String> out = new LinkedHashMap<>();
         if (variant == null) return out;
         JSONArray groups = variant.optJSONArray("weaponGroups");
@@ -40,6 +39,24 @@ public final class WarshipVariants {
             }
         }
         return out;
+    }
+
+    /** {@code [flux capacitors, flux vents]} the variant fits, or zeros when it cannot be found. */
+    public static int[] fluxFittings(String hullId, String variantId) {
+        JSONObject variant = variant(hullId, variantId);
+        if (variant == null) return new int[]{0, 0};
+        return new int[]{Math.max(0, variant.optInt("fluxCapacitors", 0)), Math.max(0, variant.optInt("fluxVents", 0))};
+    }
+
+    private static JSONObject variant(String hullId, String variantId) {
+        JSONObject variant = load("data/variants/" + hullId + "/" + variantId + ".variant");
+        if (variant == null) variant = load("data/variants/" + variantId + ".variant");
+        if (variant == null) {
+            // A skin's variants sit in its base hull's folder (a Wolf (H) variant under wolf/).
+            String base = WarshipSkins.resolve(hullId).baseHullId();
+            if (!base.equals(hullId)) variant = load("data/variants/" + base + "/" + variantId + ".variant");
+        }
+        return variant;
     }
 
     private static JSONObject load(String path) {

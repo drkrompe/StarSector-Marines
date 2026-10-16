@@ -8,6 +8,8 @@ import com.dillon.starsectormarines.battle.setup.ColdAccountIntervention;
 import com.dillon.starsectormarines.battle.setup.ColdStartSequence;
 import com.dillon.starsectormarines.battle.setup.WaterUnderSealSequence;
 import com.dillon.starsectormarines.battle.setup.LimitedWarrantSequence;
+import com.dillon.starsectormarines.battle.setup.DistrictEscortSequence;
+import com.dillon.starsectormarines.battle.story.DistrictEscortProgress;
 import com.dillon.starsectormarines.battle.story.LimitedWarrantProgress;
 import com.dillon.starsectormarines.battle.world.gen.LowQuay;
 import com.dillon.starsectormarines.battle.story.WaterUnderSealProgress;
@@ -24,6 +26,8 @@ import com.dillon.starsectormarines.battle.story.SalvageRightsProgress;
 import java.util.List;
 import java.util.ArrayList;
 import com.dillon.starsectormarines.battle.setup.YardOwnersSequence;
+import com.dillon.starsectormarines.battle.setup.TermsOfProtectionSequence;
+import com.dillon.starsectormarines.battle.story.TermsOfProtectionProgress;
 import com.dillon.starsectormarines.battle.story.YardOwnersProgress;
 import com.dillon.starsectormarines.battle.world.gen.LatchkeyYard;
 import com.dillon.starsectormarines.battle.setup.SmallWarSequence;
@@ -174,6 +178,9 @@ public final class MissionObjectiveFamilies {
             markers.add(new Marker("yard-site-"+i,site.name(),site.x(),site.y(),p.held(i) ? "HELD / KEEP CLEAR" : "SECURE / COMPANY REQUIRED",p.held(i) ? State.COMPLETE : state));
         }
         markers.add(new Marker("yard-tools","Calibration machine / preserve",LatchkeyYard.TOOL_X,LatchkeyYard.TOOL_Y,"REQUIRED TOOLING",state));
+        // Lenna's machine labels: whose work the benches do. Information only; nothing to capture or protect.
+        for (var bench : LatchkeyYard.WORKPLACES)
+            markers.add(new Marker("yard-"+bench.id(),bench.label(),bench.x(),bench.y(),"ASSOCIATION LABEL",state));
         boolean inspecting = p.phase() == YardOwnersProgress.Phase.INSPECTION;
         int site = Math.min(2,p.phase().ordinal());
         return new Item("yard-owners","Latchkey Yard",state,p.phase().name(),"Secure dispatch > Tooling hall > Operator entrance > Inspect",sequence.displayName(),
@@ -213,6 +220,57 @@ public final class MissionObjectiveFamilies {
                 p.terminal() ? -1 : handover ? p.handover() / SmallWarProgress.HANDOVER_SECONDS : building ? order.fraction()
                         : build ? -1 : p.capture(site) / SmallWarProgress.CAPTURE_SECONDS,
                 blocker, markers, focus);
+    }
+    public static Item termsOfProtection(TermsOfProtectionSequence sequence) {
+        var p = sequence.progress(); var state = state(sequence);
+        var phase = p.phase();
+        boolean custody = sequence.route() == TermsOfProtectionProgress.Route.HOUSE_CUSTODY;
+        var markers = new ArrayList<Marker>();
+        if (phase == TermsOfProtectionProgress.Phase.ESCORT)
+            markers.add(new Marker("terms-escort", custody ? "Custodial records carrier / escort" : "Joint-party records carrier / escort",
+                    sequence.escortRallyX(), sequence.escortRallyY(), "ESCORT", state));
+        markers.add(new Marker("terms-handover", LatchkeyYard.HANDOVER.label(), LatchkeyYard.HANDOVER.x(), LatchkeyYard.HANDOVER.y(),
+                p.signed() ? p.ratified() ? "RATIFIED" : "SIGNED / RATIFY HERE" : p.delivered() ? "SIGNING / HOLD DISPATCH" : "DELIVER THE PARTY",
+                p.ratified() ? State.COMPLETE : state));
+        markers.add(new Marker("terms-commissioning", LatchkeyYard.COMMISSIONING.label(), LatchkeyYard.COMMISSIONING.x(), LatchkeyYard.COMMISSIONING.y(),
+                p.commissioned() ? "COMMISSIONED" : "PROTECTED WORK / HOLD THE HALL", p.commissioned() ? State.COMPLETE : state));
+        if (custody) markers.add(new Marker("terms-guards", LatchkeyYard.GUARD_POST.label(), LatchkeyYard.GUARD_POST.x(), LatchkeyYard.GUARD_POST.y(),
+                "ESTATE GUARDS / WEAK POINT", state));
+        else for (var bench : LatchkeyYard.WORKPLACES)
+            markers.add(new Marker("terms-" + bench.id(), bench.label(), bench.x(), bench.y(), "FITTERS STAY HERE", state));
+        // The mortar appears on the picture only as far as it has actually been observed.
+        if (sequence.mortarSighted())
+            markers.add(new Marker("terms-mortar", LatchkeyYard.MORTAR_POST.label(), LatchkeyYard.MORTAR_POST.x(), LatchkeyYard.MORTAR_POST.y(),
+                    "MORTAR SIGHTED / COUNTER-BATTERY", state));
+        else if (sequence.mortarReported())
+            markers.add(new Marker("terms-mortar", "Mortar fire reported from the Cinder Steps terraces", LatchkeyYard.CINDER_GATE.x(), LatchkeyYard.CINDER_GATE.y(),
+                    "TUBE UNLOCATED / EAST OF THE WALL", state));
+        String focus = switch (phase) {
+            case ESCORT -> "terms-escort";
+            case SIGNING, DEFENCE, COMPLETE -> "terms-handover";
+            default -> "terms-commissioning";
+        };
+        return new Item("terms-of-protection", "Latchkey handover", state, phase.name(),
+                "Escort > Sign at dispatch > Commission the tooling > Resolve the attacks > Ratify", sequence.displayName(),
+                phase == TermsOfProtectionProgress.Phase.SIGNING ? timed("Signing", p.signing(), TermsOfProtectionProgress.SIGNING_SECONDS)
+                        : timed("Commissioning", p.work(), TermsOfProtectionProgress.WORK_SECONDS),
+                p.terminal() ? -1 : phase == TermsOfProtectionProgress.Phase.SIGNING ? p.signing() / TermsOfProtectionProgress.SIGNING_SECONDS
+                        : p.work() / TermsOfProtectionProgress.WORK_SECONDS,
+                p.terminal() ? "" : sequence.fieldClear() ? "Every committed attack is resolved. A living representative at a held dispatch ratifies."
+                        : "Work pauses while anyone hostile is in the hall or no company infantry is there. Losing both representatives, the carrier or both technicians before commissioning fails.",
+                markers, focus);
+    }
+    public static Item districtEscort(DistrictEscortSequence sequence) {
+        var p = sequence.progress(); var state = state(sequence);
+        boolean escort = p.phase() == DistrictEscortProgress.Phase.ESCORT;
+        return new Item("district-escort", "Low Quay freight lane", state, p.phase().name(),
+                "Link up at the loading lane > Cover consignment and party to the apron", sequence.displayName(),
+                escort || p.terminal() ? "Escort the marked consignment" : timed("Link up", p.link(), DistrictEscortProgress.LINK_SECONDS),
+                escort || p.terminal() ? -1 : p.link() / DistrictEscortProgress.LINK_SECONDS,
+                p.terminal() || p.covered() ? "" : "Keep company infantry with the carrier and clear anything that can see it.",
+                List.of(new Marker("escort-load", "Consignment", sequence.cargoX(), sequence.cargoY(), "ESCORT", state),
+                        new Marker("escort-apron", "Western apron", LowQuay.LANDING_X, LowQuay.LANDING_Y, "DELIVER LOAD AND PARTY", state)),
+                "escort-load");
     }
     public static Item limitedWarrant(LimitedWarrantSequence sequence) {
         var p = sequence.progress(); var state = state(sequence);

@@ -15,6 +15,7 @@ class SmallWarLedgerTest {
         assertFalse(signed.smallWarAvailable());
         assertTrue(signed.signAgreement(AgreusYardAgreement.HOUSE_CUSTODY));
         assertFalse(signed.smallWarAvailable(), "a signed but unratified route waits on Chapter 4");
+        assertEquals(AgreusArcProgress.TERMS_PREFIX + 1, signed.nextMissionId());
         assertFalse(signed.begin(AgreusArcProgress.SMALL_WAR_PREFIX + 1, "agreus", "Agreus"));
         assertTrue(signed.ratifyAgreement(AgreusYardAgreement.HOUSE_CUSTODY));
         assertEquals(AgreusArcProgress.SMALL_WAR_PREFIX + 1, signed.nextMissionId());

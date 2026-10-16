@@ -14,9 +14,12 @@ class SmallWarSettlementTest {
     @Test void theOfferNamesTheRatifiedRouteAndIsAbsentBeforeRatification() {
         var signed = afterYard();
         assertTrue(signed.signAgreement(AgreusYardAgreement.YARD_COMPACT));
-        assertThrows(IllegalArgumentException.class, () -> AgreusArcCampaign.offer(signed, "Agreus"));
+        assertTrue(AgreusArcProgress.termsOfProtection(AgreusArcCampaign.offer(signed, "Agreus").id), "Chapter 4 comes first");
+        assertEquals("LATCHKEY HANDOVER", AgreusArcCampaign.chapterPlace(signed));
         assertTrue(signed.ratifyAgreement(AgreusYardAgreement.YARD_COMPACT));
         var m = AgreusArcCampaign.offer(signed, "Agreus");
+        assertEquals("BLACK SLUICE", AgreusArcCampaign.chapterPlace(signed), "the board names the chapter's own ground");
+        assertEquals("NORTH WEIR", AgreusArcCampaign.chapterPlace(new AgreusArcProgress()));
         assertEquals("A Small War", m.name);
         assertEquals(44000, m.payout);
         assertEquals(OperationTier.ESTABLISHED, m.tier);

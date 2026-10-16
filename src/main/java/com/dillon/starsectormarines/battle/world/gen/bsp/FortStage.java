@@ -107,12 +107,12 @@ public final class FortStage implements GenStage {
     private static final int KEEP_WEIGHT = 6;
     private static final int SUPPLY_WEIGHT = 2;
     /**
-     * The guns a fort's nests carry in turn: anti-infantry, the flak emplacement (which reaches aircraft by the area
-     * model), anti-infantry again, and a dedicated anti-air position that fires real rounds at aircraft. A strong defence
-     * is likely to have anti-air even when it is not the capital's: a strike over a fort meets it. UNTUNED mix.
+     * The guns a fort's nests carry in turn: anti-infantry, the Hephaestus cannon (for the vehicles and mechs that come up the
+     * gates), anti-infantry again, and a Vulcan to suppress. Anti-air is the missile towers' job, not the nests'. A strong defence
+     * is a mix of fire, not a single gun. UNTUNED mix.
      */
-    private static final String[] NEST_STRUCTURES = {"structure.turret-heavy-mg", "structure.turret-dual-flak",
-            "structure.turret-heavy-mg", TurretCatalogRegistry.ANTI_AIR_STRUCTURE_ID};
+    private static final String[] NEST_STRUCTURES = {"structure.turret-heavy-mg", TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID,
+            "structure.turret-heavy-mg", TurretCatalogRegistry.VULCAN_STRUCTURE_ID};
 
     /** Members in a fort's token picket, the eyes that raise the pressure the commander's reactive manning answers. UNTUNED. */
     static final int PICKET_SIZE = 4;
@@ -687,7 +687,9 @@ public final class FortStage implements GenStage {
                 new FortTag(fortId, plan.centrepieceAspect(), at.x(), at.y(), at.pose().quarterTurns(), domeRadius));
         int nestNumber = 0;
         for (int[] local : plan.nests()) {
-            emitNest(ctx, at.cell(local[0], local[1]), fortId, at, nestNumber++);
+            int[] nestCell = at.cell(local[0], local[1]);
+            pad(ctx, nestCell, NEST_PAD_REACH);
+            emitNest(ctx, nestCell, fortId, at, nestNumber++);
         }
         if (air) {
             rooms.addAll(stampAirDefence(ctx, plan, at, fortId));
@@ -729,6 +731,7 @@ public final class FortStage implements GenStage {
             }
         }
         paveGates(ctx, plan, at);
+        if (air) stampAirMounts(ctx, plan, at, fortId);
         dressInterior(ctx, plan, at, lane, air);
         garrisonRooms(ctx, specs, at);
         stampBelt(ctx, plan, at, fortId, ground);
@@ -1050,13 +1053,47 @@ public final class FortStage implements GenStage {
             emitStructure(ctx, plan.coreStructureId(FortAspect.AIR_DEFENCE), at.cell(yard.consoleCentre()[0], yard.consoleCentre()[1]), tag);
             FortRoomFurnisher.furnish(ctx, placed.get(0), yard.room());
         });
-        for (int[] battery : plan.airBatteries()) {
-            emitStructure(ctx, TurretCatalogRegistry.AA_LOCUST_STRUCTURE_ID, at.cell(battery[0], battery[1]), tag);
-        }
-        for (int[] tower : yard.closeInCells()) {
-            emitStructure(ctx, TurretCatalogRegistry.AA_SWARMER_STRUCTURE_ID, at.cell(tower[0], tower[1]), tag);
-        }
         return placed;
+    }
+
+    /**
+     * The anti-air aspect's missile mounts on the bastions. They are stood after the yard has been dressed, because a
+     * sealed footprint is not walkable and {@code InstallationGround.dress} leaves such cells as they were: mounts
+     * stamped earlier stood on a hard-edged square of undressed ground in the middle of the bastion's floor.
+     */
+    private static void stampAirMounts(GenContext ctx, FortPlan plan, CompoundLayout.Placement at, int fortId) {
+        FortTag tag = new FortTag(fortId, FortAspect.AIR_DEFENCE, at.x(), at.y(), at.pose().quarterTurns());
+        for (int[] battery : plan.airBatteries()) {
+            int[] cell = at.cell(battery[0], battery[1]);
+            pad(ctx, cell, MOUNT_PAD_REACH);
+            emitStructure(ctx, TurretCatalogRegistry.AA_LOCUST_STRUCTURE_ID, cell, tag);
+        }
+        for (int[] tower : plan.airTowers()) {
+            int[] cell = at.cell(tower[0], tower[1]);
+            pad(ctx, cell, MOUNT_PAD_REACH);
+            emitStructure(ctx, TurretCatalogRegistry.AA_SWARMER_STRUCTURE_ID, cell, tag);
+        }
+    }
+
+    /** How far a bastion nest's concrete pad reaches from its cell: the cell and the ring about it. */
+    private static final int NEST_PAD_REACH = 1;
+    /** How far a bastion missile mount's concrete pad reaches from its middle: its three-by-three body and a ring about it. */
+    private static final int MOUNT_PAD_REACH = 2;
+
+    /**
+     * Lays the concrete pad a prepared position stands on: the paving the works already uses, over open ground within
+     * {@code reach} cells of {@code centre}. Walls, sealed cells and fixtures are left alone, so it changes the ground's look
+     * and nothing a unit can or cannot do. A belt nest, a field position, stays on its sandbags and earth.
+     */
+    private static void pad(GenContext ctx, int[] centre, int reach) {
+        for (int dx = -reach; dx <= reach; dx++) {
+            for (int dy = -reach; dy <= reach; dy++) {
+                int x = centre[0] + dx, y = centre[1] + dy;
+                if (!ctx.grid.inBounds(x, y) || ctx.topology.isWall(x, y) || ctx.topology.isFixture(x, y)
+                        || !ctx.grid.isWalkable(x, y) || ctx.grid.isDoorway(x, y)) continue;
+                pave(ctx, x, y);
+            }
+        }
     }
 
     private static void emitStructure(GenContext ctx, String structureId, int[] centre, FortTag tag) {

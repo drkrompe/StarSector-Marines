@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
+import com.dillon.starsectormarines.campaign.AgreusDistrictEscortProgress;
 import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 
@@ -31,39 +32,42 @@ record AgreusWorkGuide(AgreusArcProgress progress, OpeningBroker.Destination des
     private String handoverMission() {
         return switch (progress.handoverStage()) {
             case OPEN -> "DECISION / Latchkey custody agreements";
-            case SIGNED -> "IN PREPARATION / Terms of Protection";
-            case RATIFIED -> progress.smallWarSettled() ? "CLOSED / A Small War settled" : "NEW / A Small War";
+            case SIGNED -> "NEW / Terms of Protection";
+            case RATIFIED -> progress.smallWarSettled() ? "OPEN / " + DistrictEscortCampaign.NAME + " (recurring)" : "NEW / A Small War";
             case DECLINED -> "CLOSED / Further work declined";
             case NOT_REACHED -> "COMPLETE / Latchkey inspection";
         };
     }
     private String handoverPayment() {
         return switch (progress.handoverStage()) {
-            case SIGNED -> "Signed: " + agreementName(progress.signedAgreement()) + " / ratified only on Chapter 4 victory"
+            case SIGNED -> "32,000 cr + Boarding Jack section entitlement / " + agreementName(progress.signedAgreement()) + " ratified only on victory"
                     + (progress.custodyPremiumDue() > 0 ? " / 12,000 cr premium on Chapter 5 victory" : " / premium forgone");
-            case RATIFIED -> progress.smallWarSettled()
-                    ? agreementName(progress.signedAgreement()) + " / 44,000 cr" + (progress.smallWarPremiumPaid() > 0 ? " + 12,000 cr premium" : "") + " settled"
+            case RATIFIED -> (progress.smallWarSettled()
+                    ? String.format("%,d", AgreusDistrictEscortProgress.PAYMENT) + " cr per delivered consignment / " + agreementName(progress.signedAgreement())
+                    + " / A Small War settled" + (progress.smallWarPremiumPaid() > 0 ? " with the 12,000 cr premium" : "")
                     : "44,000 cr / " + agreementName(progress.signedAgreement())
-                    + (progress.custodyPremiumDue() > 0 ? " / 12,000 cr premium on victory" : " / premium forgone");
+                    + (progress.custodyPremiumDue() > 0 ? " / 12,000 cr premium on Chapter 5 victory" : " / premium forgone"))
+                    + (progress.boardingJackDeferred() ? " / Boarding Jack card held until its pattern is ready" : "");
             default -> "92,000 cr settled / Recovered Specter and Arbalest entitlements fulfilled";
         };
     }
     private String handoverRoute() {
         return switch (progress.handoverStage()) {
             case OPEN -> "Company HQ > Latchkey custody: read both agreements, ask Castle to compare, or leave them. Nothing is signed.";
-            case SIGNED -> "Terms of Protection is in preparation; no deployment is available yet. Later escort work: "
+            case SIGNED -> "Marine operations > Baronet Elian Rusk / Terms of Protection at Latchkey. Later escort work: "
                     + (progress.signedAgreement() == AgreusYardAgreement.HOUSE_CUSTODY ? "Rusk's office." : "Lenna Saye's association.");
             case RATIFIED -> progress.smallWarSettled()
-                    ? "Black Sluice is in local hands. The record is closed; later escort work comes through "
-                    + (progress.signedAgreement() == AgreusYardAgreement.HOUSE_CUSTODY ? "Rusk's office." : "Lenna Saye's association.")
-                    : "Marine operations > Baronet Elian Rusk / Black Sluice";
+                    ? "Marine operations > " + (progress.signedAgreement() == AgreusYardAgreement.HOUSE_CUSTODY
+                    ? AgreusArcCampaign.NAME + " / " : DistrictEscortCampaign.LENNA_NAME + " / ") + DistrictEscortCampaign.NAME + " on the Low Quay freight lane"
+                    : "Marine operations > Baronet Elian Rusk / A Small War at Black Sluice";
             default -> "Learn both recovered-suit cargo cards, then fit Salvage-assisted Section in the Armory.";
         };
     }
     private String handoverPreparation() {
         return switch (progress.handoverStage()) {
             case OPEN -> "Signing commits one route and closes the other. You may instead decline further work and keep completed fees and cards.";
-            case RATIFIED -> progress.smallWarSettled() ? AgreusArcCampaign.VOSS_LAST.speaker() + ": “" + AgreusArcCampaign.VOSS_LAST.text() + "”"
+            case RATIFIED -> progress.smallWarSettled() ? AgreusArcCampaign.VOSS_LAST.speaker() + ": “" + AgreusArcCampaign.VOSS_LAST.text() + "” "
+                    + "Escort postings recur: two squads, fitted boats; each consignment is new freight and new people."
                     : "Three full squads recommended, fitted boats and working tender. Take customs, fuel control and dispatch; preserve the marked fuel tanks. Optional owned mech.";
             case SIGNED -> AgreusArcCampaign.VOSS_WARNING.speaker() + ": “" + AgreusArcCampaign.VOSS_WARNING.text() + "”";
             case DECLINED -> AgreusArcCampaign.DECLINED_RECORD;

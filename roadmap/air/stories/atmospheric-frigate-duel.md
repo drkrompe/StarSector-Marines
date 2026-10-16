@@ -1,8 +1,10 @@
 # Story — Atmospheric frigate duel
 
-Status: ACTIVE — slice 1 (hulls as targets for direct fire, stray rounds, falling wreckage) in progress
+Status: ACTIVE — slices 1-2 built (hulls as targets for direct fire, stray rounds, falling wreckage, skins; duel helm and variant flux fittings); slice 3 (missiles at hulls) next
 
 Written: 2026-10-16
+
+Updated: 2026-10-16 — slice 2 built (duel helm, variant capacitors and vents) with its readings; slice 1 readings refreshed for the fittings; open questions left to the owner.
 
 Read `air-nouns.md` (**Overhead ships**, **Standing laws**), `warship-behaviours.md`
 (the posture model, Classes, Decided: escort, gap G4), `ship-support.md` and
@@ -119,7 +121,7 @@ ion cannon's arcs (not modelled; the ion cannon fires as an energy projectile).
 
 ## Plan
 
-1. **Hulls as targets for direct fire, stray rounds, falling wreckage.**
+1. **Hulls as targets for direct fire, stray rounds, falling wreckage** (built).
    `WarshipShipFire` beside `WarshipAirFire`; `ShipFireOrder`; blast-reach hit on
    arrival, a miss carries on to the ground; direct-fire rounds between hulls are not
    point-defence targets; best heading on the hull target; skin fitting; the falling
@@ -129,13 +131,15 @@ ion cannon's arcs (not modelled; the ion cannon fires as an energy projectile).
    no round at a hull, no hull lost) and `wreck` (a Hound already battered over a
    ground squad, so a fall is observed). Verdicts on mechanics; who lost what is a
    reading.
-2. **Duel helm.** While a ship has a hull target and no mission station that pins it,
+2. **Duel helm** (built). While a ship has a hull target and no mission station that pins it,
    it manoeuvres: closes to the reach of its best ship-capable guns, keeps the target
    in its hardpoint arc, keeps a front shield toward the threat, and stays inside the
    map. A fast, handy hull (Wolf) holds range and slides across the target's nose; a
    hull quicker in a straight line (Hound) charges. Derived from the hull's own speed,
-   acceleration and turn rate; no per-hull script. Verdicts: range closes to reach,
-   the target spends most of the engagement inside the hardpoint arc.
+   acceleration and turn rate; no per-hull script. The fitting also reads the
+   variant's flux capacitors and vents (base-game figures), which the stationary duel
+   showed the Wolfs' shields need. Verdicts: range closes to reach, the target spends
+   most of the engagement inside the hardpoint arc.
 3. **Missiles at hulls.** A Sabot (or any missile) fired at a hull flies its own path
    to the led point; a multi-warhead missile splits short of the hull and its warheads
    converge on it; the target's point defence may shoot them.
@@ -164,6 +168,80 @@ ion cannon's arcs (not modelled; the ion cannon fires as an energy projectile).
    unaffected. The mission seam is handed to the chapter's builders; the chapter
    itself is not built here.
 
+## Slice 1 as built: what the scene reads
+
+`frigate-duel` (`sceneEvidence -Pscene=frigate-duel`; 1920x1080 GIFs, whole map and
+close, under `createSnapshots -Psnapshot=frigate-duel`) plays four loops of 1500 ticks
+with no order but `ShipFireOrder.ALL` and stations. Every verdict passes; the
+readings are findings, not targets:
+
+- `duel` (two against two, stations 22 cells apart): 167 rounds at hulls (pulse laser
+  63, ion cannon 44, chaingun 60), none from a point-defence weapon and none shot
+  down; 143 reached a hull and 24 came down on the ground. Both Hounds were lost (the
+  first at tick 416) and both fell 4.5 cells from where they burst; the Wolfs lost
+  2820 of 3000 hull. Their shields took 13 hits and their flux peaked at 91%, where
+  the automatic shield drops, so most chaingun rounds reached the plate.
+- `crossing` (one Hound flying back and forth 26 cells off): 4 of 32 Wolf rounds
+  missed as it turned and came down beyond it; the Hound's chaingun never reached;
+  it fell 15 cells along its track onto its own side's bystanders, six hurt.
+- `control` (ship fire off): no round at a hull, no hull lost.
+- `wreck` (a Hound set up at a tenth of its hull over its own squad): it burst at tick
+  71, struck three seconds later and hurt three of the squad under it.
+
+Findings for the next slices:
+
+- **A stationary slugging match favours the Hound.** Held on stations, the Wolfs
+  neither hold range nor keep their shields facing, and they drop their shields at
+  90% flux. That is what slice 2 (the duel helm) is for; it is not tuned here.
+- **Variant flux capacitors and vents are not read.** `wolf_hegemony_Assault` carries
+  seven capacitors and ten vents, which in the base game add capacity and dissipation;
+  the fitting reads only the hull table's flux. Reading them is vanilla data under the
+  balance law, and belongs with slice 2 (added to its scope).
+- **Bolts read as long bars.** The shell renderer draws a pulse-laser bolt as a bar
+  most of the gap long at the close view; a presentation question for the duel's
+  look, not a mechanic.
+
+## Slice 2 as built: what the scenes read
+
+`frigate-duel-helm` (`sceneEvidence -Pscene=frigate-duel-helm`; whole-map GIF under
+`createSnapshots -Psnapshot=frigate-duel-helm`) starts two Wolf (H) and two Hound (P)
+eighty cells apart under `ShipFireOrder.ALL` and leaves them to it for 1800 ticks;
+`held` is the same with the helm off. The duel scene `frigate-duel` turns the helm
+off so it stays the stationary evidence.
+
+- **The helm.** A ship with a hull target flies to a station on a circle about it:
+  midway between the two reaches when it outranges the target by two cells or more
+  (the Wolf: pulse laser 27 cells against the chaingun's 20), sliding 25 degrees round
+  the target's nose each re-choice; 0.6 of its own reach when it does not (the Hound
+  closes). The reach is that of the ship's strongest anti-ship mount. Speed, turn and
+  braking are the hull's own; the helm only moves the station, and the mission station
+  comes back once no hull target remains. A piloted, departing, low-passing or
+  remotely ordered ship is not steered by it. Notice range for a ship with the helm is
+  the whole map.
+- **Variant fittings** are read from the variant (`getNumFluxCapacitors` /
+  `getNumFluxVents`, or the stock `.variant`): 200 capacity per capacitor, 10
+  dissipation per vent, as the base game. They apply only while the ship's fire order
+  is not `OFF`, so every shipped ground-bombardment scene keeps the flux it was tuned
+  against (`onslaught-flux` failed its "slower than ungoverned" verdict when they
+  applied always). Wolf (H) Assault: 3650 capacity; Hound (P) Standard: 2550.
+- **Two aiming faults found by the helm, not by the stationary duel.** The hull was
+  turned at the target's centre while the guns fired at the lead point, and the
+  heading sweep in 5-degree steps could not land a hardpoint's 5-degree arc; the
+  Hounds never fired. The heading now aims at the strongest mount's lead point and
+  tries each anti-ship mount's exact heading beside the sweep.
+- `helm`: 131 rounds at hulls (chaingun 16, ion 57, pulse 58), 114 on hull, 17 strayed;
+  closest approach 12.7 cells; mean engaged range Wolf 18.9, Hound 16.5. Both Hounds
+  lost (first at tick 179), no Wolf lost (1858 hull taken); Wolf flux peaked at 71%
+  and no shield hit was taken, since the Hounds' fire arrived from outside the front
+  arc while the Wolfs slid. The strongest gun was on the target 79% (Wolf) and 87%
+  (Hound) of engaged time. Once the Hounds were down the Wolfs flew back to their
+  mission stations.
+- `held`: no round and no motion.
+- `frigate-duel` with the fittings: `duel` 144 rounds, 133 on hull, 11 strayed, both
+  Hounds and one Wolf lost, Wolf shield hits 22, flux peak 90%; `crossing` 6 of 34
+  strayed, crash hurt 6; `wreck` crash hurt 3.
+- All 35 ship and tender scenes (135 loops) pass with the slice in.
+
 ## Acceptance
 
 - Two hostile frigates fire on each other with their real hull weapons; point defence
@@ -181,7 +259,8 @@ ion cannon's arcs (not modelled; the ion cannon fires as an energy projectile).
 
 1. Decision 5 ("ships fighting ships is out of scope for now") is lifted by the
    chapter's need. Is that general (any hostile hulls duel under `AUTO` once slice 4
-   lands) or only where a mission declares it? The draft: opt-in by mission until the
-   shipped warship scenes have been re-read, then `AUTO` under air superiority.
+   lands) or only where a mission declares it? **Left for the owner.** Until it is
+   answered the shipping default is unchanged: hull fire stays opt-in per mission
+   (`ShipFireOrder.OFF` by default); the duel scenes and Chapter 5 set it explicitly.
 2. Should a falling capital's crash scale with hull size beyond the aircraft crash's
    cap? Slice 1 reuses the aircraft crash as it stands (radius capped at eight cells).

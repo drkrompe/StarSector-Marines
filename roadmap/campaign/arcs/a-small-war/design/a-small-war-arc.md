@@ -136,8 +136,8 @@ comparison at Company HQ, a final signature or pre-signature decline, ratificati
 recorded separately for Chapter 4 victory, and the premium held for Chapter 5.
 Terms of Protection itself shows only as in preparation.
 
-Planned District Escort is a separate 24,000-credit repeatable through the
-chosen contact. The proposed later procurement introduction is a lead requiring
+District Escort, the separate 24,000-credit repeatable through the chosen
+contact, is implemented behind the Chapter 5 settlement flag (`early-operation-nouns.md`). The proposed later procurement introduction is a lead requiring
 another authored route. Military suits and a strict story-first acquisition gate
 are not delivered by this arc's first three chapters or by this document.
 

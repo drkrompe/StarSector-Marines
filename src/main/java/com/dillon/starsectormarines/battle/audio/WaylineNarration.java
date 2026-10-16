@@ -122,7 +122,7 @@ public final class WaylineNarration {
             if (kind.missionId.equals(mission.id)) return mission.id;
         if (mission.id == null) return null;
         if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.smallWar(mission.id)) return "story_agreus_small_war";
-        if (AgreusArcCampaign.isBattle(mission)) return AgreusArcProgress.yardOwners(mission.id) ? "story_agreus_yard_owners" : AgreusArcProgress.limitedWarrant(mission.id) ? "story_agreus_limited_warrant" : "story_agreus_water_under_seal";
+        if (AgreusArcCampaign.isBattle(mission)) return AgreusArcProgress.termsOfProtection(mission.id) ? "story_agreus_terms_of_protection" : AgreusArcProgress.yardOwners(mission.id) ? "story_agreus_yard_owners" : AgreusArcProgress.limitedWarrant(mission.id) ? "story_agreus_limited_warrant" : "story_agreus_water_under_seal";
         if(ShepherdRecoveryCampaign.isBattle(mission))return ShepherdRecoveryProgress.workingPassage(mission.id)?"story_shepherd_working_passage":ShepherdRecoveryProgress.coldStart(mission.id)
                 ? "story_shepherd_cold_start" : "story_shepherd_salvage";
         if (CorvusWaylineProgress.forMission(mission.id) == CorvusChapter.COLD_ACCOUNT)

@@ -143,6 +143,78 @@ public final class AgreusArcProgress implements Serializable {
         custodyPremiumSettled = true;
         return signedAgreement.completionPremium;
     }
+    // ---- Chapter 4: Terms of Protection ----
+    public static final String TERMS_PREFIX = "agreus_terms_of_protection_v1_";
+    public static final int TERMS_PAYMENT = 32000;
+    public static final String TERMS_SITE = "latchkey-handover";
+    /** The Boarding Jack section card the commissioning work produces, on either route. */
+    public static final String BOARDING_JACK_CARD = "loadout-card:sheet:armor:boarding-jack-section";
+    private int termsAttempt, termsRepresentativesLost, termsTechniciansLost, termsEmployerLost, recordsCarriersLost;
+    private boolean termsCompleted;
+    /** The agreement the active Chapter 4 mobilization launched under; frozen at begin. */
+    private AgreusYardAgreement activeAgreement;
+    /**
+     * Once-only Boarding Jack entitlement from a Terms of Protection victory, recorded independently
+     * of delivery. Delivery waits on the pattern's declared presentation and happens at most once.
+     */
+    private boolean boardingJackEntitled, boardingJackDelivered;
+
+    public static boolean termsOfProtection(String id) { return id != null && id.startsWith(TERMS_PREFIX); }
+    public boolean termsCompleted() { return termsCompleted; }
+    public int termsRepresentativesLost() { return termsRepresentativesLost; }
+    public int termsTechniciansLost() { return termsTechniciansLost; }
+    /** Confirmed losses among the route's other employer people: estate guards or fitters, and constables. */
+    public int termsEmployerLost() { return termsEmployerLost; }
+    public int recordsCarriersLost() { return recordsCarriersLost; }
+    public AgreusYardAgreement activeAgreement() { return activeAgreement; }
+    public boolean boardingJackEntitled() { return boardingJackEntitled; }
+    public boolean boardingJackDelivered() { return boardingJackDelivered; }
+    /** Recorded but not yet in cargo: the pattern's presentation is still pending. */
+    public boolean boardingJackDeferred() { return boardingJackEntitled && !boardingJackDelivered; }
+
+    /**
+     * Chapter 4 settlement. Accepts only the active Terms of Protection mobilization, under the
+     * agreement it froze at launch, with its complete physical receipt. Victory pays once,
+     * ratifies that agreement and records the Boarding Jack entitlement; defeat or withdrawal
+     * records confirmed losses and leaves the signed route standing for a new mobilization.
+     */
+    public int settleTerms(String id, String planetId, boolean victory, int payment, AgreusYardAgreement route,
+                           boolean delivered, boolean signed, boolean commissioned, boolean resolved, boolean ratified,
+                           boolean company, boolean carrierLost, int representativeLosses, int technicianLosses, int employerLosses) {
+        boolean achieved = delivered && signed && commissioned && resolved && ratified && company && !carrierLost
+                && representativeLosses < 2;
+        if (!termsOfProtection(id) || !matchesNext(id) || !id.equals(activeId) || !planetIdEquals(planetId)
+                || !TERMS_SITE.equals(activeSite) || route == null || route != activeAgreement || route != signedAgreement
+                || handoverStage() != HandoverStage.SIGNED
+                || payment != (victory ? TERMS_PAYMENT : 0) || victory != achieved || ratified && !achieved
+                || signed && !delivered || commissioned && !signed
+                || representativeLosses < 0 || representativeLosses > 2 || technicianLosses < 0 || technicianLosses > 2
+                || employerLosses < 0 || employerLosses > 8) return -1;
+        termsRepresentativesLost += representativeLosses;
+        termsTechniciansLost += technicianLosses;
+        termsEmployerLost += employerLosses;
+        if (carrierLost) recordsCarriersLost++;
+        if (victory) {
+            if (!ratifyAgreement(route)) return -1;
+            termsCompleted = true;
+            boardingJackEntitled = true;
+        }
+        activeId = null; activePlanetId = null; activePlanetName = null; activeSite = null; activeAgreement = null;
+        termsAttempt = Math.max(1, termsAttempt) + 1;
+        return payment;
+    }
+
+    /**
+     * Claims the recorded Boarding Jack delivery once its presentation is declared. Returns true
+     * exactly once, on the call that should place the card; an already learned or carried card
+     * still consumes the delivery so a later sale never renews it.
+     */
+    public boolean claimBoardingJackDelivery(boolean presentationReady) {
+        if (!boardingJackEntitled || boardingJackDelivered || !presentationReady) return false;
+        boardingJackDelivered = true;
+        return true;
+    }
+
     public boolean yardCompleted() { return yardCompleted; }
     public int yardTechniciansLost() { return yardTechniciansLost; }
     public int yardConstablesLost() { return yardConstablesLost; }
@@ -154,7 +226,7 @@ public final class AgreusArcProgress implements Serializable {
     public int militiaLost() { return militiaLost; }
     public int repairLoadsLost() { return repairLoadsLost; }
     public String missionId() { return completed ? null : PREFIX + attempt; }
-    public static boolean owns(String id) { return id != null && (id.startsWith(PREFIX) || limitedWarrant(id) || yardOwners(id) || smallWar(id)); }
+    public static boolean owns(String id) { return id != null && (id.startsWith(PREFIX) || limitedWarrant(id) || yardOwners(id) || termsOfProtection(id) || smallWar(id)); }
     public static boolean limitedWarrant(String id) { return id != null && id.startsWith(WARRANT_PREFIX); }
     public boolean warrantCompleted() { return warrantCompleted; }
     public boolean recordsRecovered() { return recordsRecovered; }
@@ -165,9 +237,13 @@ public final class AgreusArcProgress implements Serializable {
         if (!completed) return missionId();
         if (!warrantCompleted) return WARRANT_PREFIX + Math.max(1, warrantAttempt);
         if (!yardCompleted) return YARD_PREFIX + Math.max(1, yardAttempt);
+        if (handoverStage() == HandoverStage.SIGNED) return TERMS_PREFIX + Math.max(1, termsAttempt);
         return smallWarAvailable() ? SMALL_WAR_PREFIX + Math.max(1, smallWarAttempt) : null;
     }
-    public int nextPayment() { return yardCompleted ? SMALL_WAR_PAYMENT : warrantCompleted ? YARD_PAYMENT : completed ? WARRANT_PAYMENT : PAYMENT; }
+    public int nextPayment() {
+        return handoverStage() == HandoverStage.RATIFIED ? SMALL_WAR_PAYMENT : yardCompleted ? TERMS_PAYMENT
+                : warrantCompleted ? YARD_PAYMENT : completed ? WARRANT_PAYMENT : PAYMENT;
+    }
     public boolean matchesNext(String id) { return id != null && id.equals(nextMissionId()); }
     public boolean matches(String id) { return id != null && id.equals(missionId()); }
 
@@ -179,7 +255,8 @@ public final class AgreusArcProgress implements Serializable {
         activeId = id;
         activePlanetId = planetId;
         activePlanetName = planetName;
-        activeSite = smallWar(id) ? SMALL_WAR_SITE : yardOwners(id) ? "latchkey-yard" : limitedWarrant(id) ? "low-quay-bonded-stores" : SITE;
+        activeSite = smallWar(id) ? SMALL_WAR_SITE : termsOfProtection(id) ? TERMS_SITE : yardOwners(id) ? "latchkey-yard" : limitedWarrant(id) ? "low-quay-bonded-stores" : SITE;
+        activeAgreement = termsOfProtection(id) ? signedAgreement : null;
         return true;
     }
     public boolean acceptsTarget(String name) { return activePlanetName != null && activePlanetName.equals(name); }

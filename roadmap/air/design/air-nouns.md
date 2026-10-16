@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — A fort's anti-air yard stands Locust and Swarmer towers instead of Ridgewatch and flak; earlier: Missile AA joins ordinary heavy defense posts; all six supported carrier wings use the shared commitment flow.
+Updated: 2026-10-16 — a hostile hull is a target for a ship's direct-fire guns by mission order, misses fall on the ground, a lost hull falls as wreckage, and a ship fighting hulls manoeuvres by its reach against theirs with its variant's capacitors and vents (`atmospheric-frigate-duel.md`, slices 1-2); a fort's anti-air yard stands Locust and Swarmer towers instead of Ridgewatch and flak; earlier: Missile AA joins ordinary heavy defense posts; all six supported carrier wings use the shared commitment flow.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1823,10 +1823,44 @@ hit's strength is its damage times its penetration, the share that gets through
 is strength over armour plus strength, and a hit weaker than a tenth of the armour
 glances off and does nothing. A rifle round is nothing to it however many fire; a
 mortar or orbital strike chips it; only anti-ship-grade ordnance in numbers brings
-it down. Its own side never hurts it. A hull taken to nothing goes up in a heavy
-blast and leaves the battle at once, and every gun with it; a battered hull is
+it down. Its own side never hurts it. A hull taken to nothing bursts in a heavy
+blast and every gun, shield and point-defence mount dies with it, but it does not
+leave the battle: it **falls**. It keeps the momentum it had (a hovering hull slides
+off as its lift fails), turns as it goes, trails fire, and strikes the ground a few
+seconds later as the crash a downed aircraft makes, hurting whoever is under it on
+either side, then skids to rest and lies there as wreckage for the rest of the battle.
+The fall is a pure function of the hull's own state, so it lands the same way every
+play (`WarshipWreck`). A battered hull is
 drawn darker. The hit comes from the detonation pipeline itself, so any source
 that already lands a detonation is a counter without a ship-specific shortcut.
+
+**A hostile hull is a target for a ship's guns when a mission says so.** A ship
+under a **ship-fire order** (`ShipFireOrder`: off by default, `ALL` from a mission or
+script, `AUTO` reserved for the duel doctrine) fights hostile hulls with the same
+mounts, cooldowns, magazines and flux as any other fire, as a third customer beside
+ground and air fire. Which guns may fire at a ship follows the base game: point
+defence never does, a lance keeps its ground sweep, missiles wait for a path that
+flies at a hull; everything else may. A round is aimed where the hull will be,
+thrown off by the weapon's cone as a hash of who fired what, and flies as an ordinary
+shell; on arrival it lands on whatever hostile hull its blast reaches, shield first
+and then the armour rule, and a round that reaches none carries on along its line and
+comes down on the ground as an ordinary detonation, so stray fire between ships is
+real below them. Rounds between hulls are direct fire and no point defence engages
+them. A ship with a hull to fight and no ground to bring its guns to bear on turns to
+the heading that puts the most anti-ship firepower on it, re-chosen as it moves. A
+vanilla skin (a Wolf (H), a Hound (P)) is fitted as its base hull under its own
+sprite. See `atmospheric-frigate-duel.md`.
+
+**A ship fighting a hull manoeuvres by the two reaches.** Its **duel helm** moves the
+station it flies to, never its speed or turn: a ship whose strongest anti-ship gun
+outranges the target's holds off between the two reaches and slides across the
+target's nose; one that is outranged or even closes well inside its own reach. The
+heading puts its strongest gun on where the target will be. A ship being piloted,
+departing, passing low or under a remote order is not steered by it, and the
+mission station returns when no hull is left to fight. While a ship's fire order
+allows hull fire, its variant's flux capacitors and vents count as the base game
+counts them; otherwise the hull table's flux stands, as ground bombardment was tuned
+against it.
 
 **A warship's stay and its magazine can both be bounded.** Station time is counted
 down only while the ship is on its station, not while it travels to it; when it
@@ -2273,7 +2307,7 @@ A side may hold a **pool** of bombers and fighters that ground forces direct. Th
 - **Cover (CAP).** The commander (`ConquestCommand`, from a company's muster and assault stages) or the director (when a hostile armed aircraft is seen near its units) asks for cover over a point through the comms operator, as any call; the director keeps one fighter back for strafes and refuses a second patrol within forty cells of a standing one. The fighter flies the ring a gunship does (`GunshipOrbit`) for a bounded station time. From the ring it chases a hostile armed aircraft inside a hundred and ten cells of its cover (attackers of the covered ground first; one over anti-air the side has sighted is left alone, and a chase that carries the prey over such guns is dropped), in the `INTERCEPT` phase, with `AirToAirFire`: nose guns with a firing window of sixteen cells and a narrow cone, a rolled hit chance falling with range and angle, damage through the one aimed-damage path every body takes, losses recorded as "air-to-air". **The chase is a tail chase** (`AirIntercept`): met head-on the two craft close at the sum of their speeds and the guns hold the prey for about half a second, so a fighter that is clearly the faster flies lead pursuit from ahead or beside (which also turns it in behind once it has gone by) and, from the prey's rear quarter, steers for a slot eight cells behind the prey, braking onto it, where the cone holds for as long as the station does. Against a prey it cannot outrun it flies plain lead pursuit and takes what window the geometry gives. A cover patrol therefore flies the Talon airframe (`AirPoolKind.coverProfile`), faster than the Dagger it hunts; a strafe or bomb sortie keeps the Broadsword or Dagger. A cover gun pass holds its rounds while a friendly stands within the blast and a margin of the aim. On a ring centred on the covered ground a bomber is, in the sweeps, downed during or after its stick rather than before it: the fighter on the far side of its ring cannot turn and catch an inbound bomber inside the second and a half before release. Placing the patrol forward of the ground is the open lever. Secondarily it takes a gun pass at the densest group of hostile combatants the side has sighted near its cover, only with no friendly within eight cells and the AA risk under the ceiling. Symmetric: a defender with a fighter stock does the same over its own ground. The cover fighter's rounds and time are finite; it goes home when they run out.
 - **Where it comes from.** A sortie crosses the map edge nearest its side's home ground: the landing zone for the side that landed, the keep for the side that holds one. It comes in over its own side and its stick runs on toward the enemy. Home was once the centre of the side's live force, which moves with the advance: with the marines gathered short of the keep near the far edge, a marine bomber came in from the enemy's rear and laid its stick back through them, killing seventeen in one pass.
 - **Danger close.** The director does not place a strike with any of its own combatants within ten cells of the aim point.
-- **Anti-air.** The area drain over a turret cluster and real AA positions both hurt a pass, and a believed-defended point is judged by `AaRisk` from the guns the side has actually sighted: a strike is declined when the expected loss is more than an airframe. A fort's massed guns are left to the ground force; a lone nest is bombed out. An unsighted gun is a surprise. A fort may also carry an optional **anti-air yard** (`forts.md`): Locust batteries and Swarmer towers whose real reach, not the fourteen-cell bubble, is what the estimate counts once the fort's works are sighted. It shoots only aircraft, never hulls; its console wrecked, its fort's power lost or the yard taken changes what it does and what the officer believes. The command layer treats a yard that shuts the sky as the first work of a plan that wants an air strike (`AirSupportFacts.blocked`). Sorties are declined over a known yard, not routed around it.
+- **Anti-air.** The area drain over a turret cluster and real AA positions both hurt a pass, and a believed-defended point is judged by `AaRisk` from the guns the side has actually sighted: a strike is declined when the expected loss is more than an airframe. A fort's massed guns are left to the ground force; a lone nest is bombed out. An unsighted gun is a surprise. A fort may also carry an optional **anti-air yard** (`forts.md`): Locust batteries and Swarmer towers on the bastions whose real reach, not the fourteen-cell bubble, is what the estimate counts once the fort's works are sighted. It shoots only aircraft, never hulls; its console wrecked, its fort's power lost or the yard taken changes what it does and what the officer believes. The command layer treats a yard that shuts the sky as the first work of a plan that wants an air strike (`AirSupportFacts.blocked`). Sorties are declined over a known yard, not routed around it.
 - **On screen.** The player's battle HUD carries an air plate under the top-right command rail whenever the player's side holds a pool, and nothing when it does not: airframes available against the establishment for each kind, how many are in the air and on what errand (strike, strafe or cover), the clock to the next replacement, and what has been lost, with the last minute's losses called out. Fair knowledge only: it shows the player side's own pool, never the enemy's. It reads an immutable `AirPoolView` taken from the pool and changes nothing; a sortie's errand comes from the one place the pool names it, so a new mission type shows on the plate by being recorded there.
 - **Reading.** The capability profile reads availability and risk from `AirStrikeCapability`, so a plan may name an air strike as an asset; roles are matched in `phased-assault.md`.
 

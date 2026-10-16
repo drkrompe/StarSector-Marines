@@ -6,12 +6,16 @@ import com.dillon.starsectormarines.battle.world.gen.NorthWeir;
 import com.dillon.starsectormarines.battle.command.AssaultStyle;
 import com.dillon.starsectormarines.battle.command.WaterUnderSealCommand;
 import com.dillon.starsectormarines.battle.command.LimitedWarrantCommand;
+import com.dillon.starsectormarines.battle.command.DistrictEscortCommand;
+import com.dillon.starsectormarines.battle.story.DistrictEscortProgress;
 import com.dillon.starsectormarines.battle.world.gen.LowQuay;
 import com.dillon.starsectormarines.battle.world.gen.LatchkeyYard;
 import com.dillon.starsectormarines.battle.world.gen.BlackSluice;
 import com.dillon.starsectormarines.battle.command.SmallWarCommand;
 import com.dillon.starsectormarines.battle.story.SmallWarProgress;
 import com.dillon.starsectormarines.battle.command.YardOwnersCommand;
+import com.dillon.starsectormarines.battle.command.TermsOfProtectionCommand;
+import com.dillon.starsectormarines.battle.story.TermsOfProtectionProgress;
 import com.dillon.starsectormarines.battle.command.SalvageRightsCommand;
 import com.dillon.starsectormarines.battle.command.ColdStartCommand;
 import com.dillon.starsectormarines.battle.command.WorkingPassageCommand;
@@ -1585,7 +1589,7 @@ public final class BattleSetup {
                 mission.cycleLoadouts[cycle] = InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle), rng);
             mission.marineLoadout = mission.cycleLoadouts[0];
         }
-        for (int[] guard : new int[][]{{68,75},{86,42}}) {
+        for (int[] guard : LowQuay.GUARD_POSTS) {
             var post = openingDefenseNode(guard[0], guard[1], Faction.DEFENDER, map.grid);
             spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, guard[0], guard[1], 4), Faction.DEFENDER, "Drent Haulage store guard", post, rng);
         }
@@ -1608,6 +1612,75 @@ public final class BattleSetup {
         for (Faction faction : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER))
             sim.setAutonomousCommander(faction, new LimitedWarrantCommand(faction), LimitedWarrantCommand.disclosure(sim.getLimitedWarrant()));
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(LimitedWarrantCommand.issuer(Faction.MARINE), "Company recovery support"));
+        return sim;
+    }
+
+    /**
+     * District Escort: a finite two-squad escort job over Low Quay's ordinary freight lane. A fresh
+     * consignment and its two-person handover party wait at the loading lane; two raider pickets
+     * sit on the lane and one finite raider group commits once the company links up. The party's
+     * name is the issuing office's only difference: both agreements field the same support.
+     */
+    public static BattleSimulation createDistrictEscort(long seed, List<ShuttleAssignment> manifest, TargetProfile profile,
+                                                        String partyName) {
+        if (manifest == null || manifest.isEmpty() || manifest.size() > 4)
+            throw new IllegalArgumentException("District Escort requires one to four fitted company boats");
+        if (partyName == null || partyName.isBlank()) throw new IllegalArgumentException("District Escort needs its party's office");
+        MapResult map = LowQuay.generate(seed, profile);
+        float[] route = DistrictEscortSequence.route(map.grid, VehicleType.CARGO_CARRIER.visualWidthCells);
+        if (route.length < 8) throw new IllegalStateException("Low Quay freight lane has no carrier route to the apron");
+        float[] routeX = new float[route.length / 2], routeY = new float[route.length / 2];
+        for (int i = 0; i < routeX.length; i++) { routeX[i] = route[2 * i]; routeY[i] = route[2 * i + 1]; }
+        BattleSimulation sim = buildMap(map, List.of(), List.of(), List.of(), seed).sim();
+        sim.setSurface(surfaceOf(profile));
+        sim.getBattleResources().disableCompoundProduction();
+        sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
+        Random rng = new Random(seed);
+        var pads = LandingPadSelector.select(map, manifest.size(), LZ_MIN_SEPARATION);
+        stampLzPads(sim, pads);
+        for (int i = 0; i < manifest.size(); i++) {
+            var assignment = manifest.get(i); var pad = pads.get(i);
+            float x = pad.centerX + .5f, y = pad.centerY + .5f;
+            float[] entry = shuttleEntryFor(x, y, map.grid.getWidth(), map.grid.getHeight(), pad.approach);
+            long air = sim.spawnShuttle(assignment.type, assignment.airframe, Faction.MARINE, x, y,
+                    entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
+            var mission = sim.world().mission(air);
+            mission.totalCycles = assignment.cycles; mission.manifestOrdinal = i;
+            mission.commandClaim = SquadCommandClaim.mission(DistrictEscortCommand.issuer(Faction.MARINE), "Company fitted escort lift");
+            mission.cycleLoadouts = new MarineLoadout[assignment.cycles][];
+            for (int cycle = 0; cycle < assignment.cycles; cycle++)
+                mission.cycleLoadouts[cycle] = InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle), rng);
+            mission.marineLoadout = mission.cycleLoadouts[0];
+        }
+        // Two pickets astride the lane, set back from the road on whatever ground the map gives.
+        for (float share : new float[]{.35f, .6f}) {
+            int index = Math.round((routeX.length - 1) * share);
+            int px = Math.round(routeX[index]), py = Math.round(routeY[index]);
+            var post = openingDefenseNode(px, py, Faction.DEFENDER, map.grid);
+            spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, px, py, 4), Faction.DEFENDER, "Freight-lane raider picket", post, rng);
+        }
+        int apronX = LowQuay.LANDING_X + 4, apronY = LowQuay.LANDING_Y;
+        spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, apronX, apronY, DistrictEscortProgress.CONSTABLES),
+                Faction.ALLY, "Low Quay district constable", null, rng);
+        int constables = sim.getSquads().stream().filter(squad -> squad.faction == Faction.ALLY).findFirst().orElseThrow().id;
+        if (!sim.handoffSquadCommand(constables, OpeningOperationCommand.issuer(Faction.ALLY), CommandAuthority.MISSION_COMMAND,
+                DistrictEscortCommand.issuer(Faction.ALLY), null, "Constables hold the western apron"))
+            throw new IllegalStateException("Constable command handoff failed");
+        int party = sim.mintSquad(Faction.ALLY, UnitType.TECHNICIAN);
+        for (int[] cell : pickSpawnCluster(map.grid, LowQuay.LOAD_X + 6, LowQuay.LOAD_Y, DistrictEscortProgress.PARTY))
+            sim.spawn(new EntitySpec(partyName, Faction.ALLY, UnitType.TECHNICIAN, cell[0], cell[1]).squad(party).role(UnitRole.PATROL));
+        sim.getSquad(party).originalSize = DistrictEscortProgress.PARTY;
+        sim.claimSquadCommand(party, CommandAuthority.MISSION_COMMAND, DistrictEscortCommand.issuer(Faction.ALLY), "Consignment handover party");
+        List<EntitySpec> reserve = new ArrayList<>();
+        // The committed group is the quarter's own: it comes through the north freight gate to the crossing.
+        for (int[] cell : pickSpawnCluster(map.grid, LowQuay.RESERVE_X, LowQuay.RESERVE_Y, 6))
+            reserve.add(makeOpeningMilitia("Freight-lane raider " + reserve.size(), Faction.DEFENDER, cell[0], cell[1], rng).role(UnitRole.PATROL));
+        long carrier = sim.convoy().spawn(VehicleType.CARGO_CARRIER, Faction.ALLY, VehicleMission.deployed(LowQuay.LOAD_X, LowQuay.LOAD_Y));
+        sim.convoy().body(carrier).teleport(LowQuay.LOAD_X, LowQuay.LOAD_Y, (float) Math.PI);
+        sim.installDistrictEscort(party, constables, carrier, reserve, routeX, routeY);
+        for (Faction faction : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER))
+            sim.setAutonomousCommander(faction, new DistrictEscortCommand(faction), DistrictEscortCommand.disclosure(sim.getDistrictEscort()));
+        sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(DistrictEscortCommand.issuer(Faction.MARINE), "Company escort support"));
         return sim;
     }
 
@@ -1656,9 +1729,9 @@ public final class BattleSetup {
         sim.getSquad(technicians).originalSize = 2;
         sim.claimSquadCommand(technicians,CommandAuthority.MISSION_COMMAND,YardOwnersCommand.issuer(Faction.ALLY),"Living supplier inspection party");
         List<List<EntitySpec>> reserves = new ArrayList<>();
-        for (int[] ingress : new int[][]{{150,76},{145,36}}) {
+        for (var ingress : LatchkeyYard.RESERVE_INGRESS) {
             List<EntitySpec> group = new ArrayList<>();
-            for (int[] cell : pickSpawnCluster(map.grid,ingress[0],ingress[1],4))
+            for (int[] cell : pickSpawnCluster(map.grid,ingress.x(),ingress.y(),4))
                 group.add(makeOpeningMilitia("Prize crew counterattack",Faction.DEFENDER,cell[0],cell[1],rng).role(UnitRole.PATROL));
             reserves.add(group);
         }
@@ -1666,6 +1739,99 @@ public final class BattleSetup {
         for (Faction faction : List.of(Faction.MARINE,Faction.ALLY,Faction.DEFENDER))
             sim.setAutonomousCommander(faction,new YardOwnersCommand(faction),YardOwnersCommand.disclosure(sim.getYardOwners()));
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(YardOwnersCommand.issuer(Faction.MARINE),"Company inspection support"));
+        return sim;
+    }
+
+    /**
+     * Terms of Protection: the signed route's custody party crosses the apron under escort to the
+     * Latchkey dispatch handover bay, technicians commission the captured rig tooling in the
+     * calibration room, and Berth Four's finite assault arrives with a mortar team and two crude
+     * powered rigs, followed by a prize-crew party on the Cinder Steps lane. The route chooses which
+     * employer party comes — Rusk's estate guards or Lenna's fitters — and never the opposition.
+     */
+    public static BattleSimulation createTermsOfProtection(long seed, List<ShuttleAssignment> manifest, TargetProfile profile,
+                                                           TermsOfProtectionProgress.Route route) {
+        if (manifest == null || manifest.isEmpty() || manifest.size() > 4)
+            throw new IllegalArgumentException("Terms of Protection requires one to four fitted company boats");
+        if (route == null) throw new IllegalArgumentException("Terms of Protection launches under a signed agreement");
+        MapResult map = LatchkeyYard.generate(seed, profile, LatchkeyYard.Visit.TERMS_OF_PROTECTION);
+        BattleSimulation sim = buildMap(map, List.of(), List.of(), List.of(), seed).sim();
+        sim.setSurface(surfaceOf(profile));
+        sim.getBattleResources().disableCompoundProduction();
+        sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
+        Random rng = new Random(seed);
+        var pads = LandingPadSelector.select(map, manifest.size(), LZ_MIN_SEPARATION);
+        stampLzPads(sim, pads);
+        String claim = TermsOfProtectionCommand.issuer(Faction.MARINE);
+        for (int i = 0; i < manifest.size(); i++) {
+            var assignment = manifest.get(i); var pad = pads.get(i);
+            float x = pad.centerX + .5f, y = pad.centerY + .5f;
+            float[] entry = shuttleEntryFor(x, y, map.grid.getWidth(), map.grid.getHeight(), pad.approach);
+            long air = sim.spawnShuttle(assignment.type, assignment.airframe, Faction.MARINE, x, y,
+                    entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
+            var mission = sim.world().mission(air);
+            mission.totalCycles = assignment.cycles; mission.manifestOrdinal = i;
+            mission.commandClaim = SquadCommandClaim.mission(claim, "Company fitted handover lift");
+            mission.cycleLoadouts = new MarineLoadout[assignment.cycles][];
+            for (int cycle = 0; cycle < assignment.cycles; cycle++)
+                mission.cycleLoadouts[cycle] = InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle), rng);
+            mission.marineLoadout = mission.cycleLoadouts[0];
+        }
+        String allyClaim = TermsOfProtectionCommand.issuer(Faction.ALLY);
+        boolean custody = route == TermsOfProtectionProgress.Route.HOUSE_CUSTODY;
+        var start = LatchkeyYard.PARTY_START;
+        // The inspection's gains stand: constables hold the operator entrance they were handed.
+        int constables = sim.mintSquad(Faction.ALLY, UnitType.MILITIA);
+        for (int[] cell : pickSpawnCluster(map.grid, 88, 13, 4))
+            sim.spawn(makeOpeningMilitia("Latchkey constable", Faction.ALLY, cell[0], cell[1], rng).squad(constables).role(UnitRole.PATROL));
+        sim.getSquad(constables).originalSize = 4;
+        sim.claimSquadCommand(constables, CommandAuthority.MISSION_COMMAND, allyClaim, "Constables hold the secured operator entrance");
+        int representatives = partySquad(sim, map, start.x(), start.y() + 2, custody
+                ? List.of("House Rusk custodian", "House Rusk custodian")
+                : List.of("Joint party custodian / House Rusk", "Joint party delegate / Latchkey association"),
+                allyClaim, custody ? "Rusk's appointed custodians" : "Joint custody party");
+        int technicians = partySquad(sim, map, start.x() + 2, start.y() - 2,
+                List.of("Latchkey utilities technician", "Latchkey utilities technician"), allyClaim, "Utilities crew commissioning the tooling");
+        int fitters = custody ? -1 : partySquad(sim, map, start.x() - 2, start.y() - 3,
+                List.of("Association fitter", "Association fitter", "Association fitter"), allyClaim, "Lenna's fitters stay at the benches");
+        int guards = -1;
+        if (custody) {
+            guards = sim.mintSquad(Faction.ALLY, UnitType.MILITIA);
+            for (int[] cell : pickSpawnCluster(map.grid, start.x() + 4, start.y() + 6, 4))
+                sim.spawn(makeOpeningMilitia("Rusk estate guard", Faction.ALLY, cell[0], cell[1], rng).squad(guards).role(UnitRole.PATROL));
+            sim.getSquad(guards).originalSize = 4;
+            sim.claimSquadCommand(guards, CommandAuthority.MISSION_COMMAND, allyClaim, "Estate guards hold the Cinder Steps lane on Rusk's terms");
+        }
+        long carrier = sim.convoy().spawn(VehicleType.CARGO_CARRIER, Faction.ALLY, VehicleMission.deployed(start.x(), start.y()));
+        sim.convoy().body(carrier).teleport(start.x(), start.y(), 0f);
+        var jack = MarineArmorCatalogRegistry.require(GreyhookRigIssue.PATTERN);
+        List<List<EntitySpec>> sections = new ArrayList<>();
+        for (int section = 0; section < 2; section++) {
+            List<EntitySpec> group = new ArrayList<>();
+            for (int[] cell : pickSpawnCluster(map.grid, LatchkeyYard.SOUTH_ROAD.x(), LatchkeyYard.SOUTH_ROAD.y() + section * 2 - 1, 5)) {
+                var member = makeOpeningMilitia("Berth Four assault " + section + " / " + group.size(), Faction.DEFENDER, cell[0], cell[1], rng)
+                        .role(UnitRole.PATROL);
+                if (group.isEmpty()) GreyhookRigIssue.boardingJack(member, jack);
+                group.add(member);
+            }
+            sections.add(group);
+        }
+        List<EntitySpec> mortarTeam = new ArrayList<>();
+        var tube = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FIELD_MORTAR_ID);
+        for (int[] cell : pickSpawnCluster(map.grid, LatchkeyYard.CINDER_LANE.x(), LatchkeyYard.CINDER_LANE.y() - 2, 3)) {
+            var member = makeOpeningMilitia("Berth Four mortar team " + mortarTeam.size(), Faction.DEFENDER, cell[0], cell[1], rng).role(UnitRole.PATROL);
+            if (mortarTeam.isEmpty()) member.specialEquipment(tube, tube.startingAmmo());
+            mortarTeam.add(member);
+        }
+        List<EntitySpec> laneParty = new ArrayList<>();
+        for (int[] cell : pickSpawnCluster(map.grid, LatchkeyYard.CINDER_LANE.x(), LatchkeyYard.CINDER_LANE.y() + 2, 6))
+            laneParty.add(makeOpeningMilitia("Prize crew lane party " + laneParty.size(), Faction.DEFENDER, cell[0], cell[1], rng).role(UnitRole.PATROL));
+        sim.installTermsOfProtection(route, carrier,
+                new TermsOfProtectionSequence.Parties(representatives, technicians, fitters, guards, constables),
+                new TermsOfProtectionSequence.Reserve(sections, mortarTeam, laneParty));
+        for (Faction faction : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER))
+            sim.setAutonomousCommander(faction, new TermsOfProtectionCommand(faction), TermsOfProtectionCommand.disclosure(sim.getTermsOfProtection()));
+        sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(claim, "Company handover support"));
         return sim;
     }
 
@@ -1736,6 +1902,18 @@ public final class BattleSetup {
             sim.setAutonomousCommander(faction, new SmallWarCommand(faction), SmallWarCommand.disclosure(sim.getSmallWar()));
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(SmallWarCommand.issuer(Faction.MARINE), "Company Black Sluice support"));
         return sim;
+    }
+
+    /** One named employer party on foot: armed with sidearms, vulnerable, and nobody's soldiers. */
+    private static int partySquad(BattleSimulation sim, MapResult map, int x, int y, List<String> names, String claim, String why) {
+        int squad = sim.mintSquad(Faction.ALLY, UnitType.TECHNICIAN);
+        var cells = pickSpawnCluster(map.grid, x, y, names.size());
+        for (int i = 0; i < names.size(); i++)
+            sim.spawn(new EntitySpec(names.get(i), Faction.ALLY, UnitType.TECHNICIAN, cells.get(i)[0], cells.get(i)[1])
+                    .squad(squad).role(UnitRole.PATROL));
+        sim.getSquad(squad).originalSize = names.size();
+        sim.claimSquadCommand(squad, CommandAuthority.MISSION_COMMAND, claim, why);
+        return squad;
     }
 
     /** Repair mobilization already ashore at the recovered basin, with optional reserve boats and one physical cargo carrier. */

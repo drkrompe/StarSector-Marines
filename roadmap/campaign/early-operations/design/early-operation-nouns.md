@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — A Small War at Black Sluice: ratified-route offer, the split, handover and once-only settlement.
+Updated: 2026-10-16 — Terms of Protection (frozen signed route, handover facts, Berth Four, deferred Boarding Jack entitlement); A Small War at Black Sluice (the split, handover, once-only settlement); District Escort.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -243,7 +243,8 @@ the approach and one supplier technician authenticates the calibration work.
 Company infantry must secure the records office, protect eight uninterrupted
 seconds of work there and in the separate calibration cage, then escort the
 physical, vulnerable calibration carrier to the western apron. The cage also
-requires the living technician. A finite Drent Haulage rearguard contests the exit;
+requires the living technician. A finite Drent Haulage rearguard contests the lane
+crossing every route out passes;
 killing every raider is not the victory condition. Return requires the archive,
 kit and surviving company presence. Loss of the load, or the technician before
 kit recovery, fails the attempt.
@@ -261,6 +262,10 @@ reward. No equipment is automatically issued. Victory opens **The Yard's Owners*
 At Latchkey Yard, company infantry captures the dispatch house, tooling hall and
 operator entrance. These gains can be recaptured. Eight employer constables take
 separate holding duties after company gains; two technicians support the inspection.
+When dispatch first falls, Voss's finite counterattack commits two groups: one by
+the Cinder Steps lane for the tooling hall's freight doors, one by the south
+service road for the operator entrance. The hall's only other door is the sealed
+gallery from that entrance (`agreus-latchkey.md`, The yard on the ground).
 Victory requires all three sites held together, the marked calibration machine
 surviving ordinary prop damage, and a living technician completing twelve protected
 seconds at the tooling with company infantry present. Eliminating all raiders does
@@ -294,9 +299,46 @@ ratification; the compact forgoes it. The route names the later district-escort
 contact (Rusk's office or Lenna's association), and under the compact Rusk records
 the company as an independent counterparty. These are records and disclosed
 payments only: no hidden virtue score, combat modifier or access penalty. Signing
-puts Terms of Protection in preparation, with Sera Voss's attributable warning; it
-is not deployable until that chapter exists. Chapter 4, the escort job and the arc's
-acceptance belong to `a-small-war.md`.
+opens **Terms of Protection** for Rusk at Latchkey.
+
+Terms of Protection is the signed route carried out on the ground. The route is
+frozen on the mobilization at launch, so a reload, a defeat or a replacement attempt
+fights under the agreement that was signed and never the other. Both routes bring the
+same employer core: two named representatives, two utilities technicians and a
+records carrier that moves only under company escort and stops when it has none or
+sees a threat. House Custody adds Rusk's estate guards on the Cinder Steps lane, the
+weak post of that route; the Yard Compact adds Lenna's fitters, who stay at the hall
+benches. Four constables hold the operator post on either route. The chapter's facts
+are separate and physical: the party **delivered** to the handover bay, the handover
+**signed** there by a living representative over a dispatch the company holds
+uncontested, the captured rig tooling **commissioned** by a living technician in the
+calibration room for 75 accumulated seconds with company infantry in the hall and no
+hostile inside it, every committed Greyhook assault **resolved**, and **ratification**
+by a representative still at the bay. Proximity signs nothing, interrupted work
+pauses rather than restarts, and the end of an attack ratifies nothing.
+
+Pell's Berth Four commit once commissioning is under way: two sections along the
+south road, each led by a crude powered rig on Boarding Jack numbers, and a mortar
+team that sets up in the terrace pit and shells the hall. The mortar is a findable
+position with an infantry approach, so counter-battery is a real answer; it withdraws
+once no assault it supports is alive. A second finite prize-crew party follows down
+the Cinder Steps lane. Warnings exist only from reports and sightings the player
+actually has: the first round landing, a member seen, a rig seen, the guards in
+contact. Losing the company, both representatives or the carrier fails the attempt,
+as does losing both technicians before the work is done; employer losses are
+recorded, never hidden. Withdrawal fails it too, and the signed route stands for a
+replacement mobilization with its confirmed losses stated in the brief.
+
+Victory pays 32,000 credits once, ratifies the launched route and records a
+once-only **Boarding Jack section entitlement** on either route. While the Boarding
+Jack pattern's presentation is pending its card is not issued at all: the
+entitlement is disclosed before launch as a deferred delivery and is placed in
+cargo once, at settlement or at a later game load, only after that presentation is
+declared. A card already held consumes it; sale or discard never renews it. The
+debrief records Rusk's account, the witnesses to the handover and the lead on Mika
+Drent's dispatch order that opens Chapter 5. Voss's warning and Rusk's family
+correspondence are text only. Chapter 5 and its acceptance belong to
+`a-small-war.md`.
 
 **A Small War** at Black Sluice is offered only under a ratified route, and its
 ground fight never depends on the frigate duel overhead: the duel, when it exists,
@@ -328,6 +370,30 @@ custody-party, holder and fuel-installation losses and opens a disclosed
 replacement mobilization. The closed dossier names the route; the debrief states
 company and employer losses before Castle's closing assessment and carries Voss's
 last line as unvoiced text.
+
+**District Escort** is the arc's recurring job. It is offered only once *A Small
+War* has settled (Chapter 5) under a ratified agreement, and only by that route's
+escort contact: Rusk's office under House Custody, or Lenna Saye's association
+under the compact, who then replaces Rusk as the Agreus contact. The two offices
+differ in letterhead, voice and the handover party's title; support, terms and fee
+are identical. Each posting is a finite two-squad escort on the Low Quay freight
+lane: the company links up with a fresh consignment and its two-person handover
+party at the loading lane, then covers both to the western apron, where four
+constables hold. Two raider pickets sit on the lane, and one finite raider group
+commits when the company comes down, through the north freight gate to the lane's
+crossing. The company screens either side of the lane rather than on it, and the
+party walks behind its load. Delivery needs the carrier, a living party
+member and company infantry together at the apron under cover; enemy casualties
+never stand in for it, and an absent company cannot win through the constables.
+Losing the load or both of the party, or withdrawing, ends the attempt unpaid.
+Every posting carries a new job and attempt identity, a new consignment and new
+people; the route is part of the identity, so an attempt under one agreement can
+never settle the other. The active attempt's own receipt settles once for 24,000
+credits. The job writes only its own ledger: it awards no named equipment, replays
+no ratification, pays no premium, and grants no house promotion, MRB tier,
+stationing contract or faction commission. The map reuses Low Quay through its
+public generator and solves the carrier's clearance route at setup, so the
+district's own layout may change without changing the job.
 
 A **story arc** is a finite sequence of authored operations for a named contact,
 with a problem, a resolution, and a visible completed record. A **chapter** is
