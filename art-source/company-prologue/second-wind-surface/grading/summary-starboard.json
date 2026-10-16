@@ -1,0 +1,84 @@
+{
+ "parts": {
+  "bay-door-stbd": {
+   "gunmetal": {
+    "share_as_declared": 0.934,
+    "share_in_declared_family": 0.987,
+    "swap": false,
+    "before_mean_lab": [
+     45.4,
+     1.6,
+     1.64
+    ],
+    "after_mean_lab": [
+     46.45,
+     1.05,
+     1.83
+    ],
+    "dE_to_palette_before": 1.2
+   },
+   "ramp_span_L_removed_max": 3.32,
+   "edge_band_dL_after_mean": 1.72
+  },
+  "belt-fore-stbd": {
+   "gunmetal": {
+    "share_as_declared": 0.959,
+    "share_in_declared_family": 0.989,
+    "swap": false,
+    "before_mean_lab": [
+     43.7,
+     1.18,
+     0.97
+    ],
+    "after_mean_lab": [
+     46.45,
+     1.05,
+     1.83
+    ],
+    "dE_to_palette_before": 2.89
+   },
+   "ramp_span_L_removed_max": 3.17,
+   "edge_band_dL_after_mean": 1.9
+  },
+  "bow-stbd-flank": {
+   "oxide": {
+    "share_as_declared": 0.962,
+    "share_in_declared_family": 0.962,
+    "swap": false,
+    "before_mean_lab": [
+     54.86,
+     27.31,
+     37.03
+    ],
+    "after_mean_lab": [
+     51.17,
+     18.92,
+     27.77
+    ],
+    "dE_to_palette_before": 13.03
+   },
+   "ramp_span_L_removed_max": 2.44,
+   "edge_band_dL_after_mean": -3.12
+  },
+  "belt-bow-stbd": {
+   "gunmetal": {
+    "share_as_declared": 0.961,
+    "share_in_declared_family": 0.986,
+    "swap": false,
+    "before_mean_lab": [
+     43.42,
+     1.33,
+     1.32
+    ],
+    "after_mean_lab": [
+     46.45,
+     1.05,
+     1.83
+    ],
+    "dE_to_palette_before": 3.08
+   },
+   "ramp_span_L_removed_max": 4.41,
+   "edge_band_dL_after_mean": 0.17
+  }
+ }
+}

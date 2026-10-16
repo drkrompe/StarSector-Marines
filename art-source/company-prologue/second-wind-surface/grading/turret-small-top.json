@@ -1,0 +1,116 @@
+{
+ "part": "turret-small-top",
+ "regions": {
+  "gunmetal": {
+   "pixels": 125707,
+   "share_as_declared": 0.797,
+   "share_in_declared_family": 1.0,
+   "came_back_as": {
+    "gunmetal": 0.797,
+    "dark": 0.193
+   },
+   "swap": false,
+   "before_mean_lab": [
+    38.78,
+    0.26,
+    0.67
+   ],
+   "after_mean_lab": [
+    46.45,
+    1.05,
+    1.83
+   ],
+   "gain_L_a_b": [
+    1.288,
+    1.5,
+    1.5
+   ],
+   "dE_to_palette_before": 7.8,
+   "forced_back_to_declared": false
+  },
+  "dark": {
+   "pixels": 792,
+   "share_as_declared": 0.99,
+   "share_in_declared_family": 1.0,
+   "came_back_as": {
+    "dark": 0.99
+   },
+   "swap": false,
+   "before_mean_lab": [
+    15.58,
+    -0.06,
+    0.55
+   ],
+   "after_mean_lab": [
+    18.79,
+    0.08,
+    -0.29
+   ],
+   "gain_L_a_b": [
+    1.147,
+    1.068,
+    1.34
+   ],
+   "dE_to_palette_before": 2.76,
+   "forced_back_to_declared": false
+  }
+ },
+ "planes": [
+  {
+   "pixels": 2491,
+   "ramp_span_L_removed": 5.0,
+   "ramp_dL_per_100px": [
+    -0.97,
+    45.9
+   ],
+   "edge_band_dL_after": null
+  },
+  {
+   "pixels": 2948,
+   "ramp_span_L_removed": 9.32,
+   "ramp_dL_per_100px": [
+    -1.42,
+    73.09
+   ],
+   "edge_band_dL_after": null
+  },
+  {
+   "pixels": 111457,
+   "ramp_span_L_removed": 6.38,
+   "ramp_dL_per_100px": [
+    -0.5,
+    -1.58
+   ],
+   "edge_band_dL_after": -2.45
+  },
+  {
+   "pixels": 1553,
+   "ramp_span_L_removed": 9.23,
+   "ramp_dL_per_100px": [
+    -11.46,
+    0.28
+   ],
+   "edge_band_dL_after": null
+  },
+  {
+   "pixels": 3603,
+   "ramp_span_L_removed": 13.47,
+   "ramp_dL_per_100px": [
+    12.3,
+    -1.91
+   ],
+   "edge_band_dL_after": null
+  },
+  {
+   "pixels": 2492,
+   "ramp_span_L_removed": 3.21,
+   "ramp_dL_per_100px": [
+    -0.95,
+    -21.22
+   ],
+   "edge_band_dL_after": null
+  }
+ ],
+ "ramp_span_L_removed_max": 13.47,
+ "edge_band_dL_after_mean": -2.45
+}

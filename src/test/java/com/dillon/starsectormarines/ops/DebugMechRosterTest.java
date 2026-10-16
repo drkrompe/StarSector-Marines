@@ -23,17 +23,17 @@ public class DebugMechRosterTest {
         assertEquals(101, first.count());
         MechSupport support = assertInstanceOf(MechSupport.class,
                 first.applyTo(List.of()).get(0));
-        assertEquals(26, support.maxCharges);
+        assertEquals(101, support.availableCalls());
         assertEquals(101, support.deployments().size());
         MechSupport restored = assertInstanceOf(MechSupport.class,
                 CommandPowerCommitment.capture(support).toPower());
-        assertEquals(26, restored.maxCharges);
+        assertEquals(101, restored.availableCalls());
         assertEquals(support.deployments(), restored.deployments());
         assertEquals(0, DebugMechRoster.randomized(-1, 42L).count());
     }
 
     @Test
-    public void configuredRosterReplacesPowerInPlaceAndSetsChargeCount() {
+    public void configuredRosterReplacesPowerInPlaceWithEveryMechAboard() {
         DebugMechRoster roster = DebugMechRoster.randomized(9, 7L);
         List<CommandPower> powers = roster.applyTo(
                 List.of(new ReconPing(), new MechSupport()));
@@ -41,7 +41,7 @@ public class DebugMechRosterTest {
         assertEquals(2, powers.size());
         assertInstanceOf(ReconPing.class, powers.get(0));
         assertInstanceOf(MechSupport.class, powers.get(1));
-        assertEquals(3, powers.get(1).maxCharges);
+        assertEquals(9, powers.get(1).availableCalls());
     }
 
     @Test

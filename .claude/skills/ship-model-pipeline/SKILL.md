@@ -143,6 +143,21 @@ owner has to point them out:
 Keep a `reference-history/` snapshot of the accepted blockout, so a later pass
 can be compared against it.
 
+Snapshot the reviewed state too (the Hound's `reference-history/v2-detail/`)
+before each round. A round that adds a camera renders that camera's "before"
+from the committed tree with `--cam`, because the committed driver doesn't
+have it yet.
+
+When feedback adds something that moves (a ramp, door, hatch or crane),
+build it closed. Parent its parts to one named empty at the pivot
+(`Hull aft ventral ramp hinge`) and store the open axis and sign, plus any
+contact angle, as custom properties on that empty. Add a driver flag that
+poses it for review renders. Put a 1.8 m scale figure behind a flag as well
+(`--figure`), so a person is placed against doors, windows and rails in a
+review render and never saved in the `.blend`. Feedback quoting a size in
+units ("a 2.8-unit person") may come from another hull's scale. Convert it
+through this hull's `metres_per_unit` and say so.
+
 ## Pass 4: real-world scale
 
 Each hull gets exactly one `metres_per_unit` value, published in
@@ -184,9 +199,17 @@ Report the plausible range. 55% usable is a freighter's share. A heavily
 armoured warship (armour rating in the thousands, many barbettes and their
 magazines) plausibly has less, about 35-45%; report the usable share the
 published scale implies beside the 55% solve, rather than quietly changing
-either. When a hull must match a scale another shot already assumes (the
-Legion was asked to keep Second Wind's 0.65 so relative sizes hold in
-frame), keep it and report the gap. Note that the battle-map landed-ship convention
+either.
+
+**Every hull gets its own real-life scale (owner, 2026-10-16).** Never borrow
+another hull's `metres_per_unit` to keep sprite proportions: vanilla sprites
+are not drawn to one scale, and a military carrier is meant to be massive
+beside a small freighter. Shots that put hulls together derive each length
+from that hull's own `geometry.json` and re-solve their framing when a figure
+changes. Fighters follow the same rule, sized from their cockpit (one or two
+seated 1.8 m figures with canopy clearance), weapons and engines, and
+sanity-checked against real aircraft of 12-22 m. Note that the battle-map
+landed-ship convention
 (`landed-ships-true-scale.md`) is about readability on the tactical map and
 is a different number.
 
@@ -239,11 +262,16 @@ surfacing package beside the geometry, never inside it.
   take a flat neutral fallback so coverage is honest.
 - **Review** at 1920x1080 with lit, albedo and part-id passes: coverage share,
   plus the step and tone across each part boundary.
-- **Pilot cost:** four generations for 16 parts (about 1 min each, run in
-  parallel), and 5 min of replay. Known gaps before a whole-hull rollout:
-  chamfers and bevel strips stretch under a square-on camera (give them
-  their own parts or swatches), and grading removes plate-to-plate variety
-  (add it back from an owned offset table in the wear layer).
+- **Cost.** The Second Wind's whole hull took 11 generations (62 parts, 22 of
+  them free reuses, plus one swatch sheet), about 1 min each in parallel, and
+  about 25 min of replay. Split the part table by group (`groups/<group>.py`,
+  `--group` on every script) so one subagent per group can author in parallel.
+- **Chamfers and variety.** Blend each part's material to its class swatch on
+  faces more than ~30 deg off its view (true normal, per pixel), so bevel
+  strips never stretch; restore plate-to-plate variety from an owned per-part
+  offset table applied as a material gain. One `skin` UV layer per object
+  (Blender caps meshes at eight layers). Fit de-light ramps with one intercept
+  per material class on a plane.
 - **Swatches.** Small parts and all damage/repair surfacing still use graded
   swatches. Never build a whole-ship six-view atlas. Wear placement stays in
   our masks.
