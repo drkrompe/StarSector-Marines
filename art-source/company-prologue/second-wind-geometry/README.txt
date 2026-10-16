@@ -26,7 +26,8 @@ XY locations: (-41,31), (-39,24), (-39,-24), (-41,-31).
 All four are at proposed Z=0. Outer pair is larger and slightly farther aft.
 Vanilla engine-slot widths 12:8 supply the 3:2 relative size of the nozzle
 mouths (radii 3.9 and 2.6). Effect widths are not
-treated as literal solid nozzle diameters. No metre scale is claimed.
+treated as literal solid nozzle diameters. Real-world scale is 0.65 m per
+unit (metres_per_unit in geometry.json; see second-wind-pipeline.md, Scale).
 Four weapon mount XY locations also follow that vanilla hull specification.
 
 V3 shell construction (detail passes, 2026-10-16)
