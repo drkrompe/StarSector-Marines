@@ -41,12 +41,16 @@ public final class AgreusMapsSnapshotSuite implements SnapshotSuite {
             add(context, frames, sim, "01-north-weir", "WATER UNDER SEAL / NORTH WEIR / seed 15301", 87, 57,
                     ReviewAnnotations.builder()
                             .box(14, 44, 36, 84, "SERVICE APRON / COMPANY LIFT", ReviewStyle.LANDING)
-                            .label(64, 59, "1 / DELIVER REPAIR LOAD", ReviewStyle.OBJECTIVE)
+                            .box(57, 56, 69, 62, "1 / ISOLATION BAY", ReviewStyle.OBJECTIVE)
                             .box(74, 68, 86, 78, "2 / NORTH SWITCH", ReviewStyle.OBJECTIVE)
                             .box(74, 35, 86, 45, "2 / SOUTH SWITCH", ReviewStyle.OBJECTIVE)
+                            .box(92, 67, 122, 80, "INTAKE PUMPS (NORTH SWITCH)", ReviewStyle.NOTE)
+                            .box(92, 33, 122, 50, "SETTLING TANKS (SOUTH SWITCH)", ReviewStyle.NOTE)
+                            .label(101, 57, "COVERED CONDUIT / CROSSINGS", ReviewStyle.NOTE)
                             .box(103, 84, 114, 94, "3 / CONSTRUCT ROAD GUN", ReviewStyle.KEEP)
-                            .arrow(35, 59, 61, 59, "ESCORT", ReviewStyle.APPROACH)
-                            .arrow(164, 90, 118, 90, "FINITE ROAD ATTACK", ReviewStyle.ROUTE).build());
+                            .arrow(35, 59, 56, 59, "ESCORT", ReviewStyle.APPROACH)
+                            .arrow(164, 90, 118, 90, "FINITE ROAD ATTACK", ReviewStyle.ROUTE)
+                            .arrow(150, 102, 118, 102, "FLANK TRACK", ReviewStyle.ROUTE).build());
         }
         try (var sim = BattleSetup.createLimitedWarrant(15302, lift, profile, false)) {
             add(context, frames, sim, "02-low-quay", "LIMITED WARRANT / LOW QUAY / seed 15302", 81, 59,

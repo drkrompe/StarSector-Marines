@@ -4,7 +4,7 @@ Status: DRAFT — original local setting direction on an existing vanilla world 
 
 Written: 2026-10-13
 
-Updated: 2026-10-15 — grounded Greyhook's outfit names; Voss's coalition frays as the arc's climax.
+Updated: 2026-10-16 — North Weir described as a two-circuit reclamation plant with a screened isolation bay.
 
 ## Scope and provenance
 
@@ -72,8 +72,17 @@ active district heating and buried service routes. Households remain woven throu
 industry; an enemy compound can sit beside somebody's livelihood.
 
 **North Weir** controls coolant diversion and power distribution to the basin.
-Maintenance roads connect protected switching rooms, enclosed channels and pumping
-housings. Losing it interrupts work, heat and essential services. Its importance
+It is a closed-circuit reclamation plant with two circuits: intake pump groups
+on one side and settling tanks with heat exchangers on the other, joined by a
+covered conduit that service crossings pass over. Each circuit answers to its own
+sealed switching room, so reopening one room restores one visible part of the
+works rather than an abstract half of a timer. Repair loads come in from the
+western service apron and dock in a screened bay at the conduit's head, between
+the isolation switch house and a crew shelter; both are entered through pressure
+vestibules, which is how the airless setting reads without any survival
+bookkeeping. The maintenance road enters past a checkpoint, with a service track
+along the outfall line as a second approach for anyone holding the road.
+Losing the weir interrupts work, heat and essential services. Its importance
 comes from the people and machinery it serves, not an unexplained strategic label.
 
 **Black Sluice** is the basin complex's outer fuel and dispatch apron. Protected
