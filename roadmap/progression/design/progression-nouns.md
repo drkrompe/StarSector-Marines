@@ -743,7 +743,7 @@ Issue*'s free choice, never offered as one of its paths. *Convoy Escort Issue*
 (rocket tubes and one Palisade pod) is listed at the route employer's market once
 Thunder Run opens the road. *Counter-Battery Issue* (two Arrestor packs and an
 anti-materiel rifle) is listed at every Hegemony open market once *A Cold Account*
-settles: Kord's nod, Advanced kit and no warrant. *Builder's Guard* (revetments and
+settles: Advanced kit, no warrant. *Builder's Guard* (revetments and
 Palisade pods) is listed at Asharu once the Morrow's Working Passage settles. Each
 listing comes from the arc's own once-only settlement and is laid only on a won
 beat; a settlement that cannot place it logs and moves on rather than unwinding a
@@ -751,6 +751,12 @@ payment. The cards also circulate like any other, because a card's pool weight i
 its templates' weight: Counter-Battery Issue reaches a Hegemony licence through the
 Arrestor pack, the others reach independent markets and licences. The listing is
 the guaranteed route; the pools are the fallback.
+**A card's identity is not about the company.** Its name and lore describe the kit
+as the wider sector knows it, typically an old licensed pattern or a schedule that
+is simply scarce, not a thank-you, a souvenir, or a record of the player's own
+battles. An arc unlocking a listing is a market event (a depot clears its shelves,
+a licence reaches the stalls) rather than a gift, and kit may appear that nobody on
+either side of a fight has worn.
 *Trench-Clearing Issue* (service rifles, rocket tubes and grenades) is the one arc
 card handed over rather than stocked: a won *Open the Junction*, the first assault
 on a dug-in position, puts one card in fleet cargo from Wayline's militia stores,
