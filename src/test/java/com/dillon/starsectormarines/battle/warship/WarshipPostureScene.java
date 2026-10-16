@@ -121,6 +121,8 @@ public final class WarshipPostureScene implements BehaviorScene {
         if (loop.equals("hostile-ship")) {
             enemy = Warship.fit("onslaught", "onslaught_Standard", Faction.DEFENDER, 140f, 70f, 90f);
             sim.addWarship(enemy);
+            // The hostile hull is here as a threat the posture reads; the duel is the frigate scenes' question.
+            sim.warships().holdHullFire(HullFireHold.untilReleased("scene: posture under a threat, not the duel"));
         }
         if (loop.equals("standoff")) {
             sim.warships().declareCapitalHazard(Faction.DEFENDER, HAZARD_X, SHIP_Y, HAZARD_RADIUS);

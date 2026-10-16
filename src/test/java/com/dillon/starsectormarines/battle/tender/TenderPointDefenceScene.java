@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.scene.Verdict;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.warship.HullFireHold;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipLoadout;
 import com.dillon.starsectormarines.battle.warship.WarshipOrder;
@@ -101,6 +102,8 @@ public final class TenderPointDefenceScene implements BehaviorScene {
         Warship hostile = Warship.fit(locusts(light ? 1 : SLOTS.length), Faction.DEFENDER, HOSTILE_X, HOSTILE_Y, -90f);
         hostile.limitOrdnance(light ? 0 : HEAVY_ROUNDS);
         sim.addWarship(hostile);
+        // The question is the wing against a missile swarm, not the hostile hull against the tender's.
+        sim.warships().holdHullFire(HullFireHold.untilReleased("scene: point defence, not ship against ship"));
         Trace trace = new Trace(tender);
         TickObserver script = (s, tick) -> {
             if (tick == VOLLEY_TICK) {
