@@ -1,0 +1,15 @@
+{
+  "derived_from": "heg-flotilla-mid-v2.png",
+  "guide": "../guides/flotilla-mid.png",
+  "reason": "ImageGen honoured heading but drifted scale/placement of the capital group (Onslaught painted about 1.5x the guide; upper Dominator about 13 frame px high). No regeneration: each of the three painted hulls was cut out by its alpha component and fitted onto its guide hull with one uniform scale and a translation (alpha centroid to guide centroid). No pixels were repainted.",
+  "method": "result resized 1672x940 -> 1728x972 (guide size, Lanczos); per-hull uniform scale = mean of guide/result bbox width and height ratios; Lanczos resample",
+  "per_hull": [
+    {"hull": "onslaught", "scale": 0.660},
+    {"hull": "dominator (upper)", "scale": 0.873},
+    {"hull": "dominator (lower)", "scale": 0.800}
+  ],
+  "registration_iou_vs_guide": 0.859,
+  "size": [1728, 972],
+  "frame_window_px": [247, 148, 823, 472],
+  "guide_scale": 3
+}

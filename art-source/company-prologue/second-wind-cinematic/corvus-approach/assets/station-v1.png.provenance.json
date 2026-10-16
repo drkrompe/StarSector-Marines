@@ -1,0 +1,53 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a145bd-eda2-7821-ab9e-c5f7cc9dc714",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a145bd-eda2-7821-ab9e-c5f7cc9dc714\\exec-e9587a2e-512b-4c1a-8ed7-6b4500a43c9a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\assets\\station-v1.png",
+    "sha256": "289188e904e77400a0aa53c39aa392d41905b795eb39117e21396a15227c0514",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\prompts\\station-v1.txt",
+  "promptSha256": "fbe4801698d1ef34fab07ce09c27a1e8dbe711064c229a3ba2d01d886010a050",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity only: station plan, stacked-disc silhouette, spire, teal-lit lower rings, livery colours. Not the pose, lighting or rendering style.\nImage 2: Material/surface style only (weathered photoreal metal); not layout, not subject\n\nAsset: Jangala Station, the Hegemony's huge orbital station over the jungle world Jangala, as one transparent compositing layer for a grounded, photographic science-fiction cinematic (Starsector). Portrait canvas, highest resolution.\n\nIdentity (reference 1): keep the station's plan and silhouette: a tall vertical spindle of stacked, wide, flat disc decks of differing diameters (a broad upper disc, two mid discs, a broad lower-middle disc), a narrow command spire with antenna mast on top, a tapering lower section of many thin stacked rings glowing teal-cyan from within, and a small cluster of machinery at the very bottom tip. Grey-gunmetal and dull olive-yellow Hegemony industrial plating.\n\nPose: a real, massive structure seen in three-quarter view from slightly above. The camera is high over the orbital plane looking slightly down, so every disc deck reads as a shallow ellipse with its top surface visible, and the spindle has true depth and perspective. Spindle axis vertical in frame, whole station in frame with a small margin.\n\nDetail that must read when the whole station is shown about 280 pixels tall: rows of small warm lit windows along deck rims; two or three docking arms reaching out from the mid decks with a couple of small blocky cargo ships berthed; dark folded heat-radiator panels; antenna dishes and comm masts; pipework, gantries, panel seams; Hegemony industrial weathering, scorch streaks and grime; the teal lower rings glowing as structured lit bands, not a blur.\n\nLighting: hard yellow-white sunlight from the upper left; shadow sides fall to the lower right with deep but not crushed shadow; faint cool blue planet-shine fill from below on downward-facing surfaces. No lens flares, bloom halos or glow spilling onto the background.\n\nLook: tactile, weathered industrial metal, believable enormous scale, restrained colour, photoreal; not toy-like, low-poly, cartoon or illustrated.\n\nTrue transparent background (alpha), including the negative spaces between decks and arms. No planet, stars, nebula, space backdrop, other ships outside the docks, ground, shadow slab, border, frame or text; those are separate layers.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Program Files (x86)\\Fractal Softworks\\Starsector\\starsector-core\\graphics\\stations\\station_jangala.png",
+      "sha256": "83a24d801892049b80e2e0e5794b3c4c3abcc6c31c47da6bce7e8bbe7949a6b9",
+      "dimensions": [
+        260,
+        260
+      ],
+      "mode": "RGBA",
+      "role": "Identity only: station plan, stacked-disc silhouette, spire, teal-lit lower rings, livery colours. Not the pose, lighting or rendering style."
+    },
+    {
+      "path": "art-source\\company-prologue\\second-wind-design-v3.reference.png",
+      "sha256": "cc7258bbc8bd08bacd304dfef26e19eacd341b8bbecffb3ca698c35b4178a728",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material/surface style only (weathered photoreal metal); not layout, not subject"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent station image using the first reference for identity and the second for weathered metal surfaces."
+  ],
+  "usage": {
+    "input_tokens": 40163,
+    "cached_input_tokens": 31872,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 705,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 65.2
+}

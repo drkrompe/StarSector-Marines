@@ -1,0 +1,32 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "thread": "01a145bd-e45e-7fb3-9edb-eda91b1a3ca6",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a145bd-e45e-7fb3-9edb-eda91b1a3ca6\\exec-b71f8487-d4b6-4670-b36a-3ebe60421423.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\assets\\planet-clouds-v1.png",
+    "sha256": "c75862dc4e312abd4f8696d53cb8c977c0e70f294a5e7de75a5830f03e5eefcc",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\corvus-approach\\prompts\\planet-clouds-v1.txt",
+  "promptSha256": "8c57520daca808c9b01e0e7ee2377023b73a3186554ce3fdf5d9f66a2cec9931",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAsset: an equirectangular (2:1, plate carree) cloud cover map for the jungle ocean world Jangala, used as the alpha/colour of a cloud layer on a 3D sphere in Blender. Exactly 2:1 landscape canvas, highest resolution available, full bleed, flat orthographic map projection, nothing else in the frame.\nContent: white and light-grey clouds on PURE BLACK. Black (#000000) means clear sky and must be completely black with no texture, no land, no ocean, no colour anywhere. Cloud brightness encodes cloud density: thick cloud near white, thin wisps grey. Greyscale only.\nWeather: a stormy tropical world with severe weather. One large, well-formed cyclone with tight spiral arms and a clear eye in the northern mid-latitudes, right of centre; one smaller developing storm swirl elsewhere. Several long sweeping frontal cloud bands curving across the mid-latitudes in both hemispheres, broken cumulus fields and popcorn convection scattered over the tropics, streaky cirrus, and some large clear gaps. Roughly 40-50% coverage overall, natural and varied, like a real satellite cloud composite.\nProjection: equirectangular, so features stretch horizontally only near the top and bottom rows; no globe curvature, no vignette. The left and right edges must continue seamlessly into each other (wrap-around tileable horizontally).\nFlat and unlit: no shading direction, no shadows, no terminator. No text, grid, borders, legend or watermark.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one seamless greyscale cloud map with the image_gen tool, then stop."
+  ],
+  "usage": {
+    "input_tokens": 35311,
+    "cached_input_tokens": 29568,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 484,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 57.2
+}

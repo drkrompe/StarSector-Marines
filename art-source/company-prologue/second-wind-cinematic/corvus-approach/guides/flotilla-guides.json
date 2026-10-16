@@ -1,0 +1,150 @@
+{
+  "frame": [
+    1920,
+    1080
+  ],
+  "scale": 3,
+  "window_frame_px": [
+    247,
+    148,
+    823,
+    472
+  ],
+  "window_centre_frame_px": [
+    535.0,
+    310.0
+  ],
+  "guide_px": [
+    1728,
+    972
+  ],
+  "heading_world": [
+    -0.7219882011413574,
+    -0.6919053196907043,
+    0.0
+  ],
+  "pitch_deg": 44.0,
+  "hulls": [
+    {
+      "layer": "mid",
+      "class": "onslaught",
+      "frame_box": [
+        384.1,
+        287.4,
+        513.8,
+        369.0
+      ],
+      "longest_px": 129.7
+    },
+    {
+      "layer": "mid",
+      "class": "dominator",
+      "frame_box": [
+        448.9,
+        383.5,
+        529.4,
+        438.5
+      ],
+      "longest_px": 80.5
+    },
+    {
+      "layer": "mid",
+      "class": "dominator",
+      "frame_box": [
+        396.4,
+        210.8,
+        471.2,
+        258.4
+      ],
+      "longest_px": 74.8
+    },
+    {
+      "layer": "far",
+      "class": "eagle",
+      "frame_box": [
+        583.7,
+        236.4,
+        637.4,
+        269.8
+      ],
+      "longest_px": 53.7
+    },
+    {
+      "layer": "far",
+      "class": "eagle",
+      "frame_box": [
+        698.4,
+        258.2,
+        752.0,
+        292.2
+      ],
+      "longest_px": 53.6
+    },
+    {
+      "layer": "far",
+      "class": "eagle",
+      "frame_box": [
+        578.7,
+        154.0,
+        630.4,
+        185.1
+      ],
+      "longest_px": 51.7
+    },
+    {
+      "layer": "far",
+      "class": "enforcer",
+      "frame_box": [
+        768.9,
+        277.0,
+        804.5,
+        300.3
+      ],
+      "longest_px": 35.6
+    },
+    {
+      "layer": "far",
+      "class": "enforcer",
+      "frame_box": [
+        722.8,
+        187.0,
+        757.1,
+        208.5
+      ],
+      "longest_px": 34.3
+    },
+    {
+      "layer": "far",
+      "class": "enforcer",
+      "frame_box": [
+        646.3,
+        156.0,
+        680.1,
+        177.0
+      ],
+      "longest_px": 33.8
+    },
+    {
+      "layer": "far",
+      "class": "lasher",
+      "frame_box": [
+        655.0,
+        242.1,
+        675.3,
+        254.7
+      ],
+      "longest_px": 20.3
+    },
+    {
+      "layer": "far",
+      "class": "lasher",
+      "frame_box": [
+        621.9,
+        202.5,
+        642.0,
+        214.7
+      ],
+      "longest_px": 20.1
+    }
+  ]
+}
