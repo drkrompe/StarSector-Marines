@@ -1,7 +1,7 @@
 # Armor drop selection
 
 Status: PLANNED — vehicles in the bay shipped (`mechs-nouns.md`, gantries); lift
-limits from `heavy-lift-fittings.md`.
+limits from `air-nouns.md` (Lift; `LiftAdmission` is the check to spend against).
 Written: 2026-10-16
 
 Direction: `heavy-equipment-progression.md`. Models: `mechs-nouns.md` (Mech
