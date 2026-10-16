@@ -87,6 +87,10 @@ public final class CapabilityProfile {
                 add(sums, AssaultCapability.AIR_DIRECTION, 1f, Float.POSITIVE_INFINITY);
                 continue;
             }
+            if (arm.delivery() == Delivery.SCREEN) {
+                add(sums, AssaultCapability.SMOKE_SCREEN, 1f, arm.triggers());
+                continue;
+            }
             float perSecond = arm.roundsPerTrigger() / arm.cycleSeconds();
             float triggers = arm.triggers();
             boolean arcs = arm.delivery() == Delivery.INDIRECT || arm.delivery() == Delivery.EMPLACED;
