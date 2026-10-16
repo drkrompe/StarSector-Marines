@@ -955,6 +955,11 @@ the round visibly flying on. The frame worth building the whole feature for is a
 five-round salvo where three die and two arrive, and that frame only means
 anything if a viewer can tell those two apart.
 
+What is drawn is the engagement, not the coverage. No ring marks the ground a
+pod or a pack covers: a standing circle around every mount and every pack
+wearer clutters the field and says nothing a player acts on, while the moment a
+mount fires, connects or misses is the thing to see.
+
 The first deployable is the **Palisade interceptor pod**: a folding cluster gun
 a marine sets down where they are standing, which shoots down incoming warheads
 crossing its bubble until its rounds or its cell run out. Placement is a short

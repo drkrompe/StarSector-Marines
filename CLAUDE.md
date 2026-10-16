@@ -1309,7 +1309,7 @@ and drains the same simulation lists `BattleScreen.advance` does.
 | Missile and projectile contrails (`ContrailFxService`) | Drawn as flat-coloured ribbon segments through the shared `RibbonBatch` geometry; additive plume styles draw as ordinary blends |
 | Lingering beams and delivered-ordnance traces (falling bombs, gun-run streaks) | Drawn |
 | Weapon `fx` blocks: launch, muzzle, trail, impact, aftermath; heavy blasts, rolling blasts, wall dust, wreck smoke and fire; point-defence intercept bursts | Drawn from the real `ImpactFx` fed per tick, painted over the frame |
-| Smoke clouds, shield domes, point-defence bubbles, demolition packs, tender sites | Drawn (shield domes by the CPU model of their shader, in blocks) |
+| Smoke clouds, shield domes, point-defence engagement marks, demolition packs, tender sites | Drawn (shield domes by the CPU model of their shader, in blocks) |
 | Night lighting pools | Drawn. Muzzle, impact and fire lights (`GroundLightService`) are not fed, so a night battle's shots do not light the ground |
 | Capture-point rings and ticks, objective annuli | Drawn |
 | Objective, compound and fort **text** labels (GL bitmap font runnables) | Not drawn; reviews name places with `ReviewAnnotations`. Mission-marker and salvage cards are drawn as labels but the mission layer is left out on purpose |
