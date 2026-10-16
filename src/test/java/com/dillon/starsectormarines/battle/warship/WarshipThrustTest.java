@@ -85,4 +85,21 @@ class WarshipThrustTest {
     void withNoPushDirectionEveryNozzleBurnsAlike() {
         assertEquals(1f, WarshipThrust.slotShare(0f, 0f, 37f), 1e-6f);
     }
+
+    @Test
+    void aCruisingShipBarelyGlowsAboveItsHover() {
+        assertTrue(WarshipThrust.CRUISE_LEVEL - WarshipThrust.IDLE_LEVEL <= 0.15f);
+        assertTrue(WarshipThrust.TURN_LEVEL > WarshipThrust.CRUISE_LEVEL);
+        assertTrue(WarshipThrust.TURN_LEVEL < 1f);
+    }
+
+    @Test
+    void aTurnWorksTheNozzlesOnItsOutsideHarder() {
+        // A counter-clockwise turn is driven by the nozzles to +x of the hull's axis.
+        assertTrue(WarshipThrust.turnShare(1f, 1f) > 1f);
+        assertTrue(WarshipThrust.turnShare(1f, -1f) < 1f);
+        assertEquals(WarshipThrust.turnShare(1f, 1f), WarshipThrust.turnShare(-1f, -1f), 1e-6f);
+        assertEquals(1f, WarshipThrust.turnShare(0f, 0.8f), 1e-6f);
+        assertEquals(1f, WarshipThrust.turnShare(0.7f, 0f), 1e-6f);
+    }
 }

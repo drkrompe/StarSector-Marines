@@ -166,6 +166,8 @@ public final class UnitShadowRenderSystem implements RenderSystem {
      * in a tight framing.
      */
     static final float WARSHIP_SHADOW_ALTITUDE_CELLS = 16f;
+    /** How high a landed hull stands over its berth, for its shadow: a deck or two, on its cradle. */
+    static final float BERTHED_SHADOW_ALTITUDE_CELLS = 1.5f;
 
     /** A capital's silhouette: a little denser than a shuttle's, because it is a great deal more hull. */
     private static final float WARSHIP_SHADOW_ALPHA = 0.5f;
@@ -231,31 +233,36 @@ public final class UnitShadowRenderSystem implements RenderSystem {
         float cellPx = cam.cellPxSize();
         float baseAlpha = ctx.alphaMult * WARSHIP_SHADOW_ALPHA * sun.shadowStrength();
         for (Warship ship : ships) {
-            ShuttleSpriteCache hull = sprites.spriteByPath(ship.lowHoverWidth() > 0f
-                    ? "graphics/tilesets/shepherd-recovery.png" : ship.spritePath);
+            ShuttleSpriteCache hull = ship.lowHoverWidth() > 0f
+                    ? sprites.spriteByPath("graphics/tilesets/shepherd-recovery.png") : GroundHullArt.sprite(sprites, ship);
             if (hull == null) continue;
             // A ship dropping through the deck, or climbing back into it, casts from higher up: the
             // shadow lies further down-sun, softer and thinner, and closes on the hull as it settles.
             float lift = WarshipAtmosphere.lift(ship.entrySeconds(), ship.climbSeconds(), ship.departing());
             // On a low pass it skims: the shadow lies close under the hull, sharp and dense.
             LowPass pass = ship.lowPass();
-            float skim = ship.lowHovering() ? 1f : pass == null ? 0f : pass.blend();
+            // A berthed hull sits on its cradle, its shadow tight under it; lifting, the shadow draws out.
+            float landed = 1f - ship.liftProgress();
+            float skim = ship.lowHovering() ? 1f : Math.max(landed, pass == null ? 0f : pass.blend());
+            float body = ship.bodyScale();
             float reach = sun.reachCells(WarshipAtmosphere.altitudeCells(
                     WARSHIP_SHADOW_ALTITUDE_CELLS * WarshipAtmosphere.passShadowAltitudeFactor(skim), lift));
+            // Sitting on its cradle a hull is the height of its own decks, and its shadow lies against it.
+            if (landed > 0f) reach += (sun.reachCells(BERTHED_SHADOW_ALTITUDE_CELLS) - reach) * landed;
             float alpha = baseAlpha * WarshipAtmosphere.shadowDensity(lift)
                     * WarshipAtmosphere.passShadowDensityFactor(skim);
             float soft = WarshipAtmosphere.passShadowSoftness(WarshipAtmosphere.shadowSoftness(lift), skim);
             float rad = (float) Math.toRadians(ship.facingDegrees);
             float c = (float) Math.cos(rad);
             float s = (float) Math.sin(rad);
-            float shadowX = ship.x + (ship.pivotX * c - ship.pivotY * s) - sun.dirX() * reach;
-            float shadowY = ship.y + (ship.pivotX * s + ship.pivotY * c) - sun.dirY() * reach;
+            float shadowX = ship.x + body * (ship.pivotX * c - ship.pivotY * s) - sun.dirX() * reach;
+            float shadowY = ship.y + body * (ship.pivotX * s + ship.pivotY * c) - sun.dirY() * reach;
             if (ship.lowHoverWidth() > 0f) {
                 shadowX = ship.x - sun.dirX() * reach;
                 shadowY = ship.y - sun.dirY() * reach;
             }
-            if (!view.visible(shadowX, shadowY, ship.lengthCells * Math.max(1f, hull.aspect))) continue;
-            float pxH = (ship.lowHoverWidth() > 0f ? ship.lowHoverWidth() : ship.lengthCells) * cellPx;
+            if (!view.visible(shadowX, shadowY, body * ship.lengthCells * Math.max(1f, hull.aspect))) continue;
+            float pxH = (ship.lowHoverWidth() > 0f ? ship.lowHoverWidth() : ship.lengthCells * body) * cellPx;
             float aspect = ship.lowHoverWidth() > 0f ? ship.lowHoverHeight() / ship.lowHoverWidth() : hull.aspect;
             if (soft < 0.02f) {
                 emit(out, hull.sprite, cam, shadowX, shadowY, pxH * aspect, pxH,

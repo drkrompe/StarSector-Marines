@@ -29,17 +29,21 @@ public final class BlackSluiceDuel implements SmallWarDuel {
 
     private static final Logger LOG = Global.getLogger(BlackSluiceDuel.class);
 
-    /** Where the rig stands over the pier, and where its escorts stand off its flanks. */
-    static final float RIG_X = 172f, RIG_Y = 56f;
-    static final float[][] HOUND_POSTS = {{164f, 44f}, {164f, 68f}};
+    /**
+     * Where the rig and its escorts sit: landed in the docking compound at true scale
+     * ({@code landed-ships-true-scale.md}), the rig in the cradle and a Hound in each berth beside it. They lift when
+     * Voss orders the withdrawal, and their bodies ease to flight scale as they climb.
+     */
+    static final float RIG_X = BlackSluice.VENTURE_CRADLE.x(), RIG_Y = BlackSluice.VENTURE_CRADLE.y();
+    static final List<BlackSluice.Berth> HOUND_BERTHS = BlackSluice.HOUND_BERTHS;
     /**
      * Where the Wolfs drop through the cloud deck: inland of the pier, over the company's side of the basin. Ships in
      * atmosphere are heavy, so this is about seventy-five cells out rather than a hundred: from a hundred the rig and
      * its screen climbed out before the Wolfs' guns reached them, and from fifty the screen and the rig both fell.
      */
-    static final float[][] WOLF_ENTRIES = {{95f, 36f}, {95f, 76f}};
-    /** The rig's way out: off the pier's seaward end and over the east edge. */
-    static final float[][] CLIMB_ROUTE = {{186f, 66f}, {BlackSluice.WIDTH + 4f, 78f}};
+    static final float[][] WOLF_ENTRIES = {{RIG_X - 77f, 36f}, {RIG_X - 77f, 76f}};
+    /** The rig's way out: up out of its cradle, over the compound's east wall and the east edge. */
+    static final float[][] CLIMB_ROUTE = {{RIG_X + 14f, RIG_Y + 2f}, {BlackSluice.WIDTH + 4f, RIG_Y + 14f}};
     /** Seconds without a hostile hull over the battle before the Wolfs leave. */
     static final float WOLF_DWELL_SECONDS = 10f;
 
@@ -53,14 +57,16 @@ public final class BlackSluiceDuel implements SmallWarDuel {
     public void stage(BattleSimulation sim) {
         if (rig != null) throw new IllegalStateException("The duel is staged once");
         try {
-            rig = Warship.fit("crig", "crig_Standard", Faction.DEFENDER, RIG_X, RIG_Y, 90f);
-            rig.stationTo(RIG_X, RIG_Y);
+            rig = Warship.fit("crig", "crig_Standard", Faction.DEFENDER, RIG_X, RIG_Y, BlackSluice.VENTURE_CRADLE.facing());
+            rig.berth(RIG_X, RIG_Y);
             rig.limitFlux();
             rig.groundFire(Warship.GroundFire.HOLD);
-            for (float[] post : HOUND_POSTS) {
-                Warship hound = quiet(Warship.fit("hound_d_pirates", "hound_d_pirates_Standard", Faction.DEFENDER,
-                        post[0], post[1], 90f));
-                hound.escort(rig);
+            for (BlackSluice.Berth berth : HOUND_BERTHS) {
+                Warship hound = Warship.fit("hound_d_pirates", "hound_d_pirates_Standard", Faction.DEFENDER,
+                        berth.x(), berth.y(), berth.facing());
+                hound.berth(berth.x(), berth.y());
+                hound.limitFlux();
+                hound.groundFire(Warship.GroundFire.HOLD);
                 hounds.add(hound);
             }
         } catch (Exception e) {
@@ -89,6 +95,11 @@ public final class BlackSluiceDuel implements SmallWarDuel {
         if (ordered || rig == null) return;
         ordered = true;
         rig.climbOut(CLIMB_ROUTE, BlackSluice.WIDTH, BlackSluice.HEIGHT);
+        // The escorts lift out of their berths and take up their screen.
+        for (Warship hound : hounds) {
+            hound.lift();
+            quiet(hound).escort(rig);
+        }
         try {
             for (float[] entry : WOLF_ENTRIES) {
                 Warship wolf = quiet(Warship.fit("wolf_hegemony", "wolf_hegemony_Assault", Faction.ALLY,

@@ -1,11 +1,16 @@
 # Second Wind arrival cinematic
 
-The current sequence is **space -> entry -> forest -> fields -> port -> landing**.
-Start with the [28-second sequence review](arrival-sequence/README.md) and its
-[movie](arrival-sequence/review/jangala-space-to-berth.mp4). These are short silent
-editorial excerpts, not a continuous 28-second physical descent or runtime
-integration. The [storyboard](storyboard-v2.txt) retains the longer story and voice
-planning; later shot notes document accepted camera changes.
+**Direction: [storyboard v3](storyboard-v3.md)** (draft). The arrival is being
+rebuilt image-first: layered high-resolution stills animated only by parallax and
+push-in, with each shot kept only if it pays off for the story or the player. It
+adds a voiced Hegemony traffic-control hail over the space shots.
+[Storyboard v2](storyboard-v2.txt) is superseded.
+
+The packages below are the earlier animated sequence (**space -> entry -> forest
+-> fields -> port -> landing**), reviewed in the
+[28-second sequence](arrival-sequence/README.md) and its
+[movie](arrival-sequence/review/jangala-space-to-berth.mp4). v3's salvage table
+says which of them feed the new plates.
 
 ## Current work
 

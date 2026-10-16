@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — hostile hulls fight each other by default in every mission (`ShipFireOrder.AUTO`), a mission may hold hull fire until a story beat or condition, and a ship takes its duel footing when it first turns on a hull; earlier the same day the ship-against-ship model shipped for a-small-war Chapter 5 (rationale in `warship-behaviours.md`).
+Updated: 2026-10-16 — a landed ship is drawn at true scale and eases to flight presence as it lifts; earlier the same day hostile hulls fight each other by default in every mission (`ShipFireOrder.AUTO`), a mission may hold hull fire until a story beat or condition, and a ship takes its duel footing when it first turns on a hull; earlier the same day the ship-against-ship model shipped for a-small-war Chapter 5 (rationale in `warship-behaviours.md`).
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1798,12 +1798,21 @@ nothing to the player. This is presentation only and changes nothing it can fire
 
 **A warship burns the engines its hull lists and casts a shadow from high up.**
 Each nozzle the hull spec places (position, flame direction, length, width and
-engine style, in the same hull frame as its gun slots) burns in the game's own
-engine colour for that style, and how hard it burns is read back off the motion
-the simulation gave the ship: a low glow hovering, long and bright while it
-accelerates (aft nozzles hardest when pushed ahead, side nozzles when pushed
-across), steady at cruise, dimmed while braking onto a station. Nothing about
-this feeds the simulation. The ship's shadow is its own hull sprite laid on the
+engine style, in the same hull frame as its gun slots) burns in a muted,
+heat-whitened take on the game's engine colour for that style, and how hard it
+burns is read back off the motion the simulation gave the ship: a low glow
+holding the hull up, barely more at cruise, a modest flare while it accelerates
+or comes about (aft nozzles hardest when pushed ahead, side nozzles when pushed
+across, the nozzles on the outside of a turn harder than those inside it),
+dimmed while braking onto a station. **In atmosphere the exhaust is hot air, not
+a torch (standing, owner, 2026-10-16):** a flame is the nozzle's authored length
+at the shared density, never grown by the hull's presence, capped at about a
+third of the hull's own length, with a faint haze of worked air astern of it, so
+a cruising ship of the line trails a few cells of glow rather than a burn longer
+than itself. Only the climb out through the cloud deck and a low pass's wake are
+louder, and even those are a hull or two of hot air astern; the plasma streak of
+a re-entry is the air burning, not exhaust. Nothing about this feeds the
+simulation. The ship's shadow is its own hull sprite laid on the
 ground down-sun by the sun's reach at a presentational hover height, higher than
 an aircraft's, through the same shadow layer, sun and tint every craft uses. Like
 an aircraft's, that height is a drawing choice and not a physical altitude.
@@ -2390,6 +2399,23 @@ Physical departure means propulsion carried that whole hull beyond the map;
 timeout removal is a separate ending and cannot satisfy a mission's departure
 award. `early-operation-nouns.md` owns Working Passage's company gates, militia
 holds, critical abort, recovery and once-only fleet transfer.
+
+A mission may instead **land** a warship in a berth (`landed-ships-true-scale.md`).
+A landed ship is drawn at **true scale** beside infantry, on the grounded Shepherd's
+convention of 0.26 cells per vanilla hull pixel (about 5.8 times the shared air
+density): a Hound is about nineteen cells long, a Venture about fifty. It is a
+cold ground object: no plume, guns stowed, drawn among the vehicles, its shadow
+tight under it, holding its berth. It is still a live warship with its flight
+fitting: hit shape, slots and shield stay at flight scale, which is sound only
+because nothing engages a berthed hull (infantry fire never reaches a hull, and a
+mission that lands ships holds hull fire until it lifts them). **Lifting is one
+body eased between two regimes**: from the lift, the drawn body eases by smoothstep
+to flight presence over a few seconds while the shadow draws out from under it,
+the berth's grit blows out and the guns run out, so a ship climbing out never
+changes size at once. The ease is a ratio to whatever `HULL_PRESENCE` is in force.
+A hull with a remaster (`art-source/ships/`) draws it in both regimes, so detail
+does not change at liftoff either; the berth itself (a sunken, see-through,
+unwalkable well) is the mission map's.
 
 ### Authored structural bombardment
 
