@@ -34,6 +34,9 @@ public final class MechWorkshop {
         if (!bay.canInstallWeapon(mechId, slot, component.id)) {
             return Result.of(Status.INCOMPATIBLE);
         }
+        if (!bay.withinBudget(mechId, mech.fit().withWeapon(slot, component))) {
+            return Result.of(Status.OVER_BUDGET);
+        }
         if (bay.availableWeapon(component.id) > 0) {
             return bay.installWeapon(mechId, slot, component.id)
                     ? Result.of(Status.INSTALLED_FROM_STORES) : Result.of(Status.INVALID);
@@ -48,6 +51,43 @@ public final class MechWorkshop {
             throw new IllegalStateException("validated fabricated component could not be installed");
         }
         return Result.of(Status.FABRICATED_AND_INSTALLED);
+    }
+
+    /**
+     * Fits one internal, from stores when a free assembly exists and otherwise fabricated
+     * against its pattern. Socket, budget, pattern and cargo are all checked before anything
+     * is spent; the outgoing part returns to stores.
+     */
+    public Result fitInternal(String mechId, MechInternal internal) {
+        CampaignMech mech = bay.mechById(mechId);
+        if (mech == null || internal == null) return Result.of(Status.INVALID);
+        if (mech.internal(internal.role) == internal) return Result.of(Status.ALREADY_INSTALLED);
+        if (!bay.canInstallInternal(mechId, internal)) return Result.of(Status.INCOMPATIBLE);
+        if (!bay.withinBudget(mechId, mech.fit().withInternal(internal.role, internal))) {
+            return Result.of(Status.OVER_BUDGET);
+        }
+        if (bay.availableInternal(internal.id) > 0) {
+            return bay.installInternal(mechId, internal)
+                    ? Result.of(Status.INSTALLED_FROM_STORES) : Result.of(Status.INVALID);
+        }
+        if (!bay.canFabricate(internal)) return Result.of(Status.PATTERN_LOCKED);
+        MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.internal(internal);
+        if (recipe == null || !resources.spend(resources.quote(recipe.cost()))) {
+            return Result.of(Status.INSUFFICIENT_MATERIALS);
+        }
+        bay.addInternal(internal.id, 1);
+        if (!bay.installInternal(mechId, internal)) {
+            throw new IllegalStateException("validated fabricated internal could not be installed");
+        }
+        return Result.of(Status.FABRICATED_AND_INSTALLED);
+    }
+
+    /** Empties the optional utility socket; nothing else on a frame can be left empty. */
+    public Result stripCooler(String mechId) {
+        CampaignMech mech = bay.mechById(mechId);
+        if (mech == null) return Result.of(Status.INVALID);
+        if (mech.internal(MechInternal.Role.COOLER) == null) return Result.of(Status.ALREADY_STRIPPED);
+        return bay.stripCooler(mechId) ? Result.of(Status.STRIPPED) : Result.of(Status.INVALID);
     }
 
     public Result stripWeapon(String mechId, MechMountSlot slot) {
@@ -96,6 +136,8 @@ public final class MechWorkshop {
         ALREADY_STRIPPED,
         CHASSIS_FABRICATED,
         INCOMPATIBLE,
+        /** The fit would weigh more than the engine can carry. */
+        OVER_BUDGET,
         INSUFFICIENT_MATERIALS,
         LANCE_FULL,
         PATTERN_LOCKED,

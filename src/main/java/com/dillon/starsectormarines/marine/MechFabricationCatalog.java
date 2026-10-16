@@ -34,12 +34,34 @@ public final class MechFabricationCatalog {
             chassis(MechVariant.SIROCCO, "@gearFabricationSupportChassisStandardFit", 95, 75, 175, 20),
             chassis(MechVariant.BULWARK, "@gearFabricationHeavyChassisStandardFit", 140, 110, 260, 36));
 
+    /** Stock parts are built too: a replacement plate or engine is still an assembly. */
+    private static final List<Recipe> INTERNALS = List.of(
+            internal(MechInternal.INDUSTRIAL_ENGINE, "@gearFabricationStandardIssue", 14, 10, 24, 2),
+            internal(MechInternal.UPRATED_ENGINE, "@gearFabricationMilitaryPattern", 24, 18, 34, 6),
+            internal(MechInternal.MILITARY_ENGINE, "@gearFabricationMilitaryPattern", 34, 26, 44, 12),
+            internal(MechInternal.FACTORY_PLATING, "@gearFabricationStandardIssue", 6, 4, 30, 1),
+            internal(MechInternal.COMPOSITE_PLATING, "@gearFabricationMilitaryPattern", 12, 8, 46, 4),
+            internal(MechInternal.HEAVY_PLATING, "@gearFabricationMilitaryPattern", 18, 12, 70, 8),
+            internal(MechInternal.FACTORY_HEAT_SINK, "@gearFabricationStandardIssue", 6, 3, 10, 1),
+            internal(MechInternal.DOUBLE_HEAT_SINK, "@gearFabricationMilitaryPattern", 12, 6, 18, 4),
+            internal(MechInternal.MILITARY_HEAT_SINK, "@gearFabricationMilitaryPattern", 18, 10, 24, 8),
+            internal(MechInternal.AUXILIARY_COOLER, "@gearFabricationStandardIssue", 10, 5, 14, 3));
+
     private MechFabricationCatalog() {
     }
 
     public static List<Recipe> weapons() { return WEAPONS; }
 
     public static List<Recipe> chassis() { return CHASSIS; }
+
+    public static List<Recipe> internals() { return INTERNALS; }
+
+    public static Recipe internal(MechInternal internal) {
+        for (Recipe recipe : INTERNALS) {
+            if (recipe.internal() == internal) return recipe;
+        }
+        return null;
+    }
 
     public static Recipe weapon(MechWeaponComponent component) {
         for (Recipe recipe : WEAPONS) {
@@ -58,13 +80,19 @@ public final class MechFabricationCatalog {
     private static Recipe weapon(MechWeaponComponent component, String provenance,
                                  int supplies, int machinery, int metals, int rareMetals) {
         return new Recipe("recipe." + component.id, null, provenance,
-                component, null, cost(supplies, machinery, metals, rareMetals));
+                component, null, null, cost(supplies, machinery, metals, rareMetals));
+    }
+
+    private static Recipe internal(MechInternal internal, String provenance,
+                                   int supplies, int machinery, int metals, int rareMetals) {
+        return new Recipe("recipe." + internal.id, null, provenance,
+                null, null, internal, cost(supplies, machinery, metals, rareMetals));
     }
 
     private static Recipe chassis(MechVariant variant, String provenance,
                                   int supplies, int machinery, int metals, int rareMetals) {
         return new Recipe("recipe.chassis." + variant.id, null,
-                provenance, null, variant, cost(supplies, machinery, metals, rareMetals));
+                provenance, null, variant, null, cost(supplies, machinery, metals, rareMetals));
     }
 
     private static FabricationCost cost(int supplies, int machinery,
@@ -78,9 +106,10 @@ public final class MechFabricationCatalog {
 
     public record Recipe(String id, String displayName, String provenance,
                          MechWeaponComponent component, MechVariant variant,
-                         FabricationCost cost) {
+                         MechInternal internal, FabricationCost cost) {
         public String displayName() {
             if (displayName != null) return Strings.resolve(displayName);
+            if (internal != null) return internal.displayName();
             return component != null ? component.displayName()
                     : Strings.format("gearChassisName", variant.displayName());
         }
@@ -88,7 +117,9 @@ public final class MechFabricationCatalog {
         public String provenance() { return Strings.resolve(provenance); }
 
         public Recipe {
-            if ((component == null) == (variant == null)) {
+            int targets = (component != null ? 1 : 0) + (variant != null ? 1 : 0)
+                    + (internal != null ? 1 : 0);
+            if (targets != 1) {
                 throw new IllegalArgumentException("recipe requires one fabrication target");
             }
         }

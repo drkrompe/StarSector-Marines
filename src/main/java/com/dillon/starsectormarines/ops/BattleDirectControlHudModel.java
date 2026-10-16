@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
 import com.dillon.starsectormarines.battle.control.MarineSprint;
+import com.dillon.starsectormarines.battle.mech.MechHeat;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
@@ -64,6 +65,8 @@ final class BattleDirectControlHudModel {
         reactor.untracked(() -> {
             var heat = snapshot.heat();
             float heatValue = heat == null ? 0f : heat.value();
+            float heatCapacity = heat == null ? MechHeat.CAPACITY : heat.capacity();
+            float heatPercent = heatValue * MechHeat.CAPACITY / heatCapacity;
             boolean venting = heat != null && heat.venting();
             set("heatClasses", mech || ship ? "heat" : "heat heat-hidden");
             if (ship) {
@@ -72,10 +75,10 @@ final class BattleDirectControlHudModel {
                 set("heatState", flux.state());
                 set("heatStyle", width(flux.fraction()) + " background-color: " + toneColor(flux.tone()) + ";");
             } else {
-                set("heatLabel", "HEAT " + Math.round(heatValue) + "%");
-                set("heatState", venting ? "VENTING" : heatValue >= 75f ? "HOT - EASE FIRE" : "BURST RESERVE");
-                set("heatStyle", width(heatValue / 100f) + " background-color: "
-                        + (venting ? "#ef7962" : heatValue >= 75f ? "#eab152" : "#b6c79b") + ";");
+                set("heatLabel", "HEAT " + Math.round(heatPercent) + "%");
+                set("heatState", venting ? "VENTING" : heatPercent >= 75f ? "HOT - EASE FIRE" : "BURST RESERVE");
+                set("heatStyle", width(heatPercent / 100f) + " background-color: "
+                        + (venting ? "#ef7962" : heatPercent >= 75f ? "#eab152" : "#b6c79b") + ";");
             }
             set("healthStyle", width(durability.hpFraction()));
             set("healthClasses", "health-fill" + (durability.hpFraction() <= .25f ? " capacity-low" : ""));

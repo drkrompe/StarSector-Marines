@@ -10,13 +10,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The permanent right to fabricate one mech chassis or weapon component. A company that
+ * The permanent right to fabricate one mech chassis, weapon component or internal. A company that
  * knows a pattern may build as many assemblies as it can pay for; the assemblies are finite
  * and losable, the pattern is neither. The id is the cargo payload of a mech pattern card.
  */
 public record MechPattern(Kind kind, String definitionId) {
 
-    public enum Kind { CHASSIS, WEAPON }
+    public enum Kind { CHASSIS, WEAPON, INTERNAL }
 
     public enum WeightClass { LIGHT, MEDIUM, HEAVY }
 
@@ -51,11 +51,17 @@ public record MechPattern(Kind kind, String definitionId) {
         WEAPON_TIERS.put(MechWeaponComponent.THERMAL_LANCE, EquipmentAccessTier.PRESTIGE);
     }
 
-    /** What a new company knows: the Hound and the two weapons Wayward teaches. */
+    /**
+     * What a new company knows: the Hound, the two weapons Wayward teaches, and the stock
+     * frame's internals every chassis is built with.
+     */
     public static final List<MechPattern> STARTER = List.of(
             of(MechVariant.HOUND),
             of(MechWeaponComponent.NOSE_CHAINGUN),
-            of(MechWeaponComponent.SRM_5));
+            of(MechWeaponComponent.SRM_5),
+            of(MechInternal.INDUSTRIAL_ENGINE),
+            of(MechInternal.FACTORY_PLATING),
+            of(MechInternal.FACTORY_HEAT_SINK));
 
     public static MechPattern of(MechVariant variant) {
         return new MechPattern(Kind.CHASSIS, variant.id);
@@ -65,8 +71,16 @@ public record MechPattern(Kind kind, String definitionId) {
         return new MechPattern(Kind.WEAPON, component.id);
     }
 
+    public static MechPattern of(MechInternal internal) {
+        return new MechPattern(Kind.INTERNAL, internal.id);
+    }
+
     public String id() {
-        return PREFIX + (kind == Kind.CHASSIS ? "chassis:" : "weapon:") + definitionId;
+        return PREFIX + switch (kind) {
+            case CHASSIS -> "chassis:";
+            case WEAPON -> "weapon:";
+            case INTERNAL -> "internal:";
+        } + definitionId;
     }
 
     public MechVariant variant() {
@@ -77,8 +91,16 @@ public record MechPattern(Kind kind, String definitionId) {
         return kind == Kind.WEAPON ? MechWeaponComponent.findById(definitionId) : null;
     }
 
+    public MechInternal internal() {
+        return kind == Kind.INTERNAL ? MechInternal.findById(definitionId) : null;
+    }
+
     public EquipmentAccessTier accessTier() {
-        return kind == Kind.CHASSIS ? CHASSIS_TIERS.get(variant()) : WEAPON_TIERS.get(component());
+        return switch (kind) {
+            case CHASSIS -> CHASSIS_TIERS.get(variant());
+            case WEAPON -> WEAPON_TIERS.get(component());
+            case INTERNAL -> internal().tier;
+        };
     }
 
     /** Chassis weight class; null for a weapon pattern. */
@@ -96,7 +118,11 @@ public record MechPattern(Kind kind, String definitionId) {
     }
 
     public String displayName() {
-        return kind == Kind.CHASSIS ? variant().displayName() : component().displayName();
+        return switch (kind) {
+            case CHASSIS -> variant().displayName();
+            case WEAPON -> component().displayName();
+            case INTERNAL -> internal().displayName();
+        };
     }
 
     /** Null for anything that is not a registered pattern id. */
@@ -111,6 +137,10 @@ public record MechPattern(Kind kind, String definitionId) {
             MechWeaponComponent component = MechWeaponComponent.findById(rest.substring("weapon:".length()));
             return component != null && WEAPON_TIERS.containsKey(component) ? of(component) : null;
         }
+        if (rest.startsWith("internal:")) {
+            MechInternal internal = MechInternal.findById(rest.substring("internal:".length()));
+            return internal != null ? of(internal) : null;
+        }
         return null;
     }
 
@@ -119,6 +149,7 @@ public record MechPattern(Kind kind, String definitionId) {
         List<MechPattern> patterns = new ArrayList<>();
         for (MechVariant variant : CHASSIS_TIERS.keySet()) patterns.add(of(variant));
         for (MechWeaponComponent component : WEAPON_TIERS.keySet()) patterns.add(of(component));
+        for (MechInternal internal : MechInternal.values()) patterns.add(of(internal));
         return Collections.unmodifiableList(patterns);
     }
 

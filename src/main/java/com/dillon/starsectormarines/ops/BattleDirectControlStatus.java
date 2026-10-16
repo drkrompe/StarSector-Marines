@@ -71,7 +71,9 @@ final class BattleDirectControlStatus {
         }
     }
 
-    record HeatStatus(float value, boolean venting) { }
+    record HeatStatus(float value, boolean venting, float capacity) {
+        HeatStatus(float value, boolean venting) { this(value, venting, MechHeat.CAPACITY); }
+    }
 
     /** How a status card reads at a glance: ready, busy, or something the pilot should look at. */
     enum Tone { READY, BUSY, WARN }
@@ -183,7 +185,8 @@ final class BattleDirectControlStatus {
                     mechWeapons(world.mechLoadout(id).mounts(), world.mechLoadout(id).heat,
                     sim.directControl().selectedWeapon()), List.of(),
                     MarineSprint.EMPTY, new HeatStatus(world.mechLoadout(id).heat.value(),
-                    world.mechLoadout(id).heat.venting()));
+                    world.mechLoadout(id).heat.venting(),
+                    world.mechLoadout(id).heat.capacity()));
         }
         var combat = sim.combat();
         WeaponDef primary = combat.has(id) ? combat.primaryWeaponDef(id) : null;
