@@ -9,8 +9,7 @@ arrival cinematic. These are authoring sources; only the packed JPEGs under
 | [story-stills/](story-stills/) | Ten original story-frame masters with their exact generation prompts. Used by the campaign intro and yard UI. |
 | [pack.ps1](pack.ps1) | Packs only `story-stills/*.master.png`: complete 3:2 frames, 1200x800 JPEG, quality 85, maximum 400 KiB each. |
 | `second-wind-hull.reference.png`, `second-wind-design-v1/v2/v3.reference.png` and adjacent prompts | Original hull and design evolution. V3 is the accepted clean/medium geometry reference; earlier sheets remain useful reference art. |
-| [second-wind-geometry-v3/](second-wind-geometry-v3/) | Accepted detailed industrial hull reference model, renders and coordinate contract. |
-| [second-wind-geometry/](second-wind-geometry/) | Earlier geometry study; retained for design history. |
+| [second-wind-geometry/](second-wind-geometry/) | The single accepted clean-hull geometry source (V3 revision), renders and coordinate contract. Older V2 reference images are under `reference-history/v2/`; its obsolete model and builders were removed. |
 | [second-wind-skins/](second-wind-skins/README.txt) | Weathering states, including the heavily damaged arrival reference. |
 | [second-wind-cinematic/](second-wind-cinematic/README.md) | Current shot order, reusable ship master, sources and earlier technique studies. |
 
@@ -41,3 +40,10 @@ Historical prompts retain their original input names; resolve relocated inputs
 through [cleanup-record.json](cleanup-record.json). That record also gives paths,
 sizes, hashes and the pre-cleanup commit for 13 retired movies and an obsolete
 staging list. Git history retains them; no repository history was rewritten.
+
+The accepted geometry now has one stable directory: `second-wind-geometry/`.
+V3 is its design revision, not a second competing model folder. The obsolete V2
+model and build files were removed; only its reference images remain under
+`reference-history/v2/`. The cleanup record maps historical prompt paths to the
+current locations. The separately surfaced damaged cinematic ship remains in
+`second-wind-cinematic/second-wind-full-surface/`.

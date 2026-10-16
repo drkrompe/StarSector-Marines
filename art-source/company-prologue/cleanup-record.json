@@ -250,5 +250,112 @@
       "to": "second-wind-cinematic/orbital-study/review/verification.json",
       "sha256_before": "40e19fc98dc1626790e7638b37d164fc7de86988bec0a4ebb735aff12c556c60"
     }
-  ]
+  ],
+  "geometry_consolidation": {
+    "recovery_commit": "9bd3d50ea2b78b4a4d4b747b90abc77e746961f1",
+    "canonical_directory": "second-wind-geometry",
+    "accepted_revision": "V3; geometry and native guide pixels unchanged",
+    "retired_v2_files": [
+      {
+        "path": "second-wind-geometry/build_reference.py",
+        "sha256": "e7d692d3f893f290962d7733b682fa3c0e270655137cdd1c9cbe7d49b2dd3a83"
+      },
+      {
+        "path": "second-wind-geometry/compose_guide.py",
+        "sha256": "a0804e175abcc6aeb9a16c2b4a3b79f3ce2128e60bc4e48ecfe62531eaab9dcb"
+      },
+      {
+        "path": "second-wind-geometry/geometry.json",
+        "sha256": "f789dd51d766cdb39e5c0ab0919d6e4517185e507264f2278fa9c0b37e55002d"
+      },
+      {
+        "path": "second-wind-geometry/README.txt",
+        "sha256": "ce104e61dec45311deea763394793d0f5f13ba5fbb694aca19db76c081ef30c3"
+      },
+      {
+        "path": "second-wind-geometry/second-wind-geometry.blend",
+        "sha256": "8d18a14a259c028cda957047caf2eabf770896dcde402dae9fc1189ee864a151"
+      }
+    ],
+    "reference_images": [
+      {
+        "from": "second-wind-geometry/port-quarter.png",
+        "to": "second-wind-geometry/reference-history/v2/port-quarter.png",
+        "sha256": "9cf248dde4efa54ba06574e6e25b919ee346b95575d82ead61beffe499b0329b"
+      },
+      {
+        "from": "second-wind-geometry/port-side.png",
+        "to": "second-wind-geometry/reference-history/v2/port-side.png",
+        "sha256": "0d4565299e28244f2d0826d4bd5de636c310a10e1860e2f3bf11f63114d187d9"
+      },
+      {
+        "from": "second-wind-geometry/second-wind-geometry.reference.png",
+        "to": "second-wind-geometry/reference-history/v2/second-wind-geometry.reference.png",
+        "sha256": "a94c1fe9981f012bcca9525ac4e0235e7b12cdfae7d31bdfa65052150af427ed"
+      },
+      {
+        "from": "second-wind-geometry/stern.png",
+        "to": "second-wind-geometry/reference-history/v2/stern.png",
+        "sha256": "77547d1d55db4e6133b122286c7cd083a16c93aaa99131b3808d85938abb8743"
+      },
+      {
+        "from": "second-wind-geometry/top.png",
+        "to": "second-wind-geometry/reference-history/v2/top.png",
+        "sha256": "af111c81f8b0916eee4d6926ca49f9ec9f7c37cd06d8eae903c270ba3635c75d"
+      }
+    ],
+    "current_files": [
+      {
+        "from": "second-wind-geometry-v3/build_reference.py",
+        "to": "second-wind-geometry/build_reference.py",
+        "sha256_before": "c60e3cc131ce4aa577e04118a9a55f11cbbfa1f31ea0dc19d520da7c8d3b4be0"
+      },
+      {
+        "from": "second-wind-geometry-v3/compose_guide.py",
+        "to": "second-wind-geometry/compose_guide.py",
+        "sha256_before": "80bc85d207e0ecb0ec3d39cc91d18f0810bd7e8ddc04b7028742eea0894385b7"
+      },
+      {
+        "from": "second-wind-geometry-v3/geometry.json",
+        "to": "second-wind-geometry/geometry.json",
+        "sha256_before": "db3e01dd0c28c0b768d1815a27fedd1b56685b939b9b232304202c1795237545"
+      },
+      {
+        "from": "second-wind-geometry-v3/port-quarter.png",
+        "to": "second-wind-geometry/port-quarter.png",
+        "sha256_before": "d47f929957efbb257f21bdaca4eecdbc274637239f1bf999e26b1b1d55ec323b"
+      },
+      {
+        "from": "second-wind-geometry-v3/port-side.png",
+        "to": "second-wind-geometry/port-side.png",
+        "sha256_before": "02aaf5d9f0e2a37c27442a5c62d978e3da3498cf9ec249e552d31ee7b3042da2"
+      },
+      {
+        "from": "second-wind-geometry-v3/README.txt",
+        "to": "second-wind-geometry/README.txt",
+        "sha256_before": "13241cc72a19e2bc3cecef1cf517388c495ffebec56ae589b26d6e6128383314"
+      },
+      {
+        "from": "second-wind-geometry-v3/second-wind-geometry.blend",
+        "to": "second-wind-geometry/second-wind-geometry.blend",
+        "sha256_before": "6ce9047c5cd76f1c1c84218435c2dde8e3c742483a621ba26e679fb5d1e7ec4a"
+      },
+      {
+        "from": "second-wind-geometry-v3/second-wind-geometry.reference.png",
+        "to": "second-wind-geometry/second-wind-geometry.reference.png",
+        "sha256_before": "86cabb0a45e884e6fd38316d8f1d4c5f0ac7a03fbb7065668ac157171beb9e1e"
+      },
+      {
+        "from": "second-wind-geometry-v3/stern.png",
+        "to": "second-wind-geometry/stern.png",
+        "sha256_before": "31a1a1303944ed3262c37e44907a33ee35cb1e9fd13e05ab2fe09b8c86bb8d11"
+      },
+      {
+        "from": "second-wind-geometry-v3/top.png",
+        "to": "second-wind-geometry/top.png",
+        "sha256_before": "e9515b030366233db30deadeebc77a3a055847b9aa05b549fe39ffae96aa0411"
+      }
+    ],
+    "prompt_policy": "Exact historical prompts are unchanged. Their old V2 guide path now resolves through reference_images; their V3 paths resolve through current_files. Old V2 model/scripts exist only in Git history."
+  }
 }
