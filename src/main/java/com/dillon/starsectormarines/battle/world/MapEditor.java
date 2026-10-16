@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
+import com.dillon.starsectormarines.battle.world.model.EmplacementWreck;
 import com.dillon.starsectormarines.battle.world.model.CoverPropDamage;
 import com.dillon.starsectormarines.battle.world.model.NaturalPropDamage;
 import com.dillon.starsectormarines.battle.world.model.RockDamage;
@@ -371,6 +372,14 @@ public final class MapEditor {
      */
     public boolean isCellSealed(int cellX, int cellY) {
         return !grid.isWalkable(cellX, cellY);
+    }
+
+    /**
+     * Shows the concrete emplacement pieces round a dead turret as wrecked. Art only: the pieces keep their cover and
+     * the cells their walkability, so nothing a unit can do changes.
+     */
+    public void wreckEmplacementAround(int cellX, int cellY, int radius) {
+        if (doodads != null) EmplacementWreck.destroyAround(doodads.getDoodads(), cellX, cellY, radius);
     }
 
     public void flipCellToRubble(int cellX, int cellY) {
