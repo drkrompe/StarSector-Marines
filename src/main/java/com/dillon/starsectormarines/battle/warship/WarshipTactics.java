@@ -1,0 +1,546 @@
+package com.dillon.starsectormarines.battle.warship;
+
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.warship.WarshipManoeuvre.Kind;
+import com.dillon.starsectormarines.battle.warship.WarshipManoeuvre.Role;
+
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * The layer above the duel helm ({@code warship-tactics.md}): ships fighting hulls as a group, flying manoeuvres.
+ *
+ * <p><b>The group pass</b> ({@link #plan}) runs once a second per side. Its hunters are the ships fighting hulls with
+ * their duel helm, free to manoeuvre and not escorting. Where the other side has an escorted hull (a <em>charge</em>)
+ * and there are two or more hunters, the one best placed to go round flanks the charge and the rest pin its escorts,
+ * each the escort nearest it. Otherwise each hunter takes the hull cheapest for it (range over reach) plus a penalty
+ * for every friend already on it, so a second ship goes to another hull while one remains; a hull worn under a third,
+ * or the last one left, may be shared on purpose. Hunters that share a hull work it from opposite sides, and broadside
+ * ships sharing one form a line: the nearest leads, the rest follow in its wake.
+ *
+ * <p><b>The manoeuvre machine</b> ({@link #fly}) runs every tick for each hunter. A manoeuvre is held for tens of
+ * seconds and ends on its own conditions, never on a timer alone and never re-chosen from scratch each tick:
+ * approach out of reach on an oblique course; a bow ship's attack run to its standoff with its guns on; a broadside
+ * ship's run parallel to the target with its broadside laid; extend to open the range; come about through a fixed
+ * turn back onto the target; flank wide round a charge's escorts; line ahead in a lead's wake. Which follows which is
+ * read off where the ship's guns bear (a bow or broadside ship), the range against both reaches, the flux, and the
+ * role. The standoff law still sets how close a run goes. Outcomes are the fight's own.
+ *
+ * <p>A ship flying a manoeuvre travels along its nose ({@link #alongNose}): it can drift sideways and astern only at
+ * a fraction of its speed, so its motion reads as a course, not a hover. {@code -Dbattle.warship.tactics=false} is the
+ * control: every hunter flies the single-ship duel helm, and the pack division is the old one.
+ */
+public final class WarshipTactics {
+
+    /** {@code -Dbattle.warship.tactics=false} turns the group layer and manoeuvres off. */
+    public static final boolean ENABLED = !"false".equalsIgnoreCase(System.getProperty("battle.warship.tactics"));
+
+    /** How often, in seconds, the group pass runs. */
+    static final float PLAN_SECONDS = 1f;
+    /** Out of reach by this share of its own longest anti-ship reach, a ship approaches; inside it, it runs. */
+    static final float IN_REACH_SHARE = 1.05f;
+    /** The oblique an approach takes off the straight line to its target, toward its side, in degrees. */
+    static final float APPROACH_OBLIQUE_DEGREES = 30f;
+    /** An attack run lasts at least this long, in seconds, before anything but flux ends it. */
+    static final float RUN_MIN_SECONDS = 10f;
+    /** No run lasts longer than this: the range breathes. */
+    static final float RUN_MAX_SECONDS = 30f;
+    /** A broadside run lasts this long unless it passes or wears its side first. */
+    static final float BROADSIDE_RUN_SECONDS = 35f;
+    /** A run ends to open the range once the pool is this full, so a ship vents between passes. */
+    static final float RUN_FLUX_LIMIT = 0.75f;
+    /** How far off the line to its target an extend runs, in degrees: a break across the target's bow or stern. */
+    static final float EXTEND_TURN_DEGREES = 110f;
+    /** An extend lasts at least this long. */
+    static final float EXTEND_MIN_SECONDS = 6f;
+    /** And at most this long. */
+    static final float EXTEND_MAX_SECONDS = 25f;
+    /** A come-about ends once the nose is this close to where its next run wants it. */
+    static final float COME_ABOUT_DONE_DEGREES = 20f;
+    /** And never lasts longer than this. */
+    static final float COME_ABOUT_MAX_SECONDS = 45f;
+    /** How far the helm leads a forced turn, in degrees, so the hull turns the chosen way. */
+    static final float TURN_LEAD_DEGREES = 60f;
+    /** How far a broadside run bends toward or away from the target to hold its range, at most, in degrees. */
+    static final float RANGE_BEND_DEGREES = 30f;
+    /** A flank ends when the ship is within this many degrees round the charge of its goal bearing. */
+    static final float FLANK_DONE_DEGREES = 35f;
+    /** How far round the charge a flank waypoint is taken each step, in degrees. */
+    static final float FLANK_STEP_DEGREES = 50f;
+    /** And no flank lasts longer than this. */
+    static final float FLANK_MAX_SECONDS = 90f;
+    /** A flank swings round at this share of the ship's reach from the charge, at the least. */
+    static final float FLANK_RADIUS_REACH_SHARE = 1.15f;
+    /** How many hull-lengths ahead a fixed-course manoeuvre puts the station, so the hull cruises rather than arrives. */
+    static final float CRUISE_LENGTHS = 3f;
+    /** The interval between hulls in a line, in screen gaps. */
+    static final float LINE_GAP_SHARE = 3f;
+    /** A friend already on a hull costs a hunter this much, in reaches of range, before it shares it. */
+    static final float SHARE_PENALTY = 1.2f;
+    /** Keeping the hull it had is worth this much, in reaches, so a near tie does not flap. */
+    static final float KEEP_BONUS = 0.5f;
+    /** A hull worn under this share is worth sharing: focus fire to finish it. */
+    static final float FOCUS_HULL = 0.33f;
+    /** A flanker keeps its role until another hunter is better placed by this many degrees round the charge. */
+    static final float FLANK_SWITCH_DEGREES = 30f;
+    /** A line's lead keeps this share of its speed once its line is closed up, so the followers can hold station. */
+    static final float LEAD_SPEED_SHARE = 0.85f;
+    /** And this while a follower is still out of its place. */
+    static final float LEAD_WAIT_SPEED_SHARE = 0.6f;
+    /** Sideways drift a ship on a manoeuvre may make, as a share of its top speed. */
+    static final float LATERAL_SHARE = 0.3f;
+    /** Astern way a ship on a manoeuvre may make, as a share of its top speed. */
+    static final float ASTERN_SHARE = 0.25f;
+
+    private float nextPlan;
+
+    /** Groups and assigns, once a second. */
+    void plan(float now, List<Warship> ships, boolean held, HullAirspace airspace) {
+        if (!ENABLED || now < nextPlan) return;
+        nextPlan = now + PLAN_SECONDS;
+        for (int side = 0; side < 2; side++) {
+            List<Warship> hunters = new ArrayList<>();
+            List<Warship> enemies = new ArrayList<>();
+            for (Warship s : ships) {
+                boolean ours = (side == 0) == Faction.MARINE.friendlyTo(s.faction);
+                if (!ours) {
+                    if (!s.destroyed() && !s.departed()) enemies.add(s);
+                    continue;
+                }
+                if (hunter(s, held)) hunters.add(s);
+                else if (s.manoeuvre().role != Role.NONE) s.manoeuvre().clear();
+            }
+            enemies.removeIf(e -> hunters.isEmpty() || !WarshipShipFire.hostileHull(hunters.get(0), e));
+            if (hunters.isEmpty()) continue;
+            if (enemies.isEmpty()) {
+                for (Warship h : hunters) h.manoeuvre().clear();
+                continue;
+            }
+            assign(hunters, enemies, ships);
+        }
+    }
+
+    /** Whether a ship is one of its side's hunters: fighting hulls with its duel helm, free, not escorting. */
+    static boolean hunter(Warship s, boolean held) {
+        return WarshipShipFire.looksAtHulls(s, held) && s.duelHelm() && !s.departing() && free(s)
+                && WarshipEscort.liveLead(s) == null;
+    }
+
+    /** Whether the ship's helm is its own: not piloted, leaving, on a route, a low pass, a remote order or in the deck. */
+    static boolean free(Warship s) {
+        return !s.piloted() && !s.departing() && !s.isPassingThrough() && s.lowPass() == null && !s.descending()
+                && s.remoteOrder() == Warship.RemoteOrder.NONE && !s.berthed() && !s.liftRunning();
+    }
+
+    private void assign(List<Warship> hunters, List<Warship> enemies, List<Warship> ships) {
+        Warship charge = null;
+        float chargeGap = Float.MAX_VALUE;
+        float[] centre = centroid(hunters);
+        for (Warship e : enemies) {
+            if (WarshipEscort.escortsOf(e, ships).isEmpty()) continue;
+            float g = e.distanceTo(centre[0], centre[1]);
+            if (g < chargeGap) {
+                charge = e;
+                chargeGap = g;
+            }
+        }
+        if (charge != null && hunters.size() >= 2) {
+            divideOnCharge(hunters, charge, WarshipEscort.escortsOf(charge, ships));
+            return;
+        }
+        distribute(hunters, enemies);
+    }
+
+    /** One hunter flanks the charge; the rest pin its escorts, spread over them. */
+    private static void divideOnCharge(List<Warship> hunters, Warship charge, List<Warship> escorts) {
+        float[] ec = centroid(escorts);
+        // The far side of the charge from its screen: where the flanker is going.
+        float away = WarshipFacing.bearing(ec[0], ec[1], charge.centerX(), charge.centerY());
+        Warship flanker = null;
+        float best = Float.MAX_VALUE;
+        Warship current = null;
+        float currentScore = Float.MAX_VALUE;
+        for (Warship h : hunters) {
+            float round = Math.abs(WarshipFacing.wrap(
+                    WarshipFacing.bearing(charge.centerX(), charge.centerY(), h.centerX(), h.centerY()) - away));
+            if (round < best) {
+                best = round;
+                flanker = h;
+            }
+            if (h.manoeuvre().role == Role.FLANK && h.manoeuvre().target == charge) {
+                current = h;
+                currentScore = round;
+            }
+        }
+        if (current != null && currentScore <= best + FLANK_SWITCH_DEGREES) flanker = current;
+        Map<Warship, Integer> pinned = new IdentityHashMap<>();
+        for (Warship h : hunters) {
+            WarshipManoeuvre m = h.manoeuvre();
+            if (h == flanker) {
+                setRole(m, Role.FLANK, charge, h.serial() % 2 == 0 ? 1 : -1, null);
+                m.flankGoal = away;
+                continue;
+            }
+            Warship pick = null;
+            float pickCost = Float.MAX_VALUE;
+            for (Warship e : escorts) {
+                float cost = e.distanceTo(h.centerX(), h.centerY()) + 1000f * pinned.getOrDefault(e, 0);
+                if (cost < pickCost) {
+                    pickCost = cost;
+                    pick = e;
+                }
+            }
+            pinned.merge(pick, 1, Integer::sum);
+            setRole(m, Role.PIN, pick, h.serial() % 2 == 0 ? 1 : -1, null);
+        }
+    }
+
+    /** Each hunter takes the hull cheapest for it, a friend already on one making it dearer. */
+    private static void distribute(List<Warship> hunters, List<Warship> enemies) {
+        Map<Warship, List<Warship>> on = new IdentityHashMap<>();
+        for (Warship h : hunters) {
+            float reach = Math.max(1f, WarshipShipFire.longestReach(h));
+            Warship pick = null;
+            float pickCost = Float.MAX_VALUE;
+            for (Warship e : enemies) {
+                int friends = on.getOrDefault(e, List.of()).size();
+                boolean focus = enemies.size() == 1 || e.hullFraction() < FOCUS_HULL;
+                float cost = e.distanceTo(h.centerX(), h.centerY()) / reach
+                        + (focus ? 0f : SHARE_PENALTY * friends)
+                        - (h.manoeuvre().target == e ? KEEP_BONUS : 0f);
+                if (cost < pickCost) {
+                    pickCost = cost;
+                    pick = e;
+                }
+            }
+            on.computeIfAbsent(pick, k -> new ArrayList<>()).add(h);
+        }
+        // Hunters sharing a hull work it from opposite sides.
+        for (Map.Entry<Warship, List<Warship>> entry : on.entrySet()) {
+            Warship target = entry.getKey();
+            int next = 1;
+            for (Warship h : entry.getValue()) {
+                int side = entry.getValue().size() == 1 && h.manoeuvre().target == target ? h.manoeuvre().side
+                        : entry.getValue().size() == 1 ? (h.serial() % 2 == 0 ? 1 : -1) : next;
+                // A line keeps its roles from pass to pass; they are re-read below.
+                Role keep = h.manoeuvre().role == Role.LEAD || h.manoeuvre().role == Role.SECOND
+                        ? h.manoeuvre().role : Role.FREE;
+                setRole(h.manoeuvre(), keep, target, side, h.manoeuvre().leader);
+                next = -next;
+            }
+        }
+        // Broadside ships of a group sail in line: the one nearest its own hull leads, the rest follow in its wake,
+        // each still firing at the hull the group gave it.
+        List<Warship> line = new ArrayList<>();
+        for (Warship h : hunters) if (!WarshipDuelHelm.bowFighter(h)) line.add(h);
+        if (line.size() < 2) {
+            for (Warship h : line) setRole(h.manoeuvre(), Role.FREE, h.manoeuvre().target, h.manoeuvre().side, null);
+            return;
+        }
+        line.sort((a, b) -> Float.compare(a.manoeuvre().target.distanceTo(a.centerX(), a.centerY()),
+                b.manoeuvre().target.distanceTo(b.centerX(), b.centerY())));
+        Warship lead = null;
+        for (Warship h : line) if (h.manoeuvre().role == Role.LEAD) lead = h;
+        if (lead == null) lead = line.get(0);
+        WarshipManoeuvre lm = lead.manoeuvre();
+        setRole(lm, Role.LEAD, lm.target, lm.side, null);
+        Warship ahead = lead;
+        for (Warship h : line) {
+            if (h == lead) continue;
+            WarshipManoeuvre m = h.manoeuvre();
+            setRole(m, Role.SECOND, m.target, lm.side, ahead);
+            ahead = h;
+        }
+    }
+
+    private static void setRole(WarshipManoeuvre m, Role role, Warship target, int side, Warship leader) {
+        if (m.target != target || m.role != role) m.kind = null;
+        m.flankGoal = Float.NaN;
+        m.role = role;
+        m.target = target;
+        m.side = side;
+        m.leader = leader;
+    }
+
+    private static float[] centroid(List<Warship> ships) {
+        float x = 0f;
+        float y = 0f;
+        for (Warship s : ships) {
+            x += s.centerX();
+            y += s.centerY();
+        }
+        return new float[]{x / Math.max(1, ships.size()), y / Math.max(1, ships.size())};
+    }
+
+    // ------------------------------------------------------------------------------------------------ the machine
+
+    /**
+     * Flies one tick of {@code ship}'s manoeuvre against {@code target}: ends it on its own conditions and begins the
+     * next, and returns the station the helm should fly to (the ship's heading is left in {@link
+     * WarshipManoeuvre#heading}). {@code null} when the ship has no manoeuvre, so the single-ship duel helm stands.
+     */
+    float[] fly(Warship ship, Warship target, float now, HullAirspace airspace, List<Warship> ships) {
+        WarshipManoeuvre m = ship.manoeuvre();
+        m.heading = Float.NaN;
+        m.speedShare = 1f;
+        if (!ENABLED || m.role == Role.NONE || m.target != target) return null;
+        float reach = Math.max(1f, WarshipShipFire.longestReach(ship));
+        float theirs = WarshipShipFire.longestReach(target);
+        float range = (float) Math.hypot(target.centerX() - ship.centerX(), target.centerY() - ship.centerY());
+        float standoff = WarshipDuelHelm.preferredRange(WarshipDuelHelm.reach(ship), WarshipDuelHelm.reach(target),
+                0.5f * ship.lengthCells, 0.5f * target.lengthCells);
+        boolean bow = WarshipDuelHelm.bowFighter(ship);
+        float toTarget = WarshipFacing.bearing(ship.centerX(), ship.centerY(), target.centerX(), target.centerY());
+        float margin = WarshipDuelHelm.EDGE_MARGIN_CELLS + 0.5f * ship.lengthCells;
+
+        if (m.role == Role.SECOND && m.leader != null && !m.leader.destroyed() && !m.leader.departed()) {
+            if (m.kind != Kind.LINE_AHEAD) m.begin(Kind.LINE_AHEAD, now, Float.NaN);
+            return lineAhead(ship, m);
+        }
+        if (m.kind == null || m.kind == Kind.LINE_AHEAD) {
+            Kind first = m.role == Role.FLANK ? Kind.FLANK : range > reach * IN_REACH_SHARE ? Kind.APPROACH : run(bow);
+            m.begin(first, now, first == Kind.BROADSIDE_RUN ? broadsideCourse(ship, toTarget, m) : Float.NaN);
+        }
+        float seconds = now - m.startedAt;
+        switch (m.kind) {
+            case APPROACH -> {
+                if (range <= reach * IN_REACH_SHARE) {
+                    Kind next = run(bow);
+                    m.begin(next, now, next == Kind.BROADSIDE_RUN ? broadsideCourse(ship, toTarget, m) : Float.NaN);
+                }
+            }
+            case FLANK -> {
+                float goal = flankGoal(target, m);
+                float round = WarshipFacing.bearing(target.centerX(), target.centerY(), ship.centerX(), ship.centerY());
+                if (Math.abs(WarshipFacing.wrap(round - goal)) <= FLANK_DONE_DEGREES || seconds >= FLANK_MAX_SECONDS) {
+                    Kind next = run(bow);
+                    m.begin(next, now, next == Kind.BROADSIDE_RUN ? broadsideCourse(ship, toTarget, m) : Float.NaN);
+                }
+            }
+            case ATTACK_RUN -> {
+                boolean close = range <= standoff * 1.1f && seconds >= RUN_MIN_SECONDS;
+                boolean flux = ship.fluxFraction() >= RUN_FLUX_LIMIT;
+                if (close || flux || seconds >= RUN_MAX_SECONDS) {
+                    m.begin(Kind.EXTEND, now, WarshipFacing.wrap(toTarget + m.side * EXTEND_TURN_DEGREES));
+                }
+            }
+            case BROADSIDE_RUN -> {
+                float relative = Math.abs(WarshipFacing.wrap(toTarget - ship.facingDegrees));
+                boolean passed = seconds >= RUN_MIN_SECONDS && (relative > 140f || relative < 40f);
+                boolean flux = ship.fluxFraction() >= RUN_FLUX_LIMIT;
+                if (passed || flux || seconds >= BROADSIDE_RUN_SECONDS) {
+                    // Wear round: turn away from the target, through the stern, onto the other broadside.
+                    m.side = -m.side;
+                    m.begin(Kind.COME_ABOUT, now, Float.NaN);
+                }
+            }
+            case EXTEND -> {
+                boolean open = range >= Math.max(theirs * IN_REACH_SHARE, reach * 0.9f) && seconds >= EXTEND_MIN_SECONDS;
+                if (open || seconds >= EXTEND_MAX_SECONDS) m.begin(Kind.COME_ABOUT, now, Float.NaN);
+            }
+            case COME_ABOUT -> {
+                float want = bow ? toTarget : broadsideCourse(ship, toTarget, m);
+                if (Math.abs(WarshipFacing.wrap(want - ship.facingDegrees)) <= COME_ABOUT_DONE_DEGREES
+                        || seconds >= COME_ABOUT_MAX_SECONDS) {
+                    Kind next = range > reach * IN_REACH_SHARE * 1.3f ? Kind.APPROACH : run(bow);
+                    m.begin(next, now, next == Kind.BROADSIDE_RUN ? want : Float.NaN);
+                }
+            }
+            default -> { }
+        }
+        if (m.role == Role.LEAD) m.speedShare = lineClosedUp(ship, ships) ? LEAD_SPEED_SHARE : LEAD_WAIT_SPEED_SHARE;
+        return execute(ship, target, m, toTarget, range, standoff, reach, bow, airspace, margin);
+    }
+
+    /** Whether every ship following {@code lead} in its line is within half an interval of its place. */
+    private static boolean lineClosedUp(Warship lead, List<Warship> ships) {
+        for (Warship s : ships) {
+            WarshipManoeuvre m = s.manoeuvre();
+            if (m.role != Role.SECOND || s.destroyed() || s.departed()) continue;
+            Warship ahead = m.leader;
+            if (ahead == null) continue;
+            float interval = lineInterval(ahead, s);
+            float back = WarshipFacing.wrap(ahead.facingDegrees + 180f);
+            float sx = ahead.centerX() + nx(back) * interval;
+            float sy = ahead.centerY() + ny(back) * interval;
+            if (Math.hypot(sx - s.centerX(), sy - s.centerY()) > 0.5f * interval) return false;
+        }
+        return true;
+    }
+
+    static float lineInterval(Warship ahead, Warship ship) {
+        return 0.5f * ahead.lengthCells + 0.5f * ship.lengthCells + LINE_GAP_SHARE * WarshipEscort.GAP_CELLS;
+    }
+
+    private static Kind run(boolean bow) {
+        return bow ? Kind.ATTACK_RUN : Kind.BROADSIDE_RUN;
+    }
+
+    /** The station for this tick of the manoeuvre, with the heading left on {@code m}. */
+    private static float[] execute(Warship ship, Warship target, WarshipManoeuvre m, float toTarget, float range,
+                                   float standoff, float reach, boolean bow, HullAirspace airspace, float margin) {
+        float cruise = CRUISE_LENGTHS * ship.lengthCells;
+        switch (m.kind) {
+            case APPROACH -> {
+                // Oblique: toward a point on the target's side the ship works, at its standoff.
+                float round = WarshipFacing.bearing(target.centerX(), target.centerY(), ship.centerX(), ship.centerY());
+                float at = round + m.side * APPROACH_OBLIQUE_DEGREES;
+                float[] p = airspace.settle(target.centerX() + nx(at) * standoff, target.centerY() + ny(at) * standoff,
+                        margin);
+                m.heading = bow ? Float.NaN : WarshipFacing.bearing(ship.centerX(), ship.centerY(), p[0], p[1]);
+                return cog(ship, p);
+            }
+            case FLANK -> {
+                float goal = flankGoal(target, m);
+                float round = WarshipFacing.bearing(target.centerX(), target.centerY(), ship.centerX(), ship.centerY());
+                float step = Math.max(-FLANK_STEP_DEGREES, Math.min(FLANK_STEP_DEGREES, WarshipFacing.wrap(goal - round)));
+                float radius = Math.max(reach * FLANK_RADIUS_REACH_SHARE, range);
+                float at = round + step;
+                float[] p = airspace.settle(target.centerX() + nx(at) * radius, target.centerY() + ny(at) * radius, margin);
+                m.heading = WarshipFacing.bearing(ship.centerX(), ship.centerY(), p[0], p[1]);
+                return cog(ship, p);
+            }
+            case ATTACK_RUN -> {
+                // Nose and guns on the target, closing to the standoff on the quiet side it works.
+                float[] p = WarshipDuelHelm.bowStation(ship, target, standoff, airspace);
+                m.heading = Float.NaN;
+                return cog(ship, p);
+            }
+            case BROADSIDE_RUN -> {
+                float c = broadsideCourse(ship, toTarget, m);
+                // Hold the range: bend in when long, out when short.
+                float bend = Math.max(-RANGE_BEND_DEGREES, Math.min(RANGE_BEND_DEGREES,
+                        (range - standoff) / Math.max(1f, standoff) * 60f));
+                c = WarshipFacing.wrap(c + bendToward(c, toTarget) * bend);
+                m.heading = c;
+                return ahead(ship, c, cruise, airspace, margin);
+            }
+            case EXTEND -> {
+                m.heading = m.course;
+                return ahead(ship, m.course, cruise, airspace, margin);
+            }
+            case COME_ABOUT -> {
+                float want = bow ? toTarget : broadsideCourse(ship, toTarget, m);
+                float left = WarshipFacing.wrap(want - ship.facingDegrees);
+                // Through the side the manoeuvre named, however short the other way round is.
+                float through = m.side > 0 ? (left < 0f ? left + 360f : left) : (left > 0f ? left - 360f : left);
+                float lead = Math.signum(through) * Math.min(TURN_LEAD_DEGREES, Math.abs(through));
+                m.heading = WarshipFacing.wrap(ship.facingDegrees + lead);
+                return ahead(ship, m.heading, 0.5f * cruise, airspace, margin);
+            }
+            default -> {
+                return null;
+            }
+        }
+    }
+
+    /** Whether turning {@code c} by a positive bend turns it toward {@code toTarget} (+1) or away (-1). */
+    private static float bendToward(float c, float toTarget) {
+        return WarshipFacing.wrap(toTarget - c) >= 0f ? 1f : -1f;
+    }
+
+    /**
+     * A broadside run's course: square to the line to the target, turned by the manoeuvre's side, so a ship keeps the
+     * one broadside until it wears round (which flips the side).
+     */
+    static float broadsideCourse(Warship ship, float toTarget, WarshipManoeuvre m) {
+        return WarshipFacing.wrap(toTarget + m.side * 90f);
+    }
+
+    /**
+     * The bearing round a charge, from its centre, a flank is going to: the side away from its escorts, as the group
+     * pass last read it, or the charge's quarter astern on the flanker's side when it has not.
+     */
+    private static float flankGoal(Warship target, WarshipManoeuvre m) {
+        if (!Float.isNaN(m.flankGoal)) return m.flankGoal;
+        return WarshipFacing.wrap(target.facingDegrees + 180f - m.side * 45f);
+    }
+
+    /**
+     * Where an escort fighting a hull stands: interposed in line between its charge and that hull, just clear of the
+     * charge's side facing it, the charge's escorts spaced along a line square to the threat. A screen that stands
+     * between the threat and the ship it guards, rather than a ship that charges out to meet it.
+     *
+     * @return {@code [x, y]} for the escort's centre of gravity
+     */
+    static float[] interpose(Warship escort, Warship lead, Warship threat, List<Warship> escorts) {
+        float dx = threat.centerX() - lead.centerX();
+        float dy = threat.centerY() - lead.centerY();
+        float len = (float) Math.hypot(dx, dy);
+        if (len < 1e-3f) {
+            dx = nx(lead.facingDegrees);
+            dy = ny(lead.facingDegrees);
+            len = 1f;
+        }
+        dx /= len;
+        dy /= len;
+        // How far the lead's own hull reaches toward the threat, at its heading.
+        float along = Math.abs(dx * nx(lead.facingDegrees) + dy * ny(lead.facingDegrees));
+        float across = (float) Math.sqrt(Math.max(0f, 1f - along * along));
+        float leadExtent = 0.5f * lead.lengthCells * along + 0.5f * lead.widthCells * across;
+        float out = leadExtent + 0.5f * Math.max(escort.lengthCells, escort.widthCells) + WarshipEscort.GAP_CELLS;
+        int slot = Math.max(0, escorts.indexOf(escort));
+        int slots = Math.max(1, escorts.size());
+        float spread = (slot - (slots - 1) * 0.5f) * (Math.max(escort.lengthCells, escort.widthCells)
+                + WarshipEscort.GAP_CELLS);
+        float cx = lead.centerX() + dx * out - dy * spread;
+        float cy = lead.centerY() + dy * out + dx * spread;
+        return cog(escort, new float[]{cx, cy});
+    }
+
+    /** In the wake of the line's lead, a fixed interval astern, on its course. */
+    private static float[] lineAhead(Warship ship, WarshipManoeuvre m) {
+        Warship lead = m.leader;
+        float interval = lineInterval(lead, ship);
+        float back = WarshipFacing.wrap(lead.facingDegrees + 180f);
+        float sx = lead.centerX() + nx(back) * interval;
+        float sy = lead.centerY() + ny(back) * interval;
+        // Steer for a point on the lead's track half an interval ahead of the slot, so a ship off the track closes
+        // onto it at an angle and settles into the wake, rather than paralleling the lead abreast; a ship already
+        // past that point holds the lead's course and lets its slot come back to it.
+        float fx = nx(lead.facingDegrees);
+        float fy = ny(lead.facingDegrees);
+        float aimX = sx + fx * 0.5f * interval;
+        float aimY = sy + fy * 0.5f * interval;
+        boolean pastAim = (ship.centerX() - aimX) * fx + (ship.centerY() - aimY) * fy > 0f;
+        m.heading = pastAim ? lead.facingDegrees : WarshipFacing.bearing(ship.centerX(), ship.centerY(), aimX, aimY);
+        return cog(ship, new float[]{sx, sy});
+    }
+
+    /** A station {@code distance} ahead along {@code course}, kept inside the airspace. */
+    private static float[] ahead(Warship ship, float course, float distance, HullAirspace airspace, float margin) {
+        float[] p = airspace.settle(ship.centerX() + nx(course) * distance, ship.centerY() + ny(course) * distance,
+                margin);
+        return cog(ship, p);
+    }
+
+    /** A point for the hull's centre turned into one for its centre of gravity, which is what a station is. */
+    private static float[] cog(Warship ship, float[] centre) {
+        return new float[]{centre[0] - (ship.centerX() - ship.x), centre[1] - (ship.centerY() - ship.y)};
+    }
+
+    /** The unit vector of a hull-facing heading: the nose is along {@code (-sin, cos)}. */
+    static float nx(float heading) {
+        return (float) -Math.sin(Math.toRadians(heading));
+    }
+
+    static float ny(float heading) {
+        return (float) Math.cos(Math.toRadians(heading));
+    }
+
+    /**
+     * {@code (wantX, wantY)} held to the ship's nose: ahead at any speed, sideways at most {@link #LATERAL_SHARE} and
+     * astern at most {@link #ASTERN_SHARE} of its top speed. A ship flying a manoeuvre travels as a ship does.
+     */
+    static float[] alongNose(Warship ship, float wantX, float wantY) {
+        float fx = nx(ship.facingDegrees);
+        float fy = ny(ship.facingDegrees);
+        float along = wantX * fx + wantY * fy;
+        float across = wantX * fy - wantY * fx;
+        along = Math.max(-ASTERN_SHARE * ship.maxSpeed, along);
+        across = Math.max(-LATERAL_SHARE * ship.maxSpeed, Math.min(LATERAL_SHARE * ship.maxSpeed, across));
+        return new float[]{along * fx + across * fy, along * fy - across * fx};
+    }
+}
