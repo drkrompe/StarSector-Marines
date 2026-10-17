@@ -149,7 +149,4 @@ status in that state):
 - **Size.** Each `.blend` is about 22 MB, almost all of it the packed skin
   textures, repeated per state so each file stands alone.
 - **Soot is subtle** at whole-ship distance; it reads at the stern close-ups.
-- **A faded pod gouge still reads as an open crack** on the restored port pod's
-  upper casing (geometry, `sw_damage`; the overlay paints over it but its
-  groove stays dark). Left for the damage-states package.
 - The review studio is neutral; lighting is each shot's.

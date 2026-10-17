@@ -4117,10 +4117,10 @@
   "Forebody replaceable armor.005": "fb-stbd-deck-plate-unbolted",
   "Forebody replaceable armor.006": "fb-port-deck-plate-fwd-torn"
  },
- "left_out_objects": 79,
+ "left_out_objects": 90,
  "objects": 869,
- "polygons": 138813,
- "baked_meshes": 748,
+ "polygons": 138951,
+ "baked_meshes": 749,
  "images": [
   "Skin arm-boom-port",
   "Skin arm-forearm-out",
@@ -4233,7 +4233,7 @@
  },
  "sources": {
   "skinned_blend": "skinned-restored.blend",
-  "geometry_json_sha256": "2098693dffc6ed402e494e310e6f318ab340c81dd897e5b5fdbf0a74564f0ff2",
+  "geometry_json_sha256": "1d3765131262395581ec917776998beee3dfa4da2935f2f3fcf359cd60e0b1b1",
   "wear_params_sha256": "b27538126aa3598fe84c982cacae55c8f9de010470b26ccc64e83a1e91a3e163"
  },
  "conventions": {
@@ -4243,5 +4243,5 @@
   "wear": "Base wear: group `SW wear <state>` on skins and swatches (wear.py). State overlay: group `SW overlay <state>`, its `SW overlay master` value scales it (0 = base wear only).",
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
- "asset_sha256": "83d0393148e423b8d9fcee17a9fbaf00b9b3abd1e93bfd3c45ebda6af50b6329"
+ "asset_sha256": "aed079d0cbee704463bb7c528173490ea5c2062270dda8486fcf36b1267e1d02"
 }
