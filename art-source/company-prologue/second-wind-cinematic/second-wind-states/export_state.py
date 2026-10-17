@@ -95,8 +95,12 @@ hidden_parts = {o.name: o.get('scar_hidden') for o in bpy.data.objects if o.get(
 # touches (its own `Scar <id> ...` parts, base parts it hides, shape-keys or
 # overrides), for the cross-state continuity review.
 def _box(ob):
-    pts = [ob.matrix_world @ Vector(c) for c in ob.bound_box]
-    return Vector(map(min, *pts)), Vector(map(max, *pts))
+    # From the mesh and its own transform: a hidden part is never evaluated,
+    # so its bound_box and matrix_world are placeholders at the origin. The
+    # build parents nothing, so matrix_basis is the placement.
+    mw = ob.matrix_basis if ob.parent is None else ob.matrix_world
+    pts = [mw @ v.co for v in ob.data.vertices] or [mw.translation]
+    return Vector([min(c) for c in zip(*pts)]), Vector([max(c) for c in zip(*pts)])
 
 
 touch = {}

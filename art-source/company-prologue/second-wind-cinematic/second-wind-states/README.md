@@ -8,7 +8,13 @@ collection per state (`second-wind-pipeline.md`, Cinematic output). These
 replace `../second-wind-full-surface/`, which was built on the superseded
 landing-wreck geometry at a provisional 1.5 m per unit.
 
-![patched](patched/review/views.png)
+![four states](review/states-port-quarter.png)
+![starboard](review/states-starboard-quarter.png)
+
+Per state: `<state>/review/views.png` (four views), `close.png` (bow, port
+flank, stern, and a studio-off still showing only the ship's own lights),
+`turn.mp4` (1920x1080, 96 frames, 24 fps: the root yawed 360 degrees under a
+fixed camera) and `turn-sheet.png`.
 
 ## Use
 
@@ -100,6 +106,28 @@ swatch and the overlay on every family material; four engine anchors
 pointing aft with the manifest's running flags; turning a turret pivot 30
 degrees swings its muzzle anchors 30 degrees and leaves the barbette; moving
 the root moves the ship rigidly.
+
+### Scar continuity
+
+`review_sheet.py` checks that every scar id reads in the same place in every
+state (`review/scar-continuity.md`, `.json`, and
+`review/scar-continuity-<view>.png`, where each recorded site the camera sees
+is ringed and each id's footprint numbered by scar-table row, coloured by its
+status in that state):
+
+- **Recorded sites: identical.** The 35 ids with cast sites (craters,
+  clusters, spalls, gouges) put every site at the same hull position in all
+  four states: 0.0 units, 0 px on screen, the same count everywhere. Sites
+  are cast once on the clean ship, so this holds by construction, and the
+  check proves the states did not drift.
+- **Footprints: same place, different extent.** 53 ids touch something in at
+  least one state (their own parts, or base parts they hide, dent or
+  override). The footprint centre moves at most about 5 units between states,
+  and 10 for the starboard drive, where the bolted-on jury coil enlarges what
+  the row touches. Turret rows move 3-5 units between stripped and reinstalled.
+- Four RCS rows (`rcs-bow-port`, `rcs-pod-stbd`, `rcs-stern-stbd`,
+  `rcs-ventral`) change only material and anchor flags, so they have no
+  location to compare.
 
 ## Known limits
 

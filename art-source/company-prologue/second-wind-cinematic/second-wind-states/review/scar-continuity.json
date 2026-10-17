@@ -1,0 +1,1667 @@
+{
+ "summary": {
+  "ids": 73,
+  "ids_with_sites": 35,
+  "ids_with_footprint": 53,
+  "site_max_move_units": 0.0,
+  "site_max_move_px": 0.0,
+  "site_counts_consistent": true,
+  "ids_without_any_location": [
+   "rcs-bow-port",
+   "rcs-pod-stbd",
+   "rcs-stern-stbd",
+   "rcs-ventral"
+  ]
+ },
+ "rows": [
+  {
+   "row": 1,
+   "id": "ship-power",
+   "status": {
+    "derelict": "open",
+    "patched": "gone",
+    "refit": "gone",
+    "restored": "gone"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict"
+   ],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 2,
+   "id": "fb-port-sponson-cowl-strike",
+   "status": {
+    "derelict": "open",
+    "patched": "patched",
+    "refit": "replaced",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 1,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 0.53
+  },
+  {
+   "row": 3,
+   "id": "fb-port-bow-cheek-strike",
+   "status": {
+    "derelict": "open",
+    "patched": "patched",
+    "refit": "patched",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 1,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 0.94
+  },
+  {
+   "row": 4,
+   "id": "fb-port-bow-flank-strike",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 1,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 0.82
+  },
+  {
+   "row": 5,
+   "id": "fb-bow-glacis-strike",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 1,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 0.83
+  },
+  {
+   "row": 6,
+   "id": "fb-stbd-forebody-deck-dent",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 1,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 7,
+   "id": "fb-forward-deck-dent",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 1,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 8,
+   "id": "fb-stbd-flank-dent",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 1,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 9,
+   "id": "fb-stbd-bay-door-strike",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 1,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 10,
+   "id": "fb-port-forward-flank-cluster",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 24,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 11,
+   "id": "fb-port-bow-deck-cluster",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 14,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 12,
+   "id": "fb-stbd-bow-deck-cluster",
+   "status": {
+    "derelict": "open",
+    "patched": "patched",
+    "refit": "patched",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 6,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 13,
+   "id": "fb-stbd-flank-module-tear",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 1,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 0.91
+  },
+  {
+   "row": 14,
+   "id": "fb-port-citadel-wall-spall",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 1,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 5.31
+  },
+  {
+   "row": 15,
+   "id": "fb-stbd-bow-cheek-spall",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 1,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit"
+   ],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 16,
+   "id": "fb-port-nose-block-spall",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 1,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 0.31
+  },
+  {
+   "row": 17,
+   "id": "fb-port-sponson-scrape",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 9,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 18,
+   "id": "fb-port-glacis-gouge",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 9,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 19,
+   "id": "fb-port-deck-plate-fwd-torn",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 0.38
+  },
+  {
+   "row": 20,
+   "id": "fb-port-deck-plate-aft-torn",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 0.38
+  },
+  {
+   "row": 21,
+   "id": "fb-stbd-deck-plate-unbolted",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 0.28
+  },
+  {
+   "row": 22,
+   "id": "fb-port-deck-plate-buckle",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 0.26
+  },
+  {
+   "row": 23,
+   "id": "fb-bow-tether-padeye",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 1,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 1.05
+  },
+  {
+   "row": 24,
+   "id": "fb-stbd-bay-jamb",
+   "status": {
+    "derelict": "open",
+    "patched": "patched",
+    "refit": "patched",
+    "restored": "faded"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 0.95
+  },
+  {
+   "row": 25,
+   "id": "fb-stbd-bay-door",
+   "status": {
+    "derelict": "open",
+    "patched": "patched",
+    "refit": "patched",
+    "restored": "faded"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 0.4
+  },
+  {
+   "row": 26,
+   "id": "pod-port-drive",
+   "status": {
+    "derelict": "dead",
+    "patched": "capped",
+    "refit": "capped",
+    "restored": "running"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 5.76
+  },
+  {
+   "row": 27,
+   "id": "pod-starboard-drive",
+   "status": {
+    "derelict": "dead",
+    "patched": "jury",
+    "refit": "jury",
+    "restored": "running"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 10.11
+  },
+  {
+   "row": 28,
+   "id": "pod-port-pumps",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "gone"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit"
+   ],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 29,
+   "id": "pod-starboard-pumps",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "gone"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit"
+   ],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 30,
+   "id": "pod-port-can-feeds",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "gone"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit"
+   ],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 31,
+   "id": "pod-casing-access-panels",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "gone"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit"
+   ],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 32,
+   "id": "pod-port-outer-can",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "gone"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit"
+   ],
+   "site_points": 1,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit"
+   ],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 33,
+   "id": "pod-port-fins",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "gone"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit"
+   ],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 34,
+   "id": "pod-port-aft-shoulder",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 1,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit"
+   ],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 35,
+   "id": "pod-port-lower-casing",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 1,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit"
+   ],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 36,
+   "id": "pod-port-intake-cap",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 1,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit"
+   ],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 37,
+   "id": "pod-starboard-cowl-dent",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 1,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 38,
+   "id": "pod-port-shoulder-cluster",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 20,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 39,
+   "id": "pod-port-flank-cluster",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 14,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 40,
+   "id": "pod-port-contact-scrape",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 9,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 41,
+   "id": "pod-port-cowl-gouge",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 9,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 42,
+   "id": "pod-port-casing-plate",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 0.28
+  },
+  {
+   "row": 43,
+   "id": "pod-starboard-casing-plate",
+   "status": {
+    "derelict": "open",
+    "patched": "patched",
+    "refit": "replaced",
+    "restored": "faded"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 0.26
+  },
+  {
+   "row": 44,
+   "id": "pod-starboard-casing-buckle",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 0.26
+  },
+  {
+   "row": 45,
+   "id": "pod-tether-padeye",
+   "status": {
+    "derelict": "open",
+    "patched": "patched",
+    "refit": "patched",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 1,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 1.15
+  },
+  {
+   "row": 46,
+   "id": "aft-deck-strike",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 1,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit"
+   ],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 47,
+   "id": "aft-deck-cluster",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 10,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 48,
+   "id": "aft-deck-plate",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "replaced",
+    "restored": "faded"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 0.16
+  },
+  {
+   "row": 49,
+   "id": "aft-power-run",
+   "status": {
+    "derelict": "open",
+    "patched": "patched",
+    "refit": "patched",
+    "restored": "gone"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "patched",
+    "refit"
+   ],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 50,
+   "id": "aft-port-prong-strike",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 1,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit"
+   ],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 51,
+   "id": "aft-girder-scrape",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 9,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 52,
+   "id": "sp-housing-strike",
+   "status": {
+    "derelict": "open",
+    "patched": "patched",
+    "refit": "replaced",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 1,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 0.57
+  },
+  {
+   "row": 53,
+   "id": "sp-spine-cluster",
+   "status": {
+    "derelict": "open",
+    "patched": "patched",
+    "refit": "replaced",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 14,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 0.22
+  },
+  {
+   "row": 54,
+   "id": "sp-scattered",
+   "status": {
+    "derelict": "open",
+    "patched": "patched",
+    "refit": "replaced",
+    "restored": "faded"
+   },
+   "site_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "site_points": 24,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 0.13
+  },
+  {
+   "row": 55,
+   "id": "sp-trunk-fwd-port",
+   "status": {
+    "derelict": "open",
+    "patched": "patched",
+    "refit": "replaced",
+    "restored": "gone"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched"
+   ],
+   "footprint_spread_units": 0.01
+  },
+  {
+   "row": 56,
+   "id": "sp-trunk-fwd-stbd",
+   "status": {
+    "derelict": "open",
+    "patched": "patched",
+    "refit": "replaced",
+    "restored": "gone"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched"
+   ],
+   "footprint_spread_units": 0.01
+  },
+  {
+   "row": 57,
+   "id": "sp-trunk-aft-port",
+   "status": {
+    "derelict": "open",
+    "patched": "patched",
+    "refit": "replaced",
+    "restored": "gone"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched"
+   ],
+   "footprint_spread_units": 0.01
+  },
+  {
+   "row": 58,
+   "id": "sp-trunk-aft-stbd",
+   "status": {
+    "derelict": "open",
+    "patched": "patched",
+    "refit": "replaced",
+    "restored": "faded"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 1.06
+  },
+  {
+   "row": 59,
+   "id": "sp-mast",
+   "status": {
+    "derelict": "open",
+    "patched": "patched",
+    "refit": "replaced",
+    "restored": "faded"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 1.02
+  },
+  {
+   "row": 60,
+   "id": "sp-turret-1",
+   "status": {
+    "derelict": "open",
+    "patched": "patched",
+    "refit": "patched",
+    "restored": "faded"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 3.59
+  },
+  {
+   "row": 61,
+   "id": "sp-turret-2",
+   "status": {
+    "derelict": "open",
+    "patched": "patched",
+    "refit": "patched",
+    "restored": "faded"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 3.32
+  },
+  {
+   "row": 62,
+   "id": "sp-turret-3",
+   "status": {
+    "derelict": "open",
+    "patched": "patched",
+    "refit": "patched",
+    "restored": "faded"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 3.33
+  },
+  {
+   "row": 63,
+   "id": "sp-turret-4",
+   "status": {
+    "derelict": "open",
+    "patched": "patched",
+    "refit": "patched",
+    "restored": "faded"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 4.61
+  },
+  {
+   "row": 64,
+   "id": "sp-waist-line-cut",
+   "status": {
+    "derelict": "open",
+    "patched": "patched",
+    "refit": "patched",
+    "restored": "faded"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 0.05
+  },
+  {
+   "row": 65,
+   "id": "sp-waist-trunk-cut",
+   "status": {
+    "derelict": "open",
+    "patched": "patched",
+    "refit": "replaced",
+    "restored": "faded"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit",
+    "restored"
+   ],
+   "footprint_spread_units": 0.05
+  },
+  {
+   "row": 66,
+   "id": "rcs-bow-port",
+   "status": {
+    "derelict": "open",
+    "patched": "gone",
+    "refit": "gone",
+    "restored": "gone"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 67,
+   "id": "rcs-bow-stbd",
+   "status": {
+    "derelict": "open",
+    "patched": "patched",
+    "refit": "patched",
+    "restored": "gone"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit"
+   ],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 68,
+   "id": "rcs-pod-port",
+   "status": {
+    "derelict": "open",
+    "patched": "patched",
+    "refit": "patched",
+    "restored": "gone"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit"
+   ],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 69,
+   "id": "rcs-pod-stbd",
+   "status": {
+    "derelict": "open",
+    "patched": "gone",
+    "refit": "gone",
+    "restored": "gone"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 70,
+   "id": "rcs-stern-port",
+   "status": {
+    "derelict": "open",
+    "patched": "open",
+    "refit": "open",
+    "restored": "gone"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched",
+    "refit"
+   ],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 71,
+   "id": "rcs-stern-stbd",
+   "status": {
+    "derelict": "open",
+    "patched": "gone",
+    "refit": "gone",
+    "restored": "gone"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 72,
+   "id": "rcs-dorsal",
+   "status": {
+    "derelict": "open",
+    "patched": "patched",
+    "refit": "replaced",
+    "restored": "gone"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [
+    "derelict",
+    "patched"
+   ],
+   "footprint_spread_units": 0.0
+  },
+  {
+   "row": 73,
+   "id": "rcs-ventral",
+   "status": {
+    "derelict": "open",
+    "patched": "gone",
+    "refit": "gone",
+    "restored": "gone"
+   },
+   "site_states": [],
+   "site_points": 0,
+   "site_count_same": true,
+   "site_max_move_units": 0.0,
+   "site_max_move_px": 0.0,
+   "footprint_states": [],
+   "footprint_spread_units": 0.0
+  }
+ ]
+}
