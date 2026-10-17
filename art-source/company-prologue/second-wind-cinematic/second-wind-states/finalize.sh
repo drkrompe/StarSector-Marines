@@ -15,6 +15,7 @@ while [ $# -gt 0 ]; do case $1 in
 run() { "$BLENDER" --background --factory-startup --python-exit-code 1 --python "$@"; }
 for s in "${STATES[@]}"; do
   ./build_state.sh "$s" $SKIP
+  run export_effects.py -- --state "$s" 2>&1 | grep -E "EFFECTS|Error|Traceback"
   run verify_state.py -- --state "$s" 2>&1 | grep -E "VERIFY|Error|Traceback"
   run review_state.py -- --state "$s" --out "$FINAL/$s" --samples "$SAMPLES" --sites \
     --views port-quarter,starboard-quarter,top,stern,bow-quarter,stern-detail,port-flank-detail 2>&1 | grep -E "Error|Traceback" || true

@@ -4443,7 +4443,37 @@
   "params": "second-wind-surface/overlay/refit.json",
   "note": "Limited conversion: the old hull keeps the patched-era fade, chips, grime and weld scorch; replaced plates are clean shop primer with fresh sealant and bright fasteners (age 0, no scorch at replaced sites); starboard drives keep sooting on the jury coil."
  },
- "effects": null,
+ "effects": {
+  "collection": "SWFX",
+  "kit": "second-wind-vfx (swfx.apply, groups thrusters, smoke, guns, lighting; no rig preset)",
+  "objects": 82,
+  "controls": "SWFX controls (animatable custom properties; see second-wind-vfx/README.md)",
+  "groups": {
+   "thrusters": {
+    "engines": 4,
+    "rcs": 19,
+    "note": "RCS quad positions are art placement, not canon.",
+    "invalid_drivers": 0
+   },
+   "smoke": {
+    "state": "refit",
+    "haze": 2,
+    "dust": 4,
+    "seal_wisps": 0,
+    "welds": 0
+   },
+   "guns": {
+    "state": "refit",
+    "guns": 5,
+    "shots": 0,
+    "built": true
+   },
+   "lighting": {
+    "ship": 4
+   }
+  },
+  "append": "load both 'SECOND WIND | refit' and 'SWFX' in one call; the ship alone works without it"
+ },
  "sources": {
   "skinned_blend": "skinned-refit.blend",
   "geometry_json_sha256": "99d1daaf8f2e463514ddf32490d71f0f4f7a56ba39a1cf5c06c78fcef361c4a9",
@@ -4456,5 +4486,5 @@
   "wear": "Base wear: group `SW wear <state>` on skins and swatches (wear.py). State overlay: group `SW overlay <state>`, its `SW overlay master` value scales it (0 = base wear only).",
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
- "asset_sha256": "12c34f0d508b29f45160f90056926b6a98d2c19854732afba73925566159a4ea"
+ "asset_sha256": "ac24de061d4f256ebbbb04c4a3c938c9081ae651e74fa02302beffae77b63c7c"
 }

@@ -4478,7 +4478,37 @@
   "params": "second-wind-surface/overlay/patched.json",
   "note": "Escape and arrival: the belt's dust, fade and chips remain a shade under derelict; fresh salvage plates and welds carry little grime; small bronze heat rings round every patched scar; fresh heavy soot on starboard drives 3 and 4 (jury coil), only old faint soot on the capped port pod."
  },
- "effects": null,
+ "effects": {
+  "collection": "SWFX",
+  "kit": "second-wind-vfx (swfx.apply, groups thrusters, smoke, guns, lighting; no rig preset)",
+  "objects": 78,
+  "controls": "SWFX controls (animatable custom properties; see second-wind-vfx/README.md)",
+  "groups": {
+   "thrusters": {
+    "engines": 4,
+    "rcs": 18,
+    "note": "RCS quad positions are art placement, not canon.",
+    "invalid_drivers": 0
+   },
+   "smoke": {
+    "state": "patched",
+    "haze": 2,
+    "dust": 4,
+    "seal_wisps": 3,
+    "welds": 0
+   },
+   "guns": {
+    "state": "patched",
+    "guns": 5,
+    "shots": 0,
+    "built": true
+   },
+   "lighting": {
+    "ship": 4
+   }
+  },
+  "append": "load both 'SECOND WIND | patched' and 'SWFX' in one call; the ship alone works without it"
+ },
  "sources": {
   "skinned_blend": "skinned-patched.blend",
   "geometry_json_sha256": "12026a1944f117e4150facbb9aebe30db7e6751a2caea8bcff63fb27a8899c3b",
@@ -4491,5 +4521,5 @@
   "wear": "Base wear: group `SW wear <state>` on skins and swatches (wear.py). State overlay: group `SW overlay <state>`, its `SW overlay master` value scales it (0 = base wear only).",
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
- "asset_sha256": "f00e2cf9f419e3ee458dfe7993586cfd37b8099dd029f651574403565a9d16c4"
+ "asset_sha256": "ff1f1a5478dbc01aaaced2d7d4f58bd1ca992342615a6eb3b18a40cf20ef0b7a"
 }

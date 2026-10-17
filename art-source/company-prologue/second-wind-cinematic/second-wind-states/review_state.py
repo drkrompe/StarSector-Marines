@@ -14,6 +14,8 @@ renders orthographic 1920x1080 views:
                                 ROOT under a fixed camera and fixed lamps
 --wear-off sets the state overlay's `SW overlay master` to 0 (base wear only) for
 before/after reads of what the state adds.
+--effects also appends the optional `SWFX` collection (export_effects.py) in
+the same load, and writes stills with an `-fx` suffix.
 --lights-off turns the studio and world off, so only the ship's own emissives
 render (stills get a `-dark` suffix): the check that a dead ship is dark.
 --sites writes <view>.sites.json: every recorded scar site (manifest
@@ -43,6 +45,7 @@ ap.add_argument('--lights-off', action='store_true')
 ap.add_argument('--sites', action='store_true')
 ap.add_argument('--no-render', action='store_true')
 ap.add_argument('--device', default='GPU', choices=('GPU', 'CPU'))
+ap.add_argument('--effects', action='store_true')
 ap.add_argument('--cam', action='append', default=[])
 args = ap.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 ASSET = Path(args.asset or HERE / args.state / f'second-wind-{args.state}.blend').resolve()
@@ -76,9 +79,10 @@ bpy.ops.wm.read_factory_settings(use_empty=True)
 scene = bpy.context.scene
 with bpy.data.libraries.load(str(ASSET), link=False) as (src, dst):
     assert COLL in src.collections, f'{COLL} not in {ASSET.name}: {src.collections}'
-    dst.collections = [COLL]
+    dst.collections = [COLL, 'SWFX'] if args.effects else [COLL]
 coll = dst.collections[0]
-scene.collection.children.link(coll)
+for c in dst.collections:
+    scene.collection.children.link(c)
 root = bpy.data.objects[ROOT]
 missing = [i.name for i in bpy.data.images if i.source == 'FILE' and not i.packed_file]
 assert not missing, f'unpacked images: {missing}'
@@ -179,7 +183,7 @@ for v in [v for v in args.views.split(',') if v]:
         project_sites(v)
     if args.no_render:
         continue
-    scene.render.filepath = str(OUT / f"{v}{'-dark' if args.lights_off else ''}{'-nowear' if args.wear_off else ''}.png")
+    scene.render.filepath = str(OUT / f"{v}{'-dark' if args.lights_off else ''}{'-nowear' if args.wear_off else ''}{'-fx' if args.effects else ''}.png")
     bpy.ops.render.render(write_still=True)
     print('REVIEW still', v)
 if args.turn:

@@ -4200,7 +4200,37 @@
   "params": "second-wind-surface/overlay/restored.json",
   "note": "Repainted but not new: one coat over cream, oxide and pale, old seams and dents reading through it, neighbouring plates slightly mismatched; light chips and grime; working soot on both pods."
  },
- "effects": null,
+ "effects": {
+  "collection": "SWFX",
+  "kit": "second-wind-vfx (swfx.apply, groups thrusters, smoke, guns, lighting; no rig preset)",
+  "objects": 99,
+  "controls": "SWFX controls (animatable custom properties; see second-wind-vfx/README.md)",
+  "groups": {
+   "thrusters": {
+    "engines": 4,
+    "rcs": 24,
+    "note": "RCS quad positions are art placement, not canon.",
+    "invalid_drivers": 0
+   },
+   "smoke": {
+    "state": "restored",
+    "haze": 4,
+    "dust": 4,
+    "seal_wisps": 0,
+    "welds": 0
+   },
+   "guns": {
+    "state": "restored",
+    "guns": 5,
+    "shots": 0,
+    "built": true
+   },
+   "lighting": {
+    "ship": 4
+   }
+  },
+  "append": "load both 'SECOND WIND | restored' and 'SWFX' in one call; the ship alone works without it"
+ },
  "sources": {
   "skinned_blend": "skinned-restored.blend",
   "geometry_json_sha256": "2098693dffc6ed402e494e310e6f318ab340c81dd897e5b5fdbf0a74564f0ff2",
@@ -4213,5 +4243,5 @@
   "wear": "Base wear: group `SW wear <state>` on skins and swatches (wear.py). State overlay: group `SW overlay <state>`, its `SW overlay master` value scales it (0 = base wear only).",
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
- "asset_sha256": "48e1e6ed19c0388daa42e3c2c56bd7d04743986029d890fc59270f2c76eaa091"
+ "asset_sha256": "83d0393148e423b8d9fcee17a9fbaf00b9b3abd1e93bfd3c45ebda6af50b6329"
 }

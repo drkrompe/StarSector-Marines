@@ -63,6 +63,19 @@ root = bpy.data.objects['SECOND WIND | patched | root']
   the state overlay, group `SW overlay <state>` (`wear_overlay.py`,
   `overlay/<state>.json`); its `SW overlay master` value scales it (0 leaves
   the base wear alone).
+- **Effects (optional).** Each file also holds the VFX kit's `SWFX`
+  collection for that state (`../../second-wind-vfx/`, applied by
+  `export_effects.py` with the kit's own `swfx.apply`, no lighting-rig
+  preset): drive plumes, cores and bell glow on the engines that run, RCS on
+  the thrusters that work, haze and seal wisps, gun effects and the ship's
+  lamps, all animatable from the `SWFX controls` empty. Append it **in the
+  same load** as the ship (`dst.collections = ['SECOND WIND | patched',
+  'SWFX']`); its anchors ride the ship's parts, so the root moves them too.
+  The ship alone appends without it; the kit drives the lamp lenses from
+  `SWFX controls`, so that empty (and three other unlinked kit objects) comes
+  along as a dependency without being linked into the scene. A shot that
+  calls `swfx.apply` itself replaces the collection.
+  ![effects](review/states-effects.png)
 - `manifest.json` per state: names, bounds in units and metres, engine, RCS
   and turret anchors, lamps, every scar's status, its recorded sites and its
   footprint, wear summary and source hashes. `validation.json`: the checks
@@ -89,11 +102,13 @@ and `hull_normal` (face normal, hull space); the base wear also reads its own
 (geometry `--state S`, `apply_skin.py --wear S`, `export_state.py`),
 `verify_state.py`, `review_state.py` (stills with projected scar sites, a
 lights-off still and a 96-frame turn), `encode_turn.py`, then
-`review_sheet.py`. One state is about 2 min to build and about 20 min to
+`review_sheet.py`. `export_effects.py` adds the kit's `SWFX` collection after
+each build. One state is about 2 min to build and about 20 min to
 review on an RTX 3080. No Codex calls: the base skin is the one generated
 set, and repair surfacing, wear and overlay are ours.
 
-`review_state.py --wear-off` renders without the overlay, `--lights-off` with
+`review_state.py --effects` appends the `SWFX` collection too,
+`--wear-off` renders without the overlay, `--lights-off` with
 the studio off (ship emissives only), `--device CPU` when the GPU is busy.
 
 ## Checks
@@ -131,10 +146,6 @@ status in that state):
 
 ## Known limits
 
-- **No effects collection yet.** The VFX kit (`second-wind-vfx/`) is not on
-  main; when it lands, a per-state effects collection appended from it (not
-  forked) joins each export. Its anchors already match: +X along the effect
-  axis, parented to the parts they ride.
 - **Size.** Each `.blend` is about 22 MB, almost all of it the packed skin
   textures, repeated per state so each file stands alone.
 - **Soot is subtle** at whole-ship distance; it reads at the stern close-ups.
