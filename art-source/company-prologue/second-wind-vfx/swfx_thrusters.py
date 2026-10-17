@@ -438,6 +438,11 @@ def _rcs_material(ctx, quad):
     env = envn.outputs[0]
     field = math_node(nodes, links, 'MULTIPLY', math_node(nodes, links, 'MULTIPLY', radial, taper),
                       math_node(nodes, links, 'MULTIPLY', math_node(nodes, links, 'MULTIPLY', inside, rag), env))
+    # Readability gain: a real cold-gas puff in a shadowed quarter is all but
+    # invisible; shots that need it seen raise thr_rcs_gain.
+    ctx.prop('thr_rcs_gain', 1.0, 0, 20, 'RCS puff density and self-light multiplier (readability)')
+    gain = swfx_core.value_node(ctx, nodes, 'rcs gain', 'thr_rcs_gain', ('thr_rcs_gain',))
+    field = math_node(nodes, links, 'MULTIPLY', field, gain)
     vol = nodes.new('ShaderNodeVolumePrincipled')
     vol.inputs['Color'].default_value = (.92, .94, .97, 1)
     vol.inputs['Anisotropy'].default_value = .4

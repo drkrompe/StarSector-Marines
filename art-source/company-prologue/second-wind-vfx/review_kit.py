@@ -43,7 +43,7 @@ SHOTS = {
     # Movie: C1's starboard-down bank and bow-to-starboard correction on the
     # geometry's RCS thrusters (patched: 18 of 24 working).
     'rcs': ('patched', 'deep-space', ((25, -95, 38), (-12, -36, 5), 32),
-            dict(smk_atmosphere=0, thr_throttle=.6), None),
+            dict(smk_atmosphere=0, thr_throttle=.6, thr_rcs_gain=6), None),
 }
 
 
