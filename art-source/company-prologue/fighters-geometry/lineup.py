@@ -1,4 +1,4 @@
-"""Common-scale lineup of every fighter blockout, in metres.
+"""Common-scale lineup of every fighter model, in metres.
 
 Run from this folder after the per-fighter builds:
   blender --background --factory-startup --python lineup.py -- [--samples N]

@@ -1,5 +1,10 @@
 # Second Wind all-face surface asset
 
+Status: SUPERSEDED by `second-wind-states` (the per-state exports in
+`../second-wind-states/`, built on the current geometry at 0.65 m per unit).
+Kept only while existing shots still read it; a shot that switches must
+rescale (this asset is 1.5 m per unit) and append `SECOND WIND | <state>`.
+
 Reusable relightable Blender material pass on the retained damaged Second Wind.
 This package does not update an actual space shot. The accepted structure and
 damage come from `../landing-wreck-pass/landing-wreck-pass.blend`; the saved asset

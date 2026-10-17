@@ -371,6 +371,8 @@ public final class WarshipPlating {
 
     /** Deals {@code amount} of armour damage over the block about {@code cell} and returns what reaches the hull. */
     private float strip(int cell, float amount, float now) {
+        // The entry cell is hit even when nothing about it is left to strip: a hole can be hit again.
+        lastHitAt[cell] = now;
         int c0 = cell % cols;
         int r0 = cell / cols;
         float liveWeight = 0f;

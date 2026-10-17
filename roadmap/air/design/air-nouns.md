@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — warships are in soft contact (fighters exempt), fly hull fights in group manoeuvres with interposing escorts, on a hull-fight clock. Earlier the same day: machines have lift classes and carriers lift ratings; a cradled company boat flies machine-only sorties and flies Mech/Armour Support drops (Lift). Earlier the same day: warships brought in mid-battle come down at a distance on an entry heading, hull-fight stations eased off airspace edges, escorts screening beside their charge, a climb up through the deck, the Greyhook fighting a withdrawal against Wolfs from the west; ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at six times the shared density and slower in atmosphere, a declared airspace for the hull fight, point defence tracking what is inbound, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture, landed on the pads south of the ridge and fighting over that southern ground; a landed ship is drawn at true scale and lifts on a run (ahead off the berth, round a climbing turn) that carries it to flight presence (rationale in `warship-behaviours.md`).
+Updated: 2026-10-16 — a front-shielded ship keeps its bow on in a standoff, ships press a target deep in flux, a losing ship breaks off, hardpoints sight from a harmonised point, a breached mount is repaired once. Earlier the same day: warships are in soft contact (fighters exempt), fly hull fights in group manoeuvres with interposing escorts, on a hull-fight clock. Earlier the same day: machines have lift classes and carriers lift ratings; a cradled company boat flies machine-only sorties and flies Mech/Armour Support drops (Lift). Earlier the same day: warships brought in mid-battle come down at a distance on an entry heading, hull-fight stations eased off airspace edges, escorts screening beside their charge, a climb up through the deck, the Greyhook fighting a withdrawal against Wolfs from the west; ships fight by where their guns bear (bow hunters and broadside ships), the standoff law, hulls at six times the shared density and slower in atmosphere, a declared airspace for the hull fight, point defence tracking what is inbound, base-game damage types and charge-up cadence between hulls, rippled missile tubes and held finishers; the Greyhook over Black Sluice is a Venture, landed on the pads south of the ridge and fighting over that southern ground; a landed ship is drawn at true scale and lifts on a run (ahead off the berth, round a climbing turn) that carries it to flight presence (rationale in `warship-behaviours.md`).
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1767,9 +1767,15 @@ for one mission:
   seconds in its wake). Each ship then flies a **manoeuvre**, an intent held for tens of
   seconds with its own end conditions: approach on an oblique course, an attack run
   (bow ships) or a broadside run (broadside ships) at the standoff, extend away, come
-  about through a fixed side to unmask fresh guns, flank, line ahead. On a manoeuvre a
-  ship travels along its nose, so range opens and closes as a ship's course does rather
-  than a hover holding a ring. An escort fighting hulls **interposes** between its charge
+  about through a fixed side to unmask fresh guns, flank, line ahead. **A front-shielded
+  ship never turns its back in reach**: its run gives way to a **standoff**, a drift
+  astern and to one side round its target with nose, guns and shield still on it, out
+  past the target's reach only while it vents; an omni-shielded or shieldless ship comes
+  about instead. An attacker gains by getting outside a front shield's arc (a hunter's
+  station prefers it, and a flanker in a pack finds it); the defender's nose follows its
+  attacker within its slow turn. A run is held on while its target is near its flux
+  limit. On a manoeuvre a ship travels along its nose, so range opens and closes as a
+  ship's course does rather than a hover holding a ring. An escort fighting hulls **interposes** between its charge
   and the threat. A mission that flies its own circuit (the Greyhook's fighting
   withdrawal) is a manoeuvre of the same kind, owned by the mission.
 
@@ -2008,8 +2014,13 @@ crack and hole decals, a breached cell shows the ship's insides (torn frames und
 gutted compartments in the core, tinted to the builder's metal) rimmed with torn plate, never the
 ground, which only a hull breaking apart shows, a fresh breach glows and an open one burns, and a round's blast is
 drawn where it met the hull or its shield. A wreck keeps its cut. A mount stands on the cell
-under its slot: when that cell is breached the mount is knocked out for the rest of the battle
-(no repair in a ground battle), and a hull's heading choice counts only the guns it has left. `-Dbattle.warship.platingGrid=false`
+under its slot: when that cell is first breached the mount is silenced for the base game's repair
+time (scaled by the hull-fight clock) and comes back; once repaired, a second hit on the holed plate
+under it loses it for the rest of the battle. A hull's heading choice counts only the guns it has in
+action. A **hardpoint** sights, and measures its reach, from its mount pulled in toward the hull's
+origin by the hull reach share: hulls are drawn larger against their guns' reach than in the base
+game, and from the mount itself a fixed gun out toward a beam would never bear on the target the
+nose is laid on. `-Dbattle.warship.platingGrid=false`
 restores the flat rule and the old whole-hull darkening.
 
 **A hostile hull is a target for a ship's guns, in any mission.** Warships of
@@ -2168,7 +2179,10 @@ reaches an entry level and left only after it has stayed under half of it for
 a dwell, so a pause between sorties is not the end of the fight; while it lasts
 the ship spends flux on shots of opportunity from its secondary battery only,
 and keeps clear of any declared capital hazard. Withdraw is for the rest of the
-battle and leaves through the ordinary departure. What the ship is trying to do
+battle and leaves through the ordinary departure; besides a hull worn low, a ship
+**losing the exchange** (under three quarters of its hull while the hull it fights
+has a fifth more left) withdraws, so two equals decide a duel by one breaking off
+rather than trading to the last plate. What the ship is trying to do
 about the objective is a **mission stance** (attack, defend, hold), a value a
 mission sets and changes at any time, never derived from the ship's side; a
 hostile loaded shuttle is never a threat to a ship but an inbound drop. A
@@ -2260,7 +2274,11 @@ when it is started. Below 85% of capacity the ship fires freely; at 85% it stops
 starting new fire (what is under way finishes, a laid lance burns out) until the
 pool has drained to 55%, so a battery surges, rests and surges again, and a salvo
 that would not fit in what is left is not started, which keeps a governed ship off
-real overload. If the pool does reach capacity (point defence, or the soft limit
+real overload. A ship **presses** past that order, up to 80% of its pool (short of its own
+shield's drop), at a target that is overloaded, or shield-down and deeper in flux than
+the shooter, or at least 60% full and ten points deeper than it: the leader in a flux war
+keeps the pressure on until the other shield gives, and of two ships with their shields
+locked out the one further gone breaks off to vent. If the pool does reach capacity (point defence, or the soft limit
 switched off) the ship overloads: every mount, point defence too, falls silent and
 bursts in progress are abandoned for four to ten seconds (longer the further past
 capacity), a laid lance still burns out, dissipation continues, and the pool is

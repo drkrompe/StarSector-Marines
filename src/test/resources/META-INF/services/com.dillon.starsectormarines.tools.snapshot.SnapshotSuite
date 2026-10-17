@@ -115,6 +115,7 @@ com.dillon.starsectormarines.battle.warship.ShipArrivalSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.ShipLowPassSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.HullBroadsideSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipTacticsSceneSnapshotSuite
+com.dillon.starsectormarines.battle.warship.MirrorDuelSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.HullDurabilitySceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipMissileTacticsSceneSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.ship.SecondWindLanceSnapshotSuite
@@ -204,4 +205,5 @@ com.dillon.starsectormarines.battle.setup.GreyhookDuelSceneSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechLocationalDamageSceneSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechHullDownSceneSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.FireSupportApcSceneSnapshotSuite
+com.dillon.starsectormarines.battle.vehicle.DozerBreachSceneSnapshotSuite
 com.dillon.starsectormarines.ops.TankVariantsSnapshotSuite

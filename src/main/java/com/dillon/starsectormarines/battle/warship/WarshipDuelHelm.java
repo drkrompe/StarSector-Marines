@@ -43,6 +43,11 @@ public final class WarshipDuelHelm {
     static final int BOW_BEARINGS = 24;
     /** How much flying the whole range round to a quiet quarter costs against the target's full battery bearing. */
     static final float BOW_TRAVEL_WEIGHT = 0.35f;
+    /**
+     * How much a point inside the target's front shield arc costs, against the target's full battery bearing: fire
+     * from there is absorbed, so a quarter outside the arc (on its beam, crossing its T) is worth flying round to.
+     */
+    static final float BOW_SHIELD_WEIGHT = 0.5f;
     /** How far ahead of the target's beam the station sits, as a share of the range: the lines converge. */
     static final float CONVERGE_SHARE = 0.25f;
     /** The station is kept this many cells plus half the hull inside the map edge. */
@@ -100,7 +105,8 @@ public final class WarshipDuelHelm {
     /**
      * A bow ship's station: of {@link #BOW_BEARINGS} points round the target at {@code range}, the one where the
      * target's own anti-ship guns bear least, less {@link #BOW_TRAVEL_WEIGHT} for each range's worth of flying to get
-     * there; kept inside {@code airspace}.
+     * there, and {@link #BOW_SHIELD_WEIGHT} dearer where the target's front shield covers it; kept inside
+     * {@code airspace}.
      */
     public static float[] bowStation(Warship ship, Warship target, float range, HullAirspace airspace) {
         float tx = target.centerX();
@@ -121,13 +127,24 @@ public final class WarshipDuelHelm {
         float bestScore = Float.MAX_VALUE;
         for (int i = 0; i < BOW_BEARINGS; i++) {
             float travel = (float) Math.hypot(at[i][0] - ship.x, at[i][1] - ship.y) / Math.max(1f, range);
-            float score = (most > 0f ? threat[i] / most : 0f) + BOW_TRAVEL_WEIGHT * travel;
+            float score = (most > 0f ? threat[i] / most : 0f) + BOW_TRAVEL_WEIGHT * travel
+                    + (shieldCovers(target, at[i][0], at[i][1]) ? BOW_SHIELD_WEIGHT : 0f);
             if (score < bestScore) {
                 bestScore = score;
                 best = at[i];
             }
         }
         return best;
+    }
+
+    /** Whether {@code target}'s front shield faces the point {@code (x, y)}: a shot from there is in its arc. */
+    static boolean shieldCovers(Warship target, float x, float y) {
+        if (!target.hasShield()) return false;
+        WarshipShield shield = target.shieldModel();
+        if (shield.type() == WarshipShield.Type.OMNI) return true;
+        if (shield.type() != WarshipShield.Type.FRONT) return false;
+        float bearing = WarshipFacing.bearing(target.centerX(), target.centerY(), x, y);
+        return Math.abs(WarshipFacing.wrap(bearing - target.facingDegrees)) <= 0.5f * shield.arcDegrees();
     }
 
     /**

@@ -107,6 +107,9 @@ public class GroundSystem {
                 navigation.getGrid(), world, fireSink);
     }
 
+    /** Gives bladed hulls the blade that opens ground ahead of them. */
+    public void setBlade(DozerBlade blade) { controlSystem.setBlade(blade); }
+
     /** The mailbox the interface queues move requests into. */
     public VehicleMoveOrderService moveOrders() { return moveOrders; }
 

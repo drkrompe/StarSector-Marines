@@ -1,0 +1,129 @@
+LONGBOW | geometry: 100 meshes, 72 pass-2 detail
+detail meeting detail within one fitting: 46 pairs (counted, not listed)
+detail crossing detail across fittings: 2 pairs
+    Canopy frame sill | Hull nose strip
+    Hull nose lamp | Hull nose strip
+floating detail (touches nothing): 0
+body crossing body (pass 1): 50 pairs
+    Canopy glass dome | Hull fuselage
+    Engine 1 aft-facing bell | Engine 1 dark throat
+    Engine 1 aft-facing bell | Engine 1 mouth lip
+    Engine 1 aft-facing bell | Engine 1 port drive pod
+    Engine 1 mouth lip | Engine 1 port drive pod
+    Engine 1 port drive pod | Hull aft web
+    Engine 1 port drive pod | Wing port aft arm
+    Engine 2 aft-facing bell | Engine 2 dark throat
+    Engine 2 aft-facing bell | Engine 2 mouth lip
+    Engine 2 aft-facing bell | Engine 2 starboard drive pod
+    Engine 2 mouth lip | Engine 2 starboard drive pod
+    Engine 2 starboard drive pod | Hull aft web
+    Engine 2 starboard drive pod | Wing starboard aft arm
+    Hull aft web | Hull fuselage
+    Hull aft web | Wing port aft arm
+    Hull aft web | Wing starboard aft arm
+    Hull fore web | Hull fuselage
+    Hull fore web | Hull port prong
+    Hull fore web | Hull starboard prong
+    Hull fore web | Weapon WS 001 housing
+    Hull fore web | Weapon WS 001 ventral fin
+    Hull fore web | Weapon WS 002 inner plate
+    Hull fore web | Wing port fore arm
+    Hull fore web | Wing starboard fore arm
+    Hull fuselage | Wing port aft arm
+    Hull fuselage | Wing port fore arm
+    Hull fuselage | Wing starboard aft arm
+    Hull fuselage | Wing starboard fore arm
+    Hull port prong | Wing port fore arm
+    Hull starboard prong | Weapon WS 002 inner plate
+    Weapon WS 001 emitter | Weapon WS 001 housing
+    Weapon WS 001 emitter | Wing port fore arm
+    Weapon WS 001 housing | Weapon WS 001 ventral fin
+    Weapon WS 001 housing | Wing port fore arm
+    Weapon WS 002 cell mouth | Weapon WS 002 missile rack
+    Weapon WS 002 cell mouth | Wing starboard fore arm
+    Weapon WS 002 inner plate | Weapon WS 002 missile rack
+    Weapon WS 002 inner plate | Weapon WS 002 rack rail 1
+    Weapon WS 002 inner plate | Wing starboard fore arm
+    Weapon WS 002 missile rack | Weapon WS 002 outer plate
+    Weapon WS 002 missile rack | Weapon WS 002 rack rail 1
+    Weapon WS 002 missile rack | Weapon WS 002 rack rail 2
+    Weapon WS 002 missile rack | Wing starboard fore arm
+    Weapon WS 002 outer plate | Weapon WS 002 rack rail 2
+    Weapon WS 002 outer plate | Weapon WS 002 rack rail 3
+    Weapon WS 002 outer plate | Wing starboard fore arm
+    Weapon WS 002 rack rail 1 | Wing starboard fore arm
+    Wing port aft arm | Wing port fore arm
+    Wing port aft arm | Wing starboard aft arm
+    Wing starboard aft arm | Wing starboard fore arm
+detail bedded into body (part: body parts it meets):
+    Canopy frame bow: Canopy glass dome, Hull fuselage
+    Canopy frame sill: Canopy glass dome, Hull fuselage
+    Canopy frame windscreen arch: Canopy glass dome, Hull fuselage
+    Engine 1 centre body: Engine 1 dark throat
+    Engine 1 collar rib 1: Engine 1 port drive pod
+    Engine 1 collar rib 2: Engine 1 port drive pod
+    Engine 1 pod lamp: Engine 1 port drive pod
+    Engine 1 pod top slot slat 1: Engine 1 port drive pod
+    Engine 1 pod top slot slat 2: Engine 1 port drive pod
+    Engine 1 pod top slot slat 3: Engine 1 port drive pod
+    Engine 1 pod top slot slat 4: Engine 1 port drive pod
+    Engine 1 pod top slot well: Engine 1 port drive pod
+    Engine 1 stator vane 1: Engine 1 aft-facing bell, Engine 1 dark throat
+    Engine 1 stator vane 2: Engine 1 aft-facing bell, Engine 1 dark throat
+    Engine 1 stator vane 3: Engine 1 aft-facing bell, Engine 1 dark throat
+    Engine 1 stator vane 4: Engine 1 aft-facing bell, Engine 1 dark throat
+    Engine 1 stator vane 5: Engine 1 aft-facing bell, Engine 1 dark throat
+    Engine 1 stator vane 6: Engine 1 aft-facing bell, Engine 1 dark throat
+    Engine 1 stator vane 7: Engine 1 aft-facing bell, Engine 1 dark throat
+    Engine 1 stator vane 8: Engine 1 aft-facing bell, Engine 1 dark throat
+    Engine 2 centre body: Engine 2 dark throat
+    Engine 2 collar rib 1: Engine 2 starboard drive pod
+    Engine 2 collar rib 2: Engine 2 starboard drive pod
+    Engine 2 pod lamp: Engine 2 starboard drive pod
+    Engine 2 pod top slot slat 1: Engine 2 starboard drive pod
+    Engine 2 pod top slot slat 2: Engine 2 starboard drive pod
+    Engine 2 pod top slot slat 3: Engine 2 starboard drive pod
+    Engine 2 pod top slot slat 4: Engine 2 starboard drive pod
+    Engine 2 pod top slot well: Engine 2 starboard drive pod
+    Engine 2 stator vane 1: Engine 2 aft-facing bell, Engine 2 dark throat
+    Engine 2 stator vane 2: Engine 2 aft-facing bell, Engine 2 dark throat
+    Engine 2 stator vane 3: Engine 2 aft-facing bell, Engine 2 dark throat
+    Engine 2 stator vane 4: Engine 2 aft-facing bell, Engine 2 dark throat
+    Engine 2 stator vane 5: Engine 2 aft-facing bell, Engine 2 dark throat
+    Engine 2 stator vane 6: Engine 2 aft-facing bell, Engine 2 dark throat
+    Engine 2 stator vane 7: Engine 2 aft-facing bell, Engine 2 dark throat
+    Engine 2 stator vane 8: Engine 2 aft-facing bell, Engine 2 dark throat
+    Hull aft grille slat 1: Hull fuselage
+    Hull aft grille slat 2: Hull fuselage
+    Hull aft grille slat 3: Hull fuselage
+    Hull aft grille slat 4: Hull fuselage
+    Hull aft grille slat 5: Hull fuselage
+    Hull aft grille slat 6: Hull fuselage
+    Hull aft grille well: Hull fuselage
+    Hull dorsal antenna: Hull fuselage
+    Hull dorsal sensor housing: Hull fuselage
+    Hull nose strip: Hull fuselage
+    Hull port prong sensor fairing: Hull port prong
+    Hull starboard prong sensor fairing: Hull starboard prong
+    Weapon WS 001 emitter coil 1: Weapon WS 001 emitter
+    Weapon WS 001 emitter coil 2: Weapon WS 001 emitter
+    Weapon WS 001 emitter collar: Weapon WS 001 emitter, Weapon WS 001 housing
+    Weapon WS 001 housing window: Weapon WS 001 housing
+    Weapon WS 002 rack latch 1: Weapon WS 002 missile rack
+    Weapon WS 002 rack latch 2: Weapon WS 002 missile rack
+    Weapon WS 002 tube bore 1: Weapon WS 002 cell mouth, Weapon WS 002 missile rack
+    Weapon WS 002 tube bore 2: Weapon WS 002 cell mouth, Weapon WS 002 missile rack
+    Weapon WS 002 tube bore 3: Weapon WS 002 cell mouth, Weapon WS 002 missile rack
+    Weapon WS 002 tube bore 4: Weapon WS 002 cell mouth, Weapon WS 002 missile rack
+    Weapon WS 002 tube rim 1: Weapon WS 002 cell mouth, Weapon WS 002 missile rack
+    Weapon WS 002 tube rim 2: Weapon WS 002 cell mouth, Weapon WS 002 missile rack
+    Weapon WS 002 tube rim 3: Weapon WS 002 cell mouth, Weapon WS 002 missile rack
+    Weapon WS 002 tube rim 4: Weapon WS 002 cell mouth, Weapon WS 002 missile rack
+    Wing port aft arm vent slat 1: Wing port aft arm
+    Wing port aft arm vent slat 2: Wing port aft arm
+    Wing port aft arm vent slat 3: Wing port aft arm
+    Wing port aft arm vent well: Engine 1 port drive pod, Wing port aft arm
+    Wing starboard aft arm vent slat 1: Wing starboard aft arm
+    Wing starboard aft arm vent slat 2: Wing starboard aft arm
+    Wing starboard aft arm vent slat 3: Wing starboard aft arm
+    Wing starboard aft arm vent well: Engine 2 starboard drive pod, Wing starboard aft arm

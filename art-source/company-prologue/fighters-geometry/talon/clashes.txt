@@ -1,0 +1,100 @@
+TALON | geometry: 88 meshes, 70 pass-2 detail
+detail meeting detail within one fitting: 46 pairs (counted, not listed)
+detail crossing detail across fittings: 1 pairs
+    Canopy frame sill | Hull cockpit pod dorsal strip
+floating detail (touches nothing): 0
+body crossing body (pass 1): 28 pairs
+    Canopy glass | Hull cockpit pod
+    Engine 1 aft-facing bell | Engine 1 dark throat
+    Engine 1 aft-facing bell | Engine 1 mouth lip
+    Engine 1 aft-facing bell | Engine 1 port drive drum
+    Engine 1 mouth lip | Engine 1 port drive drum
+    Engine 1 port drive drum | Hull aft body
+    Engine 1 port drive drum | Hull gun nacelle
+    Engine 1 port drive drum | Wing port plate
+    Engine 2 aft-facing bell | Engine 2 dark throat
+    Engine 2 aft-facing bell | Engine 2 mouth lip
+    Engine 2 aft-facing bell | Engine 2 starboard drive drum
+    Engine 2 mouth lip | Engine 2 starboard drive drum
+    Engine 2 starboard drive drum | Hull aft body
+    Engine 2 starboard drive drum | Hull cockpit pod
+    Engine 2 starboard drive drum | Wing starboard plate
+    Hull aft body | Hull centre spine
+    Hull aft body | Hull cockpit pod
+    Hull aft body | Hull gun nacelle
+    Hull aft body | Wing port plate
+    Hull aft body | Wing starboard plate
+    Hull centre spine | Hull cockpit pod
+    Hull centre spine | Hull gun nacelle
+    Hull cockpit pod | Wing starboard plate
+    Hull gun nacelle | Weapon WS 001 vulcan barrel
+    Hull gun nacelle | Weapon WS 001 vulcan housing
+    Hull gun nacelle | Wing port plate
+    Weapon WS 001 vulcan barrel | Weapon WS 001 vulcan housing
+    Weapon WS 001 vulcan barrel | Weapon WS 001 vulcan muzzle ring
+detail bedded into body (part: body parts it meets):
+    Canopy frame bow: Canopy glass, Hull cockpit pod
+    Canopy frame sill: Canopy glass, Hull cockpit pod
+    Canopy frame windscreen arch: Canopy glass, Hull cockpit pod
+    Engine 1 centre body: Engine 1 dark throat
+    Engine 1 collar rib 1: Engine 1 port drive drum, Hull aft body, Wing port plate
+    Engine 1 collar rib 2: Engine 1 port drive drum, Hull aft body, Wing port plate
+    Engine 1 stator vane 1: Engine 1 dark throat
+    Engine 1 stator vane 2: Engine 1 dark throat
+    Engine 1 stator vane 3: Engine 1 dark throat
+    Engine 1 stator vane 4: Engine 1 dark throat
+    Engine 1 stator vane 5: Engine 1 dark throat
+    Engine 1 stator vane 6: Engine 1 dark throat
+    Engine 1 stator vane 7: Engine 1 dark throat
+    Engine 1 stator vane 8: Engine 1 dark throat
+    Engine 2 centre body: Engine 2 dark throat
+    Engine 2 collar rib 1: Engine 2 starboard drive drum, Hull aft body, Wing starboard plate
+    Engine 2 collar rib 2: Engine 2 starboard drive drum, Hull aft body, Wing starboard plate
+    Engine 2 stator vane 1: Engine 2 dark throat
+    Engine 2 stator vane 2: Engine 2 dark throat
+    Engine 2 stator vane 3: Engine 2 dark throat
+    Engine 2 stator vane 4: Engine 2 dark throat
+    Engine 2 stator vane 5: Engine 2 dark throat
+    Engine 2 stator vane 6: Engine 2 dark throat
+    Engine 2 stator vane 7: Engine 2 dark throat
+    Engine 2 stator vane 8: Engine 2 dark throat
+    Hull centre spine aft slot: Hull centre spine
+    Hull centre spine antenna: Hull centre spine
+    Hull centre spine fore slot: Hull centre spine, Hull gun nacelle
+    Hull centre spine grille slat 1: Hull centre spine, Hull gun nacelle
+    Hull centre spine grille slat 2: Hull centre spine, Hull gun nacelle
+    Hull centre spine grille slat 3: Hull centre spine, Hull gun nacelle
+    Hull centre spine grille slat 4: Hull centre spine, Hull gun nacelle
+    Hull centre spine grille slat 5: Hull centre spine, Hull gun nacelle
+    Hull centre spine grille slat 6: Hull centre spine, Hull gun nacelle
+    Hull centre spine grille well: Hull centre spine, Hull gun nacelle
+    Hull cockpit pod dorsal strip: Canopy glass, Hull cockpit pod
+    Hull cockpit pod dorsal vent: Hull cockpit pod
+    Hull cockpit pod nose strip: Hull cockpit pod
+    Hull cockpit pod sensor fairing: Hull cockpit pod
+    Hull port shoulder intake slat 1: Hull gun nacelle
+    Hull port shoulder intake slat 2: Hull gun nacelle
+    Hull port shoulder intake slat 3: Hull gun nacelle
+    Hull port shoulder intake slat 4: Hull gun nacelle
+    Hull port shoulder intake slat 5: Hull gun nacelle
+    Hull port shoulder intake well: Hull gun nacelle
+    Hull starboard shoulder intake slat 1: Hull cockpit pod
+    Hull starboard shoulder intake slat 2: Hull cockpit pod
+    Hull starboard shoulder intake slat 3: Hull cockpit pod
+    Hull starboard shoulder intake slat 4: Hull cockpit pod
+    Hull starboard shoulder intake slat 5: Hull cockpit pod
+    Hull starboard shoulder intake well: Hull cockpit pod
+    Weapon WS 001 vulcan barrel 1: Weapon WS 001 vulcan barrel, Weapon WS 001 vulcan muzzle ring
+    Weapon WS 001 vulcan barrel 2: Weapon WS 001 vulcan barrel, Weapon WS 001 vulcan muzzle ring
+    Weapon WS 001 vulcan barrel 3: Weapon WS 001 vulcan barrel, Weapon WS 001 vulcan muzzle ring
+    Weapon WS 001 vulcan barrel 4: Weapon WS 001 vulcan barrel, Weapon WS 001 vulcan muzzle ring
+    Weapon WS 001 vulcan barrel 5: Weapon WS 001 vulcan barrel, Weapon WS 001 vulcan muzzle ring
+    Weapon WS 001 vulcan barrel 6: Weapon WS 001 vulcan barrel, Weapon WS 001 vulcan muzzle ring
+    Weapon WS 001 vulcan breech housing: Hull gun nacelle
+    Weapon WS 001 vulcan feed cover: Hull gun nacelle
+    Weapon WS 001 vulcan jacket band 1: Hull gun nacelle, Weapon WS 001 vulcan barrel
+    Weapon WS 001 vulcan jacket band 2: Weapon WS 001 vulcan barrel
+    Weapon WS 001 vulcan shroud collar: Hull gun nacelle, Weapon WS 001 vulcan housing
+    Weapon WS 001 vulcan spindle: Weapon WS 001 vulcan barrel, Weapon WS 001 vulcan muzzle ring
+    Wing port plate vent: Wing port plate
+    Wing starboard plate vent: Wing starboard plate

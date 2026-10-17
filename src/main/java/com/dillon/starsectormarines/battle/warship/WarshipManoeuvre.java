@@ -34,8 +34,13 @@ public final class WarshipManoeuvre {
         ATTACK_RUN,
         /** A broadside ship running parallel to the target at its standoff, broadside laid on it. */
         BROADSIDE_RUN,
-        /** Holding a course away after a run, opening the range. */
+        /** Holding a course away after a run, opening the range. A broadside ship's way of opening it. */
         EXTEND,
+        /**
+         * A bow ship drifting off its target after a run, astern and to one side, its nose, its guns and any front
+         * shield still on the target: the range opens without the ship ever turning its back.
+         */
+        STANDOFF,
         /** Turning back onto the target through a fixed direction, unmasking guns as it comes round. */
         COME_ABOUT,
         /** Swinging wide round a charge's escorts to the charge's far side. */
@@ -63,6 +68,8 @@ public final class WarshipManoeuvre {
     float heading = Float.NaN;
     /** The share of its top speed the helm should hold this tick (a line's lead easing for its followers). */
     float speedShare = 1f;
+    /** For a standoff: the ship is venting a full pool, and opens past its target's reach until it has. */
+    boolean venting;
     /** Manoeuvres begun, for evidence. */
     int begun;
 
@@ -99,6 +106,7 @@ public final class WarshipManoeuvre {
     void begin(Kind next, float now, float fixedCourse) {
         kind = next;
         startedAt = now;
+        venting = false;
         course = fixedCourse;
         begun++;
     }

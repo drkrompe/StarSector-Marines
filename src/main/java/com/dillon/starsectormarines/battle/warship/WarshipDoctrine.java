@@ -41,6 +41,14 @@ public final class WarshipDoctrine {
     public static final float WITHDRAW_HULL_WITH_COVER = 0.25f;
     /** Hull share under which an overloaded or shieldless ship that is threatened leaves. */
     public static final float WITHDRAW_HULL_THREATENED = 0.6f;
+    /**
+     * Under this hull, a ship whose foe has {@link #LOSING_MARGIN} more of its own left breaks off: it is losing the
+     * exchange and has no reason to think the next pass goes better. Equal ships decide a duel this way, by a
+     * withdrawal, rather than trading to the last plate.
+     */
+    public static final float WITHDRAW_HULL_LOSING = 0.75f;
+    /** How far behind its foe, in hull share, a ship has to be to be losing the exchange. */
+    public static final float LOSING_MARGIN = 0.2f;
 
     /** A posture and the sentence that explains it. */
     public record Decision(WarshipPosture posture, String reason) {}
@@ -70,6 +78,11 @@ public final class WarshipDoctrine {
         if (in.hullFraction() < hullLimit) {
             return withdraw(String.format(Locale.ROOT, "hull %d%% under %d%%",
                     pct(in.hullFraction()), pct(hullLimit)));
+        }
+        if (in.foeHullFraction() >= 0f && in.hullFraction() < WITHDRAW_HULL_LOSING
+                && in.foeHullFraction() - in.hullFraction() >= LOSING_MARGIN) {
+            return withdraw(String.format(Locale.ROOT, "losing the exchange at hull %d%% to %d%%",
+                    pct(in.hullFraction()), pct(in.foeHullFraction())));
         }
         boolean threatened = in.airScore() >= AIR_EXIT;
         if (in.hullFraction() < WITHDRAW_HULL_THREATENED && threatened && (in.overloaded() || in.shieldDown())) {

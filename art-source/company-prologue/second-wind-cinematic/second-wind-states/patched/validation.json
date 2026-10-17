@@ -1,0 +1,84 @@
+{
+ "state": "patched",
+ "asset": "second-wind-patched.blend",
+ "collection": "SECOND WIND | patched",
+ "root": "SECOND WIND | patched | root",
+ "objects": 924,
+ "meshes": 886,
+ "images": 45,
+ "passed": true,
+ "failed": [],
+ "checks": {
+  "root present": {
+   "ok": true
+  },
+  "all under root": {
+   "ok": true,
+   "detail": []
+  },
+  "nothing linked (all appended)": {
+   "ok": true,
+   "detail": []
+  },
+  "images packed": {
+   "ok": true,
+   "detail": []
+  },
+  "object count": {
+   "ok": true,
+   "detail": [
+    886,
+    886
+   ]
+  },
+  "polygon count": {
+   "ok": true
+  },
+  "hull attributes": {
+   "ok": true,
+   "detail": []
+  },
+  "hull_rest is rest position": {
+   "ok": true,
+   "detail": 1e-06
+  },
+  "base wear on every skin and swatch": {
+   "ok": true,
+   "detail": {
+    "materials": 96,
+    "missing": []
+   }
+  },
+  "overlay group": {
+   "ok": true
+  },
+  "overlay on every family material": {
+   "ok": true,
+   "detail": {
+    "materials": 118,
+    "missing": []
+   }
+  },
+  "engine anchors": {
+   "ok": true
+  },
+  "engine anchors point aft": {
+   "ok": true
+  },
+  "running flags": {
+   "ok": true,
+   "detail": [
+    3,
+    4
+   ]
+  },
+  "turret pivots train": {
+   "ok": true,
+   "detail": 5e-06
+  },
+  "root moves the ship rigidly": {
+   "ok": true,
+   "detail": 3.1e-05
+  }
+ }
+}
