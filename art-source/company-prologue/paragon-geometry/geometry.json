@@ -43,13 +43,21 @@
   "metres_per_unit": 1.0,
   "scale": {
     "measured_this_build": {
-      "enclosed_units3": 3872634,
+      "enclosed_units3": 3566285,
       "solids": [
-        "Hull ring",
-        "Hull bore ring",
+        "Hull belt",
+        "Hull main ring",
         "Hull bore lining",
         "Hull prow",
-        "Hull core",
+        "Hull bow module",
+        "Hull port bow horn",
+        "Hull starboard bow horn",
+        "Hull core trench",
+        "Hull aft body",
+        "Hull command deck",
+        "Hull command deck upper",
+        "Hull command spine",
+        "Bridge tower",
         "Hull port pod",
         "Hull starboard pod"
       ]
@@ -72,17 +80,17 @@
     "min": [
       -188.1,
       -159.5,
-      -37.0
+      -36.0
     ],
     "max": [
       174.07,
       159.5,
-      69.57
+      64.0
     ],
     "size": [
       362.17,
       319.0,
-      106.56
+      100.0
     ]
   },
   "bore": {
@@ -91,7 +99,7 @@
       0.0
     ],
     "radius": 56.5,
-    "lining_radius": 69.0
+    "lining_radius": 76.0
   },
   "shield": {
     "anchor": "Shield emitter",
@@ -110,90 +118,90 @@
       {
         "name": "Shield emitter node 1",
         "location": [
-          53.8,
-          15.22,
-          28.5
+          60.75,
+          17.08,
+          27.8
         ],
         "faces_deg": -165.0
       },
       {
         "name": "Shield emitter node 2",
         "location": [
-          38.58,
-          41.58,
-          28.5
+          43.67,
+          46.67,
+          27.8
         ],
         "faces_deg": -135.0
       },
       {
         "name": "Shield emitter node 3",
         "location": [
-          12.22,
-          56.8,
-          28.5
+          14.08,
+          63.75,
+          27.8
         ],
         "faces_deg": -105.0
       },
       {
         "name": "Shield emitter node 4",
         "location": [
-          -18.22,
-          56.8,
-          28.5
+          -20.08,
+          63.75,
+          27.8
         ],
         "faces_deg": -75.0
       },
       {
         "name": "Shield emitter node 5",
         "location": [
-          -44.58,
-          41.58,
-          28.5
+          -49.67,
+          46.67,
+          27.8
         ],
         "faces_deg": -45.0
       },
       {
         "name": "Shield emitter node 6",
         "location": [
-          -44.58,
-          -41.58,
-          28.5
+          -49.67,
+          -46.67,
+          27.8
         ],
         "faces_deg": 45.0
       },
       {
         "name": "Shield emitter node 7",
         "location": [
-          -18.22,
-          -56.8,
-          28.5
+          -20.08,
+          -63.75,
+          27.8
         ],
         "faces_deg": 75.0
       },
       {
         "name": "Shield emitter node 8",
         "location": [
-          12.22,
-          -56.8,
-          28.5
+          14.08,
+          -63.75,
+          27.8
         ],
         "faces_deg": 105.0
       },
       {
         "name": "Shield emitter node 9",
         "location": [
-          38.58,
-          -41.58,
-          28.5
+          43.67,
+          -46.67,
+          27.8
         ],
         "faces_deg": 135.0
       },
       {
         "name": "Shield emitter node 10",
         "location": [
-          53.8,
-          -15.22,
-          28.5
+          60.75,
+          -17.08,
+          27.8
         ],
         "faces_deg": 165.0
       }
@@ -212,7 +220,7 @@
       "angle_deg": 0,
       "arc_deg": 5,
       "anchor": "Weapon WS 001 hardpoint",
-      "anchor_z": 0.0,
+      "anchor_z": 2.0,
       "muzzles": [
         "Weapon WS 001 muzzle"
       ],
@@ -230,7 +238,7 @@
       "angle_deg": 0,
       "arc_deg": 5,
       "anchor": "Weapon WS 002 hardpoint",
-      "anchor_z": 0.0,
+      "anchor_z": 2.0,
       "muzzles": [
         "Weapon WS 002 muzzle"
       ],
@@ -248,7 +256,7 @@
       "angle_deg": 80,
       "arc_deg": 220,
       "pivot": "Weapon WS 003 pivot",
-      "pivot_z": 37.12,
+      "pivot_z": 38.6,
       "barbette": "Weapon WS 003 barbette",
       "muzzles": [
         "Weapon WS 003 muzzle"
@@ -267,7 +275,7 @@
       "angle_deg": -80,
       "arc_deg": 220,
       "pivot": "Weapon WS 004 pivot",
-      "pivot_z": 37.12,
+      "pivot_z": 38.6,
       "barbette": "Weapon WS 004 barbette",
       "muzzles": [
         "Weapon WS 004 muzzle"
@@ -286,11 +294,10 @@
       "angle_deg": 20,
       "arc_deg": 210,
       "pivot": "Weapon WS 005 pivot",
-      "pivot_z": 21.72,
+      "pivot_z": 21.36,
       "barbette": "Weapon WS 005 barbette",
       "muzzles": [
-        "Weapon WS 005 muzzle 1",
-        "Weapon WS 005 muzzle 2"
+        "Weapon WS 005 muzzle"
       ],
       "elite_variant": "gravitonbeam"
     },
@@ -306,11 +313,10 @@
       "angle_deg": -20,
       "arc_deg": 210,
       "pivot": "Weapon WS 006 pivot",
-      "pivot_z": 21.72,
+      "pivot_z": 21.36,
       "barbette": "Weapon WS 006 barbette",
       "muzzles": [
-        "Weapon WS 006 muzzle 1",
-        "Weapon WS 006 muzzle 2"
+        "Weapon WS 006 muzzle"
       ],
       "elite_variant": "gravitonbeam"
     },
@@ -326,11 +332,10 @@
       "angle_deg": 70,
       "arc_deg": 210,
       "pivot": "Weapon WS 007 pivot",
-      "pivot_z": 33.49,
+      "pivot_z": 34.02,
       "barbette": "Weapon WS 007 barbette",
       "muzzles": [
-        "Weapon WS 007 muzzle 1",
-        "Weapon WS 007 muzzle 2"
+        "Weapon WS 007 muzzle"
       ],
       "elite_variant": null
     },
@@ -346,11 +351,10 @@
       "angle_deg": -70,
       "arc_deg": 210,
       "pivot": "Weapon WS 008 pivot",
-      "pivot_z": 33.49,
+      "pivot_z": 34.02,
       "barbette": "Weapon WS 008 barbette",
       "muzzles": [
-        "Weapon WS 008 muzzle 1",
-        "Weapon WS 008 muzzle 2"
+        "Weapon WS 008 muzzle"
       ],
       "elite_variant": null
     },
@@ -366,11 +370,10 @@
       "angle_deg": 170,
       "arc_deg": 150,
       "pivot": "Weapon WS 009 pivot",
-      "pivot_z": 30.9,
+      "pivot_z": 26.2,
       "barbette": "Weapon WS 009 barbette",
       "muzzles": [
-        "Weapon WS 009 muzzle 1",
-        "Weapon WS 009 muzzle 2"
+        "Weapon WS 009 muzzle"
       ],
       "elite_variant": "gravitonbeam"
     },
@@ -386,11 +389,10 @@
       "angle_deg": 190,
       "arc_deg": 150,
       "pivot": "Weapon WS 010 pivot",
-      "pivot_z": 30.9,
+      "pivot_z": 26.2,
       "barbette": "Weapon WS 010 barbette",
       "muzzles": [
-        "Weapon WS 010 muzzle 1",
-        "Weapon WS 010 muzzle 2"
+        "Weapon WS 010 muzzle"
       ],
       "elite_variant": "gravitonbeam"
     },
@@ -406,7 +408,7 @@
       "angle_deg": 50,
       "arc_deg": 210,
       "pivot": "Weapon WS 011 pivot",
-      "pivot_z": 17.34,
+      "pivot_z": 13.6,
       "barbette": "Weapon WS 011 barbette",
       "muzzles": [
         "Weapon WS 011 muzzle"
@@ -425,7 +427,7 @@
       "angle_deg": 50,
       "arc_deg": 360,
       "pivot": "Weapon WS 012 pivot",
-      "pivot_z": 36.47,
+      "pivot_z": 37.6,
       "barbette": "Weapon WS 012 barbette",
       "muzzles": [
         "Weapon WS 012 muzzle 1",
@@ -445,7 +447,7 @@
       "angle_deg": 100,
       "arc_deg": 210,
       "pivot": "Weapon WS 013 pivot",
-      "pivot_z": 15.81,
+      "pivot_z": 22.55,
       "barbette": "Weapon WS 013 barbette",
       "muzzles": [
         "Weapon WS 013 muzzle"
@@ -464,7 +466,7 @@
       "angle_deg": 130,
       "arc_deg": 360,
       "pivot": "Weapon WS 014 pivot",
-      "pivot_z": 37.21,
+      "pivot_z": 37.6,
       "barbette": "Weapon WS 014 barbette",
       "muzzles": [
         "Weapon WS 014 muzzle 1",
@@ -484,7 +486,7 @@
       "angle_deg": 90,
       "arc_deg": 150,
       "pivot": "Weapon WS 015 pivot",
-      "pivot_z": 21.11,
+      "pivot_z": 20.45,
       "barbette": "Weapon WS 015 barbette",
       "muzzles": [
         "Weapon WS 015 muzzle"
@@ -503,7 +505,7 @@
       "angle_deg": 120,
       "arc_deg": 250,
       "pivot": "Weapon WS 016 pivot",
-      "pivot_z": 30.27,
+      "pivot_z": 25.6,
       "barbette": "Weapon WS 016 barbette",
       "muzzles": [
         "Weapon WS 016 muzzle"
@@ -522,7 +524,7 @@
       "angle_deg": -40,
       "arc_deg": 210,
       "pivot": "Weapon WS 017 pivot",
-      "pivot_z": 17.33,
+      "pivot_z": 13.6,
       "barbette": "Weapon WS 017 barbette",
       "muzzles": [
         "Weapon WS 017 muzzle"
@@ -541,7 +543,7 @@
       "angle_deg": -50,
       "arc_deg": 360,
       "pivot": "Weapon WS 018 pivot",
-      "pivot_z": 36.47,
+      "pivot_z": 37.6,
       "barbette": "Weapon WS 018 barbette",
       "muzzles": [
         "Weapon WS 018 muzzle 1",
@@ -561,7 +563,7 @@
       "angle_deg": 260,
       "arc_deg": 210,
       "pivot": "Weapon WS 019 pivot",
-      "pivot_z": 15.81,
+      "pivot_z": 22.55,
       "barbette": "Weapon WS 019 barbette",
       "muzzles": [
         "Weapon WS 019 muzzle"
@@ -580,7 +582,7 @@
       "angle_deg": 230,
       "arc_deg": 360,
       "pivot": "Weapon WS 020 pivot",
-      "pivot_z": 37.21,
+      "pivot_z": 37.6,
       "barbette": "Weapon WS 020 barbette",
       "muzzles": [
         "Weapon WS 020 muzzle 1",
@@ -600,7 +602,7 @@
       "angle_deg": -90,
       "arc_deg": 150,
       "pivot": "Weapon WS 021 pivot",
-      "pivot_z": 21.12,
+      "pivot_z": 20.45,
       "barbette": "Weapon WS 021 barbette",
       "muzzles": [
         "Weapon WS 021 muzzle"
@@ -619,7 +621,7 @@
       "angle_deg": 240,
       "arc_deg": 250,
       "pivot": "Weapon WS 022 pivot",
-      "pivot_z": 30.24,
+      "pivot_z": 25.6,
       "barbette": "Weapon WS 022 barbette",
       "muzzles": [
         "Weapon WS 022 muzzle"
@@ -638,7 +640,7 @@
       "angle_deg": 180,
       "arc_deg": 150,
       "pivot": "Weapon WS 023 pivot",
-      "pivot_z": 66.52,
+      "pivot_z": 47.49,
       "barbette": "Weapon WS 023 barbette",
       "muzzles": [
         "Weapon WS 023 muzzle"
@@ -919,7 +921,8 @@
     }
   ],
   "object_names": {
-    "Hull ...": "ring, prow, core, port pod, starboard pod, bore lining",
+    "Hull ...": "belt, main ring, bore lining, prow (grille block with the capital-mount bays), bow module, port/starboard bow horn, command deck (+ upper), core trench (the deck gantry), aft body, port/starboard pod, reactor well and dome",
+    "Bridge ...": "tower and glazing on the command deck",
     "Engine <i> ...": "drive pod, aft-facing bell, mouth lip, dark throat; exhaust anchor (empty, +X along the exhaust)",
     "Weapon <slot> ...": "turrets: barbette (fixed) and pivot (empty) parenting the housing, emitters and muzzle empties; hardpoints: hardpoint anchor, housing, emitter and muzzle",
     "Shield emitter ...": "the shield anchor at shieldCenter, emitter nodes on the bore lining"
@@ -1083,9 +1086,17 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9627,
-    "sprite_uncovered": 0.0273,
-    "model_outside_sprite": 0.0104,
+    "iou": 0.9599,
+    "sprite_uncovered": 0.0271,
+    "model_outside_sprite": 0.0136,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 3.10 px per unit"
+  },
+  "gauntlet": {
+    "skin": 0.662,
+    "white": 0.598,
+    "dark": 0.437,
+    "agreement": 0.714,
+    "silhouette": 0.96,
+    "method": "per-class IoU on the sprite grid: sprite tones (skin / white / dark, 7 px majority) vs the build top-classes render (material class; faces steeper than 57 deg as dark)"
   }
 }
