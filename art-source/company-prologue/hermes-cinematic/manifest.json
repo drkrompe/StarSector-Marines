@@ -1,0 +1,673 @@
+{
+ "asset": "hermes.blend",
+ "append_collection": "HERMES",
+ "root": "HERMES | root",
+ "anchors_collection": "HERMES | anchors",
+ "state": "clean",
+ "metres_per_unit": 0.11,
+ "axes": {
+  "+X": "bow",
+  "+Y": "port",
+  "+Z": "dorsal"
+ },
+ "units": "Vanilla hull units (1 sprite px = 1 unit); multiply by metres_per_unit for metres",
+ "bounds_units_rest": [
+  [
+   -39.15,
+   -26.02,
+   -13.0
+  ],
+  [
+   42.95,
+   26.02,
+   14.36
+  ]
+ ],
+ "size_metres_rest": [
+  9.0,
+  5.7,
+  3.0
+ ],
+ "engines": [
+  {
+   "index": 1,
+   "role": "port main drive",
+   "anchor": "Engine 1 exhaust anchor",
+   "mouth": [
+    -39.0,
+    10.0,
+    0.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 3.6,
+   "width": 8,
+   "running": true
+  },
+  {
+   "index": 2,
+   "role": "centre main drive",
+   "anchor": "Engine 2 exhaust anchor",
+   "mouth": [
+    -39.0,
+    0.0,
+    0.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 3.6,
+   "width": 8,
+   "running": true
+  },
+  {
+   "index": 3,
+   "role": "starboard main drive",
+   "anchor": "Engine 3 exhaust anchor",
+   "mouth": [
+    -39.0,
+    -10.0,
+    0.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 3.6,
+   "width": 8,
+   "running": true
+  }
+ ],
+ "engines_running": [
+  1,
+  2,
+  3
+ ],
+ "rcs": [
+  {
+   "anchor": "RCS port maneuvering jet anchor",
+   "engine_slot": 4,
+   "at": [
+    -19.0,
+    23.0,
+    0.0
+   ],
+   "exhaust_dir": [
+    -0.8659999966621399,
+    0.5,
+    0.0
+   ],
+   "radius_units": 2.4,
+   "working": true
+  },
+  {
+   "anchor": "RCS starboard maneuvering jet anchor",
+   "engine_slot": 5,
+   "at": [
+    -19.0,
+    -23.0,
+    0.0
+   ],
+   "exhaust_dir": [
+    -0.8659999966621399,
+    -0.5,
+    0.0
+   ],
+   "radius_units": 2.4,
+   "working": true
+  }
+ ],
+ "turrets": [
+  {
+   "index": 1,
+   "slot": "WS 001",
+   "size": "SMALL",
+   "pivot": "Turret 1 pivot",
+   "pivot_at": [
+    12,
+    18,
+    6.7
+   ],
+   "rest_angle_deg": 45,
+   "arc_deg": 150,
+   "trained_parts": 45,
+   "fixed_parts": 16,
+   "muzzles": [
+    {
+     "tag": "port gun",
+     "barrel": "Turret 1 WS 001 barrel 1 bore",
+     "anchor": "Anchor turret 1 port gun muzzle",
+     "at": [
+      16.504,
+      23.183,
+      7.71
+     ],
+     "axis": [
+      0.707,
+      0.707,
+      0.0
+     ]
+    },
+    {
+     "tag": "starboard gun",
+     "barrel": "Turret 1 WS 001 barrel 2 bore",
+     "anchor": "Anchor turret 1 starboard gun muzzle",
+     "at": [
+      17.183,
+      22.504,
+      7.71
+     ],
+     "axis": [
+      0.707,
+      0.707,
+      0.0
+     ]
+    }
+   ]
+  },
+  {
+   "index": 2,
+   "slot": "WS 002",
+   "size": "SMALL",
+   "pivot": "Turret 2 pivot",
+   "pivot_at": [
+    12,
+    -18,
+    6.7
+   ],
+   "rest_angle_deg": -45,
+   "arc_deg": 150,
+   "trained_parts": 45,
+   "fixed_parts": 16,
+   "muzzles": [
+    {
+     "tag": "port gun",
+     "barrel": "Turret 2 WS 002 barrel 1 bore",
+     "anchor": "Anchor turret 2 port gun muzzle",
+     "at": [
+      17.183,
+      -22.504,
+      7.71
+     ],
+     "axis": [
+      0.707,
+      -0.707,
+      0.0
+     ]
+    },
+    {
+     "tag": "starboard gun",
+     "barrel": "Turret 2 WS 002 barrel 2 bore",
+     "anchor": "Anchor turret 2 starboard gun muzzle",
+     "at": [
+      16.504,
+      -23.183,
+      7.71
+     ],
+     "axis": [
+      0.707,
+      -0.707,
+      0.0
+     ]
+    }
+   ]
+  },
+  {
+   "index": 3,
+   "slot": "WS 003",
+   "size": "SMALL",
+   "pivot": "Turret 3 pivot",
+   "pivot_at": [
+    -18,
+    0,
+    11.5
+   ],
+   "rest_angle_deg": 180,
+   "arc_deg": 210,
+   "trained_parts": 45,
+   "fixed_parts": 16,
+   "muzzles": [
+    {
+     "tag": "port gun",
+     "barrel": "Turret 3 WS 003 barrel 1 bore",
+     "anchor": "Anchor turret 3 port gun muzzle",
+     "at": [
+      -24.85,
+      -0.48,
+      12.51
+     ],
+     "axis": [
+      -1.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "tag": "starboard gun",
+     "barrel": "Turret 3 WS 003 barrel 2 bore",
+     "anchor": "Anchor turret 3 starboard gun muzzle",
+     "at": [
+      -24.85,
+      0.48,
+      12.51
+     ],
+     "axis": [
+      -1.0,
+      0.0,
+      0.0
+     ]
+    }
+   ]
+  }
+ ],
+ "boarding_doors": [
+  {
+   "side": "port",
+   "anchor": "Anchor Port boarding door",
+   "hinge": "Hull port boarding door hinge",
+   "knob": "door_port",
+   "opening_units": [
+    7.0,
+    14.1
+   ],
+   "opening_m": [
+    0.77,
+    1.55
+   ],
+   "open_angle_deg": 100.0
+  },
+  {
+   "side": "starboard",
+   "anchor": "Anchor Starboard boarding door",
+   "hinge": "Hull starboard boarding door hinge",
+   "knob": "door_starboard",
+   "opening_units": [
+    7.0,
+    14.1
+   ],
+   "opening_m": [
+    0.77,
+    1.55
+   ],
+   "open_angle_deg": 100.0
+  }
+ ],
+ "control": {
+  "object": "Hermes control",
+  "knobs": [
+   "gear_up",
+   "door_port",
+   "door_starboard"
+  ],
+  "hinges": [
+   {
+    "pivot": "Gear nose hinge",
+    "knob": "gear_up",
+    "axis": "local Y",
+    "angle_at_1_deg": 90.0
+   },
+   {
+    "pivot": "Gear port main hinge",
+    "knob": "gear_up",
+    "axis": "local Y",
+    "angle_at_1_deg": -90.0
+   },
+   {
+    "pivot": "Gear starboard main hinge",
+    "knob": "gear_up",
+    "axis": "local Y",
+    "angle_at_1_deg": -90.0
+   },
+   {
+    "pivot": "Hull port boarding door hinge",
+    "knob": "door_port",
+    "axis": "local Z",
+    "angle_at_1_deg": 100.0
+   },
+   {
+    "pivot": "Hull starboard boarding door hinge",
+    "knob": "door_starboard",
+    "axis": "local Z",
+    "angle_at_1_deg": -100.0
+   }
+  ],
+  "saved_pose": {
+   "gear_up": 0.0,
+   "door_port": 0.0,
+   "door_starboard": 0.0
+  }
+ },
+ "landing": {
+  "ground_z": -13.0,
+  "note": "the gear is built extended: at rest the soles stand on ground_z",
+  "sole_anchors": [
+   {
+    "leg": "nose",
+    "anchor": "Anchor gear nose sole",
+    "sole_z_rest": -13.0
+   },
+   {
+    "leg": "port main",
+    "anchor": "Anchor gear port main sole",
+    "sole_z_rest": -13.0
+   },
+   {
+    "leg": "starboard main",
+    "anchor": "Anchor gear starboard main sole",
+    "sole_z_rest": -13.0
+   }
+  ]
+ },
+ "lamps_lit": 5,
+ "lamps": [
+  {
+   "object": "Hull troop bay lamp strip",
+   "material": "Troop bay lamp lens",
+   "lit": true,
+   "at": [
+    8.0,
+    0.0,
+    8.2
+   ]
+  },
+  {
+   "object": "Nose lamp 1",
+   "material": "Running lamps",
+   "lit": true,
+   "at": [
+    36.56,
+    1.5,
+    5.7
+   ]
+  },
+  {
+   "object": "Nose lamp 2",
+   "material": "Running lamps",
+   "lit": true,
+   "at": [
+    36.56,
+    -1.5,
+    5.7
+   ]
+  },
+  {
+   "object": "Nose lamp 3",
+   "material": "Running lamps",
+   "lit": true,
+   "at": [
+    34.54,
+    7.56,
+    5.28
+   ]
+  },
+  {
+   "object": "Nose lamp 4",
+   "material": "Running lamps",
+   "lit": true,
+   "at": [
+    34.54,
+    -7.56,
+    5.28
+   ]
+  }
+ ],
+ "objects": 633,
+ "polygons": 45674,
+ "baked_meshes": 335,
+ "images": [
+  "Skin aft-arm-port",
+  "Skin aft-side-port",
+  "Skin aft-stern",
+  "Skin aft-top",
+  "Skin spine-nose",
+  "Skin spine-side-port",
+  "Skin spine-top",
+  "Skin spine-under",
+  "Skin sponson-front-port",
+  "Skin sponson-top-port",
+  "Skin sponson-under",
+  "Skin sponson-wall-port",
+  "Swatch cream",
+  "Swatch dark",
+  "Swatch glass",
+  "Swatch grey",
+  "Swatch gunmetal"
+ ],
+ "effects": {
+  "collection": "SWFX",
+  "kit": "second-wind-vfx (swfx.apply, hull profile hermes-cinematic/vfx_hull.py, state clean, groups thrusters, smoke, guns, lighting; no rig preset)",
+  "objects": 51,
+  "anchors": {
+   "engines": [
+    {
+     "index": 1,
+     "side": "port",
+     "radius": 3.6,
+     "mouth": [
+      -39.0,
+      10.0,
+      0.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 2,
+     "side": "centre",
+     "radius": 3.6,
+     "mouth": [
+      -39.0,
+      0.0,
+      0.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 3,
+     "side": "starboard",
+     "radius": 3.6,
+     "mouth": [
+      -39.0,
+      -10.0,
+      0.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    }
+   ],
+   "guns": [
+    {
+     "turret": 1,
+     "tag": "port gun",
+     "muzzle": [
+      16.504,
+      23.183,
+      7.71
+     ],
+     "axis": [
+      0.707,
+      0.707,
+      0.0
+     ]
+    },
+    {
+     "turret": 1,
+     "tag": "starboard gun",
+     "muzzle": [
+      17.183,
+      22.504,
+      7.71
+     ],
+     "axis": [
+      0.707,
+      0.707,
+      0.0
+     ]
+    },
+    {
+     "turret": 2,
+     "tag": "port gun",
+     "muzzle": [
+      17.183,
+      -22.504,
+      7.71
+     ],
+     "axis": [
+      0.707,
+      -0.707,
+      0.0
+     ]
+    },
+    {
+     "turret": 2,
+     "tag": "starboard gun",
+     "muzzle": [
+      16.504,
+      -23.183,
+      7.71
+     ],
+     "axis": [
+      0.707,
+      -0.707,
+      0.0
+     ]
+    },
+    {
+     "turret": 3,
+     "tag": "port gun",
+     "muzzle": [
+      -24.85,
+      -0.48,
+      12.51
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "turret": 3,
+     "tag": "starboard gun",
+     "muzzle": [
+      -24.85,
+      0.48,
+      12.51
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    }
+   ],
+   "lamps": [
+    {
+     "name": "Nose lamp 3",
+     "role": "running-port",
+     "at": [
+      34.545,
+      7.562,
+      5.281
+     ]
+    },
+    {
+     "name": "Nose lamp 4",
+     "role": "running-starboard",
+     "at": [
+      34.545,
+      -7.562,
+      5.281
+     ]
+    },
+    {
+     "name": "Nose lamp 1",
+     "role": "work",
+     "at": [
+      36.556,
+      1.5,
+      5.699
+     ]
+    },
+    {
+     "name": "Nose lamp 2",
+     "role": "work",
+     "at": [
+      36.556,
+      -1.5,
+      5.699
+     ]
+    }
+   ],
+   "sparks": [],
+   "bounds": [
+    [
+     -39.15,
+     -26.02,
+     -13.0
+    ],
+    [
+     42.95,
+     26.02,
+     14.36
+    ]
+   ]
+  },
+  "controls": "SWFX controls (animatable custom properties; see second-wind-vfx/README.md)",
+  "groups": {
+   "thrusters": {
+    "engines": 3,
+    "rcs": 2,
+    "note": "RCS quad positions are art placement, not canon.",
+    "invalid_drivers": 0
+   },
+   "smoke": {
+    "state": "clean",
+    "haze": 3,
+    "dust": 4,
+    "seal_wisps": 0,
+    "welds": 0,
+    "sparks": 0
+   },
+   "guns": {
+    "state": "clean",
+    "guns": 6,
+    "shots": 0,
+    "built": true
+   },
+   "lighting": {
+    "ship": 4
+   }
+  },
+  "append": "load both 'HERMES' and 'SWFX' in one call; the ship alone works without it"
+ },
+ "sources": {
+  "skinned_blend": "hermes-surface/build/skinned.blend",
+  "geometry_json_sha256": "3771728f540f180e6a09b639153c6f09b9adb73aa6129ced9f92dbeb4d22f344",
+  "skin_manifest_sha256": "cdc4ae75a28988cd89ef860d5078c457d9da78e7487193baf554c90f3782d0c6"
+ },
+ "conventions": {
+  "root": "Every ship part and anchor descends from the root; move, rotate or scale the root only.",
+  "anchors": "Local +X is the effect axis (exhaust aft; line of fire; outboard for doors; down for gear soles); +Z as near hull-dorsal as that allows.",
+  "turrets": "Rotate Turret <i> pivot about its local Z to train; the rest pose is the slot angle.",
+  "control": "Animate the knobs on the 'Hermes control' empty (gear_up, door_port, door_starboard; 0..1). At rest (all 0) the gear stands on landing.ground_z in hull space: place the root that far above the ground plane.",
+  "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
+ },
+ "asset_sha256": "112dda37c612954d7487a254145a53491d1de3a5accc35b9e0b8002a384b659b"
+}

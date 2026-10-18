@@ -58,6 +58,11 @@ mudskipper-cinematic/*.blend1
 mudskipper-cinematic/review/
 hound-surface/grading/
 hermes-surface/review/
+# Hermes cinematic export: the .blend is rebuilt by finalize.sh; the manifest
+# and validation stay tracked.
+hermes-cinematic/*.blend
+hermes-cinematic/*.blend1
+hermes-cinematic/review/
 hermes-surface/textures/
 hermes-surface/grading/
 hermes-surface/skin-manifest.json
